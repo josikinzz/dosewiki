@@ -1,6 +1,6 @@
-import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
+import { getAllSubstanceDocuments } from "../../lib/data-pagination.mjs";
 import { CONFIG } from "./config.mjs";
-import { getArticleSlug, stripConvexMetadata } from "./articles.mjs";
+import { getArticleSlug, stripDataMetadata } from "./articles.mjs";
 import { sectionKeyToPromptKey } from "../../lib/prompt-registry.mjs";
 import {
   buildGenericSourceSections,
@@ -12,14 +12,14 @@ export async function loadPromptFromSource(sourceClient, api) {
   const promptKey = sectionKeyToPromptKey("summary");
   const prompt = await sourceClient.query(api.prompts.getByKey, { key: promptKey });
   if (!prompt) {
-    throw new Error(`${promptKey} prompt not found in source Convex deployment.`);
+    throw new Error(`${promptKey} prompt not found in source Postgres deployment.`);
   }
   return prompt.content;
 }
 
 export async function loadArticles(client, api) {
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
-  return articles.map(stripConvexMetadata);
+  return articles.map(stripDataMetadata);
 }
 
 export async function loadSummaryQuoteSlugs(sourceClient, api) {
@@ -34,7 +34,7 @@ export async function loadArticleSourceSlugs(sourceClient, api) {
 
   while (!isDone) {
     const result = await sourceClient.query(api.articleSources.getSubstanceList, {
-      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+      apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
       cursor,
       limit: 100,
     });
@@ -60,10 +60,10 @@ export async function loadSummaryQuote(sourceClient, api, slug) {
 export async function loadArticleSources(sourceClient, api, slug) {
   const sourceDoc = await sourceClient.query(api.articleSources.getBySlug, {
     slug,
-    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+    apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
   });
   return sourceDoc
-    ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "convex" })
+    ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "postgres" })
     : null;
 }
 
@@ -134,7 +134,7 @@ export async function resolveSourceMaterial({
     return {
       slug,
       status: "skipped",
-      reason: "No summary quote doc or articleSources doc in source Convex",
+      reason: "No summary quote doc or articleSources doc in source Postgres",
     };
   }
 

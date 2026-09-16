@@ -93,5 +93,5 @@ export const resolveAboutSubtitle = (values: AboutPlaceholderValues): string =>
 
 export const normalizeFounderKeys = sanitizeFounderKeys;
 
-// Export applyPlaceholders for use with Convex content
+// Export applyPlaceholders for use with Postgres content
 export { applyPlaceholders };

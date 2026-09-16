@@ -10,7 +10,7 @@ import {
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const SECRET = "scoped-secret";
-const env = { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET };
+const env = { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET };
 const logger = { log() {} };
 
 // The runner pins the exact campaign population (5,097 eligible credit updates
@@ -61,7 +61,7 @@ function synthesizePlan() {
 const fixture = synthesizePlan();
 const PLAN = fixture.planPath;
 const pins = fixture.pins;
-const baseArgs = (ledger, extra = []) => ["--plan", PLAN, "--ledger", ledger, "--target-url", EXACT_TARGET, "--expected-deployment", "glad-minnow-656", "--expected-plan-file-sha256", pins.fileSha256, "--expected-plan-sha256", pins.planSha256, ...extra];
+const baseArgs = (ledger, extra = []) => ["--plan", PLAN, "--ledger", ledger, "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", "--expected-plan-file-sha256", pins.fileSha256, "--expected-plan-sha256", pins.planSha256, ...extra];
 const completion = () => ({ status: "complete", target: EXACT_TARGET, deployment: "prod:glad-minnow-656", planFileSha256: DEDUPE_PLAN_FILE_SHA256, contentSha256: DEDUPE_CONTENT_SHA256 });
 const run = (options) => runAttributionRollout({ env, logger, pins, ...options });
 const workspace = () => {
@@ -122,7 +122,7 @@ describe("pinned attribution rollout", () => {
   });
 
   it("defaults to a zero-network local dry run", async () => {
-    const result = await run({ argv: ["--plan", PLAN], env: {}, clientFactory: () => { throw new Error("network"); } });
+    const result = await run({ argv: ["--plan", PLAN], env: { DATA_BACKEND: "postgres" }, clientFactory: () => { throw new Error("network"); } });
     expect(result).toMatchObject({ mode: "local-dry-run", networkCalls: 0, batches: 1 });
   });
 
@@ -139,16 +139,32 @@ describe("pinned attribution rollout", () => {
 
   it("requires the scoped credential and exact plan confirmation for any live call", async () => {
     const { ledger } = workspace();
-    await expect(run({ argv: baseArgs(ledger, ["--live-dry-run"]), env: {} })).rejects.toThrow(/REPLICATION_MAINTENANCE/);
-    await expect(run({ argv: baseArgs(ledger, ["--live-dry-run"]), env: { CONVEX_ADMIN_KEY: "legacy" } })).rejects.toThrow(/REPLICATION_MAINTENANCE/);
+    await expect(run({ argv: baseArgs(ledger, ["--live-dry-run"]), env: { DATA_BACKEND: "postgres" } })).rejects.toThrow(/REPLICATION_MAINTENANCE/);
+    await expect(run({ argv: baseArgs(ledger, ["--live-dry-run"]), env: { DATA_BACKEND: "postgres", DATA_ADMIN_KEY: "legacy" } })).rejects.toThrow(/REPLICATION_MAINTENANCE/);
     const wrongPin = baseArgs(ledger, ["--live-dry-run"]).map((arg) => (arg === pins.fileSha256 ? "0".repeat(64) : arg));
     await expect(run({ argv: wrongPin, clientFactory: () => { throw new Error("network"); } })).rejects.toThrow(/Exact attribution plan confirmation/);
   });
 
   it("enforces dedupe and canary gates", async () => {
     const { ledger, evidence } = workspace();
-    await expect(run({ argv: baseArgs(ledger, ["--write", "--phase", "remaining", "--confirm-write", OPERATION]) })).rejects.toThrow(/dedupe-completion/);
-    await expect(run({ argv: baseArgs(ledger, ["--write", "--phase", "remaining", "--confirm-write", OPERATION, "--dedupe-completion-evidence", evidence]) })).rejects.toThrow(/canary/i);
+    const clientFactory = vi.fn(() => { throw new Error("client must not be constructed before local gates"); });
+    await expect(run({ argv: baseArgs(ledger, ["--write", "--phase", "remaining", "--confirm-write", OPERATION]), clientFactory })).rejects.toThrow(/dedupe-completion/);
+    await expect(run({ argv: baseArgs(ledger, ["--write", "--phase", "remaining", "--confirm-write", OPERATION, "--dedupe-completion-evidence", evidence]), clientFactory })).rejects.toThrow(/canary/i);
+    expect(clientFactory).not.toHaveBeenCalled();
+  });
+
+  it("rejects absent, mismatched, and retired live targets before constructing a client", async () => {
+    const { ledger } = workspace();
+    const clientFactory = vi.fn(() => { throw new Error("network"); });
+    const argv = baseArgs(ledger, ["--live-dry-run"]);
+    const targetIndex = argv.indexOf("--target");
+    const withoutTarget = argv.filter((_, index) => index !== targetIndex && index !== targetIndex + 1);
+    const mismatched = argv.map((arg) => arg === "localhost/dosewiki" ? "localhost/other" : arg);
+    const retired = argv.map((arg) => arg === "postgresql://localhost/dosewiki" ? EXACT_TARGET : arg);
+    for (const args of [withoutTarget, mismatched, retired]) {
+      await expect(run({ argv: args, clientFactory })).rejects.toThrow();
+    }
+    expect(clientFactory).not.toHaveBeenCalled();
   });
 
   it("applies the canary only after exact pre-write read-back and verifies hot and cold post-write state", async () => {

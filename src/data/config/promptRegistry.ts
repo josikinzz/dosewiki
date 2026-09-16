@@ -23,7 +23,7 @@ export type PromptDescriptor =
       kind: "generator";
       label: string;
       seedPath: string;
-      convexKey: "generator";
+      dataKey: "generator";
       editorVisible: boolean;
     }
   | {
@@ -32,7 +32,7 @@ export type PromptDescriptor =
       label: string;
       description: string;
       seedPath: string;
-      convexKey: "formal_citations_agent";
+      dataKey: "formal_citations_agent";
       editorVisible: boolean;
     }
   | {
@@ -42,7 +42,7 @@ export type PromptDescriptor =
       label: string;
       description: string;
       seedPath: string;
-      convexKey: `formal_citations_section_${FormalCitationSectionKey}`;
+      dataKey: `formal_citations_section_${FormalCitationSectionKey}`;
       sourceMaterial: PromptSourceMaterial;
       editorVisible: boolean;
     }
@@ -53,7 +53,7 @@ export type PromptDescriptor =
       label: string;
       description: string;
       seedPath: string;
-      convexKey: `section_${SectionKey}`;
+      dataKey: `section_${SectionKey}`;
       sourceMaterial: PromptSourceMaterial;
       editorVisible: boolean;
     };
@@ -86,15 +86,15 @@ export const formalCitationPromptDescriptors = promptRegistry.filter(
 export function formalCitationSectionKeyToPromptKey(
   sectionKey: FormalCitationSectionKey,
 ): `formal_citations_section_${FormalCitationSectionKey}` {
-  return getFormalCitationSectionPromptDescriptor(sectionKey).convexKey;
+  return getFormalCitationSectionPromptDescriptor(sectionKey).dataKey;
 }
 
 export function sectionKeyToPromptKey(sectionKey: SectionKey): `section_${SectionKey}` {
-  return getSectionPromptDescriptor(sectionKey).convexKey;
+  return getSectionPromptDescriptor(sectionKey).dataKey;
 }
 
 export function getPromptDescriptorByKey(key: string): PromptDescriptor | undefined {
-  return promptRegistry.find((descriptor) => descriptor.convexKey === key);
+  return promptRegistry.find((descriptor) => descriptor.dataKey === key);
 }
 
 export function getSectionPromptDescriptor(sectionKey: SectionKey) {

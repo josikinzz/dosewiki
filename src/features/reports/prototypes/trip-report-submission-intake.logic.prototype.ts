@@ -1,9 +1,9 @@
 /*
  * PROTOTYPE - trip report submission intake logic.
  *
- * Question: does a private Convex intake queue give us the right backend
+ * Question: does a private Postgres intake queue give us the right backend
  * states for public form submissions before any report is promoted to the
- * existing public Convex tripReports collection?
+ * existing public Postgres tripReports collection?
  */
 
 export type SubmissionStatus =
@@ -81,7 +81,7 @@ export type TripReportSubmissionRow = {
   updated_at: string;
 };
 
-type ConvexTripReportImportPayload = TripReportDraft & {
+type DataTripReportImportPayload = TripReportDraft & {
   slug: string;
   featured: boolean;
 }
@@ -92,7 +92,7 @@ export type IntakeState = {
   submissions: TripReportSubmissionRow[];
   selectedId?: string;
   lastResult: string;
-  lastPromotionPreview?: ConvexTripReportImportPayload;
+  lastPromotionPreview?: DataTripReportImportPayload;
 };
 
 export type SubmitResult =
@@ -223,7 +223,7 @@ export function previewAcceptedSubmissionPromotion(state: IntakeState, id: strin
     slug: slugify(row.title),
     featured: false,
   };
-  state.lastResult = `Built Convex promotion preview for ${row.id}; not written anywhere.`;
+  state.lastResult = `Built Postgres promotion preview for ${row.id}; not written anywhere.`;
   return { ok: true, row, message: state.lastResult };
 }
 

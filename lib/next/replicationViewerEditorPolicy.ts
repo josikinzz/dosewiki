@@ -4,7 +4,7 @@ import { isEditorHost } from "./publicHostPolicy";
 type ReplicationViewerEditorRoute = (request: Request) => Promise<NextResponse>;
 
 /**
- * Reject public hosts before auth, rate limits, or Convex configuration run.
+ * Reject public hosts before auth, rate limits, or Postgres configuration run.
  * Effect Index intentionally has none of the editor's credentials.
  */
 export function replicationViewerEditorRoute(

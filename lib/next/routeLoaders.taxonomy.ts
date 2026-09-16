@@ -2,15 +2,13 @@ import "server-only";
 
 import { cache } from "react";
 import {
-  getPublicEffectArticles,
+  getPublicEffectSummariesBySlugs,
   getPublicEffects,
-  getPublicGalleryReplications,
-  type PublicEffectArticle,
+  getPublicArtistCreditRows,
   type PublicEffectPreview,
-} from "@server/convex/publicData";
-import { getPublicCategoryDetail, getPublicMechanismDetail } from "@server/convex/publicLibrary";
+} from "@server/data/publicData";
+import { getPublicCategoryDetail, getPublicMechanismDetail } from "@server/data/publicLibrary";
 import {
-  getLocalizedPublicEffectArticles,
   getLocalizedPublicEffects,
 } from "@server/translation/localizedRecords";
 import {
@@ -29,6 +27,13 @@ import {
   getStaticEffectCategoryParams,
 } from "./staticParams";
 import { toRouteMetadata, type RouteMetadataSource } from "./routeLoaderResults";
+import { localizeRecords } from "../translation/liveTranslation";
+import { getDrugClassContent } from "../../src/data/drugClassContent";
+import {
+  resolveDrugClassSections,
+  INITIAL_DRUG_CLASS_SECTION_LIMIT,
+  type CategoryEffect,
+} from "../../src/components/pages/categoryPageContents";
 
 export type TaxonomyRouteFamily =
   | "category"
@@ -44,7 +49,7 @@ export type TaxonomyRouteParams<TFamily extends TaxonomyRouteFamily> = Extract<
 export interface TaxonomyRouteDescriptor<TFamily extends TaxonomyRouteFamily, TDetail> {
   routeFamily: TFamily;
   getDetail: (params: TaxonomyRouteParams<TFamily>) => Promise<TDetail>;
-  getMetadata: (input: { params: TaxonomyRouteParams<TFamily>; detail: TDetail }) => RouteMetadataSource;
+  getMetadata: (input: { params: TaxonomyRouteParams<TFamily>; detail: TDetail | null }) => RouteMetadataSource;
   /** Returns the canonical params when the requested params are a known alias. */
   getAlias?: (params: TaxonomyRouteParams<TFamily>) => TaxonomyRouteParams<TFamily> | null;
   isMissing?: (detail: TDetail) => boolean;
@@ -85,8 +90,6 @@ export async function loadTaxonomyRoute<TFamily extends TaxonomyRouteFamily, TDe
     params,
   } as Extract<PublicRouteIdentity, { family: TFamily }>;
   const aliasTarget = descriptor.getAlias?.(params) ?? null;
-  const detail = await descriptor.getDetail(params);
-  const metadata = toRouteMetadata(descriptor.getMetadata({ params, detail }));
 
   if (aliasTarget) {
     return {
@@ -95,10 +98,13 @@ export async function loadTaxonomyRoute<TFamily extends TaxonomyRouteFamily, TDe
         family: descriptor.routeFamily,
         params: aliasTarget,
       } as Extract<PublicRouteIdentity, { family: TFamily }>),
-      metadata,
+      metadata: toRouteMetadata(descriptor.getMetadata({ params, detail: null })),
       canonicalRoute: requestedRoute,
     };
   }
+
+  const detail = await descriptor.getDetail(params);
+  const metadata = toRouteMetadata(descriptor.getMetadata({ params, detail }));
 
   const missing = descriptor.isMissing ? descriptor.isMissing(detail) : detail == null;
 
@@ -137,9 +143,13 @@ const categoryRouteDescriptor: TaxonomyRouteDescriptor<"category", CategoryDetai
   }),
 };
 
+export const loadCategoryMetadataRoute = cache((categoryKey: string) =>
+  loadTaxonomyRoute(categoryRouteDescriptor, { categoryKey }),
+);
+
 export type CategoryRouteResult =
   | (TaxonomyOkRouteResult<CategoryDetailData> & {
-      effects: PublicEffectArticle[];
+      effects: CategoryEffect[];
       artistCreditLinks: ArtistCreditLinks;
     })
   | Exclude<TaxonomyRouteResult<CategoryDetailData>, { kind: "ok" }>;
@@ -148,23 +158,38 @@ export const loadCategoryRoute = cache(async (
   categoryKey: string,
   locale: LiveLocale | null = null,
 ): Promise<CategoryRouteResult> => {
-  const result = await loadTaxonomyRoute(categoryRouteDescriptor, { categoryKey });
+  const result = await loadCategoryMetadataRoute(categoryKey);
 
   if (result.kind !== "ok") {
     return result;
   }
 
-  const [effects, galleryReplications] = await Promise.all([
-    locale
-      ? getLocalizedPublicEffectArticles(locale.code)
-      : getPublicEffectArticles(),
-    getPublicGalleryReplications(),
+  const content = getDrugClassContent(result.detail.definition.key);
+  if (!content?.sections?.length) {
+    return { ...result, effects: [], artistCreditLinks: new Map() };
+  }
+  const previews = await getPublicEffects();
+  const sections = resolveDrugClassSections(content, previews);
+  const selectedSlugs = new Set(sections.flatMap(({ effects }) => effects.map(({ slug }) => slug)));
+  const summarySlugs = [...new Set(sections
+    .slice(0, INITIAL_DRUG_CLASS_SECTION_LIMIT)
+    .flatMap(({ effects }) => effects.map(({ slug }) => slug)))];
+  const [summaries, artistCreditRows] = await Promise.all([
+    getPublicEffectSummariesBySlugs(summarySlugs),
+    summarySlugs.length > 0 ? getPublicArtistCreditRows() : Promise.resolve([]),
   ]);
+  const summaryBySlug = new Map(summaries.map((effect) => [effect.slug, effect]));
+  const canonicalEffects = previews
+    .filter(({ slug }) => selectedSlugs.has(slug))
+    .map((effect) => summaryBySlug.get(effect.slug) ?? effect);
+  const effects = locale
+    ? (await localizeRecords(canonicalEffects, locale.code, "effect")).records
+    : canonicalEffects;
 
   return {
     ...result,
     effects,
-    artistCreditLinks: buildArtistCreditLinks(galleryReplications),
+    artistCreditLinks: buildArtistCreditLinks(artistCreditRows),
   };
 });
 
@@ -178,13 +203,13 @@ async function getEffectCategoryDetail(
     return null;
   }
 
+  const canonicalEffects = (await getPublicEffects())
+    .filter((effect) => effectMatchesCategorySlug(effect, categorySlug));
   const effects = locale
-    ? await getLocalizedPublicEffects(locale.code)
-    : await getPublicEffects();
+    ? (await localizeRecords(canonicalEffects, locale.code, "effect")).records
+    : canonicalEffects;
 
-  return effects
-    .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  return effects.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export const effectCategoryRouteDescriptor: TaxonomyRouteDescriptor<
@@ -245,7 +270,7 @@ async function getMechanismQualifierDetail({
   mechanismSlug,
   qualifierSlug,
 }: TaxonomyRouteParams<"mechanismQualifier">): Promise<MechanismQualifierDetailData> {
-  const mechanism = await getPublicMechanismDetail(mechanismSlug);
+  const mechanism = await getPublicMechanismDetail(mechanismSlug, qualifierSlug);
   const qualifier = mechanism?.qualifiers.find((entry) => entry.key === qualifierSlug);
 
   if (!mechanism || !qualifier) {

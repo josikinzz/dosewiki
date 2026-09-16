@@ -4,13 +4,13 @@ Last verified: 2026-03-30
 
 This appendix holds the runtime, data-flow, auth, and integration details that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
-Update this file when route ownership, Convex read/write paths, role enforcement, or third-party integration boundaries change.
+Update this file when route ownership, Postgres read/write paths, role enforcement, or third-party integration boundaries change.
 
 ## Data Architecture
 
-### Convex data model
+### Postgres document model
 
-Primary Convex tables:
+Primary Postgres tables:
 
 - `substanceIndex`
 - `reagentTests`
@@ -30,12 +30,12 @@ Primary Convex tables:
 - `changelog`
 - `moleculeOverrides`
 
-### Why the Convex schema is permissive
+### Why the document schema is permissive
 
-The schema in `convex/schema.ts` validates the essential top-level shape for major tables, but many nested article fields use `v.any()`. This is a deliberate tradeoff:
+The schema in `server/schema.ts` validates the essential top-level shape for major tables, but many nested article fields use `v.any()`. This is a deliberate tradeoff:
 
 - article content has many optional/legacy variations
-- the article contract evolves faster than the Convex schema
+- the article contract evolves faster than the document schema
 - the strict content definition is maintained in Zod on the application side
 
 This reduces schema churn but makes application-level discipline more important.
@@ -55,7 +55,7 @@ of unrelated heavy source documents:
   verified full-pass completion rather than the presence of any row.
 
 `publicReadIndexState` holds versioned readiness and durable backfill cursors.
-`convex/lib/indexedMutation.ts` supplies the application mutation builders and
+`server/lib/indexedMutation.ts` supplies the application mutation builders and
 intercepts indexed source inserts, relevant patches, replacements, and deletes
 in the same transaction. Both root and table-scoped writer APIs preserve this
 maintenance boundary. Imported handlers inherit it. An index-write failure
@@ -66,8 +66,8 @@ Backfill page writes and cursor advancement commit atomically. Only the final
 source page marks an index ready. Membership changes, deletion, and concurrent
 writes remain covered during a pass. A policy change that alters derived keys
 requires a `PUBLIC_READ_INDEX_VERSION` increment and new complete passes.
-Raw dashboard edits and `convex import` bypass these mutation builders and are
-not valid source-table maintenance paths.
+Direct SQL or snapshot imports bypass these mutation builders and are not
+valid source-table maintenance paths without the approved index rebuild.
 
 See [public read-index rollout](../agents/deployment.md#public-read-index-rollout)
 for guarded staging and backfills. Readiness, production activation, and measured
@@ -109,10 +109,10 @@ Key article sections modeled there include:
 
 Trip report storage and projection contracts are centralized in:
 
-- `convex/tripReportContract.ts` for Convex validators shared by the table schema and bulk import
+- `server/tripReportContract.ts` for native validators shared by the table schema and bulk import
 - `src/types/tripReport.ts` for stored, import, public preview, public detail, and report card presentation models
 
-Public report helpers in `lib/convex/publicData.reports.ts` project Convex records through these adapters before routes render them. Listing and contributor pages pass report card models to UI components instead of manufacturing partial full reports with placeholder timelines.
+Public report helpers in `lib/data/publicData.reports.ts` project backend records through these adapters before routes render them. Listing and contributor pages pass report card models to UI components instead of manufacturing partial full reports with placeholder timelines. Substance articles reuse compact related-report cards for both table-of-contents membership and the report section. The Postgres reader excludes report narratives even when the related-report join index is not ready.
 
 ### Derived public library model
 
@@ -122,7 +122,7 @@ The app does not use raw articles directly for every page. It derives a higher-l
 - `src/data/builders/contentBuilder.ts`
 - `src/data/builders/search.ts`
 
-`lib/convex/publicLibrary.ts` builds and caches this derived structure from Convex data plus layout configuration.
+`lib/data/publicLibrary.ts` builds and caches this derived structure from the Postgres public read adapter plus layout configuration.
 
 This derived library powers:
 
@@ -139,20 +139,20 @@ This derived library powers:
 Typical public page request flow:
 
 1. Next route receives request
-2. route-level server component calls helper in `lib/convex/publicData.ts` or `lib/convex/publicLibrary.ts`
-3. helper uses `lib/convex/serverClient.ts`
-4. `ConvexHttpClient` queries Convex
+2. route-level server component calls helper in `lib/data/publicData.ts` or `lib/data/publicLibrary.ts`
+3. helper uses `lib/data/serverClient.ts`
+4. with `DATA_BACKEND=postgres`, the helper executes the registered handler in-process against the Postgres adapter
 5. route renders server-side HTML
 6. Next caches/revalidates per route settings
 
 Effect Index article routes follow the same flow through
-`lib/convex/publicData.articles.ts`. The `/articles` index projects only records
+`lib/data/publicData.articles.ts`. The `/articles` index projects only records
 whose stored `publication_status` is exactly `published`; all article slugs
 remain available to static route planning, while unlisted records are excluded
 from the sitemap and structured index listing.
 
 The five curated `/psychoactive/*` subjective-effect summaries read the public
-effect article projection through `lib/convex/publicData.effects.ts`, then apply
+effect article projection through `lib/data/publicData.effects.ts`, then apply
 their fixed Effect Index tag/name selections in the server route loader before
 rendering long-summary VCode.
 
@@ -166,14 +166,14 @@ tracking, and `type` can be `audio`, which no surface presents yet.
 `isPublishableReplication` in `src/types/replications.ts` is the single
 definition of what may be published, and it is applied at the app-side read
 boundary, `getPublicReplications` and `getPublicReplicationsByEffect` in
-`lib/convex/publicData.effects.ts`, `getReplicationsByContributor` in
-`lib/convex/publicData.replications.ts`, and the single-row check in
+`lib/data/publicData.effects.ts`, `getReplicationsByContributor` in
+`lib/data/publicData.replications.ts`, and the single-row check in
 `loadReplicationRoute`. Those four cover every public replication surface:
 gallery, effect article sections, contributor profiles, the homepage panel,
 `/replications/[slug]` (with its JSON-LD and `generateStaticParams`), the
 sitemap, `/api/v1/replications*`, and the About page's credit counts.
 
-The Convex queries themselves stay unfiltered on purpose, so the rights and
+The native queries themselves stay unfiltered on purpose, so the rights and
 provenance tooling under `scripts/replications/` still sees every stored asset,
 and a future figure surface can read the same rows through its own helper.
 `effect_slug` is likewise optional; consumers must tolerate its absence rather
@@ -181,13 +181,13 @@ than assume an owning effect.
 
 ### Public read-only API flow
 
-The versioned `/api/v1` Route Handlers read through the same server-side public Convex adapters as public pages. The API exposes explicit public projections rather than raw Convex documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. During the binding-sites migration, v1 alone derives the legacy `receptor_profile`/`receptor` response shape from canonical `binding_sites`/`target` data; no duplicate legacy fields are stored. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
+The versioned `/api/v1` Route Handlers read through the same server-side public data adapters as public pages. The API exposes explicit public projections rather than raw stored documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. During the binding-sites migration, v1 alone derives the legacy `receptor_profile`/`receptor` response shape from canonical `binding_sites`/`target` data; no duplicate legacy fields are stored. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
 
 ### Public classification/search flow
 
 For search and classification pages, raw articles are converted into a derived library:
 
-1. fetch projected substance builder input and layout docs from Convex
+1. fetch projected substance builder input and layout docs from Postgres
 2. normalize manual layout definitions
 3. build library/index structures in memory
 4. resolve page-specific detail object or search results
@@ -202,13 +202,13 @@ by normalization. Unknown legacy-only pharmacology keys are stripped just as
 they were by the previous full-article parse. Full public articles remain on the
 per-slug, About-preview, and coverage paths.
 
-Static route planning does not build that full library. It reads a slim Convex
+Static route planning does not build that full library. It reads a slim Postgres
 mechanism-route projection and feeds it through the same mechanism aggregation
 function used by the library, preserving route/filter/order parity without
 loading the full substance corpus. Library and route projections also share the
 same canonical pharmacology view, so legacy-only mechanism keys cannot create a
 route that the parsed library does not contain. The route projection
-deliberately does not run the full article Zod contract inside Convex.
+deliberately does not run the full article Zod contract inside the handler.
 Consequently, a record invalid outside pharmacology can temporarily retain a
 mechanism route after the validated library drops it; this avoids parsing every
 full article and coupling the projection query to the full application article
@@ -217,10 +217,16 @@ contract.
 Public route plans and search manifest/suggestion composition use request
 memoization, not an outer persistent cache that would bypass Next's nested
 leaf caches. The bounded source pages and public leaves use `publicDataCache`,
-with the selected Convex read URL, callback identity, and arguments in the key.
+with backend, selected target identity, callback identity, and arguments in
+the key. Lookup, slug, and preview reads use field-specific Postgres
+projections rather than transporting complete article documents. Index counts
+read their own canonical membership, not unrelated public corpora.
+
 Library and mechanism input pages persist separately, including on cold
-instances. Existing process-local library/search caches still bound repeated
-computation, but their invalidation is not cross-instance proof of freshness.
+instances. Derived library and search caches check a shared Next Data Cache
+revision identity before reusing process-local values. Concurrent refreshes
+share one in-flight computation per identity; superseded computations cannot
+repopulate the current cache.
 
 Persistent values are size-checked as escaped UTF-8 JSON. Oversized results
 store only a bounded bypass sentinel and return complete uncached content;
@@ -229,14 +235,21 @@ it through a swallowed cache error. Gallery query/index unavailability stores
 an explicit `null` marker and selects the complete shared corpus outside the
 persistent leaf. It never means an empty gallery.
 
-Editor saves immediately expire affected article/history/gallery tags and
-shared listing projections, while unrelated article leaves remain cached.
+Editor saves expire the affected article and full-document caches. Publication
+targets distinguish detail-only changes, collection content changes, and
+membership changes. Detail-only edits preserve unchanged membership and search
+projections. Summary and other projected-content edits refresh their consumers;
+identity, visibility, association, locale, and unclassified changes use the
+conservative membership path. Pending outbox dependencies can broaden but
+cannot narrow when later writes coalesce.
+
 The same signed content identities reach both public Vercel projects. Indexed
-public writes also coalesce identities transactionally into a durable Convex
-outbox; leased recovery retries incomplete delivery without carrying content.
-Article receipts verify the committed revision against canonical public HTML,
-separately from accepting cache invalidation. The default leaf interval remains
-900 seconds, and the showcase endpoint's browser/CDN cache headers are unchanged.
+public writes also coalesce identities transactionally into the Postgres
+publication outbox; leased recovery retries incomplete delivery without
+carrying content. Article receipts verify the committed revision against
+canonical public HTML, separately from accepting cache invalidation. The
+default leaf interval remains 900 seconds, and the showcase endpoint's
+browser/CDN cache headers are unchanged.
 
 The About page reads full-article candidates in bounded pages, validates each
 page with the normal public substance contract, filters low-priority records,
@@ -245,24 +258,43 @@ the worst case where validation or priority filtering requires it.
 `/about/coverage` is the explicit full-corpus exception: the noIndex internal
 table must run the exact same section and citation rules as public article
 rendering. Coverage and full-document exports persist bounded four-document
-source pages on the shared substance listing tags, not an assembled corpus.
+source pages on the separate substance-document tag, which every article
+publication expires.
 Request memoization composes those leaves, so an export larger than the cache
-envelope does not force every regeneration to drain Convex again. Individual
+envelope does not force every regeneration to drain the source corpus again. Individual
 oversized pages retain the bounded-sentinel fallback above. Download statistics
 likewise compose cached leaves without an outer persistent cache; rendered
 page revalidation retains the displayed labels.
+
+### Public browser startup
+
+Gallery startup retains the server's bounded preview rails and requests
+64-work continuation pages with complete result counts, group summaries, and
+filter facets. It does not download the complete gallery corpus on idle.
+Search, sort, artist/effect focus, and locale remain attached to continuation
+requests. Viewer resolution has independent request ownership so a linked
+work cannot replace the browsed page or be lost to a stale response. Gallery
+HTTP responses use `private, no-store`; server reads retain their existing
+publication-aware caches.
+
+Gallery and showcase launchers import the fullscreen viewer only on intent.
+The loading dialog includes a recoverable chunk-error state and restores the
+launcher's focus when closed. Search focus or an explicit search action starts
+one shared manifest load per locale; ordinary reading does not warm it.
+Public links and programmatic search transitions share pending-navigation
+feedback, with independent ownership for overlapping transitions.
 
 ### Editor read flow
 
 Editor pages hold no data-backend client in the browser. Every read is a
 TanStack Query over a session-gated Next route that runs the registered query
-through the server read client (`getServerConvexReadClient()`: Convex over
-HTTP, or the in-process Postgres runtime under `DATA_BACKEND=postgres`):
+through the server read client (`getServerDataReadClient()`) and the in-process
+Postgres runtime under `DATA_BACKEND=postgres`:
 
 1. user signs in through Auth.js
 2. `/dev` resolves the user's owned contributor profile with
    `profileMediaWrite`; the resolver uses its scoped token when configured and
-   otherwise uses `CONVEX_ADMIN_KEY`
+   otherwise uses `DATA_ADMIN_KEY`
 3. an unavailable profile lookup is logged but does not prevent
    `NextDevRouteClient` from loading
 4. `src/hooks/useEditorRead.ts` keys each read `["editor", "<module>:<fn>", args]`
@@ -281,43 +313,42 @@ HTTP, or the in-process Postgres runtime under `DATA_BACKEND=postgres`):
    extracted quote packs, and source-backed generation are not loaded by the
    article editor
 8. the editor config-health check verifies that the configured
-   `CONVEX_ADMIN_KEY` is accepted by the selected deployment
+   `DATA_ADMIN_KEY` is accepted by the selected deployment
 9. editor state is managed through `DevModeContext` and feature-local form/tool
    state; a refetch only reaches the working set when the row's identity
    changed, so unsaved drafts survive polling and tab switches
 
-### Editor save-to-Convex flow
+### Editor save-article flow
 
 The preferred live-content save path, for an admin session, is:
 
 1. client collects article/about/changelog payload
-2. client calls `POST /api/save-to-convex`
+2. client calls `POST /api/save-article`
 3. route enforces rate limit
 4. route requires an Auth.js admin session
-5. route requires a privileged write target and `CONVEX_ADMIN_KEY`; on the
-   Postgres backend that is `POSTGRES_POOLED_URL` on `dosewiki-admin`, in Convex
-   mode a URL resolving to `glad-minnow-656`
+5. route requires `POSTGRES_POOLED_URL` and the editor credential tier on
+   `dosewiki-admin`, with the global write freeze enforced
 6. each mutation uses its intent-scoped token when configured and otherwise uses
-   `CONVEX_ADMIN_KEY` as the compatibility fallback
-7. route writes through generated Convex mutations
+   `DATA_ADMIN_KEY` only where the intent policy permits a general-key fallback
+7. route invokes authored Postgres mutations through generated callable references
 8. route optionally writes changelog entry
 9. route revalidates affected public paths and immediately expires tagged public
-   Convex-derived data
+   database-derived data
 10. route clears process-local library/search caches
 11. client receives verification/revalidation metadata
 
-This is the cleanest write path in the current system because it preserves Convex as the live store.
+This path preserves the native Postgres write, authorization, and publication boundaries.
 
 ### Editor proposal flow
 
 An editor session sees the same commit panel, but its primary action reads
 "Submit for review" and nothing it does writes production:
 
-1. client builds the `SaveToConvexPayload`, a one-line summary, and
+1. client builds the `SaveArticlePayload`, a one-line summary, and
    `baselines: [{ kind, key, document }]` from the originals actually loaded
    into the editor. Dirty drafts retain those originals across live refreshes.
 2. client calls `POST /api/dev/proposals` (editor floor)
-3. route sanitizes the payload with the save-to-convex utilities and forwards
+3. route sanitizes the payload with the save-article utilities and forwards
    it with the loaded baselines. A client-supplied diff is not accepted.
 4. `changeProposals.submit` (editor floor) validates the payload with the save
    validators and article ingestion contract, derives its targets, and compares
@@ -336,7 +367,7 @@ An editor session sees the same commit panel, but its primary action reads
    contain unsaved changes, so preparing a revision cannot overwrite other work.
 
 `/dev/queue` appears under Intake as **Change Review** for admins and **My
-submissions** for editors. Convex scopes list, count, detail, and comments to
+submissions** for editors. The handler scopes list, count, detail, and comments to
 the editor's own proposals; admins see the global queue. Default lists retain
 all active proposals plus bounded terminal history. Pending count badges refresh
 when the window regains focus and once per minute while visible, and their
@@ -358,7 +389,7 @@ previously submitted hashes. Older stored comparisons and projected snapshots
 cannot recover source distinctions that were never captured.
 
 Status moves only along `lib/proposals/proposalStatus.ts`. Review is admin
-floor and lives in `convex/changeProposalReview.ts`, reached through
+floor and lives in `server/changeProposalReview.ts`, reached through
 `POST /api/dev/proposals/<id>/approve|reject|revert`:
 
 - **approve** requires a different admin from the proposer and applies in the same mutation. It re-reads every target with
@@ -384,15 +415,15 @@ floor and lives in `convex/changeProposalReview.ts`, reached through
   restoration fails to recover the recorded baseline. It appends a
   "Reverted proposal" changelog entry.
 
-`applyTarget` in `convex/lib/changeProposalApply.ts` is the one switch on
+`applyTarget` in `server/lib/changeProposalApply.ts` is the one switch on
 target kind, including articles, index layouts, About, and copy blocks.
 
 ### Reviewed generated-section publication flow
 
-Generated section review is split from publication and remains a local script workflow. All `articleSources` queries require authenticated Convex identity or the scoped `articleSourceMigration` token; source documents are not exposed through the browser editor. `batch:proposal` supports
+Generated section review is split from publication and remains a local script workflow. All `articleSources` queries require authenticated identity or the scoped `articleSourceMigration` token; source documents are not exposed through the browser editor. `batch:proposal` supports
 summary and pharmacology adapters. It reads explicitly identified source
 prompt/material and an explicit target article through a frozen query-only
-Convex facade and allowlisted read API, writes an immutable local manifest before
+data facade and allowlisted read API, writes an immutable local manifest before
 model generation, and emits read-only review artifacts. Pharmacology reuses its
 standard live prompt, source excerpt, message/parser, and OpenRouter modules but
 may propose only the `pharmacology` top-level field; `dosage`, `duration`, and
@@ -432,13 +463,13 @@ used on Save. Rows may carry `boldBonds`, bond indices the fork draws at a solid
 canvas, in the preview, and in the published SVG identically.
 
 Public substance routes resolve one indexed metadata row by slug, while cached chemical-class
-comparison data resolves the depiction index through `lib/convex/publicData.molecules.ts`. Those
+comparison data resolves the depiction index through `lib/data/publicData.molecules.ts`. Those
 reads and the SVG served by the three public molecule routes persist through `publicDataCache`, so
-a warm request inside the revalidate window makes no Convex call. A transport failure is never
+a warm request inside the revalidate window makes no database call. A transport failure is never
 persisted: the index reads degrade to the static fallback and the image routes answer 502/503. A
 stored row uses `/api/molecules/<slug>?v=<updatedAt>`; missing rows or query failures retain the
 static `public/molecules` fallback. Editor saves revalidate the owner page and expire
-`convex-public:molecules:<slug>` plus `convex-public:molecules`. The versioned image response is
+`data-public:molecules:<slug>` plus `data-public:molecules`. The versioned image response is
 immutable, so propagation is governed by page revalidation rather than stale image bytes.
 
 ## Auth and Authorization
@@ -448,20 +479,20 @@ immutable, so propagation is governed by page revalidation rather than stale ima
 Auth.js configuration lives in `auth.ts`.
 
 Sign-in is a single credentials provider: username + password. Accounts live in
-the Convex `memberships` table with a scrypt password hash
+the Postgres `memberships` table with a scrypt password hash
 (`lib/auth/passwords.ts`); nothing about an account lives in env.
 
 Session model:
 
 - JWT session strategy
 - session user object enriched with role
-- role re-read from Convex `memberships` on every JWT refresh; a banned member
+- role re-read from Postgres `memberships` on every JWT refresh; a banned member
   degrades to `viewer` on the next request
 
 ### Membership lookup
 
-- `lib/auth/convexMemberships.ts` wraps the server-key Convex calls
-- `convex/memberships.ts` exposes `getCredentialsByUsername`, `touchSignIn`,
+- `lib/auth/memberships.ts` wraps the server-key Postgres calls
+- `server/memberships.ts` exposes `getCredentialsByUsername`, `touchSignIn`,
   `getByEmail`, and the seed/migration mutations `setAdminAccount` and
   `retireViewerMemberships`
 
@@ -507,24 +538,24 @@ for database-backed SVGs. See
 [Browser Security Policy](../agents/browser-security-policy.md) for the source
 inventory, rationale, and validation contract.
 
-### Runtime store: PlanetScale Postgres (Convex handlers, Postgres data)
+### Runtime store: PlanetScale Postgres
 
 Since 2026-09-10 every deployment sets `DATA_BACKEND=postgres` and reads and
 writes PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch
-`main`) through `lib/postgres/runtime/`: the `convex/` query and mutation
-handlers run unchanged in-process against Drizzle-generated tables
+`main`) through `lib/postgres/runtime/`: the `server/` query and mutation
+handlers run in-process against Drizzle-generated tables
 (`lib/postgres/schema.generated.ts`) with a lossless document codec, the
-Convex `_id` values preserved, and `ctx.storage.getUrl` answered from
+pre-cutover `_id` values preserved, and `ctx.storage.getUrl` answered from
 `storageObjects` identity rows that point at R2. `lib/postgres/runtime/backend.ts`
 selects the backend; `deploymentEnv.ts` asserts the per-tier variables. The
 production write ceremony for scripts is in
-[data credentials](../agents/convex-credentials.md).
+[data credentials](../agents/data-credentials.md).
 
-Convex `glad-minnow-656` remains deployed with no crons purely as the rollback
-backend through the observation window (earliest retirement 2026-09-17). In
-Convex mode, target resolution lives in `lib/convex/runtimeTargets.ts` and
-every configured URL must resolve to that deployment; `enchanted-echidna-791`
-is retired.
+The archived Convex service is a frozen recovery source, not a runtime mode
+or a routine operator target. Non-executable recovery references live under
+`scripts/recovery/convex/` and require the separately authorized isolated
+historical procedure. Local source retirement neither deletes the hosted
+service nor revokes credentials; the owner retains the observation decision.
 
 Used for:
 
@@ -554,6 +585,6 @@ Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select 
 
 ### ProtestKit reagent-test snapshot
 
-ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `src/data/reagentTests.json`. `npm run reagents:import` validates and upserts all matched and no-match records into the indexed Convex `reagentTests` table.
+ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `src/data/reagentTests.json`. `npm run reagents:import` validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
 
-Public substance route loaders read one record by canonical DoseWiki slug through `lib/convex/publicData.reagents.ts`; authored `substanceIndex.reagent_testing` content remains authoritative when present. The legacy-path `src/app/api/reagent-proxy/route.ts` is retained for editor and client-preview compatibility, but it now reads Convex and performs no ProtestKit egress. It continues to apply rate limiting, CORS origin policy, and cache headers.
+Public substance route loaders read one record by canonical DoseWiki slug through `lib/data/publicData.reagents.ts`; authored `substanceIndex.reagent_testing` content remains authoritative when present. The legacy-path `src/app/api/reagent-proxy/route.ts` is retained for editor and client-preview compatibility, but it now reads Postgres and performs no ProtestKit egress. It continues to apply rate limiting, CORS origin policy, and cache headers.

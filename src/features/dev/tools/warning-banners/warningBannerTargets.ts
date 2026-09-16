@@ -3,7 +3,7 @@
  *
  * `WarningBannerTarget` itself lives in `src/data/substanceWarningBanners.ts`
  * beside `searchWarningBannerTargets`, which is the only thing that reads its
- * `classes`: the shape is shared with `convex/warningBanners.listSubstanceTargetsPage`
+ * `classes`: the shape is shared with `server/warningBanners.listSubstanceTargetsPage`
  * and the route that drains it, so it cannot live in a view module. What is
  * local here is the transport and its cache.
  */

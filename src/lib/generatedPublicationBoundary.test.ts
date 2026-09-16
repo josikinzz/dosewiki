@@ -1,8 +1,8 @@
  
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { publishReviewedSectionHandler } from "../../convex/substanceIndex";
+import { publishReviewedSectionHandler } from "../../server/substanceIndex";
 
 type Role = "admin" | "editor" | "viewer";
 
@@ -40,8 +40,8 @@ async function expectCode(promise: Promise<unknown>, code: string) {
     await promise;
     throw new Error("Expected publication boundary to reject.");
   } catch (error) {
-    expect(error).toBeInstanceOf(ConvexError);
-    expect((error as ConvexError<{ code: string }>).data.code).toBe(code);
+    expect(error).toBeInstanceOf(PostgresError);
+    expect((error as PostgresError<{ code: string }>).data.code).toBe(code);
   }
 }
 
@@ -52,8 +52,8 @@ const args = {
 
 describe("reviewed publication mutation authorization boundary", () => {
   afterEach(() => {
-    delete process.env.CONVEX_ADMIN_KEY;
-    delete process.env.CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE;
+    delete process.env.DATA_ADMIN_KEY;
+    delete process.env.DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE;
     delete process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT;
   });
 
@@ -65,7 +65,7 @@ describe("reviewed publication mutation authorization boundary", () => {
   });
 
   it("rejects the legacy admin key", async () => {
-    process.env.CONVEX_ADMIN_KEY = "legacy-token";
+    process.env.DATA_ADMIN_KEY = "legacy-token";
     await expectCode(
       publishReviewedSectionHandler(ctxWithMemberships(), { ...args, apiKey: "legacy-token" }),
       "SCOPED_TOKEN_REQUIRED",
@@ -73,7 +73,7 @@ describe("reviewed publication mutation authorization boundary", () => {
   });
 
   it("rejects viewer membership even with the scoped token", async () => {
-    process.env.CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = "scoped-token";
+    process.env.DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = "scoped-token";
     await expectCode(
       publishReviewedSectionHandler(
         ctxWithMemberships({ "viewer@example.com": "viewer" }),
@@ -84,7 +84,7 @@ describe("reviewed publication mutation authorization boundary", () => {
   });
 
   it("rejects arbitrary local-credential actor spoofing without a membership", async () => {
-    process.env.CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = "scoped-token";
+    process.env.DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = "scoped-token";
     await expectCode(
       publishReviewedSectionHandler(
         ctxWithMemberships(),

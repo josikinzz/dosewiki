@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import {
   describeRoleFloor,
@@ -7,7 +7,7 @@ import {
   resetRouteMocks,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     changeProposalReview: {
       approveAndApply: "changeProposalReview.approveAndApply",
@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
   revalidateSavedPaths: vi.fn(),
 }));
 
-vi.mock("../../../../save-to-convex/revalidateSavedPaths", () => ({
+vi.mock("../../../../save-article/revalidateSavedPaths", () => ({
   revalidateSavedPaths: mocks.revalidateSavedPaths,
 }));
 
@@ -77,7 +77,7 @@ describe("dev proposal approve route", () => {
   it("maps a stale proposal to 409", async () => {
     useClient(
       vi.fn(async () => {
-        throw new ConvexError({ code: "PROPOSAL_STATUS_INVALID", message: "A rejected proposal cannot become applied." });
+        throw new PostgresError({ code: "PROPOSAL_STATUS_INVALID", message: "A rejected proposal cannot become applied." });
       }),
     );
     vi.spyOn(console, "warn").mockImplementation(() => undefined);

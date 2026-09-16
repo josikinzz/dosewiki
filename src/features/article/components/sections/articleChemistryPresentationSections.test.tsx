@@ -94,7 +94,7 @@ describe("article chemistry presentation sections", () => {
           moleculeAsset={{
             filename: "display-only.svg",
             url: "/api/molecules/display-only?v=seeded",
-            matchedField: "convex-molecule",
+            matchedField: "data-molecule",
             matchedValue: "Display Only",
           }}
           showPreviewBadge={false}
@@ -120,7 +120,7 @@ describe("article chemistry presentation sections", () => {
         moleculeAsset={{
           filename: "priority-molecule.svg",
           url: "/api/molecules/priority-molecule?v=seeded",
-          matchedField: "convex-molecule",
+          matchedField: "data-molecule",
           matchedValue: "Priority Molecule",
         }}
         showPreviewBadge={false}
@@ -153,7 +153,7 @@ describe("article chemistry presentation sections", () => {
     const moleculeAsset = {
       filename: "dextromethorphan.svg",
       url: "/api/molecules/dextromethorphan?v=seeded",
-      matchedField: "convex-molecule",
+      matchedField: "data-molecule",
       matchedValue: "Dextromethorphan",
     } as const;
     let titleContentWidth = 687;
@@ -241,7 +241,7 @@ describe("article chemistry presentation sections", () => {
     const moleculeAsset = {
       filename: "dextromethorphan.svg",
       url: "/api/molecules/dextromethorphan?v=seeded",
-      matchedField: "convex-molecule",
+      matchedField: "data-molecule",
       matchedValue: "Dextromethorphan",
     } as const;
     // Unwrapped width collides with the molecule column; the laid-out title
@@ -346,7 +346,7 @@ describe("article chemistry presentation sections", () => {
         moleculeAsset={{
           filename: "legacy-article.svg",
           url: "/api/molecules/legacy-article?v=seeded",
-          matchedField: "convex-molecule",
+          matchedField: "data-molecule",
           matchedValue: "Legacy Article",
         }}
         showPreviewBadge={false}

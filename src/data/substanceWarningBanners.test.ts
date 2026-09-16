@@ -185,7 +185,7 @@ describe("substanceClassValues", () => {
     ).toEqual(["Depressant"]);
   });
 
-  it("survives the v.any() payloads Convex actually stores", () => {
+  it("survives the v.any() payloads Postgres actually stores", () => {
     expect(
       substanceClassValues({
         psychoactiveClasses: [null, 42, "  Opioid  ", ""],
@@ -238,7 +238,7 @@ describe("searchWarningBannerTargets", () => {
 });
 
 /**
- * One size for every banner, resolved identically by the Convex mutation, the
+ * One size for every banner, resolved identically by the Postgres mutation, the
  * public read, the write route and the Studio control. The default is not an
  * arbitrary pick: 44 is what `SafetyBanner` shipped with, so a deployment that
  * has never stored a setting must render exactly as it did before the setting

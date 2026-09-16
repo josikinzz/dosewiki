@@ -5,6 +5,7 @@ import {
   render,
   screen,
   within,
+  waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
@@ -27,6 +28,9 @@ import {
   ReplicationsGalleryExplorer,
   type ReplicationsGalleryExplorerProps,
 } from "./ReplicationsGalleryExplorer";
+import { groupByArtist } from "@/features/effects/gallery/galleryModel";
+import { galleryQueryIdentity, type GalleryPageState } from "./galleryPage";
+import { GALLERY_BROWSE_DEFAULTS } from "./galleryUrlState";
 
 const navMocks = vi.hoisted(() => ({
   push: vi.fn(),
@@ -160,8 +164,8 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
 
 // The viewer's media, dialog focus, and gestures have their own tests; this
 // mock exposes collection identity, initial work, and close wiring.
-vi.mock("./viewer/ReplicationViewerOverlay", () => ({
-  ReplicationViewerOverlay: ({
+vi.mock("./components/LazyReplicationViewerOverlay", () => ({
+  LazyReplicationViewerOverlay: ({
     collection,
     initialSlug,
     onOpenChange,
@@ -1133,692 +1137,279 @@ describe("responsive gallery controls", () => {
   });
 });
 
-const QUERY_WRITE_DELAY_MS_FOR_TEST = 250;
 
-describe("complete corpus loading", () => {
-  type IdleWindow = Window & {
-    requestIdleCallback?: (
-      callback: () => void,
-      options?: { timeout?: number },
-    ) => number;
-    cancelIdleCallback?: (id: number) => void;
-  };
-
-  let idleCallbacks: (() => void)[];
-
-  beforeEach(() => {
-    idleCallbacks = [];
-    (window as IdleWindow).requestIdleCallback = (callback) =>
-      idleCallbacks.push(callback);
-    (window as IdleWindow).cancelIdleCallback = () => {};
-  });
-
-  afterEach(() => {
-    delete (window as IdleWindow).requestIdleCallback;
-    delete (window as IdleWindow).cancelIdleCallback;
-  });
-
-  const runIdle = () =>
-    act(async () => {
-      for (const callback of idleCallbacks.splice(0)) callback();
-    });
-
-  const corpusResponse = (rows: unknown[]) => ({
+describe("bounded gallery pages", () => {
+  const pageResponse = (
+    rows: unknown[],
+    options: { total?: number; nextCursor?: string | null } = {},
+  ) => ({
     ok: true,
     status: 200,
-    json: async () => ({ data: rows }),
+    json: async () => ({
+      data: rows,
+      total: options.total ?? rows.length,
+      nextCursor: options.nextCursor ?? null,
+      groups: [],
+      facets: { drugs: [], effects: [] },
+    }),
   });
 
-  it("loads the complete corpus before showing results for a pasted non-default browse URL", async () => {
-    const initial = rep({ title: "Initial work" });
-    const deferred = rep({ title: "Deferred match" });
-    let resolveResponse: ((response: unknown) => void) | undefined;
-    const fetchMock = vi.fn(
-      () =>
-        new Promise((resolve) => {
-          resolveResponse = resolve;
-        }),
-    );
+  it.each(["en", "zh-Hans"])("retains bootstrapped artist rails and continues their cursor without a first-page fetch (%s)", async (locale) => {
+    const rows = Array.from({ length: 17 }, (_, index) => rep({
+      artist: `Artist ${String(index).padStart(2, "0")}`, title: `Rail work ${index}`,
+    }));
+    const allGroups = groupByArtist(rows);
+    const initialPage: GalleryPageState = {
+      queryIdentity: galleryQueryIdentity(locale, GALLERY_BROWSE_DEFAULTS),
+      total: 17, nextCursor: "rail-page-16", facets: { drugs: [], effects: [] },
+      groups: allGroups.map(({ key, label, count, imageCount, videoCount, items }, index) => ({
+        key, label, count, imageCount, videoCount, itemIds: index < 16 ? items.map((item) => item._id) : [],
+      })),
+    };
+    const opening = allGroups.slice(0, 16).flatMap((group) => group.items);
+    const finalWork = allGroups[16].items[0];
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true, status: 200, json: async () => ({
+        ...initialPage, nextCursor: null, data: [opening[0], finalWork],
+        groups: initialPage.groups.map((group, index) => ({ ...group, itemIds: index === 16 ? [finalWork._id] : [] })),
+      }),
+    });
     vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("q=deferred&sort=alpha", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("status")).toHaveTextContent(
-      /loading the complete gallery/i,
-    );
-    expect(screen.queryByText("No art matches your search")).toBeNull();
-    expect(screen.queryByText("Initial work")).toBeNull();
-
     await act(async () => {
-      resolveResponse?.(corpusResponse([deferred]));
+      renderExplorer("", { replications: opening, initialPage, galleryPageUrl: `/api/replications/gallery?locale=${locale}` });
     });
-
-    expect(screen.getByText("Deferred match")).toBeInTheDocument();
-    expect(screen.queryByText("Initial work")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getAllByTestId("rail").map((rail) => rail.getAttribute("aria-label"))).toEqual(allGroups.slice(0, 16).map((group) => group.label));
+    fireEvent.click(screen.getByRole("button", { name: "Show more artists" }));
+    await screen.findByText(finalWork.title);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const request = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(request.searchParams.get("cursor")).toBe("rail-page-16");
+    expect(request.searchParams.get("locale")).toBe(locale);
+    expect(screen.getAllByTestId("rail").map((rail) => rail.getAttribute("aria-label"))).toEqual(allGroups.map((group) => group.label));
+    expect(screen.getAllByTestId("rail-tile")).toHaveLength(17);
   });
 
-  it("loads the canonical collection before opening a deferred deep-linked viewer", async () => {
-    const initial = rep({ title: "Initial work" });
+  it("replaces a default bootstrap for a changed URL and reloads page one on history return", async () => {
+    const first = rep({ title: "Bootstrap image" });
+    const video = rep({ title: "Filtered video", type: "video" });
+    const initialPage: GalleryPageState = {
+      queryIdentity: galleryQueryIdentity("en", GALLERY_BROWSE_DEFAULTS),
+      total: 1, nextCursor: null, groups: [], facets: { drugs: [], effects: [] },
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(pageResponse([video]))
+      .mockResolvedValueOnce(pageResponse([first]));
+    vi.stubGlobal("fetch", fetchMock);
+    const props = { replications: [first], effects, initialPage, galleryPageUrl: "/api/replications/gallery" };
+    const view = renderExplorer("type=video", props);
+    await screen.findByText("Filtered video");
+    expect(screen.queryByText("Bootstrap image")).toBeNull();
+    expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.get("type")).toBe("video");
+    navMocks.params = new URLSearchParams();
+    view.rerender(<ReplicationsGalleryExplorer {...props} />);
+    await screen.findByText("Bootstrap image");
+    expect(screen.queryByText("Filtered video")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(new URL(String(fetchMock.mock.calls[1][0])).searchParams.get("cursor")).toBeNull();
+  });
+
+  it("resolves a viewer beyond a matching bootstrap without replacing or refetching its rail page", async () => {
+    const first = rep({ title: "Retained first work" });
+    const linked = rep({ title: "Deferred viewer work", slug: "deferred-viewer" });
+    const initialPage: GalleryPageState = {
+      queryIdentity: galleryQueryIdentity("en", GALLERY_BROWSE_DEFAULTS),
+      total: 2, nextCursor: null, groups: [], facets: { drugs: [], effects: [] },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(pageResponse([first, linked], { total: 2 }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderExplorer("viewer=deferred-viewer", {
+      replications: [first], initialPage, galleryPageUrl: "/api/replications/gallery",
+    });
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute("data-initial-slug", "deferred-viewer");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.get("viewer")).toBe("deferred-viewer");
+    expect(screen.getByText("Retained first work")).toBeInTheDocument();
+  });
+
+  it("keeps search editable after a matching page is empty", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(pageResponse([])));
+    await act(async () => {
+      renderExplorer("q=missing", {
+        replications: [],
+        galleryPageUrl: "/api/replications/gallery",
+      });
+    });
+
+    const search = screen.getByRole("textbox", { name: "Search replications" });
+    expect(search).toHaveValue("missing");
+    fireEvent.change(search, { target: { value: "another artist" } });
+    expect(search).toHaveValue("another artist");
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(search).toHaveValue("");
+  });
+
+  it("resolves a viewer outside page one without replacing the loaded page", async () => {
+    const first = rep({ title: "First work" });
     const linked = rep({ title: "Linked work", slug: "linked-work" });
-    const middle = rep({ title: "Middle work" });
-    let resolveResponse: ((response: unknown) => void) | undefined;
-    const fetchMock = vi.fn(
-      () =>
-        new Promise((resolve) => {
-          resolveResponse = resolve;
-        }),
-    );
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(pageResponse([first], { total: 65 }))
+      .mockResolvedValueOnce(pageResponse([first, linked], { total: 65 }));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("viewer=linked-work", {
-      replications: [initial, linked],
-      completeCorpusUrl: "/api/replications/gallery",
+      replications: [first],
+      galleryPageUrl: "/api/replications/gallery?locale=zh-Hans",
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(screen.queryByTestId("replication-viewer")).toBeNull();
-    await act(async () => {
-      resolveResponse?.(corpusResponse([initial, middle, linked]));
-    });
-
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.get("viewer")).toBeNull();
+    const viewerRequest = new URL(String(fetchMock.mock.calls[1][0]));
+    expect(viewerRequest.searchParams.get("viewer")).toBe("linked-work");
+    expect(viewerRequest.searchParams.get("locale")).toBe("zh-Hans");
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
       "linked-work",
     );
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
-      "data-item-count",
-      "3",
-    );
+    expect(screen.getByText("First work")).toBeInTheDocument();
   });
 
-  it("renders the server digest's order and stats, then fetches the corpus once on idle", async () => {
-    const chelseaWorks = [
-      rep({ artist: "Chelsea Morgan" }),
-      rep({ artist: "Chelsea Morgan" }),
-      rep({ artist: "Chelsea Morgan" }),
-    ];
-    const ariaWork = rep({ artist: "Aria", type: "video" });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(corpusResponse([...chelseaWorks, ariaWork]));
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("", {
-      replications: [...chelseaWorks, ariaWork],
-      completeCorpusUrl: "/api/replications/gallery",
-      // Video-first order from the server: Aria's one video outranks
-      // Chelsea's three images. Client-side count order would invert this.
-      initialArtistRails: [
-        { key: "aria", label: "Aria", count: 9, imageCount: 8, videoCount: 1 },
-        {
-          key: "chelsea morgan",
-          label: "Chelsea Morgan",
-          count: 3,
-          imageCount: 3,
-          videoCount: 0,
-        },
-      ],
-      artistGroupTotal: 30,
-      corpusStats: { total: 40, artists: 30, effects: 6, images: 35, videos: 5 },
-    });
-
-    // No manual load affordance exists; the corpus arrives on its own.
-    expect(
-      screen.queryByRole("button", { name: /load complete gallery/i }),
-    ).toBeNull();
-    // Rails follow the digest order, not the loaded subset's count order.
-    expect(
-      screen
-        .getAllByTestId("rail")
-        .map((rail) => rail.getAttribute("aria-label")),
-    ).toEqual(["Aria", "Chelsea Morgan"]);
-    // Digest counts are complete, so the rail advertises its true size.
-    expect(
-      screen.getByRole("link", { name: "View all 9" }),
-    ).toBeInTheDocument();
-    // The archive's size is the tab row's statement now, so the digest's
-    // precomputed total shows up here only as a denominator, and only once
-    // something narrows the grid.
-    expect(screen.getByRole("status")).not.toHaveTextContent("works");
-    expect(screen.getByText("Showing 2 of 30 artists")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
-
-    await runIdle();
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/gallery",
-      expect.objectContaining({ headers: { Accept: "application/json" } }),
-    );
-    const status = screen.getByRole("status");
-    expect(status).toHaveTextContent("Complete gallery loaded.");
-  });
-
-  it("loads the corpus before revealing more artists than the digest inlined", async () => {
-    const chelseaWork = rep({ artist: "Chelsea Morgan" });
-    const fetchMock = vi.fn().mockResolvedValue(
-      corpusResponse([
-        chelseaWork,
-        rep({ artist: "Aria" }),
-        rep({ artist: "Basil" }),
-      ]),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("", {
-      replications: [chelseaWork],
-      completeCorpusUrl: "/api/replications/gallery",
-      initialArtistRails: [
-        {
-          key: "chelsea morgan",
-          label: "Chelsea Morgan",
-          count: 1,
-          imageCount: 1,
-          videoCount: 0,
-        },
-      ],
-      artistGroupTotal: 3,
-      corpusStats: { total: 3, artists: 3, effects: 1, images: 3, videos: 0 },
-    });
-
-    expect(screen.getAllByTestId("rail")).toHaveLength(1);
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Show more artists" }),
-      );
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByTestId("rail")).toHaveLength(3);
-  });
-
-  it("reports the corpus fetch in one line that leaves when it lands", async () => {
-    const initial = rep({ title: "Initial work" });
-    const withheld = rep({
-      title: "Withheld work",
-      effect_slug: "unspeakable-horrors",
-    });
-    let resolveResponse: ((response: unknown) => void) | undefined;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        () =>
-          new Promise((resolve) => {
-            resolveResponse = resolve;
-          }),
-      ),
-    );
-
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-      initialArtistRails: [
-        {
-          key: "chelsea morgan",
-          label: "Chelsea Morgan",
-          count: 1,
-          imageCount: 1,
-          videoCount: 0,
-        },
-      ],
-      artistGroupTotal: 1,
-      corpusStats: { total: 1, artists: 1, effects: 1, images: 1, videos: 0 },
-    });
-
-    const status = screen.getByRole("status");
-    const visibleLine = () =>
-      status.querySelector("span:not(.sr-only)")?.textContent ?? "";
-    // Nothing is being narrowed, so the resting page says nothing here: the
-    // archive's size is stated once on the tab row above.
-    expect(visibleLine()).toBe("");
-    expect(screen.queryByRole("alert")).toBeNull();
-
-    await runIdle();
-
-    // The fetch is reported in this same line rather than a new row, so
-    // nothing above the rails appears or disappears.
-    expect(visibleLine()).toBe("Loading the complete gallery…");
-    expect(screen.queryByRole("alert")).toBeNull();
-
-    await act(async () => {
-      resolveResponse?.(corpusResponse([initial, withheld]));
-    });
-
-    // The withheld work joins the corpus but not the artist view, and the
-    // line goes back to silence rather than reciting a total.
-    expect(visibleLine()).toBe("");
-    expect(status).toHaveTextContent("Complete gallery loaded.");
-    expect(status).not.toHaveTextContent("Loading");
-  });
-
-  it("announces completion politely once the corpus arrives", async () => {
-    const initial = rep({ title: "Initial work" });
-    const deferred = rep({ title: "Deferred work" });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(corpusResponse([initial, deferred])),
-    );
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-
-    const search = screen.getByRole("textbox", {
-      name: "Search replications",
-    });
-    search.focus();
-    await runIdle();
-
-    const status = screen.getByRole("status");
-    expect(status).toHaveTextContent("Complete gallery loaded.");
-    expect(screen.getByText("Deferred work")).toBeInTheDocument();
-    // Completion never steals focus — there is no control to return it to.
-    expect(document.activeElement).toBe(search);
-  });
-
-  it("loads the corpus before applying a corpus-wide search", async () => {
-    vi.useFakeTimers();
-    const initial = rep({ title: "Initial work" });
-    const deferred = rep({ title: "Deferred match" });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(corpusResponse([initial, deferred]));
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-    fireEvent.change(
-      screen.getByRole("textbox", { name: "Search replications" }),
-      { target: { value: "deferred" } },
-    );
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/gallery",
-      expect.anything(),
-    );
-    expect(screen.getByRole("status")).toHaveTextContent(
-      /loading the complete gallery/i,
-    );
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(QUERY_WRITE_DELAY_MS_FOR_TEST);
-    });
-
-    expect(historySpies.replace).toHaveBeenCalledTimes(1);
-    expect(historySpies.push).not.toHaveBeenCalled();
-    expect(window.location.pathname + window.location.search).toBe(
-      "/replications?q=deferred",
-    );
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("links View all directly to the artist overview before the corpus loads", () => {
-    const initial = Array.from({ length: 15 }, (_, index) =>
-      rep({ title: `Work ${index}` }),
-    );
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-    renderExplorer("", {
-      replications: initial,
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-    const link = screen.getByRole("link", { name: "View all" });
-    expect(link).toHaveAttribute(
-      "href",
-      expect.stringContaining("/replications/artist/"),
-    );
-    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
-    fireEvent(link, click);
-    expect(click.defaultPrevented).toBe(false);
-    expect(screen.queryByTestId("replication-viewer")).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("loads the complete corpus before changing a taxonomy filter", async () => {
-    const initial = rep({
-      title: "Open-eye work",
-      viewing_mode_tags: ["open-eye"],
-    });
-    const deferred = rep({
-      title: "Deferred closed-eye work",
-      viewing_mode_tags: ["closed-eye"],
-    });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(corpusResponse([initial, deferred]));
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("viewing=open-eye", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", {
-          name: "Remove Viewing mode filter: Open-eye",
-        }),
-      );
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(window.location.pathname + window.location.search).toBe("/replications");
-    expect(historySpies.push).toHaveBeenCalledTimes(1);
-  });
-
-  it("applies a deferred artist's avatar, profile link, and newest-first order", async () => {
-    const initial = rep({ title: "Initial work", artist: "First Artist" });
-    const laterSecond = rep({
-      title: "Later second",
-      artist: "Deferred Artist",
-    });
-    const laterFirst = rep({
-      title: "Later first",
-      artist: "Deferred Artist",
-      created_at: "2025-01-01T00:00:00.000Z",
-    });
-    vi.stubGlobal(
-      "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(corpusResponse([initial, laterSecond, laterFirst])),
-    );
-
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-      contributorDirectory: [
-        {
-          key: "deferred-profile",
-          displayName: "Deferred Artist",
-          aliases: [],
-          avatarUrl: "https://cdn.test/deferred.webp",
-        },
-      ],
-    });
-    await runIdle();
-
-    const deferredRail = screen.getByRole("region", {
-      name: "Deferred Artist",
-    });
-    expect(deferredRail).toHaveAttribute(
-      "data-avatar",
-      "https://cdn.test/deferred.webp",
-    );
-    expect(
-      within(deferredRail).getByRole("link", { name: "Deferred Artist" }),
-    ).toHaveAttribute("href", "/replications/artist/deferred-artist");
-    expect(
-      within(deferredRail)
-        .getAllByTestId("rail-tile")
-        .map((tile) => tile.textContent),
-    ).toEqual(["Later first", "Later second"]);
-  });
-
-  it("adopts the contributor directory that arrives with the complete corpus", async () => {
-    // The index page inlines only the entries its prerendered rails need, so a
-    // deferred artist's identity — avatar and portfolio link —
-    // reaches the client with the corpus rather than with the initial props.
-    const initial = rep({ title: "Initial work", artist: "First Artist" });
-    const laterSecond = rep({
-      title: "Later second",
-      artist: "Deferred Artist",
-    });
-    const laterFirst = rep({
-      title: "Later first",
-      artist: "Deferred Artist",
-      created_at: "2025-01-01T00:00:00.000Z",
-    });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: [initial, laterSecond, laterFirst],
-          contributorDirectory: [
-            {
-              key: "deferred-profile",
-              displayName: "Deferred Artist",
-              aliases: [],
-              avatarUrl: "https://cdn.test/deferred.webp",
-            },
-          ],
-        }),
-      }),
-    );
-
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-      contributorDirectory: [],
-    });
-    await runIdle();
-
-    const deferredRail = screen.getByRole("region", {
-      name: "Deferred Artist",
-    });
-    expect(deferredRail).toHaveAttribute(
-      "data-avatar",
-      "https://cdn.test/deferred.webp",
-    );
-    expect(
-      within(deferredRail).getByRole("link", { name: "Deferred Artist" }),
-    ).toHaveAttribute("href", "/replications/artist/deferred-artist");
-    expect(
-      within(deferredRail)
-        .getAllByTestId("rail-tile")
-        .map((tile) => tile.textContent),
-    ).toEqual(["Later first", "Later second"]);
-  });
-
-  it("preserves loaded works and allows retry after a failed corpus fetch", async () => {
-    const initial = rep({ title: "Initial work" });
-    const deferred = rep({ title: "Deferred result" });
-    vi.stubGlobal(
-      "fetch",
-      vi
-        .fn()
-        .mockResolvedValueOnce({ ok: false, status: 503 })
-        .mockResolvedValueOnce(corpusResponse([initial, deferred])),
-    );
-
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-    await runIdle();
-
-    expect(
-      screen.getByText(/complete gallery could not finish loading/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Initial work")).toBeInTheDocument();
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    });
-
-    expect(screen.getByText("Deferred result")).toBeInTheDocument();
-  });
-
-  it("preserves a pending filter action through failure and runs it after retry", async () => {
-    const initial = rep({
-      title: "Open-eye work",
-      viewing_mode_tags: ["open-eye"],
-    });
-    const fetchMock = vi
-      .fn()
+  it("keeps a failed viewer link recoverable without automatically retrying", async () => {
+    const first = rep({ title: "First work" });
+    const linked = rep({ title: "Linked work", slug: "linked-work" });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(pageResponse([first], { total: 65 }))
       .mockResolvedValueOnce({ ok: false, status: 503 })
-      .mockResolvedValueOnce(corpusResponse([initial]));
+      .mockResolvedValueOnce(pageResponse([first, linked], { total: 65 }));
     vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("viewing=open-eye", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
+    window.history.replaceState({}, "", "/replications?viewer=linked-work");
+    renderExplorer("viewer=linked-work", {
+      replications: [first],
+      galleryPageUrl: "/api/replications/gallery",
     });
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", {
-          name: "Remove Viewing mode filter: Open-eye",
-        }),
-      );
-    });
-
-    expect(historySpies.push).not.toHaveBeenCalled();
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    });
-
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    expect(new URLSearchParams(window.location.search).get("viewer")).toBe("linked-work");
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(window.location.pathname + window.location.search).toBe("/replications");
-    expect(historySpies.push).toHaveBeenCalledTimes(1);
+    fireEvent.click(retry);
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug", "linked-work",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("runs only the newest pending action after a shared corpus fetch is retried", async () => {
-    const initial = rep({ title: "Initial work" });
-    let resolveFirstResponse: ((response: unknown) => void) | undefined;
-    const fetchMock = vi
-      .fn()
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveFirstResponse = resolve;
-          }),
-      )
-      .mockResolvedValueOnce(corpusResponse([initial]));
+  it("retries a failed filtered page without losing its query", async () => {
+    const match = rep({ title: "Deferred match" });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 503 })
+      .mockResolvedValueOnce(pageResponse([match], { total: 1 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
+    renderExplorer("q=deferred", {
+      replications: [],
+      galleryPageUrl: "/api/replications/gallery",
     });
-    chooseMediaSync("Videos");
-    chooseFromMenuSync("Browse by: By artist", "By effect");
-    await act(async () => {
-      resolveFirstResponse?.({ ok: false, status: 503 });
-    });
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    fireEvent.click(retry);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    });
-
-    expect(historySpies.push).toHaveBeenCalledTimes(1);
-    expect(window.location.pathname + window.location.search).toBe(
-      "/replications?view=effect",
-    );
+    await screen.findByText("Deferred match");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const [request] of fetchMock.mock.calls) {
+      expect(new URL(String(request)).searchParams.get("q")).toBe("deferred");
+    }
   });
 
-  it("cancels a pending action when navigation supplies newer browse state", async () => {
-    const initial = rep({ title: "Initial work" });
-    let resolveResponse: ((response: unknown) => void) | undefined;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        () =>
-          new Promise((resolve) => {
-            resolveResponse = resolve;
-          }),
-      ),
-    );
+  it("ignores a late response owned by an older query", async () => {
+    const stale = rep({ title: "Stale work" });
+    const fresh = rep({ title: "Fresh work" });
+    let resolveStale!: (response: unknown) => void;
+    const staleRequest = new Promise<unknown>((resolve) => { resolveStale = resolve; });
+    const fetchMock = vi.fn()
+      .mockReturnValueOnce(staleRequest)
+      .mockResolvedValueOnce(pageResponse([fresh], { total: 1 }));
+    vi.stubGlobal("fetch", fetchMock);
     const props = {
-      replications: [initial],
+      replications: [],
       effects,
       contributorDirectory,
-      completeCorpusUrl: "/api/replications/gallery",
+      galleryPageUrl: "/api/replications/gallery",
     };
 
-    const view = renderExplorer("", props);
-    chooseMediaSync("Videos");
-
-    navMocks.params = new URLSearchParams("view=effect");
+    const view = renderExplorer("q=stale", props);
+    navMocks.params = new URLSearchParams("q=fresh");
     view.rerender(<ReplicationsGalleryExplorer {...props} />);
-    await act(async () => {
-      resolveResponse?.(corpusResponse([]));
-    });
+    await screen.findByText("Fresh work");
+    await act(async () => { resolveStale(pageResponse([stale], { total: 1 })); });
 
-    expect(historySpies.push).not.toHaveBeenCalled();
+    expect(screen.queryByText("Stale work")).toBeNull();
+    expect(screen.getByText("Fresh work")).toBeInTheDocument();
   });
 
-  it("keeps the gallery reachable when the prerendered subset is empty", async () => {
-    const deferred = rep({ title: "First visible work" });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(corpusResponse([deferred])),
-    );
+  it("continues through every matching search page", async () => {
+    const first = rep({ title: "Needle first", artist: "Focused Artist" });
+    const second = rep({ title: "Needle second", artist: "Focused Artist" });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(pageResponse([first], { total: 2, nextCursor: "64" }))
+      .mockResolvedValueOnce(pageResponse([second], { total: 2 }));
+    vi.stubGlobal("fetch", fetchMock);
 
-    renderExplorer("", {
+    renderExplorer("q=needle", {
       replications: [],
-      completeCorpusUrl: "/api/replications/gallery",
+      galleryPageUrl: "/api/replications/gallery",
     });
-
-    await runIdle();
-
-    expect(screen.getByText("First visible work")).toBeInTheDocument();
-    expect(screen.queryByText("No replications yet")).toBeNull();
+    await screen.findByText("Needle first");
+    fireEvent.click(screen.getByRole("button", { name: "Load more works" }));
+    await screen.findByText("Needle second");
+    expect(screen.getByText("Needle first")).toBeInTheDocument();
+    expect(new URL(String(fetchMock.mock.calls[1][0])).searchParams.get("cursor")).toBe("64");
   });
 
-  it("accepts a corpus that carries audio rows", async () => {
-    // Audio became a published media kind while this guard still admitted
-    // only image and video, so eight ogg rows made the whole 6,600-row
-    // response "malformed" and every reader saw the failure banner instead
-    // of the archive.
-    const initial = rep({ title: "Initial work" });
-    const clip = rep({
-      title: "Deferred clip",
-      type: "audio",
-      format: "ogg",
-      duration: 30,
-    });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(corpusResponse([initial, clip])),
-    );
+  it("replaces stale membership when Load more restarts after a cursor conflict", async () => {
+    const stale = rep({ title: "Needle removed" });
+    const fresh = rep({ title: "Needle current" });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(pageResponse([stale], { total: 2, nextCursor: "64" }))
+      .mockResolvedValueOnce({ ok: false, status: 409 })
+      .mockResolvedValueOnce(pageResponse([fresh], { total: 1 }));
+    vi.stubGlobal("fetch", fetchMock);
 
-    renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
+    renderExplorer("q=needle", {
+      replications: [],
+      galleryPageUrl: "/api/replications/gallery?locale=zh-Hans",
     });
-    await runIdle();
+    await screen.findByText("Needle removed");
+    fireEvent.click(screen.getByRole("button", { name: "Load more works" }));
+    await screen.findByRole("button", { name: "Retry" });
 
-    expect(
-      screen.queryByText(/complete gallery could not finish loading/i),
-    ).toBeNull();
-    expect(screen.getByText("Deferred clip")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Load more works" }));
+    await screen.findByText("Needle current");
+
+    expect(screen.queryByText("Needle removed")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const restart = new URL(String(fetchMock.mock.calls[2][0]));
+    expect(restart.searchParams.get("cursor")).toBeNull();
+    expect(restart.searchParams.get("q")).toBe("needle");
+    expect(restart.searchParams.get("locale")).toBe("zh-Hans");
   });
 
-  it("leaves the corpus unfetched on touch until an interaction needs it", async () => {
-    // Coarse pointer: the default view is entirely server-rendered, so the
-    // 1.6 MB corpus waits to be asked for instead of racing the grid's own
-    // media on a phone radio.
-    stubMatchMedia(true);
-    const initial = rep({ title: "Initial work" });
-    const deferred = rep({ title: "Deferred match" });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(corpusResponse([initial, deferred]));
+  it("continues a canonical focused collection without losing focus identity", async () => {
+    const first = rep({ title: "Focused first", artist: "Chelsea Morgan" });
+    const second = rep({ title: "Focused second", artist: "Chelsea Morgan" });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(pageResponse([first], { total: 2, nextCursor: "64" }))
+      .mockResolvedValueOnce(pageResponse([second], { total: 2 }));
     vi.stubGlobal("fetch", fetchMock);
 
     renderExplorer("", {
-      replications: [initial],
-      completeCorpusUrl: "/api/replications/gallery",
+      replications: [first],
+      galleryPageUrl: "/api/replications/gallery",
+      focus: { kind: "artist", key: "chelsea-morgan" },
     });
-    await runIdle();
-
-    expect(fetchMock).not.toHaveBeenCalled();
-
-    // Typing is the shortest path to a state only the corpus can answer, and
-    // it starts the same request eagerly rather than waiting for idle.
-    await act(async () => {
-      fireEvent.change(
-        screen.getByRole("textbox", { name: "Search replications" }),
-        { target: { value: "deferred" } },
-      );
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "Load more works" }));
+    await screen.findByText("Focused second");
+    const continuation = new URL(String(fetchMock.mock.calls[1][0]));
+    expect(continuation.searchParams.get("focusKind")).toBe("artist");
+    expect(continuation.searchParams.get("focusKey")).toBe("chelsea-morgan");
+    expect(continuation.searchParams.get("cursor")).toBe("64");
   });
 });

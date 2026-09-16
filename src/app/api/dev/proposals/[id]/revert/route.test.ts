@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import {
   describeRoleFloor,
@@ -7,7 +7,7 @@ import {
   resetRouteMocks,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     changeProposalReview: {
       revert: "changeProposalReview.revert",
@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
   revalidateSavedPaths: vi.fn(),
 }));
 
-vi.mock("../../../../save-to-convex/revalidateSavedPaths", () => ({
+vi.mock("../../../../save-article/revalidateSavedPaths", () => ({
   revalidateSavedPaths: mocks.revalidateSavedPaths,
 }));
 
@@ -62,7 +62,7 @@ describe("dev proposal revert route", () => {
   it("surfaces a revert conflict as 409 without revalidating", async () => {
     useClient(
       vi.fn(async () => {
-        throw new ConvexError({ code: "REVERT_CONFLICT", message: 'Production changed: article "lsd".' });
+        throw new PostgresError({ code: "REVERT_CONFLICT", message: 'Production changed: article "lsd".' });
       }),
     );
     vi.spyOn(console, "warn").mockImplementation(() => undefined);

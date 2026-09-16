@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getRouteLoaderMocks } from "./routeLoaders.testHarness";
 import {
   loadCategoryRoute,
+  loadCategoryMetadataRoute,
   loadEffectCategoryRoute,
   loadMechanismQualifierRoute,
   loadTaxonomyRoute,
@@ -11,14 +12,15 @@ import {
 
 const { publicData, publicLibrary } = getRouteLoaderMocks();
 
-const localizedRecords = vi.hoisted(() => ({
-  getLocalizedPublicEffectArticles: vi.fn(),
+const liveTranslation = vi.hoisted(() => ({
+  localizeRecords: vi.fn(),
 }));
-vi.mock("@server/translation/localizedRecords", () => localizedRecords);
+vi.mock("../translation/liveTranslation", () => liveTranslation);
 
 describe("taxonomy route loaders", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    publicData.getPublicEffectSummariesBySlugs.mockResolvedValue([]);
   });
 
   function createGenericDescriptor(
@@ -69,7 +71,7 @@ describe("taxonomy route loaders", () => {
       isMissing: (effects) => effects.length === 0,
       getMetadata: ({ params, detail }) => ({
         title: `Effect category · ${params.categorySlug}`,
-        description: `Browse ${detail.length} effects in the ${params.categorySlug} category.`,
+        description: `Browse ${detail?.length ?? 0} effects in the ${params.categorySlug} category.`,
       }),
     };
 
@@ -98,61 +100,50 @@ describe("taxonomy route loaders", () => {
     });
   });
 
-  it("returns category ok results with the effects payload", async () => {
+  it("selects canonical category membership before localizing only rendered summaries", async () => {
     publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce({
-      definition: { name: "Psychedelics" },
+      definition: { key: "psychedelic", name: "Psychedelics" },
       total: 12,
     });
-    publicData.getPublicEffectArticles.mockResolvedValueOnce([{ slug: "euphoria" }]);
-
-    const result = await loadCategoryRoute("psychedelic");
-
-    expect(result.kind).toBe("ok");
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.detail).toEqual({ definition: { name: "Psychedelics" }, total: 12 });
-    expect(result.effects).toEqual([{ slug: "euphoria" }]);
-    expect(result.metadata).toEqual({
-      title: "Psychedelics",
-      description: "Browse 12 substances grouped under Psychedelics.",
+    const selected = {
+      slug: "colour-enhancement", name: "Colour enhancement", summary: "Brighter colours.",
+      featured: false, tags: ["psychedelic", "visual", "enhancement"],
+    };
+    publicData.getPublicEffects.mockResolvedValueOnce([
+      selected,
+      { ...selected, slug: "unrelated", tags: ["dissociative"] },
+    ]);
+    const summary = {
+      ...selected, long_summary_raw: "Detailed colour summary",
+      citations: [{ url: "https://example.com/paper", text: "Paper" }],
+      subarticles: [{ id: "colour", title: "Colour" }],
+    };
+    publicData.getPublicEffectSummariesBySlugs.mockResolvedValueOnce([summary]);
+    const localized = { ...summary, name: "色彩增强", summary: "色彩更加明亮。" };
+    liveTranslation.localizeRecords.mockResolvedValueOnce({ records: [localized] });
+    const result = await loadCategoryRoute("psychedelic", {
+      code: "zh-Hans", pathPrefix: "/zh", htmlLang: "zh-Hans",
     });
-    expect(result.canonicalRoute).toEqual({
-      family: "category",
-      params: { categoryKey: "psychedelic" },
-    });
+    expect(publicData.getPublicEffectSummariesBySlugs).toHaveBeenCalledWith(["colour-enhancement"]);
+    expect(liveTranslation.localizeRecords).toHaveBeenCalledWith([summary], "zh-Hans", "effect");
+    expect(result).toMatchObject({ kind: "ok", effects: [localized] });
   });
 
-  it("loads localized effect summaries for a locale category route", async () => {
+  it("resolves category metadata without optional effect or gallery reads", async () => {
     publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce({
-      definition: { name: "Psychedelics" },
+      definition: { key: "psychedelic", name: "Psychedelics" },
       total: 12,
     });
-    localizedRecords.getLocalizedPublicEffectArticles.mockResolvedValueOnce([
-      { slug: "euphoria", name: "欣快", summary: "强烈的幸福感。" },
-    ]);
-
-    const result = await loadCategoryRoute("psychedelic", {
-      code: "zh-Hans",
-      pathPrefix: "/zh",
-      htmlLang: "zh-Hans",
+    await expect(loadCategoryMetadataRoute("psychedelic")).resolves.toMatchObject({
+      kind: "ok",
+      canonicalRoute: { family: "category", params: { categoryKey: "psychedelic" } },
     });
-
-    expect(result.kind).toBe("ok");
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    expect(result.effects).toEqual([
-      { slug: "euphoria", name: "欣快", summary: "强烈的幸福感。" },
-    ]);
-    expect(localizedRecords.getLocalizedPublicEffectArticles).toHaveBeenCalledWith(
-      "zh-Hans",
-    );
-    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffectSummariesBySlugs).not.toHaveBeenCalled();
+    expect(publicData.getPublicGalleryReplications).not.toHaveBeenCalled();
   });
 
   it("redirects known category aliases without loading effects", async () => {
-    publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce(null);
 
     await expect(loadCategoryRoute("psychedelics")).resolves.toEqual({
       kind: "redirect",
@@ -160,7 +151,8 @@ describe("taxonomy route loaders", () => {
       metadata: { title: "Category", description: "Browse substances by category." },
       canonicalRoute: { family: "category", params: { categoryKey: "psychedelics" } },
     });
-    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
+    expect(publicLibrary.getPublicCategoryDetail).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
   });
 
   it("returns category not-found results with fallback metadata and no effects fetch", async () => {
@@ -171,7 +163,7 @@ describe("taxonomy route loaders", () => {
       metadata: { title: "Category", description: "Browse substances by category." },
       canonicalRoute: { family: "category", params: { categoryKey: "missing" } },
     });
-    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
   });
 
   it("keeps canonical effect category routes valid when no effects are mapped yet", async () => {

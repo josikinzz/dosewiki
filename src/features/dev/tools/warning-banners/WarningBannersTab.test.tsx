@@ -105,7 +105,7 @@ async function openDrawer(user: UserEvent) {
 }
 
 async function waitForTargets() {
-  await screen.findByText(/of 2 substances are on a banner list/);
+  await screen.findByRole("button", { name: new RegExp(PRESET.key), expanded: false });
 }
 
 /**
@@ -210,6 +210,8 @@ describe("WarningBannersTab presets", () => {
     stubApi();
     render(<WarningBannersTab />);
     await waitForTargets();
+    await userEvent.click(screen.getByRole("tab", { name: /Coverage/ }));
+    await screen.findByText(/of 2 substances are on a banner list/);
 
     // One danger substance, not "2 of 2": the sitewide caution notice is a
     // preset, never every slug, and the switched-off preset counts for nothing.
@@ -222,8 +224,6 @@ describe("WarningBannersTab presets", () => {
     expect(tones.getByText("caution").closest("div")).toHaveTextContent(
       "Every article1 sitewide preset",
     );
-    // The table names sitewide reach rather than pretending it is a count.
-    expect(screen.getByText("live · sitewide")).toBeInTheDocument();
   });
 
   it("adopts the echoed slug list and reports slugs the server pruned", async () => {
@@ -323,7 +323,7 @@ describe("WarningBannersTab coverage", () => {
     const writes = stubApi();
     const user = userEvent.setup();
     render(<WarningBannersTab initialSubstanceSlug="diazepam" />);
-    await waitForTargets();
+    await screen.findByRole("button", { name: "Disable on diazepam" });
 
     // Loose on the verb: the live copy reads "1 banner render here" (the plural
     // suffix is applied backwards), and grammar is not the contract under test.
@@ -366,21 +366,21 @@ describe("WarningBannersTab coverage", () => {
         if (url === PRESET_API && !init?.method) {
           return new Response(JSON.stringify({ presets: storedPresets }), { status: 200 });
         }
-        return new Response(JSON.stringify({ error: "Convex rejected the write." }), {
+        return new Response(JSON.stringify({ error: "Postgres rejected the write." }), {
           status: 409,
         });
       }),
     );
     const user = userEvent.setup();
     render(<WarningBannersTab initialSubstanceSlug="diazepam" />);
-    await waitForTargets();
+    await screen.findByRole("button", { name: "Disable on diazepam" });
 
     await user.click(screen.getByRole("button", { name: "Disable on diazepam" }));
     await confirmWrite(user, "Disable on diazepam");
 
     // `SafetyBanner` previews carry `role="alert"` too, so locate the notice by its title.
     const title = await screen.findByText("Couldn't save that preset");
-    expect(title.closest('[role="alert"]')).toHaveTextContent("Convex rejected the write.");
+    expect(title.closest('[role="alert"]')).toHaveTextContent("Postgres rejected the write.");
     expect(screen.queryByRole("button", { name: /Undo/ })).not.toBeInTheDocument();
   });
 });

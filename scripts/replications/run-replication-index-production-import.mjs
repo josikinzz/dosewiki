@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
-/** Guarded, resumable Convex import for the reviewed Replication Index plan. */
+/** Guarded, resumable Postgres import for the reviewed Replication Index plan. */
 
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { replicationImportReceipts } from "./lib/r2-upload.mjs";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
   assertProductionWriteAllowed,
@@ -303,7 +305,8 @@ export async function runProductionImport({
   if (command.dryRun) return { mode: "dry-run", selected: selected.length, networkCalls: 0, wrote: false };
 
   assertProductionWriteAllowed(command);
-  required(command.targetUrl === EXPECTED_TARGET && command.deploymentFingerprint === EXPECTED_FINGERPRINT, `Write target must be exact production ${EXPECTED_FINGERPRINT}.`);
+  const postgresTarget = requireCampaignTarget(command);
+  bindCampaignTarget(ledger, postgresTarget);
   required(plan.writeAuthorized === true && plan.dryRunOnly === false, "Plan has not been explicitly authorized for production writes.");
   required(canary.writeAuthorized === true, "Canary artifact has not been explicitly authorized for production writes.");
   const expectedDigest = flag(argv, "--expected-plan-digest");
@@ -323,7 +326,10 @@ export async function runProductionImport({
     ledger.updatedAt = state.startedAt;
     atomicJson(ledgerPath, ledger);
     try {
-      const result = await client.mutation(api.replications.insertMediaAsset, { apiKey, ...row.desiredInsert });
+      const result = await client.mutation(api.replications.insertMediaAsset, {
+        apiKey, ...row.desiredInsert,
+        ...(await replicationImportReceipts(client, apiKey, row.desiredInsert.slug, row.desiredInsert)),
+      });
       required(result.slug === row.desiredInsert.slug && result.role === row.desiredInsert.role, `${row.sha256}: insert result drift.`);
       state.productionId = result.id;
       state.inserted = result.inserted;

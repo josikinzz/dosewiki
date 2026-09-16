@@ -2,7 +2,7 @@
 //
 // Pure library shared by scripts/citations/verdict-audit.mjs and
 // scripts/citations/verdict-export.mjs (and importable by the validate/apply
-// stages). No Convex or filesystem access, so tests can exercise the whole
+// stages). No Postgres or filesystem access, so tests can exercise the whole
 // claim-pair pipeline on fixture articles.
 //
 // Marker grammar comes from citation-only-validator (ADR-0001); the campaign

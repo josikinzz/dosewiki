@@ -1,46 +1,39 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
   countGallery,
-  groupByArtist,
   selectContributorDirectoryForWorks,
 } from "@/features/effects/gallery/galleryModel";
 import {
   isDisplayable,
   isWithheldFromArtistViews,
 } from "@/features/effects/gallery/galleryArtistIdentity";
-import {
-  ARTIST_RAIL_PAGE,
-  RAIL_PREVIEW_LIMIT,
-} from "@/features/effects/gallery/galleryTypes";
 import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {
   buildItemListSchema,
   serializeJsonLd,
 } from "@/utils/seo/structuredData";
-import {
-  getPublicContributorDirectory,
-  getPublicEffects,
-  getPublicGalleryReplicationBySlug,
-  getPublicGalleryReplications,
-} from "@server/convex/publicData";
-import {
-  getLocalizedPublicEffects,
-  getLocalizedPublicGalleryReplicationBySlug,
-  getLocalizedPublicGalleryReplications,
-} from "@server/translation/localizedRecords";
+import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import type { GalleryPagePayload } from "@/features/replications/galleryPage";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import {
   buildPublicPageMetadata,
   buildSiteUrl,
   getPublicRoutePath,
 } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { msg, t } from "@/i18n/server";
 import { replicationViewerSocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
+import { getGalleryBrowseIndex } from "@server/next/galleryBrowseIndex";
+import { getGalleryBrowsePage } from "@server/next/galleryBrowsePage";
+import { GALLERY_BROWSE_DEFAULTS } from "@/features/replications/galleryUrlState";
+import type { GalleryBrowseIndex } from "@server/next/galleryBrowseIndex";
+import { getGalleryRouteBootstrap } from "@server/next/galleryRouteData";
+import { GalleryViewerHost } from "@/features/replications/components/GalleryViewerHost";
 
 const ITEM_LIST_LIMIT = 100;
 
@@ -67,18 +60,18 @@ const DESCRIPTION_FALLBACK = msg(
  * The prerendered body is the default artist view computed against the
  * complete corpus: the first rail page of artists in their true video-first
  * order, each rail carrying exactly its preview works, plus the archive's real
- * stats. After hydration the explorer fetches the complete corpus in one cached
- * request (on idle, or eagerly for deep links and filtered states).
+ * stats. After hydration the explorer fetches bounded continuation pages and
+ * complete grouping/filter metadata, never an idle full-corpus download.
  *
  * A locale mirror renders the same page over the localized corpus, so the
- * prerendered rails carry translated titles and effect names; the complete
- * corpus the explorer fetches afterwards is the English API payload.
+ * prerendered rails carry translated titles and effect names. Continuation
+ * requests retain the same locale as the server-rendered page.
  */
 export async function getReplicationsGalleryMetadata(
   viewerSlug: string | null,
   locale: LiveLocale | null = null,
 ): Promise<Metadata> {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-replications-description"]);
 
   return buildPublicPageMetadata({
     title: msg("Replications"),
@@ -92,51 +85,24 @@ export async function getReplicationsGalleryMetadata(
   });
 }
 
-export async function ReplicationsGalleryRoute({
-  viewerSlug,
-  locale = null,
+async function GalleryRouteContent({
+  index,
+  pagePromise,
+  linkedReplication,
+  locale,
 }: {
-  viewerSlug: string | null;
-  locale?: LiveLocale | null;
+  index: GalleryBrowseIndex;
+  pagePromise: Promise<GalleryPagePayload>;
+  linkedReplication: PublicGalleryReplicationPreview | null;
+  locale: LiveLocale | null;
 }) {
-  const [corpus, effects, contributorDirectory, linkedReplication] = await Promise.all([
-    locale ? getLocalizedPublicGalleryReplications(locale.code) : getPublicGalleryReplications(),
-    locale ? getLocalizedPublicEffects(locale.code) : getPublicEffects(),
-    getPublicContributorDirectory(),
-    viewerSlug
-      ? locale
-        ? getLocalizedPublicGalleryReplicationBySlug(viewerSlug, locale.code)
-        : getPublicGalleryReplicationBySlug(viewerSlug)
-      : null,
-  ]);
-  // The default artist view, computed against the complete corpus with the
-  // exact model the client uses: the approved/video-first artist rail order,
-  // newest work first inside each rail, withheld effects excluded. Only what
-  // that view's first paint shows crosses into the RSC payload — the first
-  // rail page of artists, each sliced to its rail preview — while the digest
-  // and stats carry the complete-corpus ordering, per-artist counts, and
-  // archive totals.
+  const { rows: corpus, effects, directory: contributorDirectory } = index;
+  const { data: railWorks, contributorDirectory: _pageDirectory, ...initialPage } =
+    await pagePromise;
   const displayable = corpus.filter(isDisplayable);
-  const artistGroups = groupByArtist(displayable, contributorDirectory);
-  const railGroups = artistGroups.slice(0, ARTIST_RAIL_PAGE);
-  const railWorks = railGroups.flatMap((group) =>
-    group.items.slice(0, RAIL_PREVIEW_LIMIT),
-  );
-  const initialArtistRails = railGroups.map(
-    ({ key, label, count, imageCount, videoCount }) => ({
-      key,
-      label,
-      count,
-      imageCount,
-      videoCount,
-    }),
-  );
   const corpusStats = countGallery(
     displayable.filter((item) => !isWithheldFromArtistViews(item)),
   );
-  // A linked work is one indexed lookup and joins the initial payload only
-  // when it lies beyond the prerendered rails, so hydration never strips a
-  // valid deep link prematurely.
   const initialReplications = linkedReplication && !railWorks.some(
     (replication) => replication._id === linkedReplication._id,
   )
@@ -170,11 +136,6 @@ export async function ReplicationsGalleryRoute({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
-      {/* The archive states its size once, on the quiet row above the control
-          bar, server-rendered from the same complete-corpus stats the explorer
-          gets. It used to ride inside the control bar, where it cost 229px of
-          the row the controls need for their labels and kept reciting the
-          whole corpus while the reader looked at a filtered grid. */}
       <ReplicationsTabNav
         trailing={t("{{works}} works · {{artists}} artists · {{effects}} effects", {
           works: corpusStats.total.toLocaleString("en-US"),
@@ -184,21 +145,65 @@ export async function ReplicationsGalleryRoute({
       />
       <ReplicationsGalleryExplorer
         replications={initialReplications}
-        completeCorpusUrl={locale ? `/api/replications/gallery?locale=${locale.code}` : "/api/replications/gallery"}
-        initialArtistRails={initialArtistRails}
-        artistGroupTotal={artistGroups.length}
+        galleryPageUrl={locale ? `/api/replications/gallery?locale=${locale.code}` : "/api/replications/gallery"}
+        initialPage={initialPage}
         corpusStats={corpusStats}
         effects={galleryEffects}
         contributorDirectory={selectContributorDirectoryForWorks(
           initialReplications,
           contributorDirectory,
         )}
-        /* The index republishes 6,607 works by 2,117 named artists, so it
-           states its own rights position: the fair-use notice moved to the
-           More Info tab, which left this page with no credit or takedown path
-           at any breakpoint in any state. */
         rightsFootnote
       />
     </>
+  );
+}
+
+export async function ReplicationsGalleryRoute({
+  viewerSlug,
+  locale = null,
+}: {
+  viewerSlug: string | null;
+  locale?: LiveLocale | null;
+}) {
+  const language = locale?.code === "zh-Hans" ? "zh-Hans" : "en";
+  if (!viewerSlug) {
+    const index = await getGalleryBrowseIndex(language);
+    const pagePromise = getGalleryBrowsePage(index, language, GALLERY_BROWSE_DEFAULTS);
+    return (
+      <GalleryViewerHost initialCollection={null} initialSlug={null}>
+        <GalleryRouteContent
+          index={index}
+          pagePromise={pagePromise}
+          linkedReplication={null}
+          locale={locale}
+        />
+      </GalleryViewerHost>
+    );
+  }
+
+  const bootstrap = await getGalleryRouteBootstrap(viewerSlug, locale);
+  const pagePromise = getGalleryBrowsePage(
+    bootstrap.index,
+    language,
+    GALLERY_BROWSE_DEFAULTS,
+    null,
+    null,
+    bootstrap.selected ? viewerSlug : null,
+  );
+  return (
+    <GalleryViewerHost
+      initialCollection={bootstrap.initialViewerCollection}
+      initialSlug={bootstrap.selected ? viewerSlug : null}
+    >
+      <Suspense fallback={null}>
+        <GalleryRouteContent
+          index={bootstrap.index}
+          pagePromise={pagePromise}
+          linkedReplication={bootstrap.selected}
+          locale={locale}
+        />
+      </Suspense>
+    </GalleryViewerHost>
   );
 }

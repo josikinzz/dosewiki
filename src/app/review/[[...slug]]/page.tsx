@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@auth";
+import { getRequestSession } from "@server/next/requestSession";
 import {
-  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR,
   getEditorTargetAlignment,
-} from "@server/convex/serverWriteHealth";
+} from "@server/data/serverWriteHealth";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
@@ -12,9 +10,8 @@ import {
 } from "@server/next/statusRedirectPolicy";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import {
-  ConvexTargetSplitBanner,
-  ConvexTargetSplitRefusal,
-} from "../../_components/ConvexTargetSplitNotice";
+  DataTargetSplitRefusal,
+} from "../../_components/DataTargetSplitNotice";
 import { ReviewRouteClient } from "../_components/ReviewRouteClient";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +39,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   const resolvedParams = await params;
   const initialSlug = resolvedParams.slug?.[0];
 
-  const session = await getServerSession(authOptions);
+  const session = await getRequestSession();
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
   const decision = getDevRouteDecision({ pathname: STATUS_PAGE_PATHS.dev, email, role, floor: "editor" });
@@ -57,30 +54,14 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   // names cross into the rendered output.
   const alignment = getEditorTargetAlignment();
 
-  if (alignment.status === "split" && !alignment.overrideAcknowledged) {
+  if (alignment.status === "split") {
     return (
-      <ConvexTargetSplitRefusal
+      <DataTargetSplitRefusal
         alignment={alignment}
         surface="review workbench"
-        overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
       />
     );
   }
 
-  const workbench = <ReviewRouteClient initialSlug={initialSlug} />;
-
-  if (alignment.status === "split") {
-    return (
-      <>
-        <ConvexTargetSplitBanner
-          alignment={alignment}
-          surface="review workbench"
-          overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
-        />
-        {workbench}
-      </>
-    );
-  }
-
-  return workbench;
+  return <ReviewRouteClient initialSlug={initialSlug} />;
 }

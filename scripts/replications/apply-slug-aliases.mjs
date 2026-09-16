@@ -19,15 +19,15 @@
  *   node scripts/replications/apply-slug-aliases.mjs
  * Write mode uses the shared production-write gate:
  *   node scripts/replications/apply-slug-aliases.mjs --write \
- *     --target-url=https://<deployment>.convex.cloud \
+ *     --target=postgresql://<host>/<database> \
  *     --confirm-write=apply-replication-slug-aliases \
  *     --expected-deployment=<deployment>
  */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -122,14 +122,11 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  const readUrl =
-    command.targetUrl ||
-    process.env.CONVEX_PUBLIC_READ_URL ||
-    process.env.VITE_CONVEX_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
     throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
+      "Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL) so the script knows which deployment to read.",
     );
   }
 

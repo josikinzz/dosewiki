@@ -39,6 +39,13 @@ const PLAYLIST: ReplicationPlaylist = {
   replication_slugs: ["already-there", "new-work", "excluded-work", "retired-work"],
   updated_at: "2026-08-20T10:00:00.000Z",
   updated_by: "josie",
+  owner_email: "josie@example.com",
+  editable: true,
+};
+
+const PLAYLIST_SUMMARY = {
+  ...PLAYLIST,
+  work_count: PLAYLIST.replication_slugs.length,
 };
 
 const RESULTS = [
@@ -65,7 +72,7 @@ const RESULTS = [
 
 async function openDialog(onReviewGallery = vi.fn()) {
   const user = userEvent.setup();
-  render(<ApplyPlaylistToDrugsAction playlist={PLAYLIST} onReviewGallery={onReviewGallery} />);
+  render(<ApplyPlaylistToDrugsAction playlist={PLAYLIST_SUMMARY} onReviewGallery={onReviewGallery} />);
   await user.click(screen.getByRole("button", { name: /apply to drugs/i }));
   return { user, onReviewGallery };
 }
@@ -82,6 +89,7 @@ async function applyToPickedTargets() {
 describe("ApplyPlaylistToDrugsAction", () => {
   beforeEach(() => {
     placeReplicationsOnSubstances.mockReset();
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ playlist: PLAYLIST })));
   });
 
   it("preflights an explicit one-time copy without touching the service", async () => {

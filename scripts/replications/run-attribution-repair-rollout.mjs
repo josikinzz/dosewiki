@@ -6,8 +6,9 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, chmodSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -203,7 +204,7 @@ function readbackById(rows, batch, mode) {
   }
 }
 
-export async function runAttributionRollout({ argv = process.argv.slice(2), env = process.env, clientFactory = (url) => createDataClient({ target: url }).client, logger = console, pins = PINNED_PLAN } = {}) {
+export async function runAttributionRollout({ argv = process.argv.slice(2), env = process.env, clientFactory = (url, options) => createDataClient({ target: url, ...options }).client, logger = console, pins = PINNED_PLAN } = {}) {
   const planPath = path.resolve(value(argv, "--plan", DEFAULT_PLAN));
   const ledgerPath = path.resolve(value(argv, "--ledger", `${planPath}.rollout-ledger.json`));
   const bytes = readFileSync(planPath);
@@ -217,7 +218,7 @@ export async function runAttributionRollout({ argv = process.argv.slice(2), env 
   if (write) {
     const boundaryArgv = [
       ...argv,
-      `--target-url=${value(argv, "--target-url", "")}`,
+      `--target=${value(argv, "--target", "")}`,
       `--expected-deployment=${value(argv, "--expected-deployment", "")}`,
       `--confirm-write=${value(argv, "--confirm-write", "")}`,
     ];
@@ -228,12 +229,13 @@ export async function runAttributionRollout({ argv = process.argv.slice(2), env 
     logger.log(JSON.stringify({ mode: "local-dry-run", phase, batches: selected.length, updates: selected.reduce((n, b) => n + b.updates.length, 0), networkCalls: 0 }));
     return { mode: "local-dry-run", networkCalls: 0, batches: selected.length };
   }
-  required(value(argv, "--target-url") === EXACT_TARGET && value(argv, "--expected-deployment") === "glad-minnow-656", "Exact production target confirmation is required.");
+  const command = createProductionWriteCommand({ operation: OPERATION, argv: [...argv, `--expected-deployment=${value(argv, "--expected-deployment", "")}`], env, loadsEnvLocal: false });
+  const postgresTarget = requireCampaignTarget(command);
   required(value(argv, "--expected-plan-file-sha256") === pins.fileSha256 && value(argv, "--expected-plan-sha256") === pins.planSha256, "Exact attribution plan confirmation is required.");
-  const apiKey = env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
-  required(typeof apiKey === "string" && apiKey.length > 0, "CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE is required.");
-  const client = clientFactory(EXACT_TARGET);
+  const apiKey = env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
+  required(typeof apiKey === "string" && apiKey.length > 0, "DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE is required.");
   if (liveDryRun) {
+    const client = clientFactory(command.targetUrl, { env, argv });
     for (const batch of selected) await client.mutation(api.replicationAttribution.applyBatch, { apiKey, operation_id: batch.operationId, dry_run: true, updates: batch.updates.map(({ rollback: _rollback, ...row }) => row) });
     return { mode: "live-dry-run", networkCalls: selected.length, batches: selected.length };
   }
@@ -242,8 +244,10 @@ export async function runAttributionRollout({ argv = process.argv.slice(2), env 
   required(evidencePath, "--dedupe-completion-evidence is required before attribution writes.");
   validateDedupeCompletion(JSON.parse(readFileSync(evidencePath, "utf8")));
   const ledger = loadLedger(ledgerPath, planPath, batches, pins);
+  bindCampaignTarget(ledger, postgresTarget);
   if (phase === "remaining") required(ledger.batches[batches[0].operationId].status === "verified", "Remaining attribution writes are blocked until the canary is verified.");
   if (phase === "rollback") required(Object.values(ledger.batches).some((state) => state.status === "verified"), "Nothing verified is available to roll back.");
+  const client = clientFactory(command.targetUrl, { env, argv });
   for (const batch of selected) {
     const state = ledger.batches[batch.operationId];
     if (phase === "rollback" ? state.status === "rolled-back" : state.status === "verified") continue;

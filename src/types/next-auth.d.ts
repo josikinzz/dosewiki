@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: DefaultSession["user"] & {
       id?: string;
       role?: AppRole;
+      glossaryLocales?: string[];
     };
   }
 }
@@ -13,5 +14,6 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     role?: AppRole;
+    glossaryLocales?: string[];
   }
 }

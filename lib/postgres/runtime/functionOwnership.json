@@ -1,0 +1,11 @@
+{
+  "batches": {
+    "08": ["memberships", "inviteCodes", "mailingList", "articleFeedback", "siteFeedback", "tripReportContract", "tripReportSubmissions", "tripReports"],
+    "09": ["substanceIndex", "articleLifecycle", "articleSources", "citationEvidence", "changeProposals", "changeProposalReview", "contentRevisions", "changelog", "publicReadIndexes", "publicationRecovery", "authorAttribution", "bindingSiteMigration"],
+    "10": ["effectIndexArchive", "effectIndexArticles", "subjectiveEffects", "categoryLayout", "indexLayouts", "copyBlocks", "siteConfig", "publicOverview", "warningBanners", "moleculeClassTemplates", "moleculeOverrides", "moleculeEditor", "prompts", "quotes", "reagentTestContract", "reagentTests"],
+    "11": ["contributorProfiles", "contributorProfileMerges", "publicArtistCredits", "publicReplicationIdentitySocial", "replicationIdentitySocial", "replicationAttribution", "replicationContextualEditing", "replicationDates", "replicationDuplicates", "replicationPlaylists", "replicationTaxonomy", "replications", "substanceGalleries"]
+  },
+  "retired": {
+    "publicationDelivery": { "batch": "09", "replacement": "src/app/api/cron/publication-delivery/route.ts", "reason": "External publication delivery runs outside retried database transactions in the existing guarded cron route." }
+  }
+}

@@ -12,7 +12,7 @@
  * Design brief §7 lists `error` as one of the eight states every control needs;
  * this is that state for the tab's own data. It degrades one tab rather than the
  * page, and it names the likely cause, because the first time an editor sees this
- * screen will be immediately after a deploy that has not reached Convex yet.
+ * screen will be immediately after a deploy that has not reached Postgres yet.
  *
  * A class component because `componentDidCatch` has no hook equivalent, and the
  * repo has no existing boundary to reuse.
@@ -64,12 +64,9 @@ export class WarningBannersBoundary extends Component<
       >
         <div className="grid gap-4">
           <p className="max-w-[72ch] text-sm leading-relaxed text-dose-text-secondary">
-            The preset list comes from Convex. The usual cause is that
-            <code className="mx-1 text-dose-text-faint">warningBanners</code>
-            has not been deployed to the target deployment yet. Run
-            <code className="mx-1 text-dose-text-faint">npm run convex:deploy</code>
-            and reload. Until then the public site is unaffected: with no presets
-            stored, no article shows a banner.
+            The preset list could not be read from Postgres. Check the server's
+            database configuration and application logs, then try again.
+            No banner settings were changed by this failed read.
           </p>
           <p className="max-w-[72ch] font-mono text-xs leading-relaxed text-dose-text-ghost">
             {message}

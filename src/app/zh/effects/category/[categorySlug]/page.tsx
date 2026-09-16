@@ -11,13 +11,14 @@ import {
   loadEffectCategoryRoute,
   loadTaxonomyStaticParams,
 } from "@server/next/routeLoaders.taxonomy";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import { getEffectCategoryDescriptions } from "@server/next/effectCategoryCopy";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
 
 const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
+const EFFECT_CATEGORY_COPY_KEYS = getCopyKeysByPrefix("effects-category-");
 
 type EffectCategoryPageProps = {
   params: Promise<{ categorySlug: string }>;
@@ -45,7 +46,7 @@ export default async function EffectCategoryPage({ params }: EffectCategoryPageP
   const { categorySlug } = await params;
   const [result, copy] = await Promise.all([
     loadEffectCategoryRoute(categorySlug, LOCALE),
-    getCopy(),
+    getCopyByKeys(EFFECT_CATEGORY_COPY_KEYS),
   ]);
 
   if (result.kind === "redirect") redirect(result.target);

@@ -8,29 +8,29 @@
  *
  *   GET  ?id=…  → { report: { id, slug, ownerEmail, fields, revision } }
  *   POST { mode: "save", id, expected, expectedRevision, updates, profile_key?, confirm_author_name_claim? }
- *   POST { mode: "delete", id }   (admin only; refused here and again in Convex)
+ *   POST { mode: "delete", id }   (admin only; refused here and again in Postgres)
  *
  * The GET is the read half of the portal's split payload: `/api/dev/trip-reports`
  * returns an index projection with no report bodies in it, and this returns the
  * one body the editor pane actually opened.
  *
  * Contributor floor: My reports (`/dev/my-reports`) reads and saves through the
- * same two handlers. Convex decides per row: an editor reads any report but,
+ * same two handlers. Postgres decides per row: an editor reads any report but,
  * like a contributor, saves only one whose `owner_email` is theirs
  * (`NOT_OWNER` otherwise) and only its content fields; an admin saves any
  * report with the full form.
  */
 import { NextResponse } from "next/server";
 import { publishPublicCache } from "@server/next/publishPublicCache";
-import { api } from "../../../../../../convex/_generated/api";
-import type { Id } from "../../../../../../convex/_generated/dataModel";
+import { api } from "@server/postgres/runtime/api";
+import type { Id } from "@server/postgres/runtime/dataModel";
 import { canApprove } from "@/lib/auth/roles";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
   normalizeEditableFields,
   type TripReportEditableFields,
-} from "../../../../../../convex/lib/tripReportEditing";
+} from "../../../../../../server/lib/tripReportEditing";
 
 export const runtime = "nodejs";
 
@@ -133,7 +133,7 @@ function parseRecordBody(body: RecordBody): ParsedRecord {
 export const GET = protectedRouteOperation({
   auth: "contributor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load a trip report via Next route:",
   unexpectedErrorMessage: "Unable to load that trip report right now.",
   mapError: (error) => {
@@ -145,9 +145,9 @@ export const GET = protectedRouteOperation({
 
     return null;
   },
-  operation: async ({ actorEmail, convexWrite, request }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, dataWrite, request }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const params = new URL(request.url).searchParams;
@@ -157,8 +157,8 @@ export const GET = protectedRouteOperation({
       return NextResponse.json({ error: "A report id or slug is required." }, { status: 400 });
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-    const report = await convexWrite.client.query(api.tripReports.getPortalRecord, {
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const report = await dataWrite.client.query(api.tripReports.getPortalRecord, {
       apiKey,
       actorEmail,
       ...(id ? { id: id.trim() as Id<"tripReports"> } : { slug: slug!.trim() }),
@@ -173,7 +173,7 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
   auth: "contributor",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseRecordBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to write a trip report via Next route:",
   unexpectedErrorMessage: "Unable to save that trip report right now.",
   mapError: (error) => {
@@ -200,18 +200,18 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
 
     return null;
   },
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
     if (body.mode === "delete") {
       if (!canApprove(auth.role)) {
         return NextResponse.json({ error: "Admin access required." }, { status: 403 });
       }
-      const result = await convexWrite.client.mutation(api.tripReports.deleteById, {
+      const result = await dataWrite.client.mutation(api.tripReports.deleteById, {
         apiKey,
         actorEmail,
         id: body.id as Id<"tripReports">,
@@ -223,7 +223,7 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
       return NextResponse.json({ ok: true, deleted: result.deleted });
     }
 
-    const result = await convexWrite.client.mutation(api.tripReports.update, {
+    const result = await dataWrite.client.mutation(api.tripReports.update, {
       apiKey,
       actorEmail,
       id: body.id as Id<"tripReports">,

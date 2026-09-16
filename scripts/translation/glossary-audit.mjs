@@ -409,8 +409,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     await main();
   } finally {
     if (process.env.DATA_BACKEND === "postgres" && process.env.POSTGRES_POOLED_URL) {
-      const { getPostgresConvexClient } = await import("../../lib/postgres/runtime/backend.ts");
-      await getPostgresConvexClient().end();
+      const { getPostgresClient } = await import("../../lib/postgres/runtime/backend.ts");
+      await getPostgresClient().end();
     }
   }
 }

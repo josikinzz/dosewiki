@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(async () => null),
   query: vi.fn(),
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
   publishPublicCache: vi.fn(async () => []),
 }));
 
@@ -21,8 +21,8 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 vi.mock("@server/next/publishPublicCache", () => ({
@@ -45,9 +45,9 @@ const reportFields = {
   tags: ["outdoors"],
 };
 
-/** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
+/** How the Postgres HTTP client rebuilds a thrown `PostgresError` on this side. */
 function forwarded(data: unknown) {
-  const error = new ConvexError("Server Error");
+  const error = new PostgresError("Server Error");
   (error as { data: unknown }).data = data;
   return error;
 }
@@ -61,7 +61,7 @@ beforeEach(() => {
   mocks.query.mockReset().mockResolvedValue([]);
   mocks.mutation.mockReset().mockResolvedValue({ updated: true, slug: "alpine-clarity" });
   mocks.publishPublicCache.mockClear();
-  mocks.getServerConvexWriteCapability.mockReset().mockReturnValue({
+  mocks.getServerDataWriteCapability.mockReset().mockReturnValue({
     ok: true,
     capability: {
       adminKey: "admin-key",
@@ -82,7 +82,7 @@ describe("dev trip report corpus route", () => {
     expect(response.status).toBe(200);
   });
 
-  it("refuses a non-editor without touching Convex", async () => {
+  it("refuses a non-editor without touching Postgres", async () => {
     mocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: new Response(JSON.stringify({ error: "Editor access required" }), { status: 403 }),
@@ -95,7 +95,7 @@ describe("dev trip report corpus route", () => {
     expect(mocks.query).not.toHaveBeenCalled();
   });
 
-  it("forwards the signed-in editor as the Convex actor", async () => {
+  it("forwards the signed-in editor as the Postgres actor", async () => {
     const { GET } = await import("./route");
     await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
 
@@ -128,7 +128,7 @@ describe("dev trip report record route", () => {
     expect(mocks.mutation).toHaveBeenCalled();
   });
 
-  it("refuses a non-editor without touching Convex", async () => {
+  it("refuses a non-editor without touching Postgres", async () => {
     mocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: new Response(JSON.stringify({ error: "Editor access required" }), { status: 403 }),
@@ -226,7 +226,7 @@ describe("dev trip report record route", () => {
     expect(response.status).toBe(409);
   });
 
-  it("admits a contributor session and forwards them as the Convex actor", async () => {
+  it("admits a contributor session and forwards them as the Postgres actor", async () => {
     mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
 
     const { POST } = await import("./record/route");
@@ -269,7 +269,7 @@ describe("dev trip report record route", () => {
     expect(refused.status).toBe(403);
   });
 
-  it("still refuses a contributor's delete before touching Convex", async () => {
+  it("still refuses a contributor's delete before touching Postgres", async () => {
     mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
 
     const { POST } = await import("./record/route");

@@ -4,7 +4,7 @@
  *   POST /api/dev/proposals/<id>/resubmit  same body as POST /api/dev/proposals
  *
  * The body is the commit panel's staged save; the `<id>` segment becomes its
- * `revisionOf`. Everything else (parsing, floor, the Convex call) is the
+ * `revisionOf`. Everything else (parsing, floor, the Postgres call) is the
  * proposals route's, so the two entry points can never accept different
  * payloads: this one only pins the revision link before handing over.
  */

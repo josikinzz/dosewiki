@@ -8,13 +8,15 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { PublicEffectArticle, PublicEffectIndexArticle, PublicSubstanceRecord } from "@server/convex/publicData.shared";
+import type { PublicEffectIndexArticle, PublicSubstanceRecord } from "@server/data/publicData.shared";
 import {
-  getPublicEffectArticles,
+  getEffectArticlesByContributor,
   getPublicEffectBySlug,
   getPublicContributorByKey,
   getPublicContributorProfiles,
-  getPublicReportDetails,
+  getPublicReportDetailsByContributor,
+  getPublicContributorIdentities,
+  getReportsByContributor,
   getPublicEffectIndexArticleBySlug,
   getPublicEffects,
   getPublicGalleryReplicationBySlug,
@@ -22,22 +24,24 @@ import {
   getPublicReplicationBySlug,
   getPublicReportBySlug,
   getPublicReports,
-  getPublishedEffectIndexArticles,
   type PublicEffectPreview,
   type PublicReportPreview,
   type SubjectiveEffectDetailRecord,
   type TripReportDetailRecord,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import { profileMatchesName } from "../contributorProfileIdentity";
-import { projectPublicReportPreviews } from "../convex/publicData.reportProfileProjection";
+import { projectPublicReportPreviews } from "../data/publicData.reportProfileProjection";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import { getTripReportExcerpt } from "../../src/types/tripReport";
-import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
+import { getPublicSubstanceBySlug } from "@server/data/publicData.substances";
 import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import type { PublicGalleryReplicationPreview, ReplicationWithUrl } from "../../src/types/replications";
 import { localizeRecord, localizeRecords } from "./liveTranslation";
 import { readTranslations } from "./segmentStore";
+import type { ArticleIndexEntry } from "../../src/features/articles/domain/articlesIndex";
+import { getPostgresClient } from "../postgres/runtime/backend";
+import { readLocalizedPublicationIndex } from "./publicationIndexStore";
 
 /**
  * Resolve stored translations for a small set of independent reader-facing
@@ -143,16 +147,6 @@ export const getLocalizedPublicEffects = cache(async (
   return localized.records;
 });
 
-/** Every full effect record with its stored segments spliced in, audio clips included. */
-export const getLocalizedPublicEffectArticles = cache(async (
-  locale: string,
-): Promise<PublicEffectArticle[]> => {
-  const effects = await getPublicEffectArticles();
-  if (effects.length === 0) return effects;
-  const localized = await localizeRecords(effects, locale, "effect");
-  return localized.records;
-});
-
 /** One library article with its stored segments spliced in; blog rows pass through for the loader to refuse. */
 export const getLocalizedPublicArticleBySlug = cache(async (
   slug: string,
@@ -164,14 +158,11 @@ export const getLocalizedPublicArticleBySlug = cache(async (
   return localized.record;
 });
 
-/** The library-index read: every published article with its stored segments spliced in. */
+/** The library index reads producer-owned metadata, never full narrative bodies. */
 export const getLocalizedPublicArticles = cache(async (
   locale: string,
-): Promise<PublicEffectIndexArticle[]> => {
-  const articles = await getPublishedEffectIndexArticles();
-  if (articles.length === 0) return articles;
-  const localized = await localizeRecords(articles, locale, "library");
-  return localized.records;
+): Promise<ArticleIndexEntry[]> => {
+  return getPostgresClient().sqlTransaction((client) => readLocalizedPublicationIndex(client, locale));
 });
 
 /** The gallery-index read: every published replication preview with its stored title spliced in. */
@@ -222,9 +213,9 @@ export const getLocalizedReportsByContributor = cache(async (
   locale: string,
 ): Promise<PublicReportPreview[]> => {
   const [reports, profiles, previews] = await Promise.all([
-    getPublicReportDetails(),
-    getPublicContributorProfiles(),
-    getPublicReports(),
+    getPublicReportDetailsByContributor(profile),
+    getPublicContributorIdentities(),
+    getReportsByContributor(profile),
   ]);
   const joined = reports.filter((report) => {
     const reportProfileKey = report.subject.profile_key?.trim().toUpperCase() ?? "";
@@ -250,10 +241,7 @@ export const getLocalizedEffectArticlesByContributor = cache(async (
   profile: NormalizedUserProfile,
   locale: string,
 ): Promise<ContributorEffectCredit[]> => {
-  const effects = await getPublicEffectArticles();
-  const joined = effects.filter((effect) =>
-    (effect.contributors ?? []).some((contributor) => profileMatchesName(profile, contributor)),
-  );
+  const joined = await getEffectArticlesByContributor(profile);
   if (joined.length === 0) return [];
   const localized = await localizeRecords(joined, locale, "effect");
   return localized.records

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicReplicationsByEffect } from "@server/convex/publicData";
+import { getPublicReplicationsByEffect } from "@server/data/publicData";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {

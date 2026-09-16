@@ -22,14 +22,18 @@ import { setThemeLabLook } from "./themeLabStore";
  * the look before hydration reads the envelope, so the first paint applies the
  * worn look's edits rather than the default look's.
  */
-export function ThemeLabRuntimeMount() {
+export function ThemeLabRuntimeMount({ onReady }: { onReady?: (ready: boolean) => void } = {}) {
   const { visualStyle } = useTheme();
 
   useEffect(() => {
     setThemeLabLook({ visualStyle });
   }, [visualStyle]);
 
-  useEffect(() => startThemeLabRuntime(), []);
+  useEffect(() => {
+    const stop = startThemeLabRuntime();
+    onReady?.(true);
+    return stop;
+  }, [onReady]);
 
   return null;
 }

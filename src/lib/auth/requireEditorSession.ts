@@ -8,6 +8,7 @@ type EditorSession = Awaited<ReturnType<typeof getServerSession>> & {
     email: string;
     name?: string | null;
     role?: AppRole;
+    glossaryLocales?: string[];
   };
 };
 

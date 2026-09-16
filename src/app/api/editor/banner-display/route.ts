@@ -1,5 +1,5 @@
 /** The site-wide safety-banner glyph size, read by the Banner Studio toolbar. */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { editorReadRoute } from "../editorReadRoute";
 
 export const runtime = "nodejs";

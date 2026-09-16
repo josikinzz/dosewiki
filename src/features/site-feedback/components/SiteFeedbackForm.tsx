@@ -142,9 +142,9 @@ export function SiteFeedbackForm() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="theme-reveal-enter space-y-5">
       {state.kind === "success" ? (
-        <Alert variant="success" aria-live="polite">
+        <Alert variant="success" aria-live="polite" className="theme-feedback-enter">
           <Icon icon="lucide:check" size={18} />
           <AlertTitle>{t("Feedback received")}</AlertTitle>
           <AlertDescription>
@@ -175,7 +175,7 @@ export function SiteFeedbackForm() {
             </Select>
           </FeedbackField>
 
-          {showUrgency ? (
+          <div hidden={!showUrgency} className={showUrgency ? "theme-reveal-enter" : undefined}>
             <FeedbackField id={`${fieldPrefix}-urgency`} label={t("How urgent is it?")}>
               <Select
                 value={draft.urgency}
@@ -193,7 +193,7 @@ export function SiteFeedbackForm() {
                 </SelectContent>
               </Select>
             </FeedbackField>
-          ) : null}
+          </div>
         </div>
 
         <FeedbackField id={`${fieldPrefix}-details`} label={t("Details")} required>
@@ -275,19 +275,27 @@ export function SiteFeedbackForm() {
             type="submit"
             variant="accent"
             disabled={state.kind === "submitting" || awaitingTurnstile}
+            aria-busy={state.kind === "submitting"}
           >
             {state.kind === "submitting" ? (
               <Icon icon="lucide:loader-circle" className="animate-spin motion-reduce:animate-none" size={16} />
             ) : (
               <Icon icon="lucide:send" size={16} />
             )}
-            {state.kind === "submitting"
-              ? t("Sending")
-              : awaitingTurnstile
-                ? t("Waiting for verification")
-                : t("Send feedback")}
+            <span className="grid">
+              {turnstileEnabled ? <span aria-hidden="true" className="invisible col-start-1 row-start-1">{t("Waiting for verification")}</span> : null}
+              <span aria-hidden="true" className="invisible col-start-1 row-start-1">{t("Send feedback")}</span>
+              <span aria-hidden="true" className="invisible col-start-1 row-start-1">{t("Sending")}</span>
+              <span className="col-start-1 row-start-1" aria-live="polite">
+                {state.kind === "submitting"
+                  ? t("Sending")
+                  : awaitingTurnstile
+                    ? t("Waiting for verification")
+                    : t("Send feedback")}
+              </span>
+            </span>
           </Button>
-          <Button type="button" variant="outline" onClick={resetForm}>
+          <Button type="button" variant="outline" onClick={resetForm} disabled={state.kind === "submitting"}>
             {t("Cancel")}
           </Button>
         </div>

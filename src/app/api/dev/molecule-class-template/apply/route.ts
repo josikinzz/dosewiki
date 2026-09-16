@@ -7,7 +7,7 @@
  * payloads are large and the useful class batches are much smaller in practice.
  */
 import { Buffer } from "node:buffer";
-import { makeFunctionReference } from "convex/server";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
@@ -144,15 +144,15 @@ function parseApplyBody(body: ApplyTemplateBody): ParsedApplyTemplate {
 export const GET = protectedRouteOperation({
   auth: "admin",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load molecule template preview inputs:",
   unexpectedErrorMessage: "Unable to load the current molecule depictions right now.",
-  operation: async ({ request, actorEmail, convexWrite }) => {
-    if (!convexWrite) throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) throw new Error("Postgres write capability is required.");
     const slugs = parseSlugList(request);
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-    const depictions = await convexWrite.client.query(getCurrentBySlugs, {
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const depictions = await dataWrite.client.query(getCurrentBySlugs, {
       apiKey,
       actorEmail,
       slugs,
@@ -172,19 +172,19 @@ export const POST = protectedRouteOperation<ApplyTemplateBody, ParsedApplyTempla
     maxBytes: MAX_BATCH_PAYLOAD_BYTES,
     parse: parseApplyBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to apply molecule class template:",
   unexpectedErrorMessage: "Unable to apply the molecule class template right now.",
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) throw new Error("Postgres write capability is required.");
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
     const results = await Promise.all(
       body.members.map(async (member) => {
         try {
-          const result = await convexWrite.client.mutation(applyTemplateDepiction, {
+          const result = await dataWrite.client.mutation(applyTemplateDepiction, {
             apiKey,
             actorEmail,
             slug: member.slug,

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { getEffectShowcaseWorks, getSubstanceShowcaseWorks } from "@/app/_components/public-routes/showcaseCollections";
+import { getEmbedCollection } from "@server/next/embedCollection";
+import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import { ReplicationEmbed } from "@/features/replications/embed/ReplicationEmbed";
-import { buildEmbedCollection, isEmbedSlug, type EmbedSelection } from "@/features/replications/embed/embedModel";
+import { isEmbedSlug, type EmbedSelection } from "@/features/replications/embed/embedModel";
 import { isAllowedReplicationEmbedParent } from "@server/next/replicationEmbedPolicy";
 
 export const metadata: Metadata = {
@@ -40,26 +41,15 @@ export default async function ReplicationEmbedPage({ searchParams }: {
   if (parentOrigin) sourceParams.set("parentOrigin", parentOrigin);
   const sourcePath = `/embed/replications?${sourceParams}`;
   try {
-    // One unresolvable slug must not blank the collection: a playlist can name
-    // a replication tag the site serves media under but publishes no effect
-    // article for. Skip those groups and fail only when nothing resolves.
-    const groups: Parameters<typeof buildEmbedCollection>[1] = [];
-    // Keep playlist composition within the shared four-connection read pool.
-    for (let offset = 0; offset < selection.slugs.length; offset += 2) {
-      const resolved = await Promise.all(selection.slugs.slice(offset, offset + 2).map(async (slug) => {
-        if (selection.kind === "substance") {
-          const result = await getSubstanceShowcaseWorks(slug);
-          if (!result) throw new Error("Unknown substance collection");
-          return { slug, label: result.collectionLabel, works: result.works };
-        }
-        const result = await getEffectShowcaseWorks(slug);
-        return result ? { slug, label: result.effectName ?? slug, works: result.works } : null;
-      }));
-      groups.push(...resolved.filter((group) => group !== null));
-    }
-    if (groups.length === 0) throw new Error("No requested collection resolved");
+    const collection = await getEmbedCollection(selection, sourcePath);
     return <ReplicationEmbed parentOrigin={parentOrigin} theme={theme} initialSlug={initialSlug}
-      collection={buildEmbedCollection(selection, groups, sourcePath)} />;
+      collection={{
+        works: collection.works.slice(0, SHOWCASE_WORK_CAP),
+        totalCount: collection.works.length,
+        label: collection.viewer.label,
+        sourcePath,
+        selection,
+      }} />;
   } catch (error) {
     console.error("Replication embed collection read failed", error);
     return <ReplicationEmbed parentOrigin={parentOrigin} theme={theme} error="These replications could not be loaded. Please try again." />;

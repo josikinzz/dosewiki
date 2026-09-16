@@ -51,6 +51,8 @@ function buildController(
     sessionStatus: "authenticated",
     articlesLength: 0,
     isLibraryLoading: false,
+    indexLayoutsReadiness: { status: "ready", error: null },
+    retryIndexLayouts: vi.fn(),
     activeTab,
     changeLog: {},
     commitPanel: null,

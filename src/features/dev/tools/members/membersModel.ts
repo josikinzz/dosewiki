@@ -9,11 +9,10 @@ export type MemberRow = {
   username?: string;
   name?: string;
   role: AppRole;
-  createdAt?: string;
+  glossaryLocales?: string[];
   lastSeenAt?: string;
   bannedAt?: string;
   invitedBy?: string;
-  inviteCodeId?: string;
 };
 
 export type MemberRoster = {
@@ -25,7 +24,7 @@ export type MemberRoster = {
 /**
  * Why a row shows no actions. `admin` rows are seeded and rotated from a
  * workstation; the actor's own row is off limits so an admin cannot lock
- * themselves out from the roster. Both are refused by Convex as well.
+ * themselves out from the roster. Both are refused by Postgres as well.
  */
 export type MemberRowLock = "admin" | "self" | null;
 
@@ -36,7 +35,7 @@ export function memberRowLock(row: MemberRow, self: string): MemberRowLock {
   return row.email === self.trim().toLowerCase() ? "self" : null;
 }
 
-const ROLE_RANK: Record<AppRole, number> = { admin: 0, editor: 1, translator: 2, contributor: 3, viewer: 4 };
+const ROLE_RANK: Record<AppRole, number> = { admin: 0, editor_translator: 1, editor: 2, translator: 3, contributor: 4, viewer: 5 };
 
 /** Admins first, then by role, then by username (email when a row has none). */
 export function sortRoster(rows: readonly MemberRow[]): MemberRow[] {
@@ -72,8 +71,8 @@ export async function fetchRoster(): Promise<MemberRoster> {
   };
 }
 
-export async function setMemberRole(email: string, role: ManagedRole): Promise<void> {
-  await postJson("role", { email, role }, "Unable to change that member's role.");
+export async function setMemberRole(email: string, role: ManagedRole, glossaryLocales: string[]): Promise<void> {
+  await postJson("role", { email, role, glossaryLocales }, "Unable to change that member's permissions.");
 }
 
 export async function banMember(email: string): Promise<void> {

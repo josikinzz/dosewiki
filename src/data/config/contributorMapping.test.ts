@@ -6,7 +6,7 @@ import userProfiles from "./userProfiles.json";
 // mapping decisions taken for the names that had no profile, so a later edit
 // cannot silently re-break the credits they appear on.
 //
-// Runtime resolution reads contributor profiles from Convex, not from this
+// Runtime resolution reads contributor profiles from Postgres, not from this
 // seed, so the negative cases are only meaningful when checked against the
 // whole live set: the seed plus the identities that only exist because the
 // Effect Index import created them (scripts/migrate/import-effectindex-identities.mjs).

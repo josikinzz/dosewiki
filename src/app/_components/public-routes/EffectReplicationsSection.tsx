@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getRequestLocale, t } from "@/i18n/server";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
-import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
+import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
@@ -79,12 +79,8 @@ export function EffectReplicationsSectionFallback() {
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="mt-6 aspect-[4/3] overflow-hidden rounded-xl">
-        <MediaPlaceholder
-          kind="loading"
-          title={t("Loading replications")}
-          description={t("Visual media is being prepared.")}
-        />
+      <div className="mt-6 aspect-video max-h-[380px] overflow-hidden rounded-xl" aria-label={t("Loading replications")}>
+        <SkeletonPulse height="h-full" className="rounded-none" />
       </div>
     </ArticleSection>
   );

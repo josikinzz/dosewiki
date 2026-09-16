@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
-import { getPublicReagentTestBySlug } from "@server/convex/publicData.reagents";
+import { getPublicReagentTestBySlug } from "@server/data/publicData.reagents";
 
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
-vi.mock("@server/convex/publicData.reagents", () => ({
+vi.mock("@server/data/publicData.reagents", () => ({
   getPublicReagentTestBySlug: vi.fn(),
 }));
 
@@ -32,7 +32,7 @@ describe("reagent snapshot route", () => {
     mockedGetBySlug.mockResolvedValue(validPayload);
   });
 
-  it("reads a canonical slug from Convex", async () => {
+  it("reads a canonical slug from Postgres", async () => {
     const { GET } = await import("./route");
 
     const response = await GET(
@@ -70,7 +70,7 @@ describe("reagent snapshot route", () => {
     expect(mockedGetBySlug).not.toHaveBeenCalled();
   });
 
-  it("returns the limiter response before reading Convex", async () => {
+  it("returns the limiter response before reading Postgres", async () => {
     const limitedResponse = NextResponse.json({ error: "Too many requests." }, { status: 429 });
     const { enforceRateLimit } = await import("@server/http/nextRateLimit");
     vi.mocked(enforceRateLimit).mockResolvedValueOnce(limitedResponse);
@@ -96,7 +96,7 @@ describe("reagent snapshot route", () => {
     );
   });
 
-  it("does not expose Convex errors", async () => {
+  it("does not expose Postgres errors", async () => {
     mockedGetBySlug.mockRejectedValueOnce(new Error("secret deployment detail"));
     const { GET } = await import("./route");
 

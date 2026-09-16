@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { validateArticleForIngestion } from "../../convex/lib/validators";
+import { validateArticleForIngestion } from "../../server/lib/validators";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { FIELD_PATHS } from "@/data/schema/fieldRegistry.generated";
 import {
@@ -10,7 +10,7 @@ import {
 import { minimalArticle } from "@/test/fixtures/articles";
 
 describe("substance article contract", () => {
-  it("accepts the same valid article through frontend and Convex-facing adapters", () => {
+  it("accepts the same valid article through frontend and Postgres-facing adapters", () => {
     expect(substanceArticleSchema.safeParse(minimalArticle).success).toBe(true);
     expect(validateSubstanceArticleContract(minimalArticle)).toMatchObject({ ok: true });
     expect(validateArticleForIngestion(minimalArticle)).toMatchObject({
@@ -19,7 +19,7 @@ describe("substance article contract", () => {
     });
   });
 
-  it("reports invalid canonical binding-site fields before Convex storage", () => {
+  it("reports invalid canonical binding-site fields before Postgres storage", () => {
     const invalidArticle = {
       ...minimalArticle,
       pharmacology: {

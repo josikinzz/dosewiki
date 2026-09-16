@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { verifyPassword } from "@server/auth/passwords";
@@ -16,7 +16,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const memberships = vi.hoisted(() => ({ consumePasswordReset: vi.fn() }));
 
-vi.mock("@server/auth/convexMemberships", () => memberships);
+vi.mock("@server/auth/memberships", () => memberships);
 
 const TOKEN = "a".repeat(64);
 const PASSPHRASE = "correct horse battery";
@@ -58,7 +58,7 @@ describe("POST /api/reset-password", () => {
     await expect(verifyPassword(PASSPHRASE, passwordHash)).resolves.toBe(true);
   });
 
-  it("refuses a malformed token and a weak password before touching Convex", async () => {
+  it("refuses a malformed token and a weak password before touching Postgres", async () => {
     for (const body of [
       { password: PASSPHRASE },
       { token: "not-a-token", password: PASSPHRASE },
@@ -73,7 +73,7 @@ describe("POST /api/reset-password", () => {
 
   it("maps an unknown or expired token to a 4xx with the reader-facing message", async () => {
     memberships.consumePasswordReset.mockRejectedValue(
-      new ConvexError({
+      new PostgresError({
         code: "RESET_TOKEN_INVALID",
         message: "This reset link is invalid or has expired. Ask an admin for a new one.",
       }),

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicSubstances } from "@server/convex/publicData";
+import { getPublicSubstances } from "@server/data/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
   PUBLIC_API_VERSION,

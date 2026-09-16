@@ -1,7 +1,9 @@
-import Link from "next/link";
 import { SmartLink } from "@/components/common/SmartLink";
 import type { ReactNode } from "react";
-import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";
+import {
+  ExpandButton,
+  ExpandIndicator,
+} from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
 import { cn } from "@/lib/utils";
@@ -10,13 +12,12 @@ import {
   isFlatSubcategoryKey,
   resolveSubcategory,
 } from "@/data/subjectiveEffectSubcategories";
-import { resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
-import type {
-  EffectCategory,
-  EffectEntry,
-  SenseCategory,
-  SubjectiveEffects,
-} from "@/schema";
+import {
+  resolveEffectNameAlias,
+  type EffectLocation,
+} from "@/data/effectNameAliases";
+import type { EffectCategory, EffectEntry } from "@/schema";
+import { getSubcategories, getSubcategoryData } from "./subjectiveEffectsModel";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
@@ -37,96 +38,15 @@ export { SENSORY_CATEGORIES };
 export type EffectNotePathBase = readonly string[];
 
 /**
- * At or below this many visible effects the section reads as a stub, no matter
- * how much supporting prose it carries.
- */
-export const SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS = 3;
-
-/**
  * Resolves an effect chip's destination, or null when the name has no page to
  * link to. Callers must render a null result as a plain chip: the alias table
  * exists because ~27% of chip names slugified to a route that 404s, and silently
  * emitting those links is what made the rot invisible.
  */
-function getEffectHref(name: string, location?: EffectLocation): string | null { const alias = resolveEffectNameAlias(slugify(name), location);
+function getEffectHref(name: string, location?: EffectLocation): string | null {
+  const alias = resolveEffectNameAlias(slugify(name), location);
 
-return alias === undefined ? publicHref.effectFromName(name) : alias; }
-
-export function hasEffects(category: EffectCategory | undefined): boolean {
-  if (!category || typeof category !== "object") return false;
-  return Object.values(category).some(
-    (subcategory) =>
-      subcategory &&
-      ((Array.isArray(subcategory.effects) && subcategory.effects.length > 0) ||
-        subcategory.note?.trim().length > 0),
-  );
-}
-
-export function hasSenseEffects(senseCategory: SenseCategory | undefined): boolean {
-  if (!senseCategory) return false;
-  return hasEffects(senseCategory.subcategories);
-}
-
-export function getSubcategories(category: EffectCategory | undefined): string[] {
-  if (!category || typeof category !== "object") return [];
-  return Object.keys(category).filter(
-    (key) =>
-      category[key] &&
-      ((Array.isArray(category[key].effects) && category[key].effects.length > 0) ||
-        category[key].note?.trim().length > 0),
-  );
-}
-
-export function getSubcategoryData(
-  category: EffectCategory | undefined,
-  subcategory: string,
-): { note: string; effects: EffectEntry[] } {
-  if (!category || !category[subcategory]) return { note: "", effects: [] };
-  return category[subcategory];
-}
-
-/**
- * Distinct effect chips one category renders. `CategoryEffects` de-dupes by
- * `effect.name` within the category it draws, so the same name repeated across
- * two subcategories is one chip to a reader — and one to this count.
- */
-function countCategoryEffects(category: EffectCategory | undefined): number {
-  const seen = new Set<string>();
-  for (const subcategory of getSubcategories(category)) {
-    for (const effect of getSubcategoryData(category, subcategory).effects) {
-      const name = effect?.name?.trim();
-      if (name) seen.add(name);
-    }
-  }
-  return seen.size;
-}
-
-/**
- * Counts the leaf effect chips a reader actually sees in a subjective effects
- * section: the entries under `physical`, `cognitive`, and each sense's
- * `subcategories`, de-duped by name within each category the way the renderer
- * de-dupes them. `progressive_stages` and `comparisons` are deliberately
- * excluded — neither renders as an effect chip. Notes and the overview are not
- * counted either; prose does not make a section any less of a stub.
- */
-export function countVisibleEffects(
-  subjectiveEffects: SubjectiveEffects | undefined,
-): number {
-  if (!subjectiveEffects) return 0;
-
-  const sensory = subjectiveEffects.sensory;
-  const categories: (EffectCategory | undefined)[] = [
-    subjectiveEffects.physical,
-    subjectiveEffects.cognitive,
-    ...SENSORY_CATEGORIES.map(
-      ({ key }) => sensory?.[key as keyof typeof sensory]?.subcategories,
-    ),
-  ];
-
-  return categories.reduce(
-    (total, category) => total + countCategoryEffects(category),
-    0,
-  );
+  return alias === undefined ? publicHref.effectFromName(name) : alias;
 }
 
 function EffectBadge({
@@ -141,121 +61,131 @@ function EffectBadge({
   onToggle: () => void;
   onSelectEffect?: (name: string) => void;
   location?: EffectLocation;
-}) { const t = useT();
-const hasDescription = effect.description?.trim().length > 0;
-const href = getEffectHref(effect.name, location);
-const panelId = `effect-${slugify(effect.name)}-description`;
+}) {
+  const t = useT();
+  const hasDescription = effect.description?.trim().length > 0;
+  const href = getEffectHref(effect.name, location);
+  const panelId = `effect-${slugify(effect.name)}-description`;
 
-const handleClick = () => {
-  if (hasDescription) {
-    onToggle();
-  } else if (onSelectEffect) {
-    onSelectEffect(slugify(effect.name));
-  }
-};
+  const handleClick = () => {
+    if (hasDescription) {
+      onToggle();
+    } else if (onSelectEffect) {
+      onSelectEffect(slugify(effect.name));
+    }
+  };
 
-if (isExpanded && hasDescription) {
-  const parenMatch = effect.description.match(/^\(([^)]+)\)\s*[-–—]\s*/);
-  const subtitleBadge = parenMatch ? parenMatch[1] : null;
-  const descriptionText = parenMatch
-    ? effect.description.slice(parenMatch[0].length)
-    : effect.description;
+  if (isExpanded && hasDescription) {
+    const parenMatch = effect.description.match(/^\(([^)]+)\)\s*[-–—]\s*/);
+    const subtitleBadge = parenMatch ? parenMatch[1] : null;
+    const descriptionText = parenMatch
+      ? effect.description.slice(parenMatch[0].length)
+      : effect.description;
 
-  return (
-    <div
-      id={panelId}
-      className={cn(
-        "relative flex w-full flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
-        "theme-inline-expanded-card my-2",
-      )}
-    >
-      <ExpandButton
-        isExpanded={true}
-        onToggle={onToggle}
-        variant="card"
-        className="absolute right-3 top-3 text-dose-text-secondary"
-        ariaLabel={t("Collapse {{effect}} effect description", { effect: effect.name })}
-        ariaControls={panelId}
-      />
-      <div className="flex flex-wrap items-center gap-2 pr-8">
-        {href === null ? (
-          // No page to open: same typography, none of the link affordances.
-          <span className="text-xs font-semibold text-dose-text-secondary">{t(effect.name)}</span>
-        ) : (
-          <SmartLink
-            href={href}
-            onClick={
-              onSelectEffect
-                ? (event) => {
-                    if (!isPlainLeftClick(event)) {
-                      return;
+    return (
+      <div
+        id={panelId}
+        className={cn(
+          "relative flex w-full flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
+          "theme-inline-expanded-card my-2",
+        )}
+      >
+        <ExpandButton
+          isExpanded={true}
+          onToggle={onToggle}
+          variant="card"
+          className="absolute right-3 top-3 text-dose-text-secondary"
+          ariaLabel={t("Collapse {{effect}} effect description", {
+            effect: effect.name,
+          })}
+          ariaControls={panelId}
+        />
+        <div className="flex flex-wrap items-center gap-2 pr-8">
+          {href === null ? (
+            // No page to open: same typography, none of the link affordances.
+            <span className="text-xs font-semibold text-dose-text-secondary">
+              {t(effect.name)}
+            </span>
+          ) : (
+            <SmartLink
+              href={href}
+              onClick={
+                onSelectEffect
+                  ? (event) => {
+                      if (!isPlainLeftClick(event)) {
+                        return;
+                      }
+
+                      event.preventDefault();
+                      onSelectEffect(slugify(effect.name));
                     }
-
-                    event.preventDefault();
-                    onSelectEffect(slugify(effect.name));
-                  }
-                : undefined
-            }
-            className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
-          >
-            {t(effect.name)}
-          </SmartLink>
-        )}
-        {subtitleBadge && (
-          <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">
-            {subtitleBadge}
-          </span>
-        )}
+                  : undefined
+              }
+              className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft theme-focus-ring"
+            >
+              {t(effect.name)}
+            </SmartLink>
+          )}
+          {subtitleBadge && (
+            <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">
+              {subtitleBadge}
+            </span>
+          )}
+        </div>
+        <p className="theme-reveal-enter text-sm leading-relaxed text-dose-text-muted">
+          {descriptionText}
+        </p>
       </div>
-      <p className="text-sm leading-relaxed text-dose-text-muted">{descriptionText}</p>
-    </div>
-  );
-}
+    );
+  }
 
-if (!hasDescription) {
-  // `PublicNameChip` renders a span by default; `as={Link}` is what opts it into
-  // link mode, so an unresolved name simply omits it and keeps the same chip.
-  if (href === null) {
-    return <PublicNameChip>{t(effect.name)}</PublicNameChip>;
+  if (!hasDescription) {
+    // `PublicNameChip` renders a span by default; `as={SmartLink}` opts into
+    // link mode, so an unresolved name simply omits it and keeps the same chip.
+    if (href === null) {
+      return <PublicNameChip>{t(effect.name)}</PublicNameChip>;
+    }
+
+    return (
+      <PublicNameChip
+        as={SmartLink}
+        href={href}
+        onClick={
+          onSelectEffect
+            ? (event) => {
+                if (!isPlainLeftClick(event)) {
+                  return;
+                }
+
+                event.preventDefault();
+                handleClick();
+              }
+            : undefined
+        }
+        interactive
+      >
+        {t(effect.name)}
+      </PublicNameChip>
+    );
   }
 
   return (
     <PublicNameChip
-      as={Link}
-      href={href}
-      onClick={
-        onSelectEffect
-          ? (event) => {
-              if (!isPlainLeftClick(event)) {
-                return;
-              }
-
-              event.preventDefault();
-              handleClick();
-            }
-          : undefined
-      }
+      as="button"
+      type="button"
+      onClick={handleClick}
+      aria-expanded={false}
+      aria-label={t("Expand {{effect}} effect description", {
+        effect: effect.name,
+      })}
+      aria-controls={panelId}
       interactive
     >
       {t(effect.name)}
+      <ExpandIndicator isExpanded={false} />
     </PublicNameChip>
   );
 }
-
-return (
-  <PublicNameChip
-    as="button"
-    type="button"
-    onClick={handleClick}
-    aria-expanded={false}
-    aria-label={t("Expand {{effect}} effect description", { effect: effect.name })}
-    aria-controls={panelId}
-    interactive
-  >
-    {t(effect.name)}
-    <ExpandIndicator isExpanded={false} />
-  </PublicNameChip>
-); }
 
 function EffectsGroup({
   effects,
@@ -269,20 +199,22 @@ function EffectsGroup({
   onToggleEffect: (name: string) => void;
   onSelectEffect?: (name: string) => void;
   location?: EffectLocation;
-}) { return (
-  <div className="flex flex-wrap gap-2">
-    {effects.map((effect) => (
-      <EffectBadge
-        key={effect.name}
-        effect={effect}
-        isExpanded={expandedEffect === effect.name}
-        onToggle={() => onToggleEffect(effect.name)}
-        onSelectEffect={onSelectEffect}
-        location={location}
-      />
-    ))}
-  </div>
-); }
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {effects.map((effect) => (
+        <EffectBadge
+          key={effect.name}
+          effect={effect}
+          isExpanded={expandedEffect === effect.name}
+          onToggle={() => onToggleEffect(effect.name)}
+          onSelectEffect={onSelectEffect}
+          location={location}
+        />
+      ))}
+    </div>
+  );
+}
 
 /**
  * `EditableValue` for a note whose path is optional.
@@ -336,14 +268,23 @@ export function CollapsibleStage({
   const rowContent = (
     <>
       {stageIcon && (
-        <Icon icon={stageIcon} size={18} className="theme-icon-accent shrink-0" />
+        <Icon
+          icon={stageIcon}
+          size={18}
+          className="theme-icon-accent shrink-0"
+        />
       )}
-      <span className="theme-text-primary min-w-0 flex-1 text-sm font-semibold">{stageLabel}</span>
+      <span className="theme-text-primary min-w-0 flex-1 text-sm font-semibold">
+        {stageLabel}
+      </span>
     </>
   );
 
   return (
-    <div className="theme-progressive-stage rounded-xl" data-expanded={isExpanded || undefined}>
+    <div
+      className="theme-progressive-stage rounded-xl"
+      data-expanded={isExpanded || undefined}
+    >
       {hasNote ? (
         <button
           type="button"
@@ -352,14 +293,19 @@ export function CollapsibleStage({
           aria-controls={panelId}
           className={cn(
             "theme-progressive-stage-trigger flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent",
+            "theme-focus-ring",
           )}
         >
           {rowContent}
-          <ExpandIndicator isExpanded={isExpanded} className="theme-text-muted shrink-0" />
+          <ExpandIndicator
+            isExpanded={isExpanded}
+            className="theme-text-muted shrink-0"
+          />
         </button>
       ) : (
-        <div className="flex w-full items-center gap-3 px-3 py-3">{rowContent}</div>
+        <div className="flex w-full items-center gap-3 px-3 py-3">
+          {rowContent}
+        </div>
       )}
       {hasNote && (
         <div
@@ -418,59 +364,64 @@ function SubcategorySection({
   location?: EffectLocation;
   /** See `EffectNotePathBase`; absent on the public article. */
   notePathBase?: EffectNotePathBase;
-}) { const t = useT();
-const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
-const { label: rawSubcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
-const subcategoryLabel = t(rawSubcategoryLabel);
-const notePath = notePathBase
-  ? buildFieldPath(...notePathBase, subcategory, "note")
-  : undefined;
+}) {
+  const t = useT();
+  const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
+  const { label: rawSubcategoryLabel, icon: subcategoryIcon } =
+    resolveSubcategory(subcategory);
+  const subcategoryLabel = t(rawSubcategoryLabel);
+  const notePath = notePathBase
+    ? buildFieldPath(...notePathBase, subcategory, "note")
+    : undefined;
 
-return (
-  <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
-    {!isGeneral && (
-      <h4
-        className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5"
-      >
-        {subcategoryIcon ? (
-          <Icon icon={subcategoryIcon} size={16} className="theme-icon-accent" />
-        ) : (
-          <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
-        )}
-        {subcategoryLabel}
-      </h4>
-    )}
-    {hasSubcategoryNote && (
-      <MaybeEditable
-        label={t("{{label}} note", { label: subcategoryLabel })}
-        path={notePath}
-        value={subcategoryData.note}
-      >
-        <p className="theme-text-muted mb-3 text-sm leading-relaxed">
-          {subcategoryData.note}
-        </p>
-      </MaybeEditable>
-    )}
-    {!hasSubcategoryNote && notePath ? (
-      <EditableSlot
-        className="mb-3"
-        emptyLabel={t("Add a {{label}} note", { label: subcategoryLabel })}
-        label={t("{{label}} note", { label: subcategoryLabel })}
-        path={notePath}
-        value={subcategoryData.note ?? ""}
-      />
-    ) : null}
-    <div>
-      <EffectsGroup
-        effects={subcategoryData.effects}
-        expandedEffect={expandedEffect}
-        onToggleEffect={onToggleEffect}
-        onSelectEffect={onSelectEffect}
-        location={location}
-      />
+  return (
+    <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
+      {!isGeneral && (
+        <h4 className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5">
+          {subcategoryIcon ? (
+            <Icon
+              icon={subcategoryIcon}
+              size={16}
+              className="theme-icon-accent"
+            />
+          ) : (
+            <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
+          )}
+          {subcategoryLabel}
+        </h4>
+      )}
+      {hasSubcategoryNote && (
+        <MaybeEditable
+          label={t("{{label}} note", { label: subcategoryLabel })}
+          path={notePath}
+          value={subcategoryData.note}
+        >
+          <p className="theme-text-muted mb-3 text-sm leading-relaxed">
+            {subcategoryData.note}
+          </p>
+        </MaybeEditable>
+      )}
+      {!hasSubcategoryNote && notePath ? (
+        <EditableSlot
+          className="mb-3"
+          emptyLabel={t("Add a {{label}} note", { label: subcategoryLabel })}
+          label={t("{{label}} note", { label: subcategoryLabel })}
+          path={notePath}
+          value={subcategoryData.note ?? ""}
+        />
+      ) : null}
+      <div>
+        <EffectsGroup
+          effects={subcategoryData.effects}
+          expandedEffect={expandedEffect}
+          onToggleEffect={onToggleEffect}
+          onSelectEffect={onSelectEffect}
+          location={location}
+        />
+      </div>
     </div>
-  </div>
-); }
+  );
+}
 
 /**
  * Renders a whole effect category (physical, cognitive, or a sense's
@@ -515,7 +466,10 @@ export function CategoryEffects({
   for (const subcategory of subcategories) {
     const data = getSubcategoryData(category, subcategory);
     const hasNote = data.note?.trim().length > 0;
-    if (isFlatSubcategoryKey(subcategory) || (data.effects.length < 2 && !hasNote)) {
+    if (
+      isFlatSubcategoryKey(subcategory) ||
+      (data.effects.length < 2 && !hasNote)
+    ) {
       flatEffects.push(...data.effects);
       if (hasNote) flatNotes.push({ subcategory, note: data.note });
     } else {
@@ -535,7 +489,9 @@ export function CategoryEffects({
       {flatNotes.map(({ subcategory, note }) => (
         <MaybeEditable
           key={subcategory}
-          label={t("{{label}} note", { label: t(resolveSubcategory(subcategory).label) })}
+          label={t("{{label}} note", {
+            label: t(resolveSubcategory(subcategory).label),
+          })}
           path={
             notePathBase
               ? buildFieldPath(...notePathBase, subcategory, "note")
@@ -543,7 +499,9 @@ export function CategoryEffects({
           }
           value={note}
         >
-          <p className="theme-text-muted mb-3 text-sm leading-relaxed">{note}</p>
+          <p className="theme-text-muted mb-3 text-sm leading-relaxed">
+            {note}
+          </p>
         </MaybeEditable>
       ))}
       {dedupedFlat.length > 0 && (

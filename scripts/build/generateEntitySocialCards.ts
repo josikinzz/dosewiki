@@ -17,12 +17,12 @@ import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
 import sharp from "sharp";
 
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import {
   findContributorProfileByAuthorName,
   type MaterializedContributorProfile,
 } from "../../lib/contributorProfileIdentity";
-import { getPublicServerReadTarget } from "../../lib/convex/runtimeTargets";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
   renderReplicationSocialCardPng,
   REPLICATION_SOCIAL_CARD_RENDERER_VERSION,
@@ -44,7 +44,6 @@ import {
   type UserProfileSocialCardInput,
 } from "../../lib/og/prototypes/userProfileSocialCard";
 
-const DEFAULT_PUBLIC_CONVEX_URL = "https://glad-minnow-656.convex.cloud";
 const OUTPUT_ROOT = process.env.ENTITY_SOCIAL_CARD_OUTPUT_ROOT
   ? path.resolve(process.env.ENTITY_SOCIAL_CARD_OUTPUT_ROOT)
   : path.join(process.cwd(), "public/images/social/entities");
@@ -892,17 +891,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  const runtimeTarget = getPublicServerReadTarget(process.env);
-  const convexUrl = runtimeTarget.selectedUrl ?? DEFAULT_PUBLIC_CONVEX_URL;
-  const deploymentName = new URL(convexUrl).hostname.split(".")[0];
-  if (deploymentName !== "glad-minnow-656") {
-    throw new Error(
-      `Entity social cards must use production Convex glad-minnow-656; resolved ${deploymentName}.`,
-    );
+  const { client, fingerprint: deploymentName } = createDataClient();
+  const expected = getFlagValue(process.argv.slice(2), "--expected-deployment");
+  if (!expected || expected !== deploymentName) {
+    throw new Error(`Entity social cards require --expected-deployment=${deploymentName} for the selected Postgres source.`);
   }
-
-  console.log(`[entity-social-cards] Reading public entities from ${convexUrl}...`);
-  const client = createDataClient({ target: convexUrl }).client;
+  console.log(`[entity-social-cards] Reading public entities from ${deploymentName}...`);
   const [rawEffects, rawReplications, rawReports, rawProfiles] = await Promise.all([
     client.query(api.subjectiveEffects.getPublicPreviews, {}),
     client.query(api.replications.getPublicReplications, {}),

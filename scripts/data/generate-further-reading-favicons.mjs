@@ -5,8 +5,8 @@ import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -239,8 +239,8 @@ async function readArticlesFromInput(inputPath) {
   throw new Error(`Input file ${inputPath} is not an article array.`);
 }
 
-async function readArticlesFromConvex(convexUrl) {
-  const client = createDataClient({ target: convexUrl }).client;
+async function readArticlesFromData(dataUrl) {
+  const client = createDataClient({ target: dataUrl }).client;
   return await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 }
 
@@ -661,7 +661,7 @@ async function main() {
     operation: "generate further-reading favicons",
     intent: "local-asset-generation",
     argv,
-    sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL", "CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL", "SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
     targetUrlKeys: [],
     localArtifacts: ["public/favicons", "src/data/config/sourceFavicons.ts"],
     dryRunFlag: "--dry-run",
@@ -673,7 +673,7 @@ async function main() {
 
   const articles = inputPath
     ? await readArticlesFromInput(inputPath)
-    : await readArticlesFromConvex(requireSourceUrl(runContext, "Convex read source URL"));
+    : await readArticlesFromData(requireSourceUrl(runContext, "Postgres read source URL"));
 
   let hosts = collectFurtherReadingHosts(articles);
   if (hostFilter) {

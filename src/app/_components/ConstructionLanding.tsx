@@ -1,5 +1,5 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyKey, flavoredCopyText, getCopyByKeys } from "@server/next/copyBlocks";
 import { HomeExperience } from "./HomeExperience";
 import { buildHomeQuickLinks } from "./homeQuickLinks";
 
@@ -13,10 +13,10 @@ const quickLinks = buildHomeQuickLinks();
  *
  * Rendering the real homepage rather than a bespoke holding card is deliberate: visitors
  * see the site's appearance, while tiles answer "SOON" instead of navigating. The Theme
- * Lab is the one control the blocked surface withholds — see {@link HomeExperience}.
+ * Lab is the one control the blocked surface withholds. See {@link HomeExperience}.
  */
 export async function ConstructionLanding() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
 
   return (
     <HomeExperience

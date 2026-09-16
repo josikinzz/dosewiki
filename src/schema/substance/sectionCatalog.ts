@@ -69,7 +69,7 @@ export interface SubstanceSectionPresenceContext {
   hasExternalReagentData?: boolean;
   isLoadingExternalReagentData?: boolean;
   /**
-   * Trip reports live in Convex, not on the article, so the host resolves
+   * Trip reports live in Postgres, not on the article, so the host resolves
    * whether any related reports exist and hands the answer down here.
    */
   hasTripReports?: boolean;
@@ -606,7 +606,7 @@ export const ARTICLE_SECTION_CATALOG = [
       visible: true,
       toc: true,
       renderer: "TripReportsSection",
-      // Related reports are fetched from Convex rather than stored on the
+      // Related reports are fetched from Postgres rather than stored on the
       // article, so presence comes entirely from the host-provided context.
       isPresent: (_article, context) => context?.hasTripReports ?? false,
     },
@@ -720,7 +720,7 @@ export interface CatalogSectionPromptDescriptor {
   label: string;
   description: string;
   seedPath: string;
-  convexKey: `section_${CatalogSectionPromptKey}`;
+  dataKey: `section_${CatalogSectionPromptKey}`;
   sourceMaterial: "none" | "extracted";
   editorVisible: boolean;
 }
@@ -746,7 +746,7 @@ export function getCatalogSectionPromptDescriptors(): CatalogSectionPromptDescri
         label: entry.prompt.label ?? entry.label,
         description: entry.prompt.description,
         seedPath: entry.prompt.seedPath,
-        convexKey: key,
+        dataKey: key,
         sourceMaterial: entry.prompt.sourceMaterial,
         editorVisible: entry.prompt.editorVisible,
       },

@@ -1,4 +1,4 @@
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import {
   buildFormalCitationSectionResponseContract,
@@ -108,7 +108,7 @@ export function resolveRequestedFormalCitationSections({ article, options }) {
 
 export async function loadFormalCitationPrompts(sourceClient, sectionKeys) {
   const keys = [
-    getFormalCitationAgentPromptDescriptor().convexKey,
+    getFormalCitationAgentPromptDescriptor().dataKey,
     ...sectionKeys.map((sectionKey) => formalCitationSectionKeyToPromptKey(sectionKey)),
   ];
 
@@ -116,7 +116,7 @@ export async function loadFormalCitationPrompts(sourceClient, sectionKeys) {
     keys.map(async (key) => {
       const prompt = await sourceClient.query(api.prompts.getByKey, { key });
       if (!prompt?.content) {
-        throw new Error(`${key} prompt not found in Convex. Run npm run prompts:migrate first.`);
+        throw new Error(`${key} prompt not found in Postgres. Run npm run prompts:migrate first.`);
       }
       return [key, prompt.content];
     }),

@@ -78,7 +78,7 @@ export const ReportHeroSection = memo(function ReportHeroSection(
               href={profileUrl}
               aria-hidden="true"
               tabIndex={-1}
-              className="inline-flex rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+              className="inline-flex rounded-full theme-focus-ring"
             >
               <AuthorAvatar
                 authorName={report.subject.name}
@@ -114,7 +114,7 @@ export const ReportHeroSection = memo(function ReportHeroSection(
           scroll={false}
           title={licenseTitle}
           aria-label={licenseTitle}
-          className="inline-flex rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+          className="inline-flex rounded-full theme-focus-ring"
         >
           <PublicPill icon={licenseIcon} tone="neutral" size="sm">
             {licenseLabel}

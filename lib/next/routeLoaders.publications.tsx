@@ -3,17 +3,18 @@ import "server-only";
 
 import { cache } from "react";
 import {
-  getPublishedEffectIndexArticles,
-  getPublicContributorProfiles,
+  getPublishedPublicationIndex,
   getPublicEffectIndexArticleBySlug,
   getPublicEffectIndexPostBySlug,
   getPublicEffectIndexPosts,
   type PublicEffectIndexArticle,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
+import { getPublicContributorIdentitiesByLookupKeys } from "../data/publicData.contributors";
+import type { ArticleIndexEntry } from "../../src/features/articles/domain/articlesIndex";
 import { getLocalizedPublicArticleBySlug, getLocalizedPublicArticles } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildBlogPostExcerpt, toBlogPostViewModel, type BlogPostViewModel } from "../../src/features/blog/domain/blogPostModel";
-import { toWritingBlogPost, writingBlogPostSummary, type WritingBlogPost } from "../../src/features/blog/domain/writingBlogModel";
+import { toWritingBlogPost, toWritingBlogIndexPost, writingBlogPostSummary, type WritingBlogPost, type WritingBlogIndexPost } from "../../src/features/blog/domain/writingBlogModel";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { ArticleBylineAuthor } from "../../src/features/articles/domain/articleByline";
 import { findContributorProfileByKeyOrAlias, normalizeProfileKey } from "../contributorProfileIdentity";
@@ -36,7 +37,7 @@ export type ArticleRouteResult =
  * exactly as it does today.
  */
 async function resolveArticleBylineAuthors(
-  article: PublicEffectIndexArticle,
+  article: Pick<PublicEffectIndexArticle, "authorProfileKeys">,
 ): Promise<ArticleBylineAuthor[]> {
   const keys = article.authorProfileKeys ?? [];
 
@@ -44,7 +45,7 @@ async function resolveArticleBylineAuthors(
     return [];
   }
 
-  const profiles = await getPublicContributorProfiles();
+  const profiles = await getPublicContributorIdentitiesByLookupKeys(keys);
   const seen = new Set<string>();
   const authors: ArticleBylineAuthor[] = [];
 
@@ -107,7 +108,7 @@ export const loadArticleRoute = cache(async (slug: string, locale: LiveLocale | 
 });
 
 export type ArticlesIndexRouteResult = OkRouteResult<{
-  articles: PublicEffectIndexArticle[];
+  articles: ArticleIndexEntry[];
   emptyState?: PublicRouteEmptyState;
 }>;
 
@@ -115,7 +116,7 @@ export const loadArticlesIndexRoute = cache(
   async (locale: LiveLocale | null = null): Promise<ArticlesIndexRouteResult> => {
     const published = locale
       ? await getLocalizedPublicArticles(locale.code)
-      : await getPublishedEffectIndexArticles();
+      : await getPublishedPublicationIndex("article");
     const articles = published.filter(isArticleKind);
 
     return {
@@ -187,7 +188,7 @@ export const loadBlogPostRoute = cache(async (slug: string): Promise<BlogPostRou
 });
 
 export type WritingBlogIndexRouteResult = OkRouteResult<{
-  posts: WritingBlogPost[];
+  posts: WritingBlogIndexPost[];
   emptyState?: PublicRouteEmptyState;
 }>;
 
@@ -203,10 +204,8 @@ export type WritingBlogIndexRouteResult = OkRouteResult<{
  */
 export const loadWritingBlogIndexRoute = cache(
   async (): Promise<WritingBlogIndexRouteResult> => {
-    const rows = (await getPublishedEffectIndexArticles()).filter(isBlogKind);
-    const posts = await Promise.all(
-      rows.map(async (row) => toWritingBlogPost(row, await resolveArticleBylineAuthors(row))),
-    );
+    const rows = await getPublishedPublicationIndex("blog");
+    const posts = rows.map((row) => toWritingBlogIndexPost(row));
 
     return {
       kind: "ok",

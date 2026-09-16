@@ -4,23 +4,25 @@ import { createContext, useContext, type ReactNode } from "react";
 import iconData from "./iconData.generated.json";
 
 /**
- * Icons that a long page repeats dozens of times: the `⋯ ⌄` pair on every
- * disclosure control and the backlink arrow on every reference. Each name maps
- * to the `<symbol>` id the sprite registers it under.
+ * Icons that a long page repeats: disclosure controls, reference backlinks,
+ * category chips, and paired collapsed/expanded pharmacology cards. Each name
+ * maps to the `<symbol>` id the sprite registers it under.
  *
  * Inside an `IconSpriteScope`, `Icon` renders these as a one-line
  * `<svg><use href="#id"/></svg>` instead of inlining the full glyph markup on
- * every occurrence. A substance article carried about 230 copies of these three
- * glyphs (82 KB of HTML) before the sprite; now the geometry ships once.
+ * every occurrence.
  *
- * Deliberately small and explicit. A name is worth adding only when it repeats
- * enough on one page to pay for the extra sprite entry; one-off section icons
- * stay on the regular inline path.
+ * Deliberately small and explicit. A name is worth adding only when the same
+ * article can render it more than once; one-off section icons stay on the
+ * regular inline path.
  */
 const SPRITE_ICON_IDS: Readonly<Record<string, string>> = {
   "lucide:ellipsis": "dw-icon-ellipsis",
   "lucide:chevron-down": "dw-icon-chevron-down",
   "lucide:arrow-up": "dw-icon-arrow-up",
+  "lucide:key": "dw-icon-key",
+  "lucide:tag": "dw-icon-tag",
+  "material-symbols:track-changes-rounded": "dw-icon-track-changes-rounded",
 };
 
 type SpriteSymbol = {
@@ -36,30 +38,48 @@ function buildSpriteSymbols(): SpriteSymbol[] {
     const separator = name.indexOf(":");
     const prefix = name.slice(0, separator);
     const iconName = name.slice(separator + 1);
-    const collection = iconData.collections.find((entry) => entry.prefix === prefix);
-    const icon = collection?.icons?.[iconName as keyof typeof collection.icons] as
-      | { body: string; width?: number; height?: number; left?: number; top?: number }
+    const collection = iconData.collections.find(
+      (entry) => entry.prefix === prefix,
+    );
+    const icon = collection?.icons?.[
+      iconName as keyof typeof collection.icons
+    ] as
+      | {
+          body: string;
+          width?: number;
+          height?: number;
+          left?: number;
+          top?: number;
+        }
       | undefined;
     if (!collection || !icon) continue;
     const left = icon.left ?? 0;
     const top = icon.top ?? 0;
     const width = icon.width ?? collection.width ?? 16;
     const height = icon.height ?? collection.height ?? 16;
-    symbols.push({ id, body: icon.body, viewBox: `${left} ${top} ${width} ${height}` });
+    symbols.push({
+      id,
+      body: icon.body,
+      viewBox: `${left} ${top} ${width} ${height}`,
+    });
   }
   return symbols;
 }
 
 const SPRITE_SYMBOLS = buildSpriteSymbols();
 
-const SPRITE_VIEWBOX_BY_ID = new Map(SPRITE_SYMBOLS.map((symbol) => [symbol.id, symbol.viewBox]));
+const SPRITE_VIEWBOX_BY_ID = new Map(
+  SPRITE_SYMBOLS.map((symbol) => [symbol.id, symbol.viewBox]),
+);
 
 /**
  * Look up how `Icon` should reference a sprited name: the symbol id and the
  * viewBox the referencing `<svg>` must carry so the glyph scales exactly as the
  * inline render did. `null` when the name is not in the sprite.
  */
-export function getSpriteReference(icon: string): { id: string; viewBox: string } | null {
+export function getSpriteReference(
+  icon: string,
+): { id: string; viewBox: string } | null {
   const id = SPRITE_ICON_IDS[icon];
   if (!id) return null;
   const viewBox = SPRITE_VIEWBOX_BY_ID.get(id);

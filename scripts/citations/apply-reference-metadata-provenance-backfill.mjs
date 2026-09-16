@@ -3,9 +3,10 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl, resolvePostgresSource } from "../lib/data-client.ts";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   normalizeDoi,
   normalizePmid,
@@ -90,21 +91,6 @@ function validExactAuthors(authors) {
     && new Set(authors).size === authors.length;
 }
 
-function validSourceDeployment(value) {
-  try {
-    const url = new URL(value);
-    if (!url.hostname.endsWith(".convex.cloud")) return false;
-    const prefix = url.hostname.slice(0, -".convex.cloud".length);
-    return url.protocol === "https:"
-      && Boolean(prefix)
-      && !prefix.includes(".")
-      && (url.pathname === "/" || url.pathname === "")
-      && !url.search
-      && !url.hash;
-  } catch {
-    return false;
-  }
-}
 
 function expectedSnapshot(row) {
   return {
@@ -136,8 +122,9 @@ export function validateApprovedReferenceProvenanceBackfill(proposal, approval) 
       || approval.approvalArtifactSha256 !== computedApprovalHash) {
     throw new Error("An explicit matching approval artifact for the complete provenance backfill is required.");
   }
-  if (!isCanonicalIsoTimestamp(proposal.generatedAt) || !validSourceDeployment(proposal.sourceDeployment)) {
-    throw new Error("The proposal generation timestamp or explicit Convex source is invalid.");
+  assertCitationSourceIdentity(proposal.sourceDeployment);
+  if (!isCanonicalIsoTimestamp(proposal.generatedAt)) {
+    throw new Error("The proposal generation timestamp is invalid.");
   }
   if (!Array.isArray(proposal.rows) || proposal.rows.length !== 759 || proposal.summary?.rows !== 759) {
     throw new Error("The proposal must contain exactly 759 repair-lineage rows.");
@@ -278,13 +265,14 @@ export async function runApplyReferenceProvenanceBackfill(argv = process.argv.sl
   if (command.writeRequested) {
     assertProductionWriteAllowed(command);
     if (!hasFlag(argv, CONFIRMATION_FLAG)) throw new Error(`Production provenance backfill requires ${CONFIRMATION_FLAG}.`);
-    if (proposal.sourceDeployment?.replace(/\/$/, "") !== command.targetUrl?.replace(/\/$/, "")) {
-      throw new Error("The approved proposal source deployment does not match the write target.");
-    }
   }
-  const readUrl = command.targetUrl ?? proposal.sourceDeployment;
-  if (!readUrl) throw new Error("No proposal source or explicit target URL is available.");
-  const client = dependencies.client ?? createDataClient({ target: readUrl }).client;
+  const env = dependencies.env ?? process.env;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({ argv, env }).url;
+  if (!readUrl) throw new Error("A Postgres source URL or explicit target URL is required.");
+  if (proposal.sourceDeployment !== postgresFingerprintFromUrl(readUrl)) {
+    throw new Error("The approved proposal source identity does not match the selected Postgres database.");
+  }
+  const client = dependencies.client ?? createDataClient({ target: readUrl, argv, env }).client;
   const queryApi = dependencies.api ?? api;
   const plan = [];
   for (const row of rows) {

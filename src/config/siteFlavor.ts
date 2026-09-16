@@ -8,7 +8,7 @@
  *
  * This module owns *everything* that differs between the two publications. It is
  * client-safe on purpose (no `server-only` import) so client components can read it, and
- * it deliberately does NOT share a name with `convex/siteConfig.ts`, which is the About
+ * it deliberately does NOT share a name with `server/siteConfig.ts`, which is the About
  * page's CMS document and unrelated to branding.
  */
 import { notFound } from "next/navigation";
@@ -209,7 +209,7 @@ export type SiteAboutConfig = {
   /**
    * Mission-tab prose owned by this flavor, or `null` to render the CMS About document.
    *
-   * The CMS document (`convex/siteConfig`) is dose.wiki's: it names dose.wiki, links its
+   * The CMS document (`server/siteConfig`) is dose.wiki's: it names dose.wiki, links its
    * `/docs/*` pages and dedicates its content to the public domain under CC0. None of that
    * is true of Effect Index, whose material is CC BY-NC-SA 4.0 — rendering it there would
    * put two mutually exclusive licence claims on one page. A non-null value means this
@@ -372,7 +372,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
         ". Downloads also include third-party material with separate terms. See the license page before reusing it.",
       ),
     },
-    // dose.wiki's About prose is editor-managed in Convex.
+    // dose.wiki's About prose is editor-managed in Postgres.
     missionMarkdown: null,
     showOpenData: true,
     showCommunity: true,
@@ -508,7 +508,7 @@ const EFFECT_INDEX_DESCRIPTION =
 
 /**
  * Effect Index's About prose, ported from the old site's `pages/about.vue`. Held here
- * rather than read from Convex because the CMS About document is dose.wiki's and states
+ * rather than read from Postgres because the CMS About document is dose.wiki's and states
  * dose.wiki's CC0 terms; see {@link SiteAboutConfig.missionMarkdown}. Internal links are
  * remapped to this codebase's routes (`/profiles/Josie` → `/contributors/josie`).
  */

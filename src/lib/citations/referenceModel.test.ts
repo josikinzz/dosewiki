@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { SubstanceArticle } from "@/schema";
 import {
   buildCitationNumbering,
   collectCitationIdsFromContent,
@@ -8,6 +9,7 @@ import {
   formatApaReference,
   getReferenceDisplayTitle,
   formatWikipediaStyleReference,
+  getArticleCitationModel,
   renderCitationTokenText,
 } from "./referenceModel";
 import {
@@ -35,6 +37,25 @@ describe("reference model", () => {
     expect(numbering.numbersById.get("b")).toBe(1);
     expect(numbering.numbersById.get("a")).toBe(2);
     expect(numbering.unknownIds).toEqual(["missing"]);
+  });
+
+  it("keeps numbering stable across fragments but updates an edited preview revision", () => {
+    const article = {
+      summary: "First [cite:b], then [cite:a].",
+      references: [
+        { id: "a", type: "webpage", title: "A", authors: [], url: "https://example.com/a" },
+        { id: "b", type: "webpage", title: "B", authors: [], url: "https://example.com/b" },
+      ],
+    } as SubstanceArticle;
+    const original = getArticleCitationModel(article);
+    expect(renderCitationTokenText("Expanded [cite:a].", getArticleCitationModel(article))).toBe("Expanded [2].");
+    const edited = getArticleCitationModel({
+      ...article,
+      summary: "First [cite:a], then [cite:b].",
+      references: article.references?.map((reference) => reference.id === "a" ? { ...reference, title: "Edited A" } : reference),
+    });
+    expect(edited.numberedReferencesById.get("a")).toMatchObject({ number: 1, title: "Edited A", anchorId: "ref-a" });
+    expect(original.numberedReferencesById.get("a")).toMatchObject({ number: 2, title: "A", anchorId: "ref-a" });
   });
 
   it("collects public citation order across pilot sections and structured route references", () => {

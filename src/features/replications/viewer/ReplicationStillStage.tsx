@@ -13,6 +13,7 @@ interface ReplicationStillStageProps {
   width: number;
   height: number;
   controlsVisible: boolean;
+  priority: boolean;
   onToggleControls: () => void;
   /** Positioning/rotation box for the image; upright full-bleed by default. */
   mediaClassName?: string;
@@ -27,6 +28,7 @@ export function ReplicationStillStage({
   width,
   height,
   controlsVisible,
+  priority,
   onToggleControls,
   mediaClassName = "h-full w-full",
   onProbeAspect,
@@ -65,7 +67,9 @@ export function ReplicationStillStage({
         alt={alt}
         width={width}
         height={height}
-        priority
+        priority={priority}
+        loading={priority ? "eager" : "lazy"}
+        unoptimized
         sizes="100vw"
         className={cn(
           "object-contain transition-transform duration-200 motion-reduce:transition-none",

@@ -7,10 +7,10 @@ Completed: 2026-08-30
 ## Completion status
 
 **Complete.** The owner confirmed on 2026-08-30 that the handoff was followed
-through all acceptance gates. Status 2026-09-10: replication metadata moved to PlanetScale Postgres with the rest of the runtime store, and `storageObjects` identity rows carry the R2 keys; every Convex reference below is historical (see [data credentials](convex-credentials.md)). Replication media is backed by Cloudflare R2;
-replication metadata remains in the production Convex database. The old Convex
-Storage IDs and direct URL fields remain available as the documented rollback
-source.
+through all acceptance gates. Since 2026-09-10, replication metadata lives in
+PlanetScale Postgres and media bytes remain in Cloudflare R2. Old Convex Storage
+IDs and direct URLs remain historical recovery provenance; they are not a
+runtime backend. See [data credentials](data-credentials.md).
 
 Repository evidence retained with the implementation records:
 
@@ -24,14 +24,16 @@ Repository evidence retained with the implementation records:
 - The unified R2 archive verification remains 10,150 objects,
   215,107,472,061 bytes, with zero missing objects, extras, size mismatches, or
   full-download differences.
-- `convex/lib/replicationUrls.ts` implements R2-first resolution with the
-  `REPLICATION_MEDIA_BASE_URL` deployment variable as the global rollback
-  switch; Convex Storage and existing direct URLs remain fallbacks.
+- Current resolution is owned by `server/lib/replicationUrls.ts` and the
+  Postgres storage identity adapter. `REPLICATION_MEDIA_BASE_URL` is required
+  on application deployments; do not unset it as a recovery shortcut.
 
 The remaining sections are the implementation and recovery record. They are
-not an outstanding task list.
+not an outstanding task list or current hosted-service operator instructions.
+The urgent-media-withdrawal procedure remains active for the R2 delivery
+surface; it never authorizes restoring the archived database service.
 
-## Completed objective
+## Historical completed objective (2026-08-30)
 
 Dose Wiki now keeps replication metadata in the production Convex database,
 while image, GIF, video, poster, preview, and motion-rendition bytes are served
@@ -40,7 +42,7 @@ the migration did not delete the old Convex Storage rollback sources.
 
 The target repository is `josikinzz/dosewiki-admin`, branch `main`. Production Convex is `prod:glad-minnow-656`. Never use the retired `enchanted-echidna-791` deployment.
 
-## Current verified state
+## Historical verified state (2026-08-30)
 
 - Cloudflare R2 bucket: `replications`; it is private at the time of this handoff.
 - R2 contains 10,150 globally unique, content-addressed media objects totaling 215,107,472,061 bytes (200.33 GiB).
@@ -108,10 +110,10 @@ Keep the split simple:
 The private bucket is exposed through the narrow delivery surface implemented in
 `scripts/replications/r2-delivery-worker.js`. S3 API credentials are never sent
 to the browser. The Worker accepts only canonical content-addressed keys and
-supports GET, HEAD, byte ranges, immutable caching, correct content types, and
+supports GET, HEAD, byte ranges, no-store delivery, correct content types, and
 inline disposition.
 
-Use immutable cache headers for content-addressed keys, correct `Content-Type`, and byte-range support for video. Confirm `Content-Disposition` does not force downloads. If a custom hostname is used, keep it in one server-side environment variable such as `REPLICATION_MEDIA_BASE_URL`; do not bake it into every row.
+Use browser and CDN no-store headers, correct `Content-Type`, and byte-range support for video. Content-addressed bytes remain immutable in storage, but public caches must not bypass withdrawal checks. Confirm `Content-Disposition` does not force downloads. If a custom hostname is used, keep it in one server-side environment variable such as `REPLICATION_MEDIA_BASE_URL`; do not bake it into every row.
 
 ## Implemented data model migration
 
@@ -182,7 +184,7 @@ The owner confirmed the migration completed these gates:
 - GIFs remain animated; GIF-like motion pairs preserve intended poster/motion behavior.
 - Videos play, seek via HTTP range requests, retain audio where expected, and report the intended codec/dimensions/duration.
 - `url`, `thumbnail_url`, `preview_url`, `motion_url`, and `motion_poster_url` resolve to the expected R2 delivery hostname for migrated variants.
-- Cache headers are public and immutable only for content-addressed keys.
+- Browser and CDN cache headers are no-store for originals and responsive renditions.
 - No Cloudflare credentials appear in client bundles, Convex rows, logs, HTML, reports, or Git history.
 - Public replication detail pages, galleries, artist pages, substance galleries, featured Effect Index content, and Replication Studio thumbnails/previews work.
 - Both application flavors and their production hosts are checked according to `docs/agents/deployment.md`.
@@ -237,6 +239,14 @@ returns empty `503` with `no-store`, never media bytes or a conditional `304`.
 GET, HEAD, ranges and conditional requests all pass through this check; query
 strings do not change the suppression identity. The private marker namespace
 is not accepted by the public route. No public mutation endpoint exists.
+
+Responsive raster requests use `?width=<allowed-width>` and private
+`_renditions/v1/<original-key>/<width>.webp` objects, governed by the original's
+marker. Requests without a width selector retain original delivery, including
+existing integrity-check query strings. Rendition selectors are bounded and
+canonical; missing renditions return 404 without a fallback or redirect.
+All successful responses are also no-store. Prepare and verify new renditions
+before publishing image references, following `docs/replication-media-delivery.md`.
 
 Markers use the already-bound private `replications` bucket. They are not
 copied into application manifests, cached in Worker memory, or read from
@@ -324,9 +334,12 @@ on synthetic assets only with the necessary provider-write approval. This
 change supplies the delivery guard and procedure; it does not claim a live
 withdrawal rehearsal, purge, provider deployment or measured removal deadline.
 
-## Rollback
+## Recovery boundary
 
-Rollback must remain possible without restoring bytes:
+Current application rollback restores the approved compatible Postgres artifact
+and configuration. Hosted-service recovery is non-runtime, separately
+owner-authorized, and performed only in an isolated historical checkout.
+The following retained migration notes do not authorize a backend flip:
 
 For active urgent withdrawals, the suppression-preserving procedure above takes
 precedence: keep the delivery guard and markers, and do not enable an unblocked
@@ -336,7 +349,7 @@ re-expose withdrawn material.
 - Keep all old Convex storage IDs and direct URLs during migration.
 - Make the resolver precedence switch reversible with a server-side flag or a small code rollback.
 - Record every changed row and its old values in the ledger.
-- If the R2 delivery hostname, Worker, or a media class fails, disable R2-first resolution and fall back to Convex immediately.
+- The historical migration allowed disabling R2-first resolution. That is not a current runtime recovery procedure: the native application requires the media base and must preserve withdrawal suppression.
 - Do not delete Convex media until the owner separately approves it after a stable observation window and an exact retained-object inventory.
 
 ## Security and operational boundaries
@@ -348,7 +361,7 @@ re-expose withdrawn material.
 - Do not modify, move, transcode, or delete the immutable source media held by the Dose Wiki Media Review archive.
 - Keep unmatched, excluded, unclear, collision-gated, and artist-review records visible.
 
-## Suggested skills for the implementation session
+## Historical implementation-session skills (not current instructions)
 
 - `convex:convex-expert` before editing anything under `convex/`.
 - `convex:convex-reviewer` after the Convex changes.
@@ -357,7 +370,7 @@ re-expose withdrawn material.
 - `vercel:verification` and `browser:control-in-app-browser` for end-to-end public-site verification.
 - `diagnosing-bugs` if media resolution, caching, range requests, or browser playback fail.
 
-## Completion definition
+## Historical completion definition (2026-08-30)
 
 Completion means all intended production replication media variants are either
 served from verified R2 objects or listed as explicit exceptions; metadata

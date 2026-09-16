@@ -5,7 +5,7 @@
  *   GET /api/editor/molecule-overrides?slug=lsd                 -> moleculeOverrides.getBySlug (null when none)
  *   GET /api/editor/molecule-overrides?slug=lsd&scope=metadata  -> moleculeOverrides.getMetadataBySlug
  */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { editorReadRoute, requireParam } from "../editorReadRoute";
 

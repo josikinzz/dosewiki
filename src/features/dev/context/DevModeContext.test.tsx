@@ -10,6 +10,14 @@ const { useQueryMock, useLibraryMock } = vi.hoisted(() => ({
 vi.mock("@/hooks/useEditorRead", () => ({
   useEditorRead: useQueryMock,
 }));
+vi.mock("@/hooks/useIndexLayouts", () => ({
+  useIndexLayouts: () => ({
+    layouts: INDEX_LAYOUTS,
+    error: null,
+    retry: vi.fn(),
+  }),
+}));
+
 
 vi.mock("@/data/SubstanceIndexProvider", () => ({
   useLibrary: useLibraryMock,

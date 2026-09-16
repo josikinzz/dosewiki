@@ -7,7 +7,7 @@
  *   GET /api/dev/proposals/count -> { submitted }
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
@@ -15,16 +15,16 @@ export const runtime = "nodejs";
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to count open change proposals via Next route:",
   unexpectedErrorMessage: "Unable to count open proposals right now.",
-  operation: async ({ actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const { submitted } = await convexWrite.client.query(api.changeProposals.count, {
-      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+    const { submitted } = await dataWrite.client.query(api.changeProposals.count, {
+      apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail,
     });
 

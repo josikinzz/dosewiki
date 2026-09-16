@@ -1,7 +1,7 @@
 /**
  * Invite code admin routes (the /dev Members tab).
  *
- *   GET  /api/dev/invites  → { ok, invites }
+ *   GET  /api/dev/invites  → { ok, invites, continuationCursor }
  *   POST /api/dev/invites  → { ok, code, invite }   mints one code
  *
  * The plaintext code exists only in the POST response: the route generates
@@ -10,11 +10,11 @@
  * every other /dev write.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { generateInviteCode, hashInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { isManagedRole } from "@/lib/auth/roles";
+import { isManagedRole, parseGlossaryLocaleGrant } from "@/lib/auth/roles";
 import type { MintInviteInput } from "@/features/dev/tools/members/inviteCodeRequests";
 
 export const runtime = "nodejs";
@@ -25,6 +25,7 @@ const DEFAULT_MAX_USES = 1;
 
 type MintBody = {
   role?: unknown;
+  glossaryLocales?: unknown;
   note?: unknown;
   expiresInDays?: unknown;
   maxUses?: unknown;
@@ -43,9 +44,15 @@ function parsePositiveInteger(raw: unknown, fallback: number, label: string): nu
 
 function parseMintBody(raw: MintBody): MintInviteInput {
   if (!isManagedRole(raw?.role)) {
-    throw new JsonBodyError(400, "Role must be editor, translator, or contributor.");
+    throw new JsonBodyError(400, "Choose Editor, Translator, both, or Contributor.");
   }
   const role = raw.role;
+  let glossaryLocales: string[];
+  try {
+    glossaryLocales = parseGlossaryLocaleGrant(role, raw.glossaryLocales);
+  } catch (error) {
+    throw new JsonBodyError(400, error instanceof Error ? error.message : "Invalid glossary language grant.");
+  }
 
   const note = typeof raw.note === "string" ? raw.note.trim() : "";
   if (note.length > MAX_NOTE_LENGTH) {
@@ -54,6 +61,7 @@ function parseMintBody(raw: MintBody): MintInviteInput {
 
   return {
     role,
+    glossaryLocales,
     ...(note ? { note } : {}),
     expiresInDays: parsePositiveInteger(raw.expiresInDays, DEFAULT_EXPIRES_IN_DAYS, "Expiry"),
     maxUses: parsePositiveInteger(raw.maxUses, DEFAULT_MAX_USES, "Uses"),
@@ -63,20 +71,22 @@ function parseMintBody(raw: MintBody): MintInviteInput {
 export const GET = protectedRouteOperation({
   auth: "admin",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to list invite codes via Next route:",
   unexpectedErrorMessage: "Unable to load invite codes right now.",
-  operation: async ({ actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const invites = await convexWrite.client.query(api.inviteCodes.list, {
-      apiKey: convexWrite.adminKey,
+    const cursor = new URL(request.url).searchParams.get("cursor")?.trim() || undefined;
+    const page = await dataWrite.client.query(api.inviteCodes.list, {
+      apiKey: dataWrite.adminKey,
       actorEmail,
+      ...(cursor ? { cursor } : {}),
     });
 
-    return NextResponse.json({ ok: true, invites });
+    return NextResponse.json({ ok: true, ...page });
   },
 });
 
@@ -87,21 +97,22 @@ export const POST = protectedRouteOperation<MintBody, MintInviteInput>({
     maxBytes: 4 * 1024,
     parse: parseMintBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to mint an invite code via Next route:",
   unexpectedErrorMessage: "Unable to mint an invite code right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const code = generateInviteCode();
     const codeHash = hashInviteCode(normalizeInviteCode(code));
 
-    const invite = await convexWrite.client.mutation(api.inviteCodes.mint, {
-      apiKey: convexWrite.adminKey,
+    const invite = await dataWrite.client.mutation(api.inviteCodes.mint, {
+      apiKey: dataWrite.adminKey,
       actorEmail,
       role: body.role,
+      glossaryLocales: body.glossaryLocales,
       codeHash,
       note: body.note,
       expiresInDays: body.expiresInDays,

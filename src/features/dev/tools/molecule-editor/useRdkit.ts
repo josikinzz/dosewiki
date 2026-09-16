@@ -70,12 +70,13 @@ export interface UseRdkitResult {
   error: string | null;
 }
 
-/** Returns the RDKit module once ready (null while loading), or an error string. */
-export function useRdkit(): UseRdkitResult {
+/** Returns the RDKit module once enabled and ready, or an error string. */
+export function useRdkit(enabled = true): UseRdkitResult {
   const [rdkit, setRdkit] = useState<RdkitModuleLike | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     let alive = true;
     loadRdkit().then(
       (mod) => alive && setRdkit(mod),
@@ -85,7 +86,7 @@ export function useRdkit(): UseRdkitResult {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [enabled]);
 
   return { rdkit, error };
 }

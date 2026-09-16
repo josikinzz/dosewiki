@@ -1,10 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { GalleryReplication } from "@/types/replications";
 import { EffectIndexHomePage } from "./EffectIndexHomePage";
 import type { EffectIndexHomeData } from "./homeModel";
+
+afterEach(() => vi.unstubAllGlobals());
 
 /**
  * The Effect Index homepage layout. These assertions cover the two things most likely to
@@ -284,6 +286,16 @@ describe("Effect Index homepage", () => {
   });
 
   it("steps between replications with the chevrons and with the arrow keys", async () => {
+    vi.stubGlobal("matchMedia", vi.fn((media: string) => ({
+      matches: false,
+      media,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })));
     render(
       <EffectIndexHomePage
         {...FULL_DATA}

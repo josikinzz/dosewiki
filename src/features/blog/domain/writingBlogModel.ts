@@ -27,6 +27,22 @@ export type WritingBlogPost = {
   bylineAuthors: ArticleBylineAuthor[];
 };
 
+export type WritingBlogIndexPost = Pick<WritingBlogPost,
+  "slug" | "title" | "coverImageUrl" | "dateLabel" | "dateTime" | "bylineAuthors"
+> & { summary: string };
+
+export function toWritingBlogIndexPost(
+  row: { slug: string; title: string; teaser?: string; excerpt: string; coverImageUrl?: string; publicationDate?: string },
+  bylineAuthors: ArticleBylineAuthor[] = [],
+): WritingBlogIndexPost {
+  const dateLabel = formatArchiveDate(row.publicationDate);
+  return {
+    slug: row.slug, title: row.title, coverImageUrl: row.coverImageUrl?.trim() || undefined,
+    dateLabel, dateTime: dateLabel ? row.publicationDate ?? null : null,
+    summary: row.teaser?.trim() || row.excerpt, bylineAuthors,
+  };
+}
+
 export function toWritingBlogPost(
   row: {
     slug: string;

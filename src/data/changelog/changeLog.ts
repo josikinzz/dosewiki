@@ -100,7 +100,7 @@ const rawEntries = [...(Array.isArray(activeEntries) ? activeEntries : []), ...(
 
 export const initialChangeLogEntries = normalizeEntries(rawEntries);
 
-export const sortChangeLogEntries = (entries: ChangeLogEntry[]): ChangeLogEntry[] =>
+export const sortChangeLogEntries = <T extends Pick<ChangeLogEntry, "id" | "createdAt">>(entries: T[]): T[] =>
   [...entries].sort((a, b) => {
     const delta = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     if (delta !== 0) {

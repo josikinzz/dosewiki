@@ -13,8 +13,8 @@ export type MoleculeImageRouteIdentity<Params extends Record<string, string>> = 
   url: (param: string, query?: string) => string;
   /** Wraps the param into the handler's params shape. */
   params: (param: string) => Params;
-  /** The Convex slug the route asks for when the param is `valid`. */
-  convexSlugFor: (param: string) => string;
+  /** The Postgres slug the route asks for when the param is `valid`. */
+  dataSlugFor: (param: string) => string;
   valid: string;
   invalid: string;
 };
@@ -44,13 +44,13 @@ export function describeMoleculeImageRoute<Params extends Record<string, string>
     beforeEach(() => {
       mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
       mocks.query.mockReset().mockImplementation(async (_reference, { slug }) =>
-        slug === identity.convexSlugFor(identity.valid)
+        slug === identity.dataSlugFor(identity.valid)
           ? { svg: BRAND_SVG, updatedAt: REVISION }
           : null,
       );
     });
 
-    it("returns the rate limiter's response before reading Convex", async () => {
+    it("returns the rate limiter's response before reading Postgres", async () => {
       mocks.enforceRateLimit.mockResolvedValue(new Response(null, { status: 429 }));
 
       const response = await call(identity.valid);
@@ -59,7 +59,7 @@ export function describeMoleculeImageRoute<Params extends Record<string, string>
       expect(mocks.query).not.toHaveBeenCalled();
     });
 
-    it("rejects a param outside the slug grammar with 400 before reading Convex", async () => {
+    it("rejects a param outside the slug grammar with 400 before reading Postgres", async () => {
       const response = await call(identity.invalid);
 
       expect(response.status).toBe(400);
@@ -67,14 +67,14 @@ export function describeMoleculeImageRoute<Params extends Record<string, string>
       expect(mocks.query).not.toHaveBeenCalled();
     });
 
-    it("bounds identifiers before a cache or Convex lookup", async () => {
+    it("bounds identifiers before a cache or Postgres lookup", async () => {
       const response = await call("a".repeat(129));
       expect(response.status).toBe(400);
       expect(response.headers.get("Cache-Control")).toBe("no-store");
       expect(mocks.query).not.toHaveBeenCalled();
     });
 
-    it("maps a Convex failure to 502 without leaking the error", async () => {
+    it("maps a Postgres failure to 502 without leaking the error", async () => {
       mocks.query.mockRejectedValue(new Error("ECONNRESET secret-host"));
 
       const response = await call(identity.valid);

@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { getDataBackend, resolvePostgresSource } from "../lib/data-client.ts";
 import {
   createDataOpsRunContext,
   printDataOpsRunContext,
@@ -59,9 +60,11 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
     if (!entry.startsWith("--")) throw new Error(`Unexpected argument: ${entry}`);
-    const [rawKey, inline] = entry.slice(2).split("=", 2);
+    const separator = entry.indexOf("=");
+    const rawKey = entry.slice(2, separator < 0 ? undefined : separator);
+    const inline = separator < 0 ? undefined : entry.slice(separator + 1);
     const key = rawKey.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-    if (["allReady", "dryRun", "help"].includes(key)) {
+    if (["allReady", "dryRun", "help", "allowRemote"].includes(key)) {
       values[key] = true;
       continue;
     }
@@ -77,8 +80,21 @@ function parseArgs(argv) {
 export function assertLocalOnlyCampaignArguments(argv) {
   const forbidden = argv.filter((entry) => FORBIDDEN_ARGUMENTS.test(entry));
   if (forbidden.length > 0) {
-    throw new Error(`Local citation campaign rejects production/apply arguments: ${forbidden.join(", ")}`);
+    throw new Error("Local citation campaign rejects production/apply arguments.");
   }
+}
+
+export function localCampaignEnvironment(sourceUrl, inherited = process.env) {
+  getDataBackend(inherited);
+  const env = {
+    ...inherited,
+    SOURCE_POSTGRES_URL: sourceUrl,
+    NODE_OPTIONS: `${inherited.NODE_OPTIONS ?? ""} --dns-result-order=ipv4first`.trim(),
+  };
+  delete env.TARGET_POSTGRES_URL;
+  delete env.POSTGRES_POOLED_URL;
+  delete env.POSTGRES_DIRECT_URL;
+  return env;
 }
 
 export function inspectRunStage({ manifest = null, runFiles = {} } = {}) {
@@ -107,7 +123,7 @@ export function buildStageAwareResumePrompt({ slug, runId, stage, researchPass =
     "Treat pi-run-manifest.json as authoritative, preserve every accepted artifact whose recorded SHA-256 still matches, and never repeat completed research.",
     ...(researchPass === "second" ? ["This is a second-pass task: follow the immutable researchBrief lanes in citation-task.json, log exact query/source outcomes, and accept confirmed_needs_source only after every prescribed lane is exhausted."] : []),
     "Continue only until the manifest is finalized at needs_review or one deterministic blocker is recorded.",
-    "Never apply a draft, call a production mutation, deploy, or write Convex.",
+    "Never apply a draft, call a production mutation, deploy, or write Postgres.",
   ];
   const stageInstruction = {
     initialize: "Initialize the manifest against the existing task before assigning workers.",
@@ -221,9 +237,10 @@ function validateFinalizedRun({ repo, workbench, runId, slug, selectedSections, 
 function printHelp() {
   console.log(`Run a sequential, local-only subsection citation campaign.\n\n` +
     `Usage:\n` +
-    `  npm run citations:run-local-campaign -- --slug=<slug> --source-url=https://<deployment>.convex.cloud\n` +
-    `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud\n` +
-    `  npm run citations:run-local-campaign -- --all-ready --source-url=https://<deployment>.convex.cloud \\\n    --tracker=<path> --run-suffix=<unique-suffix>\n\n` +
+    `  DATA_BACKEND=postgres npm run citations:run-local-campaign -- --slug=<slug> --source-url=<postgres-url>\n` +
+    `  DATA_BACKEND=postgres npm run citations:run-local-campaign -- --all-ready --source-url=<postgres-url>\n` +
+    `  DATA_BACKEND=postgres npm run citations:run-local-campaign -- --all-ready --source-url=<postgres-url> \\\n    --tracker=<path> --run-suffix=<unique-suffix>\n\n` +
+    `Remote sources also require --allow-remote and POSTGRES_IMPORT_CONFIRM=<hostname>.\n` +
     `--run-suffix reserves fresh run IDs as <slug>-<unique-suffix>. ` +
     `The campaign invokes authenticated OMP as the coordinator and never imports or invokes the citation apply path. Existing partial runs are resumed stage-by-stage.\n`);
 }
@@ -232,7 +249,9 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
   assertLocalOnlyCampaignArguments(argv);
   const options = parseArgs(argv);
   if (options.help) return printHelp();
-  if (!options.sourceUrl) throw new Error("--source-url=https://<deployment>.convex.cloud is required");
+  const sourceUrl = resolvePostgresSource({ argv }).url;
+  if (!sourceUrl) throw new Error("--source-url or SOURCE_POSTGRES_URL must select a Postgres source");
+  const env = localCampaignEnvironment(sourceUrl);
   if ((options.slugs.length === 0) === !options.allReady) throw new Error("Choose one or more --slug values or --all-ready");
 
   const repo = resolve(options.repo ?? process.cwd());
@@ -260,8 +279,8 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
     operation: "run local citation campaign",
     intent: "citation-campaign-local",
     argv,
-    env: { ...process.env, SOURCE_CONVEX_URL: options.sourceUrl },
-    sourceUrlKeys: ["SOURCE_CONVEX_URL"],
+    env,
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL"],
     targetUrlKeys: [],
     localArtifacts: [trackerPath, statePath, logDir, ...(secondPassPlanPath ? [secondPassPlanPath] : [])],
     loadsEnvLocal: false,
@@ -280,14 +299,6 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
     productionWrites: false,
     runs: [],
   };
-  const env = {
-    ...process.env,
-    SOURCE_CONVEX_URL: options.sourceUrl,
-    CONVEX_PUBLIC_READ_URL: options.sourceUrl,
-    NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --dns-result-order=ipv4first`.trim(),
-  };
-  delete env.TARGET_CONVEX_URL;
-  delete env.VITE_CONVEX_URL;
 
   for (const [slug, rows] of grouped) {
     const selectedSections = rows.map((row) => row.section);
@@ -327,7 +338,7 @@ export function runLocalCampaign(argv = process.argv.slice(2)) {
             const exportScopeArgs = secondPassPlanPath
               ? [`--second-pass-plan=${secondPassPlanPath}`, `--second-pass-max-wave=${secondPassMaxWave}`]
               : ["--tracker-scope", `--tracker=${trackerPath}`];
-            runCommand("npm", ["run", "citations:export-workbench-task", "--", `--slug=${slug}`, ...exportScopeArgs, "--overwrite"], { cwd: repo, env, logPath });
+            runCommand("npm", ["run", "citations:export-workbench-task", "--", `--slug=${slug}`, ...exportScopeArgs, "--overwrite", ...(options.allowRemote ? ["--allow-remote"] : [])], { cwd: repo, env, logPath });
             const exportedTask = readJson(resolve(workbench, "inputs", `${slug}-full.json`));
             if (JSON.stringify(exportedTask.selectedSections) !== JSON.stringify(selectedSections)) {
               throw new Error(`${slug} exported selectedSections do not match the locked tracker scope`);

@@ -20,7 +20,7 @@ async function makeTmpRepo() {
   const root = await mkdtemp(path.join(os.tmpdir(), "dosewiki-data-ops-"));
   tmpRoots.push(root);
   await writeFile(path.join(root, "package.json"), "{}\n");
-  await mkdir(path.join(root, "scripts", "convex"), { recursive: true });
+  await mkdir(path.join(root, "scripts", "data-ops"), { recursive: true });
   return root;
 }
 
@@ -35,202 +35,84 @@ describe("data ops run context", () => {
       path.join(root, ".env.local"),
       [
         "# local development",
-        "VITE_CONVEX_URL=https://dev.convex.cloud",
-        "export NEXT_PUBLIC_CONVEX_URL='https://public.convex.cloud'",
-        "CONVEX_ADMIN_KEY=\"local-secret\"",
+        "POSTGRES_POOLED_URL=postgres://localhost/development",
+        "export POSTGRES_DIRECT_URL='postgres://localhost/direct'",
+        "DATA_ADMIN_KEY=\"local-secret\"",
       ].join("\n"),
     );
 
-    const env = { VITE_CONVEX_URL: "https://shell.convex.cloud" };
+    const env = { POSTGRES_POOLED_URL: "postgres://localhost/shell" };
     const loaded = loadEnvFiles({ rootDir: root, env });
 
-    expect(loaded[".env.local"].CONVEX_ADMIN_KEY).toBe("local-secret");
-    expect(env.VITE_CONVEX_URL).toBe("https://shell.convex.cloud");
-    expect(env.NEXT_PUBLIC_CONVEX_URL).toBe("https://public.convex.cloud");
-    expect(env.CONVEX_ADMIN_KEY).toBe("local-secret");
+    expect(loaded[".env.local"].DATA_ADMIN_KEY).toBe("local-secret");
+    expect(env.POSTGRES_POOLED_URL).toBe("postgres://localhost/shell");
+    expect(env.POSTGRES_DIRECT_URL).toBe("postgres://localhost/direct");
+    expect(env.DATA_ADMIN_KEY).toBe("local-secret");
   });
 
   it("resolves repo root from a nested script directory", async () => {
     const root = await makeTmpRepo();
-    const nested = path.join(root, "scripts", "convex");
+    const nested = path.join(root, "scripts", "data-ops");
 
     expect(findRepoRoot(nested)).toBe(root);
   });
 
-  it("uses explicit source and target variables before public fallbacks", () => {
+  it("resolves independent Postgres read and write destinations", () => {
     const context = createDataOpsRunContext({
-      operation: "copy",
-      intent: "cross-deployment-copy",
-      argv: [],
-      loadsEnvLocal: false,
-      env: {
-        SOURCE_CONVEX_URL: "https://source.convex.cloud",
-        TARGET_CONVEX_URL: "https://target.convex.cloud",
-        VITE_CONVEX_URL: "https://dev.convex.cloud",
-      },
+      operation: "copy", intent: "cross-deployment-copy", argv: [], loadsEnvLocal: false,
+      env: { DATA_BACKEND: "postgres", SOURCE_POSTGRES_URL: "postgres://source.example/db", TARGET_POSTGRES_URL: "postgres://target.example/db" },
     });
-
-    expect(context.sourceUrl).toBe("https://source.convex.cloud");
-    expect(context.sourceUrlKey).toBe("SOURCE_CONVEX_URL");
-    expect(context.targetUrl).toBe("https://target.convex.cloud");
-    expect(context.targetUrlKey).toBe("TARGET_CONVEX_URL");
+    expect(context.sourceUrl).toBe("postgres://source.example/db");
+    expect(context.targetUrl).toBe("postgres://target.example/db");
   });
 
   it("blocks dry-run writes through the shared policy", () => {
     const context = createDataOpsRunContext({
-      operation: "local prepopulate",
-      intent: "local-prepopulate",
-      argv: ["--dry-run"],
-      loadsEnvLocal: false,
-      env: { VITE_CONVEX_URL: "https://dev.convex.cloud" },
-      sourceUrlKeys: [],
-      targetUrlKeys: [],
-      localArtifacts: ["src/data/SubstanceIndex.json"],
+      operation: "local prepopulate", intent: "local-prepopulate", argv: ["--dry-run"], loadsEnvLocal: false,
+      env: { DATA_BACKEND: "postgres" }, sourceUrlKeys: [], targetUrlKeys: [],
     });
-
-    expect(context.sourceUrl).toBeNull();
-    expect(context.targetUrl).toBeNull();
     expect(() => assertDataOpsWriteAllowed(context)).toThrow(/dry-run mode/);
   });
 
-  it("requires destructive production confirmation before writes", () => {
-    const context = createDataOpsRunContext({
-      operation: "production sync",
-      intent: "production-sync",
-      argv: ["--tables=prompts", "--write"],
-      loadsEnvLocal: false,
-      env: {
-        SOURCE_CONVEX_URL: "https://dev.convex.cloud",
-        TARGET_CONVEX_URL: "https://prod.convex.cloud",
-      },
-      selectedTables: ["prompts"],
-      confirmationFlag: "--confirm-production-sync",
-      destructive: true,
-    });
-
-    expect(() => assertDataOpsWriteAllowed(context)).toThrow(/--confirm-production-sync/);
-  });
-
-  it("allows confirmed destructive writes and reports selected tables", () => {
-    const context = createDataOpsRunContext({
-      operation: "production sync",
-      intent: "production-sync",
-      argv: [
-        "--tables=prompts",
-        "--write",
-        "--confirm-production-sync",
-        "--confirm-write=production-sync",
-        "--expected-deployment=prod",
-      ],
-      loadsEnvLocal: false,
-      env: {
-        SOURCE_CONVEX_URL: "https://dev.convex.cloud",
-        TARGET_CONVEX_URL: "https://prod.convex.cloud",
-      },
-      selectedTables: ["prompts"],
-      confirmationFlag: "--confirm-production-sync",
-      destructive: true,
-    });
-
-    expect(() => assertDataOpsWriteAllowed(context)).not.toThrow();
-    expect(context.selectedTables).toEqual(["prompts"]);
-  });
-
-  it("requires the common operation phrase and deployment fingerprint", () => {
-    const base = {
-      operation: "production sync",
-      intent: "production-sync",
-      loadsEnvLocal: false,
-      env: { TARGET_CONVEX_URL: "https://prod.convex.cloud" },
+  it("requires destructive confirmation, operation phrase, and exact target identity", () => {
+    const options = {
+      operation: "production sync", intent: "production-sync", loadsEnvLocal: false,
+      env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgres://prod.example/db" },
+      confirmationFlag: "--confirm-production-sync", destructive: true,
     };
-
-    const missingPhrase = createDataOpsRunContext({ ...base, argv: ["--write"] });
-    expect(() => assertDataOpsWriteAllowed(missingPhrase)).toThrow(
-      /--confirm-write=production-sync/,
-    );
-
-    const missingFingerprint = createDataOpsRunContext({
-      ...base,
-      argv: ["--write", "--confirm-write=production-sync"],
-    });
-    expect(() => assertDataOpsWriteAllowed(missingFingerprint)).toThrow(
-      /--expected-deployment=prod/,
-    );
+    const steps = [
+      { argv: ["--write"], error: /--confirm-production-sync/ },
+      { argv: ["--write", "--confirm-production-sync"], error: /--confirm-write/ },
+      { argv: ["--write", "--confirm-production-sync", "--confirm-write=production-sync"], error: /--expected-deployment/ },
+      { argv: ["--write", "--confirm-production-sync", "--confirm-write=production-sync", "--expected-deployment=other.example/db"], error: /does not match/ },
+    ];
+    for (const { argv, error } of steps) expect(() => assertDataOpsWriteAllowed(createDataOpsRunContext({ ...options, argv }))).toThrow(error);
   });
 
-  it("rejects browser-derived privileged targets", () => {
+  it("does not authorize application fallback URLs or absent targets", () => {
+    for (const env of [
+      { DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://prod.example/db" },
+      { DATA_BACKEND: "postgres", CONVEX_URL: "https://legacy.convex.cloud" },
+    ]) {
+      const context = createDataOpsRunContext({ operation: "copy", argv: ["--write"], loadsEnvLocal: false, env });
+      expect(() => assertDataOpsWriteAllowed(context)).toThrow(/explicit|TARGET_POSTGRES_URL/);
+    }
+  });
+
+  it("does not let local target opt-ins bypass the common confirmation ceremony", () => {
     const context = createDataOpsRunContext({
-      operation: "production sync",
-      intent: "production-sync",
-      argv: [
-        "--write",
-        "--confirm-write=production-sync",
-        "--expected-deployment=dev",
-      ],
-      loadsEnvLocal: false,
-      env: { VITE_CONVEX_URL: "https://dev.convex.cloud" },
+      operation: "local replication import", argv: ["--execute", "--write"], loadsEnvLocal: false,
+      env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgres://localhost/db" },
+      requiresExecute: true, allowLocalTarget: true,
     });
-
-    expect(() => assertDataOpsWriteAllowed(context)).toThrow(/TARGET_CONVEX_URL/);
+    expect(() => assertDataOpsWriteAllowed(context)).toThrow(/--confirm-write/);
   });
 
-  it("allows an explicitly opted-in loopback write with execute and write flags", () => {
-    const context = createDataOpsRunContext({
-      operation: "local replication import",
-      intent: "dev-convex-import",
-      argv: ["--execute", "--write"],
-      loadsEnvLocal: false,
-      env: {},
-      defaultTargetUrl: "http://localhost:3210",
-      requiresExecute: true,
-      allowLocalTarget: true,
-    });
-
-    expect(context.targetIsLocal).toBe(true);
-    expect(() => assertDataOpsWriteAllowed(context)).not.toThrow();
-  });
-
-  it("allows an explicitly opted-in bracketed IPv6 loopback write", () => {
-    const context = createDataOpsRunContext({
-      operation: "local replication import",
-      intent: "dev-convex-import",
-      argv: ["--execute", "--write"],
-      loadsEnvLocal: false,
-      env: {},
-      defaultTargetUrl: "http://[::1]:3210",
-      requiresExecute: true,
-      allowLocalTarget: true,
-    });
-
-    expect(context.targetIsLocal).toBe(true);
-    expect(context.deploymentFingerprint).toBeNull();
-    expect(() => assertDataOpsWriteAllowed(context)).not.toThrow();
-  });
-
-  it("rejects loopback writes unless the command explicitly opts in", () => {
-    const context = createDataOpsRunContext({
-      operation: "local replication import",
-      intent: "dev-convex-import",
-      argv: ["--execute", "--write"],
-      loadsEnvLocal: false,
-      env: {},
-      defaultTargetUrl: "http://127.0.0.1:3210",
-      requiresExecute: true,
-    });
-
-    expect(() => assertDataOpsWriteAllowed(context)).toThrow(/allowLocalTarget/);
-  });
-
-  it("rejects non-loopback HTTP targets even when local writes are allowed", () => {
-    expect(() => createDataOpsRunContext({
-      operation: "local replication import",
-      intent: "dev-convex-import",
-      argv: ["--execute", "--write"],
-      loadsEnvLocal: false,
-      env: { TARGET_CONVEX_URL: "http://192.168.1.20:3210" },
-      requiresExecute: true,
-      allowLocalTarget: true,
-    })).toThrow(/HTTPS .convex.cloud/);
+  it("rejects invalid explicit source and target selections without fallback", () => {
+    for (const env of [
+      { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "https://legacy.convex.cloud" },
+      { DATA_BACKEND: "postgres", SOURCE_POSTGRES_URL: "", POSTGRES_POOLED_URL: "postgres://localhost/db" },
+    ]) expect(() => createDataOpsRunContext({ operation: "copy", argv: [], loadsEnvLocal: false, env })).toThrow(/Postgres/);
   });
 
   it("parses bare env content", () => {
@@ -242,31 +124,31 @@ describe("data ops run context", () => {
   });
 
   it("prefers scoped admin intent tokens before the legacy admin key", () => {
-    expect(getAdminIntentEnvVar("citationEvidenceWrite")).toBe("CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE");
+    expect(getAdminIntentEnvVar("citationEvidenceWrite")).toBe("DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE");
 
     expect(resolveAdminIntentToken("citationEvidenceWrite", {
       env: {
-        CONVEX_ADMIN_KEY: "legacy-secret",
-        CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE: "citation-secret",
+        DATA_ADMIN_KEY: "legacy-secret",
+        DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE: "citation-secret",
       },
     })).toEqual({
       token: "citation-secret",
       source: "scoped",
-      envVar: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
+      envVar: "DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
     });
   });
 
   it.each([
-    ["editorArticleWrite", "CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE"],
-    ["promptMigrationWrite", "CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE"],
-    ["profileMediaWrite", "CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE"],
-    ["quoteMigrationWrite", "CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE"],
-    ["generatedPublicationWrite", "CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE"],
-    ["reagentTestImport", "CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT"],
+    ["editorArticleWrite", "DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE"],
+    ["promptMigrationWrite", "DATA_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE"],
+    ["profileMediaWrite", "DATA_ADMIN_TOKEN_PROFILE_MEDIA_WRITE"],
+    ["quoteMigrationWrite", "DATA_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE"],
+    ["generatedPublicationWrite", "DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE"],
+    ["reagentTestImport", "DATA_ADMIN_TOKEN_REAGENT_TEST_IMPORT"],
   ])("prefers %s scoped credentials over the master key", (intent, envVar) => {
     expect(requireAdminIntentToken(intent, {
       env: {
-        CONVEX_ADMIN_KEY: "master-key",
+        DATA_ADMIN_KEY: "master-key",
         [envVar]: "scoped-key",
       },
     })).toMatchObject({ token: "scoped-key", source: "scoped", envVar });
@@ -275,18 +157,18 @@ describe("data ops run context", () => {
   it("falls back to the legacy admin key for admin intents when no scoped token exists", () => {
     expect(requireAdminIntentToken("citationEvidenceReview", {
       env: {
-        CONVEX_ADMIN_KEY: "legacy-secret",
+        DATA_ADMIN_KEY: "legacy-secret",
       },
     })).toEqual({
       token: "legacy-secret",
       source: "legacy",
-      envVar: "CONVEX_ADMIN_KEY",
+      envVar: "DATA_ADMIN_KEY",
     });
   });
 
   it("fails clearly when an admin intent token is missing", () => {
     expect(() => requireAdminIntentToken("citationEvidenceWrite", { env: {} })).toThrow(
-      /CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE, CONVEX_ADMIN_KEY/,
+      /DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE, DATA_ADMIN_KEY/,
     );
   });
 });
@@ -483,7 +365,7 @@ describe("backupBeforeWrite", () => {
     expect(mockClient.query).toHaveBeenCalledWith(mockQuery, { slug: "desomorphine" });
   });
 
-  it("reuses a verified existing backup without querying Convex", async () => {
+  it("reuses a verified existing backup without querying Postgres", async () => {
     const root = await makeTmpRepo();
     const backupPath = path.join(root, "snapshot.zip");
     await writeFile(backupPath, "verified snapshot");

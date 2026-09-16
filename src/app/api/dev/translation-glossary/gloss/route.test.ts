@@ -20,10 +20,10 @@ vi.mock("@server/http/nextRateLimit", () => ({
 const backend = vi.hoisted(() => ({ getDataBackend: vi.fn(() => "postgres") }));
 vi.mock("@server/postgres/runtime/backend", () => ({
   getDataBackend: backend.getDataBackend,
-  getPostgresConvexClient: () => ({ sql: vi.fn() }),
+  getPostgresClient: () => ({ sql: vi.fn() }),
 }));
 
-vi.mock("@server/convex/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
+vi.mock("@server/data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
 
 const gloss = vi.hoisted(() => ({
   findGloss: vi.fn(),
@@ -110,11 +110,5 @@ describe("POST /api/dev/translation-glossary/gloss", () => {
     const refused = await POST(post({ term: "Offset", gloss: "Something" }));
     expect(refused.status).toBe(400);
     expect(await refused.json()).toEqual({ error: 'The gloss for "Offset" is empty.' });
-  });
-
-  it("answers 503 off the Postgres backend", async () => {
-    backend.getDataBackend.mockReturnValue("convex");
-    expect((await POST(post({ term: "Offset", gloss: "Something" }))).status).toBe(503);
-    expect(gloss.upsertGlosses).not.toHaveBeenCalled();
   });
 });

@@ -7,7 +7,7 @@ import {
 } from "./routeLoaders.testHarness";
 import { loadContributorRoute } from "./routeLoaders.contributors";
 import { loadReplicationRoute } from "./routeLoaders.replications";
-import type { SubjectiveEffectDetailRecord } from "../convex/publicData";
+import type { SubjectiveEffectDetailRecord } from "../data/publicData";
 
 const { publicData } = getRouteLoaderMocks();
 
@@ -172,7 +172,7 @@ describe("contributor and replication route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    // Key-only on purpose: the reviewer-email matching happens inside Convex,
+    // Key-only on purpose: the reviewer-email matching happens inside Postgres,
     // so the loader never handles an email it could leak into page props.
     expect(publicData.getReviewedArticlesByContributor).toHaveBeenCalledWith(
       "ADA",
@@ -183,7 +183,7 @@ describe("contributor and replication route loaders", () => {
   });
 
   it("still renders a profile when the replication join is unavailable", async () => {
-    // A Convex deployment that predates `replications:getByArtistNames` reports
+    // A Postgres deployment that predates `replications:getByArtistNames` reports
     // the same opaque Server Error it uses for everything else, so the profile
     // has to degrade to "no works" rather than fail a prerendered route.
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -226,7 +226,7 @@ describe("contributor and replication route loaders", () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(
       buildContributorProfile(),
     );
-    publicData.getPublicGalleryReplications.mockResolvedValueOnce([
+    publicData.getPublicArtistCreditRows.mockResolvedValueOnce([
       buildReplication({ slug: "work-1" }),
       buildReplication({ slug: "work-2" }),
     ]);
@@ -251,7 +251,7 @@ describe("contributor and replication route loaders", () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(
       buildContributorProfile({ aliases: ["OLD-KEY"] }),
     );
-    publicData.getPublicGalleryReplications.mockResolvedValueOnce([
+    publicData.getPublicArtistCreditRows.mockResolvedValueOnce([
       buildReplication(),
     ]);
     publicData.getPublicContributorDirectory.mockResolvedValueOnce([
@@ -269,7 +269,7 @@ describe("contributor and replication route loaders", () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(
       buildContributorProfile(),
     );
-    publicData.getPublicGalleryReplications.mockResolvedValueOnce([
+    publicData.getPublicArtistCreditRows.mockResolvedValueOnce([
       buildReplication({ effect_slug: "unspeakable-horrors" }),
     ]);
     publicData.getPublicContributorDirectory.mockResolvedValueOnce([

@@ -4,11 +4,11 @@ import {
   getPublicAboutData,
   getPublicContributorProfiles,
   getPublicDataOverview,
-} from "@server/convex/publicData";
-import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
-import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
+} from "@server/data/publicData";
+import { getMoleculePackDownloadStats } from "@server/open-data/downloadStats";
+import { getPublicContributorReferenceCounts } from "@server/data/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { flavoredCopyKey, flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyKey, flavoredCopyText, getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
 import { t } from "@/i18n/server";
 import { msg } from "@/i18n/messages";
@@ -28,7 +28,7 @@ import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 export const revalidate = 3600;
 
 /**
- * The Convex About document is dose.wiki's: it names dose.wiki and states its CC0 terms.
+ * The Postgres About document is dose.wiki's: it names dose.wiki and states its CC0 terms.
  * A flavor that owns its About prose (`about.missionMarkdown`) therefore takes neither the
  * document's markdown nor its subtitle — see `SiteAboutConfig.missionMarkdown`.
  */
@@ -39,10 +39,11 @@ const OWNS_ABOUT_PROSE = SITE_FLAVOR_CONFIG.about.missionMarkdown !== null;
  *
  * Resolved per flavor (`about-mission-effect-index`), and only consulted on a flavor that
  * already overrides the CMS document. dose.wiki's About stays exactly where it was — on the
- * Convex `siteConfig` document that its editor edits — because a flavor with no
+ * Postgres `siteConfig` document that its editor edits — because a flavor with no
  * `missionMarkdown` never reaches this branch at all.
  */
 const ABOUT_MISSION_COPY_KEY = "about-mission";
+const ABOUT_COPY_KEYS = getCopyKeysByPrefix("about-");
 
 function resolveAboutSubtitle(cmsSubtitle: string): string {
   return OWNS_ABOUT_PROSE ? "" : cmsSubtitle;
@@ -62,16 +63,14 @@ export async function generateMetadata() {
 }
 
 export default async function AboutPage() {
-  const copy = await getCopy();
   const showOpenData = SITE_FLAVOR_CONFIG.about.showOpenData;
   // Effect Index lists every contributor, ranked by how many pages credit them; dose.wiki keeps
-  // its editor-curated founder subset. Only the ranking is gated: the profile table is already
-  // read by `getPublicAboutData()` on both flavors, but the reference count pulls the effect
-  // corpus, the replication gallery, the report previews and the expert-review credits, which
-  // dose.wiki has no use for here.
+  // its editor-curated founder subset. Only the ranking and full profile table are gated: the
+  // curated founder profiles already arrive through `getPublicAboutData()`.
   const showContributorRoster = isEffectIndex();
 
   const [
+    copy,
     about,
     overview,
     substances,
@@ -79,10 +78,8 @@ export default async function AboutPage() {
     mechanismLayout,
     contributorProfiles,
     referenceCounts,
-    substanceDownload,
-    effectDownload,
-    reportDownload,
   ] = await Promise.all([
+    getCopyByKeys(ABOUT_COPY_KEYS),
     getPublicAboutData(),
     getPublicDataOverview(),
     // The archive preview only renders inside the Open Data tab; skip the read entirely on
@@ -90,15 +87,10 @@ export default async function AboutPage() {
     showOpenData ? getPublicAboutPreviewSubstances() : [],
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
-    getPublicContributorProfiles(),
+    showContributorRoster ? getPublicContributorProfiles() : [],
     showContributorRoster
       ? getPublicContributorReferenceCounts()
       : new Map<string, number>(),
-    // The download captions (entry count, file size) are measured on the exports
-    // themselves; a flavor without the Open Data tab never lists them.
-    showOpenData ? getOpenDataDownloadStats("SubstanceIndex") : undefined,
-    showOpenData ? getOpenDataDownloadStats("EffectIndex") : undefined,
-    showOpenData ? getOpenDataDownloadStats("TripReports") : undefined,
   ]);
 
   // Ship only the rendered JSON the preview actually needs: the smallest articles
@@ -171,9 +163,9 @@ export default async function AboutPage() {
         subtitle={applyPlaceholders(resolveAboutSubtitle(about.subtitle), placeholderValues)}
         subtitleControl={!OWNS_ABOUT_PROSE ? <AboutBlock placeholderValues={placeholderValues} label="Edit About subtitle" /> : undefined}
         downloads={{
-          substances: substanceDownload,
-          effects: effectDownload,
-          reports: reportDownload,
+          substances: showOpenData ? true : undefined,
+          effects: showOpenData ? true : undefined,
+          reports: showOpenData ? true : undefined,
           molecules: showOpenData ? getMoleculePackDownloadStats() : undefined,
         }}
       />

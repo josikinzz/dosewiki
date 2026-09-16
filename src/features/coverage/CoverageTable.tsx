@@ -395,36 +395,28 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
     needsReviewOnly,
   ]);
 
-  // Gaps per column across the rows currently on screen, so the footer answers
-  // "which section is worst off" for whatever slice the filters selected.
-  const columnGaps = useMemo(
-    () =>
-      columns.map((_column, index) =>
-        visibleRows.reduce((count, row) => {
-          const isGap =
-            mode === "content"
-              ? row.content[index] === "empty"
-              : row.citations[index] === "bare";
-          return isGap ? count + 1 : count;
-        }, 0),
-      ),
-    [columns, visibleRows, mode],
-  );
-
-  // Article-level gaps across the rows currently on screen, so the two extra
-  // footer cells read the same way the per-column ones do.
-  const articleGaps = useMemo(
-    () =>
-      visibleRows.reduce(
-        (acc, row) => ({
-          roaHollow: acc.roaHollow + roaHollowCount(row.roa),
-          stubs: acc.stubs + (row.stub.isStub ? 1 : 0),
-          unreviewed: acc.unreviewed + (row.reviewed ? 0 : 1),
-        }),
-        { roaHollow: 0, stubs: 0, unreviewed: 0 },
-      ),
-    [visibleRows],
-  );
+  // Footer gaps share one pass over the visible slice so section and
+  // article-level tallies cannot drift or repeatedly scan the same rows.
+  const { columnGaps, articleGaps } = useMemo(() => {
+    const nextColumnGaps = Array.from({ length: columns.length }, () => 0);
+    const nextArticleGaps = { roaHollow: 0, stubs: 0, unreviewed: 0 };
+    for (const row of visibleRows) {
+      for (let index = 0; index < columns.length; index += 1) {
+        const isGap =
+          mode === "content"
+            ? row.content[index] === "empty"
+            : row.citations[index] === "bare";
+        if (isGap) nextColumnGaps[index] += 1;
+      }
+      nextArticleGaps.roaHollow += roaHollowCount(row.roa);
+      nextArticleGaps.stubs += row.stub.isStub ? 1 : 0;
+      nextArticleGaps.unreviewed += row.reviewed ? 0 : 1;
+    }
+    return {
+      columnGaps: nextColumnGaps,
+      articleGaps: nextArticleGaps,
+    };
+  }, [columns, visibleRows, mode]);
 
   const unlistedCount = useMemo(
     () => rows.filter((row) => row.visibility !== "public").length,
@@ -588,7 +580,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                         <span className="flex min-w-0 items-baseline gap-1.5">
                           <SmartLink
                             href={`/${row.slug}`}
-                            className="theme-text-primary truncate rounded-sm text-sm hover:text-dose-accent-strong hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+                            className="theme-text-primary truncate rounded-sm text-sm hover:text-dose-accent-strong hover:underline theme-focus-ring"
                           >
                             {row.name}
                           </SmartLink>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getPublicReplications,
   getPublicReplicationsBySlugs,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import { replicationMediaRank } from "@/features/replications/mediaRank";
 import { curatedEffectPosition } from "@/types/replications";
 import { enforceRateLimit } from "@server/http/nextRateLimit";

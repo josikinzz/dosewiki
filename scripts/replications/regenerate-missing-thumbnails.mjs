@@ -6,7 +6,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -43,9 +44,9 @@ async function main() {
   });
   printProductionWriteCommand(command);
   const audit = JSON.parse(fs.readFileSync(AUDIT_PATH, "utf8"));
-  if (audit.sources?.convex_url_variable !== "VITE_CONVEX_URL") throw new Error("Audit must target VITE_CONVEX_URL.");
+  if (!audit.sources?.target_selected || audit.sources.postgres_target !== command.deploymentFingerprint) throw new Error("Audit must match the explicitly selected Postgres write target.");
   const records = audit.records.filter((record) => record.current.type === "video" && record.health.media === "ok" && record.health.thumbnail === "missing");
-  const payloadDigest = digest(records.map((record) => ({ id: record.live_id, storage_id: record.current.storage_id, url: record.current.url })));
+  const payloadDigest = digest(records.map((record) => ({ id: record.live_id, storage_id: record.current.storage_id ?? null, r2_key: record.current.r2_key ?? null, url: record.current.url })));
   console.log(JSON.stringify({ mode: command.dryRun ? "dry-run" : "write", thumbnails: records.length, payload_digest: payloadDigest }, null, 2));
   if (command.dryRun) return;
   assertProductionWriteAllowed(command);
@@ -60,15 +61,22 @@ async function main() {
       const input = path.join(tempDir, `${index}.${record.current.format || "mp4"}`);
       const output = path.join(tempDir, `${index}.webp`);
       try {
+        const live = await client.query(api.replications.getResolvedById, { apiKey, id: record.live_id });
+        if (!live || (live.storage_id ?? null) !== (record.current.storage_id ?? null) ||
+            (live.r2_key ?? null) !== (record.current.r2_key ?? null) || live.url !== record.current.url) {
+          throw new Error("Source identity changed since the reviewed audit.");
+        }
+        if (live.thumbnail_url) throw new Error("Thumbnail appeared since the reviewed audit.");
         await download(record.current.url, input);
         extractThumbnail(input, output);
         const buffer = fs.readFileSync(output);
-        const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-        const uploadResponse = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": "image/webp" }, body: buffer });
-        if (!uploadResponse.ok) throw new Error(`Thumbnail upload failed with ${uploadResponse.status}`);
-        const { storageId } = await uploadResponse.json();
-        await client.mutation(api.replications.updateStorageIds, { apiKey, id: record.live_id, storage_id: record.current.storage_id, thumbnail_storage_id: storageId });
-        outcomes.push({ live_id: record.live_id, slug: record.slug, status: "applied", thumbnail_storage_id: storageId, sha256: digest(buffer) });
+        const r2Key = await uploadReplicationBytes(client, apiKey, buffer, "image/webp", "webp");
+        await updateReplicationMedia(client, apiKey, live, { thumbnail_r2_key: r2Key });
+        const after = await client.query(api.replications.getResolvedById, { apiKey, id: record.live_id });
+        if (after?.thumbnail_r2_key !== r2Key || !after.thumbnail_url || after.url !== live.url) {
+          throw new Error(`Thumbnail readback failed after association: ${r2Key}`);
+        }
+        outcomes.push({ live_id: record.live_id, slug: record.slug, status: "applied", thumbnail_r2_key: r2Key, sha256: digest(buffer) });
       } catch (error) {
         outcomes.push({ live_id: record.live_id, slug: record.slug, status: "failed", error: error instanceof Error ? error.message : String(error) });
       } finally {

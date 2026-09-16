@@ -10,7 +10,12 @@ import {
 } from "@/features/effect-index/home/homeIntroCopy";
 import { HomeExperience } from "./_components/HomeExperience";
 import { buildHomeQuickLinks } from "./_components/homeQuickLinks";
-import { flavoredCopyText, getCopy, type CopyResolver } from "@server/next/copyBlocks";
+import {
+  flavoredCopyKey,
+  flavoredCopyText,
+  getCopyByKeys,
+  type CopyResolver,
+} from "@server/next/copyBlocks";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
@@ -18,7 +23,7 @@ import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 // `<page> - <suffix>` convention. Its tailored dose.wiki card is overlaid here so other
 // routes without their own card continue to inherit the publication-wide root asset.
 export async function generateMetadata(): Promise<Metadata> {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
   const description = flavoredCopyText(
     copy,
     "home-hero-tagline",
@@ -64,7 +69,7 @@ const quickLinks = buildHomeQuickLinks();
  *
  * These keys are Effect Index's own — the slots exist on no other flavor — so they are read
  * directly rather than through `flavoredCopyKey`, and each falls back to the string the
- * component shipped with when neither Convex nor the checked-in defaults hold a row.
+ * component shipped with when neither Postgres nor the checked-in defaults hold a row.
  */
 function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
   const paragraph = (
@@ -100,16 +105,24 @@ function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
  * ever reachable in a given build — the dose.wiki path below is byte-for-byte what it was.
  */
 export default async function HomePage() {
-  const copy = await getCopy();
-
   if (isEffectIndex()) {
+    const [copy, homeData] = await Promise.all([
+      getCopyByKeys([
+        ...Object.values(EFFECT_INDEX_HOME_INTRO_COPY_KEYS),
+        EFFECT_INDEX_HOME_PANEL_BLURBS_KEY,
+      ]),
+      loadEffectIndexHomeData(),
+    ]);
+
     return (
       <EffectIndexHomePage
-        {...(await loadEffectIndexHomeData())}
+        {...homeData}
         copy={resolveEffectIndexHomeCopy(copy)}
       />
     );
   }
+
+  const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
 
   return (
     <HomeExperience

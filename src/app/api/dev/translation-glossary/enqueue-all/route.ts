@@ -11,11 +11,12 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
+import { getDataBackend } from "@server/postgres/runtime/backend";
 import { glossaryLocales, markRetranslated } from "@server/translation/glossary";
 import { publicRecordSlugs, translationJobSlug, TRANSLATION_RECORD_KINDS, type TranslationRecordKind } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs } from "@server/translation/segmentStore";
-import { GLOSSARY_BODY_MAX_BYTES, glossaryUnavailable, parseLocale } from "../glossaryRoutes";
+import { GLOSSARY_BODY_MAX_BYTES, glossaryLocaleAccess, parseLocale } from "../glossaryRoutes";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -29,9 +30,10 @@ export const POST = protectedRouteOperation<EnqueueAllBody, ParsedEnqueueAll>({
   body: { maxBytes: GLOSSARY_BODY_MAX_BYTES, parse: (raw) => ({ locale: parseLocale(raw.locale) }) },
   unexpectedErrorLabel: "Failed to enqueue the main translation via Next route:",
   unexpectedErrorMessage: "Unable to enqueue the main translation right now.",
-  operation: async ({ body }) => {
-    const unavailable = glossaryUnavailable();
-    if (unavailable) return unavailable;
+  operation: async ({ body, auth }) => {
+    getDataBackend();
+    const denied = glossaryLocaleAccess(auth, body.locale);
+    if (denied) return denied;
 
     const summary = (await glossaryLocales()).find((entry) => entry.locale === body.locale);
     if (!summary || summary.approved === 0) {

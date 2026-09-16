@@ -7,7 +7,7 @@ import {
   projectEditorArticle,
   projectPublicArticle,
 } from "./editorialReviewVisibilityPolicy";
-import { projectPublicArticle as projectConvexPublicArticle } from "../../data/projections/substanceReadProjections";
+import { projectPublicArticle as projectDataPublicArticle } from "../../data/projections/substanceReadProjections";
 
 describe("editorialReviewVisibilityPolicy", () => {
   it("answers visibility for public, editor, generated, batch, prepopulate, export, and import modes", () => {
@@ -52,8 +52,8 @@ describe("editorialReviewVisibilityPolicy", () => {
     expect(JSON.stringify(projectPublicArticle(article))).not.toContain("FLAG_SECRET_100");
   });
 
-  it("keeps the Convex public article projection free of Review Flag data", () => {
-    const projection = projectConvexPublicArticle({
+  it("keeps the Postgres public article projection free of Review Flag data", () => {
+    const projection = projectDataPublicArticle({
       title: "LSD",
       slug: "lsd",
       editorial_review: {
@@ -62,7 +62,7 @@ describe("editorialReviewVisibilityPolicy", () => {
         flags: [{
           label: "Flag sentinel",
           severity: "major",
-          note: "FLAG_SECRET_CONVEX_100",
+          note: "FLAG_SECRET_DATA_100",
           source: "agent",
           run_id: "private-review-run",
           created_at: "2026-08-02T12:00:00.000Z",
@@ -72,7 +72,7 @@ describe("editorialReviewVisibilityPolicy", () => {
 
     expect(projection.expert_reviewed).toBe(true);
     expect(projection).not.toHaveProperty("editorial_review");
-    expect(JSON.stringify(projection)).not.toContain("FLAG_SECRET_CONVEX_100");
+    expect(JSON.stringify(projection)).not.toContain("FLAG_SECRET_DATA_100");
   });
 
   it("preserves and defaults editorial_review for editor projections", () => {

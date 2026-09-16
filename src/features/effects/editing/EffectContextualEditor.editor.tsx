@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ComponentProps } from "react";
 import { ZodError } from "zod";
 import { useRouter } from "next/navigation";
+import { useT } from "@/i18n/client";
 import { Button, Input, Textarea } from "@/components/ui";
 import { Icon } from "@/components/common/Icon";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
@@ -32,6 +33,7 @@ export default function EffectContextualEditor(props: Props) {
 }
 
 function EffectSession({ slug, pageProps }: Props) {
+  const t = useT();
   const { setDirty, registerDraftGuard } = useContextualEditing();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -187,7 +189,7 @@ function EffectSession({ slug, pageProps }: Props) {
           </div>)}
           <Button variant="accent" disabled={busy || !!parsed.error || !dirty} onClick={() => void publish()}>Confirm publication</Button>
         </EditorSection> : null}
-        {preview && previewModel && !parsed.error ? <EditorSection headingLevel="h3" title="Local preview" data-effect-preview tabIndex={-1} className="scroll-mt-32" description="The public effect renderer; nothing is published here."><EffectArticlePage {...pageProps} article={previewModel} embedded /></EditorSection> : null}
+        {preview && previewModel && !parsed.error ? <EditorSection headingLevel="h3" title="Local preview" data-effect-preview tabIndex={-1} className="scroll-mt-32" description="The public effect renderer; nothing is published here."><EffectArticlePage {...pageProps} article={previewModel} embedded t={t} /></EditorSection> : null}
         <EditorSection headingLevel="h3" title="Overview">
           <EditorField label="Name" required error={parsed.fieldErrors.name}>{control => <Input {...control} value={draft.name} disabled={busy} onChange={event => update({ name: event.target.value })} />}</EditorField>
           <EditorField label="Summary" error={parsed.fieldErrors.summary}>{control => <Textarea {...control} value={draft.summary} disabled={busy} onChange={event => update({ summary: event.target.value })} />}</EditorField>

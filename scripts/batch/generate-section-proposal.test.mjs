@@ -10,7 +10,7 @@ afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) rmSync(directory, { recursive: true, force: true });
 });
 
-const convexApi = {
+const postgresApi = {
   substanceIndex: { getBySlug: "substanceIndex.getBySlug" },
   prompts: { getByKey: "prompts.getByKey" },
   quotes: { getBySlugAndSection: "quotes.getBySlugAndSection" },
@@ -90,16 +90,16 @@ class FakeClient {
   }
 
   async query(reference, args) {
-    if (reference === convexApi.substanceIndex.getBySlug) {
+    if (reference === postgresApi.substanceIndex.getBySlug) {
       return this.url.includes("source-") ? sourceArticle : targetArticle;
     }
-    if (reference === convexApi.prompts.getByKey) {
+    if (reference === postgresApi.prompts.getByKey) {
       return args.key === "section_pharmacology" ? pharmacologyPrompt : prompt;
     }
-    if (reference === convexApi.quotes.getBySlugAndSection) {
+    if (reference === postgresApi.quotes.getBySlugAndSection) {
       return args.section === "pharmacology" ? pharmacologyQuote : quote;
     }
-    if (reference === convexApi.articleSources.getBySlug) return null;
+    if (reference === postgresApi.articleSources.getBySlug) return null;
     throw new Error(`Unexpected query: ${reference}`);
   }
 
@@ -118,12 +118,12 @@ describe("review-only section proposal orchestration", () => {
       argv: [
         "--slug=2c-b",
         "--section=summary",
-        "--source-url=https://source-test.convex.cloud",
-        "--target-url=https://target-test.convex.cloud",
+        "--source-url=postgresql://reader:source-secret@localhost/source-test?application_name=proposal-source",
+        "--target=postgresql://writer:target-secret@localhost/target-test?application_name=proposal-target",
       ],
-      env: {},
+      env: { DATA_BACKEND: "postgres",},
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       outputRoot,
       now: () => "2026-07-01T12:00:00.000Z",
       loadsEnvLocal: false,
@@ -140,6 +140,20 @@ describe("review-only section proposal orchestration", () => {
     expect(result.proposal.observedChangedTopLevelFields).toEqual(["summary"]);
 
     const manifest = JSON.parse(readFileSync(result.manifestPath, "utf8"));
+    expect(manifest.deployments.source).toEqual({
+      identity: "localhost/source-test",
+      urlProvenanceKey: "--source-url",
+      fingerprint: "localhost/source-test",
+    });
+    expect(manifest.deployments.target).toEqual({
+      identity: "localhost/target-test",
+      urlProvenanceKey: "--target",
+      fingerprint: "localhost/target-test",
+    });
+    const artifacts = [
+      result.manifestPath, result.proposalJsonPath, result.proposalMarkdownPath,
+    ].map((path) => readFileSync(path, "utf8")).join("\n");
+    expect(artifacts).not.toMatch(/source-secret|target-secret|application_name|postgresql:\/\//);
     expect(manifest.prompt.exactContent).toBe(prompt.content);
     expect(manifest.sourceMaterial.excerpts[0].includedContent).toBe(quote.content);
     expect(manifest.targetArticle._id).toBe("target-article");
@@ -149,7 +163,7 @@ describe("review-only section proposal orchestration", () => {
     expect(persistedProposal.slug).toBe("2c-b");
     expect(persistedProposal.baseArticle.slug).toBe("2c-b");
     expect(persistedProposal.proposedArticle.slug).toBe("2c-b");
-    expect(persistedProposal.targetDeploymentFingerprint).toBe("target-test");
+    expect(persistedProposal.targetDeploymentFingerprint).toBe("localhost/target-test");
     expect(persistedProposal.artifactDigest).toMatch(/^[a-f0-9]{64}$/);
     expect(persistedProposal.artifactPaths.manifest).toContain(manifest.manifestDigest);
     expect(persistedProposal.artifactPaths.rawResponse).toContain(manifest.manifestDigest);
@@ -169,12 +183,12 @@ describe("review-only section proposal orchestration", () => {
       argv: [
         "--slug=2c-b",
         "--section=pharmacology",
-        "--source-url=https://source-test.convex.cloud",
-        "--target-url=https://target-test.convex.cloud",
+        "--source-url=postgresql://localhost/source-test",
+        "--target=postgresql://localhost/target-test",
       ],
-      env: {},
+      env: { DATA_BACKEND: "postgres",},
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       outputRoot,
       now: () => "2026-07-02T12:00:00.000Z",
       loadsEnvLocal: false,
@@ -211,40 +225,27 @@ describe("review-only section proposal orchestration", () => {
     expect(() => parseProposalArgs(["--slug=2c-b", "--section=summary", "--extra=yes"])).toThrow(/Unknown/);
 
     await expect(generateSectionProposal({
-      argv: ["--slug=2c-b", "--section=unknown", "--target-url=https://target-test.convex.cloud"],
-      env: {},
+      argv: ["--slug=2c-b", "--section=unknown", "--target=postgresql://localhost/target-test"],
+      env: { DATA_BACKEND: "postgres",},
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       loadsEnvLocal: false,
       callOpenRouter: async () => ({ content: rawResponse }),
     })).rejects.toThrow(/Unsupported proposal section/);
 
     await expect(generateSectionProposal({
-      argv: ["--slug=2c-b", "--section=summary", "--source-url=https://source-test.convex.cloud"],
-      env: { CONVEX_URL: "https://browser-default.convex.cloud", VITE_CONVEX_URL: "https://browser.convex.cloud" },
+      argv: ["--slug=2c-b", "--section=summary", "--source-url=postgresql://localhost/source-test"],
+      env: { DATA_BACKEND: "postgres", POSTGRES_DIRECT_URL: "postgresql://localhost/browser-default", POSTGRES_POOLED_URL: "postgresql://localhost/browser" },
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       loadsEnvLocal: false,
       callOpenRouter: async () => ({ content: rawResponse }),
     })).rejects.toThrow(/explicit proposal target/);
 
-    await expect(generateSectionProposal({
-      argv: [
-        "--slug=2c-b",
-        "--section=summary",
-        "--target-url=https://target-test.convex.cloud",
-      ],
-      env: { CONVEX_URL: "https://generic-source.convex.cloud" },
-      Client: FakeClient,
-      convexApi,
-      loadsEnvLocal: false,
-      callOpenRouter: async () => ({ content: rawResponse }),
-    })).rejects.toThrow(/Missing batch source Convex URL/);
-
     class WrongTargetArticleClient extends FakeClient {
       async query(reference, args) {
         const result = await super.query(reference, args);
-        if (reference === convexApi.substanceIndex.getBySlug && !this.url.includes("source-")) {
+        if (reference === postgresApi.substanceIndex.getBySlug && !this.url.includes("source-")) {
           return { ...result, slug: "lsd" };
         }
         return result;
@@ -255,12 +256,12 @@ describe("review-only section proposal orchestration", () => {
       argv: [
         "--slug=2c-b",
         "--section=summary",
-        "--source-url=https://source-test.convex.cloud",
-        "--target-url=https://target-test.convex.cloud",
+        "--source-url=postgresql://localhost/source-test",
+        "--target=postgresql://localhost/target-test",
       ],
-      env: {},
+      env: { DATA_BACKEND: "postgres",},
       Client: WrongTargetArticleClient,
-      convexApi,
+      postgresApi,
       loadsEnvLocal: false,
       callOpenRouter: async () => ({ content: rawResponse }),
     })).rejects.toThrow(/Target article identity mismatch/);

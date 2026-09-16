@@ -253,7 +253,7 @@ describe("EditableValue when the stored value moved underneath it", () => {
   it("offers no recovery when the failure was not a conflict", async () => {
     const commit = vi.fn(async () => {
       // No code: an internal failure, which a client must not pretend to
-      // understand. See `src/lib/http/convexRejection.ts`.
+      // understand. See `src/lib/http/dataRejection.ts`.
       throw new ArticleFieldCommitError("Unable to save that edit right now.");
     });
     renderWithProvider(commit, <span>Original note.</span>, {

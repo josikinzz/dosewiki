@@ -13,7 +13,7 @@
  * The association is derived, never stored: a substance article surfaces this
  * replication when one of its visual-effect names resolves to the row's owning
  * `effect_slug` or to one of its `effect_tags`. So there is no join table to
- * read — Convex walks the article table
+ * read — Postgres walks the article table
  * (`substanceGalleries:getReplicationAssociationsPage`) and pages to stay under
  * its read limits, and this route drains the cursor so the panel makes exactly
  * one request. A figure or audio row is on no article and answers with an empty
@@ -36,7 +36,7 @@
  * end of the public-data cache window.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -48,7 +48,7 @@ export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 32 * 1024;
 
-/** Matches the ceiling enforced in `convex/substanceGalleries.ts`. */
+/** Matches the ceiling enforced in `server/substanceGalleries.ts`. */
 const MAX_EXCLUDED_SUBSTANCES = 250;
 
 const PAGE_LIMIT = 100;
@@ -143,21 +143,21 @@ function parseDirectAssociationBody(raw: DirectAssociationBody): {
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load a replication's associations via Next route:",
   unexpectedErrorMessage: "Unable to load that replication's drug associations right now.",
-  operation: async ({ request, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const slug = replicationSlugOf(request);
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
 
     const rows: ReplicationAssociation[] = [];
     let cursor: string | undefined;
     for (let pages = 0; pages < MAX_PAGES; pages += 1) {
-      const page = (await convexWrite.client.query(
+      const page = (await dataWrite.client.query(
         api.substanceGalleries.getReplicationAssociationsPage,
         { apiKey, replicationSlug: slug, cursor, limit: PAGE_LIMIT },
       )) as { items: ReplicationAssociation[]; cursor: string; isDone: boolean };
@@ -191,20 +191,20 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 4 * 1024, parse: parseDirectAssociationBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to update a replication's drug association:",
   unexpectedErrorMessage: "Unable to update that drug assignment right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
     const slug = replicationSlugOf(request);
-    const result = await convexWrite.client.mutation(
+    const result = await dataWrite.client.mutation(
       api.substanceGalleries.setReplicationDirectAssociation,
       {
         apiKey:
-          convexWrite.getAdminIntentToken?.("editorArticleWrite") ??
-          convexWrite.adminKey,
+          dataWrite.getAdminIntentToken?.("editorArticleWrite") ??
+          dataWrite.adminKey,
         actorEmail,
         replicationSlug: slug,
         substanceSlug: body.substanceSlug,
@@ -226,18 +226,18 @@ export const POST = protectedRouteOperation<ExclusionBody, ParsedExclusionBody>(
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseExclusionBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save a replication's associations via Next route:",
   unexpectedErrorMessage: "Unable to save that replication's drug associations right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const slug = replicationSlugOf(request);
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(
+    const result = await dataWrite.client.mutation(
       api.substanceGalleries.setReplicationExclusions,
       {
         apiKey,

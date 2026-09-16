@@ -1,18 +1,8 @@
 #!/usr/bin/env node
 /**
- * Guard the one line that decides whether shipping the app also ships the
- * Convex functions it calls.
- *
- * Before this wiring existed, `vercel.json` ran a plain `next build`, so a
- * deploy shipped a UI that called `substanceIndex:setArticleField` while the
- * mutation itself sat undeployed — and production redacts every error to a bare
- * "Server Error", so it took a day to see. The fix is structural: the Vercel
- * build command routes through `scripts/deploy/vercel-build.mjs`, which deploys
- * Convex when the project holds a deploy key and verifies when it does not.
- *
- * That fix is a single string in `vercel.json`. A well-meaning edit back to
- * `bun run build` would silently restore the outage with no test failing, so CI
- * asserts the wiring itself.
+ * Guard the Vercel verification/build entrypoint. The wrapper checks native
+ * function references before building the app and never deploys a database.
+ * Keep the complete static-check dependency chain in the Vercel upload.
  *
  * Read-only. Exits 1 on a broken chain.
  */
@@ -34,7 +24,7 @@ if (vercelConfig.buildCommand !== EXPECTED_BUILD_COMMAND) {
   problems.push(
     `vercel.json buildCommand is ${JSON.stringify(vercelConfig.buildCommand)}, ` +
       `expected ${JSON.stringify(EXPECTED_BUILD_COMMAND)}. ` +
-      "Anything else builds the app without deploying or verifying Convex functions.",
+      "Anything else builds the app without verifying native data function references.",
   );
 }
 
@@ -66,11 +56,10 @@ if (build.includes(WRAPPER) || build.includes("build:vercel")) {
 const { default: createIgnoreMatcher } = await import("ignore");
 const WRAPPER_EXECUTION_CHAIN = [
   WRAPPER,
-  "scripts/convex/check-function-drift.mjs",
-  "scripts/lib/convex-drift-report.mjs",
-  "scripts/lib/convex-app-callsites.mjs",
-  "scripts/lib/convex-function-inventory.mjs",
-  "scripts/lib/data-ops-run-context.mjs",
+  "scripts/build/check-function-references.mjs",
+  "scripts/lib/data-drift-report.mjs",
+  "scripts/lib/data-app-callsites.mjs",
+  "scripts/lib/data-function-inventory.mjs",
 ];
 try {
   const vercelignore = readFileSync(path.join(REPO_ROOT, ".vercelignore"), "utf8");
@@ -89,9 +78,9 @@ try {
 }
 
 if (problems.length > 0) {
-  console.error("Convex-aware build wiring is broken:\n");
+  console.error("Data-aware build wiring is broken:\n");
   for (const problem of problems) console.error(`  - ${problem}`);
-  console.error("\nSee docs/agents/deployment.md, 'Shipping the app ships the Convex functions'.");
+  console.error("\nSee docs/agents/deployment.md for native function-reference verification.");
   process.exit(1);
 }
 

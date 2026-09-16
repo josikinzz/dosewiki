@@ -1,13 +1,7 @@
 # Dependencies and generated output
 node_modules/
 .next/
-.next-editor/
-.next-effectindex/
-.next-houseclean-dosewiki/
-.next-houseclean-effectindex/
-.next-houseclean-editor/
-.next-semantic-verification/
-.next-semantic-verified/
+.next-*/
 dist/
 # The repository-owned OpenChemLib package resolves from committed browser
 # artifacts during Vercel's no-Java/GWT install and build.

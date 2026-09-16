@@ -41,7 +41,7 @@ export function resolveTripReportLicense(license?: string | null): TripReportLic
 
 /**
  * Record that a human editor decided who a report is by, stamped only by the
- * submission promotion path (`convex/tripReportSubmissions.ts`). Its absence
+ * submission promotion path (`server/tripReportSubmissions.ts`). Its absence
  * marks the legacy imported corpus, whose bylines were written by editors and
  * therefore still resolve to a contributor by name on the public read path.
  */
@@ -87,7 +87,7 @@ export type TripReportPreviewRecord = Pick<
   /**
    * When the report joined the archive, derived at the read edge from the
    * row's creation time rather than stored on it. Optional because a read
-   * served by a Convex deployment older than the projection that adds it has
+   * served by a Postgres deployment older than the projection that adds it has
    * no value to give, and the index falls back to the experience date.
    */
   published_at?: string;
@@ -137,7 +137,7 @@ type TripReportExcerptInput = Pick<
   "introduction" | "onset" | "peak" | "offset" | "conclusion"
 >;
 
-/** Shared excerpt algorithm for both Convex preview projection and consumers. */
+/** Shared excerpt algorithm for both Postgres preview projection and consumers. */
 export const getTripReportExcerpt = (
   report: TripReportExcerptInput,
   maxLength = 170,

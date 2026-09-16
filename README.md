@@ -1,6 +1,6 @@
 # dose.wiki
 
-Next.js application for the dose.wiki harm-reduction knowledge base and its Effect Index publication, backed by PlanetScale Postgres since 2026-09-10 (the Convex function handlers run unchanged on Postgres through `lib/postgres/runtime/`). The two Vercel sites use one repository, branch, and production database; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
+Next.js application for the dose.wiki harm-reduction knowledge base and its Effect Index publication, backed by PlanetScale Postgres since 2026-09-10. Authored handlers in `server/` execute in-process through `lib/postgres/runtime/`. The two publications use one repository, branch, and production database; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
 
 ---
 
@@ -20,7 +20,7 @@ Next.js application for the dose.wiki harm-reduction knowledge base and its Effe
 ## Platform Overview
 
 - **Framework**: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS
-- **Runtime data**: PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch `main`) selected by `DATA_BACKEND=postgres`; Convex `glad-minnow-656` remains only as the rollback backend until retirement (earliest 2026-09-17)
+- **Runtime data**: PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch `main`) selected by `DATA_BACKEND=postgres`; the archived recovery service is not an application backend
 - **Authentication**: Auth.js (`next-auth`) with database-backed membership roles
 - **Package manager**: Bun 1.3.5 with `bun.lock`; package scripts remain available through `npm run`
 - **Public rendering**: static generation or ISR where declared
@@ -30,14 +30,14 @@ The default build is dose.wiki. `NEXT_PUBLIC_SITE_FLAVOR=effectindex` builds Eff
 
 ## Data Architecture
 
-PlanetScale Postgres is the source of truth for public runtime data and the active editor; the tables keep their Convex names and document shapes. Representative table groups include:
+PlanetScale Postgres is the source of truth for public runtime data and the active editor; persisted table names, document IDs, and document shapes remain stable. Representative table groups include:
 
 - articles and editorial content: `substanceIndex`, `subjectiveEffects`, `tripReports`, `effectIndexArticles`;
 - media and chemistry: `replications`, `moleculeOverrides`, `moleculeClassTemplates`;
 - publishing and provenance: `citationEvidence`, `generatedPublicationOperations`, `changelog`;
 - access and site configuration: `memberships`, `contributorProfiles`, `siteConfig`, `indexLayouts`.
 
-Use `convex/schema.ts` for the current table inventory and indexes. Use the matching module under `convex/` for each query and mutation contract.
+Use `server/schema.ts` for the current table inventory and indexes. Use the matching module under `server/` for each query and mutation contract.
 
 Local JSON and Markdown remain useful for migration, backup, export, prompt, and generation workflows. They are not public runtime truth unless active code explicitly reads them. Before changing generated data, consult `src/data/artifactLineageManifest.json`.
 
@@ -46,9 +46,9 @@ Article shape ownership is split deliberately:
 - canonical article schema: `src/schema/substance.schema.ts`;
 - shared adapter: `src/schema/substance/contract.ts`;
 - generated helpers: `src/data/schema/`;
-- stored Convex shape: `convex/schema.ts`.
+- stored document shape: `server/schema.ts`.
 
-Convex ingestion runs through the shared article adapter so invalid article shapes fail before storage.
+Article ingestion runs through the shared article adapter so invalid article shapes fail before storage.
 
 ## Project Layout
 
@@ -57,8 +57,8 @@ Convex ingestion runs through the shared article adapter so invalid article shap
 | `src/app/` | App Router pages, metadata surfaces, and route handlers |
 | `src/features/` | Article, editor, effects, replication, and report features |
 | `src/components/` | Shared page chrome and UI primitives |
-| `lib/` | Server-side auth, Convex, HTTP, runtime, and Next.js adapters |
-| `convex/` | Runtime schema, queries, mutations, and actions |
+| `lib/` | Server-side auth, data, HTTP, runtime, and Next.js adapters |
+| `server/` | Runtime schema, queries, mutations, and actions |
 | `scripts/` | Operator workflows for analysis, generation, migration, deployment, and sync |
 | `src/data/` | Local inputs, exports, migration artifacts, and generated helpers |
 
@@ -137,9 +137,9 @@ The current tab registry is `TOOL_TAB_ITEMS` in `src/features/dev/pages/DevModeP
 - Auth.js configuration: `auth.ts`
 - Runtime auth policy: `lib/auth/runtimePolicy.ts`
 - Route gate: `middleware.ts`
-- Role source: Convex `memberships`
+- Role source: Postgres `memberships`
 
-Editors and admins can use the full surface. Any authenticated user can edit their own profile. Editor tool handlers live under `src/app/api/dev/`; shared save routes live under `src/app/api/`. The preferred article write path is `save-to-convex`, while contributor profiles use `save-user-profile`.
+Editors and admins can use the full surface. Any authenticated user can edit their own profile. Editor tool handlers live under `src/app/api/dev/`; shared save routes live under `src/app/api/`. The preferred article write path is `save-article`, while contributor profiles use `save-user-profile`.
 
 Named rate-limit policies live in `lib/http/rateLimitPolicy.ts`.
 
@@ -172,12 +172,12 @@ npm run dev
 Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit credential values.
 
 - `lib/runtime/envContract.ts` owns runtime environment diagnostics.
-- [Data credentials](docs/agents/convex-credentials.md) owns production targets, credentials, write gates, and recovery.
+- [Data credentials](docs/agents/data-credentials.md) owns production targets, credentials, write gates, and recovery.
 - [Deployment routing](docs/agents/deployment.md) owns Vercel projects, domains, build separation, and release safety.
 
-Every production deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`. Only `dosewiki-admin` carries the write and intent-token tier. Public DoseWiki and Effect Index remain read-only and carry no admin credential. Convex `glad-minnow-656` is a frozen recovery source through the ticket 24 decision, not a normal write target.
+Every production deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`. Only `dosewiki-admin` carries the write and intent-token tier. Public DoseWiki and Effect Index remain read-only and carry no admin credential. The application and ordinary operators have no alternate backend.
 
-Production writes require an allowlisted command, explicit Postgres target, reviewed dry run, remote-target gates, and the command's confirmations. Implementing a guard does not authorize production use. Follow [data credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules here.
+Production writes require an allowlisted command, explicit Postgres target, reviewed dry run, remote-target gates, and the command's confirmations. Implementing a guard does not authorize production use. Follow [data credentials](docs/agents/data-credentials.md) rather than copying credential values or precedence rules here.
 
 `NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
 
@@ -195,7 +195,7 @@ Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/
 4. Keep public App Router reads server-side unless the interaction requires a client subscription.
 5. Run the narrow verification command that covers the change. Use `npm run verify:all` only when both app and workflow surfaces changed.
 
-Public server data helpers live in `lib/convex/`; metadata and static-route planning live in `lib/next/`. Local `SubstanceIndex.json` is not a public rendering source.
+Public server data helpers live in `lib/data/`; metadata and static-route planning live in `lib/next/`. Local `SubstanceIndex.json` is not a public rendering source.
 
 ## Scripts
 
@@ -210,7 +210,7 @@ npm run postgres:check-env-isolation
 
 Batch generation uses OpenRouter and requires `OPENROUTER_API_KEY`. Scry access uses `SCRY_API_KEY`. Keep both in `.env.local` or the shell.
 
-Data-changing commands run with `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`, `POSTGRES_IMPORT_CONFIRM` plus `--allow-remote`, `--expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres` where supported, and the command's write confirmation. Read [Convex credentials](docs/agents/convex-credentials.md) before running them.
+Data-changing commands run with `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`, `POSTGRES_IMPORT_CONFIRM` plus `--allow-remote`, `--expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres` where supported, and the command's write confirmation. Read [Data credentials](docs/agents/data-credentials.md) before running them.
 
 For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow [citation workbench guidance](docs/agents/citation-workbench.md) and [production rollout](docs/citation-production-rollout.md).
 
@@ -233,7 +233,7 @@ excluded; publishing replacements remains a separately approved operation.
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
 | [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md) | Local OpenChemLib ownership, provenance, rebuild, and update contract |
 | [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) | Current citation workbench integration tracker |
-| [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |
+| [docs/next-auth-contributor-guide.md](docs/next-auth-contributor-guide.md) | Next/Auth.js/Postgres contributor guide |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |
 | [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |
 | [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Retired Vite/static app guide; not current architecture |

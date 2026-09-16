@@ -1,6 +1,6 @@
 import { getFaviconForUrl } from "@/data/config/sourceFavicons";
 import type { Reference } from "@/schema/substance/shared";
-import { buildCitationNumbering, formatApaReference } from "./citations/referenceModel";
+import { buildCitationNumbering, type ArticleCitationModel } from "./citations/referenceModel";
 import { projectSubstanceCitationCompatibility } from "./citations/substanceCitationCompatibility";
 import { normalizeDoi } from "../../lib/citations/referenceIdentity.mjs";
 import { slugify } from "@/utils/slug";
@@ -73,6 +73,7 @@ export type ProjectSubstanceCitationsInput = {
   citations?: RawSubstanceCitation[] | null;
   expandedFurtherReading?: boolean;
   expandedReferences?: boolean;
+  numbering?: ArticleCitationModel;
 };
 
 export type ProjectEffectCitationsInput = {
@@ -240,16 +241,17 @@ export function projectSubstanceCitations({
   citations = [],
   expandedFurtherReading = false,
   expandedReferences = false,
+  numbering: suppliedNumbering,
 }: ProjectSubstanceCitationsInput): CitationProjection {
-  const numbering = buildCitationNumbering(references ?? [], article ?? {});
+  const numbering = suppliedNumbering ?? buildCitationNumbering(references ?? [], article ?? {});
   const compatibility = projectSubstanceCitationCompatibility({
     references,
     sourceCitations,
     citations,
   });
-  const structuredReferences: ProjectedCitation[] = numbering.numberedReferences.map((reference) => ({
+  const structuredReferences: ProjectedCitation[] = numbering.numberedReferences.map((reference): ProjectedCitation => ({
     role: "reference",
-    label: formatApaReference(reference),
+    label: reference.apaTextResolved,
     url: reference.url ?? (normalizeDoi(reference.doi) ? `https://doi.org/${normalizeDoi(reference.doi)}` : ""),
     favicon: reference.url ? getFaviconForUrl(reference.url) : null,
     number: reference.number,

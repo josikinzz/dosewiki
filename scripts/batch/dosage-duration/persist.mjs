@@ -87,7 +87,7 @@ export async function processAll(apiKey, articles, systemPrompt, options, contex
   const successfulUpdates = [];
   const persistSuccessfulUpdate = createArticlePersistence({
     adminKey: context.adminKey,
-    convexClient: context.convexClient,
+    postgresClient: context.postgresClient,
     sourceArticlesBySlug: new Map(context.allArticles.map((article) => [getArticleSlug(article), article])),
     targetArticlesBySlug: new Map(context.allArticles.map((article) => [getArticleSlug(article), article])),
     applyUpdate: applyDosageDurationUpdate,

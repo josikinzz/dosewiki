@@ -97,7 +97,7 @@ export const stateCardStory: StoryDef = {
               <Button variant="outline">Write manually</Button>
             </>
           }
-          footer="Drafts are saved to Convex and reviewed before publishing."
+          footer="Drafts are saved to Postgres and reviewed before publishing."
         />
       ),
     },

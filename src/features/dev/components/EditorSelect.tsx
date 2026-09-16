@@ -30,15 +30,15 @@ const selectSizeClasses: Record<NonNullable<EditorSelectProps["selectSize"]>, st
 
 const selectVariantClasses: Record<NonNullable<EditorSelectProps["variant"]>, string> = {
   default:
-    "border-[var(--theme-border-subtle)] focus:border-[var(--theme-accent-strong)] focus:ring-[var(--theme-ring-soft)]",
+    "theme-field-focus border-[var(--theme-border-subtle)]",
   error:
-    "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)] focus:ring-[color:var(--theme-danger-ring)]",
+    "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)]",
 };
 
 /**
  * Themed native `<select>` built on the shared Input recipe: appearance-none
  * with a chevron overlay, --theme-field-surface fill, --theme-border-subtle
- * rim, accent focus border + --theme-ring-soft ring, and --theme-menu-surface
+ * rim, neutral focus border, and --theme-menu-surface
  * option backgrounds (so the popped list reads as a frosted menu, never a
  * baked slate hex). Reverso-safe in both themes.
  */
@@ -68,7 +68,7 @@ export const EditorSelect = forwardRef<HTMLSelectElement, EditorSelectProps>(
           aria-invalid={ariaInvalid}
           className={cn(
             "flex w-full appearance-none rounded-xl border bg-[var(--theme-field-surface)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-field-inset)] transition",
-            "focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50",
+            "focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
             "[&>option]:bg-[var(--theme-menu-surface)] [&>option]:text-[var(--theme-text-primary)]",
             selectSizeClasses[selectSize],
             selectVariantClasses[resolvedVariant],

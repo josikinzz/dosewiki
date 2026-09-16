@@ -1,5 +1,5 @@
 /** The category layout the review workbench builds its lightweight lookup from. */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { editorReadRoute } from "../editorReadRoute";
 
 export const runtime = "nodejs";

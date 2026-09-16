@@ -93,6 +93,7 @@ export const TripReportCard = memo(function TripReportCard({
     );
   const cardClassName = cn(
     getTripReportCardClassName(density, surfaceTone),
+    disableNestedLinks && "transition-[scale,border-color,background-color,box-shadow,color] duration-160 active:scale-[0.995] motion-reduce:transition-none motion-reduce:active:scale-100",
     className,
   );
 
@@ -171,7 +172,6 @@ function FullTripReportCardContent({
           authorName={report.authorName}
           avatarUrl={report.authorAvatarUrl}
           size={40}
-          className="transition-transform duration-[360ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
       </div>
 

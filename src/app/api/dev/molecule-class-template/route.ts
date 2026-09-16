@@ -4,7 +4,7 @@
  * Templates are isolated from `moleculeOverrides`; this route deliberately
  * performs no public-page revalidation and has no apply behavior.
  */
-import { makeFunctionReference } from "convex/server";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { NextResponse } from "next/server";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -107,20 +107,20 @@ function parseSaveBody(body: SaveTemplateBody): ParsedSaveTemplate {
 export const GET = protectedRouteOperation({
   auth: "admin",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load molecule class template via Next route:",
   unexpectedErrorMessage: "Unable to load the molecule class template right now.",
-  operation: async ({ request, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
     const url = new URL(request.url);
     if (url.searchParams.get("list") === "1") {
-      const templates = await convexWrite.client.query(listTemplateKeys, {});
+      const templates = await dataWrite.client.query(listTemplateKeys, {});
       return NextResponse.json({ ok: true, templates });
     }
     const classKey = parseClassKey(url.searchParams.get("classKey"));
-    const template = await convexWrite.client.query(getByClassKey, { classKey });
+    const template = await dataWrite.client.query(getByClassKey, { classKey });
     return NextResponse.json({ ok: true, template });
   },
 });
@@ -132,18 +132,18 @@ export const POST = protectedRouteOperation<SaveTemplateBody, ParsedSaveTemplate
     maxBytes: MAX_PAYLOAD_BYTES,
     parse: parseSaveBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save molecule class template via Next route:",
   unexpectedErrorMessage: "Unable to save the molecule class template right now.",
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-    const result = await convexWrite.client.mutation(saveTemplate, {
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const result = await dataWrite.client.mutation(saveTemplate, {
       apiKey,
       actorEmail,
       classKey: body.classKey,

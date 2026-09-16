@@ -26,8 +26,8 @@ import {
   getInitialAppearance,
   isColorScheme,
   isFontPreference,
-  isVisualStyle,
 } from "./index";
+import { isVisualStyle } from "./visualStyle";
 import {
   ACCENT_HUE_PROPERTY,
   ACCENT_LEVEL_PROPERTY,

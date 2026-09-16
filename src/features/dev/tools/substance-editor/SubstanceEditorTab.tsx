@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { EditorNotice, useDirtyGuard } from "@/features/dev/components";
+import { LoadErrorState } from "@/features/dev/components/LoadErrorState";
 import { StateCard } from "@/components/common/StateCard";
 import { viewToPath } from "@/utils/routing";
 import { slugify } from "@/utils/slug";
@@ -35,7 +36,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
     urlSlugRef.current = selectedSubstanceSlug;
     window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "articles", slug: selectedSubstanceSlug ?? undefined }));
   }, [selectedSubstanceSlug]);
-  const { isArticleHydrated, requestArticle } = articleHydration;
+  const { failedSlugs, isArticleHydrated, requestArticle } = articleHydration;
   const ready = isArticleHydrated(selectedSubstanceSlug);
   useEffect(() => { requestArticle(selectedSubstanceSlug); }, [requestArticle, selectedSubstanceSlug]);
   const handleSelectSubstance = useCallback((slug: string) => {
@@ -59,6 +60,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
       workbenchRole={resolveSessionRole(session.data?.user ?? {})} onDirtyChange={setDirty} draftGuardRef={draftGuardRef}
       workbenchEmail={session.data?.user?.email ?? null}
       onOperationLockChange={setOperationLocked}
-    ><ArticleLayout article={article} /></ArticleContextBridge> : selectedSubstanceSlug && !ready ? <EditorNotice notice={{ tone: "info", title: "Loading article", message: "Fetching the full article.", live: true }} /> : <StateCard icon="lucide:file-edit" title="Select a substance to begin editing" description="Open an article to edit its sections, resume your private draft, or review its history." />}
+    ><ArticleLayout article={article} /></ArticleContextBridge> : selectedSubstanceSlug && failedSlugs.has(selectedSubstanceSlug) ? <LoadErrorState message="The full article could not be loaded." onRetry={() => requestArticle(selectedSubstanceSlug)} /> : selectedSubstanceSlug && !ready ? <EditorNotice notice={{ tone: "info", title: "Loading article", message: "Fetching the full article.", live: true }} /> : <StateCard icon="lucide:file-edit" title="Select a substance to begin editing" description="Open an article to edit its sections, resume your private draft, or review its history." />}
   </div>;
 });

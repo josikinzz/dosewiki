@@ -13,11 +13,12 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
+import { getDataBackend } from "@server/postgres/runtime/backend";
 import { markRetranslated } from "@server/translation/glossary";
 import { loadTranslationContext, recordsMentioning, translationJobSlug, type TranslationRecordKind } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs, readTranslationsMentioning, scopeStaleTranslations } from "@server/translation/segmentStore";
-import { GLOSSARY_BODY_MAX_BYTES, glossaryUnavailable, parseLocale, parseTerms } from "../glossaryRoutes";
+import { GLOSSARY_BODY_MAX_BYTES, glossaryLocaleAccess, parseLocale, parseTerms } from "../glossaryRoutes";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -44,9 +45,10 @@ export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>(
   body: { maxBytes: GLOSSARY_BODY_MAX_BYTES, parse: (raw) => ({ locale: parseLocale(raw.locale), terms: parseTerms(raw.terms) }) },
   unexpectedErrorLabel: "Failed to enqueue a scoped retranslation via Next route:",
   unexpectedErrorMessage: "Unable to enqueue the retranslation right now.",
-  operation: async ({ body }) => {
-    const unavailable = glossaryUnavailable();
-    if (unavailable) return unavailable;
+  operation: async ({ body, auth }) => {
+    getDataBackend();
+    const denied = glossaryLocaleAccess(auth, body.locale);
+    if (denied) return denied;
 
     const context = await loadTranslationContext(body.locale);
     const mentioning = await readTranslationsMentioning(body.locale, body.terms);

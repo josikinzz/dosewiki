@@ -1,6 +1,6 @@
-import { getPublicCoverageSubstances } from "@server/convex/publicData";
+import { getPublicCoverageSubstances } from "@server/data/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyKey, flavoredCopyText, getCopyByKeys } from "@server/next/copyBlocks";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Surface } from "@/components/ui/surface";
@@ -9,11 +9,7 @@ import {
   CoverageGlyphSprite,
   CoverageTable,
 } from "@/features/coverage/CoverageTable";
-import {
-  buildCoverageRows,
-  getCoverageColumns,
-} from "@/features/coverage/coverageModel";
-import type { SubstanceArticle } from "@/schema";
+import { getCoverageColumns } from "@/features/coverage/coverageModel";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
@@ -24,7 +20,7 @@ export const revalidate = 3600;
  * sitemap, and nothing links to it — including the About page it sits under.
  */
 export async function generateMetadata() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys([flavoredCopyKey("seo-about-coverage-description")]);
 
   return buildPublicPageMetadata({
     title: "Coverage",
@@ -39,16 +35,10 @@ export async function generateMetadata() {
 }
 
 export default async function CoveragePage() {
-  // Explicit full-corpus exemption: this noIndex internal surface must run the
-  // exact article/TOC coverage rules and therefore cannot use a slim
-  // projection. The read is persisted, so this page's regenerations do not
-  // each drain the corpus.
-  const substances = await getPublicCoverageSubstances();
+  const rows = (await getPublicCoverageSubstances())
+    .filter((row) => Boolean(row.slug))
+    .sort((left, right) => left.name.localeCompare(right.name));
   const columns = getCoverageColumns();
-  const rows = buildCoverageRows(
-    substances as (SubstanceArticle & { slug?: string })[],
-    columns,
-  );
 
   return (
     <PublicContentShell width="wide">

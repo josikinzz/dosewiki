@@ -28,8 +28,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
 
   const combinedClassName = [
     "json-editor theme-text-primary relative w-full overflow-x-hidden rounded-xl border border-[color:var(--editor-code-border)] bg-[var(--editor-code-bg)] shadow-[var(--theme-elevation-inner)]",
-    "focus-within:border-[color:var(--editor-field-focus)] focus-within:ring-1 focus-within:ring-[color:var(--editor-field-focus)]",
-    readOnly ? "focus-within:border-[color:var(--theme-border-subtle)] focus-within:ring-0" : "",
+    readOnly ? "focus-within:border-[color:var(--theme-border-subtle)]" : "focus-within:border-[color:var(--theme-text-secondary)]",
     className ?? "",
   ]
     .filter(Boolean)

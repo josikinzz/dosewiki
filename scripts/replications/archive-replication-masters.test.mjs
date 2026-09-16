@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_RESERVE_BYTES,
   assertArchiveAllowed,
@@ -12,10 +12,14 @@ import {
 import { classifyHostRisk, isProductionUrl, RISK } from "./lib/media-hosts.mjs";
 import { assertMediaType, DEFAULT_MEDIA_TYPE, MEDIA_TYPES } from "./lib/media-types.mjs";
 
-const PROD = "https://glad-minnow-656.convex.cloud/api/storage/x";
+const MEDIA_BASE = "https://media.example.test/assets";
+const PROD = `${MEDIA_BASE}/media/sha256/${"a".repeat(64)}`;
 const ORPHAN = "https://warmhearted-mosquito-204.convex.cloud/api/storage/x";
 const ORPHAN2 = "https://adept-goldfish-624.convex.cloud/api/storage/x";
 const DEV = "https://enchanted-echidna-791.convex.cloud/api/storage/x";
+
+beforeEach(() => vi.stubEnv("REPLICATION_MEDIA_BASE_URL", MEDIA_BASE));
+afterEach(() => vi.unstubAllEnvs());
 
 const row = (slug, extra = {}) => ({
   _id: `id-${slug}`,
@@ -28,7 +32,7 @@ const row = (slug, extra = {}) => ({
 });
 
 describe("classifyHostRisk", () => {
-  it("knows the deployment we control", () => {
+  it("trusts media in the explicitly configured native R2 namespace", () => {
     expect(classifyHostRisk(PROD)).toMatchObject({ risk: RISK.PRODUCTION, atRisk: false });
     expect(isProductionUrl(PROD)).toBe(true);
   });
@@ -47,6 +51,35 @@ describe("classifyHostRisk", () => {
 
     expect(result.risk).toBe(RISK.UNKNOWN);
     expect(result.atRisk).toBe(true);
+  });
+
+  it("does not trust the retired production endpoint or a renamed lookalike", () => {
+    for (const host of ["glad-minnow-656.convex.cloud", "glad-minnow-656.data.cloud"]) {
+      const url = `https://${host}/api/storage/x`;
+      expect(isProductionUrl(url)).toBe(false);
+      expect(classifyHostRisk(url)).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
+    }
+  });
+
+  it("fails closed without a valid explicit media base", () => {
+    for (const base of [undefined, "", "not a url", "http://media.example.test/assets", `${MEDIA_BASE}?token=x`]) {
+      vi.stubEnv("REPLICATION_MEDIA_BASE_URL", base);
+      expect(isProductionUrl(PROD)).toBe(false);
+    }
+  });
+
+  it("rejects same-host URLs outside the configured namespace and credential-bearing URLs", () => {
+    for (const url of [
+      `${MEDIA_BASE}/elsewhere/file.mp4`,
+      "https://media.example.test/media/sha256/file.mp4",
+      PROD.replace("https:", "http:"),
+      PROD.replace("https://", "https://user:secret@"),
+      `${PROD}?token=x`,
+      `${PROD}#fragment`,
+    ]) {
+      expect(isProductionUrl(url)).toBe(false);
+      expect(classifyHostRisk(url).atRisk).toBe(true);
+    }
   });
 
   it("does not crash on a null or malformed url", () => {

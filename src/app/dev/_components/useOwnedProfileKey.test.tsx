@@ -36,7 +36,7 @@ describe("useOwnedProfileKey", () => {
 
   it("keeps the derived key and logs when the lookup rejects", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const failure = new Error("Convex credential rejected");
+    const failure = new Error("Postgres credential rejected");
 
     const { result } = renderHook(() =>
       useOwnedProfileKey("EDITOR", Promise.reject(failure)),

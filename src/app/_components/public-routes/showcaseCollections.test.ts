@@ -10,7 +10,7 @@ const reads = vi.hoisted(() => ({
   getPublicReplicationsForSubstance: vi.fn(),
   getPublicContributorProfiles: vi.fn(),
 }));
-vi.mock("@server/convex/publicData", () => reads);
+vi.mock("@server/data/publicData", () => reads);
 const translations = vi.hoisted(() => ({
   getLocalizedPublicEffects: vi.fn(),
   getLocalizedPublicEffectBySlug: vi.fn(),

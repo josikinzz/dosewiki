@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
 export const SECOND_PASS_SCHEMA_VERSION = "dosewiki_citation_second_pass_plan_v1";
 const SECOND_PASS_EXCLUDED_SECTIONS = Object.freeze(["tolerance"])
@@ -144,6 +145,7 @@ export function buildSecondPassResearchPlan(audit, { generatedAt = new Date().to
   if (audit?.schemaVersion !== "dosewiki_subsection_citation_audit_v1") {
     throw new Error("Second-pass planning requires a dosewiki_subsection_citation_audit_v1 audit.");
   }
+  assertCitationSourceIdentity(audit.source?.postgresIdentity);
   const substances = [];
   for (const article of audit.articles ?? []) {
     if (SECOND_PASS_EXCLUDED_SLUGS.includes(article.slug)) continue;
@@ -178,7 +180,7 @@ export function buildSecondPassResearchPlan(audit, { generatedAt = new Date().to
       auditPath,
       auditGeneratedAt: audit.generatedAt ?? null,
       auditSha256: auditIdentity,
-      convexUrl: audit.source?.convexUrl ?? null,
+      postgresIdentity: audit.source.postgresIdentity,
     },
     policy: {
       objective: "Find defensible citations missed by the first pass without weakening source or quote standards.",
@@ -207,6 +209,7 @@ export function buildSecondPassCampaignTracker(plan, { generatedAt = new Date().
   if (plan?.schemaVersion !== SECOND_PASS_SCHEMA_VERSION) {
     throw new Error(`Second-pass plan must use ${SECOND_PASS_SCHEMA_VERSION}.`);
   }
+  assertCitationSourceIdentity(plan.source?.postgresIdentity);
   const items = [];
   for (const substance of plan.substances ?? []) {
     for (const candidate of substance.sections ?? []) {
@@ -244,7 +247,7 @@ export function buildSecondPassCampaignTracker(plan, { generatedAt = new Date().
       schemaVersion: plan.schemaVersion,
       generatedAt: plan.generatedAt,
       auditSha256: plan.source?.auditSha256 ?? null,
-      convexUrl: plan.source?.convexUrl ?? null,
+      postgresIdentity: plan.source.postgresIdentity,
     },
     statusLegend: {
       ready: "Planned and not yet started.",

@@ -6,6 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
 import type { ProjectedCitation } from "@/lib/citationProjection";
+import { isPlainLeftClick, prefersReducedMotion, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 /** Citations shown before the list collapses behind a "+N" control. */
 export const REFERENCE_LIST_VISIBLE_LIMIT = 10;
@@ -37,11 +38,21 @@ export function scrollToReferenceUse(referenceId: string, occurrenceIndex: numbe
     const target = markers[occurrenceIndex] ?? markers[0] ?? document.querySelector<HTMLElement>(href);
 
     if (target) {
-      target.scrollIntoView({ block: "center", behavior: "smooth" });
+      scrollIntoViewRespectingMotion(target, { block: "center" });
+      if (!prefersReducedMotion() && typeof target.animate === "function") {
+        target.animate(
+          [
+            { backgroundColor: "color-mix(in srgb, var(--theme-accent) 14%, transparent)" },
+            { backgroundColor: "transparent" },
+          ],
+          { duration: 700, easing: "ease-out" },
+        );
+      }
       return;
     }
 
-    document.querySelector<HTMLElement>("#sources")?.scrollIntoView({ block: "start", behavior: "smooth" });
+    const sources = document.getElementById("sources");
+    if (sources) scrollIntoViewRespectingMotion(sources);
   };
 
   expandCollapsedArticleControls();
@@ -90,6 +101,7 @@ function CitationUseBacklinks({
     event: MouseEvent<HTMLAnchorElement>,
     link: CitationBacklink,
   ) => {
+    if (!isPlainLeftClick(event)) return;
     event.preventDefault();
     scrollToReferenceUse(link.referenceId, link.occurrenceIndex, link.href);
   };
@@ -97,7 +109,7 @@ function CitationUseBacklinks({
   return (
     <span
       className={cn(
-        "theme-citation-marker relative -top-[0.28em] ml-1.5 inline-flex h-[1em] items-center gap-[0.3em] rounded-[0.12rem] px-[0.32em] align-baseline",
+        "theme-citation-marker relative -top-[0.28em] ml-1.5 inline-flex h-[1em] max-w-full items-center gap-[0.3em] rounded-[0.12rem] px-[0.32em] align-baseline [@media(pointer:coarse)]:h-auto [@media(pointer:coarse)]:flex-wrap",
         "text-[0.68em] font-semibold leading-none tabular-nums",
       )}
       aria-label={t("Uses of citation {{number}}", { number: citation.number })}
@@ -109,7 +121,7 @@ function CitationUseBacklinks({
           href={link.href}
           onClick={(event) => handleBacklinkClick(event, link)}
           className={cn(
-            "inline-flex h-[1.12em] min-w-[1.12em] items-center justify-center rounded-[0.12rem] px-[0.22em]",
+            "inline-flex h-[1.12em] min-w-[1.12em] items-center justify-center rounded-[0.12rem] px-[0.22em] [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11",
             "text-current transition-colors hover:bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_18%,var(--theme-body-bg))]",
             "theme-focus-ring",
           )}
@@ -125,9 +137,11 @@ function CitationUseBacklinks({
 export function ReferenceListItem({
   citation,
   backlinks,
+  reveal = false,
 }: {
   citation: ProjectedCitation;
   backlinks?: CitationBacklink[];
+  reveal?: boolean;
 }) {
   const content = (
     <span className="theme-reference-label hyphenate transition-colors">
@@ -139,7 +153,7 @@ export function ReferenceListItem({
     <li
       id={citation.anchorId}
       className={cn(
-        "group grid max-w-full scroll-mt-20 grid-cols-[2rem_minmax(0,1fr)] gap-2.5",
+        "theme-navigation-target group grid max-w-full scroll-mt-20 grid-cols-[2rem_minmax(0,1fr)] gap-2.5",
         "text-[0.8125rem] leading-[1.55] sm:text-[0.875rem]",
       )}
     >
@@ -147,12 +161,13 @@ export function ReferenceListItem({
         className={cn(
           "inline-flex h-[1.35rem] min-w-[1.35rem] items-center justify-center justify-self-end rounded-[0.12rem] px-1 text-[0.72rem] font-semibold leading-none tabular-nums",
           "theme-reference-number",
+          reveal && "theme-reveal-enter",
         )}
         aria-hidden="true"
       >
         {citation.number}
       </span>
-      <span className="hyphenate min-w-0 max-w-full sm:max-w-[82ch]">
+      <span className={cn("hyphenate min-w-0 max-w-full sm:max-w-[82ch]", reveal && "theme-reveal-enter")}>
         {citation.url ? (
           <a
             href={citation.url}
@@ -252,16 +267,17 @@ export function ReferenceCitationList({
     if (!anchorId || !hiddenAnchorIds.has(anchorId)) return;
     const target = document.getElementById(anchorId);
     if (!target) return;
-    target.scrollIntoView({ block: "center", behavior: "smooth" });
+    scrollIntoViewRespectingMotion(target, { block: "center" });
   }, [hiddenAnchorIds, isExpanded]);
 
   return (
     <div className="max-w-full">
       <ol id={listId} className="max-w-full list-none space-y-3 p-0">
-        {visibleCitations.map((citation) => (
+        {visibleCitations.map((citation, index) => (
           <ReferenceListItem
             key={`${citation.anchorId}-${citation.referenceId ?? citation.url}`}
             citation={citation}
+            reveal={index >= visibleLimit}
             backlinks={citation.referenceId ? referenceBacklinks?.[citation.referenceId] : undefined}
           />
         ))}

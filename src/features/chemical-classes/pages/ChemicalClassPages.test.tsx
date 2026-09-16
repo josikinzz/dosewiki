@@ -67,7 +67,7 @@ describe("chemical class locale rendering", () => {
   it("retains canonical class links on the mirror", () => {
     renderInChinese(<ChemicalClassTreePage payload={tree} />);
 
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/chemical-classes/phenethylamine");
+    expect(screen.getByRole("link", { name: /Phenethylamine/ })).toHaveAttribute("href", "/chemical-classes/phenethylamine");
   });
 
   it("keeps compound identifiers and canonical destinations on the mirror", () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import "./theme-lab.css";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "@/context/ThemeContext";
@@ -10,7 +11,7 @@ import { ColorField } from "./ColorField";
 import { FontField } from "./FontField";
 import { LengthField } from "./LengthField";
 import { FlatnessControls } from "./FlatnessControls";
-import { BLUR_TOKEN_ID, blurDisabledIn } from "./flatnessAxes";
+import { BLUR_TOKEN_ID, blurDisabledIn } from "./themeLabStorage";
 import { AdvancedDrawer } from "./AdvancedDrawer";
 import { PickLayer, type PickMenuState } from "./PickLayer";
 import {

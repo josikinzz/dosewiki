@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "theme-focus-ring inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -52,9 +52,9 @@ const buttonVariants = cva(
         card:
           "w-full items-start justify-between rounded-2xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-left hover:border-[var(--theme-frosted-panel-hover-border)] hover:bg-[var(--theme-surface-soft)]",
         suggestion:
-          "w-full justify-between rounded-xl border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
+          "w-full justify-between rounded-xl border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         suggestionActive:
-          "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,rgb(var(--c-brand))_20%,var(--theme-control-base))] to-[color-mix(in_srgb,rgb(var(--c-violet))_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-frosted-control-hover-border)]",
+          "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,rgb(var(--c-brand))_20%,var(--theme-control-base))] to-[color-mix(in_srgb,rgb(var(--c-violet))_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)]",
         tabPrimary:
           "flex-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)] sm:flex-none sm:tracking-[0.3em] data-[active=true]:bg-[var(--theme-frosted-control-bg)] data-[active=true]:text-[var(--theme-text-primary)]",
         tabPrimaryDisabled:

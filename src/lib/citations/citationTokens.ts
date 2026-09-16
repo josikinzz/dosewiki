@@ -84,7 +84,7 @@ export function substanceHasCitationNeeded(substance: unknown): boolean {
   try {
     return JSON.stringify(substance)?.includes(CITATION_NEEDED_TOKEN) ?? false;
   } catch {
-    // Circular structure — impossible for Convex data; fail toward the
+    // Circular structure — impossible for Postgres data; fail toward the
     // stored banner rather than crashing the route.
     return false;
   }

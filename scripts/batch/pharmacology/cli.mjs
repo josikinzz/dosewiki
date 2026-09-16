@@ -32,7 +32,7 @@ Generates pharmacology sections using Claude Opus 4.5 via OpenRouter.
 
 Usage:
   export OPENROUTER_API_KEY="sk-or-..."
-  export VITE_CONVEX_URL="https://..."
+  export POSTGRES_POOLED_URL="postgresql://localhost/dosewiki"
   node scripts/batch/batch-generate-pharmacology.mjs
 
 Options:

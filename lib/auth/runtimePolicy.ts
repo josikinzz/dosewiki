@@ -5,8 +5,8 @@ type AuthRuntimeEnv = Partial<Record<string, string | undefined>>;
 type AuthDeploymentTarget = "local" | "preview" | "production"
 
 /**
- * Sign-in is username + password against Convex memberships; the only
- * auth-specific env it needs is the session secret. The Convex URL and
+ * Sign-in is username + password against Postgres memberships; the only
+ * auth-specific env it needs is the session secret. The Postgres URL and
  * admin key that the credentials lookup uses are reported by the server
  * write contract, not here.
  */

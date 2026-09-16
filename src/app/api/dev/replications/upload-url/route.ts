@@ -1,36 +1,48 @@
-/**
- * Mints a Convex storage upload URL for the Replication Studio's drop tray.
- *
- * The bytes never pass through Next: the browser PUTs the file straight at the
- * short-lived URL Convex hands back and then posts the resulting storage id to
- * `/api/dev/replications` to create the row — the same two-step the import
- * scripts under `scripts/replications/` use, minus the file system.
- *
- *   POST /api/dev/replications/upload-url → { uploadUrl }
- */
+/** Starts an immutable R2 PUT. Creating the Postgres row separately verifies the uploaded bytes. */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { assertR2MediaNotWithdrawn, r2MediaObject, startR2MediaUpload } from "@server/runtime/r2MediaStorage";
+import { assertDataWritesNotFrozen } from "@server/runtime/dataWriteFreeze";
+import { api } from "@server/postgres/runtime/api";
 
 export const runtime = "nodejs";
 
-export const POST = protectedRouteOperation({
+const MIME_BY_FORMAT: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif",
+  mp4: "video/mp4", webm: "video/webm", mov: "video/quicktime", m4v: "video/mp4",
+  mp3: "audio/mpeg", ogg: "audio/ogg", wav: "audio/wav", flac: "audio/flac", m4a: "audio/mp4",
+};
+const MAX_MEDIA_BYTES = 512 * 1024 * 1024;
+
+type UploadBody = { sha256?: unknown; format?: unknown; type?: unknown; fileSize?: unknown };
+
+export const POST = protectedRouteOperation<UploadBody>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
-  capabilities: [{ type: "convexWrite" }],
-  unexpectedErrorLabel: "Failed to mint a replication upload URL via Next route:",
+  body: { maxBytes: 2048 },
+  capabilities: [{ type: "dataWrite" }],
+  unexpectedErrorLabel: "Failed to start a replication R2 upload:",
   unexpectedErrorMessage: "Unable to start that upload right now.",
-  operation: async ({ actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) throw new Error("Data write capability is required.");
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
+    assertDataWritesNotFrozen("replication-studio.upload-start");
+    if (!body || typeof body !== "object") throw new JsonBodyError(400, "Upload metadata is required.");
+    const format = typeof body.format === "string" ? body.format.toLowerCase() : "";
+    const mimeType = Object.prototype.hasOwnProperty.call(MIME_BY_FORMAT, format) ? MIME_BY_FORMAT[format] : undefined;
+    if (!mimeType || body.type !== mimeType.split("/")[0]) {
+      throw new JsonBodyError(400, "Unsupported media format or mismatched media type.");
     }
-
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
-    const uploadUrl = await convexWrite.client.mutation(api.replications.generateUploadUrl, {
-      apiKey,
-      actorEmail,
-    });
-
-    return NextResponse.json({ ok: true, uploadUrl });
+    if (typeof body.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(body.sha256)) {
+      throw new JsonBodyError(400, "A SHA-256 digest is required.");
+    }
+    if (typeof body.fileSize !== "number" || !Number.isSafeInteger(body.fileSize) || body.fileSize <= 0 || body.fileSize > MAX_MEDIA_BYTES) {
+      throw new JsonBodyError(400, "Media must be non-empty and no larger than 512 MiB.");
+    }
+    const object = r2MediaObject(body.sha256, body.fileSize, mimeType, format);
+    await dataWrite.client.query(api.replications.authorizeMediaUpload, { apiKey, actorEmail });
+    await assertR2MediaNotWithdrawn(object.r2Key);
+    return NextResponse.json({ ok: true, ...startR2MediaUpload(object, actorEmail) });
   },
 });

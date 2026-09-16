@@ -52,9 +52,9 @@
  *     --confirm-write=seed-credited-contributor-profiles \
  *     --expected-deployment=<fingerprint>
  */
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -317,14 +317,14 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  // Deliberately not falling back to VITE_CONVEX_URL: that variable points at
+  // Deliberately not falling back to POSTGRES_POOLED_URL: that variable points at
   // the dev deployment, and a plan built from dev data would describe writes to
   // production that were never checked against production.
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
     throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
+      "Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL) so the script knows which deployment to read.",
     );
   }
 
@@ -365,7 +365,7 @@ async function main() {
 
   if (command.dryRun) {
     console.log(
-      "\nDry run — no Convex writes performed. The write path re-reads the raw profile rows " +
+      "\nDry run — no Postgres writes performed. The write path re-reads the raw profile rows " +
         "through getForBulkImport and merges against those, so avatars, membership emails and " +
         "createdAt survive the patch.",
     );

@@ -6,17 +6,12 @@
  * checked-in catalog catches up.
  */
 import { localeForPathPrefix } from "@server/next/localeHostPolicy";
-import zhHans from "./messages/zh-Hans.json";
 import { LOCALE_REGISTRY } from "./localeRegistry.mjs";
 
 export type UiLocale = "en" | "zh-Hans";
 
 export const UI_LOCALES: readonly UiLocale[] = ["en", "zh-Hans"];
 
-const CATALOGS: Readonly<Record<UiLocale, Readonly<Record<string, string>>>> = {
-  en: {},
-  "zh-Hans": zhHans,
-};
 
 export type MessageValues = Readonly<Record<string, string | number>>;
 
@@ -30,9 +25,6 @@ export function formatMessage(template: string, values?: MessageValues): string 
   );
 }
 
-export function translateMessage(locale: UiLocale, text: string, values?: MessageValues): string {
-  return formatMessage(CATALOGS[locale][text] ?? text, values);
-}
 
 export function msg<T extends string>(text: T): T {
   return text;

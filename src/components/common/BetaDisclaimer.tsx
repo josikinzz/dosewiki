@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
@@ -44,12 +44,12 @@ export function BetaDisclaimer({ className }: { className?: string }) {
       />
       <span className="theme-beta-shimmer">
         {t("dose.wiki is still in beta. Entries may contain inaccuracies and/or lack citations. See")}{" "}
-        <Link
+        <SmartLink
           href="/docs/how"
           className="theme-beta-disclaimer underline decoration-dotted underline-offset-2 hover:decoration-solid"
         >
           {t("our docs")}
-        </Link>{" "}
+        </SmartLink>{" "}
         {t("for more info.")}
       </span>
       <Icon

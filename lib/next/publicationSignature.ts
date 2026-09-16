@@ -5,7 +5,7 @@
  * holding any editorial credential: a shared verification secret proves the
  * caller is this editor deployment, and grants nothing except cache expiry of
  * the identities in `publicCacheContract`. Effect Index keeps its
- * credential-free read-only Convex role.
+ * credential-free read-only Postgres role.
  *
  * The signature covers the exact bytes the receiver parses, so a body edited
  * in flight fails before the JSON is trusted.

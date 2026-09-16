@@ -2,7 +2,7 @@
  * Public-facing substance article page using the unified ArticleLayout.
  *
  * The Next public route preloads the article on the server, so this component
- * stays purely presentational and avoids bundling client-side Convex fetch code.
+ * stays purely presentational and avoids bundling client-side Postgres fetch code.
  */
 
 import { type ReactNode } from "react";
@@ -11,7 +11,7 @@ import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import type { NormalizedReagentData } from "@/lib/reagentTesting";
 import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
-import { ArticleLayout } from "../components/ArticleLayout";
+import { ArticleLayout, type ArticleSecondarySections } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
@@ -28,6 +28,7 @@ interface SubstanceArticlePageProps {
   tripReportsSection?: ReactNode;
   hasRelatedTripReports?: boolean;
   replicationShowcaseSection?: ReactNode;
+  secondarySections?: ArticleSecondarySections;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   externalReagentData?: NormalizedReagentData | null;
@@ -73,6 +74,7 @@ export function SubstanceArticlePage({
   tripReportsSection,
   hasRelatedTripReports,
   replicationShowcaseSection,
+  secondarySections,
   contributorAvatars,
   contributorDirectory,
   externalReagentData,
@@ -117,6 +119,7 @@ export function SubstanceArticlePage({
         tripReportsSection={tripReportsSection}
         hasRelatedTripReports={hasRelatedTripReports}
         replicationShowcaseSection={replicationShowcaseSection}
+        secondarySections={secondarySections}
         contributorAvatars={contributorAvatars}
         contributorDirectory={contributorDirectory}
         externalReagentData={externalReagentData}

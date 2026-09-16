@@ -12,12 +12,24 @@
  */
 import { NextResponse } from "next/server";
 
-import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
 import { authorizeCronRequest } from "@server/http/cronAuthorization";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { getDataBackend } from "@server/postgres/runtime/backend";
-import { loadTranslationContext, parseTranslationJobSlug, readTranslationRecord, refreshRecordTranslations, type RefreshOutcome, type TranslationContext } from "@server/translation/liveTranslation";
-import { claimTranslationJobs, completeTranslationJob, failTranslationJob } from "@server/translation/segmentStore";
+import {
+  loadTranslationContext,
+  parseTranslationJobSlug,
+  readTranslationRecord,
+  refreshRecordTranslations,
+  type RefreshOutcome,
+  type TranslationContext,
+} from "@server/translation/liveTranslation";
+import {
+  claimTranslationJobs,
+  completeTranslationJob,
+  failTranslationJob,
+} from "@server/translation/segmentStore";
+import { isPublicLocaleCode } from "../../../../i18n/localeRegistry.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +45,9 @@ export type TranslationRefreshRun = {
   claimed: number;
   completed: number;
   failed: number;
-  outcomes: (RefreshOutcome | { slug: string; locale: string; error: string })[];
+  outcomes: (
+    RefreshOutcome | { slug: string; locale: string; error: string }
+  )[];
 };
 
 export async function GET(request: Request) {
@@ -41,32 +55,41 @@ export async function GET(request: Request) {
     CRON_SECRET: process.env.CRON_SECRET,
   });
   if (!decision.allowed) {
-    return NextResponse.json({ error: decision.reason }, { status: decision.status });
+    return NextResponse.json(
+      { error: decision.reason },
+      { status: decision.status },
+    );
   }
 
-  if (getDataBackend() !== "postgres") {
-    return new Response(null, {
-      status: 204,
-      headers: { "cache-control": "no-store", "x-translation-refresh": "idle; translations live in Postgres only" },
-    });
-  }
+  getDataBackend();
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "Missing OPENROUTER_API_KEY on the server." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Missing OPENROUTER_API_KEY on the server." },
+      { status: 503 },
+    );
   }
 
   const run = await refreshDueArticles(apiKey);
   return NextResponse.json(run, { headers: { "cache-control": "no-store" } });
 }
 
-async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun> {
+async function refreshDueArticles(
+  apiKey: string,
+): Promise<TranslationRefreshRun> {
   const started = Date.now();
-  const run: TranslationRefreshRun = { claimed: 0, completed: 0, failed: 0, outcomes: [] };
+  const run: TranslationRefreshRun = {
+    claimed: 0,
+    completed: 0,
+    failed: 0,
+    outcomes: [],
+  };
   const reads = getPublicDataReadAdapter();
   // One prompt digest per locale per run: every segment this invocation stores was made under the glossary as approved when it started.
   const contexts: Record<string, Promise<TranslationContext>> = {};
-  const contextFor = (locale: string) => (contexts[locale] ??= loadTranslationContext(locale));
+  const contextFor = (locale: string) =>
+    (contexts[locale] ??= loadTranslationContext(locale));
 
   while (Date.now() - started < RUN_BUDGET_MS) {
     const jobs = await claimTranslationJobs(JOBS_PER_RUN);
@@ -83,12 +106,33 @@ async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun
           run.completed += 1;
           continue;
         }
-        const outcome = await refreshRecordTranslations({ ...record, slug }, await contextFor(job.locale), kind, apiKey);
+        const outcome = await refreshRecordTranslations(
+          { ...record, slug },
+          await contextFor(job.locale),
+          kind,
+          apiKey,
+        );
         if (outcome.stored > 0) {
-          const targets = kind === "profile"
-            ? [{ kind: "contributor" as const, slug }, { kind: "about" as const }]
-            : [{ kind, slug }];
-          await publishPublicCache({ targets, source: "manual" });
+          const targets =
+            kind === "profile"
+              ? [
+                  { kind: "contributor" as const, slug },
+                  { kind: "about" as const },
+                ]
+              : kind === "article"
+                ? isPublicLocaleCode(job.locale)
+                  ? [
+                      {
+                        kind: "article-translation" as const,
+                        slug,
+                        locale: job.locale,
+                      },
+                    ]
+                  : []
+                : [{ kind, slug }];
+          if (targets.length > 0) {
+            await publishPublicCache({ targets, source: "manual" });
+          }
         }
         await completeTranslationJob(job);
         run.completed += 1;
@@ -97,7 +141,11 @@ async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun
         const message = error instanceof Error ? error.message : String(error);
         await failTranslationJob(job, message);
         run.failed += 1;
-        run.outcomes.push({ slug: job.slug, locale: job.locale, error: message });
+        run.outcomes.push({
+          slug: job.slug,
+          locale: job.locale,
+          error: message,
+        });
       }
     }
   }

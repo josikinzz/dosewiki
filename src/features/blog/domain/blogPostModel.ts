@@ -1,4 +1,4 @@
-import type { PublicEffectIndexPost } from "@server/convex/publicData";
+import type { PublicEffectIndexPost } from "@/data/projections/effectIndexArchiveProjections";
 import { formatArchiveDate } from "@/utils/archiveDate";
 
 /** One archived post as the blog surfaces render it. */

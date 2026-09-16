@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
 import {
   assertDataOpsWriteAllowed,
@@ -12,29 +13,29 @@ import { printBatchSummary } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs } from "./extract-quotes/cli.mjs";
 import { CATEGORIES } from "./extract-quotes/categories.mjs";
 import {
-  createConvexClient,
+  createPostgresClient,
   getConfiguredOutputFiles,
-  getConvexArticleSourceSize,
+  getPostgresArticleSourceSize,
   getPrioritySlugs,
   getSourceFileSize,
   findLargeFiles,
   loadExistingQuoteSlugs,
-  loadConvexArticleSourceSlugs,
+  loadPostgresArticleSourceSlugs,
   loadPrompt,
 } from "./extract-quotes/loader.mjs";
 import { processAll } from "./extract-quotes/runner.mjs";
 
-const VALID_SOURCE_MODES = new Set(["local", "convex"]);
-const VALID_SAVE_MODES = new Set(["local", "convex"]);
+const VALID_SOURCE_MODES = new Set(["local", "postgres"]);
+const VALID_SAVE_MODES = new Set(["local", "postgres"]);
 
 function createQuoteExtractionRunContext(options) {
   const argv = process.argv.slice(2);
   const sourceUrlFlag = getFlagValue(argv, "--source-url");
-  const targetUrlFlag = getFlagValue(argv, "--target-url");
+  const targetUrlFlag = getFlagValue(argv, "--target");
   const envWithCliOverrides = {
     ...process.env,
-    ...(sourceUrlFlag ? { SOURCE_CONVEX_URL: sourceUrlFlag } : {}),
-    ...(targetUrlFlag ? { TARGET_CONVEX_URL: targetUrlFlag } : {}),
+    ...(sourceUrlFlag ? { SOURCE_POSTGRES_URL: sourceUrlFlag } : {}),
+    ...(targetUrlFlag ? { TARGET_POSTGRES_URL: targetUrlFlag } : {}),
   };
 
   return createDataOpsRunContext({
@@ -43,8 +44,8 @@ function createQuoteExtractionRunContext(options) {
     argv,
     env: envWithCliOverrides,
     selectedTables: [
-      options.source === "convex" ? "articleSources" : null,
-      options.save === "convex" ? "quotes" : null,
+      options.source === "postgres" ? "articleSources" : null,
+      options.save === "postgres" ? "quotes" : null,
     ].filter(Boolean),
     localArtifacts: options.save === "local" ? ["quotes"] : [],
   });
@@ -52,22 +53,22 @@ function createQuoteExtractionRunContext(options) {
 
 function requireValidModes(options) {
   if (!VALID_SOURCE_MODES.has(options.source)) {
-    throw new Error(`Invalid --source=${options.source}. Expected local or convex.`);
+    throw new Error(`Invalid --source=${options.source}. Expected local or postgres.`);
   }
   if (!VALID_SAVE_MODES.has(options.save)) {
-    throw new Error(`Invalid --save=${options.save}. Expected local or convex.`);
+    throw new Error(`Invalid --save=${options.save}. Expected local or postgres.`);
   }
 }
 
 async function selectSlugs(options, category, context) {
   let sourceClient = null;
-  if (options.source === "convex") {
-    sourceClient = createConvexClient(requireSourceUrl(context, "quote extraction source Convex URL"));
+  if (options.source === "postgres") {
+    sourceClient = createPostgresClient(requireSourceUrl(context, "quote extraction source Postgres URL"));
   }
 
   let slugs = options.slugs ?? (
-    options.source === "convex"
-      ? await loadConvexArticleSourceSlugs(sourceClient)
+    options.source === "postgres"
+      ? await loadPostgresArticleSourceSlugs(sourceClient)
       : getPrioritySlugs()
   );
   const summary = {
@@ -75,8 +76,8 @@ async function selectSlugs(options, category, context) {
     largeFiles: [],
   };
 
-  if (options.save === "convex" && !options.overwrite) {
-    const targetClient = createConvexClient(requireTargetUrl(context, "quote extraction target Convex URL"));
+  if (options.save === "postgres" && !options.overwrite) {
+    const targetClient = createPostgresClient(requireTargetUrl(context, "quote extraction target Postgres URL"));
     const existingSlugs = await loadExistingQuoteSlugs(targetClient, category);
     summary.alreadyDone = slugs.filter((slug) => existingSlugs.has(slug)).length;
     slugs = slugs.filter((slug) => !existingSlugs.has(slug));
@@ -97,9 +98,9 @@ async function selectSlugs(options, category, context) {
 }
 
 async function getDryRunSize(slug, options, sourceClient) {
-  if (options.source === "convex") {
-    const size = await getConvexArticleSourceSize(sourceClient, slug);
-    return size > 0 ? ` (${Math.round(size / 1024)}KB convex source)` : " (no Convex source)";
+  if (options.source === "postgres") {
+    const size = await getPostgresArticleSourceSize(sourceClient, slug);
+    return size > 0 ? ` (${Math.round(size / 1024)}KB postgres source)` : " (no Postgres source)";
   }
 
   const size = getSourceFileSize(slug);
@@ -129,18 +130,18 @@ async function main() {
   const category = options.category;
   const config = CATEGORIES[category];
   const context = createQuoteExtractionRunContext(options);
-  const sourceClient = options.source === "convex"
-    ? createConvexClient(requireSourceUrl(context, "quote extraction source Convex URL"))
+  const sourceClient = options.source === "postgres"
+    ? createPostgresClient(requireSourceUrl(context, "quote extraction source Postgres URL"))
     : null;
-  const targetClient = options.save === "convex"
-    ? createConvexClient(requireTargetUrl(context, "quote extraction target Convex URL"))
+  const targetClient = options.save === "postgres"
+    ? createPostgresClient(requireTargetUrl(context, "quote extraction target Postgres URL"))
     : null;
-  const adminKey = options.save === "convex" && !options.dryRun
+  const adminKey = options.save === "postgres" && !options.dryRun
     ? requireAdminIntentToken("quoteMigrationWrite").token
     : null;
 
-  if (options.save === "convex" && !adminKey && !options.dryRun) {
-    console.error("Error: CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE or CONVEX_ADMIN_KEY is required for Convex quote saves");
+  if (options.save === "postgres" && !adminKey && !options.dryRun) {
+    console.error("Error: DATA_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE or DATA_ADMIN_KEY is required for Postgres quote saves");
     process.exit(1);
   }
 
@@ -151,18 +152,18 @@ async function main() {
   console.log(`Reasoning Effort: ${CONFIG.reasoningEffort}`);
   console.log(`Source mode: ${options.source}`);
   console.log(`Save mode: ${options.save}`);
-  if (sourceClient) console.log(`Source Convex: ${context.sourceUrl}`);
-  if (targetClient) console.log(`Target Convex: ${context.targetUrl}`);
+  if (sourceClient) console.log(`Source Postgres: ${postgresFingerprintFromUrl(context.sourceUrl)}`);
+  if (targetClient) console.log(`Target Postgres: ${postgresFingerprintFromUrl(context.targetUrl)}`);
   const systemPrompt = loadPrompt(category);
 
   const { slugs, summary } = await selectSlugs(options, category, context);
   if (options.slugs) {
     console.log(`Processing specific slugs: ${slugs.length}`);
   } else {
-    const defaultScopeCount = options.source === "convex" ? slugs.length : getPrioritySlugs().length;
-    console.log(`${options.source === "convex" ? "Convex articleSource substances" : "Priority substances (high/normal)"}: ${defaultScopeCount}`);
+    const defaultScopeCount = options.source === "postgres" ? slugs.length : getPrioritySlugs().length;
+    console.log(`${options.source === "postgres" ? "Postgres articleSource substances" : "Priority substances (high/normal)"}: ${defaultScopeCount}`);
   }
-  if (options.resume || (options.save === "convex" && !options.overwrite)) {
+  if (options.resume || (options.save === "postgres" && !options.overwrite)) {
     console.log(`Already completed: ${summary.alreadyDone}`);
     console.log(`Remaining to process: ${slugs.length}`);
   }
@@ -197,13 +198,13 @@ async function main() {
     return;
   }
 
-  if (options.save === "convex") {
+  if (options.save === "postgres") {
     assertDataOpsWriteAllowed(context);
   }
 
   const mode = options.sequential ? "sequential" : `${options.concurrency} concurrent`;
   console.log(`\nProcessing ${slugs.length} items (${mode})...`);
-  console.log(`Output: ${options.save === "convex" ? `Convex quotes/${config.section}` : `${config.outputDir}/`}\n`);
+  console.log(`Output: ${options.save === "postgres" ? `Postgres quotes/${config.section}` : `${config.outputDir}/`}\n`);
 
   const startTime = Date.now();
   const results = await processAll(apiKey, slugs, category, systemPrompt, {

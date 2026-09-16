@@ -22,7 +22,7 @@ function deliveryHeaders() {
   return {
     "content-type": "image/jpeg",
     "content-length": String(bytes.length),
-    "cache-control": "public, max-age=31536000, immutable",
+    "cache-control": "no-store",
     "content-disposition": "inline",
     "accept-ranges": "bytes",
   };
@@ -48,7 +48,7 @@ describe("exhaustive social-card delivery verification", () => {
     );
   });
 
-  it("hashes delivered bytes and enforces immutable response headers", async () => {
+  it("hashes delivered bytes and enforces withdrawal-safe response headers", async () => {
     const fetchImpl = async (_url, init = {}) => init.method === "HEAD"
       ? new Response(null, { status: 200, headers: deliveryHeaders() })
       : new Response(bytes, { status: 200, headers: deliveryHeaders() });
@@ -57,6 +57,11 @@ describe("exhaustive social-card delivery verification", () => {
       ? new Response(null, { status: 200, headers: deliveryHeaders() })
       : new Response("wrong", { status: 200, headers: { ...deliveryHeaders(), "content-length": "5" } });
     await assert.rejects(verifyObject(corruptFetch, { url: cardUrl, key: "key", sha256: digest }), /digest mismatch/);
+    const reusableFetch = async (_url, init = {}) => new Response(init.method === "HEAD" ? null : bytes, {
+      status: 200,
+      headers: { ...deliveryHeaders(), "cache-control": "public, max-age=31536000, immutable" },
+    });
+    await assert.rejects(verifyObject(reusableFetch, { url: cardUrl, key: "key", sha256: digest }), /Withdrawal-safe cache policy/);
   });
 
   it("rejects a 206 or a stray Content-Range on the range-less crawler GET", async () => {

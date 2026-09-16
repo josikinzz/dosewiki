@@ -17,7 +17,7 @@ src/styles/     Global CSS partials imported by src/styles.css
 src/utils/      Routing, SEO, tag, slug, and interaction helpers
 
 lib/            Shared server helpers, including the production Postgres runtime
-convex/         Retiring Convex observation/recovery functions and generated bindings
+server/         Authored Postgres callable handlers, document schema, and domain helpers
 scripts/        Local operational scripts for migration, generation, parsing, and audits
 vendor/         Repository-owned third-party forks with explicit provenance and rebuild contracts
 ```
@@ -46,10 +46,13 @@ Feature folders must be reachable from the active App Router tree or explicitly 
 ## Operational and Generated Code
 
 - `scripts/postgres/` owns the production database migration, import, rehearsal, and rollback-export tooling.
-- `scripts/batch/`, `scripts/parsers/`, `scripts/migrate/`, and `scripts/convex/` are operational tooling, not public runtime code. Historical filenames do not determine the selected backend.
+- `scripts/batch/`, `scripts/parsers/`, `scripts/migrate/`, and `scripts/data-ops/` are operational tooling, not public runtime code.
 - `src/schema/substance/contract.ts` is the shared substance article contract adapter used before article ingestion and by contract tests.
 - `src/data/schema/` contains generated and config-heavy schema helper code; update it through the schema generator when the source schema changes.
-- `convex/_generated/` is generated compatibility and recovery binding code and should not be hand-edited.
+- `lib/postgres/runtime/` owns the native callable API, validators, schema definitions, and execution boundary; `server/` contains the authored handlers and domain schema.
+- `npm run generate:postgres-schema` consumes the composed `server/schema.ts` through `scripts/postgres/schemaExport.ts` and produces both `lib/postgres/schema.generated.ts` and `lib/postgres/runtime/dataModel.ts`.
+- `npm run generate:postgres-functions` consumes `lib/postgres/runtime/functionOwnership.json` and the owned `server/*.ts` modules, producing server-only `functions.generated.ts` and type-only `api.generated.ts`. `lib/postgres/runtime/api.ts` exposes browser-safe named references. Edit the ownership input and handlers, not these generated outputs.
+- `scripts/recovery/convex/` retains obsolete source and `_generated/` bindings under `.reference` filenames, with checksums in `source-reference-manifest.json`. These are non-executable recovery evidence, not active imports or routine commands. Restoration requires an approved isolated historical checkout and toolchain; do not restore Convex bindings into the current application.
 - `vendor/openchemlib/` is the self-contained, BSD-licensed OpenChemLib fork used by the molecule editor. Its source, license, provenance, distribution artifacts, and artifact manifest are tracked intentionally; rebuild rather than hand-editing `vendor/openchemlib/dist/`. See [DoseWiki-owned OpenChemLib fork](openchemlib-fork.md).
 
 ## Local Artifact Hygiene

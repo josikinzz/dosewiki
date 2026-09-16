@@ -1,3 +1,4 @@
+import { postgresFingerprintFromUrl } from "../../lib/data-client.ts";
 import {
   chmodSync,
   existsSync,
@@ -330,6 +331,17 @@ export function attachManifestDigest(manifest) {
 }
 
 export function verifyManifest(manifest) {
+  if (manifest.schemaVersion === "section-proposal-manifest-v2") {
+    for (const role of ["source", "target"]) {
+      const deployment = manifest.deployments?.[role];
+      if (
+        typeof deployment?.identity !== "string" || !deployment.identity ||
+        deployment.identity !== deployment.fingerprint || own(deployment, "url")
+      ) {
+        throw new Error(`Native proposal ${role} identity must match its credential-free Postgres fingerprint.`);
+      }
+    }
+  }
   const expected = canonicalHash(manifestPayload(manifest));
   if (manifest.manifestDigest !== expected) {
     throw new Error(`Manifest digest mismatch: expected ${expected}, received ${manifest.manifestDigest ?? "missing"}.`);
@@ -339,6 +351,7 @@ export function verifyManifest(manifest) {
 
 export function writeImmutableManifest(manifestPath, manifest) {
   const withDigest = attachManifestDigest(manifest);
+  verifyManifest(withDigest);
   mkdirSync(dirname(manifestPath), { recursive: true });
   writeFileSync(manifestPath, `${JSON.stringify(withDigest, null, 2)}\n`, { flag: "wx", mode: 0o444 });
   chmodSync(manifestPath, 0o444);
@@ -357,15 +370,8 @@ export function topLevelFieldHashes(article) {
 }
 
 export function deploymentFingerprint(url) {
-  const parsed = new URL(url);
-  const suffix = ".convex.cloud";
-  if (parsed.protocol !== "https:" || !parsed.hostname.endsWith(suffix)) {
-    throw new Error("Proposal Convex URLs must be HTTPS .convex.cloud deployments.");
-  }
-  const fingerprint = parsed.hostname.slice(0, -suffix.length);
-  if (!fingerprint || fingerprint.includes(".")) {
-    throw new Error("Proposal Convex URLs must identify one exact deployment.");
-  }
+  const fingerprint = postgresFingerprintFromUrl(url);
+  if (!fingerprint) throw new Error("Proposal Postgres URLs must identify one exact host and database.");
   return fingerprint;
 }
 

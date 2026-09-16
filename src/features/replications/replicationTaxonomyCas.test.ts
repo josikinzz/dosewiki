@@ -1,21 +1,21 @@
  
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { compareAndSetEffectTaxonomyHandler } from "../../../convex/lib/replicationTaxonomyCas";
+import { compareAndSetEffectTaxonomyHandler } from "../../../server/lib/replicationTaxonomyCas";
 
-const originalScopedToken = process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
-const originalLegacyToken = process.env.CONVEX_ADMIN_KEY;
+const originalScopedToken = process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
+const originalLegacyToken = process.env.DATA_ADMIN_KEY;
 
 afterEach(() => {
   if (originalScopedToken === undefined) {
-    delete process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
+    delete process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
   } else {
-    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = originalScopedToken;
+    process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE = originalScopedToken;
   }
   if (originalLegacyToken === undefined) {
-    delete process.env.CONVEX_ADMIN_KEY;
+    delete process.env.DATA_ADMIN_KEY;
   } else {
-    process.env.CONVEX_ADMIN_KEY = originalLegacyToken;
+    process.env.DATA_ADMIN_KEY = originalLegacyToken;
   }
 });
 
@@ -96,7 +96,7 @@ function context(stored = row()) {
 
 describe("replication taxonomy compare-and-set mutation", () => {
   it("requires the scoped maintenance token and patches only after the full snapshot matches", async () => {
-    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
+    process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
     const { ctx, patch } = context();
 
     const result = await compareAndSetEffectTaxonomyHandler(ctx as never, args() as never);
@@ -115,7 +115,7 @@ describe("replication taxonomy compare-and-set mutation", () => {
   });
 
   it("rejects identity or current-value drift without patching", async () => {
-    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
+    process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
     const changed = { ...row(), taxonomy_version: 3 };
     const { ctx, patch } = context(changed);
 
@@ -125,7 +125,7 @@ describe("replication taxonomy compare-and-set mutation", () => {
   });
 
   it("accepts an exact snapshot regardless of object key serialization order", async () => {
-    process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
+    process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
     const input = args();
     input.expected = {
       value: {
@@ -155,8 +155,8 @@ describe("replication taxonomy compare-and-set mutation", () => {
   });
 
   it("rejects the broad legacy key even when it is configured", async () => {
-    delete process.env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
-    process.env.CONVEX_ADMIN_KEY = "legacy-secret";
+    delete process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
+    process.env.DATA_ADMIN_KEY = "legacy-secret";
     const { ctx, patch } = context();
     const legacyArgs = { ...args(), apiKey: "legacy-secret" };
 

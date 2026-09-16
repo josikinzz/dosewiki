@@ -1,10 +1,10 @@
 /**
- * Tables owned by the Postgres runtime rather than mirrored from Convex.
+ * Runtime-owned tables alongside the generated application document tables.
  * Hand-written; `drizzle.config.ts` loads this next to `schema.generated.ts`.
  */
-import { bigint, index, integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
+import { bigint, boolean, doublePrecision, index, integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 
-/** Convex ids do not name their table in a decodable way, so `db.get(id)` resolves through this map. */
+/** Resolve document ids to tables without depending on a particular id encoding. */
 export const documentIds = pgTable(
   "documentIds",
   {
@@ -14,7 +14,7 @@ export const documentIds = pgTable(
   (t) => [index("documentIds_by_table").on(t.table)],
 );
 
-/** Convex `_storage` objects after their bytes move to R2 (ticket 11); `ctx.storage.getUrl` reads `url`. */
+/** Object-storage manifest in R2; `ctx.storage.getUrl` reads `url`. */
 export const storageObjects = pgTable("storageObjects", {
   storage_id: text("storage_id").primaryKey(),
   url: text("url").notNull(),
@@ -130,3 +130,43 @@ export const translationGlossaryTerms = pgTable("translationGlossaryTerms", {
   updated_at: bigint("updated_at", { mode: "number" }).notNull(),
   updated_by: text("updated_by"),
 });
+
+/** Exact library-index projections, rebuilt by English and hash-overlay producers. */
+export const localizedPublicationIndexes = pgTable(
+  "localizedPublicationIndexes",
+  {
+    locale: text("locale").notNull(),
+    publication_id: text("publication_id").notNull(),
+    source_revision: text("source_revision").notNull(),
+    overlay_revision: text("overlay_revision"),
+    dependency_hashes: text("dependency_hashes").array().notNull().default([]),
+    dirty: boolean("dirty").notNull().default(true),
+    title: text("title"),
+    short_description: text("short_description"),
+    index_description: text("index_description"),
+    read_minutes: integer("read_minutes"),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.publication_id] })],
+);
+
+/** A shared write epoch makes producer snapshot races fail under SERIALIZABLE. */
+export const localizedPublicationIndexState = pgTable("localizedPublicationIndexState", {
+  key: text("key").primaryKey(),
+  revision: bigint("revision", { mode: "number" }).notNull().default(0),
+});
+
+/** Durable signup budgets, keyed by HMAC IP hash or the empty global key. */
+export const subscribeRateLimitBuckets = pgTable(
+  "subscribeRateLimitBuckets",
+  {
+    name: text("name").notNull(),
+    key: text("key").notNull(),
+    value: doublePrecision("value").notNull(),
+    ts: doublePrecision("ts").notNull(),
+    expires_at: bigint("expires_at", { mode: "number" }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.name, t.key] }),
+    index("subscribeRateLimitBuckets_by_expiry").on(t.expires_at),
+  ],
+);

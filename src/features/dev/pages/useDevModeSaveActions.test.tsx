@@ -5,16 +5,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { useDevModeSaveActions } from "./useDevModeSaveActions";
 
-const { refreshConvexServerHealthMock, saveToConvexMutateAsyncMock, submitProposalMutateAsyncMock } =
+const { refreshDataServerHealthMock, saveArticleMutateAsyncMock, submitProposalMutateAsyncMock } =
   vi.hoisted(() => ({
-    refreshConvexServerHealthMock: vi.fn(),
-    saveToConvexMutateAsyncMock: vi.fn(),
+    refreshDataServerHealthMock: vi.fn(),
+    saveArticleMutateAsyncMock: vi.fn(),
     submitProposalMutateAsyncMock: vi.fn(),
   }));
 
 vi.mock("@/hooks/useApiMutations", () => ({
-  useSaveToConvexMutation: () => ({
-    mutateAsync: saveToConvexMutateAsyncMock,
+  useSaveArticleMutation: () => ({
+    mutateAsync: saveArticleMutateAsyncMock,
     isPending: false,
   }),
   useSubmitProposalMutation: () => ({
@@ -27,13 +27,13 @@ vi.mock("@/hooks/useEditorServerConfigHealth", () => ({
   useEditorServerConfigHealth: () => ({
     health: {
       status: "healthy",
-      canSaveToConvex: true,
+      canSaveToPostgres: true,
       issues: [],
       summary: "Server ready",
       checkedAt: null,
       isRefreshing: false,
     },
-    refresh: refreshConvexServerHealthMock,
+    refresh: refreshDataServerHealthMock,
   }),
 }));
 
@@ -93,10 +93,10 @@ function TestHarness({ args }: { args: Parameters<typeof useDevModeSaveActions>[
 
 describe("useDevModeSaveActions", () => {
   beforeEach(() => {
-    refreshConvexServerHealthMock.mockReset();
-    saveToConvexMutateAsyncMock.mockReset();
+    refreshDataServerHealthMock.mockReset();
+    saveArticleMutateAsyncMock.mockReset();
     submitProposalMutateAsyncMock.mockReset();
-    saveToConvexMutateAsyncMock.mockResolvedValue({
+    saveArticleMutateAsyncMock.mockResolvedValue({
       success: true,
       requestId: "save-test",
       savedItems: ["1 article(s)"],
@@ -113,7 +113,7 @@ describe("useDevModeSaveActions", () => {
     expect(screen.getByRole("button", { name: /commit to production/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /submit for review/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/server ready/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/convex/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/server/i)).not.toBeInTheDocument();
   });
 
   it("submits an editor's draft as a proposal and never calls the save route", async () => {
@@ -126,7 +126,7 @@ describe("useDevModeSaveActions", () => {
     await waitFor(() => {
       expect(submitProposalMutateAsyncMock).toHaveBeenCalledTimes(1);
     });
-    expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
+    expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
     expect(screen.getByText("Submitted Proposal #abc123 for review as JOSIE.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
     expect(args.markChangesSaved).toHaveBeenCalledTimes(1);
@@ -139,9 +139,9 @@ describe("useDevModeSaveActions", () => {
     await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
 
     await waitFor(() => {
-      expect(saveToConvexMutateAsyncMock).toHaveBeenCalledTimes(1);
+      expect(saveArticleMutateAsyncMock).toHaveBeenCalledTimes(1);
     });
-    expect(saveToConvexMutateAsyncMock).toHaveBeenCalledWith(
+    expect(saveArticleMutateAsyncMock).toHaveBeenCalledWith(
       expect.objectContaining({
         articles: [changedArticles[0]],
         changelog: {
@@ -154,7 +154,7 @@ describe("useDevModeSaveActions", () => {
   });
 
   it("attributes the save to the session profile key and reports it", async () => {
-    saveToConvexMutateAsyncMock.mockResolvedValue({
+    saveArticleMutateAsyncMock.mockResolvedValue({
       success: true,
       requestId: "save-test",
       savedItems: ["1 article(s)"],
@@ -178,7 +178,7 @@ describe("useDevModeSaveActions", () => {
     await waitFor(() => {
       expect(screen.getByText("Sign in before continuing.")).toBeInTheDocument();
     });
-    expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
+    expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
   });
 
   it("names the proposal being rebased with its reason, and Discard hands back to the context", async () => {

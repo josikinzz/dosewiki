@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 import { StateCard } from "@/components/common/StateCard";
 import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
-import { DevModeChangeLogTab } from "./DevModeChangeLogTab";
+import { Button } from "@/components/ui/button";
 import {
   DevModePageChrome,
   DevToolLoadingPanel,
@@ -20,9 +20,13 @@ import { findDevTab, type DevTabDescriptor } from "./devTabRegistry";
  * alongside its data instead of ahead of every other tool's.
  *
  * `ssr: false` throughout: these surfaces are editor-only, already behind the
- * client-side Convex provider, and never render on the server.
+ * client-side Postgres provider, and never render on the server.
  */
 const loading = () => <DevToolLoadingPanel />;
+const DevModeChangeLogTab = dynamic(
+  () => import("./DevModeChangeLogTab").then((m) => m.DevModeChangeLogTab),
+  { ssr: false, loading },
+);
 
 const WritingTab = dynamic(
   () => import("../tools/writing/WritingTab").then((m) => m.WritingTab),
@@ -162,6 +166,26 @@ function DevToolLockedPanel({ label, reason }: { label: string; reason: string }
     </div>
   );
 }
+function IndexLayoutReadinessPanel({
+  readiness,
+  onRetry,
+}: {
+  readiness: DevModePageControllerState["indexLayoutsReadiness"];
+  onRetry: () => void;
+}) {
+  if (readiness.status === "error") {
+    return (
+      <StateCard
+        compact
+        tone="danger"
+        title="Unable to load editor layouts"
+        description={readiness.error}
+        actions={<Button variant="secondary" onClick={onRetry}>Retry loading editor layouts</Button>}
+      />
+    );
+  }
+  return <DevToolLoadingPanel label="Loading editor layouts" />;
+}
 
 export function DevModePageView({ controller }: DevModePageViewProps) {
   const activeDescriptor = findDevTab(controller.activeTab);
@@ -193,6 +217,12 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         <DevToolSaveFamily tab={activeDescriptor} canApprove={controller.canApprove} />
         {controller.activeTabLockReason !== null ? (
           <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
+        ) : controller.activeTab === "index-layout"
+          && controller.indexLayoutsReadiness.status !== "ready" ? (
+          <IndexLayoutReadinessPanel
+            readiness={controller.indexLayoutsReadiness}
+            onRetry={controller.retryIndexLayouts}
+          />
         ) : isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
         ) : controller.activeTab === "change-log" ? (
@@ -218,8 +248,6 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "queue" ? (
           <QueueTab
             canApprove={controller.canApprove}
-            key={controller.userEmail}
-            libraryReady={!controller.isLibraryLoading}
             onLoadIntoEditor={controller.onLoadProposal}
           />
         ) : controller.activeTab === "contributors" ? (

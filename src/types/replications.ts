@@ -133,7 +133,7 @@ const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
  *  - it is a confirmed duplicate whose provenance and media remain stored but
  *    whose public route is consolidated into a designated keeper.
  *
- * This is a *publication* gate and not a data gate. `convex/replications.ts`
+ * This is a *publication* gate and not a data gate. `server/replications.ts`
  * keeps returning every stored row, so the rights and provenance tooling under
  * `scripts/replications/` still audits figures — which is exactly where an asset
  * whose rights travel with it most needs to stay visible — and a future
@@ -259,7 +259,7 @@ export interface ReplicationDateInfo {
 }
 
 /**
- * Raw replication record from Convex database.
+ * Raw replication record from Postgres database.
  */
 interface ReplicationRecord extends ReplicationRightsMetadata {
   _id: string;
@@ -315,7 +315,7 @@ interface ReplicationRecord extends ReplicationRightsMetadata {
   motion_poster_storage_id?: string;
   /**
    * Cloudflare R2 archive keys (`media/sha256/<first-two-hex>/<sha256>.<ext>`),
-   * one per media variant. Optional and additive: the Convex storage IDs stay
+   * one per media variant. Optional and additive: the Postgres storage IDs stay
    * populated as the rollback source during the R2 migration. Clients never
    * build URLs from these — `resolveReplicationUrls` does, server-side.
    */
@@ -396,8 +396,8 @@ interface PublicGalleryDateInfo {
  * The slim projection of a {@link GalleryReplication} that the public gallery
  * surfaces (the /replications explorer, its artist/effect focus views, and the
  * expanded viewer) actually render. The gallery corpus loader projects the raw
- * Convex rows down to this shape (`projectPublicGalleryReplicationPreview` in
- * lib/convex/publicData.replications.ts) before they cross into page props, so
+ * Postgres rows down to this shape (`projectPublicGalleryReplicationPreview` in
+ * lib/data/publicData.replications.ts) before they cross into page props, so
  * storage IDs, rights metadata, and other studio-only fields never serialize
  * into the RSC payload. The replication permalink (/replications/[slug]) stays
  * on the full-fidelity {@link ReplicationWithUrl} records — its credit block
@@ -409,7 +409,7 @@ interface PublicGalleryDateInfo {
  * expected.
  */
 export interface PublicGalleryReplicationPreview {
-  /** Convex row id; the gallery uses it only as a stable React key. */
+  /** Postgres row id; the gallery uses it only as a stable React key. */
   _id: string;
   slug: string;
   title: string;

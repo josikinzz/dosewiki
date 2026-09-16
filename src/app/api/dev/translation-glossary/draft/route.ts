@@ -9,9 +9,10 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
+import { getDataBackend } from "@server/postgres/runtime/backend";
 import { draftGlossary } from "@server/translation/glossaryDraft";
-import { GLOSSARY_BODY_MAX_BYTES, glossaryUnavailable, parseLocale } from "../glossaryRoutes";
+import { GLOSSARY_BODY_MAX_BYTES, glossaryLocaleAccess, parseLocale } from "../glossaryRoutes";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -25,9 +26,10 @@ export const POST = protectedRouteOperation<DraftBody, ParsedDraft>({
   body: { maxBytes: GLOSSARY_BODY_MAX_BYTES, parse: (raw) => ({ locale: parseLocale(raw.locale) }) },
   unexpectedErrorLabel: "Failed to draft glossary terms via Next route:",
   unexpectedErrorMessage: "Unable to draft glossary terms right now.",
-  operation: async ({ body }) => {
-    const unavailable = glossaryUnavailable();
-    if (unavailable) return unavailable;
+  operation: async ({ body, auth }) => {
+    getDataBackend();
+    const denied = glossaryLocaleAccess(auth, body.locale);
+    if (denied) return denied;
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "Missing OPENROUTER_API_KEY on the server; draft from a workstation with build-glossary.mjs." }, { status: 503 });

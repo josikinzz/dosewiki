@@ -6,8 +6,8 @@
  */
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadEffectRoute } from "@server/next/routeLoaders.substances";
-import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
+import { loadEffectMetadataRoute, loadEffectRoute } from "@server/next/routeLoaders.substances";
+import { EffectArticleServer } from "@/app/_components/public-routes/EffectArticleServer";
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
@@ -29,7 +29,7 @@ type LocalizedEffectPageProps = {
 
 export async function generateMetadata({ params }: LocalizedEffectPageProps) {
   const { effectSlug } = await params;
-  const result = await loadEffectRoute(effectSlug, LOCALE);
+  const result = await loadEffectMetadataRoute(effectSlug, LOCALE);
 
   if (result.kind === "not-found") {
     notFound();
@@ -56,7 +56,7 @@ export default async function LocalizedEffectPage({ params }: LocalizedEffectPag
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
-        <EffectArticlePage {...pageProps} />
+        <EffectArticleServer {...pageProps} effectSlug={effectSlug} />
       </div>
     </UiLocaleProvider>
   );

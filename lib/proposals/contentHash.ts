@@ -4,7 +4,7 @@ import { sha256Text } from "../generatedPublication/canonical.mjs";
  * Content identity for change-proposal targets. A proposal records the hash of
  * each production row it was drafted against; apply recomputes the hash and
  * refuses when the row has moved on. Both sides must therefore hash the same
- * canonical text, which is why this lives in `lib/` and is imported by Convex
+ * canonical text, which is why this lives in `lib/` and is imported by Postgres
  * functions and the Next server alike: no `node:crypto`, only the pure sha256
  * the generated-publication pipeline already ships.
  */

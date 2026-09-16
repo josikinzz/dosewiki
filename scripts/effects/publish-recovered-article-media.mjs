@@ -21,7 +21,7 @@
  * with a different digest is an immutable collision and aborts the run.
  *
  * Uploading is all this does. Repointing the article bodies at these URLs is a
- * production Convex write and lives in its own command.
+ * production Postgres write and lives in its own command.
  *
  *   bun scripts/effects/publish-recovered-article-media.mjs            # plan only
  *   bun scripts/effects/publish-recovered-article-media.mjs --apply \

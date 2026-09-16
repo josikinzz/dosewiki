@@ -1,27 +1,24 @@
 import "server-only";
 
-import { PostgresConvexClient } from "./client";
+import { PostgresClient } from "./client";
 
-export type DataBackend = "convex" | "postgres";
+import { requirePostgresBackend, resolveRuntimePostgresTarget, type DataBackend } from "./target";
 
-/**
- * Which persistence serves this process. Explicit only: a preview build must
- * never inherit a production writer through env fallback (ticket 19), so an
- * unset or unknown value means Convex.
- */
+export type { DataBackend };
+
+/** Normal traffic never falls back to the frozen recovery backend. */
 export function getDataBackend(): DataBackend {
-  return process.env.DATA_BACKEND === "postgres" ? "postgres" : "convex";
+  return requirePostgresBackend();
 }
 
-let cached: PostgresConvexClient | null = null;
+let cached: PostgresClient | null = null;
 let cachedUrl: string | null = null;
 
 /** Application traffic uses the pooled PlanetScale port; migrations keep the direct URL. */
-export function getPostgresConvexClient(): PostgresConvexClient {
-  const url = process.env.POSTGRES_POOLED_URL || process.env.POSTGRES_DIRECT_URL;
-  if (!url) throw new Error("DATA_BACKEND=postgres requires POSTGRES_POOLED_URL or POSTGRES_DIRECT_URL");
+export function getPostgresClient(): PostgresClient {
+  const { url } = resolveRuntimePostgresTarget();
   if (!cached || cachedUrl !== url) {
-    cached = PostgresConvexClient.fromUrl(url);
+    cached = PostgresClient.fromUrl(url);
     cachedUrl = url;
   }
   return cached;

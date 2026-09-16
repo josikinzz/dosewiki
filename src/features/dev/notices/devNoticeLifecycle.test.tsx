@@ -13,14 +13,14 @@ describe("devNoticeReducer", () => {
     const pending = devNoticeReducer({}, {
       type: "publish",
       notice: {
-        channel: "save.convex",
+        channel: "save.data",
         status: "pending",
         message: "Committing to production...",
         operationId: "save-1",
       },
     });
 
-    expect(pending["save.convex"]).toMatchObject({
+    expect(pending["save.data"]).toMatchObject({
       status: "pending",
       message: "Committing to production...",
       operationId: "save-1",
@@ -29,16 +29,16 @@ describe("devNoticeReducer", () => {
 
     const completed = devNoticeReducer(pending, {
       type: "complete",
-      channel: "save.convex",
+      channel: "save.data",
       operationId: "save-1",
       status: "success",
-      message: "Saved articles to Convex.",
+      message: "Saved articles to Postgres.",
       autoClearMs: 5000,
     });
 
-    expect(completed["save.convex"]).toMatchObject({
+    expect(completed["save.data"]).toMatchObject({
       status: "success",
-      message: "Saved articles to Convex.",
+      message: "Saved articles to Postgres.",
       autoClearMs: 5000,
       sticky: false,
     });
@@ -73,7 +73,7 @@ describe("devNoticeReducer", () => {
       notice: {
         channel: "profile",
         status: "error",
-        message: "Convex rejected the profile",
+        message: "Postgres rejected the profile",
       },
     });
 

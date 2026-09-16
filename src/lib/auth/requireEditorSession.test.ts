@@ -68,6 +68,16 @@ describe("requireRoleSession", () => {
     }
   });
 
+  it("requires Translator separately from Editor and admits both capabilities when assigned", async () => {
+    mocks.getServerSession.mockResolvedValue({ user: { email: "editor@example.com", role: "editor" } });
+    expect((await requireRoleSession("translator")).ok).toBe(false);
+    mocks.getServerSession.mockResolvedValue({ user: { email: "editor@example.com", role: "editor_translator", glossaryLocales: ["nl"] } });
+    expect((await requireRoleSession("editor")).ok).toBe(true);
+    const translator = await requireRoleSession("translator");
+    expect(translator.ok).toBe(true);
+    if (translator.ok) expect(translator.session.user.glossaryLocales).toEqual(["nl"]);
+  });
+
   it("permits a session at or above the floor", async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { email: "editor@example.com", role: "editor" },

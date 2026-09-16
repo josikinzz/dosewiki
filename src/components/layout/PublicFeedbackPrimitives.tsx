@@ -5,7 +5,10 @@ import { AppImage } from "@/components/common/AppImage";
 import { ExternalSourcePill } from "@/components/common/ExternalSourcePill";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
-import { stateToneIconClassName, type StateTone } from "@/components/common/StateCard";
+import {
+  stateToneIconClassName,
+  type StateTone,
+} from "@/components/common/StateCard";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { useT } from "@/i18n/client";
 import { msg } from "@/i18n/messages";
@@ -76,8 +79,12 @@ export function SkeletonSection({
     <div
       className={cn(
         "theme-loading-section-shell",
-        section.variant === "article" ? "theme-loading-section-shell-prominent" : undefined,
-        section.variant === "list" ? "theme-loading-section-shell-quiet" : undefined,
+        section.variant === "article"
+          ? "theme-loading-section-shell-prominent"
+          : undefined,
+        section.variant === "list"
+          ? "theme-loading-section-shell-quiet"
+          : undefined,
         className,
       )}
       data-loading-section={section.key}
@@ -106,16 +113,10 @@ export function PublicSkeletonSurface({
         className,
       )}
     >
-      <p className="sr-only">
-        {model.label}
-      </p>
+      <p className="sr-only">{model.label}</p>
       <div className="sr-only" role="status" aria-live="polite">
-        <p>
-          {model.pendingLabel}
-        </p>
-        <p className="theme-loading-stalled-label">
-          {model.stalledLabel}
-        </p>
+        <p>{model.pendingLabel}</p>
+        <p className="theme-loading-stalled-label">{model.stalledLabel}</p>
       </div>
 
       {model.headingBlocks.length > 0 ? (
@@ -168,12 +169,18 @@ export function StatusHeader({
 
       <div className="space-y-4">
         {statusIcon ? (
-          <Icon icon={statusIcon} size={28} className={stateToneIconClassName[statusTone]} />
+          <Icon
+            icon={statusIcon}
+            size={28}
+            className={stateToneIconClassName[statusTone]}
+          />
         ) : null}
         <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
           {title}
         </h1>
-        <p className="theme-text-secondary max-w-2xl text-base leading-7">{description}</p>
+        <p className="theme-text-secondary max-w-2xl text-base leading-7">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -218,7 +225,9 @@ export function StatusFact({ label, value, tone = "boxed" }: StatusFactProps) {
         <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
           {label}
         </p>
-        <div className="theme-text-secondary mt-1.5 text-sm leading-6">{value}</div>
+        <div className="theme-text-secondary mt-1.5 text-sm leading-6">
+          {value}
+        </div>
       </div>
     );
   }
@@ -262,11 +271,20 @@ export function MediaPlaceholder({
     >
       <div>
         {kind === "loading" ? (
-          <SkeletonPulse width="w-10" height="h-10" className="mx-auto mb-3 rounded-full" />
+          <SkeletonPulse
+            width="w-10"
+            height="h-10"
+            className="mx-auto mb-3 rounded-full"
+          />
         ) : (
-          <Icon icon={icon} className="theme-icon-accent mx-auto mb-2 h-10 w-10 opacity-70" />
+          <Icon
+            icon={icon}
+            className="theme-icon-accent mx-auto mb-2 h-10 w-10 opacity-70"
+          />
         )}
-        <p className="theme-text-primary line-clamp-2 text-sm font-medium">{title}</p>
+        <p className="theme-text-primary line-clamp-2 text-sm font-medium">
+          {title}
+        </p>
         {description ? (
           <p className="theme-text-faint mt-1 text-xs">{description}</p>
         ) : null}
@@ -310,20 +328,28 @@ export function MediaTile({
             alt={title}
             width={width ?? 800}
             height={height ?? 800}
+            sizes="(max-width: 639px) 50vw, (max-width: 1024px) 33vw, 320px"
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-80 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 pb-2 pt-8">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="theme-media-tile-title truncate text-sm font-medium">{title}</p>
+                <p className="theme-media-tile-title truncate text-sm font-medium">
+                  {title}
+                </p>
                 {creator ? (
-                  <p className="theme-media-tile-creator truncate text-xs">{creator}</p>
+                  <p className="theme-media-tile-creator truncate text-xs">
+                    {creator}
+                  </p>
                 ) : null}
               </div>
               {mediaType === "video" ? (
                 <span className="theme-overlay-surface rounded-full p-2">
-                  <Icon icon="lucide:play" className="h-3.5 w-3.5 fill-current" />
+                  <Icon
+                    icon="lucide:play"
+                    className="h-3.5 w-3.5 fill-current"
+                  />
                 </span>
               ) : null}
             </div>
@@ -342,7 +368,7 @@ export function MediaTile({
   );
 
   const tileClassName = cn(
-    "theme-public-card-subtle theme-public-card-hover-quiet theme-media-tile group relative block aspect-square overflow-hidden rounded-xl border text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none",
+    "theme-public-card-subtle theme-public-card-hover-quiet theme-media-tile group relative block aspect-square overflow-hidden rounded-xl border text-left transition theme-focus-ring motion-reduce:transition-none",
     className,
   );
 
@@ -422,14 +448,15 @@ export function ArticleContributorAttribution({
   text,
   url,
 }: ArticleContributorAttributionProps) {
-  // Only ever rendered under the client-side Subjective Effects section, so
-  // the hook is safe here even though the module carries no directive.
+  // Localizes its own copy, so this export is reached through
+  // ArticleContributorAttribution.client; the module itself carries no
+  // directive because server routes render the skeleton surface above.
   const t = useT();
   const attributionText = splitAttributionText(text, author);
   const creditText = formatAttributionCreditText(attributionText);
-  const isExternalAuthorHref = typeof authorHref === "string" && /^https?:\/\//.test(authorHref);
-  const authorLinkClassName =
-    "theme-focus-ring relative z-20 rounded-full";
+  const isExternalAuthorHref =
+    typeof authorHref === "string" && /^https?:\/\//.test(authorHref);
+  const authorLinkClassName = "theme-focus-ring relative z-20 rounded-full";
   const authorLink = !authorHref ? (
     // No z-index: an unlinked name must not sit above the pill's own overlay
     // link, or it would punch a dead hole in an otherwise clickable card.
@@ -467,11 +494,20 @@ export function ArticleContributorAttribution({
   );
 
   return (
-    <div className={cn(articleSectionAdornmentClassName, "flex justify-end", className)}>
+    <div
+      className={cn(
+        articleSectionAdornmentClassName,
+        "flex justify-end",
+        className,
+      )}
+    >
       <ExternalSourcePill
         variant="credit"
         href={url}
-        ariaLabel={t("Open original subjective effects documentation by {{author}}", { author })}
+        ariaLabel={t(
+          "Open original subjective effects documentation by {{author}}",
+          { author },
+        )}
         prefix={creditText.prefix}
         label={authorLabel}
         suffix={creditText.suffix}

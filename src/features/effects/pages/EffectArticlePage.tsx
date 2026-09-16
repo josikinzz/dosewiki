@@ -1,7 +1,5 @@
-"use client";
-
 import { Children, type ReactNode } from "react";
-import { useT } from "@/i18n/client";
+import { formatMessage, type Translate } from "@/i18n/messages";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -42,6 +40,12 @@ interface EffectArticlePageProps {
   artistCreditLinks?: ArtistCreditLinks;
   /** Reuse article content inside an editor without a full-page shell or TOC. */
   embedded?: boolean;
+  t?: Translate;
+  sectionOverrides?: Partial<Record<EffectArticleModel["sections"][number]["kind"], ReactNode>>;
+  commentaryAttribution?: ReactNode;
+  toc?: ReactNode;
+  tocStrip?: ReactNode;
+  renderArtistCredit?: (artist: string) => ReactNode;
 }
 
 interface EffectArticleRichSectionProps {
@@ -51,6 +55,8 @@ interface EffectArticleRichSectionProps {
   contentClassName?: string;
   assignHeadingId?: (text: string) => string | undefined;
   artistCreditLinks?: ArtistCreditLinks;
+  t: Translate;
+  renderArtistCredit?: (artist: string) => ReactNode;
 }
 
 function EffectArticleRichSection({
@@ -60,8 +66,9 @@ function EffectArticleRichSection({
   contentClassName,
   assignHeadingId,
   artistCreditLinks,
+  t,
+  renderArtistCredit,
 }: EffectArticleRichSectionProps) {
-  const t = useT();
   if (!content) {
     return null;
   }
@@ -81,9 +88,37 @@ function EffectArticleRichSection({
           subarticles={section.subarticles}
           assignHeadingId={assignHeadingId}
           artistCreditLinks={artistCreditLinks}
+          renderArtistCredit={renderArtistCredit}
         />
       </div>
     </ArticleSection>
+  );
+}
+
+export function EffectCommentaryAttribution({
+  attribution,
+  contributorDirectory = [],
+}: {
+  attribution: NonNullable<EffectArticleRichSectionModel["attribution"]>;
+  contributorDirectory?: ContributorDirectory;
+}) {
+  const href = resolveContributorHref(attribution.name, contributorDirectory);
+  return (
+    <PublicAttributionSection
+      className="-mt-3 pr-4"
+      avatarSrc={attribution.avatarSrc}
+      avatarAlt={attribution.name}
+      avatarHref={href ?? undefined}
+    >
+      {href ? (
+        <Link href={href} className="theme-accent-heading theme-focus-ring font-semibold transition hover:opacity-90">
+          {attribution.name}
+        </Link>
+      ) : (
+        <span className="theme-accent-heading font-semibold">{attribution.name}</span>
+      )}
+      {attribution.era ? <span className="ml-1.5 whitespace-nowrap">{attribution.era}</span> : null}
+    </PublicAttributionSection>
   );
 }
 
@@ -103,8 +138,13 @@ export function EffectArticlePage({
   contributorDirectory = [],
   artistCreditLinks,
   embedded = false,
+  t = formatMessage,
+  sectionOverrides,
+  commentaryAttribution,
+  toc,
+  tocStrip,
+  renderArtistCredit,
 }: EffectArticlePageProps) {
-  const t = useT();
   const normalizedReplicationsSection = replicationsSection
     ? Children.toArray(replicationsSection)
     : null;
@@ -113,8 +153,9 @@ export function EffectArticlePage({
     ...item,
     label: t(item.label),
   }));
-  const tocNode =
-    tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
+  const tocNode = toc ?? (
+    tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null
+  );
 
   /**
    * One id assigner for the whole article, so subsection headings are
@@ -131,7 +172,7 @@ export function EffectArticlePage({
         {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
             the site header from the very first scroll; replaced by the sticky
             gutter TOC at >=1200px. */}
-        {!embedded && tocNode ? <PublicTocStrip items={tocItems} /> : null}
+        {!embedded && tocNode ? (tocStrip ?? <PublicTocStrip items={tocItems} />) : null}
 
         <div className="flex items-center gap-3">
           <Icon icon={article.hero.icon} size={32} className="theme-accent-heading shrink-0" />
@@ -143,6 +184,9 @@ export function EffectArticlePage({
         {article.hero.summary ? <p className="theme-text-secondary type-reading-measure text-[1.0625rem] leading-7">{article.hero.summary}</p> : null}
 
         {article.sections.map((section) => {
+          if (sectionOverrides && section.kind in sectionOverrides) {
+            return <div key={section.id} className="contents">{sectionOverrides[section.kind]}</div>;
+          }
           switch (section.kind) {
             case "overview":
               return (
@@ -153,6 +197,7 @@ export function EffectArticlePage({
                       citations={section.citations}
                       subarticles={section.subarticles}
                       artistCreditLinks={artistCreditLinks}
+                      renderArtistCredit={renderArtistCredit}
                       assignHeadingId={assignHeadingId}
                     />
                   </div>
@@ -176,6 +221,8 @@ export function EffectArticlePage({
                   content={section.content}
                   assignHeadingId={assignHeadingId}
                   artistCreditLinks={artistCreditLinks}
+                  t={t}
+                  renderArtistCredit={renderArtistCredit}
                 />
               );
 
@@ -239,47 +286,16 @@ export function EffectArticlePage({
                           citations={section.citations}
                           subarticles={section.subarticles}
                           artistCreditLinks={artistCreditLinks}
+                          renderArtistCredit={renderArtistCredit}
                           assignHeadingId={assignHeadingId}
                         />
                       </div>
                     </CommentaryBubble>
                   </div>
 
-                  {section.attribution ? (
-                    (() => {
-                      const contributorHref = resolveContributorHref(
-                        section.attribution.name,
-                        contributorDirectory,
-                      );
-
-                      return (
-                        <PublicAttributionSection
-                          className="-mt-3 pr-4"
-                          avatarSrc={section.attribution.avatarSrc}
-                          avatarAlt={section.attribution.name}
-                          avatarHref={contributorHref ?? undefined}
-                        >
-                          {contributorHref ? (
-                            <Link
-                              href={contributorHref}
-                              className="theme-accent-heading theme-focus-ring font-semibold transition hover:opacity-90"
-                            >
-                              {section.attribution.name}
-                            </Link>
-                          ) : (
-                            <span className="theme-accent-heading font-semibold">
-                              {section.attribution.name}
-                            </span>
-                          )}
-                          {section.attribution.era ? (
-                            <span className="ml-1.5 whitespace-nowrap">
-                              {section.attribution.era}
-                            </span>
-                          ) : null}
-                        </PublicAttributionSection>
-                      );
-                    })()
-                  ) : null}
+                  {commentaryAttribution ?? (section.attribution ? (
+                    <EffectCommentaryAttribution attribution={section.attribution} contributorDirectory={contributorDirectory} />
+                  ) : null)}
                 </ArticleSection>
               );
 
@@ -300,6 +316,7 @@ export function EffectArticlePage({
                       linkableSubstanceSlugs={linkableSubstanceSlugs}
                       categoryHrefPrefix={categoryHrefPrefix}
                       showHeading={false}
+                      t={t}
                     />
                   </div>
                 </ArticleSection>
@@ -323,6 +340,7 @@ export function EffectArticlePage({
                   <EffectContributorsSection
                     contributors={section.contributors}
                     contributorDirectory={contributorDirectory}
+                    t={t}
                   />
                 </div>
               );

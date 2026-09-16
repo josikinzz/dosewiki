@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,46 @@ export default function ArticleContextBridge(props: ArticleContextBridgeProps) {
   // Retain unsaved work while signed out, but never carry it into another account.
   if (email) owner.current = email;
   return <ArticleEditingSession key={`${props.slug ?? ""}:${owner.current ?? ""}`} {...props} />;
+}
+
+function StickyArticleEditorLayout({ actions, children }: { actions: ReactNode; children: ReactNode }) {
+  const scopeRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const scope = scopeRef.current;
+    const bar = barRef.current;
+    if (!scope || !bar) return;
+    const header = document.querySelector<HTMLElement>(".app-header");
+    const strip = scope.querySelector<HTMLElement>(".theme-toc-strip-shell");
+    const inReviewWorkbench = !!scope.closest(".theme-review-article-scope");
+    const publish = () => {
+      scope.style.setProperty("--article-editor-top", header
+        ? `${header.getBoundingClientRect().height}px`
+        : inReviewWorkbench ? "var(--review-bar-height, 3.25rem)" : "0px");
+      scope.style.setProperty("--article-editor-bar-height", `${bar.getBoundingClientRect().height}px`);
+      scope.style.setProperty("--article-editor-toc-height", `${strip?.getBoundingClientRect().height ?? 0}px`);
+    };
+    publish();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publish);
+    for (const element of [header, bar, strip]) {
+      if (element) observer?.observe(element);
+    }
+    window.addEventListener("resize", publish);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", publish);
+    };
+  }, []);
+
+  return <div ref={scopeRef} className="theme-article-editor-scope min-w-0">
+    <div ref={barRef} className="theme-article-editor-bar theme-chrome-dark sticky z-40 mx-[calc(50%-50vw)]">
+      <div className="mx-auto max-w-[1500px] px-[max(1rem,env(safe-area-inset-left))] py-1 pr-[max(1rem,env(safe-area-inset-right))] sm:px-6">
+        {actions}
+      </div>
+    </div>
+    {children}
+  </div>;
 }
 
 function ArticleEditingSession({ slug, article, children, layoutProps, workbench = false, workbenchRole, requestedSection, onSectionClose, onDirtyChange, draftGuardRef, onOperationLockChange }: ArticleContextBridgeProps) {
@@ -188,16 +228,16 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     {children}
   </>;
   return <ArticleSectionEditorContext.Provider value={lifecycle.ready && !operationLocked ? openSection : null}>
-    <Surface variant="subtle" padding="none" className="mx-auto mb-4 max-w-5xl px-2 py-1">
-      <div className="flex min-w-0 items-center gap-2">
-        <div className="min-w-0 flex-1 pl-1 sm:flex sm:items-center sm:gap-3">
+    <StickyArticleEditorLayout actions={<>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <div className="min-w-0 flex-1 basis-full sm:flex sm:basis-auto sm:items-center sm:gap-3">
           <p className="theme-text-primary shrink-0 text-sm font-semibold">Private preview</p>
           <p className="theme-text-muted truncate text-xs" role="status" title={status}>{status}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
           {lifecycle.ready ? <>
             <Button variant="outline" size="icon" aria-label="Save draft" title="Save draft" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}><Icon icon="lucide:save" size={16} /></Button>
-            {changes.length > 0 && <Button className="h-9 px-3 text-sm" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>{primaryLabel} ({countLabel})</Button>}
+            {changes.length > 0 && <Button className="h-auto min-h-9 max-w-full whitespace-normal px-3 text-sm" title={`${primaryLabel} (${countLabel})`} disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}><span className="sm:hidden">Review ({changes.length})</span><span className="hidden sm:inline">{primaryLabel} ({countLabel})</span></Button>}
             <Button variant="ghost" size="icon" aria-label="Review changes and history" title="Review changes and history" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} /></Button>
           </> : !lifecycle.loaded && <Button variant="outline" size="icon" aria-label="Load private draft" title="Load private draft" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}><Icon icon="lucide:download" size={16} /></Button>}
           <DropdownMenu>
@@ -220,10 +260,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {lifecycle.uncertain && <p className="theme-text-primary px-1 py-2 text-sm">{status}</p>}
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
       {(localError || lifecycle.error) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
-    </Surface>
+    </>}>
     <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: lifecycle.commit, registerDraft, refreshStoredValue: lifecycle.refreshStoredValue, addReference: lifecycle.addReference, references: lifecycle.article.references ?? [] } : null}>
       <ArticleLayout {...layoutProps} content={layoutProps?.content ? { ...layoutProps.content, chemistryPresentation: buildArticleChemistryPresentation(lifecycle.article) } : undefined} fromSubstanceSlug={slug} article={lifecycle.article} />
     </ArticleEditProvider>
+    </StickyArticleEditorLayout>
     <ContextualEditorPanel title={section ? `Edit ${ARTICLE_SECTION_LABELS[section].toLowerCase()}` : "Review article changes"} open={!!section || review} onOpenChange={(open) => {
       if (open) return;
       if (formDirty || lifecycle.dirty || inlineDirty || proposalNotesDirty || operationLocked) setLeaveOpen(true); else closePanel();

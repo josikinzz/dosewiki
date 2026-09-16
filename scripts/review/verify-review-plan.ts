@@ -7,16 +7,15 @@
  */
 import { readFileSync } from "node:fs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getByPath, validateArticle, assertCitationsResolve } from "./lib/reviewDecisionTransforms";
 
-const CONVEX_URL = process.env.TARGET_CONVEX_URL ?? "https://glad-minnow-656.convex.cloud";
 const argv = process.argv.slice(2);
 const planIndex = argv.indexOf("--plan");
 const planPath = planIndex >= 0 ? argv[planIndex + 1] : "outputs/review-decisions/plan.json";
 const plan = JSON.parse(readFileSync(planPath, "utf8"));
 
-const client = createDataClient({ target: CONVEX_URL }).client;
+const { client } = createDataClient();
 
 let checked = 0;
 let matched = 0;
@@ -24,7 +23,7 @@ const mismatches: Array<{ slug: string; path: string; expected: string; actual: 
 const invalidDocuments: Array<{ slug: string; reason: string }> = [];
 
 /**
- * Order-insensitive canonical form. Convex returns object keys in its own
+ * Order-insensitive canonical form. Postgres returns object keys in its own
  * (alphabetical) order, so a plain JSON.stringify comparison reports every
  * `{min,max,unit}` triple as changed when nothing changed at all.
  */

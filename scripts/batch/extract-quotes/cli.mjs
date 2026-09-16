@@ -50,7 +50,7 @@ export function parseArgs() {
     aliases: {
       "dry-run": "dryRun",
       "source-url": "sourceUrl",
-      "target-url": "targetUrl",
+      "target": "targetUrl",
       "reasoning-effort": "reasoningEffort",
     },
   });

@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { PublicDataReadAdapter } from "../convex/publicData.reads";
+import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { collectGlossaryTerms } from "./glossaryDraft";
 
 vi.mock("@server/postgres/runtime/backend", () => ({
   getDataBackend: () => "postgres",
-  getPostgresConvexClient: () => ({ sql: vi.fn() }),
+  getPostgresClient: () => ({ sql: vi.fn() }),
 }));
-vi.mock("@server/convex/publicData", () => ({}));
-vi.mock("@server/convex/publicData.substances", () => ({}));
+vi.mock("@server/data/publicData", () => ({}));
+vi.mock("@server/data/publicData.substances", () => ({}));
 
 const reads = {
   getPublicEffects: async () => [

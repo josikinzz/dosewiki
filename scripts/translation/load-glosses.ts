@@ -23,7 +23,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
-import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
 import { GLOSS_MAX_LENGTH, GlossaryGlossError, knownGlossaryTerms, loadGlosses, upsertGlosses } from "../../lib/translation/glossaryGloss";
 import { guardTarget } from "../postgres/targetGuard";
 

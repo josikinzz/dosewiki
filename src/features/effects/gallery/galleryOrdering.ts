@@ -25,13 +25,14 @@ function mediaTier(
 export function sortWithinGroup<
   T extends Pick<
     PublicGalleryReplicationPreview,
+    | "slug"
     | "title"
     | "type"
     | "format"
     | "created_at"
+    | "date_info"
     | "effect_slug"
     | "effect_order_index"
-    | "date_info"
   > & { has_audio?: boolean | null },
 >(items: readonly T[], effectSlug?: string): T[] {
   return [...items].sort((a, b) => {
@@ -58,14 +59,15 @@ export function sortWithinGroup<
         return bc - ac;
     }
 
-    return a.title.localeCompare(b.title);
+    const titleOrder = a.title.localeCompare(b.title);
+    return titleOrder || a.slug.localeCompare(b.slug);
   });
 }
 
 export function sortWorksByDate<
   T extends Pick<
     PublicGalleryReplicationPreview,
-    "title" | "created_at" | "date_info"
+    "slug" | "title" | "created_at" | "date_info"
   >,
 >(items: readonly T[], direction: "newest" | "oldest" = "newest"): T[] {
   const sign = direction === "oldest" ? -1 : 1;
@@ -80,7 +82,8 @@ export function sortWorksByDate<
     if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc)
       return (bc - ac) * sign;
 
-    return a.title.localeCompare(b.title);
+    const titleOrder = a.title.localeCompare(b.title);
+    return titleOrder || a.slug.localeCompare(b.slug);
   });
 }
 

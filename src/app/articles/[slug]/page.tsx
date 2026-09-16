@@ -4,6 +4,7 @@ import { loadArticleRoute } from "@server/next/routeLoaders.publications";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
 import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 import WritingContextualEditor from "@/features/dev/tools/writing/WritingContextualEditor.editor";
+import { t } from "@/i18n/server";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -53,7 +54,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           }}
         />
       <WritingContextualEditor slug={result.pageProps.article.slug} writingKind="article" bylineAuthors={result.pageProps.bylineAuthors} />
-      <EffectIndexArticlePage {...result.pageProps} />
+      <EffectIndexArticlePage {...result.pageProps} t={t} />
     </>
   );
 }

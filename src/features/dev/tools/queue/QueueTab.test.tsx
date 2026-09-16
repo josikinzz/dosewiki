@@ -5,11 +5,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { QueueTab } from "./QueueTab";
 import type { ProposalDetail, ProposalSummary } from "./queueModel";
 
-/** The tab as an editor renders it: no admin buttons, library drained, load handed to the shell. */
+/** The tab as an editor renders it: no admin buttons, load handed to the shell. */
 function renderQueue(overrides: Partial<Parameters<typeof QueueTab>[0]> = {}) {
   const onLoadIntoEditor = vi.fn(async () => undefined);
   render(
-    <QueueTab canApprove={false} libraryReady onLoadIntoEditor={onLoadIntoEditor} {...overrides} />,
+    <QueueTab canApprove={false} onLoadIntoEditor={onLoadIntoEditor} {...overrides} />,
   );
   return { onLoadIntoEditor };
 }
@@ -97,7 +97,7 @@ function stubQueueApi(
     if (method === "POST") {
       return Response.json({ ok: true });
     }
-    const id = url.slice(BASE.length + 1);
+    const id = url.slice(BASE.length + 1).split("?")[0];
     const detail = details[id];
     return detail
       ? Response.json({ ok: true, proposal: detail })
@@ -274,12 +274,12 @@ describe("QueueTab", () => {
       await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
       const load = await screen.findByRole("button", { name: "Load into editor" });
       expect(load).toBeEnabled();
-      const readsBefore = calls.filter((call) => call.url === `${BASE}/cp_3`).length;
+      const readsBefore = calls.filter((call) => call.url.startsWith(`${BASE}/cp_3`)).length;
 
       await userEvent.click(load);
 
       await waitFor(() => expect(onLoadIntoEditor).toHaveBeenCalledTimes(1));
-      expect(calls.filter((call) => call.url === `${BASE}/cp_3`).length).toBe(readsBefore + 1);
+      expect(calls.filter((call) => call.url === `${BASE}/cp_3?seed=1`).length).toBe(1);
       expect(onLoadIntoEditor).toHaveBeenCalledWith({
         proposalId: "cp_3",
         summary: "Mescaline dosing",
@@ -324,21 +324,6 @@ describe("QueueTab", () => {
       expect(screen.getByRole("link", { name: "Open Copy editor: footer" })).toHaveAttribute("href", "/dev/copy-studio/footer");
     });
 
-    it("never offers it on a closed proposal, and waits for the library before enabling it", async () => {
-      stubQueueApi([applied, requested], {
-        cp_2: { ...applied, diff: "", comments: [], liveHashes: [], payload: {} },
-        cp_3: requestedDetail,
-      });
-      renderQueue({ canApprove: true, libraryReady: false });
-
-      await userEvent.click(await screen.findByRole("button", { name: /Retitle DMT/ }));
-      await screen.findByRole("button", { name: "Revert" });
-      expect(screen.queryByRole("button", { name: "Load into editor" })).toBeNull();
-
-      await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
-      const load = await screen.findByRole("button", { name: "Load into editor" });
-      expect(load).toBeDisabled();
-    });
 
     it("reports a seed that failed instead of leaving the tab", async () => {
       stubQueueApi([requested], { cp_3: { ...requestedDetail, isAuthor: true } });

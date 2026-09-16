@@ -19,7 +19,7 @@ export const appImageStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Source-aware image wrapper. Routes local paths / StaticImageData — plus Convex file-storage URLs on this deployment — through next/image, and every other remote URL through a plain <img>, so callers never pick the right element themselves.",
+    "Source-aware image wrapper. Local paths and StaticImageData use next/image. Managed canonical raster images use responsive Worker URLs; other remote sources stay direct.",
   source: "src/components/common/AppImage.tsx",
   importLine: 'import { AppImage } from "@/components/common/AppImage";',
   exports: ["AppImage"],
@@ -81,7 +81,7 @@ export const appImageStory: StoryDef = {
             alt="Large with border"
             width={120}
             height={120}
-            className="rounded-md ring-2 ring-[var(--theme-border-strong)]"
+            className="rounded-md ring-1 ring-[var(--theme-border-strong)]"
             style={{ opacity: 0.85 }}
           />
         </div>
@@ -108,7 +108,7 @@ export const appImageStory: StoryDef = {
       name: "src",
       type: "string | StaticImageData",
       description:
-        "Image source. A '/'-prefixed string or StaticImageData is local (next/image); any other string is remote (plain <img>).",
+        "Local paths and StaticImageData use next/image. Managed canonical rasters use a native responsive image; other remote URLs use a direct image.",
     },
     { name: "alt", type: "string", description: "Required alt text for accessibility." },
     { name: "width", type: "number", description: "Intrinsic width in pixels." },
@@ -146,8 +146,8 @@ export const appImageStory: StoryDef = {
     "Decorative CSS backgrounds — use a background-image utility instead.",
   ],
   notes: [
-    "Locality is decided by isLocalImage: StaticImageData or a string starting with '/' is local. Convex file-storage URLs on this build's own deployment (isConvexStorageImage) also optimise via next/image — next.config.ts allowlists exactly that origin in images.remotePatterns.",
-    "Every other remote host is a plain <img> with decoding=\"async\" and a forwarded sizes attribute.",
+    "Local sources are StaticImageData or root-relative paths, excluding protocol-relative URLs. Only local images use Next's optimizer.",
+    "Managed canonical raster URLs use responsive Worker candidates directly, with a withdrawal check on every request. Legacy R2 and other external fallbacks stay direct and have no managed withdrawal protection. Raw animations remain direct; full-fidelity viewers opt out of resizing with unoptimized.",
     "priority makes the remote branch eager: loading=\"eager\" plus fetchPriority=\"high\" (otherwise it stays lazy).",
   ],
 };

@@ -31,9 +31,9 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
     if (element) {
       scrollIntoViewRespectingMotion(element);
       // Briefly highlight the citation
-      element.classList.add("ring-2", "ring-[var(--theme-accent-strong)]");
+      element.dataset.navigationHighlight = "true";
       setTimeout(() => {
-        element.classList.remove("ring-2", "ring-[var(--theme-accent-strong)]");
+        delete element.dataset.navigationHighlight;
       }, 2000);
     }
 

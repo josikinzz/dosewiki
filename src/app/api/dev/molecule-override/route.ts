@@ -12,7 +12,8 @@
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
@@ -22,6 +23,17 @@ const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
 const MAX_MOLBLOCK_BYTES = 256 * 1024;
 const MAX_SVG_BYTES = 2 * 1024 * 1024;
 const MAX_PAYLOAD_BYTES = MAX_SVG_BYTES + MAX_MOLBLOCK_BYTES + 8 * 1024;
+const getMoleculeEditSource = makeFunctionReference<
+  "query",
+  { apiKey?: string; actorEmail?: string; slug: string },
+  {
+    slug: string;
+    molblock: string;
+    boldBonds?: number[];
+    source: string;
+    updatedAt: string | number;
+  } | null
+>("moleculeEditor:getEditSource");
 
 type SaveOverrideBody = {
   slug?: unknown;
@@ -101,23 +113,24 @@ async function publishMoleculeOwner(slug: string) {
 }
 
 /**
- * The editor reads depictions through the same authenticated Convex target used
+ * The editor reads depictions through the same authenticated Postgres target used
  * for saves. This keeps a selected molecule from depending on the browser-read
  * deployment when editor and public deployments intentionally differ.
  */
 export const GET = protectedRouteOperation({
   auth: "admin",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load molecule override via Next route:",
   unexpectedErrorMessage: "Unable to load the molecule depiction right now.",
-  operation: async ({ request, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const slug = parseMoleculeSlug(new URL(request.url).searchParams.get("slug"));
-    const override = await convexWrite.client.query(api.moleculeOverrides.getBySlug, { slug });
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const override = await dataWrite.client.query(getMoleculeEditSource, { apiKey, actorEmail, slug });
     return NextResponse.json({ ok: true, override });
   },
 });
@@ -129,18 +142,18 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
     maxBytes: MAX_PAYLOAD_BYTES,
     parse: parseSaveBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save molecule override via Next route:",
   unexpectedErrorMessage: "Unable to save the molecule override right now.",
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.moleculeOverrides.save, {
+    const result = await dataWrite.client.mutation(api.moleculeOverrides.save, {
       apiKey,
       actorEmail,
       slug: body.slug,
@@ -161,18 +174,18 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
 export const DELETE = protectedRouteOperation({
   auth: "admin",
   rateLimit: "editorSmallWrite",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to remove molecule override via Next route:",
   unexpectedErrorMessage: "Unable to remove the molecule override right now.",
-  operation: async ({ request, actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const slug = parseMoleculeSlug(new URL(request.url).searchParams.get("slug"));
 
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-    const result = await convexWrite.client.mutation(api.moleculeOverrides.remove, {
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const result = await dataWrite.client.mutation(api.moleculeOverrides.remove, {
       apiKey,
       actorEmail,
       slug,

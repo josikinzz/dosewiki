@@ -243,7 +243,7 @@ export function CategoryGrid({
   }, [visibleGroups, columnCount, columnLayout]);
 
   const groupKeys = useMemo(
-    () => visibleGroups.map((group) => group.key),
+    () => new Set(visibleGroups.map((group) => group.key)),
     [visibleGroups],
   );
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -251,13 +251,13 @@ export function CategoryGrid({
 
   useEffect(() => {
     setExpanded((previous) => {
-      const nextState: Record<string, boolean> = {};
-      groupKeys.forEach((key) => {
-        nextState[key] = previous[key] ?? defaultExpanded;
-      });
+      const staleKeys = Object.keys(previous).filter((key) => !groupKeys.has(key));
+      if (staleKeys.length === 0) return previous;
+      const nextState = { ...previous };
+      for (const key of staleKeys) delete nextState[key];
       return nextState;
     });
-  }, [groupKeys, defaultExpanded]);
+  }, [groupKeys]);
 
   useEffect(() => {
     if (!copiedKey) {

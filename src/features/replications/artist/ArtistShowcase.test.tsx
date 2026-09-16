@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ShowcaseWork } from "../components/showcaseWork";
 import type {
@@ -99,21 +99,25 @@ function fixtures() {
   return { works, collection };
 }
 
-function renderShowcase() {
+function renderShowcase(fetchCollection?: typeof fetch) {
   const { works, collection } = fixtures();
+  vi.stubGlobal("fetch", fetchCollection ?? vi.fn(async () => ({ ok: true, json: async () => ({ groups: collection.groups }) })));
   return render(
     <ArtistShowcase
       label="Works by Chelsea Morgan"
       works={works}
       totalCount={12}
-      collection={collection}
+      collection={{ ...collection, groups: collection.groups.map((group) => ({ ...group, items: group.items.slice(0, 10) })) }}
       sourcePath={SOURCE_PATH}
+      artistKey="chelsea-morgan"
     />,
   );
 }
 
 afterEach(() => {
   window.history.replaceState({}, "", "/");
+  document.documentElement.removeAttribute("data-viewer-deep-link");
+  vi.unstubAllGlobals();
 });
 
 describe("ArtistShowcase", () => {
@@ -139,7 +143,7 @@ describe("ArtistShowcase", () => {
     expect(screen.getAllByText("licensing terms")).toHaveLength(1);
   });
 
-  it("opens the shared viewer over the page and writes the viewer URL", () => {
+  it("opens the shared viewer over the page and writes the viewer URL", async () => {
     const pushState = vi.spyOn(window.history, "pushState");
     window.history.replaceState({}, "", SOURCE_PATH);
     renderShowcase();
@@ -148,7 +152,7 @@ describe("ArtistShowcase", () => {
       screen.getByRole("button", { name: "Open Work w0 in viewer" }),
     );
 
-    const viewer = screen.getByTestId("replication-viewer");
+    const viewer = await screen.findByTestId("replication-viewer");
     expect(viewer).toHaveAttribute("data-initial-slug", "w0");
     expect(viewer).toHaveAttribute(
       "data-collection-label",
@@ -168,29 +172,94 @@ describe("ArtistShowcase", () => {
     pushState.mockRestore();
   });
 
-  it("resolves a deep link to a work beyond the filmstrip's cap", () => {
+  it("cancels a pending collection launch when history returns to the artist page", async () => {
+    let resolveFetch!: (response: Response) => void;
+    const collectionResponse = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+    window.history.replaceState({}, "", SOURCE_PATH);
+    renderShowcase(vi.fn(() => collectionResponse));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open Work w0 in viewer" }),
+    );
+    expect(window.location.search).toBe("?viewer=w0");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+
+    // Model the URL and popstate delivered by Back without jsdom's async history traversal.
+    window.history.replaceState({}, "", SOURCE_PATH);
+    fireEvent.popState(window);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveFetch({
+        ok: true,
+        json: async () => ({ groups: fixtures().collection.groups }),
+      } as Response);
+      await collectionResponse;
+      await vi.dynamicImportSettled();
+    });
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+    expect(window.location.pathname + window.location.search).toBe(SOURCE_PATH);
+  });
+
+  it("dismisses a pending deep-link cover on Back and restores the work on Forward", async () => {
+    let resolveFetch!: (response: Response) => void;
+    const collectionResponse = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+    const viewerUrl = `${SOURCE_PATH}?viewer=overflow-2`;
+    window.history.replaceState({}, "", viewerUrl);
+    // The server's pre-paint script sets this flag before hydration.
+    document.documentElement.setAttribute("data-viewer-deep-link", "");
+    renderShowcase(vi.fn(() => collectionResponse));
+    expect(document.documentElement).toHaveAttribute("data-viewer-deep-link");
+
+    window.history.replaceState({}, "", SOURCE_PATH);
+    fireEvent.popState(window);
+    expect(document.documentElement).not.toHaveAttribute("data-viewer-deep-link");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveFetch({
+        ok: true,
+        json: async () => ({ groups: fixtures().collection.groups }),
+      } as Response);
+      await collectionResponse;
+      await vi.dynamicImportSettled();
+    });
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
+
+    window.history.replaceState({ replicationViewer: true }, "", viewerUrl);
+    fireEvent.popState(window);
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
+      "data-initial-slug",
+      "overflow-2",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close viewer" }));
+    expect(window.location.pathname + window.location.search).toBe(SOURCE_PATH);
+  });
+
+  it("resolves a deep link to a work beyond the filmstrip's cap", async () => {
     window.history.replaceState({}, "", `${SOURCE_PATH}?viewer=overflow-2`);
     renderShowcase();
 
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
       "overflow-2",
     );
   });
 
-  it("removes a viewer query that does not belong to the artist", () => {
+  it("refuses a work outside the artist collection and clears the URL on close", async () => {
     window.history.replaceState({}, "", `${SOURCE_PATH}?viewer=not-hers`);
     renderShowcase();
-
-    expect(window.location.pathname + window.location.search).toBe(
-      SOURCE_PATH,
-    );
+    expect(await screen.findByText("The linked replication is no longer available in this collection.")).toBeInTheDocument();
     expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "The linked replication is no longer available in this collection.",
-      ),
-    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(window.location.pathname + window.location.search).toBe(SOURCE_PATH);
   });
 
   it("hides per-stage creator lines — the identity header owns attribution", () => {

@@ -6,7 +6,7 @@
  * articles by hand, working the queue locally, and replaying rows whose prompt
  * digest is no longer the current one.
  *
- * Usage (Postgres write ceremony from docs/agents/convex-credentials.md):
+ * Usage (Postgres write ceremony from docs/agents/data-credentials.md):
  *   export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<host>
  *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/substances --allow-remote --write
  *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/articles --corpus=articles --allow-remote --write
@@ -49,8 +49,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 
-import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
-import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
+import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
+import { getPostgresClient } from "../../lib/postgres/runtime/backend";
 import * as live from "../../lib/translation/liveTranslation";
 import * as store from "../../lib/translation/segmentStore";
 import { CORPORA } from "./corpora.mjs";
@@ -193,7 +193,7 @@ async function runQueue() {
   const reads = getPublicDataReadAdapter();
   let processed = 0;
   if (!write) {
-    const due = await getPostgresConvexClient().sql<{ n: string }>(
+    const due = await getPostgresClient().sql<{ n: string }>(
       'SELECT COUNT(*)::text AS n FROM "translationJobs" WHERE "completed_at" IS NULL',
     );
     console.log(`Due jobs      ${due[0]?.n ?? 0}`);
@@ -289,7 +289,7 @@ async function retranslateStale() {
     return;
   }
   const apiKey = requireApiKey();
-  const rows = await getPostgresConvexClient().sql<{ hash: string; source: string }>(
+  const rows = await getPostgresClient().sql<{ hash: string; source: string }>(
     'SELECT "hash", "source" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
     [LOCALE, hashes],
   );
@@ -348,7 +348,7 @@ async function retranslateStale() {
 }
 
 async function status() {
-  const client = getPostgresConvexClient();
+  const client = getPostgresClient();
   const segments = await store.translationSegmentCounts(LOCALE, promptVersion);
   const [jobs] = await client.sql<{ due: string; done: string; failing: string }>(
     `SELECT COUNT(*) FILTER (WHERE "completed_at" IS NULL)::text AS due,
@@ -371,5 +371,5 @@ try {
   else if (command === "stale") await retranslateStale();
   else await status();
 } finally {
-  await getPostgresConvexClient().end();
+  await getPostgresClient().end();
 }

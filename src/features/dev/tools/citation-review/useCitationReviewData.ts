@@ -31,7 +31,7 @@ async function readJson<T>(input: RequestInfo | URL, init?: RequestInit): Promis
     const failure = result as Partial<CitationReviewQueueLoadFailure>;
     throw new QueueLoadError({
       error: typeof failure.error === "string" ? failure.error : "Request failed.",
-      cause: failure.cause === "query" || failure.cause === "capacity" ? failure.cause : undefined,
+      cause: failure.cause === "query" ? failure.cause : undefined,
       requestId: typeof failure.requestId === "string" ? failure.requestId : undefined,
     });
   }

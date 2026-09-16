@@ -12,7 +12,7 @@ import { setRequestLocale, t } from "@/i18n/server";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { buildCategoryItemListSchema } from "@server/next/taxonomyItemListSchema";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
-import { loadCategoryRoute } from "@server/next/routeLoaders.taxonomy";
+import { loadCategoryRoute, loadCategoryMetadataRoute } from "@server/next/routeLoaders.taxonomy";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
 
 export const revalidate = 3600;
@@ -33,7 +33,7 @@ type LocalizedCategoryPageProps = {
 export async function generateMetadata({ params }: LocalizedCategoryPageProps) {
   setRequestLocale(LOCALE.code);
   const { categoryKey } = await params;
-  const result = await loadCategoryRoute(categoryKey, LOCALE);
+  const result = await loadCategoryMetadataRoute(categoryKey);
 
   if (result.kind === "redirect") {
     redirect(result.target);

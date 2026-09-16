@@ -9,12 +9,12 @@
  * through the shared confirm dialog first; the row then shows what is
  * happening until the roster reloads. Admin rows and the admin's own row show
  * no actions: admins are seeded and rotated from a workstation
- * (`scripts/auth/seed-admin-accounts.mjs`), and Convex refuses both targets
+ * (`scripts/auth/seed-admin-accounts.mjs`), and Postgres refuses both targets
  * anyway. The reset link is shown once; only its hash is stored, so closing
  * the notice is the end of it.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import {
   EditorNotice,
   EditorSection,
-  EditorSelect,
   EditorStatusPill,
   EditorTable,
   EditorTableBody,
@@ -35,10 +34,11 @@ import {
   type EditorNoticeMessage,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
-import { getRoleDisplayName, isManagedRole, MANAGED_ROLES, type AppRole, type ManagedRole } from "@/lib/auth/roles";
+import { approvedGlossaryLocales, getRoleDisplayName, isManagedRole, roleMeetsFloor, type AppRole, type ManagedRole } from "@/lib/auth/roles";
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 import InviteCodesPanel from "./InviteCodesPanel";
 import { RoleGuide } from "./RoleGuide";
+import { MemberPermissionFields } from "./MemberPermissionFields";
 import {
   banMember,
   fetchRoster,
@@ -55,12 +55,12 @@ import {
 const ROLE_PILL_TONE: Record<AppRole, EditorStatusPillTone> = {
   admin: "info",
   editor: "success",
+  editor_translator: "success",
   translator: "success",
   contributor: "neutral",
   viewer: "caution",
 };
 
-const ROLE_OPTIONS = MANAGED_ROLES.map((value) => ({ value, label: getRoleDisplayName(value) }));
 
 const SELF_LOCK_REASON = "This is your own account.";
 const ADMIN_LOCK_REASON = "Admin accounts are managed from the seed script.";
@@ -109,12 +109,13 @@ export function MembersTab() {
       kind: PendingKind,
       action: () => Promise<void>,
       success: string,
+      refresh = true,
     ) => {
       setPending({ email, kind });
       setNotice(null);
       try {
         await action();
-        await load();
+        if (refresh) await load();
         setNotice({ tone: "success", message: success });
       } catch (error) {
         setNotice({
@@ -131,19 +132,19 @@ export function MembersTab() {
     [load],
   );
 
-  const changeRole = (row: MemberRow, role: ManagedRole) => {
+  const changeRole = (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => {
     const label = row.username ?? row.email;
     const next = getRoleDisplayName(role);
     confirm({
-      title: `Change ${label} to ${next}?`,
-      description: `${label} is ${getRoleDisplayName(row.role)} now. The new role applies on their next request; you can change it back here.`,
-      confirmLabel: `Change to ${next}`,
+      title: `Change permissions for ${label}?`,
+      description: `${label}: ${next}. Approved glossary languages: ${glossaryLocales.join(", ") || "none"}. These permissions replace the current grant on their next request.`,
+      confirmLabel: "Save permissions",
       onConfirm: () => {
         void run(
           row.email,
           "role",
-          () => setMemberRole(row.email, role),
-          `${label} is now ${next.toLowerCase()}.`,
+          () => setMemberRole(row.email, role, glossaryLocales),
+          `Permissions saved for ${label}.`,
         );
       },
     });
@@ -189,6 +190,7 @@ export function MembersTab() {
         });
       },
       `Reset link issued for ${row.username ?? row.email}. It works once and expires in an hour.`,
+      false,
     );
 
   const copyResetLink = async () => {
@@ -301,6 +303,8 @@ export function MembersTab() {
           roles={[
             ROLE_DESCRIPTIONS.admin,
             ROLE_DESCRIPTIONS.editor,
+            ROLE_DESCRIPTIONS.translator,
+            ROLE_DESCRIPTIONS.editor_translator,
             ROLE_DESCRIPTIONS.contributor,
           ]}
         />
@@ -322,7 +326,7 @@ export function MembersTab() {
 type RosterTableProps = {
   roster: MemberRoster;
   pending: PendingAction | null;
-  onChangeRole: (row: MemberRow, role: ManagedRole) => void;
+  onChangeRole: (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => void;
   onToggleBan: (row: MemberRow) => void;
   onIssueReset: (row: MemberRow) => void;
 };
@@ -343,6 +347,7 @@ function RosterTable({
   onToggleBan,
   onIssueReset,
 }: RosterTableProps) {
+  const sortedMembers = useMemo(() => sortRoster(roster.members), [roster.members]);
   return (
     <EditorTable className="md:min-w-[56rem]">
       <EditorTableHead>
@@ -354,7 +359,7 @@ function RosterTable({
         <EditorTableHeading>Actions</EditorTableHeading>
       </EditorTableHead>
       <EditorTableBody>
-        {sortRoster(roster.members).map((row) => {
+        {sortedMembers.map((row) => {
           const lock = memberRowLock(row, roster.self);
           const inFlight = pending?.email === row.email ? pending.kind : null;
           const label = row.username ?? row.email;
@@ -376,6 +381,7 @@ function RosterTable({
                     {getRoleDisplayName(row.role)}
                   </EditorStatusPill>
                 )}
+                {roleMeetsFloor(row.role, "translator") && row.role !== "admin" && <span className="theme-text-faint mt-1 block text-xs">{approvedGlossaryLocales(row).join(", ") || "No approved languages"}</span>}
               </EditorTableCell>
               <EditorTableCell
                 label="Last sign-in"
@@ -407,6 +413,7 @@ function RosterTable({
                   </span>
                 ) : (
                   <RowActions
+                    key={`${row.email}:${row.role}:${(row.glossaryLocales ?? []).join(",")}`}
                     row={row}
                     disabled={inFlight !== null || lock === "self"}
                     reason={lock === "self" ? SELF_LOCK_REASON : undefined}
@@ -430,7 +437,7 @@ type RowActionsProps = {
   disabled: boolean;
   reason?: string;
   issuingReset: boolean;
-  onChangeRole: (row: MemberRow, role: ManagedRole) => void;
+  onChangeRole: (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => void;
   onToggleBan: (row: MemberRow) => void;
   onIssueReset: (row: MemberRow) => void;
 };
@@ -445,31 +452,19 @@ function RowActions({
   onIssueReset,
 }: RowActionsProps) {
   const label = row.username ?? row.email;
-  // A legacy `viewer` row has no option of its own; the select shows the
-  // placeholder until an admin picks a real role.
-  const selectValue = isManagedRole(row.role) ? row.role : "";
+  const [role, setRole] = useState<ManagedRole>(isManagedRole(row.role) ? row.role : "contributor");
+  const [glossaryLocales, setGlossaryLocales] = useState<string[]>(approvedGlossaryLocales(row));
+  const changed = role !== row.role || glossaryLocales.join(",") !== approvedGlossaryLocales(row).join(",");
+  const missingLanguages = roleMeetsFloor(role, "translator") && glossaryLocales.length === 0;
   return (
     <div
       className="flex flex-wrap items-center gap-2"
       aria-label={`Actions for ${label}`}
       role="group"
     >
-      <div className="w-full md:w-40">
-        <EditorSelect
-          aria-label={`Role for ${label}`}
-          selectSize="sm"
-          value={selectValue}
-          placeholder={selectValue ? undefined : "Choose a role"}
-          options={ROLE_OPTIONS}
-          disabled={disabled}
-          title={reason}
-          onChange={(event) => {
-            const next = event.target.value;
-            if (isManagedRole(next)) {
-              onChangeRole(row, next);
-            }
-          }}
-        />
+      <div className="w-full space-y-3">
+        <MemberPermissionFields label={`Permissions for ${label}`} role={role} glossaryLocales={glossaryLocales} disabled={disabled} onChange={(nextRole, nextLocales) => { setRole(nextRole); setGlossaryLocales(nextLocales); }} />
+        <Button type="button" variant="outline" size="sm" disabled={disabled || !changed || missingLanguages} title={reason} onClick={() => onChangeRole(row, role, glossaryLocales)}>Save permissions</Button>
       </div>
       <Button
         type="button"

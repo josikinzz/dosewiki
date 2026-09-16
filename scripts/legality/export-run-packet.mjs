@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -36,13 +36,13 @@ const runContext = createDataOpsRunContext({
   operation: "export legality research run packet",
   intent: "legality-research",
   argv,
-  sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL"],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL"],
   selectedTables: ["substanceIndex"],
   localArtifacts: [resolve("runs", "legality", slug, "packet.json")],
   destructive: false,
 });
 
-const sourceUrl = requireSourceUrl(runContext, "Convex legality article source URL");
+const sourceUrl = requireSourceUrl(runContext, "Postgres legality article source URL");
 const client = createDataClient({ target: sourceUrl }).client;
 const article = await client.query(api.substanceIndex.getBySlug, { slug });
 if (!article) {

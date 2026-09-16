@@ -8,8 +8,8 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { PublicSubstanceRecord } from "@server/convex/publicData.shared";
-import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
+import type { PublicSubstanceRecord } from "@server/data/publicData.shared";
+import { getPublicSubstanceBySlug } from "@server/data/publicData.substances";
 
 import { localizeRecord } from "./liveTranslation";
 

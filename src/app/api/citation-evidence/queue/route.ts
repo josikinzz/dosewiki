@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import {
   finalizeQueueSummaries,
-  mergeQueueSummary,
   type CitationQueueSummary,
-} from "../../../../../convex/lib/citationQueueFilter";
+} from "../../../../../server/lib/citationQueueFilter";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
-import { classifyConvexRejection } from "@/lib/http/convexRejection";
+import { classifyDataRejection } from "@/lib/http/dataRejection";
 import {
   isCitationReviewQueueFilter,
   type CitationReviewQueueFilter,
@@ -16,18 +15,7 @@ import { citationEvidenceRouteOperation } from "../_shared";
 
 export const runtime = "nodejs";
 
-// Each Convex query may read one page; the whole table is summarized by
-// walking pages here. The cap bounds a runaway table at 200k rows.
-const QUEUE_SUMMARY_MAX_PAGES = 200;
-
 const UNEXPECTED_ERROR_LABEL = "Failed to read citation review queue via Next route:";
-
-class QueueCapacityError extends Error {
-  constructor() {
-    super(`Citation review queue exceeded the ${QUEUE_SUMMARY_MAX_PAGES}-page cap.`);
-    this.name = "QueueCapacityError";
-  }
-}
 
 function parseStatus(value: string | null): CitationReviewQueueFilter {
   if (!value) {
@@ -41,8 +29,8 @@ function parseStatus(value: string | null): CitationReviewQueueFilter {
   return value;
 }
 
-/** Convex stamps every failed request with an id the reviewer can report. */
-function convexRequestId(error: unknown): string | null {
+/** Postgres stamps every failed request with an id the reviewer can report. */
+function dataRequestId(error: unknown): string | null {
   const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
   return /\[Request ID: ([0-9a-f]+)\]/i.exec(message)?.[1] ?? null;
 }
@@ -52,24 +40,13 @@ export const GET = citationEvidenceRouteOperation({
   unexpectedErrorLabel: UNEXPECTED_ERROR_LABEL,
   unexpectedErrorMessage: "Unable to load the citation review queue right now.",
   mapError: (error) => {
-    if (error instanceof QueueCapacityError) {
-      console.error(UNEXPECTED_ERROR_LABEL, error);
-      return NextResponse.json(
-        {
-          error: "The evidence table has grown past what the queue can summarize in one load.",
-          cause: "capacity",
-        } satisfies CitationReviewQueueLoadFailure,
-        { status: 500 },
-      );
-    }
-
     // A deliberate refusal keeps its own text; only a crashed or refused
     // query is classified here so the reviewer learns which side failed.
-    if (classifyConvexRejection(error)) {
+    if (classifyDataRejection(error)) {
       return null;
     }
 
-    const requestId = convexRequestId(error);
+    const requestId = dataRequestId(error);
     if (!requestId) {
       return null;
     }
@@ -84,39 +61,21 @@ export const GET = citationEvidenceRouteOperation({
       { status: 502 },
     );
   },
-  operation: async ({ request, actorEmail, convexWrite }) => {
+  operation: async ({ request, actorEmail, dataWrite }) => {
     const status = parseStatus(new URL(request.url).searchParams.get("status"));
     const apiKey =
-      convexWrite.getAdminIntentToken?.("citationEvidenceReview") ??
-      convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("citationEvidenceReview") ??
+      dataWrite.adminKey;
 
-    const summaries = new Map<string, CitationQueueSummary>();
-    let cursor: string | null = null;
-    for (let pagesRead = 0; ; pagesRead += 1) {
-      if (pagesRead >= QUEUE_SUMMARY_MAX_PAGES) {
-        throw new QueueCapacityError();
-      }
-
-      const page: { summaries: CitationQueueSummary[]; continueCursor: string | null } =
-        await convexWrite.client.query(api.citationEvidence.getQueueSummary, {
-          apiKey,
-          actorEmail,
-          cursor,
-        });
-
-      for (const summary of page.summaries) {
-        mergeQueueSummary(summaries, summary);
-      }
-
-      if (page.continueCursor === null) {
-        break;
-      }
-      cursor = page.continueCursor;
-    }
+    const summaries: CitationQueueSummary[] =
+      await dataWrite.client.query(api.citationEvidence.getQueueSummary, {
+        apiKey,
+        actorEmail,
+      });
 
     return NextResponse.json({
       ok: true,
-      queue: finalizeQueueSummaries(summaries.values(), status),
+      queue: finalizeQueueSummaries(summaries, status),
     });
   },
 });

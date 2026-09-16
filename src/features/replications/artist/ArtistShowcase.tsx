@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { proseLinkClassName } from "@/components/common/ProseLink";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useT } from "@/i18n/client";
+import { useT, useUiLocale } from "@/i18n/client";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -16,32 +15,26 @@ import {
 } from "../ViewerDeepLinkCover";
 import { ReplicationShowcase } from "../components/ReplicationShowcase";
 import type { ShowcaseWork } from "../components/showcaseWork";
-import { ReplicationViewerOverlay } from "../viewer/ReplicationViewerOverlay";
+import { LazyReplicationViewerOverlay } from "../components/LazyReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "../viewer/viewerModel";
 
 export interface ArtistShowcaseProps {
   /** Persistent identity shown by the expanded viewer's heading. */
   label: string;
-  /** The filmstrip works — capped by the server to the showcase cap. */
+  /** Opening filmstrip, capped on the server. */
   works: ShowcaseWork[];
   /** The body of work's complete size; beyond the cap it drives the "+N" tile. */
   totalCount: number;
-  /**
-   * The complete body of work the expanded viewer walks — every work as one
-   * collection, so a deep link to a work beyond the filmstrip's cap still
-   * opens.
-   */
+  /** Viewer identity and opening works; offscreen works resolve on intent. */
   collection: ReplicationViewerCollection;
+  artistKey: string;
   /** The Artist Page path the `?viewer=` URL contract writes against. */
   sourcePath: string;
 }
 
 /**
- * The Artist Page's works: one showcase stage over the artist's whole body of
- * work. This component — not the showcase — owns the viewer URL contract,
- * exactly as the gallery explorer does on /replications: the deep link
- * resolves here against the whole collection, the overlay is a single
- * instance, and the showcase merely reports launches through its controller.
+ * The Artist Page owns the viewer URL contract and resolves its validated
+ * complete collection only on launch or a direct viewer link.
  */
 export function ArtistShowcase({
   label,
@@ -49,47 +42,50 @@ export function ArtistShowcase({
   totalCount,
   collection,
   sourcePath,
+  artistKey,
 }: ArtistShowcaseProps) {
   const t = useT();
+  const locale = useUiLocale();
+  const resolveCollection = useCallback(async () => {
+    const params = new URLSearchParams({ artist: artistKey, locale });
+    const response = await fetch(`/api/replications/showcase?${params}`, { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error("Artist collection could not be loaded.");
+    const payload = await response.json() as { groups?: ReplicationViewerCollection["groups"] };
+    if (!Array.isArray(payload.groups)) throw new Error("Malformed artist collection.");
+    return { ...collection, groups: payload.groups.map((group) => ({
+      ...group,
+      label: collection.groups[0]?.label ?? group.label,
+      items: group.items.map((item) => ({ ...item, avatarUrl: works[0]?.avatarUrl ?? null })),
+    })) };
+  }, [artistKey, collection, locale, works]);
   const [viewerSlug, setViewerSlug] = useState<string | null>(null);
-  const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
-    string | null
-  >(null);
-  const collectionSlugs = useMemo(() => {
-    const slugs = new Set<string>();
-    for (const group of collection.groups) {
-      for (const item of group.items) {
-        slugs.add(item.replication.slug);
-      }
-    }
-    return slugs;
-  }, [collection]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const slug = parseReplicationViewerSlug(params);
-    const belongsToCollection = Boolean(slug && collectionSlugs.has(slug));
-    setUnavailableViewerSlug(slug && !belongsToCollection ? slug : null);
-    setViewerSlug(belongsToCollection ? slug : null);
-    if (params.has("viewer") && !belongsToCollection) {
-      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      window.history.replaceState(
-        window.history.state,
-        "",
-        closeReplicationViewerUrl(source),
-      );
-    }
-    // Absent or unresolvable viewer param: drop the deep-link cover so the
-    // page (and the unavailable notice) is visible. A valid param keeps the
-    // cover underneath the opaque overlay until the viewer closes.
-    if (!belongsToCollection) {
-      dismissViewerDeepLinkCover();
-    }
-  }, [collectionSlugs]);
+    const syncViewerFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const slug = parseReplicationViewerSlug(params);
+      setViewerSlug(slug);
+      if (params.has("viewer") && !slug) {
+        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        window.history.replaceState(
+          window.history.state,
+          "",
+          closeReplicationViewerUrl(source),
+        );
+      }
+      // Keep the cover until the viewer closes or history leaves its URL,
+      // including while the collection or viewer chunk is still loading.
+      if (!slug) {
+        dismissViewerDeepLinkCover();
+      }
+    };
+    syncViewerFromUrl();
+    window.addEventListener("popstate", syncViewerFromUrl);
+    return () => window.removeEventListener("popstate", syncViewerFromUrl);
+  }, []);
 
   const launchViewer = useCallback((slug: string) => {
     const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    setUnavailableViewerSlug(null);
     window.history.pushState(
       { ...window.history.state, replicationViewer: true },
       "",
@@ -112,13 +108,6 @@ export function ArtistShowcase({
           paint is black, and the resolution effect above dismisses the cover
           if the slug is unknown here. */}
       <ViewerDeepLinkCover />
-      {unavailableViewerSlug ? (
-        <Alert role="status">
-          <AlertDescription>
-            {t("The linked replication is no longer available in this collection.")}
-          </AlertDescription>
-        </Alert>
-      ) : null}
 
       <ReplicationShowcase
         works={works}
@@ -143,14 +132,17 @@ export function ArtistShowcase({
       </p>
 
       {viewerSlug ? (
-        <ReplicationViewerOverlay
+        <LazyReplicationViewerOverlay
           collection={collection}
+          resolveCollection={resolveCollection}
           initialSlug={viewerSlug}
           open
           onOpenChange={(nextOpen) => {
             if (!nextOpen) {
               setViewerSlug(null);
               dismissViewerDeepLinkCover();
+              const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+              window.history.replaceState(window.history.state, "", closeReplicationViewerUrl(source));
             }
           }}
         />

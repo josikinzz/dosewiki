@@ -12,13 +12,10 @@ import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
-import {
-  writingBlogPostSummary,
-  type WritingBlogPost,
-} from "../domain/writingBlogModel";
+import type { WritingBlogIndexPost } from "../domain/writingBlogModel";
 
 interface WritingBlogIndexPageProps {
-  posts: WritingBlogPost[];
+  posts: WritingBlogIndexPost[];
   emptyState?: PublicRouteEmptyState;
 }
 
@@ -69,8 +66,8 @@ export function WritingBlogIndexPage({ posts, emptyState }: WritingBlogIndexPage
   );
 }
 
-function WritingBlogCard({ post }: { post: WritingBlogPost }) {
-  const summary = writingBlogPostSummary(post);
+function WritingBlogCard({ post }: { post: WritingBlogIndexPost }) {
+  const summary = post.summary;
   const href = getPublicRoutePath({ family: "blogPost", params: { slug: post.slug } });
 
   return (

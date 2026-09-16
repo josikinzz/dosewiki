@@ -1,9 +1,0 @@
-{
-  "authKit": {
-    "applicationName": "DoseWiki",
-    "redirectUris": [
-      "http://localhost:5173/callback"
-    ],
-    "logoutRedirectUri": "http://localhost:5173"
-  }
-}

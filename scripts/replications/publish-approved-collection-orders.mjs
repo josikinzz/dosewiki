@@ -12,13 +12,13 @@
  * any collection whose live membership has drifted from the approved proposal.
  * Drift is reported and skipped, never reconciled by guessing.
  *
- * Dry run by default. See docs/agents/convex-credentials.md for the write gates.
+ * Dry run by default. See docs/agents/data-credentials.md for the write gates.
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createProductionWriteCommand,
   assertProductionWriteAllowed,
@@ -232,7 +232,7 @@ async function main() {
         resultRevision: outcome?.resultRevision ?? null,
       });
     } catch (error) {
-      // Convex delivers the application code in `data`; the bare message is redacted.
+      // Postgres delivers the application code in `data`; the bare message is redacted.
       const code = error?.data?.code ?? null;
       const detailMessage = error?.data?.message ?? error.message;
       console.error(`FAILED ${label} — ${code ?? "ERROR"}: ${detailMessage}`);

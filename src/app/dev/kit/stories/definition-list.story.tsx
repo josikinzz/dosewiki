@@ -46,12 +46,12 @@ export const definitionListStory: StoryDef = {
             term={
               <div>
                 <div className={LABEL_CLASS}>Database</div>
-                <div className={`${TITLE_CLASS} mb-0`}>Convex</div>
+                <div className={`${TITLE_CLASS} mb-0`}>Postgres</div>
               </div>
             }
           >
             <p className={PROSE_CLASS}>
-              Hosted document database with TypeScript server functions. The convex/
+              Hosted document database with TypeScript server functions. The server/
               directory is the backend.
             </p>
           </DefinitionRow>

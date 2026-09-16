@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "../common/SmartLink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
@@ -75,7 +75,7 @@ function NavChildLink({
 
 
   return (
-    <Link
+    <SmartLink
       href={child.href}
       role={role}
       tabIndex={tabIndex}
@@ -83,7 +83,7 @@ function NavChildLink({
       onClick={onSelect}
     >
       {body}
-    </Link>
+    </SmartLink>
   );
 }
 
@@ -160,7 +160,7 @@ function DesktopNavItem({
 
   if (!submenu) {
     return (
-      <Link
+      <SmartLink
         href={item.href}
         scroll={false}
         data-active={item.active}
@@ -169,7 +169,7 @@ function DesktopNavItem({
       >
         <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
         <span>{t(item.label)}</span>
-      </Link>
+      </SmartLink>
     );
   }
 
@@ -282,7 +282,7 @@ function DesktopNavItem({
 
   return (
     <div className="relative flex items-center">
-      <Link
+      <SmartLink
         href={item.href}
         scroll={false}
         data-active={item.active}
@@ -292,7 +292,7 @@ function DesktopNavItem({
       >
         <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
         <span id={labelId}>{t(item.label)}</span>
-      </Link>
+      </SmartLink>
 
       <button
         ref={chevronRef}
@@ -313,7 +313,7 @@ function DesktopNavItem({
         <Icon
           icon={icons.chevronDown}
           size={14}
-          className={`theme-header-nav-icon shrink-0 transition-transform duration-150 ${
+          className={`theme-header-nav-icon shrink-0 transition-transform duration-[180ms] ease-out motion-reduce:transition-none ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -334,7 +334,7 @@ function DesktopNavItem({
           // theme-mobile-nav-panel is what paints a panel as part of the dark Effect Index
           // chrome rather than as a light popover; it is the header's panel surface, not a
           // mobile-only class.
-          className={`theme-overlay-surface theme-mobile-nav-panel absolute top-[calc(100%+0.5rem)] z-50 flex w-56 flex-col gap-0.5 rounded-2xl border p-2 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm ${
+          className={`theme-overlay-surface theme-mobile-nav-panel theme-overlay-enter absolute top-[calc(100%+0.5rem)] z-50 flex w-56 flex-col gap-0.5 rounded-2xl border p-2 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm ${
             align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left"
           }`}
         >
@@ -393,7 +393,7 @@ function MobileNavItem({
 
   if (!submenu) {
     return (
-      <Link
+      <SmartLink
         href={item.href}
         scroll={false}
         onClick={onNavigate}
@@ -406,7 +406,7 @@ function MobileNavItem({
         {showActiveIndicator && item.active && (
           <div className="theme-header-nav-indicator ml-auto h-1.5 w-1.5 rounded-full" />
         )}
-      </Link>
+      </SmartLink>
     );
   }
 
@@ -415,7 +415,7 @@ function MobileNavItem({
   return (
     <div>
       <div className="flex items-center">
-        <Link
+        <SmartLink
           href={item.href}
           scroll={false}
           onClick={onNavigate}
@@ -428,7 +428,7 @@ function MobileNavItem({
           {showActiveIndicator && item.active && (
             <div className="theme-header-nav-indicator ml-auto h-1.5 w-1.5 rounded-full" />
           )}
-        </Link>
+        </SmartLink>
 
         <button
           type="button"
@@ -444,7 +444,7 @@ function MobileNavItem({
           <Icon
             icon={icons.chevronDown}
             size={16}
-            className={`theme-header-nav-icon shrink-0 transition-transform duration-150 ${
+            className={`theme-header-nav-icon shrink-0 transition-transform duration-[180ms] ease-out motion-reduce:transition-none ${
               isExpanded ? "rotate-180" : ""
             }`}
           />
@@ -583,7 +583,7 @@ export function Header({
           variant="ghost"
           className="group/brand flex h-11 w-auto items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:pl-0"
         >
-          <Link href={model.headerLogo.href} scroll={false}>
+          <SmartLink href={model.headerLogo.href} scroll={false} eager>
           <span className="relative inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <DoseWikiLogo
               width={40}
@@ -602,7 +602,7 @@ export function Header({
             </span>
             <SiteVersionBadge variant="header" />
           </span>
-          </Link>
+          </SmartLink>
         </Button>
 
         <div
@@ -679,11 +679,18 @@ export function Header({
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav"
             >
-              <Icon
-                icon={isMenuOpen ? "lucide:x" : "lucide:menu"}
-                size={28}
-                className="!h-7 !w-7"
-              />
+              <span aria-hidden="true" className="relative h-7 w-7">
+                <Icon
+                  icon="lucide:menu"
+                  size={28}
+                  className={`absolute inset-0 !h-7 !w-7 transition-opacity duration-[180ms] ease-out motion-reduce:transition-none ${isMenuOpen ? "opacity-0" : "opacity-100"}`}
+                />
+                <Icon
+                  icon="lucide:x"
+                  size={28}
+                  className={`absolute inset-0 !h-7 !w-7 transition-opacity duration-[180ms] ease-out motion-reduce:transition-none ${isMenuOpen ? "opacity-100" : "opacity-0"}`}
+                />
+              </span>
               <span className="sr-only">{t("Toggle navigation")}</span>
             </Button>
 
@@ -691,7 +698,7 @@ export function Header({
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="theme-overlay-surface theme-mobile-nav-panel absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
+              className="theme-overlay-surface theme-mobile-nav-panel theme-overlay-enter absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
             >
               <nav className="flex flex-col gap-1">
                 {model.primaryNavItems.map((item) => (

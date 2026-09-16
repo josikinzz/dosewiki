@@ -128,7 +128,7 @@ describe("replication showcase collection", () => {
   it("does not cache a failed collection read", async () => {
     vi.spyOn(console, "error").mockImplementationOnce(() => {});
     mocks.getEffectShowcaseWorks.mockRejectedValueOnce(
-      new Error("convex unavailable"),
+      new Error("data unavailable"),
     );
 
     const response = await GET(

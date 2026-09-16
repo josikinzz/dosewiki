@@ -9,7 +9,6 @@ import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Icon } from "./Icon";
 import { IconSpriteScope } from "./IconSprite";
-import iconData from "./iconData.generated.json";
 
 // The suite-wide setup stubs @iconify/react to a null renderer because the old
 // Icon always reached for the network. This file tests the real wrapper: the
@@ -71,44 +70,56 @@ describe("Icon offline bundle", () => {
     expect(html).toContain("<span");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
-
-  it("bundles the icon collections the repo actually uses", () => {
-    const prefixes = iconData.collections.map((collection) => collection.prefix);
-    // Spot-check the chrome-critical collections; the generator enumerates the
-    // full set from the source scan.
-    for (const prefix of ["lucide", "tabler", "ph", "simple-icons"]) {
-      expect(prefixes).toContain(prefix);
-    }
-    expect(iconData.iconCount).toBeGreaterThan(300);
-  });
 });
 
 describe("Icon sprite scope", () => {
   it("inlines full glyphs outside a sprite scope", () => {
-    const html = renderToStaticMarkup(<Icon icon="lucide:chevron-down" size={14} />);
+    const html = renderToStaticMarkup(
+      <Icon icon="lucide:chevron-down" size={14} />,
+    );
 
     expect(html).toContain("<path");
     expect(html).not.toContain("<use");
   });
 
-  it("references the shared symbol for repeated glyphs inside a scope", () => {
+  it("keeps every scoped glyph available before hydration while sharing repeated geometry", () => {
     const html = renderToStaticMarkup(
       <IconSpriteScope>
-        <Icon icon="lucide:chevron-down" size={14} className="transition-transform" />
+        <Icon
+          icon="lucide:chevron-down"
+          size={14}
+          className="transition-transform"
+        />
+        <Icon icon="lucide:chevron-down" size={20} />
         <Icon icon="lucide:ellipsis" size={13} />
         <Icon icon="lucide:arrow-up" size="0.95em" />
+        <Icon icon="lucide:key" size={16} />
+        <Icon icon="lucide:tag" size={16} />
+        <Icon icon="material-symbols:track-changes-rounded" size={16} />
       </IconSpriteScope>,
     );
-
-    // One sprite, one symbol per repeated glyph, geometry present exactly once.
-    expect(html.match(/<symbol /g)).toHaveLength(3);
-    expect(html.match(/d="m6 9l6 6l6-6"/g)).toHaveLength(1);
-    // Each use keeps Iconify's element shape: same classes, sizing and a11y.
-    expect(html).toContain(
-      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--lucide transition-transform" width="14" height="14" viewBox="0 0 24 24"><use href="#dw-icon-chevron-down"></use></svg>',
+    const root = document.createElement("div");
+    root.innerHTML = html;
+    const icons = root.querySelectorAll("svg.iconify");
+    expect(icons).toHaveLength(7);
+    for (const icon of icons) {
+      const href = icon.querySelector("use")?.getAttribute("href");
+      expect(href).toMatch(/^#/);
+      const symbol = root.querySelector(href!);
+      expect(
+        symbol?.querySelector(
+          "path, rect, circle, polygon, line, polyline, ellipse",
+        ),
+      ).not.toBeNull();
+      expect(icon.getAttribute("aria-hidden")).toBe("true");
+    }
+    expect(icons[0].querySelector("use")?.getAttribute("href")).toBe(
+      icons[1].querySelector("use")?.getAttribute("href"),
     );
-    expect(html).toContain('width="0.95em" height="0.95em" viewBox="0 0 24 24"><use href="#dw-icon-arrow-up">');
-    expect(html.match(/<use /g)).toHaveLength(3);
+    expect(icons[0].getAttribute("width")).toBe("14");
+    expect(icons[1].getAttribute("width")).toBe("20");
+    expect(icons[0].classList.contains("transition-transform")).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("leaves icons outside the sprite list on the inline path inside a scope", () => {

@@ -42,8 +42,8 @@ export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   comments: ProposalComment[];
   revertedAt?: string;
   liveHashes: Array<{ kind: ProposalTargetKind; key: string; hash: string }>;
-  /** The staged save the proposal wraps; what "Load into editor" seeds the working set from. */
-  payload: DevProposalSeed["payload"];
+  /** Present only for the fresh, explicitly requested Load into editor seed read. */
+  payload?: DevProposalSeed["payload"];
 };
 
 /** What `POST /api/dev/proposals/<id>/approve` answers. */
@@ -138,6 +138,9 @@ export function canLoadIntoEditor(
 
 /** The seed the dev context takes: the row's identity, why it came back, and its staged save. */
 export function proposalSeedOf(proposal: ProposalDetail): DevProposalSeed {
+  if (!proposal.payload) {
+    throw new Error("The proposal seed was not returned. Refresh and try loading it again.");
+  }
   return {
     proposalId: proposal._id,
     summary: proposal.summary,

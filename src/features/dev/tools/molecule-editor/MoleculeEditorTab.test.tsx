@@ -5,10 +5,9 @@ import { DESKTOP_ONLY_NOTICE } from "@/features/dev/components";
 import {
   installMoleculeEditorTestHarness,
   seedExampleSubstance,
+  stubMoleculeEditorFetch,
   stubOverrideFetch,
-  useDrainedReadMock,
   useQueryMock,
-  useSubstanceLookupMock,
 } from "./MoleculeEditorTab.testHarness";
 import { MoleculeEditorTab } from "./MoleculeEditorTab";
 
@@ -23,53 +22,33 @@ describe("MoleculeEditorTab modes", () => {
     );
   });
 
-  it("drains the paginated search projection only once class templates are open", async () => {
-    useQueryMock.mockReturnValue(undefined);
-    useDrainedReadMock.mockReturnValue({ results: undefined, status: "LoadingFirstPage" });
-    const user = userEvent.setup();
-    render(<MoleculeEditorTab />);
-
-    const [query, args, options] = useDrainedReadMock.mock.calls[0];
-    expect(query).toBe("substanceIndex:getSearchInputPage");
-    expect(args).toBe("skip");
-    expect(options).toEqual({ initialNumItems: 200 });
-
-    await user.click(screen.getByRole("button", { name: "Class templates" }));
-    await waitFor(() =>
-      expect(useDrainedReadMock).toHaveBeenLastCalledWith("substanceIndex:getSearchInputPage", {}, { initialNumItems: 200 }),
-    );
-  });
 
   it("separates the saved-depiction pill from the published-article pill", async () => {
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: [
+    useQueryMock.mockReturnValue(undefined);
+    stubMoleculeEditorFetch({
+      picker: [
         {
           slug: "listed-no-depiction",
-          name: "Listed No Depiction",
+          title: "Listed No Depiction",
           priority: "normal",
-          psychoactiveClasses: ["Psychedelic"],
+          index_categories: ["substance"],
+          classification: { psychoactive_class: ["Psychedelic"] },
+          hasOverride: false,
         },
         {
           slug: "unlisted-with-depiction",
-          name: "Unlisted With Depiction",
+          title: "Unlisted With Depiction",
           priority: "low",
-          psychoactiveClasses: ["Stimulant"],
+          index_categories: [],
+          classification: { psychoactive_class: ["Stimulant"] },
+          hasOverride: true,
         },
       ],
-      isLoading: false,
-      status: "Exhausted",
-    });
-    useQueryMock.mockImplementation((query) => {
-      const functionName = query;
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return [{ slug: "unlisted-with-depiction" }];
-      }
-      return undefined;
     });
 
     render(<MoleculeEditorTab />);
     expect(
-      screen.getByText("2 substances · 1 saved depictions · 1 published articles"),
+      await screen.findByText("2 substances · 1 saved depictions · 1 published articles"),
     ).toBeInTheDocument();
 
     const user = userEvent.setup();
@@ -84,47 +63,39 @@ describe("MoleculeEditorTab modes", () => {
   });
 
   it("shows the substance loading state while server data is pending", () => {
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: undefined,
-      isLoading: true,
-      status: "CanLoadMore",
-    });
     useQueryMock.mockReturnValue(undefined);
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
     render(<MoleculeEditorTab />);
     expect(screen.getByText("Loading substances…")).toBeInTheDocument();
   });
 
   it("loads 1,4-Butanediol without evaluating class-template membership", async () => {
     const savedMolblock = "saved molblock";
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: [{ slug: "1-4-butanediol", name: "1,4-Butanediol" }],
-      isLoading: false,
-      status: "Exhausted",
+    useQueryMock.mockReturnValue(undefined);
+    const fetchSpy = stubMoleculeEditorFetch({
+      picker: [{
+        slug: "1-4-butanediol",
+        title: "1,4-Butanediol",
+        priority: "normal",
+        index_categories: ["substance"],
+        classification: null,
+        hasOverride: true,
+      }],
+      sources: {
+        "1-4-butanediol": {
+          slug: "1-4-butanediol",
+          smiles: "C",
+        },
+      },
+      overrides: {
+        "1-4-butanediol": {
+          slug: "1-4-butanediol",
+          molblock: savedMolblock,
+          svg: "<svg />",
+          updatedAt: "2026-07-12T00:00:00.000Z",
+        },
+      },
     });
-    useQueryMock.mockImplementation((query, args) => {
-      const functionName = query;
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return [{ slug: "1-4-butanediol" }];
-      }
-      if (functionName === "substanceIndex:getBySlug") {
-        return args === "skip" ? undefined : { identification: { smiles: "C" } };
-      }
-      return undefined;
-    });
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          override: {
-            slug: "1-4-butanediol",
-            molblock: savedMolblock,
-            svg: "<svg />",
-            updatedAt: "2026-07-12T00:00:00.000Z",
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
@@ -140,8 +111,10 @@ describe("MoleculeEditorTab modes", () => {
     expect(screen.queryByText("Couldn't load depiction")).not.toBeInTheDocument();
     const leftRightFlip = screen.getByRole("button", { name: "Flip left/right" });
     const upDownFlip = screen.getByRole("button", { name: "Flip up/down" });
-    expect(leftRightFlip).toBeEnabled();
-    expect(upDownFlip).toBeEnabled();
+    await waitFor(() => {
+      expect(leftRightFlip).toBeEnabled();
+      expect(upDownFlip).toBeEnabled();
+    });
 
     const fineRotation = screen.getByRole("checkbox", { name: "Fine rotation" });
     expect(fineRotation).toBeChecked();
@@ -196,7 +169,9 @@ describe("MoleculeEditorTab modes", () => {
     expect(screen.queryByRole("checkbox", { name: "Fine rotation" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Trace an image…" })).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Select a structure to import" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Straighten" })).toBeEnabled();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Straighten" })).toBeEnabled(),
+    );
     expect(screen.getByRole("button", { name: "Save depiction" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Flip left/right" }));

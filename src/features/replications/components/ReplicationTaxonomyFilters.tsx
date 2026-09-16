@@ -332,7 +332,7 @@ export function ReplicationActiveFilterChips({
   return (
     <ul className={cn("flex flex-wrap items-center gap-1.5", className)}>
       {type === "all" ? null : (
-        <li>
+        <li className="theme-feedback-enter">
           <Button
             type="button"
             variant="pill"
@@ -355,7 +355,7 @@ export function ReplicationActiveFilterChips({
         </li>
       )}
       {year === "all" ? null : (
-        <li>
+        <li className="theme-feedback-enter">
           <Button
             type="button"
             variant="pill"
@@ -377,7 +377,7 @@ export function ReplicationActiveFilterChips({
         </li>
       )}
       {active.map((key) => (
-        <li key={key}>
+        <li key={key} className="theme-feedback-enter">
           <Button
             type="button"
             variant="pill"

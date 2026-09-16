@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { EditorSegmentedControl } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
@@ -35,21 +35,20 @@ const STATUS_PARAM = "status";
  * Both filters live in the URL, `?source=` and `?status=`, so a reload keeps
  * them, and the retired `/dev/site-feedback` address presets the source
  * through the registry's filter segments. The route only resolves `source`
- * on the server; `status` is read from the address once the tab is on the
- * client, before the first list arrives. Writes go through native history
- * rather than the router: the filters are client-only state, so a server
- * round trip would buy nothing.
+ * on the server; the client-only tab reads `status` in its lazy initial
+ * state before first render. Writes go through native history rather than
+ * the router: the filters are client-only state, so a server round trip
+ * would buy nothing.
  */
 export function FeedbackTab({ initialSource }: { initialSource?: string }) {
   const [source, setSource] = useState<FeedbackSource>(initialSource === "site" ? "site" : "article");
-  const [statusFilter, setStatusFilter] = useState<FeedbackQueueFilter | null>(null);
-
-  useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get(STATUS_PARAM);
-    if (isFeedbackQueueFilter(fromUrl)) {
-      setStatusFilter(fromUrl);
+  const [statusFilter, setStatusFilter] = useState<FeedbackQueueFilter | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
     }
-  }, []);
+    const fromUrl = new URLSearchParams(window.location.search).get(STATUS_PARAM);
+    return isFeedbackQueueFilter(fromUrl) ? fromUrl : null;
+  });
 
   function writeUrl(nextSource: FeedbackSource, nextStatus: FeedbackQueueFilter | null) {
     const path = viewToPath({ type: "dev", tab: "article-feedback", filter: nextSource });

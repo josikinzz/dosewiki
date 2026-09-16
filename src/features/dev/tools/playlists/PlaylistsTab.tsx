@@ -5,7 +5,7 @@
  * ordered sets of works the replication studio applies to substance galleries.
  * A contributor sees and edits the playlists they own; an editor sees every
  * playlist but edits only their own; an admin edits all of them and may hand
- * one to a member. Ownership is enforced in Convex; this tab only hides what
+ * one to a member. Ownership is enforced in Postgres; this tab only hides what
  * the route already refuses.
  *
  * Nothing here publishes. A playlist reaches the public site only when an
@@ -37,9 +37,11 @@ import {
   deletePlaylist,
   draftOf,
   fetchPlaylists,
+  fetchPlaylist,
   isDraftDirty,
   savePlaylist,
   type OwnedPlaylist,
+  type OwnedPlaylistSummary,
   type PlaylistDraft,
 } from "./playlistsModel";
 
@@ -51,11 +53,13 @@ export type PlaylistsTabProps = {
 };
 
 export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
-  const [playlists, setPlaylists] = useState<OwnedPlaylist[] | null>(null);
+  const [playlists, setPlaylists] = useState<OwnedPlaylistSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [draft, setDraft] = useState<PlaylistDraft | null>(null);
+  const [saved, setSaved] = useState<OwnedPlaylist | null>(null);
   const [busy, setBusy] = useState(false);
+  const keyedRequest = useRef(0);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const load = useCallback(async () => {
@@ -71,20 +75,50 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     void load();
   }, [load]);
 
-  // The deep link opens its playlist once the list is in; a key the member
-  // may not edit, or one that does not exist, just shows the list.
-  const pendingInitialKey = useRef(initialKey);
-  useEffect(() => {
-    const key = pendingInitialKey.current;
-    if (!key || playlists === null) return;
-    pendingInitialKey.current = undefined;
-    const target = playlists.find((entry) => entry.key === key);
-    if (target?.editable) setDraft(draftOf(target));
-  }, [playlists]);
+  const openPlaylist = useCallback(async (target: Pick<OwnedPlaylistSummary, "key" | "editable">) => {
+    if (!target.editable) return;
+    const request = ++keyedRequest.current;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const playlist = await fetchPlaylist(target.key);
+      if (request !== keyedRequest.current || !playlist.editable) return;
+      setSaved(playlist);
+      setDraft(draftOf(playlist));
+    } catch (error) {
+      if (request !== keyedRequest.current) return;
+      setNotice({
+        tone: "danger",
+        message: error instanceof Error ? error.message : "Unable to load that playlist.",
+      });
+    } finally {
+      if (request === keyedRequest.current) setBusy(false);
+    }
+  }, []);
 
-  const saved = draft && draft.expectedUpdatedAt !== null
-    ? (playlists?.find((entry) => entry.key === draft.key) ?? null)
-    : null;
+  // A deep link starts its keyed read independently of the compact list.
+  useEffect(() => {
+    if (!initialKey) return;
+    let cancelled = false;
+    const request = ++keyedRequest.current;
+    void fetchPlaylist(initialKey)
+      .then((playlist) => {
+        if (cancelled || request !== keyedRequest.current || !playlist.editable) return;
+        setSaved(playlist);
+        setDraft(draftOf(playlist));
+      })
+      .catch((error) => {
+        if (cancelled || request !== keyedRequest.current) return;
+        setNotice({
+          tone: "danger",
+          message: error instanceof Error ? error.message : "Unable to load that playlist.",
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialKey]);
+
   const isDirty = draft ? isDraftDirty(draft, saved) : false;
   const { guard, dialog: dirtyDialog } = useDirtyGuard(isDirty, {
     description: "This playlist has changes that are not saved. Discarding drops them; the stored playlist is unchanged.",
@@ -100,15 +134,21 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "playlists", slug: openKey ?? undefined }));
   }, [openKey]);
 
-  /** Runs one write, reloads the list, and reports the outcome. */
+  /** Runs one write and reports the completed write separately from refresh failures. */
   const run = useCallback(
-    async (action: () => Promise<string>) => {
+    async (action: () => Promise<string>, refresh = true) => {
       setBusy(true);
       setNotice(null);
       try {
         const success = await action();
-        await load();
         setNotice({ tone: "success", message: success });
+        if (refresh) {
+          try {
+            await load();
+          } catch {
+            setNotice({ tone: "warning", message: `${success} Refresh failed; use Refresh to try again.` });
+          }
+        }
       } catch (error) {
         setNotice({
           tone: "danger",
@@ -134,16 +174,31 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
       </div>,
       onConfirm: () => run(async () => {
         const stored = await savePlaylist(draft, { sendOwner: isAdmin && creating });
+        setSaved(stored);
         setDraft(draftOf(stored));
+        setPlaylists((current) => {
+          const summary: OwnedPlaylistSummary = {
+            key: stored.key,
+            title: stored.title,
+            work_count: stored.replication_slugs.length,
+            updated_at: stored.updated_at,
+            updated_by: stored.updated_by,
+            owner_email: stored.owner_email,
+            editable: stored.editable,
+          };
+          if (!current) return [summary];
+          return [...current.filter((entry) => entry.key !== stored.key), summary]
+            .sort((left, right) => left.title.localeCompare(right.title));
+        });
         const dropped = stored.pruned.length > 0
           ? ` ${stored.pruned.length} ineligible entries were dropped.`
           : "";
         return `${creating ? "Created" : "Saved"} "${stored.title}".${dropped}`;
-      }),
+      }, false),
     });
   };
 
-  const assignOwner = (target: OwnedPlaylist, ownerEmail: string | null) => {
+  const assignOwner = (target: Pick<OwnedPlaylist, "key" | "title" | "owner_email">, ownerEmail: string | null) => {
     confirm(
       ownerEmail
         ? {
@@ -153,9 +208,17 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             confirmLabel: `Assign to ${ownerEmail}`,
             onConfirm: () =>
               run(async () => {
-                await assignPlaylistOwner(target.key, ownerEmail);
+                const result = await assignPlaylistOwner(target.key, ownerEmail);
+                setPlaylists((current) => current?.map((entry) =>
+                  entry.key === target.key
+                    ? { ...entry, owner_email: result.owner_email, updated_at: result.updated_at, updated_by: result.updated_by, editable: true }
+                    : entry
+                ) ?? current);
+                setSaved((current) => current?.key === target.key
+                  ? { ...current, owner_email: result.owner_email, updated_at: result.updated_at, updated_by: result.updated_by, editable: true }
+                  : current);
                 return `"${target.title}" now belongs to ${ownerEmail}.`;
-              }),
+              }, false),
           }
         : {
             title: `Make "${target.title}" unowned?`,
@@ -165,14 +228,22 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             destructive: true,
             onConfirm: () =>
               run(async () => {
-                await assignPlaylistOwner(target.key, null);
+                const result = await assignPlaylistOwner(target.key, null);
+                setPlaylists((current) => current?.map((entry) =>
+                  entry.key === target.key
+                    ? { ...entry, owner_email: null, updated_at: result.updated_at, updated_by: result.updated_by, editable: true }
+                    : entry
+                ) ?? current);
+                setSaved((current) => current?.key === target.key
+                  ? { ...current, owner_email: null, updated_at: result.updated_at, updated_by: result.updated_by, editable: true }
+                  : current);
                 return `"${target.title}" is unowned and admin-only again.`;
-              }),
+              }, false),
           },
     );
   };
 
-  const remove = (target: OwnedPlaylist) => {
+  const remove = (target: OwnedPlaylistSummary) => {
     confirm({
       title: `Remove ${target.title}?`,
       description:
@@ -183,8 +254,10 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
         run(async () => {
           await deletePlaylist(target.key);
           setDraft((current) => (current?.key === target.key ? null : current));
+          setSaved((current) => (current?.key === target.key ? null : current));
+          setPlaylists((current) => current?.filter((entry) => entry.key !== target.key) ?? current);
           return `Removed "${target.title}".`;
-        }),
+        }, false),
     });
   };
 
@@ -209,7 +282,11 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
               variant="accent"
               size="sm"
               disabled={busy || (draft !== null && draft.expectedUpdatedAt === null)}
-              onClick={() => guard(() => setDraft({ ...EMPTY_DRAFT }))}
+              onClick={() => guard(() => {
+                keyedRequest.current += 1;
+                setSaved(null);
+                setDraft({ ...EMPTY_DRAFT });
+              })}
             >
               <Icon icon="lucide:plus" size={14} />
               New playlist
@@ -246,7 +323,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
                     {!playlist.editable ? <EditorStatusPill tone="neutral">Read only</EditorStatusPill> : null}
                   </div>
                   <p className="theme-text-faint truncate text-xs">
-                    {playlist.replication_slugs.length} {playlist.replication_slugs.length === 1 ? "work" : "works"}
+                    {playlist.work_count} {playlist.work_count === 1 ? "work" : "works"}
                     {" · updated "}
                     {playlist.updated_at.slice(0, 10)}
                     {isAdmin ? ` · ${playlist.owner_email ?? "unowned"}` : ""}
@@ -259,7 +336,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
                       variant="secondary"
                       size="sm"
                       disabled={busy || draft?.key === playlist.key}
-                      onClick={() => guard(() => setDraft(draftOf(playlist)))}
+                      onClick={() => guard(() => void openPlaylist(playlist))}
                     >
                       <Icon icon="lucide:pencil" size={14} />
                       Edit
@@ -296,7 +373,11 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             saveLabel="Review playlist changes"
             onChange={setDraft}
             onSave={save}
-            onCancel={() => guard(() => setDraft(null))}
+            onCancel={() => guard(() => {
+              keyedRequest.current += 1;
+              setSaved(null);
+              setDraft(null);
+            })}
           />
         </EditorSection>
       ) : null}

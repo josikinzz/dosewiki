@@ -4,7 +4,7 @@ import { Icon } from "@/components/common/Icon";
 
 import { buildTagRegistry, type TagMutation, type TagMutationResult } from "@/utils/data/tagRegistry";
 import type { SubstanceArticle } from "@/schema";
-import type { TagRegistryEntry } from "../../../../convex/lib/substanceTagRegistryProjection";
+import type { TagRegistryEntry } from "../../../../server/lib/substanceTagRegistryProjection";
 import { resolveEditorArticleSlug } from "../context/devModeUtils";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { useDevMode } from "../context/DevModeContext";

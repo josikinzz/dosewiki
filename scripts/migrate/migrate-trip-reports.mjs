@@ -8,13 +8,13 @@
  * If no path is provided, defaults to looking for reports.json in the current directory.
  * 
  * Prerequisites:
- *   - Convex deployment must be running
- *   - TARGET_CONVEX_URL, CONVEX_URL, or VITE_CONVEX_URL must be set (or use .env.local)
+ *   - Postgres deployment must be running
+ *   - TARGET_POSTGRES_URL, POSTGRES_DIRECT_URL, or POSTGRES_POOLED_URL must be set (or use .env.local)
  */
 
 import { readFileSync, existsSync } from "fs";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { assertDataOpsWriteAllowed,
 batchAndApplyMutations,
 createDataOpsRunContext,
@@ -23,7 +23,7 @@ requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { writeAudit
 
 // Configuration
 const DEFAULT_REPORTS_PATH = "./reports.json";
-const BATCH_SIZE = 50; // Convex mutation size limit considerations
+const BATCH_SIZE = 50; // Postgres mutation size limit considerations
 
 /**
  * Transform a MongoDB-style report to our clean schema.
@@ -147,16 +147,16 @@ async function main() {
 
   printDataOpsRunContext(runContext);
 
-  let convexUrl;
+  let dataUrl;
   try {
-    convexUrl = requireTargetUrl(runContext);
+    dataUrl = requireTargetUrl(runContext);
   } catch (error) {
     console.error(`❌ ${error.message}`);
     process.exit(1);
   }
 
   if (dryRun) {
-    console.log("\nDry run only. No Convex writes performed.");
+    console.log("\nDry run only. No Postgres writes performed.");
     process.exit(0);
   }
 
@@ -167,9 +167,9 @@ async function main() {
     process.exit(1);
   }
 
-  // Initialize Convex client
-  console.log(`🔗 Connecting to Convex: ${convexUrl}`);
-  const client = createDataClient({ target: convexUrl }).client;
+  // Initialize Postgres client
+  console.log(`🔗 Connecting to Postgres: ${postgresFingerprintFromUrl(dataUrl)}`);
+  const client = createDataClient({ target: dataUrl }).client;
 
   // Write audit log before making changes
   const { path: auditLogPath } = writeAuditLog({

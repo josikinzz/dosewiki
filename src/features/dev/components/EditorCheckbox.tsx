@@ -41,7 +41,7 @@ export const EditorCheckbox = forwardRef<HTMLInputElement, EditorCheckboxProps>(
         aria-describedby={descriptionId}
         className={cn(
           "size-4 shrink-0 cursor-pointer rounded border border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)]",
-          "transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-ring-soft)] focus-visible:ring-offset-0",
+          "transition theme-focus-ring-tight",
           "disabled:cursor-not-allowed disabled:opacity-50",
           checkboxToneClasses[tone],
           className,

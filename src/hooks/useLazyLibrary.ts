@@ -15,7 +15,8 @@
  * registry projection, so nothing ever drains the whole corpus.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { buildLibrary } from "../data/builders/libraryBuilder";
 import { createEmptyArticle } from "../data/schema/defaults.generated";
 import type { LibraryData } from "../data/SubstanceIndexProvider";
@@ -24,9 +25,9 @@ import { useIndexLayouts } from "./useIndexLayouts";
 
 /**
  * Server-side drain endpoint. The editor projections carry editor-only state
- * and therefore require an editor actor on the Convex side; the browser holds
+ * and therefore require an editor actor on the Postgres side; the browser holds
  * no admin intent token, so the page walk happens behind the editor-session-
- * guarded Next route instead of over the browser Convex socket.
+ * guarded Next route instead of over the browser Postgres socket.
  */
 const EDITOR_LIBRARY_ENDPOINT = "/api/dev/editor-library";
 
@@ -54,68 +55,137 @@ function expandEditorLibraryEntry(entry: EditorLibraryEntry): SubstanceArticle {
  * @returns Library data, loading state, and whether library is ready
  */
 export function useLazyLibrary(enabled: boolean) {
-  const [convexArticles, setConvexArticles] = useState<SubstanceArticle[] | null>(null);
-
+  const session = useSession();
+  const readerIdentity = session.status === "authenticated"
+    ? session.data?.user?.email?.trim().toLowerCase() ?? null
+    : null;
+  const [requested, setRequested] = useState(false);
+  const active = enabled || requested;
+  const [dataArticles, setDataArticles] = useState<SubstanceArticle[] | null>(null);
+  const [dataIdentity, setDataIdentity] = useState<string | null>(null);
+  const waiters = useRef<Array<{ identity: string | null; resolve: () => void; reject: (error: Error) => void }>>([]);
+  const [loadError, setLoadError] = useState<Error | null>(null);
+  const [corpusSettled, setCorpusSettled] = useState(false);
+  const [reloadGeneration, setReloadGeneration] = useState(0);
   useEffect(() => {
-    if (!enabled) {
-      setConvexArticles(null);
+    if (!active || !readerIdentity) {
+      setDataArticles(null);
+      setDataIdentity(null);
+      setCorpusSettled(false);
+      setLoadError(null);
       return;
     }
 
     let cancelled = false;
+    const controller = new AbortController();
+    setLoadError(null);
+    setCorpusSettled(false);
 
-    void fetch(EDITOR_LIBRARY_ENDPOINT)
-      .then((response) => (response.ok ? (response.json() as Promise<EditorLibraryPayload>) : null))
+    void fetch(EDITOR_LIBRARY_ENDPOINT, { signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => null) as EditorLibraryPayload | { error?: unknown } | null;
+        if (!response.ok) {
+          const message = payload && "error" in payload && typeof payload.error === "string"
+            ? payload.error
+            : `Editor library read failed (${response.status}).`;
+          throw new Error(message);
+        }
+        if (!payload || !("articles" in payload) || !Array.isArray(payload.articles)) {
+          throw new Error("The editor library response is incomplete.");
+        }
+        return payload;
+      })
       .then((payload) => {
         if (cancelled) return;
-        setConvexArticles((payload?.articles ?? []).map(expandEditorLibraryEntry));
+        setDataArticles(payload.articles.map(expandEditorLibraryEntry));
+        setDataIdentity(readerIdentity);
+        setCorpusSettled(true);
       })
-      .catch(() => {
-        if (!cancelled) setConvexArticles([]);
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        // A failed first read has no corpus baseline. A failed refresh must not
+        // erase the last successful data while the UI reports the error.
+        setCorpusSettled(true);
+        setLoadError(error instanceof Error ? error : new Error("The editor library could not be loaded."));
       });
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [enabled]);
+  }, [active, readerIdentity, reloadGeneration]);
 
-  const isComplete = enabled && convexArticles !== null;
+  useEffect(() => () => {
+    const obsolete = waiters.current.filter((waiter) => waiter.identity === readerIdentity);
+    waiters.current = waiters.current.filter((waiter) => waiter.identity !== readerIdentity);
+    for (const waiter of obsolete) waiter.reject(new Error("The editor session changed."));
+  }, [readerIdentity]);
 
-  // Load index layouts from Convex
-  const { configs: indexConfigs, isLoading: isLoadingConfigs } = useIndexLayouts(enabled);
+  const isComplete = active && corpusSettled;
+
+  // Layouts and the corpus share the same intent and authenticated cache.
+  const mayLoadIndexLayouts = active && readerIdentity !== null;
+  const {
+    configs: indexConfigs,
+    isLoading: isLoadingConfigs,
+    error: layoutsError,
+    retry: retryLayouts,
+  } = useIndexLayouts(mayLoadIndexLayouts);
 
   const library = useMemo<LibraryData<SubstanceArticle> | null>(() => {
-    // Not enabled - return null
-    if (!enabled) {
+    if (!active) {
       return null;
     }
 
-    // Still draining pages from Convex
-    if (!isComplete || convexArticles === null) {
+    // A resolved empty corpus is valid; a failed read is not a baseline.
+    if (!isComplete || dataArticles === null || dataIdentity !== readerIdentity || loadError) {
       return null;
     }
 
-    // Loaded but empty - still return null (no point building empty library)
-    if (convexArticles.length === 0) {
-      return null;
-    }
-
-    // Wait for index configs to load
     if (!indexConfigs) {
       return null;
     }
 
-    // Build library with configs from Convex
-    return buildLibrary(convexArticles, indexConfigs);
-  }, [enabled, isComplete, convexArticles, indexConfigs]);
+    // Build library with configs from Postgres
+    return buildLibrary(dataArticles, indexConfigs);
+  }, [active, isComplete, dataArticles, dataIdentity, readerIdentity, indexConfigs, loadError]);
+
+  const error = loadError?.message ?? layoutsError;
+  useEffect(() => {
+    if (!isComplete || isLoadingConfigs) return;
+    if (!library && !error) return;
+    const pending = waiters.current.splice(0);
+    if (library) {
+      for (const waiter of pending) waiter.resolve();
+    } else {
+      const failure = new Error(error ?? "The editor library could not be loaded.");
+      for (const waiter of pending) waiter.reject(failure);
+    }
+  }, [error, library, loadError, isComplete, isLoadingConfigs]);
+
+  const requestLibrary = useCallback(() => {
+    if (!readerIdentity) return Promise.reject(new Error("Sign in before loading the editor library."));
+    if (library) return Promise.resolve();
+    if (error) {
+      // Clear the settled failure before registering the retry waiter so the
+      // previous attempt cannot reject a promise for the new attempt.
+      setLoadError(null);
+      setCorpusSettled(false);
+      setReloadGeneration((generation) => generation + 1);
+      retryLayouts();
+    }
+    setRequested(true);
+    return new Promise<void>((resolve, reject) => {
+      waiters.current.push({ identity: readerIdentity, resolve, reject });
+    });
+  }, [error, library, readerIdentity, retryLayouts]);
 
   return {
     library,
-    // isLoading: enabled and either pages or configs still loading
-    isLoading: enabled && (!isComplete || isLoadingConfigs),
-    // isReady: library has been built successfully
+    requestLibrary,
+    error,
+    isLoading: active && (!isComplete || (!loadError && dataIdentity !== readerIdentity) || !mayLoadIndexLayouts || isLoadingConfigs),
     isReady: library !== null,
-    // isEmpty: query completed but returned no data
-    isEmpty: isComplete && (convexArticles?.length ?? 0) === 0,
+    isEmpty: isComplete && !loadError && dataIdentity === readerIdentity && dataArticles !== null && dataArticles.length === 0,
   };
 }

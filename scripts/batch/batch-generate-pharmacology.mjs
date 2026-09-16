@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
 import { createDataClient } from "../lib/data-client.ts";
 
@@ -12,10 +13,10 @@ import {
   selectArticlesForProcessing,
 } from "./pharmacology/lib.mjs";
 import {
-  initConvexClient,
-  loadArticlesFromConvex,
+  initPostgresClient,
+  loadArticlesFromPostgres,
   loadPharmacologyQuoteSlugs,
-  loadPromptFromConvex,
+  loadPromptFromPostgres,
 } from "./pharmacology/loader.mjs";
 import { createBackup, processAll } from "./pharmacology/persist.mjs";
 
@@ -33,11 +34,11 @@ async function main(options) {
   const sourceUrl = targetContext.sourceUrl;
   const targetUrl = targetContext.targetUrl;
   if (!sourceUrl) {
-    console.error("Error: batch source Convex URL is required");
+    console.error("Error: batch source Postgres URL is required");
     process.exit(1);
   }
   if (!targetUrl && !options.dryRun) {
-    console.error("Error: batch target Convex URL is required");
+    console.error("Error: batch target Postgres URL is required");
     process.exit(1);
   }
 
@@ -49,39 +50,39 @@ async function main(options) {
       { label: "Mode", value: options.dryRun ? "Dry run" : "Live run" },
       { label: "Priority Scope", value: options.all ? "All priorities" : "High/normal only" },
       { label: "Include Complete", value: options.includeComplete ? "Yes" : "No" },
-      { label: "Source Convex", value: sourceUrl },
-      { label: "Target Convex", value: targetUrl },
+      { label: "Source Postgres", value: postgresFingerprintFromUrl(sourceUrl) },
+      { label: "Target Postgres", value: postgresFingerprintFromUrl(targetUrl) },
     ],
   });
 
-  initConvexClient(sourceUrl);
+  initPostgresClient(sourceUrl);
 
-  console.log("\nLoading prompt from Convex...");
+  console.log("\nLoading prompt from Postgres...");
   let systemPrompt;
   try {
-    systemPrompt = await loadPromptFromConvex();
+    systemPrompt = await loadPromptFromPostgres();
     console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
   } catch (error) {
     console.error(`Error loading prompt: ${error.message}`);
     process.exit(1);
   }
 
-  console.log("\nLoading authoritative articles from Convex...");
+  console.log("\nLoading authoritative articles from Postgres...");
   let allArticles;
   let targetArticles;
   let pharmacologyQuoteSlugs;
   try {
     const targetClient = createDataClient({ target: targetUrl }).client;
     [allArticles, targetArticles, pharmacologyQuoteSlugs] = await Promise.all([
-      loadArticlesFromConvex(),
-      sourceUrl === targetUrl ? loadArticlesFromConvex() : loadArticlesFromConvex(targetClient),
+      loadArticlesFromPostgres(),
+      sourceUrl === targetUrl ? loadArticlesFromPostgres() : loadArticlesFromPostgres(targetClient),
       loadPharmacologyQuoteSlugs(),
     ]);
     console.log(`  Articles loaded: ${allArticles.length}`);
     console.log(`  Target articles loaded: ${targetArticles.length}`);
     console.log(`  Pharmacology quote docs: ${pharmacologyQuoteSlugs.size}`);
   } catch (error) {
-    console.error(`Error loading Convex data: ${error.message}`);
+    console.error(`Error loading Postgres data: ${error.message}`);
     process.exit(1);
   }
 
@@ -135,7 +136,7 @@ async function main(options) {
 
   const adminKey = options.dryRun ? null : requireBatchArticleWriteToken();
   if (!adminKey) {
-    console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+    console.error("Error: DATA_ADMIN_KEY environment variable is required for Postgres sync");
     process.exit(1);
   }
 
@@ -147,7 +148,7 @@ async function main(options) {
   const startTime = Date.now();
   const results = await processAll(apiKey, articles, systemPrompt, options, {
     adminKey,
-    convexClient: createBatchTargetClient(targetContext),
+    postgresClient: createBatchTargetClient(targetContext),
     allArticles,
     sourceArticlesBySlug: new Map(allArticles.map((article) => [getArticleSlug(article), article])),
     targetArticlesBySlug: new Map(targetArticles.map((article) => [getArticleSlug(article), article])),

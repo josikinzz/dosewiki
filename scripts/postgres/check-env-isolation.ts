@@ -1,6 +1,6 @@
 /**
  * Ticket 19: a preview-shaped environment (VERCEL_ENV=preview) must never
- * resolve a production writer through an env fallback, on either backend.
+ * resolve a production writer through an implicit target or a retired backend.
  *
  *   bun scripts/postgres/check-env-isolation.ts
  *
@@ -11,12 +11,10 @@
  * every one of them to refuse. It then proves the explicit path still works so
  * the refusals are not a broken ceremony. Exits non-zero on any leak.
  *
- * Rule (documented in scripts/README.md): privileged writes accept a target
- * only from `--target-url` / TARGET_CONVEX_URL (Convex) or `--target` /
- * TARGET_POSTGRES_URL (Postgres). CONVEX_URL, VITE_CONVEX_URL,
- * NEXT_PUBLIC_CONVEX_URL, POSTGRES_POOLED_URL, and POSTGRES_DIRECT_URL are
- * read-side fallbacks and never select a write target; a non-loopback Postgres
- * host also needs `--allow-remote` plus POSTGRES_IMPORT_CONFIRM=<host>.
+ * Privileged writes require --target or TARGET_POSTGRES_URL. App read URLs never
+ * select a write target. Remote access additionally requires --allow-remote and
+ * POSTGRES_IMPORT_CONFIRM for the exact hostname. Legacy Convex selectors never
+ * select a normal backend, even when paired with a valid write ceremony.
  */
 
 import fs from "node:fs";
@@ -33,13 +31,13 @@ import {
 import { createDataClient } from "../lib/data-client.ts";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const CONVEX_PROD = "https://glad-minnow-656.convex.cloud";
+const RETIRED_SOURCE = "https://retired.example.invalid";
 /** Synthetic fixture only: a fake host with placeholder userinfo, assembled so no credential-shaped literal appears in source. */
 const POSTGRES_PROD = ["postgres:", "", "writer:placeholder@db.example.planetscale.internal:6432", "dosewiki"].join("/");
 const POSTGRES_PROD_FINGERPRINT = "db.example.planetscale.internal/dosewiki";
 const OPERATION = "check-env-isolation";
 
-type Check = { backend: "convex" | "postgres"; check: string; pass: boolean; detail?: string };
+type Check = { backend: "postgres"; check: string; pass: boolean; detail?: string };
 const checks: Check[] = [];
 
 function refuses(backend: Check["backend"], check: string, run: () => unknown, expected: RegExp): void {
@@ -62,14 +60,13 @@ function allows(backend: Check["backend"], check: string, run: () => unknown): v
   }
 }
 
-const previewConvexEnv: NodeJS.ProcessEnv = {
+const legacyOnlyEnv: NodeJS.ProcessEnv = {
   VERCEL_ENV: "preview",
   NODE_ENV: "production",
-  CONVEX_URL: CONVEX_PROD,
-  VITE_CONVEX_URL: CONVEX_PROD,
-  NEXT_PUBLIC_CONVEX_URL: CONVEX_PROD,
-  CONVEX_PUBLIC_READ_URL: CONVEX_PROD,
-  CONVEX_ADMIN_KEY: "leaked-admin-key",
+  CONVEX_URL: RETIRED_SOURCE,
+  VITE_CONVEX_URL: RETIRED_SOURCE,
+  NEXT_PUBLIC_CONVEX_URL: RETIRED_SOURCE,
+  DATA_ADMIN_KEY: "fixture-admin-key",
 };
 
 const previewPostgresEnv: NodeJS.ProcessEnv = {
@@ -78,30 +75,24 @@ const previewPostgresEnv: NodeJS.ProcessEnv = {
   DATA_BACKEND: "postgres",
   POSTGRES_POOLED_URL: POSTGRES_PROD,
   POSTGRES_DIRECT_URL: POSTGRES_PROD,
-  CONVEX_ADMIN_KEY: "leaked-admin-key",
+  DATA_ADMIN_KEY: "leaked-admin-key",
 };
 
-const convexCeremony = ["--write", "--execute", `--confirm-write=${OPERATION}`, "--expected-deployment=glad-minnow-656"];
 const postgresCeremony = ["--write", "--execute", `--confirm-write=${OPERATION}`, `--expected-deployment=${POSTGRES_PROD_FINGERPRINT}`];
 
-// Convex: browser and compatibility variables never select a write target.
-refuses("convex", "production-write-command ignores CONVEX_URL/VITE/NEXT_PUBLIC fallbacks", () => {
-  assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: convexCeremony, env: previewConvexEnv, loadsEnvLocal: false }));
-}, /require TARGET_CONVEX_URL or --target-url.*ignored: CONVEX_URL, VITE_CONVEX_URL, NEXT_PUBLIC_CONVEX_URL/);
+refuses("postgres", "production writer refuses missing backend even with legacy selectors", () => {
+  assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: postgresCeremony, env: legacyOnlyEnv, loadsEnvLocal: false }));
+}, /DATA_BACKEND/);
 
-refuses("convex", "data-ops run context refuses a fallback key for privileged writes", () => {
-  assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: convexCeremony, env: previewConvexEnv, loadsEnvLocal: false, requiresExecute: true }));
-}, /requires TARGET_CONVEX_URL or --target-url for privileged writes; CONVEX_URL is not allowed/);
+refuses("postgres", "data operations refuse missing backend even with legacy selectors", () => {
+  assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: postgresCeremony, env: legacyOnlyEnv, loadsEnvLocal: false, requiresExecute: true }));
+}, /DATA_BACKEND/);
 
-refuses("convex", "createDataClient resolves no target from fallbacks", () => {
-  createDataClient({ argv: [], env: previewConvexEnv });
-}, /no Convex URL/);
-
-allows("convex", "explicit TARGET_CONVEX_URL with the full ceremony still passes", () => {
-  assertProductionWriteAllowed(createProductionWriteCommand({
-    operation: OPERATION, argv: convexCeremony, env: { ...previewConvexEnv, TARGET_CONVEX_URL: CONVEX_PROD }, loadsEnvLocal: false,
-  }));
-});
+for (const backend of [undefined, "convex", "postgress"]) {
+  refuses("postgres", `client refuses backend ${String(backend)} without opening a connection`, () => {
+    createDataClient({ argv: [], env: { ...legacyOnlyEnv, DATA_BACKEND: backend, TARGET_CONVEX_URL: RETIRED_SOURCE } });
+  }, /DATA_BACKEND/);
+}
 
 // Postgres: the app's pooled/direct URLs are read fallbacks, never a writer.
 refuses("postgres", "production-write-command ignores POSTGRES_POOLED_URL/POSTGRES_DIRECT_URL", () => {

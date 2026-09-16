@@ -1,13 +1,13 @@
 // GENERATED FILE. Do not edit by hand.
 // Producer: scripts/postgres/generateDrizzleSchema.ts (npm run generate:postgres-schema)
-// Input: convex/schema.ts composed export.
+// Input: server/schema.ts composed export.
 
 import { sql } from "drizzle-orm";
 import { boolean, doublePrecision, index, jsonb, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 
 export type ColumnKind = "text" | "double" | "boolean" | "bigint" | "bytea" | "jsonb";
 
-/** `optional` means the Convex field may be absent; a NULL in such a column reconstructs as an absent field, otherwise as an explicit null. */
+/** `optional` means the document field may be absent; a NULL in such a column reconstructs as an absent field, otherwise as an explicit null. */
 export type ColumnSpec = { kind: ColumnKind; optional: boolean };
 
 export const articleDraftReceipts = pgTable(
@@ -623,6 +623,7 @@ export const inviteCodes = pgTable(
     _creationTime: doublePrecision("_creationTime").notNull(),
     "codeHash": text("codeHash").notNull(),
     "role": text("role").notNull(),
+    "glossaryLocales": jsonb("glossaryLocales"),
     "createdBy": text("createdBy").notNull(),
     "createdAt": text("createdAt").notNull(),
     "expiresAt": text("expiresAt").notNull(),
@@ -677,6 +678,7 @@ export const memberships = pgTable(
     "name": text("name"),
     "image": text("image"),
     "role": text("role").notNull(),
+    "glossaryLocales": jsonb("glossaryLocales"),
     "provider": text("provider"),
     "providerAccountId": text("providerAccountId"),
     "createdAt": text("createdAt").notNull(),
@@ -1617,9 +1619,9 @@ export const tableColumns = {
   effectIndexArticles: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "title": { kind: "text", optional: false }, "tags": { kind: "jsonb", optional: false }, "publication_status": { kind: "text", optional: true }, "featured": { kind: "boolean", optional: true }, "shortDescription": { kind: "text", optional: true }, "publicationDate": { kind: "text", optional: true }, "body_raw": { kind: "text", optional: false }, "body_ast": { kind: "jsonb", optional: true }, "authors": { kind: "jsonb", optional: true }, "citations": { kind: "jsonb", optional: true }, "kind": { kind: "text", optional: true }, "status": { kind: "text", optional: true }, "bodyFormat": { kind: "text", optional: true }, "authorProfileKeys": { kind: "jsonb", optional: true }, "coverImageUrl": { kind: "text", optional: true }, "teaser": { kind: "text", optional: true } },
   generatedPublicationOperations: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "proposalId": { kind: "text", optional: false }, "payloadDigest": { kind: "text", optional: false }, "artifactDigest": { kind: "text", optional: false }, "manifestDigest": { kind: "text", optional: false }, "rawResponseHash": { kind: "text", optional: false }, "targetDeploymentFingerprint": { kind: "text", optional: false }, "slug": { kind: "text", optional: false }, "profile": { kind: "text", optional: false }, "affectedPaths": { kind: "jsonb", optional: false }, "actorEmail": { kind: "text", optional: false }, "reviewedBy": { kind: "text", optional: false }, "reviewedAt": { kind: "text", optional: false }, "previousHash": { kind: "text", optional: false }, "nextHash": { kind: "text", optional: false }, "hashVersion": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false } },
   indexLayouts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "type": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "categories": { kind: "jsonb", optional: false } },
-  inviteCodes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "codeHash": { kind: "text", optional: false }, "role": { kind: "text", optional: false }, "createdBy": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "expiresAt": { kind: "text", optional: false }, "maxUses": { kind: "double", optional: false }, "redemptions": { kind: "jsonb", optional: false }, "revokedAt": { kind: "text", optional: true }, "note": { kind: "text", optional: true } },
+  inviteCodes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "codeHash": { kind: "text", optional: false }, "role": { kind: "text", optional: false }, "glossaryLocales": { kind: "jsonb", optional: true }, "createdBy": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "expiresAt": { kind: "text", optional: false }, "maxUses": { kind: "double", optional: false }, "redemptions": { kind: "jsonb", optional: false }, "revokedAt": { kind: "text", optional: true }, "note": { kind: "text", optional: true } },
   mailingListSubscribers: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "email": { kind: "text", optional: false }, "list": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false }, "ip_hash": { kind: "text", optional: true }, "user_agent": { kind: "text", optional: true }, "honeypot_triggered": { kind: "boolean", optional: false } },
-  memberships: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "email": { kind: "text", optional: false }, "username": { kind: "text", optional: true }, "passwordHash": { kind: "text", optional: true }, "passwordUpdatedAt": { kind: "text", optional: true }, "resetTokenHash": { kind: "text", optional: true }, "resetTokenExpiresAt": { kind: "text", optional: true }, "invitedBy": { kind: "text", optional: true }, "inviteCodeId": { kind: "text", optional: true }, "bannedAt": { kind: "text", optional: true }, "name": { kind: "text", optional: true }, "image": { kind: "text", optional: true }, "role": { kind: "text", optional: false }, "provider": { kind: "text", optional: true }, "providerAccountId": { kind: "text", optional: true }, "createdAt": { kind: "text", optional: false }, "updatedAt": { kind: "text", optional: false }, "lastSeenAt": { kind: "text", optional: true } },
+  memberships: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "email": { kind: "text", optional: false }, "username": { kind: "text", optional: true }, "passwordHash": { kind: "text", optional: true }, "passwordUpdatedAt": { kind: "text", optional: true }, "resetTokenHash": { kind: "text", optional: true }, "resetTokenExpiresAt": { kind: "text", optional: true }, "invitedBy": { kind: "text", optional: true }, "inviteCodeId": { kind: "text", optional: true }, "bannedAt": { kind: "text", optional: true }, "name": { kind: "text", optional: true }, "image": { kind: "text", optional: true }, "role": { kind: "text", optional: false }, "glossaryLocales": { kind: "jsonb", optional: true }, "provider": { kind: "text", optional: true }, "providerAccountId": { kind: "text", optional: true }, "createdAt": { kind: "text", optional: false }, "updatedAt": { kind: "text", optional: false }, "lastSeenAt": { kind: "text", optional: true } },
   moleculeClassTemplates: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "classKey": { kind: "text", optional: false }, "molblock": { kind: "text", optional: false }, "boldBonds": { kind: "jsonb", optional: true }, "updatedAt": { kind: "double", optional: false }, "updatedBy": { kind: "text", optional: true } },
   moleculeOverrides: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "svg": { kind: "text", optional: false }, "molblock": { kind: "text", optional: false }, "smiles": { kind: "text", optional: true }, "boldBonds": { kind: "jsonb", optional: true }, "source": { kind: "text", optional: true }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
   narrativeRevisions: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "kind": { kind: "text", optional: false }, "key": { kind: "text", optional: false }, "documentId": { kind: "text", optional: false }, "operationId": { kind: "text", optional: false }, "actorEmail": { kind: "text", optional: false }, "actorRole": { kind: "text", optional: false }, "before": { kind: "jsonb", optional: false }, "after": { kind: "jsonb", optional: false }, "baseRevision": { kind: "text", optional: false }, "revision": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "requestHash": { kind: "text", optional: true }, "publications": { kind: "jsonb", optional: true } },
@@ -1721,7 +1723,7 @@ export const tableUniqueKeys = {
   warningBannerRevisions: [["changeId"]],
 } as const satisfies Record<string, readonly (readonly string[])[]>;
 
-/** Convex index descriptors per table: name -> indexed fields in order (`_creationTime` is implicitly last). */
+/** Document index descriptors per table: name -> indexed fields in order (`_creationTime` is implicitly last). */
 export const tableIndexes = {
   articleDraftReceipts: { "by_owner_change": ["ownerEmail","changeId"] },
   articleDrafts: { "by_owner_slug": ["ownerEmail","slug"] },

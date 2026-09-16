@@ -10,7 +10,7 @@
  * splits its payload.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { canApprove } from "@/lib/auth/roles";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
@@ -19,12 +19,12 @@ export const runtime = "nodejs";
 export const GET = protectedRouteOperation({
   auth: "contributor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load owned trip reports via Next route:",
   unexpectedErrorMessage: "Unable to load your trip reports right now.",
-  operation: async ({ auth, actorEmail, convexWrite, request }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, dataWrite, request }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const scopeAll = new URL(request.url).searchParams.get("scope") === "all";
@@ -32,12 +32,13 @@ export const GET = protectedRouteOperation({
       return NextResponse.json({ error: "Admin access required." }, { status: 403 });
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-    const reports = await convexWrite.client.query(api.tripReports.listOwned, {
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const storedReports = await dataWrite.client.query(api.tripReports.listOwned, {
       apiKey,
       actorEmail,
       ...(scopeAll ? { all: true } : {}),
     });
+    const reports = storedReports.map(({ ownerEmail: _ownerEmail, ...report }) => report);
 
     return NextResponse.json({ ok: true, reports });
   },

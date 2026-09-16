@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   buildCitationPromotionPlan,
   applyCitationPromotionPlan,
@@ -29,7 +29,7 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function stripConvexMetadata(article) {
+function stripDataMetadata(article) {
   const { _id, _creationTime, ...clean } = article;
   return clean;
 }
@@ -194,7 +194,7 @@ function evidenceForSource({ country, displayName, fieldPath, claimKey, claim, s
 }
 
 export function buildLegalityCitationPlan({ article, draft }) {
-  const articleForCitation = structuredClone(stripConvexMetadata(article));
+  const articleForCitation = structuredClone(stripDataMetadata(article));
   const existingReferences = Array.isArray(articleForCitation.references) ? articleForCitation.references : [];
   const references = [...existingReferences];
   const referencesByKey = new Map();
@@ -398,7 +398,7 @@ async function main() {
   const draft = JSON.parse(readFileSync(draftPath, "utf8"));
   if (draft.slug !== slug) throw new Error(`Draft slug ${draft.slug} does not match --slug=${slug}.`);
 
-  const targetUrl = requireTargetUrl(runContext, "Convex legality target URL");
+  const targetUrl = requireTargetUrl(runContext, "Postgres legality target URL");
   const client = createDataClient({ target: targetUrl }).client;
   const article = await client.query(api.substanceIndex.getBySlug, { slug });
   if (!article) throw new Error(`No article found for slug: ${slug}`);
@@ -406,7 +406,7 @@ async function main() {
   const plan = buildLegalityCitationPlan({ article, draft });
   printPlan(plan.countries);
   if (!write) {
-    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Convex.");
+    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Postgres.");
     return;
   }
 

@@ -1,8 +1,8 @@
 /** Admin-only warning publication, reconciliation and attributed history. */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@server/postgres/runtime/api";
+import type { Id } from "@server/postgres/runtime/dataModel";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { applyPublicCacheLocally } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -89,7 +89,7 @@ function requireKey(raw: unknown): string {
 
 /**
  * Every `maxLength` passed in comes from `WARNING_BANNER_LIMITS` in
- * `src/data/substanceWarningBanners.ts`, which the Convex mutation validates
+ * `src/data/substanceWarningBanners.ts`, which the Postgres mutation validates
  * against too — the two sides read the same constants so a ceiling can only
  * move in one place. Whitespace is collapsed because a banner renders on one
  * or two lines and a pasted newline would silently break the layout.
@@ -222,24 +222,24 @@ type PublishBody = { action: "publish"; preset: ParsedWarningBanner; guard: Warn
   { action: "restore"; key: string; revisionId: string; guard: WarningGuard };
 
 export const GET = protectedRouteOperation({
-  auth: "admin", rateLimit: "diagnosticRead", capabilities: [{ type: "convexWrite" }],
+  auth: "admin", rateLimit: "diagnosticRead", capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to read warning editor:",
-  operation: async ({ request, actorEmail, convexWrite }) => {
-    if (!convexWrite) throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) throw new Error("Postgres write capability is required.");
     const params = new URL(request.url).searchParams;
     const key = params.get("key");
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
     const result = key
-      ? await convexWrite.client.query(api.warningBanners.getEditorState, {
+      ? await dataWrite.client.query(api.warningBanners.getEditorState, {
           apiKey, actorEmail, key: requireKey(key), ...(params.get("changeId") ? { changeId: params.get("changeId")! } : {}),
         })
-      : { presets: await convexWrite.client.query(api.warningBanners.listEditorPresets, { apiKey, actorEmail }) };
+      : { presets: await dataWrite.client.query(api.warningBanners.listEditorPresets, { apiKey, actorEmail }) };
     return NextResponse.json(result, { headers: privateHeaders });
   },
 });
 
 export const POST = protectedRouteOperation<Record<string, unknown>, PublishBody>({
-  auth: "admin", rateLimit: "editorSmallWrite", capabilities: [{ type: "convexWrite" }],
+  auth: "admin", rateLimit: "editorSmallWrite", capabilities: [{ type: "dataWrite" }],
   body: { maxBytes: 64 * 1024, parse: (raw) => {
     const guard = parseGuard(raw);
     if (raw.action === "restore") {
@@ -250,15 +250,15 @@ export const POST = protectedRouteOperation<Record<string, unknown>, PublishBody
     return { action: "publish", preset: parseWarningBannerBody(raw), guard };
   } },
   unexpectedErrorLabel: "Failed to publish warning:",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) throw new Error("Convex write capability is required.");
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) throw new Error("Postgres write capability is required.");
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
     const result = body.action === "restore"
-      ? await convexWrite.client.mutation(api.warningBanners.restorePreset, {
+      ? await dataWrite.client.mutation(api.warningBanners.restorePreset, {
           apiKey, actorEmail, key: body.key, baseHash: body.guard.baseHash, changeId: body.guard.changeId,
           revisionId: body.revisionId as Id<"warningBannerRevisions">,
         })
-      : await convexWrite.client.mutation(api.warningBanners.upsertPreset, {
+      : await dataWrite.client.mutation(api.warningBanners.upsertPreset, {
           apiKey, actorEmail, ...body.preset, ...body.guard,
         });
     const publication = await publish(result);
@@ -267,17 +267,17 @@ export const POST = protectedRouteOperation<Record<string, unknown>, PublishBody
 });
 
 export const DELETE = protectedRouteOperation<Record<string, unknown>, { key: string; guard: WarningGuard }>({
-  auth: "admin", rateLimit: "editorSmallWrite", capabilities: [{ type: "convexWrite" }],
+  auth: "admin", rateLimit: "editorSmallWrite", capabilities: [{ type: "dataWrite" }],
   body: { maxBytes: 4 * 1024, parse: (raw) => {
     const guard = parseGuard(raw);
     if (guard.scope !== "preset" || guard.slug) throw new JsonBodyError(400, "Deleting a warning is a shared preset operation, never a local assignment.");
     return { key: requireKey(raw.key), guard };
   } },
   unexpectedErrorLabel: "Failed to remove warning:",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) throw new Error("Convex write capability is required.");
-    const result = await convexWrite.client.mutation(api.warningBanners.removePreset, {
-      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) throw new Error("Postgres write capability is required.");
+    const result = await dataWrite.client.mutation(api.warningBanners.removePreset, {
+      apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail, key: body.key, baseHash: body.guard.baseHash, changeId: body.guard.changeId,
     });
     const publication = await publish(result);

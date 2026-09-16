@@ -1,0 +1,27 @@
+{
+  "description": "Representative public routes from the load-times dossier. Override identities for an isolated dataset; availability failures must remain explicit. Use measure.mjs with the corresponding family, locale, artifact revision and device arguments. Mirror entries require their host; --local-host maps that host to loopback without changing the system resolver. Browser interaction and cross-instance freshness verification remain separate recorded scenarios, not inferred from direct navigation.",
+  "routes": [
+    { "family": "home-search-static", "path": "/search?q=lsd", "locale": "en" },
+    { "family": "substance-article", "path": "/lsd", "locale": "en" },
+    { "family": "substance-effect-index", "path": "/substances", "locale": "en" },
+    { "family": "effect-detail", "path": "/effects/drifting", "locale": "en" },
+    { "family": "category-mechanism", "path": "/category/psychedelic", "locale": "en" },
+    { "family": "chemical-tree-detail", "path": "/chemical-classes/tryptamine", "locale": "en" },
+    { "family": "report-index", "path": "/reports", "locale": "en" },
+    { "family": "report-detail", "path": "/reports/ego-rebirth", "locale": "en" },
+    { "family": "publication-index", "path": "/articles", "locale": "en" },
+    { "family": "publication-detail", "path": "/articles/dmt", "locale": "en" },
+    { "family": "contributor-profile", "path": "/contributors/lyrea", "locale": "en" },
+    { "family": "gallery", "path": "/replications", "locale": "en" },
+    { "family": "artist-focus", "path": "/replications/artist/symmetric-vision", "locale": "en" },
+    { "family": "replication-auxiliary", "path": "/replications/audio", "locale": "en" },
+    { "family": "about-documentation", "path": "/about", "locale": "en" },
+    { "family": "about-documentation", "path": "/docs/how", "locale": "en" },
+    { "family": "history", "path": "/changes", "locale": "en" },
+    { "family": "glossary", "path": "/glossary", "locale": "en" },
+    { "family": "replication-embed", "path": "/embed/replications?kind=effect&slug=drifting", "locale": "en" },
+    { "family": "chinese-counterpart", "path": "/lsd", "host": "zh.dose.wiki", "locale": "zh-Hans" },
+    { "family": "chinese-counterpart", "path": "/reports", "host": "zh.dose.wiki", "locale": "zh-Hans" },
+    { "family": "chinese-counterpart", "path": "/replications/audio", "host": "zh.dose.wiki", "locale": "zh-Hans" }
+  ]
+}

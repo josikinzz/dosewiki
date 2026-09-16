@@ -80,6 +80,13 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    slugs, or display labels with `resolveEffectCategoryIcon` from
    `src/features/effects/pages/effectsIndexConfig.ts`. Keep bespoke fallback icons
    only for sections that do not correspond to a canonical effect category.
+8. **Focus is quiet, not an accent frame.** Use `focusRingClassName` or
+   `theme-focus-ring` for a 1px neutral keyboard-focus cue. Use
+   `theme-field-focus` for text fields and selects, which emphasize their
+   existing border without an outside ring. Do not add thick accent outlines,
+   `ring-2`, or ring offsets for clicking, focusing, or loading states in any
+   visual style or color variation. Preserve semantic validation borders and
+   system high-contrast focus indicators.
 
 ## Accent usage rules
 
@@ -100,6 +107,41 @@ slider repaints every accented pixel. In shared and feature UI:
 
 The theme token audit (`npm run theme:tokens:check`, rules `raw-accent-utility`
 and `raw-accent-hex`) enforces the last rule.
+
+## Public page loading
+
+- Keep substance narrative and safety warnings, and effect article prose, in
+  server-rendered components. `SubstanceSecondarySections` and
+  `EffectArticleServer` compose secondary data behind separate Suspense boundaries;
+  editor builds retain resolved enrichment for mutable draft previews. ISR routes
+  still await the complete render on a cold miss, so these boundaries alone do
+  not guarantee early HTTP streaming.
+- Use `SmartLink` for secondary navigation and documentation links. Its default
+  prefetch is driven by hover or focus, not viewport visibility. Reserve eager
+  prefetch for deliberate high-intent destinations.
+- Keep `AppearancePanel` behind the settings popover's dynamic import and Theme
+  Lab styles with the lazy lab component. Opening controls must remain usable
+  after their code arrives.
+- Replication showcases keep a responsive poster until video data is ready.
+  Muted autoplay uses an existing preview rendition where available; explicit
+  playback or sound intent selects the full work. Preserve viewport,
+  reduced-motion, data-saver, and `preload="none"` behavior.
+  While the poster or initial motion frame loads, use the index thumbnail's
+  shared shimmer treatment, not an unavailable-media card. Reserve error
+  placeholders for confirmed failures, stop shimmer when media is ready, and
+  respect reduced motion without adding an artificial loading delay.
+- Gallery SSR and API pagination share `getGalleryBrowsePage`. The default artist
+  view opens with 16 rails and at most 14 previews per rail; focused and filtered
+  grids retain 64-work pages. Hydration must reuse a matching bootstrap rather
+  than replace it. Cursor identity includes query, locale, and corpus revision;
+  stale or mismatched cursors recover through a fresh first page.
+- Effect membership uses the compact native SQL projection and revision-aware
+  cache, not complete substance documents. Effect media reads are scoped to the
+  requested effect; replication details and effect order metadata use batched
+  native lookups. Preserve the complete viewer collection and publication guards.
+- Documentation Mermaid code loads only when a diagram approaches within 400px
+  of the viewport. Retain reserved space, theme updates after activation, stale
+  render guards, and immediate rendering when IntersectionObserver is unavailable.
 
 ## Adding or changing a shared component
 

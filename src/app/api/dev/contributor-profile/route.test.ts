@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
@@ -8,7 +8,7 @@ import { GET, POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     contributorProfiles: {
       getEditorProfile: "contributorProfiles.getEditorProfile",
@@ -43,8 +43,8 @@ const mocks = vi.hoisted(() => ({
   revalidateContributorSurfaces: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: () => ({
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: () => ({
     ok: true,
     capability: {
       client: { query: mocks.query, mutation: mocks.mutation },
@@ -59,7 +59,7 @@ vi.mock("./contributorRevalidation", () => ({
 
 vi.mock("@server/next/contributorAvatarUpload", () => ({
   normalizeAvatarUpload: () => null,
-  uploadAvatarToConvex: vi.fn(),
+  uploadAvatarToR2: vi.fn(),
 }));
 
 function signIn(role: AppRole, email: string) {
@@ -126,7 +126,7 @@ describe("contributor profile route", () => {
     rateLimitMocks.enforceRateLimit.mockClear();
   });
 
-  it("refuses a legacy viewer sign-in on both verbs before touching Convex", async () => {
+  it("refuses a legacy viewer sign-in on both verbs before touching Postgres", async () => {
     signIn("viewer", "ada@example.com");
 
     expect((await GET(getRequest("ADA"))).status).toBe(403);
@@ -233,7 +233,7 @@ describe("contributor profile route", () => {
       );
     });
 
-    it("maps Convex's ownership refusal to 403", async () => {
+    it("maps Postgres's ownership refusal to 403", async () => {
       mocks.mutation.mockRejectedValue(
         new Error("Uncaught Error: You can only edit your own contributor profile."),
       );
@@ -288,7 +288,7 @@ describe("contributor profile route", () => {
       expect(mocks.mutation).not.toHaveBeenCalled();
     });
 
-    it("maps Convex's ownership refusal on an unclaimed record to 403", async () => {
+    it("maps Postgres's ownership refusal on an unclaimed record to 403", async () => {
       routeQueries({ editorProfile: storedProfile({ membershipEmail: null }) });
       mocks.mutation.mockRejectedValue(
         new Error("Uncaught Error: You can only edit your own contributor profile."),
@@ -304,10 +304,10 @@ describe("contributor profile route", () => {
     });
 
 
-    it("relays Convex's admin-only field refusal as a 403 naming the field", async () => {
+    it("relays Postgres's admin-only field refusal as a 403 naming the field", async () => {
       routeQueries({ editorProfile: storedProfile({ membershipEmail: "editor@example.com" }) });
       mocks.mutation.mockRejectedValue(
-        new ConvexError({
+        new PostgresError({
           code: "ADMIN_ONLY_PROFILE_FIELD",
           field: "approved_replicator",
           message: 'Only an admin can change "approved_replicator" on a contributor profile.',

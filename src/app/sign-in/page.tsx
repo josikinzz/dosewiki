@@ -5,9 +5,9 @@ import { authOptions } from "@auth";
 import {
   buildNoIndexPageMetadata,
   getSignInCallbackUrl,
-  getStatusRecoveryLink,
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
+import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { authRuntimePolicy } from "@server/auth/runtimePolicy";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon } from "@/components/common/Icon";
@@ -29,8 +29,10 @@ type SignInPageProps = {
 };
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
-  const session = await getServerSession(authOptions);
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const [session, resolvedSearchParams] = await Promise.all([
+    getServerSession(authOptions),
+    searchParams,
+  ]);
   const callbackUrl = getSignInCallbackUrl(resolvedSearchParams?.callbackUrl);
   const publicSiteLink = getStatusRecoveryLink("substances");
   const inlineCodeClassName =

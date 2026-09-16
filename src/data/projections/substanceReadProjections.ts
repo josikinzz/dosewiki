@@ -138,6 +138,24 @@ export type SubstanceSearchInputProjection = {
 export type SubstanceMechanismRouteInputProjection =
   MechanismRouteSubstanceInput;
 
+export type SubstanceEffectMembershipInput = Pick<SubstanceLibraryInputProjection,
+  "id" | "title" | "slug" | "priority" | "index_categories" | "identification" | "classification" | "subjective_effects"
+>;
+
+/** Membership and category presentation need no dosage, chemistry or article prose. */
+export function projectEffectMembershipInput(article: SubstanceArticleRecord): SubstanceEffectMembershipInput {
+  return omitUndefinedDeep({
+    id: article.id,
+    title: article.title,
+    slug: resolveSubstanceSlug(article),
+    priority: normalizeSubstancePriority(article.priority),
+    index_categories: article.index_categories,
+    identification: article.identification,
+    classification: article.classification,
+    subjective_effects: article.subjective_effects,
+  });
+}
+
 type SubstancePublicReferenceProjection = Omit<
   SubstanceArticle["references"][number],
   "metadataProvenance"
@@ -495,7 +513,7 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
     references: (article.references ?? []).map(projectPublicReference),
     expert_reviewed: isCompletedEditorialReview(editorialReview),
   };
-  // Convex identity and editorial-only fields do not name rendered content.
+  // Postgres identity and editorial-only fields do not name rendered content.
   const { _id: _id, _creationTime: _creationTime, publicRevision: _revision, ...content } =
     projection as typeof projection & { _id?: unknown; _creationTime?: unknown; publicRevision?: unknown };
   return { ...projection, publicRevision: contentHash(content) };

@@ -54,6 +54,13 @@ function stubEverythingInView() {
     },
   );
 }
+function stubPreviewFetch() {
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    const segments = String(input).split("/");
+    const slug = decodeURIComponent(segments[segments.length - 2] ?? "");
+    return Response.json({ ok: true, previewUrl: `https://example.test/${slug}-preview.mp4` });
+  }));
+}
 
 afterEach(() => {
   cleanup();
@@ -64,6 +71,7 @@ afterEach(() => {
 describe("ReplicationThumb playlist video previews", () => {
   it("plays the compressed rendition on hover instead of the full source", async () => {
     stubMediaQueries();
+    stubPreviewFetch();
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
     const user = userEvent.setup();
     const { container } = render(<ReplicationThumb row={VIDEO} enableVideoPreview />);
@@ -75,7 +83,7 @@ describe("ReplicationThumb playlist video previews", () => {
       expect(element).not.toBeNull();
       return element as HTMLVideoElement;
     });
-    expect(video).toHaveAttribute("src", VIDEO.preview_url);
+    expect(video).toHaveAttribute("src", `https://example.test/${VIDEO.slug}-preview.mp4`);
     expect(video).not.toHaveAttribute("src", VIDEO.url);
     expect(video).toHaveAttribute("preload", "metadata");
     expect(video.muted).toBe(true);
@@ -87,6 +95,7 @@ describe("ReplicationThumb playlist video previews", () => {
   it("limits in-view playlist playback to four videos", async () => {
     stubMediaQueries();
     stubEverythingInView();
+    stubPreviewFetch();
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 
     const { container } = render(

@@ -67,19 +67,19 @@
  * you mean to overrule somebody's pick.
  *
  * Apply (repo files, manifests, and the production profile rows):
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *   bun scripts/contributors/import-avatars-from-the-wild.ts --findings=/tmp/findings.json \
  *     --write --confirm-write=import-wild-avatars \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=localhost/dosewiki
  */
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   normalizeProfileAliases,
   normalizeProfileKey,
@@ -204,14 +204,7 @@ async function main() {
       )
     : [];
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
-  if (!readUrl) {
-    throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
-    );
-  }
-
-  const client = createDataClient({ target: readUrl }).client;
+  const client = createDataClient({ target: resolvePostgresSource().url }).client;
   const [profiles, replications] = (await Promise.all([
     client.query(api.contributorProfiles.getAll, {}),
     client.query(api.replications.getAll, {}),
@@ -500,7 +493,7 @@ async function main() {
     `${JSON.stringify({ ...artworkManifest, avatars: survivingArtwork }, null, 2)}\n`,
   );
 
-  /* ---------------------------------------------------------------- convex */
+  /* ---------------------------------------------------------------- data */
 
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

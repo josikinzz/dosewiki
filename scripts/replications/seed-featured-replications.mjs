@@ -18,7 +18,7 @@
  *
  * Usage:
  *   node scripts/replications/seed-featured-replications.mjs
- *   TARGET_CONVEX_URL=https://enchanted-echidna-791.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *     node scripts/replications/seed-featured-replications.mjs --write \
  *       --confirm-write=seed-featured-replications \
  *       --expected-deployment=enchanted-echidna-791
@@ -26,8 +26,8 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -42,15 +42,11 @@ async function seedFeaturedReplications() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  const readUrl =
-    command.targetUrl ??
-    process.env.CONVEX_URL ??
-    process.env.VITE_CONVEX_URL ??
-    process.env.NEXT_PUBLIC_CONVEX_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
     throw new Error(
-      "No Convex URL to read from. Set TARGET_CONVEX_URL (or VITE_CONVEX_URL for a dry run).",
+      "No Postgres URL to read from. Set TARGET_POSTGRES_URL (or POSTGRES_POOLED_URL for a dry run).",
     );
   }
 
@@ -73,7 +69,7 @@ async function seedFeaturedReplications() {
   const resolvable = slugs.filter((slug) => known.has(slug));
   const missing = slugs.filter((slug) => !known.has(slug));
 
-  console.log(`\nReading from: ${readUrl}`);
+  console.log(`\nReading from: ${postgresFingerprintFromUrl(readUrl)}`);
   console.log(`Checked-in slugs: ${slugs.length}`);
   console.log(`Resolving against this deployment: ${resolvable.length}`);
   if (missing.length > 0) {

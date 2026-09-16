@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Apply reviewed dosage/duration note rewrites to the local article artifact
- * and sync the changed articles to Convex.
+ * and sync the changed articles to Postgres.
  *
  * Inputs:
  * - Rewrite results NDJSON from run-dosage-duration-rewrite-openrouter.mjs
@@ -10,11 +10,11 @@
  * Outputs:
  * - Updated src/data/SubstanceIndex.json
  * - Review summary JSON + Markdown in notes-and-plans/exports/openrouter/results/
- * - Optional Convex sync for changed articles only
+ * - Optional Postgres sync for changed articles only
  *
  * Usage:
- *   export CONVEX_ADMIN_KEY="..."
- *   export VITE_CONVEX_URL="https://..."
+ *   export DATA_ADMIN_KEY="..."
+ *   export POSTGRES_POOLED_URL="postgresql://localhost/dosewiki"
  *   node scripts/batch/apply-dosage-duration-rewrite-results.mjs
  *   node scripts/batch/apply-dosage-duration-rewrite-results.mjs --dry-run
  *   node scripts/batch/apply-dosage-duration-rewrite-results.mjs --article=2c-b
@@ -24,7 +24,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertNoPublicProseArtifactLanguage,
   assertNoPublicProseNamedSourceAttribution,
@@ -72,7 +72,7 @@ function parseArgs() {
     batchSize: DEFAULT_BATCH_SIZE,
     dryRun: writeCommand.dryRun,
     article: null,
-    skipConvex: false,
+    skipPostgres: false,
   };
 
   for (const arg of args) {
@@ -88,8 +88,8 @@ function parseArgs() {
       options.article = arg.split("=")[1];
     } else if (arg === "--dry-run") {
       options.dryRun = true;
-    } else if (arg === "--skip-convex") {
-      options.skipConvex = true;
+    } else if (arg === "--skip-postgres") {
+      options.skipPostgres = true;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -101,7 +101,7 @@ function parseArgs() {
 
 function printHelp() {
   console.log(`
-Apply reviewed dosage/duration rewrites to local articles and Convex.
+Apply reviewed dosage/duration rewrites to local articles and Postgres.
 
 Usage:
   node scripts/batch/apply-dosage-duration-rewrite-results.mjs --dry-run
@@ -109,21 +109,21 @@ Usage:
 Write ceremony:
   node scripts/batch/apply-dosage-duration-rewrite-results.mjs \
     --write --confirm-write=apply-dosage-duration-rewrites \
-    --expected-deployment=<deployment-name> \
-    --target-url=https://<deployment>.convex.cloud
+    --expected-deployment=localhost/dosewiki \
+    --target=postgresql://localhost/dosewiki
 
 Options:
   --results=<path>      Results NDJSON path
   --articles=<path>     SubstanceIndex.json path
   --out-dir=<path>      Output directory for review summaries
-  --batch-size=<n>      Convex sync batch size (default: 50)
+  --batch-size=<n>      Postgres sync batch size (default: 50)
   --article=<slug>      Apply only one article
   --dry-run             Do not write or sync, just report
-  --write               Enable local and Convex writes
+  --write               Enable local and Postgres writes
   --confirm-write=<op>  Confirm apply-dosage-duration-rewrites
-  --expected-deployment=<name> Confirm the exact Convex deployment
-  --target-url=<url>    Explicit Convex write target (or TARGET_CONVEX_URL)
-  --skip-convex         Update local artifact only
+  --expected-deployment=<name> Confirm the exact Postgres deployment
+  --target=<url>    Explicit Postgres write target (or TARGET_POSTGRES_URL)
+  --skip-postgres         Update local artifact only
   --help, -h            Show help
 `);
 }
@@ -222,7 +222,7 @@ function buildTimestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
-async function syncToConvex(changedArticles, batchSize, writeCommand) {
+async function syncToPostgres(changedArticles, batchSize, writeCommand) {
   const credential = requireProductionWriteCredential("editorArticleWrite");
   const client = createDataClient({ target: writeCommand.targetUrl }).client;
   let created = 0;
@@ -233,7 +233,7 @@ async function syncToConvex(changedArticles, batchSize, writeCommand) {
     const batch = changedArticles.slice(i, i + batchSize).map(sanitizeKeys);
     const batchNum = Math.floor(i / batchSize) + 1;
     const batchCount = Math.ceil(changedArticles.length / batchSize);
-    process.stdout.write(`Convex batch ${batchNum}/${batchCount} (${batch.length} articles)... `);
+    process.stdout.write(`Postgres batch ${batchNum}/${batchCount} (${batch.length} articles)... `);
 
     const result = await client.mutation(api.substanceIndex.saveSubstances, {
       apiKey: credential.token,
@@ -377,9 +377,9 @@ async function main() {
     writeFileSync(options.articles, JSON.stringify(articles, null, 2) + "\n");
   }
 
-  let convexResult = null;
-  if (!options.dryRun && !options.skipConvex) {
-    convexResult = await syncToConvex(
+  let postgresResult = null;
+  if (!options.dryRun && !options.skipPostgres) {
+    postgresResult = await syncToPostgres(
       changedArticles,
       options.batchSize,
       options.writeCommand,
@@ -390,8 +390,8 @@ async function main() {
     articleCount: changedArticles.length,
     rewriteCount: filteredResults.length,
     localArtifactUpdated: !options.dryRun,
-    convexSynced: !options.dryRun && !options.skipConvex,
-    convexResult,
+    postgresSynced: !options.dryRun && !options.skipPostgres,
+    postgresResult,
     summaryJsonPath,
     summaryMdPath,
   }, null, 2));

@@ -23,11 +23,10 @@ describe("test env route", () => {
     vi.resetModules();
     vi.clearAllMocks();
     mocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-    process.env = { ...ORIGINAL_ENV };
-    delete process.env.CONVEX_ADMIN_KEY;
-    delete process.env.CONVEX_URL;
-    delete process.env.VITE_CONVEX_URL;
-    delete process.env.NEXT_PUBLIC_CONVEX_URL;
+    process.env = { ...ORIGINAL_ENV, DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://localhost/dosewiki" };
+    delete process.env.POSTGRES_DIRECT_URL;
+    delete process.env.TARGET_POSTGRES_URL;
+    delete process.env.DATA_ADMIN_KEY;
     delete process.env.ENABLE_TEST_ENV;
     delete process.env.VERCEL_ENV;
     delete process.env.AUTH_SECRET;
@@ -39,8 +38,7 @@ describe("test env route", () => {
   });
 
   it("returns the editor diagnostic view without secret names or values", async () => {
-    process.env.CONVEX_ADMIN_KEY = "secret-admin-key-value";
-    process.env.CONVEX_URL = "https://write.convex.cloud";
+    process.env.DATA_ADMIN_KEY = "secret-admin-key-value";
     process.env.AUTH_SECRET = "auth-secret-value";
     const { POST } = await import("./route");
 
@@ -54,10 +52,10 @@ describe("test env route", () => {
       available: true,
       keysFound: 2,
       totalKeys: 2,
-      convexAdminKeyConfigured: true,
-      convexUrlConfigured: true,
-      canSaveToConvex: true,
-      convexIssues: [],
+      dataAdminKeyConfigured: true,
+      postgresUrlConfigured: true,
+      canSaveToPostgres: true,
+      dataIssues: [],
     });
     expect(body.keyNames).toBeUndefined();
     expect(serialized).not.toContain("secret-admin-key-value");
@@ -67,8 +65,7 @@ describe("test env route", () => {
 
   it("does not expose production diagnostics when ENABLE_TEST_ENV is disabled", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    process.env.CONVEX_ADMIN_KEY = "secret-admin-key-value";
-    process.env.CONVEX_URL = "https://write.convex.cloud";
+    process.env.DATA_ADMIN_KEY = "secret-admin-key-value";
     const { POST } = await import("./route");
 
     const response = await POST(new Request("https://dose.wiki/api/test-env", { method: "POST", headers: { Origin: "https://dose.wiki" } }));

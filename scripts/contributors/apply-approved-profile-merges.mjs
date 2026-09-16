@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "../replications/lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -47,9 +48,7 @@ export function parseArgs(argv) {
 }
 
 function assertExplicitTarget(command) {
-  if (!command.targetUrl) throw new Error("An explicit production --target-url or TARGET_CONVEX_URL is required even for dry runs.");
-  if (command.deploymentFingerprint !== PRODUCTION_DEPLOYMENT) throw new Error(`This executor is pinned to ${PRODUCTION_DEPLOYMENT}.`);
-  if (command.expectedDeployment !== PRODUCTION_DEPLOYMENT) throw new Error(`--expected-deployment=${PRODUCTION_DEPLOYMENT} is required.`);
+  requireCampaignTarget(command);
 }
 
 function ledgerEvent(pair, operationId, event, extra = {}) {
@@ -59,12 +58,12 @@ function ledgerEvent(pair, operationId, event, extra = {}) {
 export async function run(argv = process.argv.slice(2), adapters = {}) {
   const options = parseArgs(argv);
   const operation = options.rollback ? ROLLBACK_OPERATION : MERGE_OPERATION;
-  const command = createProductionWriteCommand({ operation, argv });
+  const command = createProductionWriteCommand({ operation, argv, env: adapters.env ?? process.env, loadsEnvLocal: !adapters.env });
   assertExplicitTarget(command);
   if (options.write) assertProductionWriteAllowed(command);
   if (!options.actor) throw new Error("--actor-email is required.");
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  const client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
+  const client = adapters.client ?? createDataClient({ target: command.targetUrl, env: adapters.env ?? process.env }).client;
   const query = adapters.query ?? ((reference, args) => client.query(reference, args));
   const mutate = adapters.mutate ?? ((reference, args) => client.mutation(reference, args));
   let ledger = loadLedger(options.ledger);
@@ -83,12 +82,12 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
       if (!receipt || receipt.operation.status !== "rolled-back" || !receipt.live_matches || receipt.checked_items !== receipt.operation.item_count) throw new Error(`Rollback readback failed for ${item.rollback_of}.`);
       appendLedger(options.ledger, { event: "profile-merge-rollback-readback-verified", ...item, checked_items: receipt.checked_items, at: Date.now() });
     }
-    return { mode: options.write ? "rollback-write" : "rollback-dry-run", target: PRODUCTION_DEPLOYMENT, operations: manifest.operations.length };
+    return { mode: options.write ? "rollback-write" : "rollback-dry-run", target: command.deploymentFingerprint, operations: manifest.operations.length };
   }
 
   const selected = options.only ? APPROVED_MERGES.filter((pair) => pair.slug === options.only) : APPROVED_MERGES;
   if (options.write && selected[0]?.slug === "phosform" && !hasVerifiedReceipt(ledger, mergeOperationId(APPROVED_MERGES[0]))) throw new Error("PHOSFORM is gated on an exact, ledgered LOKA canary receipt.");
-  const plan = { artifactType: "approved-contributor-profile-merge-dry-run", schemaVersion: 1, target_deployment: PRODUCTION_DEPLOYMENT, mode: options.write ? "write-requested" : "dry-run", merges: [] };
+  const plan = { artifactType: "approved-contributor-profile-merge-dry-run", schemaVersion: 1, target_deployment: command.deploymentFingerprint, mode: options.write ? "write-requested" : "dry-run", merges: [] };
 
   for (const pair of selected) {
     const operationId = mergeOperationId(pair);
@@ -128,7 +127,7 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
 
   writeJson(options.planOut, plan);
   writeJson(options.rollbackOut, buildRollbackManifest(loadLedger(options.ledger)));
-  return { mode: options.write ? "write" : "dry-run", target: PRODUCTION_DEPLOYMENT, merges: plan.merges.map(({ target_key, operation_id, status }) => ({ target_key, operation_id, status })) };
+  return { mode: options.write ? "write" : "dry-run", target: command.deploymentFingerprint, merges: plan.merges.map(({ target_key, operation_id, status }) => ({ target_key, operation_id, status })) };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) run()

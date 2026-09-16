@@ -32,6 +32,8 @@ interface VCodeRendererProps {
    * every byline as plain text.
    */
   artistCreditLinks?: ArtistCreditLinks;
+  /** Server-composed credit slot, so byline lookup never blocks the prose. */
+  renderArtistCredit?: (artist: string) => ReactNode;
   /**
    * The drug class this surface speaks for; selects a per-class `imageRoutes`
    * variant on embeds that carry one.
@@ -55,6 +57,7 @@ export function VCodeRenderer({
   headeredTextboxHeadingLevel = 3,
   artistCreditLinks,
   mediaVariantKey,
+  renderArtistCredit,
 }: VCodeRendererProps) {
   const normalizedContent = normalizeVCodeContent(content, undefined) ?? content;
   // Document-order state, so it must live for exactly one render pass.
@@ -96,6 +99,7 @@ export function VCodeRenderer({
         headeredTextboxHeadingLevel,
         artistCreditLinks,
         mediaVariantKey,
+        renderArtistCredit,
       });
     }
 

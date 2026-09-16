@@ -1,42 +1,40 @@
 {
   "version": 1,
-  "description": "Operational lineage for local data artifacts. Convex remains authoritative for live runtime data unless an entry says otherwise.",
+  "description": "Operational lineage for local data artifacts. PlanetScale Postgres is live runtime truth; dated Convex inputs and deployment records are historical provenance, not authority to contact or write the frozen recovery service.",
   "artifacts": [
     {
       "id": "substance-index-export",
       "path": "src/data/SubstanceIndex.json",
       "role": "derived-export",
-      "producer": "scripts/convex/export-convex-to-json.mjs",
+      "producer": "scripts/data-ops/export-data-to-json.mjs",
       "consumers": [
-        "scripts/convex/convex-import-substance-index.mjs",
-        "scripts/convex/import-to-convex.mjs",
+        "scripts/data-ops/data-import-substance-index.mjs",
+        "scripts/data-ops/import-to-data.mjs",
         "scripts/prepopulate/*.mjs",
         "Next.js static fallback reads"
       ],
       "inputs": [
-        "Convex substance records",
+        "Postgres substance records",
         "src/schema/substance.schema.ts"
       ],
-      "freshnessRule": "Refresh from Convex before production builds or before using as migration input.",
-      "sourceDeployment": "VITE_CONVEX_URL",
+      "freshnessRule": "Refresh from the explicitly selected Postgres source before production builds or before using as migration input.",
+      "sourceDeployment": "SOURCE_POSTGRES_URL or POSTGRES_POOLED_URL or POSTGRES_DIRECT_URL",
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance.schema.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "node scripts/convex/export-convex-to-json.mjs"
+      "refreshCommand": "node scripts/data-ops/export-data-to-json.mjs"
     },
     {
       "id": "reagent-tests-snapshot",
       "path": "src/data/reagentTests.json",
       "role": "derived-api-snapshot",
       "producer": "scripts/data/cacheProtestKitReagentTests.mjs",
-      "consumers": [
-        "scripts/convex/import-reagent-tests.mjs"
-      ],
+      "consumers": ["scripts/data-ops/import-reagent-tests.mjs"],
       "inputs": [
         "src/data/SubstanceIndex.json",
         "ProtestKit API v1 substance responses"
       ],
-      "freshnessRule": "Point-in-time snapshot. Refresh only with ProtestKit permission and an explicit operator run, then import it into Convex.",
+      "freshnessRule": "Point-in-time snapshot. Refresh only with ProtestKit permission and an explicit operator run, then import through the guarded Postgres workflow.",
       "sourceDeployment": "https://protestkit.eu/api/v1",
       "targetDeployment": null,
       "schemaVersion": "ProtestKit API v1 response keyed by DoseWiki slug",
@@ -52,10 +50,8 @@
         "external consumers with legacy /SubstanceIndex.json links",
         "About page archival download"
       ],
-      "inputs": [
-        "historical local substance export"
-      ],
-      "freshnessRule": "Do not treat as live runtime data. Convex is authoritative for public pages; refresh or remove only through an explicit compatibility decision.",
+      "inputs": ["historical local substance export"],
+      "freshnessRule": "Do not treat as live runtime data. Postgres is authoritative for public pages; refresh or remove only through an explicit compatibility decision.",
       "sourceDeployment": "archival local working tree snapshot",
       "targetDeployment": null,
       "schemaVersion": "historical SubstanceIndex.json shape",
@@ -67,13 +63,11 @@
       "path": "src/data/backups/*.json",
       "role": "backup",
       "producer": "scripts/prepopulate/*.mjs",
-      "consumers": [
-        "operators during rollback or comparison"
-      ],
+      "consumers": ["operators during rollback or comparison"],
       "inputs": [
         "src/data/SubstanceIndex.json",
         "src/data/parsed-sources.json",
-        "Convex write target selected by data ops run context"
+        "Postgres write target selected by data ops run context; older snapshots retain their historical source identity"
       ],
       "freshnessRule": "Preserve as point-in-time snapshots; do not treat as current runtime data.",
       "sourceDeployment": "local working tree",
@@ -87,10 +81,7 @@
       "path": "src/data/parsed-sources.json",
       "role": "derived",
       "producer": "scripts/parse-sources.ts",
-      "consumers": [
-        "scripts/prepopulate/*.mjs",
-        "scripts/analyze/*.mjs"
-      ],
+      "consumers": ["scripts/prepopulate/*.mjs", "scripts/analyze/*.mjs"],
       "inputs": [
         "src/data/article-sources/*.ts",
         "src/data/tripsit-combos.json",
@@ -108,12 +99,8 @@
       "path": "src/data/articleSourceManifest.json",
       "role": "derived-manifest",
       "producer": "scripts/build/generateArticleManifest.mjs",
-      "consumers": [
-        "source coverage and article source tooling"
-      ],
-      "inputs": [
-        "archive/drug-info-articles/**"
-      ],
+      "consumers": ["source coverage and article source tooling"],
+      "inputs": ["archive/drug-info-articles/**"],
       "freshnessRule": "Refresh after archive source files are added, removed, or renamed.",
       "sourceDeployment": "archive/drug-info-articles",
       "targetDeployment": null,
@@ -126,17 +113,13 @@
       "path": "src/data/config/generatorPrompt.md",
       "role": "prompt-source",
       "producer": "editorial prompt authors",
-      "consumers": [
-        "scripts/migrate/migrate-prompts-to-convex.mjs"
-      ],
-      "inputs": [
-        "editorial prompt source edits"
-      ],
-      "freshnessRule": "Compare against Convex before migrating; Convex is runtime source after migration.",
+      "consumers": ["scripts/migrate/migrate-prompts-to-data.mjs"],
+      "inputs": ["editorial prompt source edits"],
+      "freshnessRule": "Compare against Postgres before migrating; Postgres is the runtime source after migration.",
       "sourceDeployment": "local working tree",
-      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
-      "schemaVersion": "convex/prompts.ts",
-      "editPolicy": "editable-with-convex-migration",
+      "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
+      "schemaVersion": "server/prompts.ts",
+      "editPolicy": "editable-with-postgres-migration",
       "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
     },
     {
@@ -145,18 +128,18 @@
       "role": "prompt-source",
       "producer": "editorial prompt authors",
       "consumers": [
-        "scripts/migrate/migrate-prompts-to-convex.mjs",
+        "scripts/migrate/migrate-prompts-to-data.mjs",
         "section generation prompts"
       ],
       "inputs": [
         "editorial prompt source edits",
         "src/data/config/promptRegistry.json"
       ],
-      "freshnessRule": "Compare against Convex before migrating; Convex is runtime source after migration.",
+      "freshnessRule": "Compare against Postgres before migrating; Postgres is the runtime source after migration.",
       "sourceDeployment": "local working tree",
-      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
-      "schemaVersion": "convex/prompts.ts",
-      "editPolicy": "editable-with-convex-migration",
+      "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
+      "schemaVersion": "server/prompts.ts",
+      "editPolicy": "editable-with-postgres-migration",
       "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
     },
     {
@@ -165,18 +148,18 @@
       "role": "prompt-source",
       "producer": "editorial prompt authors",
       "consumers": [
-        "scripts/migrate/migrate-prompts-to-convex.mjs",
+        "scripts/migrate/migrate-prompts-to-data.mjs",
         "formal citations agent prompts"
       ],
       "inputs": [
         "editorial prompt source edits",
         "src/data/config/promptRegistry.json"
       ],
-      "freshnessRule": "Compare against Convex before migrating; Convex is runtime source after migration.",
+      "freshnessRule": "Compare against Postgres before migrating; Postgres is the runtime source after migration.",
       "sourceDeployment": "local working tree",
-      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
-      "schemaVersion": "convex/prompts.ts",
-      "editPolicy": "editable-with-convex-migration",
+      "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
+      "schemaVersion": "server/prompts.ts",
+      "editPolicy": "editable-with-postgres-migration",
       "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
     },
     {
@@ -185,18 +168,16 @@
       "role": "migration-seed",
       "producer": "legacy contributor profile export",
       "consumers": [
-        "scripts/convex/migrate-user-profiles-to-convex.mjs",
+        "scripts/data-ops/migrate-user-profiles-to-data.mjs",
         "profile migration/backfill operators"
       ],
-      "inputs": [
-        "legacy local contributor profile data"
-      ],
-      "freshnessRule": "Do not treat as current runtime data; Convex contributorProfiles is authoritative after migration.",
+      "inputs": ["legacy local contributor profile data"],
+      "freshnessRule": "Do not treat as current runtime data; Postgres contributorProfiles is authoritative. Preserve the seed's historical provenance.",
       "sourceDeployment": "local working tree",
-      "targetDeployment": "CONVEX_URL or VITE_CONVEX_URL",
-      "schemaVersion": "convex/contributorProfiles.ts",
+      "targetDeployment": "explicit Postgres target selected by the guarded profile migration",
+      "schemaVersion": "server/contributorProfiles.ts",
       "editPolicy": "migration-seed-only",
-      "refreshCommand": "node scripts/convex/migrate-user-profiles-to-convex.mjs --dry-run"
+      "refreshCommand": "node scripts/data-ops/migrate-user-profiles-to-data.mjs --dry-run"
     },
     {
       "id": "article-media-curation",
@@ -214,7 +195,7 @@
       ],
       "freshnessRule": "Preserve as a dated review snapshot. Amend an entry only after its evidence is re-reviewed; do not infer current production state from this file.",
       "sourceDeployment": "https://glad-minnow-656.convex.cloud (production snapshot, 2026-08-11)",
-      "targetDeployment": "TARGET_CONVEX_URL selected by scripts/replications/migrate-article-media.mjs",
+      "targetDeployment": "explicit Postgres target selected by scripts/replications/migrate-article-media.mjs",
       "schemaVersion": "scripts/replications/article-media-planning.mjs",
       "editPolicy": "reviewed-evidence-only",
       "refreshCommand": "Manually review a fresh production inventory, then preview it with node scripts/replications/migrate-article-media.mjs --inventory=<path> --uploads-dir=<path>"
@@ -224,9 +205,7 @@
       "path": "src/data/config/articleMediaMigrationDecisions.json",
       "role": "reviewed-migration-decisions",
       "producer": "site owner and article media migration maintainers",
-      "consumers": [
-        "scripts/replications/migrate-article-media.mjs"
-      ],
+      "consumers": ["scripts/replications/migrate-article-media.mjs"],
       "inputs": [
         "src/data/config/articleMediaCuration.json",
         "explicit owner rulings relayed 2026-08-11",
@@ -235,7 +214,7 @@
       ],
       "freshnessRule": "Update only for an explicit owner ruling or a reviewed production re-resolution. Preserve historical rulings and verified duplicate decisions.",
       "sourceDeployment": "https://glad-minnow-656.convex.cloud plus explicit owner rulings",
-      "targetDeployment": "TARGET_CONVEX_URL selected by scripts/replications/migrate-article-media.mjs",
+      "targetDeployment": "explicit Postgres target selected by scripts/replications/migrate-article-media.mjs",
       "schemaVersion": "scripts/replications/article-media-planning.mjs",
       "editPolicy": "owner-rulings-and-verified-production-facts-only",
       "refreshCommand": "Re-resolve production facts, then preview with node scripts/replications/migrate-article-media.mjs --inventory=<path> --uploads-dir=<path>"
@@ -255,8 +234,8 @@
         "production-resolved replication media bytes"
       ],
       "freshnessRule": "Point-in-time provenance emitted with the generated avatar files. Preserve it with those files; a new confirmed generation run must produce provenance for every new avatar.",
-      "sourceDeployment": "TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL (production read required by the workflow)",
-      "targetDeployment": "TARGET_CONVEX_URL selected by the guarded avatar generation command",
+      "sourceDeployment": "explicit Postgres target (production read required by the workflow)",
+      "targetDeployment": "explicit Postgres target selected by the guarded avatar generation command",
       "schemaVersion": "scripts/contributors/generate-avatar-files.ts",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/generate-avatars-from-replications.ts --write run"
@@ -276,8 +255,8 @@
         "the artist's own published profile image bytes"
       ],
       "freshnessRule": "Point-in-time provenance emitted with the installed avatar files. Preserve it with those files; every avatar taken from an artist's own account must keep its account, evidence and license record here so a removal request can be honoured.",
-      "sourceDeployment": "TARGET_CONVEX_URL or CONVEX_PUBLIC_READ_URL (production read required by the workflow)",
-      "targetDeployment": "TARGET_CONVEX_URL selected by the guarded avatar import command",
+      "sourceDeployment": "explicit Postgres target (production read required by the workflow)",
+      "targetDeployment": "explicit Postgres target selected by the guarded avatar import command",
       "schemaVersion": "scripts/contributors/import-avatars-from-the-wild.ts",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/import-avatars-from-the-wild.ts --write run"
@@ -298,7 +277,7 @@
       ],
       "freshnessRule": "Update a claim only when its cited identity evidence or an explicit owner decision changes. Only strong entries are eligible for downstream writes.",
       "sourceDeployment": "production contributor and replication data plus cited public evidence",
-      "targetDeployment": "TARGET_CONVEX_URL selected by guarded contributor and replication correction commands",
+      "targetDeployment": "explicit Postgres target selected by guarded contributor and replication correction commands",
       "schemaVersion": "scripts/contributors/seed-credited-identities-decisions.mjs",
       "editPolicy": "reviewed-evidence-and-owner-decisions-only",
       "refreshCommand": "Review evidence manually, then preview its effect with node scripts/contributors/seed-credited-identities.mjs"
@@ -308,10 +287,7 @@
       "path": "src/data/schema/*.generated*.ts",
       "role": "derived-code",
       "producer": "scripts/generate/generateSchemaUtils.ts",
-      "consumers": [
-        "src/data/schema/index.ts",
-        "editor form schema tooling"
-      ],
+      "consumers": ["src/data/schema/index.ts", "editor form schema tooling"],
       "inputs": [
         "src/schema/substance.schema.ts",
         "scripts/generate/schemaGenerationPolicy.ts"
@@ -350,7 +326,7 @@
       "producer": "chemical taxonomy maintainers",
       "consumers": [
         "src/data/indexes/chemicalClassLookup.ts",
-        "lib/convex/publicChemicalClassIndex.ts",
+        "lib/data/publicChemicalClassIndex.ts",
         "scripts/chemistry/seed-class-molecules.ts",
         "chemical-class molecule editor tooling"
       ],
@@ -358,12 +334,12 @@
         "reviewed chemical class definitions, aliases, and structures",
         "article chemical_class values"
       ],
-      "freshnessRule": "Update deliberately when the reviewed chemical-class taxonomy changes, then seed Convex class drawings for new classes.",
+      "freshnessRule": "Update deliberately when the reviewed chemical-class taxonomy changes, then seed class drawings through the guarded Postgres workflow.",
       "sourceDeployment": "local working tree",
       "targetDeployment": null,
       "schemaVersion": "src/data/builders/chemicalClassTree.ts",
       "editPolicy": "editable-by-chemical-taxonomy-maintainers",
-      "refreshCommand": "npm run molecules:seed-classes-convex"
+      "refreshCommand": "npm run molecules:seed-classes"
     },
     {
       "id": "generated-smiles-overrides",
@@ -394,10 +370,7 @@
         "scripts/chemistry/identifier-provenance.mjs",
         "article chemistry identifier enrichment"
       ],
-      "inputs": [
-        "src/data/SubstanceIndex.json",
-        "OPSIN web service responses"
-      ],
+      "inputs": ["src/data/SubstanceIndex.json", "OPSIN web service responses"],
       "freshnessRule": "Refresh after IUPAC names change in the local SubstanceIndex export or when missing OPSIN resolutions should be retried.",
       "sourceDeployment": "src/data/SubstanceIndex.json and OPSIN",
       "targetDeployment": null,
@@ -410,21 +383,70 @@
       "path": "src/components/common/iconData.generated.json",
       "role": "derived-code",
       "producer": "scripts/build/generateIconData.ts",
-      "consumers": [
-        "src/components/common/Icon.tsx"
-      ],
+      "consumers": ["src/components/common/Icon.tsx"],
       "inputs": [
-        "src/**/*.{ts,tsx} and lib/**/*.{ts,tsx} icon-name string literals",
+        "Public src/**/*.{ts,tsx} and lib/**/*.{ts,tsx} icon-name string literals, excluding editor-only modules and src/dev kit literals",
         "src/data/indexes/chemicalIndexManual.json",
         "src/data/indexes/psychoactiveIndexManual.json",
         "@iconify-json/* devDependencies"
       ],
-      "freshnessRule": "Refresh whenever an icon-name literal is added, removed, or changed anywhere in src/ or lib/, or after updating @iconify-json/* packages.",
+      "freshnessRule": "Refresh both catalogs whenever icon-name literals, public/editor ownership, or @iconify-json/* packages change. Public runtime and dynamic-config ownership wins over editor and kit-only ownership.",
       "sourceDeployment": "local working tree",
       "targetDeployment": null,
       "schemaVersion": "IconifyJSON collections keyed by prefix (scripts/build/generateIconData.ts)",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run generate:icon-data"
+    },
+    {
+      "id": "offline-editor-icon-bundle",
+      "path": "src/components/common/iconData.editor.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateIconData.ts",
+      "consumers": ["src/components/common/iconData.editor.tsx"],
+      "inputs": [
+        "src/**/*.{ts,tsx} and lib/**/*.{ts,tsx} editor-only icon-name literals, including src/dev kit literals",
+        "scripts/build/public-editor-boundary.mjs",
+        "Public catalog membership",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh both catalogs whenever source icon literals or public/editor boundary membership changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "IconifyJSON collections keyed by prefix",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generateIconData.ts"
+    },
+    {
+      "id": "theme-lab-prepaint-bootstrap",
+      "path": "src/features/theme-lab/themeLabBootstrap.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateThemeLabBootstrap.ts",
+      "consumers": ["src/app/layout.tsx"],
+      "inputs": [
+        "src/features/theme-lab/themeLabBootstrap.ts and its transitive storage/parser/CSS dependencies",
+        "scripts/build/generateThemeLabBootstrap.ts",
+        "Bun browser bundler"
+      ],
+      "freshnessRule": "Refresh with its CSP hash whenever the bootstrap or any transitive dependency changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ script: string }",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generateThemeLabBootstrap.ts"
+    },
+    {
+      "id": "theme-lab-prepaint-csp-hash",
+      "path": "src/features/theme-lab/themeLabBootstrapHash.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateThemeLabBootstrap.ts",
+      "consumers": ["lib/next/cspObservationPolicy.ts"],
+      "inputs": ["src/features/theme-lab/themeLabBootstrap.generated.json"],
+      "freshnessRule": "Generated in the same producer invocation from the exact inline script text; refresh both outputs together.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ hash: string } with quoted SHA-256 CSP source",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generateThemeLabBootstrap.ts"
     },
     {
       "id": "home-tile-glyph-metrics",
@@ -457,12 +479,12 @@
         "src/app/[slug]/page.tsx"
       ],
       "inputs": [
-        "production Convex substanceIndex documents",
-        "production Convex moleculeOverrides revisions",
+        "Postgres substanceIndex documents",
+        "Postgres moleculeOverrides revisions",
         "lib/og/moleculeSocialCard.ts"
       ],
       "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
-      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing manifest records retain their original provenance",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
@@ -473,13 +495,11 @@
       "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**/*.jpg",
       "role": "published-static-assets",
       "producer": "scripts/build/publishSocialCardsToR2.mjs",
-      "consumers": [
-        "substance Open Graph and Twitter metadata"
-      ],
+      "consumers": ["substance Open Graph and Twitter metadata"],
       "inputs": [
         "src/data/substanceSocialCardManifest.generated.json",
-        "production Convex substanceIndex documents",
-        "production Convex moleculeOverrides SVGs",
+        "Postgres substanceIndex documents",
+        "Postgres moleculeOverrides SVGs",
         "lib/og/moleculeSocialCard.ts",
         "src/assets/dosewiki-logo.svg",
         "public/fonts/Blinker-Regular.ttf",
@@ -487,7 +507,7 @@
         "@iconify-json/* devDependencies"
       ],
       "freshnessRule": "Published to immutable digest-named R2 keys only through the explicit refresh workflow; ordinary builds perform no image generation or upload.",
-      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing image records retain their original provenance",
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
@@ -531,9 +551,7 @@
       "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**/*.jpg",
       "role": "published-static-assets",
       "producer": "scripts/build/publishSocialCardsToR2.mjs",
-      "consumers": [
-        "home and public index Open Graph and Twitter metadata"
-      ],
+      "consumers": ["home and public index Open Graph and Twitter metadata"],
       "inputs": [
         "src/data/pageSocialCardManifest.generated.json",
         "lib/og/pageSocialCard.ts",
@@ -562,17 +580,17 @@
         "subjective-effect, replication, experience-report, contributor, and replication-artist metadata"
       ],
       "inputs": [
-        "production Convex subjectiveEffects records",
-        "production Convex replications records",
-        "production Convex tripReports records",
-        "production Convex contributorProfiles records",
+        "Postgres subjectiveEffects records",
+        "Postgres replications records",
+        "Postgres tripReports records",
+        "Postgres contributorProfiles records",
         "lib/og/prototypes/subjectiveEffectSocialCard.ts",
         "lib/og/prototypes/replicationSocialCard.ts",
         "lib/og/prototypes/tripReportSocialCard.ts",
         "lib/og/prototypes/userProfileSocialCard.ts"
       ],
       "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
-      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing manifest records retain their original provenance",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
@@ -588,8 +606,8 @@
       ],
       "inputs": [
         "src/data/entitySocialCardManifest.generated.json",
-        "production Convex public entity records",
-        "production Convex replication media",
+        "Postgres public entity records",
+        "Postgres replication media identities",
         "public/profile-avatars/**/*",
         "lib/og/prototypes/*SocialCard.ts",
         "lib/og/socialCardPrimitives.ts",
@@ -599,7 +617,7 @@
         "@iconify-json/* devDependencies"
       ],
       "freshnessRule": "Published to immutable digest-named R2 keys only through the explicit refresh workflow; ordinary builds perform no image generation or upload.",
-      "sourceDeployment": "https://glad-minnow-656.convex.cloud",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing image records retain their original provenance",
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
@@ -613,18 +631,48 @@
       "consumers": [
         "drizzle.config.ts",
         "lib/postgres/articlePublication.ts",
-        "lib/postgres/convexDocumentCodec.ts",
+        "lib/postgres/documentCodec.ts",
         "lib/postgres/documentStore.ts",
         "lib/postgres/migrations/*.sql",
-        "scripts/postgres/import-convex-export.ts",
-        "scripts/postgres/synthesizeConvexExport.ts"
+        "scripts/postgres/import-document-snapshot.ts",
+        "scripts/postgres/synthesizeDocumentSnapshot.ts"
       ],
       "inputs": [
-        "convex/lib/publicReadIndexSchema.ts",
-        "convex/schema.ts",
+        "server/lib/publicReadIndexSchema.ts",
+        "server/schema.ts",
+        "lib/postgres/runtime/schema.ts",
+        "lib/postgres/runtime/validate.ts",
+        "scripts/postgres/schemaExport.ts",
         "scripts/postgres/generateDrizzleSchema.ts"
       ],
-      "freshnessRule": "Regenerate after any Convex schema change, then run npm run postgres:migrate:generate and commit the new versioned SQL migration together with it.",
+      "freshnessRule": "Regenerate after an owned document schema change. If SQL changes, generate and commit a new versioned migration; regeneration is not migration authorization.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-schema"
+    },
+    {
+      "id": "postgres-native-data-model",
+      "path": "lib/postgres/runtime/dataModel.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateDrizzleSchema.ts",
+      "consumers": [
+        "lib/postgres/runtime/server.ts",
+        "server/*.ts",
+        "server/lib/*.ts",
+        "application and operator document types"
+      ],
+      "inputs": [
+        "server/schema.ts",
+        "server/lib/publicReadIndexSchema.ts",
+        "lib/postgres/runtime/schema.ts",
+        "lib/postgres/runtime/validate.ts",
+        "lib/postgres/runtime/values.ts",
+        "scripts/postgres/schemaExport.ts",
+        "scripts/postgres/generateDrizzleSchema.ts"
+      ],
+      "freshnessRule": "Regenerate with the Drizzle schema after owned document validator or index metadata changes.",
       "sourceDeployment": "local working tree",
       "targetDeployment": null,
       "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
@@ -640,15 +688,47 @@
         "npm run postgres:migrate",
         "PlanetScale Postgres release steps (dossier W2)"
       ],
-      "inputs": [
-        "lib/postgres/schema.generated.ts"
-      ],
+      "inputs": ["lib/postgres/schema.generated.ts"],
       "freshnessRule": "Append-only. Never rewrite an applied migration; schema changes add a new file via npm run postgres:migrate:generate.",
       "sourceDeployment": "local working tree",
       "targetDeployment": "POSTGRES_DIRECT_URL",
       "schemaVersion": "drizzle-kit 0.31",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run postgres:migrate:generate"
+    },
+    {
+      "id": "localized-publication-trigger-restoration",
+      "path": "lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql",
+      "role": "versioned-sql-migrations",
+      "producer": "scripts/postgres/localizedPublicationIndexTriggers.ts",
+      "consumers": ["npm run postgres:migrate"],
+      "inputs": ["scripts/postgres/localizedPublicationIndexTriggers.ts"],
+      "freshnessRule": "Append-only recovery migration. Never rewrite after application; future restoration episodes require a new custom Drizzle migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "TARGET_POSTGRES_URL",
+      "schemaVersion": "drizzle-kit 0.31",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql --restore"
+    },
+    {
+      "id": "guarded-responsive-media-renditions",
+      "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**?width=*",
+      "role": "published-static-assets",
+      "producer": "scripts/replications/prepare-r2-image-renditions.ts",
+      "consumers": [
+        "src/components/common/AppImage.tsx",
+        "scripts/replications/r2-delivery-worker.js"
+      ],
+      "inputs": [
+        "reviewed canonical media key inventory",
+        "content-addressed R2 originals"
+      ],
+      "freshnessRule": "Generate and verify every fixed-width rendition before publishing new managed raster references. Ordinary site builds never upload media. Missing or withdrawn originals retain their unavailable status.",
+      "sourceDeployment": "private Cloudflare R2 replications bucket",
+      "targetDeployment": "private Cloudflare R2 replications/_renditions/v1/",
+      "schemaVersion": "private WebP renditions v1, quality 75",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun run replications:prepare-image-renditions --keys <reviewed-keys.json> --out <local-directory>"
     },
     {
       "id": "data-artifact-lineage-manifest",
@@ -678,18 +758,52 @@
       "path": "lib/postgres/runtime/functions.generated.ts",
       "role": "generated-schema",
       "producer": "scripts/postgres/generateFunctionRegistry.ts",
-      "consumers": [
-        "lib/postgres/runtime/client.ts"
-      ],
+      "consumers": ["lib/postgres/runtime/client.ts"],
       "inputs": [
-        "convex/*.ts"
+        "server/*.ts (owned non-test function modules, excluding schema.ts)",
+        "lib/postgres/runtime/functionOwnership.json"
       ],
-      "freshnessRule": "Regenerate whenever a Convex function module is added, removed, or renamed under convex/.",
+      "freshnessRule": "Regenerate when owned modules or ownership change. The producer rejects unowned, missing, duplicate-owned, or still-active retired modules and emits both the server registry and browser-safe API types.",
       "sourceDeployment": null,
       "targetDeployment": null,
-      "schemaVersion": "convex module list",
+      "schemaVersion": "lib/postgres/runtime/functionOwnership.json",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run generate:postgres-functions"
+    },
+    {
+      "id": "postgres-native-api-types",
+      "path": "lib/postgres/runtime/api.generated.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateFunctionRegistry.ts",
+      "consumers": ["lib/postgres/runtime/api.ts"],
+      "inputs": [
+        "server/*.ts (owned non-test function modules, excluding schema.ts)",
+        "lib/postgres/runtime/functionOwnership.json",
+        "lib/postgres/runtime/server.ts"
+      ],
+      "freshnessRule": "Regenerate alongside functions.generated.ts when callable modules or ownership change. Type-only module imports keep the API reference facade browser-safe.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "lib/postgres/runtime/functionOwnership.json",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-functions"
+    },
+    {
+      "id": "postgres-function-ownership",
+      "path": "lib/postgres/runtime/functionOwnership.json",
+      "role": "provenance-contract",
+      "producer": "Postgres runtime maintainers",
+      "consumers": ["scripts/postgres/generateFunctionRegistry.ts"],
+      "inputs": [
+        "completion dossier module ownership batches 08 to 11",
+        "owned callable modules and explicit retired-module replacements"
+      ],
+      "freshnessRule": "Update deliberately with module additions, removals, or retirement. Every active module has exactly one batch owner; retired modules name an existing replacement and a reason.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/postgres/generateFunctionRegistry.ts",
+      "editPolicy": "editable-by-data-workflow-maintainers",
+      "refreshCommand": "edit ownership input, then npm run generate:postgres-functions"
     },
     {
       "id": "effect-category-definitions",
@@ -703,9 +817,7 @@
         "src/features/effects/articleSectionModel.ts",
         "src/features/effects/pages/replicationSubject.ts"
       ],
-      "inputs": [
-        "the 24 Effect Index category descriptions, reviewed by hand"
-      ],
+      "inputs": ["the 24 Effect Index category descriptions, reviewed by hand"],
       "freshnessRule": "Update deliberately when an effect category is added, renamed or redescribed; the category pages render this file directly.",
       "sourceDeployment": "local working tree",
       "targetDeployment": null,

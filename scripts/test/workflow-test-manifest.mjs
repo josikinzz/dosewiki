@@ -3,7 +3,6 @@ import path from "node:path";
 
 export const workflowTestRoots = Object.freeze([
   "scripts",
-  path.join("tools", "local-public-fixture"),
   path.join("tools", "pi-citation-workflow"),
   path.join("tools", "section-generation"),
 ]);

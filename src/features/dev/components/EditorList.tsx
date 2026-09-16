@@ -187,7 +187,7 @@ export function EditorList<T>({
         onScroll={onScroll}
         onKeyDown={handleKeyDown}
         style={{ maxHeight }}
-        className="min-h-0 overflow-y-auto overscroll-contain rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+        className="min-h-0 overflow-y-auto overscroll-contain rounded-xl theme-focus-ring"
       >
         {visible.length === 0 ? (
           <p className="theme-text-muted px-3 py-6 text-center text-sm">{emptyText}</p>

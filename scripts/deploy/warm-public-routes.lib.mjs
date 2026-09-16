@@ -4,6 +4,8 @@
  * (src/app/api/warm/route.ts). No Node-only imports: the route handler bundles
  * this module into a serverless function.
  */
+import { prepareFlightRouterStateForRequest } from "next/dist/client/flight-data-helpers.js";
+import { computeCacheBustingSearchParam } from "next/dist/shared/lib/router/utils/cache-busting-search-param.js";
 
 /**
  * Root path segments that are pages of their own rather than substance
@@ -25,7 +27,7 @@ export const NON_SUBSTANCE_ROOT_SEGMENTS = new Set([
   "reports",
   "search",
   "substances",
-])
+]);
 
 const LOC_PATTERN = /<loc>\s*([^<]+?)\s*<\/loc>/gi;
 
@@ -114,7 +116,10 @@ export function classifyCacheHeaders(headers) {
 export async function runWithConcurrency(items, limit, worker) {
   const list = Array.from(items);
   const results = new Array(list.length);
-  const parallelism = Math.max(1, Math.min(Number(limit) || 1, list.length || 1));
+  const parallelism = Math.max(
+    1,
+    Math.min(Number(limit) || 1, list.length || 1),
+  );
   let next = 0;
 
   async function lane() {
@@ -144,43 +149,86 @@ async function fetchWithTimeout(fetchImpl, url, timeoutMs, headers) {
       cache: "no-store",
       headers,
     });
-    // Drain the body so the connection is reusable and the page is fully
-    // rendered server-side (streaming responses finish only when read).
-    await response.arrayBuffer();
-    return response;
+    const body = await response.arrayBuffer();
+    return { response, bytes: body.byteLength };
   } finally {
     clearTimeout(timer);
   }
 }
 
-/**
- * Request one URL, retrying once on a network failure, timeout, or 5xx.
- * Returns a result record; never throws.
- */
-export async function warmUrl(
+async function navigationRequest(url, headers = {}) {
+  // This is the smallest valid current router state: a client at the app root
+  // with no materialized parallel routes. Next owns both serialization and the
+  // cache-key digest, so upgrades cannot leave a copied tree shape or hash stale.
+  const state = prepareFlightRouterStateForRequest(["", {}]);
+  const requestHeaders = {
+    ...headers,
+    rsc: "1",
+    "next-router-state-tree": state,
+    "next-url": new URL(url).pathname,
+  };
+  const hash = await computeCacheBustingSearchParam(
+    requestHeaders["next-router-prefetch"],
+    requestHeaders["next-router-segment-prefetch"],
+    requestHeaders["next-router-state-tree"],
+    requestHeaders["next-url"],
+  );
+  const requestUrl = new URL(url);
+  requestUrl.searchParams.set("_rsc", hash);
+  return { url: requestUrl.toString(), headers: requestHeaders };
+}
+
+async function warmRepresentation(
   url,
-  { fetchImpl = globalThis.fetch, timeoutMs = 20000, retries = 1, headers, now = () => Date.now() } = {},
+  representation,
+  { fetchImpl, timeoutMs, retries, headers, now },
 ) {
   const started = now();
   let attempts = 0;
   let lastError = null;
-
   while (attempts <= retries) {
     attempts += 1;
     try {
-      const response = await fetchWithTimeout(fetchImpl, url, timeoutMs, headers);
+      const request =
+        representation === "navigation"
+          ? await navigationRequest(url, headers)
+          : { url, headers };
+      const { response, bytes } = await fetchWithTimeout(
+        fetchImpl,
+        request.url,
+        timeoutMs,
+        request.headers,
+      );
       const cache = classifyCacheHeaders(response.headers);
-      const ok = response.status < 500;
-      if (ok || attempts > retries) {
+      const contentType =
+        response.headers
+          .get("content-type")
+          ?.split(";", 1)[0]
+          .trim()
+          .toLowerCase() ?? "";
+      const expectedContentType =
+        representation === "navigation" ? "text/x-component" : "text/html";
+      const statusOk = response.status >= 200 && response.status < 300;
+      const ok = statusOk && contentType === expectedContentType && bytes > 0;
+      const retryable = response.status >= 500;
+      if (ok || !retryable || attempts > retries) {
         return {
-          url,
-          ok: response.status < 400,
+          representation,
+          ok,
           status: response.status,
+          contentType,
+          bytes,
           cache: cache.status,
           cacheHeader: cache.raw,
           attempts,
           durationMs: now() - started,
-          error: response.status < 400 ? null : `HTTP ${response.status}`,
+          error: ok
+            ? null
+            : !statusOk
+              ? `HTTP ${response.status}`
+              : contentType !== expectedContentType
+                ? `expected ${expectedContentType}, received ${contentType || "no content type"}`
+                : "empty response body",
         };
       }
       lastError = `HTTP ${response.status}`;
@@ -191,16 +239,60 @@ export async function warmUrl(
           : String((error && error.message) || error);
     }
   }
-
   return {
-    url,
+    representation,
     ok: false,
     status: null,
+    contentType: null,
+    bytes: 0,
     cache: "unknown",
     cacheHeader: null,
     attempts,
     durationMs: now() - started,
     error: lastError,
+  };
+}
+
+/**
+ * Warm and validate both representations used by a real App Router visit.
+ * The two receipts remain separate so an HTML hit cannot conceal a broken
+ * navigation response.
+ */
+export async function warmUrl(
+  url,
+  {
+    fetchImpl = globalThis.fetch,
+    timeoutMs = 20000,
+    retries = 1,
+    headers = {},
+    now = () => Date.now(),
+  } = {},
+) {
+  const started = now();
+  const html = await warmRepresentation(url, "html", {
+    fetchImpl,
+    timeoutMs,
+    retries,
+    headers,
+    now,
+  });
+  const navigation = await warmRepresentation(url, "navigation", {
+    fetchImpl,
+    timeoutMs,
+    retries,
+    headers,
+    now,
+  });
+  return {
+    url,
+    ok: html.ok && navigation.ok,
+    durationMs: now() - started,
+    representations: { html, navigation },
+    error:
+      [html, navigation]
+        .filter((receipt) => !receipt.ok)
+        .map((receipt) => `${receipt.representation}: ${receipt.error}`)
+        .join("; ") || null,
   };
 }
 
@@ -211,7 +303,11 @@ export async function warmUrl(
  * are reported as `remaining`.
  */
 export async function warmUrls(urls, options = {}) {
-  const { concurrency = 4, deadlineAt = null, now = () => Date.now() } = options;
+  const {
+    concurrency = 4,
+    deadlineAt = null,
+    now = () => Date.now(),
+  } = options;
   const list = Array.from(urls);
   const skipped = [];
   const results = await runWithConcurrency(list, concurrency, async (url) => {
@@ -225,7 +321,9 @@ export async function warmUrls(urls, options = {}) {
   // wrapper has no `url`. A failed request is a result with `error` set and
   // must stay in the list, or the summary can never report a failure.
   return {
-    results: results.filter((entry) => entry !== null && typeof entry.url === "string"),
+    results: results.filter(
+      (entry) => entry !== null && typeof entry.url === "string",
+    ),
     remaining: skipped,
   };
 }
@@ -233,33 +331,80 @@ export async function warmUrls(urls, options = {}) {
 /**
  * Aggregate warm results into the printed / returned summary.
  */
-export function summarizeWarmResults(results, { slowest = 10, totalMs = null, remaining = [] } = {}) {
+export function summarizeWarmResults(
+  results,
+  { slowest = 10, totalMs = null, remaining = [] } = {},
+) {
   const list = Array.from(results);
+  const receipts = list.flatMap((result) =>
+    Object.values(result.representations).map((receipt) => ({
+      ...receipt,
+      url: result.url,
+    })),
+  );
   const counts = { hit: 0, miss: 0, unknown: 0 };
   const failures = [];
-  for (const result of list) {
-    counts[result.cache in counts ? result.cache : "unknown"] += 1;
-    if (!result.ok) failures.push({ url: result.url, status: result.status, error: result.error });
+  const byRepresentation = {
+    html: { ok: 0, failed: 0, meanMs: 0, maxMs: 0 },
+    navigation: { ok: 0, failed: 0, meanMs: 0, maxMs: 0 },
+  };
+  for (const receipt of receipts) {
+    counts[receipt.cache in counts ? receipt.cache : "unknown"] += 1;
+    const bucket = byRepresentation[receipt.representation];
+    bucket[receipt.ok ? "ok" : "failed"] += 1;
+    if (!receipt.ok)
+      failures.push({
+        url: receipt.url,
+        representation: receipt.representation,
+        status: receipt.status,
+        error: receipt.error,
+      });
   }
-  const slowestUrls = [...list]
+  for (const [representation, bucket] of Object.entries(byRepresentation)) {
+    const durations = receipts
+      .filter((receipt) => receipt.representation === representation)
+      .map((receipt) => receipt.durationMs);
+    bucket.meanMs =
+      durations.length === 0
+        ? 0
+        : Math.round(
+            durations.reduce((sum, ms) => sum + ms, 0) / durations.length,
+          );
+    bucket.maxMs = durations.length === 0 ? 0 : Math.max(...durations);
+  }
+  const slowestUrls = [...receipts]
     .sort((left, right) => right.durationMs - left.durationMs)
     .slice(0, slowest)
-    .map(({ url, durationMs, cache, status }) => ({ url, durationMs, cache, status }));
-  const durations = list.map((result) => result.durationMs);
+    .map(({ url, representation, durationMs, cache, status }) => ({
+      url,
+      representation,
+      durationMs,
+      cache,
+      status,
+    }));
+  const durations = receipts.map((receipt) => receipt.durationMs);
   const total = list.length;
+  const failedUrls = list.filter((result) => !result.ok).length;
   return {
     count: total,
-    ok: total - failures.length,
-    failed: failures.length,
-    failureRate: total === 0 ? 0 : failures.length / total,
+    ok: total - failedUrls,
+    failed: failedUrls,
+    failureRate: total === 0 ? 0 : failedUrls / total,
+    representations: byRepresentation,
     hits: counts.hit,
     misses: counts.miss,
     unknown: counts.unknown,
     slowest: slowestUrls,
     failures,
     remaining: remaining.length,
-    meanMs: total === 0 ? 0 : Math.round(durations.reduce((sum, ms) => sum + ms, 0) / total),
-    maxMs: total === 0 ? 0 : Math.max(...durations),
+    meanMs:
+      total === 0
+        ? 0
+        : Math.round(
+            list.reduce((sum, result) => sum + result.durationMs, 0) / total,
+          ),
+    maxMs:
+      total === 0 ? 0 : Math.max(...list.map((result) => result.durationMs)),
     totalMs: totalMs ?? durations.reduce((sum, ms) => sum + ms, 0),
   };
 }
@@ -271,6 +416,10 @@ export function formatWarmSummary(summary) {
       `(mean ${summary.meanMs}ms, max ${summary.maxMs}ms)`,
     `Cache: ${summary.hits} hit, ${summary.misses} miss, ${summary.unknown} unknown`,
     `Failures: ${summary.failed} (${(summary.failureRate * 100).toFixed(1)}%)`,
+    `HTML: ${summary.representations.html.ok} ok, ${summary.representations.html.failed} failed ` +
+      `(mean ${summary.representations.html.meanMs}ms, max ${summary.representations.html.maxMs}ms)`,
+    `Navigation: ${summary.representations.navigation.ok} ok, ${summary.representations.navigation.failed} failed ` +
+      `(mean ${summary.representations.navigation.meanMs}ms, max ${summary.representations.navigation.maxMs}ms)`,
   ];
   if (summary.remaining > 0) {
     lines.push(`Not attempted (time budget): ${summary.remaining}`);
@@ -278,13 +427,17 @@ export function formatWarmSummary(summary) {
   if (summary.slowest.length > 0) {
     lines.push(`Slowest ${summary.slowest.length}:`);
     for (const entry of summary.slowest) {
-      lines.push(`  ${String(entry.durationMs).padStart(6)}ms  ${entry.cache.padEnd(7)} ${entry.status ?? "ERR"}  ${entry.url}`);
+      lines.push(
+        `  ${String(entry.durationMs).padStart(6)}ms  ${entry.representation.padEnd(10)} ${entry.cache.padEnd(7)} ${entry.status ?? "ERR"}  ${entry.url}`,
+      );
     }
   }
   if (summary.failures.length > 0) {
     lines.push("Failed:");
     for (const failure of summary.failures) {
-      lines.push(`  ${failure.url}  ${failure.error ?? failure.status}`);
+      lines.push(
+        `  ${failure.url} [${failure.representation}]  ${failure.error ?? failure.status}`,
+      );
     }
   }
   return lines.join("\n");
@@ -338,7 +491,12 @@ export function parseWarmArgs(argv, env = {}) {
         throw new Error(`Unknown flag --${name}`);
     }
   }
-  for (const key of ["concurrency", "timeoutMs", "maxFailurePercent", "slowest"]) {
+  for (const key of [
+    "concurrency",
+    "timeoutMs",
+    "maxFailurePercent",
+    "slowest",
+  ]) {
     if (!Number.isFinite(options[key]) || options[key] < 0) {
       throw new Error(`--${key} must be a non-negative number`);
     }
@@ -351,12 +509,16 @@ export function parseWarmArgs(argv, env = {}) {
  * Resolve the sitemap URL for a base URL and pick the URLs to warm from it.
  * Nested sitemaps (a `<sitemapindex>`) are followed one level deep.
  */
-export async function collectSitemapUrls(baseUrl, { fetchImpl = globalThis.fetch, timeoutMs = 20000 } = {}) {
+export async function collectSitemapUrls(
+  baseUrl,
+  { fetchImpl = globalThis.fetch, timeoutMs = 20000 } = {},
+) {
   const origin = new URL(baseUrl).origin;
   const sitemapUrl = new URL("/sitemap.xml", origin).toString();
   const load = async (url) => {
     const response = await fetchWithTimeoutText(fetchImpl, url, timeoutMs);
-    if (!response.ok) throw new Error(`Sitemap ${url} returned HTTP ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Sitemap ${url} returned HTTP ${response.status}`);
     return response.text;
   };
   const rootXml = await load(sitemapUrl);
@@ -375,8 +537,16 @@ async function fetchWithTimeoutText(fetchImpl, url, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetchImpl(url, { signal: controller.signal, cache: "no-store", redirect: "follow" });
-    return { ok: response.ok, status: response.status, text: await response.text() };
+    const response = await fetchImpl(url, {
+      signal: controller.signal,
+      cache: "no-store",
+      redirect: "follow",
+    });
+    return {
+      ok: response.ok,
+      status: response.status,
+      text: await response.text(),
+    };
   } finally {
     clearTimeout(timer);
   }

@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * Compare local prompts with Convex prompts.
+ * Compare local prompts with Postgres prompts.
  *
- * Shows differences between local files and what's stored in Convex,
+ * Shows differences between local files and what's stored in Postgres,
  * helping you decide whether to sync.
  *
  * Usage:
- *   VITE_CONVEX_URL="https://..." node scripts/migrate/compare-prompts.mjs
+ *   POSTGRES_POOLED_URL="https://..." node scripts/migrate/compare-prompts.mjs
  */
 
 import { pathToFileURL } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createDataOpsRunContext,
   printDataOpsRunContext,
@@ -20,7 +20,7 @@ import {
 import {
   PROMPT_DRIFT_STATUS,
   META_COMMENTARY_RULE,
-  collectConvexPromptInventory,
+  collectDataPromptInventory,
   collectLocalPromptInventory,
   comparePromptInventories,
   groupPromptDriftByStatus,
@@ -47,7 +47,7 @@ export function renderPromptDriftReport(drift, { sourceCount, targetCount } = {}
   }
 
   if (results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].length > 0) {
-    lines.push(`\n⚠ CONVEX ONLY (${results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].length}):`);
+    lines.push(`\nDATA ONLY (${results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].length}):`);
     results[PROMPT_DRIFT_STATUS.MISSING_IN_SOURCE].forEach(({ key, target }) => {
       lines.push(`  - ${key} (updated: ${target.updatedAt})`);
     });
@@ -66,13 +66,13 @@ export function renderPromptDriftReport(drift, { sourceCount, targetCount } = {}
       const targetHasNewLine = diff.target.content.includes(META_COMMENTARY_RULE);
       lines.push(`  - ${diff.key}`);
       lines.push(`      Local: ${diff.source.content.length} chars, has new rule: ${sourceHasNewLine}`);
-      lines.push(`      Convex: ${diff.target.content.length} chars, has new rule: ${targetHasNewLine}`);
+      lines.push(`      Postgres: ${diff.target.content.length} chars, has new rule: ${targetHasNewLine}`);
       lines.push(`      Last updated: ${diff.target.updatedAt} by ${diff.target.updatedBy || "unknown"}`);
 
       if (diff.status === PROMPT_DRIFT_STATUS.SAFE_POLICY_DIFFERENCE) {
         lines.push("      → Likely SAFE to sync (local just adds new meta-commentary rule)");
       } else if (diff.policy === "meta-commentary-rule-missing-locally") {
-        lines.push("      → WARNING: Convex has the new rule but local doesn't!");
+        lines.push("      → WARNING: Postgres has the new rule but local doesn't!");
       } else {
         lines.push("      → REVIEW NEEDED: Significant differences beyond the new rule");
       }
@@ -94,10 +94,10 @@ export function renderPromptDriftReport(drift, { sourceCount, targetCount } = {}
   } else if (safeToSync.length > 0) {
     lines.push("\n✓ SAFE TO SYNC:");
     lines.push(`   ${safeToSync.length} prompt(s) only differ by the new meta-commentary rule.`);
-    lines.push("   Run the migration script to update Convex.\n");
+    lines.push("   Run the migration script to update Postgres.\n");
   } else if (sourceCount !== undefined && results[PROMPT_DRIFT_STATUS.IDENTICAL].length === sourceCount) {
     lines.push("\n✓ ALL SYNCED:");
-    lines.push("   Local and Convex prompts are identical.\n");
+    lines.push("   Local and Postgres prompts are identical.\n");
   }
 
   if (targetCount !== undefined && drift.some((entry) => entry.key === "generator")) {
@@ -107,11 +107,11 @@ export function renderPromptDriftReport(drift, { sourceCount, targetCount } = {}
   return lines.join("\n");
 }
 
-export async function runComparePrompts({ convexPrompts, convexUrl, log = console.log } = {}) {
+export async function runComparePrompts({ dataPrompts, dataUrl, log = console.log } = {}) {
   const runContext = createDataOpsRunContext({
-    operation: "compare local prompts with Convex prompts",
-    intent: "convex-read-compare",
-    sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+    operation: "compare local prompts with Postgres prompts",
+    intent: "data-read-compare",
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
     targetUrlKeys: [],
     localArtifacts: [
       "src/data/config/generatorPrompt.md",
@@ -120,25 +120,25 @@ export async function runComparePrompts({ convexPrompts, convexUrl, log = consol
     ],
   });
 
-  const resolvedConvexUrl = convexUrl ?? requireSourceUrl(runContext, "Convex prompt source URL");
+  const resolvedDataUrl = dataUrl ?? requireSourceUrl(runContext, "Postgres prompt source URL");
 
-  log("Comparing local prompts with Convex...\n");
+  log("Comparing local prompts with Postgres...\n");
   printDataOpsRunContext(runContext);
 
   const localPrompts = collectLocalPromptInventory();
   log(`Local prompts: ${localPrompts.size}`);
 
-  let promptRecords = convexPrompts;
+  let promptRecords = dataPrompts;
   if (!promptRecords) {
-    const client = createDataClient({ target: resolvedConvexUrl }).client;
+    const client = createDataClient({ target: resolvedDataUrl }).client;
     promptRecords = await client.query(api.prompts.getAll);
   }
 
-  const convexInventory = collectConvexPromptInventory(promptRecords);
-  log(`Convex prompts: ${promptRecords.length}`);
+  const dataInventory = collectDataPromptInventory(promptRecords);
+  log(`Postgres prompts: ${promptRecords.length}`);
   log();
 
-  const drift = comparePromptInventories(localPrompts, convexInventory);
+  const drift = comparePromptInventories(localPrompts, dataInventory);
   log(renderPromptDriftReport(drift, {
     sourceCount: localPrompts.size,
     targetCount: promptRecords.length,

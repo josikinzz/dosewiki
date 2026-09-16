@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import {
@@ -28,7 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
+import type { ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { REPORTS_INDEX_DEFAULT_VIEW, type ReportsIndexView } from "@/utils/indexViewRoutes";
 import { TripReportCard } from "../components/TripReportCard";
@@ -38,9 +38,11 @@ import {
   OPEN_SHELF_MAX_REPORTS,
   useTripReportsExplorer,
 } from "./useTripReportsExplorer";
+import type { ReportBrowsePage } from "../domain/reportBrowsePage";
 
 interface TripReportsExplorerProps {
-  reports: ReportCardModel[];
+  browsingPage: ReportBrowsePage;
+  locale?: string;
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
   /** Server-resolved URL state; must match the first rendered grouping. */
@@ -74,7 +76,8 @@ const BAND_TABS: { key: BandKey; label: string }[] = [
 ];
 
 export function TripReportsExplorer({
-  reports,
+  browsingPage,
+  locale,
   reportHrefPrefix,
   emptyState,
   initialView = REPORTS_INDEX_DEFAULT_VIEW,
@@ -85,6 +88,7 @@ export function TripReportsExplorer({
     added: null,
     featured: null,
   });
+  const resultsRef = useRef<HTMLDivElement>(null);
   const {
     authorCount,
     clearNarrowing,
@@ -109,12 +113,51 @@ export function TripReportsExplorer({
     substanceOptions,
     viewMode,
     visibleReports,
-  } = useTripReportsExplorer(reports, initialView, reportHrefPrefix);
+    total, filteredTotal, nextCursor, loading, failed, loadMore, retry, restart,
+  } = useTripReportsExplorer(browsingPage, initialView, reportHrefPrefix, locale);
   const bandTabs = featured.length > 0 ? BAND_TABS : BAND_TABS.slice(0, 1);
   const activeBand = featured.length > 0 ? band : "added";
   const bandReports = activeBand === "featured" ? featured : recentlyAdded;
+  const previousReports = useRef(visibleReports);
 
-  if (reports.length === 0) {
+  useEffect(() => {
+    const results = resultsRef.current;
+    if (!results) return;
+    // Retain the committed archive's footprint while a replacement or retry
+    // is pending, without hiding or disabling its links.
+    results.style.minHeight = loading ? `${results.offsetHeight}px` : "";
+  }, [loading]);
+
+  useEffect(() => {
+    const previous = previousReports.current;
+    previousReports.current = visibleReports;
+    const results = resultsRef.current;
+    if (!results || previous === visibleReports || typeof results.animate !== "function") return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotion.matches) return;
+
+    // Pagination retains report objects; replacements receive fresh objects.
+    // Animate only newly appended rows, never the already-readable archive.
+    const current = new Set(visibleReports);
+    const appended = previous.length > 0 && previous.every((report) => current.has(report));
+    const previousSlugs = new Set(previous.map((report) => report.slug));
+    const targets = appended
+      ? Array.from(results.querySelectorAll<HTMLElement>("[data-report-slug]"))
+          .filter((row) => !previousSlugs.has(row.dataset.reportSlug ?? ""))
+      : [results];
+    const animations = targets.map((target) => target.animate(
+      [{ opacity: 0, transform: "translateY(2px)" }, { opacity: 1, transform: "translateY(0)" }],
+      { duration: 180, easing: "cubic-bezier(0.25, 1, 0.5, 1)" },
+    ));
+    const cancel = () => animations.forEach((animation) => animation.cancel());
+    reducedMotion.addEventListener("change", cancel);
+    return () => {
+      cancel();
+      reducedMotion.removeEventListener("change", cancel);
+    };
+  }, [visibleReports]);
+
+  if (total === 0) {
     return (
       <div className="mx-auto w-full max-w-4xl">
         <StateCard
@@ -155,15 +198,15 @@ export function TripReportsExplorer({
                 type="button"
                 variant="pill"
                 size="auto"
-                className={CONTROL_TRIGGER_CLASS}
+                className={cn(CONTROL_TRIGGER_CLASS, "group/report-control transition-colors duration-160 data-[state=open]:bg-dose-surface-muted motion-reduce:transition-none md:w-[8.5rem] md:[@media(pointer:coarse)]:w-[8.5rem]")}
                 aria-label={t("Group by: {{mode}}", { mode: t(MODE_LABEL[viewMode]) })}
                 title={t("Group by: {{mode}}", { mode: t(MODE_LABEL[viewMode]) })}
               >
                 <Icon icon={MODE_ICON[viewMode]} className="h-4 w-4 shrink-0" aria-hidden />
-                <span className={CONTROL_TRIGGER_LABEL_CLASS}>{t(MODE_LABEL[viewMode])}</span>
+                <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "min-w-0 flex-1 truncate")}>{t(MODE_LABEL[viewMode])}</span>
                 <Icon
                   icon="lucide:chevron-down"
-                  className={CONTROL_TRIGGER_CHEVRON_CLASS}
+                  className={cn(CONTROL_TRIGGER_CHEVRON_CLASS, "transition-transform duration-160 group-data-[state=open]/report-control:rotate-180 motion-reduce:transition-none")}
                   aria-hidden
                 />
               </Button>
@@ -178,7 +221,7 @@ export function TripReportsExplorer({
                   <DropdownMenuRadioItem
                     key={mode}
                     value={mode}
-                    className={CONTROL_MENU_ITEM_CLASS}
+                    className={cn(CONTROL_MENU_ITEM_CLASS, "transition-colors duration-160 data-[state=checked]:bg-dose-surface-muted data-[state=checked]:text-dose-accent-strong motion-reduce:transition-none")}
                   >
                     {t(MODE_LABEL[mode])}
                   </DropdownMenuRadioItem>
@@ -204,9 +247,9 @@ export function TripReportsExplorer({
               // Names its own corpus: the site-wide field sits 330px above
               // this one and leaves the page, and nothing else told a reader
               // which of the two they were typing into.
-              placeholder={t("Search {{count}} reports", { count: reports.length })}
+              placeholder={t("Search {{count}} reports", { count: total })}
               aria-label={t("Search these reports")}
-              className={cn("h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9", query ? "pr-10" : "pr-3")}
+              className="h-10 pl-9 pr-11 [@media(pointer:coarse)]:h-11 md:h-9"
             />
             {query ? (
               <Button
@@ -214,7 +257,7 @@ export function TripReportsExplorer({
                 variant="ghost"
                 size="auto"
                 aria-label={t("Clear search")}
-                className="absolute right-0 top-1/2 h-9 w-9 -translate-y-1/2 p-0"
+                className="theme-feedback-enter absolute right-0 top-1/2 h-9 w-9 -translate-y-1/2 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
                 onClick={() => {
                   if (searchInputRef.current) {
                     searchInputRef.current.value = "";
@@ -246,12 +289,12 @@ export function TripReportsExplorer({
           exists to be announced when narrowing starts. */}
       <p
         role="status"
-        className="theme-text-faint mx-auto mb-5 w-full max-w-4xl px-1 text-xs tabular-nums empty:mb-0"
+        className="theme-text-faint mx-auto mb-5 min-h-4 w-full max-w-4xl px-1 text-xs tabular-nums"
       >
         {isNarrowed
           ? t("{{visible}} of {{total}} reports", {
-              visible: visibleReports.length,
-              total: reports.length,
+              visible: filteredTotal,
+              total,
             })
           : ""}
       </p>
@@ -294,7 +337,7 @@ export function TripReportsExplorer({
                     }}
                     className={cn(
                       focusRingClassName,
-                      "min-h-9 rounded-full px-3 text-xs font-semibold uppercase tracking-[0.1em] transition [@media(pointer:coarse)]:min-h-11",
+                      "min-h-9 rounded-full px-3 text-xs font-semibold uppercase tracking-[0.1em] transition-colors duration-160 motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       selected
                         ? "theme-accent-heading bg-dose-surface-muted"
                         : "theme-text-faint hover:text-dose-text-secondary",
@@ -307,7 +350,7 @@ export function TripReportsExplorer({
             </div>
             <p className="theme-text-faint hidden text-xs tabular-nums sm:block">
               {t("{{reports}} reports · {{substances}} substances · {{authors}} authors", {
-                reports: reports.length,
+                reports: total,
                 substances: substanceOptions.length,
                 authors: authorCount,
               })}
@@ -318,10 +361,11 @@ export function TripReportsExplorer({
               cell. The band's job is to make a reader open something, so title,
               byline and date carry it and the shelves carry the chemistry. */}
           <div
+            key={activeBand}
             role="tabpanel"
             id="reports-band-panel"
             aria-labelledby={`reports-band-tab-${activeBand}`}
-            className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+            className="theme-tab-panel-enter grid min-h-[13.25rem] gap-2 sm:min-h-[8.75rem] sm:grid-cols-2 lg:min-h-[4.25rem] lg:grid-cols-3"
           >
             {bandReports.map((report) => (
               <TripReportCard
@@ -341,6 +385,7 @@ export function TripReportsExplorer({
         </section>
       )}
 
+      <div ref={resultsRef} aria-busy={loading}>
       {visibleReports.length === 0 ? (
         <div className="mx-auto flex w-full max-w-4xl flex-col items-center">
           <SearchEmptyState
@@ -381,6 +426,14 @@ export function TripReportsExplorer({
           ))}
         </IndexPanelGrid>
       )}
+      </div>
+      <div className="mx-auto mt-6 flex min-h-28 max-w-4xl flex-col items-center gap-3" aria-live="polite">
+        <p role="status" className="min-h-5 text-sm">
+          {loading ? <span className="theme-feedback-enter">{t("Loading reports…")}</span> : null}
+        </p>
+        {failed ? <div role="alert" className="theme-feedback-enter text-center"><p>{t("Unable to load reports.")}</p><Button variant="pill" onClick={retry}>{t("Retry")}</Button><Button variant="quiet" onClick={restart}>{t("Restart browsing")}</Button></div> : null}
+        {nextCursor ? <Button variant="pill" size="pill" disabled={loading || failed} onClick={loadMore}>{t("Load more reports")}</Button> : null}
+      </div>
     </>
   );
 }

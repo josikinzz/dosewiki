@@ -7,7 +7,7 @@ import type { ProposalBaseline } from "../../lib/proposals/proposalBaseline";
 // Types
 // ============================================================================
 
-export interface SaveToConvexPayload {
+export interface SaveArticlePayload {
   articles?: unknown[];
   indexLayouts?: Array<{
     type: "psychoactive" | "chemical" | "mechanism";
@@ -27,7 +27,7 @@ export interface SaveToConvexPayload {
   };
 }
 
-export interface SaveToConvexResult {
+export interface SaveArticleResult {
   success: boolean;
   requestId?: string;
   savedItems: string[];
@@ -83,8 +83,8 @@ interface ProposalAbout { aboutMarkdown: string;
 aboutSubtitle: string;
 founderProfileKeys: string[]; }
 
-/** Everything a proposal may carry: the save-to-convex body plus the tab-local documents. */
-export type ProposalPayload = SaveToConvexPayload & {
+/** Everything a proposal may carry: the save-article body plus the tab-local documents. */
+export type ProposalPayload = SaveArticlePayload & {
   copyBlocks?: ProposalCopyBlock[];
   about?: ProposalAbout;
 };
@@ -105,29 +105,29 @@ export interface SubmitProposalResult {
 // API Functions
 // ============================================================================
 
-const SAVE_TO_CONVEX_TIMEOUT_MS = 60_000;
+const SAVE_ARTICLE_TIMEOUT_MS = 60_000;
 
-async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
+async function saveArticle(payload: SaveArticlePayload): Promise<SaveArticleResult> {
   const requestSummary = {
     articleCount: Array.isArray(payload.articles) ? payload.articles.length : 0,
     indexLayoutCount: Array.isArray(payload.indexLayouts) ? payload.indexLayouts.length : 0,
     hasChangelog: payload.changelog !== undefined,
   };
 
-  console.info("[saveToConvex] request:start", requestSummary);
+  console.info("[saveArticle] request:start", requestSummary);
 
-  const { response, result } = await postJson("/api/save-to-convex", {
+  const { response, result } = await postJson("/api/save-article", {
     body: payload,
-    timeoutMs: SAVE_TO_CONVEX_TIMEOUT_MS,
+    timeoutMs: SAVE_ARTICLE_TIMEOUT_MS,
     onNetworkError: (networkError) => {
       const aborted =
         networkError instanceof DOMException && networkError.name === "AbortError";
       const message = aborted
-        ? `Convex save request timed out after ${SAVE_TO_CONVEX_TIMEOUT_MS / 1000} seconds.`
-        : `Convex save request failed: ${
+        ? `Postgres save request timed out after ${SAVE_ARTICLE_TIMEOUT_MS / 1000} seconds.`
+        : `Postgres save request failed: ${
             networkError instanceof Error ? networkError.message : String(networkError)
           }`;
-      console.error("[saveToConvex] request:error", {
+      console.error("[saveArticle] request:error", {
         ...requestSummary,
         message,
       });
@@ -135,7 +135,7 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
     },
   });
 
-  console.info("[saveToConvex] request:response", {
+  console.info("[saveArticle] request:response", {
     ...requestSummary,
     ok: response.ok,
     status: response.status,
@@ -146,7 +146,7 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
 
   if (!response.ok) {
     const details = pickStringArray(result.details);
-    const error = pickString(result.error) ?? "Unable to save to Convex.";
+    const error = pickString(result.error) ?? "Unable to save to Postgres.";
     const code = pickString(result.code);
     const phase = pickString(result.phase);
     const requestId = pickString(result.requestId);
@@ -284,10 +284,10 @@ async function submitProposal(input: SubmitProposalPayload): Promise<SubmitPropo
 // Mutation Hooks
 // ============================================================================
 
-export function useSaveToConvexMutation() {
+export function useSaveArticleMutation() {
   const pending = useRef(new Map<string, { identity: string; operationId: string }>());
   return useMutation({
-    mutationFn: (payload: SaveToConvexPayload) => {
+    mutationFn: (payload: SaveArticlePayload) => {
       const indexLayouts = payload.indexLayouts?.map((layout) => {
         const identity = JSON.stringify(layout);
         let operation = pending.current.get(layout.type);
@@ -297,7 +297,7 @@ export function useSaveToConvexMutation() {
         }
         return { ...layout, operationId: operation.operationId };
       });
-      return saveToConvex({ ...payload, indexLayouts });
+      return saveArticle({ ...payload, indexLayouts });
     },
   });
 }

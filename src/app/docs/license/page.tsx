@@ -1,5 +1,5 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import { DisclosureCard } from "@/components/common/DisclosureCard";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -13,8 +13,13 @@ import subjectiveEffectsProvenance from "@/data/generated/subjectiveEffectsProve
 
 import { t } from "@/i18n/server";
 
+const DOCS_LICENSE_COPY_KEYS = [
+  "seo-docs-license-description",
+  ...getCopyKeysByPrefix("docs-license-"),
+];
+
 export async function generateMetadata() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(DOCS_LICENSE_COPY_KEYS);
 
   return buildPublicPageMetadata({
     title: t("Licensing and reuse"),
@@ -108,7 +113,7 @@ const SUBJECTIVE_EFFECT_ATTRIBUTION_SEGMENTS = subjectiveEffectsProvenance.summa
 );
 
 export default async function DocsLicensePage() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(DOCS_LICENSE_COPY_KEYS);
   const tocItems = TOC_ITEMS.map((item) => ({
     id: item.id,
     label: copy.text(item.labelKey),

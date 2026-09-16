@@ -3,7 +3,7 @@ import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     citationEvidence: {
       setManyStatus: "citationEvidence.setManyStatus",
@@ -23,23 +23,23 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 describe("citation evidence status route", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.mutation.mockReset();
-    mocks.getServerConvexWriteCapability.mockReset();
+    mocks.getServerDataWriteCapability.mockReset();
     mocks.mutation.mockResolvedValue({ updated: 1 });
     authMocks.requireRoleSession.mockReset().mockImplementation(
       roleSessionFor("admin", { email: "editor@example.com", name: "Editor" }),
     );
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: {
         client: { mutation: mocks.mutation },
@@ -80,7 +80,7 @@ describe("citation evidence status route", () => {
     });
   });
 
-  it("refuses an editor session with 403 before touching Convex", async () => {
+  it("refuses an editor session with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");
 
@@ -140,7 +140,7 @@ describe("citation evidence status route", () => {
     });
   });
 
-  it("rejects unknown statuses and oversized reasons without touching Convex", async () => {
+  it("rejects unknown statuses and oversized reasons without touching Postgres", async () => {
     const { POST } = await import("./route");
 
     const unknown = await POST(

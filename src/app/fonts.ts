@@ -20,4 +20,4 @@
  * `tsconfig.json` maps `@site-font` to the dose.wiki module so `tsc` and editors have a
  * shape to check against; both modules export the same names.
  */
-export { bodyFont, dyslexicFont, proFont, siteFont } from "@site-font";
+export { bodyFont, bodyItalicFace, dyslexicFont, proFont, siteFont } from "@site-font";

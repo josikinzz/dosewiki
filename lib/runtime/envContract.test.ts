@@ -1,34 +1,21 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { resolveRuntimeEnvContract, runRuntimeEnvPreflight } from "./envContract";
 
 describe("runtime env contract", () => {
-  it("resolves local profile with compatibility aliases", () => {
+  it("resolves Postgres and same-origin browser access without legacy URLs", () => {
     const contract = resolveRuntimeEnvContract({
-      NODE_ENV: "development",
-      VITE_CONVEX_URL: "https://dev.convex.cloud",
-      CONVEX_ADMIN_KEY: "secret-admin-key",
+      NODE_ENV: "development", DATA_BACKEND: "postgres",
+      POSTGRES_POOLED_URL: "postgres://localhost/dosewiki", DATA_ADMIN_KEY: "secret-admin-key",
     });
-
-    expect(contract.profile).toBe("local");
-    expect(contract.publicBrowserConfig).toEqual({
-      convexUrl: "https://dev.convex.cloud",
-      sourceEnvVar: "VITE_CONVEX_URL",
-    });
-    expect(contract.serverWriteConfig).toMatchObject({
-      convexUrl: "https://dev.convex.cloud",
-      convexUrlSourceEnvVar: "VITE_CONVEX_URL",
-      adminKeyConfigured: true,
-    });
-    expect(contract.authConfig.policy.sessionsAvailable).toBe(true);
-    expect(contract.authConfig.policy.authSecretSource).toBe("development-fallback");
+    expect(contract.publicBrowserConfig).toEqual({ transport: "same-origin" });
+    expect(contract.serverWriteConfig).toMatchObject({ postgresUrl: "postgres://localhost/dosewiki", adminKeyConfigured: true });
+    expect(contract.diagnostics.issues.filter((candidate) => candidate.severity === "error")).toEqual([]);
   });
 
   it("reports missing preview and production requirements without throwing", () => {
     const diagnostics = runRuntimeEnvPreflight({
       NODE_ENV: "production",
       VERCEL_ENV: "preview",
-      NEXT_PUBLIC_CONVEX_URL: "https://browser.convex.cloud",
     });
 
     expect(diagnostics.reportOnly).toBe(true);
@@ -37,7 +24,7 @@ describe("runtime env contract", () => {
       expect.arrayContaining([
         expect.objectContaining({
           capability: "serverWriteConfig",
-          envVars: ["CONVEX_ADMIN_KEY"],
+          envVars: ["DATA_ADMIN_KEY"],
           severity: "error",
         }),
         expect.objectContaining({
@@ -51,48 +38,30 @@ describe("runtime env contract", () => {
 
   it("keeps browser config free of secret values", () => {
     const contract = resolveRuntimeEnvContract({
-      NEXT_PUBLIC_CONVEX_URL: "https://browser.convex.cloud",
-      CONVEX_ADMIN_KEY: "secret-admin-key",
+      DATA_BACKEND: "postgres",
+      POSTGRES_POOLED_URL: "postgres://secret-user:secret-password@localhost/dosewiki",
+      DATA_ADMIN_KEY: "secret-admin-key",
       AUTH_SECRET: "auth-secret",
     });
 
     expect(JSON.stringify(contract.publicBrowserConfig)).not.toContain("secret");
-    expect(JSON.stringify(contract.diagnostics.convexTargets)).not.toContain("secret-admin-key");
+    expect(JSON.stringify(contract.diagnostics.dataTargets)).not.toContain("secret");
   });
 
   it("recognizes a complete production profile", () => {
     const contract = resolveRuntimeEnvContract({
       NODE_ENV: "production",
       VERCEL_ENV: "production",
-      NEXT_PUBLIC_CONVEX_URL: "https://browser.convex.cloud",
-      CONVEX_URL: "https://write.convex.cloud",
-      CONVEX_PUBLIC_READ_URL: "https://read.convex.cloud",
-      CONVEX_ADMIN_KEY: "secret-admin-key",
+      DATA_BACKEND: "postgres",
+      POSTGRES_POOLED_URL: "postgres://localhost/dosewiki",
+      DATA_ADMIN_KEY: "secret-admin-key",
       AUTH_SECRET: "auth-secret",
     });
 
     expect(contract.profile).toBe("production");
     expect(contract.diagnostics.issues.filter((candidate) => candidate.severity === "error")).toEqual([]);
-    expect(contract.serverReadConfig.sourceEnvVar).toBe("CONVEX_PUBLIC_READ_URL");
+    expect(contract.serverReadConfig.sourceEnvVar).toBe("POSTGRES_POOLED_URL");
     expect(contract.authConfig.policy.sessionsAvailable).toBe(true);
   });
 
-  it("keeps env docs aligned with contract variable names", () => {
-    const envExample = readFileSync(".env.example", "utf8");
-    const readme = readFileSync("README.md", "utf8");
-    const requiredDocVars = [
-      "NEXT_PUBLIC_CONVEX_URL",
-      "VITE_CONVEX_URL",
-      "CONVEX_URL",
-      "CONVEX_PUBLIC_READ_URL",
-      "CONVEX_ADMIN_KEY",
-      "AUTH_SECRET",
-      "NEXTAUTH_SECRET",
-      "ENABLE_TEST_ENV",
-    ];
-
-    for (const envVar of requiredDocVars) {
-      expect(`${envExample}\n${readme}`, `${envVar} should be documented`).toContain(envVar);
-    }
-  });
 });

@@ -9,10 +9,10 @@
  * to change how every other banner is drawn, and changing the size must not
  * require touching a preset. The browser holds no admin intent token, so the
  * write is delegated here the way the sibling route delegates its own — editor
- * session first, then Convex with the server's token plus the actor's email.
+ * session first, then Postgres with the server's token plus the actor's email.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { applyPublicCacheLocally } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -51,18 +51,18 @@ export const POST = protectedRouteOperation<BannerDisplayBody, number>({
     maxBytes: 4 * 1024,
     parse: parseBannerDisplayBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save the safety banner icon size via Next route:",
   unexpectedErrorMessage: "Unable to save the banner icon size right now.",
-  operation: async ({ actorEmail, body: iconSize, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body: iconSize, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.siteConfig.saveBannerDisplay, {
+    const result = await dataWrite.client.mutation(api.siteConfig.saveBannerDisplay, {
       apiKey,
       actorEmail,
       iconSize,
@@ -75,7 +75,7 @@ export const POST = protectedRouteOperation<BannerDisplayBody, number>({
     // readers would keep getting the old glyph size for up to an hour. Walk
     // the enabled presets and publish the deduped union of the slugs they
     // cover alongside the banner setting itself.
-    const presets = (await convexWrite.client.query(api.warningBanners.listPresets, {})) as
+    const presets = (await dataWrite.client.query(api.warningBanners.listPresets, {})) as
       | { enabled?: unknown; enabledSlugs?: unknown }[]
       | null;
     const touched = new Set<string>();

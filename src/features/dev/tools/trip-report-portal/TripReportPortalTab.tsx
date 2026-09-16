@@ -9,7 +9,7 @@ import {
   EditorPanel,
   TagToken,
 } from "@/features/dev/components";
-import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import { PortalOrganizerRail } from "./PortalOrganizerRail";
 import { PortalReportEditor } from "./PortalReportEditor";
 import { PortalSubmissionReview } from "./PortalSubmissionReview";
@@ -50,6 +50,7 @@ export function TripReportPortalTab() {
     load,
     loadCorpus,
     loadReportBody,
+    loadSubmissionDetail,
     promotionPayload,
     query,
     queuePosition,
@@ -80,7 +81,9 @@ export function TripReportPortalTab() {
         <div className="min-w-0">
           <h2 className="theme-accent-heading font-display text-2xl font-semibold">Trip Report Portal</h2>
           <p className="theme-text-faint mt-0.5 font-mono text-xs tabular-nums">
-            {stats.reports} reports · {stats.authors} authors · {stats.substances} substances
+            {stats
+              ? `${stats.reports} reports · ${stats.authors} authors · ${stats.substances} substances`
+              : "Totals pending until every dataset is available"}
           </p>
         </div>
         <div className="flex-1" />
@@ -89,12 +92,12 @@ export function TripReportPortalTab() {
         </Button>
       </header>
 
-      {load.status === "error" ? (
+      {load.corpus.status === "error" ? (
         <EditorNotice
           notice={{
             tone: "danger",
-            title: "Unable to load trip reports",
-            message: load.message,
+            title: "Published reports unavailable",
+            message: load.corpus.message,
             actions: (
               <Button type="button" variant="outline" size="sm" onClick={() => void loadCorpus()}>
                 Try again
@@ -104,22 +107,34 @@ export function TripReportPortalTab() {
         />
       ) : null}
 
-      {load.status === "loading" ? (
-        <EditorPanel variant="empty" className="p-8 text-center text-sm">
-          Loading the trip report corpus…
-        </EditorPanel>
-      ) : load.status === "error" && rows.length === 0 ? null : (
-        <div
-          className={`grid gap-4 ${
-            editorOpen
-              ? "lg:grid-cols-[17.5rem_minmax(0,1fr)] xl:grid-cols-[17.5rem_20rem_minmax(0,1fr)]"
-              : "lg:grid-cols-[17.5rem_minmax(0,1fr)]"
-          }`}
-        >
+      {load.submissions.status === "error" ? (
+        <EditorNotice
+          notice={{
+            tone: "danger",
+            title: "Submission queue unavailable",
+            message: load.submissions.message,
+            actions: (
+              <Button type="button" variant="outline" size="sm" onClick={() => void loadCorpus()}>
+                Try again
+              </Button>
+            ),
+          }}
+        />
+      ) : null}
+
+      <div
+        className={`grid gap-4 ${
+          editorOpen
+            ? "lg:grid-cols-[17.5rem_minmax(0,1fr)] xl:grid-cols-[17.5rem_20rem_minmax(0,1fr)]"
+            : "lg:grid-cols-[17.5rem_minmax(0,1fr)]"
+        }`}
+      >
           <PortalOrganizerRail
+            complete={stats !== null}
             bucket={bucket}
             facets={facets}
             groupBy={groupBy}
+            needsComplete={load.submissions.status === "ready"}
             query={query}
             rows={rows}
             searchInputRef={searchInputRef}
@@ -141,6 +156,7 @@ export function TripReportPortalTab() {
               <div className="theme-portal-rule flex flex-wrap items-center gap-2.5 border-b px-1 pb-2.5">
                 <p className="theme-text-faint text-xs tabular-nums">
                   <span className="theme-text-secondary font-semibold">{visible.length}</span> of {rows.length}
+                  {stats ? "" : " loaded"}
                 </p>
 
                 {(["substance", "author", "tag"] as const).flatMap((kind) =>
@@ -197,12 +213,14 @@ export function TripReportPortalTab() {
                     : undefined
                 }
               >
-                <PortalReportList
-                  compact={editorOpen}
-                  groups={groups}
-                  selectedId={selectedId}
-                  onSelect={selectRow}
-                />
+                {bucket === "needs" && load.submissions.status === "error" ? null : (
+                  <PortalReportList
+                    compact={editorOpen}
+                    groups={groups}
+                    selectedId={selectedId}
+                    onSelect={selectRow}
+                  />
+                )}
               </div>
             </main>
 
@@ -219,6 +237,32 @@ export function TripReportPortalTab() {
                         variant="outline"
                         size="sm"
                         onClick={() => void loadReportBody(selected.id)}
+                      >
+                        Try again
+                      </Button>
+                    ),
+                  }}
+                />
+              ) : (
+                <EditorPanel variant="empty" className="p-8 text-center text-sm">
+                  Loading “{selected.title}”…
+                </EditorPanel>
+              )
+            ) : null}
+
+            {selected?.origin === "submission" && !selectedSubmission ? (
+              detailState.status === "error" ? (
+                <EditorNotice
+                  notice={{
+                    tone: "danger",
+                    title: "Unable to open that submission",
+                    message: detailState.message,
+                    actions: (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void loadSubmissionDetail(selected.id)}
                       >
                         Try again
                       </Button>
@@ -267,7 +311,6 @@ export function TripReportPortalTab() {
             ) : null}
           </div>
         </div>
-      )}
     </div>
   );
 }

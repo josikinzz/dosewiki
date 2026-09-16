@@ -113,7 +113,7 @@ function writePlan(root) {
 function options(fixture, overrides = {}) {
   return {
     argv: ["--plan", fixture.planPath],
-    env: {},
+    env: { DATA_BACKEND: "postgres" },
     expectedPlanPath: fixture.planPath,
     expectedPlanFileSha256: fixture.fileSha256,
     expectedDeclaredPlanSha256: fixture.plan.planSha256,
@@ -170,14 +170,14 @@ describe("live taxonomy CAS repair executor", () => {
       "--ledger", ledgerPath,
       "--write",
       "--phase", "canary",
-      "--target-url", TARGET,
-      "--expected-deployment", "glad-minnow-656",
+      "--target", "postgresql://localhost/dosewiki",
+      "--expected-deployment", "localhost/dosewiki",
       "--confirm-write", "apply-live-taxonomy-cas-repair",
     ];
 
     const result = await runLiveTaxonomyCasRepair(options(fixture, {
       argv,
-      env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
       clientFactory: () => ({ query, mutation }),
     }));
 
@@ -212,13 +212,13 @@ describe("live taxonomy CAS repair executor", () => {
       "--ledger", ledgerPath,
       "--write",
       "--phase", "canary",
-      "--target-url", TARGET,
-      "--expected-deployment", "glad-minnow-656",
+      "--target", "postgresql://localhost/dosewiki",
+      "--expected-deployment", "localhost/dosewiki",
       "--confirm-write", "apply-live-taxonomy-cas-repair",
     ];
     const runOptions = options(fixture, {
       argv,
-      env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
       clientFactory: () => ({ query, mutation }),
     });
 
@@ -241,14 +241,14 @@ describe("live taxonomy CAS repair executor", () => {
       "--ledger", ledgerPath,
       "--write",
       "--phase", "remaining",
-      "--target-url", TARGET,
-      "--expected-deployment", "glad-minnow-656",
+      "--target", "postgresql://localhost/dosewiki",
+      "--expected-deployment", "localhost/dosewiki",
       "--confirm-write", "apply-live-taxonomy-cas-repair",
     ];
 
     await expect(runLiveTaxonomyCasRepair(options(fixture, {
       argv,
-      env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
       clientFactory: () => ({ query: vi.fn(), mutation }),
     }))).rejects.toThrow(/separately verified canary/i);
     expect(mutation).not.toHaveBeenCalled();
@@ -268,14 +268,14 @@ describe("live taxonomy CAS repair executor", () => {
       "--ledger", ledgerPath,
       "--write",
       "--phase", "canary",
-      "--target-url", TARGET,
-      "--expected-deployment", "glad-minnow-656",
+      "--target", "postgresql://localhost/dosewiki",
+      "--expected-deployment", "localhost/dosewiki",
       "--confirm-write", "apply-live-taxonomy-cas-repair",
     ];
     const clientFactory = vi.fn();
     await expect(runLiveTaxonomyCasRepair(options(fixture, {
       argv,
-      env: { CONVEX_ADMIN_KEY: "legacy-secret" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_KEY: "legacy-secret" },
       clientFactory,
     }))).rejects.toThrow(/scoped replicationMaintenance/i);
     expect(clientFactory).not.toHaveBeenCalled();
@@ -289,7 +289,7 @@ describe("live taxonomy CAS repair executor", () => {
     const mutation = vi.fn();
     await expect(runLiveTaxonomyCasRepair(options(fixture, {
       argv,
-      env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "scoped-secret" },
       clientFactory: () => ({ query: vi.fn().mockResolvedValue(drifted), mutation }),
     }))).rejects.toThrow(/full live row SHA-256 drifted/i);
     expect(mutation).not.toHaveBeenCalled();

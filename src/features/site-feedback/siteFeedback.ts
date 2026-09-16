@@ -5,7 +5,7 @@
  *
  * This module stays isomorphic (no Node imports) so the public form and the
  * /dev review tab can share the enums, labels, placeholders, and validation
- * at runtime. Server-only concerns (IP hashing, Convex store, Turnstile
+ * at runtime. Server-only concerns (IP hashing, Postgres store, Turnstile
  * verification) live in siteFeedbackStore.server.ts.
  */
 

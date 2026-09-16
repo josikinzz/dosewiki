@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   auditPublicProseArtifactLanguage,
   formatArtifactLanguageFindings,
@@ -22,13 +22,32 @@ function parseArgs(argv) {
     fail: false,
     format: "text",
     sections: [],
-    convexUrl: null,
+    sourceUrl: null,
+    postgres: false,
     mode: "artifact",
     output: null,
     quiet: false,
   };
 
-  for (const arg of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--target" || arg === "--source-url") {
+      const value = argv[++index];
+      if (!value || value.startsWith("--")) throw new Error(`${arg} requires a Postgres URL.`);
+      options.sourceUrl = value;
+      options.postgres = true;
+      continue;
+    }
+    if (arg === "--postgres") {
+      options.postgres = true;
+      continue;
+    }
+    if (arg === "--allow-remote") continue;
+    if (arg.startsWith("--target=")) {
+      options.sourceUrl = arg.slice("--target=".length);
+      options.postgres = true;
+      continue;
+    }
     if (arg === "--fail") {
       options.fail = true;
       continue;
@@ -51,8 +70,8 @@ function parseArgs(argv) {
       );
       continue;
     }
-    if (arg.startsWith("--convex-url=")) {
-      options.convexUrl = arg.split("=")[1];
+    if (arg.startsWith("--source-url=")) {
+      options.sourceUrl = arg.slice("--source-url=".length);
       continue;
     }
     if (arg.startsWith("--mode=")) {
@@ -82,7 +101,7 @@ function parseArgs(argv) {
     options.files.push(arg);
   }
 
-  if (options.files.length === 0 && !options.convexUrl) {
+  if (options.files.length === 0 && !options.sourceUrl && !options.postgres) {
     options.files.push("src/data/SubstanceIndex.json");
   }
 
@@ -116,14 +135,15 @@ Options:
   --format=text|json     Output format
   --section=<name>       Limit scan to a public section root; repeatable
   --sections=a,b         Limit scan to comma-separated public section roots
-  --convex-url=<url>     Audit live Convex substanceIndex articles from this URL
+  --postgres            Audit the explicitly configured Postgres source
+  --source-url=<url>     Audit Postgres substanceIndex articles from this URL
   --mode=<mode>          artifact (default), named-source, or all
   --named-sources        Alias for --mode=named-source
   --output=<path>        Write the full JSON report to a file
   --quiet                Suppress terminal report output
   --help, -h             Show help
 
-Inputs can be SubstanceIndex-style article arrays, Convex export objects with an
+Inputs can be SubstanceIndex-style article arrays, Postgres export objects with an
 articles/substanceIndex array, proposal JSON with replacementValue fields, or
 NDJSON rewrite result files with response.parsed.rewrittenText.
 `);
@@ -143,11 +163,11 @@ function readInputFile(filePath) {
   };
 }
 
-async function readConvexInput(convexUrl) {
-  const client = createDataClient({ target: convexUrl }).client;
+async function readPostgresInput(sourceUrl) {
+  const { client, fingerprint } = createDataClient({ target: sourceUrl ?? process.env.SOURCE_POSTGRES_URL ?? null });
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   return {
-    sourcePath: `convex:${convexUrl}`,
+    sourcePath: `postgres:${fingerprint}`,
     input: articles,
   };
 }
@@ -228,8 +248,8 @@ try {
     const { relativePath, input } = readInputFile(filePath);
     return { sourcePath: relativePath, input };
   });
-  if (options.convexUrl) {
-    inputs.push(await readConvexInput(options.convexUrl));
+  if (options.sourceUrl || options.postgres) {
+    inputs.push(await readPostgresInput(options.sourceUrl));
   }
   const reports = inputs.map(({ sourcePath, input }) => {
     return auditPublicProseArtifactLanguage(input, {

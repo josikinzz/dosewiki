@@ -7,21 +7,22 @@
  * artwork/publication date. Date findings remain in the reviewed plan.
  *
  * Dry run:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *     node scripts/replications/apply-psychonautwiki-metadata-corrections.mjs
  *
  * Apply:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *     node scripts/replications/apply-psychonautwiki-metadata-corrections.mjs \
  *       --write \
  *       --confirm-write=apply-psychonautwiki-metadata-corrections \
- *       --expected-deployment=glad-minnow-656
+ *       --expected-deployment=<host>/<database>
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -72,7 +73,7 @@ function diffSnapshot(current, expected) {
 
 function validatePlan(plan, command) {
   if (plan.schemaVersion !== 1) throw new Error(`Unsupported plan schema ${plan.schemaVersion}.`);
-  if (plan.targetDeployment !== command.deploymentFingerprint) {
+  if (plan.targetDeployment !== "glad-minnow-656") {
     throw new Error(
       `Plan targets ${plan.targetDeployment}; command targets ${command.deploymentFingerprint ?? "no deployment"}.`,
     );
@@ -145,10 +146,11 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
   if (!command.targetUrl) {
-    throw new Error("Set TARGET_CONVEX_URL or pass --target-url for the live read.");
+    throw new Error("Set TARGET_POSTGRES_URL or pass --target for the live read.");
   }
 
   const plan = JSON.parse(fs.readFileSync(PLAN_PATH, "utf8"));
+  requireCampaignTarget(command);
   validatePlan(plan, command);
   const readClient = createDataClient({ target: command.targetUrl }).client;
   const before = await readStates(readClient, plan);

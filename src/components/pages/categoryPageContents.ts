@@ -6,6 +6,7 @@ import { slugify } from "@/utils/slug";
 
 export const CATEGORY_OVERVIEW_ANCHOR_ID = "overview";
 export const CATEGORY_SUBSTANCES_ANCHOR_ID = "substances";
+export const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
 
 export interface CategoryEffect {
   _id?: string;

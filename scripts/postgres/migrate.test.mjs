@@ -81,3 +81,14 @@ test("migration dry-run reports a redacted fixed plan without starting drizzle",
   assert.match(result.stdout, /drizzle-kit was not started/);
   assert.doesNotMatch(result.stdout, /synthetic-user|synthetic-secret-password/);
 });
+
+test("migration freeze refuses execution but permits reviewing the dry-run plan", () => {
+  const args = ["--target", "postgres://127.0.0.1:1/frozen-migration"];
+  const env = { DATA_WRITES_FROZEN: "1" };
+  const refused = run(args, env);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /DATA_WRITES_FROZEN/);
+  const plan = run([...args, "--dry-run"], env);
+  assert.equal(plan.status, 0, plan.stderr);
+  assert.match(plan.stdout, /127\.0\.0\.1\/frozen-migration/);
+});

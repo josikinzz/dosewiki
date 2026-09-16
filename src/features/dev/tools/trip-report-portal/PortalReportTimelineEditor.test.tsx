@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { PortalReportTimelineEditor } from "./PortalReportTimelineEditor";
-import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 
 const draft: TripReportEditableFields = {
   title: "Report",

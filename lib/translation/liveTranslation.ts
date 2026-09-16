@@ -22,7 +22,7 @@ import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type WorkUnit } 
 import { LOCALES, glossaryTermPattern, resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
-import { glossaryDigestInput, readGlossaryRows, type Glossary } from "./glossary";
+import { glossaryDigestInput, readGlossaryRows, type Glossary, type TranslationGlossaryRow } from "./glossary";
 import { glossDigestInput, loadGlosses } from "./glossaryGloss";
 import {
   clearTranslationRejections,
@@ -32,7 +32,8 @@ import {
   writeTranslations,
   type TranslationSegmentRow,
 } from "./segmentStore";
-import type { PublicDataReadAdapter } from "../convex/publicData.reads";
+import type { PublicDataReadAdapter } from "../data/publicData.reads";
+import { LIBRARY_TRANSLATION_CORPUS } from "./publicationIndexProjection";
 import { isPublishableReplication } from "../../src/types/replications";
 
 /** Which runtime record corpus a translation job addresses. */
@@ -82,7 +83,7 @@ const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> 
   article: LIVE_SUBSTANCE_CORPUS,
   effect: { ...CORPORA.effects, excludedKeys: [...CORPORA.effects.excludedKeys] },
   report: { ...CORPORA.reports, excludedKeys: [...CORPORA.reports.excludedKeys] },
-  library: { ...CORPORA.articles, excludedKeys: [...CORPORA.articles.excludedKeys, "authors"] },
+  library: LIBRARY_TRANSLATION_CORPUS,
   replication: { ...CORPORA.replications, excludedKeys: [...CORPORA.replications.excludedKeys] },
   profile: LIVE_PROFILE_CORPUS,
 };
@@ -270,12 +271,25 @@ export function promptVersionFor(locale: TranslationLocale, glossary: Glossary, 
     .slice(0, 16);
 }
 
-export async function loadTranslationContext(localeCode: string): Promise<TranslationContext> {
+/** Build a prompt context from glossary data a request already fetched. */
+export function translationContextFromRows(
+  localeCode: string,
+  rows: readonly Pick<TranslationGlossaryRow, "term" | "target" | "kind" | "status">[],
+  glosses: Readonly<Record<string, string>>,
+): TranslationContext {
   const locale = resolveLocale(localeCode);
-  const [rows, glosses] = await Promise.all([readGlossaryRows(localeCode, { status: "approved" }), loadGlosses()]);
-  const glossary: Glossary = Object.fromEntries(rows.map((row) => [row.term, row.target]));
-  const kinds = Object.fromEntries(rows.map((row) => [row.term, row.kind]));
+  const approved = rows.filter((row) => row.status === "approved");
+  const glossary: Glossary = Object.fromEntries(approved.map((row) => [row.term, row.target]));
+  const kinds = Object.fromEntries(approved.map((row) => [row.term, row.kind]));
   return { locale, glossary, kinds, glosses, promptVersion: promptVersionFor(locale, glossary, glosses) };
+}
+
+export async function loadTranslationContext(localeCode: string): Promise<TranslationContext> {
+  const [rows, glosses] = await Promise.all([
+    readGlossaryRows(localeCode, { status: "approved" }),
+    loadGlosses(),
+  ]);
+  return translationContextFromRows(localeCode, rows, glosses);
 }
 
 export function segmentsOf(record: { slug: string }, kind: TranslationRecordKind = "article"): Segment[] {

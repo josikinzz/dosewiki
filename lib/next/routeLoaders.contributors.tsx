@@ -6,11 +6,11 @@ import {
   getPublicContributorIdentity,
   getPublicContributorByKey,
   getPublicContributorDirectory,
-  getPublicGalleryReplications,
+  getPublicArtistCreditRows,
   getPublicProfileHistory,
   getReportsByContributor,
   getReviewedArticlesByContributor,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import { ProfileBioMarkdown } from "../../src/components/pages/ProfileBioMarkdown";
 import type { UserProfileEditorNote } from "../../src/components/pages/UserProfilePage";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
@@ -20,7 +20,8 @@ import { orderContributorReplications } from "../../src/features/effects/gallery
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
 import { applyCuratedOrder } from "../curatedOrder";
-import type { ChangeLogEntry } from "../../src/data/changelog/changeLog";
+import type { PublicProfileHistoryEntry } from "../data/publicData.changelog";
+import type { PublicContributorIdentity } from "../data/publicData.shared";
 import { buildMetadataDescription } from "./publicRouteViewModels";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import type { OkRouteResult, RouteMetadataSource } from "./routeLoaderResults";
@@ -38,7 +39,7 @@ const REPORT_HREF_PREFIX = "/reports/";
 
 
 interface ContributorRoutePageProps { profile: NormalizedUserProfile;
-history: ChangeLogEntry[];
+history: PublicProfileHistoryEntry[];
 bioContent: ReactNode;
 reportHrefPrefix: string;
 tripReports: ReportCardModel[];
@@ -67,11 +68,17 @@ export type ContributorRouteResult =
     }
   | { kind: "not-found"; normalizedKey: string };
 
-export const loadContributorRoute = cache(
+type ContributorIdentityRouteResult =
+  | Exclude<ContributorRouteResult, OkRouteResult<ContributorRoutePageProps>>
+  | { kind: "ok"; profile: NormalizedUserProfile; artistPageKeys: Map<string, string>;
+      deliveredIdentity: PublicContributorIdentity | null;
+      metadata: RouteMetadataSource; canonicalRoute: PublicRouteIdentity; socialCardProfileKey: string };
+
+export const loadContributorIdentityRoute = cache(
   async (
     profileKey: string,
     locale: LiveLocale | null = null,
-  ): Promise<ContributorRouteResult> => {
+  ): Promise<ContributorIdentityRouteResult> => {
     const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
     const profile = locale
       ? await getLocalizedPublicContributorByKey(normalizedKey, locale.code)
@@ -101,9 +108,10 @@ export const loadContributorRoute = cache(
     // artist whose every work artist views withhold) has no rival surface and
     // keeps rendering here. See the decision record in
     // src/features/replications/galleryFocus.ts.
-    const [galleryReplications, contributorDirectory] = await Promise.all([
-      getPublicGalleryReplications(),
+    const [galleryReplications, contributorDirectory, deliveredIdentity] = await Promise.all([
+      getPublicArtistCreditRows(),
       getPublicContributorDirectory(),
+      getPublicContributorIdentity(profile.key),
     ]);
     const artistPageKeys = mapArtistPageKeysByProfile(galleryReplications, contributorDirectory);
     const artistPageKey = artistPageKeys.get(profile.key.trim().toUpperCase());
@@ -130,6 +138,24 @@ export const loadContributorRoute = cache(
         socialCardProfileKey: profile.key,
       };
     }
+    return {
+      kind: "ok",
+      profile,
+      artistPageKeys,
+      deliveredIdentity,
+      metadata,
+      canonicalRoute,
+      socialCardProfileKey: profile.key,
+    };
+  },
+);
+
+export const loadContributorRoute = cache(async (
+  profileKey: string, locale: LiveLocale | null = null,
+): Promise<ContributorRouteResult> => {
+    const resolved = await loadContributorIdentityRoute(profileKey, locale);
+    if (resolved.kind !== "ok") return resolved;
+    const { profile, artistPageKeys, deliveredIdentity, metadata, canonicalRoute } = resolved;
 
     // The staff note is signed by the site rather than the profile owner, so
     // the chip under the bubble carries Josie's avatar and, when the note has
@@ -139,8 +165,8 @@ export const loadContributorRoute = cache(
     // All four joins run off the same profile and the same name set, so a
     // contributor's reports, works and article credits can never disagree about
     // which credits are theirs. The reviewed-articles read is key-only: the
-    // reviewer-email matching stays inside Convex.
-    const [reports, canonicalReplications, effectArticles, reviewedArticles, history, staffNoteSigner, identity] =
+    // reviewer-email matching stays inside Postgres.
+    const [reports, canonicalReplications, effectArticles, reviewedArticles, history, staffNoteSigner] =
       await Promise.all([
         locale
           ? getLocalizedReportsByContributor(profile, locale.code)
@@ -152,7 +178,6 @@ export const loadContributorRoute = cache(
         getReviewedArticlesByContributor(profile.key),
         getPublicProfileHistory(profile),
         staffNote ? getPublicContributorByKey("JOSIE") : Promise.resolve(null),
-        getPublicContributorIdentity(profile.key),
       ]);
     const replications = locale
       ? await localizeContributorReplications(canonicalReplications, locale.code)
@@ -170,7 +195,7 @@ export const loadContributorRoute = cache(
           ...profile,
           // A verified delivered campaign avatar takes precedence. The
           // established contributor profile avatar remains the fallback.
-          avatarUrl: identity?.avatar_url ?? profile.avatarUrl,
+          avatarUrl: deliveredIdentity?.avatar_url ?? profile.avatarUrl,
         },
         history,
         bioContent: profile.hasCustomBio ? <ProfileBioMarkdown content={profile.bio} /> : null,
@@ -211,7 +236,7 @@ export const loadContributorRoute = cache(
                 : null,
             }
           : null,
-        verifiedReplicator: identity?.verified_replicator === true,
+        verifiedReplicator: deliveredIdentity?.verified_replicator === true,
       },
       metadata,
       canonicalRoute,

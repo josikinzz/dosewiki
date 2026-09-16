@@ -75,7 +75,7 @@ describe("approved avatar publisher", () => {
     assert.throws(() => assertRemoteDigest({ key, sha256: sha, byteSize: 10 }, { sha256: "c".repeat(64), byteSize: 10 }), /IMMUTABLE COLLISION/);
   });
 
-  it("creates a Convex-compatible tamper-evident delivery receipt", () => {
+  it("creates a Postgres-compatible tamper-evident delivery receipt", () => {
     const object = { publicUrl: "https://cdn.test/a.webp", sha256: "d".repeat(64), byteSize: 42 };
     const receipt = makeDeliveryReceipt({ object, httpStatus: 200, verifiedAt: 1234, verifier: "test" });
     assert.deepEqual(Object.keys(receipt), ["url", "content_sha256", "byte_size", "http_status", "verified_at", "verifier", "receipt_digest"]);

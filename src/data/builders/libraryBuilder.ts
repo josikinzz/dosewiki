@@ -19,7 +19,7 @@ import { createPublicLibraryFacade } from "./publicLibraryFacade";
 
 /**
  * Index configs required by buildLibrary.
- * These are loaded from Convex at runtime via useIndexLayouts hook.
+ * These are loaded from Postgres at runtime via useIndexLayouts hook.
  */
 export interface IndexConfigs {
   psychoactive: NormalizedManualIndexConfig;
@@ -48,7 +48,7 @@ export type {
  * from the raw articles array.
  *
  * @param articles - The substance articles to build the library from
- * @param configs - Index configs loaded from Convex via useIndexLayouts hook.
+ * @param configs - Index configs loaded from Postgres via useIndexLayouts hook.
  */
 export function buildLibrary<TArticle extends LibraryArticleInput>(
   articles: TArticle[],

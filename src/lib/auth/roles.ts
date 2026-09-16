@@ -1,19 +1,29 @@
 import { safeAuthReturnPath } from "./returnPath";
+import translationLocaleNames from "../../i18n/translationLocaleNames.json";
+const TRANSLATION_LOCALE_CODES = Object.keys(translationLocaleNames);
 
-const APP_ROLES = ["admin", "editor", "translator", "contributor", "viewer"] as const;
+const APP_ROLES = ["admin", "editor_translator", "editor", "translator", "contributor", "viewer"] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
 
-/** Lowest role a route or mutation admits. `viewer` is never a floor. */
+/** Capability a route or mutation requires. `viewer` grants none. */
 export type RoleFloor = "admin" | "editor" | "translator" | "contributor";
 
-const ROLE_RANK: Record<AppRole, number> = { viewer: 0, contributor: 1, translator: 2, editor: 3, admin: 4 };
+/** Editor and Translator are independent capabilities, not steps in a hierarchy. */
+const ROLE_CAPABILITIES: Record<AppRole, readonly RoleFloor[]> = {
+  admin: ["admin", "editor", "translator", "contributor"],
+  editor_translator: ["editor", "translator", "contributor"],
+  editor: ["editor", "contributor"],
+  translator: ["translator", "contributor"],
+  contributor: ["contributor"],
+  viewer: [],
+};
 
 /**
  * The roles an admin can hand out, by invite or from the roster. `admin` is
  * seeded from a workstation and `viewer` is a legacy value nobody grants.
  */
-export const MANAGED_ROLES = ["editor", "translator", "contributor"] as const;
+export const MANAGED_ROLES = ["editor", "translator", "editor_translator", "contributor"] as const;
 
 export type ManagedRole = (typeof MANAGED_ROLES)[number];
 
@@ -22,7 +32,40 @@ export function isManagedRole(value: unknown): value is ManagedRole {
 }
 
 export function roleMeetsFloor(role: AppRole | null | undefined, floor: RoleFloor): boolean {
-  return role != null && ROLE_RANK[role] >= ROLE_RANK[floor];
+  return role != null && ROLE_CAPABILITIES[role]?.includes(floor) === true;
+}
+
+export function managedRoleFor(editor: boolean, translator: boolean): ManagedRole {
+  return editor ? (translator ? "editor_translator" : "editor") : translator ? "translator" : "contributor";
+}
+
+/** Missing legacy scope grants no language; unknown persisted values never grant access. */
+export function approvedGlossaryLocales(input: { role?: unknown; glossaryLocales?: unknown }): string[] {
+  const role = resolveSessionRole(input);
+  if (role === "admin") return [...TRANSLATION_LOCALE_CODES];
+  const locales = input.glossaryLocales;
+  if (!roleMeetsFloor(role, "translator") || !Array.isArray(locales)) return [];
+  return TRANSLATION_LOCALE_CODES.filter((locale) => locales.includes(locale));
+}
+
+export function canAccessGlossaryLocale(input: { role?: unknown; glossaryLocales?: unknown }, locale: string): boolean {
+  if (!TRANSLATION_LOCALE_CODES.includes(locale)) return false;
+  const role = resolveSessionRole(input);
+  return role === "admin" || (roleMeetsFloor(role, "translator") && Array.isArray(input.glossaryLocales) && input.glossaryLocales.includes(locale));
+}
+
+/** Validate grants at both the HTTP and durable mutation boundaries. */
+export function parseGlossaryLocaleGrant(role: ManagedRole, raw: unknown): string[] {
+  const locales = raw === undefined ? [] : raw;
+  if (!Array.isArray(locales) || locales.some((locale) => typeof locale !== "string" || !TRANSLATION_LOCALE_CODES.includes(locale))) {
+    throw new Error("Choose known translation glossary languages.");
+  }
+  if (!roleMeetsFloor(role, "translator")) {
+    if (locales.length) throw new Error("Glossary languages require the Translator role.");
+    return [];
+  }
+  if (!locales.length) throw new Error("Choose at least one approved glossary language for a Translator.");
+  return TRANSLATION_LOCALE_CODES.filter((locale) => locales.includes(locale));
 }
 
 export function canApprove(role: AppRole | null | undefined): boolean {
@@ -54,8 +97,8 @@ export function canUseSelfProfileRoute(input: { email: unknown }): boolean {
 export type DevRouteDecision =
   | {
       type: "allow";
-      /** The member's own role; the shell disables every tab above it. */
-      access: RoleFloor;
+      /** The member's capabilities; the shell locks tabs not granted by them. */
+      access: Exclude<AppRole, "viewer">;
     }
   | {
       type: "sign-in";
@@ -68,10 +111,9 @@ export type DevRouteDecision =
     };
 
 /**
- * Server decision for a protected editor address. `floor` is the lowest role
- * the surface admits; the `/dev` shell leaves it at `contributor` because a
- * tab above the member's role still loads, rendered disabled with a reason,
- * while full-page surfaces such as `/review` pass their descriptor's role.
+ * Server decision for a protected editor address. `floor` names the required
+ * capability; `/dev` requires contributor access so ungranted tabs can render
+ * locked, while full-page surfaces such as `/review` require their own capability.
  */
 export function getDevRouteDecision(input: {
   pathname: string;
@@ -106,6 +148,7 @@ export function getRoleDisplayName(role: AppRole | null | undefined): string {
   if (!role) {
     return "No role";
   }
+  if (role === "editor_translator") return "Editor + Translator";
 
   return role.charAt(0).toUpperCase() + role.slice(1);
 }

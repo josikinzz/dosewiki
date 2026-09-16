@@ -5,14 +5,17 @@ import { join } from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 
 const DEFAULT_DEPLOYMENTS = {
-  publicRead: "https://glad-minnow-656.convex.cloud",
-  editorDefault: "https://enchanted-echidna-791.convex.cloud",
+  publicRead: process.env.SOURCE_POSTGRES_URL,
+  editorDefault: process.env.TARGET_POSTGRES_URL,
 };
+if (!DEFAULT_DEPLOYMENTS.publicRead || !DEFAULT_DEPLOYMENTS.editorDefault) {
+  throw new Error("Set SOURCE_POSTGRES_URL and TARGET_POSTGRES_URL explicitly for the comparison.");
+}
 
 const SECTIONS = [
   "summary",
@@ -144,7 +147,7 @@ function localDosageQuote(slug) {
 }
 
 async function auditDeployment(label, url) {
-  const client = createDataClient({ target: url }).client;
+  const { client, fingerprint } = createDataClient({ target: url });
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const quoteDocs = await client.query(api.quotes.getAll, {});
   const quoteContentByKey = new Map(
@@ -179,11 +182,11 @@ async function auditDeployment(label, url) {
     SECTIONS.map((section) => [section, unsupportedBySection[section].length]),
   );
 
-  console.log(`\n${label} ${url}`);
+  console.log(`\n${label} ${fingerprint}`);
   console.log("missing", missingCounts);
 
   return {
-    url,
+    url: fingerprint,
     articleCount: articles.length,
     quoteDocCount: quoteDocs.length,
     supportedCounts,

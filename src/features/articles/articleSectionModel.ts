@@ -16,7 +16,7 @@ import { icons } from "@/utils/iconNames";
  * Section model for an Effect Index article, the twin of
  * `effects/articleSectionModel`.
  *
- * An effect article arrives from Convex already split into fields (overview,
+ * An effect article arrives from Postgres already split into fields (overview,
  * analysis, commentary, ...) and the page maps each to a section. An Effect
  * Index article is one flat body, so the split happens here: the body is cut
  * at the level its author wrote sections at, and each cut becomes the same

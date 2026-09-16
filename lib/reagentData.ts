@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getPublicReagentTestBySlug } from "@server/convex/publicData.reagents";
+import { getPublicReagentTestBySlug } from "@server/data/publicData.reagents";
 import { normalizeProtestKitResponse, type NormalizedReagentData } from "@/lib/reagentTesting";
 import type { SubstanceArticle } from "@/schema";
 
@@ -15,7 +15,7 @@ function hasStaticReagentData(article: ReagentLookupArticle): boolean {
 
 /**
  * Static article data remains authoritative. Otherwise resolve the imported
- * ProtestKit snapshot from Convex by canonical DoseWiki slug.
+ * ProtestKit snapshot from Postgres by canonical DoseWiki slug.
  */
 export async function getCachedReagentDataForArticle(
   article: ReagentLookupArticle,

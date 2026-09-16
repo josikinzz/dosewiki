@@ -23,12 +23,12 @@
  * (`EffectIndexArticlePage`: `article.body_ast ?? article.body_raw`), so
  * rewriting only the raw markup would change nothing a reader sees.
  *
- *   node scripts/effects/repoint-recovered-article-embeds.mjs --target-url=<url>
- *   node scripts/effects/repoint-recovered-article-embeds.mjs --target-url=<url> --apply ...
+ *   node scripts/effects/repoint-recovered-article-embeds.mjs --target=<url>
+ *   node scripts/effects/repoint-recovered-article-embeds.mjs --target=<url> --apply ...
  */
 import { readFileSync } from "node:fs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -38,7 +38,7 @@ import {
 
 const operation = "repoint-recovered-article-embeds";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const published = JSON.parse(readFileSync("recovery/batch3/published.json", "utf8"));

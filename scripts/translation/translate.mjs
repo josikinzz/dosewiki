@@ -7,7 +7,7 @@
  * defective ones alone, and reassembles a same-structure locale artifact plus a
  * QA packet.
  *
- * Nothing here writes Convex or Postgres. The input is the published export,
+ * Nothing here writes Postgres or Postgres. The input is the published export,
  * the glossary and its glosses are read from Postgres (`translationGlossary`
  * approved rows, `translationGlossaryTerms`), and the output is a local
  * artifact under notes-and-plans/exports.

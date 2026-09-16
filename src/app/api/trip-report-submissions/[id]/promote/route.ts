@@ -7,7 +7,7 @@ import {
   getTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError,
 } from "@/features/reports/submissions/tripReportSubmissionStore.server";
-import { TripReportSubmissionNotFoundError } from "@/features/reports/submissions/convexTripReportSubmissionStore";
+import { TripReportSubmissionNotFoundError } from "@/features/reports/submissions/dataTripReportSubmissionStore";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";
@@ -93,7 +93,7 @@ function asBoolean(value: unknown): boolean {
 }
 
 /**
- * Convex prefixes a thrown mutation error with its own request framing and
+ * Postgres prefixes a thrown mutation error with its own request framing and
  * appends a stack, so lift just the sentence the editor needs to act on.
  */
 function extractAuthorNameClaimMessage(message: string): string {
@@ -129,7 +129,7 @@ function mapPromoteRouteError(error: unknown): NextResponse {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  // Convex wraps thrown mutation errors, so match by substring rather than
+  // Postgres wraps thrown mutation errors, so match by substring rather than
   // exact equality.
   if (error instanceof Error && error.message.includes("Contributor profile \"")) {
     return NextResponse.json({ error: "Contributor profile not found." }, { status: 400 });

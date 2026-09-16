@@ -4,7 +4,7 @@ import {
   stableWorkflowCommands,
   stableWorkflowCommandNames,
   workflowAccessTargets,
-  workflowConvexUrlPolicies,
+  workflowDataUrlPolicies,
   workflowDataOpsContextPolicies,
   workflowDryRunPolicies,
 } from './workflow-command-surface.mjs';
@@ -29,8 +29,8 @@ const deprecatedScriptForbiddenPatterns = [
     pattern: /\b(?:writeFile|writeFileSync|appendFile|appendFileSync|rm|rmSync|unlink|unlinkSync|mkdir|mkdirSync)\b/,
   },
   {
-    label: 'Convex clients',
-    pattern: /\bConvexHttpClient\b|\bconvex\/browser\b/,
+    label: 'database clients',
+    pattern: /\b(?:ConvexHttpClient|PostgresClient|createDataClient|BackendClient)\b|\bconvex\/browser\b/,
   },
   {
     label: 'network writes',
@@ -168,7 +168,7 @@ function packageScriptPathForCommand(packageScripts, command) {
 function isDataOpsScriptPath(scriptPath) {
   return [
     'scripts/citations/',
-    'scripts/convex/',
+    'scripts/data-ops/',
     'scripts/migrate/',
     'scripts/prepopulate/',
   ].some((prefix) => scriptPath.startsWith(prefix));
@@ -206,8 +206,8 @@ export function validateStableWorkflowCommandPolicies(packageScripts) {
       failures.push(`${command.name}: policy.dataOpsContext must be one of ${Object.values(workflowDataOpsContextPolicies).join(', ')}`);
     }
 
-    if (!isOneOf(policy.convexUrlPolicy, workflowConvexUrlPolicies)) {
-      failures.push(`${command.name}: policy.convexUrlPolicy must be one of ${Object.values(workflowConvexUrlPolicies).join(', ')}`);
+    if (!isOneOf(policy.dataUrlPolicy, workflowDataUrlPolicies)) {
+      failures.push(`${command.name}: policy.dataUrlPolicy must be one of ${Object.values(workflowDataUrlPolicies).join(', ')}`);
     }
 
     if (policy.writes.length > 0 && policy.dryRun === workflowDryRunPolicies.readOnly) {
@@ -215,10 +215,10 @@ export function validateStableWorkflowCommandPolicies(packageScripts) {
     }
 
     if (
-      policy.writes.includes(workflowAccessTargets.convexTarget) &&
-      policy.convexUrlPolicy === workflowConvexUrlPolicies.none
+      policy.writes.includes(workflowAccessTargets.dataTarget) &&
+      policy.dataUrlPolicy === workflowDataUrlPolicies.none
     ) {
-      failures.push(`${command.name}: Convex write command must declare a Convex URL policy`);
+      failures.push(`${command.name}: Postgres write command must declare a Postgres URL policy`);
     }
 
     if (
@@ -237,7 +237,7 @@ export function validateStableWorkflowCommandPolicies(packageScripts) {
   return failures;
 }
 
-const rawConvexFallbackPattern =
+const rawDataFallbackPattern =
   /process\.env\.(?:TARGET_CONVEX_URL|CONVEX_URL|VITE_CONVEX_URL|NEXT_PUBLIC_CONVEX_URL)\s*\|\|\s*process\.env\.(?:TARGET_CONVEX_URL|CONVEX_URL|VITE_CONVEX_URL|NEXT_PUBLIC_CONVEX_URL)/;
 
 export function validateStableWorkflowCommandImplementationPolicies(repoRoot, packageScripts) {
@@ -261,8 +261,8 @@ export function validateStableWorkflowCommandImplementationPolicies(repoRoot, pa
         failures.push(`${command.name}: ${scriptPath} must use scripts/lib/data-ops-run-context.mjs`);
       }
 
-      if (rawConvexFallbackPattern.test(content)) {
-        failures.push(`${command.name}: ${scriptPath} must not resolve Convex targets with raw process.env fallbacks`);
+      if (rawDataFallbackPattern.test(content)) {
+        failures.push(`${command.name}: ${scriptPath} must not resolve Postgres targets with raw process.env fallbacks`);
       }
     }
   }

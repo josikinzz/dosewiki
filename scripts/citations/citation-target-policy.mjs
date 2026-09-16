@@ -1,5 +1,24 @@
 import { isPostgresTargetExplicit, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
+export function assertCitationSourceIdentity(value) {
+  if (typeof value !== "string" || !value.includes("/")) {
+    throw new Error("Citation source must be a credential-free Postgres host/database identity.");
+  }
+  const separator = value.indexOf("/");
+  const host = value.slice(0, separator);
+  const database = value.slice(separator + 1);
+  try {
+    const urlHost = host.includes(":") ? `[${host}]` : host;
+    if (!host || !database || /[@/?#\s]/.test(host)
+        || postgresFingerprintFromUrl(`postgres://${urlHost}/${encodeURIComponent(database)}`) !== value) {
+      throw new Error();
+    }
+  } catch {
+    throw new Error("Citation source must be a credential-free Postgres host/database identity.");
+  }
+  return value;
+}
+
 export function assertExplicitCitationPromotionTarget(context) {
   if (context?.backend !== "postgres") {
     throw new Error("Citation promotion requires DATA_BACKEND=postgres; frozen Convex is not a promotion target.");

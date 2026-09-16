@@ -4,7 +4,7 @@ import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     quotes: {
       save: "quotes.save",
@@ -24,20 +24,20 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 describe("save quote route operation envelope", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.mutation.mockReset();
-    mocks.getServerConvexWriteCapability.mockReset();
+    mocks.getServerDataWriteCapability.mockReset();
     mocks.mutation.mockResolvedValue({ updated: true, id: "quote-id" });
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: {
         client: { mutation: mocks.mutation },
@@ -49,7 +49,7 @@ describe("save quote route operation envelope", () => {
     );
   });
 
-  it("refuses an editor with 403 before touching Convex", async () => {
+  it("refuses an editor with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");
 

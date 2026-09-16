@@ -1,3 +1,4 @@
+import { GlossaryUsageDisclosure } from "@/components/glossary/GlossaryUsageDisclosure";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { PublicPill } from "@/components/common/PublicTokens";
 import { StateCard } from "@/components/common/StateCard";
@@ -120,6 +121,7 @@ export function GlossaryPage({ groups, renderingLang }: GlossaryPageProps) {
                       <span lang="en" className="theme-text-secondary text-sm leading-6">{entry.gloss}</span>
                     ) : null}
                     <PublicPill size="sm">{t(kindLabel(entry.kind))}</PublicPill>
+                    <GlossaryUsageDisclosure term={entry.term} />
                   </DefinitionRow>
                 ))}
               </DefinitionList>

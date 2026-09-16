@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -50,7 +50,7 @@ Options:
   --wikipedia-enrichment=off    Disable live Wikipedia source enrichment
   --refresh-approved            Refresh approved in-scope rows; stale selected evidence is still preserved
   --replace-approved            Refresh approved in-scope rows and delete stale selected evidence on write
-  --write                       Persist the merged draft to Convex
+  --write                       Persist the merged draft to Postgres
   --confirm-citation-write      Required with --write
   --help, -h                    Show this help message
 `);
@@ -122,7 +122,7 @@ async function main() {
   console.log(`Resume: ${options.resume ? "enabled" : "disabled"}`);
   console.log(`Wikipedia enrichment: ${options.wikipediaEnrichment ? "enabled" : "disabled"}`);
 
-  const sourceUrl = requireSourceUrl(runContext, "Convex citation source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Postgres citation source URL");
   const sourceClient = createDataClient({ target: sourceUrl }).client;
   const article = await sourceClient.query(api.substanceIndex.getBySlug, { slug: options.slug });
   if (!article) throw new Error(`No article found for slug: ${options.slug}`);
@@ -136,7 +136,7 @@ async function main() {
   const [articleSources, existingEvidence, prompts] = await Promise.all([
     sourceClient.query(api.articleSources.getBySlug, {
       slug: options.slug,
-      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+      apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
     }),
     sourceClient.query(api.citationEvidence.getBySlug, {
       apiKey: citationReviewToken.token,
@@ -152,7 +152,7 @@ async function main() {
     sections,
     options,
     sourceUrl,
-    targetUrl: options.write ? requireTargetUrl(runContext, "Convex citation write target URL") : null,
+    targetUrl: options.write ? requireTargetUrl(runContext, "Postgres citation write target URL") : null,
     runSection: async (sectionKey) => {
       const apiKey = requireOpenRouterApiKey();
       console.log(`Running section agent: ${sectionKey}`);
@@ -290,7 +290,7 @@ async function main() {
 
   if (!options.write) {
     console.log(`Artifacts: ${workflow.artifacts.rootDir}`);
-    console.log("No writes performed. Re-run with --write --confirm-citation-write to update Convex.");
+    console.log("No writes performed. Re-run with --write --confirm-citation-write to update Postgres.");
     return;
   }
 
@@ -301,7 +301,7 @@ async function main() {
   }
 
   assertDataOpsWriteAllowed(runContext);
-  const targetUrl = requireTargetUrl(runContext, "Convex citation write target URL");
+  const targetUrl = requireTargetUrl(runContext, "Postgres citation write target URL");
   const targetClient = createDataClient({ target: targetUrl }).client;
   const citationWriteToken = requireAdminIntentToken("citationEvidenceWrite");
   const promotionPlan = buildFormalCitationPromotionPlan({

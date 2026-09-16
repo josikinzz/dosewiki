@@ -4,7 +4,7 @@
  *
  * Three properties this module exists to hold:
  *
- * - A committed Convex write is already durable when delivery runs. A refused,
+ * - A committed Postgres write is already durable when delivery runs. A refused,
  *   slow or unreachable receiver is reported, never thrown, so a successful
  *   edit is never reported as a save failure that invites a duplicate write.
  * - Targets come from an environment allowlist and are additionally checked
@@ -15,7 +15,7 @@
  *
  * Ordering needs no sequence number: the signal expires cache entries, it
  * never carries content, so a duplicate or late delivery can only cause a
- * re-read of current Convex data. It cannot restore an older revision.
+ * re-read of current Postgres data. It cannot restore an older revision.
  */
 import { isPublicHost } from "./publicHostPolicy";
 import {
@@ -26,7 +26,10 @@ import {
   type PublicationSource,
   type PublicationTarget,
 } from "./publicationWire";
-import { getPublicationSecret, signPublicationBody } from "./publicationSignature";
+import {
+  getPublicationSecret,
+  signPublicationBody,
+} from "./publicationSignature";
 
 export const PUBLICATION_TARGETS_ENV = "PUBLIC_CACHE_PUBLISH_TARGETS";
 export const PUBLICATION_RECEIVER_PATH = "/api/public-cache/revalidate";
@@ -36,17 +39,14 @@ const DISPATCH_TIMEOUT_MS = 2_500;
 /** One retry absorbs a cold lambda or a dropped connection, nothing more. */
 const DISPATCH_ATTEMPTS = 2;
 
-type PublicationReceiptStatus = | "accepted"
-| "pending"
-| "rejected"
-| "unreachable"
-| "unconfigured"
+type PublicationReceiptStatus =
+  "accepted" | "pending" | "rejected" | "unreachable" | "unconfigured";
 
 export type SavedArticleRevision = { slug: string; revision: string | null };
 type ServedArticleRevision = SavedArticleRevision & {
   status: "verified" | "mismatch" | "unreachable";
   observedRevision?: string;
-}
+};
 
 export type PublicationRevisionEvidence = {
   publicationKey: string;
@@ -74,6 +74,8 @@ export type PublicationReceipt = {
   servedRevisions?: ServedArticleRevision[];
   verification?: "not-requested" | "pending" | "verified" | "incomplete";
   translationIntent?: PublicationRevisionEvidence;
+  /** Receiver-side HTML and App Router navigation warming, independent of commit success. */
+  warming?: unknown;
 };
 
 /**
@@ -97,13 +99,22 @@ export function getPublicationTargets(
     try {
       url = new URL(value);
     } catch {
-      console.warn(`[publication-dispatch] ignoring unparseable target: ${value}`);
+      console.warn(
+        `[publication-dispatch] ignoring unparseable target: ${value}`,
+      );
       continue;
     }
     const localDevelopment =
-      development && url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
-    if (!localDevelopment && (url.protocol !== "https:" || !isPublicHost(url.hostname))) {
-      console.warn(`[publication-dispatch] ignoring target outside the public host allowlist: ${value}`);
+      development &&
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+    if (
+      !localDevelopment &&
+      (url.protocol !== "https:" || !isPublicHost(url.hostname))
+    ) {
+      console.warn(
+        `[publication-dispatch] ignoring target outside the public host allowlist: ${value}`,
+      );
       continue;
     }
     const origin = url.origin;
@@ -112,15 +123,19 @@ export function getPublicationTargets(
   return targets;
 }
 
-function buildPublicationSignal(targets: readonly PublicationTarget[],
-source: PublicationSource,
-now: number = Date.now(),): PublicationSignal { return {
-  version: PUBLICATION_SIGNAL_VERSION,
-  source,
-  issuedAt: now,
-  dispatchId: `${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
-  targets: [...targets],
-}; }
+function buildPublicationSignal(
+  targets: readonly PublicationTarget[],
+  source: PublicationSource,
+  now: number = Date.now(),
+): PublicationSignal {
+  return {
+    version: PUBLICATION_SIGNAL_VERSION,
+    source,
+    issuedAt: now,
+    dispatchId: `${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+    targets: [...targets],
+  };
+}
 
 async function deliver(
   origin: string,
@@ -128,7 +143,11 @@ async function deliver(
   signature: string,
   dispatchId: string,
 ): Promise<PublicationReceipt> {
-  let last: PublicationReceipt = { target: origin, status: "unreachable", attempts: 0 };
+  let last: PublicationReceipt = {
+    target: origin,
+    status: "unreachable",
+    attempts: 0,
+  };
   for (let attempt = 1; attempt <= DISPATCH_ATTEMPTS; attempt += 1) {
     try {
       const response = await fetch(`${origin}${PUBLICATION_RECEIVER_PATH}`, {
@@ -143,13 +162,34 @@ async function deliver(
         signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
       });
       if (response.ok) {
-        const acknowledgement: unknown = await response.json().catch(() => null);
-        if (!acknowledgement || typeof acknowledgement !== "object" ||
-            !("ok" in acknowledgement) || acknowledgement.ok !== true ||
-            !("dispatchId" in acknowledgement) || acknowledgement.dispatchId !== dispatchId) {
-          return { target: origin, status: "rejected", attempts: attempt, httpStatus: response.status, detail: "invalid_acknowledgement" };
+        const acknowledgement: unknown = await response
+          .json()
+          .catch(() => null);
+        if (
+          !acknowledgement ||
+          typeof acknowledgement !== "object" ||
+          !("ok" in acknowledgement) ||
+          acknowledgement.ok !== true ||
+          !("dispatchId" in acknowledgement) ||
+          acknowledgement.dispatchId !== dispatchId
+        ) {
+          return {
+            target: origin,
+            status: "rejected",
+            attempts: attempt,
+            httpStatus: response.status,
+            detail: "invalid_acknowledgement",
+          };
         }
-        return { target: origin, status: "accepted", attempts: attempt, httpStatus: response.status };
+        return {
+          target: origin,
+          status: "accepted",
+          attempts: attempt,
+          httpStatus: response.status,
+          ...("warming" in acknowledgement
+            ? { warming: acknowledgement.warming }
+            : {}),
+        };
       }
       last = {
         target: origin,
@@ -157,7 +197,8 @@ async function deliver(
         status: response.status >= 500 ? "unreachable" : "rejected",
         attempts: attempt,
         httpStatus: response.status,
-        detail: (await response.text().catch(() => "")).slice(0, 200) || undefined,
+        detail:
+          (await response.text().catch(() => "")).slice(0, 200) || undefined,
       };
       if (last.status === "rejected") return last;
     } catch (error) {
@@ -174,20 +215,37 @@ async function deliver(
 
 /** Probe canonical HTML, not an uncached database revision endpoint. No cache-busting
  * query, redirect following, or acceptance-to-verification inference is permitted. */
-async function verifyServedArticle(origin: string, saved: SavedArticleRevision): Promise<ServedArticleRevision> {
+async function verifyServedArticle(
+  origin: string,
+  saved: SavedArticleRevision,
+): Promise<ServedArticleRevision> {
   try {
     const response = await fetch(`${origin}/${saved.slug}`, {
-      cache: "no-store", redirect: "error", signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(10_000),
     });
     if (saved.revision === null) {
-      return { ...saved, status: response.status === 404 ? "verified" : response.ok ? "mismatch" : "unreachable" };
+      return {
+        ...saved,
+        status:
+          response.status === 404
+            ? "verified"
+            : response.ok
+              ? "mismatch"
+              : "unreachable",
+      };
     }
     if (!response.ok) return { ...saved, status: "unreachable" };
     const html = await response.text();
-    const marker = /<meta\b[^>]*\bname="dosewiki-public-revision"[^>]*\bcontent="([a-f0-9]{64})"[^>]*>/i.exec(html);
+    const marker =
+      /<meta\b[^>]*\bname="dosewiki-public-revision"[^>]*\bcontent="([a-f0-9]{64})"[^>]*>/i.exec(
+        html,
+      );
     const observedRevision = marker?.[1];
     return {
-      ...saved, status: observedRevision === saved.revision ? "verified" : "mismatch",
+      ...saved,
+      status: observedRevision === saved.revision ? "verified" : "mismatch",
       ...(observedRevision ? { observedRevision } : {}),
     };
   } catch {
@@ -217,7 +275,10 @@ export async function dispatchPublicationSignal(
   const secret = getPublicationSecret(env);
   if (origins.length === 0 || !secret) {
     return (origins.length ? origins : ["unconfigured"]).map((target) => ({
-      target, status: "unconfigured", attempts: 0, savedRevisions,
+      target,
+      status: "unconfigured",
+      attempts: 0,
+      savedRevisions,
       verification: savedRevisions.length ? "pending" : "not-requested",
       detail: !secret
         ? "PUBLIC_CACHE_PUBLISH_SECRET is unset; durable publication remains pending"
@@ -225,28 +286,53 @@ export async function dispatchPublicationSignal(
     }));
   }
   const receipts: PublicationReceipt[] = [];
-  for (let start = 0; start < targets.length; start += PUBLICATION_SIGNAL_MAX_TARGETS) {
+  for (
+    let start = 0;
+    start < targets.length;
+    start += PUBLICATION_SIGNAL_MAX_TARGETS
+  ) {
     const batch = targets.slice(start, start + PUBLICATION_SIGNAL_MAX_TARGETS);
     const signal = buildPublicationSignal(batch, source);
     const body = JSON.stringify(signal);
     const signature = signPublicationBody(body, secret);
     const saved = savedRevisions.filter((revision) =>
-      batch.some((target) => target.kind === "article" && target.slug === revision.slug));
-    receipts.push(...await Promise.all(origins.map(async (origin) => {
-      const receipt = await deliver(origin, body, signature, signal.dispatchId);
-      receipt.savedRevisions = saved;
-      receipt.verification = saved.length ? "pending" : "not-requested";
-      if (receipt.status === "accepted" && saved.length) {
-        const served: ServedArticleRevision[] = [];
-        for (let offset = 0; offset < saved.length; offset += 8) {
-          served.push(...await Promise.all(saved.slice(offset, offset + 8).map((revision) =>
-            verifyServedArticle(origin, revision))));
-        }
-        receipt.servedRevisions = served;
-        receipt.verification = served.every((revision) => revision.status === "verified") ? "verified" : "incomplete";
-      }
-      return receipt;
-    })));
+      batch.some(
+        (target) => target.kind === "article" && target.slug === revision.slug,
+      ),
+    );
+    receipts.push(
+      ...(await Promise.all(
+        origins.map(async (origin) => {
+          const receipt = await deliver(
+            origin,
+            body,
+            signature,
+            signal.dispatchId,
+          );
+          receipt.savedRevisions = saved;
+          receipt.verification = saved.length ? "pending" : "not-requested";
+          if (receipt.status === "accepted" && saved.length) {
+            const served: ServedArticleRevision[] = [];
+            for (let offset = 0; offset < saved.length; offset += 8) {
+              served.push(
+                ...(await Promise.all(
+                  saved
+                    .slice(offset, offset + 8)
+                    .map((revision) => verifyServedArticle(origin, revision)),
+                )),
+              );
+            }
+            receipt.servedRevisions = served;
+            receipt.verification = served.every(
+              (revision) => revision.status === "verified",
+            )
+              ? "verified"
+              : "incomplete";
+          }
+          return receipt;
+        }),
+      )),
+    );
   }
   return receipts;
 }

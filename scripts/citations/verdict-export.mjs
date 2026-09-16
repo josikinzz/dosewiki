@@ -15,7 +15,7 @@ import { join, resolve } from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -52,13 +52,7 @@ const runContext = createDataOpsRunContext({
   operation: "export citation verdict section packet",
   intent: "citation-verdict-export",
   argv,
-  sourceUrlKeys: [
-    "SOURCE_CONVEX_URL",
-    "CONVEX_PUBLIC_READ_URL",
-    "VITE_CONVEX_URL",
-    "CONVEX_URL",
-    "NEXT_PUBLIC_CONVEX_URL",
-  ],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
   targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
@@ -103,7 +97,7 @@ async function fetchEvidenceRows(client) {
 
 async function main() {
   printDataOpsRunContext(runContext);
-  const sourceUrl = requireSourceUrl(runContext, "Convex packet source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Postgres packet source URL");
   const audit = loadAudit(resolve(runContext.repoRoot, auditPath));
 
   const client = createDataClient({ target: sourceUrl }).client;

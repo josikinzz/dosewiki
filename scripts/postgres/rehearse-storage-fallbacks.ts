@@ -1,13 +1,13 @@
 /**
  * Ticket 11 rehearsal: prove on Postgres that `ctx.storage.getUrl` serves the
  * `storageObjects` mapping and that every storage-id fallback behaves exactly
- * as it does on Convex when the mapping is absent (null, never a throw).
+ * as specified when the mapping is absent (null, never a throw).
  *
  *   bun scripts/postgres/rehearse-storage-fallbacks.ts [--target <url>] [--allow-remote] [--keep]
  *
  * Creates scratch rows prefixed `t11-<random>` (one replication, two
  * contributor profiles, one avatar history row, storageObjects rows) and
- * deletes them unless `--keep`. Every read goes through `PostgresConvexClient`
+ * deletes them unless `--keep`. Every read goes through `PostgresClient`
  * with the same `api.*` references the app uses; handlers are unchanged.
  *
  * Scenarios:
@@ -15,23 +15,23 @@
  *                direct `url`/`thumbnail_url`; preview/motion/poster are null;
  *                `replications.resolveStorageUrls` yields nulls; profile avatar
  *                falls back to `avatarUrl` or null; identity avatar is null.
- *                The resolved row equals the Convex-null shape, so the src
+ *                The resolved row equals the unmapped-media shape, so the src
  *                poster/motion ladders (`qualityLadder.ts`) pick the same frame.
  *   2. mapped:   storageObjects rows exist. Each mapped id resolves to its
  *                mapped URL; unmapped siblings keep scenario 1 behaviour.
  *   3. sharing:  thumbnail_storage_id === storage_id reuses the mapped URL.
  *   4. placeholder: `placeholder-*` ids are never looked up.
  *   5. precedence: a canonical R2 key with REPLICATION_MEDIA_BASE_URL set wins
- *                over the mapping, exactly as it wins over Convex Storage.
+ *                over a historical storage identity mapping.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api";
 import { deleteDocument, insertDocument, mintDocumentId, patchDocument, withTransaction } from "../../lib/postgres/documentStore";
-import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
+import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { slideMotionSource, slidePosterSource } from "../../src/features/replications/viewer/qualityLadder";
 import { guardTarget, resolveTarget } from "./targetGuard";
 
@@ -60,7 +60,7 @@ async function main() {
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-storage-fallbacks`);
   const started = performance.now();
   const pool = new Pool({ connectionString: target, max: 2 });
-  const client = new PostgresConvexClient(pool);
+  const client = new PostgresClient(pool);
   const scratch: Array<{ table: "replications" | "contributorProfiles" | "contributorAvatarHistory"; id: string }> = [];
   const storageIds = {
     main: `${prefix}-main`,
@@ -71,7 +71,7 @@ async function main() {
     avatar: `${prefix}-avatar`,
     historyAvatar: `${prefix}-history-avatar`,
   };
-  const mapped = (id: string) => `https://r2.invalid/convex-storage/${id}`;
+  const mapped = (id: string) => `https://r2.invalid/imported-storage/${id}`;
   const previousBase = process.env.REPLICATION_MEDIA_BASE_URL;
   delete process.env.REPLICATION_MEDIA_BASE_URL;
 
@@ -120,8 +120,8 @@ async function main() {
 
     // 1. absent
     const absent = resolvedOf(await client.query(api.replications.getBySlug, { slug }));
-    const convexNull: Resolved = { url: directUrl, thumbnail_url: directThumb, preview_url: null, motion_url: null, motion_poster_url: null };
-    expect("absent", "getBySlug falls back to direct url/thumbnail_url and nulls the rest (Convex-null shape)", JSON.stringify(absent) === JSON.stringify(convexNull), { absent, convexNull });
+    const unmapped: Resolved = { url: directUrl, thumbnail_url: directThumb, preview_url: null, motion_url: null, motion_poster_url: null };
+    expect("absent", "getBySlug falls back to direct url/thumbnail_url and nulls the rest (unmapped-media shape)", JSON.stringify(absent) === JSON.stringify(unmapped), { absent, unmapped });
     const nulls = await client.query(api.replications.resolveStorageUrls, { storageIds: [storageIds.main, storageIds.thumb] });
     expect("absent", "resolveStorageUrls returns null per unmapped id", JSON.stringify(nulls) === "[null,null]", nulls);
     const profile = await client.query(api.contributorProfiles.getByKey, { key: profileKey });
@@ -132,7 +132,7 @@ async function main() {
     expect("absent", "identity avatar_url is null for an unmapped verified avatar", identity !== null && identity.avatar_url === null, identity);
     if (absent) {
       const video = { type: "video" as const, format: "mp4", ...absent };
-      expect("absent", "src poster ladder picks the direct thumbnail for a video", slidePosterSource(video) === directThumb && slidePosterSource(video) === slidePosterSource({ ...video, ...convexNull }));
+      expect("absent", "src poster ladder picks the direct thumbnail for a video", slidePosterSource(video) === directThumb && slidePosterSource(video) === slidePosterSource({ ...video, ...unmapped }));
       expect("absent", "src motion ladder plays the direct url for a video", slideMotionSource(video) === directUrl);
       const gif = { type: "image" as const, format: "gif", ...absent };
       expect("absent", "src ladders give a GIF no poster and no motion when the renditions are unmapped", slidePosterSource(gif) === null && slideMotionSource(gif) === null);
@@ -140,7 +140,7 @@ async function main() {
 
     // 2. mapped
     for (const id of [storageIds.main, storageIds.preview, storageIds.poster, storageIds.avatar, storageIds.historyAvatar]) {
-      await pool.query('INSERT INTO "storageObjects" ("storage_id", "url", "r2_key") VALUES ($1, $2, $3)', [id, mapped(id), `convex-storage/${id}`]);
+      await pool.query('INSERT INTO "storageObjects" ("storage_id", "url", "r2_key") VALUES ($1, $2, $3)', [id, mapped(id), `imported-storage/${id}`]);
     }
     const partial = resolvedOf(await client.query(api.replications.getBySlug, { slug }));
     const expectedPartial: Resolved = { url: mapped(storageIds.main), thumbnail_url: directThumb, preview_url: mapped(storageIds.preview), motion_url: null, motion_poster_url: mapped(storageIds.poster) };

@@ -3,16 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildEffectArticleViewModel,
   buildEffectsIndexViewModel,
-  buildReportsIndexViewModel,
   buildSubstanceArticleViewModel,
   toEffectsIndexSummary,
 } from "./publicRouteViewModels";
 import type {
-  PublicEffectPreview,
-  PublicReportPreview,
+  PublicEffectIndexEntry,
   SubjectiveEffectDetailRecord,
-} from "../convex/publicData";
-import type { PublicSubstanceRecord } from "../convex/publicData.shared";
+} from "../data/publicData";
+import type { PublicSubstanceRecord } from "../data/publicData.shared";
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", async () => {
@@ -25,50 +23,11 @@ vi.mock("react", async () => {
 });
 
 describe("public route view models", () => {
-  it("adapts reports index records into route-ready page props and metadata", () => {
-    const report: PublicReportPreview = {
-      slug: "first-trip",
-      title: "First Trip",
-      featured: true,
-      author: "Ada",
-      substanceNames: ["LSD"],
-      substances: [{ name: "LSD" }],
-      introduction: "A report",
-      tripDate: "2026-01-01",
-      authorAvatarUrl: "https://example.com/avatar.png",
-      authorProfileKey: "ada",
-    };
-
-    expect(buildReportsIndexViewModel({ reportCount: 1, reports: [report] })).toEqual({
-      metadata: {
-        title: "Experience Reports Index",
-        description: `Browse 1 trip reports in ${SITE_FLAVOR_CONFIG.name}.`,
-      },
-      pageProps: {
-        reportHrefPrefix: "/reports/",
-        reports: [
-          {
-            slug: "first-trip",
-            title: "First Trip",
-            featured: true,
-            subject: {
-              name: "Ada",
-              trip_date: "2026-01-01",
-              avatar_url: "https://example.com/avatar.png",
-              profile_key: "ada",
-            },
-            substances: [{ name: "LSD" }],
-          },
-        ],
-      },
-    });
-  });
 
   it("adapts effects index records behind a stable href and summary shape", () => {
-    const effect: PublicEffectPreview = {
+    const effect: PublicEffectIndexEntry = {
       slug: "visual-drifting",
       name: "Visual drifting",
-      summary: "Objects appear to drift.",
       featured: false,
       tags: ["visual"],
     };
@@ -86,7 +45,7 @@ describe("public route view models", () => {
   });
 
   it("defaults missing effect tags to an empty array", () => {
-    expect(toEffectsIndexSummary({ slug: "x", name: "Effect", summary: "", featured: false } as PublicEffectPreview)).toEqual({
+    expect(toEffectsIndexSummary({ slug: "x", name: "Effect", featured: false } as PublicEffectIndexEntry)).toEqual({
       slug: "x",
       name: "Effect",
       tags: [],
@@ -158,7 +117,7 @@ describe("public route view models", () => {
     });
   });
 
-  it("creates a primary molecule asset from Convex without a legacy static mapping", () => {
+  it("creates a primary molecule asset from Postgres without a legacy static mapping", () => {
     const substance = {
       slug: "fixtureamine",
       id: 999_999,
@@ -185,8 +144,8 @@ describe("public route view models", () => {
     expect(viewModel.pageProps.content?.moleculeAsset).toMatchObject({
       filename: "fixtureamine.svg",
       url: "/api/molecules/fixtureamine?v=seeded",
-      matchedField: "convex-molecule",
-      resolution: "convex-canonical",
+      matchedField: "data-molecule",
+      resolution: "data-canonical",
     });
     expect(viewModel.pageProps.content?.moleculeAssets).toHaveLength(1);
   });

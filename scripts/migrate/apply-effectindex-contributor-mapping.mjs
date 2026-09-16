@@ -14,7 +14,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -50,7 +50,7 @@ const confirmed = argv.includes("--confirm-contributor-mapping");
 
 const runContext = createDataOpsRunContext({
   operation: "apply Effect Index contributor mapping",
-  intent: "dev-convex-import",
+  intent: "dev-data-import",
   argv: writeRequested ? argv : [...argv, "--dry-run"],
   sourceUrlKeys: [],
   localArtifacts: ["src/data/config/userProfiles.json"],
@@ -86,7 +86,7 @@ function readSeedProfiles() {
 
 function buildRow(definition, existing, seed) {
   if (!existing && !seed) {
-    throw new Error(`${definition.key} is neither live in Convex nor present in ${SEED_PATH}.`);
+    throw new Error(`${definition.key} is neither live in Postgres nor present in ${SEED_PATH}.`);
   }
 
   const row = {
@@ -143,12 +143,12 @@ try {
       "This script merges into the live rows, so it will not continue without them.",
       "Two causes produce this, and they look identical from here:",
       "  1. That deployment's functions predate the admin-intent registry, so the",
-      "     authorization check errors before it runs. Deploy Convex functions there first.",
+      "     authorization check errors before it runs. Verify the current native function registry before continuing.",
       "  2. The admin token is not one that deployment accepts.",
       "",
       "Tell the two apart with:",
-      `  npm run convex:doctor -- --url=${target.url}`,
-      "See docs/agents/convex-credentials.md.",
+      "  npm run postgres:check-env-isolation",
+      "See docs/agents/data-credentials.md.",
     ].join("\n"),
   );
   process.exit(1);
@@ -179,7 +179,7 @@ console.log("\nExact contributorProfiles.bulkImport rows:");
 console.log(JSON.stringify(rows, null, 2));
 
 if (!writeRequested) {
-  console.log("\nDry run only. No Convex writes performed.");
+  console.log("\nDry run only. No Postgres writes performed.");
   process.exit(0);
 }
 

@@ -1,4 +1,4 @@
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { mediaTypeFromContentType } from "./article-media-evidence.mjs";
 
 /**
@@ -35,7 +35,7 @@ export async function verifyInsertedRow({ client, row, fetchImpl = fetch }) {
   if (!live) {
     return { ok: false, reasons: [`getBySlug returned nothing for ${row.slug}`] };
   }
-  for (const field of ["role", "artist", "type", "format", "storage_id", "title"]) {
+  for (const field of ["role", "artist", "type", "format", "storage_id", "r2_key", "title"]) {
     if (live[field] !== row[field]) {
       reasons.push(`${field} is ${JSON.stringify(live[field])}, planned ${JSON.stringify(row[field])}`);
     }

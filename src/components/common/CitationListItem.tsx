@@ -56,7 +56,7 @@ export function CitationListItem({
   return (
     <li
       className={cn(
-        "inline-flex flex-none align-top",
+        "theme-navigation-target inline-flex flex-none scroll-mt-20 align-top",
         truncateLabel ? "max-w-[min(18rem,100%)]" : "max-w-full",
         className,
       )}

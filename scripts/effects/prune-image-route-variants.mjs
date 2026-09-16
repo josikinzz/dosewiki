@@ -19,13 +19,13 @@
  * verified to serve). Keeping only those makes the surviving payload exactly
  * the data the renderer consumes.
  *
- *   node scripts/effects/prune-image-route-variants.mjs --target-url=<url>
- *   node scripts/effects/prune-image-route-variants.mjs --target-url=<url> \
+ *   node scripts/effects/prune-image-route-variants.mjs --target=<url>
+ *   node scripts/effects/prune-image-route-variants.mjs --target=<url> \
  *     --write --confirm-write=prune-image-route-variants \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  */
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -35,7 +35,7 @@ import {
 
 const operation = "prune-image-route-variants";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const KEPT_VARIANTS = ["deliriant"];

@@ -1,18 +1,27 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import {
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import type { SubstanceArticle } from "@/schema";
-import { slugify } from "@/utils/slug";
 import { msg, useT } from "@/i18n/client";
-import { createInitialDraft, type FeedbackDraft, type SubmissionState } from "./feedbackDraft";
+import {
+  createInitialDraft,
+  type FeedbackDraft,
+  type SubmissionState,
+} from "./feedbackDraft";
 
 // The form is never in the server-rendered page (the section starts
 // collapsed), so its chunk loads only when a reader opens it.
@@ -22,36 +31,35 @@ const FeedbackForm = dynamic(
 );
 
 interface FeedbackSectionProps {
-  article: SubstanceArticle;
-}
-
-// The schema keeps `slug` optional/loose on articles, so read it structurally
-// and fall back to the same derivation the editor tools use.
-function resolveArticleSlug(article: {
-  title?: string;
-  identification?: { common_name?: string };
-  slug?: string;
-}) {
-  const explicitSlug = typeof article.slug === "string" ? article.slug.trim() : "";
-  return explicitSlug || slugify(article.identification?.common_name || article.title || "");
+  substanceTitle: string;
+  substanceSlug: string;
 }
 
 /**
  * Compact per-article feedback intake at the end of the substance article.
  * Collapsed by default; expands into a short form that posts to the private
- * Convex moderation queue. Nothing submitted here is rendered publicly.
+ * Postgres moderation queue. Nothing submitted here is rendered publicly.
  */
-export function FeedbackSection({ article }: FeedbackSectionProps) {
+export function FeedbackSection({
+  substanceTitle,
+  substanceSlug,
+}: FeedbackSectionProps) {
   const [open, setOpen] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [draft, setDraft] = useState(createInitialDraft);
   const [state, setState] = useState<SubmissionState>({ kind: "idle" });
+
+  useLayoutEffect(() => {
+    if (!open && hasOpened) triggerRef.current?.focus();
+  }, [open, hasOpened]);
   const fieldPrefix = useId();
   const t = useT();
 
-  const substanceTitle = article.title || article.identification?.common_name || "this substance";
-  const substanceSlug = resolveArticleSlug(article);
-
-  const setField = <K extends keyof FeedbackDraft>(field: K, value: FeedbackDraft[K]) => {
+  const setField = <K extends keyof FeedbackDraft>(
+    field: K,
+    value: FeedbackDraft[K],
+  ) => {
     setDraft((current) => ({ ...current, [field]: value }));
   };
 
@@ -98,7 +106,10 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
     } catch (error) {
       setState({
         kind: "error",
-        message: error instanceof Error ? error.message : msg("Unable to send feedback right now."),
+        message:
+          error instanceof Error
+            ? error.message
+            : msg("Unable to send feedback right now."),
         details: [],
       });
     }
@@ -114,7 +125,11 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
   ).split("{{here}}");
 
   return (
-    <ArticleSection id="feedback" icon="lucide:message-square-plus" heading={t("Suggest an edit")}>
+    <ArticleSection
+      id="feedback"
+      icon="lucide:message-square-plus"
+      heading={t("Suggest an edit")}
+    >
       <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">
         {introBefore}
         <span className="theme-text-primary font-medium">{substanceTitle}</span>
@@ -122,7 +137,11 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
       </p>
 
       {state.kind === "success" ? (
-        <Alert variant="success" aria-live="polite">
+        <Alert
+          variant="success"
+          aria-live="polite"
+          className="theme-feedback-enter"
+        >
           <Icon icon="lucide:check" size={18} />
           <AlertTitle>{t("Feedback received")}</AlertTitle>
           <AlertDescription>
@@ -131,27 +150,43 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
         </Alert>
       ) : null}
 
-      {!open ? (
-        <Button type="button" variant="glass" size="pill" onClick={() => setOpen(true)}>
-          <Icon icon="lucide:pencil-line" size={16} />
-          {state.kind === "success" ? t("Send more feedback") : t("Report an issue or suggest an edit")}
-        </Button>
-      ) : (
-        <FeedbackForm
-          draft={draft}
-          state={state}
-          fieldPrefix={fieldPrefix}
-          setField={setField}
-          onSubmit={submitFeedback}
-          onCancel={closeForm}
-        />
-      )}
+      <Button
+        ref={triggerRef}
+        type="button"
+        variant="glass"
+        size="pill"
+        className={open ? "hidden" : undefined}
+        aria-expanded={open}
+        aria-controls={`${fieldPrefix}-form`}
+        onClick={() => {
+          setHasOpened(true);
+          setOpen(true);
+        }}
+      >
+        <Icon icon="lucide:pencil-line" size={16} />
+        {state.kind === "success"
+          ? t("Send more feedback")
+          : t("Report an issue or suggest an edit")}
+        <ExpandIndicator isExpanded={open} />
+      </Button>
+      <div id={`${fieldPrefix}-form`} hidden={!open}>
+        {hasOpened ? (
+          <FeedbackForm
+            draft={draft}
+            state={state}
+            fieldPrefix={fieldPrefix}
+            setField={setField}
+            onSubmit={submitFeedback}
+            onCancel={closeForm}
+          />
+        ) : null}
+      </div>
 
       <p className="theme-text-faint text-sm">
         {generalBefore}
-        <Link href="/about/feedback" className={proseLinkClassName}>
+        <SmartLink href="/about/feedback" className={proseLinkClassName}>
           {t("here")}
-        </Link>
+        </SmartLink>
         {generalAfter}
       </p>
     </ArticleSection>

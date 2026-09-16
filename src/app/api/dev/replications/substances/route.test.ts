@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     substanceGalleries: {
       getCurationMatchDigest: "substanceGalleries.getCurationMatchDigest",
@@ -24,13 +24,13 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   query: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: dataMocks.getServerDataWriteCapability,
 }));
 
 function candidate(slug: string, title: string, matchCount = 0) {
@@ -53,14 +53,14 @@ beforeEach(() => {
     session: { user: { email: "editor@example.com", name: "Editor" } },
     role: "editor",
   });
-  convexMocks.getServerConvexWriteCapability.mockReturnValue({
+  dataMocks.getServerDataWriteCapability.mockReturnValue({
     ok: true,
-    capability: { client: { query: convexMocks.query }, adminKey: "admin-key" },
+    capability: { client: { query: dataMocks.query }, adminKey: "admin-key" },
   });
 });
 
 describe("batched substance gallery candidates route", () => {
-  it("refuses a non-editor before touching Convex", async () => {
+  it("refuses a non-editor before touching Postgres", async () => {
     authMocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
@@ -70,12 +70,12 @@ describe("batched substance gallery candidates route", () => {
     const response = await GET(new Request("https://dose.wiki/api/dev/replications/substances"));
 
     expect(response.status).toBe(401);
-    expect(convexMocks.query).not.toHaveBeenCalled();
+    expect(dataMocks.query).not.toHaveBeenCalled();
   });
 
   it("reads the corpus digest once, drains the cursor into one sorted response, and drops ambiguous slugs", async () => {
     const digest = [{ route: "lsd", drugClass: null, visualDisconnection: false, count: 5 }];
-    convexMocks.query
+    dataMocks.query
       .mockResolvedValueOnce(digest)
       .mockResolvedValueOnce({
         items: [candidate("lsd", "LSD", 5), candidate("twin", "Twin A")],
@@ -96,13 +96,13 @@ describe("batched substance gallery candidates route", () => {
       ok: true,
       substances: [candidate("2c-b", "2C-B", 2), candidate("lsd", "LSD", 5)],
     });
-    expect(convexMocks.query).toHaveBeenCalledTimes(3);
-    expect(convexMocks.query).toHaveBeenNthCalledWith(
+    expect(dataMocks.query).toHaveBeenCalledTimes(3);
+    expect(dataMocks.query).toHaveBeenNthCalledWith(
       1,
       "substanceGalleries.getCurationMatchDigest",
       { apiKey: "admin-key" },
     );
-    expect(convexMocks.query).toHaveBeenLastCalledWith(
+    expect(dataMocks.query).toHaveBeenLastCalledWith(
       "substanceGalleries.listCurationCandidatesPage",
       { apiKey: "admin-key", digest, cursor: "cursor-1", limit: 32 },
     );

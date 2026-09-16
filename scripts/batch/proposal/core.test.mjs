@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -32,7 +32,11 @@ describe("proposal integrity primitives", () => {
     temporaryDirectories.push(directory);
     const path = resolve(directory, "target-manifest.json");
     const manifest = writeImmutableManifest(path, {
-      schemaVersion: "test-v1",
+      schemaVersion: "section-proposal-manifest-v2",
+      deployments: {
+        source: { identity: "localhost/source", fingerprint: "localhost/source" },
+        target: { identity: "localhost/target", fingerprint: "localhost/target" },
+      },
       exactPrompt: "line one\nline two  \n",
       exactExcerpt: "quoted bytes\n\tunchanged",
     });
@@ -40,6 +44,15 @@ describe("proposal integrity primitives", () => {
     expect(verifyManifest(JSON.parse(readFileSync(path, "utf8")))).toBe(manifest.manifestDigest);
     expect(JSON.parse(readFileSync(path, "utf8")).exactPrompt).toBe("line one\nline two  \n");
     expect(() => writeImmutableManifest(path, manifest)).toThrow();
+    const unsafePath = resolve(directory, "unsafe-manifest.json");
+    expect(() => writeImmutableManifest(unsafePath, {
+      ...manifest,
+      deployments: {
+        ...manifest.deployments,
+        target: { ...manifest.deployments.target, url: "postgresql://writer:secret@localhost/target" },
+      },
+    })).toThrow();
+    expect(existsSync(unsafePath)).toBe(false);
   });
 
   it("treats arrays atomically while reporting nested JSON-pointer differences", () => {
@@ -55,7 +68,7 @@ describe("proposal integrity primitives", () => {
   it("preserves target citation markers while stripping generated marker changes", () => {
     const proposal = buildSectionProposal({
       slug: "2c-b",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: {
         slug: "2c-b",
         summary: "Existing definition.[cite:existing-definition]",
@@ -76,7 +89,7 @@ describe("proposal integrity primitives", () => {
   it("preserves citation markers in matching structured leaves", () => {
     const proposal = buildSectionProposal({
       slug: "1b-lsd",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: {
         slug: "1b-lsd",
         pharmacology: {
@@ -106,7 +119,7 @@ describe("proposal integrity primitives", () => {
   it("moves a marker to the best-matching sentence when generation reorders claims", () => {
     const proposal = buildSectionProposal({
       slug: "1b-lsd",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: {
         slug: "1b-lsd",
         summary: "It is a prodrug. Rodent studies show LSD-like effects at one-seventh potency.[cite:rodent-study]",
@@ -126,7 +139,7 @@ describe("proposal integrity primitives", () => {
   it("rejects a generated structure that drops a citation-bearing leaf", () => {
     expect(() => buildSectionProposal({
       slug: "1b-lsd",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: {
         slug: "1b-lsd",
         pharmacology: { pharmacodynamics: "Supported.[cite:existing]" },
@@ -142,7 +155,7 @@ describe("proposal integrity primitives", () => {
   it("allows only the selected top-level section and rejects malicious cross-section changes", () => {
     const normal = buildSectionProposal({
       slug: "2c-b",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: { slug: "2c-b", summary: "before", legality: { countries: {} } },
       sectionKey: "summary",
       generatedValue: "after",
@@ -155,7 +168,7 @@ describe("proposal integrity primitives", () => {
 
     const malicious = buildSectionProposal({
       slug: "2c-b",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: { slug: "2c-b", summary: "before", legality: { countries: {} } },
       sectionKey: "summary",
       generatedValue: "after",
@@ -175,7 +188,7 @@ describe("proposal integrity primitives", () => {
   it("rejects dosage, duration, and unrelated changes from a pharmacology proposal", () => {
     const proposal = buildSectionProposal({
       slug: "2c-b",
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       targetArticle: {
         slug: "2c-b",
         pharmacology: { pharmacodynamics: "before" },

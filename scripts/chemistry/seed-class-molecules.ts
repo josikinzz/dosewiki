@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Seed/refresh the Convex `moleculeOverrides` rows for chemical classes
+ * Seed/refresh the Postgres `moleculeOverrides` rows for chemical classes
  * (`class:<key>`) from the canonical SMILES in
  * src/data/indexes/chemicalIndexManual.json (via CLASS_STRUCTURES).
  *
@@ -23,7 +23,7 @@ import { dirname, resolve } from "node:path";
 import * as OCL from "openchemlib";
 import initRDKitModule, { type JSMol, type RDKitModule } from "@rdkit/rdkit";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import { renderMoleculeSvg } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
 import {
   classAtomLabels,
@@ -64,17 +64,17 @@ function parsePositiveInteger(value: string | null, name: string): number {
 
 function printHelp() {
   console.log(`
-Seed Convex class molecule depictions (class:<key>) from chemicalIndexManual.json SMILES.
+Seed Postgres class molecule depictions (class:<key>) from chemicalIndexManual.json SMILES.
 
 Usage:
-  npm run molecules:seed-classes-convex -- --dry-run
-  TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \\
-    npm run molecules:seed-classes-convex -- --apply --confirm-class-seed \\
+  npm run molecules:seed-classes -- --dry-run
+  TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \\
+    npm run molecules:seed-classes -- --apply --confirm-class-seed \\
     --confirm-write=seed-class-molecule-depictions \\
-    --expected-deployment=glad-minnow-656
+    --expected-deployment=localhost/dosewiki
 
 Options:
-  --dry-run             Read Convex, render locally, print the per-class plan (default)
+  --dry-run             Read Postgres, render locally, print the per-class plan (default)
   --apply               Write rows (seedMissing; --force rows via replicate)
   --confirm-class-seed  Required with --apply
   --force               Re-seed classes that already have a class: row (backed up first)
@@ -151,12 +151,12 @@ async function main() {
     ],
     destructive: true,
   });
-  const convexUrl = write
-    ? requireTargetUrl(runContext, "Convex write target")
-    : requireSourceUrl(runContext, "configured Convex read target");
+  const dataUrl = write
+    ? requireTargetUrl(runContext, "Postgres write target")
+    : requireSourceUrl(runContext, "configured Postgres read target");
 
   printDataOpsRunContext(runContext);
-  const client = createDataClient({ target: convexUrl }).client;
+  const client = createDataClient({ target: dataUrl }).client;
   const existingSlugs = new Set(
     (await client.query(api.moleculeOverrides.listSlugs, {})).map((row) => row.slug),
   );
@@ -285,7 +285,7 @@ async function main() {
   const report = {
     generatedAt: new Date().toISOString(),
     mode: write ? "write" : "dry-run",
-    target: convexUrl,
+    target: dataUrl,
     force,
     limit: Number.isFinite(limit) ? limit : null,
     keyFilter: onlyKeys ? [...onlyKeys] : null,
@@ -315,7 +315,7 @@ async function main() {
   console.log(
     write
       ? `Inserted: ${inserted}; force-overwritten: ${overwritten}; concurrent skips: ${racedExisting}`
-      : "Dry run: no Convex writes performed.",
+      : "Dry run: no Postgres writes performed.",
   );
   console.log(`Report: ${reportPath}`);
   for (const sample of sampleRows) {

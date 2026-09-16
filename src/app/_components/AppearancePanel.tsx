@@ -4,10 +4,12 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  useId,
   useRef,
   useState,
 } from "react";
 
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
 import { useT } from "@/i18n/client";
@@ -72,13 +74,13 @@ export type AppearancePanelRows = {
 
 /**
  * The two halves of the reader's appearance menu: a Colour tab that opens on the look
- * picker and mode row, with the Background and Accent rails always open and "Reset
- * colors" beside the dev-only Theme Lab entry, then a Font tab behind one swap. One icon
+ * picker and mode row, with Background and Accent collapsed on mobile, open on desktop,
+ * and "Reset colors" beside the dev-only Theme Lab entry, then a Font tab behind one swap. One icon
  * swaps between them — the type glyph on the colour tab, the paintbrush on the font
  * tab — rendered as a bare control beside the tab's first row, with no card of its own.
  *
  * Everything is read from and written to `ThemeContext`; this component holds no
- * appearance state of its own beyond which tab is showing. The range inputs write the
+ * appearance state of its own beyond the tab and mobile disclosures. The range inputs write the
  * context per input tick — that is what keeps them controlled and the thumb, readout,
  * and rail gradients live — and per-tick writes are safe because the provider
  * rAF-throttles the document paint and debounces persistence: nothing here needs its
@@ -172,7 +174,7 @@ export function AppearancePanel({
         </div>
 
         {showFont ? (
-          <div className="flex flex-col gap-3">
+          <div className="theme-feedback-enter flex flex-col gap-3">
             <TypeSliderRow
               label={t("Text size")}
               min={Math.round(TEXT_SIZE_RANGE[0] * 100)}
@@ -500,11 +502,8 @@ function useDirectTypeRange(
 }
 
 /**
- * One always-open colour axis: the named dot row (swatch, plain-language name, and the
- * live (degrees · percent) coordinate) over its Hue/Saturation slider pair. The reader
- * panel keeps the rails open rather than collapsed — the tab already separates the
- * colour work from the type work, so a second disclosure inside the tab would be a
- * card inside a card, the exact thing the sketch removes.
+ * One colour axis with a compact mobile disclosure. Desktop always shows the sliders,
+ * independently of the mobile expansion state.
  */
 function ColorAxisGroup({
   axisName,
@@ -519,6 +518,8 @@ function ColorAxisGroup({
   percent: number;
   children: ReactNode;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const contentId = useId();
   return (
     <div role="group" aria-label={axisName} className="flex flex-col gap-2.5">
       <div className="flex items-center gap-2.5 px-1">
@@ -531,8 +532,21 @@ function ColorAxisGroup({
         <span className="ml-auto tabular-nums text-[0.6875rem] font-medium text-dose-text-muted">
           {degrees}° · {percent}%
         </span>
+        <ExpandButton
+          variant="inline"
+          className="md:hidden"
+          isExpanded={isExpanded}
+          onToggle={() => setIsExpanded((expanded) => !expanded)}
+          ariaLabel={axisName}
+          ariaControls={contentId}
+        />
       </div>
-      {children}
+      <div
+        id={contentId}
+        className={`${isExpanded ? "flex theme-feedback-enter" : "hidden"} flex-col gap-2.5 md:flex`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 /**
  * Pure mapping from the 2021 Effect Index export onto `contributorProfiles`
  * rows. Kept separate from the runner so the mapping can be tested without a
- * Convex client, a network, or a filesystem.
+ * Postgres client, a network, or a filesystem.
  *
  * Two legacy bio dialects arrive here:
  *
@@ -382,7 +382,7 @@ export function buildIdentityRows({
 }
 
 /**
- * Lossless archive rows. Convex reserves `$`-prefixed field names, which the
+ * Lossless archive rows. Postgres reserves `$`-prefixed field names, which the
  * Mongo export uses ($oid, $date), so the verbatim JSON is stored as a string.
  */
 export function buildArchiveEntries(people, profiles, posts, importedAt) {

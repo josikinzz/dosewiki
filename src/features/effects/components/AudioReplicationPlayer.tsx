@@ -10,7 +10,7 @@ import {
   getPlaybackProgressRatio,
 } from "./audioPlaybackTime";
 
-type LoadState = "loading" | "ready" | "error";
+type LoadState = "idle" | "loading" | "ready" | "error";
 
 /** Every mounted player, so starting one clip can stop whichever was running. */
 const mountedPlayers = new Set<HTMLAudioElement>();
@@ -41,7 +41,7 @@ interface AudioReplicationPlayerProps {
  */
 export function AudioReplicationPlayer({ src, label, className }: AudioReplicationPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [loadState, setLoadState] = useState<LoadState>("idle");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -55,19 +55,22 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
     }
 
     mountedPlayers.add(audio);
-
-    // Metadata can land before hydration attaches the React handlers.
-    if (audio.error) {
-      setLoadState("error");
-    } else if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
-      setLoadState("ready");
-      setDuration(readDuration(audio));
-    }
+    setLoadState("idle");
+    setIsPlaying(false);
+    setIsBuffering(false);
+    setHasEnded(false);
+    setDuration(null);
+    setCurrentTime(0);
 
     return () => {
       mountedPlayers.delete(audio);
+      if (audio.hasAttribute("src")) {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      }
     };
-  }, []);
+  }, [src]);
 
   const handleToggle = useCallback(() => {
     const audio = audioRef.current;
@@ -76,18 +79,31 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
     }
 
     if (audio.paused) {
+      // Attach the resource inside the gesture, keeping inactive players
+      // entirely source-free and preserving browser playback permission.
+      if (!audio.hasAttribute("src")) {
+        audio.src = src;
+        setLoadState("loading");
+        setIsBuffering(true);
+      }
       if (audio.ended) {
         audio.currentTime = 0;
         setCurrentTime(0);
       }
-      // Rejections (autoplay policy, unsupported source) surface through the
-      // element's own pause/error events.
-      void audio.play().catch(() => undefined);
+      pauseOtherPlayers(audio);
+      void audio.play().catch((error: unknown) => {
+        if (audioRef.current !== audio || audio.getAttribute("src") !== src) return;
+        // Pausing during an in-flight play is not a failed resource.
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setLoadState("error");
+        setIsPlaying(false);
+        setIsBuffering(false);
+      });
       return;
     }
 
     audio.pause();
-  }, []);
+  }, [src]);
 
   const handleSeek = useCallback((value: number) => {
     const audio = audioRef.current;
@@ -129,12 +145,11 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
       className={cn("flex items-center gap-3", className)}
       role="group"
       aria-label={`Audio player: ${label}`}
-      aria-busy={loadState === "loading" || undefined}
+      aria-busy={isBuffering || loadState === "loading" || undefined}
     >
       <audio
         ref={audioRef}
-        src={src}
-        preload="metadata"
+        preload="none"
         onLoadedMetadata={(event) => {
           setLoadState("ready");
           setDuration(readDuration(event.currentTarget));
@@ -172,20 +187,23 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
         onClick={handleToggle}
         disabled={isFailed}
         aria-label={transportLabel}
+        aria-description={isBuffering && !isFailed ? "Buffering audio" : undefined}
         title={transportLabel}
         className={cn(
           "theme-control-pill inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
           isFailed && "cursor-not-allowed opacity-60",
         )}
       >
-        <Icon
-          icon={transportIcon}
-          size={18}
-          className={cn(
-            isFailed ? "theme-icon-danger" : "theme-icon-accent",
-            isBuffering && !isFailed && "animate-spin motion-reduce:animate-none",
-          )}
-        />
+        <span key={transportIcon} aria-hidden="true" className="theme-feedback-enter inline-flex">
+          <Icon
+            icon={transportIcon}
+            size={18}
+            className={cn(
+              isFailed ? "theme-icon-danger" : "theme-icon-accent",
+              isBuffering && !isFailed && "animate-spin motion-reduce:animate-none",
+            )}
+          />
+        </span>
       </button>
 
       <div className="min-w-0 flex-1">
@@ -202,7 +220,7 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
           </p>
         ) : (
           <>
-            <div className="relative flex h-4 items-center">
+            <div className="group/audio-scrubber relative flex h-5 items-center [@media(pointer:coarse)]:min-h-11">
               <input
                 type="range"
                 min={0}
@@ -219,13 +237,25 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
                 aria-hidden="true"
                 style={{ "--audio-progress": progressOffset } as CSSProperties}
                 className={cn(
-                  "theme-audio-scrubber-track pointer-events-none absolute inset-x-0 h-1.5 rounded-full transition-opacity",
+                  "pointer-events-none absolute inset-x-0 h-1.5 rounded-full",
                   "theme-peer-focus-ring",
                   !hasDuration && "opacity-60",
                 )}
               >
-                <div className="theme-audio-scrubber-fill h-full w-[var(--audio-progress)] rounded-full" />
-                <span className="theme-audio-scrubber-thumb absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full left-[var(--audio-progress)]" />
+                <div
+                  className={cn(
+                    "theme-audio-scrubber-track absolute inset-0 scale-y-[0.6] rounded-full transition-transform duration-100 motion-reduce:transition-none",
+                    hasDuration && "[@media(hover:hover)]:group-hover/audio-scrubber:scale-y-100 group-focus-within/audio-scrubber:scale-y-100",
+                  )}
+                >
+                  <div className="theme-audio-scrubber-fill h-full w-[var(--audio-progress)] rounded-full" />
+                </div>
+                <span
+                  className={cn(
+                    "theme-audio-scrubber-thumb absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full left-[var(--audio-progress)] opacity-0 transition-opacity duration-100 motion-reduce:transition-none",
+                    hasDuration && "[@media(hover:hover)]:group-hover/audio-scrubber:opacity-100 group-focus-within/audio-scrubber:opacity-100 [@media(pointer:coarse)]:opacity-100",
+                  )}
+                />
               </div>
             </div>
 

@@ -159,7 +159,7 @@ export function isArticleSourceDocumentTooLarge(doc, maxBytes = ARTICLE_SOURCE_D
   return getArticleSourceDocumentSizeBytes(doc) > maxBytes;
 }
 
-export function toConvexArticleSourcePayload(doc) {
+export function toDataArticleSourcePayload(doc) {
   return {
     slug: doc.slug,
     substanceName: doc.substanceName,

@@ -4,9 +4,10 @@ import { mkdirSync, openSync, closeSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   getReferenceIdentityKeys,
   normalizeDoi,
@@ -18,7 +19,7 @@ import {
   hasFlag,
   printDataOpsRunContext,
 } from "../lib/data-ops-run-context.mjs";
-import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
+import { drainDataPageQuery } from "../lib/data-pagination.mjs";
 import { enrichKnownReferenceCandidatesWithDiagnostics } from "./formal-citations-reference-enrichment.mjs";
 import { normalizeTextNeedle } from "./formal-citations-source-utils.mjs";
 
@@ -245,6 +246,7 @@ export async function buildCitationAuthorRepairProposal({
   limit = Infinity,
   enrich = enrichKnownReferenceCandidatesWithDiagnostics,
 }) {
+  assertCitationSourceIdentity(sourceDeployment);
   const selected = articles.flatMap(selectMarkerLinkedAuthorlessReferences).slice(0, limit);
   const rows = [];
   for (const candidate of selected) {
@@ -317,8 +319,8 @@ export async function runCitationAuthorRepairProposal(argv = process.argv.slice(
   });
   printDataOpsRunContext(context, { logger: dependencies.logger ?? console });
   const sourceUrl = context.sourceUrl;
-  if (!sourceUrl) throw new Error("No read-only Convex source URL is configured.");
-  const client = dependencies.client ?? createDataClient({ target: sourceUrl }).client;
+  if (!sourceUrl) throw new Error("No read-only Postgres source URL is configured.");
+  const client = dependencies.client ?? createDataClient({ target: sourceUrl, argv, env: dependencies.env ?? process.env }).client;
   const queryApi = dependencies.api ?? api;
   const slug = getFlagValue(argv, "--slug");
   const limit = parsePositiveInteger(getFlagValue(argv, "--limit"), "--limit");
@@ -328,7 +330,7 @@ export async function runCitationAuthorRepairProposal(argv = process.argv.slice(
     const article = await client.query(queryApi.substanceIndex.getBySlug, { slug });
     if (article) articles.push(article);
   } else {
-    const lookup = await drainConvexPageQuery({
+    const lookup = await drainDataPageQuery({
       client,
       query: queryApi.substanceIndex.getLookupPage,
     });
@@ -340,7 +342,7 @@ export async function runCitationAuthorRepairProposal(argv = process.argv.slice(
   }
   const proposal = await buildCitationAuthorRepairProposal({
     articles,
-    sourceDeployment: sourceUrl,
+    sourceDeployment: postgresFingerprintFromUrl(sourceUrl),
     generatedAt,
     limit,
     enrich: dependencies.enrich,

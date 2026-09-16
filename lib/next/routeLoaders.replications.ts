@@ -2,12 +2,13 @@ import "server-only";
 
 import { cache } from "react";
 import {
+  getPublicContributorByKey,
   getPublicContributorProfiles,
   getPublicEffectBySlug,
   getPublicReplicationIdentityAttribution,
   getPublicReplicationBySlug,
   type PublicReplicationIdentityAttribution,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import { getLocalizedPublicEffectBySlug, getLocalizedPublicReplicationBySlug } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import {
@@ -84,24 +85,25 @@ export const loadReplicationRoute = cache(
     const legacyCreator = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
       : null;
-    const [effect, contributorProfiles, identityAttribution] = await Promise.all([
+    const directArtistHref = artistPageHrefForWork(replication);
+    const [effect, identityAttribution] = await Promise.all([
       effectSlug
         ? locale ? getLocalizedPublicEffectBySlug(effectSlug, locale.code) : getPublicEffectBySlug(effectSlug)
         : Promise.resolve(null),
-      legacyCreator ? getPublicContributorProfiles() : Promise.resolve([]),
       getPublicReplicationIdentityAttribution(replication._id),
     ]);
     const creator = identityAttribution?.creator.display_name.trim() || legacyCreator;
-    const identityProfile = identityAttribution?.creator.profile_key
-      ? contributorProfiles.find(
-          (profile) => profile.key === identityAttribution.creator.profile_key,
-        ) ?? null
+    const needsContributorFallback =
+      Boolean(creator) &&
+      (identityAttribution?.proven_different_creator === true || directArtistHref === null);
+    const identityProfile = needsContributorFallback && identityAttribution?.creator.profile_key
+      ? await getPublicContributorByKey(identityAttribution.creator.profile_key)
       : null;
-    const artistProfile =
-      identityProfile ??
-      (creator
-        ? findContributorProfileByAuthorName(contributorProfiles, creator)
-        : null);
+    const artistProfile = identityProfile ?? (
+      needsContributorFallback && creator
+        ? findContributorProfileByAuthorName(await getPublicContributorProfiles(), creator)
+        : null
+    );
     const subject = effect?.name ?? null;
 
     return {
@@ -113,7 +115,7 @@ export const loadReplicationRoute = cache(
         artistProfileHref:
           (identityAttribution?.proven_different_creator
             ? null
-            : artistPageHrefForWork(replication)) ??
+            : directArtistHref) ??
           (artistProfile
             ? getPublicRoutePath({
                 family: "contributor",

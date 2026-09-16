@@ -37,10 +37,10 @@ import {
 } from "@server/next/editorDeliveryPolicy";
 import { isReplicationEmbedPath } from "@server/next/replicationEmbedPolicy";
 
-// Both are build-time constants (Next inlines `process.env` reads in Edge middleware), so
-// they are resolved once here instead of per request.
-const CONVEX_URL =
-  process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.VITE_CONVEX_URL;
+// Next resolves these environment reads for the deployment's Edge middleware.
+const R2_UPLOAD_ORIGIN = process.env.NEXT_PUBLIC_EDITOR_BUILD === "true"
+  ? process.env.CLOUDFLARE_R2_S3_ENDPOINT
+  : undefined;
 const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
 
 type BrowserSecurityHeaderSet = {
@@ -76,7 +76,6 @@ function getPublicSecurityHeaderSet(
     host,
     pathname: isReplicationEmbed ? pathname : "/",
     nonce: undefined,
-    convexUrl: CONVEX_URL,
     isDevelopment: isReplicationEmbed ? process.env.NODE_ENV === "development" : IS_DEVELOPMENT,
   });
   const csp = responseHeaders.find(
@@ -120,7 +119,7 @@ function getBrowserPolicyContext(request: NextRequest, appPath: string, privateR
       host: request.headers.get("host"),
       pathname,
       nonce,
-      convexUrl: CONVEX_URL,
+      r2UploadOrigin: R2_UPLOAD_ORIGIN,
       isDevelopment: IS_DEVELOPMENT,
     });
     const csp = responseHeaders.find(

@@ -4,13 +4,13 @@ import {
   getPublicEffectArticles,
   getPublicFullSubstanceDocuments,
   getPublicReportDetails,
-} from "../convex/publicData";
+} from "../data/publicData";
 
 /**
  * The public open-data JSON downloads under `/open-data`, described once so the
  * serving routes and the download buttons that advertise them agree on the file.
  *
- * Each dataset is a daily snapshot read live from Convex through the cached
+ * Each dataset is a daily snapshot read live from Postgres through the cached
  * lib adapters: the serving routes revalidate once a day and the `vercel.json`
  * crons warm them nightly, so no static file regeneration is involved.
  */
@@ -57,9 +57,9 @@ export type OpenDataDataset = {
   readonly license: string;
   /** "id" mirrors the committed SubstanceIndex.json export; "slug" elsewhere. */
   readonly sortBy: "id" | "slug";
-  /** Internal-only fields to strip beyond the Convex bookkeeping pair. */
+  /** Internal-only fields to strip beyond the Postgres bookkeeping pair. */
   readonly stripFields: readonly string[];
-  /** Every record the file publishes, read live from Convex. */
+  /** Every record the file publishes, read live from Postgres. */
   readonly loadItems: () => Promise<readonly unknown[]>;
 };
 
@@ -115,7 +115,7 @@ export const OPEN_DATA_DATASETS: Readonly<Record<OpenDataDatasetName, OpenDataDa
 type OpenDataRecord = Record<string, unknown>;
 
 /**
- * Build the published document: strips Convex internals (`_id`,
+ * Build the published document: strips Postgres internals (`_id`,
  * `_creationTime`) plus the dataset's internal fields, orders items
  * deterministically, and wraps them in the envelope. `json` is exactly what the
  * route gzips, so its byte length is the size of the file a reader saves.
@@ -137,7 +137,7 @@ export async function buildOpenDataDocument(
   });
 
   if (dataset.sortBy === "id") {
-    // Null ids sink to the end, mirroring scripts/convex/export-convex-to-json.mjs.
+    // Null ids sink to the end, mirroring scripts/data-ops/export-data-to-json.mjs.
     items.sort((left, right) => {
       const leftId = typeof left.id === "number" ? left.id : null;
       const rightId = typeof right.id === "number" ? right.id : null;

@@ -10,7 +10,6 @@ import {
 
 function createRow(overrides: Partial<CitationEvidenceRow>): CitationEvidenceRow {
   return {
-    slug: "lsd",
     section: "summary",
     claimKey: "summary:0",
     fieldPath: "summary",

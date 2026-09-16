@@ -29,8 +29,18 @@ its coverage audit runs clean, the only one.
   one row per locale and term with `target`, `kind`, `status` (`draft` |
   `approved`), `source` (`model` | `human`), and who reviewed it. Only
   approved rows reach a prompt or the digest. It is reviewed in
-  `/dev/glossary` (admin): draft the missing terms by machine, approve or
-  edit each gloss (editing approves), then "Start main translation" for a
+  `/dev/glossary` by admins or Translators assigned that language: approve or
+  edit each rendering (editing approves). Editor and Translator are independent
+  checkboxes; both are persisted as `editor_translator`, with `glossaryLocales`
+  carrying the approved language codes. Editor alone grants no translated
+  glossary access. Missing legacy scope grants no language until an admin
+  assigns one. The same grants travel through invites and each Auth.js refresh;
+  failed membership reads and bans clear both roles and scope. List, edit,
+  approval, CSV import, and CSV export enforce the language on the server.
+  In the column-based Postgres runtime, migration `0016` adds nullable JSON
+  language arrays to memberships and invites; apply it before releasing these
+  readers. No role or permission backfill is performed.
+  Admins draft missing terms by machine and run "Start main translation" for a
   locale with no drafts left, or "Retranslate affected segments" after an
   edit. zh-Hans holds 395 approved terms (effect names, categories, chemical
   and psychoactive classes, enum labels, the harm-reduction register); they
@@ -40,6 +50,25 @@ its coverage audit runs clean, the only one.
   --locale zh-Hans --export`) for diffing; nothing reads it. Substance names,
   receptors, statutes, and brands stay in Latin script by prompt rule 2, so
   short Latin lines on a mirror page are expected.
+- **Source context.** "Where it is used" in the public and editor glossaries
+  loads source links only when opened. Three compact links appear initially;
+  "Show more" reveals additional links. Links and heading/filter/field context
+  are derived from canonical registries and public article content, not stored
+  beside glossary definitions. Counts refer to unique source locations, not
+  pages or repeated mentions. Coverage includes index and replication filter
+  labels plus public substance, effect, and published library articles; artist
+  badges and other site content are not searched. The shared source index
+  refreshes after five minutes.
+- **Shared renderings.** Separate terms of one kind that would share a target
+  remain blocked by default. A translator can explicitly choose "Allow shared
+  rendering" after reviewing the exact locale, target, and English terms.
+  This applies to edits, individual/bulk approvals, and CSV import. Confirmation
+  is bound to the current collision set; a changed set requires another review.
+  Singular/plural variants keep their existing exemption. Cancellation writes
+  nothing, model drafts cannot override the guard, and accepted human writes
+  retain reviewer identity and time. API retries carry `collisionConfirmation`
+  for JSON requests or `X-Glossary-Collision-Confirmation` for raw CSV; both
+  accept only the 64-character digest supplied by the refused request.
 
 ## Deferred GT inputs
 
@@ -60,7 +89,7 @@ serves production.
 | Corpora | `scripts/translation/corpora.mjs` per kind, plus the bio-only profile projection in `lib/translation/liveTranslation.ts`: which keys translate and which are the record (numbers, names, URLs, IDs). Reports translate the narrative plus the free-text `dose`, `roa`, and `time` lines authors write |
 | Reads | `lib/translation/localizedRecords.ts` (cached `getLocalizedPublic*`), consumed by `lib/next/routeLoaders.*`; contributor localization projects each profile to `{slug, bio}` so names, roles, links, and identity fields stay canonical. The substance page's related-report rail localizes in `src/app/_components/public-routes/SubstanceTripReportsSection.tsx`. Effect names printed beside replications (showcase chips and captions, the permalink's "Represents" line, the `/api/replications/showcase?locale=` long tail) go through `getLocalizedEffectNames`, which reads the effect record's own `name` segment so the chip always matches the localized article. |
 | Store | Postgres `translationSegments`, `translationJobs` (outbox per record, lease, 5 attempts), `translationRejections` (units the model failed, with defect codes), `translationGlossary` (reviewed terms per locale, edited in `/dev/glossary` through `src/app/api/dev/translation-glossary/*`) in `lib/postgres/schema.runtime.ts`; migrations `0006`, `0007`, `0008` |
-| Triggers | `src/app/api/save-to-convex/revalidateSavedPaths.ts` (substance, effect, report, library, replication targets), `src/app/api/dev/writing-article/route.ts`, `src/app/api/dev/replications/publishReplicationRecord.ts`, and contributor profile publication through `src/app/api/dev/contributor-profile/contributorRevalidation.ts` |
+| Triggers | `src/app/api/save-article/revalidateSavedPaths.ts` (substance, effect, report, library, replication targets), `src/app/api/dev/writing-article/route.ts`, `src/app/api/dev/replications/publishReplicationRecord.ts`, and contributor profile publication through `src/app/api/dev/contributor-profile/contributorRevalidation.ts` |
 | Worker | `GET /api/cron/translation-refresh` on `dosewiki-admin` every five minutes behind `CRON_SECRET`: claims due jobs, translates the hashes the store lacks, records rejections, expires the record's public and mirror caches |
 | UI chrome | `src/i18n/` (`t`, `msg`, `useT`) resolving `src/i18n/messages/zh-Hans.json`, built by `scripts/translation/ui-catalog.ts` from every `t()`/`msg()` literal plus copy blocks, About sections, index labels, changelog field labels, and the glossary. Missing key renders English |
 | Global chrome | `src/i18n/client.tsx` derives the locale from the matched `/zh` route tree during SSR and from `zh.dose.wiki` in the browser. The host fallback keeps the sticky header and footer Chinese even if a client transition temporarily exposes an English route tree before middleware rewrites the next document request |
@@ -106,11 +135,35 @@ that renders them, never by the caller: `CategoryGrid` translates group and
 section names for every page that mounts it. A caller-side `t()` map covers
 one route and leaves the next one English.
 
+## Compact publication indexes
+
+The Chinese articles index reads `localizedPublicationIndexes`, joined to
+canonical publication identity, order and visibility. It does not fetch narrative
+bodies. The projection uses the same stored hash overlay and VCode reconciliation
+as article details, including English fallback for missing translations.
+
+Migrations `0012` and `0013` add the projection, producer state and invalidation
+triggers. Publication writes and `writeTranslations` rebuild affected metadata
+inside their transaction. Missing or dirty metadata is an explicit readiness
+error, not permission to hide an article or load full bodies in an index read.
+
+`bun run translate:publication-index -- --dry-run` prepares the bounded
+`zh-Hans` non-blog backfill with the explicit target and remote guards from the
+credentials runbook. Applying it additionally requires the reviewed plan digest,
+admin identity, scoped token, private recovery journal and separately approved
+operator-write classification. The command is not production-allowlisted merely
+because its guards exist.
+
+Before enabling the compact reader, replace and drain old publication and
+translation producers, then complete a final backfill/readiness check. Direct
+SQL/import writes leave dirty metadata and require the approved backfill.
+Rollback must restore old public readers before restoring old producers.
+
 ## Operator script
 
 `scripts/translation/live-mirror.ts` uses the deployed flat
 `translationSegments` hash overlay and the Postgres write ceremony in
-[convex-credentials.md](convex-credentials.md). Read-only inspection still
+[data-credentials.md](data-credentials.md). Read-only inspection still
 requires an explicit target:
 
 ```bash
@@ -147,11 +200,45 @@ npm run translate:glossary -- --locale zh-Hans --export # snapshot the table to 
 npm run translate:audit -- --all --glossary             # corpus audit scoped to the approved glossary, plus DISAGREE
 ```
 
+### Importing generated glossary drafts
+
+`translate:glossary:import-drafts` imports the local model artifacts for
+`ar,cs,de,es,fr,hi,ja,ko,nl,pl,pt,ru` into the editor review queue. It does not
+activate public mirrors, approve terms, or enqueue translation jobs. Every
+existing row, including an existing draft, is preserved.
+
+```bash
+DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 \
+  npm run translate:glossary:import-drafts -- \
+  --locales ar,cs,de,es,fr,hi,ja,ko,nl,pl,pt,ru \
+  --dry-run --allow-remote
+```
+
+Set `TARGET_POSTGRES_URL` explicitly and `POSTGRES_IMPORT_CONFIRM` to its host
+as described in the credentials runbook. The plan reports file hashes,
+existing-row and missing-key digests, counts, and `planDigest`. After owner
+approval, the write invocation replaces `--dry-run` with `--write` and adds
+`--confirm-write=import-glossary-drafts`, `--expected-deployment=<host/database>`,
+`--confirm-plan=<planDigest>`, `--actor-email=<registered-admin>`, and
+`--recovery-out=<new-file.jsonl>`. It requires the scoped
+`DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` credential and an open write gate;
+there is no legacy-token fallback. Do not reopen a production freeze without
+separate authorization.
+
+The importer validates all inputs before a single insert-only transaction.
+Rows retain `status=draft`, `source=model`, and empty review metadata. A
+changed plan or concurrent insert aborts the transaction. The private recovery
+journal records exact inserted postimages; separately approved rollback must
+match those postimages so subsequent human reviews are never removed. Verify
+stored rows against the journal and rerun the dry-run after importing.
+Deploy the expanded locale registry to the editor before opening newly
+supported languages there; the JSON files alone are not runtime data.
+
 `backfill` is the command for a new kind, a corpus change, or a validator fix:
 it dedupes units across records and sends full batches, so the whole corpus
 (34,500 units) completes in about half an hour. `enqueue` + `run` is the
 per-record path the cron uses. Scripts that write published content outside
-the app (`scripts/batch/**`, `scripts/convex/**`, imports) do not enqueue;
+the app (`scripts/batch/**`, `scripts/data-ops/**`, imports) do not enqueue;
 run `backfill` after them.
 
 After a UI string change: `DATA_BACKEND=postgres bun --preload
@@ -207,8 +294,9 @@ After a UI string change: `DATA_BACKEND=postgres bun --preload
 - Clip titles and descriptions translate; the credit line, artist name, and
   rights fields stay as written (attribution). Citation titles, reagent colour
   chains, open-data samples, and the JSON preview on About are English by design.
-- `nl` exists in `locales.mjs` without a host; `live-mirror.ts` and
-  `mirror-coverage.ts` hardcode `zh-Hans`.
+- The pipeline registry supports Chinese and the twelve draft-glossary
+  languages above, but only Chinese has a public mirror. `live-mirror.ts`
+  and `mirror-coverage.ts` still hardcode `zh-Hans`.
 
 ## Adding a locale
 

@@ -4,7 +4,7 @@ import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     replications: { updateGalleryOrder: "replications.updateGalleryOrder" },
     substanceGalleries: {
@@ -32,13 +32,13 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: dataMocks.getServerDataWriteCapability,
 }));
 
 function orderRequest(body: unknown) {
@@ -60,18 +60,18 @@ beforeEach(() => {
   authMocks.requireRoleSession.mockImplementation(
     roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
   );
-  convexMocks.getServerConvexWriteCapability.mockReturnValue({
+  dataMocks.getServerDataWriteCapability.mockReturnValue({
     ok: true,
     capability: {
-      client: { query: convexMocks.query, mutation: convexMocks.mutation },
+      client: { query: dataMocks.query, mutation: dataMocks.mutation },
       adminKey: "admin-key",
     },
   });
-  convexMocks.mutation.mockResolvedValue({ status: "ok" });
+  dataMocks.mutation.mockResolvedValue({ status: "ok" });
 });
 
 describe("carousel order PATCH", () => {
-  it("refuses an anonymous request before Convex", async () => {
+  it("refuses an anonymous request before Postgres", async () => {
     authMocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
@@ -81,10 +81,10 @@ describe("carousel order PATCH", () => {
       orderRequest({ targetKind: "effect", targetKey: "tracers", slugs: [] }),
     );
     expect(response.status).toBe(401);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("refuses an editor with 403 before Convex", async () => {
+  it("refuses an editor with 403 before Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { PATCH } = await import("./route");
     const response = await PATCH(
@@ -92,7 +92,7 @@ describe("carousel order PATCH", () => {
     );
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
@@ -109,7 +109,7 @@ describe("carousel order PATCH", () => {
 
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledWith(
+    expect(dataMocks.mutation).toHaveBeenCalledWith(
       "replications.updateGalleryOrder",
       {
         apiKey: "admin-key",
@@ -125,7 +125,7 @@ describe("carousel order PATCH", () => {
       source: "manual",
     });
   });
-  it("fails closed on a public host before Convex", async () => {
+  it("fails closed on a public host before Postgres", async () => {
     authMocks.requireRoleSession.mockRejectedValue(
       new Error("Effect Index has no editor auth configuration."),
     );
@@ -142,7 +142,7 @@ describe("carousel order PATCH", () => {
       }),
     );
     expect(response.status).toBe(404);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("writes artist and substance orders through their owning records", async () => {
@@ -155,7 +155,7 @@ describe("carousel order PATCH", () => {
         expectedOrder: ["b", "a"],
       }),
     );
-    expect(convexMocks.mutation).toHaveBeenNthCalledWith(
+    expect(dataMocks.mutation).toHaveBeenNthCalledWith(
       1,
       "contributorProfiles.setContributorOrdering",
       expect.objectContaining({
@@ -174,7 +174,7 @@ describe("carousel order PATCH", () => {
         expectedUpdatedAt: "2026-08-25T10:00:00.000Z",
       }),
     );
-    expect(convexMocks.mutation).toHaveBeenNthCalledWith(
+    expect(dataMocks.mutation).toHaveBeenNthCalledWith(
       2,
       "substanceGalleries.setCarouselOrder",
       expect.objectContaining({

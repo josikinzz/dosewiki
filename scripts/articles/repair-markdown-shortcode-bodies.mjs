@@ -26,14 +26,14 @@
  * Usage:
  *   node scripts/articles/repair-markdown-shortcode-bodies.mjs
  *   node scripts/articles/repair-markdown-shortcode-bodies.mjs --print=dxm
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *     node scripts/articles/repair-markdown-shortcode-bodies.mjs --write \
  *       --confirm-write=repair-markdown-shortcode-bodies \
- *       --expected-deployment=glad-minnow-656
+ *       --expected-deployment=localhost/dosewiki
  */
 
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -56,13 +56,13 @@ async function repairBodies() {
 
   const readUrl =
     command.targetUrl ??
-    process.env.CONVEX_URL ??
-    process.env.VITE_CONVEX_URL ??
-    process.env.NEXT_PUBLIC_CONVEX_URL;
+    process.env.POSTGRES_DIRECT_URL ??
+    process.env.POSTGRES_POOLED_URL ??
+    process.env.POSTGRES_POOLED_URL;
 
   if (!readUrl) {
     throw new Error(
-      "No Convex URL to read from. Set TARGET_CONVEX_URL (or CONVEX_URL for a dry run).",
+      "No Postgres URL to read from. Set TARGET_POSTGRES_URL (or POSTGRES_DIRECT_URL for a dry run).",
     );
   }
 
@@ -76,7 +76,7 @@ async function repairBodies() {
     (!slug || article.slug === slug) && (article.body_raw ?? "").includes('markdown text="'),
   );
 
-  console.log(`\nReading from: ${readUrl}`);
+  console.log(`\nReading from: ${postgresFingerprintFromUrl(readUrl)}`);
   console.log(`Articles readable: ${articles.length}`);
   console.log(`Carrying markdown shortcode blobs: ${affected.length}`);
 

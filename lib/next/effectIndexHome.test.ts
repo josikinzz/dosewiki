@@ -17,14 +17,14 @@ const publicData = vi.hoisted(() => ({
     },
   ]),
   getPublicReports: vi.fn(async () => []),
-  getPublishedEffectIndexArticles: vi.fn(async () => []),
+  getPublishedPublicationIndex: vi.fn(async () => []),
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
-vi.mock("@server/convex/publicData", () => publicData);
+vi.mock("@server/data/publicData", () => publicData);
 
 const {
   EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
@@ -33,7 +33,7 @@ const {
 } = await import("./effectIndexHome");
 
 /**
- * The featured carousel moved from a checked-in list to a Convex document, and
+ * The featured carousel moved from a checked-in list to a Postgres document, and
  * the whole risk of that move is in which one wins. A stored selection is an
  * editor's decision and must not be quietly overruled by the file — including
  * when they cleared it, which is a decision to feature nothing.

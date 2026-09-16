@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
-import { translateMessage, type Translate } from "@/i18n/messages";
+import type { Translate } from "@/i18n/messages";
+import { translateMessage } from "@/i18n/serverMessages";
 import type { SubstanceArticle } from "@/schema";
 import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import { ALWAYS_RENDERED_PUBLIC_SECTION_IDS } from "@/schema/substance/sectionManifest";

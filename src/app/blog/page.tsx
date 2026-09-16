@@ -8,7 +8,7 @@ import {
   loadWritingBlogIndexRoute,
 } from "@server/next/routeLoaders.publications";
 import { isEffectIndex } from "@/config/siteFlavor";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import { BlogIndexPage } from "@/features/blog/pages/BlogIndexPage";
 import { WritingBlogIndexPage } from "@/features/blog/pages/WritingBlogIndexPage";
@@ -19,6 +19,7 @@ import {
 
 // Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
+const BLOG_EMPTY_COPY_KEYS = getCopyKeysByPrefix("empty-blog-");
 
 /**
  * `/blog` serves two entirely different publications, chosen by build flavor.
@@ -48,7 +49,10 @@ export default async function BlogPage() {
 }
 
 async function EffectIndexArchiveBlog() {
-  const [result, copy] = await Promise.all([loadBlogIndexRoute(), getCopy()]);
+  const result = await loadBlogIndexRoute();
+  const emptyState = result.pageProps.emptyState
+    ? resolveEmptyStateCopy(await getCopyByKeys(BLOG_EMPTY_COPY_KEYS), "blog", result.pageProps.emptyState)
+    : undefined;
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -72,14 +76,17 @@ async function EffectIndexArchiveBlog() {
       />
       <BlogIndexPage
         {...result.pageProps}
-        emptyState={resolveEmptyStateCopy(copy, "blog", result.pageProps.emptyState)}
+        emptyState={emptyState}
       />
     </>
   );
 }
 
 async function DoseWikiBlog() {
-  const [result, copy] = await Promise.all([loadWritingBlogIndexRoute(), getCopy()]);
+  const result = await loadWritingBlogIndexRoute();
+  const emptyState = result.pageProps.emptyState
+    ? resolveEmptyStateCopy(await getCopyByKeys(BLOG_EMPTY_COPY_KEYS), "blog", result.pageProps.emptyState)
+    : undefined;
   const canonicalUrl = buildSiteUrl(getPublicRoutePath(result.canonicalRoute));
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -103,7 +110,7 @@ async function DoseWikiBlog() {
       />
       <WritingBlogIndexPage
         {...result.pageProps}
-        emptyState={resolveEmptyStateCopy(copy, "blog", result.pageProps.emptyState)}
+        emptyState={emptyState}
       />
     </>
   );

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
+import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { Icon } from "./Icon";
 
 type ExpandButtonVariant =
@@ -93,7 +94,7 @@ export function ExpandIndicator({
       <Icon
         icon="lucide:chevron-down"
         size={iconSize}
-        className={cn("transition-transform duration-200", isExpanded && "rotate-180")}
+        className={cn("transition-transform duration-200 ease-out motion-reduce:transition-none", isExpanded && "rotate-180")}
       />
     </span>
   );
@@ -124,10 +125,11 @@ export function ExpandButton({
       aria-label={ariaLabel ?? (isExpanded ? t("Collapse section") : t("Expand section"))}
       className={cn(
         "relative",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+        "theme-focus-ring",
         "before:absolute before:inset-[-0.5rem] before:content-['']",
         "before:pointer-events-auto",
         "[@media(pointer:fine)]:before:inset-0",
+        label || children != null || variant === "count" ? TOUCH_PILL : TOUCH_ICON,
         BUTTON_VARIANT_CLASSES[variant],
         className
       )}
@@ -155,7 +157,7 @@ export function ExpandButton({
         <Icon
           icon="lucide:chevron-down"
           size={iconSize}
-          className={cn("transition-transform duration-200", isExpanded && "rotate-180")}
+          className={cn("transition-transform duration-200 ease-out motion-reduce:transition-none", isExpanded && "rotate-180")}
         />
       ) : (
         <ExpandIndicator isExpanded={isExpanded} />

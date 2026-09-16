@@ -92,7 +92,7 @@ function clone(value) {
   return structuredClone(value);
 }
 
-function stripConvexStorageFields(article) {
+function stripDataStorageFields(article) {
   delete article._id;
   delete article._creationTime;
   return article;
@@ -500,7 +500,7 @@ function assertMarkerEvidenceCoverage(workbenchDraft, markers) {
 }
 
 function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
-  const nextArticle = stripConvexStorageFields(clone(article));
+  const nextArticle = stripDataStorageFields(clone(article));
   const changes = [];
   const mergedReferences = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
   nextArticle.references = mergedReferences.references.sort((left, right) => String(left.id).localeCompare(String(right.id)));
@@ -539,7 +539,7 @@ function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) { if (isMar
   return buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft });
 }
 
-const nextArticle = stripConvexStorageFields(clone(article));
+const nextArticle = stripDataStorageFields(clone(article));
 const changes = [];
 const mergedReferences = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
 nextArticle.references = mergedReferences.references.sort((left, right) => String(left.id).localeCompare(String(right.id)));

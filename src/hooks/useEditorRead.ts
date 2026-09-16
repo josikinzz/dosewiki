@@ -3,30 +3,28 @@
 /**
  * Editor-surface reads over the `/api/editor/*` routes.
  *
- * These replace the browser Convex subscriptions the `/dev` and `/review`
- * tools used to hold: the same registered queries, run by the server read
- * client behind an editor-session check, delivered to components in the same
- * shape and with the same "`undefined` means loading" contract. Nothing in the
- * browser bundle talks to a data backend any more.
+ * Registered queries run through the server read client behind an editor-session
+ * check. Components receive the native result shape with an "`undefined` means
+ * loading" contract. Browser bundles never connect directly to the database.
  *
- * Freshness (fork F3, conservative option pending the owner's decision): no
- * push. Every read refetches when the window regains focus, and polls at 15 s
+ * Freshness uses refetching rather than push. Every read refetches when the
+ * window regains focus, and polls at 15 s
  * for lists and 5 s for the one document an editor has open. A caller's own
  * write invalidates the affected keys immediately (`useInvalidateEditorReads`)
  * so the editor never waits a poll for its own change. TanStack's structural
  * sharing keeps `data` referentially stable across equal refetches, which is
  * what lets components keep using object identity to tell a real change from
- * a redelivery, exactly as they did with Convex.
+ * a redelivery.
  *
- * Query failures surface through render only while there is no data yet (the
- * Convex hook threw during render on every failure); a background refetch
- * that fails keeps the last good data on screen.
+ * Query failures surface through render only while there is no data yet;
+ * a background refetch that fails keeps the last good data on screen.
  */
 
 import { useCallback, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { FunctionArgs, FunctionReturnType } from "convex/server";
-import type { api } from "../../convex/_generated/api";
+import type { api, FunctionArgs, FunctionReturnType } from "@server/postgres/runtime/api";
+import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 
 const EDITOR_LIST_REFETCH_MS = 15_000;
 const EDITOR_DOCUMENT_REFETCH_MS = 5_000;
@@ -34,13 +32,13 @@ const EDITOR_DOCUMENT_REFETCH_MS = 5_000;
 /** `list` for collections and rails; `document` for the record the editor is working on. */
 export type EditorReadFreshness = "list" | "document";
 
-/** Function name -> registered query, so args and results keep the generated Convex types. */
+/** Function name -> registered query, so args and results keep the generated Postgres types. */
 type EditorReadCatalog = {
   "indexLayouts:getAll": typeof api.indexLayouts.getAll;
   "categoryLayout:get": typeof api.categoryLayout.get;
   "contributorProfiles:getAll": typeof api.contributorProfiles.getAll;
   "changelog:getRecent": typeof api.changelog.getRecent;
-  "copyBlocks:getAll": typeof api.copyBlocks.getAll;
+  "copyBlocks:getEditorCatalogue": typeof api.copyBlocks.getEditorCatalogue;
   "moleculeOverrides:listSlugs": typeof api.moleculeOverrides.listSlugs;
   "moleculeOverrides:getBySlug": typeof api.moleculeOverrides.getBySlug;
   "moleculeOverrides:getMetadataBySlug": typeof api.moleculeOverrides.getMetadataBySlug;
@@ -68,7 +66,7 @@ const EDITOR_READ_ROUTES: { [N in EditorReadName]: (args: EditorReadArgs<N>) => 
   "categoryLayout:get": () => "/api/editor/category-layout",
   "contributorProfiles:getAll": () => "/api/editor/contributor-profiles",
   "changelog:getRecent": ({ limit }) => `/api/editor/changelog?limit=${limit ?? 50}`,
-  "copyBlocks:getAll": () => "/api/editor/copy-blocks",
+  "copyBlocks:getEditorCatalogue": () => "/api/editor/copy-blocks",
   "moleculeOverrides:listSlugs": () => "/api/editor/molecule-overrides",
   "moleculeOverrides:getBySlug": ({ slug }) => `/api/editor/molecule-overrides?${slugQuery(slug)}`,
   "moleculeOverrides:getMetadataBySlug": ({ slug }) => `/api/editor/molecule-overrides?${slugQuery(slug)}&scope=metadata`,
@@ -106,6 +104,46 @@ function freshnessOptions(freshness: EditorReadFreshness) {
   };
 }
 
+export type EditorIndexLayoutRows = Array<ManualIndexConfig & {
+  type: "psychoactive" | "chemical" | "mechanism";
+  revision: number;
+}>;
+
+/**
+ * The one authenticated, revision-bearing layout read used by every editor
+ * consumer. The actor identity is part of the private cache key, while the
+ * disabled/signed-out path never exposes a previous actor's cached value.
+ */
+export function useEditorIndexLayouts(enabled: boolean) {
+  const session = useSession();
+  const owner = session.status === "authenticated" ? session.data?.user?.email ?? "" : "";
+  const canRead = enabled && session.status === "authenticated";
+  const queryClient = useQueryClient();
+  const query = useQuery<EditorIndexLayoutRows, Error>({
+    queryKey: editorReadKey("indexLayouts:getAll", { scope: "editor", owner }),
+    queryFn: ({ signal }) => fetchEditorJson<EditorIndexLayoutRows>("/api/dev/index-layout?type=all", signal),
+    enabled: canRead,
+    throwOnError: false,
+    ...freshnessOptions("list"),
+  });
+  const { refetch } = query;
+  const retry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  useEffect(() => {
+    if (session.status !== "unauthenticated") return;
+    queryClient.removeQueries({ queryKey: editorReadKey("indexLayouts:getAll") });
+  }, [queryClient, session.status]);
+
+  return {
+    data: canRead ? query.data : undefined,
+    error: canRead && query.error ? query.error.message : null,
+    isLoading: canRead && query.data === undefined && query.error === null,
+    retry,
+  };
+}
+
 /** Throw into render only when nothing has loaded yet; a failed background refetch keeps the last data. */
 function throwWhenEmpty(_error: Error, query: { state: { data: unknown } }) {
   return query.state.data === undefined;
@@ -113,7 +151,7 @@ function throwWhenEmpty(_error: Error, query: { state: { data: unknown } }) {
 
 /**
  * One registered query, `undefined` until its first answer, `"skip"` to hold
- * it off exactly as the Convex hook did.
+ * it off exactly as the Postgres hook did.
  */
 export function useEditorRead<N extends EditorReadName>(
   name: N,
@@ -122,7 +160,7 @@ export function useEditorRead<N extends EditorReadName>(
 ): EditorReadResult<N> | undefined {
   const enabled = args !== "skip";
   const query = useQuery<EditorReadResult<N>, Error>({
-    queryKey: editorReadKey(name, enabled ? args : "skip"),
+    queryKey: editorReadKey(name, args === "skip" ? { skip: true } : args),
     queryFn: ({ signal }) => fetchEditorJson<EditorReadResult<N>>(EDITOR_READ_ROUTES[name](args as EditorReadArgs<N>), signal),
     enabled,
     throwOnError: throwWhenEmpty,
@@ -134,7 +172,7 @@ export function useEditorRead<N extends EditorReadName>(
 export type EditorPaginatedStatus = "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
 
 /**
- * A cursor-paginated query drained the way Convex's `usePaginatedQuery`
+ * A cursor-paginated query drained the way Postgres's `usePaginatedQuery`
  * accumulated pages: `results` grows in stable table order as `loadMore`
  * threads each `continueCursor` back, and `status` reports where the drain
  * stands. A background refetch replays the cursor chain while the accumulated

@@ -18,7 +18,7 @@ export const formalCitationPromptDescriptors = Object.freeze(
 );
 
 export function getPromptDescriptorByKey(key) {
-  return promptRegistry.find((descriptor) => descriptor.convexKey === key);
+  return promptRegistry.find((descriptor) => descriptor.dataKey === key);
 }
 
 function getSectionPromptDescriptor(sectionKey) { const descriptor = sectionPromptDescriptors.find((entry) => entry.sectionKey === sectionKey);
@@ -28,7 +28,7 @@ if (!descriptor) {
 return descriptor; }
 
 export function sectionKeyToPromptKey(sectionKey) {
-  return getSectionPromptDescriptor(sectionKey).convexKey;
+  return getSectionPromptDescriptor(sectionKey).dataKey;
 }
 
 export function getFormalCitationAgentPromptDescriptor() {
@@ -48,7 +48,7 @@ if (!descriptor) {
 return descriptor; }
 
 export function formalCitationSectionKeyToPromptKey(sectionKey) {
-  return getFormalCitationSectionPromptDescriptor(sectionKey).convexKey;
+  return getFormalCitationSectionPromptDescriptor(sectionKey).dataKey;
 }
 
 export function isKnownPromptKey(key) {

@@ -6,7 +6,7 @@ import { msg, type Translate } from "@/i18n/messages";
  *
  * Duration stages are stored as `{min, max, unit}` where `unit` is free text
  * (`src/schema/substance/shared.ts`), so a table can legitimately hold
- * `onset: 120-420 minutes` directly above `peak: 6-12 hours`. Convex is
+ * `onset: 120-420 minutes` directly above `peak: 6-12 hours`. Postgres is
  * authoritative for content, so the fix lives here: the stored triple is never
  * touched, only the string the article prints. The inline editor seeds itself
  * from `durationStageTransformer.toForm(stage)` — the raw value — so nothing

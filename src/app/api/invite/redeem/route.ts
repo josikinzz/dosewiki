@@ -4,16 +4,16 @@
  * Public: the visitor has no session, the invite code is the whole
  * credential. Guessing a code is a credential-guessing attempt, so the route
  * shares the sign-in brake (`authCredentialAttempt`). The code and password
- * are hashed here; Convex matches on the code hash and stores the password
+ * are hashed here; Postgres matches on the code hash and stores the password
  * hash, so neither plaintext is stored anywhere. On success the page signs
  * in with the same username and password through the credentials provider.
  */
 import { NextResponse } from "next/server";
-import { redeemInviteCode } from "@server/auth/convexMemberships";
+import { redeemInviteCode } from "@server/auth/memberships";
 import { hashInviteCode, isWellFormedInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
 import { hashPassword, validateNewPassword } from "@server/auth/passwords";
 import { normalizeUsername, validateUsername } from "@server/auth/usernamePolicy";
-import { classifyConvexRejection } from "@/lib/http/convexRejection";
+import { classifyDataRejection } from "@/lib/http/dataRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
@@ -26,8 +26,8 @@ const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Route-owned copy and status for each deliberate Convex refusal. The route
- * never forwards Convex prose to an anonymous visitor.
+ * Route-owned copy and status for each deliberate Postgres refusal. The route
+ * never forwards Postgres prose to an anonymous visitor.
  */
 const REFUSALS: Record<string, { status: number; message: string }> = {
   INVITE_UNKNOWN: { status: 404, message: "That invite code is not recognised. Check it for typos." },
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
       return reject(error.message, error.status);
     }
 
-    const rejection = classifyConvexRejection(error);
+    const rejection = classifyDataRejection(error);
     const refusal = rejection ? REFUSALS[rejection.code] : undefined;
     if (refusal) {
       return NextResponse.json({ error: refusal.message, code: rejection!.code }, { status: refusal.status });

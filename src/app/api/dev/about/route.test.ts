@@ -5,7 +5,7 @@ const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => [
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     siteConfig: {
       saveAbout: "siteConfig.saveAbout",
@@ -29,11 +29,11 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 import { POST } from "./route";
@@ -60,14 +60,14 @@ describe("about route", () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
     });
     mocks.mutation.mockResolvedValue({ updated: true, id: "about-id", revision: 1, replayed: false, unchanged: false });
   });
 
-  it("refuses an editor saving About with 403 before touching Convex", async () => {
+  it("refuses an editor saving About with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const response = await POST(saveRequest(SAVE));
@@ -98,7 +98,7 @@ describe("about route", () => {
     });
   });
 
-  it("rejects a document missing its page copy before reaching Convex", async () => {
+  it("rejects a document missing its page copy before reaching Postgres", async () => {
     const response = await POST(saveRequest({ ...SAVE, aboutMarkdown: undefined }));
 
     expect(response.status).toBe(400);

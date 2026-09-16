@@ -69,7 +69,7 @@ describe("mergeWithStoredProfile", () => {
     const first = mergeWithStoredProfile(planned, undefined);
     const second = mergeWithStoredProfile(planned, {
       ...first.entry,
-      // What Convex hands back after the first write.
+      // What Postgres hands back after the first write.
       createdAt: "2026-08-10T00:00:00.000Z",
       updatedAt: "2026-08-10T00:00:00.000Z",
     });

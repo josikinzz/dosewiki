@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(async () => null),
   query: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
@@ -18,8 +18,8 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 import { GET } from "./route";
@@ -34,7 +34,7 @@ beforeEach(() => {
   mocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("contributor", owner));
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   mocks.query.mockReset().mockResolvedValue(ownedRows);
-  mocks.getServerConvexWriteCapability.mockReset().mockReturnValue({
+  mocks.getServerDataWriteCapability.mockReset().mockReturnValue({
     ok: true,
     capability: {
       adminKey: "admin-key",
@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 describe("dev owned trip reports route", () => {
-  it("lists the contributor's own reports, forwarding them as the Convex actor", async () => {
+  it("lists the contributor's own reports, forwarding them as the Postgres actor", async () => {
     const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports/mine"));
 
     expect(response.status).toBe(200);
@@ -57,7 +57,7 @@ describe("dev owned trip reports route", () => {
     await expect(response.json()).resolves.toEqual({ ok: true, reports: ownedRows });
   });
 
-  it("refuses a signed-out caller without touching Convex", async () => {
+  it("refuses a signed-out caller without touching Postgres", async () => {
     mocks.requireRoleSession.mockImplementation(roleSessionFor(null));
 
     const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports/mine"));

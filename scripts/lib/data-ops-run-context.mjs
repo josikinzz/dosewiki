@@ -8,7 +8,9 @@ import {
   isPostgresTargetExplicit,
   postgresFingerprintFromUrl,
   resolvePostgresTarget,
+  resolvePostgresSource,
 } from "./data-client.ts";
+import { parsePostgresTarget } from "../../lib/postgres/runtime/target.ts";
 
 const POSTGRES_URL_KEYS = [
   "--target",
@@ -16,36 +18,28 @@ const POSTGRES_URL_KEYS = [
   ...POSTGRES_FALLBACK_TARGET_ENV_VARS,
 ];
 
-export const CONVEX_URL_KEYS = [
-  "TARGET_CONVEX_URL",
-  "CONVEX_URL",
-  "VITE_CONVEX_URL",
-  "NEXT_PUBLIC_CONVEX_URL",
+export const POSTGRES_TARGET_URL_KEYS = [...POSTGRES_URL_KEYS];
+
+export const POSTGRES_SOURCE_URL_KEYS = [
+  "SOURCE_POSTGRES_URL",
+  ...POSTGRES_TARGET_URL_KEYS,
 ];
 
-export const SOURCE_CONVEX_URL_KEYS = [
-  "SOURCE_CONVEX_URL",
-  "CONVEX_PUBLIC_READ_URL",
-  "CONVEX_URL",
-  "VITE_CONVEX_URL",
-  "NEXT_PUBLIC_CONVEX_URL",
-];
-
-const LEGACY_ADMIN_KEY_ENV_VAR = "CONVEX_ADMIN_KEY";
+const LEGACY_ADMIN_KEY_ENV_VAR = "DATA_ADMIN_KEY";
 
 const ADMIN_INTENT_ENV_VARS = Object.freeze({
-  editorArticleWrite: "CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE",
-  publicIntakeCreate: "CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE",
-  promptMigrationWrite: "CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE",
-  quoteMigrationWrite: "CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE",
-  profileMediaWrite: "CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE",
-  replicationMaintenance: "CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE",
-  articleSourceMigration: "CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION",
-  productionSync: "CONVEX_ADMIN_TOKEN_PRODUCTION_SYNC",
-  citationEvidenceWrite: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
-  citationEvidenceReview: "CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW",
-  generatedPublicationWrite: "CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE",
-  reagentTestImport: "CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT",
+  editorArticleWrite: "DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE",
+  publicIntakeCreate: "DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE",
+  promptMigrationWrite: "DATA_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE",
+  quoteMigrationWrite: "DATA_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE",
+  profileMediaWrite: "DATA_ADMIN_TOKEN_PROFILE_MEDIA_WRITE",
+  replicationMaintenance: "DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE",
+  articleSourceMigration: "DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION",
+  productionSync: "DATA_ADMIN_TOKEN_PRODUCTION_SYNC",
+  citationEvidenceWrite: "DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE",
+  citationEvidenceReview: "DATA_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW",
+  generatedPublicationWrite: "DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE",
+  reagentTestImport: "DATA_ADMIN_TOKEN_REAGENT_TEST_IMPORT",
 });
 
 function stripOptionalQuotes(value) {
@@ -166,52 +160,11 @@ function productionOperationName(operation) {
     .replace(/^-|-$/g, "");
 }
 
-function normalizeHostname(hostname) {
-  const normalized = hostname.trim().toLowerCase();
-  return normalized.startsWith("[") && normalized.endsWith("]")
-    ? normalized.slice(1, -1)
-    : normalized;
-}
-
-function isLoopbackHostname(hostname) {
-  return ["localhost", "127.0.0.1", "::1"].includes(normalizeHostname(hostname));
-}
-
-function isLoopbackTargetUrl(targetUrl) {
-  return isLoopbackHostname(new URL(targetUrl).hostname);
-}
-
-function deploymentFingerprint(targetUrl) {
-  if (!targetUrl) {
-    return null;
-  }
-  let parsed;
-  try {
-    parsed = new URL(targetUrl);
-  } catch {
-    throw new Error("Convex write target must be a valid HTTPS URL.");
-  }
-  if (isLoopbackHostname(parsed.hostname)) {
-    return null;
-  }
-  const suffix = ".convex.cloud";
-  if (parsed.protocol !== "https:" || !parsed.hostname.endsWith(suffix)) {
-    throw new Error("Convex write target must be an HTTPS .convex.cloud deployment.");
-  }
-  const fingerprint = parsed.hostname.slice(0, -suffix.length);
-  if (!fingerprint || fingerprint.includes(".")) {
-    throw new Error("Convex write target must identify one exact deployment.");
-  }
-  return fingerprint;
-}
 
 /**
- * Convex (default): source and target come from the given env key lists.
- * Postgres (DATA_BACKEND=postgres): one database serves both roles, resolved
- * as `--target` > TARGET_POSTGRES_URL > POSTGRES_POOLED_URL > POSTGRES_DIRECT_URL.
- * The loopback opt-in (`allowLocalTarget`) is Convex-only: a Postgres write,
- * local or remote, always goes through the explicit-target, `--confirm-write`,
- * and `--expected-deployment=<host>/<database>` ceremony.
+ * Postgres reads may select --source-url or SOURCE_POSTGRES_URL independently.
+ * Writes always require an explicit --target or TARGET_POSTGRES_URL plus the
+ * operation confirmation and exact host/database fingerprint.
  */
 export function createDataOpsRunContext({
   operation,
@@ -219,8 +172,8 @@ export function createDataOpsRunContext({
   argv = process.argv.slice(2),
   startDir = process.cwd(),
   env = process.env,
-  sourceUrlKeys = SOURCE_CONVEX_URL_KEYS,
-  targetUrlKeys = CONVEX_URL_KEYS,
+  sourceUrlKeys = POSTGRES_SOURCE_URL_KEYS,
+  targetUrlKeys = POSTGRES_TARGET_URL_KEYS,
   defaultTargetUrl = null,
   dryRunFlag = "--dry-run",
   executeFlag = "--execute",
@@ -242,27 +195,16 @@ export function createDataOpsRunContext({
   const dryRun = dryRunFlag ? hasFlag(argv, dryRunFlag) : false;
   const execute = executeFlag ? hasFlag(argv, executeFlag) : false;
   const writeRequested = hasFlag(argv, "--write");
-  let source;
-  let target;
-  let targetUrl;
-  let targetUrlKey;
-  if (backend === "postgres") {
-    const resolved = resolvePostgresTarget({ argv, env });
-    source = sourceUrlKeys.length ? { value: resolved.url, key: resolved.source } : { value: null, key: null };
-    target = resolved;
-    targetUrl = resolved.url;
-    targetUrlKey = resolved.source;
-  } else {
-    source = firstEnvValue(env, sourceUrlKeys);
-    target = firstEnvValue(env, targetUrlKeys);
-    targetUrl = target.value ?? defaultTargetUrl;
-    targetUrlKey = target.key ?? (defaultTargetUrl ? "default" : null);
-  }
+  const target = resolvePostgresTarget({ argv, env });
+  const resolvedSource = resolvePostgresSource({ argv, env });
+  const source = sourceUrlKeys.length
+    ? { value: resolvedSource.url, key: resolvedSource.source }
+    : { value: null, key: null };
+  const targetUrl = target.url;
+  const targetUrlKey = target.source;
   const writeEnabled = !dryRun && writeRequested && (!requiresExecute || execute);
   const operationName = productionOperationName(operation);
-  const targetIsLocal = backend === "convex" && targetUrl
-    ? isLoopbackTargetUrl(targetUrl)
-    : false;
+  const targetIsLocal = false;
 
   return {
     operation,
@@ -287,16 +229,14 @@ export function createDataOpsRunContext({
     operationName,
     writeConfirmationPhrase: getFlagValue(argv, "--confirm-write"),
     expectedDeployment: getFlagValue(argv, "--expected-deployment"),
-    deploymentFingerprint: backend === "postgres"
-      ? postgresFingerprintFromUrl(targetUrl)
-      : deploymentFingerprint(targetUrl),
+    deploymentFingerprint: postgresFingerprintFromUrl(targetUrl),
     targetIsLocal,
     allowLocalTarget,
   };
 }
 
 export function printDataOpsRunContext(context, { logger = console } = {}) {
-  const backendLabel = context.backend === "postgres" ? "Postgres" : "Convex";
+  const backendLabel = "Postgres";
   logger.log(`Data operation: ${context.operation}`);
   logger.log(`Intent: ${context.intent}`);
   logger.log(`Backend: ${backendLabel.toLowerCase()}`);
@@ -318,9 +258,9 @@ export function printDataOpsRunContext(context, { logger = console } = {}) {
   }
 }
 
-/** Postgres URLs carry credentials; Convex URLs never do. */
+/** Never print database credentials or connection parameters. */
 function redactUrl(url) {
-  return url.replace(/\/\/[^@/]*@/, "//<redacted>@");
+  return parsePostgresTarget(url).displayUrl;
 }
 
 function describeDestructivePolicy(context) {
@@ -350,23 +290,12 @@ export function assertDataOpsWriteAllowed(context) {
     );
   }
 
-  if (context.targetIsLocal) {
-    if (!context.allowLocalTarget) {
-      throw new Error(
-        `${context.operation} must explicitly set allowLocalTarget for loopback writes.`,
-      );
-    }
-    return;
-  }
 
-  if (context.targetUrl) {
-    const explicitTarget = context.backend === "postgres"
-      ? isPostgresTargetExplicit(context.targetUrlKey)
-      : ["TARGET_CONVEX_URL", "--target-url"].includes(context.targetUrlKey);
+  if (!context.targetUrl) throw new Error(`${context.operation} requires an explicit Postgres target.`);
+  {
+    const explicitTarget = isPostgresTargetExplicit(context.targetUrlKey);
     if (!explicitTarget) {
-      const required = context.backend === "postgres"
-        ? "--target or TARGET_POSTGRES_URL"
-        : "TARGET_CONVEX_URL or --target-url";
+      const required = "--target or TARGET_POSTGRES_URL";
       throw new Error(
         `${context.operation} requires ${required} for privileged writes; ` +
           `${context.targetUrlKey ?? "an ambiguous fallback"} is not allowed.`,
@@ -392,17 +321,17 @@ export function assertDataOpsWriteAllowed(context) {
 
 }
 
-export function requireTargetUrl(context, label = "Convex target URL") {
+export function requireTargetUrl(context, label = "Postgres target URL") {
   if (!context.targetUrl) {
-    const keys = context.backend === "postgres" ? POSTGRES_URL_KEYS : CONVEX_URL_KEYS;
+    const keys = POSTGRES_URL_KEYS;
     throw new Error(`Missing ${label}. Set one of: ${keys.join(", ")}`);
   }
   return context.targetUrl;
 }
 
-export function requireSourceUrl(context, label = "Convex source URL") {
+export function requireSourceUrl(context, label = "Postgres source URL") {
   if (!context.sourceUrl) {
-    const keys = context.backend === "postgres" ? POSTGRES_URL_KEYS : SOURCE_CONVEX_URL_KEYS;
+    const keys = ["--source-url", "SOURCE_POSTGRES_URL", ...POSTGRES_URL_KEYS];
     throw new Error(`Missing ${label}. Set one of: ${keys.join(", ")}`);
   }
   return context.sourceUrl;
@@ -459,13 +388,13 @@ export function requireAdminIntentToken(intent, options = {}) {
  * Create a timestamped JSON backup of data before performing a destructive write.
  *
  * @param {object} options
- * @param {object} options.sourceClient - Convex HTTP client to fetch data from.
- * @param {Function} [options.queryGetAll] - Convex query function returning one document or a document array.
+ * @param {object} options.sourceClient - Postgres HTTP client to fetch data from.
+ * @param {Function} [options.queryGetAll] - Postgres query function returning one document or a document array.
  * @param {Function} [options.queryAll] - Optional callback that returns all documents through a bounded pagination helper.
  * @param {object} [options.queryArgs] - Optional args to pass to the query.
  * @param {string} options.label - Label for the backup (e.g., table name or operation).
  * @param {string} [options.backupDir] - Directory to write backups. Defaults to `scripts/data/backups`.
- * @param {string} [options.existingBackupPath] - Non-empty backup already verified by the caller. Skips the Convex backup query.
+ * @param {string} [options.existingBackupPath] - Non-empty backup already verified by the caller. Skips the Postgres backup query.
  * @param {string} [options.repoRoot] - Repository root for resolving backup paths.
  * @returns {Promise<{ path: string, documentCount: number | null, reused?: boolean }>} The backup used for the write.
  */
@@ -544,14 +473,14 @@ export async function backupBeforeWrite({
  * @param {object} options
  * @param {Array} options.items - Array of items to process.
  * @param {number} [options.batchSize=50] - Number of items per batch.
- * @param {Function} options.mutation - Convex mutation function to call.
+ * @param {Function} options.mutation - Postgres mutation function to call.
  * @param {Function} [options.transformBatch] - Optional function to transform a batch before mutation.
  *        Signature: (batch, batchIndex) => mutationArgs
  * @param {Function} [options.onBatchResult] - Optional callback after each successful batch.
  *        Signature: (result, batchIndex, batch) => void
  * @param {Function} [options.onBatchError] - Optional callback after each failed batch.
  *        Signature: (error, batchIndex, batch) => void
- * @param {object} options.client - Convex HTTP client.
+ * @param {object} options.client - Postgres HTTP client.
  * @param {object} [options.runContext] - Data ops run context (for dry-run checks).
  * @param {object} [options.logger] - Logger with log() method. Defaults to console.
  * @returns {Promise<{ totalCreated: number, totalUpdated: number, allErrors: Array, failed: boolean }>}

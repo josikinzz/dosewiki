@@ -11,16 +11,19 @@
  * a rendering, so a blank status column cannot either); every other row is a
  * human draft for review. An approved batch that would give two terms of one
  * kind the same rendering is refused with 409 before anything is written.
+ * A reviewed retry keeps the CSV body and supplies the returned fixed-size
+ * digest in X-Glossary-Collision-Confirmation; the current set is rechecked.
  */
 import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 
 import { GlossaryCsvError, parseGlossaryCsv } from "@/features/dev/tools/glossary/glossaryModel";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
+import { getDataBackend } from "@server/postgres/runtime/backend";
 import { readGlossaryRows, upsertGlossaryRows, type GlossaryDraft } from "@server/translation/glossary";
 import { collectGlossaryTerms } from "@server/translation/glossaryDraft";
-import { glossaryUnavailable, parseLocale } from "../glossaryRoutes";
+import { glossaryCollisionResponse, glossaryLocaleAccess, parseCollisionConfirmation, parseLocale } from "../glossaryRoutes";
 
 export const runtime = "nodejs";
 
@@ -38,11 +41,13 @@ export const POST = protectedRouteOperation({
   mapError: (error) =>
     error instanceof GlossaryCsvError
       ? NextResponse.json({ error: error.message }, { status: 400 })
-      : null,
-  operation: async ({ request, actorEmail }) => {
-    const unavailable = glossaryUnavailable();
-    if (unavailable) return unavailable;
+      : glossaryCollisionResponse(error),
+  operation: async ({ request, actorEmail, auth }) => {
+    getDataBackend();
     const locale = parseLocale(new URL(request.url).searchParams.get("locale"));
+    const denied = glossaryLocaleAccess(auth, locale);
+    if (denied) return denied;
+    const collisionConfirmation = parseCollisionConfirmation(request.headers.get("X-Glossary-Collision-Confirmation") ?? undefined);
     const text = await request.text();
     if (Buffer.byteLength(text, "utf8") > GLOSSARY_IMPORT_MAX_BYTES) {
       return NextResponse.json({ error: "That file is over 2 MB; split it up." }, { status: 413 });
@@ -83,7 +88,7 @@ export const POST = protectedRouteOperation({
     // Approved first: it is the batch that can be refused for a collision, and
     // a refusal must leave the locale as it was.
     const by = { source: "human" as const, reviewedBy: actorEmail };
-    const approved = await upsertGlossaryRows(locale, batches.approved, { ...by, status: "approved" });
+    const approved = await upsertGlossaryRows(locale, batches.approved, { ...by, status: "approved", ...(collisionConfirmation ? { collisionConfirmation } : {}) });
     const drafts = await upsertGlossaryRows(locale, batches.draft, { ...by, status: "draft" });
     const body: ImportResponse = { ok: true, locale, approved, drafts };
     return NextResponse.json(body);

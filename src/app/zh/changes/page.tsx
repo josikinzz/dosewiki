@@ -1,13 +1,13 @@
 import { ChangesPage } from "@/components/pages/ChangesPage";
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale, t } from "@/i18n/server";
-import { getPublicContributorDirectory } from "@server/convex/publicData";
+import { getPublicContributorDirectory } from "@server/data/publicData";
 import {
   getPublicArticleHistory,
   getPublicRecentChanges,
   PUBLIC_CHANGES_PAGE_LIMIT,
-} from "@server/convex/publicData.changelog";
-import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
+} from "@server/data/publicData.changelog";
+import { getPublicSubstanceLookupBySlug } from "@server/data/publicData.substances";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 
@@ -23,8 +23,8 @@ async function resolveArticle(searchParams: ChangesRouteProps["searchParams"]) {
   const { article } = await searchParams;
   const slug = (Array.isArray(article) ? article[0] : article)?.trim().toLowerCase() ?? "";
   if (!slug) return null;
-  const substance = await getPublicSubstanceBySlug(slug);
-  return substance ? { slug, title: substance.title } : null;
+  const substance = await getPublicSubstanceLookupBySlug(slug);
+  return substance ? { slug: substance.slug, title: substance.name } : null;
 }
 
 export async function generateMetadata({ searchParams }: ChangesRouteProps) {
@@ -42,13 +42,11 @@ export async function generateMetadata({ searchParams }: ChangesRouteProps) {
 
 export default async function ChangesRoute({ searchParams }: ChangesRouteProps) {
   setRequestLocale(LOCALE.code);
-  const [article, directory] = await Promise.all([
-    resolveArticle(searchParams),
-    getPublicContributorDirectory(),
-  ]);
-  const changes = article
-    ? await getPublicArticleHistory(article.slug, directory, PUBLIC_CHANGES_PAGE_LIMIT)
-    : await getPublicRecentChanges(directory);
+  const directory = getPublicContributorDirectory();
+  const article = await resolveArticle(searchParams);
+  const changes = await (article
+    ? getPublicArticleHistory(article.slug, directory, PUBLIC_CHANGES_PAGE_LIMIT)
+    : getPublicRecentChanges(directory));
 
   return (
     <UiLocaleProvider locale={LOCALE.code}>

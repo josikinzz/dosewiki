@@ -25,8 +25,8 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { Agent, setGlobalDispatcher } from "undici";
 
-import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads.ts";
-import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend.ts";
+import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads.ts";
+import { getPostgresClient } from "../../lib/postgres/runtime/backend.ts";
 import { readGlossaryRows } from "../../lib/translation/glossary.ts";
 import { draftGlossary } from "../../lib/translation/glossaryDraft.ts";
 import { glossaryPath, resolveLocale } from "./locales.mjs";
@@ -107,5 +107,5 @@ try {
   console.error(error?.message ?? error);
   process.exitCode = 1;
 } finally {
-  await getPostgresConvexClient().end();
+  await getPostgresClient().end();
 }

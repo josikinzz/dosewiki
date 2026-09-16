@@ -10,7 +10,7 @@ import {
   writeSerializedEnvelope,
 } from "./themeLabStorage";
 import { effectiveOverrides, userLayerOverrides } from "./themeLabTheme";
-import { blurDisabledIn } from "./flatnessAxes";
+import { blurDisabledIn } from "./themeLabStorage";
 import { ensureFontFaces } from "./fontFaces";
 import { FONT_TOKEN_IDS } from "./paletteTokensFonts";
 import {
@@ -145,7 +145,6 @@ function onVisibilityChange() {
  *  last thing the visitor did is what stays saved. */
 function onStorage(event: StorageEvent) {
   if (event.key !== null && event.key !== THEME_LAB_STORAGE_KEY) return;
-  if (event.newValue == null) return;
   const envelope = parseStoredEnvelope(event.newValue);
   // Marked as already-persisted *before* the state moves, so the subscriber this
   // update wakes does not echo a foreign write straight back into storage.

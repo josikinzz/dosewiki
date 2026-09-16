@@ -2,12 +2,12 @@ import "server-only";
 
 import { createHmac, randomUUID } from "node:crypto";
 
-import { makeFunctionReference } from "convex/server";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
 
 import {
   getPublicIntakeWriteCapability,
-  getServerConvexWriteCapability,
-} from "@server/convex/serverWriteCapability";
+  getServerDataWriteCapability,
+} from "@server/data/serverWriteCapability";
 import {
   createArticleFeedbackRow,
   validateArticleFeedback,
@@ -15,6 +15,24 @@ import {
   type ArticleFeedbackRow,
   type ArticleFeedbackStatus,
 } from "./articleFeedback";
+
+export type ArticleFeedbackQueueItem = Pick<
+  ArticleFeedbackRow,
+  | "id"
+  | "status"
+  | "substance_slug"
+  | "substance_title"
+  | "category"
+  | "importance"
+  | "details"
+  | "source_url"
+  | "contact_email"
+  | "honeypot_triggered"
+  | "review_notes"
+  | "reviewed_by"
+  | "reviewed_at"
+  | "created_at"
+>;
 
 export class ArticleFeedbackStorageConfigurationError extends Error {
   constructor(message = "Article feedback storage is not configured.") {
@@ -38,7 +56,7 @@ export class ArticleFeedbackNotFoundError extends Error {
   }
 }
 
-type ConvexCallableClient = {
+type DataCallableClient = {
   mutation(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   mutationAsService(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   query(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
@@ -67,7 +85,7 @@ const createFeedbackRef = makeFunctionReference<
 const listFeedbackRef = makeFunctionReference<
   "query",
   { apiKey: string; status?: ArticleFeedbackStatus; limit?: number },
-  ArticleFeedbackRow[]
+  ArticleFeedbackQueueItem[]
 >("articleFeedback:list");
 
 const countFeedbackRef = makeFunctionReference<
@@ -86,13 +104,38 @@ const transitionFeedbackRef = makeFunctionReference<
     reviewer: string;
     note?: string;
   },
-  ArticleFeedbackRow
+  ArticleFeedbackQueueItem
 >("articleFeedback:transition");
 
-export class ConvexArticleFeedbackStore {
+type FeedbackCreateOptions = {
+  client: Pick<DataCallableClient, "mutationAsService">;
+  apiKey: string;
+  idFactory?: () => string;
+  now?: () => Date;
+};
+
+async function createFeedback(
+  options: FeedbackCreateOptions,
+  input: ArticleFeedbackInput,
+  context: ArticleFeedbackCreateContext = {},
+): Promise<ArticleFeedbackRow> {
+  const validation = validateArticleFeedback(input);
+  if (validation.ok === false) throw new ArticleFeedbackValidationError(validation.errors);
+  const row = createArticleFeedbackRow(validation.normalized, {
+    id: options.idFactory?.() ?? randomUUID(),
+    now: options.now?.() ?? new Date(),
+    ip_hash: hashIpAddress(context.ip, context.ip_hash_secret),
+  });
+  return await options.client.mutationAsService(createFeedbackRef, {
+    apiKey: options.apiKey,
+    feedback: row,
+  }) as ArticleFeedbackRow;
+}
+
+export class DataArticleFeedbackStore {
   constructor(
     private readonly options: {
-      client: ConvexCallableClient;
+      client: DataCallableClient;
       apiKey: string;
       idFactory?: () => string;
       now?: () => Date;
@@ -103,29 +146,15 @@ export class ConvexArticleFeedbackStore {
     input: ArticleFeedbackInput,
     context: ArticleFeedbackCreateContext = {},
   ): Promise<ArticleFeedbackRow> {
-    const validation = validateArticleFeedback(input);
-    if (validation.ok === false) {
-      throw new ArticleFeedbackValidationError(validation.errors);
-    }
-
-    const row = createArticleFeedbackRow(validation.normalized, {
-      id: this.options.idFactory?.() ?? randomUUID(),
-      now: this.options.now?.() ?? new Date(),
-      ip_hash: hashIpAddress(context.ip, context.ip_hash_secret),
-    });
-
-    return await this.options.client.mutationAsService(createFeedbackRef, {
-      apiKey: this.options.apiKey,
-      feedback: row,
-    }) as ArticleFeedbackRow;
+    return createFeedback(this.options, input, context);
   }
 
-  async list(filters: ArticleFeedbackListFilters = {}): Promise<ArticleFeedbackRow[]> {
+  async list(filters: ArticleFeedbackListFilters = {}): Promise<ArticleFeedbackQueueItem[]> {
     return await this.options.client.query(listFeedbackRef, {
       apiKey: this.options.apiKey,
       ...(filters.status ? { status: filters.status } : {}),
       limit: clampLimit(filters.limit),
-    }) as ArticleFeedbackRow[];
+    }) as ArticleFeedbackQueueItem[];
   }
 
   /** Total rows in the given statuses, computed on the server: no list travels. */
@@ -139,7 +168,7 @@ export class ConvexArticleFeedbackStore {
   async transition(
     id: string,
     options: { status: ArticleFeedbackStatus; reviewer: string; actorEmail: string; note?: string },
-  ): Promise<ArticleFeedbackRow> {
+  ): Promise<ArticleFeedbackQueueItem> {
     try {
       return await this.options.client.mutation(transitionFeedbackRef, {
         apiKey: this.options.apiKey,
@@ -148,7 +177,7 @@ export class ConvexArticleFeedbackStore {
         status: options.status,
         reviewer: options.reviewer,
         ...(options.note !== undefined ? { note: options.note } : {}),
-      }) as ArticleFeedbackRow;
+      }) as ArticleFeedbackQueueItem;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Article feedback not found")) {
         throw new ArticleFeedbackNotFoundError(id);
@@ -158,30 +187,27 @@ export class ConvexArticleFeedbackStore {
   }
 }
 
-let store: ConvexArticleFeedbackStore | null = null;
+let store: DataArticleFeedbackStore | null = null;
 let storeCacheKey: string | null = null;
 
 export async function getPublicArticleFeedbackStore(): Promise<
-  Pick<ConvexArticleFeedbackStore, "create">
+  Pick<DataArticleFeedbackStore, "create">
 > {
   const capability = getPublicIntakeWriteCapability();
   if (!capability) {
     throw new ArticleFeedbackStorageConfigurationError(
-      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE to enable public article feedback.",
+      "Configure the Postgres target and the public-intake create credential to enable public article feedback.",
     );
   }
 
-  return new ConvexArticleFeedbackStore({
-    client: capability.client,
-    apiKey: capability.apiKey,
-  });
+  return { create: (input, context) => createFeedback(capability, input, context) };
 }
 
-export async function getArticleFeedbackStore(): Promise<ConvexArticleFeedbackStore> {
-  const writeCapability = getServerConvexWriteCapability();
+export async function getArticleFeedbackStore(): Promise<DataArticleFeedbackStore> {
+  const writeCapability = getServerDataWriteCapability();
   if (writeCapability.ok === false) {
     throw new ArticleFeedbackStorageConfigurationError(
-      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_KEY to enable private article feedback.",
+      "Configure the Postgres target and an editorial write credential to enable private article feedback.",
     );
   }
 
@@ -194,7 +220,7 @@ export async function getArticleFeedbackStore(): Promise<ConvexArticleFeedbackSt
     return store;
   }
 
-  store = new ConvexArticleFeedbackStore({
+  store = new DataArticleFeedbackStore({
     client: capability.client,
     apiKey,
   });

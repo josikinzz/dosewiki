@@ -21,13 +21,13 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as OCL from "openchemlib";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import {
   OCL_COLOR_TO_STANDARD,
   renderMoleculeSvg,
 } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
 import { applyMoleculeColorway } from "../../src/data/mappings/moleculePalette";
-import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
+import { drainDataPageQuery } from "../lib/data-pagination.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const STAGE_DIR = join(ROOT, "tmp/molecule-pack");
@@ -111,7 +111,7 @@ async function main() {
     // Substances still being written or deliberately unlisted (`priority` `low`
     // or `hide_for_now`) must not ship their molecules in the public pack.
     const excludedSubstanceSlugs = new Set<string>();
-    const lookup = await drainConvexPageQuery({
+    const lookup = await drainDataPageQuery({
       client,
       query: api.substanceIndex.getLookupPage,
     });

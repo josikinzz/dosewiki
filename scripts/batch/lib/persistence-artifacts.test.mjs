@@ -22,10 +22,10 @@ afterEach(async () => {
 });
 
 describe("batch persistence artifacts", () => {
-  it("rejects implicit local export mutation from per-result Convex persistence", () => {
+  it("rejects implicit local export mutation from per-result Postgres persistence", () => {
     expect(() =>
       createArticlePersistence({
-        convexClient: { mutation: async () => ({ created: 0, updated: 1 }) },
+        postgresClient: { mutation: async () => ({ created: 0, updated: 1 }) },
         adminKey: "secret",
         applyUpdate: (article) => article,
         updateLocalJson: true,
@@ -33,12 +33,12 @@ describe("batch persistence artifacts", () => {
     ).toThrow(/separate local export refresh/i);
   });
 
-  it("rejects implicit local export mutation from bulk Convex persistence", async () => {
+  it("rejects implicit local export mutation from bulk Postgres persistence", async () => {
     await expect(
       applySuccessfulUpdates({
         results: { successfulUpdates: [{ title: "LSD", summary: "updated" }] },
         allArticles: [{ title: "LSD" }],
-        convexClient: { mutation: async () => ({ created: 0, updated: 1 }) },
+        postgresClient: { mutation: async () => ({ created: 0, updated: 1 }) },
         adminKey: "secret",
         applyUpdate: (article, update) => Object.assign(article, update),
         updateLocalJson: true,
@@ -65,10 +65,10 @@ describe("batch persistence artifacts", () => {
     await expect(readFile(articlesFile, "utf8")).resolves.toContain('"title": "LSD"');
   });
 
-  it("normalizes base articles, strips Convex metadata, and fails on skipped saves", async () => {
+  it("normalizes base articles, strips Postgres metadata, and fails on skipped saves", async () => {
     const savedArticles = [];
     const persist = createArticlePersistence({
-      convexClient: {
+      postgresClient: {
         mutation: async (_name, args) => {
           savedArticles.push(...args.articles);
           return {
@@ -93,7 +93,7 @@ describe("batch persistence artifacts", () => {
         [
           "lsd",
           {
-            _id: "convex-id",
+            _id: "postgres-id",
             _creationTime: 123,
             title: "LSD",
             priority: "high",
@@ -109,7 +109,7 @@ describe("batch persistence artifacts", () => {
 
     await expect(
       persist({ slug: "lsd", title: "LSD", summary: "Generated summary." }),
-    ).rejects.toThrow(/Convex sync failed for lsd/);
+    ).rejects.toThrow(/Postgres sync failed for lsd/);
 
     expect(savedArticles[0]._id).toBeUndefined();
     expect(savedArticles[0]._creationTime).toBeUndefined();
@@ -117,7 +117,7 @@ describe("batch persistence artifacts", () => {
     expect(savedArticles[0].dosage).toEqual({ plateau_dosing: null, routes: [] });
   });
 
-  it("bulk updates use target Convex articles instead of stale source articles", async () => {
+  it("bulk updates use target Postgres articles instead of stale source articles", async () => {
     const savedArticles = [];
     const queryCalls = [];
     const result = await applySuccessfulUpdates({
@@ -142,7 +142,7 @@ describe("batch persistence artifacts", () => {
           history_culture: null,
         },
       ],
-      convexClient: {
+      postgresClient: {
         query: async (_name, args) => {
           queryCalls.push(args);
           if (args.paginationOpts.cursor === null) {

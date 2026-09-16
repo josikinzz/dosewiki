@@ -14,8 +14,8 @@
  */
 import "server-only";
 
-import { getDataBackend, getPostgresConvexClient } from "@server/postgres/runtime/backend";
-import type { PublicDataReadAdapter } from "../convex/publicData.reads";
+import { getPostgresClient } from "@server/postgres/runtime/backend";
+import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { collectGlossaryTerms, type GlossaryTerm } from "./glossaryDraft";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 
@@ -38,18 +38,11 @@ export class GlossaryGlossError extends Error {
   }
 }
 
-function db() {
-  if (getDataBackend() !== "postgres") {
-    throw new Error("The translation glossary lives in Postgres; run with DATA_BACKEND=postgres");
-  }
-  return getPostgresConvexClient();
-}
-
 const ROW_COLUMNS = '"term", "kind", "gloss", "updated_at", "updated_by"';
 
 /** Every gloss, sorted by term the way the digest sorts them. */
 export async function readGlosses(): Promise<GlossaryGloss[]> {
-  const rows = await db().sql<GlossaryGloss>(`SELECT ${ROW_COLUMNS} FROM "translationGlossaryTerms"`);
+  const rows = await getPostgresClient().sql<GlossaryGloss>(`SELECT ${ROW_COLUMNS} FROM "translationGlossaryTerms"`);
   return rows
     .map((row) => ({ ...row, updated_at: Number(row.updated_at) }))
     .sort((a, b) => a.term.localeCompare(b.term));
@@ -62,7 +55,7 @@ export async function loadGlosses(): Promise<Readonly<Record<string, string>>> {
 
 /** The gloss row for one term, matched case-insensitively so a request spelled differently still finds the stored row. */
 export async function findGloss(term: string): Promise<GlossaryGloss | null> {
-  const [row] = await db().sql<GlossaryGloss>(
+  const [row] = await getPostgresClient().sql<GlossaryGloss>(
     `SELECT ${ROW_COLUMNS} FROM "translationGlossaryTerms" WHERE LOWER("term") = LOWER($1) LIMIT 1`,
     [term.trim()],
   );
@@ -79,7 +72,7 @@ export async function findGloss(term: string): Promise<GlossaryGloss | null> {
 export async function knownGlossaryTerms(reads: PublicDataReadAdapter): Promise<GlossaryTerm[]> {
   const [universe, stored] = await Promise.all([
     collectGlossaryTerms(reads),
-    db().sql<GlossaryTerm>('SELECT DISTINCT "term", "kind" FROM "translationGlossary"'),
+    getPostgresClient().sql<GlossaryTerm>('SELECT DISTINCT "term", "kind" FROM "translationGlossary"'),
   ]);
   const known = new Map(universe.map((entry) => [entry.term.toLowerCase(), entry]));
   for (const entry of stored) {
@@ -105,7 +98,7 @@ export async function upsertGlosses(rows: readonly { term: string; kind: string;
       throw new GlossaryGlossError(`The gloss for "${row.term}" is ${row.gloss.length} characters; the limit is ${GLOSS_MAX_LENGTH}.`);
     }
   }
-  const written = await db().sql<{ term: string }>(
+  const written = await getPostgresClient().sql<{ term: string }>(
     `INSERT INTO "translationGlossaryTerms" ("term", "kind", "gloss", "updated_at", "updated_by")
      SELECT t, k, g, $4, $5 FROM UNNEST($1::text[], $2::text[], $3::text[]) AS draft(t, k, g)
      ON CONFLICT ("term") DO UPDATE SET

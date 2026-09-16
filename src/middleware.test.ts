@@ -1,7 +1,10 @@
+import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { SUBSTANCE_INDEX_VIEW_PARAMS } from "@/utils/indexViewRoutes";
+import themeLabBootstrap from "@/features/theme-lab/themeLabBootstrap.generated.json";
+import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
 
 const mocks = vi.hoisted(() => ({
   getToken: vi.fn(),
@@ -202,15 +205,32 @@ describe("middleware role policy adapter", () => {
   });
 
   it("enforces the admin browser policy on protected-route redirects", async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    try {
     mocks.getToken.mockResolvedValue(null);
     const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/dev"));
     const csp = response.headers.get("content-security-policy") ?? "";
 
-    expect(csp).toMatch(
-      /script-src 'self' 'nonce-[A-Za-z0-9+/_-]+' 'sha256-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval'/,
-    );
+    // Match the middleware's resettable flavor-module boundary after its env setup.
+    const { buildThemeBootstrapScript } = await import("@/theme");
+    const { SITE_FLAVOR_CONFIGS } = await import("@/config/siteFlavor");
+    const scriptHash = (script: string) =>
+      `'sha256-${createHash("sha256").update(script).digest("base64")}'`;
+    const scriptPolicy = csp.split(";").map((directive) => directive.trim())
+      .find((directive) => directive.startsWith("script-src "));
+    expect(scriptPolicy?.split(/\s+/)).toEqual([
+      "script-src",
+      "'self'",
+      expect.stringMatching(/^'nonce-[A-Za-z0-9+/_-]+'$/),
+      scriptHash(buildZodJitlessBootstrapScript()),
+      scriptHash(buildThemeBootstrapScript(SITE_FLAVOR_CONFIGS.dosewiki)),
+      scriptHash(themeLabBootstrap.script),
+      "'wasm-unsafe-eval'",
+    ]);
     expect(csp).not.toContain("posthog");
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
@@ -221,6 +241,10 @@ describe("middleware role policy adapter", () => {
     );
     expect(response.headers.get("permissions-policy")).toContain("camera=()");
     expect(response.headers.get("x-nonce")).toBeNull();
+    } finally {
+      vi.stubEnv("NODE_ENV", previousNodeEnv);
+      vi.resetModules();
+    }
   });
 
   it("uses the nonce-free inline policy on public documents", async () => {

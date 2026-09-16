@@ -5,11 +5,11 @@
  *
  * Admin only: ownership lets a contributor rewrite a published page from
  * My reports, so it is granted by the role that publishes. The email must
- * belong to an existing membership; Convex refuses `MEMBER_NOT_FOUND` and
+ * belong to an existing membership; Postgres refuses `MEMBER_NOT_FOUND` and
  * `REPORT_NOT_FOUND` otherwise.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
@@ -41,16 +41,16 @@ export const POST = protectedRouteOperation<OwnerBody, ParsedOwnerBody>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 4 * 1024, parse: parseOwnerBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to assign a trip report owner via Next route:",
   unexpectedErrorMessage: "Unable to assign that owner right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const result = await convexWrite.client.mutation(api.tripReports.assignOwner, {
-      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+    const result = await dataWrite.client.mutation(api.tripReports.assignOwner, {
+      apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail,
       slug: slugOf(request),
       email: body.email,

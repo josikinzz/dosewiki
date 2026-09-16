@@ -45,7 +45,12 @@ function stubReportsApi(rows: OwnedReportRow[], saveStatus = 200) {
     if (saveStatus !== 200) {
       return Response.json({ error: "You do not own trip report alpine-clarity.", code: "NOT_OWNER" }, { status: saveStatus });
     }
-    return Response.json({ ok: true, slug: "alpine-clarity" });
+    return Response.json({
+      ok: true,
+      slug: "alpine-clarity",
+      fields: { ...fields, ...(body?.updates as Partial<OwnedReportRecord["fields"]> ?? {}) },
+      revision: "1".repeat(64),
+    });
   });
   vi.stubGlobal("fetch", fetchMock);
   return { fetchMock, calls };

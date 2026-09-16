@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildConvexTripReportImportPayload,
+  buildDataTripReportImportPayload,
   createTripReportSubmission,
   transitionTripReportSubmission,
   validateTripReportSubmission,
@@ -134,7 +134,7 @@ describe("trip report submission intake", () => {
       id: "submission-claim",
       now: new Date("2026-06-11T12:00:00.000Z"),
     });
-    const payload = buildConvexTripReportImportPayload({ ...row, status: "accepted" });
+    const payload = buildDataTripReportImportPayload({ ...row, status: "accepted" });
 
     for (const field of ["profile_key", "avatar_url", "pdf_url"]) {
       expect(row.report.subject).not.toHaveProperty(field);
@@ -153,7 +153,7 @@ describe("trip report submission intake", () => {
     expect(row.honeypot_triggered).toBe(true);
   });
 
-  it("enforces review status transitions and builds an accepted Convex promotion payload", () => {
+  it("enforces review status transitions and builds an accepted Postgres promotion payload", () => {
     const submitted = createTripReportSubmission(validSubmission, {
       id: "submission-2",
       now: new Date("2026-06-11T12:00:00.000Z"),
@@ -184,7 +184,7 @@ describe("trip report submission intake", () => {
         reviewer: "editor@example.com",
       }),
     ).toThrow("Illegal transition: accepted -> exported.");
-    expect(buildConvexTripReportImportPayload(accepted)).toMatchObject({
+    expect(buildDataTripReportImportPayload(accepted)).toMatchObject({
       slug: "careful-low-dose-museum-walk",
       title: "Careful low dose museum walk",
       featured: false,
@@ -192,7 +192,7 @@ describe("trip report submission intake", () => {
       substances: [{ name: "LSD", dose: "75 ug", roa: "oral" }],
     });
     expect(() =>
-      buildConvexTripReportImportPayload({
+      buildDataTripReportImportPayload({
         ...accepted,
         status: "exported",
       }),

@@ -21,7 +21,6 @@ export const SAFETY_LIST = [
   "scripts/replications/run-attribution-repair-rollout.test.mjs",
   "scripts/replications/identity-social/projection.test.mjs",
   "scripts/citations/build-citation-author-repair-evidence-bundle.test.mjs",
-  "tools/local-public-fixture/convexStub.test.mjs",
 ];
 
 export const SETUP_COST_PATTERN = /initRDKitModule|@rdkit|openchemlib|wasm|OclEditor/;

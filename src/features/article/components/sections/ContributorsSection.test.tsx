@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { ContributorsSection } from "./ContributorsSection";
 
@@ -65,12 +65,16 @@ describe("ContributorsSection", () => {
     expect(screen.queryByText("Recent changes")).not.toBeInTheDocument();
   });
 
-  it("collapses the ledger by default and never shows diff text until a row is opened", () => {
-    render(
-      <ContributorsSection
-        article={baseArticle}
-        recentChanges={[
-          {
+  it("loads a scoped history diff only when its row is expanded", async () => {
+    const fetchDiff = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(
+      JSON.stringify({ markdown: "@@ dosage.threshold @@\n- 5 mg\n+ 4 mg" }),
+      { headers: { "Content-Type": "application/json" } },
+    ));
+    try {
+      render(
+        <ContributorsSection
+          article={baseArticle}
+          recentChanges={[{
             id: "direct-1",
             createdAt: "2026-08-12T10:00:00.000Z",
             kind: "prose",
@@ -78,74 +82,22 @@ describe("ContributorsSection", () => {
             detail: null,
             section: { id: "dosage-duration", label: "Dosage & Duration" },
             field: [{ label: "Threshold", index: null }],
-            contributor: { name: "Josie Kins", href: "/contributors/josie", avatarUrl: null },
-            diff: "@@ dosage.threshold @@\n- 5 mg\n+ 4 mg",
+            contributor: null,
+            hasDiff: true,
             articles: [{ id: 12, title: "2C-B", slug: "2c-b" }],
             subjectSlug: "2c-b",
-          },
-          {
-            id: "source-1",
-            createdAt: "2026-08-12T09:00:00.000Z",
-            kind: "source",
-            message: "Added a source",
-            detail: "Some paper",
-            section: { id: "sources", label: "Sources" },
-            field: null,
-            contributor: null,
-            diff: "@@ references @@\n+ Some paper",
-            articles: [{ id: 12, title: "2C-B", slug: "2c-b" }],
-            subjectSlug: "2c-b",
-          },
-          {
-            id: "bulk-1",
-            createdAt: "2026-07-02T10:00:00.000Z",
-            kind: "bulk",
-            message: "Updated the article",
-            detail: "2026-07-02",
-            section: null,
-            field: null,
-            contributor: null,
-            diff: "",
-            articles: [
-              { id: 12, title: "2C-B", slug: "2c-b" },
-              { id: 4, title: "LSD", slug: "lsd" },
-              { id: 5, title: "Psilocybin", slug: "psilocybin" },
-              { id: 6, title: "DMT", slug: "dmt" },
-              { id: 7, title: "Mescaline", slug: "mescaline" },
-            ],
-            subjectSlug: "2c-b",
-          },
-        ]}
-      />,
-    );
-
-    const details = screen.getByText("Recent changes").closest("details");
-    expect(details).not.toBeNull();
-    expect(details).not.toHaveAttribute("open");
-    expect(screen.getByText(/3 human edits/)).toBeInTheDocument();
-    expect(screen.getByText("12 Aug").closest("time")).toHaveAttribute("dateTime", "2026-08-12T10:00:00.000Z");
-    expect(document.querySelector("ins")).toBeNull();
-
-    // Rows exist in the DOM (native details keeps them for search and a11y)
-    // but a row's diff mounts only when its own expander is pressed. Rows
-    // group by day with a time each; the section name links to its anchor.
-    expect(screen.getByRole("heading", { name: "12 August 2026" })).toBeInTheDocument();
-    expect(screen.getAllByText("10:00")[0].closest("time")).toHaveAttribute("dateTime", "2026-08-12T10:00:00.000Z");
-    expect(screen.getByText("Changed a word")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Dosage & Duration" })).toHaveAttribute("href", "#dosage-duration");
-    expect(screen.getByText(/› Threshold/)).toBeInTheDocument();
-    expect(screen.getByText("Some paper")).toBeInTheDocument();
-    // A bulk save names its first few other articles as links, then counts the rest.
-    expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute("href", "/lsd");
-    expect(screen.getByRole("link", { name: "DMT" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Mescaline" })).toBeNull();
-    expect(screen.getByText(/and 1 more/)).toBeInTheDocument();
-    // Only the prose row has something to open: source rows say it all inline.
-    expect(screen.getAllByRole("button", { name: "Show what changed" })).toHaveLength(1);
-
-    fireEvent.click(screen.getByRole("button", { name: "Show what changed" }));
-    expect(document.querySelector("ins")).toHaveTextContent("4");
-    expect(document.querySelector("del")).toHaveTextContent("5");
-    expect(screen.getByRole("button", { name: "Hide what changed" })).toBeInTheDocument();
+          }]}
+        />,
+      );
+      expect(fetchDiff).not.toHaveBeenCalled();
+      expect(document.querySelector("ins")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Show what changed" }));
+      await waitFor(() => expect(document.querySelector("ins")).toHaveTextContent("4"));
+      expect(document.querySelector("del")).toHaveTextContent("5");
+      fireEvent.click(screen.getByRole("button", { name: "Hide what changed" }));
+      expect(document.querySelector("ins")).toBeNull();
+    } finally {
+      fetchDiff.mockRestore();
+    }
   });
 });

@@ -7,7 +7,7 @@
  * when the automatic layout draws them badly.
  *   • picker — searchable substance combobox, publicly listed articles first and
  *     grouped by category (a "saved" pill marks molecules that already have a
- *     Convex depiction; "published" marks a publicly listed article)
+ *     Postgres depiction; "published" marks a publicly listed article)
  *   • canvas: OpenChemLib editor behind a labeled dose.wiki tool strip: reposition
  *     atoms (Select), set per-bond wedge/hash stereo; an "Adjust" row above it holds
  *     the whole-depiction transforms
@@ -17,16 +17,15 @@
  *   • save bar: RDKit-backed stereo guard + Revert / Save in one slim row that stays
  *     in reach while the canvas scrolls
  *
- * Data is live Convex, so this works on the deployed admin host (not just locally):
+ * Data is live Postgres, so this works on the deployed admin host (not just locally):
  *   • the picker + per-substance SMILES come from the `substanceIndex` queries
  *   • the starting structure is the published `moleculeOverrides` MOL block (including
  *     seeded auto-layout baselines); Revert to auto regenerates a local SMILES layout
  *   • Save POSTs to the editor-gated `/api/dev/molecule-override` route, which writes
- *     Convex + revalidates the public substance page
+ *     Postgres + revalidates the public substance page
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEditorDrainedRead, useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
-import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
+import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
@@ -59,6 +58,8 @@ import { stripDummyAtoms } from "./stripDummyAtoms";
 import { TemplateApplyDialog } from "./TemplateApplyDialog";
 import { useTracingLayer } from "./TracingLayer";
 import { useTemplateApplication } from "./useTemplateApplication";
+import { useMoleculeSourceRead } from "./useMoleculeSourceRead";
+import { useMoleculePickerRead } from "./useMoleculePickerRead";
 import { MoleculeEditorModePanel } from "./MoleculeEditorModePanel";
 import { MoleculeEditorWorkbench } from "./MoleculeEditorWorkbench";
 import type {
@@ -75,26 +76,28 @@ const TEMPLATE_API = "/api/dev/molecule-class-template";
 
 /** If server data has not arrived after this long, stop promising "Loading…". */
 const LOAD_TIMEOUT_MS = 8000;
-/** The route clamps pages at 200 rows, so the drain (and each refresh) is a few round trips. */
-const SEARCH_INPUT_PAGE_SIZE = 200;
 
-/** Pull the article's SMILES from whichever shape the Convex doc carries. */
-function extractSmiles(article: unknown): string {
-  const a = article as { identification?: { smiles?: unknown } } | null | undefined;
-  const smiles = a?.identification?.smiles;
-  return typeof smiles === "string" ? smiles.trim() : "";
+
+function psychoactiveClasses(classification: unknown): string[] {
+  if (!classification || typeof classification !== "object" || !("psychoactive_class" in classification)) {
+    return [];
+  }
+  return Array.isArray(classification.psychoactive_class)
+    ? classification.psychoactive_class.filter((value): value is string => typeof value === "string")
+    : [];
 }
 
 export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}) {
-  // OpenChemLib renders the preview + published SVG (same engine as the canvas);
-  // RDKit remains for the InChI/canonical-SMILES guards and class layout.
-  const { ocl, error: oclError } = useOcl();
-  const { rdkit, error: rdkitError } = useRdkit();
-
   const [mode, setMode] = useState<EditorMode>("substances");
   // Deep links (`/dev/molecules/{slug}`) land with the substance preselected.
   const [selected, setSelected] = useState<string | null>(initialSlug ?? null);
-  // "saved" shows the published Convex row; "auto" is an unsaved SMILES preview;
+  // OpenChemLib renders the preview + published SVG (same engine as the canvas);
+  // RDKit remains for the InChI/canonical-SMILES guards and class layout. Idle
+  // picker visits do not initialize either engine; selection activates both.
+  const enginesEnabled = selected !== null;
+  const { ocl, error: oclError } = useOcl(enginesEnabled);
+  const { rdkit, error: rdkitError } = useRdkit(enginesEnabled);
+  // "saved" shows the published Postgres row; "auto" is an unsaved SMILES preview;
   // "imported" is another substance's depiction loaded as an analogue starting point.
   const [variant, setVariant] = useState<"saved" | "auto" | "imported">("saved");
   // The imported MOL block backing the "imported" variant (canvas-only until Save).
@@ -142,7 +145,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const [canvasError, setCanvasError] = useState<string | null>(null);
   // Pending destructive / discard confirmation rendered through the kit Dialog.
   const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
-  // Flipped on once Convex data has stayed unavailable past LOAD_TIMEOUT_MS.
+  // Flipped on once Postgres data has stayed unavailable past LOAD_TIMEOUT_MS.
   const [loadTimedOut, setLoadTimedOut] = useState(false);
   const [templateDoc, setTemplateDoc] = useState<MoleculeClassTemplate | null | undefined>(
     undefined,
@@ -178,21 +181,15 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   }, [mode]);
 
   // --- live server data -----------------------------------------------------
-  const { lookup } = useSubstanceLookup();
+  const pickerRows = useMoleculePickerRead(true);
   const overrideList = useEditorRead("moleculeOverrides:listSlugs", {}, "list");
   const invalidateEditorReads = useInvalidateEditorReads();
-  const article = useEditorRead(
-    "substanceIndex:getBySlug",
-    selected && mode === "substances" ? { slug: selected } : "skip",
-    "document",
+  const moleculeSource = useMoleculeSourceRead(
+    selected && mode === "substances" ? selected : null,
   );
-  // Only the loading/loaded transition may re-resolve the baseline. Depending on
-  // `article` itself would re-run on every redelivery, since a polled read may
-  // hand back a fresh object identity even when nothing changed.
-  const articleLoading = article === undefined;
-  // Mirrors `source` so the resolver can tell a genuine baseline change from a
-  // re-run caused by a read redelivering an equal value under a fresh object
-  // identity (a refetch, or any write touching the same row).
+  // Only the loading/loaded transition may re-resolve the baseline. A polled
+  // source read can redeliver equal data without replacing a dirty canvas.
+  const articleLoading = moleculeSource === undefined;
   const sourceRef = useRef<string | null>(null);
 
   /**
@@ -203,7 +200,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
    * molblocks, which have no labels or dummies). Baselines installed in this
    * form compare string-equal to a zero-edit canvas emission, so
    * `edited !== source` — the unsaved-changes flag — only trips on a real edit,
-   * never on RDKit/Convex vs OCL formatting differences.
+   * never on RDKit/Postgres vs OCL formatting differences.
    */
   const normalizeForComparison = useCallback(
     (molblock: string): string => {
@@ -259,15 +256,16 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     mode === "templates" && templateMemberSlug ? { slug: templateMemberSlug } : "skip",
     "document",
   );
-  const { results: classMembershipInput } = useEditorDrainedRead(
-    "substanceIndex:getSearchInputPage",
-    mode === "templates" ? {} : "skip",
-    { initialNumItems: SEARCH_INPUT_PAGE_SIZE },
+  const classMembershipInput = useMoleculePickerRead(
+    mode === "templates" && !!selected,
+    selected,
   );
-
   const overrideSet = useMemo(
-    () => new Set((overrideList ?? []).map((row) => row.slug)),
-    [overrideList],
+    () => new Set([
+      ...(overrideList ?? []).map((row) => row.slug),
+      ...(pickerRows ?? []).filter((row) => row.hasOverride).map((row) => row.slug),
+    ]),
+    [overrideList, pickerRows],
   );
   const overrideCount = useMemo(
     () =>
@@ -277,8 +275,21 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     [mode, overrideSet],
   );
   const molecules = useMemo<MoleculePickerItem[] | null>(
-    () => (lookup ? buildSubstancePickerItems(lookup, overrideSet) : null),
-    [lookup, overrideSet],
+    () => pickerRows
+      ? buildSubstancePickerItems(
+          pickerRows.map((row) => ({
+            slug: row.slug,
+            name: row.title,
+            priority: typeof row.priority === "string" ? row.priority : undefined,
+            indexCategories: Array.isArray(row.index_categories)
+              ? row.index_categories.filter((value): value is string => typeof value === "string")
+              : undefined,
+            psychoactiveClasses: psychoactiveClasses(row.classification),
+          })),
+          overrideSet,
+        )
+      : null,
+    [overrideSet, pickerRows],
   );
   const publishedCount = useMemo(
     () => (molecules ?? []).filter((item) => item.publiclyListed).length,
@@ -305,7 +316,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const selectedTemplateLabel =
     classTemplates.find((item) => item.slug === selected)?.title ?? selected ?? "class";
   // Import sources: any saved depiction other than the one being edited. Class
-  // and template modes also offer the saved class overrides (their Convex slugs
+  // and template modes also offer the saved class overrides (their Postgres slugs
   // carry the class: prefix the depiction route expects).
   const importableMolecules = useMemo<MoleculePickerItem[] | null>(() => {
     if (!molecules) return null;
@@ -338,10 +349,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     () => CLASS_STRUCTURES.find((item) => item.key === selected) ?? null,
     [selected],
   );
-  const smiles = useMemo(
-    () => (mode === "classes" ? selectedClass?.smiles ?? "" : extractSmiles(article)),
-    [article, mode, selectedClass],
-  );
+  const smiles = mode === "classes" ? selectedClass?.smiles ?? "" : moleculeSource?.smiles ?? "";
   const pickerItems =
     mode === "classes" ? classStructures : mode === "templates" ? classTemplates : molecules;
   const loadedCount = pickerItems?.length ?? 0;
@@ -464,11 +472,18 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   );
 
   // Use the protected editor route for selected depictions, matching the save
-  // target and the class-template read path. Browser Convex reads still power
+  // target and the class-template read path. Browser Postgres reads still power
   // lightweight picker metadata, but the editable record must round-trip to the
   // same deployment that receives the save.
   useEffect(() => {
-    const slug = selected ? (mode === "substances" ? selected : `class:${selected}`) : null;
+    const slug =
+      selected && mode === "substances"
+        ? selected
+        : selected && mode === "classes"
+          ? `class:${selected}`
+          : selected && mode === "templates" && templateDoc === null
+            ? `class:${selected}`
+            : null;
     if (!slug) {
       setOverrideDoc(undefined);
       setOverrideLoadError(null);
@@ -496,10 +511,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     return () => {
       cancelled = true;
     };
-  }, [mode, selected]);
+  }, [mode, selected, templateDoc]);
 
-  // Template reads use the same protected server route/Convex target as saves,
-  // so reopening a class round-trips the row even when public and editor Convex
+  // Template reads use the same protected server route/Postgres target as saves,
+  // so reopening a class round-trips the row even when public and editor Postgres
   // deployments are intentionally different.
   useEffect(() => {
     if (mode !== "templates" || !selected) {
@@ -604,7 +619,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     }
     if (articleLoading) {
       setComputing(true);
-      return; // article still loading
+      return; // source still loading
     }
     if (!smiles) {
       loadSource(null);
@@ -937,7 +952,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     return () => clearTimeout(id);
   }, [ocl, rdkit, edited, smiles, mode, source, previewAtomLabels, boldBonds]);
 
-  // If Convex never resolves, stop showing an indefinite "Loading…".
+  // If Postgres never resolves, stop showing an indefinite "Loading…".
   useEffect(() => {
     if (pickerItems) {
       setLoadTimedOut(false);
@@ -958,10 +973,11 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   // programmatic loads), so this is a reliable dirty flag.
   const dirty = hasUnsavedChanges;
   const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
+  const enginesReady = !!ocl && !!rdkit;
   const canSave =
-    dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
+    enginesReady && dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
   // Gates all whole-depiction transforms: the two mirror flips and both alignment rotations.
-  const canTransform = !!edited && !saving && !noStructure && !renderBlocked;
+  const canTransform = enginesReady && !!edited && !saving && !noStructure && !renderBlocked;
 
   // Pick mode can't outlive the ability to transform (a save starting, the
   // structure unloading, or the canvas erroring mid-pick).

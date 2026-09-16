@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { drainPinnedProfileSnapshot, exportPinnedProfileSnapshot } from "./export-profile-snapshot.mjs";
+import { drainPinnedProfileSnapshot } from "./export-profile-snapshot.mjs";
 import { canonicalProfileSnapshotDigest } from "./executor-lib.mjs";
 import { PINNED_PROFILE_SNAPSHOT_DIGEST } from "./executor-lib.mjs";
 
@@ -17,28 +17,6 @@ test("client drains bounded pages and rejects a wrong recomputed 2,119-row diges
   assert.equal(calls, 22);
 });
 
-test("credential resolver passes the scoped token string to Convex", async () => {
-  const envVar = "CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE";
-  const previous = process.env[envVar];
-  process.env[envVar] = "test-token-value";
-  try {
-    await assert.rejects(
-      () => exportPinnedProfileSnapshot(
-        ["--actor-email=editor@example.test", "--out=/unused/test-snapshot.json"],
-        {
-          query: async (_ref, args) => {
-            assert.equal(args.apiKey, "test-token-value");
-            throw new Error("credential-contract-proved");
-          },
-        },
-      ),
-      /credential-contract-proved/,
-    );
-  } finally {
-    if (previous === undefined) delete process.env[envVar];
-    else process.env[envVar] = previous;
-  }
-});
 
 test("profile snapshot CAS preserves the reviewed compact field-order serializer", () => {
   const rows = [{

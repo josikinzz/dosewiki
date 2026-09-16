@@ -4,7 +4,7 @@ import type { AppRole } from "./roles";
  * The plain-language contract for each role. Rendered wherever an admin picks
  * a role (Members tab, invite minting) and on the invite page, so a person
  * reads the same words whether they are granting the role or receiving it.
- * The enforcement lives in `convex/lib/auth.ts` (`requireRole` floors); if a
+ * The enforcement lives in `server/lib/auth.ts` (`requireRole` floors); if a
  * floor moves, move the sentence here too.
  */
 export type RoleDescription = {
@@ -27,6 +27,12 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
     ],
     cannot: ["Demote or ban themselves.", "Approve their own proposals."],
   },
+  editor_translator: {
+    role: "editor_translator",
+    summary: "Has both Editor and Translator permissions, with translation work limited to approved glossary languages.",
+    can: ["Draft article and site-copy changes for admin review.", "Review, edit, import, and export glossary renderings in approved languages.", "Edit their own profile, playlists, and trip reports."],
+    cannot: ["Publish article proposals directly.", "Manage members.", "Edit unapproved glossary languages.", "Start or queue translations."],
+  },
   editor: {
     role: "editor",
     summary:
@@ -42,14 +48,15 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
       "Delete anything. A playlist they own can be removed from view, and an admin can bring it back.",
       "See the member list or mint invites.",
       "Open the global change review queue or read another editor's submissions.",
+      "Edit translated glossary renderings without a separately assigned Translator role and approved languages.",
     ],
   },
   translator: {
     role: "translator",
     summary: "Reviews how the site's terms are written in a language. Renders the taxonomy, never changes it.",
     can: [
-      "Approve and edit glossary renderings for a locale.",
-      "Export and import the glossary sheet.",
+      "Approve and edit glossary renderings only in languages an admin has approved.",
+      "Export and import glossary sheets for those approved languages.",
       "Edit their own profile.",
       "Build and rearrange their own replication playlists.",
       "Edit their own trip reports.",
@@ -82,5 +89,6 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
 export const INVITABLE_ROLE_DESCRIPTIONS: readonly RoleDescription[] = [
   ROLE_DESCRIPTIONS.editor,
   ROLE_DESCRIPTIONS.translator,
+  ROLE_DESCRIPTIONS.editor_translator,
   ROLE_DESCRIPTIONS.contributor,
 ];

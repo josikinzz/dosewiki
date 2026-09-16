@@ -3,7 +3,7 @@ import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     replications: {
       updateEditorialFields: "replications.updateEditorialFields",
@@ -30,11 +30,11 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 import { POST } from "./route";
@@ -69,7 +69,7 @@ describe("replication editorial route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: {
         client: { mutation: mocks.mutation },
@@ -82,7 +82,7 @@ describe("replication editorial route", () => {
     );
   });
 
-  it("refuses an editor's single edit with 403 before touching Convex", async () => {
+  it("refuses an editor's single edit with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const response = await POST(editorialRequest(singleEdit));
@@ -93,7 +93,7 @@ describe("replication editorial route", () => {
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
-  it("refuses an editor's bulk edit with 403 before touching Convex", async () => {
+  it("refuses an editor's bulk edit with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const response = await POST(editorialRequest(bulkEdit));
@@ -150,7 +150,7 @@ describe("replication editorial route", () => {
     });
   });
 
-  it("rejects a body with neither mode before reaching Convex", async () => {
+  it("rejects a body with neither mode before reaching Postgres", async () => {
     const response = await POST(editorialRequest({ id: "replication-id" }));
 
     expect(response.status).toBe(400);

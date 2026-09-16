@@ -4,8 +4,9 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -50,7 +51,7 @@ function flagValue(argv, name) {
 
 function normalizeSharedCommandArgv(argv) {
   const valueFlags = new Set([
-    "--target-url",
+    "--target",
     "--confirm-write",
     "--expected-deployment",
   ]);
@@ -299,8 +300,7 @@ export async function runLiveTaxonomyCasRepair({
     };
   }
   assertProductionWriteAllowed(command);
-  required(command.targetUrl === EXACT_TARGET, `Write target must be exactly ${EXACT_TARGET}.`);
-  required(command.deploymentFingerprint === EXACT_DEPLOYMENT, `Write deployment must be exactly ${EXACT_DEPLOYMENT}.`);
+  const postgresTarget = requireCampaignTarget(command);
   const credential = requireProductionWriteCredential("replicationMaintenance", { env });
   required(credential.source === "scoped", "Write requires the scoped replicationMaintenance credential; legacy admin key fallback is disabled.");
   required(typeof clientFactory === "function", "Write-mode client adapter is not configured.");
@@ -316,6 +316,7 @@ export async function runLiveTaxonomyCasRepair({
     resolved,
     expectedPlanFileSha256,
   });
+  bindCampaignTarget(ledger, postgresTarget);
   const uncertain = Object.entries(ledger.items)
     .filter(([, item]) => item.status === "uncertain")
     .map(([productionId]) => productionId);

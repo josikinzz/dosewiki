@@ -128,7 +128,7 @@ function build(values = fixture()) {
     ...values,
     lineageManifestSha256: digest("9"),
     lineageManifestPath: "scripts/data/tracked/citation-author-repair-lineage.json",
-    sourceDeployment: "https://example.convex.cloud",
+    sourceDeployment: "example/dosewiki",
     generatedAt: "2026-08-10T00:00:00.000Z",
   });
 }
@@ -171,7 +171,7 @@ describe("reference metadata provenance backfill planner", () => {
     expect(() => build(contradicted)).toThrow(/evidence PMID contradicts live PMID/i);
   });
 
-  it("accepts alphabetized Convex object keys after application", () => {
+  it("accepts alphabetized Postgres object keys after application", () => {
     const applied = fixture();
     const initial = build(applied);
     const rowsByKey = new Map(initial.rows.map((row) => [row.key, row]));

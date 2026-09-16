@@ -11,7 +11,7 @@ export function getArticleSlug(article) {
   return article.slug || titleToSlug(article.title);
 }
 
-export function stripConvexMetadata(article) {
+export function stripDataMetadata(article) {
   const { _id, _creationTime, ...clean } = article;
   return clean;
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicReagentTestBySlug } from "@server/convex/publicData.reagents";
+import { getPublicReagentTestBySlug } from "@server/data/publicData.reagents";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
   getPublicEgressCorsHeaders,

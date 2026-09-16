@@ -3,7 +3,7 @@
  * (`/api/dev/translation-glossary`).
  */
 
-import type { GlossaryStatus, TranslationGlossaryRow } from "@server/translation/glossary";
+import type { GlossaryCollision, GlossaryStatus, TranslationGlossaryRow } from "@server/translation/glossary";
 import type { GlossaryGloss } from "@server/translation/glossaryGloss";
 import type { GlossaryListResponse } from "@/app/api/dev/translation-glossary/glossaryRoutes";
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
@@ -166,6 +166,14 @@ export function parseGlossaryCsv(text: string): GlossaryCsvRow[] {
 
 const BASE_PATH = "/api/dev/translation-glossary";
 
+/** A collision refusal is data for a reviewer, not an automatic retry. */
+export class GlossaryReviewCollision extends Error {
+  constructor(message: string, readonly collisions: GlossaryCollision[], readonly collisionConfirmation: string) {
+    super(message);
+    this.name = "GlossaryReviewCollision";
+  }
+}
+
 export async function fetchGlossary(locale: string | null): Promise<GlossaryList> {
   const url = locale ? `${BASE_PATH}?locale=${encodeURIComponent(locale)}` : BASE_PATH;
   const payload = await requestJson(url, undefined, {
@@ -176,13 +184,13 @@ export async function fetchGlossary(locale: string | null): Promise<GlossaryList
 }
 
 /** Returns the terms whose status changed. */
-export async function approveTerms(locale: string, terms: readonly string[]): Promise<string[]> {
-  const payload = await postJson("approve", { locale, terms }, "Unable to approve those terms.");
+export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string): Promise<string[]> {
+  const payload = await postJson("approve", { locale, terms, collisionConfirmation }, "Unable to approve those terms.");
   return Array.isArray(payload.approved) ? (payload.approved as string[]) : [];
 }
 
-export async function editTerm(locale: string, term: string, target: string): Promise<GlossaryRow> {
-  const payload = await postJson("edit", { locale, term, target }, "Unable to save that term.");
+export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string): Promise<GlossaryRow> {
+  const payload = await postJson("edit", { locale, term, target, collisionConfirmation }, "Unable to save that term.");
   return payload.row as GlossaryRow;
 }
 
@@ -225,10 +233,14 @@ export function glossaryExportUrl(locale: string): string {
 export type ImportSummary = { approved: number; drafts: number };
 
 /** Sends the file as it was read; the server parses, validates, and writes it whole or not at all. */
-export async function importGlossaryCsv(locale: string, csv: string): Promise<ImportSummary> {
+export async function importGlossaryCsv(locale: string, csv: string, collisionConfirmation?: string): Promise<ImportSummary> {
   const payload = await requestJson(
     `${BASE_PATH}/import?locale=${encodeURIComponent(locale)}`,
-    { method: "POST", headers: { "Content-Type": "text/csv; charset=utf-8" }, body: csv },
+    {
+      method: "POST",
+      headers: { "Content-Type": "text/csv; charset=utf-8", ...(collisionConfirmation ? { "X-Glossary-Collision-Confirmation": collisionConfirmation } : {}) },
+      body: csv,
+    },
     { network: "Network error while importing the glossary.", failure: "Unable to import that file." },
   );
   return { approved: Number(payload.approved ?? 0), drafts: Number(payload.drafts ?? 0) };
@@ -264,6 +276,20 @@ async function requestJson(
 
   const payload: Record<string, unknown> = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 409 && typeof payload.collisionConfirmation === "string" && /^[a-f0-9]{64}$/.test(payload.collisionConfirmation)
+      && Array.isArray(payload.collisions) && payload.collisions.length > 0
+      && payload.collisions.every((collision: unknown) => {
+        if (!collision || typeof collision !== "object") return false;
+        const item = collision as Record<string, unknown>;
+        return typeof item.kind === "string" && typeof item.target === "string"
+          && Array.isArray(item.terms) && item.terms.length > 1 && item.terms.every((term: unknown) => typeof term === "string");
+      })) {
+      throw new GlossaryReviewCollision(
+        typeof payload.error === "string" ? payload.error : messages.failure,
+        payload.collisions as GlossaryCollision[],
+        payload.collisionConfirmation,
+      );
+    }
     throw new Error(typeof payload.error === "string" ? payload.error : messages.failure);
   }
   return payload;

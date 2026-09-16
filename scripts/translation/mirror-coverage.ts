@@ -33,9 +33,9 @@ async function storeLens() {
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
-  const [live, store, { getPublicDataReadAdapter }, { getPostgresConvexClient }] = await Promise.all([
+  const [live, store, { getPublicDataReadAdapter }, { getPostgresClient }] = await Promise.all([
     import("../../lib/translation/liveTranslation"), import("../../lib/translation/segmentStore"),
-    import("../../lib/convex/publicData.reads"), import("../../lib/postgres/runtime/backend"),
+    import("../../lib/data/publicData.reads"), import("../../lib/postgres/runtime/backend"),
   ]);
   const kinds = values.kind ? [values.kind as TranslationRecordKind] : live.TRANSLATION_RECORD_KINDS;
   if (kinds.some((kind) => !live.TRANSLATION_RECORD_KINDS.includes(kind))) throw new Error("Unknown record kind");
@@ -109,7 +109,7 @@ async function storeLens() {
       fidelityReviewed: false,
       ready: totals.missing + totals.stale + totals.rejected === 0,
     };
-  } finally { await getPostgresConvexClient().end(); }
+  } finally { await getPostgresClient().end(); }
 }
 
 type SurfaceExpectation = { path: string; selector: string; text: string; kind: "localized" | "canonical"; surface: string };

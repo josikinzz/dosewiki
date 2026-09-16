@@ -3,7 +3,7 @@ import { join } from "path";
 
 import { BackendClient } from "../../lib/data-client.ts";
 
-import { api } from "../../../convex/_generated/api.js";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import { CONFIG } from "./cli.mjs";
 import { CATEGORIES } from "./categories.mjs";
 import {
@@ -58,28 +58,28 @@ export function loadSourceFile(slug) {
   return loadLocalArticleSourceDocument(filePath, slug);
 }
 
-export function createConvexClient(url, { Client = BackendClient } = {}) {
+export function createPostgresClient(url, { Client = BackendClient } = {}) {
   return new Client(url);
 }
 
-export async function loadConvexArticleSourceDocument(client, slug) {
+export async function loadPostgresArticleSourceDocument(client, slug) {
   const sourceDoc = await client.query(api.articleSources.getBySlug, {
     slug,
-    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+    apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
   });
   return sourceDoc
-    ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "convex" })
+    ? normalizeArticleSourceDocument(sourceDoc, { slug, adapter: "postgres" })
     : null;
 }
 
-export async function loadConvexArticleSourceSlugs(client) {
+export async function loadPostgresArticleSourceSlugs(client) {
   const slugs = [];
   let cursor = undefined;
   let isDone = false;
 
   while (!isDone) {
     const result = await client.query(api.articleSources.getSubstanceList, {
-      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+      apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
       cursor,
       limit: 100,
     });
@@ -91,8 +91,8 @@ export async function loadConvexArticleSourceSlugs(client) {
   return slugs.sort();
 }
 
-export async function getConvexArticleSourceSize(client, slug) {
-  const doc = await loadConvexArticleSourceDocument(client, slug);
+export async function getPostgresArticleSourceSize(client, slug) {
+  const doc = await loadPostgresArticleSourceDocument(client, slug);
   return doc ? getArticleSourceDocumentSizeBytes(doc) : 0;
 }
 

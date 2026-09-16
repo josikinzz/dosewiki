@@ -890,9 +890,6 @@ html[data-visual-style="pro"] .theme-home-ambient {
   background: var(--ei-paper);
 }
 
-html[data-visual-style="pro"] .theme-search-focus-glow {
-  background: transparent;
-}
 
 /* ---------------------------------------------------------------------
    Raw Tailwind palette utilities written at the call site.
@@ -1073,9 +1070,9 @@ html[data-visual-style="pro"] .theme-home-search-input {
 }
 
 html[data-visual-style="pro"] .theme-home-search-input:focus {
-  border-color: var(--ei-accent-strong);
+  border-color: var(--theme-text-secondary);
   background-color: var(--ei-surface-raised);
-  box-shadow: 0 0 0 1px var(--ei-accent-strong);
+  box-shadow: var(--theme-elevation-field-inset);
 }
 
 /* ---------------------------------------------------------------------
@@ -1451,6 +1448,9 @@ html[data-visual-style="pro"] .theme-appearance-popover {
   --theme-chrome-rail-primary: var(--ei-chrome-dark) !important;
   --theme-chrome-rail-secondary: var(--ei-chrome-dark) !important;
   --theme-surface-strong: var(--ei-chrome-raised) !important;
+  --theme-field-surface: var(--ei-chrome-raised) !important;
+  --theme-field-surface-alt: var(--ei-chrome-raised) !important;
+  --theme-field-border: var(--ei-chrome-border) !important;
   --theme-text-primary: var(--ei-on-dark-muted) !important;
   --theme-text-secondary: var(--ei-on-dark-muted) !important;
   --theme-text-muted: var(--ei-on-dark-muted) !important;

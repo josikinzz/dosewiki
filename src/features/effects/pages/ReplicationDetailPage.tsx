@@ -25,7 +25,7 @@ import {
 } from "@/features/effects/components/replicationCredit";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import type { ReplicationWithUrl } from "@/types/replications";
-import type { PublicReplicationIdentityAttribution } from "@server/convex/publicData";
+import type { PublicReplicationIdentityAttribution } from "@server/data/publicData";
 import { publicHref } from "@/utils/publicHref";
 import { buildAttributionLine } from "./replicationAttribution";
 import type { EffectCategoryLink } from "./replicationSubject";
@@ -82,13 +82,16 @@ export function ReplicationDetailPage({
   );
   const isVideo = replication.type === "video";
   const isAudio = replication.type === "audio";
+  const isGif = replication.format?.toLowerCase() === "gif";
   // A clip has no frame to preview, so it never reaches the image layer: it
   // gets the player itself, which is more use here than a poster would be.
-  const previewSource = isVideo
-    ? replication.thumbnail_url
-    : isAudio
-      ? undefined
-      : replication.url;
+  const previewSource = isAudio
+    ? undefined
+    : isGif
+      ? replication.motion_poster_url
+      : isVideo
+        ? replication.thumbnail_url
+        : replication.url ?? replication.thumbnail_url;
   const artistName =
     identityAttribution?.creator.display_name.trim() ||
     replication.artist?.trim() ||
@@ -185,9 +188,10 @@ export function ReplicationDetailPage({
               width={replication.width ?? 1600}
               height={replication.height ?? 900}
               priority
+              sizes="(max-width: 768px) 100vw, 960px"
               className="max-h-[70vh] w-full object-contain"
             />
-            {isVideo ? (
+            {isVideo || isGif ? (
               <span className="theme-media-tile-title absolute inset-0 grid place-items-center">
                 <span className="grid size-14 place-items-center rounded-full bg-black/60 backdrop-blur-sm transition-opacity group-hover:opacity-85 motion-reduce:transition-none">
                   <Icon
@@ -255,7 +259,7 @@ export function ReplicationDetailPage({
           <p className="mt-2">
             <Link
               href={publicHref.effect(effectSlug)}
-              className="theme-accent-heading font-display text-xl font-semibold tracking-tight transition-colors hover:text-dose-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+              className="theme-accent-heading font-display text-xl font-semibold tracking-tight transition-colors hover:text-dose-accent-strong theme-focus-ring"
             >
               {effectName}
             </Link>

@@ -19,7 +19,7 @@ function auditFixture() {
   return {
     schemaVersion: "dosewiki_subsection_citation_audit_v1",
     generatedAt: "2026-07-19T00:00:00.000Z",
-    source: { convexUrl: "https://example.convex.cloud" },
+    source: { postgresIdentity: "example/dosewiki" },
     articles: [
       {
         slug: "datura",

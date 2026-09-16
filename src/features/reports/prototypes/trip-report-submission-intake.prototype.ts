@@ -67,7 +67,7 @@ async function handleCommand(command: string) {
       transitionSubmission(state, await askSubmissionId(), "reviewing", reviewer, "Prototype review started.");
       return;
     case "a":
-      transitionSubmission(state, await askSubmissionId(), "accepted", reviewer, "Looks suitable for later Convex promotion.");
+      transitionSubmission(state, await askSubmissionId(), "accepted", reviewer, "Looks suitable for later Postgres promotion.");
       return;
     case "j":
       transitionSubmission(state, await askSubmissionId(), "rejected", reviewer, "Rejected in prototype.");
@@ -79,7 +79,7 @@ async function handleCommand(command: string) {
       previewAcceptedSubmissionPromotion(state, await askSubmissionId());
       return;
     case "e":
-      state.lastResult = "Publishing is handled by the production Convex promotion mutation, not this prototype.";
+      state.lastResult = "Publishing is handled by the production Postgres promotion mutation, not this prototype.";
       return;
     default:
       state.lastResult = "Unknown command. Use one of the shortcuts below.";
@@ -92,7 +92,7 @@ function renderFrame(current: IntakeState) {
 
   output.write(clear);
   output.write(`${bold}Trip Report Submission Intake Prototype${reset}\n`);
-  output.write(`${dim}Throwaway model for private Convex intake before public trip report promotion.${reset}\n\n`);
+  output.write(`${dim}Throwaway model for private Postgres intake before public trip report promotion.${reset}\n\n`);
 
   output.write(`${bold}Queue${reset}\n`);
   output.write(`total: ${current.submissions.length}\n`);

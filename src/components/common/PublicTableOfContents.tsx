@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 /**
- * Distance from the top of the viewport at which a section counts as "current".
- * Roughly clears the sticky site header so the active item flips as a heading
- * settles just beneath the chrome rather than at the very top edge.
+ * Minimum distance from the viewport top at which a section counts as current.
+ * A target's live scroll margin raises this line when editor chrome or a mobile
+ * TOC makes the sticky stack taller than the public site's usual header.
  */
 const SCROLLSPY_TOP_OFFSET = 140;
 
@@ -39,12 +39,17 @@ export function useActiveSection(ids: string[]): string | null {
     const compute = () => {
       frame = 0;
       let current: string | null = null;
+      let topOffset: number | null = null;
       for (const id of ids) {
         const element = document.getElementById(id);
         if (!element) {
           continue;
         }
-        if (element.getBoundingClientRect().top - SCROLLSPY_TOP_OFFSET <= 0) {
+        topOffset ??= Math.max(
+          SCROLLSPY_TOP_OFFSET,
+          Number.parseFloat(window.getComputedStyle(element).scrollMarginTop) || 0,
+        );
+        if (element.getBoundingClientRect().top - topOffset <= 1) {
           // Last section whose heading has scrolled above the offset line wins.
           current = id;
         } else {
@@ -154,7 +159,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                     data-active={isActive ? "true" : undefined}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,transform,border-color,box-shadow] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:-translate-y-px motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,border-color,box-shadow] duration-[180ms] ease-out motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       isWarning
                         ? "border border-[color:var(--theme-warning-border)] bg-[color:var(--theme-warning-bg)] text-[color:var(--theme-warning-text)] hover:bg-[color:var(--theme-warning-bg-strong)]"
                         : isAccent
@@ -164,7 +169,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                   >
                     <span
                       className={cn(
-                        "theme-article-toc-item-icon flex h-5 w-5 shrink-0 items-center justify-center transition-transform duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
+                        "theme-article-toc-item-icon flex h-5 w-5 shrink-0 items-center justify-center transition-colors duration-[180ms] ease-out motion-reduce:transition-none",
                         isWarning
                           ? "text-[var(--theme-warning-text)]"
                         : isAccent

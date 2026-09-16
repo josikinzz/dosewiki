@@ -7,8 +7,8 @@ import {
   getPublicFeaturedReplicationSlugs,
   getPublicReplicationsBySlugs,
   getPublicReports,
-  getPublishedEffectIndexArticles,
-} from "@server/convex/publicData";
+  getPublishedPublicationIndex,
+} from "@server/data/publicData";
 import featuredReplicationsConfig from "../../src/data/config/effectIndexFeaturedReplications.json";
 import { articleReadMinutes } from "../../src/features/articles/domain/articlesIndex";
 import {
@@ -22,13 +22,13 @@ import {
 /**
  * Data for the Effect Index homepage panels.
  *
- * No Convex schema change and no database deploy is involved: every panel is served from a
+ * No Postgres schema change and no database deploy is involved: every panel is served from a
  * read that already exists.
  *
  *  - Featured Effects  — `getPublicEffects()` already projects the `featured` flag and tags.
  *  - Featured Reports  — `getPublicReports()` already projects `featured`.
  *  - Featured Article  — `effectIndexArticles` holds `featured` but has no `by_featured`
- *                        index. Adding one (or a Convex query that used it) would need a
+ *                        index. Adding one (or a Postgres query that used it) would need a
  *                        production deploy, and the table is small enough that filtering
  *                        after the existing list read costs nothing.
  *  - Featured
@@ -38,7 +38,7 @@ import {
  *                        read. The checked-in
  *                        `src/data/config/effectIndexFeaturedReplications.json` remains the
  *                        fallback for a deployment that has never been curated (or that
- *                        predates the Convex functions), so the carousel is never blank
+ *                        predates the Postgres functions), so the carousel is never blank
  *                        merely because a database is fresh.
  *
  * All four reads are already `unstable_cache`d with the shared public-data revalidation
@@ -83,7 +83,7 @@ export const loadEffectIndexHomeData = cache(
     );
     const [effects, articles, reports, replications, featuredSlugs] = await Promise.all([
       getPublicEffects(),
-      getPublishedEffectIndexArticles(),
+      getPublishedPublicationIndex("article"),
       getPublicReports(),
       featuredSlugsPromise.then((slugs) => getPublicReplicationsBySlugs(slugs)),
       featuredSlugsPromise,

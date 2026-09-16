@@ -55,7 +55,7 @@ describe("citation author repair proposal", () => {
   it("builds a deterministic high-confidence pmid-19322953 proposal with CAS snapshot", async () => {
     const proposal = await buildCitationAuthorRepairProposal({
       articles: [article()],
-      sourceDeployment: "https://example.convex.cloud",
+      sourceDeployment: "example/dosewiki",
       generatedAt: "2026-08-09T00:00:00.000Z",
       enrich: async ([candidate]) => enrichmentResult(candidate),
     });
@@ -80,7 +80,7 @@ describe("citation author repair proposal", () => {
       artifactType: "citation_author_repair_proposal",
       artifactVersion: 1,
       generatedAt: "2026-08-09T00:00:00.000Z",
-      sourceDeployment: "https://example.convex.cloud",
+      sourceDeployment: "example/dosewiki",
       mode: "dry_run",
       summary: proposal.summary,
       highConfidence: proposal.highConfidence,
@@ -90,27 +90,21 @@ describe("citation author repair proposal", () => {
   });
 
   it("classifies title conflicts and no-author provider results as residual", async () => {
-    const titleConflict = await buildCitationAuthorRepairProposal({
-      articles: [article()], sourceDeployment: "test", generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich: async ([candidate]) => enrichmentResult(candidate, { title: "A different paper" }),
-    });
+    const titleConflict = await buildCitationAuthorRepairProposal({ articles: [article()], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich: async ([candidate]) => enrichmentResult(candidate, { title: "A different paper" }), });
     expect(titleConflict.residual[0].reasonCodes).toEqual(["title_conflict"]);
 
-    const noAuthors = await buildCitationAuthorRepairProposal({
-      articles: [article()], sourceDeployment: "test", generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich: async ([candidate]) => enrichmentResult(candidate, { authors: [] }),
-    });
+    const noAuthors = await buildCitationAuthorRepairProposal({ articles: [article()], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich: async ([candidate]) => enrichmentResult(candidate, { authors: [] }), });
     expect(noAuthors.residual[0].reasonCodes).toEqual(["no_authors_returned"]);
   });
 
   it("detects DOI and PMID provider disagreement", async () => {
     const dual = reference({ doi: "10.1000/example" });
-    const proposal = await buildCitationAuthorRepairProposal({
-      articles: [article(dual)], sourceDeployment: "test", generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich: async ([candidate]) => enrichmentResult(candidate, {
-        authors: candidate.doi ? ["Crossref Author"] : ["PubMed Author"],
-      }),
-    });
+    const proposal = await buildCitationAuthorRepairProposal({ articles: [article(dual)], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich: async ([candidate]) => enrichmentResult(candidate, {
+      authors: candidate.doi ? ["Crossref Author"] : ["PubMed Author"],
+    }), });
     expect(proposal.residual[0]).toMatchObject({
       reasonCodes: ["provider_disagreement"],
       proposedAuthors: [],
@@ -155,16 +149,12 @@ describe("citation author repair proposal", () => {
       throw new Error(`Unexpected provider request: ${url}`);
     });
 
-    const proposal = await buildCitationAuthorRepairProposal({
-      articles: [article(dual)],
-      sourceDeployment: "test",
-      generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich: (candidates, options) => enrichKnownReferenceCandidatesWithDiagnostics(candidates, {
-        ...options,
-        fetchImpl,
-        maxAttempts: 1,
-      }),
-    });
+    const proposal = await buildCitationAuthorRepairProposal({ articles: [article(dual)], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich: (candidates, options) => enrichKnownReferenceCandidatesWithDiagnostics(candidates, {
+      ...options,
+      fetchImpl,
+      maxAttempts: 1,
+    }), });
 
     expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual([
       "https://api.crossref.org/works/10.1000%2Fexample",
@@ -188,12 +178,8 @@ describe("citation author repair proposal", () => {
       journal: "Example Journal",
       volume: "12",
     });
-    const proposal = await buildCitationAuthorRepairProposal({
-      articles: [article(noIdentifier)],
-      sourceDeployment: "test",
-      generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich,
-    });
+    const proposal = await buildCitationAuthorRepairProposal({ articles: [article(noIdentifier)], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich, });
 
     expect(enrich).not.toHaveBeenCalled();
     expect(proposal.residual).toHaveLength(1);
@@ -215,12 +201,8 @@ describe("citation author repair proposal", () => {
     };
     const duplicateArticle = article(candidate);
     duplicateArticle.references.push(duplicate);
-    const proposal = await buildCitationAuthorRepairProposal({
-      articles: [duplicateArticle],
-      sourceDeployment: "test",
-      generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich,
-    });
+    const proposal = await buildCitationAuthorRepairProposal({ articles: [duplicateArticle], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich, });
 
     expect(enrich).not.toHaveBeenCalled();
     expect(proposal.residual[0]).toMatchObject({
@@ -282,7 +264,7 @@ describe("citation author repair proposal", () => {
     const result = await runCitationAuthorRepairProposal(
       ["--output=tmp/test-proposal.json"],
       {
-        env: { SOURCE_CONVEX_URL: "https://test-source.convex.cloud" },
+        env: { DATA_BACKEND: "postgres", SOURCE_POSTGRES_URL: "postgres://test-source/dosewiki" },
         client: { query },
         api: { substanceIndex: { getLookupPage: lookupQuery, getBySlug: bySlugQuery } },
         generatedAt: "2026-08-09T00:00:00.000Z",
@@ -307,10 +289,8 @@ describe("citation author repair proposal", () => {
     const directory = mkdtempSync(resolve(tmpdir(), "citation-author-proposal-"));
     temporaryDirectories.push(directory);
     const output = resolve(directory, "proposal.json");
-    const proposal = await buildCitationAuthorRepairProposal({
-      articles: [article()], sourceDeployment: "test", generatedAt: "2026-08-09T00:00:00.000Z",
-      enrich: async ([candidate]) => enrichmentResult(candidate),
-    });
+    const proposal = await buildCitationAuthorRepairProposal({ articles: [article()], sourceDeployment: "example/dosewiki", generatedAt: "2026-08-09T00:00:00.000Z",
+    enrich: async ([candidate]) => enrichmentResult(candidate), });
     writeImmutableProposal(output, proposal);
     expect(JSON.parse(readFileSync(output, "utf8"))).toEqual(proposal);
     expect(() => writeImmutableProposal(output, proposal)).toThrow();

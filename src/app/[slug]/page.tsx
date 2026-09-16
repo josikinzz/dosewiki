@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
+import { loadSubstanceMetadataRoute, loadSubstanceRoute } from "@server/next/routeLoaders.substances";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
@@ -32,7 +32,7 @@ type SubstancePageProps = {
 
 export async function generateMetadata({ params }: SubstancePageProps) {
   const { slug } = await params;
-  const result = await loadSubstanceRoute(slug);
+  const result = await loadSubstanceMetadataRoute(slug);
 
   if (result.kind === "not-found") {
     notFound();

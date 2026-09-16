@@ -2,21 +2,18 @@ import { msg } from "../../src/i18n/messages";
 import "server-only";
 
 import { Suspense, type ReactNode } from "react";
-import { getPublicEffectDetail } from "@server/convex/publicLibrary";
+import { getPublicEffectDetail } from "@server/data/publicLibrary";
 import {
   EffectReplicationsSection,
   EffectReplicationsSectionFallback,
 } from "../../src/app/_components/public-routes/EffectReplicationsSection";
-import {
-  SubstanceTripReportsSection,
-  SubstanceTripReportsSectionFallback,
-} from "../../src/app/_components/public-routes/SubstanceTripReportsSection";
 import { SubstanceReplicationShowcaseSection } from "../../src/app/_components/public-routes/SubstanceReplicationShowcaseSection";
 import { buildSubstanceRecord } from "../../src/data/builders/contentBuilder";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { ContributorDirectory } from "../contributorDirectory";
 import type { ContributorAvatarMap } from "../../src/features/article/components/sections/ContributorsSection";
 import type { ArticleRecentChange } from "../../src/data/changelog/articleRecentChanges";
+import type { ArticleSecondarySections } from "../../src/features/article/components/ArticleLayout";
 import {
   buildEffectArticleModel,
   getEffectArticleReplicationState,
@@ -27,13 +24,12 @@ import type { SubstanceArticle } from "../../src/schema";
 import type { MoleculeAsset, SubstanceContent } from "../../src/types/content";
 import type { NormalizedReagentData } from "../../src/types/reagent";
 import type { WarningBannerPreset } from "../../src/data/substanceWarningBanners";
-import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
+import type { ReportCardModel } from "../../src/types/tripReport";
 import type {
-  PublicEffectPreview,
-  PublicReportPreview,
+  PublicEffectIndexEntry,
   SubjectiveEffectDetailRecord,
-} from "../convex/publicData";
-import type { PublicSubstanceRecord } from "../convex/publicData.shared";
+} from "../data/publicData";
+import type { PublicSubstanceRecord } from "../data/publicData.shared";
 
 const REPORT_HREF_PREFIX = "/reports/";
 const EFFECT_HREF_PREFIX = "/effects/";
@@ -53,7 +49,7 @@ function compactStrings(
   });
 }
 
-function buildSubstanceMetadataDescription(
+export function buildSubstanceMetadataDescription(
   substance: PublicSubstanceRecord,
 ): string {
   const summary = buildMetadataDescription(substance.summary ?? "");
@@ -76,7 +72,7 @@ function buildSubstanceMetadataDescription(
 }
 
 /** Bare page name only — buildPublicPageMetadata owns the " - <suffix>" tail. */
-function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
+export function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
   return (
     substance.identification?.common_name?.trim() ||
     substance.title.trim() ||
@@ -84,7 +80,7 @@ function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
   );
 }
 
-function buildEffectMetadataDescription(
+export function buildEffectMetadataDescription(
   effect: SubjectiveEffectDetailRecord,
 ): string {
   const prose = compactStrings([
@@ -139,8 +135,9 @@ export interface SubstanceArticleViewModel {
     linkableSubstanceSlugs: string[];
     linkableCategoryKeys: string[];
     tripReportsSection: ReactNode;
-    hasRelatedTripReports: boolean;
+    hasRelatedTripReports?: boolean;
     replicationShowcaseSection: ReactNode;
+    secondarySections?: ArticleSecondarySections;
     contributorAvatars?: ContributorAvatarMap;
     contributorDirectory: ContributorDirectory;
     externalReagentData?: NormalizedReagentData | null;
@@ -187,7 +184,7 @@ export interface EffectArticleViewModel {
 
 export function buildReportsIndexViewModel(input: {
   reportCount: number;
-  reports: PublicReportPreview[];
+  reports: ReportCardModel[];
 }): ReportsIndexViewModel {
   return {
     metadata: {
@@ -196,14 +193,14 @@ export function buildReportsIndexViewModel(input: {
     },
     pageProps: {
       reportHrefPrefix: REPORT_HREF_PREFIX,
-      reports: input.reports.map(toReportCardModel),
+      reports: input.reports,
     },
   };
 }
 
 export function buildEffectsIndexViewModel(input: {
   effectCount: number;
-  effects: PublicEffectPreview[];
+  effects: PublicEffectIndexEntry[];
 }): EffectsIndexViewModel {
   return {
     metadata: {
@@ -218,7 +215,7 @@ export function buildEffectsIndexViewModel(input: {
 }
 
 /**
- * Attach the canonical Convex depiction as the article's only molecule asset.
+ * Attach the canonical Postgres depiction as the article's only molecule asset.
  * No override row means no depiction: the content builder emits none.
  */
 function applyMoleculeOverrideUrl(
@@ -232,9 +229,9 @@ function applyMoleculeOverrideUrl(
   const primary: MoleculeAsset = {
     filename: `${slug}.svg`,
     url: overrideUrl,
-    matchedField: "convex-molecule",
+    matchedField: "data-molecule",
     matchedValue: slug,
-    resolution: "convex-canonical",
+    resolution: "data-canonical",
   };
   return {
     ...content,
@@ -248,13 +245,14 @@ export function buildSubstanceArticleViewModel(input: {
   substance: PublicSubstanceRecord;
   linkableSubstanceSlugs: string[];
   linkableCategoryKeys: string[];
-  tripReportsSection?: ReactNode;
+  tripReportsSection: ReactNode;
   replicationShowcaseSection?: ReactNode;
+  secondarySections?: ArticleSecondarySections;
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   moleculeOverrideUrl?: string | null;
   externalReagentData?: NormalizedReagentData | null;
-  hasRelatedTripReports: boolean;
+  hasRelatedTripReports?: boolean;
   /**
    * Already narrowed to this slug by `resolveEnabledBanners`. Required, not
    * defaulted: a caller that forgets it should fail to compile rather than
@@ -298,14 +296,8 @@ export function buildSubstanceArticleViewModel(input: {
       linkableSubstanceSlugs: input.linkableSubstanceSlugs,
       linkableCategoryKeys: input.linkableCategoryKeys,
       hasRelatedTripReports: input.hasRelatedTripReports,
-      tripReportsSection: input.tripReportsSection ?? (
-        <Suspense fallback={<SubstanceTripReportsSectionFallback />}>
-          <SubstanceTripReportsSection
-            article={publicArticle}
-            slug={input.slug}
-          />
-        </Suspense>
-      ),
+      tripReportsSection: input.tripReportsSection,
+      secondarySections: input.secondarySections,
       replicationShowcaseSection: input.replicationShowcaseSection ?? (
         <Suspense fallback={null}>
           <SubstanceReplicationShowcaseSection slug={input.slug} />
@@ -367,7 +359,7 @@ export function buildEffectArticleViewModel(input: {
 }
 
 export function toEffectsIndexSummary(
-  effect: PublicEffectPreview,
+  effect: PublicEffectIndexEntry,
 ): EffectsIndexSummary {
   return {
     slug: effect.slug,

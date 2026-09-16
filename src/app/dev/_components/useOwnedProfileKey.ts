@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
  *
  * `contributorProfiles:getOwnedProfile` needs the server's admin intent token,
  * so it cannot move into the browser; awaiting it in the route component
- * instead pushed an uncached Convex round trip in front of every byte of the
+ * instead pushed an uncached Postgres round trip in front of every byte of the
  * `/dev` response. The route now hands the unresolved promise down and this
  * hook adopts the answer when it lands. Until then the shell runs on the key
  * derived from the session email — the same value that read falls back to when

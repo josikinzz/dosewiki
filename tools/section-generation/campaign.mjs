@@ -4,27 +4,27 @@ import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { hostname } from "node:os";
 import { randomUUID } from "node:crypto";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, postgresFingerprintFromUrl, resolvePostgresTarget } from "../../scripts/lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import { GENERATION_SECTIONS, GENERATION_MODEL, GENERATION_THINKING, REGENERATION_AUDIT_VERSION, REGENERATION_ARTIFACT_KIND, isRegenerationEligible } from "../../lib/sectionGeneration/contract.mjs";
 import { publicationFieldsForProfile } from "../../lib/generatedPublication/profiles.mjs";
 import { canonicalHash, sha256Text, buildSectionProposal, writeImmutableManifest, writeProposalArtifacts, computeReviewedArtifactDigest, computeSectionCasHash, verifyManifest } from "../../scripts/batch/proposal/core.mjs";
-import { getAllSubstanceDocuments } from "../../scripts/lib/convex-pagination.mjs";
+import { getAllSubstanceDocuments } from "../../scripts/lib/data-pagination.mjs";
 import { sectionKeyToPromptKey } from "../../scripts/lib/prompt-registry.mjs";
 import { requireQuoteSection } from "../../lib/quoteSections.mjs";
-import { stripConvexMetadata } from "../../scripts/batch/summary/articles.mjs";
+import { stripDataMetadata } from "../../scripts/batch/summary/articles.mjs";
 import { substantiveExcerpt, isSourcePoorMarker, sourceBlocks, selectExactBlocks, parseWriterOutput, hasGeneratedContent } from "./evidence.mjs";
 
-export const PRODUCTION_URL = "https://glad-minnow-656.convex.cloud";
+export const PRODUCTION_IDENTITY = "aws-us-east-1-2.pg.psdb.cloud/postgres";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const TERMINAL = new Set(["unavailable", "verified", "no_change"]);
 const digestPattern = /^[a-f0-9]{64}$/;
-const clean = (article) => stripConvexMetadata(article);
+const clean = (article) => stripDataMetadata(article);
 const protectedHash = (article) => canonicalHash(Object.fromEntries(Object.entries(clean(article)).filter(([key]) => !GENERATION_SECTIONS.includes(key))));
 const ownedHash = (article, section) => computeSectionCasHash(section, publicationFieldsForProfile(section), article);
 const taskId = (slug, section) => `${slug}/${section}`;
-function requireProduction(url) {
-  if (url !== PRODUCTION_URL) throw new Error(`Only ${PRODUCTION_URL} is permitted`);
+function requireProduction(targetIdentity) {
+  if (targetIdentity !== PRODUCTION_IDENTITY) throw new Error(`Only ${PRODUCTION_IDENTITY} is permitted`);
 }
 function identity(article) {
   if (!article || typeof article.slug !== "string" || !article.slug.trim() ||
@@ -41,25 +41,25 @@ function checkedCorpus(rows) {
   }
   return rows.sort((a, b) => a.slug.localeCompare(b.slug, "en"));
 }
-export function createCampaignReader({ client, convexApi = api, auth = {}, url = PRODUCTION_URL, extractionPrompt } = {}) {
-  requireProduction(url);
+export function createCampaignReader({ client, postgresApi = api, auth = {}, targetIdentity = PRODUCTION_IDENTITY, extractionPrompt } = {}) {
+  requireProduction(targetIdentity);
   if (!client || typeof client.query !== "function") throw new Error("A query client is required");
   return Object.freeze({
-    url,
-    articles: () => getAllSubstanceDocuments(client, convexApi.substanceIndex.getFullDocumentPage),
-    article: (slug) => client.query(convexApi.substanceIndex.getBySlug, { slug }),
-    prompts: () => client.query(convexApi.prompts.getAll, {}),
-    quotes: (slug) => client.query(convexApi.quotes.getBySlug, { slug }),
-    sources: (slug) => client.query(convexApi.articleSources.getBySlug, { slug, ...auth }),
+    targetIdentity,
+    articles: () => getAllSubstanceDocuments(client, postgresApi.substanceIndex.getFullDocumentPage),
+    article: (slug) => client.query(postgresApi.substanceIndex.getBySlug, { slug }),
+    prompts: () => client.query(postgresApi.prompts.getAll, {}),
+    quotes: (slug) => client.query(postgresApi.quotes.getBySlug, { slug }),
+    sources: (slug) => client.query(postgresApi.articleSources.getBySlug, { slug, ...auth }),
     extractionPrompt: extractionPrompt ?? ((section) => readFileSync(resolve(ROOT, "scripts/prompts", requireQuoteSection(section).promptFile), "utf8")),
   });
 }
-function readerCheck(reader) { requireProduction(reader?.url); }
+function readerCheck(reader) { requireProduction(reader?.targetIdentity); }
 export async function auditCampaign({ reader }) {
   readerCheck(reader);
   const articles = checkedCorpus(await reader.articles());
   const eligible = articles.filter(isRegenerationEligible);
-  return { deployment: PRODUCTION_URL, articleCount: articles.length, eligibleCount: eligible.length,
+  return { deployment: PRODUCTION_IDENTITY, articleCount: articles.length, eligibleCount: eligible.length,
     taskCount: eligible.length * GENERATION_SECTIONS.length, sections: GENERATION_SECTIONS,
     articles: eligible.map((article) => ({ ...identity(article), title: article.title, priority: article.priority,
       index_categories: article.index_categories, articleHash: canonicalHash(article) })) };
@@ -90,7 +90,7 @@ function readObject(runDir, digest) {
 function loadState(runDir) {
   const pointer = JSON.parse(readFileSync(resolve(runDir, "state.json"), "utf8"));
   const state = readObject(runDir, pointer.digest);
-  if (state.version !== "section-generation-campaign-v1") throw new Error("Unknown campaign version");
+  if (state.version !== "section-generation-campaign-v2") throw new Error("Unknown campaign version");
   requireProduction(state.deployment);
   return state;
 }
@@ -219,7 +219,7 @@ export async function initCampaign({ runDir, reader }) {
   return withLock(runDir, async () => {
     if (existsSync(resolve(runDir, "state.json"))) throw new Error("Campaign already initialized; use next/status/verify to resume");
     const { articles, prompts } = await readInputs(reader);
-    const state = { version: "section-generation-campaign-v1", deployment: PRODUCTION_URL,
+    const state = { version: "section-generation-campaign-v2", deployment: PRODUCTION_IDENTITY,
       createdAt: new Date().toISOString(), articles: {}, tasks: {}, finalAudit: null };
     for (const article of articles.filter(isRegenerationEligible)) {
       state.articles[article.slug] = { identity: identity(article), protectedHash: protectedHash(article) };
@@ -364,11 +364,11 @@ function buildArtifacts(runDir, task, snapshot, accepted, liveArticle) {
   const excerpt = task.extractionHash ? readObject(runDir, task.extractionHash).exactContent : snapshot.quote.content;
   const audit = { version: REGENERATION_AUDIT_VERSION, section: task.section, promptHash: sha256Text(snapshot.prompt.content),
     excerptHash: sha256Text(excerpt), model: GENERATION_MODEL, thinking: GENERATION_THINKING };
-  const manifest = writeImmutableManifest(manifestPath, { schemaVersion: "section-proposal-manifest-v1", snapshotHash: task.snapshotHash,
-    deployments: { source: { url: PRODUCTION_URL, fingerprint: "glad-minnow-656" }, target: { url: PRODUCTION_URL, fingerprint: "glad-minnow-656" } },
+  const manifest = writeImmutableManifest(manifestPath, { schemaVersion: "section-proposal-manifest-v2", snapshotHash: task.snapshotHash,
+    deployments: { source: { identity: PRODUCTION_IDENTITY, fingerprint: PRODUCTION_IDENTITY }, target: { identity: PRODUCTION_IDENTITY, fingerprint: PRODUCTION_IDENTITY } },
     targetArticle: liveArticle, targetArticleHash: canonicalHash(liveArticle), prompt: snapshot.prompt,
     exactExcerpt: excerpt, regenerationAudit: audit, acceptedHash: task.acceptedHash, workerReceipt: accepted.output });
-  const proposal = buildSectionProposal({ slug: task.slug, targetDeploymentFingerprint: "glad-minnow-656",
+  const proposal = buildSectionProposal({ slug: task.slug, targetDeploymentFingerprint: PRODUCTION_IDENTITY,
     targetArticle: clean(liveArticle), sectionKey: task.section, generatedValue: accepted.value,
     manifestDigest: manifest.manifestDigest, manifestPath: relative(ROOT, manifestPath), rawResponse: accepted.output.rawText,
     publicationProfile: task.section, publicationFields: publicationFieldsForProfile(task.section),
@@ -553,24 +553,31 @@ export async function verifyCampaign({ runDir, reader }) {
 }
 
 export function campaignHelpText() {
-  return `Read-only production section generation campaign (Bun required)\n\nUsage: bun tools/section-generation/campaign.mjs <command> [flags]\n\n  audit [--url=${PRODUCTION_URL}]\n  init --run=<path>\n  next --run=<path> [--limit=<1..32>]\n  ingest --run=<path> --packet=<digest> --input=<worker-envelope.json>\n  status --run=<path>\n  verify --run=<path>\n  receipt --run=<path> --task=<slug/section> --input=<publisher-result.json>\n  retry --run=<path> --task=<slug/section> --reason=<reason>\n  reject --run=<path> --task=<slug/section> --reason=<reason>\n  recover-lock --run=<path>\n\nAll live commands accept --url (production only). Suggested run path: runs/section-generation/<campaign>.\nnext reserves packets; repeated next never redispatches them. Use retry to revoke an interrupted packet before dispatching again. Use reject to archive an unwanted generated candidate and request fresh generation.\nWorker envelopes contain rawText, model, thinking, tools:[], inputHash, provider, accountId, startedAt, completedAt.\nNeeds-review tasks remain actionable until explicit external approval/publication, receipt, and live verification.\nNo command launches a model, writes Convex, publishes, or changes quote documents.\n`;
+  return `Read-only production section generation campaign (Bun required)\n\nUsage: bun tools/section-generation/campaign.mjs <command> [flags]\n\n  audit --target=<postgres-url> --allow-remote\n  init --run=<path>\n  next --run=<path> [--limit=<1..32>]\n  ingest --run=<path> --packet=<digest> --input=<worker-envelope.json>\n  status --run=<path>\n  verify --run=<path>\n  receipt --run=<path> --task=<slug/section> --input=<publisher-result.json>\n  retry --run=<path> --task=<slug/section> --reason=<reason>\n  reject --run=<path> --task=<slug/section> --reason=<reason>\n  recover-lock --run=<path>\n\nAll live commands require --target or TARGET_POSTGRES_URL (production ${PRODUCTION_IDENTITY} only), DATA_BACKEND=postgres, --allow-remote, and POSTGRES_IMPORT_CONFIRM=<hostname>. Suggested run path: runs/section-generation/<campaign>.\nnext reserves packets; repeated next never redispatches them. Use retry to revoke an interrupted packet before dispatching again. Use reject to archive an unwanted generated candidate and request fresh generation.\nWorker envelopes contain rawText, model, thinking, tools:[], inputHash, provider, accountId, startedAt, completedAt.\nNeeds-review tasks remain actionable until explicit external approval/publication, receipt, and live verification.\nNo command launches a model, writes Postgres, publishes, or changes quote documents.\n`;
 }
 export function parseCampaignArgs(argv) {
   if (argv.length === 1 && ["--help", "-h"].includes(argv[0])) return { command: "help" };
   const [command, ...args] = argv;
-  const allowed = { audit: ["url"], init: ["run", "url"], next: ["run", "url", "limit"],
-    ingest: ["run", "url", "packet", "input"], status: ["run"], verify: ["run", "url"],
-    receipt: ["run", "url", "task", "input"], retry: ["run", "url", "task", "reason"],
-    reject: ["run", "url", "task", "reason"], "recover-lock": ["run"] };
+  const allowed = { audit: ["target"], init: ["run", "target"], next: ["run", "target", "limit"],
+    ingest: ["run", "target", "packet", "input"], status: ["run"], verify: ["run", "target"],
+    receipt: ["run", "target", "task", "input"], retry: ["run", "target", "task", "reason"],
+    reject: ["run", "target", "task", "reason"], "recover-lock": ["run"] };
   if (!Object.hasOwn(allowed, command)) throw new Error("Unknown command; use --help");
   const result = { command };
-  for (const argument of args) {
-    const match = /^--([a-z-]+)=(.+)$/.exec(argument);
-    if (!match || !allowed[command].includes(match[1]) || Object.hasOwn(result, match[1]) || !match[2].trim()) throw new Error(`Unknown, duplicate, or empty argument: ${argument}`);
-    result[match[1]] = match[2];
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === "--allow-remote" && allowed[command].includes("target") && !result.allowRemote) {
+      result.allowRemote = true;
+      continue;
+    }
+    const match = /^--([a-z-]+)(?:=(.+))?$/.exec(argument);
+    if (!match || !allowed[command].includes(match[1]) || Object.hasOwn(result, match[1])) throw new Error("Unknown or duplicate campaign argument");
+    const value = match[2] ?? args[++index];
+    if (!value || value.startsWith("--") || !value.trim()) throw new Error(`--${match[1]} requires a value`);
+    result[match[1]] = value;
   }
   if (command !== "audit" && !result.run) throw new Error("--run=<path> is required");
-  if (result.url) requireProduction(result.url);
+  if (result.target) requireProduction(postgresFingerprintFromUrl(result.target));
   for (const flag of command === "ingest" ? ["packet", "input"] : command === "receipt" ? ["task", "input"] : ["retry", "reject"].includes(command) ? ["task", "reason"] : []) {
     if (!result[flag]) throw new Error(`--${flag} is required`);
   }
@@ -584,8 +591,14 @@ export async function runCampaignCli({ argv = process.argv.slice(2), reader, env
   const runDir = args.run ? resolve(args.run) : undefined;
   if (args.command === "status") return campaignStatus({ runDir });
   if (args.command === "recover-lock") return recoverLock({ runDir });
-  const source = reader ?? createCampaignReader({ client: new ConvexHttpClient(args.url ?? PRODUCTION_URL),
-    auth: { apiKey: env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? env.CONVEX_ADMIN_KEY } });
+  let source = reader;
+  if (!source) {
+    const target = resolvePostgresTarget({ argv, env, explicitOnly: true });
+    if (!target.url) throw new Error("Live campaigns require --target or TARGET_POSTGRES_URL explicitly.");
+    const connection = createDataClient({ target: target.url, argv, env, allowRemote: args.allowRemote === true });
+    source = createCampaignReader({ client: connection.client, targetIdentity: connection.fingerprint,
+      auth: { apiKey: env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? env.DATA_ADMIN_KEY } });
+  }
   const common = { runDir, reader: source };
   switch (args.command) {
     case "audit": return auditCampaign(common);

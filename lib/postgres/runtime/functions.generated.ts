@@ -1,55 +1,58 @@
 // GENERATED FILE. Do not edit by hand.
-// Source: convex/*.ts. Rerun with `npm run generate:postgres-functions`.
+// Producer: scripts/postgres/generateFunctionRegistry.ts
+// Inputs: runtime/functionOwnership.json and owned function modules.
 
-import * as articleFeedback from "../../../convex/articleFeedback";
-import * as articleLifecycle from "../../../convex/articleLifecycle";
-import * as articleSources from "../../../convex/articleSources";
-import * as authorAttribution from "../../../convex/authorAttribution";
-import * as bindingSiteMigration from "../../../convex/bindingSiteMigration";
-import * as categoryLayout from "../../../convex/categoryLayout";
-import * as changeProposalReview from "../../../convex/changeProposalReview";
-import * as changeProposals from "../../../convex/changeProposals";
-import * as changelog from "../../../convex/changelog";
-import * as citationEvidence from "../../../convex/citationEvidence";
-import * as contentRevisions from "../../../convex/contentRevisions";
-import * as contributorProfileMerges from "../../../convex/contributorProfileMerges";
-import * as contributorProfiles from "../../../convex/contributorProfiles";
-import * as copyBlocks from "../../../convex/copyBlocks";
-import * as effectIndexArchive from "../../../convex/effectIndexArchive";
-import * as effectIndexArticles from "../../../convex/effectIndexArticles";
-import * as indexLayouts from "../../../convex/indexLayouts";
-import * as inviteCodes from "../../../convex/inviteCodes";
-import * as mailingList from "../../../convex/mailingList";
-import * as memberships from "../../../convex/memberships";
-import * as moleculeClassTemplates from "../../../convex/moleculeClassTemplates";
-import * as moleculeOverrides from "../../../convex/moleculeOverrides";
-import * as prompts from "../../../convex/prompts";
-import * as publicReadIndexes from "../../../convex/publicReadIndexes";
-import * as publicReplicationIdentitySocial from "../../../convex/publicReplicationIdentitySocial";
-import * as publicationDelivery from "../../../convex/publicationDelivery";
-import * as publicationRecovery from "../../../convex/publicationRecovery";
-import * as quotes from "../../../convex/quotes";
-import * as reagentTestContract from "../../../convex/reagentTestContract";
-import * as reagentTests from "../../../convex/reagentTests";
-import * as replicationAttribution from "../../../convex/replicationAttribution";
-import * as replicationContextualEditing from "../../../convex/replicationContextualEditing";
-import * as replicationDates from "../../../convex/replicationDates";
-import * as replicationDuplicates from "../../../convex/replicationDuplicates";
-import * as replicationIdentitySocial from "../../../convex/replicationIdentitySocial";
-import * as replicationPlaylists from "../../../convex/replicationPlaylists";
-import * as replicationTaxonomy from "../../../convex/replicationTaxonomy";
-import * as replications from "../../../convex/replications";
-import * as siteConfig from "../../../convex/siteConfig";
-import * as siteFeedback from "../../../convex/siteFeedback";
-import * as subjectiveEffects from "../../../convex/subjectiveEffects";
-import * as substanceGalleries from "../../../convex/substanceGalleries";
-import * as substanceIndex from "../../../convex/substanceIndex";
-import * as tripReportContract from "../../../convex/tripReportContract";
-import * as tripReportSubmissions from "../../../convex/tripReportSubmissions";
-import * as tripReports from "../../../convex/tripReports";
-import * as warningBanners from "../../../convex/warningBanners";
+import * as articleFeedback from "../../../server/articleFeedback";
+import * as articleLifecycle from "../../../server/articleLifecycle";
+import * as articleSources from "../../../server/articleSources";
+import * as authorAttribution from "../../../server/authorAttribution";
+import * as bindingSiteMigration from "../../../server/bindingSiteMigration";
+import * as categoryLayout from "../../../server/categoryLayout";
+import * as changeProposalReview from "../../../server/changeProposalReview";
+import * as changeProposals from "../../../server/changeProposals";
+import * as changelog from "../../../server/changelog";
+import * as citationEvidence from "../../../server/citationEvidence";
+import * as contentRevisions from "../../../server/contentRevisions";
+import * as contributorProfileMerges from "../../../server/contributorProfileMerges";
+import * as contributorProfiles from "../../../server/contributorProfiles";
+import * as copyBlocks from "../../../server/copyBlocks";
+import * as effectIndexArchive from "../../../server/effectIndexArchive";
+import * as effectIndexArticles from "../../../server/effectIndexArticles";
+import * as indexLayouts from "../../../server/indexLayouts";
+import * as inviteCodes from "../../../server/inviteCodes";
+import * as mailingList from "../../../server/mailingList";
+import * as memberships from "../../../server/memberships";
+import * as moleculeClassTemplates from "../../../server/moleculeClassTemplates";
+import * as moleculeEditor from "../../../server/moleculeEditor";
+import * as moleculeOverrides from "../../../server/moleculeOverrides";
+import * as prompts from "../../../server/prompts";
+import * as publicArtistCredits from "../../../server/publicArtistCredits";
+import * as publicOverview from "../../../server/publicOverview";
+import * as publicReadIndexes from "../../../server/publicReadIndexes";
+import * as publicReplicationIdentitySocial from "../../../server/publicReplicationIdentitySocial";
+import * as publicationRecovery from "../../../server/publicationRecovery";
+import * as quotes from "../../../server/quotes";
+import * as reagentTestContract from "../../../server/reagentTestContract";
+import * as reagentTests from "../../../server/reagentTests";
+import * as replicationAttribution from "../../../server/replicationAttribution";
+import * as replicationContextualEditing from "../../../server/replicationContextualEditing";
+import * as replicationDates from "../../../server/replicationDates";
+import * as replicationDuplicates from "../../../server/replicationDuplicates";
+import * as replicationIdentitySocial from "../../../server/replicationIdentitySocial";
+import * as replicationPlaylists from "../../../server/replicationPlaylists";
+import * as replicationTaxonomy from "../../../server/replicationTaxonomy";
+import * as replications from "../../../server/replications";
+import * as siteConfig from "../../../server/siteConfig";
+import * as siteFeedback from "../../../server/siteFeedback";
+import * as subjectiveEffects from "../../../server/subjectiveEffects";
+import * as substanceGalleries from "../../../server/substanceGalleries";
+import * as substanceIndex from "../../../server/substanceIndex";
+import * as tripReportContract from "../../../server/tripReportContract";
+import * as tripReportSubmissions from "../../../server/tripReportSubmissions";
+import * as tripReports from "../../../server/tripReports";
+import * as warningBanners from "../../../server/warningBanners";
 
-/** Convex function modules keyed by their Convex module path. */
+/** Server-only callable modules. Helper exports are not callable registrations. */
 export const functionModules: Record<string, Record<string, unknown>> = {
   articleFeedback,
   articleLifecycle,
@@ -72,11 +75,13 @@ export const functionModules: Record<string, Record<string, unknown>> = {
   mailingList,
   memberships,
   moleculeClassTemplates,
+  moleculeEditor,
   moleculeOverrides,
   prompts,
+  publicArtistCredits,
+  publicOverview,
   publicReadIndexes,
   publicReplicationIdentitySocial,
-  publicationDelivery,
   publicationRecovery,
   quotes,
   reagentTestContract,

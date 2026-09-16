@@ -181,7 +181,7 @@ export function useReviewSettings({
    * Record a workbench position in the address bar.
    *
    * `pushState`, not `router.push`: this route is `force-dynamic` and
-   * `ReviewRouteClient` re-downloads the whole Convex library on mount, so
+   * `ReviewRouteClient` re-downloads the whole Postgres library on mount, so
    * routing per article would remount the workbench between every flip. Next's
    * App Router patches `pushState` and copies its own internals onto the state
    * object, so the entry stays one the router will traverse rather than reload.

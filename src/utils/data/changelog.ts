@@ -21,6 +21,10 @@ const joinPath = (segments: string[]) =>
 const valuesEqual = (a: unknown, b: unknown) => Object.is(a, b);
 
 export const collectDiff = (original: unknown, updated: unknown, segments: string[], acc: DiffEntry[]) => {
+  if (Object.is(original, updated)) {
+    return;
+  }
+
   if (original === undefined && updated === undefined) {
     return;
   }

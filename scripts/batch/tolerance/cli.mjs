@@ -52,7 +52,7 @@ export function parseArgs() {
       "skip-backup": "skipBackup",
       "include-existing": "includeExisting",
       "source-url": "sourceUrl",
-      "target-url": "targetUrl",
+      "target": "targetUrl",
     },
   });
 }

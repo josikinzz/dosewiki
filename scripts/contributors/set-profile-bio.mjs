@@ -16,15 +16,15 @@
  *     --bio-file=runs/profile-bios/symmetricvision.md
  *
  * Apply:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *   node scripts/contributors/set-profile-bio.mjs --key=SYMMETRICVISION \
  *     --bio-file=runs/profile-bios/symmetricvision.md --write \
  *     --confirm-write=set-contributor-profile-bio \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  */
 import fs from "node:fs";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
   assertProductionWriteAllowed,
@@ -73,10 +73,10 @@ async function main() {
     throw new Error("Usage: --key=<PROFILE_KEY> --bio-file=<path> [--write ...]");
   }
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
     throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
+      "Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL) so the script knows which deployment to read.",
     );
   }
 
@@ -86,7 +86,7 @@ async function main() {
   const plan = planBioChange(profile, bio);
 
   if (plan.action === "missing") {
-    throw new Error(`Profile ${key} does not exist on ${readUrl}.`);
+    throw new Error(`Profile ${key} does not exist on ${postgresFingerprintFromUrl(readUrl)}.`);
   }
   console.log(`\nProfile ${key} (${profile.displayName})`);
   if (plan.action === "unchanged") {
@@ -97,7 +97,7 @@ async function main() {
   printBlock("Proposed bio", plan.after);
 
   if (command.dryRun) {
-    console.log("\nDry run: no Convex writes performed.");
+    console.log("\nDry run: no Postgres writes performed.");
     return;
   }
 

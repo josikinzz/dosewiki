@@ -14,7 +14,7 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { stripCitationMarkers } from "./citation-only-validator.mjs";
 import { hasUnsafeReferenceMarkup } from "../../lib/citations/referenceIdentity.mjs";
 import { mergeReferences, normalizeSelectedSections } from "./workbench-draft-adapter.mjs";
@@ -158,7 +158,7 @@ export function mergeCitationMarkers(liveText, draftText, referenceAliases = new
 
 const clone = (value) => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
 
-// Reference fields the Convex article contract rejects if left in their raw
+// Reference fields the Postgres article contract rejects if left in their raw
 // workbench form: a `template` outside the allowed set, or numeric
 // volume/issue/pages. Any code path that writes references into a draft the
 // apply step will consume must run them through this first.
@@ -341,7 +341,7 @@ async function main() {
     operation: "rebase citation workbench draft",
     intent: "citation-pilot",
     argv,
-    sourceUrlKeys: ["SOURCE_CONVEX_URL", "TARGET_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL"],
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL", "TARGET_POSTGRES_URL", "POSTGRES_POOLED_URL"],
     targetUrlKeys: [],
     dryRunFlag: null,
     executeFlag: null,

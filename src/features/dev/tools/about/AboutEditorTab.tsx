@@ -26,7 +26,6 @@ import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
 import { AboutFounderSelectionSection } from "./AboutFounderSelectionSection";
 import { useAboutEditorController } from "./useAboutEditorController";
-import { useLibrary } from "@/data/SubstanceIndexProvider";
 
 const AUTO_RESIZE_MIN_HEIGHT = 240;
 const SUBTITLE_MIN_HEIGHT = 80;
@@ -48,17 +47,8 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   onDirtyChange,
   onCanDiscardChange,
 }: AboutEditorTabProps) {
-  const library = useLibrary();
   const { confirm, dialog } = useConfirm();
-  const controller = useAboutEditorController({ canApprove, placeholderValues: {
-    compoundCount: library.substanceRecords.length.toLocaleString(),
-    psychoactiveClassCount: library.dosageCategoryGroups.length.toLocaleString(),
-    categoryCount: library.dosageCategoryGroups.length.toLocaleString(),
-    chemicalClassCount: library.chemicalClassIndexGroups.length.toLocaleString(),
-    mechanismClassCount: library.mechanismIndexGroups.length.toLocaleString(),
-    mechanismOfActionClassCount: library.mechanismIndexGroups.length.toLocaleString(),
-    reportCount: "0", replicationCount: "0",
-  } });
+  const controller = useAboutEditorController({ canApprove });
   const {
     isLoaded,
     draft,

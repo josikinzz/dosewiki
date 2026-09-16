@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
 import { createBatchTargetClient, createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
@@ -10,10 +11,10 @@ import {
 } from "./dosage-duration/lib.mjs";
 import {
   hasQuotesForSlug,
-  initConvexClient,
+  initPostgresClient,
   loadArticles,
   loadDosageDurationQuotes,
-  loadPromptFromConvex,
+  loadPromptFromPostgres,
 } from "./dosage-duration/loader.mjs";
 import { createBackup, processAll } from "./dosage-duration/persist.mjs";
 
@@ -31,15 +32,15 @@ async function main(options) {
   const sourceUrl = targetContext.sourceUrl;
   const targetUrl = targetContext.targetUrl;
   if (!sourceUrl && !options.dryRun) {
-    console.error("Error: batch source Convex URL is required");
+    console.error("Error: batch source Postgres URL is required");
     process.exit(1);
   }
   if (!targetUrl && !options.dryRun) {
-    console.error("Error: batch target Convex URL is required");
+    console.error("Error: batch target Postgres URL is required");
     process.exit(1);
   }
   if (sourceUrl) {
-    initConvexClient(sourceUrl);
+    initPostgresClient(sourceUrl);
   }
 
   printBatchBanner({
@@ -49,8 +50,8 @@ async function main(options) {
     details: [
       { label: "Mode", value: options.newOnly ? "New-only" : options.all ? "All quote-backed" : "Existing content only" },
       { label: "Field Preservation", value: "bioavailability / half_life preserved" },
-      { label: "Source Convex", value: sourceUrl },
-      { label: "Target Convex", value: targetUrl },
+      { label: "Source Postgres", value: postgresFingerprintFromUrl(sourceUrl) },
+      { label: "Target Postgres", value: postgresFingerprintFromUrl(targetUrl) },
     ],
   });
 
@@ -98,13 +99,13 @@ async function main(options) {
     return;
   }
 
-  console.log("\nLoading prompt from Convex...");
-  const systemPrompt = await loadPromptFromConvex();
+  console.log("\nLoading prompt from Postgres...");
+  const systemPrompt = await loadPromptFromPostgres();
   console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
 
   const adminKey = options.dryRun ? null : requireBatchArticleWriteToken();
   if (!adminKey) {
-    console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+    console.error("Error: DATA_ADMIN_KEY environment variable is required for Postgres sync");
     process.exit(1);
   }
 
@@ -116,7 +117,7 @@ async function main(options) {
   const startTime = Date.now();
   const results = await processAll(apiKey, articles, systemPrompt, options, {
     adminKey,
-    convexClient: createBatchTargetClient(targetContext),
+    postgresClient: createBatchTargetClient(targetContext),
     allArticles,
     articlesMap: new Map(allArticles.map((article) => [article.title, article])),
   });
@@ -132,7 +133,7 @@ async function main(options) {
     console.log("\n" + "=".repeat(55));
     console.log("IMPORTANT: Run the following to rebuild compressed articles:");
     console.log("  node scripts/build/buildCompressedArticles.mjs");
-    console.log("(Convex sync already complete)");
+    console.log("(Postgres sync already complete)");
     console.log("=".repeat(55));
   }
 }

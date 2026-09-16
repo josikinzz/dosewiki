@@ -301,11 +301,10 @@ export function classifyAuditRow(input: ClassifyAuditRowInput): ClassifiedAuditR
 }
 
 export interface ChemistryAuditReport {
-  schemaVersion: "iupac-name-audit-v1";
+  schemaVersion: "iupac-name-audit-v2";
   generatedAt: string;
   source: {
-    convexUrl: string;
-    deployment: string;
+    targetIdentity: string;
   };
   providers: {
     rdkitVersion: string;
@@ -347,14 +346,14 @@ const AUDIT_STATUSES: AuditStatus[] = [
 export function buildChemistryAuditReport({
   rows,
   generatedAt,
-  convexUrl,
+  targetIdentity,
   rdkitVersion,
   opsinEndpoint,
   pubchemEndpoint,
 }: {
   rows: ClassifiedAuditRow[];
   generatedAt: string;
-  convexUrl: string;
+  targetIdentity: string;
   rdkitVersion: string;
   opsinEndpoint: string;
   pubchemEndpoint: string;
@@ -371,11 +370,10 @@ export function buildChemistryAuditReport({
   const coverageGaps = rows.filter((row) => coverageStatuses[row.status]);
 
   return {
-    schemaVersion: "iupac-name-audit-v1",
+    schemaVersion: "iupac-name-audit-v2",
     generatedAt,
     source: {
-      convexUrl,
-      deployment: new URL(convexUrl).hostname.split(".")[0] ?? "unknown",
+      targetIdentity,
     },
     providers: {
       rdkitVersion,
@@ -390,7 +388,7 @@ export function buildChemistryAuditReport({
       nonGoals: [
         "Selecting a unique preferred IUPAC name from multiple valid systematic names.",
         "Inferring that a plant, preparation, mixture, salt, or representative active compound is a single chemical entity.",
-        "Writing any Convex or article data.",
+        "Writing any Postgres or article data.",
       ],
     },
     summary: {

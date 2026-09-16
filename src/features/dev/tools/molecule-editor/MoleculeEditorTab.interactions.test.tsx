@@ -7,12 +7,12 @@ import {
   installMoleculeEditorTestHarness,
   renderMoleculeSvgMock,
   seedExampleSubstance,
+  stubMoleculeEditorFetch,
   smilesToMolblockMock,
   stubOverrideFetch,
   useOclMock,
   useQueryMock,
   useRdkitMock,
-  useSubstanceLookupMock,
 } from "./MoleculeEditorTab.testHarness";
 import { MoleculeEditorTab } from "./MoleculeEditorTab";
 
@@ -34,8 +34,10 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     // arms the canvas pick overlay instead of demanding a lasso selection.
     const setVertical = screen.getByRole("button", { name: "Set bond vertical" });
     const straighten = screen.getByRole("button", { name: "Straighten" });
-    expect(straighten).toBeEnabled();
-    expect(setVertical).toBeEnabled();
+    await waitFor(() => {
+      expect(straighten).toBeEnabled();
+      expect(setVertical).toBeEnabled();
+    });
 
     await user.click(setVertical);
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-bond-pick", "true");
@@ -92,41 +94,44 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     useRdkitMock.mockReturnValue({ rdkit: {}, error: null });
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({ match: false, inchiOriginal: "a", inchiEdited: "b" });
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: [
-        { slug: "example", name: "Example" },
-        { slug: "donor", name: "Donor" },
+    useQueryMock.mockReturnValue(undefined);
+    stubMoleculeEditorFetch({
+      picker: [
+        {
+          slug: "example",
+          title: "Example",
+          priority: "normal",
+          index_categories: ["substance"],
+          classification: null,
+          hasOverride: true,
+        },
+        {
+          slug: "donor",
+          title: "Donor",
+          priority: "normal",
+          index_categories: ["substance"],
+          classification: null,
+          hasOverride: true,
+        },
       ],
-      isLoading: false,
-      status: "Exhausted",
-    });
-    useQueryMock.mockImplementation((query, args) => {
-      const functionName = query;
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return [{ slug: "example" }, { slug: "donor" }];
-      }
-      if (functionName === "substanceIndex:getBySlug") {
-        return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
-      }
-      return undefined;
-    });
-    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = String(input);
-      const slug = url.includes("slug=donor") ? "donor" : "example";
-      return Promise.resolve(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            override: {
-              slug,
-              molblock: `${slug} molblock`,
-              svg: "<svg />",
-              updatedAt: "2026-07-12T00:00:00.000Z",
-            },
-          }),
-          { status: 200, headers: { "Content-Type": "application/json" } },
-        ),
-      );
+      sources: {
+        example: { slug: "example", smiles: "CCO" },
+        donor: { slug: "donor", smiles: "CCO" },
+      },
+      overrides: {
+        example: {
+          slug: "example",
+          molblock: "example molblock",
+          svg: "<svg />",
+          updatedAt: "2026-07-12T00:00:00.000Z",
+        },
+        donor: {
+          slug: "donor",
+          molblock: "donor molblock",
+          svg: "<svg />",
+          updatedAt: "2026-07-12T00:00:00.000Z",
+        },
+      },
     });
 
     render(<MoleculeEditorTab />);
@@ -182,7 +187,7 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     expect(screen.getByText("Structure loaded from SMILES")).toBeInTheDocument();
   });
 
-  it("keeps a canvas edit when Convex redelivers an equal article", async () => {
+  it("keeps a canvas edit when Postgres redelivers an equal article", async () => {
     // A live query hands back a fresh object identity on every redelivery — a
     // resubscribe, or any write touching the row. That must not resolve the
     // baseline again and discard the drawing: the canvas is uncontrolled once

@@ -1,40 +1,24 @@
 /**
- * A `ConvexHttpClient`-shaped client that runs the registered Convex functions
- * in this process against Postgres.
- *
- * `query` runs the handler inside a REPEATABLE READ READ ONLY transaction.
- * `mutation` runs it SERIALIZABLE and replays the whole handler on
- * serialization failure, which is the SQL equivalent of Convex retrying a
- * mutation that lost an OCC race. Handlers are therefore re-executed from the
- * top, exactly as they are on Convex, so they must stay free of external
- * side effects (they are: no actions exist and `ctx.scheduler` is unused).
+ * Executes owned callables inside Postgres transactions.
+ * Queries use REPEATABLE READ READ ONLY. Mutations use SERIALIZABLE and retry
+ * the complete handler on serialization/deadlock failure. External effects
+ * belong to the post-commit publication delivery worker, never these handlers.
  */
 
-import { getFunctionName, type ArgsAndOptions, type FunctionReference, type FunctionReturnType, type OptionalRestArgs } from "convex/server";
-import type { HttpMutationOptions } from "convex/browser";
+import { getFunctionName, type ArgsAndOptions, type FunctionReference, type FunctionReturnType, type OptionalRestArgs, type HttpMutationOptions, type FunctionKind } from "./api";
+import type { RegisteredFunction, QueryCtx, MutationCtx } from "./server";
 import { Pool } from "pg";
 import { assertDeploymentEnv } from "./deploymentEnv";
 import { loadIdTableMap, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
-import { validateValue, type ValidatorJson } from "./validate";
+import { validateValue, validateReturn, type IdValidation } from "./validate";
 import { POOL_ACQUISITION_TIMEOUT_MS, setTransactionTimeouts } from "../transactionTimeouts";
+import { withTransaction, type SqlClient } from "../documentStore";
+import { parsePostgresTarget } from "./target";
+import { assertDataWritesNotFrozen, isDataWriteFreezeActive } from "../../runtime/dataWriteFreeze";
 
-type Registered = {
-  isQuery?: boolean;
-  isMutation?: boolean;
-  isAction?: boolean;
-  isPublic?: boolean;
-  isInternal?: boolean;
-  exportArgs: () => string;
-  _handler: (ctx: unknown, args: Record<string, unknown>) => Promise<unknown>;
-};
+type Registered = RegisteredFunction;
 
-export type FunctionKind = "query" | "mutation" | "action";
-
-/**
- * The registry statically imports all 47 Convex modules, which in turn pull
- * `convex/_generated/server`. Loading it lazily keeps that graph out of every
- * consumer of `backend.ts` (and out of the Convex-backed server bundle).
- */
+/** Load the server-only module graph only when a callable is invoked. */
 let registry: Record<string, Record<string, unknown>> | null = null;
 let registryLoad: Promise<Record<string, Record<string, unknown>>> | null = null;
 
@@ -55,9 +39,9 @@ export async function resolveFunction(
   const name = typeof reference === "string" ? reference : getFunctionName(reference);
   const [modulePath, exportName] = name.split(":");
   const modules = await loadRegistry();
-  const module = modules[modulePath?.replace(/\.js$/, "") ?? ""];
-  const fn = module?.[exportName ?? ""] as Registered | undefined;
-  if (!fn || typeof fn._handler !== "function") throw new Error(`Convex function ${name} is not registered`);
+  const module = modules[modulePath ?? ""];
+  const fn = module && Object.prototype.hasOwnProperty.call(module, exportName ?? "") ? module[exportName ?? ""] as Registered | undefined : undefined;
+  if (name.split(":").length !== 2 || !fn || (fn.kind !== "query" && fn.kind !== "mutation") || typeof fn._handler !== "function" || !fn.args || !fn.returns) throw new Error(`Postgres function ${name} is not registered`);
   return { name, fn };
 }
 
@@ -84,41 +68,33 @@ function storageFor(client: SqlExecutor) {
       const result = await client.query('SELECT "url" FROM "storageObjects" WHERE "storage_id" = $1', [storageId]);
       return (result.rows[0]?.url as string | undefined) ?? null;
     },
-    async generateUploadUrl(): Promise<string> {
-      throw new Error("Convex storage uploads are unavailable on the Postgres runtime; use the R2 signed upload path");
-    },
-    async getMetadata() {
-      return null;
-    },
-    async delete() {
-      throw new Error("Convex storage deletes are unavailable on the Postgres runtime");
-    },
   };
 }
 
 const auth = {
-  /** No Convex identity provider is configured for this app; handlers authenticate with API keys. */
+  /** No identity provider is configured on this handler context; handlers authenticate with API keys. */
   async getUserIdentity() {
     return null;
   },
 };
 
-const scheduler = {
-  async runAfter(): Promise<never> {
-    throw new Error("ctx.scheduler is not supported on the Postgres runtime");
-  },
-  async runAt(): Promise<never> {
-    throw new Error("ctx.scheduler is not supported on the Postgres runtime");
-  },
-  async cancel(): Promise<never> {
-    throw new Error("ctx.scheduler is not supported on the Postgres runtime");
-  },
-};
 
-export class PostgresConvexClient {
+/** Bind receipts to this pool's configured destination, never an ambient target. */
+function poolTargetIdentity(pool: Pool): string | undefined {
+  const options = pool.options;
+  if (!options || options.stream || options.Client) return undefined;
+  if (options.connectionString) return parsePostgresTarget(options.connectionString).identity;
+  if (!options.host || !options.database || /[/@?#]/.test(options.host)) return undefined;
+  const host = options.host.includes(":") && !options.host.startsWith("[") ? `[${options.host}]` : options.host;
+  return parsePostgresTarget(`postgres://${host}/${encodeURIComponent(options.database)}`).identity;
+}
+
+export class PostgresClient {
   private idMap: Promise<IdTableMap> | null = null;
+  private readonly targetIdentity: string | undefined;
 
   constructor(private readonly pool: Pool) {
+    this.targetIdentity = poolTargetIdentity(pool);
     // The server closing an idle client (pooler idle timeout, failover) surfaces
     // here after pg has already evicted it; unhandled, the event ends the process.
     pool.on("error", (error) => {
@@ -153,9 +129,9 @@ export class PostgresConvexClient {
     return this.idMap;
   }
 
-  static fromUrl(connectionString: string, max = 4): PostgresConvexClient {
+  static fromUrl(connectionString: string, max = 4): PostgresClient {
     assertDeploymentEnv();
-    return new PostgresConvexClient(new Pool({ connectionString, max, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
+    return new PostgresClient(new Pool({ connectionString, max, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
   }
 
   async end(): Promise<void> {
@@ -163,14 +139,14 @@ export class PostgresConvexClient {
   }
 
   /**
-   * One parameterized statement outside the Convex function surface, for the
+   * One parameterized statement outside the callable surface, for the
    * runtime-owned tables in `schema.runtime.ts` that no handler knows about.
    * The bounded transaction preserves the statement's result and atomicity.
    */
   async sql<Row extends Record<string, unknown>>(text: string, values: unknown[] = []): Promise<Row[]> {
     const client = await this.pool.connect();
     try {
-      await client.query("BEGIN");
+      await client.query(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
       try {
         await setTransactionTimeouts(client);
         const result = await client.query<Row>(text, values);
@@ -185,12 +161,24 @@ export class PostgresConvexClient {
     }
   }
 
+  /** Runtime-owned producers must publish their derived metadata atomically. */
+  async sqlTransaction<T>(operation: (client: SqlClient) => Promise<T>): Promise<T> {
+    return withTransaction(this.pool, operation);
+  }
+
+  private async prepareArguments(name: string, fn: Registered, args: Record<string, unknown>): Promise<IdTableMap> {
+    const ids: IdValidation[] = [];
+    validateValue(fn.args, args, `${name} args`, { ids });
+    const idMap = await this.ensureIdMap();
+    if (ids.length) validateValue(fn.args, args, `${name} args`, { idTable: (id) => idMap.get(id) });
+    return idMap;
+  }
+
   async query<Query extends FunctionReference<"query">>(reference: Query, ...rest: OptionalRestArgs<Query>): Promise<FunctionReturnType<Query>> {
     const args = (rest[0] ?? {}) as Record<string, unknown>;
     const { name, fn } = await resolveFunction(reference);
     if (!fn.isQuery) throw new Error(`${name} is not a query`);
-    validateValue(JSON.parse(fn.exportArgs()) as ValidatorJson, args, `${name} args`);
-    const idMap = await this.ensureIdMap();
+    const idMap = await this.prepareArguments(name, fn, args);
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
@@ -198,7 +186,7 @@ export class PostgresConvexClient {
         await setTransactionTimeouts(client);
         const executor = serialExecutor(client);
         const startedAt = performance.now();
-        const result = await this.runQueryOn(executor, idMap, fn, args);
+        const result = await this.runQueryOn(executor, idMap, name, fn, args);
         await client.query("COMMIT");
         trace("query", name, executor, startedAt);
         return result as FunctionReturnType<Query>;
@@ -212,11 +200,12 @@ export class PostgresConvexClient {
   }
 
   async mutation<Mutation extends FunctionReference<"mutation">>(reference: Mutation, ...rest: ArgsAndOptions<Mutation, HttpMutationOptions>): Promise<FunctionReturnType<Mutation>> {
+    // Refuse new writes; transactions admitted before a freeze still drain to completion.
+    assertDataWritesNotFrozen(getFunctionName(reference));
     const args = (rest[0] ?? {}) as Record<string, unknown>;
     const { name, fn } = await resolveFunction(reference);
     if (!fn.isMutation) throw new Error(`${name} is not a mutation`);
-    validateValue(JSON.parse(fn.exportArgs()) as ValidatorJson, args, `${name} args`);
-    const idMap = await this.ensureIdMap();
+    const idMap = await this.prepareArguments(name, fn, args);
     for (let attempt = 1; ; attempt += 1) {
       const client = await this.pool.connect();
       try {
@@ -225,7 +214,7 @@ export class PostgresConvexClient {
           await setTransactionTimeouts(client);
           const executor = serialExecutor(client);
           const startedAt = performance.now();
-          const result = await this.runMutationOn(executor, idMap, fn, args);
+          const result = await this.runMutationOn(executor, idMap, name, fn, args);
           await client.query("COMMIT");
           trace("mutation", name, executor, startedAt, attempt);
           return result as FunctionReturnType<Mutation>;
@@ -244,43 +233,46 @@ export class PostgresConvexClient {
   }
 
   async action<Action extends FunctionReference<"action">>(reference: Action, ..._rest: OptionalRestArgs<Action>): Promise<FunctionReturnType<Action>> {
-    throw new Error(`${getFunctionName(reference)}: no Convex actions are registered in this app`);
+    throw new Error(`${getFunctionName(reference)}: actions cannot run inside the Postgres callable executor`);
   }
 
-  private async runQueryOn(client: SqlExecutor, idMap: IdTableMap, fn: Registered, args: Record<string, unknown>): Promise<unknown> {
+  private async runQueryOn(client: SqlExecutor, idMap: IdTableMap, name: string, fn: Registered, args: Record<string, unknown>): Promise<unknown> {
     const ctx = {
+      targetIdentity: this.targetIdentity,
       db: new PostgresDatabaseReader(client, idMap),
       auth,
       storage: storageFor(client),
       runQuery: async (reference: FunctionReference<"query"> | string, nested: Record<string, unknown> = {}) => {
         const target = await resolveFunction(reference);
         if (!target.fn.isQuery) throw new Error(`${target.name} is not a query`);
-        validateValue(JSON.parse(target.fn.exportArgs()) as ValidatorJson, nested, `${target.name} args`);
-        return this.runQueryOn(client, idMap, target.fn, nested);
+        validateValue(target.fn.args, nested, `${target.name} args`, { idTable: (id) => idMap.get(id) });
+        return this.runQueryOn(client, idMap, target.name, target.fn, nested);
       },
     };
-    return fn._handler(ctx, args);
+    const result = await fn._handler(ctx as unknown as QueryCtx, args);
+    return validateReturn(fn.returns, result, `${name} return`, { idTable: (id) => idMap.get(id) });
   }
 
-  private async runMutationOn(client: SqlExecutor, idMap: IdTableMap, fn: Registered, args: Record<string, unknown>): Promise<unknown> {
+  private async runMutationOn(client: SqlExecutor, idMap: IdTableMap, name: string, fn: Registered, args: Record<string, unknown>): Promise<unknown> {
     const ctx = {
+      targetIdentity: this.targetIdentity,
       db: new PostgresDatabaseWriter(client, idMap),
       auth,
       storage: storageFor(client),
-      scheduler,
       runQuery: async (reference: FunctionReference<"query"> | string, nested: Record<string, unknown> = {}) => {
         const target = await resolveFunction(reference);
         if (!target.fn.isQuery) throw new Error(`${target.name} is not a query`);
-        validateValue(JSON.parse(target.fn.exportArgs()) as ValidatorJson, nested, `${target.name} args`);
-        return this.runQueryOn(client, idMap, target.fn, nested);
+        validateValue(target.fn.args, nested, `${target.name} args`, { idTable: (id) => idMap.get(id) });
+        return this.runQueryOn(client, idMap, target.name, target.fn, nested);
       },
       runMutation: async (reference: FunctionReference<"mutation"> | string, nested: Record<string, unknown> = {}) => {
         const target = await resolveFunction(reference);
         if (!target.fn.isMutation) throw new Error(`${target.name} is not a mutation`);
-        validateValue(JSON.parse(target.fn.exportArgs()) as ValidatorJson, nested, `${target.name} args`);
-        return this.runMutationOn(client, idMap, target.fn, nested);
+        validateValue(target.fn.args, nested, `${target.name} args`, { idTable: (id) => idMap.get(id) });
+        return this.runMutationOn(client, idMap, target.name, target.fn, nested);
       },
     };
-    return fn._handler(ctx, args);
+    const result = await fn._handler(ctx as unknown as MutationCtx, args);
+    return validateReturn(fn.returns, result, `${name} return`, { idTable: (id) => idMap.get(id) });
   }
 }

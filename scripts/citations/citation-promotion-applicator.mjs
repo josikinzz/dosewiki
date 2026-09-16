@@ -1,4 +1,4 @@
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 
 const VALID_APPROVED_WRITE_MODES = new Set(["preserve", "refresh", "replace"]);
 
@@ -93,7 +93,7 @@ export function buildCitationPromotionPlan({
 
 export async function applyCitationPromotionPlan({ client, apiKey, plan }) {
   if (!client?.mutation) {
-    throw new Error("Citation promotion applicator requires a Convex client.");
+    throw new Error("Citation promotion applicator requires a native data client.");
   }
   if (!apiKey) {
     throw new Error("Citation promotion applicator requires an admin intent token.");

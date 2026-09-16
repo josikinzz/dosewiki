@@ -4,11 +4,11 @@ import { SmartLink } from "@/components/common/SmartLink";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SectionCard } from "@/components/common/SectionCard";
-import { getPublicEffectArticles } from "@server/convex/publicData";
-import { getLocalizedPublicEffectArticles } from "@server/translation/localizedRecords";
+import { getPublicEffectAudioIndex } from "@server/data/publicData";
+import { getLocalizedEffectNames } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { AudioReplicationCard } from "@/features/effects/components/AudioReplicationCard";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {
@@ -18,7 +18,7 @@ import {
 import { t } from "@/i18n/server";
 
 export async function getReplicationAudioMetadata(locale: LiveLocale | null = null) {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-replications-audio-description"]);
 
   return buildPublicPageMetadata({
     title: "Audio Replications",
@@ -34,12 +34,17 @@ export async function getReplicationAudioMetadata(locale: LiveLocale | null = nu
  * The Audio tab, shared by the English route and every locale mirror. Audio
  * clips live on the effect records as an excluded corpus group, so their
  * titles and credits stay as the artists wrote them; on a mirror the effect
- * name each clip is filed under comes from the localized effect previews.
+ * name each clip is filed under comes from the stored effect-name translation.
  */
 export async function ReplicationAudioRoute({ locale = null }: { locale?: LiveLocale | null }) {
-  const effects = locale
-    ? await getLocalizedPublicEffectArticles(locale.code)
-    : await getPublicEffectArticles();
+  let effects = await getPublicEffectAudioIndex();
+  if (locale) {
+    const names = await getLocalizedEffectNames(effects.map((effect) => effect.name), locale.code);
+    effects = effects.map((effect) => ({
+      ...effect,
+      name: names.get(effect.name) ?? effect.name,
+    }));
+  }
   const entries = collectAudioReplications(effects);
   const artistCount = countAudioReplicationArtists(entries);
   const [termsBefore, termsAfter] = t(

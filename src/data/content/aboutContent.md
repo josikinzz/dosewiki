@@ -1,26 +1,28 @@
-**dose.wiki** takes information about psychoactive substances from harm-reduction and other resources and aggregates it into a single open dataset in a standardized format. This allows for more in-depth research on psychoactive substances, makes it easier to compare information from different sources, and identify gaps or inconsistencies.
+**dose.wiki** synthesizes factual knowledge about psychoactive substances from harm-reduction and reference sources into a single open dataset. It aims to establish an open standard for psychopharmacology datasets, supporting research and making gaps and inconsistencies in existing knowledge easier to identify.
 
 - **[{{compoundCount}} substance articles](/substances):** dose, duration, effects, interactions, chemistry, and legality by country.
-- **[{{effectCount}} subjective effect articles](/effects):** descriptions of individual components of altered states, from [visual drifting](/effects/drifting) to [ego death](/effects/ego-death).
+- **[{{effectCount}} subjective effect articles](/effects):** individual components of altered states, from [visual drifting](/effects/drifting) to [ego death](/effects/ego-death).
 - **[{{replicationCount}} replications](/replications):** images, videos, and audio that recreate subjective effects.
 - **[{{reportCount}} trip reports](/reports):** first-person accounts of individual experiences.
 
 ## Sources and review
 
-Much of the information a substance article needs has already been gathered and published: decades of documentation by scientists, psychonauts, and the harm-reduction community. We draw on [ten harm-reduction and reference sites](/docs/how#sources), each with its own format, with no shared standard and no one site covering all of the information. Each article links back to the source pages that informed it.
+Substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference sites](/docs/how#sources). These sites share no standard format, and none covers everything. Each article links to the source pages that informed it.
 
-Substance articles were drafted by artificial intelligence. Dosage information was transcribed with software from tables found online. [Citations were checked with custom-written software](/docs/how#citations) that assesses whether each cited claim is supported by its source; these checks cannot establish that a human has reviewed an article. [How articles are made](/docs/how) describes the process and includes the prompts used to prepare article drafts.
+Substance articles were drafted by AI, with dosage information transcribed by software from online tables. [Custom citation-checking software](/docs/how#citations) assessed whether sources supported the claims citing them; these checks do not establish human review. [How articles are made](/docs/how) explains the process and includes the drafting prompts.
 
-Articles are still far from complete, and human review is what makes them trustworthy. Reviewing an article means verifying the pharmacology, checking dose and interaction information for errors that could cause harm, and adding corrections, references, and explanations of their own. Incorrect information on this topic can have serious real-world consequences, so we encourage anyone who is able to review an article.
+**dose.wiki is in beta.** Coverage is incomplete, and most substance articles remain drafts awaiting human review. Each article’s **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to help review.
 
-The extent of human review varies by article. A substance article's current work-in-progress state can be tracked in the Article Status section on the article: articles that have been reviewed by a human say as much, and the rest are marked as not yet reviewed.
+The other collections are human-created:
 
-The other three collections are made by people. The effect articles are the [Subjective Effect Index](/effects), written over more than a decade across several websites. Replications are made by artists attempting to depict the subjective appearance of an experience, most of whom are from the [r/replications](https://reddit.com/r/replications) community on Reddit. Trip reports are written by their authors and reviewed by an editor before they are published.
+- **Effect articles** form the [Subjective Effect Index](/effects), written over more than a decade across several websites.
+- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit’s [r/replications](https://reddit.com/r/replications) community.
+- **Trip reports** are written by their authors and reviewed by an editor before publication.
 
-dose.wiki is in **beta**. Coverage is incomplete, and most substance articles are still drafts awaiting human review. Check back often: the website and dataset are constantly changing as we move towards 1.0. If you have questions, comments, or corrections, [send us feedback](#contact).
+The site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](#contact).
 
 ## Project history
 
-dose.wiki was co-founded by [Josie Kins](/contributors/josie) and [Lyrea](/contributors/lyrea). The bulk of the subjective effects dataset is an extension of the Subjective Effect Index originally created by Josie in 2011. It was initially published on her blog, Disregard Everything I Say, moved to [PsychonautWiki](https://psychonautwiki.rip) when she started the site in 2013, continued through [Effect Index](https://effectindex.com), launched in 2017, and is now published on dose.wiki.
+dose.wiki was co-founded by [Josie Kins](/contributors/josie) and [Lyrea](/contributors/lyrea). Most of its subjective effects dataset extends the Subjective Effect Index, which Josie created in 2011 on her blog, *Disregard Everything I Say*. It moved to [PsychonautWiki](https://psychonautwiki.rip) when she founded the site in 2013, continued through [Effect Index](https://effectindex.com), launched in 2017, and is now published on dose.wiki.
 
-Writing each entry took days, and there was no standardized method of recording effects, making comparison of substances incredibly difficult. dose.wiki was started as a way to improve and expand on this work with help from the broader harm-reduction and scientific community that has been documenting effects for decades. Lyrea leads the expansion of the project's pharmacology content as well as website UX.
+Each entry took days to write, and there was no standard method for recording subjective effects. dose.wiki began to synthesize and expand this work into a shared data standard with help from the broader harm-reduction and scientific community. Lyrea leads the expansion of pharmacology content and the website’s user experience.

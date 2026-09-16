@@ -9,7 +9,7 @@
 import { createHash } from "node:crypto";
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { assertDataOpsWriteAllowed,
 backupBeforeWrite,
 createDataOpsRunContext,
@@ -80,7 +80,7 @@ export async function main(argv = process.argv.slice(2)) {
     runContext.writeEnabled = false;
   }
 
-  const targetUrl = requireTargetUrl(runContext, "Convex legality target URL");
+  const targetUrl = requireTargetUrl(runContext, "Postgres legality target URL");
   const client = createDataClient({ target: targetUrl }).client;
   const article = await client.query(api.substanceIndex.getBySlug, { slug });
   if (!article) throw new Error(`No article found for slug: ${slug}`);
@@ -117,7 +117,7 @@ export async function main(argv = process.argv.slice(2)) {
   for (const { key, state } of dropped) console.log(`DROP  ${key} (legality.usStates.${state} already present)`);
   console.log(`TOTALS: ${moved.length} moved, ${dropped.length} dropped, ${Object.keys(countries).length} countries remain, ${Object.keys(usStates).length} states.`);
   if (!write) {
-    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Convex.");
+    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Postgres.");
     return;
   }
 

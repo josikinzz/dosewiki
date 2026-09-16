@@ -8,10 +8,11 @@ import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { PortalReportEditor } from "@/features/dev/tools/trip-report-portal/PortalReportEditor";
 import { toPortalRowFromReport } from "@/features/dev/tools/trip-report-portal/tripReportPortalModel";
-import type { TripReportEditableFields } from "../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../server/lib/tripReportEditing";
 import type { TripReport } from "@/types/tripReport";
 import type { SubstanceLookupRecord } from "../domain/tripReportIndex";
-import { TripReportDetailPage } from "../pages/TripReportDetailPage";
+import { TripReportDetailPresentation } from "../pages/TripReportDetailPresentation";
+import { useT } from "@/i18n/client";
 import { useConfirm, useDirtyGuard } from "@/features/dev/components";
 
 type Props = { report: TripReport; substanceBySlug: Record<string, SubstanceLookupRecord>; substanceLinks?: Record<string, string> };
@@ -63,6 +64,7 @@ export default function PublishedReportEditor(props: Props) {
 }
 
 function ReportSession({ report, substanceBySlug, substanceLinks, onClose, returnFocusRef }: Props & { onClose: () => void; returnFocusRef: RefObject<HTMLElement | null> }) {
+  const t = useT();
   const { role, setDirty, registerDraftGuard } = useContextualEditing();
   const router = useRouter();
   const [record, setRecord] = useState<EditableRecord | null>(null);
@@ -152,11 +154,11 @@ function ReportSession({ report, substanceBySlug, substanceLinks, onClose, retur
           <PortalReportEditor busy={busy || uncertain} contributors={[]} draft={draft} feedback={null} onChange={(next) => { setDraft(next); setSuccess(false); setReview(false); }} onClose={close} onDelete={close} onDismissFeedback={() => setError(null)} onRevert={() => { setDraft(record.fields); setReview(false); }} onSave={() => setReview(true)} row={row} contentOnly saveLabel="Preview correction" />
         </fieldset>
         {review ? <section className="space-y-4" aria-label="Report publication review">
-          <h3 ref={reviewHeading} tabIndex={-1} className="font-display text-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-dose-accent-strong">Review correction</h3>
+          <h3 ref={reviewHeading} tabIndex={-1} className="font-display text-xl theme-focus-ring">Review correction</h3>
           <p className="theme-text-muted text-sm">Only changed fields are shown. Compare the current publication with your proposed correction, then read the local preview.</p>
           {(Object.keys(draft) as (keyof TripReportEditableFields)[]).filter((field) => JSON.stringify(record.fields[field]) !== JSON.stringify(draft[field])).map((field) => <section key={field} className="space-y-3 [overflow-wrap:anywhere]"><h4 className="font-display text-lg font-semibold">{CORRECTION_LABELS[field]}</h4><div className="grid gap-5 sm:grid-cols-2"><div className="min-w-0 space-y-2"><h5 className="theme-text-muted text-sm font-semibold">Current published version</h5><CorrectionValue field={field} fields={record.fields} /></div><div className="min-w-0 space-y-2"><h5 className="theme-text-muted text-sm font-semibold">Proposed correction</h5><CorrectionValue field={field} fields={draft} /></div></div></section>)}
           <h3 className="font-display text-xl">Local reading preview</h3>
-          <TripReportDetailPage preview report={{ ...report, ...draft, subject: { ...report.subject, ...draft.subject } }} substanceBySlug={substanceBySlug} substanceLinks={substanceLinks} />
+          <TripReportDetailPresentation t={t} preview report={{ ...report, ...draft, subject: { ...report.subject, ...draft.subject } }} substanceBySlug={substanceBySlug} substanceLinks={substanceLinks} />
           <p>Publish these corrections to the shared report on dose.wiki and Effect Index? Author attribution, media, licensing, ownership and moderation remain unchanged.</p>
           <div className="flex flex-wrap gap-2">
             <Button disabled={busy || uncertain || !dirty} onClick={() => void publish()}>{busy ? "Publishing…" : "Confirm publish correction"}</Button>

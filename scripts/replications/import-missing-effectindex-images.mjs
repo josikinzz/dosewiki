@@ -17,7 +17,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationBytes, replicationImportReceipts } from "./lib/r2-upload.mjs";
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -200,24 +201,6 @@ async function downloadImage(candidate, attempts = 4) {
   throw lastError;
 }
 
-async function uploadImage(client, credential, candidate, bytes) {
-  const uploadUrl = await client.mutation(api.replications.generateUploadUrl, {
-    apiKey: credential.token,
-  });
-  const response = await fetch(uploadUrl, {
-    method: "POST",
-    headers: { "Content-Type": contentType(candidate.format) },
-    body: bytes,
-  });
-  if (!response.ok) {
-    throw new Error(`Convex upload for ${candidate.slug} returned HTTP ${response.status}`);
-  }
-  const result = await response.json();
-  if (!result.storageId) {
-    throw new Error(`Convex upload for ${candidate.slug} returned no storageId.`);
-  }
-  return result.storageId;
-}
 
 async function main() {
   if (writeRequested && !confirmed) {
@@ -230,10 +213,10 @@ async function main() {
   const argv = process.argv.slice(2);
   const runContext = createDataOpsRunContext({
     operation: "import missing Effect Index images",
-    intent: "dev-convex-import",
+    intent: "dev-data-import",
     argv: writeRequested ? argv : [...argv, "--dry-run"],
-    sourceUrlKeys: ["CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL"],
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL"],
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     localArtifacts: [RECONCILIATION_PATH, EFFECT_INDEX_DUMP_PATH],
     confirmationFlag: "--confirm-replication-import",
     destructive: true,
@@ -242,10 +225,10 @@ async function main() {
   const targetUrl = runContext.targetUrl;
   const readUrl = targetUrl || runContext.sourceUrl;
   if (!skipDownload && !readUrl) {
-    throw new Error("Set CONVEX_PUBLIC_READ_URL (dry run) or TARGET_CONVEX_URL (write).");
+    throw new Error("Set SOURCE_POSTGRES_URL (dry run) or TARGET_POSTGRES_URL (write).");
   }
   if (writeRequested && !targetUrl) {
-    throw new Error("Writes require an explicit TARGET_CONVEX_URL.");
+    throw new Error("Writes require an explicit TARGET_POSTGRES_URL.");
   }
 
   console.log(`Mode: ${writeRequested ? "write requested" : "dry run"}`);
@@ -303,7 +286,7 @@ async function main() {
       continue;
     }
 
-    const storageId = await uploadImage(client, credential, candidate, bytes);
+    const r2Key = await uploadReplicationBytes(client, credential.token, bytes, contentType(candidate.format), candidate.format);
     await client.mutation(api.replications.insertReplication, {
       apiKey: credential.token,
       slug: candidate.slug,
@@ -311,7 +294,8 @@ async function main() {
       artist: candidate.artist,
       artist_url: candidate.artist_url,
       type: "image",
-      storage_id: storageId,
+      r2_key: r2Key,
+      ...(await replicationImportReceipts(client, credential.token, candidate.slug, { r2_key: r2Key })),
       effect_slug: candidate.effect_slug,
       format: candidate.format,
       file_size: bytes.length,

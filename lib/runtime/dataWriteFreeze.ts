@@ -1,13 +1,9 @@
 /**
- * The cutover write freeze (ticket 22).
+ * Process-level maintenance write freeze.
  *
- * A bounded write freeze (fork F2) is the synchronization step of the Convex to
- * Postgres cutover: every writer refuses for the window between the final
- * snapshot and the moment the new backend is authoritative, while reads keep
- * serving. `DATA_WRITES_FROZEN` is that lever, and it is deliberately one
- * process-level environment variable rather than a row in a table, because the
- * freeze has to hold on both backends at once, including the seconds when
- * neither one is authoritative.
+ * `DATA_WRITES_FROZEN` makes every application and operator writer refuse
+ * new work while reads keep serving. The guard is environment-based so it
+ * remains enforceable before a database connection is available.
  *
  * Semantics:
  * - unset or empty: writes are allowed (a normal deployment says nothing).

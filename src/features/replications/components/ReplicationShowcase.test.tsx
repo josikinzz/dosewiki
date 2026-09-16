@@ -10,7 +10,6 @@ import {
 } from "./showcaseModel";
 import type { ShowcaseWork } from "./showcaseWork";
 import { VIEWER_SOUND_STORAGE_KEY } from "@/features/replications/viewer/viewerPreferences";
-import { UiLocaleProvider } from "@/i18n/client";
 
 vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ src, alt }: { src: string; alt: string }) => (
@@ -86,6 +85,13 @@ describe("ReplicationShowcase", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+  it("uses the existing still thumbnail inline while keeping the viewer destination", () => {
+    const still = work({ thumbnailUrl: "https://cdn.test/drifting-thumb.webp" });
+    render(<ReplicationShowcase works={[still, secondWork]} />);
+    expect(screen.getByRole("img", { name: still.title })).toHaveAttribute("src", still.thumbnailUrl);
+    expect(screen.getByRole("tab", { name: /Drifting.*demonstrates/ }).querySelector("img")).toHaveAttribute("src", still.thumbnailUrl);
+    expect(screen.getByRole("link", { name: /Drifting \(wood grain\)/ })).toHaveAttribute("href", "/replications?viewer=drifting-wood-grain");
+  });
 
   it("hides the one-work rail while keeping count and viewer entry explicit", () => {
     render(<ReplicationShowcase works={[work()]} />);
@@ -110,7 +116,7 @@ describe("ReplicationShowcase", () => {
     ).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
   });
 
-  it("opens the shared viewer over the article and preserves the permanent link", () => {
+  it("opens the shared viewer over the article and preserves the permanent link", async () => {
     const pushState = vi.spyOn(window.history, "pushState");
     render(
       <ReplicationShowcase
@@ -127,7 +133,7 @@ describe("ReplicationShowcase", () => {
     expect(entry).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
     fireEvent.click(entry);
 
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
       "drifting-wood-grain",
     );
@@ -166,7 +172,7 @@ describe("ReplicationShowcase", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("reconstructs the complete article collection beyond the compact strip", () => {
+  it("reconstructs the complete article collection beyond the compact strip", async () => {
     const hiddenWork = work({
       slug: "hidden-third-work",
       title: "Hidden third work",
@@ -183,7 +189,7 @@ describe("ReplicationShowcase", () => {
       />,
     );
 
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
       "hidden-third-work",
     );
@@ -216,11 +222,6 @@ describe("ReplicationShowcase", () => {
       />,
     );
 
-    // Unsettled fetch: the param survives untouched, nothing resolves yet —
-    // neither the viewer nor the unavailable notice.
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/showcase?substance=lsd",
-    );
     expect(window.location.search).toBe("?viewer=long-tail-work");
     expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
     expect(
@@ -241,56 +242,24 @@ describe("ReplicationShowcase", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("asks the collection route for the mirror's locale so the long tail matches the strip", () => {
-    const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
+
+  it("preserves a failed deep link and retries without truncating the collection", async () => {
+    window.history.replaceState({}, "", "/lsd?viewer=long-tail-work");
+    const longTail = work({ slug: "long-tail-work", title: "Long tail work" });
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new Error("network down"))
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ works: [work(), longTail] }) });
     vi.stubGlobal("fetch", fetchMock);
-
-    render(
-      <UiLocaleProvider locale="zh-Hans">
-        <ReplicationShowcase
-          works={[work()]}
-          totalCount={2}
-          effectSlug="drifting"
-          collectionSource={{ kind: "effect", slug: "drifting" }}
-        />
-      </UiLocaleProvider>,
-    );
-    fireEvent.click(screen.getByRole("link", { name: /Drifting \(wood grain\)/ }));
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/showcase?effect=drifting&locale=zh-Hans",
-    );
-  });
-
-  it("strips an unresolvable deep link only after the lazy fetch settles", async () => {
-    window.history.replaceState({}, "", "/lsd?viewer=nowhere-to-be-found");
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(() => Promise.reject(new Error("network down"))),
-    );
-
-    render(
-      <ReplicationShowcase
-        works={[work()]}
-        substanceSlug="lsd"
-        collectionSource={{ kind: "substance", slug: "lsd" }}
-      />,
-    );
-
-    // Degrades exactly as an unknown slug does today, once the fetch fails.
-    await waitFor(() =>
-      expect(window.location.pathname + window.location.search).toBe("/lsd"),
-    );
-    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "The linked replication is no longer available in this collection.",
-      ),
-    ).toBeInTheDocument();
+    render(<ReplicationShowcase works={[work()]} substanceSlug="lsd" collectionSource={{ kind: "substance", slug: "lsd" }} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    expect(window.location.search).toBe("?viewer=long-tail-work");
+    const viewer = await screen.findByTestId("replication-viewer");
+    expect(viewer).toHaveAttribute("data-initial-slug", "long-tail-work");
+    expect(viewer).toHaveAttribute("data-item-count", "2");
     window.history.replaceState({}, "", "/");
   });
 
-  it("extends an open viewer's playlist when the fetched collection lands", async () => {
+  it("opens the complete playlist only after its intent read resolves", async () => {
     const longTail = work({
       slug: "long-tail-work",
       title: "Long tail work",
@@ -316,14 +285,7 @@ describe("ReplicationShowcase", () => {
       }),
     );
 
-    // The launch fires the fetch and opens over the bundled strip at once.
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/replications/showcase?effect=drifting",
-    );
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
-      "data-item-count",
-      "2",
-    );
+    expect(screen.queryByTestId("replication-viewer")).not.toBeInTheDocument();
 
     resolveFetch({
       ok: true,
@@ -581,7 +543,7 @@ describe("ReplicationShowcase", () => {
     expect(container.querySelector("video")).not.toBeInTheDocument();
   });
 
-  it("keeps the title line plain and moves Open viewer into the corner chip", () => {
+  it("keeps the title line plain and moves Open viewer into the corner chip", async () => {
     render(<ReplicationShowcase works={[work()]} substanceSlug="lsd" />);
 
     const title = screen.getByRole("link", { name: "Drifting (wood grain)" });
@@ -591,7 +553,7 @@ describe("ReplicationShowcase", () => {
     const chip = screen.getByRole("link", { name: "Open viewer" });
     expect(chip).toHaveAttribute("href", "/lsd?viewer=drifting-wood-grain");
     fireEvent.click(chip);
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
       "drifting-wood-grain",
     );
@@ -669,7 +631,7 @@ describe("ReplicationShowcase", () => {
     window.sessionStorage.clear();
   });
 
-  it("opens the shared viewer when the reader clicks the media stage", () => {
+  it("opens the shared viewer when the reader clicks the media stage", async () => {
     render(<ReplicationShowcase works={[work(), secondWork]} />);
 
     fireEvent.click(
@@ -678,7 +640,7 @@ describe("ReplicationShowcase", () => {
       }),
     );
 
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
       "drifting-wood-grain",
     );
@@ -733,7 +695,7 @@ describe("ReplicationShowcase", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("does not present corpus markers as creator names", () => {
+  it("does not present corpus markers as creator names", async () => {
     render(
       <ReplicationShowcase
         works={[
@@ -753,7 +715,7 @@ describe("ReplicationShowcase", () => {
         name: "Open Drifting (wood grain) in viewer",
       }),
     );
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
+    expect(await screen.findByTestId("replication-viewer")).toHaveAttribute(
       "data-active-artist",
       "Unattributed",
     );

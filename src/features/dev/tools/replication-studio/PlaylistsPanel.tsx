@@ -17,7 +17,7 @@ import { EmptyStateSurface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { ActionNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
 
-import type { ReplicationPlaylist } from "./replicationPlaylistModel";
+import type { ReplicationPlaylistSummary } from "./replicationPlaylistModel";
 import type { StudioRow } from "./replicationStudioModel";
 import { usePlaylistsController } from "./usePlaylistsController";
 import { VisualPlaylistComposer } from "./VisualPlaylistComposer";
@@ -29,7 +29,7 @@ export type PlaylistsPanelProps = {
   filteredRows: readonly StudioRow[];
   onDirtyChange?: (dirty: boolean) => void;
   /** Feature integration point for actions that operate on one stored playlist. */
-  renderSavedPlaylistAction?: (playlist: ReplicationPlaylist) => ReactNode;
+  renderSavedPlaylistAction?: (playlist: ReplicationPlaylistSummary) => ReactNode;
 };
 
 function PlaylistRow({
@@ -41,13 +41,13 @@ function PlaylistRow({
   onOpen,
   onRequestDelete,
 }: {
-  playlist: ReplicationPlaylist;
+  playlist: ReplicationPlaylistSummary;
   active: boolean;
   deleting: boolean;
   actionsDisabled: boolean;
   action?: ReactNode;
-  onOpen: (playlist: ReplicationPlaylist) => void;
-  onRequestDelete: (playlist: ReplicationPlaylist) => void;
+  onOpen: (playlist: ReplicationPlaylistSummary) => void;
+  onRequestDelete: (playlist: ReplicationPlaylistSummary) => void;
 }) {
   return (
     <li className="grid gap-2 border-b border-[color:var(--editor-panel-border)] py-3 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
@@ -57,7 +57,7 @@ function PlaylistRow({
           {active ? <EditorStatusPill tone="info">Editing</EditorStatusPill> : null}
         </div>
         <p className="theme-text-faint truncate text-xs">
-          {playlist.replication_slugs.length} {playlist.replication_slugs.length === 1 ? "work" : "works"} · saved {playlist.updated_at.slice(0, 10)} by {playlist.updated_by ?? "unknown"}
+          {playlist.work_count} {playlist.work_count === 1 ? "work" : "works"} · saved {playlist.updated_at.slice(0, 10)} by {playlist.updated_by ?? "unknown"}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-1 sm:justify-end">
@@ -100,7 +100,7 @@ export function PlaylistsPanel({
     isSaving,
     feedback,
   } = controller;
-  const [deleteTarget, setDeleteTarget] = useState<ReplicationPlaylist | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ReplicationPlaylistSummary | null>(null);
   const titleFieldId = useId();
 
   return (

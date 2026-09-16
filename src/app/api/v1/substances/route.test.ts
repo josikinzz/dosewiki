@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
 }));
 
-vi.mock("@server/convex/publicData", () => ({ getPublicSubstances: mocks.getPublicSubstances }));
+vi.mock("@server/data/publicData", () => ({ getPublicSubstances: mocks.getPublicSubstances }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 
 const substances = ["a", "b", "c"].map((slug) => ({
@@ -43,7 +43,7 @@ describe("public substances API", () => {
     }));
   });
 
-  it("rejects invalid limits and cursors without querying Convex", async () => {
+  it("rejects invalid limits and cursors without querying Postgres", async () => {
     const { GET } = await import("./route");
     const invalidLimit = await GET(new Request("https://dose.wiki/api/v1/substances?limit=500"));
     const invalidCursor = await GET(new Request("https://dose.wiki/api/v1/substances?cursor=bad"));

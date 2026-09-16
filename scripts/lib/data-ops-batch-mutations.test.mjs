@@ -46,7 +46,7 @@ describe("batchAndApplyMutations", () => {
       intent: "test",
       argv: ["--dry-run"],
       loadsEnvLocal: false,
-      env: {},
+      env: { DATA_BACKEND: "postgres" },
     });
 
     const result = await batchAndApplyMutations({
@@ -74,7 +74,7 @@ describe("batchAndApplyMutations", () => {
       intent: "test",
       argv: [],
       loadsEnvLocal: false,
-      env: {},
+      env: { DATA_BACKEND: "postgres" },
       requiresExecute: true,
       executeFlag: "--execute",
     });

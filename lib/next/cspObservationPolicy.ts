@@ -1,5 +1,5 @@
 import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
-import { MAILING_LIST_API_ORIGIN } from "../../src/features/mailing-list/subscribe";
+import themeLabBootstrapHash from "../../src/features/theme-lab/themeLabBootstrapHash.generated.json";
 import { normalizeHost } from "./publicHostPolicy";
 import {
   getReplicationEmbedFrameAncestors,
@@ -14,7 +14,7 @@ export interface BrowserSecurityPolicyInput {
   host: string | null | undefined;
   pathname: string;
   nonce?: string;
-  convexUrl?: string | null;
+  r2UploadOrigin?: string | null;
   isDevelopment: boolean;
 }
 
@@ -58,7 +58,7 @@ export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
  * builder and reports drift.
  */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-9gQoeeQFqs7RBA5n+VWUs1OsvwenesMr+i0CaieUyDo='",
+  dosewiki: "'sha256-1LkOjxPr4bnT13I8yV73eCr/HKb8qftzw4O540ISI3o='",
   effectindex: "'sha256-eeEVo6InNy2QhM27eJaw7/nyhFIbb6ATzjYbCwJds0w='",
 };
 
@@ -91,25 +91,20 @@ function canServeOverPlainHttp(hostname: string): boolean {
   return isLocalHostname(hostname) || isPrivateIpv4Hostname(hostname);
 }
 
-function getConvexConnectionSources(convexUrl: string | null | undefined): string[] {
-  if (!convexUrl) {
-    return [];
-  }
-
+function getR2UploadOrigin(endpoint: string | null | undefined, isDevelopment: boolean): string | undefined {
+  if (!endpoint) return;
   try {
-    const url = new URL(convexUrl);
-    if (url.protocol === "https:") {
-      return [url.origin, `wss://${url.host}`];
+    const url = new URL(endpoint);
+    if (url.username || url.password || url.search || url.hash || url.pathname !== "/") return;
+    if (url.protocol === "https:" && /^[a-z0-9]+\.r2\.cloudflarestorage\.com$/.test(url.hostname)) {
+      return url.origin;
     }
-
-    if (url.protocol === "http:" && isLocalHostname(url.hostname)) {
-      return [url.origin, `ws://${url.host}`];
+    if (isDevelopment && url.protocol === "http:" && isLocalHostname(url.hostname)) {
+      return url.origin;
     }
   } catch {
-    // A malformed runtime URL must not widen the browser connection policy.
+    // Invalid upload configuration must not widen browser connection permissions.
   }
-
-  return [];
 }
 
 function assertSafeNonce(nonce: string): void {
@@ -126,7 +121,7 @@ export function getBrowserSecurityHeaders({
   host,
   pathname,
   nonce,
-  convexUrl,
+  r2UploadOrigin,
   isDevelopment,
 }: BrowserSecurityPolicyInput): ResponseHeader[] {
   const normalizedHost = normalizeHost(host);
@@ -144,6 +139,7 @@ export function getBrowserSecurityHeaders({
       `'nonce-${nonce}'`,
       ZOD_JITLESS_BOOTSTRAP_CSP_HASH,
       THEME_BOOTSTRAP_CSP_HASH,
+      ...(SITE_FLAVOR === "dosewiki" ? [themeLabBootstrapHash.hash] : []),
       // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
       "'wasm-unsafe-eval'",
     ];
@@ -157,23 +153,22 @@ export function getBrowserSecurityHeaders({
       TURNSTILE_SOURCE,
     ];
   }
+  // React's development debugging requires eval; deployed builds never allow it.
+  if (isDevelopment) {
+    scriptSources.push("'unsafe-eval'");
+  }
   const connectSources = [
     "'self'",
-    ...getConvexConnectionSources(convexUrl),
     // @iconify/react uses these exact redundant API providers for uncached icons.
     ...ICONIFY_API_SOURCES,
     // QuickAddReferenceCard resolves DOI and PMID metadata from these exact APIs.
     ...REFERENCE_METADATA_API_SOURCES,
-    // Both homepages' mailing-list signup posts to the deployment's Convex
-    // HTTP-actions origin (`.convex.site`, distinct from the `.convex.cloud`
-    // client origin above). Listed statically because the Effect Index
-    // deployment intentionally configures no Convex URL yet still hosts the
-    // signup form.
-    MAILING_LIST_API_ORIGIN,
     // The approved-host PostHog client posts to the same-origin `/ingest`
     // reverse proxy. `'self'` already authorizes that path; a bare path is not
     // a valid CSP source expression and must not be emitted separately.
   ];
+  const uploadOrigin = isDevRoute ? getR2UploadOrigin(r2UploadOrigin, isDevelopment) : undefined;
+  if (uploadOrigin) connectSources.push(uploadOrigin);
 
   const directives = [
     "default-src 'self'",

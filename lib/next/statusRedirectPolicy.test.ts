@@ -7,12 +7,12 @@ import {
   getProtectedRouteRedirectTarget,
   getRouteLoadingLabel,
   getSignInCallbackUrl,
-  getStatusRecoveryLink,
   getUnauthorizedFrom,
   noIndexRoutePolicies,
   routeLoadingLabels,
   STATUS_PAGE_PATHS,
 } from "./statusRedirectPolicy";
+import { getStatusRecoveryLink } from "./statusRecoveryLinks";
 import { getPublicSite } from "./publicSite";
 import { SITE_FLAVOR_CONFIGS } from "../../src/config/siteFlavor";
 

@@ -48,7 +48,7 @@ export function ReportShelf({
         title={t(group.name)}
         icon="lucide:flask-conical"
         hideIcon
-        count={group.reports.length}
+        count={group.reportCount ?? group.reports.length}
         expanded={expanded}
         onExpandedChange={onExpandedChange}
         contentId={`shelf-${group.anchor}`}
@@ -89,8 +89,8 @@ function ReportIndexRow({
   ].filter((part): part is string => Boolean(part));
 
   return (
-    <li className="theme-report-index-row">
-      <SmartLink href={href} className="theme-report-index-link group flex flex-col gap-0.5 rounded-lg px-2.5 py-2">
+    <li className="theme-report-index-row" data-report-slug={report.slug}>
+      <SmartLink href={href} className="theme-report-index-link group flex min-h-11 flex-col gap-0.5 rounded-lg px-2.5 py-2 transition-[background-color,scale] duration-160 active:scale-[0.995] motion-reduce:transition-none motion-reduce:active:scale-100">
         <span className="flex items-start gap-1.5">
           <span className="theme-accent-heading text-sm font-medium leading-snug transition group-hover:opacity-90">
             {report.title}

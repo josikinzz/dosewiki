@@ -24,6 +24,16 @@ export const THEME_LAB_OVERRIDE_STYLE_ID = "theme-lab-overrides";
 /** Debounce before a change is written to storage. */
 export const THEME_LAB_PERSIST_DELAY_MS = 300;
 
+/** Sentinel shared by the prepaint restore, runtime and editor controls. */
+export const BLUR_TOKEN_ID = "--theme-backdrop-blur";
+
+export function blurDisabledIn(overrides: PaletteOverrides): boolean {
+  return (
+    overrides.dark[BLUR_TOKEN_ID]?.trim() === "off" ||
+    overrides.light[BLUR_TOKEN_ID]?.trim() === "off"
+  );
+}
+
 export type ThemeOverrides = Record<string, string>;
 
 /** One override map per colour scheme, in the exact shape the injected style
@@ -324,7 +334,9 @@ export function userLayerSelector(theme: ColorScheme): string {
  *  the baseline sampler can stage a layer the same way it renders. */
 export function buildOverrideCss(overrides: PaletteOverrides): string {
   const block = (theme: ColorScheme, map: ThemeOverrides) => {
-    const entries = Object.entries(map);
+    const entries = Object.entries(map).filter(([key, value]) =>
+      /^--[a-zA-Z0-9_-]+$/.test(key) && !/[;{}]/.test(value),
+    );
     if (entries.length === 0) return "";
     return `${userLayerSelector(theme)}{${entries.map(([key, value]) => `${key}:${value};`).join("")}}`;
   };

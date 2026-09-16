@@ -5,8 +5,8 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { registerHooks } from "node:module";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -235,7 +235,7 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION, startDir: ROOT });
   printProductionWriteCommand(command);
   if (!command.targetUrl) {
-    throw new Error("Set TARGET_CONVEX_URL explicitly for the regeneration audit.");
+    throw new Error("Set TARGET_POSTGRES_URL explicitly for the regeneration audit.");
   }
   const client = createDataClient({ target: command.targetUrl }).client;
   const [replications, substances] = await Promise.all([
@@ -282,7 +282,7 @@ async function main() {
     });
     if (result.status !== "ok") throw new Error(`${plan.substance_slug}: gallery changed during regeneration.`);
     if (result.pruned_curated.length > 0 || result.pruned_removed.length > 0) {
-      throw new Error(`${plan.substance_slug}: Convex unexpectedly pruned the audited payload.`);
+      throw new Error(`${plan.substance_slug}: Postgres unexpectedly pruned the audited payload.`);
     }
   }
   process.stderr.write("\n");

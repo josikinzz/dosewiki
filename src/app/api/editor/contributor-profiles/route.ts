@@ -1,5 +1,5 @@
 /** The contributor directory the people tools and change log attribute work with. */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { editorReadRoute } from "../editorReadRoute";
 
 export const runtime = "nodejs";

@@ -8,7 +8,7 @@ import type { CopyResolver } from "./copyBlocks";
  * Server-only projection of per-category editorial content from the manual
  * psychoactive index JSON, keyed by category `key`.
  *
- * The public substance-index layout is served from Convex (slugs only), so the
+ * The public substance-index layout is served from Postgres (slugs only), so the
  * `definition`/`warning` text never reaches the client through that path. We
  * read it straight from the JSON here and hand it to the page as a prop, which
  * keeps the ~18KB index out of the client bundle.

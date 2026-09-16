@@ -25,7 +25,7 @@ export function isCitationEvidenceStatus(value: string): value is CitationEviden
 export type CitationEvidenceSeverity = "blocking" | "non_blocking";
 
 /**
- * Queue membership filter shared by the tab, the queue route, and the Convex
+ * Queue membership filter shared by the tab, the queue route, and the Postgres
  * summary query. `open` is the default: an article stays queued while at least
  * one row is not approved, so fully approved articles drain out of the queue.
  * `approved` brings those drained articles back; `rejected` narrows to
@@ -51,12 +51,8 @@ export function isCitationReviewQueueFilter(value: string): value is CitationRev
   return (CITATION_QUEUE_FILTERS as readonly string[]).includes(value);
 }
 
-/**
- * What the queue route could tell about a failed load. `query` means the data
- * server refused or could not finish the summary query and carries the request
- * id to report; `capacity` means the evidence table outgrew the page cap.
- */
-export type CitationReviewQueueLoadCause = "query" | "capacity";
+/** What the queue route could tell about a failed native summary query. */
+export type CitationReviewQueueLoadCause = "query";
 
 export type CitationReviewQueueLoadFailure = {
   error: string;
@@ -65,8 +61,7 @@ export type CitationReviewQueueLoadFailure = {
 };
 
 export const CITATION_QUEUE_LOAD_CAUSE_LABEL: Record<CitationReviewQueueLoadCause, string> = {
-  query: "The data server failed the queue query",
-  capacity: "The evidence table is too large to summarize",
+  query: "The data server could not run the queue summary.",
 };
 
 /** Reviewer decision written to a row; `statusReason` is the note the next editor reads. */
@@ -162,17 +157,11 @@ type CitationEvidenceDiagnostic = {
 }
 
 export type CitationEvidenceRow = {
-  _id?: string;
-  slug: string;
-  articleId?: number | null;
   section: string;
   claimKey: string;
   claimText?: string;
   fieldPath?: string;
   referenceIds: string[];
-  sourceName?: string;
-  sourceType?: string;
-  quality?: string;
   status: CitationEvidenceStatus;
   statusReason?: string;
   severity: CitationEvidenceSeverity;
@@ -181,10 +170,7 @@ export type CitationEvidenceRow = {
   supportRationale?: string;
   supports?: CitationEvidenceSupport[];
   diagnostics?: CitationEvidenceDiagnostic[];
-  provenance?: unknown;
-  createdAt?: string;
   updatedAt: string;
-  updatedBy?: string;
 };
 
 export type CitationReviewQueueSummary = {

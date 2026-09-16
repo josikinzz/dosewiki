@@ -3,8 +3,8 @@
  * Verification and application-build command for every Vercel project that
  * builds this repository.
  *
- * Ordinary builds must never mutate Convex. This wrapper checks that every
- * Convex call site resolves in the checkout, then runs the application build.
+ * Ordinary builds check that owned Postgres function references resolve in the
+ * checkout, then build the application. No database deployment is performed.
  * Deployment and rollback procedures belong to separately authorized entry
  * points and are intentionally unavailable here, even when deploy credentials
  * are present in the environment.
@@ -52,21 +52,21 @@ function banner(lines) {
 }
 
 /**
- * Every Convex function the app names must exist in this checkout. Typecheck
+ * Every owned function the app names must exist in this checkout. Typecheck
  * covers the `api.*` form but not the untyped string form used for public reads,
  * so this is the only static coverage those names have.
  */
 function checkCallsitesResolve() {
-  console.log("[vercel-build] Checking every Convex call site resolves in this checkout...");
-  return run("node", ["scripts/convex/check-function-drift.mjs", "--checkout-only"]);
+  console.log("[vercel-build] Checking owned Postgres function references...");
+  return run("node", ["scripts/build/check-function-references.mjs"]);
 }
 
 function main() {
   const planOnly = process.argv.includes("--plan");
 
   banner([
-    "Convex functions will NOT be deployed by this build",
-    "Ordinary application builds are verification/build-only regardless of backend configuration or credentials.",
+    "Postgres application verification and build only",
+    "No database or provider deployment is performed, regardless of credentials.",
   ]);
 
   if (planOnly) return;
@@ -74,14 +74,14 @@ function main() {
   const callsiteStatus = checkCallsitesResolve();
   if (callsiteStatus !== 0) {
     console.error(
-      "[vercel-build] The app calls a Convex function this checkout does not define. " +
+      "[vercel-build] The app calls an owned function this checkout does not define. " +
         "Building would ship a call that can never resolve.",
     );
     process.exit(1);
   }
 
   console.log(
-    "[vercel-build] Checkout-internal Convex call-site integrity was enforced; " +
+    "[vercel-build] Checkout-internal function reference integrity was enforced; " +
       "no deployment was read or mutated.",
   );
   console.log(`[vercel-build] ${APP_BUILD_COMMAND}`);

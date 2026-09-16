@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import {
-  PRODUCTION_URL, createCampaignReader, auditCampaign, initCampaign, nextPackets,
+  PRODUCTION_IDENTITY, createCampaignReader, auditCampaign, initCampaign, nextPackets,
   ingestReply, campaignStatus, verifyCampaign, retryTask, rejectTask, recordReceipt, parseCampaignArgs,
 } from "./campaign.mjs";
 import { substantiveExcerpt, isSourcePoorMarker, sourceBlocks, selectExactBlocks, parseWriterOutput } from "./evidence.mjs";
@@ -25,7 +25,7 @@ function fixture({ articles = [article()], quotes = [{ slug: "test-drug", sectio
   const runDir = mkdtempSync(resolve(tmpdir(), "section-generation-")); directories.push(runDir);
   const data = { articles, quotes, sources, prompts: GENERATION_SECTIONS.map((section) => ({ key: sectionKeyToPromptKey(section), content: `Exact registered ${section} prompt.` })) };
   const calls = [];
-  const convexApi = { substanceIndex: { getFullDocumentPage: "articles", getBySlug: "article" }, prompts: { getAll: "prompts" }, quotes: { getBySlug: "quotes" }, articleSources: { getBySlug: "sources" } };
+  const postgresApi = { substanceIndex: { getFullDocumentPage: "articles", getBySlug: "article" }, prompts: { getAll: "prompts" }, quotes: { getBySlug: "quotes" }, articleSources: { getBySlug: "sources" } };
   const client = { query: async (reference, args) => {
     calls.push({ reference, args });
     if (reference === "articles") {
@@ -40,8 +40,8 @@ function fixture({ articles = [article()], quotes = [{ slug: "test-drug", sectio
     if (reference === "quotes") return structuredClone(data.quotes.filter((quote) => quote.slug === args.slug));
     if (reference === "sources") return data.sources?.slug === args.slug ? structuredClone(data.sources) : null;
     throw new Error(`Unexpected query: ${reference}`);
-  }, mutation: () => { throw new Error("Campaign must never mutate Convex"); } };
-  const reader = createCampaignReader({ client, convexApi, extractionPrompt: (section) => `Extract ${section} relevant evidence.` });
+  }, mutation: () => { throw new Error("Campaign must never mutate Postgres"); } };
+  const reader = createCampaignReader({ client, postgresApi, extractionPrompt: (section) => `Extract ${section} relevant evidence.` });
   return { runDir, reader, data, calls };
 }
 function reply(packet, rawText) {
@@ -479,7 +479,7 @@ describe("strict evidence and command boundaries", () => {
       .toMatchObject({ command: "reject", task: "test-drug/summary", reason: "Revise wording" });
     expect(() => parseCampaignArgs(["reject", "--run=x", "--task=test-drug/summary"])).toThrow("--reason");
     for (const args of [["next", "--run=x", "--write"], ["next", "--run=x", "--limit=0"], ["next", "--run=x", "--limit=1", "--limit=2"],
-      ["init", "--run=x", "--url=https://other.convex.cloud"], ["init"], ["audit", "--section=legality"]]) expect(() => parseCampaignArgs(args)).toThrow();
-    expect(parseCampaignArgs(["audit", `--url=${PRODUCTION_URL}`]).command).toBe("audit");
+      ["init", "--run=x", "--target=postgresql://other/postgres"], ["init"], ["audit", "--section=legality"]]) expect(() => parseCampaignArgs(args)).toThrow();
+    expect(parseCampaignArgs(["audit", `--target=postgresql://${PRODUCTION_IDENTITY}`]).command).toBe("audit");
   });
 });

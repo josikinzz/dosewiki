@@ -14,6 +14,22 @@ import {
 } from "./FeedbackReviewQueue";
 import { createFeedbackRequests } from "./feedbackRequests";
 
+type SiteFeedbackQueueItem = Pick<
+  SiteFeedbackRow,
+  | "id"
+  | "status"
+  | "category"
+  | "urgency"
+  | "details"
+  | "page"
+  | "email"
+  | "honeypot_triggered"
+  | "review_notes"
+  | "reviewed_by"
+  | "reviewed_at"
+  | "created_at"
+>;
+
 const URGENCY_PILL_TONE: Record<SiteFeedbackUrgency, EditorStatusPillTone> = {
   critical: "danger",
   high: "caution",
@@ -21,9 +37,9 @@ const URGENCY_PILL_TONE: Record<SiteFeedbackUrgency, EditorStatusPillTone> = {
   low: "neutral",
 };
 
-export const siteFeedbackAdapter: FeedbackSourceAdapter<SiteFeedbackRow> = {
+export const siteFeedbackAdapter: FeedbackSourceAdapter<SiteFeedbackQueueItem> = {
   source: "site",
-  ...createFeedbackRequests<SiteFeedbackRow>("/api/site-feedback"),
+  ...createFeedbackRequests<SiteFeedbackQueueItem>("/api/site-feedback"),
   transitions: SITE_FEEDBACK_STATUS_TRANSITIONS,
   labels: {
     icon: "lucide:megaphone",

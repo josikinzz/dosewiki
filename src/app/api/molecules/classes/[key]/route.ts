@@ -2,11 +2,11 @@
  * Public image endpoint for hand-authored chemical-class Markush depiction overrides.
  *
  * Class overrides share the `moleculeOverrides` table with substances under the
- * namespaced slug `class:<key>`. Convex is the only source for class drawings —
+ * namespaced slug `class:<key>`. Postgres is the only source for class drawings —
  * a class with no stored row simply has no structure image (404 here, and the
  * class detail page omits the figure).
  *
- * As with the substance route, the shared Convex row stores the dose.wiki brand palette, so
+ * As with the substance route, the shared Postgres row stores the dose.wiki brand palette, so
  * the Effect Index colourway is applied at serve time rather than in the data.
  */
 import { NextResponse } from "next/server";
@@ -14,7 +14,7 @@ import {
   applyMoleculeColorway,
   resolveMoleculeColorway,
 } from "@/data/mappings/moleculePalette";
-import { getPublicMolecule, type PublicMolecule } from "@server/convex/publicData.molecules";
+import { getPublicMolecule, type PublicMolecule } from "@server/data/publicData.molecules";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";

@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(async () => null),
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
@@ -19,15 +19,15 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 import { POST } from "./route";
 
-/** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
+/** How the Postgres HTTP client rebuilds a thrown `PostgresError` on this side. */
 function forwarded(data: unknown) {
-  const error = new ConvexError("Server Error");
+  const error = new PostgresError("Server Error");
   (error as { data: unknown }).data = data;
   return error;
 }
@@ -46,7 +46,7 @@ beforeEach(() => {
     .mockImplementation(roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }));
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   mocks.mutation.mockReset().mockResolvedValue({ slug: "alpine-clarity", ownerEmail: "owner@example.com" });
-  mocks.getServerConvexWriteCapability.mockReset().mockReturnValue({
+  mocks.getServerDataWriteCapability.mockReset().mockReturnValue({
     ok: true,
     capability: {
       adminKey: "admin-key",
@@ -75,7 +75,7 @@ describe("dev trip report owner route", () => {
     });
   });
 
-  it("refuses an editor before touching Convex", async () => {
+  it("refuses an editor before touching Postgres", async () => {
     mocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const response = await POST(postOwner("alpine-clarity", { email: "owner@example.com" }));
@@ -91,7 +91,7 @@ describe("dev trip report owner route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("relays an unknown member as a 400 carrying the Convex code", async () => {
+  it("relays an unknown member as a 400 carrying the Postgres code", async () => {
     mocks.mutation.mockRejectedValue(
       forwarded({ code: "MEMBER_NOT_FOUND", message: "No membership for nobody@example.com." }),
     );

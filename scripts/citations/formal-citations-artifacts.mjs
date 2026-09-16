@@ -1,6 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../..");
@@ -103,8 +104,8 @@ function createFormalCitationProgress({
     status: "starting",
     startedAt: nowIso(),
     updatedAt: nowIso(),
-    sourceUrl,
-    targetUrl,
+    sourceDeployment: postgresFingerprintFromUrl(sourceUrl),
+    targetDeployment: postgresFingerprintFromUrl(targetUrl),
     selectedSections: [...sections],
     currentSection: null,
     resultsPath: artifacts.resultsPath,
@@ -165,6 +166,8 @@ export function loadFormalCitationProgress({
   }
 
   const resumed = JSON.parse(readFileSync(artifacts.progressPath, "utf8"));
+  delete resumed.sourceUrl;
+  delete resumed.targetUrl;
   const nextProgress = {
     ...createFormalCitationProgress({
       artifacts,
@@ -178,8 +181,8 @@ export function loadFormalCitationProgress({
     runId: artifacts.runId,
     slug,
     updatedAt: nowIso(),
-    sourceUrl,
-    targetUrl,
+    sourceDeployment: postgresFingerprintFromUrl(sourceUrl),
+    targetDeployment: postgresFingerprintFromUrl(targetUrl),
     selectedSections: [...sections],
     resultsPath: artifacts.resultsPath,
     mergedDraftPath: artifacts.mergedDraftPath,

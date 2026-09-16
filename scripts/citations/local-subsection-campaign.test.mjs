@@ -5,11 +5,11 @@ import { resolve } from "node:path";
 
 import {
   assertLocalOnlyCampaignArguments,
-  buildStageAwareResumePrompt,
-  buildOmpCoordinatorArgs,
   chooseCampaignRunId,
   inspectRunStage,
+  localCampaignEnvironment,
 } from "./local-subsection-campaign.mjs";
+import { resolvePostgresSource, resolvePostgresTarget } from "../lib/data-client.ts";
 
 const terminalSections = {
   summary: { status: "checked" },
@@ -46,52 +46,33 @@ describe("local subsection campaign hardening", () => {
     }).stage).toBe("finalized");
   });
 
-  it("resumes only the first incomplete stage and preserves accepted research", () => {
-    const prompt = buildStageAwareResumePrompt({
-      slug: "example",
-      runId: "example-repair",
-      stage: { stage: "article_wide", reason: "article_wide_missing" },
-    });
-    expect(prompt).toContain("Create only article-wide.json");
-    expect(prompt).toContain("docs/agents/pi-citation-run-contract.md");
-    expect(prompt).toContain("preserve every accepted artifact");
-    expect(prompt).toContain("Never apply a draft");
-    expect(prompt).toContain("named project agents citation-section-worker and citation-article-wide-worker directly");
-    expect(prompt).toContain("Coordinate exactly this one slug and run (example, example-repair)");
-    expect(prompt).toContain("do not invoke /opt/homebrew/bin/pi");
-    expect(prompt).toContain("finalized at needs_review");
-  });
 
-  it("invokes the authenticated OMP compatibility configuration noninteractively", () => {
-    expect(buildOmpCoordinatorArgs("coordinate one slug")).toEqual([
-      "--model", "openai-codex/gpt-5.6-terra",
-      "--thinking", "high",
-      "--approval-mode", "yolo",
-      "--max-time", "1h",
-      "-p",
-      "coordinate one slug",
-    ]);
-  });
 
-  it("keeps immutable research lanes explicit during second-pass recovery", () => {
-    const prompt = buildStageAwareResumePrompt({
-      slug: "datura",
-      runId: "datura-second-pass-1",
-      stage: { stage: "sections", reason: "section_status_pending" },
-      researchPass: "second",
-    });
-    expect(prompt).toContain("immutable researchBrief lanes");
-    expect(prompt).toContain("confirmed_needs_source");
-    expect(prompt).toContain("Run only sections without terminal manifest statuses");
-  });
 
   it("rejects every production or apply argument", () => {
     expect(() => assertLocalOnlyCampaignArguments(["--slug=example", "--write"]))
       .toThrow(/rejects production\/apply arguments/);
     expect(() => assertLocalOnlyCampaignArguments(["--confirm-citation-write"]))
       .toThrow(/rejects production\/apply arguments/);
-    expect(() => assertLocalOnlyCampaignArguments(["--slug=example", "--source-url=https://example.convex.cloud"]))
+    expect(() => assertLocalOnlyCampaignArguments(["--slug=example", "--source-url=postgres://example/dosewiki"]))
       .not.toThrow();
+  });
+
+  it("isolates child database selection without losing the explicit source or remote confirmation", () => {
+    const sourceUrl = "postgres://reader:p%3Dsecret@source.example/dosewiki?sslmode=require";
+    const env = localCampaignEnvironment(sourceUrl, {
+      DATA_BACKEND: "postgres",
+      SOURCE_POSTGRES_URL: "postgres://stale/other",
+      TARGET_POSTGRES_URL: "postgres://writer/production",
+      POSTGRES_POOLED_URL: "postgres://pool/production",
+      POSTGRES_DIRECT_URL: "postgres://direct/production",
+      POSTGRES_IMPORT_CONFIRM: "source.example",
+      DATA_WRITES_FROZEN: "1",
+    });
+    expect(resolvePostgresSource({ argv: [], env }).url).toBe(sourceUrl);
+    expect(resolvePostgresTarget({ argv: [], env }).url).toBeNull();
+    expect(env.POSTGRES_IMPORT_CONFIRM).toBe("source.example");
+    expect(env.DATA_WRITES_FROZEN).toBe("1");
   });
 
   it("protects finalized slug runs with a distinct successor while preserving researching identity", () => {

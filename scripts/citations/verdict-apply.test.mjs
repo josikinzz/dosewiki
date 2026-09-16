@@ -335,10 +335,10 @@ test("safety-sensitive keeps require a confirming refuter record", () => {
 });
 
 function cliEnv() {
-  // Strip every Convex URL so the CLI cannot reach any deployment.
-  const env = { ...process.env };
+  // Strip database selectors so fixture runs cannot inherit a live target.
+  const env = { ...process.env, DATA_BACKEND: "postgres" };
   for (const key of Object.keys(env)) {
-    if (/CONVEX/i.test(key)) delete env[key];
+    if (/CONVEX|POSTGRES/i.test(key)) delete env[key];
   }
   return env;
 }
@@ -443,12 +443,11 @@ test("CLI write path can never run against fixtures and demands the guard stack"
     "--confirm-citation-write",
   ], { encoding: "utf8", env: cliEnv() });
   assert.equal(bareWrite.status, 1);
-  assert.match(bareWrite.stderr, /Missing Convex citation target URL/);
 });
 
 // ---------------------------------------------------------------------------
 // Post-write visibility: revalidation hook + optional public verification.
-// The Convex write is already durable when these run, so every failure below
+// The Postgres write is already durable when these run, so every failure below
 // must come back as a recorded warning, never a throw.
 // ---------------------------------------------------------------------------
 

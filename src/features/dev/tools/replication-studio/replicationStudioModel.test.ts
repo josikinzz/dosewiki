@@ -151,7 +151,7 @@ describe("buildReplicationSlug", () => {
     expect(buildReplicationSlug("???", "", [])).toBe("untitled-media");
   });
 
-  it("only produces slugs Convex will accept", () => {
+  it("only produces slugs Postgres will accept", () => {
     for (const [title, artist] of [["Untitled", "Zdzisław Beksiński"], ["  ", "//"], ["A—B", "C"]]) {
       expect(isValidReplicationSlug(buildReplicationSlug(title, artist, []))).toBe(true);
     }

@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadPsychoactiveSummaryRoute } from "@server/next/routeLoaders.substances";
+import {
+  loadPsychoactiveSummaryMetadataRoute,
+  loadPsychoactiveSummaryRoute,
+} from "@server/next/routeLoaders.substances";
 import { PsychoactiveSummaryPage } from "@/features/psychoactive-summaries/PsychoactiveSummaryPage";
 
 export const revalidate = 3600;
@@ -22,7 +25,7 @@ export async function generateMetadata({
   params,
 }: PsychoactiveSummaryRoutePageProps) {
   const { summaryPath } = await params;
-  const result = await loadPsychoactiveSummaryRoute(summaryPath);
+  const result = loadPsychoactiveSummaryMetadataRoute(summaryPath);
 
   if (result.kind === "not-found") {
     notFound();

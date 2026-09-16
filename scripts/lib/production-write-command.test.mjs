@@ -1,110 +1,45 @@
 import { describe, expect, it, vi } from "vitest";
+import { createProductionWriteCommand, executeProductionWrite } from "./production-write-command.mjs";
 
-import {
-  createProductionWriteCommand,
-  executeProductionWrite,
-} from "./production-write-command.mjs";
-
-const TARGET = "https://glad-minnow-656.convex.cloud";
-
-function createCommand(argv, env = {}) {
-  return createProductionWriteCommand({
-    operation: "migrate-pharmacology-schema",
-    argv,
-    env,
-    loadsEnvLocal: false,
-  });
+const TARGET = "postgres://operator:private-password@db.example/dosewiki";
+const operation = "migrate-pharmacology-schema";
+function command(argv, env = {}) {
+  return createProductionWriteCommand({ operation, argv, env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: TARGET, ...env }, loadsEnvLocal: false });
 }
 
-describe("production write command boundary", () => {
-  it("defaults to a harmless dry-run and never invokes the mutation", async () => {
+describe("production Postgres write boundary", () => {
+  it("does not invoke a mutation without explicit write intent", async () => {
     const mutation = vi.fn();
-    const command = createCommand([], { TARGET_CONVEX_URL: TARGET });
-
-    const result = await executeProductionWrite(command, mutation);
-
-    expect(command.dryRun).toBe(true);
-    expect(result).toEqual({ status: "dry-run", wrote: false });
+    expect(await executeProductionWrite(command([]), mutation)).toEqual({ status: "dry-run", wrote: false });
     expect(mutation).not.toHaveBeenCalled();
   });
 
   it.each([
-    {
-      label: "write flag only",
-      argv: ["--write"],
-      message: /--confirm-write=migrate-pharmacology-schema/,
-    },
-    {
-      label: "confirmation without a fingerprint",
-      argv: ["--write", "--confirm-write=migrate-pharmacology-schema"],
-      message: /--expected-deployment=glad-minnow-656/,
-    },
-    {
-      label: "wrong operation phrase",
-      argv: [
-        "--write",
-        "--confirm-write=some-other-operation",
-        "--expected-deployment=glad-minnow-656",
-      ],
-      message: /--confirm-write=migrate-pharmacology-schema/,
-    },
-    {
-      label: "wrong deployment fingerprint",
-      argv: [
-        "--write",
-        "--confirm-write=migrate-pharmacology-schema",
-        "--expected-deployment=enchanted-echidna-791",
-      ],
-      message: /does not match target deployment glad-minnow-656/,
-    },
-  ])("blocks $label before invoking the mutation", async ({ argv, message }) => {
+    ["--write", "--dry-run"],
+    ["--write"],
+    ["--write", `--confirm-write=${operation}`],
+    ["--write", `--confirm-write=${operation}`, "--expected-deployment=other.example/dosewiki"],
+  ])("blocks incomplete or contradictory confirmation %j", async (...argv) => {
     const mutation = vi.fn();
-    const command = createCommand(argv, { TARGET_CONVEX_URL: TARGET });
-
-    await expect(executeProductionWrite(command, mutation)).rejects.toThrow(message);
+    await expect(executeProductionWrite(command(argv), mutation)).rejects.toThrow();
     expect(mutation).not.toHaveBeenCalled();
   });
 
-  it("rejects browser-derived and compatibility write targets", async () => {
+  it("ignores application fallback targets for privileged writes", async () => {
     const mutation = vi.fn();
-    const command = createCommand(
-      [
-        "--write",
-        "--confirm-write=migrate-pharmacology-schema",
-        "--expected-deployment=enchanted-echidna-791",
-      ],
-      { VITE_CONVEX_URL: "https://enchanted-echidna-791.convex.cloud" },
-    );
-
-    await expect(executeProductionWrite(command, mutation)).rejects.toThrow(
-      /TARGET_CONVEX_URL or --target-url/,
-    );
+    const selected = command(["--write", `--confirm-write=${operation}`, "--expected-deployment=db.example/dosewiki"], { TARGET_POSTGRES_URL: undefined, POSTGRES_POOLED_URL: TARGET });
+    await expect(executeProductionWrite(selected, mutation)).rejects.toThrow(/TARGET_POSTGRES_URL/);
     expect(mutation).not.toHaveBeenCalled();
   });
 
-  it("allows the exact operation, target, and deployment ceremony", async () => {
-    const mutation = vi.fn().mockResolvedValue({ updated: 3 });
-    const command = createCommand(
-      [
-        "--write",
-        "--confirm-write=migrate-pharmacology-schema",
-        "--expected-deployment=glad-minnow-656",
-      ],
-      { TARGET_CONVEX_URL: TARGET },
-    );
-
-    await expect(executeProductionWrite(command, mutation)).resolves.toEqual({ updated: 3 });
+  it("runs only the exact operation and database confirmation", async () => {
+    const mutation = vi.fn(async () => ({ updated: 3 }));
+    await expect(executeProductionWrite(command(["--write", `--confirm-write=${operation}`, "--expected-deployment=db.example/dosewiki"]), mutation)).resolves.toEqual({ updated: 3 });
     expect(mutation).toHaveBeenCalledOnce();
   });
 
-  it("accepts an explicit CLI target and records only its public fingerprint", () => {
-    const command = createCommand([
-      "--target-url=https://glad-minnow-656.convex.cloud",
-    ]);
-
-    expect(command.targetUrl).toBe(TARGET);
-    expect(command.targetSource).toBe("--target-url");
-    expect(command.deploymentFingerprint).toBe("glad-minnow-656");
-    expect(JSON.stringify(command)).not.toContain("CONVEX_ADMIN");
+  it("rejects an invalid explicit CLI target rather than using the valid environment", () => {
+    expect(() => command(["--target=https://legacy.convex.cloud"])).toThrow(/Postgres/);
+    expect(() => command(["--target"])).toThrow(/--target/);
   });
 });

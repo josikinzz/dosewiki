@@ -1,6 +1,6 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { requireEffectIndexFlavor } from "@/config/siteFlavor";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { DiscordPage } from "@/features/effect-index/pages/DiscordPage";
 
 const METADATA = {
@@ -12,7 +12,7 @@ const METADATA = {
 
 export async function generateMetadata() {
   requireEffectIndexFlavor();
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-discord-description", "discord-intro-effect-index", "discord-rules-effect-index"]);
 
   return buildPublicPageMetadata({
     ...METADATA,
@@ -23,7 +23,7 @@ export async function generateMetadata() {
 export default async function DiscordRoute() {
   // Flavor gate first: on the dose.wiki build this route does not exist.
   requireEffectIndexFlavor();
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-discord-description", "discord-intro-effect-index", "discord-rules-effect-index"]);
 
   return (
     <DiscordPage

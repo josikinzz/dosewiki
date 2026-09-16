@@ -100,7 +100,7 @@ describe("trip report submissions public route", () => {
   });
 
   it("keeps submitted identity and link fields out of the stored row and says so", async () => {
-    // Mirrors ConvexTripReportSubmissionStore.create so the assertion covers the
+    // Mirrors DataTripReportSubmissionStore.create so the assertion covers the
     // real normalization rather than a fixture.
     mocks.storeCreate.mockImplementation(async (input: TripReportSubmissionInput) => {
       const validation = validateTripReportSubmission(input);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { isKnownPromptKey } from "@/data/config/promptRegistry";
@@ -53,7 +53,7 @@ export const POST = protectedRouteOperation<SavePromptBody, { key: string; conte
     maxBytes: MAX_PROMPT_PAYLOAD_BYTES,
     parse: parseBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save prompt via Next route:",
   unexpectedErrorMessage: "Unable to save prompt right now.",
   mapError: (error) => {
@@ -63,16 +63,16 @@ export const POST = protectedRouteOperation<SavePromptBody, { key: string; conte
 
     return null;
   },
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const { key, content } = body;
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
-    const apiKey = convexWrite.getAdminIntentToken?.("promptMigrationWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("promptMigrationWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.prompts.save, {
+    const result = await dataWrite.client.mutation(api.prompts.save, {
       apiKey,
       actorEmail,
       key,

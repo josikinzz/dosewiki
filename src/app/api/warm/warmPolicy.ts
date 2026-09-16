@@ -2,8 +2,8 @@
  * Pure policy for the cron-driven warmer at `/api/warm`: who may invoke it,
  * which public origin it warms, and in what order.
  */
-import { priorityScore } from "@server/convex/publicData.shared";
-import type { PublicSubstanceLookupEntry } from "@server/convex/publicData.shared";
+import { priorityScore } from "@server/data/publicData.shared";
+import type { PublicSubstanceLookupEntry } from "@server/data/publicData.shared";
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 import { getPublicRoutePath } from "@server/next/publicSite";
 import { isEditorHost } from "@server/next/publicHostPolicy";

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getPublicReagentTestBySlug } from "@server/convex/publicData.reagents";
+import { getPublicReagentTestBySlug } from "@server/data/publicData.reagents";
 import { getCachedReagentDataForArticle } from "./reagentData";
 
 vi.mock("server-only", () => ({}));
-vi.mock("@server/convex/publicData.reagents", () => ({
+vi.mock("@server/data/publicData.reagents", () => ({
   getPublicReagentTestBySlug: vi.fn(),
 }));
 
@@ -36,7 +36,7 @@ describe("getCachedReagentDataForArticle", () => {
     expect(mockedGetBySlug).not.toHaveBeenCalled();
   });
 
-  it("normalizes the Convex snapshot record found by canonical slug", async () => {
+  it("normalizes the Postgres snapshot record found by canonical slug", async () => {
     mockedGetBySlug.mockResolvedValueOnce(cachedResponse);
 
     const result = await getCachedReagentDataForArticle(

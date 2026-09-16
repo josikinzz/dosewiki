@@ -5,10 +5,10 @@
  * The publication rules are the shared `publishReviewedSectionTransaction`
  * (section CAS, replay receipts, patch boundary). This module supplies its
  * `GeneratedPublicationDb` port over one SQL transaction and reproduces the
- * one derived write a section publish triggers in Convex: the
- * `publicCachePublications` outbox upsert (`convex/lib/publicationOutbox.ts`).
+ * one derived write a section publish triggers: the
+ * `publicCachePublications` outbox upsert (`server/lib/publicationOutbox.ts`).
  * `reviewedArticles` is deliberately not synced here because section patches
- * never touch the fields that gate it (`convex/lib/indexedMutation.ts:50`).
+ * never touch the fields that gate it (`server/lib/indexedMutation.ts`).
  *
  * Concurrency: the article row is read `FOR UPDATE`, so two publishers of the
  * same article serialize on the row; the loser re-reads the committed content
@@ -23,21 +23,31 @@ import {
   type GeneratedPublicationDb,
   type ReviewedPublicationProposal,
   type ReviewedSectionPublishResult,
-} from "../../convex/lib/generatedPublication";
+} from "../../server/lib/generatedPublication";
 import { projectPublicArticle, type SubstancePublicArticleProjection } from "../../src/data/projections/substanceReadProjections";
 import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/data/projections/substanceProjectionCore";
-import type { ConvexDocument } from "./convexDocumentCodec";
+import {
+  classifySubstancePublicationDependency,
+  mergeSubstancePublicationDependency,
+  type SubstancePublicationDependency,
+} from "../../src/data/projections/substancePublicationDependencies";
+import type { DataDocument } from "./documentCodec";
 import { insertDocument, patchDocument, selectDocumentById, selectDocuments, withTransaction, type SqlClient } from "./documentStore";
 
-type ArticlePublicationTarget = { kind: "article"; slug: string }
+type ArticlePublicationTarget = {
+  kind: "article";
+  slug: string;
+  dependency?: SubstancePublicationDependency;
+};
 
 export function articlePublicationKey(slug: string): string {
   const target: ArticlePublicationTarget = { kind: "article", slug };
   return JSON.stringify(target);
 }
 
+
 /** Read the stored article documents for one slug (0, 1, or more rows). */
-async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = false): Promise<ConvexDocument[]> {
+async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = false): Promise<DataDocument[]> {
   return selectDocuments(client, "substanceIndex", {
     where: '"slug" = $1',
     params: [slug],
@@ -55,8 +65,8 @@ export async function readPublicArticleBySlug(client: SqlClient, slug: string): 
 
 export type ArticlePublicationState = {
   publicRevision: string | null;
-  outbox: ConvexDocument | null;
-  operations: ConvexDocument[];
+  outbox: DataDocument | null;
+  operations: DataDocument[];
 };
 
 /** What an observer sees after a publish: the live revision, the outbox receipt, and the operation ledger. */
@@ -110,10 +120,14 @@ function publicationDb(client: PoolClient): GeneratedPublicationDb {
  * when the public revision changed, upsert one pending outbox receipt keyed by
  * the article target, bumping `generation` so a stale delivery is ignored.
  */
-async function upsertArticleOutbox(client: SqlClient, before: ConvexDocument | null, after: ConvexDocument | null, now: number): Promise<boolean> {
-  const revisionOf = (row: ConvexDocument | null) => (row ? projectPublicArticle(row as SubstanceArticleRecord).publicRevision : null);
+async function upsertArticleOutbox(client: SqlClient, before: DataDocument | null, after: DataDocument | null, now: number): Promise<boolean> {
+  const revisionOf = (row: DataDocument | null) => (row ? projectPublicArticle(row as SubstanceArticleRecord).publicRevision : null);
   const afterRevision = revisionOf(after);
   if (revisionOf(before) === afterRevision) return false;
+  const dependency = classifySubstancePublicationDependency(
+    before as SubstanceArticleRecord | null,
+    after as SubstanceArticleRecord | null,
+  );
   const slugs = new Set<string>();
   for (const row of [before, after]) {
     const slug = row ? resolveSubstanceSlug(row as SubstanceArticleRecord) : null;
@@ -125,9 +139,16 @@ async function upsertArticleOutbox(client: SqlClient, before: ConvexDocument | n
     const [current] = await selectDocuments(client, "publicCachePublications", { where: '"key" = $1', params: [key], limit: 1, forUpdate: true });
     // The target that still has an article carries its revision; a vacated slug carries null.
     const revision = slug === afterSlug ? afterRevision : null;
+    const pendingDependency = current?.pending === true &&
+      (current.target as ArticlePublicationTarget | undefined)?.kind === "article"
+      ? mergeSubstancePublicationDependency(
+          (current.target as ArticlePublicationTarget).dependency,
+          dependency,
+        )
+      : dependency;
     const value = {
       key,
-      target: { kind: "article", slug },
+      target: { kind: "article", slug, dependency: pendingDependency },
       revision,
       generation: ((current?.generation as number | undefined) ?? 0) + 1,
       pending: true,

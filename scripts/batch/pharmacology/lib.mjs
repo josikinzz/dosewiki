@@ -42,7 +42,7 @@ export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
       "skip-backup": "skipBackup",
       "include-complete": "includeComplete",
       "source-url": "sourceUrl",
-      "target-url": "targetUrl",
+      "target": "targetUrl",
       "confirm-write": "confirmWrite",
       "expected-deployment": "expectedDeployment",
     },
@@ -58,7 +58,7 @@ export function getArticleSlug(article) {
   return article.slug || titleToSlug(article.title);
 }
 
-export function stripConvexMetadata(article) {
+export function stripDataMetadata(article) {
   const { _id, _creationTime, ...cleanArticle } = article;
   return cleanArticle;
 }

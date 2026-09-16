@@ -6,21 +6,21 @@
  *
  * The browser holds no admin intent token, so both directions are delegated
  * here exactly as the Copy Studio route delegates its write: the route checks
- * the session, then talks to Convex with the server's own token plus the
+ * the session, then talks to Postgres with the server's own token plus the
  * actor's email for the audit trail.
  *
  * Three roles share the route. An admin may read and patch any record and any
  * field. An editor may read any record but patch only their own: the record
  * whose membership email is theirs, or the still-unclaimed record their
  * sign-in derives to. The route refuses the obvious case (a record another
- * sign-in holds) with 403 before writing, and Convex's `saveProfileAsEditor`
+ * sign-in holds) with 403 before writing, and Postgres's `saveProfileAsEditor`
  * applies the same rule with the actor's real membership role, so a
  * misconfigured route still cannot escalate. `saveProfileAsEditor` also
  * refuses the trust fields (role, membership email, approved replicator,
  * gallery exclusion, archival, staff note) for anyone below admin, whatever
  * the payload carries. A signed-in contributor may read and save only their
  * own record and only its self-serve fields; that write goes through
- * `saveProfile`, whose ownership rule Convex enforces the same way, and the
+ * `saveProfile`, whose ownership rule Postgres enforces the same way, and the
  * read withholds the staff-only fields. A missing own record comes back blank
  * so the first save creates it.
  *
@@ -33,12 +33,12 @@
  *
  * The editor POST is patch-only all the way down: an omitted field keeps
  * whatever is stored and `null` clears a clearable one, which is
- * `saveProfileAsEditor`'s contract. Sending an avatar file sets
- * `avatarStorageId` and leaves `avatarUrl` alone, because the stored image wins
- * over the remote URL.
+ * `saveProfileAsEditor`'s contract. Sending an avatar file publishes a verified
+ * immutable `avatarR2Key`, replacing the current identity without deleting the
+ * prior image retained in profile history.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import {
   MAX_CONTRIBUTOR_PROFILE_LINKS as MAX_LINKS,
   deriveProfileKeyFromEmail,
@@ -46,14 +46,14 @@ import {
   toContributorDisplayName,
 } from "@server/contributorProfileIdentity";
 import { roleMeetsFloor } from "@/lib/auth/roles";
-import { classifyConvexRejection } from "@/lib/http/convexRejection";
+import { classifyDataRejection } from "@/lib/http/dataRejection";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
+import type { ServerDataWriteCapability } from "@server/data/serverWriteCapability";
 import {
   normalizeAvatarUpload,
   type NormalizedAvatarUpload,
-  uploadAvatarToConvex,
+  uploadAvatarToR2,
 } from "@server/next/contributorAvatarUpload";
 import { revalidateContributorSurfaces } from "./contributorRevalidation";
 import { contentHash } from "@server/proposals/contentHash";
@@ -120,7 +120,7 @@ function requireProfileKey(raw: unknown): string {
 
 /**
  * `undefined` means the field was not sent and must be left alone; an emptied
- * string means the editor cleared it, which is `null` on the Convex side. The
+ * string means the editor cleared it, which is `null` on the Postgres side. The
  * patch mutation cannot express "clear" any other way.
  */
 function parseNullableText(raw: unknown, label: string): string | null | undefined {
@@ -184,7 +184,7 @@ function parseAliases(raw: unknown): string[] {
 
 /**
  * `null` (or a note emptied down to nothing) clears the stored staff note;
- * anything else must be a `{ markdown, attribution? }` object. The Convex
+ * anything else must be a `{ markdown, attribution? }` object. The Postgres
  * patch builder does the canonical sanitization; the length caps here just
  * bound the payload the same way the bio field is bounded.
  */
@@ -309,12 +309,19 @@ function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch {
     patch.staffNote = parseStaffNote(raw.staffNote);
   }
 
+  let avatarUpload: NormalizedAvatarUpload | null;
+  try {
+    avatarUpload = normalizeAvatarUpload(raw.avatarUpload);
+  } catch (error) {
+    throw new JsonBodyError(400, error instanceof Error ? error.message : "Invalid avatar upload.");
+  }
+
   return {
     key,
     expectedUpdatedAt: raw.expectedUpdatedAt as string | null,
     operationId: raw.operationId as string | undefined,
     patch,
-    avatarUpload: normalizeAvatarUpload(raw.avatarUpload),
+    avatarUpload,
   };
 }
 
@@ -336,8 +343,8 @@ type TripReportRow = {
   featured?: boolean;
 };
 
-function adminIntentToken(convexWrite: ServerConvexWriteCapability): string {
-  return convexWrite.getAdminIntentToken?.("profileMediaWrite") ?? convexWrite.adminKey;
+function adminIntentToken(dataWrite: ServerDataWriteCapability): string {
+  return dataWrite.getAdminIntentToken?.("profileMediaWrite") ?? dataWrite.adminKey;
 }
 
 /**
@@ -347,11 +354,11 @@ function adminIntentToken(convexWrite: ServerConvexWriteCapability): string {
  * already holds that record, and `saveProfile` refuses the write.
  */
 async function resolveOwnProfileKey(
-  convexWrite: ServerConvexWriteCapability,
+  dataWrite: ServerDataWriteCapability,
   actorEmail: string,
 ): Promise<string> {
-  const owned = await convexWrite.client.query(api.contributorProfiles.getOwnedProfile, {
-    apiKey: adminIntentToken(convexWrite),
+  const owned = await dataWrite.client.query(api.contributorProfiles.getOwnedProfile, {
+    apiKey: adminIntentToken(dataWrite),
     email: actorEmail,
   });
   return owned?.key ?? deriveProfileKeyFromEmail(actorEmail);
@@ -388,15 +395,15 @@ const OWN_RECORD_WRITE_ONLY = { error: "You can only edit your own contributor p
 export const GET = protectedRouteOperation({
   auth: "contributor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load a contributor profile via Next route:",
   unexpectedErrorMessage: "Unable to load that contributor right now.",
-  operation: async ({ auth, actorEmail, convexWrite, request }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, dataWrite, request }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = adminIntentToken(convexWrite);
+    const apiKey = adminIntentToken(dataWrite);
     const requestedKey = new URL(request.url).searchParams.get("key")?.trim() ?? "";
     if (!requestedKey) {
       return NextResponse.json(
@@ -408,15 +415,15 @@ export const GET = protectedRouteOperation({
     const isEditor = roleMeetsFloor(auth.role, "editor");
     // Resolved before any record is read, so a non-editor never fetches a
     // record that is not theirs.
-    const ownKey = isEditor ? null : await resolveOwnProfileKey(convexWrite, actorEmail);
+    const ownKey = isEditor ? null : await resolveOwnProfileKey(dataWrite, actorEmail);
     if (ownKey !== null && normalizeProfileKey(requestedKey) !== ownKey) {
       return NextResponse.json(OWN_RECORD_ONLY, { status: 403 });
     }
 
-    // Editors read as themselves for Convex's editor check. A non-editor's own
+    // Editors read as themselves for Postgres's editor check. A non-editor's own
     // record is read with the server token alone: ownership was settled above
     // and the editor projection would refuse their membership role.
-    const profile = await convexWrite.client.query(api.contributorProfiles.getEditorProfile, {
+    const profile = await dataWrite.client.query(api.contributorProfiles.getEditorProfile, {
       apiKey,
       ...(isEditor ? { actorEmail } : {}),
       key: ownKey ?? requestedKey,
@@ -432,7 +439,7 @@ export const GET = protectedRouteOperation({
     }
 
     if (!profile) {
-      const selfKey = ownKey ?? (await resolveOwnProfileKey(convexWrite, actorEmail));
+      const selfKey = ownKey ?? (await resolveOwnProfileKey(dataWrite, actorEmail));
       if (normalizeProfileKey(requestedKey) !== selfKey) {
         return NextResponse.json(
           { error: `No contributor profile for "${requestedKey}".` },
@@ -442,7 +449,7 @@ export const GET = protectedRouteOperation({
       return NextResponse.json({ ok: true, profile: blankOwnProfile(selfKey), works: [], reports: [] });
     }
     if (new URL(request.url).searchParams.get("contextual") === "true") {
-      const owner = await resolveOwnProfileKey(convexWrite, actorEmail);
+      const owner = await resolveOwnProfileKey(dataWrite, actorEmail);
       const canEdit = auth.role === "admin" || normalizeProfileKey(profile.key) === owner;
       if (!canEdit) return NextResponse.json(OWN_RECORD_ONLY, { status: 403 });
       return NextResponse.json({
@@ -459,8 +466,8 @@ export const GET = protectedRouteOperation({
     const artistNames = [profile.displayName, ...profile.aliases].filter(Boolean);
 
     const [works, reports] = await Promise.all([
-      convexWrite.client.query(api.replications.getByArtistNames, { artistNames }),
-      convexWrite.client.query(api.tripReports.getByContributor, {
+      dataWrite.client.query(api.replications.getByArtistNames, { artistNames }),
+      dataWrite.client.query(api.tripReports.getByContributor, {
         profileKey: profile.key,
         authorNames: artistNames.map((name) => name.toLowerCase()),
       }),
@@ -498,33 +505,33 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     maxBytes: MAX_PAYLOAD_BYTES,
     parse: parseProfilePatchBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save a contributor profile via Next route:",
   unexpectedErrorMessage: "Unable to save that contributor profile right now.",
   mapError: (error) => {
     if (error instanceof JsonBodyError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    const rejection = classifyConvexRejection(error);
+    const rejection = classifyDataRejection(error);
     if (rejection?.code === "PROFILE_CONFLICT") {
       return NextResponse.json({ error: rejection.message, code: rejection.code }, { status: 409 });
     }
     if (rejection?.code === "ADMIN_ONLY_PROFILE_FIELD") {
       return NextResponse.json({ error: rejection.message, code: rejection.code }, { status: 403 });
     }
-    // Convex wraps thrown mutation errors, so match by substring.
+    // Postgres wraps thrown mutation errors, so match by substring.
     const message = error instanceof Error ? error.message : "";
     if (message.includes("You can only edit your own contributor profile")) {
       return NextResponse.json(OWN_RECORD_WRITE_ONLY, { status: 403 });
     }
     return null;
   },
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = adminIntentToken(convexWrite);
+    const apiKey = adminIntentToken(dataWrite);
     const isEditor = roleMeetsFloor(auth.role, "editor");
     const clientRequestIdentity = contentHash({
       key: normalizeProfileKey(body.key),
@@ -533,7 +540,7 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
       avatarUpload: body.avatarUpload,
     });
     if (body.operationId) {
-      const receipt = await convexWrite.client.query(api.contributorProfiles.getPublicationReceipt, {
+      const receipt = await dataWrite.client.query(api.contributorProfiles.getPublicationReceipt, {
         apiKey, actorEmail, key: body.key, operationId: body.operationId, clientRequestIdentity,
       });
       if (receipt) {
@@ -548,7 +555,7 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     // role and creates the record on first save. Admin-only fields in a
     // self-serve body are never written.
     const stored = isEditor
-      ? await convexWrite.client.query(api.contributorProfiles.getEditorProfile, {
+      ? await dataWrite.client.query(api.contributorProfiles.getEditorProfile, {
           apiKey,
           actorEmail,
           key: body.key,
@@ -563,7 +570,7 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     }
     const selfServe = !isEditor || !stored;
     if (selfServe && isEditor) {
-      const ownKey = await resolveOwnProfileKey(convexWrite, actorEmail);
+      const ownKey = await resolveOwnProfileKey(dataWrite, actorEmail);
       if (normalizeProfileKey(body.key) !== ownKey) {
         return NextResponse.json(
           { error: `No contributor profile for "${body.key}".` },
@@ -572,17 +579,24 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
       }
     }
 
-    const avatarStorageId = body.avatarUpload
-      ? await uploadAvatarToConvex(body.avatarUpload, convexWrite, actorEmail)
+    const avatarUpload = body.avatarUpload
+      ? await uploadAvatarToR2(body.avatarUpload, dataWrite, actorEmail, {
+          key: body.key,
+          expectedUpdatedAt: body.expectedUpdatedAt,
+          selfServe,
+          patch: body.patch,
+        })
       : undefined;
+    const avatarR2Key = avatarUpload?.r2Key;
 
     const result = selfServe
-      ? await convexWrite.client.mutation(api.contributorProfiles.saveProfile, {
+      ? await dataWrite.client.mutation(api.contributorProfiles.saveProfile, {
           apiKey,
           actorEmail,
           expectedUpdatedAt: body.expectedUpdatedAt,
           operationId: body.operationId,
           clientRequestIdentity,
+          avatarR2Receipt: avatarUpload?.receipt,
           profile: {
             key: body.key,
             displayName: body.patch.displayName ?? "",
@@ -590,20 +604,21 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
             links: body.patch.links ?? [],
             // An uploaded file wins; otherwise `null` clears the remote URL,
             // a string replaces it, and an omitted field keeps the stored one.
-            avatarUrl: avatarStorageId ? undefined : body.patch.avatarUrl,
-            avatarStorageId,
+            avatarUrl: avatarR2Key ? undefined : body.patch.avatarUrl,
+            avatarR2Key,
           },
         })
-      : await convexWrite.client.mutation(api.contributorProfiles.saveProfileAsEditor, {
+      : await dataWrite.client.mutation(api.contributorProfiles.saveProfileAsEditor, {
           apiKey,
           actorEmail,
           key: body.key,
           expectedUpdatedAt: body.expectedUpdatedAt,
           operationId: body.operationId,
           clientRequestIdentity,
+          avatarR2Receipt: avatarUpload?.receipt,
           patch: {
             ...body.patch,
-            ...(avatarStorageId ? { avatarStorageId } : {}),
+            ...(avatarR2Key ? { avatarR2Key } : {}),
           },
         });
 

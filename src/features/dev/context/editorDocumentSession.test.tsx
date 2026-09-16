@@ -35,10 +35,10 @@ describe("useEditorDocument", () => {
     expect(result.current.isDirty).toBe(false);
     expect(result.current.getOriginal().title).toBe("Updated LSD");
 
-    rerender({ source: { title: "Convex LSD", version: 2 } });
+    rerender({ source: { title: "Postgres LSD", version: 2 } });
 
     expect(result.current.isDirty).toBe(false);
-    expect(result.current.draft.title).toBe("Convex LSD");
+    expect(result.current.draft.title).toBe("Postgres LSD");
     expect(result.current.sourceVersion).toBe(2);
 
     act(() => {
@@ -47,7 +47,7 @@ describe("useEditorDocument", () => {
     });
 
     expect(result.current.isDirty).toBe(false);
-    expect(result.current.draft.title).toBe("Convex LSD");
+    expect(result.current.draft.title).toBe("Postgres LSD");
   });
 
   it("preserves dirty drafts and exposes a conflict when the upstream source refreshes", () => {

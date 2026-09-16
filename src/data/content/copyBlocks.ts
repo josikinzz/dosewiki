@@ -5,8 +5,8 @@ import copyBlockDefaultsSource from "./copyBlocks.json";
  *
  * Every key that a public page reads has an entry here, holding the string that
  * page hardcoded before the copy CMS existed. This file is the fallback layer:
- * if Convex holds no row for a key — an un-seeded deployment, a deleted block,
- * a Convex read that degraded — the reader still sees the original copy.
+ * if Postgres holds no row for a key — an un-seeded deployment, a deleted block,
+ * a Postgres read that degraded — the reader still sees the original copy.
  *
  * It is also the seed source (`scripts/seed/seed-copy-blocks.mjs` reads the same
  * JSON) and the Copy Studio's "reset to default" target, so the three surfaces

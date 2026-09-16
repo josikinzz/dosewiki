@@ -6,7 +6,7 @@ import { DELETE, POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     warningBanners: {
       listEditorPresets: "warningBanners.listEditorPresets",
@@ -24,7 +24,7 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: cacheMocks.revalidateTag,
 }));
 
-vi.mock("@server/convex/publicLibrary", () => ({
+vi.mock("@server/data/publicLibrary", () => ({
   invalidatePublicDerivedDataCache: vi.fn(),
 }));
 
@@ -38,14 +38,14 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: dataMocks.getServerDataWriteCapability,
 }));
 
 const presetBody = {
@@ -79,18 +79,18 @@ beforeEach(() => {
   authMocks.requireRoleSession.mockImplementation(
     roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
   );
-  convexMocks.getServerConvexWriteCapability.mockReturnValue({
+  dataMocks.getServerDataWriteCapability.mockReturnValue({
     ok: true,
     capability: {
-      client: { query: convexMocks.query, mutation: convexMocks.mutation },
+      client: { query: dataMocks.query, mutation: dataMocks.mutation },
       adminKey: "admin-key",
     },
   });
-  convexMocks.query.mockResolvedValue([]);
+  dataMocks.query.mockResolvedValue([]);
 });
 
 describe("warning banner preset route", () => {
-  it("refuses an editor session with 403 on both verbs before touching Convex", async () => {
+  it("refuses an editor session with 403 on both verbs before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const saved = await POST(jsonRequest("POST", presetBody));
@@ -98,14 +98,14 @@ describe("warning banner preset route", () => {
 
     expect(saved.status).toBe(403);
     expect(removed.status).toBe(403);
-    expect(convexMocks.query).not.toHaveBeenCalled();
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.query).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
     expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
     expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 
   it("invalidates current and removed article pages while reporting remote publication pending", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    dataMocks.mutation.mockResolvedValue({
       updated: true,
       key: "opioid",
       allSubstances: false,
@@ -116,7 +116,7 @@ describe("warning banner preset route", () => {
     const response = await POST(jsonRequest("POST", presetBody));
 
     expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
     for (const slug of ["heroin", "removed-article"]) {
       expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(`/${slug}`);
       expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(`/zh/${slug}`);
@@ -126,7 +126,7 @@ describe("warning banner preset route", () => {
   });
 
   it("expires the root layout for a preset that covers every substance", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    dataMocks.mutation.mockResolvedValue({
       updated: true,
       key: "opioid",
       allSubstances: true,
@@ -139,12 +139,12 @@ describe("warning banner preset route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/", "layout");
   });
 
   it("invalidates the banner cache and articles that lose a deleted preset", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    dataMocks.mutation.mockResolvedValue({
       removed: true,
       key: "opioid",
       allSubstances: false,
@@ -161,7 +161,7 @@ describe("warning banner preset route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/heroin");
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/zh/heroin");
     expect(await response.json()).toMatchObject({ publication: { status: "pending" } });
@@ -173,7 +173,7 @@ describe("warning banner preset route", () => {
 
     expect(saved.status).toBe(400);
     expect(removed.status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
     expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
     expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });

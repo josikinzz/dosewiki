@@ -1,10 +1,11 @@
+import { postgresFingerprintFromUrl } from "../../lib/data-client.ts";
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-import { api } from "../../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
+import { api } from "../../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../../lib/data-pagination.mjs";
 import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
-import { cloneJson, getArticleSlug, sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
+import { cloneJson, getArticleSlug, sanitizeObjectKeys, stripDataMetadata } from "../summary/articles.mjs";
 
 function ensureArtifactDirs(config) {
   for (const dir of [config?.progressDir, config?.debugDir, config?.backupDir]) {
@@ -25,8 +26,8 @@ export function createRunArtifacts(options, sourceUrl, targetUrl, config, runNam
     progressPath,
     resultsPath,
     backupPath,
-    sourceUrl,
-    targetUrl,
+    sourceIdentity: postgresFingerprintFromUrl(sourceUrl),
+    targetIdentity: postgresFingerprintFromUrl(targetUrl),
     options: {
       concurrency: options.concurrency,
       all: options.all,
@@ -40,8 +41,8 @@ export function createRunArtifacts(options, sourceUrl, targetUrl, config, runNam
   updateProgress(runArtifacts, {
     runId: prefix,
     status: "starting",
-    sourceUrl,
-    targetUrl,
+    sourceIdentity: runArtifacts.sourceIdentity,
+    targetIdentity: runArtifacts.targetIdentity,
     startedAt: new Date().toISOString(),
     options: runArtifacts.options,
   });
@@ -90,8 +91,8 @@ export function buildProgressSnapshot({
     status,
     startedAt,
     updatedAt: new Date().toISOString(),
-    sourceUrl: runArtifacts?.sourceUrl ?? null,
-    targetUrl: runArtifacts?.targetUrl ?? null,
+    sourceIdentity: runArtifacts?.sourceIdentity ?? null,
+    targetIdentity: runArtifacts?.targetIdentity ?? null,
     selectedCount,
     completed,
     failed,
@@ -112,8 +113,8 @@ export function writeFatalProgress(runArtifacts, error) {
     runId: runArtifacts.runId ?? null,
     status: "fatal_error",
     updatedAt: new Date().toISOString(),
-    sourceUrl: runArtifacts.sourceUrl ?? null,
-    targetUrl: runArtifacts.targetUrl ?? null,
+    sourceIdentity: runArtifacts.sourceIdentity ?? null,
+    targetIdentity: runArtifacts.targetIdentity ?? null,
     error: error instanceof Error ? error.message : String(error),
     resultsPath: runArtifacts.resultsPath ?? null,
     backupPath: runArtifacts.backupPath ?? null,
@@ -139,8 +140,8 @@ export function writeBackup({
     JSON.stringify(
       {
         createdAt: new Date().toISOString(),
-        sourceUrl,
-        targetUrl,
+        sourceIdentity: postgresFingerprintFromUrl(sourceUrl),
+        targetIdentity: postgresFingerprintFromUrl(targetUrl),
         count: backupDocs.length,
         articles: backupDocs,
       },
@@ -178,13 +179,13 @@ export function refreshLocalJsonExport({
 function assertNoImplicitLocalExport(updateLocalJson) {
   if (updateLocalJson) {
     throw new Error(
-      "Batch Convex persistence no longer mutates local JSON. Run a separate local export refresh.",
+      "Batch Postgres persistence no longer mutates local JSON. Run a separate local export refresh.",
     );
   }
 }
 
-function normalizeArticleForConvexSave(article) {
-  return normalizeArticleInput(stripConvexMetadata(cloneJson(article)));
+function normalizeArticleForPostgresSave(article) {
+  return normalizeArticleInput(stripDataMetadata(cloneJson(article)));
 }
 
 function assertSuccessfulSync(slug, syncResult) {
@@ -206,11 +207,11 @@ function assertSuccessfulSync(slug, syncResult) {
     .filter(Boolean);
 
   const reason = [...errors, ...skippedOutcomes].join("; ") || `${skipped} skipped ingestion outcome(s)`;
-  throw new Error(`Convex sync failed for ${slug}: ${reason}`);
+  throw new Error(`Postgres sync failed for ${slug}: ${reason}`);
 }
 
 export function createArticlePersistence({
-  convexClient,
+  postgresClient,
   adminKey,
   sourceArticlesBySlug = new Map(),
   targetArticlesBySlug = new Map(),
@@ -228,8 +229,8 @@ export function createArticlePersistence({
       throw new Error(`No target/source base article found for slug ${result.slug}`);
     }
 
-    const nextArticle = applyUpdate(normalizeArticleForConvexSave(baseArticle), result);
-    const syncResult = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+    const nextArticle = applyUpdate(normalizeArticleForPostgresSave(baseArticle), result);
+    const syncResult = await postgresClient.mutation(api.substanceIndex.saveSubstances, {
       apiKey: adminKey,
       articles: [sanitizeObjectKeys(nextArticle)],
     });
@@ -243,7 +244,7 @@ export function createArticlePersistence({
 export async function applySuccessfulUpdates({
   results,
   allArticles,
-  convexClient,
+  postgresClient,
   adminKey,
   applyUpdate,
   updateLocalJson = false,
@@ -254,7 +255,7 @@ export async function applySuccessfulUpdates({
   const sourceArticlesBySlug = new Map(
     allArticles.map((article) => [getArticleSlug(article), article]),
   );
-  const targetArticles = await getAllSubstanceDocuments(convexClient, api.substanceIndex.getFullDocumentPage);
+  const targetArticles = await getAllSubstanceDocuments(postgresClient, api.substanceIndex.getFullDocumentPage);
   const targetArticlesBySlug = new Map(
     targetArticles.map((article) => [getArticleSlug(article), article]),
   );
@@ -274,8 +275,8 @@ export async function applySuccessfulUpdates({
       throw new Error(`No target/source base article found for slug ${slug}`);
     }
 
-    const nextArticle = applyUpdate(normalizeArticleForConvexSave(baseArticle), update);
-    const syncResult = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+    const nextArticle = applyUpdate(normalizeArticleForPostgresSave(baseArticle), update);
+    const syncResult = await postgresClient.mutation(api.substanceIndex.saveSubstances, {
       apiKey: adminKey,
       articles: [sanitizeObjectKeys(nextArticle)],
     });

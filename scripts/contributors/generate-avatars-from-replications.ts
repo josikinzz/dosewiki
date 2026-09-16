@@ -88,17 +88,17 @@
  *   bun scripts/contributors/generate-avatars-from-replications.ts --preview-dir=/tmp/avatars
  *
  * Apply:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *   bun scripts/contributors/generate-avatars-from-replications.ts --write \
  *     --confirm-write=generate-contributor-avatars \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=localhost/dosewiki
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   normalizeProfileKey,
   sanitizeContributorAvatarUrl,
@@ -195,17 +195,7 @@ async function main() {
     .find((argument) => argument.startsWith("--preview-dir="))
     ?.slice("--preview-dir=".length);
 
-  // Deliberately not falling back to VITE_CONVEX_URL. A plan built from the dev
-  // deployment would describe writes to production that were never checked
-  // against production.
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
-  if (!readUrl) {
-    throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
-    );
-  }
-
-  const client = createDataClient({ target: readUrl }).client;
+  const client = createDataClient({ target: resolvePostgresSource().url }).client;
   const [profiles, replications] = (await Promise.all([
     client.query(api.contributorProfiles.getAll, {}),
     client.query(api.replications.getAll, {}),
@@ -392,7 +382,7 @@ async function main() {
 
   if (command.dryRun && !previewDir) {
     log();
-    log("Dry run — no images rendered, no files written, no Convex writes.");
+    log("Dry run — no images rendered, no files written, no Postgres writes.");
     log("Pass --preview-dir=<path> to render the avatars somewhere disposable and look at them.");
     return;
   }
@@ -461,7 +451,7 @@ async function main() {
 
   if (command.dryRun) {
     log();
-    log(`Dry run — avatars rendered into ${previewDir} only. No repository file, manifest or Convex row was touched.`);
+    log(`Dry run — avatars rendered into ${previewDir} only. No repository file, manifest or Postgres row was touched.`);
     return;
   }
 
@@ -485,7 +475,7 @@ async function main() {
 
   const importRows: ContributorImportRow[] = [];
   log();
-  log("CONVEX DIFF — the fields bulkImport will change on each row:");
+  log("DATA DIFF — the fields bulkImport will change on each row:");
   for (const entry of plan) {
     const stored = rawByKey.get(entry.key);
     if (!stored) {

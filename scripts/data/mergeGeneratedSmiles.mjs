@@ -34,14 +34,14 @@ for (const f of files) {
 }
 
 // SMILES were RDKit-validated by the gap-fill subagents and are re-parsed again when the
-// Convex depictions are seeded (scripts/chemistry/seed-convex-molecules.ts), which reports
+// Postgres depictions are seeded (scripts/chemistry/seed-data-molecules.ts), which reports
 // any that fail.
 const out = {
   __comment:
     'Generated SMILES overrides keyed by substance slug. Produced by subagent gap-fill ' +
     '(PubChem/Wikipedia) for substances missing inline identification.smiles. Every entry ' +
     'RDKit-validated. `represents` names the active molecule when the substance is a plant, ' +
-    'preparation, or brand name. Depictions render from Convex moleculeOverrides (seed with npm run molecules:seed-convex).',
+    'preparation, or brand name. Depictions render from Postgres moleculeOverrides (seed with npm run molecules:seed).',
   entries: Object.fromEntries(Object.entries(merged).sort(([a], [b]) => a.localeCompare(b))),
 };
 await writeFile(

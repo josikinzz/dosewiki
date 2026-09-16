@@ -30,7 +30,7 @@ export interface MoleculeSeedPlan {
 const SUBSTANCE_SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 /**
- * Build a deterministic, non-overwriting seed plan from Convex read results.
+ * Build a deterministic, non-overwriting seed plan from Postgres read results.
  * `gapFillSmiles` supplies slug→SMILES for plants/preparations whose article has
  * no inline `identification.smiles` (the active molecule, per the legacy
  * SMILES-coverage resolution); inline SMILES always wins.

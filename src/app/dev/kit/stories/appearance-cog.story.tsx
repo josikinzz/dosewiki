@@ -8,7 +8,7 @@ export const appearanceCogStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel that opens on a Font tab (face picker, reading-type sliders, reset to defaults) and swaps through one bare icon to a Colour tab (Dark/Light, the Background and Accent rails, a scoped color reset, and an explicit Theme Lab action).",
+    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel on the Colour tab. Background and Accent use ellipsis-and-chevron disclosures on mobile and stay expanded on desktop. One bare icon swaps to the Font tab with its face picker, reading-type sliders, and reset.",
   source: "src/app/_components/AppearanceCog.tsx",
   importLine:
     'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
@@ -19,7 +19,7 @@ export const appearanceCogStory: StoryDef = {
   examples: [
     {
       label: "DoseWiki",
-      note: "The shipped DoseWiki panel: the font tab first, the colour tab behind the paintbrush, a scoped color reset, and the Theme Lab action.",
+      note: "The shipped DoseWiki panel: colour controls first, mobile-only Background and Accent disclosures, a scoped color reset, and the Theme Lab action.",
       background: "plain",
       render: () => (
         <AppearanceCog

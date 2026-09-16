@@ -90,7 +90,7 @@ export const TagMultiSelect = ({
         {label}
       </label>
       <div
-        className={`relative rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)] px-3 py-2 transition focus-within:border-[var(--theme-accent-strong)] focus-within:ring-2 focus-within:ring-[var(--theme-ring-soft)] ${
+        className={`relative rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)] px-3 py-2 transition focus-within:border-[var(--theme-text-secondary)] ${
           disabled ? "opacity-60" : ""
         }`}
       >

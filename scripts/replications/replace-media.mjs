@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 /**
- * Point one replication row at a file uploaded into this deployment's storage.
- *
- * Exists because a row can carry a `storage_id` that belongs to a *different*
- * Convex deployment. `resolveReplicationUrls` then silently falls back to the
- * row's legacy `url` field, so the page renders whatever that URL happens to
- * hold — which may be a completely different picture. Nothing errors; the wrong
- * image is simply served. Re-uploading the intended file to the target
- * deployment and repointing `storage_id` is the fix.
+ * Point one replication row at a verified native R2 upload, preserving its
+ * metadata, rights, and historical recovery storage IDs. Stale derivatives
+ * are cleared atomically with the main replacement.
  *
  * Dry run (default):
  *   node scripts/replications/replace-media.mjs --id=<rowId> --file=<path>
@@ -19,7 +14,8 @@
 import fs from "fs";
 import path from "path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -65,7 +61,7 @@ async function main() {
   console.log(`Type : ${contentType}  (${bytes.length} bytes)`);
 
   if (command.dryRun) {
-    console.log("\nDry run — nothing uploaded, no Convex writes performed.");
+    console.log("\nDry run: nothing uploaded, no Postgres writes performed.");
     return;
   }
 
@@ -73,27 +69,16 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const client = createDataClient({ target: command.targetUrl }).client;
 
-  const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-  const upload = await fetch(uploadUrl, {
-    method: "POST",
-    headers: { "Content-Type": contentType },
-    body: bytes,
-  });
+  const row = await client.query(api.replications.getResolvedById, { apiKey, id });
+  if (!row) throw new Error(`Replication not found: ${id}`);
+  const r2Key = await uploadReplicationBytes(client, apiKey, bytes, contentType, path.extname(file).slice(1));
+  await updateReplicationMedia(client, apiKey, row, { r2_key: r2Key }, bytes.length);
 
-  if (!upload.ok) {
-    throw new Error(`Upload failed: ${upload.status} ${await upload.text()}`);
+  const after = await client.query(api.replications.getResolvedById, { apiKey, id });
+  if (after?.r2_key !== r2Key || after.file_size !== bytes.length || !after.url) {
+    throw new Error(`Replacement readback failed for ${id}. Uploaded R2 key: ${r2Key}`);
   }
-
-  const { storageId } = await upload.json();
-  if (!storageId) throw new Error("Upload succeeded but returned no storageId.");
-
-  await client.mutation(api.replications.updateStorageIds, {
-    apiKey,
-    id,
-    storage_id: storageId,
-  });
-
-  console.log(`\nUploaded and repointed ${id} -> storage ${storageId}`);
+  console.log(`\nUploaded and repointed ${id} -> R2 ${r2Key}`);
 }
 
 main().catch((error) => {

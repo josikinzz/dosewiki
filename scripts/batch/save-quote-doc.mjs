@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
 import { readFileSync } from "node:fs";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -28,10 +29,10 @@ function parseArgs(argv = process.argv.slice(2)) {
 
 function printHelp() {
   console.log(`
-Save a reviewed quote markdown document to Convex.
+Save a reviewed quote markdown document to Postgres.
 
 Usage:
-  TARGET_CONVEX_URL=https://... bun scripts/batch/save-quote-doc.mjs \\
+  TARGET_POSTGRES_URL=postgresql://localhost/dosewiki bun scripts/batch/save-quote-doc.mjs \\
     --slug=lsd --section=pharmacology --file=tmp/lsd-pharmacology.md
 `);
 }
@@ -60,12 +61,12 @@ async function main() {
     selectedTables: ["quotes"],
     localArtifacts: [options.file],
   });
-  const targetUrl = requireTargetUrl(context, "quote save target Convex URL");
+  const targetUrl = requireTargetUrl(context, "quote save target Postgres URL");
 
   console.log(`Slug: ${options.slug}`);
   console.log(`Section: ${section}`);
   console.log(`File: ${options.file}`);
-  console.log(`Target Convex: ${targetUrl}`);
+  console.log(`Target Postgres: ${postgresFingerprintFromUrl(targetUrl)}`);
   console.log(`Content length: ${content.length.toLocaleString()} chars`);
 
   if (options.dryRun) {

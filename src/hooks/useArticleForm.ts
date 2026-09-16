@@ -203,7 +203,7 @@ export function useArticleForm({
 
   // Pair once at hydration. A typed label is a rename, never a new pairing key.
   const getDefaultValues = useCallback((source?: SubstanceArticle): SubstanceArticle => {
-    // Convex-sourced articles carry `_id` / `_creationTime`; keep those DB
+    // Postgres-sourced articles carry `_id` / `_creationTime`; keep those DB
     // internals out of the form values so YAML copy/download/save stay clean.
     const base = source ? stripUnderscoreKeys(source) : createEmptyArticle();
     if (preserveStructure) return base;

@@ -112,7 +112,7 @@ describe("video frame ladder", () => {
   });
 });
 
-describe("the Convex patch", () => {
+describe("the Postgres patch", () => {
   const stored = {
     key: "LOKA",
     displayName: "Loka",

@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import nextEnv from "@next/env";
-import { isConvexBrowserClient, isEditorOnly } from "./public-editor-boundary.mjs";
+import { isDataBrowserClient, isEditorOnly } from "./public-editor-boundary.mjs";
 
 let serverRuntimeIncludes;
 
@@ -36,7 +36,7 @@ export class EditorArtifactAudit {
     compiler.hooks.afterEmit.tap("EditorArtifactAudit", (compilation) => {
       const editorModules = [];
       const replacedModules = [];
-      const convexBrowserModules = [];
+      const dataBrowserModules = [];
       const seen = new Set();
       const inspect = (module, chunkOwner = module) => {
         if (seen.has(module)) return;
@@ -50,7 +50,7 @@ export class EditorArtifactAudit {
               editorModules.push({ module: relative, files: [...new Set(chunks.flatMap((chunk) => [...chunk.files]))].sort() });
             }
           }
-          if (isConvexBrowserClient(module.resource)) convexBrowserModules.push(relative);
+          if (isDataBrowserClient(module.resource)) dataBrowserModules.push(relative);
         }
         if (module.modules) for (const child of module.modules) inspect(child, module);
       };
@@ -58,10 +58,10 @@ export class EditorArtifactAudit {
       if (!this.editorBuild && editorModules.length) {
         throw new Error(`Public artifact contains editorial browser modules: ${editorModules.map((entry) => entry.module).join(", ")}`);
       }
-      // A public reader must read published data, never open its own Convex
+      // A public reader must read published data, never open its own Postgres
       // query or socket. The editorial build is where a live subscription belongs.
-      if (!this.editorBuild && convexBrowserModules.length) {
-        throw new Error(`Public artifact contains a browser Convex client: ${[...new Set(convexBrowserModules)].sort().join(", ")}`);
+      if (!this.editorBuild && dataBrowserModules.length) {
+        throw new Error(`Public artifact contains a browser Postgres client: ${[...new Set(dataBrowserModules)].sort().join(", ")}`);
       }
       const assets = compilation.getAssets().filter(({ name }) => /\.(?:js|css)$/.test(name)).map(({ name }) => {
         const bytes = fs.readFileSync(path.join(compiler.outputPath, name));
@@ -74,7 +74,7 @@ export class EditorArtifactAudit {
         accessBoundary: "application-auth",
         editorModules,
         replacedModules: [...new Set(replacedModules)].sort(),
-        convexBrowserModules: [...new Set(convexBrowserModules)].sort(),
+        dataBrowserModules: [...new Set(dataBrowserModules)].sort(),
         assets,
       }, null, 2));
     });
@@ -97,14 +97,14 @@ export function verifyCompletedArtifact(directory, surface) {
   const audit = JSON.parse(fs.readFileSync(auditPath, "utf8"));
   if (
     audit.surface !== surface ||
-    (surface === "public" && (audit.editorModules.length || audit.convexBrowserModules?.length))
+    (surface === "public" && (audit.editorModules.length || audit.dataBrowserModules?.length))
   ) {
     throw new Error("Browser artifact does not match its declared public/editor boundary.");
   }
   audit.middleware = { registered: true, files: middleware.files, matchers: middleware.matchers };
   fs.writeFileSync(auditPath, JSON.stringify(audit, null, 2));
   console.log(
-    `[editor-artifact] ${surface}: middleware registered; ${audit.editorModules.length} editorial browser modules; ${audit.convexBrowserModules?.length ?? 0} browser Convex clients.`,
+    `[editor-artifact] ${surface}: middleware registered; ${audit.editorModules.length} editorial browser modules; ${audit.dataBrowserModules?.length ?? 0} browser Postgres clients.`,
   );
 }
 

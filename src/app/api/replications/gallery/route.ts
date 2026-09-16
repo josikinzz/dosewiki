@@ -1,74 +1,35 @@
 import { NextResponse } from "next/server";
-
-import {
-  getPublicContributorDirectory,
-  getPublicGalleryReplications,
-} from "@server/convex/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { getGalleryBrowseIndex } from "@server/next/galleryBrowseIndex";
+import { getGalleryBrowsePage, StaleGalleryCursorError } from "@server/next/galleryBrowsePage";
 import { parseUiLocale } from "@/i18n/messages";
-import { getLocalizedPublicGalleryReplications } from "@server/translation/localizedRecords";
+import { parseGalleryBrowseState, parseReplicationViewerSlug } from "@/features/replications/galleryUrlState";
+import type { GalleryFocus } from "@/features/replications/galleryUrlState";
 
 export const runtime = "nodejs";
+const CACHE_CONTROL = "private, no-store";
 
-// The browser keeps the corpus for the same hour the CDN and the ISR page do:
-// the ~6.6k-item response is ~1.4 MB compressed, and nothing the page shows
-// can be fresher than its own hourly window anyway. Re-downloading it on every
-// visit within that hour bought no freshness.
-const CACHE_CONTROL =
-  "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400";
-
-/**
- * The complete gallery corpus in one cacheable response.
- *
- * The statically rendered index inlines only the top artist rails; after
- * hydration the explorer fetches this endpoint once (on idle, or eagerly for
- * deep links and filtered states) instead of walking ~110 bounded pages. The
- * corpus is assembled server-side from bounded, tag-cached Convex pages
- * (`getPublicGalleryReplications`), so the origin cost is one in-memory join;
- * the CDN holds the response for the same hourly window as the page itself.
- *
- * The complete contributor directory rides along: it is one entry per credited
- * artist in the corpus, so it is only usable once the corpus itself is here,
- * and shipping it in the index page's RSC payload cost ~430 kB on every visit
- * (and on every homepage prefetch) to serve the couple of dozen artists the
- * prerendered rails show. The page now inlines only those, and the explorer
- * adopts this copy when the corpus lands.
- *
- * This intentionally returns the same slim projection as the initial RSC
- * props, rather than the public v1 representation. The public endpoint keeps
- * its established pagination and response contract untouched.
- *
- * `?locale=<code>` names a live locale mirror: the same corpus with each
- * work's stored title spliced in, so the explorer on the mirror keeps reading
- * in its language once the complete corpus replaces the prerendered rails.
- * The URL is the cache key, so each locale holds its own CDN entry.
- */
 export async function GET(request: Request) {
-  const rateLimited = await enforceRateLimit(request, "publicContentApiRead");
-  if (rateLimited) {
-    return rateLimited;
-  }
-
-  const requestedLocale = new URL(request.url).searchParams.get("locale");
-  const mirror = parseUiLocale(requestedLocale) === "zh-Hans" ? "zh-Hans" : null;
-
+  const limited = await enforceRateLimit(request, "publicContentApiRead");
+  if (limited) return limited;
+  const url = new URL(request.url);
+  const locale = parseUiLocale(url.searchParams.get("locale")) === "zh-Hans" ? "zh-Hans" : "en";
+  const browse = parseGalleryBrowseState(url.searchParams);
+  const viewerSlug = parseReplicationViewerSlug(url.searchParams);
+  const focusKind = url.searchParams.get("focusKind");
+  const focusKey = url.searchParams.get("focusKey");
+  const focus: GalleryFocus | null = (focusKind === "artist" || focusKind === "effect") && focusKey ? { kind: focusKind, key: focusKey } : null;
   try {
-    const [replications, contributorDirectory] = await Promise.all([
-      mirror ? getLocalizedPublicGalleryReplications(mirror) : getPublicGalleryReplications(),
-      getPublicContributorDirectory(),
-    ]);
-    return NextResponse.json(
-      { data: replications, contributorDirectory },
-      { headers: { "Cache-Control": CACHE_CONTROL } },
-    );
+    const index = await getGalleryBrowseIndex(locale);
+    const page = await getGalleryBrowsePage(index, locale, browse, focus, url.searchParams.get("cursor"), viewerSlug);
+    return NextResponse.json(page, { headers: { "Cache-Control": CACHE_CONTROL } });
   } catch (error) {
-    console.error("Failed to read replication gallery previews:", error);
-    return NextResponse.json(
-      { error: "Replication gallery data is temporarily unavailable." },
-      {
-        status: 503,
-        headers: { "Cache-Control": "private, no-store" },
-      },
-    );
+    if (error instanceof StaleGalleryCursorError) {
+      return NextResponse.json({ error: error.message }, { status: 409, headers: { "Cache-Control": CACHE_CONTROL } });
+    }
+    console.error("Failed to read replication gallery page:", error);
+    return NextResponse.json({ error: "Replication gallery data is temporarily unavailable." }, {
+      status: 503, headers: { "Cache-Control": CACHE_CONTROL },
+    });
   }
 }

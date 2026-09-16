@@ -7,7 +7,7 @@ export const EMPTY_INDEX_CONFIG: ManualIndexConfig = { version: 1, categories: [
 /**
  * The slug an editor surface knows an article by.
  *
- * Convex projections attach a resolved `slug`, but the article schema itself
+ * Postgres projections attach a resolved `slug`, but the article schema itself
  * has none, so every editor picker falls back to slugifying the title. The
  * library list and the on-demand article hydration have to agree on this
  * exactly, or a hydrated article would never find the row it belongs to.

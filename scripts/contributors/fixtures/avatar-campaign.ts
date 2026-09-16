@@ -30,14 +30,14 @@ export function sha256(value: string | Buffer) {
 }
 
 export function fixtureInputs(overrides: Partial<Parameters<typeof validateInputs>[0]> = {}) {
-  return validateInputs({
+  return { ...validateInputs({
     planPath: FIXTURE_PLAN_PATH,
     projectionPath: DEFAULT_PROJECTION_PATH,
     deploymentReceiptPath: FIXTURE_RECEIPT_PATH,
     expectedPlanPayloadSha256: FIXTURE_PLAN_PAYLOAD_SHA256,
     expectedDeploymentReceiptSha256: FIXTURE_RECEIPT_SHA256,
     ...overrides,
-  });
+  }), targetIdentity: "localhost/avatar_fixture" };
 }
 
 /** Copies the fixture campaign into a temporary media root so a test can mutate one artifact. */

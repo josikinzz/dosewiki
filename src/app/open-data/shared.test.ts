@@ -3,7 +3,7 @@ import { OPEN_DATA_CACHE_CONTROL, type OpenDataDataset } from "@server/open-data
 import { readOpenDataPayload } from "./openDataTestUtils";
 import { openDataResponse } from "./shared";
 
-vi.mock("@server/convex/publicData", () => ({}));
+vi.mock("@server/data/publicData", () => ({}));
 
 const dataset: OpenDataDataset = {
   name: "SubstanceIndex",

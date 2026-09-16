@@ -2,8 +2,9 @@
 import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "../lib/postgres-target.mjs";
 import { createDataClient } from "../../lib/data-client.ts";
-import { api } from "../../../convex/_generated/api.js";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -83,13 +84,11 @@ function rollbackManifest(correction) {
 export async function runJosieProfileCorrection(argv = process.argv.slice(2), adapters = {}) {
   const options = parseJosieCorrectionArgs(argv);
   const command = adapters.command ?? createProductionWriteCommand({ operation: OPERATION, argv });
-  if (!command.targetUrl || command.deploymentFingerprint !== PRODUCTION_DEPLOYMENT) {
-    throw new Error(`Josie correction is restricted to ${PRODUCTION_DEPLOYMENT}.`);
-  }
+  requireCampaignTarget(command);
   if (!options.actor) throw new Error("--actor-email is required for authenticated dry-run and write modes.");
   if (command.writeRequested) assertProductionWriteAllowed(command);
   const credential = adapters.credential ?? requireProductionWriteCredential("replicationMaintenance");
-  const client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
+  const client = adapters.client ?? (adapters.query && adapters.mutate ? null : createDataClient({ target: command.targetUrl }).client);
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const mutate = adapters.mutate ?? ((ref, args) => client.mutation(ref, args));
   const readLedger = adapters.loadLedger ?? loadLedger;

@@ -50,7 +50,7 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   source: "article" | "site";
   /** The newest rows of every status, at most `FEEDBACK_QUEUE_WINDOW` of them. */
   fetchList: () => Promise<Item[]>;
-  transition: (id: string, input: FeedbackTransitionInput) => Promise<void>;
+  transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>;
   /** Source-specific header and metadata; the queue renders details, notes, and decisions. */
   renderDetail: (item: Item) => ReactNode;
@@ -257,24 +257,27 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     setActionFeedback(null);
     const trimmedNote = note.trim();
     try {
-      await adapter.transition(selected.id, {
+      const updated = await adapter.transition(selected.id, {
         status,
         note: trimmedNote.length > 0 ? trimmedNote : undefined,
       });
+      setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
       setActionFeedback({
         tone: "success",
-        message: labels.transitioned(selected, STATUS_LABELS[status].toLowerCase()),
+        message: labels.transitioned(updated, STATUS_LABELS[status].toLowerCase()),
       });
       setNote("");
+      setPendingId(null);
       // Any transition can move the row in or out of the pending bucket the rail counts.
       invalidateDevRailBadge("feedback");
-      await loadQueue(selected.id);
+      // Reconcile the latest-window boundary and concurrent reviewer changes without
+      // keeping this action pending behind another full queue transfer.
+      void loadQueue(updated.id);
     } catch (error) {
       setActionFeedback({
         tone: "danger",
         message: error instanceof Error ? error.message : "Unable to update feedback.",
       });
-    } finally {
       setPendingId(null);
     }
   }

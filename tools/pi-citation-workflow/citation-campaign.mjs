@@ -2,7 +2,7 @@
 /* global console, process */
 /**
  * Read-only campaign dashboard for Pi-native citation run artifacts.
- * It never launches workers, rewrites a run, applies a draft, or contacts Convex.
+ * It never launches workers, rewrites a run, applies a draft, or contacts Postgres.
  */
 
 import { createHash } from "node:crypto";
@@ -313,7 +313,7 @@ function buildReport(campaign) {
     limitations: [
       "The campaign locks the requested model and tier. Existing Pi run manifests record resolved worker models but not the requested tier, so tier fidelity is operator-attested rather than derivable.",
       "Coverage and gaps count only drafts whose bytes match the finalized manifest's final-review snapshot; missing or mismatched drafts are blocked and contribute zero.",
-      "This report is deterministic over local run manifests and drafts at read time; it does not inspect live Convex data or publish anything.",
+      "This report is deterministic over local run manifests and drafts at read time; it does not inspect live Postgres data or publish anything.",
     ],
     targets,
   };

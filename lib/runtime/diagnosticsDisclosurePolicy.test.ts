@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDiagnosticsDisclosureView, type DiagnosticDisclosureFacts } from "./diagnosticsDisclosurePolicy";
+import { getDataRuntimeTargetMatrix } from "../data/runtimeTargets";
 
 const now = new Date("2026-04-27T12:00:00.000Z");
 
@@ -9,55 +10,19 @@ function facts(overrides: Partial<DiagnosticDisclosureFacts> = {}): DiagnosticDi
     production: false,
     testEnvRouteEnabledInProduction: false,
     keyPresence: [
-      { name: "CONVEX_ADMIN_KEY", configured: true, sensitive: true },
+      { name: "DATA_ADMIN_KEY", configured: true, sensitive: true },
       { name: "AUTH_SECRET", configured: true, sensitive: true },
       { name: "OPTIONAL_TOKEN", configured: false, sensitive: true },
     ],
-    convexWriteHealth: {
+    dataWriteHealth: {
       adminKeyConfigured: true,
-      convexUrlConfigured: true,
-      canSaveToConvex: true,
+      backend: "postgres",
+      postgresUrlConfigured: true,
+      canSaveToPostgres: true,
       issues: [],
       diagnostics: {
         warnings: [],
-        targets: {
-          publicServerRead: {
-            capability: "publicServerRead",
-            selectedUrl: "https://read.convex.cloud",
-            sourceEnvVar: "CONVEX_PUBLIC_READ_URL",
-            browserSafe: false,
-            compatibility: { allowed: true, issues: [], warnings: [] },
-          },
-          editorBrowserRead: {
-            capability: "editorBrowserRead",
-            selectedUrl: "https://browser.convex.cloud",
-            sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL",
-            browserSafe: true,
-            compatibility: { allowed: true, issues: [], warnings: [] },
-          },
-          privilegedWrite: {
-            capability: "privilegedWrite",
-            selectedUrl: "https://write.convex.cloud",
-            sourceEnvVar: "CONVEX_URL",
-            browserSafe: false,
-            compatibility: { allowed: true, issues: [], warnings: [] },
-          },
-          authMembership: {
-            capability: "authMembership",
-            selectedUrl: "https://write.convex.cloud",
-            sourceEnvVar: "CONVEX_URL",
-            browserSafe: false,
-            compatibility: { allowed: true, issues: [], warnings: [] },
-          },
-          adminKeyConfigured: true,
-          editorTargetAlignment: {
-            status: "aligned",
-            read: { deploymentName: "browser", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-            write: { deploymentName: "write", sourceEnvVar: "CONVEX_URL" },
-            overrideAcknowledged: false,
-            summary: "Editor reads and privileged writes both target write (via CONVEX_URL).",
-          },
-        },
+        targets: getDataRuntimeTargetMatrix({ DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://localhost/dosewiki", DATA_ADMIN_KEY: "admin-key-value" }),
       },
     },
     runtimeEnv: {
@@ -71,44 +36,7 @@ function facts(overrides: Partial<DiagnosticDisclosureFacts> = {}): DiagnosticDi
           message: "Missing required production auth configuration.",
         },
       ],
-      convexTargets: {
-        publicServerRead: {
-          capability: "publicServerRead",
-          selectedUrl: "https://read.convex.cloud",
-          sourceEnvVar: "CONVEX_PUBLIC_READ_URL",
-          browserSafe: false,
-          compatibility: { allowed: true, issues: [], warnings: [] },
-        },
-        editorBrowserRead: {
-          capability: "editorBrowserRead",
-          selectedUrl: "https://browser.convex.cloud",
-          sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL",
-          browserSafe: true,
-          compatibility: { allowed: true, issues: [], warnings: [] },
-        },
-        privilegedWrite: {
-          capability: "privilegedWrite",
-          selectedUrl: "https://write.convex.cloud",
-          sourceEnvVar: "CONVEX_URL",
-          browserSafe: false,
-          compatibility: { allowed: true, issues: [], warnings: [] },
-        },
-        authMembership: {
-          capability: "authMembership",
-          selectedUrl: "https://write.convex.cloud",
-          sourceEnvVar: "CONVEX_URL",
-          browserSafe: false,
-          compatibility: { allowed: true, issues: [], warnings: [] },
-        },
-        adminKeyConfigured: true,
-        editorTargetAlignment: {
-          status: "aligned",
-          read: { deploymentName: "browser", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-          write: { deploymentName: "write", sourceEnvVar: "CONVEX_URL" },
-          overrideAcknowledged: false,
-          summary: "Editor reads and privileged writes both target write (via CONVEX_URL).",
-        },
-      },
+      dataTargets: getDataRuntimeTargetMatrix({ DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://localhost/dosewiki", DATA_ADMIN_KEY: "admin-key-value" }),
     },
     ...overrides,
   };
@@ -144,7 +72,7 @@ describe("diagnostics disclosure policy", () => {
       const view = createDiagnosticsDisclosureView(audience, facts());
       const serialized = JSON.stringify(view);
 
-      expect(view.keyNames).toEqual(["CONVEX_ADMIN_KEY", "AUTH_SECRET", "OPTIONAL_TOKEN"]);
+      expect(view.keyNames).toEqual(["DATA_ADMIN_KEY", "AUTH_SECRET", "OPTIONAL_TOKEN"]);
       expect(view.issueDetails?.[0].envVars).toEqual(["AUTH_SECRET", "NEXTAUTH_SECRET"]);
       expect(serialized).not.toContain("admin-key-value");
     }

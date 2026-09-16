@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { stripCitationMarkers } from "../citations/citation-only-validator.mjs";
 import { assertDataOpsWriteAllowed,
 backupBeforeWrite,
@@ -42,7 +42,7 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function stripConvexMetadata(article) {
+function stripDataMetadata(article) {
   const { _id, _creationTime, ...clean } = article;
   return clean;
 }
@@ -350,7 +350,7 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error(`Draft slug ${draft.slug} does not match --slug=${slug}.`);
   }
 
-  const targetUrl = requireTargetUrl(runContext, "Convex legality target URL");
+  const targetUrl = requireTargetUrl(runContext, "Postgres legality target URL");
   const client = createDataClient({ target: targetUrl }).client;
   const article = await client.query(api.substanceIndex.getBySlug, { slug });
   if (!article) throw new Error(`No article found for slug: ${slug}`);
@@ -358,7 +358,7 @@ export async function main(argv = process.argv.slice(2)) {
   const plan = buildApplyPlan({ article, draft });
   printPlan(plan, draft);
   if (!write) {
-    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Convex.");
+    console.log("No writes performed. Re-run with --write --confirm-legality-write to update Postgres.");
     return;
   }
 
@@ -395,7 +395,7 @@ export async function main(argv = process.argv.slice(2)) {
   });
 
   const articleForWrite = {
-    ...stripConvexMetadata(article),
+    ...stripDataMetadata(article),
     legality: plan.legality,
   };
   const writeResult = await client.mutation(api.substanceIndex.saveSubstance, {

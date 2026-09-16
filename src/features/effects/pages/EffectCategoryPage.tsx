@@ -15,10 +15,7 @@ import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StateCard } from "@/components/common/StateCard";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
-import {
-  effectMatchesCategorySlug,
-  getEffectCategoryDefinition,
-} from "@/data/effectCategoryDefinitions";
+import { getEffectCategoryDefinition } from "@/data/effectCategoryDefinitions";
 import { GuideLinkLine } from "@/features/articles/components/GuideLinkLine";
 import { ARTICLE_GUIDES_BY_CLASS } from "@/features/articles/domain/articleGuides";
 import { publicHref } from "@/utils/publicHref";
@@ -89,9 +86,7 @@ export function EffectCategoryPage({
       `Effects tagged with "${categorySlug}".`,
   ));
 
-  const filteredEffects = effects
-    .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const filteredEffects = effects;
 
   const groups = buildEffectCategoryGroups({
     categorySlug,

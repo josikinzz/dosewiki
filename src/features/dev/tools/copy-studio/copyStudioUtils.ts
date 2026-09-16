@@ -17,7 +17,7 @@ import {
 /** Mirrors the About editor's placeholder syntax: `{{ someKey }}`. */
 const PLACEHOLDER_PATTERN = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
 
-/** A stored `copyBlocks` row, as the Convex query returns it. */
+/** A stored `copyBlocks` row, as the Postgres query returns it. */
 export type CopyBlockRow = {
   key: string;
   flavor?: string;
@@ -43,7 +43,7 @@ export type CopyStudioBlock = {
   /** The checked-in fallback, and the target of "reset to default". */
   fallback: { body: string; items: string[] } | null;
   /** Where `current` came from. A "default" block has never been saved. */
-  source: "convex" | "default";
+  source: "data" | "default";
   updatedAt?: string;
   updatedBy?: string;
 };
@@ -81,7 +81,7 @@ function fromDefinition(definition: CopyBlockDefinition): CopyStudioBlock {
  *
  * A key present in both is one block whose `current` is the stored value and
  * whose `fallback` is the default. A stored key with no default still appears,
- * since a block added straight in Convex is editable, but has no reset target.
+ * since a block added straight in Postgres is editable, but has no reset target.
  */
 export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudioBlock[] {
   const byKey = new Map<string, CopyStudioBlock>(
@@ -101,7 +101,7 @@ export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudio
       group: row.group,
       current: payloadOf(row),
       fallback: definition ? payloadOf(definition) : null,
-      source: "convex",
+      source: "data",
       updatedAt: row.updatedAt,
       updatedBy: row.updatedBy,
     });

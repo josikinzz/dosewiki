@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import { getPublicAboutPreviewSubstances } from "@server/convex/publicData";
-import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
+import { getPublicAboutPreviewSubstances } from "@server/data/publicData";
+import { getMoleculePackDownloadStats } from "@server/open-data/downloadStats";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 // Committed copies of the prompts shown on this page. Generation uses editable
 // live copies of section prompts, which can differ from these files.
 import exDosageDuration from "../../../../scripts/prompts/dosage-duration-extraction.md?raw";
@@ -50,12 +50,17 @@ import { Mermaid } from "../_components/Mermaid";
 
 import { t } from "@/i18n/server";
 
-// The sample-record preview and substance count read Convex; refresh them on the
+const DOCS_HOW_COPY_KEYS = [
+  "seo-docs-how-description",
+  ...getCopyKeysByPrefix("docs-how-"),
+];
+
+// The sample-record preview and substance count read Postgres; refresh them on the
 // same cadence as the About page rather than per request.
 export const revalidate = 3600;
 
 export async function generateMetadata() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(DOCS_HOW_COPY_KEYS);
 
   return buildPublicPageMetadata({
     title: t("How dose.wiki substance articles are made"),
@@ -432,10 +437,9 @@ function SectionRef({
 
 
 export default async function DocsHowPage() {
-  const [copy, previewSubstances, substanceDownload] = await Promise.all([
-    getCopy(),
+  const [copy, previewSubstances] = await Promise.all([
+    getCopyByKeys(DOCS_HOW_COPY_KEYS),
     getPublicAboutPreviewSubstances(),
-    getOpenDataDownloadStats("SubstanceIndex"),
   ]);
   // Same sample-record preview the About page shows, narrowed to the substance file and molecule pack.
   const previewSnapshots = buildAboutPreviewSnapshots(
@@ -1804,7 +1808,7 @@ export default async function DocsHowPage() {
         <div className="mt-6">
           <AboutArchivePreview
             previewSnapshots={previewSnapshots}
-            downloads={{ substances: substanceDownload, molecules: getMoleculePackDownloadStats() }}
+            downloads={{ substances: true, molecules: getMoleculePackDownloadStats() }}
           />
         </div>
 

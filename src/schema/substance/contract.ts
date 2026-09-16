@@ -6,11 +6,11 @@
  * tiers:
  *
  * 1. Strict contract (this module) — `validateSubstanceArticleContract`. Every
- *    substance-writing Convex mutation runs this (via
- *    `convex/lib/validators.ts#validateArticleForIngestion`)
+ *    substance-writing Postgres mutation runs this (via
+ *    `server/lib/validators.ts#validateArticleForIngestion`)
  *    before any insert/patch, so nothing structurally invalid is persisted.
- * 2. Light arg validator (`convex/lib/validators.ts#substanceArticleLightValidator`)
- *    — the Convex function-boundary layer. It only pins identity fields
+ * 2. Light arg validator (`server/lib/validators.ts#substanceArticleLightValidator`)
+ *    — the Postgres function-boundary layer. It only pins identity fields
  *    (id/title/slug/priority/index_categories) and stays permissive about
  *    nested section content; it is intentionally weaker than the contract.
  * 3. Frontend safeParse — read paths and builders use

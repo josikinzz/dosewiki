@@ -1,21 +1,22 @@
 #!/usr/bin/env node
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 /**
  * Batch Summary Section Generation Script
  *
- * Generates top-level article summaries using the live Convex prompt.
+ * Generates top-level article summaries using the live Postgres prompt.
  *
  * Defaults:
- * - Reads prompt/content from SOURCE_CONVEX_URL or CONVEX_PUBLIC_READ_URL first
- * - Writes generated summaries to TARGET_CONVEX_URL or the same deployment by default
+ * - Reads prompt/content from SOURCE_POSTGRES_URL or the selected Postgres target first
+ * - Writes generated summaries to TARGET_POSTGRES_URL or the same deployment by default
  *
  * Usage:
  *   node scripts/batch/batch-generate-summary.mjs --dry-run
  *   node scripts/batch/batch-generate-summary.mjs --all --concurrency=2
- *   TARGET_CONVEX_URL=https://dev-or-prod.convex.cloud node scripts/batch/batch-generate-summary.mjs --substance=lsd
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dev-or-prod node scripts/batch/batch-generate-summary.mjs --substance=lsd
  */
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { assertDataOpsWriteAllowed } from "../lib/data-ops-run-context.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
@@ -55,7 +56,7 @@ async function main(options) {
 
   const adminKey = options.dryRun ? null : requireBatchArticleWriteToken();
   if (!adminKey && !options.dryRun) {
-    console.error("Error: CONVEX_ADMIN_KEY environment variable is required");
+    console.error("Error: DATA_ADMIN_KEY environment variable is required");
     process.exit(1);
   }
 
@@ -66,11 +67,11 @@ async function main(options) {
   const sourceUrl = targetContext.sourceUrl;
   const targetUrl = targetContext.targetUrl;
   if (!sourceUrl) {
-    console.error("Error: No source Convex URL configured");
+    console.error("Error: No source Postgres URL configured");
     process.exit(1);
   }
   if (!targetUrl) {
-    console.error("Error: No target Convex URL configured");
+    console.error("Error: No target Postgres URL configured");
     process.exit(1);
   }
 
@@ -84,12 +85,12 @@ async function main(options) {
     config: CONFIG,
     options,
     details: [
-      { label: "Source Convex", value: sourceUrl },
-      { label: "Target Convex", value: targetUrl },
+      { label: "Source Postgres", value: postgresFingerprintFromUrl(sourceUrl) },
+      { label: "Target Postgres", value: postgresFingerprintFromUrl(targetUrl) },
     ],
   });
 
-  console.log("\nLoading prompt from source Convex...");
+  console.log("\nLoading prompt from source Postgres...");
   const systemPrompt = await loadPromptFromSource(sourceClient, api);
   console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
 
@@ -125,8 +126,8 @@ async function main(options) {
     updateProgress(runArtifacts, {
       runId: runArtifacts.runId,
       status: "completed",
-      sourceUrl,
-      targetUrl,
+      sourceIdentity: runArtifacts.sourceIdentity,
+      targetIdentity: runArtifacts.targetIdentity,
       updatedAt: new Date().toISOString(),
       selectedCount: 0,
     });

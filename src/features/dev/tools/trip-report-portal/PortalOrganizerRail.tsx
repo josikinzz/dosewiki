@@ -37,6 +37,8 @@ export function PortalOrganizerRail({
   bucket,
   facets,
   groupBy,
+  complete,
+  needsComplete,
   onBucketChange,
   onClearFacet,
   onGroupByChange,
@@ -47,6 +49,8 @@ export function PortalOrganizerRail({
   searchInputRef,
 }: {
   bucket: PortalBucket;
+  complete: boolean;
+  needsComplete: boolean;
   facets: PortalFacets;
   groupBy: PortalGroupBy;
   onBucketChange: (bucket: PortalBucket) => void;
@@ -93,7 +97,9 @@ export function PortalOrganizerRail({
                 ) : null}
                 <span className="min-w-0 truncate">{entry.label}</span>
                 <span className="ml-auto font-mono text-xs tabular-nums opacity-70">
-                  {countBucket(rows, entry.value)}
+                  {entry.value === "needs"
+                    ? needsComplete ? countBucket(rows, entry.value) : "…"
+                    : complete ? countBucket(rows, entry.value) : "…"}
                 </span>
               </button>
             </li>
@@ -121,6 +127,9 @@ export function PortalOrganizerRail({
             </button>
           ))}
         </div>
+        {!complete ? (
+          <p className="theme-text-faint text-[11px]">Filters reflect currently loaded datasets.</p>
+        ) : null}
       </section>
 
       {FACETS.map((facet) => {

@@ -2,7 +2,7 @@
  * Pure browse/organize logic for the Replication Studio.
  *
  * Everything here is a function of the loaded corpus and the studio's filter
- * state, with no React and no Convex, so the parts that decide what the grid
+ * state, with no React and no Postgres, so the parts that decide what the grid
  * shows and what a new row is called can be tested directly.
  */
 
@@ -217,7 +217,7 @@ export function kebab(value: string): string {
  *
  * Collisions are resolved by suffixing `-2`, `-3`, … rather than by failing:
  * the tray creates rows one at a time and a second copy of a title is a normal
- * thing to upload, not an error. Convex still refuses a duplicate on insert, so
+ * thing to upload, not an error. Postgres still refuses a duplicate on insert, so
  * a slug that races another session fails there rather than silently shadowing.
  */
 export function buildReplicationSlug(

@@ -3,7 +3,7 @@
  *
  * One runner translates five bodies of text that agree on nothing: a published
  * JSON export keyed by slug, five VCode bodies per effect, nine long-form
- * documents that live only in Convex, first-person reports with a timeline,
+ * documents that live only in Postgres, first-person reports with a timeline,
  * and a flat table of copy blocks layered over checked-in defaults. A corpus
  * says where its items come from, what identifies one, which keys are machine
  * data, and which fields hold markup. Everything else is shared machinery.
@@ -15,11 +15,12 @@ import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createDataClient } from "../lib/data-client.ts";
+import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts";
 
 /** Resolved on call: loaders only run in the CLI, and a bundled import must not need a file URL at load. */
 const repoRoot = () => path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-const CONVEX_URL = "https://glad-minnow-656.convex.cloud";
 const OPEN_DATA = "https://dose.wiki/open-data";
 
 /**
@@ -94,18 +95,13 @@ async function fetchJson(url) {
   return response.json();
 }
 
-async function convexQuery(functionPath, args = {}) {
-  const response = await fetch(`${CONVEX_URL}/api/query`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ path: functionPath, args, format: "json" }),
-  });
-  if (!response.ok) throw new Error(`Convex query failed: ${response.status} ${response.statusText}`);
-  const payload = await response.json();
-  if (payload.status !== "success") {
-    throw new Error(`Convex query ${functionPath} returned ${payload.status}: ${payload.errorMessage ?? ""}`);
+async function postgresQuery(functionPath, args = {}) {
+  const { client } = createDataClient({ target: process.env.SOURCE_POSTGRES_URL ?? null });
+  try {
+    return await client.query(makeFunctionReference(functionPath), args);
+  } finally {
+    await client.end?.();
   }
-  return payload.value;
 }
 
 /** A published open-data export, or a local copy of one. */
@@ -121,7 +117,7 @@ function openDataLoader(datasetName) {
 }
 
 /**
- * Envelope for a corpus read straight from Convex. Editor writing and copy
+ * Envelope for a corpus read straight from Postgres. Editor writing and copy
  * are CC0 per /docs/license; the open-data exports carry their own licence
  * strings and never pass through here.
  */
@@ -207,7 +203,7 @@ const EFFECT_CORPUS = {
 };
 
 /**
- * The nine curated long-form articles. They exist only in Convex, and the
+ * The nine curated long-form articles. They exist only in Postgres, and the
  * table also holds a blog row that every consumer filters on `kind`; an
  * exporter that skips the filter ships a test post as a tenth article.
  */
@@ -216,20 +212,20 @@ const ARTICLE_CORPUS = {
   label: "Long-form articles",
   dataset: "Articles",
   itemKey: "slug",
-  defaultSource: "convex:effectIndexArticles:getAll",
+  defaultSource: "data:effectIndexArticles:getAll",
   load: async (source) => {
-    const origin = source ?? "convex:effectIndexArticles:getAll";
-    if (!origin.startsWith("convex:")) {
+    const origin = source ?? "data:effectIndexArticles:getAll";
+    if (!origin.startsWith("data:")) {
       const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
-    const rows = await convexQuery("effectIndexArticles:getAll");
+    const rows = await postgresQuery("effectIndexArticles:getAll");
     const items = rows
       .filter((row) => row.kind !== "blog" && row.publication_status === "published")
-      // Convex bookkeeping and the raw author ObjectIds, which are never shown.
+      // Postgres bookkeeping and the raw author ObjectIds, which are never shown.
       .map(({ _id: _identifier, _creationTime: _created, authors: _authors, ...rest }) => rest)
       .sort((a, b) => String(a.slug).localeCompare(String(b.slug)));
-    return { dataset: envelope("Articles", items, `${CONVEX_URL} effectIndexArticles:getAll`), origin };
+    return { dataset: envelope("Articles", items, `Postgres effectIndexArticles:getAll`), origin };
   },
   excludedGroups: Object.freeze(["citations", "tags", "authorProfileKeys"]),
   excludedKeys: Object.freeze([
@@ -292,26 +288,26 @@ const REPORT_CORPUS = {
  * noun, the rights fields are attribution, the effect slug and tag arrays key
  * filters, the storage keys and URLs locate media, and the date, size and
  * duration are measurements. The runtime is the only consumer (there is no
- * batch export), so the loader reads the published rows straight from Convex.
+ * batch export), so the loader reads the published rows straight from Postgres.
  */
 const REPLICATION_CORPUS = {
   id: "replications",
   label: "Replications",
   dataset: "Replications",
   itemKey: "slug",
-  defaultSource: "convex:replications:getAll",
+  defaultSource: "data:replications:getAll",
   load: async (source) => {
-    const origin = source ?? "convex:replications:getAll";
-    if (!origin.startsWith("convex:")) {
+    const origin = source ?? "data:replications:getAll";
+    if (!origin.startsWith("data:")) {
       const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
-    const rows = await convexQuery("replications:getAll");
+    const rows = await postgresQuery("replications:getAll");
     const items = rows
       .filter((row) => (row.publication_state ?? "published") === "published")
       .map(({ _id: _identifier, _creationTime: _created, ...rest }) => rest)
       .sort((a, b) => String(a.slug).localeCompare(String(b.slug)));
-    return { dataset: envelope("Replications", items, `${CONVEX_URL} replications:getAll`), origin };
+    return { dataset: envelope("Replications", items, `Postgres replications:getAll`), origin };
   },
   excludedGroups: Object.freeze([
     "effect_tags",
@@ -397,9 +393,9 @@ const REPLICATION_CORPUS = {
 };
 
 /**
- * Sitewide copy. Production is Convex rows layered over the checked-in
+ * Sitewide copy. Production is Postgres rows layered over the checked-in
  * defaults, exactly as `createCopyResolver` resolves them, so a corpus built
- * from the JSON alone would miss the ten keys that exist only in Convex and
+ * from the JSON alone would miss the ten keys that exist only in Postgres and
  * would translate sixteen strings the site no longer shows.
  */
 const COPY_CORPUS = {
@@ -407,23 +403,23 @@ const COPY_CORPUS = {
   label: "Sitewide copy",
   dataset: "CopyBlocks",
   itemKey: "key",
-  defaultSource: "convex:copyBlocks:getAll",
+  defaultSource: "data:copyBlocks:getAll",
   load: async (source) => {
-    const origin = source ?? "convex:copyBlocks:getAll";
-    if (!origin.startsWith("convex:")) {
+    const origin = source ?? "data:copyBlocks:getAll";
+    if (!origin.startsWith("data:")) {
       const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     const defaults = JSON.parse(await readFile(path.join(repoRoot(), "src/data/content/copyBlocks.json"), "utf8"));
-    const rows = await convexQuery("copyBlocks:getAll");
+    const rows = await postgresQuery("copyBlocks:getAll");
     const byKey = new Map();
     for (const definition of defaults) byKey.set(definition.key, { ...definition, source: "default" });
     for (const row of rows) {
       const { _id: _identifier, _creationTime: _created, updatedAt: _updatedAt, updatedBy: _updatedBy, ...rest } = row;
-      byKey.set(row.key, { ...rest, source: "convex" });
+      byKey.set(row.key, { ...rest, source: "server" });
     }
     const items = [...byKey.values()].sort((a, b) => a.key.localeCompare(b.key));
-    return { dataset: envelope("CopyBlocks", items, `${CONVEX_URL} copyBlocks:getAll over src/data/content/copyBlocks.json`), origin };
+    return { dataset: envelope("CopyBlocks", items, `Postgres copyBlocks:getAll over src/data/content/copyBlocks.json`), origin };
   },
   excludedGroups: Object.freeze([]),
   excludedKeys: Object.freeze(["key", "kind", "flavor", "group", "label", "source"]),
@@ -595,19 +591,19 @@ const BANNER_CORPUS = {
   label: "Safety banners",
   dataset: "WarningBanners",
   itemKey: "key",
-  defaultSource: "convex:warningBanners:listPresets",
+  defaultSource: "data:warningBanners:listPresets",
   load: async (source) => {
-    const origin = source ?? "convex:warningBanners:listPresets";
-    if (!origin.startsWith("convex:")) {
+    const origin = source ?? "data:warningBanners:listPresets";
+    if (!origin.startsWith("data:")) {
       const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
-    const rows = await convexQuery("warningBanners:listPresets");
+    const rows = await postgresQuery("warningBanners:listPresets");
     const items = rows
       .filter((row) => row.enabled && !String(row.key).startsWith("citation-system-overhaul"))
       .map(({ _id: _identifier, _creationTime: _created, updatedAt: _updatedAt, ...rest }) => rest)
       .sort((a, b) => String(a.key).localeCompare(String(b.key)));
-    return { dataset: envelope("WarningBanners", items, `${CONVEX_URL} warningBanners:listPresets`), origin };
+    return { dataset: envelope("WarningBanners", items, `Postgres warningBanners:listPresets`), origin };
   },
   excludedGroups: Object.freeze([]),
   excludedKeys: Object.freeze(["key", "icon", "tone", "enabled", "enabledSlugs"]),
@@ -637,4 +633,4 @@ export function resolveCorpus(id) {
   return corpus;
 }
 
-export { convexQuery };
+export { postgresQuery };

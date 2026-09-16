@@ -13,12 +13,12 @@ const SelectGroup = SelectPrimitive.Group
 const SelectValue = SelectPrimitive.Value
 
 const selectTriggerVariants = cva(
-  "flex w-full items-center justify-between rounded-xl border bg-[var(--theme-field-surface)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-inner)] transition placeholder:text-[var(--theme-text-faint)] data-[placeholder]:text-[var(--theme-text-faint)] focus:border-[var(--theme-accent-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-ring-soft)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "theme-field-focus flex w-full items-center justify-between rounded-xl border bg-[var(--theme-field-surface)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-inner)] transition placeholder:text-[var(--theme-text-faint)] data-[placeholder]:text-[var(--theme-text-faint)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   {
     variants: {
       variant: {
         default: "border-[var(--theme-field-border)]",
-        error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)] focus:ring-[color:var(--theme-danger-ring)]",
+        error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)]",
       },
       selectSize: {
         sm: `h-10 px-3 py-2 pr-10 text-[16px] md:text-sm ${TOUCH_PILL}`,

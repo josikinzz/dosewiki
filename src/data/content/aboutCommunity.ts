@@ -7,7 +7,8 @@
  * returns it should come back as editable copy blocks like the rest of the
  * About page, not as literals here.
  *
- * Logo provenance: consciousness-library and effectindex from
+ * Logo provenance: anodyne from anodyne.wiki/assets/logo.png,
+ * consciousness-library and effectindex from
  * josiekins.xyz/images/shared/, tripsit from tripsit.me, protestkit from
  * protestkit.eu, drug-users-bible from the drugusersbible.org cover art;
  * the r-* tiles are each subreddit's Reddit community avatar. nervewing is
@@ -41,6 +42,12 @@ const LOGO_BASE = "/about/community";
 
 /** The combined partner and community roster. */
 export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
+  {
+    key: "anodyne",
+    name: "AnodyneWiki",
+    href: "https://anodyne.wiki",
+    logo: { src: `${LOGO_BASE}/anodyne.webp`, fit: "cover" },
+  },
   {
     key: "consciousness-library",
     name: "Consciousness Library",

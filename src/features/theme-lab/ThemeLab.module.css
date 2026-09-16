@@ -354,7 +354,7 @@
 
 .hueHandle:focus-visible,
 .svHandle:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
 }
 

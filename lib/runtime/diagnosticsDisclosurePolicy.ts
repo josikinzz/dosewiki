@@ -1,4 +1,4 @@
-import type { ServerConvexWriteHealth } from "../convex/serverWriteHealth";
+import type { ServerDataWriteHealth } from "../data/serverWriteHealth";
 import type { RuntimeEnvContract } from "./envContract";
 
 export type DiagnosticsAudience =
@@ -29,7 +29,7 @@ export type DiagnosticDisclosureFacts = {
   production: boolean;
   testEnvRouteEnabledInProduction: boolean;
   keyPresence?: DiagnosticKeyPresenceFact[];
-  convexWriteHealth?: ServerConvexWriteHealth;
+  dataWriteHealth?: ServerDataWriteHealth;
   runtimeEnv?: RuntimeEnvContract["diagnostics"];
 };
 
@@ -38,9 +38,9 @@ export type DiagnosticDisclosureView = {
   audience: DiagnosticsAudience;
   available: boolean;
   status: "not-found" | "healthy" | "unhealthy" | "warning" | "error";
-  canSaveToConvex?: boolean;
-  convexAdminKeyConfigured?: boolean;
-  convexUrlConfigured?: boolean;
+  canSaveToPostgres?: boolean;
+  dataAdminKeyConfigured?: boolean;
+  postgresUrlConfigured?: boolean;
   keysFound?: number;
   totalKeys?: number;
   keyNames?: string[];
@@ -48,7 +48,7 @@ export type DiagnosticDisclosureView = {
   issueDetails?: DiagnosticDisclosureIssue[];
   diagnostics?: {
     warnings?: string[];
-    targets?: ServerConvexWriteHealth["diagnostics"]["targets"];
+    targets?: ServerDataWriteHealth["diagnostics"]["targets"];
     runtimeEnv?: Omit<RuntimeEnvContract["diagnostics"], "issues"> & {
       issues: DiagnosticDisclosureIssue[];
     };
@@ -99,7 +99,7 @@ function redactRuntimeIssue(
   return redacted;
 }
 
-function convexIssues(health: ServerConvexWriteHealth | undefined): DiagnosticDisclosureIssue[] {
+function dataIssues(health: ServerDataWriteHealth | undefined): DiagnosticDisclosureIssue[] {
   if (!health) {
     return [];
   }
@@ -167,18 +167,18 @@ export function createDiagnosticsDisclosureView(
     };
   }
 
-  const convexHealth = facts.convexWriteHealth;
+  const dataHealth = facts.dataWriteHealth;
   const issueDetails = [
-    ...convexIssues(convexHealth),
+    ...dataIssues(dataHealth),
     ...runtimeIssues(facts.runtimeEnv, audience),
   ];
-  const visibleIssues = convexHealth ? convexHealth.issues : issueDetails.map((issue) => issue.message);
+  const visibleIssues = dataHealth ? dataHealth.issues : issueDetails.map((issue) => issue.message);
   const status = audience === "build-preflight"
     ? issueDetails.length > 0
       ? issueSeverity(issueDetails)
       : "healthy"
-    : convexHealth
-    ? convexHealth.canSaveToConvex
+    : dataHealth
+    ? dataHealth.canSaveToPostgres
       ? "healthy"
       : "unhealthy"
     : issueDetails.length > 0
@@ -194,10 +194,10 @@ export function createDiagnosticsDisclosureView(
     timestamp: checkedAt,
   };
 
-  if (convexHealth) {
-    view.canSaveToConvex = convexHealth.canSaveToConvex;
-    view.convexAdminKeyConfigured = convexHealth.adminKeyConfigured;
-    view.convexUrlConfigured = convexHealth.convexUrlConfigured;
+  if (dataHealth) {
+    view.canSaveToPostgres = dataHealth.canSaveToPostgres;
+    view.dataAdminKeyConfigured = dataHealth.adminKeyConfigured;
+    view.postgresUrlConfigured = dataHealth.postgresUrlConfigured;
   }
 
   if (facts.keyPresence) {
@@ -212,10 +212,10 @@ export function createDiagnosticsDisclosureView(
     view.issueDetails = issueDetails;
   }
 
-  if (convexHealth && DETAILED_DIAGNOSTICS_AUDIENCES.has(audience)) {
+  if (dataHealth && DETAILED_DIAGNOSTICS_AUDIENCES.has(audience)) {
     view.diagnostics = {
-      warnings: convexHealth.diagnostics.warnings,
-      targets: convexHealth.diagnostics.targets,
+      warnings: dataHealth.diagnostics.warnings,
+      targets: dataHealth.diagnostics.targets,
       runtimeEnv: redactRuntimeEnvDiagnostics(facts.runtimeEnv, audience),
     };
   }

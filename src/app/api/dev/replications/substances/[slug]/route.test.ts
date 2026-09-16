@@ -7,7 +7,7 @@ import {
   signInAs,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     substanceGalleries: {
       getCurationDetail: "substanceGalleries.getCurationDetail",
@@ -49,7 +49,7 @@ beforeEach(() => {
 });
 
 describe("substance gallery route auth", () => {
-  it("lets an editor read the detail but refuses the save with 403 before Convex", async () => {
+  it("lets an editor read the detail but refuses the save with 403 before Postgres", async () => {
     signInAs("editor");
     routeMocks.query.mockResolvedValue(DETAIL);
     const { GET, POST } = await import("./route");
@@ -91,7 +91,7 @@ describe("substance gallery GET", () => {
     expect(response.status).toBe(404);
   });
 
-  it("refuses a slug shape no substance has without calling Convex", async () => {
+  it("refuses a slug shape no substance has without calling Postgres", async () => {
     const { GET } = await import("./route");
 
     const response = await GET(
@@ -151,7 +151,7 @@ describe("substance gallery POST", () => {
     });
   });
 
-  it("rejects a curated∩excluded overlap before reaching Convex", async () => {
+  it("rejects a curated∩excluded overlap before reaching Postgres", async () => {
     const { POST } = await import("./route");
 
     const response = await POST(
@@ -205,7 +205,7 @@ describe("substance gallery POST", () => {
   });
 
 
-  it("rejects a non-string, non-null expectedUpdatedAt before reaching Convex", async () => {
+  it("rejects a non-string, non-null expectedUpdatedAt before reaching Postgres", async () => {
     const { POST } = await import("./route");
 
     const response = await POST(

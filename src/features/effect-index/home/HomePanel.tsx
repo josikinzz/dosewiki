@@ -107,7 +107,7 @@ export function HomePanelGroupLabel({ children }: { children: ReactNode }) {
  * shade the original reserved for links and the effects index already uses here.
  */
 export const homePanelLinkClassName =
-  "text-dose-accent transition-colors hover:text-dose-accent-strong hover:underline hover:decoration-1 hover:underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
+  "text-dose-accent transition-colors hover:text-dose-accent-strong hover:underline hover:decoration-1 hover:underline-offset-2 theme-focus-ring";
 
 /** A row inside a list-shaped panel: own padding, hairline rule, quiet hover wash. */
 export const homePanelRowClassName =

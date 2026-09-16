@@ -12,7 +12,7 @@ import {
   type PreparedSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
 import { useT } from "@/i18n/client";
-import type { TripReport } from "@/types/tripReport";
+import { toReportCardModel, type ReportCardModel, type TripReport } from "@/types/tripReport";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
@@ -22,15 +22,14 @@ const MIN_HIDDEN_REPORTS_FOR_COLLAPSE = 3;
 
 interface TripReportsSectionProps {
   reports?: TripReport[];
-  preparedReports?: PreparedSubstanceTripReports<TripReport>;
+  preparedReports?: PreparedSubstanceTripReports<ReportCardModel>;
   fromSubstanceSlug?: string;
   /** Called when a report is clicked */
   onSelectReport?: (slug: string) => void;
 }
 
 /**
- * Displays trip reports related to the current substance article.
- * Automatically queries Convex for reports where this substance was used.
+ * Displays the compact report cards prepared for the current substance.
  */
 export const TripReportsSection = memo(function TripReportsSection({
   reports = [],
@@ -42,7 +41,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   const prepared = useMemo(
     () =>
       preparedReports ??
-      prepareSubstanceTripReports(reports, {
+      prepareSubstanceTripReports(reports.map(toReportCardModel), {
         collapsedLimit: COLLAPSED_LIMIT,
         minHiddenForCollapse: MIN_HIDDEN_REPORTS_FOR_COLLAPSE,
       }),
@@ -142,7 +141,7 @@ const CompactReportRow = memo(function CompactReportRow({
   fromSubstanceSlug,
   onSelectReport,
 }: {
-  report: TripReport;
+  report: ReportCardModel;
   fromSubstanceSlug?: string;
   onSelectReport?: (slug: string) => void;
 }) {

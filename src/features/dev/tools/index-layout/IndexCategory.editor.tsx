@@ -16,6 +16,7 @@ import { buildBoard, listDestinations, type BoardRecord } from "./boardModel";
 import * as ops from "./layoutOps";
 import { useCopyIndexOperation } from "../useCopyIndexOperation";
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { canDraft } from "@/lib/auth/roles";
 
 const OPEN_LAYOUT_EVENT = "dosewiki:edit-index-category";
 export default function IndexCategory({ group, groups }: { group?: DosageCategoryGroup; groups?: DosageCategoryGroup[] }) {
@@ -23,7 +24,7 @@ export default function IndexCategory({ group, groups }: { group?: DosageCategor
   const pathname = usePathname();
   const [selected, setSelected] = useState<DosageCategoryGroup | null>(null);
   const type = pathname?.startsWith("/substances") ? "psychoactive" : null;
-  const allowed = enabled && mode === "edit" && (role === "admin" || role === "editor") && !!type;
+  const allowed = enabled && mode === "edit" && canDraft(role) && !!type;
   useEffect(() => {
     if (group || !groups || !allowed) return;
     const open = (event: Event) => {

@@ -161,6 +161,8 @@ export interface ReplicationViewerOverlayProps {
   initialSlug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The host is still resolving authoritative collection membership. */
+  collectionPending?: boolean;
   /** A host-owned history boundary, such as an exact-origin embedded viewer. */
   historyAdapter?: ViewerHistoryAdapter;
   /** Re-apply a host selection even when its slug equals the original launch. */
@@ -180,6 +182,7 @@ export function ReplicationViewerOverlay({
   initialSlug,
   open,
   onOpenChange,
+  collectionPending = false,
   onRegroup,
   historyAdapter,
   selectionRevision,
@@ -245,13 +248,19 @@ export function ReplicationViewerOverlay({
   const infoHeadingId = useId();
   const sessionHolderRef = useRef<{
     collection: ReplicationViewerCollection;
+    historyAdapter: ViewerHistoryAdapter | undefined;
+    sourcePath: string;
     session: ViewerSession;
   } | null>(null);
   const previousSessionHolder = sessionHolderRef.current;
-  if (sessionHolderRef.current?.collection !== sourceCollection) {
+  if (
+    !previousSessionHolder ||
+    previousSessionHolder.historyAdapter !== historyAdapter ||
+    previousSessionHolder.sourcePath !== sourceCollection.sourcePath
+  ) {
     const previousPosition = previousSessionHolder?.session.snapshot().position;
     const sessionInitialSlug = previousPosition
-      ? (previousSessionHolder?.collection.groups[previousPosition.groupIndex]
+      ? (previousSessionHolder.collection.groups[previousPosition.groupIndex]
           ?.items[previousPosition.itemIndex]?.replication.slug ?? initialSlug)
       : initialSlug;
     const history: ViewerHistoryAdapter = historyAdapter ?? {
@@ -269,6 +278,8 @@ export function ReplicationViewerOverlay({
     };
     sessionHolderRef.current = {
       collection: sourceCollection,
+      historyAdapter,
+      sourcePath: sourceCollection.sourcePath,
       session: createViewerSession({
         collection: sourceCollection,
         initialSlug: sessionInitialSlug,
@@ -332,12 +343,23 @@ export function ReplicationViewerOverlay({
     pane.classList.add(...ENTRY_MOTION_CLASS[entryMotion].split(" "));
   }, [entryMotion, activeSlug]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const previousSlug = activeSlugRef.current;
+    session.setCollection(sourceCollection);
+    sessionHolderRef.current!.collection = sourceCollection;
+    const nextPosition = session.snapshot().position;
+    const nextSlug = nextPosition
+      ? (sourceCollection.groups[nextPosition.groupIndex]?.items[
+          nextPosition.itemIndex
+        ]?.replication.slug ?? null)
+      : null;
     setCollection(sourceCollection);
-    setPosition(session.snapshot().position);
-    setInfoOpen(false);
-    setDetails(null);
-  }, [sourceCollection]);
+    setPosition(nextPosition);
+    if (nextSlug !== previousSlug) {
+      setInfoOpen(false);
+      setDetails(null);
+    }
+  }, [session, sourceCollection]);
 
   useEffect(() => {
     session.syncFromUrl(initialSlug);
@@ -480,8 +502,17 @@ export function ReplicationViewerOverlay({
       announcedSlugRef.current = slug;
       return;
     }
-    if (announcedSlugRef.current === slug) return;
+    if (announcedSlugRef.current === slug) {
+      setWorkAnnouncement(
+        collectionPending ? t("Loading gallery results…") : "",
+      );
+      return;
+    }
     announcedSlugRef.current = slug;
+    if (collectionPending) {
+      setWorkAnnouncement(t("Loading gallery results…"));
+      return;
+    }
     const values = {
       title: active.replication.title,
       position: position.itemIndex + 1,
@@ -495,7 +526,15 @@ export function ReplicationViewerOverlay({
           })
         : t("{{title}}, work {{position}} of {{total}}", values),
     );
-  }, [open, active, group, position, collection.groups.length, t]);
+  }, [
+    open,
+    active,
+    group,
+    position,
+    collection.groups.length,
+    collectionPending,
+    t,
+  ]);
 
   const activateEditorSlug = useCallback(
     (slug: string) => {
@@ -520,36 +559,39 @@ export function ReplicationViewerOverlay({
 
   const closeInfo = useCallback(() => {
     setInfoOpen(false);
-    const opener = infoOpenerRef.current;
-    infoOpenerRef.current = null;
-    window.requestAnimationFrame(() => {
-      if (opener?.isConnected) opener.focus({ preventScroll: true });
-    });
   }, []);
 
-  useEffect(() => {
-    if (!infoOpen) return;
-    const frame = window.requestAnimationFrame(() => {
+  useLayoutEffect(() => {
+    if (infoOpen) {
       infoCloseRef.current?.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
+      return;
+    }
+    const opener = infoOpenerRef.current;
+    infoOpenerRef.current = null;
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
   }, [infoOpen]);
 
-  const previousWork = position
-    ? moveViewerWork(collection, position, -1)
-    : null;
-  const nextWork = position ? moveViewerWork(collection, position, 1) : null;
+  const previousWork =
+    !collectionPending && position
+      ? moveViewerWork(collection, position, -1)
+      : null;
+  const nextWork =
+    !collectionPending && position
+      ? moveViewerWork(collection, position, 1)
+      : null;
   // A regroup rebuilds the session before its collection reaches render state.
   // Keep previews on the rendered snapshot until that handoff, then resume
   // the session's remembered work within each neighboring group.
-  const previousGroup =
-    collection === sourceCollection
+  const previousGroup = collectionPending
+    ? null
+    : collection === sourceCollection
       ? session.adjacentGroup(-1)
       : position
         ? moveViewerGroup(collection, position, -1)
         : null;
-  const nextGroup =
-    collection === sourceCollection
+  const nextGroup = collectionPending
+    ? null
+    : collection === sourceCollection
       ? session.adjacentGroup(1)
       : position
         ? moveViewerGroup(collection, position, 1)
@@ -808,7 +850,7 @@ export function ReplicationViewerOverlay({
     ];
 
 
-  const showRail = group.items.length > 1 && !reorderMode;
+  const showRail = !collectionPending && group.items.length > 1 && !reorderMode;
   const positionKey = `${group.key}|${active.replication.slug}`;
 
   return (
@@ -835,6 +877,7 @@ export function ReplicationViewerOverlay({
       <DialogContent
         ref={contentRef}
         aria-modal="true"
+        aria-busy={collectionPending || undefined}
         showClose={false}
         onOpenAutoFocus={(event) => {
           sourceFocusTargetRef.current =
@@ -911,16 +954,18 @@ export function ReplicationViewerOverlay({
       >
         {open && editorEnabled ? <EditorLauncherOutlet /> : null}
         <DialogDescription className="sr-only">
-          {t(
-            "Viewing {{title}} by {{artist}}. {{collection}}. Work {{position}} of {{total}}.",
-            {
-              title: active.replication.title,
-              artist: artistLabel,
-              collection: t(collection.label),
-              position: position.itemIndex + 1,
-              total: group.items.length,
-            },
-          )}
+          {collectionPending
+            ? t("Loading gallery results…")
+            : t(
+                "Viewing {{title}} by {{artist}}. {{collection}}. Work {{position}} of {{total}}.",
+                {
+                  title: active.replication.title,
+                  artist: artistLabel,
+                  collection: t(collection.label),
+                  position: position.itemIndex + 1,
+                  total: group.items.length,
+                },
+              )}
         </DialogDescription>
         <header
           inert={infoOpen || chromeHidden || undefined}
@@ -973,23 +1018,31 @@ export function ReplicationViewerOverlay({
                   <span aria-hidden>·</span>
                 </>
               ) : null}
-              <span className="shrink-0">
-                {t("Work {{position}}/{{total}}", {
-                  position: position.itemIndex + 1,
-                  total: group.items.length,
-                })}
-              </span>
-              {collection.groups.length > 1 ? (
+              {collectionPending ? (
+                <span className="shrink-0">
+                  {t("Loading gallery results…")}
+                </span>
+              ) : (
                 <>
-                  <span aria-hidden>·</span>
                   <span className="shrink-0">
-                    {t(groupUnit.counter, {
-                      position: position.groupIndex + 1,
-                      total: collection.groups.length,
+                    {t("Work {{position}}/{{total}}", {
+                      position: position.itemIndex + 1,
+                      total: group.items.length,
                     })}
                   </span>
+                  {collection.groups.length > 1 ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span className="shrink-0">
+                        {t(groupUnit.counter, {
+                          position: position.groupIndex + 1,
+                          total: collection.groups.length,
+                        })}
+                      </span>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+              )}
             </p>
             </div>
           </div>
@@ -998,11 +1051,14 @@ export function ReplicationViewerOverlay({
               <button
                 type="button"
                 aria-label={
-                  previousGroup
-                    ? t(groupUnit.previous, {
-                        label: collection.groups[previousGroup.groupIndex].label,
-                      })
-                    : t(groupUnit.first)
+                  collectionPending
+                    ? t("Loading gallery results…")
+                    : previousGroup
+                      ? t(groupUnit.previous, {
+                          label:
+                            collection.groups[previousGroup.groupIndex].label,
+                        })
+                      : t(groupUnit.first)
                 }
                 disabled={!previousGroup}
                 onClick={() => slideGroup(-1)}
@@ -1016,11 +1072,13 @@ export function ReplicationViewerOverlay({
               <button
                 type="button"
                 aria-label={
-                  nextGroup
-                    ? t(groupUnit.next, {
-                        label: collection.groups[nextGroup.groupIndex].label,
-                      })
-                    : t(groupUnit.final)
+                  collectionPending
+                    ? t("Loading gallery results…")
+                    : nextGroup
+                      ? t(groupUnit.next, {
+                          label: collection.groups[nextGroup.groupIndex].label,
+                        })
+                      : t(groupUnit.final)
                 }
                 disabled={!nextGroup}
                 onClick={() => slideGroup(1)}
@@ -1056,7 +1114,7 @@ export function ReplicationViewerOverlay({
                   role="menu"
                   aria-label={t("Viewer settings")}
                   className={cn(
-                    "theme-media-settings-menu theme-media-tile-title absolute right-0 top-full z-[80] mt-2 min-w-36 origin-top-right overflow-y-auto rounded-xl border p-1 transition-transform duration-200 motion-reduce:transition-none",
+                    "absolute right-0 top-full z-[80] mt-2 min-w-36 origin-top-right overflow-y-auto transition-transform duration-200 motion-reduce:transition-none",
                     rotated
                       ? "max-h-[calc(100vw-6rem)]"
                       : "max-h-[calc(100dvh-6rem)]",
@@ -1065,6 +1123,7 @@ export function ReplicationViewerOverlay({
                     transform: rotated ? "rotate(90deg) translateX(100%)" : "none",
                   }}
                 >
+                  <div className="theme-reveal-enter theme-media-settings-menu theme-media-tile-title rounded-xl border p-1">
                   <p className="px-2 py-1.5 text-xs font-semibold">{t("Sort by")}</p>
                   {(["artist", "effect"] as const).map((grouping) => (
                     <button
@@ -1080,7 +1139,7 @@ export function ReplicationViewerOverlay({
                         }
                       }}
                       className={cn(
-                        "theme-media-settings-item flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm focus:outline-none",
+                        "theme-media-settings-item flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm focus:outline-none",
                         focusRingClassName,
                       )}
                     >
@@ -1123,6 +1182,7 @@ export function ReplicationViewerOverlay({
                       </div>
                     ))}
                   </dl>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -1150,8 +1210,13 @@ export function ReplicationViewerOverlay({
             <Icon icon="lucide:x" className="size-5" />
           </button>
         </header>
-        <p aria-live="polite" aria-atomic="true" className="sr-only">
-          {workAnnouncement}
+        <p
+          role={collectionPending ? "status" : undefined}
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {collectionPending ? t("Loading gallery results…") : workAnnouncement}
         </p>
 
         <div
@@ -1225,18 +1290,23 @@ export function ReplicationViewerOverlay({
                 onFullscreen={requestFullscreen}
                 fullscreenSupported={fullscreenSupported}
                 previousLabel={
-                  previousWork
-                    ? t("Previous: {{title}}", {
-                        title: group.items[previousWork.itemIndex].replication.title,
-                      })
-                    : t("First work")
+                  collectionPending
+                    ? t("Loading gallery results…")
+                    : previousWork
+                      ? t("Previous: {{title}}", {
+                          title:
+                            group.items[previousWork.itemIndex].replication.title,
+                        })
+                      : t("First work")
                 }
                 nextLabel={
-                  nextWork
-                    ? t("Next: {{title}}", {
-                        title: group.items[nextWork.itemIndex].replication.title,
-                      })
-                    : t("Final work")
+                  collectionPending
+                    ? t("Loading gallery results…")
+                    : nextWork
+                      ? t("Next: {{title}}", {
+                          title: group.items[nextWork.itemIndex].replication.title,
+                        })
+                      : t("Final work")
                 }
               />
               {fullscreenNotice ? (
@@ -1345,7 +1415,7 @@ export function ReplicationViewerOverlay({
             role="dialog"
             aria-modal="true"
             aria-labelledby={infoHeadingId}
-            className="theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-14 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:top-20 sm:w-[26rem]"
+            className="theme-overlay-enter theme-media-tile-title theme-media-thumbnail-border theme-media-overlay-shadow absolute bottom-0 right-0 top-14 z-20 w-full max-w-md overflow-y-auto border-l bg-black/95 p-5 text-sm sm:top-20 sm:w-[26rem]"
           >
             <div className="flex items-center justify-between gap-3">
               <h2

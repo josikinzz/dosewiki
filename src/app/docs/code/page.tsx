@@ -1,6 +1,6 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
-import { getPublicDataOverview } from "@server/convex/publicData";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
+import { getPublicDataOverview } from "@server/data/publicData";
 import {
   DefinitionList,
   DefinitionRow,
@@ -16,8 +16,13 @@ import { Mermaid } from "../_components/Mermaid";
 
 import { t } from "@/i18n/server";
 
+const DOCS_CODE_COPY_KEYS = [
+  "seo-docs-code-description",
+  ...getCopyKeysByPrefix("docs-code-"),
+];
+
 export async function generateMetadata() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(DOCS_CODE_COPY_KEYS);
 
   return buildPublicPageMetadata({
     title: t("How dose.wiki is built"),
@@ -76,7 +81,7 @@ export default async function DocsCodePage() {
   // The content figures come from the same overview the About page renders, so
   // the two never disagree; the code-size figures below stay hand-maintained.
   const [copy, overview] = await Promise.all([
-    getCopy(),
+    getCopyByKeys(DOCS_CODE_COPY_KEYS),
     getPublicDataOverview(),
   ]);
   const tocItems = TOC_ITEMS.map(({ id, icon, copyKey }) => ({
@@ -203,7 +208,7 @@ export default async function DocsCodePage() {
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ background: DOMAIN_VAR.green }}
               />{" "}
-              {copy.text("docs-code-s2-legend-convex")}
+              {copy.text("docs-code-s2-legend-data")}
             </div>
             <div className="theme-text-secondary flex items-center gap-2">
               <span
@@ -453,7 +458,7 @@ export default async function DocsCodePage() {
             {`
 ├── `}
             <span className="font-semibold" style={{ color: DOMAIN_VAR.green }}>
-              convex/
+              server/
             </span>
             {`                   `}
             <span className="theme-text-faint">
@@ -474,7 +479,7 @@ export default async function DocsCodePage() {
             {`
 │   ├── parsers/  batch/  citations/  prepopulate/
 │   ├── replications/  contributors/  chemistry/  legality/
-│   ├── convex/  migrate/  seed/  build/  deploy/  reports/
+│   ├── data-ops/  migrate/  seed/  build/  deploy/  reports/
 │   └── lib/                  `}
             <span className="theme-text-faint">
               · CLI plumbing, OpenRouter client
@@ -485,7 +490,7 @@ export default async function DocsCodePage() {
               · app and script server helpers
             </span>
             {`
-│   ├── convex/               `}
+│   ├── data/                 `}
             <span className="theme-text-faint">
               · publicData.* database readers
             </span>
@@ -497,7 +502,7 @@ export default async function DocsCodePage() {
             {`
 │   ├── postgres/             `}
             <span className="theme-text-faint">
-              · Drizzle schema, convex/ function runtime
+              · Drizzle schema and native callable runtime
             </span>
             {`
 │   └── auth/  http/  og/  citations/  runtime/

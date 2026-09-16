@@ -3,7 +3,7 @@
  * Transition rows in the subsection citation rollout tracker.
  *
  * Local tracker bookkeeping only; never touches the slug-level queue or
- * Convex. Every transition records updatedAt (and runId when given) so the
+ * Postgres. Every transition records updatedAt (and runId when given) so the
  * tracker stays an auditable slug+section ledger.
  *
  * Usage:

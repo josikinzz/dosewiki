@@ -1,22 +1,24 @@
 #!/usr/bin/env node
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "../lib/postgres-target.mjs";
 import { createDataClient } from "../../lib/data-client.ts";
-import { api } from "../../../convex/_generated/api.js";
-import { requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
+import { api } from "../../../lib/postgres/runtime/api.ts"
+import { createProductionWriteCommand, requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
 import { PINNED_PROFILE_COUNT, PINNED_PROFILE_SNAPSHOT_DIGEST, validatePinnedProfileSnapshot } from "./executor-lib.mjs";
 
-const TARGET_URL = "https://glad-minnow-656.convex.cloud";
 const flag = (argv, name) => { const value = argv.find((item) => item.startsWith(`${name}=`)); return value ? value.slice(name.length + 1) : null; };
 
 export async function exportPinnedProfileSnapshot(argv = process.argv.slice(2), adapters = {}) {
   const actor = flag(argv, "--actor-email"); const out = flag(argv, "--out");
   if (!actor || !out) throw new Error("--actor-email and --out are required.");
+  const command = createProductionWriteCommand({ operation: "export-identity-profile-snapshot", argv });
+  requireCampaignTarget(command);
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  const client = adapters.client ?? createDataClient({ target: TARGET_URL }).client;
+  const client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const { profiles, metadata } = await drainPinnedProfileSnapshot({ query, apiKey, actor });
-  const document = { artifactType: "identity-social-pinned-contributor-profile-snapshot", schemaVersion: 1, target: "glad-minnow-656", ...metadata, profiles };
+  const document = { artifactType: "identity-social-pinned-contributor-profile-snapshot", schemaVersion: 1, target: command.deploymentFingerprint, sourceDeployment: "glad-minnow-656", ...metadata, profiles };
   writeFileSync(out, `${JSON.stringify(document, null, 2)}\n`, { flag: "wx" });
   return { out, profiles: profiles.length, digest: metadata.canonical_profile_set_sha256 };
 }

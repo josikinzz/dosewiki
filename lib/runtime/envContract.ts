@@ -1,8 +1,8 @@
 import { resolveAuthRuntimePolicy, type AuthRuntimePolicy } from "../auth/runtimePolicy";
 import {
-  getConvexRuntimeTargetMatrix,
-  type ConvexRuntimeTargetMatrix,
-} from "../convex/runtimeTargets";
+  getDataRuntimeTargetMatrix,
+  type DataRuntimeTargetMatrix,
+} from "../data/runtimeTargets";
 import {
   PUBLICATION_TARGETS_ENV,
   getPublicationTargets,
@@ -33,18 +33,17 @@ type RuntimeEnvCapability = | "publicBrowserConfig"
 | "publicationConfig"
 
 export type PublicBrowserRuntimeConfig = {
-  convexUrl: string;
-  sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" | "VITE_CONVEX_URL" | null;
+  transport: "same-origin";
 };
 
 type ServerReadRuntimeConfig = {
-  convexUrl: string | null;
-  sourceEnvVar: ConvexRuntimeTargetMatrix["publicServerRead"]["sourceEnvVar"];
+  postgresUrl: string | null;
+  sourceEnvVar: DataRuntimeTargetMatrix["publicServerRead"]["sourceEnvVar"];
 }
 
 type ServerWriteRuntimeConfig = {
-  convexUrl: string | null;
-  convexUrlSourceEnvVar: ConvexRuntimeTargetMatrix["privilegedWrite"]["sourceEnvVar"];
+  postgresUrl: string | null;
+  postgresUrlSourceEnvVar: DataRuntimeTargetMatrix["privilegedWrite"]["sourceEnvVar"];
   adminKeyConfigured: boolean;
 }
 
@@ -68,7 +67,7 @@ export type RuntimeEnvContract = {
     status: RuntimeEnvContractStatus;
     reportOnly: boolean;
     issues: RuntimeEnvContractIssue[];
-    convexTargets: ConvexRuntimeTargetMatrix;
+    dataTargets: DataRuntimeTargetMatrix;
   };
 };
 
@@ -92,25 +91,8 @@ function getProfile(env: RuntimeEnv): RuntimeDeploymentProfile {
   return "local";
 }
 
-function getPublicBrowserConfig(env: RuntimeEnv): PublicBrowserRuntimeConfig {
-  if (hasValue(env.NEXT_PUBLIC_CONVEX_URL)) {
-    return {
-      convexUrl: env.NEXT_PUBLIC_CONVEX_URL,
-      sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL",
-    };
-  }
-
-  if (hasValue(env.VITE_CONVEX_URL)) {
-    return {
-      convexUrl: env.VITE_CONVEX_URL,
-      sourceEnvVar: "VITE_CONVEX_URL",
-    };
-  }
-
-  return {
-    convexUrl: "",
-    sourceEnvVar: null,
-  };
+function getPublicBrowserConfig(): PublicBrowserRuntimeConfig {
+  return { transport: "same-origin" };
 }
 
 function getDiagnosticsConfig(env: RuntimeEnv, profile: RuntimeDeploymentProfile): DiagnosticsRuntimeConfig {
@@ -136,52 +118,40 @@ function issue(
 
 function buildIssues({
   authPolicy,
-  convexTargets,
+  dataTargets,
   diagnosticsConfig,
   env,
   profile,
-  publicBrowserConfig,
   serverWriteConfig,
 }: {
   authPolicy: AuthRuntimePolicy;
-  convexTargets: ConvexRuntimeTargetMatrix;
+  dataTargets: DataRuntimeTargetMatrix;
   diagnosticsConfig: DiagnosticsRuntimeConfig;
   env: RuntimeEnv;
   profile: RuntimeDeploymentProfile;
-  publicBrowserConfig: PublicBrowserRuntimeConfig;
   serverWriteConfig: ServerWriteRuntimeConfig;
 }): RuntimeEnvContractIssue[] {
   const issues: RuntimeEnvContractIssue[] = [];
 
-  if (!publicBrowserConfig.sourceEnvVar) {
-    issues.push(
-      issue(
-        "publicBrowserConfig",
-        ["NEXT_PUBLIC_CONVEX_URL", "VITE_CONVEX_URL"],
-        "error",
-        "Missing browser Convex URL for the /dev shell.",
-      ),
-    );
-  }
 
-  if (!convexTargets.publicServerRead.selectedUrl) {
+  if (!dataTargets.publicServerRead.selectedUrl) {
     issues.push(
       issue(
         "serverReadConfig",
-        ["CONVEX_PUBLIC_READ_URL", "CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+        ["DATA_BACKEND", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
         "error",
-        "Missing Convex URL for public server reads.",
+        dataTargets.publicServerRead.compatibility.issues.join(" "),
       ),
     );
   }
 
-  if (!serverWriteConfig.convexUrl) {
+  if (!serverWriteConfig.postgresUrl) {
     issues.push(
       issue(
         "serverWriteConfig",
-        ["CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
+        ["DATA_BACKEND", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
         "error",
-        "Missing Convex URL for privileged server writes.",
+        dataTargets.privilegedWrite.compatibility.issues.join(" "),
       ),
     );
   }
@@ -190,27 +160,13 @@ function buildIssues({
     issues.push(
       issue(
         "serverWriteConfig",
-        ["CONVEX_ADMIN_KEY"],
+        ["DATA_ADMIN_KEY"],
         "error",
-        "Missing CONVEX_ADMIN_KEY for protected editor writes.",
+        "Missing DATA_ADMIN_KEY for protected editor writes.",
       ),
     );
   }
 
-  for (const warning of convexTargets.publicServerRead.compatibility.warnings) {
-    issues.push(issue("serverReadConfig", ["CONVEX_PUBLIC_READ_URL"], "warning", warning));
-  }
-
-  for (const warning of convexTargets.privilegedWrite.compatibility.warnings) {
-    issues.push(
-      issue(
-        "serverWriteConfig",
-        ["CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
-        "warning",
-        warning,
-      ),
-    );
-  }
 
   // A half-configured pair is the silent case: writes commit, the editor
   // refreshes itself, and the public deployments keep serving the old revision
@@ -275,26 +231,25 @@ export function resolveRuntimeEnvContract(
 ): RuntimeEnvContract {
   const reportOnly = options.reportOnly ?? true;
   const profile = getProfile(env);
-  const convexTargets = getConvexRuntimeTargetMatrix(env);
-  const publicBrowserConfig = getPublicBrowserConfig(env);
+  const dataTargets = getDataRuntimeTargetMatrix(env);
+  const publicBrowserConfig = getPublicBrowserConfig();
   const serverReadConfig: ServerReadRuntimeConfig = {
-    convexUrl: convexTargets.publicServerRead.selectedUrl,
-    sourceEnvVar: convexTargets.publicServerRead.sourceEnvVar,
+    postgresUrl: dataTargets.publicServerRead.selectedUrl,
+    sourceEnvVar: dataTargets.publicServerRead.sourceEnvVar,
   };
   const serverWriteConfig: ServerWriteRuntimeConfig = {
-    convexUrl: convexTargets.privilegedWrite.selectedUrl,
-    convexUrlSourceEnvVar: convexTargets.privilegedWrite.sourceEnvVar,
-    adminKeyConfigured: convexTargets.adminKeyConfigured,
+    postgresUrl: dataTargets.privilegedWrite.selectedUrl,
+    postgresUrlSourceEnvVar: dataTargets.privilegedWrite.sourceEnvVar,
+    adminKeyConfigured: dataTargets.adminKeyConfigured,
   };
   const authPolicy = resolveAuthRuntimePolicy(env);
   const diagnosticsConfig = getDiagnosticsConfig(env, profile);
   const issues = buildIssues({
     authPolicy,
-    convexTargets,
+    dataTargets,
     diagnosticsConfig,
     env,
     profile,
-    publicBrowserConfig,
     serverWriteConfig,
   });
 
@@ -311,7 +266,7 @@ export function resolveRuntimeEnvContract(
       status: getStatus(issues),
       reportOnly,
       issues,
-      convexTargets,
+      dataTargets,
     },
   };
 }

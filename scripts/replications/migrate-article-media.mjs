@@ -25,7 +25,7 @@
  * is trusted on this point. Every candidate is checked against production three
  * ways, in this order:
  *
- *   1. storage id — the resolved Convex object is compared against the
+ *   1. storage id — the resolved Postgres object is compared against the
  *      `storage_id` of all 247 existing rows.
  *   2. bytes — the asset's `sha-256` digest, taken from production's own
  *      response header, is compared against the digest of every existing row's
@@ -41,7 +41,7 @@
  *
  * ## Assets with no storage object yet
  *
- * The first pass could only file assets Convex already held. Round two brought
+ * The first pass could only file assets Postgres already held. Round two brought
  * four that had to be recovered from the live web first — dead gfycat ids and a
  * page hero whose host started returning 404 — so this script now uploads bytes
  * as well as referencing them. `ownerRulings.uploads` in the decisions file
@@ -68,16 +68,16 @@
  *     --uploads-dir=/path/to/recovered-media \
  *     --write --confirm-write=migrate-article-embedded-media \
  *     --confirm-media-migration \
- *     --expected-deployment=glad-minnow-656 \
- *     --target-url=https://glad-minnow-656.convex.cloud \
+ *     --expected-deployment=<host>/<database> \
+ *     --target=postgresql://<host>/<database> \
  *     --limit=5
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Agent } from "undici";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { uploadReplicationFile, replicationImportReceipts } from "./lib/r2-upload.mjs";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -255,64 +255,6 @@ async function readExistingDigests(existingRows, readUrl, client) {
   return digests;
 }
 
-const UPLOAD_ATTEMPTS = 8;
-const UPLOAD_BACKOFF_CAP_MS = 30_000;
-
-/**
- * Upload one recovered file into production storage, retrying the transport.
- *
- * Lifted wholesale from `repoint-renditions.mjs`, including the part that is not
- * obvious: a fresh, non-pooled HTTP/1.1 dispatcher per attempt, disposed
- * afterwards. The failure this defends against poisons the connection rather
- * than the request — a TLS-level error is followed by `ERR_HTTP2_INVALID_SESSION`
- * on every retry that re-enters the session that has just broken, so a retry
- * without a new dispatcher fails as reliably as no retry at all. A non-2xx
- * response is the server refusing the upload and fails immediately; only the
- * transport is retried, and each attempt takes a fresh single-use upload URL.
- */
-async function uploadFile(client, apiKey, filePath, contentType) {
-  const body = fs.readFileSync(filePath);
-  let lastError;
-
-  for (let attempt = 1; attempt <= UPLOAD_ATTEMPTS; attempt += 1) {
-    const dispatcher = new Agent({ connections: 1, pipelining: 0, allowH2: false });
-    try {
-      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-      const response = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": contentType },
-        body,
-        dispatcher,
-      });
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status} ${await response.text()}`);
-      }
-      const { storageId } = await response.json();
-      if (!storageId) {
-        throw new Error("Upload returned no storageId.");
-      }
-      return storageId;
-    } catch (error) {
-      lastError = error;
-      if (error.message?.startsWith("Upload failed:") || attempt === UPLOAD_ATTEMPTS) {
-        throw error;
-      }
-      let root = error.cause;
-      while (root?.cause) {
-        root = root.cause;
-      }
-      const delayMs = Math.min(1000 * 2 ** (attempt - 1), UPLOAD_BACKOFF_CAP_MS);
-      console.warn(
-        `    upload attempt ${attempt}/${UPLOAD_ATTEMPTS} failed (${root?.code ?? error.message}); retrying in ${delayMs / 1000}s`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    } finally {
-      await dispatcher.close().catch(() => {});
-    }
-  }
-
-  throw lastError;
-}
 
 
 
@@ -329,10 +271,10 @@ async function main() {
   }
   const uploadsDir = getFlagValue(argv, "--uploads-dir");
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
     throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
+      "Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL) so the script knows which deployment to read.",
     );
   }
 
@@ -350,7 +292,7 @@ async function main() {
   const effectSlugs = new Set(effects.map((effect) => effect.slug));
 
   console.log(
-    `\nRead ${existingRows.length} replication row(s) and ${effectSlugs.size} effect(s) from ${readUrl}.`,
+    `\nRead ${existingRows.length} replication row(s) and ${effectSlugs.size} effect(s) from ${postgresFingerprintFromUrl(readUrl)}.`,
   );
   console.log(`Curation file carries ${curation.assets.length} reviewed asset(s).`);
 
@@ -401,7 +343,7 @@ async function main() {
     console.log("  4. require the served content type to be the format that was written");
     console.log("  5. require the publication gate to read the row as the plan says");
     console.log("  A failing row stops the run before the next one is written.\n");
-    console.log("Dry run — nothing uploaded, no Convex writes performed.");
+    console.log("Dry run — nothing uploaded, no Postgres writes performed.");
     return;
   }
 
@@ -424,16 +366,17 @@ async function main() {
   for (const entry of batch) {
     if (entry.upload) {
       console.log(`  uploading ${entry.upload.path} (${entry.upload.bytes} bytes, ${entry.upload.contentType})…`);
-      entry.row.storage_id = await uploadFile(
+      entry.row.r2_key = await uploadReplicationFile(
         writeClient,
         apiKey,
         entry.upload.absolutePath,
         entry.upload.contentType,
       );
-      console.log(`    stored as ${entry.row.storage_id}`);
+      delete entry.row.storage_id;
+      console.log(`    stored as ${entry.row.r2_key}`);
     }
-    if (!entry.row.storage_id) {
-      throw new Error(`${entry.row.slug} has no storage id to point at. Nothing further written.`);
+    if (!entry.row.r2_key && !entry.row.storage_id) {
+      throw new Error(`${entry.row.slug} has no verified media identity. Nothing further written.`);
     }
 
     const result = await writeClient.mutation(api.replications.insertMediaAsset, {
@@ -441,6 +384,7 @@ async function main() {
       expected_absent: true,
       ...entry.row,
       rights_status: entry.row.rights_status ?? "unknown",
+      ...(await replicationImportReceipts(writeClient, apiKey, entry.row.slug, entry.row)),
     });
     console.log(`  inserted ${result.slug}  role=${result.role}  id=${result.id}`);
 

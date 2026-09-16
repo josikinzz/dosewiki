@@ -26,9 +26,11 @@ import path from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import type { Id } from "../../convex/_generated/dataModel.js";
-import type { ReviewedProfileImportArgs } from "../../convex/lib/contributorProfileImports.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import type { Id } from "../../lib/postgres/runtime/dataModel.ts"
+import type { ReviewedProfileImportArgs } from "../../server/lib/contributorProfileImports.js";
+import { r2MediaObject, uploadR2Media } from "../../lib/runtime/r2MediaStorage.ts";
+import { withVerifiedProfileAvatars } from "../lib/reviewed-profile-r2.ts";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -37,8 +39,9 @@ import {
 } from "../lib/production-write-command.mjs";
 
 export const OPERATION = "upload-replication-index-profile-avatars";
-export const DEPLOYMENT = "glad-minnow-656";
-export const TARGET_URL = `https://${DEPLOYMENT}.convex.cloud`;
+// Historical evidence pins identify the reviewed source, never the live writer.
+const SOURCE_DEPLOYMENT = "glad-minnow-656";
+const SOURCE_URL = `https://${SOURCE_DEPLOYMENT}.convex.cloud`;
 export const CANARY_KEY = "BRYANITCH";
 export const EXPECTED_PLAN_PAYLOAD_SHA256 =
   "972df2793a476cc675791972d90c07a19736f909577d1442c7528fa81d687573";
@@ -82,7 +85,7 @@ export const DEFAULT_PLAN_PATH = path.join(
 );
 export const DEFAULT_PROJECTION_PATH = path.join(
   REPO_ROOT,
-  "lib/convex/fixtures/contributor-profile-import-projection-a3e501a7.json",
+  "lib/data/fixtures/contributor-profile-import-projection-a3e501a7.json",
 );
 export const DEFAULT_DEPLOYMENT_RECEIPT_PATH = path.join(
   CAMPAIGN_ROOT,
@@ -172,6 +175,7 @@ export type ValidatedUpload = {
 };
 
 export type ValidatedInputs = {
+  targetIdentity?: string;
   campaignId: string;
   planSha256: string;
   planPayloadSha256: string;
@@ -187,7 +191,7 @@ type ImportResultRow = {
   key: string | null;
   profileId: string | null;
   action: "would-update" | "updated" | "would-create" | "created" | "unchanged" | "skipped" | "blocked";
-  blockReason?: "official-link-limit" | "avatar-unverified" | "avatar-r2-verification-unavailable";
+  blockReason?: "official-link-limit" | "avatar-unverified";
 };
 
 export type ProfileImportResult = {
@@ -260,12 +264,11 @@ export type ExistingProfileWriteState = {
 };
 
 export type ContributorProfileSnapshot = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   artifactType: "replication-index-contributor-profile-production-snapshot";
   campaignId: string;
   capturedAt: string;
-  targetDeployment: typeof DEPLOYMENT;
-  targetUrl: typeof TARGET_URL;
+  targetDeployment: string;
   projectionSha256: string;
   deployedCommit: typeof APPLICATION_CONTRACT.deployedCommit;
   applicationContractSha256: string;
@@ -278,18 +281,17 @@ export type UploadLedgerRow = ValidatedUpload & {
   phase: "canary" | "remaining";
   status: "pending" | "uploading" | "uploaded" | "uncertain";
   attempts: number;
-  storageId: string | null;
+  r2Key: string | null;
   startedAt: string | null;
   uploadedAt: string | null;
   errorCode: string | null;
 };
 
 export type AvatarUploadLedger = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   artifactType: "replication-index-profile-avatar-upload-ledger";
   campaignId: string;
-  targetDeployment: typeof DEPLOYMENT;
-  targetUrl: typeof TARGET_URL;
+  targetDeployment: string;
   planSha256: string;
   planPayloadSha256: string;
   projectionSha256: string;
@@ -303,7 +305,7 @@ export type AvatarUploadLedger = {
     phase: "canary" | "remaining";
     at: string;
     payloadSha256: string;
-    avatarStorageBindings: number;
+    avatarR2Bindings: number;
     result: {
       created: number;
       updated: number;
@@ -423,13 +425,13 @@ export function validateInputs({
   const verifiedFunctions = result?.verifiedLiveFunctions;
   if (
     sha256(receiptBytes) !== expectedDeploymentReceiptSha256
-    || deployment?.name !== `prod:${DEPLOYMENT}`
-    || deployment?.url !== TARGET_URL
+    || deployment?.name !== `prod:${SOURCE_DEPLOYMENT}`
+    || deployment?.url !== SOURCE_URL
     || deployment?.applicationCommit !== APPLICATION_CONTRACT.deployedCommit
     || !Array.isArray(verifiedFunctions)
     || !verifiedFunctions.includes("contributorProfiles.js:importReviewedProfilePlan")
   ) {
-    throw new Error("Convex deployment receipt does not prove the reviewed profile import contract.");
+    throw new Error("Historical Convex deployment receipt does not prove the reviewed profile import contract.");
   }
 
   const mediaRoot = mediaReviewRootForPlan(planPath);
@@ -443,8 +445,9 @@ export function validateInputs({
       if (
         actualSha256 !== record.localAsset.sha256
         || bytes.byteLength !== record.localAsset.byteSize
+        || bytes.byteLength === 0 || bytes.byteLength > 2 * 1024 * 1024
         || path.basename(assetPath).split(".")[0] !== actualSha256
-        || !["image/jpeg", "image/png"].includes(record.localAsset.contentType)
+        || !["image/jpeg", "image/png", "image/webp"].includes(record.localAsset.contentType)
       ) {
         throw new Error(`Digest-bound avatar validation failed for ${record.key}.`);
       }
@@ -480,14 +483,20 @@ function normalizeLink(link: ProjectionLink) {
   return { label, url: url.toString() };
 }
 
+function avatarObject(upload: ValidatedUpload) {
+  const extension = upload.contentType === "image/jpeg" ? "jpg" : upload.contentType === "image/png" ? "png" : "webp";
+  return r2MediaObject(upload.sha256, upload.byteSize, upload.contentType, extension);
+}
+
 export function buildEightProfilePayload(
   inputs: ValidatedInputs,
-  storageIds: ReadonlyMap<string, string> = new Map(),
+  r2Keys: ReadonlyMap<string, string> = new Map(),
 ): Omit<ReviewedProfileImportArgs, "apiKey"> {
-  const uploadKeys = new Set(inputs.uploads.map((upload) => upload.key));
-  for (const [key, storageId] of storageIds) {
-    if (!uploadKeys.has(key) || !storageId.trim()) {
-      throw new Error(`Unexpected or empty avatar Storage binding for ${key}.`);
+  const uploads = new Map(inputs.uploads.map((upload) => [upload.key, upload]));
+  for (const [key, r2Key] of r2Keys) {
+    const upload = uploads.get(key);
+    if (!upload || r2Key !== avatarObject(upload).r2Key) {
+      throw new Error(`Unexpected or mismatched avatar R2 binding for ${key}.`);
     }
   }
   return {
@@ -502,10 +511,8 @@ export function buildEightProfilePayload(
         key: profile.key,
         displayName: profile.displayName,
         aliases: profile.aliases,
-        avatarStorageId: storageIds.has(profile.key)
-          ? (storageIds.get(profile.key)! as Id<"_storage">)
-          : null,
-        avatarR2Key: null,
+        avatarStorageId: null,
+        avatarR2Key: r2Keys.get(profile.key) ?? null,
         avatarUrl: null,
         bio: "",
         role: profile.role,
@@ -682,12 +689,12 @@ export function assertExistingPayloadMatchesPinnedProjection(
 }
 
 export function createLedger(inputs: ValidatedInputs, now = new Date().toISOString()): AvatarUploadLedger {
+  if (!inputs.targetIdentity) throw new Error("A Postgres target identity is required before creating a ledger.");
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     artifactType: "replication-index-profile-avatar-upload-ledger",
     campaignId: inputs.campaignId,
-    targetDeployment: DEPLOYMENT,
-    targetUrl: TARGET_URL,
+    targetDeployment: inputs.targetIdentity,
     planSha256: inputs.planSha256,
     planPayloadSha256: inputs.planPayloadSha256,
     projectionSha256: inputs.projectionSha256,
@@ -701,7 +708,7 @@ export function createLedger(inputs: ValidatedInputs, now = new Date().toISOStri
       phase: upload.key === CANARY_KEY ? "canary" : "remaining",
       status: "pending",
       attempts: 0,
-      storageId: null,
+      r2Key: null,
       startedAt: null,
       uploadedAt: null,
       errorCode: null,
@@ -752,8 +759,9 @@ export function validateLedger(ledger: AvatarUploadLedger, inputs: ValidatedInpu
   if (
     ledger.artifactType !== "replication-index-profile-avatar-upload-ledger"
     || ledger.campaignId !== inputs.campaignId
-    || ledger.targetDeployment !== DEPLOYMENT
-    || ledger.targetUrl !== TARGET_URL
+    || ledger.schemaVersion !== 2
+    || !inputs.targetIdentity
+    || ledger.targetDeployment !== inputs.targetIdentity
     || ledger.planSha256 !== inputs.planSha256
     || ledger.planPayloadSha256 !== inputs.planPayloadSha256
     || ledger.projectionSha256 !== inputs.projectionSha256
@@ -784,8 +792,8 @@ export function validateLedger(ledger: AvatarUploadLedger, inputs: ValidatedInpu
       || row.attempts < 0
       || (row.status === "pending" && row.attempts !== 0)
       || (row.status !== "pending" && row.attempts < 1)
-      || (row.status === "uploaded" && !row.storageId)
-      || (row.storageId && row.status !== "uploaded")
+      || (row.status === "uploaded" && !row.r2Key)
+      || (row.r2Key && row.status !== "uploaded")
       || (row.status === "uncertain" && row.errorCode !== "upload-outcome-uncertain")
     ) {
       throw new Error(`Avatar upload ledger drifted for ${row.key}.`);
@@ -802,15 +810,15 @@ export function validateLedger(ledger: AvatarUploadLedger, inputs: ValidatedInpu
     const selectedRows = ledger.uploads.filter((row) =>
       run.phase === "canary" ? row.key === CANARY_KEY : true,
     );
-    if (selectedRows.some((row) => row.status !== "uploaded" || !row.storageId)) {
+    if (selectedRows.some((row) => row.status !== "uploaded" || !row.r2Key)) {
       throw new Error(`Avatar upload ledger records ${run.phase} verification before its uploads.`);
     }
-    const storageIds = new Map(selectedRows.map((row) => [row.key, row.storageId!]));
-    const expectedPayload = buildEightProfilePayload(inputs, storageIds);
+    const r2Keys = new Map(selectedRows.map((row) => [row.key, row.r2Key!]));
+    const expectedPayload = buildEightProfilePayload(inputs, r2Keys);
     const expectedPayloadSha256 = sha256(`${JSON.stringify(expectedPayload)}\n`);
     if (
       run.payloadSha256 !== expectedPayloadSha256
-      || run.avatarStorageBindings !== storageIds.size
+      || run.avatarR2Bindings !== r2Keys.size
       || run.result.blocked !== 0
       || run.result.updated !== 0
       || run.result.created + run.result.unchanged !== 8
@@ -941,8 +949,7 @@ export function readOrCreateLedger(ledgerPath: string, inputs: ValidatedInputs) 
 }
 
 type UploadDependencies = {
-  generateUploadUrl: () => Promise<string>;
-  upload: (url: string, contentType: string, bytes: Buffer) => Promise<{ storageId: string }>;
+  upload: (contentType: string, bytes: Buffer) => Promise<{ r2Key: string }>;
   dryRunProfiles: (
     payload: Omit<ReviewedProfileImportArgs, "apiKey">,
   ) => Promise<{
@@ -981,28 +988,32 @@ export async function runUploadPhase(
     if (sha256(bytes) !== row.sha256 || bytes.byteLength !== row.byteSize) {
       throw new Error(`Avatar bytes drifted before upload for ${row.key}.`);
     }
+    if (bytes.byteLength === 0 || bytes.byteLength > 2 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(row.contentType)) {
+      throw new Error(`Avatar ${row.key} must be a PNG, JPEG or WebP image no larger than 2 MB.`);
+    }
+  // A scoped credential alone is not upload authorization. The reviewed import
+  // dry run enforces the admin role and exact create scope before any R2 PUT.
+  const preflight = await dependencies.dryRunProfiles(buildEightProfilePayload(inputs));
+  if (preflight.blocked !== 0 || preflight.updated !== 0 || preflight.skipped !== 0 || preflight.created + preflight.unchanged !== 8) {
+    throw new Error("Profile authorization preflight did not approve the reviewed create scope.");
+  }
     row.status = "uploading";
     row.attempts += 1;
     row.startedAt = now();
     ledger.updatedAt = row.startedAt;
     dependencies.persist(ledger);
     try {
-      const uploadUrl = await dependencies.generateUploadUrl();
-      const parsedUrl = new URL(uploadUrl);
-      if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== `${DEPLOYMENT}.convex.cloud`) {
-        throw new Error("upload-url-target-mismatch");
-      }
-      const result = await dependencies.upload(uploadUrl, row.contentType, bytes);
-      if (!result.storageId?.trim()) throw new Error("upload-response-missing-storage-id");
+      const result = await dependencies.upload(row.contentType, bytes);
+      if (result.r2Key !== avatarObject(row).r2Key) throw new Error("upload-response-r2-identity-mismatch");
       row.status = "uploaded";
-      row.storageId = result.storageId.trim();
+      row.r2Key = result.r2Key.trim();
       row.uploadedAt = now();
       row.errorCode = null;
     } catch {
-      // The upload may have reached Convex before the response was lost. Never
-      // auto-retry this state: doing so can create an untracked duplicate.
+      // Preserve the conservative operator gate even though R2 objects are
+      // immutable: incomplete verification requires manual reconciliation.
       row.status = "uncertain";
-      row.storageId = null;
+      row.r2Key = null;
       row.errorCode = "upload-outcome-uncertain";
       ledger.updatedAt = now();
       dependencies.persist(ledger);
@@ -1012,12 +1023,12 @@ export async function runUploadPhase(
     dependencies.persist(ledger);
   }
 
-  const storageIds = new Map(
+  const r2Keys = new Map(
     ledger.uploads
-      .filter((row) => row.status === "uploaded" && row.storageId)
-      .map((row) => [row.key, row.storageId!]),
+      .filter((row) => row.status === "uploaded" && row.r2Key)
+      .map((row) => [row.key, row.r2Key!]),
   );
-  const payload = buildEightProfilePayload(inputs, storageIds);
+  const payload = buildEightProfilePayload(inputs, r2Keys);
   const result = await dependencies.dryRunProfiles(payload);
   if (
     result.blocked !== 0
@@ -1025,14 +1036,14 @@ export async function runUploadPhase(
     || result.created + result.unchanged !== 8
     || result.skipped !== 0
   ) {
-    throw new Error("Eight-profile Convex dry run did not return the expected zero-block result.");
+    throw new Error("Eight-profile Postgres dry run did not return the expected zero-block result.");
   }
   ledger.profileDryRuns = ledger.profileDryRuns.filter((run) => run.phase !== phase);
   ledger.profileDryRuns.push({
     phase,
     at: now(),
     payloadSha256: sha256(`${JSON.stringify(payload)}\n`),
-    avatarStorageBindings: storageIds.size,
+    avatarR2Bindings: r2Keys.size,
     result,
   });
   ledger.updatedAt = now();
@@ -1073,7 +1084,7 @@ function sanitizeImportResult(
     "would-update", "updated", "would-create", "created", "unchanged", "skipped", "blocked",
   ]);
   const validBlockReasons = new Set([
-    "official-link-limit", "avatar-unverified", "avatar-r2-verification-unavailable",
+    "official-link-limit", "avatar-unverified",
   ]);
   const rows = source.rows.map((raw): ImportResultRow => {
     if (!raw || typeof raw !== "object") throw new Error("invalid-profile-import-result");
@@ -1261,15 +1272,15 @@ function requireProfileWriteGate(
   inputs: ValidatedInputs,
   ledger: AvatarUploadLedger,
 ) {
-  if (ledger.uploads.some((row) => row.status !== "uploaded" || !row.storageId)) {
+  if (ledger.uploads.some((row) => row.status !== "uploaded" || !row.r2Key)) {
     throw new Error("All four digest-bound avatar uploads must be ledgered before the profiles phase.");
   }
-  const storageIds = new Map(ledger.uploads.map((row) => [row.key, row.storageId!]));
-  const dryRunPayload = buildEightProfilePayload(inputs, storageIds);
+  const r2Keys = new Map(ledger.uploads.map((row) => [row.key, row.r2Key!]));
+  const dryRunPayload = buildEightProfilePayload(inputs, r2Keys);
   const dryRun = ledger.profileDryRuns.find((run) => run.phase === "remaining");
   if (
     !dryRun
-    || dryRun.avatarStorageBindings !== 4
+    || dryRun.avatarR2Bindings !== 4
     || dryRun.payloadSha256 !== profilePayloadDigest(dryRunPayload)
     || dryRun.result.created !== 8
     || dryRun.result.updated !== 0
@@ -1449,7 +1460,7 @@ export async function runExistingProfileDryRunPhase(
     true,
   );
   if (!importResultProvesExistingDryRun(result, payload)) {
-    throw new Error("Four-profile Convex dry run did not prove the exact three-update/one-unchanged CAS plan.");
+    throw new Error("Four-profile Postgres dry run did not prove the exact three-update/one-unchanged CAS plan.");
   }
   const now = dependencies.now ?? (() => new Date().toISOString());
   extendedLedger.existingProfileDryRun = {
@@ -1666,12 +1677,11 @@ export function buildContributorProfileSnapshot(
     throw new Error("Production profile snapshot repeats a profile ID.");
   }
   const documentWithoutDigest: Omit<ContributorProfileSnapshot, "payloadSha256"> = {
-    schemaVersion: 1 as const,
+    schemaVersion: 2 as const,
     artifactType: "replication-index-contributor-profile-production-snapshot" as const,
     campaignId: inputs.campaignId,
     capturedAt,
-    targetDeployment: DEPLOYMENT,
-    targetUrl: TARGET_URL,
+    targetDeployment: ledger.targetDeployment,
     projectionSha256: inputs.projectionSha256,
     deployedCommit: APPLICATION_CONTRACT.deployedCommit,
     applicationContractSha256: EXISTING_PROFILE_APPLICATION_CONTRACT_SHA256,
@@ -1731,16 +1741,11 @@ export async function main(argv = process.argv.slice(2)) {
 
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
+  inputs.targetIdentity = command.deploymentFingerprint ?? undefined;
   if (phase === "profile-snapshot") {
     if (command.writeRequested) throw new Error("profile-snapshot is read-only and rejects --write.");
-    if (
-      command.targetUrl !== TARGET_URL
-      || command.deploymentFingerprint !== DEPLOYMENT
-      || command.expectedDeployment !== DEPLOYMENT
-    ) {
-      throw new Error(
-        `profile-snapshot requires --target-url=${TARGET_URL} and --expected-deployment=${DEPLOYMENT}.`,
-      );
+    if (!command.targetSource || !command.targetUrl || !inputs.targetIdentity || command.expectedDeployment !== inputs.targetIdentity) {
+      throw new Error("profile-snapshot requires an explicit Postgres target and its matching --expected-deployment fingerprint.");
     }
     const token = requireProductionWriteCredential("profileMediaWrite").token;
     const client = createDataClient({ target: command.targetUrl }).client;
@@ -1763,7 +1768,7 @@ export async function main(argv = process.argv.slice(2)) {
     }
   }
   if (!command.writeRequested) {
-    console.log("Dry run only: no upload URL generated, no bytes uploaded, no ledger written, and no Convex write mutation called.");
+    console.log("Dry run only: no bytes uploaded, no ledger written, and no database mutation called.");
     return { mode: "dry-run" as const, payload: prospectivePayload };
   }
   if (phase === "plan") {
@@ -1773,9 +1778,6 @@ export async function main(argv = process.argv.slice(2)) {
     );
   }
   assertProductionWriteAllowed(command);
-  if (command.targetUrl !== TARGET_URL || command.deploymentFingerprint !== DEPLOYMENT) {
-    throw new Error(`This campaign is pinned to prod:${DEPLOYMENT}.`);
-  }
   const token = requireProductionWriteCredential("profileMediaWrite").token;
   const client = createDataClient({ target: command.targetUrl }).client;
   const lock = acquireLedgerLock(ledgerPath);
@@ -1789,13 +1791,13 @@ export async function main(argv = process.argv.slice(2)) {
         ),
         dryRunProfiles: async (payload) => await client.mutation(
           api.contributorProfiles.importReviewedProfilePlan,
-          { ...payload, apiKey: token },
+          { ...await withVerifiedProfileAvatars(payload, inputs.targetIdentity!), apiKey: token },
         ),
         persist: (nextLedger) => writeLedgerAtomic(ledgerPath, nextLedger),
       });
       console.log(
         result.resumed
-          ? "existing-profile dry run already ledgered; no Convex call repeated."
+          ? "existing-profile dry run already ledgered; no Postgres call repeated."
           : "existing-profile dry run complete: 3 updates, 1 unchanged, 0 blocked.",
       );
       return result;
@@ -1804,7 +1806,7 @@ export async function main(argv = process.argv.slice(2)) {
       const result = await runExistingProfileWritePhase(inputs, ledger, {
         writeProfiles: async (payload) => await client.mutation(
           api.contributorProfiles.importReviewedProfilePlan,
-          { ...payload, apiKey: token },
+          { ...await withVerifiedProfileAvatars(payload, inputs.targetIdentity!), apiKey: token },
         ),
         readProfiles: async (keys) => await client.query(
           api.contributorProfiles.getForBulkImport,
@@ -1823,7 +1825,7 @@ export async function main(argv = process.argv.slice(2)) {
       const result = await runProfileWritePhase(inputs, ledger, {
         writeProfiles: async (payload) => await client.mutation(
           api.contributorProfiles.importReviewedProfilePlan,
-          { ...payload, apiKey: token },
+          { ...await withVerifiedProfileAvatars(payload, inputs.targetIdentity!), apiKey: token },
         ),
         readProfiles: async (keys) => await client.query(
           api.contributorProfiles.getForBulkImport,
@@ -1839,26 +1841,14 @@ export async function main(argv = process.argv.slice(2)) {
       return result;
     }
     const result = await runUploadPhase(phase as "canary" | "remaining", inputs, ledger, {
-      generateUploadUrl: async () => await client.mutation(
-        api.contributorProfiles.generateAvatarUploadUrl,
-        { apiKey: token },
+      upload: async (contentType, bytes) => uploadR2Media(
+        bytes,
+        contentType,
+        contentType === "image/jpeg" ? "jpg" : contentType === "image/png" ? "png" : "webp",
       ),
-      upload: async (url, contentType, bytes) => {
-        const uploadBody = Uint8Array.from(bytes).buffer;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": contentType },
-          body: uploadBody,
-        });
-        const responseBody = await response.json().catch(() => ({})) as { storageId?: unknown };
-        if (!response.ok || typeof responseBody.storageId !== "string") {
-          throw new Error("avatar-upload-failed");
-        }
-        return { storageId: responseBody.storageId };
-      },
       dryRunProfiles: async (payload) => await client.mutation(
         api.contributorProfiles.importReviewedProfilePlan,
-        { ...payload, apiKey: token },
+        { ...await withVerifiedProfileAvatars(payload, inputs.targetIdentity!), apiKey: token },
       ),
       persist: (nextLedger) => writeLedgerAtomic(ledgerPath, nextLedger),
     });

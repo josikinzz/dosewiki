@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SubstanceArticle } from "@/schema";
-import { ConvexError } from "convex/values";
-import { validateArticleChange, type ArticleDocument } from "../../../../convex/lib/articleLifecycleValidation";
-import { applyEditableFieldWrite, parseEditableFieldPath, type EditableFieldValue } from "../../../../convex/lib/articleFieldWrites";
+import { PostgresError } from "@server/postgres/runtime/values";
+import { validateArticleChange, type ArticleDocument } from "../../../../server/lib/articleLifecycleValidation";
+import { applyEditableFieldWrite, parseEditableFieldPath, type EditableFieldValue } from "../../../../server/lib/articleFieldWrites";
 import { findEquivalentReference } from "../../../../lib/citations/referenceIdentity.mjs";
 import { ArticleFieldCommitError, type ArticleEditContextValue } from "./ArticleEditContext";
 import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
@@ -57,7 +57,7 @@ export function articleValidationIssues(article: SubstanceArticle, before: Subst
     validateArticleChange(before as unknown as ArticleDocument, article, publication);
     return [];
   } catch (failure) {
-    if (failure instanceof ConvexError && failure.data && typeof failure.data === "object") {
+    if (failure instanceof PostgresError && failure.data && typeof failure.data === "object") {
       const data = failure.data as { path?: string; message?: string };
       const path = data.path ?? "article";
       const message = data.message ?? "The article change is invalid.";

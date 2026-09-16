@@ -2,8 +2,8 @@
  * Tickets 14 and 15 rehearsal: the layout, copy, warning, quote, site config,
  * molecule and reagent tools run unchanged on Postgres.
  *
- * Every call goes through `PostgresConvexClient` with the same `api.*`
- * references the app uses, so the registered Convex handlers, their auth
+ * Every call goes through `PostgresClient` with the same `api.*`
+ * references the app uses, so the registered native handlers, their auth
  * floors, their optimistic-concurrency checks and their journal rows are all
  * exercised as the app would. Public molecule and reagent reads go through
  * `PublicDataReadAdapter` with `DATA_BACKEND=postgres`, which is the exact
@@ -22,17 +22,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
-import { ConvexError } from "convex/values";
-import { api } from "../../convex/_generated/api";
-import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
-import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
+import { PostgresError } from "../../lib/postgres/runtime/values";
+import { api } from "../../lib/postgres/runtime/api";
+import { getPostgresClient } from "../../lib/postgres/runtime/backend";
+import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments } from "../../lib/postgres/documentStore";
 import { proposalComparableDocument } from "../../lib/proposals/proposalBaseline";
 import {
   SAFETY_BANNER_ICON_SIZE_DEFAULT,
   SAFETY_BANNER_ICON_SIZE_MAX,
 } from "../../src/data/substanceWarningBanners";
-import artifactLineageManifest from "../../src/data/artifactLineageManifest.json";
 import { guardTarget, resolveTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -61,7 +60,7 @@ function field(value: unknown, key: string): unknown {
 }
 
 function errorCode(error: unknown): unknown {
-  return error instanceof ConvexError ? field(error.data, "code") : null;
+  return error instanceof PostgresError ? field(error.data, "code") : null;
 }
 
 function errorMessage(error: unknown): string {
@@ -88,8 +87,8 @@ async function main() {
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
 
-  const apiKey = process.env.CONVEX_ADMIN_KEY;
-  if (!apiKey) throw new Error("CONVEX_ADMIN_KEY is required (Bun loads it from .env.local)");
+  const apiKey = process.env.DATA_ADMIN_KEY;
+  if (!apiKey) throw new Error("DATA_ADMIN_KEY is required (Bun loads it from .env.local)");
   const badKey = `${apiKey}-not-the-key`;
 
   const run = mintDocumentId().slice(0, 8);
@@ -100,7 +99,7 @@ async function main() {
   const editorActor = { apiKey, actorEmail: editorEmail };
 
   const pool = new Pool({ connectionString: target, max: 4 });
-  const client = getPostgresConvexClient();
+  const client = getPostgresClient();
   const adapter = getPublicDataReadAdapter();
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-content-tools`);
   const started = performance.now();
@@ -424,15 +423,6 @@ async function main() {
       expect(S, "a null payload round-trips as null (unmatched)", nulled.updated === 1 && (await client.query(api.reagentTests.getBySlug, { slug })) === null && (await client.query(api.reagentTests.getSnapshotStats, { snapshotHash: `${T15}-snapshot-4` })).unmatched === 1, nulled);
     }
 
-    // ------------------------------------------------------------------ generated outputs (report only; ticket 19)
-    {
-      const convexBacked = artifactLineageManifest.artifacts
-        .filter((artifact) => /convex/i.test(`${artifact.producer} ${artifact.refreshCommand}`))
-        .map((artifact) => ({ id: artifact.id, path: artifact.path, producer: artifact.producer, refreshCommand: artifact.refreshCommand }));
-      expect("generatedOutputs", "manifest entries whose producer or refreshCommand reads Convex (listed for ticket 19, not run)", convexBacked.length > 0, undefined);
-      checks[checks.length - 1].detail = convexBacked;
-      for (const artifact of convexBacked) console.log(`     ${artifact.id}: producer=${artifact.producer}; refresh=${artifact.refreshCommand}`);
-    }
   } finally {
     if (!keep) {
       if (createdAboutRow) purge("siteConfig", '"key" = $1', "about");

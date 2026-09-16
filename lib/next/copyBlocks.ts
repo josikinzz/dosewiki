@@ -1,13 +1,13 @@
 import "server-only";
 
-import { publicDataCache } from "../convex/publicData.cache";
+import { publicDataCache } from "../data/publicData.cache";
 import { cache } from "react";
 
 import {
-  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_CONVEX_CACHE_TAGS,
-} from "../convex/publicData.cache";
-import { getPublicDataReadAdapter } from "../convex/publicData.reads";
+  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_DATA_CACHE_TAGS,
+} from "../data/publicData.cache";
+import { getPublicDataReadAdapter } from "../data/publicData.reads";
 import { SITE_FLAVOR_CONFIG, type SiteFlavor } from "../../src/config/siteFlavor";
 import {
   COPY_BLOCK_DEFAULTS,
@@ -19,13 +19,13 @@ import {
 /**
  * Server read for editable site copy.
  *
- * One Convex read serves every copy block on a page — the table is one row per
+ * One Postgres read serves every copy block on a page — the table is one row per
  * editable string — and it is `unstable_cache`d under
- * `PUBLIC_CONVEX_CACHE_TAGS.copy`, so the Copy Studio save route can make an
+ * `PUBLIC_DATA_CACHE_TAGS.copy`, so the Copy Studio save route can make an
  * edit public immediately by revalidating that one tag.
  *
  * Resolution is always defaulted: `copy.get(key)` falls back to the checked-in
- * definition in `src/data/content/copyBlocks.json` whenever Convex holds no row
+ * definition in `src/data/content/copyBlocks.json` whenever Postgres holds no row
  * for the key. That makes an un-seeded (or un-deployed) environment render
  * exactly the prose the pages hardcoded, and makes deleting a block a revert
  * rather than a blank space.
@@ -46,7 +46,7 @@ export type CopyBlockRecord = {
 
 /** A resolved block plus where it came from, for the Copy Studio's diff well. */
 type ResolvedCopyBlock = CopyBlockRecord & {
-  source: "convex" | "default";
+  source: "data" | "default";
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -87,15 +87,15 @@ function parseCopyBlockRecord(raw: unknown): CopyBlockRecord | null {
 }
 
 /**
- * A deployment that predates `copyBlocks:getAll` — or a Convex read that fails
+ * A deployment that predates `copyBlocks:getAll` — or a Postgres read that fails
  * outright — must not take the page down over prose that has a checked-in
  * default sitting right here. It degrades to the defaults, loudly, because an
  * empty table and a missing function look identical on the rendered page.
  */
-function reportDegradedCopyRead(error: unknown): void {
+function reportDegradedCopyRead(error: unknown, operation = "copyBlocks:getAll"): void {
   const message = error instanceof Error ? error.message : String(error);
   console.warn(
-    `[copy] copyBlocks:getAll failed; site copy degraded to the checked-in defaults. Cause: ${message}`,
+    `[copy] ${operation} failed; site copy degraded to the checked-in defaults. Cause: ${message}`,
   );
 }
 
@@ -115,12 +115,48 @@ export const getCopyBlocks = cache(
       return [];
     }
   },
-  ["convex-public-copy-blocks"],
+  ["data-public-copy-blocks"],
   {
-    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.copy],
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.copy],
   },),
 );
+
+const getCopyBlocksByKeysCached = publicDataCache(
+  async (keys: string[]): Promise<CopyBlockRecord[]> => {
+    try {
+      const rows = await getPublicDataReadAdapter().getPublicCopyBlocksByKeys(keys);
+      if (!Array.isArray(rows)) {
+        return [];
+      }
+      return rows.flatMap((row) => {
+        const parsed = parseCopyBlockRecord(row);
+        return parsed ? [parsed] : [];
+      });
+    } catch (error) {
+      reportDegradedCopyRead(error, "copyBlocks:getByKeys");
+      return [];
+    }
+  },
+  ["data-public-copy-blocks-by-keys"],
+  {
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.copy],
+  },
+);
+
+/** Resolve a bounded set of public copy keys in one database read. */
+export const getCopyByKeys = cache(async (keys: readonly string[]): Promise<CopyResolver> => {
+  const normalizedKeys = [...new Set(keys)].sort();
+  return createCopyResolver(await getCopyBlocksByKeysCached(normalizedKeys));
+});
+
+/** Checked-in keys in a copy namespace, for bounded family-level reads. */
+export function getCopyKeysByPrefix(prefix: string): string[] {
+  return COPY_BLOCK_DEFAULTS.flatMap((definition) =>
+    definition.key.startsWith(prefix) ? [definition.key] : [],
+  );
+}
 
 function toRecord(definition: CopyBlockDefinition): CopyBlockRecord {
   return {
@@ -135,13 +171,13 @@ function toRecord(definition: CopyBlockDefinition): CopyBlockRecord {
 }
 
 export type CopyResolver = {
-  /** The resolved block for a key, or null when neither Convex nor the defaults know it. */
+  /** The resolved block for a key, or null when neither Postgres nor the defaults know it. */
   get(key: string): ResolvedCopyBlock | null;
   /** Body text for a `plain`/`markdown` block; "" when the key is unknown. */
   text(key: string): string;
   /** Items for a `list` block; [] when the key is unknown or holds no list. */
   items(key: string): string[];
-  /** Every resolved block, Convex rows layered over the defaults. */
+  /** Every resolved block, Postgres rows layered over the defaults. */
   all(): ResolvedCopyBlock[];
 };
 
@@ -155,7 +191,7 @@ export function createCopyResolver(rows: readonly CopyBlockRecord[]): CopyResolv
   const resolve = (key: string): ResolvedCopyBlock | null => {
     const stored = byKey.get(key);
     if (stored) {
-      return { ...stored, source: "convex" };
+      return { ...stored, source: "data" };
     }
     const fallback = getCopyBlockDefault(key);
     return fallback ? { ...toRecord(fallback), source: "default" } : null;

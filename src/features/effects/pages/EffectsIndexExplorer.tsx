@@ -10,7 +10,10 @@ import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
 import { useT } from "@/i18n/client";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
-import { ParentCategoryCard } from "../components/ParentCategoryCard";
+import {
+  ParentCategoryCard,
+  type PreparedParentSubcategory,
+} from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
 import type { SEIIntroCopy } from "../components/seiIntroCopy";
 import {
@@ -29,6 +32,11 @@ import {
   type EffectIndexView,
 } from "@/utils/indexViewRoutes";
 import { replaceCurrentIndexViewPath } from "@/utils/navigation";
+import { publicHref } from "@/utils/publicHref";
+import {
+  getNormalizedEffectTags,
+  resolveSubcategorySlug,
+} from "./effectCategoryGroups";
 import { useEffectCategoryExport } from "./useEffectCategoryExport";
 
 interface EffectSummary {
@@ -53,7 +61,8 @@ type EffectWithLowerTags = EffectSummary & {
   lowerTags: Set<string>;
 };
 
-type ParentCategoryModel = ParentCategoryConfig & {
+type ParentCategoryModel = Omit<ParentCategoryConfig, "subcategories"> & {
+  subcategories: PreparedParentSubcategory[];
   totalEffects: number;
 };
 
@@ -61,11 +70,9 @@ type FlatCategoryModel = (typeof FLAT_CATEGORIES)[number] & {
   effects: EffectSummary[];
 };
 
-function matchesTags(effect: EffectWithLowerTags, tags: string[]) {
-  return tags.every((tag) => effect.lowerTags.has(tag.toLowerCase()));
+function matchesTags(effect: EffectWithLowerTags, lowerTags: string[]) {
+  return lowerTags.every((tag) => effect.lowerTags.has(tag));
 }
-
-
 
 export function EffectsIndexExplorer({
   effects,
@@ -103,55 +110,61 @@ export function EffectsIndexExplorer({
 
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab);
 
-  // Subcategory panel titles are msg() literals in the config; translate them
-  // once per locale so the memoized cards keep stable props.
-  const translatedSubcategoriesByCategoryKey: Record<string, ParentCategoryConfig["subcategories"]> =
-    useMemo(() => {
-      const byKey: Record<string, ParentCategoryConfig["subcategories"]> = {};
-      for (const category of PARENT_CATEGORIES) {
-        byKey[category.key] = category.subcategories.map((subcategory) =>
-          subcategory.title ? { ...subcategory, title: t(subcategory.title) } : subcategory,
-        );
-      }
-      return byKey;
-    }, [t]);
-
-  const filteredEffects = useMemo(() => {
-    const tab = TABS.find((candidate) => candidate.id === activeTab);
-    if (!tab || tab.filterTags.length === 0) {
-      return effects;
-    }
-
-    return effects.filter((effect) =>
-      effect.tags.some((tag) => tab.filterTags.includes(tag.toLowerCase())),
-    );
-  }, [effects, activeTab]);
-
   const effectsWithLowerTags = useMemo<EffectWithLowerTags[]>(
     () =>
       effects.map((effect) => ({
         ...effect,
-        lowerTags: new Set(effect.tags.map((tag) => tag.toLowerCase())),
+        lowerTags: getNormalizedEffectTags(effect.tags),
       })),
     [effects],
   );
 
+  const filteredEffects = useMemo(() => {
+    const tab = TABS.find((candidate) => candidate.id === activeTab);
+    if (!tab || tab.filterTags.length === 0) {
+      return effectsWithLowerTags;
+    }
+
+    return effectsWithLowerTags.filter((effect) =>
+      tab.filterTags.some((tag) => effect.lowerTags.has(tag)),
+    );
+  }, [effectsWithLowerTags, activeTab]);
+
   const parentCategoryModels = useMemo<ParentCategoryModel[]>(() => {
     return PARENT_CATEGORIES.map((category) => {
-      const uniqueSlugs = new Set(
-        category.subcategories.flatMap((subcategory) =>
-          effectsWithLowerTags
-            .filter((effect) => matchesTags(effect, subcategory.tags))
-            .map((effect) => effect.slug),
-        ),
-      );
+      const uniqueSlugs = new Set<string>();
+      const subcategories = category.subcategories
+        .map((subcategory) => {
+          const lowerTags = subcategory.tags.map((tag) => tag.toLowerCase());
+          const matchingEffects = effectsWithLowerTags.filter((effect) =>
+            matchesTags(effect, lowerTags),
+          );
+          for (const effect of matchingEffects) {
+            uniqueSlugs.add(effect.slug);
+          }
+
+          const subcategorySlug = resolveSubcategorySlug(
+            subcategory.tags,
+            category.routeSlug,
+          );
+          return {
+            ...subcategory,
+            title: subcategory.title ? t(subcategory.title) : undefined,
+            effects: matchingEffects,
+            href: subcategorySlug
+              ? publicHref.effectCategory(subcategorySlug)
+              : undefined,
+          };
+        })
+        .filter((subcategory) => subcategory.effects.length > 0);
 
       return {
         ...category,
+        subcategories,
         totalEffects: uniqueSlugs.size,
       };
     }).filter((category) => category.totalEffects > 0);
-  }, [effectsWithLowerTags]);
+  }, [effectsWithLowerTags, t]);
 
   const categoriesByColumn = useMemo(() => {
     if (activeTab !== "all") return new Map<number, ParentCategoryModel[]>();
@@ -179,10 +192,10 @@ export function EffectsIndexExplorer({
     return FLAT_CATEGORIES
       .filter((category) => category.tab === activeTab)
       .map((category) => {
-        const matchingEffects = filteredEffects.filter((effect) => {
-          const effectTags = effect.tags.map((tag) => tag.toLowerCase());
-          return category.tags.every((categoryTag) => effectTags.includes(categoryTag.toLowerCase()));
-        });
+        const lowerTags = category.tags.map((tag) => tag.toLowerCase());
+        const matchingEffects = filteredEffects.filter((effect) =>
+          matchesTags(effect, lowerTags),
+        );
 
         return {
           ...category,
@@ -280,6 +293,7 @@ export function EffectsIndexExplorer({
         ) : null}
       </div>
 
+      <div key={activeTab} className="theme-tab-panel-enter">
       {activeTab === "all" && (() => {
         const nonEmptyColumns = Array.from({ length: columnCount })
           .map((_, index) => ({ index, categories: categoriesByColumn.get(index) ?? [] }))
@@ -302,11 +316,8 @@ export function EffectsIndexExplorer({
                       key={category.key}
                       title={t(category.displayTitle ?? category.title)}
                       icon={category.icon}
-                      subcategories={
-                        translatedSubcategoriesByCategoryKey[category.key] ?? category.subcategories
-                      }
-                      parentRouteSlug={category.routeSlug}
-                      effects={effects}
+                      subcategories={category.subcategories}
+                      totalEffects={category.totalEffects}
                       effectHrefPrefix={effectHrefPrefix}
                       expanded={expanded[category.key] ?? true}
                       onExpandedChange={() => handleToggle(category.key)}
@@ -396,6 +407,7 @@ export function EffectsIndexExplorer({
           tone="neutral"
         />
       )}
+      </div>
     </>
   );
 }

@@ -1,47 +1,43 @@
 import "server-only";
 
 import { cache } from "react";
+import type { SubstanceArticle } from "../../src/schema";
 import {
-  getPublicContributorByKey,
-  getPublicContributorDirectory,
-  getPublicDataOverview,
   getPublicCategoryLayout,
-  getPublicEffectArticles,
+  getPublicEffectSlugs,
+  getPublicEffectSummariesBySlugs,
+  getPublicArtistCreditRows,
   getPublicEffectBySlug,
+  getPublicEffectIndex,
   getPublicEffects,
-  getPublicGalleryReplications,
-  getPublicReportsBySubstanceNames,
   getPublicSubstanceBySlug,
-  getPublicSubstanceSlugs,
-  type PublicEffectArticle,
-} from "@server/convex/publicData";
+  type PublicEffectSummary,
+} from "@server/data/publicData";
+import { getPublicSubstanceSlugs, getPublicSubstanceSlugsByCandidates } from "../data/publicData.substances";
 import {
   buildArtistCreditLinks,
   type ArtistCreditLinks,
 } from "../../src/features/effects/vcode/artistCreditLinks";
-import { getPublicEffectDetail } from "@server/convex/publicLibrary";
-import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
-import { getPublicArticleHistory } from "@server/convex/publicData.changelog";
+import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/data/publicData.molecules";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getLocalizedPublicSubstanceBySlug } from "@server/translation/localizedSubstance";
 import {
-  getLocalizedPublicEffectArticles,
   getLocalizedPublicEffectBySlug,
-  getLocalizedPublicEffects,
 } from "@server/translation/localizedRecords";
+import { localizeRecords } from "@server/translation/liveTranslation";
 import type { LiveLocale } from "./localeHostPolicy";
+import { buildSubstanceSecondarySections, loadSubstanceSecondaryData } from "../../src/app/_components/public-routes/SubstanceSecondarySections";
 import {
   getLocalizedWarningBannerPresets,
   getSafetyBannerIconSize,
   getWarningBannerPresets,
 } from "./warningBanners";
-import { getCopy } from "./copyBlocks";
+import { getCopyByKeys } from "./copyBlocks";
 import {
   CITATION_OVERHAUL_BANNER_KEY_PREFIX,
   resolveEnabledBanners,
 } from "../../src/data/substanceWarningBanners";
 import { substanceHasCitationNeeded } from "../../src/lib/citations/citationTokens";
-import { getSubstanceSearchNames, reportMatchesSubstance } from "../../src/features/reports/domain/tripReportIndex";
 import {
   DOSAGE_PANEL_DISCLAIMER_KEY,
   TOLERANCE_SECTION_DISCLAIMER_KEY,
@@ -60,8 +56,11 @@ import {
 import { effectsIndexEmptyState, type PublicRouteEmptyState } from "./publicRouteOutcomes";
 import {
   buildEffectArticleViewModel,
+  buildEffectMetadataDescription,
   buildEffectsIndexViewModel,
   buildSubstanceArticleViewModel,
+  buildSubstanceMetadataDescription,
+  buildSubstanceMetadataTitle,
   type EffectArticleViewModel,
   type EffectsIndexViewModel,
   type SubstanceArticleViewModel,
@@ -75,23 +74,45 @@ import {
   toRouteMetadata,
 } from "./routeLoaderResults";
 
+import { slugify } from "../../src/utils/slug";
+
+const ARTICLE_COPY_KEYS = [
+  DOSAGE_PANEL_DISCLAIMER_KEY,
+  TOLERANCE_SECTION_DISCLAIMER_KEY,
+  REVIEW_STATUS_BANNER_KEY,
+  EXPERT_REVIEW_CREDIT_KEY,
+] as const;
+
+function interactionCandidateSlugs(substance: SubstanceArticle): string[] {
+  const interactions = substance.interactions;
+  if (!interactions) return [];
+  const names = [
+    ...(interactions.dangerous ?? []),
+    ...(interactions.unsafe ?? []),
+    ...(interactions.caution ?? []),
+  ];
+  return [...new Set(names.map((item) => {
+    const match = item.match(/^(.+?)\s*[(（](.+)[)）]$/);
+    return slugify(match ? match[1].trim() : item);
+  }).filter(Boolean))];
+}
 export type SubstanceRouteResult =
   | (OkRouteResult<SubstanceArticleViewModel["pageProps"]> & { publicRevision?: string })
   | RedirectRouteResult
   | NotFoundRouteResult;
 
-export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<SubstanceRouteResult> => {
+const getSubstanceRouteIdentity = cache(async (slug: string, locale: LiveLocale | null) => {
   const aliasTarget = getSubstanceRouteAlias(slug);
 
   if (aliasTarget) {
     return {
-      kind: "redirect",
+      kind: "redirect" as const,
       target: getPublicRoutePath({ family: "substance", params: { slug: aliasTarget } }),
       metadata: {
         title: "Substance",
         description: `Redirecting to the canonical ${SITE_FLAVOR_CONFIG.name} substance page.`,
       },
-      canonicalRoute: { family: "substance", params: { slug } },
+      canonicalRoute: { family: "substance" as const, params: { slug } },
     };
   }
 
@@ -100,39 +121,47 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     : await getPublicSubstanceBySlug(slug);
 
   if (!substance) {
-    return { kind: "not-found" };
+    return { kind: "not-found" } as const;
   }
 
-  // Resolve the two fixed contributor-credit avatars from their profiles so the
-  // closing Contributors section mirrors whatever each profile page shows. Also
-  // look up any hand-authored molecule override for this slug so its diagram can
-  // be swapped for the live Convex render.
+  return { kind: "ok", substance } as const;
+});
+
+export const loadSubstanceMetadataRoute = cache(async (slug: string, locale: LiveLocale | null = null) => {
+  const identity = await getSubstanceRouteIdentity(slug, locale);
+  if (identity.kind !== "ok") return identity;
+  return {
+    kind: "ok",
+    metadata: toRouteMetadata({
+      title: buildSubstanceMetadataTitle(identity.substance),
+      description: buildSubstanceMetadataDescription(identity.substance),
+    }),
+    canonicalRoute: { family: "substance", params: { slug } },
+  } as const;
+});
+
+export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<SubstanceRouteResult> => {
+  const identity = await getSubstanceRouteIdentity(slug, locale);
+  if (identity.kind !== "ok") return identity;
+  const { substance } = identity;
+
+  const secondaryData = loadSubstanceSecondaryData(substance, slug, locale);
+  // Only identity, linkability, molecule and safety data gate the article shell.
   const [
-    josieProfile,
-    lyreaProfile,
     moleculeUpdatedAt,
-    contributorDirectory,
     linkableSubstanceSlugs,
     categoryLayout,
     externalReagentData,
-    relatedTripReports,
     warningBannerPresets,
     warningBannerIconSize,
     copy,
-    recentChanges,
   ] = await Promise.all([
-    getPublicContributorByKey("JOSIE"),
-    getPublicContributorByKey("LYREA"),
     getMoleculeUpdatedAt(slug),
-    getPublicContributorDirectory(),
     // Slug set only: which wiki links resolve. The preview corpus would cost
     // 19 sequential round trips on a cold cache for the same answer.
-    getPublicSubstanceSlugs(),
+    getPublicSubstanceSlugsByCandidates(interactionCandidateSlugs(substance as SubstanceArticle)),
     getPublicCategoryLayout(),
     getCachedReagentDataForArticle(substance, slug),
-    // Cached alongside the streamed Trip Reports section's own call; resolved
-    // here too so the table of contents knows whether the section will render.
-    getPublicReportsBySubstanceNames(getSubstanceSearchNames(substance)),
     // Banner membership and display metadata stay canonical. Locale routes
     // overlay only the reader-facing banner corpus fields.
     locale
@@ -145,12 +174,20 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     // Site copy, for the dosage panel's standing disclaimer. Already falls back
     // to the checked-in default inside the resolver, so an un-seeded deployment
     // still renders the sentence.
-    getCopy(),
-    // Human edits for the Article Status ledger. Needs the directory to name
-    // contributors; the directory read is request-cached, so chaining it here
-    // costs nothing extra over the parallel call above.
-    getPublicContributorDirectory().then((directory) => getPublicArticleHistory(slug, directory)),
+    getCopyByKeys(ARTICLE_COPY_KEYS),
   ]);
+
+  // Editor draft previews re-render against mutable article data, so they need
+  // resolved enrichment values rather than server nodes bound to the publication.
+  // Keep that existing editor behavior without blocking the public artifact.
+  const editorEnrichment = process.env.NEXT_PUBLIC_EDITOR_BUILD === "true"
+    ? await Promise.all([
+      secondaryData.directory,
+      secondaryData.profiles,
+      secondaryData.reports,
+      secondaryData.history,
+    ])
+    : null;
 
   const moleculeOverrideUrl = moleculeUpdatedAt
     ? moleculeOverrideImageUrl(slug, moleculeUpdatedAt)
@@ -190,16 +227,22 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     substance,
     linkableSubstanceSlugs,
     linkableCategoryKeys: categoryLayout?.categories.map(({ key }) => key) ?? [],
-    contributorAvatars: {
-      josie: josieProfile?.avatarUrl ?? null,
-      lyrea: lyreaProfile?.avatarUrl ?? null,
-    },
-    contributorDirectory,
     moleculeOverrideUrl,
     externalReagentData,
-    hasRelatedTripReports: relatedTripReports.some((report) =>
-      reportMatchesSubstance(report, substance),
-    ),
+    ...buildSubstanceSecondarySections({
+      article: substance as SubstanceArticle,
+      slug,
+      data: secondaryData,
+      externalReagentData,
+      reviewStatusCopy: copy.text(REVIEW_STATUS_BANNER_KEY),
+      expertReviewCredit: copy.text(EXPERT_REVIEW_CREDIT_KEY),
+    }),
+    contributorDirectory: editorEnrichment?.[0],
+    contributorAvatars: editorEnrichment
+      ? { josie: editorEnrichment[1][0]?.avatarUrl ?? null, lyrea: editorEnrichment[1][1]?.avatarUrl ?? null }
+      : undefined,
+    hasRelatedTripReports: editorEnrichment ? editorEnrichment[2].totalReports > 0 : undefined,
+    recentChanges: editorEnrichment?.[3],
     warningBanners,
     warningBannerIconSize,
     showBetaDisclaimer,
@@ -207,7 +250,6 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     toleranceDisclaimer: copy.text(TOLERANCE_SECTION_DISCLAIMER_KEY),
     reviewStatusCopy: copy.text(REVIEW_STATUS_BANNER_KEY),
     expertReviewCredit: copy.text(EXPERT_REVIEW_CREDIT_KEY),
-    recentChanges,
   });
 
   return {
@@ -221,49 +263,49 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
 });
 
 export type EffectRouteResult =
-  | OkRouteResult<
-      EffectArticleViewModel["pageProps"] & {
-        artistCreditLinks: ArtistCreditLinks;
-      }
-    >
+  | OkRouteResult<EffectArticleViewModel["pageProps"]>
   | NotFoundRouteResult;
 
-export const loadEffectRoute = cache(async (effectSlug: string, locale: LiveLocale | null = null): Promise<EffectRouteResult> => {
-  const [
-    effect,
-    detail,
-    contributorDirectory,
-    linkableSubstanceSlugs,
-    publicEffects,
-    galleryReplications,
-  ] = await Promise.all([
-    locale ? getLocalizedPublicEffectBySlug(effectSlug, locale.code) : getPublicEffectBySlug(effectSlug),
-    getPublicEffectDetail(effectSlug),
-    getPublicContributorDirectory(),
-    getPublicSubstanceSlugs(),
-    getPublicEffects(),
-    getPublicGalleryReplications(),
-  ]);
+// Metadata and the page share the canonical/localized identity, without forcing
+// optional article enrichments into metadata generation.
+const getEffectRouteIdentity = cache(async (effectSlug: string, locale: LiveLocale | null) =>
+  locale ? getLocalizedPublicEffectBySlug(effectSlug, locale.code) : getPublicEffectBySlug(effectSlug),
+);
 
+export const loadEffectMetadataRoute = cache(async (effectSlug: string, locale: LiveLocale | null = null) => {
+  const effect = await getEffectRouteIdentity(effectSlug, locale);
+  if (!effect) return { kind: "not-found" } as const;
+  return {
+    kind: "ok",
+    metadata: toRouteMetadata({
+      title: effect.name,
+      description: buildEffectMetadataDescription(effect),
+    }),
+    canonicalRoute: { family: "effect", params: { effectSlug } },
+  } as const;
+});
+
+export const loadEffectRoute = cache(async (effectSlug: string, locale: LiveLocale | null = null): Promise<EffectRouteResult> => {
+  const effect = await getEffectRouteIdentity(effectSlug, locale);
   if (!effect) {
     return { kind: "not-found" };
   }
 
+  const [linkableSubstanceSlugs, linkableEffectSlugs] = await Promise.all([
+    getPublicSubstanceSlugs(),
+    getPublicEffectSlugs(),
+  ]);
+
   const viewModel = buildEffectArticleViewModel({
     effectSlug,
     effect,
-    detail,
-    contributorDirectory,
     linkableSubstanceSlugs,
-    linkableEffectSlugs: publicEffects.map(({ slug }) => slug),
+    linkableEffectSlugs,
   });
 
   return {
     kind: "ok",
-    pageProps: {
-      ...viewModel.pageProps,
-      artistCreditLinks: buildArtistCreditLinks(galleryReplications),
-    },
+    pageProps: viewModel.pageProps,
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "effect", params: { effectSlug } },
   };
@@ -274,11 +316,10 @@ export const loadEffectRoute = cache(async (effectSlug: string, locale: LiveLoca
  * localized article of the same slug stands in for the mirror so a translated
  * name never has to match the definition.
  */
-function selectPsychoactiveSummaryEffects(
-  effects: PublicEffectArticle[],
+function selectPsychoactiveSummaryEffects<T extends { slug: string; name: string; tags: string[] }>(
+  effects: T[],
   selection: PsychoactiveSummarySelection,
-  localizedBySlug: ReadonlyMap<string, PublicEffectArticle> | null,
-): PublicEffectArticle[] {
+): T[] {
   const selected =
     selection.type === "names"
       ? selection.names.flatMap((name) => {
@@ -294,9 +335,7 @@ function selectPsychoactiveSummaryEffects(
             !(selection.excludeTags ?? []).some((tag) => effect.tags.includes(tag)),
         );
 
-  return localizedBySlug
-    ? selected.map((effect) => localizedBySlug.get(effect.slug) ?? effect)
-    : selected;
+  return selected;
 }
 
 export type PsychoactiveSummaryRouteResult =
@@ -304,13 +343,29 @@ export type PsychoactiveSummaryRouteResult =
       definition: PsychoactiveSummaryDefinition;
       sections: Array<
         PsychoactiveSummarySectionDefinition & {
-          effects: PublicEffectArticle[];
+          effects: PublicEffectSummary[];
         }
       >;
       artistCreditLinks: ArtistCreditLinks;
     }>
   | NotFoundRouteResult;
 
+
+export const loadPsychoactiveSummaryMetadataRoute = cache((summaryPath: readonly string[]) => {
+  const definition = getPsychoactiveSummaryDefinition(summaryPath);
+  if (!definition) return { kind: "not-found" } as const;
+  return {
+    kind: "ok",
+    metadata: {
+      title: definition.metadataTitle,
+      description: definition.metadataDescription,
+    },
+    canonicalRoute: {
+      family: "psychoactiveSummary" as const,
+      params: { summaryPath: [...definition.summaryPath] },
+    },
+  };
+});
 export const loadPsychoactiveSummaryRoute = cache(
   async (
     summaryPath: readonly string[],
@@ -322,28 +377,33 @@ export const loadPsychoactiveSummaryRoute = cache(
       return { kind: "not-found" };
     }
 
-    const [effects, localizedEffects, galleryReplications] = await Promise.all([
-      getPublicEffectArticles(),
-      locale ? getLocalizedPublicEffectArticles(locale.code) : null,
-      getPublicGalleryReplications(),
+    const effects = await getPublicEffects();
+    const selectedSections = definition.sections.map((section) => ({
+      ...section,
+      effects: selectPsychoactiveSummaryEffects(effects, section.selection),
+    }));
+    const selectedSlugs = [...new Set(selectedSections.flatMap((section) => section.effects.map((effect) => effect.slug)))];
+    const [summaries, artistCredits] = await Promise.all([
+      getPublicEffectSummariesBySlugs(selectedSlugs),
+      getPublicArtistCreditRows(),
     ]);
-    const localizedBySlug = localizedEffects
-      ? new Map(localizedEffects.map((effect) => [effect.slug, effect]))
-      : null;
+    const localizedSummaries = locale
+      ? (await localizeRecords(summaries, locale.code, "effect")).records
+      : summaries;
+    const summariesBySlug = new Map(localizedSummaries.map((effect) => [effect.slug, effect]));
 
     return {
       kind: "ok",
       pageProps: {
         definition,
-        sections: definition.sections.map((section) => ({
+        sections: selectedSections.map((section) => ({
           ...section,
-          effects: selectPsychoactiveSummaryEffects(
-            effects,
-            section.selection,
-            localizedBySlug,
-          ),
+          effects: section.effects.flatMap((effect) => {
+            const summary = summariesBySlug.get(effect.slug);
+            return summary ? [summary] : [];
+          }),
         })),
-        artistCreditLinks: buildArtistCreditLinks(galleryReplications),
+        artistCreditLinks: buildArtistCreditLinks(artistCredits),
       },
       metadata: {
         title: definition.metadataTitle,
@@ -363,12 +423,12 @@ export type EffectsIndexRouteResult = OkRouteResult<
   }
 >;
 export const loadEffectsIndexRoute = cache(async (locale: LiveLocale | null = null): Promise<EffectsIndexRouteResult> => {
-  const [overview, effects] = await Promise.all([
-    getPublicDataOverview(),
-    locale ? getLocalizedPublicEffects(locale.code) : getPublicEffects(),
-  ]);
+  const canonicalEffects = await getPublicEffectIndex();
+  const effects = locale && canonicalEffects.length > 0
+    ? (await localizeRecords(canonicalEffects, locale.code, "effect")).records
+    : canonicalEffects;
   const viewModel = buildEffectsIndexViewModel({
-    effectCount: overview.effectCount,
+    effectCount: effects.length,
     effects,
   });
 

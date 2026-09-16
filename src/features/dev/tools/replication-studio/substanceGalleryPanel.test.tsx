@@ -115,6 +115,8 @@ const PLAYLISTS = [
     replication_slugs: ["work-1", "work-3", "work-2"],
     updated_at: "2026-08-01T10:00:00.000Z",
     updated_by: "josie",
+    owner_email: "josie@example.com",
+    editable: true,
   },
 ];
 
@@ -152,11 +154,24 @@ function stubFetch(
         headers: { "Content-Type": "application/json" },
       });
     }
-    const payload = url.includes("/playlists")
-      ? playlists
-      : url.endsWith("/substances")
-        ? { substances: SUBSTANCES }
-        : detail;
+    let payload: unknown;
+    if (url.includes("/playlists")) {
+      const playlistPayload = playlists as { playlists: typeof PLAYLISTS };
+      const full = playlistPayload.playlists;
+      if (url.endsWith("/playlists")) {
+        payload = {
+          playlists: full.map(({ replication_slugs, ...playlist }) => ({
+            ...playlist,
+            work_count: replication_slugs.length,
+          })),
+        };
+      } else {
+        const key = decodeURIComponent(url.split("/").pop() ?? "");
+        payload = { playlist: full.find((playlist) => playlist.key === key) };
+      }
+    } else {
+      payload = url.endsWith("/substances") ? { substances: SUBSTANCES } : detail;
+    }
     return new Response(JSON.stringify(payload), {
       status: 200,
       headers: { "Content-Type": "application/json" },

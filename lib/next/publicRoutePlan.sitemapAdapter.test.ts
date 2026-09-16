@@ -32,7 +32,7 @@ describe("public sitemap adapter", () => {
       ],
     }));
 
-    vi.doMock("@server/convex/publicData", () => ({
+    vi.doMock("@server/data/publicData", () => ({
       getPublicEffectIndexPosts: vi.fn(async () => []),
       getPublishedEffectIndexArticles: vi.fn(async () => []),
     }));

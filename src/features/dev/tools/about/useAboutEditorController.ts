@@ -19,11 +19,23 @@ const COPY_NOTICE_DURATION_MS = 2500;
 
 type SaveState = EditorActionStatusState | "idle";
 
+type AboutAggregateSource = {
+  compoundCount: number;
+  psychoactiveClassCount: number;
+  categoryCount: number;
+  chemicalClassCount: number;
+  mechanismClassCount: number;
+  mechanismOfActionClassCount: number;
+  reportCount: number;
+  replicationCount: number;
+};
+
 type AboutConfigSource = {
   aboutMarkdown?: string | null;
   aboutSubtitle?: string | null;
   founderProfileKeys?: string[] | null;
   revision?: number;
+  aggregates?: AboutAggregateSource;
 } | null | undefined;
 
 type AboutDocument = {
@@ -45,7 +57,7 @@ function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
 }
 
 export interface AboutEditorController {
-  /** False until the Convex About document has arrived. */
+  /** False until the Postgres About document has arrived. */
   publicationUncertain: boolean;
   isLoaded: boolean;
   loadError: string | null;
@@ -79,7 +91,7 @@ export interface AboutEditorControllerOptions {
 }
 
 /**
- * The About editor's own session over the Convex `siteConfig` About document.
+ * The About editor's own session over the Postgres `siteConfig` About document.
  *
  * About is the pinned first entry of the Writing tab and saves the way its
  * siblings do: one immediate `POST /api/dev/about` carrying the whole
@@ -92,6 +104,13 @@ export interface AboutEditorControllerOptions {
 export function useAboutEditorController({ canApprove, placeholderValues = {} }: AboutEditorControllerOptions): AboutEditorController {
   const source = useCopyIndexSource<AboutConfigSource>(API_PATH);
   const aboutConfig = source.data;
+  const aggregatePlaceholders = useMemo(() => Object.fromEntries(
+    Object.entries(aboutConfig?.aggregates ?? {}).map(([key, value]) => [key, value.toLocaleString()]),
+  ), [aboutConfig?.aggregates]);
+  const resolvedPlaceholderValues = useMemo(
+    () => ({ ...aggregatePlaceholders, ...placeholderValues }),
+    [aggregatePlaceholders, placeholderValues],
+  );
   const document = useEditorDocument(toAboutDocument(aboutConfig));
   const { serialize: publicationBody, acknowledge, uncertain: publicationUncertain } = useCopyIndexOperation();
   const publicationSnapshot = useRef<{ draft: AboutDocument; original: AboutDocument } | null>(null);
@@ -273,7 +292,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     markdownDiff: markdownChangelog.markdown,
     subtitleDiff: subtitleChangelog.markdown,
     subtitleHasChanges: subtitleChangelog.hasChanges,
-    placeholderValues,
+    placeholderValues: resolvedPlaceholderValues,
     replaceMarkdown,
     replaceSubtitle,
     resetMarkdown,

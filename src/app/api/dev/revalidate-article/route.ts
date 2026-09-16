@@ -8,9 +8,9 @@
  *
  * Auth is deliberately not a session: the caller is a headless data-ops script
  * that already holds the `citationEvidenceWrite` admin-intent token it uses
- * for the Convex mutation itself. The same token authenticates here, validated
+ * for the Postgres mutation itself. The same token authenticates here, validated
  * by the shared `validateAdminIntentToken` (timing-safe, scoped env var first,
- * then the legacy `CONVEX_ADMIN_KEY` this deployment already carries for its
+ * then the legacy `DATA_ADMIN_KEY` this deployment already carries for its
  * server write capability). Like every `/api/dev` surface, the route is only
  * reachable on the editor hosts; public hosts never serve it.
  *
@@ -20,11 +20,11 @@
  *   → { ok: true, revalidated: ["/2c-b", "/dxm"], publication: [...] }
  */
 import { NextResponse } from "next/server";
-import { validateAdminIntentToken } from "../../../../../convex/lib/adminIntentTokens";
-import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
+import { validateAdminIntentToken } from "../../../../../server/lib/adminIntentTokens";
+import { revalidateSavedPaths } from "../../save-article/revalidateSavedPaths";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { queryConvex } from "@server/convex/serverClient";
+import { queryData } from "@server/data/serverClient";
 
 export const runtime = "nodejs";
 
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     const slugs = parseSlugs(body);
 
     const savedRevisions = await Promise.all(slugs.map(async (slug) => {
-      const article = await queryConvex<{ publicRevision?: string } | null, { slug: string }>(
+      const article = await queryData<{ publicRevision?: string } | null, { slug: string }>(
         "substanceIndex:getPublicBySlug", { slug },
       );
       if (article && !/^[a-f0-9]{64}$/.test(article.publicRevision ?? "")) {

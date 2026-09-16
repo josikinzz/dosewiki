@@ -15,7 +15,7 @@ import {
   type EffectIndexView,
 } from "@/utils/indexViewRoutes";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
-import { getCopy, type CopyResolver } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix, type CopyResolver } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import {
   buildPublicPageMetadata,
@@ -25,6 +25,11 @@ import {
 import { loadEffectsIndexRoute } from "@server/next/routeLoaders.substances";
 
 const ITEM_LIST_LIMIT = 100;
+const EFFECT_INDEX_COPY_KEYS = [
+  "seo-effects-index-description",
+  ...getCopyKeysByPrefix("effects-index-"),
+  ...getCopyKeysByPrefix("empty-effects-"),
+];
 const LEGACY_HASHES = [
   EFFECT_INDEX_DEFAULT_VIEW,
   ...EFFECT_INDEX_VIEW_PARAMS.map(({ view }) => view),
@@ -45,7 +50,7 @@ export async function getEffectsIndexMetadata(
   pathname: string,
   options: { noIndex?: boolean; canonicalPathname?: string; locale?: LiveLocale | null } = {},
 ) {
-  const [result, copy] = await Promise.all([loadEffectsIndexRoute(options.locale), getCopy()]);
+  const [result, copy] = await Promise.all([loadEffectsIndexRoute(options.locale), getCopyByKeys(EFFECT_INDEX_COPY_KEYS)]);
   const template =
     copy.text("seo-effects-index-description") ||
     msg("Browse {{effectCount}} subjective effect entries in {{siteName}}.");
@@ -74,7 +79,7 @@ export async function EffectsIndexRoute({
   pathname: string;
   locale?: LiveLocale | null;
 }) {
-  const [result, copy] = await Promise.all([loadEffectsIndexRoute(locale), getCopy()]);
+  const [result, copy] = await Promise.all([loadEffectsIndexRoute(locale), getCopyByKeys(EFFECT_INDEX_COPY_KEYS)]);
   const canonicalUrl = buildSiteUrl(pathname);
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({

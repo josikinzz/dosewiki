@@ -3,18 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 
-vi.mock("convex/server", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   makeFunctionReference: (name: string) => ({ name }),
 }));
 
 import {
-  ConvexSiteFeedbackStore,
+  DataSiteFeedbackStore,
 } from "./siteFeedbackStore.server";
 
-describe("ConvexSiteFeedbackStore", () => {
+describe("DataSiteFeedbackStore", () => {
   it("names the signed-in actor on a triage transition and never on reads", async () => {
     const calls: Array<{ kind: "mutation" | "query"; name: string; args: Record<string, unknown> }> = [];
-    const store = new ConvexSiteFeedbackStore({
+    const store = new DataSiteFeedbackStore({
       apiKey: "test-key",
       client: {
         mutation: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
@@ -61,7 +61,7 @@ describe("ConvexSiteFeedbackStore", () => {
     const mutationAsService = vi.fn(
       async (_reference: { name: string }, args: Record<string, unknown>) => args.feedback,
     );
-    const store = new ConvexSiteFeedbackStore({
+    const store = new DataSiteFeedbackStore({
       apiKey: "test-key",
       idFactory: () => "feedback-1",
       now: () => new Date("2026-09-04T12:00:00.000Z"),

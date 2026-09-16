@@ -27,11 +27,11 @@ export function createBatchTargetRunContext({
   loadsEnvLocal = true,
 } = {}) {
   const sourceUrlFlag = getFlagValue(argv, "--source-url");
-  const targetUrlFlag = getFlagValue(argv, "--target-url");
+  const targetUrlFlag = getFlagValue(argv, "--target");
   const envWithCliOverrides = {
     ...env,
-    ...(sourceUrlFlag ? { SOURCE_CONVEX_URL: sourceUrlFlag } : {}),
-    ...(targetUrlFlag ? { TARGET_CONVEX_URL: targetUrlFlag } : {}),
+    ...(sourceUrlFlag ? { SOURCE_POSTGRES_URL: sourceUrlFlag } : {}),
+    ...(targetUrlFlag ? { TARGET_POSTGRES_URL: targetUrlFlag } : {}),
   };
   const context = createDataOpsRunContext({
     operation,
@@ -47,7 +47,7 @@ export function createBatchTargetRunContext({
     ...context,
     env: envWithCliOverrides,
     sourceUrlKey: sourceUrlFlag ? "--source-url" : context.sourceUrlKey,
-    targetUrlKey: targetUrlFlag ? "--target-url" : context.targetUrlKey,
+    targetUrlKey: targetUrlFlag ? "--target" : context.targetUrlKey,
   };
 }
 
@@ -59,11 +59,11 @@ export function createBatchProposalReadContext({
   loadsEnvLocal = true,
 } = {}) {
   const sourceUrlFlag = getFlagValue(argv, "--source-url");
-  const targetUrlFlag = getFlagValue(argv, "--target-url");
+  const targetUrlFlag = getFlagValue(argv, "--target");
   const envWithCliOverrides = {
     ...env,
-    ...(sourceUrlFlag ? { SOURCE_CONVEX_URL: sourceUrlFlag } : {}),
-    ...(targetUrlFlag ? { TARGET_CONVEX_URL: targetUrlFlag } : {}),
+    ...(sourceUrlFlag ? { SOURCE_POSTGRES_URL: sourceUrlFlag } : {}),
+    ...(targetUrlFlag ? { TARGET_POSTGRES_URL: targetUrlFlag } : {}),
   };
   const context = createDataOpsRunContext({
     operation,
@@ -72,8 +72,8 @@ export function createBatchProposalReadContext({
     startDir,
     env: envWithCliOverrides,
     loadsEnvLocal,
-    sourceUrlKeys: ["SOURCE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL"],
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL"],
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     selectedTables: ["substanceIndex", "prompts", "quotes", "articleSources"],
     localArtifacts: ["notes-and-plans/exports/batch-proposals"],
   });
@@ -82,25 +82,25 @@ export function createBatchProposalReadContext({
     ...context,
     env: envWithCliOverrides,
     sourceUrlKey: sourceUrlFlag ? "--source-url" : context.sourceUrlKey,
-    targetUrlKey: targetUrlFlag ? "--target-url" : context.targetUrlKey,
+    targetUrlKey: targetUrlFlag ? "--target" : context.targetUrlKey,
   };
 }
 
 export function requireBatchSourceUrl(context) {
-  return requireSourceUrl(context, "batch source Convex URL");
+  return requireSourceUrl(context, "batch source Postgres URL");
 }
 
 export function requireBatchProposalTargetUrl(context) {
-  if (!context.targetUrl || !["--target-url", "TARGET_CONVEX_URL"].includes(context.targetUrlKey)) {
+  if (!context.targetUrl || !["--target", "TARGET_POSTGRES_URL"].includes(context.targetUrlKey)) {
     throw new Error(
-      "Missing explicit proposal target Convex URL. Set TARGET_CONVEX_URL or --target-url; browser/default/source fallbacks are not accepted.",
+      "Missing explicit proposal target Postgres URL. Set TARGET_POSTGRES_URL or --target; browser/default/source fallbacks are not accepted.",
     );
   }
   return context.targetUrl;
 }
 
 function requireBatchTargetUrl(context) {
-  return requireTargetUrl(context, "batch target Convex URL");
+  return requireTargetUrl(context, "batch target Postgres URL");
 }
 
 export function createBatchTargetClient(context, { Client = BackendClient } = {}) {

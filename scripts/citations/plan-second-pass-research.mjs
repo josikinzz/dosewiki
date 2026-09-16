@@ -25,7 +25,7 @@ Usage:
   npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
   npm run citations:plan-second-pass -- --audit=<path> --out=<path> --dry-run
 
-This command never researches, applies citations, or writes Convex. It excludes
+This command never researches, applies citations, or writes Postgres. It excludes
 tolerance and deschloroketamine, scores every remaining viable uncited public
 subsection, and emits an immutable plan consumable by task export.
 `);

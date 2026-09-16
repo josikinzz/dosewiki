@@ -34,7 +34,7 @@ const config = {
         "src/middleware.ts",
         "*.config.{js,mjs,cjs,ts,mts,cts}",
         ".claude/workflows/**/*.mjs",
-        "convex/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
+        "server/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "docs/perf/**/*.mjs",
         "eslint-plugins/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "lib/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",

@@ -33,7 +33,7 @@ export function projectProposalComment(comment: CommentSource) {
   return { authorName: safeProposalName(comment.authorName, "Contributor"), at: comment.at, text: comment.text };
 }
 
-/** Also accepts the old Convex result during rollout. Raw ownership is consumed only on the server. */
+/** Also accepts the old Postgres result during rollout. Raw ownership is consumed only on the server. */
 export function projectProposalSummary(row: SummarySource, actorEmail: string) {
   return {
     _id: row._id,
@@ -124,19 +124,19 @@ export function proposalPublicDiff(markdown: string): string {
 
 /** No storage snapshots or audit fields cross the review transport, even from legacy functions. */
 export function projectProposalDetail(row: SummarySource & {
-  payload: unknown;
+  payload?: unknown;
   diff: string;
   comparisonMode?: "applied" | "submitted" | "verified_live" | "unavailable";
   comparisonNote?: string;
   comments: CommentSource[];
   revertedAt?: string;
   liveHashes: Array<{ kind: Target["kind"]; key: string; hash: string }>;
-}, actorEmail: string) {
+}, actorEmail: string, options: { includePayload?: boolean } = {}) {
   const diff = proposalPublicDiff(row.diff);
   const privateComparison = row.diff.trim().length > 0 && diff.trim().length === 0;
   return {
     ...projectProposalSummary(row, actorEmail),
-    payload: projectProposalPayload(row.payload),
+    ...(options.includePayload === false ? {} : { payload: projectProposalPayload(row.payload) }),
     diff,
     comparisonMode: privateComparison ? "unavailable" as const : row.comparisonMode,
     comparisonNote: privateComparison

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { cache } from "react";
 
 import { ArtistIdentityHeader } from "@/features/replications/artist/ArtistIdentityHeader";
 import { ArtistShowcase } from "@/features/replications/artist/ArtistShowcase";
@@ -32,15 +33,11 @@ import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import {
   getPublicContributorByKey,
   getPublicContributorIdentity,
-  getPublicContributorDirectory,
-  getPublicEffects,
-  getPublicGalleryReplications,
   type PublicEffectPreview,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import {
+  getLocalizedEffectNames,
   getLocalizedPublicContributorByKey,
-  getLocalizedPublicEffects,
-  getLocalizedPublicGalleryReplications,
 } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import {
@@ -49,6 +46,7 @@ import {
 } from "@server/next/publicSite";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 import { t } from "@/i18n/server";
+import { getGalleryBrowseIndex, hydrateGalleryPage } from "@server/next/galleryBrowseIndex";
 
 /**
  * The Artist Page: one artist's works, addressable as
@@ -82,28 +80,54 @@ import { t } from "@/i18n/server";
 
 interface LoadedArtistFocus {
   replications: PublicGalleryReplicationPreview[];
-  effects: PublicEffectPreview[];
+  effects: Array<Pick<PublicEffectPreview, "slug" | "name">>;
   contributorDirectory: ContributorDirectory;
   focus: ResolvedGalleryFocus | null;
 }
 
-async function loadArtistFocus(key: string, locale: LiveLocale | null): Promise<LoadedArtistFocus> {
-  const [replications, effects, contributorDirectory] = await Promise.all([
-    locale ? getLocalizedPublicGalleryReplications(locale.code) : getPublicGalleryReplications(),
-    locale ? getLocalizedPublicEffects(locale.code) : getPublicEffects(),
-    getPublicContributorDirectory(),
-  ]);
+const loadArtistFocus = cache(async (
+  key: string,
+  locale: LiveLocale | null,
+): Promise<LoadedArtistFocus> => {
+  // Artist URL identity is canonical and does not depend on translated titles.
+  // Resolve the requested/aliased key before touching localization so a zh
+  // artist permalink does not translate the complete gallery merely to find
+  // one canonical group.
+  const index = await getGalleryBrowseIndex("en");
+  const focus = resolveGalleryFocus({ kind: "artist", key }, index.rows, {
+    effects: index.effects,
+    contributorDirectory: index.directory,
+  });
+  const effectSlugs = new Set(
+    focus?.group.items.flatMap((item) => item.effect_tags ?? []) ?? [],
+  );
+  if (focus?.group.items.some((item) => item.effect_slug)) {
+    for (const item of focus.group.items) {
+      if (item.effect_slug) effectSlugs.add(item.effect_slug);
+    }
+  }
+  const canonicalEffects = index.effects.filter((effect) =>
+    effectSlugs.has(effect.slug),
+  );
+  const localizedNames = locale
+    ? await getLocalizedEffectNames(
+        canonicalEffects.map((effect) => effect.name),
+        locale.code,
+      )
+    : null;
 
   return {
-    replications,
-    effects,
-    contributorDirectory,
-    focus: resolveGalleryFocus({ kind: "artist", key }, replications, {
-      effects,
-      contributorDirectory,
-    }),
+    replications: index.rows,
+    effects: localizedNames
+      ? canonicalEffects.map((effect) => ({
+          ...effect,
+          name: localizedNames.get(effect.name) ?? effect.name,
+        }))
+      : canonicalEffects,
+    contributorDirectory: index.directory,
+    focus,
   };
-}
+});
 
 /**
  * A key that resolves to no group is a 404 — unless it is a retired alias
@@ -191,14 +215,14 @@ export async function ReplicationArtistRoute({
     focus.group,
     contributorDirectory,
   );
-  const profile = profileKey
-    ? locale
-      ? await getLocalizedPublicContributorByKey(profileKey, locale.code)
-      : await getPublicContributorByKey(profileKey)
-    : null;
-  const identity = profile
-    ? await getPublicContributorIdentity(profile.key)
-    : null;
+  const [profile, identity] = profileKey
+    ? await Promise.all([
+        locale
+          ? getLocalizedPublicContributorByKey(profileKey, locale.code)
+          : getPublicContributorByKey(profileKey),
+        getPublicContributorIdentity(profileKey),
+      ])
+    : [null, null];
 
   const attributed = focus.group.key !== UNATTRIBUTED_KEY;
   const effectName = effectNameLookup(effects);
@@ -208,16 +232,16 @@ export async function ReplicationArtistRoute({
     params: { key: focus.key },
   });
 
-  // The whole body of work as one showcase carousel — and one viewer
-  // collection over all of it, so every `?viewer=` deep link resolves even
-  // when the work sits beyond the filmstrip's cap.
+  // Only the opening strip crosses the server/client boundary. The same
+  // focused collection resolves on viewer intent, including distant deep links.
   const group = buildArtistShowcaseGroup(focus.group.items, t);
+  const openingItems = await hydrateGalleryPage(group.items.slice(0, SHOWCASE_WORK_CAP), locale?.code === "zh-Hans" ? "zh-Hans" : "en");
   const collectionLabel = attributed
     ? t("Works by {{name}}", { name: focus.label })
     : t("Unattributed works");
   const collection: ReplicationViewerCollection = {
     ...viewerCollectionFromGalleryGroups(
-      [group],
+      [{ ...group, items: openingItems }],
       "effect",
       sourcePath,
       effectName,
@@ -234,11 +258,9 @@ export async function ReplicationArtistRoute({
         }
       : undefined,
   };
-  const works = group.items
-    .slice(0, SHOWCASE_WORK_CAP)
-    .map((item) =>
-      showcaseWorkFromPreview(item, effectName(item.effect_slug), avatarUrl),
-    );
+  const works = openingItems.map((item) =>
+    showcaseWorkFromPreview(item, effectName(item.effect_slug), avatarUrl),
+  );
 
   return (
     <main
@@ -284,6 +306,7 @@ export async function ReplicationArtistRoute({
           totalCount={group.count}
           collection={collection}
           sourcePath={sourcePath}
+          artistKey={focus.key}
         />
       </div>
     </main>

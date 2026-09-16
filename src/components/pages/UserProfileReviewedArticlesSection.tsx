@@ -27,7 +27,7 @@ import { useT } from "@/i18n/client";
  *
  * The data behind this is deliberately thin: each entry is title + slug +
  * completion timestamp, resolved against the reviewer's identity inside
- * Convex. No reviewer email exists in this component's input, so none can
+ * Postgres. No reviewer email exists in this component's input, so none can
  * leak into the markup.
  */
 

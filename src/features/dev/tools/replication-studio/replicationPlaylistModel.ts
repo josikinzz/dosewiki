@@ -7,12 +7,18 @@
  * means the panel, the apply affordance, and the tests all agree on them.
  */
 
-export type ReplicationPlaylist = {
+export type ReplicationPlaylistSummary = {
   key: string;
   title: string;
-  replication_slugs: string[];
+  work_count: number;
   updated_at: string;
   updated_by: string | null;
+  owner_email: string | null;
+  editable: boolean;
+};
+
+export type ReplicationPlaylist = Omit<ReplicationPlaylistSummary, "work_count"> & {
+  replication_slugs: string[];
 };
 
 /** The playlist being edited: an existing key, or a new one not yet saved. */

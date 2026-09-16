@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   normalizeIncomingReference,
   removeArticleReference,
-} from "../../../convex/lib/articleReferenceWrites";
+} from "../../../server/lib/articleReferenceWrites";
 
 const validReference = {
   id: "doi-10-2147-sar-s36761",

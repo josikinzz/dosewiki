@@ -1,5 +1,5 @@
 // Pure contributor-profile patch projection and diff policy.
-import { buildImportedStoredProfile } from "../../convex/lib/contributorProfiles";
+import { buildImportedStoredProfile } from "../../server/lib/contributorProfiles";
 
 export interface StoredContributorProfile {
   key: string;

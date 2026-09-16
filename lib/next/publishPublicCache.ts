@@ -13,8 +13,8 @@
  * cannot map.
  */
 import { revalidatePath, revalidateTag } from "next/cache";
-import { invalidatePublicDerivedDataCache } from "../convex/publicLibrary";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "../convex/publicData.cache";
+import { invalidatePublicDerivedDataCache } from "../data/publicLibrary";
+import { PUBLIC_DATA_CACHE_TAGS } from "../data/publicData.cache";
 import { resolvePublicationEffects } from "./publicCacheContract";
 import type { PublicationSource, PublicationTarget } from "./publicationWire";
 import { dispatchPublicationSignal, type PublicationReceipt, type SavedArticleRevision } from "./publicationDispatch";
@@ -37,9 +37,13 @@ export function applyPublicCacheLocally(publication: PublicCachePublication): vo
   const tags = new Set(effect.tags);
   if (publication.unknownPaths?.length) {
     for (const path of publication.unknownPaths) revalidatePath(path);
-    tags.add(PUBLIC_CONVEX_CACHE_TAGS.all);
+    tags.add(PUBLIC_DATA_CACHE_TAGS.all);
   }
-  invalidatePublicDerivedDataCache({ source: publication.source });
+  invalidatePublicDerivedDataCache({
+    source: publication.source,
+    targets: publication.targets,
+    conservative: Boolean(publication.unknownPaths?.length),
+  });
   for (const tag of tags) revalidateTag(tag, { expire: 0 });
 }
 

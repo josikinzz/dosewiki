@@ -1,5 +1,5 @@
 import path from "path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   canonicalizeEffectSlug,
   dedupePreserveOrder,
@@ -7,7 +7,6 @@ import {
 import {
   DEFAULT_REPLICATION_PERMISSION_NOTES,
   DEFAULT_REPLICATION_REMOVAL_CONTACT,
-  createConvexReplicationMediaAdapter,
   deriveGalleryOrderFromMetadata,
   enrichReplicationMetadataFromEffectIndexDump,
   planGalleryOrderMutations,
@@ -230,7 +229,7 @@ describe("replication media planning", () => {
     expect(plan.staleEffects).toEqual(["stale"]);
   });
 
-  it("compares desired metadata against current Convex records", () => {
+  it("compares desired metadata against current Postgres records", () => {
     const plan = planReplicationMediaChanges({
       desiredReplications: [
         { slug: "create-me", title: "Create", artist: "A", type: "image", effect_slug: "drifting", format: "png" },
@@ -288,88 +287,3 @@ describe("replication media planning", () => {
   });
 });
 
-describe("replication media Convex adapter", () => {
-  it("wraps Convex mutations and upload responses", async () => {
-    const client = {
-      mutation: vi.fn(async (_mutation, args) => ({ mutation: _mutation, args })),
-      query: vi.fn(async () => ({ revision: "loaded-revision" })),
-    };
-    const api = {
-      replicationContextualEditing: { collectionDetail: "collectionDetail" },
-      replications: {
-        generateUploadUrl: "generateUploadUrl",
-        insertReplication: "insertReplication",
-        updateEffectSlug: "updateEffectSlug",
-        updateGalleryOrder: "updateGalleryOrder",
-        updateRightsMetadata: "updateRightsMetadata",
-        updateStorageIds: "updateStorageIds",
-      },
-      subjectiveEffects: {
-        update: "updateSubjectiveEffect",
-      },
-    };
-    const fetchFn = vi.fn(async () => ({
-      ok: true,
-      json: async () => ({ storageId: "storage-123" }),
-    }));
-    const adapter = createConvexReplicationMediaAdapter({
-      client,
-      api,
-      apiKey: "admin-key",
-      fetchFn,
-    });
-
-    await expect(adapter.generateUploadUrl()).resolves.toMatchObject({
-      mutation: "generateUploadUrl",
-      args: { apiKey: "admin-key" },
-    });
-    await expect(adapter.uploadBuffer("https://upload.example", Buffer.from("x"), "image/png")).resolves.toBe(
-      "storage-123",
-    );
-    await adapter.insertReplication({ slug: "one", storage_id: "storage-1" });
-    await adapter.updateStorageIds({ id: "rep-1", storage_id: "storage-2" });
-    await adapter.updateEffectSlug({ slug: "one", effect_slug: "drifting" });
-    await adapter.updateRightsMetadata({ slug: "one", updates: { rights_status: "creator-retained" } });
-    await adapter.updateGalleryOrder({ effect_slug: "drifting", replication_slugs: ["one"] });
-    await adapter.clearGalleryOrder("stale");
-
-    expect(client.mutation).toHaveBeenCalledWith("insertReplication", {
-      apiKey: "admin-key",
-      slug: "one",
-      storage_id: "storage-1",
-    });
-    expect(client.mutation).toHaveBeenCalledWith("updateStorageIds", {
-      apiKey: "admin-key",
-      id: "rep-1",
-      storage_id: "storage-2",
-      thumbnail_storage_id: undefined,
-    });
-    expect(client.mutation).toHaveBeenCalledWith("updateEffectSlug", {
-      apiKey: "admin-key",
-      slug: "one",
-      effect_slug: "drifting",
-    });
-    expect(client.mutation).toHaveBeenCalledWith("updateRightsMetadata", {
-      apiKey: "admin-key",
-      slug: "one",
-      updates: { rights_status: "creator-retained" },
-    });
-    expect(client.mutation).toHaveBeenCalledWith("updateGalleryOrder", {
-      apiKey: "admin-key",
-      effect_slug: "drifting",
-      replication_slugs: ["one"],
-      expectedRevision: "loaded-revision",
-    });
-    expect(client.mutation).toHaveBeenCalledWith("updateGalleryOrder", {
-      apiKey: "admin-key",
-      effect_slug: "stale",
-      replication_slugs: [],
-      expectedRevision: "loaded-revision",
-    });
-    expect(fetchFn).toHaveBeenCalledWith("https://upload.example", {
-      method: "POST",
-      body: Buffer.from("x"),
-      headers: { "Content-Type": "image/png" },
-    });
-  });
-});

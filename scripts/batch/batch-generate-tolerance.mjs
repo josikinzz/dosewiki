@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
 import { createDataClient } from "../lib/data-client.ts";
 
@@ -11,9 +12,9 @@ import {
   selectArticlesForProcessing,
 } from "./tolerance/lib.mjs";
 import {
-  initConvexClient,
-  loadArticlesFromConvex,
-  loadPromptFromConvex,
+  initPostgresClient,
+  loadArticlesFromPostgres,
+  loadPromptFromPostgres,
   loadToleranceQuoteSlugs,
 } from "./tolerance/loader.mjs";
 import { createBackup, processAll } from "./tolerance/persist.mjs";
@@ -32,14 +33,14 @@ async function main(options) {
   const sourceUrl = targetContext.sourceUrl;
   const targetUrl = targetContext.targetUrl;
   if (!sourceUrl) {
-    console.error("Error: batch source Convex URL is required");
+    console.error("Error: batch source Postgres URL is required");
     process.exit(1);
   }
   if (!targetUrl && !options.dryRun) {
-    console.error("Error: batch target Convex URL is required");
+    console.error("Error: batch target Postgres URL is required");
     process.exit(1);
   }
-  initConvexClient(sourceUrl);
+  initPostgresClient(sourceUrl);
 
   printBatchBanner({
     title: "Batch Tolerance Section Generation",
@@ -49,20 +50,20 @@ async function main(options) {
       { label: "Mode", value: options.dryRun ? "Dry run" : "Live run" },
       { label: "Priority Scope", value: options.all ? "All priorities" : "High/normal only" },
       { label: "Include Existing", value: options.includeExisting ? "Yes" : "No" },
-      { label: "Source Convex", value: sourceUrl },
-      { label: "Target Convex", value: targetUrl },
+      { label: "Source Postgres", value: postgresFingerprintFromUrl(sourceUrl) },
+      { label: "Target Postgres", value: postgresFingerprintFromUrl(targetUrl) },
     ],
   });
 
-  console.log("\nLoading prompt from Convex...");
-  const systemPrompt = await loadPromptFromConvex();
+  console.log("\nLoading prompt from Postgres...");
+  const systemPrompt = await loadPromptFromPostgres();
   console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
 
   console.log("\nLoading authoritative articles and quote availability...");
   const targetClient = targetUrl ? createDataClient({ target: targetUrl }).client : null;
   const [sourceArticles, targetArticles, toleranceQuoteSlugs] = await Promise.all([
-    loadArticlesFromConvex(),
-    targetClient ? loadArticlesFromConvex(targetClient) : Promise.resolve([]),
+    loadArticlesFromPostgres(),
+    targetClient ? loadArticlesFromPostgres(targetClient) : Promise.resolve([]),
     loadToleranceQuoteSlugs(),
   ]);
 
@@ -103,7 +104,7 @@ async function main(options) {
 
   const adminKey = options.dryRun ? null : requireBatchArticleWriteToken();
   if (!adminKey) {
-    console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+    console.error("Error: DATA_ADMIN_KEY environment variable is required for Postgres sync");
     process.exit(1);
   }
 
@@ -115,7 +116,7 @@ async function main(options) {
   const startTime = Date.now();
   const results = await processAll(apiKey, articles, systemPrompt, options, {
     adminKey,
-    convexClient: createBatchTargetClient(targetContext),
+    postgresClient: createBatchTargetClient(targetContext),
     sourceArticlesBySlug: new Map(sourceArticles.map((article) => [getArticleSlug(article), article])),
     targetArticlesBySlug: new Map(targetArticles.map((article) => [getArticleSlug(article), article])),
   });

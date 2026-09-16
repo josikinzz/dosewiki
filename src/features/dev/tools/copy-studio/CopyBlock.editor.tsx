@@ -13,11 +13,12 @@ import { buildCopyStudioBlocks, draftFromBlock, draftToText, blockCurrentText, t
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { useCopyIndexOperation } from "../useCopyIndexOperation";
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { canDraft } from "@/lib/auth/roles";
 
 export default function CopyBlock({ copyKey, children }: { copyKey: string; children?: ReactNode }) {
   const { enabled, mode, role } = useContextualEditing();
   const [open, setOpen] = useState(false);
-  if (!enabled || mode !== "edit" || (role !== "admin" && role !== "editor")) return children;
+  if (!enabled || mode !== "edit" || !canDraft(role)) return children;
   return <>{children}<Button variant="ghost" size="sm" aria-label={`Edit ${copyKey} copy`} onClick={() => setOpen(true)}>Edit copy</Button>{open && <CopySession key={copyKey} copyKey={copyKey} close={() => setOpen(false)} />}</>;
 }
 

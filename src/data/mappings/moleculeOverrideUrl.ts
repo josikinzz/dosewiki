@@ -1,5 +1,5 @@
 /**
- * URL builders for the canonical Convex molecule depictions, kept free of
+ * URL builders for the canonical Postgres molecule depictions, kept free of
  * server-only imports so client surfaces (e.g. the review workbench) can
  * version the same public image routes the server view models use.
  */

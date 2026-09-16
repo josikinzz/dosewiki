@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 
 import { BackendClient } from "../../lib/data-client.ts";
 
-import { api } from "../../../convex/_generated/api.js";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import {
   canonicalSerialize,
   computeReviewedArtifactDigest,
@@ -23,9 +23,9 @@ import {
   createDataOpsRunContext,
   getFlagValue,
   printDataOpsRunContext,
-  requireTargetUrl,
 } from "../../lib/data-ops-run-context.mjs";
 import { writeAuditLog } from "../../lib/data-ops-audit.mjs";
+import { requireBatchProposalTargetUrl } from "../lib/batch-targets.mjs";
 import { createReviewedSectionPublisher } from "./publication-client.mjs";
 import { verifyManifest } from "./core.mjs";
 
@@ -56,7 +56,7 @@ function optionalSingleValue(argv, name) {
 export function parseReviewedPublicationArgs(argv) {
   const knownPrefixes = [
     "--proposal=",
-    "--target-url=",
+    "--target=",
     "--actor-email=",
     "--reviewed-by=",
     "--reviewed-at=",
@@ -66,6 +66,7 @@ export function parseReviewedPublicationArgs(argv) {
   ];
   const knownFlags = new Set([
     "--dry-run",
+    "--allow-remote",
     "--write",
     "--confirm-reviewed-publication",
     "--help",
@@ -85,7 +86,7 @@ export function parseReviewedPublicationArgs(argv) {
 
   return {
     proposalPath,
-    targetUrl: optionalSingleValue(argv, "--target-url"),
+    targetUrl: optionalSingleValue(argv, "--target"),
     actorEmail: optionalSingleValue(argv, "--actor-email"),
     reviewedBy: optionalSingleValue(argv, "--reviewed-by"),
     reviewedAt: optionalSingleValue(argv, "--reviewed-at"),
@@ -99,16 +100,17 @@ export function parseReviewedPublicationArgs(argv) {
 export function reviewedPublicationHelpText() {
   return `Publish one reviewed generated section with an explicit, section-scoped CAS mutation.\n\n` +
     `Usage:\n` +
-    `  npm run batch:publish-reviewed-section -- \\\n` +
+    `  DATA_BACKEND=postgres npm run batch:publish-reviewed-section -- \\\n` +
     `    --proposal=notes-and-plans/exports/batch-proposals/<slug>/<section>/<run>/proposal.json \\\n` +
-    `    --target-url=https://<deployment>.convex.cloud --dry-run\n\n` +
+    `    --target=postgresql://localhost/dosewiki --dry-run\n\n` +
     `After reviewing the dry-run output, publish one approved artifact with:\n` +
     `  --write --confirm-reviewed-publication \\\n` +
-    `  --confirm-write=publish-reviewed-section --expected-deployment=<deployment> \\\n` +
+    `  --confirm-write=publish-reviewed-section --expected-deployment=localhost/dosewiki \\\n` +
     `  --actor-email=<registered-editor-email> --reviewed-by=<reviewer> \\\n` +
     `  --reviewed-at=<UTC-ISO-8601> --approve-artifact=<artifact-digest>\n\n` +
+    `Remote access additionally requires --allow-remote and POSTGRES_IMPORT_CONFIRM=<hostname>.\n\n` +
     `The command accepts exactly one immutable proposal artifact. It requires the scoped ` +
-    `CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE token and never accepts the legacy admin key.\n`;
+    `DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE token and never accepts the legacy admin key.\n`;
 }
 
 function isWithin(root, candidate) {
@@ -248,10 +250,10 @@ export function buildReviewedPublicationEnvelope({ proposal, artifactDigest, rev
 }
 
 function createPublicationContext({ argv, env, repoRoot, localArtifacts }) {
-  const targetUrlFlag = getFlagValue(argv, "--target-url");
+  const targetUrlFlag = getFlagValue(argv, "--target");
   const envWithCliOverrides = {
     ...env,
-    ...(targetUrlFlag ? { TARGET_CONVEX_URL: targetUrlFlag } : {}),
+    ...(targetUrlFlag ? { TARGET_POSTGRES_URL: targetUrlFlag } : {}),
   };
   const context = createDataOpsRunContext({
     operation: "publish reviewed section",
@@ -260,7 +262,7 @@ function createPublicationContext({ argv, env, repoRoot, localArtifacts }) {
     startDir: repoRoot,
     env: envWithCliOverrides,
     sourceUrlKeys: [],
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,
@@ -272,7 +274,7 @@ function createPublicationContext({ argv, env, repoRoot, localArtifacts }) {
   return {
     ...context,
     env: envWithCliOverrides,
-    targetUrlKey: targetUrlFlag ? "--target-url" : context.targetUrlKey,
+    targetUrlKey: targetUrlFlag ? "--target" : context.targetUrlKey,
   };
 }
 
@@ -317,7 +319,7 @@ export async function publishReviewedPublication({
   env = process.env,
   repoRoot = process.cwd(),
   Client = BackendClient,
-  convexApi = api,
+  postgresApi = api,
   logger = console,
 } = {}) {
   const options = parseReviewedPublicationArgs(argv);
@@ -335,7 +337,7 @@ export async function publishReviewedPublication({
     repoRoot,
     localArtifacts: [relative(repoRoot, verified.proposalPath)],
   });
-  const targetUrl = requireTargetUrl(context, "reviewed publication target Convex URL");
+  const targetUrl = requireBatchProposalTargetUrl(context);
 
   if (verified.proposal.targetDeploymentFingerprint !== context.deploymentFingerprint) {
     throw new Error(
@@ -345,7 +347,7 @@ export async function publishReviewedPublication({
   }
 
   const client = new Client(targetUrl);
-  const liveArticle = await client.query(convexApi.substanceIndex.getBySlug, { slug: verified.proposal.slug });
+  const liveArticle = await client.query(postgresApi.substanceIndex.getBySlug, { slug: verified.proposal.slug });
   if (!liveArticle) {
     throw new Error(`No live target article found for ${verified.proposal.slug}.`);
   }
@@ -432,10 +434,10 @@ export async function publishReviewedPublication({
     context,
     actorEmail: options.actorEmail.trim(),
     env: context.env,
-    mutate: (args) => client.mutation(convexApi.substanceIndex.publishReviewedSection, args),
+    mutate: (args) => client.mutation(postgresApi.substanceIndex.publishReviewedSection, args),
   });
   const result = await publish(reviewedProposal);
-  const publishedArticle = await client.query(convexApi.substanceIndex.getBySlug, { slug: reviewedProposal.slug });
+  const publishedArticle = await client.query(postgresApi.substanceIndex.getBySlug, { slug: reviewedProposal.slug });
   if (!publishedArticle || !matchesApprovedContent(publishedArticle, reviewedProposal)) {
     throw new Error("Post-publication verification failed: the live article does not match the approved section content.");
   }

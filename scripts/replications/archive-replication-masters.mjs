@@ -55,7 +55,7 @@
  *   - **No 4 GB file-size limit** — that is FAT32. The 4.80 GB and 4.79 GB
  *     masters write fine.
  *
- * This script performs NO Convex write. It reads public queries and writes local
+ * This script performs NO database write. It reads public queries and writes local
  * files only.
  *
  * Dry run (default — plans, checks space and collisions, downloads nothing):
@@ -81,8 +81,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createProductionWriteCommand,
   printProductionWriteCommand,
@@ -320,7 +320,7 @@ export function summarizeRisk(assets) {
   return { total: assets.length, atRisk, safe: assets.length - atRisk, byHost };
 }
 
-/** Local gate. No Convex write happens here, so the deployment ceremony does not apply. */
+/** Local gate. No database write happens here, so the deployment ceremony does not apply. */
 export function assertArchiveAllowed(command, argv) {
   if (!command?.writeRequested) throw new Error(`${OPERATION} requires --write to download anything.`);
   if (command.dryRun) throw new Error("--dry-run and --write cannot be combined.");
@@ -407,7 +407,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
-  console.log("Convex writes: none — this operation reads public queries and writes local files.\n");
+  console.log("Database writes: none — this operation reads public queries and writes local files.\n");
 
   const mediaType = assertMediaType(getFlagValue(argv, "--media-type") ?? DEFAULT_MEDIA_TYPE);
   const producesRenditions = mediaType === "video";
@@ -426,10 +426,10 @@ async function main() {
     throw new Error("Pass --output-dir=<directory for web renditions>.");
   }
 
-  const readUrl = process.env.CONVEX_PUBLIC_READ_URL || process.env.VITE_CONVEX_URL;
+  const readUrl = resolvePostgresSource({}).url;
   if (!readUrl) {
     throw new Error(
-      "Set CONVEX_PUBLIC_READ_URL to the deployment whose rows should be archived. Point it at production — reading from dev resolves storage URLs against the wrong deployment and has already produced one misleading audit.",
+      "Set SOURCE_POSTGRES_URL to the deployment whose rows should be archived. Point it at production — reading from dev resolves storage URLs against the wrong deployment and has already produced one misleading audit.",
     );
   }
 
@@ -461,7 +461,7 @@ async function main() {
   const budget = planArchiveBudget(assets, { availableBytes, reserveBytes });
 
   console.log(`Media type  : ${mediaType} (${rows.length} row(s))`);
-  console.log(`Read source : ${readUrl}`);
+  console.log(`Read source : ${postgresFingerprintFromUrl(readUrl)}`);
   console.log(`Archive     : ${archiveRoot}`);
   console.log(`Scratch     : ${path.resolve(scratchDir)}`);
   console.log(
@@ -673,7 +673,7 @@ async function main() {
         generatedAt: new Date().toISOString(),
         mode: command.dryRun ? "dry-run" : "write",
         mediaType,
-        readSource: readUrl,
+        readSource: postgresFingerprintFromUrl(readUrl),
         archiveDir: archiveRoot,
         risk,
         budget,

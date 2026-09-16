@@ -1,20 +1,19 @@
 #!/usr/bin/env node
 /**
  * Search harm_potential sections for mentions of source names
- * Can read from local JSON or Convex (--convex flag)
+ * Can read from local JSON or Postgres (--postgres flag)
  */
 import fs from 'fs';
 import { createDataClient } from "./lib/data-client.ts";
-import { api } from '../convex/_generated/api.js';
-import { getAllSubstanceDocuments } from './lib/convex-pagination.mjs';
+import { api } from '../lib/postgres/runtime/api.ts';
+import { getAllSubstanceDocuments } from './lib/data-pagination.mjs';
 
-const useConvex = process.argv.includes('--convex');
+const usePostgres = process.argv.includes('--postgres');
 let articles;
 
-if (useConvex) {
-  const CONVEX_URL = process.env.VITE_CONVEX_URL || 'https://enchanted-echidna-791.convex.cloud';
-  console.log(`Fetching from Convex: ${CONVEX_URL}\n`);
-  const client = createDataClient({ target: CONVEX_URL }).client;
+if (usePostgres) {
+  const { client, fingerprint } = createDataClient();
+  console.log(`Fetching from Postgres: ${fingerprint}\n`);
   articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 } else {
   articles = JSON.parse(fs.readFileSync('src/data/SubstanceIndex.json', 'utf-8'));
@@ -139,6 +138,11 @@ for (const [slug, articleIssues] of Object.entries(byArticle)) {
     console.log(`   [${issue.field}]`);
     console.log(`   Pattern: ${issue.patternName}`);
     console.log(`   Match: "${issue.match}"`);
+    console.log(`   Context: "...${issue.context}..."`);
+    console.log('');
+  }
+}
+issue.match}"`);
     console.log(`   Context: "...${issue.context}..."`);
     console.log('');
   }

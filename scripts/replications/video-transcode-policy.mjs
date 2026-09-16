@@ -100,7 +100,7 @@ export function assertToolsAvailable(runner = spawnSync) {
   }
 }
 
-/** Local gate. This script performs no Convex write, so the deployment ceremony does not apply. */
+/** Local gate. This script performs no Postgres write, so the deployment ceremony does not apply. */
 export function assertTranscodeAllowed(command, argv) {
   if (!command?.writeRequested) {
     throw new Error(`${OPERATION} requires --write to encode anything.`);

@@ -8,7 +8,7 @@
  * `dynamicParams = false`) answered 404 for 27% of chips without ever failing a
  * build. Terminology drift was therefore invisible.
  *
- * Read-only. Never writes to Convex.
+ * Read-only. Never writes to Postgres.
  *
  * Usage:
  *   node --env-file=.env.local scripts/analyze/audit-effect-name-links.mjs
@@ -19,10 +19,10 @@
  * line once the backlog is at zero.
  */
 
-import { createDataClient } from "../lib/data-client.ts";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { writeFileSync } from "node:fs";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import { effectNameAliasTables } from "../../src/data/effectNameAliases.ts";
 import { EFFECT_CATEGORY_DEFINITIONS } from "../../src/data/effectCategoryDefinitions.ts";
 
@@ -76,12 +76,12 @@ function resolve(nameSlug, location, effectSlugs, categorySlugs) {
 async function main() {
   const { strict, jsonPath } = parseArgs(process.argv.slice(2));
   const url =
-    process.env.CONVEX_PUBLIC_READ_URL ||
-    process.env.VITE_CONVEX_URL ||
-    process.env.CONVEX_URL;
+    process.env.SOURCE_POSTGRES_URL ||
+    process.env.POSTGRES_POOLED_URL ||
+    process.env.POSTGRES_DIRECT_URL;
 
   if (!url) {
-    console.error("❌ Set CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL (read-only).");
+    console.error("❌ Set SOURCE_POSTGRES_URL or POSTGRES_POOLED_URL (read-only).");
     process.exit(1);
   }
 
@@ -139,7 +139,7 @@ async function main() {
   const sum = (list) => list.reduce((total, row) => total + row.count, 0);
   const broken = by("broken").sort((a, b) => b.count - a.count);
 
-  console.log(`Deployment: ${url}`);
+  console.log(`Deployment: ${postgresFingerprintFromUrl(url)}`);
   console.log(`Articles: ${substances.length}   Effects: ${effectSlugs.size}`);
   console.log(`Chip occurrences: ${occurrences}\n`);
   for (const kind of ["direct", "alias", "alias-category", "unlinked", "broken"]) {

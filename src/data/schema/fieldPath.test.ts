@@ -134,7 +134,7 @@ describe("fieldPath record keys", () => {
     if (isFieldPathDiagnostic(parsed)) return;
     expect(parsed.segments[2]).toEqual({ kind: "property", key: "United States" });
     // Re-formatting is stable, which matters because the API route sends the
-    // normalized form on to Convex.
+    // normalized form on to Postgres.
     expect(parsed.normalized).toBe(path);
   });
 

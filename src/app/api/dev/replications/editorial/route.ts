@@ -6,24 +6,24 @@
  *   POST /api/dev/replications/editorial  { mode: "single", id, expected, updates }
  *   POST /api/dev/replications/editorial  { mode: "bulk", ids, …fields }
  *
- * The single edit carries the snapshot the drawer was opened with so Convex can
+ * The single edit carries the snapshot the drawer was opened with so Postgres can
  * refuse a stale save rather than re-assert fields somebody else has since
  * changed; the bulk edit carries only the fields it means to set. Both shapes
- * rewrite the public corpus directly, so the route is admin-only and Convex
+ * rewrite the public corpus directly, so the route is admin-only and Postgres
  * enforces the same floor.
  */
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { publishReplicationRecord } from "../publishReplicationRecord";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
   isValidReplicationSlug,
   type StudioRole,
 } from "@/features/dev/tools/replication-studio/replicationStudioModel";
-import type { Id } from "../../../../../../convex/_generated/dataModel";
+import type { Id } from "@server/postgres/runtime/dataModel";
 
 export const runtime = "nodejs";
 
@@ -172,18 +172,18 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseEditorialBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save replication editorial fields via Next route:",
   unexpectedErrorMessage: "Unable to save those replication edits right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
 
     if (body.mode === "single") {
-      const result = await convexWrite.client.mutation(api.replications.updateEditorialFields, {
+      const result = await dataWrite.client.mutation(api.replications.updateEditorialFields, {
         apiKey,
         actorEmail,
         id: body.id as Id<"replications">,
@@ -204,7 +204,7 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       return NextResponse.json({ ok: true, updated: 1, slugs: [result.slug] });
     }
 
-    const result = await convexWrite.client.mutation(api.replications.bulkUpdateEditorialFields, {
+    const result = await dataWrite.client.mutation(api.replications.bulkUpdateEditorialFields, {
       apiKey,
       actorEmail,
       ids: body.ids as Id<"replications">[],

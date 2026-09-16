@@ -1,5 +1,5 @@
 import { IconBadge } from "@/components/common/IconBadge";
-import { useT } from "@/i18n/client";
+import { formatMessage, type Translate } from "@/i18n/messages";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 
@@ -10,6 +10,7 @@ interface RelatedSubstancesSectionProps {
   categoryHrefPrefix?: string;
   linkableSubstanceSlugs: readonly string[];
   showHeading?: boolean;
+  t?: Translate;
 }
 
 /**
@@ -23,8 +24,8 @@ export function RelatedSubstancesSection({
   categoryHrefPrefix,
   linkableSubstanceSlugs,
   showHeading = true,
+  t = formatMessage,
 }: RelatedSubstancesSectionProps) {
-  const t = useT();
   if (groups.length === 0) {
     return null;
   }

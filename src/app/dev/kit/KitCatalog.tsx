@@ -7,7 +7,7 @@ import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
 import { StoryCard } from "./components/CatalogPrimitives";
-import { stories, storiesByTier } from "./registry";
+import { stories } from "./registry";
 import { KIT_TIERS } from "./registry/types";
 
 const COLOR_TOKENS: { token: string; label: string }[] = [
@@ -119,7 +119,20 @@ export function KitCatalog() {
     );
   }, [query]);
 
-  const visibleIds = new Set(filtered.map((story) => story.id));
+  const filteredByTier = useMemo(
+    () => ({
+      primitive: filtered
+        .filter((story) => story.tier === "primitive")
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      common: filtered
+        .filter((story) => story.tier === "common")
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      layout: filtered
+        .filter((story) => story.tier === "layout")
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    }),
+    [filtered],
+  );
 
   return (
     <div className="min-h-screen bg-[var(--theme-body-bg)] text-[var(--theme-text-primary)]">
@@ -130,7 +143,7 @@ export function KitCatalog() {
               Tokens
             </a>
             {KIT_TIERS.map((tier) => {
-              const tierStories = storiesByTier(tier.id).filter((story) => visibleIds.has(story.id));
+              const tierStories = filteredByTier[tier.id];
               if (tierStories.length === 0) return null;
               return (
                 <div key={tier.id} className="flex flex-col gap-1.5">
@@ -174,14 +187,14 @@ export function KitCatalog() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Filter components…"
-              className="w-full max-w-sm rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] px-3 py-2 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+              className="w-full max-w-sm rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] px-3 py-2 text-sm text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] theme-field-focus"
             />
           </header>
 
           {!query ? <TokenShowcase /> : null}
 
           {KIT_TIERS.map((tier) => {
-            const tierStories = storiesByTier(tier.id).filter((story) => visibleIds.has(story.id));
+            const tierStories = filteredByTier[tier.id];
             if (tierStories.length === 0) return null;
             return (
               <section key={tier.id} className="flex flex-col gap-4">
@@ -190,7 +203,7 @@ export function KitCatalog() {
                   <p className="text-xs text-[var(--theme-text-muted)]">{tier.blurb}</p>
                 </div>
                 {tierStories.map((story) => (
-                  <StoryCard key={story.id} story={story} />
+                  <StoryCard key={story.id} story={story} activateExamples={query.trim() !== ""} />
                 ))}
               </section>
             );

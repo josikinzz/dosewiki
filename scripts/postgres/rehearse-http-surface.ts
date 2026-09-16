@@ -1,8 +1,8 @@
 /**
  * Ticket 16 (plus the cron half of 19) rehearsal: drive the Next route
- * handlers that replace the Convex HTTP action and cron against Postgres.
+ * handlers and publication cron against Postgres.
  *
- *   bun scripts/postgres/rehearse-http-surface.ts [--target <url>] [--allow-remote]
+ *   bun scripts/postgres/rehearse-http-surface.ts --target <isolated-local-url>
  *
  * Imports `src/app/api/subscribe/route.ts` and
  * `src/app/api/cron/publication-delivery/route.ts` with DATA_BACKEND=postgres
@@ -22,7 +22,7 @@
  *      fresh subscribe; invalid input answers 400.
  *   3. origin: missing or unlisted origins are refused with 403; preflight
  *      from an allowed origin answers 204.
- *   4. cron: refused without the secret, idle on the Convex backend, and on
+ *   4. cron: refuses missing authorization and retired backend configuration;
  *      Postgres claims the scratch outbox row and records its receipt.
  *   5. limiter: the per-IP bucket refuses after its burst, the global window
  *      refuses once spent and again inside the window, and the same limiter
@@ -33,8 +33,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
-import type { ConvexDocument } from "../../lib/postgres/convexDocumentCodec";
-import { deleteDocument, insertDocument, mintDocumentId, patchDocument, selectDocuments } from "../../lib/postgres/documentStore";
+import type { DataDocument } from "../../lib/postgres/documentCodec";
+import { deleteDocument, insertDocument, mintDocumentId, patchDocument, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
 import { GET as publicationDeliveryGet } from "../../src/app/api/cron/publication-delivery/route";
 import { OPTIONS as subscribeOptions, POST as subscribePost } from "../../src/app/api/subscribe/route";
 import { SUBSCRIBE_RATE_LIMITS, createSubscribeRateLimiter, hashClientIp } from "../../src/app/api/subscribe/subscribePolicy";
@@ -63,7 +63,7 @@ type SubscribeCall = {
 async function subscribe(call: SubscribeCall): Promise<{ status: number; text: string; headers: Headers }> {
   const headers = new Headers({ "content-type": "application/json", "user-agent": USER_AGENT });
   if (call.origin !== null) headers.set("origin", call.origin ?? ORIGIN);
-  if (call.ip) headers.set("x-forwarded-for", call.ip);
+  if (call.ip) headers.set("x-vercel-forwarded-for", call.ip);
   const response = await subscribePost(new Request("https://dose.wiki/api/subscribe", {
     method: "POST",
     headers,
@@ -78,12 +78,12 @@ async function cron(authorization: string | null): Promise<Response> {
   }));
 }
 
-function subscriberRows(pool: Pool, prefix: string): Promise<ConvexDocument[]> {
+function subscriberRows(pool: Pool, prefix: string): Promise<DataDocument[]> {
   return selectDocuments(pool, "mailingListSubscribers", { where: '"email" LIKE $1', params: [`${prefix}%`], orderBy: '"_creationTime"' });
 }
 
 /** The rows `publicationRecovery:claimDue` will take: the `by_due` index order, first 24. */
-function dueRows(pool: Pool, now: number): Promise<ConvexDocument[]> {
+function dueRows(pool: Pool, now: number): Promise<DataDocument[]> {
   return selectDocuments(pool, "publicCachePublications", {
     where: '"pending" = true AND "nextAttemptAt" <= $1',
     params: [now],
@@ -95,15 +95,21 @@ function dueRows(pool: Pool, now: number): Promise<ConvexDocument[]> {
 async function main() {
   const argv = process.argv.slice(2);
   const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  // Shared budgets cannot be reset or borrowed on a live target.
+  guardTarget(target, false);
 
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
+  process.env.REPLICATION_MEDIA_BASE_URL = "https://media.rehearsal.invalid";
+  process.env.VERCEL = "1"; // The local Request fixture models Vercel's trusted ingress.
+  delete process.env.MAILING_LIST_FORWARD_URL;
   process.env.MAILING_LIST_IP_HASH_SECRET ||= `t16-ip-secret-${mintDocumentId()}`;
-  // The Postgres runtime does not check these; the capability factories only require their presence.
-  process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE ||= "t16-intake-token";
-  process.env.CONVEX_ADMIN_KEY ||= "t16-admin-key";
-  process.env.CONVEX_URL ||= process.env.VITE_CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL || "https://rehearsal.convex.cloud";
+  // Isolated credentials exercise the same intent checks as a configured deployment.
+  process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "t16-intake-token";
+  process.env.DATA_ADMIN_KEY = "t16-admin-key";
+  delete process.env.CONVEX_URL;
+  delete process.env.VITE_CONVEX_URL;
+  delete process.env.NEXT_PUBLIC_CONVEX_URL;
   const cronSecret = `t16-cron-${mintDocumentId()}`;
   process.env.CRON_SECRET = cronSecret;
   delete process.env.PUBLIC_CACHE_PUBLISH_TARGETS;
@@ -117,6 +123,19 @@ async function main() {
   let outboxId: string | null = null;
   let nextIp = 1;
   const freshIp = () => `10.16.${Math.floor(nextIp / 250)}.${(nextIp++ % 250) + 1}`;
+  const limiterNames = [`${prefix}-per-ip`, `${prefix}-global`];
+  const existingBuckets = await pool.query('SELECT 1 FROM "subscribeRateLimitBuckets" LIMIT 1');
+  if (existingBuckets.rowCount) {
+    await pool.end();
+    throw new Error("HTTP rehearsal requires an isolated database with no signup limiter state");
+  }
+  // Pin the real database window away from rollover during the route scenarios.
+  await pool.query(
+    `INSERT INTO "subscribeRateLimitBuckets" ("name", "key", "value", "ts", "expires_at")
+     SELECT 'subscribeGlobal', '', $1, floor(extract(epoch FROM clock_timestamp()) * 1000),
+       floor(extract(epoch FROM clock_timestamp()) * 1000) + $2`,
+    [SUBSCRIBE_RATE_LIMITS.subscribeGlobal.rate, SUBSCRIBE_RATE_LIMITS.subscribeGlobal.period],
+  );
   // Requests that reach the limiter (parse and origin passed) spend the global window.
   let globalSpent = 0;
   const limited = async (call: SubscribeCall) => {
@@ -158,7 +177,7 @@ async function main() {
     expect("generic", "malformed JSON answers 400", malformed.status === 400 && malformed.text === '{"ok":false}', malformed);
     expect("generic", "invalid inputs stored nothing", (await subscriberRows(pool, prefix)).length === 5);
 
-    // 3. origin: enforced exactly as convex-helpers' corsRouter does.
+    // 3. origin: only explicitly allowed browser origins can submit.
     const noOrigin = await subscribe({ body: { email: `${prefix}-o@rehearsal.invalid`, list: "dosewiki", website: "" }, origin: null, ip: freshIp() });
     expect("origin", "missing Origin is refused with 403", noOrigin.status === 403 && noOrigin.text === "", noOrigin);
     const badOrigin = await subscribe({ body: { email: `${prefix}-o@rehearsal.invalid`, list: "dosewiki", website: "" }, origin: "https://evil.invalid", ip: freshIp() });
@@ -172,7 +191,7 @@ async function main() {
     const badPreflight = await subscribeOptions(new Request("https://dose.wiki/api/subscribe", { method: "OPTIONS", headers: { origin: "https://evil.invalid" } }));
     expect("origin", "preflight from an unlisted origin is refused with 403", badPreflight.status === 403);
 
-    // 4. cron: authorization, idle on Convex, live on Postgres.
+    // 4. cron: authorization and fail-closed backend selection.
     const unauthorized = await cron(null);
     expect("cron", "no bearer token answers 401", unauthorized.status === 401, await unauthorized.text());
     const wrongToken = await cron("Bearer nope");
@@ -182,8 +201,13 @@ async function main() {
     expect("cron", "unset CRON_SECRET answers 503", unconfigured.status === 503);
     process.env.CRON_SECRET = cronSecret;
     process.env.DATA_BACKEND = "convex";
-    const idle = await cron(`Bearer ${cronSecret}`);
-    expect("cron", "Convex backend answers 204 idle with a reason", idle.status === 204 && (idle.headers.get("x-publication-delivery") ?? "").startsWith("idle;"), idle.headers.get("x-publication-delivery"));
+    let retiredBackendRefused = false;
+    try {
+      await cron(`Bearer ${cronSecret}`);
+    } catch (error) {
+      retiredBackendRefused = error instanceof Error && error.message.includes("DATA_BACKEND");
+    }
+    expect("cron", "retired backend configuration is refused", retiredBackendRefused);
     process.env.DATA_BACKEND = "postgres";
 
     const now = Date.now();
@@ -248,27 +272,51 @@ async function main() {
     expect("limiter", "a fresh IP inside the spent window is still refused with 429", again.status === 429 && again.text === '{"ok":false}', again);
     expect("limiter", "window refusals stored nothing", (await subscriberRows(pool, prefix)).length === 8);
 
-    // Same code, fake clock: refusals do not consume, and the window rolls over.
-    // Convex anchors an unanchored window at a random offset; pin `start` so the boundary is known.
-    let clock = 1_700_000_000_000;
-    const windowStart = clock;
-    const limiter = createSubscribeRateLimiter({
-      ...SUBSCRIBE_RATE_LIMITS,
-      subscribeGlobal: { ...SUBSCRIBE_RATE_LIMITS.subscribeGlobal, start: windowStart },
-    }, () => clock);
-    const perIp = Array.from({ length: 5 }, () => limiter.limit("subscribePerIp", "1.2.3.4").ok);
-    clock += SUBSCRIBE_RATE_LIMITS.subscribePerIp.period / SUBSCRIBE_RATE_LIMITS.subscribePerIp.rate; // one token refilled
-    perIp.push(limiter.limit("subscribePerIp", "1.2.3.4").ok, limiter.limit("subscribePerIp", "1.2.3.4").ok);
-    expect("limiter", "token bucket refills one token per rate interval", perIp.join(",") === "true,true,true,false,false,true,false", perIp);
-    const global = Array.from({ length: SUBSCRIBE_RATE_LIMITS.subscribeGlobal.rate + 1 }, () => limiter.limit("subscribeGlobal").ok);
-    clock = windowStart + SUBSCRIBE_RATE_LIMITS.subscribeGlobal.period - 1;
-    const insideWindow = limiter.limit("subscribeGlobal").ok;
-    clock = windowStart + SUBSCRIBE_RATE_LIMITS.subscribeGlobal.period;
-    const afterWindow = limiter.limit("subscribeGlobal").ok;
-    expect("limiter", "fixed window refuses the 201st, again just inside the window, and admits after it rolls over",
-      global.filter(Boolean).length === SUBSCRIBE_RATE_LIMITS.subscribeGlobal.rate && global[global.length - 1] === false && insideWindow === false && afterWindow === true,
-      { admitted: global.filter(Boolean).length, insideWindow, afterWindow });
+    // Independent application connections share a burst, then reconnect without
+    // resetting it. Use isolated names so the already-spent route budget stays intact.
+    const limits = {
+      [limiterNames[0]]: SUBSCRIBE_RATE_LIMITS.subscribePerIp,
+      [limiterNames[1]]: { ...SUBSCRIBE_RATE_LIMITS.subscribeGlobal, start: Date.now() - 1000 },
+    };
+    let secondPool = new Pool({ connectionString: target, max: 4 });
+    const first = createSubscribeRateLimiter(limits, {
+      sqlTransaction: (operation) => withTransaction(pool, operation),
+    }, ipSecret);
+    let second = createSubscribeRateLimiter(limits, {
+      sqlTransaction: (operation) => withTransaction(secondPool, operation),
+    }, ipSecret);
+    try {
+      const burst = await Promise.all(Array.from({ length: 20 }, (_, i) =>
+        (i % 2 ? first : second).limit(limiterNames[0], "192.0.2.5"),
+      ));
+      expect("limiter", "two instances atomically share the three-token IP burst", burst.filter((decision) => decision.ok).length === 3);
+      await secondPool.end();
+      secondPool = new Pool({ connectionString: target, max: 4 });
+      second = createSubscribeRateLimiter(limits, {
+        sqlTransaction: (operation) => withTransaction(secondPool, operation),
+      }, ipSecret);
+      expect("limiter", "reconnecting an instance does not reset its spent IP bucket", !(await second.limit(limiterNames[0], "192.0.2.5")).ok);
+      const global = await Promise.all(Array.from({ length: 220 }, (_, i) =>
+        (i % 2 ? first : second).limit(limiterNames[1]),
+      ));
+      expect("limiter", "two instances atomically share the 200-token global window", global.filter((decision) => decision.ok).length === 200);
+      await pool.query(
+        'UPDATE "subscribeRateLimitBuckets" SET "ts" = "ts" - $2 WHERE "name" = $1',
+        [limiterNames[0], SUBSCRIBE_RATE_LIMITS.subscribePerIp.period / SUBSCRIBE_RATE_LIMITS.subscribePerIp.rate],
+      );
+      expect("limiter", "database elapsed time refills the IP bucket", (await second.limit(limiterNames[0], "192.0.2.5")).ok);
+      await pool.query(
+        'UPDATE "subscribeRateLimitBuckets" SET "ts" = "ts" - $2 WHERE "name" = $1',
+        [limiterNames[1], SUBSCRIBE_RATE_LIMITS.subscribeGlobal.period],
+      );
+      expect("limiter", "database elapsed time rolls over the global window", (await second.limit(limiterNames[1])).ok);
+    } finally {
+      await secondPool.end();
+    }
   } finally {
+    await pool.query('DELETE FROM "subscribeRateLimitBuckets" WHERE "name" = ANY($1::text[])', [
+      ["subscribePerIp", "subscribeGlobal", ...limiterNames],
+    ]);
     for (const row of await subscriberRows(pool, prefix)) {
       await deleteDocument(pool, "mailingListSubscribers", row._id as string);
     }

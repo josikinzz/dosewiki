@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SmartLink } from "../common/SmartLink";
 import { Icon } from "../common/Icon";
 import { SiteLicenceNotice } from "../common/SiteLicenceNotice";
 import { SiteSupporter } from "../common/SiteSupporter";
@@ -53,7 +53,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               const footerIcon = resolveRouteChromeIcon(item.icon);
 
               return (
-                <Link
+                <SmartLink
                   key={item.id}
                   href={item.href}
                   scroll={false}
@@ -62,7 +62,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
                 >
                   <Icon icon={footerIcon} size={18} />
-                </Link>
+                </SmartLink>
               );
             })}
             {model.footerExternalNavItems.map((item) => {

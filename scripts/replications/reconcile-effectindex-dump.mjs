@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Effect Index dump ↔ live Convex replication reconciliation report tool.
+ * Effect Index dump ↔ live Postgres replication reconciliation report tool.
  *
  * This is read-only: it only queries `replications.getAll` and writes a local
- * Markdown/JSON report. It never calls a Convex mutation or imports media.
+ * Markdown/JSON report. It never calls a Postgres mutation or imports media.
  *
  * Usage:
  *   node scripts/replications/reconcile-effectindex-dump.mjs
@@ -12,8 +12,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -235,33 +235,10 @@ function ambiguousTable(records) {
 
 async function queryLiveReplications() {
   loadEnvFiles({ rootDir: REPO_ROOT });
-  const endpoints = ["CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL"]
-    .map((envKey) => ({ envKey, url: process.env[envKey] }))
-    .filter(({ url }) => Boolean(url));
-
-  if (endpoints.length === 0) {
-    throw new Error("Neither CONVEX_PUBLIC_READ_URL nor VITE_CONVEX_URL is configured.");
-  }
-
-  const failures = [];
-  for (const endpoint of endpoints) {
-    try {
-      const replications = await createDataClient({ target: endpoint.url }).client.query(api.replications.getAll, {});
-      return { replications, endpoint: endpoint.envKey, failures };
-    } catch (error) {
-      const hostname = new URL(endpoint.url).hostname;
-      failures.push({
-        env_key: endpoint.envKey,
-        hostname,
-        error: errorMessage(error),
-      });
-    }
-  }
-
-  const message = failures.map((failure) => `${failure.env_key} (${failure.hostname}): ${failure.error}`).join("; ");
-  const failure = new Error(`Live Convex read failed for every configured endpoint: ${message}`);
-  failure.failures = failures;
-  throw failure;
+  const source = resolvePostgresSource();
+  if (!source.url) throw new Error("Set --source-url or SOURCE_POSTGRES_URL.");
+  const replications = await createDataClient({ target: source.url }).client.query(api.replications.getAll, {});
+  return { replications, endpoint: postgresFingerprintFromUrl(source.url), failures: [] };
 }
 
 function buildRecords(effectIndexReplications, effectsById, liveReplications) {
@@ -327,13 +304,13 @@ function writeReport(report) {
     "",
     report.live_query_failures.map((failure) => `- \`${failure.env_key}\` (${failure.hostname}): ${failure.error}`).join("\n"),
     "",
-    "The local dump and the Convex schema were inspected instead. The schema only permits `image` and `video` rows, so all eight EI audio entries are certainly absent; every image/video entry remains `unavailable` until a live query succeeds.",
+    "The local dump and the Postgres schema were inspected instead. The schema only permits `image` and `video` rows, so all eight EI audio entries are certainly absent; every image/video entry remains `unavailable` until a live query succeeds.",
     "",
   ].join("\n");
   const unavailableSection = unavailable.length === 0 ? "" : [
     "## Entries unavailable for reconciliation",
     "",
-    `There are **${unavailable.length}** image/video entries whose status was deliberately not inferred from the stale manifest. Re-run this script when a configured live Convex endpoint is reachable.`,
+    `There are **${unavailable.length}** image/video entries whose status was deliberately not inferred from the stale manifest. Re-run this script when a configured live Postgres endpoint is reachable.`,
     "",
   ].join("\n");
 
@@ -349,9 +326,9 @@ function writeReport(report) {
     failureSection,
     "## Matching policy",
     "",
-    "For each non-audio EI entry, the tool compares against `replications.getAll` in this order: normalized title, normalized title plus artist, then filename-stem containment in either direction. Normalization lowercases, decodes URL escapes, strips extensions/punctuation/underscores, collapses whitespace, and canonicalizes `color` to `colour`. Multiple candidates are always marked ambiguous. EI `gfycat` entries are reported as video. Audio is certain-missing because the Convex `replications` schema permits only image/video.",
+    "For each non-audio EI entry, the tool compares against `replications.getAll` in this order: normalized title, normalized title plus artist, then filename-stem containment in either direction. Normalization lowercases, decodes URL escapes, strips extensions/punctuation/underscores, collapses whitespace, and canonicalizes `color` to `colour`. Multiple candidates are always marked ambiguous. EI `gfycat` entries are reported as video. Audio is certain-missing because the Postgres `replications` schema permits only image/video.",
     "",
-    "## Missing from live Convex",
+    "## Missing from live Postgres",
     "",
     missingTable(missing),
     "",
@@ -362,7 +339,7 @@ function writeReport(report) {
     unavailableSection,
     "## Source and limits",
     "",
-    `EI source: \`${EFFECT_INDEX_DUMP}/replications.json\` (${report.effectindex_replications_count} entries). Effect IDs were mapped through \`effects.json\` to their EI \`url\` slugs. This tool is read-only against Convex and did not use \`notes-and-plans/exports/replications/replications-import.jsonl\` for matching.`,
+    `EI source: \`${EFFECT_INDEX_DUMP}/replications.json\` (${report.effectindex_replications_count} entries). Effect IDs were mapped through \`effects.json\` to their EI \`url\` slugs. This tool is read-only against Postgres and did not use \`notes-and-plans/exports/replications/replications-import.jsonl\` for matching.`,
     "",
   ].filter(Boolean).join("\n");
   fs.writeFileSync(REPORT_MARKDOWN_PATH, markdown);
@@ -380,7 +357,7 @@ async function main() {
     report = {
       generated_at: new Date().toISOString(),
       status: "complete",
-      source: "live-convex",
+      source: "live-data",
       live_endpoint: live.endpoint,
       live_query_failures_before_success: live.failures,
       live_replications_count: live.replications.length,
@@ -393,7 +370,7 @@ async function main() {
     report = {
       generated_at: new Date().toISOString(),
       status: "blocked-live-query-failed",
-      source: "effectindex-dump-and-convex-schema-only",
+      source: "effectindex-dump-and-data-schema-only",
       live_query_failures: error.failures ?? [{ error: errorMessage(error) }],
       effectindex_replications_count: effectIndexReplications.length,
       counts: countByTypeAndClassification(records),

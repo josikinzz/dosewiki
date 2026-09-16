@@ -106,7 +106,7 @@ export function buildGenericSourceSections(sourceDoc, config) {
   }
 
   if (sections.length === 0) {
-    throw new Error("No usable generic source content found in Convex articleSources.");
+    throw new Error("No usable generic source content found in Postgres articleSources.");
   }
 
   return { sections, truncatedSources };

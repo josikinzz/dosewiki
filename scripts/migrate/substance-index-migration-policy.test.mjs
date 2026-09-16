@@ -10,7 +10,7 @@ import {
 } from "./substance-index-migration-policy.mjs";
 
 const testDirectory = dirname(fileURLToPath(import.meta.url));
-const migrationScript = join(testDirectory, "migrate-substance-index-to-convex.mjs");
+const migrationScript = join(testDirectory, "migrate-substance-index-to-data.mjs");
 const temporaryDirectories = [];
 
 afterEach(() => {
@@ -39,7 +39,7 @@ describe("substance index migration replacement policy", () => {
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain(RETIRED_REPLACE_MODE_MESSAGE);
-    expect(result.stderr).not.toContain("Convex project");
+    expect(result.stderr).not.toContain("Postgres project");
     expect(result.stderr).not.toContain("ENOENT");
     expect(result.stdout).not.toContain("Reading SubstanceIndex.json");
   });

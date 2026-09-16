@@ -15,8 +15,8 @@
  * across all tiers; every unlisted work keeps the automatic order.
  * `removed_slugs` always wins.
  *
- * Everything here is pure. Imports are relative because the Convex bundler
- * consumes this file through `convex/substanceGalleries.ts`.
+ * Everything here is pure. Imports are relative because the Postgres bundler
+ * consumes this file through `server/substanceGalleries.ts`.
  */
 import { DISSOCIATIVE_TITLE_DRUG_RULES } from "./replicationTitleDrugAliases";
 
@@ -32,7 +32,7 @@ import {
 } from "../types/replications";
 
 /**
- * The ceiling on either stored curation list. One home for a number the Convex
+ * The ceiling on either stored curation list. One home for a number the Postgres
  * mutation, the DevTools save route, and the portal's exclusion meter all have
  * to agree on.
  */

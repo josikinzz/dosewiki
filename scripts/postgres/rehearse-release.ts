@@ -10,7 +10,7 @@
  *               representative mutation of every transactional group in
  *               inventory/tables.md refuse with code DATA_WRITES_FROZEN, on the
  *               operator factory (scripts/lib/data-client.ts) and on the app
- *               write client (lib/convex/serverWriteCapability.ts), while every
+ *               write client (lib/data/serverWriteCapability.ts), while every
  *               read keeps serving byte-identical results. Every one of the 61
  *               table counts is unchanged across the sweep.
  *   liveness    the same writer commits with the freeze off, refuses with it on,
@@ -19,17 +19,10 @@
  *   drain       a mutation that entered the runtime before the freeze commits
  *               after it (held mid-flight on a row lock), and one started after
  *               the freeze refuses. The measured drain wait is reported.
- *   rollback    with the freeze still on, `DATA_BACKEND` flips back to Convex:
- *               reads serve from Convex production, writes stay refused, and
- *               Convex is proven untouched by this rehearsal (read-only public
- *               queries, snapshot compared at start and end).
+ *   retirement  a retired DATA_BACKEND selector is refused by both application
+ *               and operator clients without contacting another service.
  *   flavors     host, permission, transaction and privacy scenarios for the
  *               dosewiki and effectindex flavors.
- *   recovery    whether a tested procedure exists for rolling back AFTER writes
- *               reopen on Postgres: the reverse exporter must exist and the
- *               newest `rehearse-rollback.ts` report must have 0 failures, a
- *               Convex phase that ran, and the current migration journal tag.
- *               Anything less is recorded as `blocker:post-write-rollback`.
  *   sweep       every rehearsal script run back to back, with pass counts. A
  *               rehearsal that no longer passes is recorded as a blocker
  *               (measurement, not a check: this script owns the release
@@ -45,19 +38,19 @@ import { spawnSync } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
-import { makeFunctionReference } from "convex/server";
-import { api } from "../../convex/_generated/api";
+import { makeFunctionReference } from "../../lib/postgres/runtime/api";
+import { api } from "../../lib/postgres/runtime/api";
 import { createDataClient, postgresFingerprintFromUrl, type DataClient } from "../lib/data-client.ts";
 import { authOptions, authorizeCredentials } from "../../auth";
 import { hashPassword } from "../../lib/auth/passwords";
 import { DATA_WRITES_FROZEN_CODE, isDataWriteFrozenError } from "../../lib/runtime/dataWriteFreeze";
 import {
-  getServerConvexWriteCapability,
-  resetServerConvexWriteCapabilityCacheForTests,
-  type ServerConvexWriteCapabilityResult,
-} from "../../lib/convex/serverWriteCapability";
-import { getDataBackend, getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
-import { PostgresConvexClient, resolveFunction } from "../../lib/postgres/runtime/client";
+  getServerDataWriteCapability,
+  resetServerDataWriteCapabilityCacheForTests,
+  type ServerDataWriteCapabilityResult,
+} from "../../lib/data/serverWriteCapability";
+import { getDataBackend, getPostgresClient } from "../../lib/postgres/runtime/backend";
+import { PostgresClient, resolveFunction } from "../../lib/postgres/runtime/client";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments } from "../../lib/postgres/documentStore";
 import { getSiteFlavorConfig, isEffectIndex } from "../../src/config/siteFlavor";
 import { guardTarget, resolveTarget } from "./targetGuard";
@@ -90,7 +83,7 @@ function refusedByFreeze(outcome: Outcome<unknown>): boolean {
 }
 
 /** `in` rather than the `ok` discriminant: the scripts tsconfig has no strictNullChecks, so boolean discriminants do not narrow. */
-function capabilityMissing(result: ServerConvexWriteCapabilityResult): string[] {
+function capabilityMissing(result: ServerDataWriteCapabilityResult): string[] {
   return "failure" in result ? [...result.failure.missing] : [];
 }
 
@@ -169,10 +162,10 @@ type LatencySample = { kind: string; name: string; statements: number; ms: numbe
  */
 async function latencyChild(): Promise<void> {
   const prefix = `t22l-${mintDocumentId().slice(0, 8)}`;
-  const apiKey = process.env.CONVEX_ADMIN_KEY;
-  if (!apiKey) throw new Error("CONVEX_ADMIN_KEY is required (Bun loads it from .env.local)");
+  const apiKey = process.env.DATA_ADMIN_KEY;
+  if (!apiKey) throw new Error("DATA_ADMIN_KEY is required (Bun loads it from .env.local)");
   const pool = new Pool({ connectionString: target, max: 2 });
-  const client = getPostgresConvexClient();
+  const client = getPostgresClient();
   const samples: LatencySample[] = [];
   const info = console.info;
   console.info = (...args: unknown[]) => {
@@ -283,12 +276,11 @@ async function main(): Promise<void> {
   delete process.env.POSTGRES_DIRECT_URL;
   delete process.env.DATA_WRITES_FROZEN;
 
-  const apiKey = process.env.CONVEX_ADMIN_KEY;
-  if (!apiKey) throw new Error("CONVEX_ADMIN_KEY is required (Bun loads it from .env.local)");
-  const convexReadUrl = process.env.CONVEX_PUBLIC_READ_URL;
+  const apiKey = process.env.DATA_ADMIN_KEY;
+  if (!apiKey) throw new Error("DATA_ADMIN_KEY is required (Bun loads it from .env.local)");
 
   const pool = new Pool({ connectionString: target, max: 4 });
-  const runtime = getPostgresConvexClient();
+  const runtime = getPostgresClient();
   const operator = createDataClient({ target }).client;
   const adminActor = { apiKey, actorEmail: `${run}-admin@rehearsal.invalid` };
   const blockers: Array<{ id: string; summary: string; evidence: string }> = [];
@@ -333,23 +325,6 @@ async function main(): Promise<void> {
     const now = new Date().toISOString();
     await seed("memberships", { email: adminActor.actorEmail, role: "admin", createdAt: now, updatedAt: now });
 
-    // ------------------------------------------------------------------ Convex snapshot (rollback evidence)
-    let convexBefore: Record<string, unknown> | null = null;
-    let convexReader: DataClient | null = null;
-    if (convexReadUrl) {
-      process.env.DATA_BACKEND = "convex";
-      convexReader = createDataClient({ target: convexReadUrl }).client;
-      process.env.DATA_BACKEND = "postgres";
-      const snapshot = await attempt(async () => ({
-        copyBlocks: (await convexReader!.query(api.copyBlocks.getAll, {})).length,
-        latestChangelogEntryId: (await convexReader!.query(api.changelog.getRecent, { limit: 1 }))[0]?.entryId ?? null,
-        lsdRevision: (await convexReader!.query(api.substanceIndex.getPublicBySlug, { slug: "lsd" }))?.publicRevision ?? null,
-      }));
-      convexBefore = snapshot.ok ? snapshot.value : null;
-      expect("rollback", "Convex production public reads answer before the rehearsal (read-only)", snapshot.ok, snapshot.ok ? convexBefore : errorMessage(snapshot.error));
-    } else {
-      expect("rollback", "CONVEX_PUBLIC_READ_URL is configured so the rollback target can be read", false, "unset");
-    }
 
     expect("freeze", `all ${tableNames.length} application tables enumerated for the row-count guard`, tableNames.length === 61, tableNames.length);
 
@@ -370,6 +345,12 @@ async function main(): Promise<void> {
     expect("liveness", "with the freeze off the operator client commits a real write", created.revision === 1 && created.key === copyKey, created);
     const journalAfterCreate = await selectDocuments(pool, "contentRevisions", { where: '"key" = $1', params: [copyKey] });
     expect("liveness", "the write and its journal row landed in one transaction", journalAfterCreate.length === 1, journalAfterCreate.length);
+
+    // A mutation reference cannot be used to reintroduce deployment actions.
+    // Publication dispatch is owned by the cron route, outside transactions.
+    const recoveryAsAction = makeFunctionReference<"action", { actorEmail: string }, unknown>("publicationRecovery:claimDue");
+    const unsupportedAction = await attempt(() => runtime.action(recoveryAsAction, { actorEmail: adminActor.actorEmail }));
+    expect("liveness", "the native runtime refuses action invocation while writes are enabled", !unsupportedAction.ok && !refusedByFreeze(unsupportedAction), errorMessage(unsupportedAction.error));
 
     // The freeze baseline is taken after that write, so the sweep below is compared against a settled database.
     const readsBefore: Record<string, string> = {};
@@ -394,8 +375,8 @@ async function main(): Promise<void> {
       );
     }
 
-    const frozenApp = getServerConvexWriteCapability();
-    resetServerConvexWriteCapabilityCacheForTests();
+    const frozenApp = getServerDataWriteCapability();
+    resetServerDataWriteCapabilityCacheForTests();
     if (frozenApp.ok) {
       const appClient = frozenApp.capability.client;
       const appMutation = await attempt(() =>
@@ -409,7 +390,7 @@ async function main(): Promise<void> {
         appClient.mutationAsService(makeFunctionReference<"mutation", Record<string, never>, unknown>("tripReportSubmissions:create"), {}),
       );
       const appAction = await attempt(() =>
-        appClient.action(makeFunctionReference<"action", { actorEmail: string }, unknown>("publicationDelivery:reconcile"), {
+        appClient.action(recoveryAsAction, {
           actorEmail: adminActor.actorEmail,
         }),
       );
@@ -509,39 +490,18 @@ async function main(): Promise<void> {
     }
     measurements.drain = { waitFromFreezeToCommitMs: drainWaitMs, method: "one mutation held on a row lock across the freeze flip, timed from the flip to its commit" };
 
-    // ------------------------------------------------------------------ rollback to Convex with the freeze still on
-    expect("rollback", "the freeze is still on for the rollback step", process.env.DATA_WRITES_FROZEN === "1");
+    // ------------------------------------------------------------------ retired backend cannot become a rollback path
+    expect("rollback", "the freeze remains on while checking the retirement boundary", process.env.DATA_WRITES_FROZEN === "1");
     process.env.DATA_BACKEND = "convex";
-    process.env.TARGET_CONVEX_URL = convexReadUrl ?? "";
-    resetServerConvexWriteCapabilityCacheForTests();
-    expect("rollback", "flipping DATA_BACKEND is the whole rollback: the runtime reports Convex again", getDataBackend() === "convex");
-    if (convexReadUrl) {
-      const rolledBack = createDataClient({ argv: [], env: process.env });
-      expect("rollback", "the operator factory resolves the Convex deployment after the flip", rolledBack.backend === "convex" && rolledBack.fingerprint !== null, {
-        backend: rolledBack.backend,
-        fingerprint: rolledBack.fingerprint,
-      });
-      const convexWrite = await attempt(() =>
-        rolledBack.client.mutation(makeFunctionReference<"mutation", Record<string, never>, unknown>("copyBlocks:upsert"), {}),
-      );
-      expect("rollback", "writes stay frozen on the rolled-back backend too", refusedByFreeze(convexWrite), errorMessage(convexWrite.error));
-
-      const convexReads = await attempt(async () => ({
-        copyBlocks: (await convexReader!.query(api.copyBlocks.getAll, {})).length,
-        latestChangelogEntryId: (await convexReader!.query(api.changelog.getRecent, { limit: 1 }))[0]?.entryId ?? null,
-        lsdRevision: (await convexReader!.query(api.substanceIndex.getPublicBySlug, { slug: "lsd" }))?.publicRevision ?? null,
-      }));
-      expect("rollback", "Convex still serves the public reads after the flip", convexReads.ok && convexReads.value.copyBlocks > 0, convexReads.ok ? convexReads.value : errorMessage(convexReads.error));
-      expect("rollback", "Convex data is byte-identical to the pre-rehearsal snapshot", convexBefore !== null && convexReads.ok && JSON.stringify(convexReads.value) === JSON.stringify(convexBefore), {
-        before: convexBefore,
-        after: convexReads.ok ? convexReads.value : null,
-      });
-      const convexCopyKeys = await attempt(async () => (await convexReader!.query(api.copyBlocks.getAll, {})).map((row) => row.key));
-      expect("rollback", "no scratch row of this rehearsal exists on Convex", convexCopyKeys.ok && !convexCopyKeys.value.includes(copyKey));
-    }
+    process.env.TARGET_CONVEX_URL = "https://retired.example.invalid";
+    resetServerDataWriteCapabilityCacheForTests();
+    const retiredRuntime = await attempt(async () => getDataBackend());
+    expect("rollback", "the application refuses a retired backend rather than serving stale data", !retiredRuntime.ok && errorMessage(retiredRuntime.error).includes("DATA_BACKEND"));
+    const retiredOperator = await attempt(async () => createDataClient({ argv: [], env: process.env }));
+    expect("rollback", "ordinary operators refuse the retired backend", !retiredOperator.ok && errorMessage(retiredOperator.error).includes("DATA_BACKEND"));
     delete process.env.TARGET_CONVEX_URL;
     process.env.DATA_BACKEND = "postgres";
-    resetServerConvexWriteCapabilityCacheForTests();
+    resetServerDataWriteCapabilityCacheForTests();
 
     // ------------------------------------------------------------------ the freeze is liftable
     process.env.DATA_WRITES_FROZEN = "0";
@@ -573,19 +533,19 @@ async function main(): Promise<void> {
       expect(S, "reads resolve to the same Postgres deployment fingerprint", postgresFingerprintFromUrl(target) === "localhost/dosewiki", postgresFingerprintFromUrl(target));
 
       // permission: the effectindex project holds no write credential, which is what makes it read-only.
-      const savedKey = process.env.CONVEX_ADMIN_KEY;
-      if (flavor === "effectindex") delete process.env.CONVEX_ADMIN_KEY;
-      resetServerConvexWriteCapabilityCacheForTests();
-      const capability = getServerConvexWriteCapability();
+      const savedKey = process.env.DATA_ADMIN_KEY;
+      if (flavor === "effectindex") delete process.env.DATA_ADMIN_KEY;
+      resetServerDataWriteCapabilityCacheForTests();
+      const capability = getServerDataWriteCapability();
       if (flavor === "effectindex") {
         expect(S, "no write capability exists without a credential, so no write transaction can open", capability.ok === false && capabilityMissing(capability).includes("adminKey"), capabilityMissing(capability));
         const read = await attempt(() => runtime.query(api.copyBlocks.getAll, {}));
         expect(S, "reads still serve on the credential-free flavor", read.ok);
         // A fresh credential-free process is the real Effect Index shape: it starts its own client, and
-        // the deployment contract must let it (on Postgres CONVEX_ADMIN_KEY is the write credential, so
+        // the deployment contract must let it (on Postgres DATA_ADMIN_KEY is the write credential, so
         // requiring it would hand write authority to the read-only deployments).
         const construction = await attempt(async () => {
-          const client = PostgresConvexClient.fromUrl(target);
+          const client = PostgresClient.fromUrl(target);
           const rows = await client.query(api.copyBlocks.getAll, {});
           await client.end();
           return rows.length;
@@ -595,7 +555,7 @@ async function main(): Promise<void> {
           const savedMedia = process.env.REPLICATION_MEDIA_BASE_URL;
           delete process.env.REPLICATION_MEDIA_BASE_URL;
           try {
-            const client = PostgresConvexClient.fromUrl(target);
+            const client = PostgresClient.fromUrl(target);
             await client.end();
             return "constructed";
           } finally {
@@ -606,8 +566,8 @@ async function main(): Promise<void> {
       } else {
         expect(S, "the editor flavor resolves a write capability", capability.ok === true, capabilityMissing(capability));
       }
-      process.env.CONVEX_ADMIN_KEY = savedKey;
-      resetServerConvexWriteCapabilityCacheForTests();
+      process.env.DATA_ADMIN_KEY = savedKey;
+      resetServerDataWriteCapabilityCacheForTests();
 
       // transaction: a refused write leaves no partial row behind, on either flavor's data path.
       const journalBefore = (await selectDocuments(pool, "contentRevisions", { where: '"key" = $1', params: [copyKey] })).length;
@@ -633,44 +593,6 @@ async function main(): Promise<void> {
       expect(S, "the subscriber list refuses a wrong credential", !subscribers.ok, subscribers.ok ? "served" : errorMessage(subscribers.error));
     }
 
-    // ------------------------------------------------------------------ post-write recovery position
-    // The reverse importer exists when both the script and its package entry
-    // do; the blocker clears only from a rollback rehearsal that passed with
-    // its Convex phase run, at the migration journal tag the schema is at now.
-    const reverseImporters = fs
-      .readdirSync(path.join(ROOT, "scripts", "postgres"))
-      .filter((name) => /(postgres-to-convex|reverse|export-postgres|convex-restore)/i.test(name));
-    const packageJson = readJson(path.join(ROOT, "package.json"));
-    const packageScripts = packageJson && typeof packageJson.scripts === "object" && packageJson.scripts !== null ? Object.keys(packageJson.scripts) : [];
-    const reverseScripts = packageScripts.filter((name) => /postgres.*(to-convex|reverse|restore|rollback)/i.test(name));
-    const journal = readJson(path.join(ROOT, "lib", "postgres", "migrations", "meta", "_journal.json"));
-    const journalEntries = journal && Array.isArray(journal.entries) ? (journal.entries as Array<{ tag: string }>) : [];
-    const schemaTag = journalEntries.length ? journalEntries[journalEntries.length - 1].tag : null;
-    const rollback = newestReport("-rollback");
-    const rollbackConvex = rollback && rollback.report.convex && typeof rollback.report.convex === "object" ? (rollback.report.convex as Record<string, unknown>) : null;
-    const rollbackFresh = rollback !== null && rollback.report.failed === 0 && rollbackConvex !== null && rollbackConvex.skipped === false && rollback.report.schemaTag === schemaTag;
-    const postWriteRecovery = {
-      procedureExists: reverseImporters.includes("export-postgres-to-convex.ts") && reverseScripts.includes("postgres:reverse-export") && reverseScripts.includes("postgres:rehearse-rollback"),
-      searched: { directory: "scripts/postgres", found: reverseImporters, packageScripts: reverseScripts },
-      rehearsal: rollback
-        ? { report: rollback.path, passed: rollback.report.passed, failed: rollback.report.failed, schemaTag: rollback.report.schemaTag, currentSchemaTag: schemaTag, convex: rollbackConvex, fresh: rollbackFresh }
-        : { report: null, fresh: false, currentSchemaTag: schemaTag },
-      position: rollbackFresh
-        ? "Rollback after writes reopen is a full reverse export (scripts/postgres/export-postgres-to-convex.ts) imported into Convex with `npx convex import --replace`; rehearsed on a scratch deployment with count and per-document hash verification. Ids minted on Postgres are remapped to Convex ids by the export."
-        : "No fresh, passing rollback rehearsal at the current schema. Once writes reopen on Postgres, pointing DATA_BACKEND back at Convex loses every row written after the freeze lifted.",
-      satisfiableBy: "bun scripts/postgres/rehearse-rollback.ts --target <postgres> --convex-scratch <scratch deployment> [--convex-source <schema-valid postgres>] with 0 failures at the current migration tag",
-    };
-    measurements.postWriteRecovery = postWriteRecovery;
-    if (!postWriteRecovery.procedureExists || !rollbackFresh) {
-      blockers.push({
-        id: "blocker:post-write-rollback",
-        summary: "No tested rollback after writes reopen on Postgres at the current schema (ticket 22 acceptance criterion).",
-        evidence: postWriteRecovery.procedureExists
-          ? `newest rollback rehearsal: ${rollback ? `${rollback.path} failed=${rollback.report.failed} schemaTag=${rollback.report.schemaTag} convexSkipped=${rollbackConvex?.skipped ?? "unknown"}` : "none"}; current schema tag ${schemaTag}`
-          : "scripts/postgres holds no reverse importer or package.json lacks postgres:reverse-export / postgres:rehearse-rollback",
-      });
-    }
-    expect("recovery", "a reverse importer exists and its newest rollback rehearsal passed with the Convex phase at the current schema", postWriteRecovery.procedureExists && rollbackFresh, postWriteRecovery.rehearsal);
 
     // ------------------------------------------------------------------ measurements
     const remoteImport = newestImportReport("remote");
@@ -735,8 +657,7 @@ async function main(): Promise<void> {
 
     unknowns.push(
       { quantity: "freeze window (real cutover downtime)", why: "it depends on the snapshot export, the transfer, and the import running from a stable network host, none of which happen on a workstation", howToMeasure: "time the export, transfer and import on the CI or cloud host that will run the cutover, with the freeze on" },
-      { quantity: "Convex file storage bytes", why: "ticket 11 is human-gated and no bytes were copied", howToMeasure: "npx convex export --include-file-storage after the gate is approved" },
-      { quantity: "production read and write traffic and concurrency", why: "not observable from the repository", howToMeasure: "Convex dashboard function logs plus Vercel analytics for the same window" },
+      { quantity: "production read and write traffic and concurrency", why: "not observable from the repository", howToMeasure: "PlanetScale Insights plus Vercel analytics for the same window" },
       { quantity: "PlanetScale write latency", why: "the PlanetScale branch is read-only for this rehearsal, so no write was timed against it", howToMeasure: "repeat the POSTGRES_RUNTIME_TRACE=1 measurement against a scratch PlanetScale branch" },
       { quantity: "warm build time for the dosewiki flavor and the editor surface", why: "only the effectindex flavor was built twice in this session", howToMeasure: "re-run the same build command against an existing distDir and time it" },
       { quantity: "migration apply time on PlanetScale", why: "the branch already carries all six migrations and this rehearsal may not run DDL there", howToMeasure: "time drizzle-kit migrate on a fresh PlanetScale branch created for the cutover" },

@@ -39,7 +39,7 @@ describe("quote section contract", () => {
       path: "../../quotes/history-culture-quotes",
       section: "history_culture",
       suffix: "-history-culture.md",
-      storageMode: "convex",
+      storageMode: "data",
     });
   });
 

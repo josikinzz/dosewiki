@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicReplicationBySlug } from "@server/convex/publicData";
+import { getPublicReplicationBySlug } from "@server/data/publicData";
 import { isPublishableReplication } from "@/types/replications";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {

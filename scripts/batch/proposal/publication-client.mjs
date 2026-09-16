@@ -6,7 +6,7 @@ import { requireBatchProposalTargetUrl } from "../lib/batch-targets.mjs";
 
 /**
  * Guarded interface for a future explicit apply command or protected route.
- * This module intentionally owns no CLI and no Convex client. A caller must
+ * This module intentionally owns no CLI and no Postgres client. A caller must
  * supply the single reviewed-section mutation invocation after all production
  * write ceremony checks pass.
  */
@@ -32,7 +32,7 @@ export function createReviewedSectionPublisher({ context, actorEmail, env = proc
     }
     const credential = requireAdminIntentToken("generatedPublicationWrite", { env });
     if (credential.source !== "scoped") {
-      throw new Error("Generated publication requires CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE; the legacy admin key is not accepted.");
+      throw new Error("Generated publication requires DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE; the legacy admin key is not accepted.");
     }
 
     return mutate({

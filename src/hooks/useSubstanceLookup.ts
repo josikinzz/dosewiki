@@ -10,7 +10,7 @@ const SUBSTANCE_LOOKUP_PAGE_SIZE = 200;
  * Drain the bounded editor lookup projection while preserving the old lookup's
  * all-or-loading contract: pages accumulate in stable table order and
  * `lookup` stays `undefined` until the last one lands. Query failures
- * propagate through render exactly as the Convex hook's did.
+ * propagate through render exactly as the Postgres hook's did.
  */
 export function useSubstanceLookup(enabled = true) {
   const { results, status } = useEditorDrainedRead(

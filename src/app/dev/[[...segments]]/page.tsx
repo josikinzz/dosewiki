@@ -1,12 +1,9 @@
-import type { ReactElement } from "react";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@auth";
-import { getOwnedContributorProfile } from "@server/convex/publicData";
+import { getRequestSession } from "@server/next/requestSession";
+import { getOwnedContributorProfileKey } from "@server/data/publicData.contributors";
 import {
-  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR,
   getEditorTargetAlignment,
-} from "@server/convex/serverWriteHealth";
+} from "@server/data/serverWriteHealth";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
@@ -15,9 +12,8 @@ import {
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import {
-  ConvexTargetSplitBanner,
-  ConvexTargetSplitRefusal,
-} from "../../_components/ConvexTargetSplitNotice";
+  DataTargetSplitRefusal,
+} from "../../_components/DataTargetSplitNotice";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import { findDevTab, resolveDevRoute } from "@/features/dev/pages/devTabRegistry";
 
@@ -48,7 +44,7 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
   if (destination.kind === "external") {
     redirect(route.slug ? `${destination.href}/${route.slug}` : destination.href);
   }
-  const session = await getServerSession(authOptions);
+  const session = await getRequestSession();
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
   // Any signed-in member role may open the shell; a tab above the role
@@ -69,39 +65,20 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
   // names cross into the rendered output.
   const alignment = getEditorTargetAlignment();
 
-  if (alignment.status === "split" && !alignment.overrideAcknowledged) {
+  if (alignment.status === "split") {
     return (
-      <ConvexTargetSplitRefusal
+      <DataTargetSplitRefusal
         alignment={alignment}
         surface="/dev editor shell"
-        overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
       />
     );
   }
 
-  const withSplitBanner = (shell: ReactElement) =>
-    alignment.status === "split" ? (
-      <>
-        <ConvexTargetSplitBanner
-          alignment={alignment}
-          surface="/dev editor shell"
-          overrideEnvVar={CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR}
-        />
-        {shell}
-      </>
-    ) : (
-      shell
-    );
-
   const userEmail = email?.trim() ?? "";
-  // Deliberately not awaited: `getOwnedContributorProfile` is an uncached,
-  // privileged Convex read, and awaiting it here put a full round trip in front
-  // of the first byte of the shell. The browser gets the key derived from the
-  // session email straight away, the same fallback that read uses, and adopts
-  // the canonical key when the promise lands.
+  // Resolve the canonical owned key without delaying the shell or materializing
+  // the full profile. The email-derived key remains the existing initial fallback.
   const ownedProfileKey = userEmail
-    ? getOwnedContributorProfile(userEmail)
-        .then((profile) => profile?.key ?? null)
+    ? getOwnedContributorProfileKey(userEmail)
         .catch((error: unknown) => {
           console.error("Unable to resolve the owned contributor profile; rendering the /dev shell without it.", error);
           return null;
@@ -109,13 +86,13 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
     : undefined;
   const initialProfileKey = userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined;
 
-  return withSplitBanner(
+  return (
     <NextDevRouteClient
       initialTab={route.tab}
       initialSlug={route.slug}
       initialFilter={route.filter}
       initialProfileKey={initialProfileKey}
       ownedProfileKey={ownedProfileKey}
-    />,
+    />
   );
 }

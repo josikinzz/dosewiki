@@ -75,7 +75,12 @@ export function useReviewQueue({
   // Source richness drives the default order; fall back to bibliography sizes
   // and say so, rather than silently pretending the stats arrived.
   useEffect(() => {
+    if (!settingsRestored || order !== "sources") {
+      return;
+    }
+
     let cancelled = false;
+    setStatsState("loading");
     fetch("/api/dev/article-source-stats")
       .then((response) => (response.ok ? response.json() : null))
       .then(
@@ -101,7 +106,7 @@ export function useReviewQueue({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [order, settingsRestored]);
 
   const homeOrder = useMemo(() => flattenHomeOrder(layout), [layout]);
 

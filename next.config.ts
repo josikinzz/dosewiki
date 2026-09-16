@@ -1,24 +1,33 @@
 import path from "node:path";
 import type { NextConfig } from "next";
-import { EditorArtifactAudit, getServerRuntimeIncludes } from "./scripts/build/editor-artifact-audit.mjs";
-import { getPublicBrowserRuntimeConfig } from "./lib/runtime/envContract";
+import {
+  EditorArtifactAudit,
+  getServerRuntimeIncludes,
+} from "./scripts/build/editor-artifact-audit.mjs";
 // The legacy redirect table lives in its own module so application code (the Discord
 // page) can read the invite URL from it without importing this config.
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
 
-const publicBrowserConfig = getPublicBrowserRuntimeConfig();
-
 // Separate artifacts, never a host-conditional lazy import inside one public bundle.
-const buildSurface = process.env.DOSEWIKI_BUILD_SURFACE ?? (process.env.NODE_ENV === "development" ? "editor" : "public");
+const buildSurface =
+  process.env.DOSEWIKI_BUILD_SURFACE ??
+  (process.env.NODE_ENV === "development" ? "editor" : "public");
 if (buildSurface !== "public" && buildSurface !== "editor") {
   throw new Error("DOSEWIKI_BUILD_SURFACE must be public or editor.");
 }
 const editorBuild = buildSurface === "editor";
 // `DOSEWIKI_BUILD_DIR` exists so a flavor or surface artifact can be built side by side without clobbering the directory a running server is serving; unset keeps the deployed paths byte-identical.
-const buildDirectory = process.env.DOSEWIKI_BUILD_DIR ?? (editorBuild ? ".next-editor" : ".next");
-if (process.env.NODE_ENV === "production" && process.argv.includes("build") && !process.argv.includes("--webpack")) {
-  throw new Error("Public/editor artifact separation requires the audited webpack build. Use bun run build (next build --webpack).");
+const buildDirectory =
+  process.env.DOSEWIKI_BUILD_DIR ?? (editorBuild ? ".next-editor" : ".next");
+if (
+  process.env.NODE_ENV === "production" &&
+  process.argv.includes("build") &&
+  !process.argv.includes("--webpack")
+) {
+  throw new Error(
+    "Public/editor artifact separation requires the audited webpack build. Use bun run build (next build --webpack).",
+  );
 }
 
 /**
@@ -98,11 +107,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     // Static generation reads a multi-megabyte substance library once per
-    // worker, and since /[slug] prerenders the high and normal priority
-    // substance articles (lib/next/staticParams.ts) each worker then renders
-    // a share of a few hundred article pages against that in-process library
-    // cache. Letting Next use every host CPU creates a cold-start thundering
-    // herd against Convex; four long-lived workers finish the bounded static
+    // worker, and /[slug] prerenders every publicly reachable substance
+    // (lib/next/staticParams.ts). Each worker renders its share against that
+    // in-process library cache. Letting Next use every host CPU creates a
+    // cold-start thundering herd against Postgres; four long-lived workers finish the
     // build more reliably and amortise the corpus read across many pages.
     cpus: 4,
     // Each page fans out server reads against a four-connection pool.
@@ -128,7 +136,7 @@ const nextConfig: NextConfig = {
       "react-hook-form",
     ],
   },
-  // A cold worker's first substance-library render includes the bounded Convex
+  // A cold worker's first substance-library render includes the bounded Postgres
   // corpus read and derivation. Give that deliberate cold start room to finish
   // instead of retrying it twice at the default 60-second threshold. The
   // prerendered substance articles hit this path first: whichever article a
@@ -137,20 +145,17 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   images: {
     localPatterns: [
-      // Convex-backed molecule SVGs are cache-busted with a ?v=<updatedAt> query.
+      // Molecule SVGs are cache-busted with a ?v=<updatedAt> query.
       { pathname: "/api/molecules/**" },
       { pathname: "/**", search: "" },
     ],
-    // Convex file storage (replication artwork, posters, thumbnails). Derived from
-    // the same browser deployment URL the client bundle reads, so AppImage's
-    // decision to send a storage URL through the optimizer always agrees with
-    // this allowlist (see isConvexStorageImage in src/components/common/AppImage.tsx).
-    remotePatterns: publicBrowserConfig.convexUrl
-      ? [new URL("/api/storage/**", publicBrowserConfig.convexUrl)]
-      : [],
+    // Managed media uses Worker renditions directly. Neither managed nor legacy
+    // R2 origins may enter the optimizer's independently cached delivery path.
+    remotePatterns: [],
+    // A trusted image URL must never redirect the optimizer to another host.
+    maximumRedirects: 0,
   },
   env: {
-    NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,
     NEXT_PUBLIC_EDITOR_BUILD: String(editorBuild),
   },
   turbopack: {
@@ -165,17 +170,36 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  webpack(config, { isServer, dev }) {
+  webpack(config, { isServer, dev, config: resolvedConfig }) {
+    // next/font embeds deploymentId in CSS font URLs, but Next 16's filesystem
+    // cache version omits it. Reusing that CSS after a deploy makes its URL differ
+    // from the new HTML preload, downloading the same font twice.
+    if (!dev && config.cache && config.cache.type === "filesystem") {
+      config.cache.version = `${config.cache.version ?? ""}|deploymentId:${resolvedConfig.deploymentId ?? ""}`;
+    }
     if (!dev && !editorBuild) {
       config.module.rules.unshift({
         test: /\.[cm]?[jt]sx?$/,
         include: path.resolve(process.cwd(), "src"),
         enforce: "pre",
-        use: [{ loader: path.resolve(process.cwd(), "scripts/build/public-editor-boundary.mjs"), options: { client: !isServer } }],
+        use: [
+          {
+            loader: path.resolve(
+              process.cwd(),
+              "scripts/build/public-editor-boundary.mjs",
+            ),
+            options: { client: !isServer },
+          },
+        ],
       });
     }
     if (!dev && !isServer) {
-      config.plugins.push(new EditorArtifactAudit({ editorBuild, directory: path.resolve(process.cwd(), buildDirectory) }));
+      config.plugins.push(
+        new EditorArtifactAudit({
+          editorBuild,
+          directory: path.resolve(process.cwd(), buildDirectory),
+        }),
+      );
     }
     config.module.rules.push({
       test: /\.md$/i,
@@ -193,8 +217,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // The mailing-list signup keeps the `/subscribe` path of the Convex HTTP
-      // action it replaces, so the public sites only change the origin at cutover.
+      // Preserve the public mailing-list entry path used by external consumers.
       {
         source: "/subscribe",
         destination: "/api/subscribe",

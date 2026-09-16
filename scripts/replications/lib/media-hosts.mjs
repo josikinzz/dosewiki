@@ -15,9 +15,6 @@
  * migration cannot disagree with an audit about which rows are at risk.
  */
 
-/** The deployment this project owns and deploys to. Media here is safe. */
-export const PRODUCTION_HOST = "glad-minnow-656.convex.cloud";
-
 /**
  * The development deployment. Media here is NOT safe: a dev deployment can be
  * reset at any time, and 65 replication thumbnails are currently served from it.
@@ -55,6 +52,19 @@ export function hostOf(url) {
   }
 }
 
+function isConfiguredR2Url(value) {
+  try {
+    const base = new URL(process.env.REPLICATION_MEDIA_BASE_URL ?? "");
+    const candidate = new URL(value);
+    const prefix = `${base.pathname.replace(/\/+$/, "")}/media/sha256/`;
+    return base.protocol === "https:" && !base.username && !base.password && !base.search && !base.hash
+      && candidate.origin === base.origin && candidate.pathname.startsWith(prefix)
+      && !candidate.username && !candidate.password && !candidate.search && !candidate.hash;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Classify a media URL by how recoverable it is if the host goes away.
  *
@@ -65,13 +75,13 @@ export function hostOf(url) {
 export function classifyHostRisk(url) {
   const host = hostOf(url);
   if (!host) return { host: null, risk: RISK.UNKNOWN, atRisk: true };
-  if (host === PRODUCTION_HOST) return { host, risk: RISK.PRODUCTION, atRisk: false };
+  if (isProductionUrl(url)) return { host, risk: RISK.PRODUCTION, atRisk: false };
   if (host === DEV_HOST) return { host, risk: RISK.DEV, atRisk: true };
   if (ORPHAN_HOSTS.includes(host)) return { host, risk: RISK.ORPHAN, atRisk: true };
   return { host, risk: RISK.UNKNOWN, atRisk: true };
 }
 
-/** True when a resolved URL is already served by the deployment we control. */
+/** Only the explicitly configured native R2 media namespace is trusted. */
 export function isProductionUrl(url) {
-  return hostOf(url) === PRODUCTION_HOST;
+  return isConfiguredR2Url(url);
 }

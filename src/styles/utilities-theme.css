@@ -95,6 +95,7 @@ html[data-theme="light"] .theme-page-shell {
     border-color 260ms cubic-bezier(0.25, 1, 0.5, 1),
     box-shadow 260ms cubic-bezier(0.25, 1, 0.5, 1),
     transform 260ms cubic-bezier(0.25, 1, 0.5, 1),
+    scale 160ms ease,
     color 260ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -107,7 +108,59 @@ html[data-theme="light"] .theme-page-shell {
   will-change: opacity, transform;
 }
 
+/* A shorter version of the shared entrance for newly selected tab content.
+   No forwards fill or will-change: release the compositing layer on completion. */
+.theme-tab-panel-enter {
+  --theme-section-card-distance: 4px;
+  animation: theme-section-card-enter 240ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Public interaction entrances share the section motion without retaining a
+   transform after completion. Keep positioner nodes and live players outside. */
+.theme-reveal-enter,
+.theme-overlay-enter {
+  --theme-section-card-distance: 2px;
+  animation: theme-section-card-enter 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.theme-overlay-enter {
+  --theme-section-card-distance: 4px;
+}
+
+.theme-feedback-enter {
+  animation: theme-feedback-enter 160ms ease-out;
+}
+
+.theme-navigation-target:target,
+.theme-navigation-target[data-navigation-highlight="true"] {
+  animation: theme-navigation-emphasis 700ms ease-out;
+}
+
+@keyframes theme-feedback-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* A destination cue, not a change to the content's semantic color or layout. */
+@keyframes theme-navigation-emphasis {
+  from {
+    background-color: color-mix(in srgb, var(--theme-text-secondary) 10%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .theme-tab-panel-enter,
+  .theme-reveal-enter,
+  .theme-overlay-enter,
+  .theme-feedback-enter,
+  .theme-navigation-target:target,
+  .theme-navigation-target[data-navigation-highlight="true"] {
+    animation: none;
+  }
+
   .theme-section-card-enter {
     opacity: 1;
     transform: none;
@@ -459,7 +512,7 @@ html[data-theme="light"]
 
 .theme-control-pill:focus-visible,
 .theme-control-pill-quiet:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -541,7 +594,7 @@ html[data-theme="light"]
 }
 
 .theme-chroma-slider:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -624,7 +677,7 @@ html[data-theme="light"]
 }
 
 .theme-control-pill-faint:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -713,7 +766,7 @@ html[data-theme="light"]
 
 .theme-evidence-link:focus-visible {
   border-radius: 0.35rem;
-  outline: 2px solid var(--theme-evidence-text-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -754,7 +807,7 @@ html[data-theme="light"]
 
 .theme-citation-marker:focus-visible {
   border-radius: 0.12rem;
-  outline: 2px solid var(--theme-inline-reference-focus);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -1837,9 +1890,6 @@ html[data-theme="light"] .theme-home-nav-svg {
   }
 }
 
-.theme-search-focus-glow {
-  background: var(--theme-search-focus-glow-bg);
-}
 
 .theme-global-search-input {
   border-color: var(--theme-field-on-chrome-border);
@@ -1879,11 +1929,9 @@ html[data-theme="light"] .theme-home-nav-svg {
 }
 
 .theme-global-search-input:focus {
-  border-color: var(--theme-accent-strong);
+  border-color: var(--theme-text-secondary);
   background-color: var(--theme-field-on-chrome-surface);
-  box-shadow:
-    0 0 0 1px var(--theme-ring-soft),
-    0 18px 45px -28px color-mix(in srgb, var(--theme-accent) 52%, transparent);
+  box-shadow: var(--theme-elevation-field-inset);
 }
 
 .theme-home-search-input {
@@ -1950,20 +1998,14 @@ html[data-theme="light"] .theme-home-search-input {
 }
 
 .theme-home-search-input:focus {
-  border-color: var(--theme-accent-strong);
+  border-color: var(--theme-text-secondary);
   background-color: var(--theme-field-surface);
-  box-shadow:
-    0 0 0 1px var(--theme-accent-strong),
-    0 0 34px -14px color-mix(in srgb, var(--theme-accent) 90%, transparent),
-    0 28px 70px -36px color-mix(in srgb, var(--theme-accent) 72%, transparent);
+  box-shadow: var(--theme-elevation-field-inset);
 }
 
 html[data-theme="light"] .theme-home-search-input:focus {
   background-color: #fffaff;
-  box-shadow:
-    0 0 0 1px var(--theme-accent-strong),
-    0 0 0 5px rgb(var(--c-plum-pink) / 0.08),
-    0 28px 62px -38px rgba(84, 46, 112, 0.34);
+  box-shadow: var(--theme-elevation-field-inset);
 }
 
 .theme-home-search-button,
@@ -1971,7 +2013,6 @@ html[data-theme="light"] .theme-home-search-input:focus {
   color: var(--theme-text-muted);
   background: transparent;
   box-shadow: none;
-  --tw-ring-color: var(--theme-accent-strong);
   transition:
     background-color 200ms ease,
     box-shadow 200ms ease,
@@ -2369,7 +2410,7 @@ html[data-theme="light"] .theme-search-highlight-mark {
 }
 
 .theme-reference-link:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 4px;
 }
 
@@ -2690,7 +2731,7 @@ html[data-theme="light"] .theme-search-highlight-mark {
 @keyframes theme-section-card-enter {
   from {
     opacity: 0;
-    transform: translate3d(0, 12px, 0);
+    transform: translate3d(0, var(--theme-section-card-distance, 12px), 0);
   }
 
   to {
@@ -3082,6 +3123,7 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   transition:
     background-color 200ms ease,
     box-shadow 200ms ease,
+    scale 160ms ease,
     color 200ms ease;
 }
 
@@ -3092,7 +3134,7 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 .theme-report-index-link:focus-visible {
   background: var(--theme-frosted-control-hover-bg);
   box-shadow: var(--theme-frosted-control-hover-shadow);
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
 }
 @media (hover: hover) {
@@ -3206,7 +3248,7 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 }
 
 .theme-media-thumbnail-selected {
-  border-color: var(--theme-accent-strong);
+  border-color: var(--theme-text-on-media);
 }
 
 /* Raised media control: the viewer header's square buttons. A soft top-lit
@@ -3391,7 +3433,7 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 }
 
 .theme-media-tile:focus-visible {
-  outline-color: var(--theme-accent-strong);
+  outline-color: var(--theme-text-secondary);
 }
 
 /* The speech-bubble tail on .theme-aside-panel: a rotated square sharing the
@@ -3570,7 +3612,7 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-inline-label-input:focus {
-  border-color: var(--theme-accent-strong);
+  border-color: var(--theme-text-secondary);
 }
 
 /* Repeat-entry card wrapper in the dev form editors. */
@@ -3660,7 +3702,7 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-link-muted:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
   border-radius: 9999px;
 }
@@ -3701,7 +3743,7 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-report-author-link:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
   border-radius: 9999px;
 }
@@ -3718,7 +3760,7 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-icon-button:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -3742,7 +3784,7 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-toggle-pill:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 3px;
 }
 
@@ -4361,7 +4403,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 
 .theme-selected-control:focus-visible {
   color: var(--theme-text-primary);
-  outline-color: var(--theme-selected-control-focus);
+  outline-color: var(--theme-text-secondary);
 }
 @media (hover: hover) {
   .theme-selected-control:hover {
@@ -4385,17 +4427,54 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 
 .theme-selected-control:focus-visible .theme-selected-control-icon,
 .theme-selected-control[data-state="active"] .theme-selected-control-icon {
-  background: var(--theme-selected-control-bg);
+  background: transparent;
   color: var(--theme-selected-control-text);
-  box-shadow: 0 0 0 1px var(--theme-selected-control-border);
-  --tw-ring-color: var(--theme-selected-control-border);
+  box-shadow: none;
+  --tw-ring-color: transparent;
 }
 @media (hover: hover) {
   .theme-selected-control:hover .theme-selected-control-icon {
-    background: var(--theme-selected-control-bg);
+    background: transparent;
     color: var(--theme-selected-control-text);
-    box-shadow: 0 0 0 1px var(--theme-selected-control-border);
-    --tw-ring-color: var(--theme-selected-control-border);
+    box-shadow: none;
+    --tw-ring-color: transparent;
+  }
+}
+
+/* Desktop selection grows behind the glyph without moving the tab layout.
+   Mobile index tiles keep their filled, rounded-square app-icon treatment. */
+@media (min-width: 768px) {
+  .theme-route-tabs-list .theme-selected-control-icon {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .theme-route-tabs-list .theme-selected-control-icon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--theme-body-bg);
+    opacity: 0;
+    transform: scale(0.55);
+    transition:
+      transform 240ms cubic-bezier(0.25, 1, 0.5, 1),
+      opacity 160ms ease-out;
+  }
+
+  .theme-route-tabs-list .theme-selected-control[data-state="active"] .theme-selected-control-icon::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-route-tabs-list .theme-selected-control-icon,
+  .theme-index-mobile-tab-icon,
+  .theme-route-tabs-list .theme-selected-control-icon::before {
+    transition: none;
   }
 }
 
@@ -4424,7 +4503,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 
 .theme-dev-rail-tab:focus-visible,
 .theme-dev-rail-button:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
 }
 
@@ -4461,12 +4540,8 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-editor-field:focus {
-  border-color: var(--theme-accent-strong);
-  --tw-ring-color: color-mix(
-    in srgb,
-    var(--theme-accent-strong) 30%,
-    transparent
-  );
+  border-color: var(--theme-text-secondary);
+  outline: none;
 }
 
 .theme-replication-suggestions {
@@ -4524,7 +4599,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-replication-card:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
 }
 
@@ -4598,7 +4673,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-portal-row:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: -2px;
 }
 
@@ -4666,7 +4741,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-index-mobile-tab:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 4px;
 }
 
@@ -4933,7 +5008,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-article-toc-item:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: -2px;
 }
 
@@ -5454,6 +5529,16 @@ html:not([data-visual-style="pro"])
   -webkit-backdrop-filter: none !important;
 }
 
+.theme-appearance-popover [role="combobox"]:focus {
+  border-color: var(--theme-field-border);
+  box-shadow: var(--theme-elevation-inner);
+}
+
+.theme-appearance-popover [role="combobox"]:focus-visible {
+  outline: 1px solid var(--theme-text-muted);
+  outline-offset: 2px;
+}
+
 .theme-appearance-popover .theme-popover-arrow {
   fill: var(--theme-chrome-rail-primary);
 }
@@ -5507,11 +5592,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 }
 
 .theme-header-surface .theme-global-search-input:focus {
-  border-color: color-mix(
-    in srgb,
-    var(--theme-accent-strong) 38%,
-    var(--theme-frosted-panel-border)
-  );
+  border-color: var(--theme-text-secondary);
   background: color-mix(
     in srgb,
     var(--theme-toggle-pill-bg) 76%,
@@ -5520,36 +5601,53 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   box-shadow:
     inset 0 2px 3px
       color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent),
-    0 0 0 1px var(--theme-ring-soft);
+    inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent);
 }
 
-/* Shared theme-token focus ring. Applying `theme-focus-ring` yields the full
-     focus-visible treatment through the active Accent token. This mirrors the
-     `focusRingClassName` constant in src/components/ui/surface.tsx. */
+/* Keyboard focus uses a quiet neutral hairline, never a thick accent rim.
+   Shared by focusRingClassName and the UI kit's focus utilities. */
 .theme-focus-ring:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
 }
 
 /* Sibling target for visually hidden range inputs such as the audio scrubber. */
 .peer:focus-visible ~ .theme-peer-focus-ring {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 4px;
 }
 
 /* Inset variant for full-bleed list rows where an outset ring would be
      clipped by the scroll container (equivalent to `-outline-offset-2`). */
 .theme-focus-ring-inset:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: -2px;
 }
 
 /* Tight variant for very small inline controls (equivalent to
      `outline-offset-1`). */
 .theme-focus-ring-tight:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 1px;
+}
+
+/* Text-entry controls use their existing border instead of an outside ring.
+   Low specificity lets semantic validation borders retain their meaning. */
+:where(.theme-field-focus):focus {
+  border-color: var(--theme-text-secondary);
+  outline: none;
+}
+
+@media (forced-colors: active) {
+  :is(.theme-focus-ring, .theme-focus-ring-inset, .theme-focus-ring-tight, .focus-visible-ring):focus-visible,
+  .peer:focus-visible ~ .theme-peer-focus-ring {
+    outline: 2px solid Highlight;
+  }
+
+  :where(.theme-field-focus):focus-visible {
+    outline: 1px solid Highlight;
+    outline-offset: 1px;
+  }
 }
 
 /* Audio replication scrubber. The filled run and thumb are positioned from the
@@ -5662,6 +5760,48 @@ html[data-theme="light"]:not([data-visual-style="pro"])
     scroll-margin-top: calc(
       var(--public-toc-strip-top, var(--theme-header-height, 4.25rem)) + 3rem
     );
+  }
+}
+
+@media (max-width: 1199.98px) and (pointer: coarse) {
+  .theme-toc-strip-scope [id] {
+    scroll-margin-top: calc(
+      var(--public-toc-strip-top, var(--theme-header-height, 4.25rem)) + 3.5rem
+    );
+  }
+}
+
+/* Article editing adds a full-width chrome row between the site header (or
+     review command bar) and the TOC. The editor layout measures all three
+     rows locally, including mobile wrapping and error notices. Its wrapper
+     spans the article so the action row stays pinned through the final section. */
+.theme-article-editor-scope {
+  --article-editor-top: var(--review-bar-height, var(--theme-header-height, 4.25rem));
+  --article-editor-bar-height: 3rem;
+  --article-editor-toc-height: 0px;
+  --public-toc-strip-top: calc(var(--article-editor-top) + var(--article-editor-bar-height));
+}
+
+.theme-article-editor-bar {
+  top: var(--article-editor-top);
+  border-bottom: 1px solid var(--theme-border-subtle);
+  background: var(--theme-chrome-rail-bg);
+}
+
+.theme-article-editor-scope [id] {
+  scroll-margin-top: calc(
+    var(--public-toc-strip-top) + var(--article-editor-toc-height) + 1rem
+  );
+}
+
+.theme-article-editor-scope aside > .sticky {
+  top: calc(var(--public-toc-strip-top) + 1rem);
+  max-height: calc(100dvh - var(--public-toc-strip-top) - 2rem);
+}
+
+@media (max-width: 1199.98px) {
+  .theme-article-editor-scope {
+    --article-editor-toc-height: 3rem;
   }
 }
 
@@ -5816,7 +5956,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 }
 
 .theme-editor-disclosure-trigger:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
 }
 
@@ -5949,7 +6089,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 }
 
 .theme-beta-disclaimer:focus-visible {
-  outline: 2px solid var(--theme-accent-strong);
+  outline: 1px solid var(--theme-text-secondary);
   outline-offset: 2px;
   border-radius: 4px;
 }

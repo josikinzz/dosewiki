@@ -1451,6 +1451,9 @@ html[data-visual-style="pro"] .theme-appearance-popover {
   --theme-chrome-rail-primary: var(--ei-chrome-dark) !important;
   --theme-chrome-rail-secondary: var(--ei-chrome-dark) !important;
   --theme-surface-strong: var(--ei-chrome-raised) !important;
+  --theme-field-surface: var(--ei-chrome-raised) !important;
+  --theme-field-surface-alt: var(--ei-chrome-raised) !important;
+  --theme-field-border: var(--ei-chrome-border) !important;
   --theme-text-primary: var(--ei-on-dark-muted) !important;
   --theme-text-secondary: var(--ei-on-dark-muted) !important;
   --theme-text-muted: var(--ei-on-dark-muted) !important;

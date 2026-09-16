@@ -3,9 +3,9 @@
 import { createHash } from "node:crypto";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { substanceVisibility } from "../../src/schema/substance/substanceVisibilityPolicy.ts";
 import {
   createDataOpsRunContext,
@@ -28,13 +28,7 @@ const runContext = createDataOpsRunContext({
   operation: "audit legality subsection citation coverage",
   intent: "legality-subsection-audit",
   argv,
-  sourceUrlKeys: [
-    "SOURCE_CONVEX_URL",
-    "CONVEX_PUBLIC_READ_URL",
-    "VITE_CONVEX_URL",
-    "CONVEX_URL",
-    "NEXT_PUBLIC_CONVEX_URL",
-  ],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
   targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
@@ -101,7 +95,7 @@ function subsection({ slug, title, visibility, kind, jurisdiction, value }) {
 
 async function main() {
   printDataOpsRunContext(runContext);
-  const sourceUrl = requireSourceUrl(runContext, "Convex audit source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Postgres audit source URL");
   const client = createDataClient({ target: sourceUrl }).client;
   const [articles, layout] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
@@ -135,7 +129,7 @@ async function main() {
   const audit = {
     schemaVersion: "dosewiki_legality_country_subsection_citation_audit_v2",
     generatedAt: new Date().toISOString(),
-    source: { convexUrl: sourceUrl, scope, subsectionKind: "country" },
+    source: { postgresIdentity: postgresFingerprintFromUrl(sourceUrl), scope, subsectionKind: "country" },
     viabilityFloorChars: 40,
     rows,
     totals: {

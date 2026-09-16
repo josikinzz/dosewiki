@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -84,7 +84,7 @@ export const POST = protectedRouteOperation<CitationEvidenceStatusBody, Citation
     maxBytes: MAX_STATUS_PAYLOAD_BYTES,
     parse: parseBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to update citation review status via Next route:",
   unexpectedErrorMessage: "Unable to update citation review status right now.",
   mapError: (error) => {
@@ -94,15 +94,15 @@ export const POST = protectedRouteOperation<CitationEvidenceStatusBody, Citation
 
     return null;
   },
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("citationEvidenceReview") ??
-      convexWrite.adminKey;
-    const result = await convexWrite.client.mutation(api.citationEvidence.setManyStatus, {
+      dataWrite.getAdminIntentToken?.("citationEvidenceReview") ??
+      dataWrite.adminKey;
+    const result = await dataWrite.client.mutation(api.citationEvidence.setManyStatus, {
       apiKey,
       actorEmail,
       slug: body.slug,

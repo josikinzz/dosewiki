@@ -49,6 +49,31 @@ afterEach(async () => {
   resetSearchManifestForTests();
 });
 
+
+describe("useSearchManifestIndex intent loading", () => {
+  it("does not fetch until search is enabled", async () => {
+    const { rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useSearchManifestIndex(enabled),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(fetch).not.toHaveBeenCalled();
+    rerender({ enabled: true });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+  });
+
+  it("allows an explicit retry after a failed shared load", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(MANIFEST), { status: 200 }));
+
+    expect(await loadSearchManifestIndex()).toBeNull();
+    const recovered = await loadSearchManifestIndex();
+
+    expect(recovered?.query("lsd")[0]?.label).toBe("LSD");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
 describe("useSearchManifestIndex hydration", () => {
   it("hydrates an empty server snapshot after the manifest warms without a mismatch", async () => {
     const markup = renderToString(<ManifestProbe />);

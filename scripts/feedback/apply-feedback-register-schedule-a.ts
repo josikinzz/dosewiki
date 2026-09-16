@@ -7,21 +7,21 @@
  * edit carries a compare-and-set precondition on the exact stored value, so a
  * stale plan refuses instead of overwriting newer work. The three queue rows in
  * clause A7 take two hops each, because `VALID_TRANSITIONS` in
- * `convex/articleFeedback.ts` has no direct route from `resolved` to `spam`.
+ * `server/articleFeedback.ts` has no direct route from `resolved` to `spam`.
  *
  * Dry-run by default:
  *   bun scripts/feedback/apply-feedback-register-schedule-a.ts
  *
  * Live:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *   bun scripts/feedback/apply-feedback-register-schedule-a.ts \
  *     --write --confirm-feedback-register \
  *     --confirm-write=apply-feedback-register-schedule-a \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=localhost/dosewiki
  */
 import { createDataClient, type DataClient } from "../lib/data-client.ts";
 import { isDeepStrictEqual } from "node:util";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import { createDataOpsRunContext,
 assertDataOpsWriteAllowed,
 printDataOpsRunContext,
@@ -265,7 +265,7 @@ export async function runApplyScheduleA(
     intent: "editorArticleWrite",
     argv,
     env,
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,
@@ -283,10 +283,10 @@ export async function runApplyScheduleA(
 
   const readUrl = write
     ? context.targetUrl
-    : (env.TARGET_CONVEX_URL ?? env.VITE_CONVEX_URL ?? env.CONVEX_PUBLIC_READ_URL);
+    : (env.TARGET_POSTGRES_URL ?? env.POSTGRES_POOLED_URL ?? env.SOURCE_POSTGRES_URL);
   if (!readUrl) {
     throw new Error(
-      "No Convex URL available. Set TARGET_CONVEX_URL (writes) or VITE_CONVEX_URL / CONVEX_PUBLIC_READ_URL (dry run).",
+      "No Postgres URL available. Set TARGET_POSTGRES_URL (writes) or POSTGRES_POOLED_URL / SOURCE_POSTGRES_URL (dry run).",
     );
   }
   const client = createClient(readUrl);

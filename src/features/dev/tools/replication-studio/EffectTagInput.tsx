@@ -24,7 +24,7 @@ const MAX_SUGGESTIONS = 8;
 /**
  * Chip input over the published subjective-effect list.
  *
- * Chips store effect slugs (what Convex keeps) but show effect names (what the
+ * Chips store effect slugs (what Postgres keeps) but show effect names (what the
  * editor reads), so the stored value stays joinable while the control stays
  * legible. Free text is deliberately not accepted: a tag that names no effect
  * could never be joined back to one, and the column exists to be joined.

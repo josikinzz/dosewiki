@@ -32,7 +32,7 @@ function proposal(residual) {
     artifactType: "citation_author_repair_proposal",
     artifactVersion: 1,
     generatedAt: "2026-08-09T00:00:00.000Z",
-    sourceDeployment: "https://example.convex.cloud",
+    sourceDeployment: "example/dosewiki",
     mode: "dry_run",
     summary: {
       articleCount: new Set(residual.map((row) => row.slug)).size,
@@ -101,7 +101,7 @@ describe("citation author residual review queue", () => {
     ]);
     expect(queue.sourceProposal).toEqual(expect.objectContaining({
       artifactSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
-      sourceDeployment: "https://example.convex.cloud",
+      sourceDeployment: "example/dosewiki",
     }));
   });
 

@@ -125,6 +125,24 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
           title={t("Chemical Class Index")}
           icon={CHEMICAL_CLASS_INDEX_ICON}
         />
+        {/* Credit line under the title, mirroring the Subjective Effect
+            Index's "created by Josie Kins, 2011": the class taxonomy is
+            adapted from AnodyneWiki's chemical class tree. */}
+        <div className="relative z-10 -mt-12 mb-12 flex flex-col items-center gap-2 sm:-mt-4">
+          <a
+            href="https://anodyne.wiki/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 py-1 transition-colors"
+          >
+            <span className="theme-text-faint text-xs transition group-hover:text-dose-text-secondary">
+              {t("class taxonomy adapted from")}{" "}
+              <span className="theme-text-secondary font-semibold underline decoration-dose-divider decoration-1 underline-offset-[3px] transition group-hover:text-dose-accent group-hover:decoration-dose-accent">
+                0xea / AnodyneWiki
+              </span>
+            </span>
+          </a>
+        </div>
       </div>
 
       {payload.roots.length === 0 ? (

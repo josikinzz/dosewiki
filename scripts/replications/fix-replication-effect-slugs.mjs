@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sync replication effect_slug values in Convex from local replication metadata.
+ * Sync replication effect_slug values in Postgres from local replication metadata.
  *
  * Usage:
  *   node scripts/replications/fix-replication-effect-slugs.mjs --dry-run
@@ -10,8 +10,8 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -38,17 +38,17 @@ const command = createProductionWriteCommand({
   env,
   loadsEnvLocal: false,
 });
-const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
+const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({ env }).url;
 
 if (!readUrl) {
-  throw new Error("Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.");
+  throw new Error("Set SOURCE_POSTGRES_URL for dry-run or an explicit target for writes.");
 }
 
 const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
 const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
 applyGalleryOrderMappingsToMetadata(metadata.replications, galleryOrderMapping);
 
-const sourceClient = createDataClient({ target: readUrl }).client;
+const sourceClient = createDataClient({ target: readUrl, env }).client;
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
@@ -93,7 +93,7 @@ async function main() {
   const errors = [];
   assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("replicationMaintenance", { env });
-  const targetClient = createDataClient({ target: command.targetUrl }).client;
+  const targetClient = createDataClient({ target: command.targetUrl, env }).client;
 
   for (const update of updates) {
     try {

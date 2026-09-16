@@ -5,7 +5,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { getServerRuntimeIncludes } from "./editor-artifact-audit.mjs";
-import { isConvexBrowserClient } from "./public-editor-boundary.mjs";
+import { isDataBrowserClient } from "./public-editor-boundary.mjs";
 import assert from "node:assert/strict";
 
 const execute = promisify(execFile);
@@ -43,7 +43,7 @@ test("public artifact audit separates the browser Convex client from the server 
     "/repo/node_modules/convex/react.js",
     "C:\\repo\\node_modules\\convex\\dist\\esm\\react\\index.js",
   ]) {
-    assert.equal(isConvexBrowserClient(resource), true, resource);
+    assert.equal(isDataBrowserClient(resource), true, resource);
   }
   for (const resource of [
     "/repo/node_modules/convex/dist/esm/browser/http_client.js",
@@ -51,6 +51,6 @@ test("public artifact audit separates the browser Convex client from the server 
     "/repo/node_modules/react/index.js",
     "/repo/src/features/dev/context/DevModeContext.tsx",
   ]) {
-    assert.equal(isConvexBrowserClient(resource), false, resource);
+    assert.equal(isDataBrowserClient(resource), false, resource);
   }
 });

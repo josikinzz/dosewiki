@@ -9,7 +9,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadArticleRoute } from "@server/next/routeLoaders.publications";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
 import { UiLocaleProvider } from "@/i18n/client"
-import { setRequestLocale } from "@/i18n/server";
+import { setRequestLocale, t } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 
 export const revalidate = 3600;
@@ -54,7 +54,7 @@ export default async function LocalizedArticlePage({ params }: LocalizedArticleP
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
-        <EffectIndexArticlePage {...result.pageProps} locale={LOCALE.code} />
+        <EffectIndexArticlePage {...result.pageProps} locale={LOCALE.code} t={t} />
       </div>
     </UiLocaleProvider>
   );

@@ -31,6 +31,7 @@ const usedInvite: InviteCodeSummary = {
 
 function stubRoutes(options: { mintStatus?: number; revokeStatus?: number } = {}) {
   const calls: { url: string; init?: RequestInit }[] = [];
+  let listedInvites = [activeInvite, usedInvite];
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -38,22 +39,29 @@ function stubRoutes(options: { mintStatus?: number; revokeStatus?: number } = {}
       calls.push({ url: url.pathname, init });
 
       if (url.pathname === "/api/dev/invites" && (!init || !init.method)) {
-        return Response.json({ ok: true, invites: [activeInvite, usedInvite] });
+        return Response.json({ ok: true, invites: listedInvites, continuationCursor: null });
       }
       if (url.pathname === "/api/dev/invites" && init?.method === "POST") {
         if (options.mintStatus) {
           return Response.json({ error: "Expiry must be between 1 and 365 days." }, { status: options.mintStatus });
         }
+        const mintedInvite = { ...activeInvite, id: "inv3", role: "contributor" as const, note: "Linus", maxUses: 2 };
+        listedInvites = [mintedInvite, ...listedInvites];
         return Response.json({
           ok: true,
           code: CODE,
-          invite: { ...activeInvite, id: "inv3", role: "contributor", note: "Linus", maxUses: 2 },
+          invite: mintedInvite,
         });
       }
       if (url.pathname === "/api/dev/invites/inv1/revoke" && init?.method === "POST") {
         if (options.revokeStatus) {
           return Response.json({ error: "Already fully redeemed.", code: "INVITE_EXHAUSTED" }, { status: options.revokeStatus });
         }
+        listedInvites = listedInvites.map((invite) =>
+          invite.id === "inv1"
+            ? { ...invite, revokedAt: "2026-09-02T00:00:00.000Z", status: "revoked" as const }
+            : invite,
+        );
         return Response.json({ ok: true });
       }
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -85,13 +93,55 @@ describe("InviteCodesPanel", () => {
     expect(within(rows[1]).queryByRole("button", { name: /Revoke/ })).not.toBeInTheDocument();
   });
 
+  it("automatically loads continuation pages and deduplicates records", async () => {
+    const olderInvite = {
+      ...usedInvite,
+      id: "inv3",
+      note: "Older",
+      createdAt: "2026-08-01T00:00:00.000Z",
+    };
+    let releaseContinuation: (() => void) | undefined;
+    const continuationReady = new Promise<void>((resolve) => {
+      releaseContinuation = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = new URL(String(input), "https://dev.dose.wiki");
+        if (url.searchParams.get("cursor") === "page-2") {
+          await continuationReady;
+          return Response.json({
+            ok: true,
+            invites: [usedInvite, olderInvite],
+            continuationCursor: null,
+          });
+        }
+        return Response.json({
+          ok: true,
+          invites: [activeInvite, usedInvite],
+          continuationCursor: "page-2",
+        });
+      }),
+    );
+
+    render(<InviteCodesPanel />);
+    const list = await screen.findByRole("list", { name: "Invite codes" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading invite code history");
+
+    releaseContinuation?.();
+    await waitFor(() => expect(within(list).getAllByRole("listitem")).toHaveLength(3));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(within(list).getAllByRole("listitem")[2]).toHaveTextContent("Older");
+  });
+
   it("mints with the form values, reveals the plaintext once with a copyable invite link, and prepends the row", async () => {
     const calls = stubRoutes();
     const user = userEvent.setup();
     render(<InviteCodesPanel />);
     await screen.findByRole("list", { name: "Invite codes" });
 
-    await user.selectOptions(screen.getByLabelText("Role"), "contributor");
+    await user.click(screen.getByRole("checkbox", { name: "Editor" }));
     await user.type(screen.getByLabelText("Note"), "Linus");
     await user.clear(screen.getByLabelText("Expires in (days)"));
     await user.type(screen.getByLabelText("Expires in (days)"), "14");
@@ -108,6 +158,7 @@ describe("InviteCodesPanel", () => {
     const mint = calls.find((call) => call.url === "/api/dev/invites" && call.init?.method === "POST");
     expect(JSON.parse(String(mint?.init?.body))).toEqual({
       role: "contributor",
+      glossaryLocales: [],
       note: "Linus",
       expiresInDays: 14,
       maxUses: 2,
@@ -128,6 +179,21 @@ describe("InviteCodesPanel", () => {
 
     await user.click(within(reveal).getByRole("button", { name: "Dismiss" }));
     expect(screen.queryByRole("region", { name: "New invite code" })).not.toBeInTheDocument();
+  });
+
+  it("requires a language for Translator while retaining the independent Editor checkbox", async () => {
+    const calls = stubRoutes();
+    const user = userEvent.setup();
+    render(<InviteCodesPanel />);
+    await screen.findByRole("list", { name: "Invite codes" });
+    await user.click(screen.getByRole("checkbox", { name: "Translator" }));
+    expect(screen.getByRole("checkbox", { name: "Editor" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "Mint invite" })).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: /Dutch/ }));
+    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    await screen.findByRole("region", { name: "New invite code" });
+    const mint = calls.find((call) => call.init?.method === "POST");
+    expect(JSON.parse(String(mint?.init?.body))).toMatchObject({ role: "editor_translator", glossaryLocales: ["nl"] });
   });
 
   it("shows the route's mint refusal beside the button", async () => {

@@ -16,11 +16,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getByPath } from "./lib/reviewDecisionTransforms";
 import { describeShape } from "./lib/reviewEnvelopes";
 
-const CONVEX_URL = process.env.TARGET_CONVEX_URL ?? "https://glad-minnow-656.convex.cloud";
 
 type Patch = { operation: string; path: string; before?: unknown; after?: unknown };
 type ReviewRecord = {
@@ -93,7 +92,7 @@ const SECTION_PATHS: Record<string, string[]> = {
   identification: ["identification"],
 };
 
-const client = createDataClient({ target: CONVEX_URL }).client;
+const { client } = createDataClient();
 const cache = new Map<string, unknown>();
 
 async function loadArticle(slug: string): Promise<unknown> {

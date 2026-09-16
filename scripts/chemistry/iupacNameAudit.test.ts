@@ -214,7 +214,7 @@ describe("IUPAC name audit", () => {
     const report = buildChemistryAuditReport({
       rows: classified,
       generatedAt: "2026-08-25T00:00:00.000Z",
-      convexUrl: "https://glad-minnow-656.convex.cloud",
+      targetIdentity: "localhost/dosewiki",
       rdkitVersion: "test",
       opsinEndpoint: "https://opsin.test",
       pubchemEndpoint: "https://pubchem.test",

@@ -74,15 +74,15 @@ export function usePlaybackSlot(
 
 export interface PlaybackAllowances {
   /**
-   * In-view autoplay of muted preview renditions. Off for
-   * `prefers-reduced-motion` and Save-Data readers — they get the poster,
-   * the video chip, and click-through playback on the detail page.
+   * In-view autoplay of muted preview renditions. Readers with
+   * `prefers-reduced-motion` or Save-Data get the poster, the video chip,
+   * and click-through playback on the detail page.
    */
   autoplay: boolean;
   /**
    * Hover-to-play previews: a hover-capable fine pointer and no
-   * reduced-motion preference. Gallery tiles gate all playback on this,
-   * so touch devices and reduced-motion readers get fully static tiles.
+   * reduced-motion or Save-Data preference. Gallery tiles gate all playback
+   * on this, so touch devices and data-saving readers get static tiles.
    */
   hoverPreview: boolean;
 }
@@ -113,7 +113,7 @@ export function useMotionAllowed(): PlaybackAllowances {
       const reduced = motion.matches;
       setAllowances({
         autoplay: !reduced && !connection?.saveData,
-        hoverPreview: pointer.matches && !reduced,
+        hoverPreview: pointer.matches && !reduced && !connection?.saveData,
       });
     };
     update();

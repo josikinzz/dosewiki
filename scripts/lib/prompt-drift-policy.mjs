@@ -25,7 +25,7 @@ export function sectionFileToPromptKey(fileName) {
   if (!descriptor) {
     throw new Error(`No prompt registry descriptor for section prompt file: ${fileName}`);
   }
-  return descriptor.convexKey;
+  return descriptor.dataKey;
 }
 
 function promptKeyToKind(key) { const descriptor = getPromptDescriptorByKey(key);
@@ -44,8 +44,8 @@ export function collectLocalPromptInventory({
 
     try {
       const content = readFile(path.join(rootDir, descriptor.seedPath), "utf-8");
-      prompts.set(descriptor.convexKey, {
-        key: descriptor.convexKey,
+      prompts.set(descriptor.dataKey, {
+        key: descriptor.dataKey,
         kind: descriptor.kind,
         sectionKey: descriptor.sectionKey,
         label: descriptor.label,
@@ -54,14 +54,14 @@ export function collectLocalPromptInventory({
         filePath: descriptor.seedPath,
       });
     } catch (error) {
-      onError(`Error reading ${descriptor.convexKey} prompt seed: ${error.message}`);
+      onError(`Error reading ${descriptor.dataKey} prompt seed: ${error.message}`);
     }
   }
 
   return prompts;
 }
 
-export function collectConvexPromptInventory(records) {
+export function collectDataPromptInventory(records) {
   return new Map(records.map((record) => [
     record.key,
     {

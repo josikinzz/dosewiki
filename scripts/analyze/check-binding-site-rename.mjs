@@ -5,7 +5,7 @@ import { relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const roots = ["src", "lib", "convex", "scripts"];
+const roots = ["src", "lib", "server", "scripts"];
 const sourceExtensions = new Set([".ts", ".tsx", ".js", ".mjs", ".mts", ".md"]);
 const excludedPrefixes = [
   "src/data/SubstanceIndex.json",
@@ -16,7 +16,7 @@ const excludedPrefixes = [
 const legacyIdentifierAllowedFiles = new Set([
   "lib/article/normalization.mjs",
   "lib/article/normalization.test.ts",
-  "lib/convexSubstanceIngestion.test.ts",
+  "lib/dataSubstanceIngestion.test.ts",
   "lib/public-api/v1.ts",
   "lib/public-api/v1.test.ts",
   "scripts/analyze/check-binding-site-rename.mjs",

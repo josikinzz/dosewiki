@@ -9,7 +9,7 @@ operational diary into this runbook.
 
 ## Fixed boundaries
 
-- PlanetScale Postgres (see [data credentials](convex-credentials.md)) is the
+- PlanetScale Postgres (see [data credentials](data-credentials.md)) is the
   source of truth for metadata. R2 stores immutable media bytes under
   content-addressed keys.
 - Preserve existing Convex Storage IDs and direct URLs as rollback sources.
@@ -129,7 +129,15 @@ publication derivative set.
 Upload only files declared by the frozen derivative manifest. Keys must use
 `media/sha256/<first-two>/<sha256>.<ext>`. Use bounded, resumable copies; never
 use `sync` or delete flags. Verify object presence, length, content type, inline
-disposition, immutable caching, range requests, and downloaded SHA-256.
+disposition, browser and CDN no-store headers, range requests, and downloaded SHA-256.
+
+Before publishing raster references, generate and upload the private responsive
+renditions through `bun run replications:prepare-image-renditions`, following
+`docs/replication-media-delivery.md`. Keep its separately pinned plan and
+verification receipts with the campaign. Every new publishable raster original
+must have all allowed width URLs verified through the Worker. Missing or
+withdrawn originals are held, not substituted with another image. Private
+rendition keys never enter the canonical metadata fields.
 
 Gate: every planned media role has exactly one verified R2 key and no credential
 appears in a client bundle, row, log, report, or commit.
@@ -153,7 +161,7 @@ zero held items, zero unresolved required fields, and no stale live snapshot.
 ### 9. Canary
 
 Run `npm run postgres:check-env-isolation`, export the Postgres write
-ceremony from [data credentials](convex-credentials.md), and confirm the dry run
+ceremony from [data credentials](data-credentials.md), and confirm the dry run
 names target `aws-us-east-1-2.pg.psdb.cloud/postgres`. Select a small canary covering image, video, GIF, new profile,
 existing profile, multiple effects, and explicit unknown-rights labeling. Read
 back every field, attribution, publication basis, contact, and resolved URL;

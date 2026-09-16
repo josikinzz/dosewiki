@@ -66,7 +66,7 @@ describe("taxonomy module", () => {
     expect(taxonomy.fallbackCategoryKey).toBe("miscellaneous");
   });
 
-  it("leaves fallback category unset when a Convex layout omits miscellaneous", () => {
+  it("leaves fallback category unset when a Postgres layout omits miscellaneous", () => {
     const config = parseManualConfig({
       version: 1,
       categories: [

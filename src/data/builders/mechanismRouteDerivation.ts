@@ -66,7 +66,7 @@ function isExcludedFromMechanismRoutes(source: MechanismRouteSubstanceInput): bo
  * intentionally does not apply the full article schema. A stored record that
  * is malformed outside pharmacology can therefore keep a mechanism route after
  * the validated library has dropped that article. Avoiding a full Zod parse of
- * every article inside the Convex query is the deliberate tradeoff.
+ * every article inside the Postgres query is the deliberate tradeoff.
  */
 export function deriveMechanismRouteData<TRecord>(
   sources: readonly MechanismRouteSource<TRecord>[],

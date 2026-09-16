@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useT } from "@/i18n/client";
+import { formatMessage, type Translate } from "@/i18n/messages";
 import { Icon } from "@/components/common/Icon";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
@@ -7,6 +7,7 @@ import { resolveContributorHref, type ContributorDirectory } from "@server/contr
 interface EffectContributorsSectionProps {
   contributors: string[];
   contributorDirectory?: ContributorDirectory;
+  t?: Translate;
 }
 
 /**
@@ -16,8 +17,8 @@ interface EffectContributorsSectionProps {
 export function EffectContributorsSection({
   contributors,
   contributorDirectory = [],
+  t = formatMessage,
 }: EffectContributorsSectionProps) {
-  const t = useT();
   if (contributors.length === 0) {
     return null;
   }

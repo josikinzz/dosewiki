@@ -6,13 +6,13 @@ import test from "node:test";
 import { run } from "./apply-approved-profile-merges.mjs";
 import { APPROVED_MERGES, buildRollbackManifest, loadLedger, mergeOperationId, rollbackOperationId } from "./approved-profile-merge-executor-lib.mjs";
 
-const targetFlags = ["--target-url=https://glad-minnow-656.convex.cloud", "--expected-deployment=glad-minnow-656", "--actor-email=test@example.com"];
+const targetFlags = ["--target=postgresql://localhost/dosewiki", "--expected-deployment=localhost/dosewiki", "--actor-email=test@example.com"];
 const files = () => { const dir = mkdtempSync(join(tmpdir(), "profile-merge-executor-")); return { ledger: join(dir, "ledger.jsonl"), plan: join(dir, "plan.json"), rollback: join(dir, "rollback.json") }; };
 const paths = (set) => [`--ledger=${set.ledger}`, `--plan-out=${set.plan}`, `--rollback-out=${set.rollback}`];
 const makeAdapters = () => {
   const operations = new Map(); const calls = []; const events = [];
   return {
-    calls, events, apiKey: "not-a-real-secret",
+    env: { DATA_BACKEND: "postgres" }, calls, events, apiKey: "not-a-real-secret",
     query: async (_reference, args) => {
       if (args.operation_id) { events.push(`receipt:${args.operation_id}`); return operations.get(args.operation_id) ?? null; }
       events.push(`preview:${args.input.target_key}`);
@@ -93,7 +93,7 @@ test("rollback is dry-run by default and write uses reverse-order manifest", asy
 
 test("writes require the exact production target and confirmation phrase", async () => {
   const set = files();
-  await assert.rejects(run(["--actor-email=test@example.com", ...paths(set)], makeAdapters()), /explicit production/);
+  await assert.rejects(run(["--actor-email=test@example.com", ...paths(set)], makeAdapters()), /requires --target/);
   await assert.rejects(run([...targetFlags, ...paths(set), "--write"], makeAdapters()), /requires --confirm-write/);
-  await assert.rejects(run(["--target-url=https://other.convex.cloud", "--expected-deployment=other", "--actor-email=test@example.com", ...paths(set)], makeAdapters()), /pinned to glad-minnow-656/);
+  await assert.rejects(run(["--target=postgresql://localhost/other", "--expected-deployment=localhost/dosewiki", "--actor-email=test@example.com", ...paths(set)], makeAdapters()), /matching --expected-deployment/);
 });

@@ -1,9 +1,9 @@
 /**
  * Builds a field-level apply plan from the reviewed proposal decisions.
  *
- * Reads the live article from Convex, converts each approved patch from the
+ * Reads the live article from Postgres, converts each approved patch from the
  * review model into the storage model, validates the resulting document against
- * the real Zod contract, and writes a plan file. Nothing is written to Convex
+ * the real Zod contract, and writes a plan file. Nothing is written to Postgres
  * here: this command is read-only and its output is reviewable.
  *
  * A record whose patches cannot be converted without guessing is REFUSED and
@@ -19,7 +19,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   RefusalError,
   assertCitationsResolve,
@@ -47,7 +47,6 @@ import {
   stageKeyFor,
 } from "./lib/reviewEnvelopes";
 
-const CONVEX_URL = process.env.TARGET_CONVEX_URL ?? "https://glad-minnow-656.convex.cloud";
 
 type Patch = { operation: string; path: string; before?: unknown; after?: unknown };
 type ReviewRecord = {
@@ -179,7 +178,7 @@ const PROSE_LEAVES: Record<string, true> = {
   bioavailability_notes: true,
 };
 
-const client = createDataClient({ target: CONVEX_URL }).client;
+const { client, fingerprint: sourceDeployment } = createDataClient();
 const articleCache = new Map<string, unknown>();
 
 async function loadArticle(slug: string): Promise<unknown> {
@@ -232,7 +231,7 @@ const CREATING_KINDS: Record<string, true> = {
  * Refuses when the target leaf did not already exist and the change is not an
  * explicit creation. Every stage, tier, and prose field is a REQUIRED key that
  * is present-but-empty when unknown, so an absent leaf means the path is wrong -
- * and Convex would accept the resulting orphan key silently.
+ * and Postgres would accept the resulting orphan key silently.
  */
 function stage(working: unknown, slug: string, change: Omit<PlannedChange, "before">): void {
   const before = getByPath(working, change.storagePath);
@@ -242,7 +241,7 @@ function stage(working: unknown, slug: string, change: Omit<PlannedChange, "befo
     );
   }
   // Type preservation: writing prose over an array or a route object is the
-  // signature of a path that resolved to the wrong depth. Convex accepts it
+  // signature of a path that resolved to the wrong depth. Postgres accepts it
   // silently, so the refusal has to happen here.
   if (before !== undefined && !CREATING_KINDS[change.kind]) {
     const shapeOf = (value: unknown): string =>
@@ -681,7 +680,7 @@ for (const slug of changesBySlug.keys()) {
 
 const plan = {
   generatedAt: new Date().toISOString(),
-  convexUrl: CONVEX_URL,
+  sourceDeployment,
   articles: [...changesBySlug.entries()].map(([slug, changes]) => ({
     slug,
     changes,

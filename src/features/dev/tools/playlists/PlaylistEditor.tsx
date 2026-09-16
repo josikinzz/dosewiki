@@ -47,7 +47,7 @@ export type PlaylistEditorProps = {
  * A title, a key, and an ordered slug list with up/down/remove controls. No
  * corpus browser: the studio's composer needs the whole replication corpus on
  * hand, which a contributor-facing tab has no reason to load. A slug pasted
- * from a replication's address is enough, and Convex prunes anything that does
+ * from a replication's address is enough, and Postgres prunes anything that does
  * not resolve to a showcase-eligible work.
  */
 export function PlaylistEditor({

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assertExplicitCitationPromotionTarget } from "./citation-target-policy.mjs";
+import { assertCitationSourceIdentity, assertExplicitCitationPromotionTarget } from "./citation-target-policy.mjs";
 
 function context(overrides = {}) {
   return {
@@ -35,5 +35,23 @@ describe("citation promotion target policy", () => {
     expect(() => assertExplicitCitationPromotionTarget(context({ backend: "convex" }))).toThrow(Error);
     expect(() => assertExplicitCitationPromotionTarget(context({ targetUrl: "https://example.invalid" }))).toThrow(Error);
     expect(() => assertExplicitCitationPromotionTarget(context({ deploymentFingerprint: "other/postgres" }))).toThrow(Error);
+  });
+});
+
+describe("citation artifact source identity", () => {
+  it("retains exact host/database identity, including IPv6 and decoded database names", () => {
+    expect(assertCitationSourceIdentity("example/dosewiki")).toBe("example/dosewiki");
+    expect(assertCitationSourceIdentity("::1/research notes")).toBe("::1/research notes");
+  });
+
+  it.each([
+    "https://example.convex.cloud",
+    "postgres://reader:secret@example/dosewiki",
+    "reader:secret@example/dosewiki",
+    "example/",
+    "example/dose/wiki",
+    "EXAMPLE/dosewiki",
+  ])("rejects noncanonical or credential-bearing source %s", (identity) => {
+    expect(() => assertCitationSourceIdentity(identity)).toThrow(Error);
   });
 });

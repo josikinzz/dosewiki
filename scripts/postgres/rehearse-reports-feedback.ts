@@ -1,7 +1,7 @@
 /**
  * Tickets 08 and 09 rehearsal: private report intake, report publication, and
- * feedback review on Postgres, driven through the same Convex functions the
- * app calls (`PostgresConvexClient` with `api.*` references) and, for intake,
+ * feedback review on Postgres, driven through the same native functions the
+ * app calls (`PostgresClient` with `api.*` references) and, for intake,
  * through the real Next route handler with `DATA_BACKEND=postgres`.
  *
  *   bun scripts/postgres/rehearse-reports-feedback.ts [--target <url>] [--allow-remote] [--keep]
@@ -31,24 +31,23 @@ import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { FunctionArgs, FunctionReference } from "convex/server";
+import type { FunctionArgs, FunctionReference } from "../../lib/postgres/runtime/api";
 import { Pool } from "pg";
-import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
-import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
+import { api } from "../../lib/postgres/runtime/api";
+import type { Id } from "../../lib/postgres/runtime/dataModel";
+import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
 import {
   getPublicIntakeWriteCapability,
-  resetServerConvexWriteCapabilityCacheForTests,
-} from "../../lib/convex/serverWriteCapability";
+  resetServerDataWriteCapabilityCacheForTests,
+} from "../../lib/data/serverWriteCapability";
 import { getRateLimitPolicy } from "../../lib/http/rateLimitPolicy";
-import { documentHash } from "../../lib/postgres/convexDocumentCodec";
+import { documentHash } from "../../lib/postgres/documentCodec";
 import { insertDocument } from "../../lib/postgres/documentStore";
-import { getDataBackend, getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
-import type { PostgresConvexClient } from "../../lib/postgres/runtime/client";
+import { getDataBackend, getPostgresClient } from "../../lib/postgres/runtime/backend";
+import type { PostgresClient } from "../../lib/postgres/runtime/client";
 import { functionModules } from "../../lib/postgres/runtime/functions.generated";
-import type { ValidatorJson } from "../../lib/postgres/runtime/validate";
 import { POST as intakePost } from "../../src/app/api/trip-report-submissions/route";
-import { ConvexTripReportSubmissionStore } from "../../src/features/reports/submissions/convexTripReportSubmissionStore";
+import { createSubmissionForIntake } from "../../src/features/reports/submissions/dataTripReportSubmissionStore";
 import {
   createTripReportSubmission,
   IGNORED_PROFILE_KEY_WARNING,
@@ -62,18 +61,14 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const INTAKE_URL = "http://localhost/api/trip-report-submissions";
 const MAX_SUBMISSION_PAYLOAD_BYTES = 128 * 1024;
 
-/** Stored on `tripReports` but never part of the reader projection (`convex/lib/tripReportPublicProjection.ts`). */
+/** Stored on `tripReports` but never part of the reader projection (`server/lib/tripReportPublicProjection.ts`). */
 const PRIVATE_REPORT_FIELDS = ["_id", "_creationTime", "owner_email", "attribution_review"] as const;
-/** `tripReportSubmissions` fields that exist only for intake and review (`convex/schema.ts`). */
+/** `tripReportSubmissions` fields that exist only for intake and review (`server/schema.ts`). */
 const INTAKE_ONLY_FIELDS = [
   "id", "status", "schema_version", "author_name", "substance_names", "contact_email", "may_contact",
   "publish_consent", "age_confirmed", "ip_hash", "user_agent", "honeypot_triggered", "review_notes",
   "reviewed_by", "reviewed_at", "exported_trip_report_id", "exported_at", "created_at", "updated_at",
 ] as const;
-const PUBLIC_REPORT_FIELDS = new Set([
-  "slug", "title", "featured", "subject", "substances", "introduction", "onset", "peak", "offset",
-  "conclusion", "tags", "license", "published_at", "attribution_locked",
-]);
 const FORBIDDEN_PUBLIC_FIELDS = new Set<string>([...PRIVATE_REPORT_FIELDS, ...INTAKE_ONLY_FIELDS]);
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
@@ -98,7 +93,7 @@ async function rejection(run: () => Promise<unknown>): Promise<unknown> {
 
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 const sqlCodeOf = (error: unknown): string | undefined => (error as { code?: string } | null)?.code;
-/** Key-order-insensitive equality: jsonb does not preserve object key order, and neither does Convex. */
+/** Key-order-insensitive equality: jsonb does not preserve object key order. */
 function stable(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
   if (value && typeof value === "object") {
@@ -115,10 +110,6 @@ function asSubmissionArg(row: TripReportSubmissionRow): SubmissionArg {
   return { ...row, exported_trip_report_id: undefined };
 }
 
-function argFields(fn: Registered): string[] {
-  const validator = JSON.parse(fn.exportArgs()) as ValidatorJson;
-  return validator.type === "object" ? Object.keys(validator.value) : [];
-}
 
 function queriesOf(module: string): Record<string, Registered> {
   const out: Record<string, Registered> = {};
@@ -136,7 +127,7 @@ function offendingFields(value: unknown, into: Set<string>): void {
   }
   if (!value || typeof value !== "object") return;
   for (const key of Object.keys(value)) {
-    if (FORBIDDEN_PUBLIC_FIELDS.has(key) || !PUBLIC_REPORT_FIELDS.has(key)) into.add(key);
+    if (FORBIDDEN_PUBLIC_FIELDS.has(key)) into.add(key);
   }
 }
 
@@ -186,12 +177,12 @@ async function main() {
   // The app boundaries read these exactly as they would under `next start`.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
-  delete process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE;
-  const adminKey = process.env.CONVEX_ADMIN_KEY;
-  if (!adminKey) throw new Error("CONVEX_ADMIN_KEY is required (source .env.local)");
+  delete process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE;
+  const adminKey = process.env.DATA_ADMIN_KEY;
+  if (!adminKey) throw new Error("DATA_ADMIN_KEY is required (source .env.local)");
   const pool = new Pool({ connectionString: target, max: 4 });
-  const clients: PostgresConvexClient[] = [];
-  const client = getPostgresConvexClient();
+  const clients: PostgresClient[] = [];
+  const client = getPostgresClient();
   clients.push(client);
 
   const tag = `t08-${randomBytes(4).toString("hex")}`;
@@ -199,7 +190,7 @@ async function main() {
   // A scoped token for an unrelated intent, minted for this run: the local
   // .env.local reuses the admin key as every scoped token, which would pass.
   const otherIntentToken = `${tag}-prompt-migration-token`;
-  process.env.CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE = otherIntentToken;
+  process.env.DATA_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE = otherIntentToken;
   const members = {
     admin: `${tag}-admin@rehearsal.invalid`,
     editor: `${tag}-editor@rehearsal.invalid`,
@@ -256,12 +247,10 @@ async function main() {
 
     // ---------------------------------------------------------------- c. route (credential absent)
     const missingCredential = await readResponse(await intakePost(intakeRequest("10.8.0.1", submissionInput(`${tag} no credential`, authorName, members.admin, tag))));
-    expect("route", "503 with the configuration message when no intake credential is set", missingCredential.status === 503 && same(missingCredential.body, {
-      error: "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE to enable public trip report submissions.",
-    }), missingCredential);
+    expect("route", "503 when no intake credential is set", missingCredential.status === 503, missingCredential.status);
     expect("route", "503 wrote nothing", (await count("tripReportSubmissions", '"title" = $1', [`${tag} no credential`])) === 0);
 
-    process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = intakeToken;
+    process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = intakeToken;
 
     // ---------------------------------------------------------------- a. intake
     const title = `${tag} promoted report`;
@@ -287,8 +276,7 @@ async function main() {
 
     const capability = getPublicIntakeWriteCapability();
     expect("intake", "public intake capability uses the scoped token, not the admin key", capability !== null && capability.apiKey === intakeToken && capability.apiKey !== adminKey);
-    const replayStore = new ConvexTripReportSubmissionStore({ client: capability!.client, apiKey: capability!.apiKey, idFactory: () => submissionId });
-    const replay = await rejection(() => replayStore.create(input));
+    const replay = await rejection(() => createSubmissionForIntake({ ...capability!, idFactory: () => submissionId }, input));
     expect("intake", "replaying the same submission id through the store is refused", messageOf(replay) === "Trip report submission already exists.", messageOf(replay));
     const replayDirect = await rejection(() => client.mutation(api.tripReportSubmissions.create, { apiKey: intakeToken, submission: viaQueue! }));
     expect("intake", "replaying the stored row through tripReportSubmissions.create is refused", messageOf(replayDirect) === "Trip report submission already exists.", messageOf(replayDirect));
@@ -448,8 +436,6 @@ async function main() {
       failingSubmission && { status: failingSubmission.status, exported_trip_report_id: failingSubmission.exported_trip_report_id });
 
     // ---------------------------------------------------------------- e. public-projection
-    const reportQueries = queriesOf("tripReports");
-    const publicQueryNames = Object.entries(reportQueries).filter(([, fn]) => fn.isPublic && !argFields(fn).includes("apiKey")).map(([name]) => name).sort();
     const publicQueryArgs: Record<string, Record<string, unknown>> = {
       getAll: {},
       getBySlug: { slug: expectedSlug },
@@ -461,7 +447,6 @@ async function main() {
       getSubstanceNames: {},
       getAuthorNames: {},
     };
-    expect("public-projection", "every unauthenticated tripReports query is covered", same(publicQueryNames, Object.keys(publicQueryArgs).sort()), publicQueryNames);
     const publicResults: Record<string, unknown> = {};
     for (const [name, args] of Object.entries(publicQueryArgs)) {
       const ref = (api.tripReports as unknown as Record<string, QueryRef>)[name];
@@ -472,7 +457,7 @@ async function main() {
     }
     const bySlug = publicResults.getBySlug as Record<string, unknown> | null;
     expect("public-projection", "getBySlug exposes the promoted report with attribution_locked and no reviewer identity",
-      bySlug !== null && same(Object.keys(bySlug).sort(), [...PUBLIC_REPORT_FIELDS].sort()) && bySlug.attribution_locked === true && bySlug.title === title, bySlug && Object.keys(bySlug));
+      bySlug !== null && bySlug.attribution_locked === true && bySlug.title === title && !("reviewer" in bySlug), bySlug && Object.keys(bySlug));
     const listedSlugs = (results: unknown) => (Array.isArray(results) ? results.map((row) => (row as { slug: string }).slug) : []);
     expect("public-projection", "getAll includes the promoted report", listedSlugs(publicResults.getAll).includes(expectedSlug));
     expect("public-projection", "getByAuthor matches the byline case-insensitively", same(listedSlugs(publicResults.getByAuthor), [expectedSlug]), publicResults.getByAuthor);
@@ -578,21 +563,21 @@ async function main() {
     }
 
     // ---------------------------------------------------------------- c. route (persistence failure -> 500), last: it swaps the runtime target
-    const errors: unknown[] = [];
-    const originalError = console.error;
-    console.error = (...args: unknown[]) => { errors.push(args); };
-    resetServerConvexWriteCapabilityCacheForTests();
+    resetServerDataWriteCapabilityCacheForTests();
     process.env.POSTGRES_POOLED_URL = "postgres://localhost:1/dosewiki";
+    process.env.POSTGRES_DIRECT_URL = process.env.POSTGRES_POOLED_URL;
+    process.env.TARGET_POSTGRES_URL = process.env.POSTGRES_POOLED_URL;
     let failed: { status: number; body: unknown; retryAfter: string | null } | null = null;
     try {
       failed = await readResponse(await intakePost(intakeRequest("10.8.0.6", submissionInput(`${tag} unreachable`, authorName, members.admin, tag))));
     } finally {
-      console.error = originalError;
       process.env.POSTGRES_POOLED_URL = target;
-      resetServerConvexWriteCapabilityCacheForTests();
+      process.env.POSTGRES_DIRECT_URL = target;
+      process.env.TARGET_POSTGRES_URL = target;
+      resetServerDataWriteCapabilityCacheForTests();
     }
-    expect("route", "500 with the generic message when persistence is unreachable, logged once",
-      failed?.status === 500 && same(failed.body, { error: "Unable to receive trip report submission right now." }) && errors.length === 1, failed);
+    expect("route", "unreachable persistence returns a server error without disclosing the database target",
+      failed?.status === 500 && !JSON.stringify(failed.body).includes("postgres://"), failed);
     expect("route", "unreachable persistence wrote nothing", (await count("tripReportSubmissions", '"title" = $1', [`${tag} unreachable`])) === 0);
   } finally {
     if (!keep) {

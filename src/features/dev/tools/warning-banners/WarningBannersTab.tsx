@@ -198,6 +198,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   const [iconSizeNotice, setIconSizeNotice] = useState<EditorNoticeMessage | null>(null);
 
   useEffect(() => {
+    if (view !== "coverage" && editor === null) return;
     let cancelled = false;
     fetchWarningBannerTargets({ refresh: targetsToken > 0 }).then(
       (items) => {
@@ -217,7 +218,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     return () => {
       cancelled = true;
     };
-  }, [targetsToken]);
+  }, [editor, targetsToken, view]);
 
   // A deep link can arrive while the tab is already mounted — an editor reading
   // an article clicks through to `/dev/banners/<slug>` and the controller hands

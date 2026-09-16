@@ -9,6 +9,7 @@
 
 import { spawnSync } from "node:child_process";
 import { guardTarget } from "./targetGuard.ts";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 
 const CONFIG_PATH = "drizzle.config.ts";
 const HELP = `Usage: bun scripts/postgres/migrate.ts --target <postgres-url> [--allow-remote] [--dry-run]
@@ -85,6 +86,8 @@ function main(): void {
     console.log("Dry run: drizzle-kit was not started and no database connection was opened.");
     return;
   }
+
+  assertDataWritesNotFrozen("postgres:migrate");
 
   const target = targetFrom(argv, process.env);
   const result = spawnSync(plan.command[0], plan.command.slice(1), {

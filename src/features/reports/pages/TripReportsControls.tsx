@@ -21,23 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-import type { ReportSortDirection, ReportSortKey } from "../domain/tripReportIndex";
-
-export const SORT_OPTIONS: {
-  id: string;
-  key: ReportSortKey;
-  direction: ReportSortDirection;
-  label: string;
-}[] = [
-  { id: "name-asc", key: "alphabetical", direction: "asc", label: msg("Groups A to Z") },
-  { id: "name-desc", key: "alphabetical", direction: "desc", label: msg("Groups Z to A") },
-  { id: "count-desc", key: "count", direction: "desc", label: msg("Most reports first") },
-  { id: "count-asc", key: "count", direction: "asc", label: msg("Fewest reports first") },
-  { id: "date-desc", key: "date", direction: "desc", label: msg("Newest experience first") },
-  { id: "date-asc", key: "date", direction: "asc", label: msg("Oldest experience first") },
-];
-
-export const DEFAULT_SORT_ID = "name-asc";
+import { SORT_OPTIONS } from "../domain/reportBrowsePage";
 
 export function SortMenu({
   activeId,
@@ -57,20 +41,20 @@ export function SortMenu({
           type="button"
           variant="pill"
           size="auto"
-          className={CONTROL_TRIGGER_CLASS}
+          className={cn(CONTROL_TRIGGER_CLASS, "group/report-control transition-colors duration-160 data-[state=open]:bg-dose-surface-muted motion-reduce:transition-none md:w-[11.5rem] md:[@media(pointer:coarse)]:w-[11.5rem]")}
           aria-label={t("Sort order, {{order}}", { order: orderLabel })}
           title={t("Sort order, {{order}}", { order: orderLabel })}
         >
           <Icon icon="lucide:arrow-up-down" className="h-4 w-4 shrink-0" aria-hidden />
-          <span className={CONTROL_TRIGGER_LABEL_CLASS}>{orderLabel}</span>
-          <Icon icon="lucide:chevron-down" className={CONTROL_TRIGGER_CHEVRON_CLASS} aria-hidden />
+          <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "min-w-0 flex-1 truncate")}>{orderLabel}</span>
+          <Icon icon="lucide:chevron-down" className={cn(CONTROL_TRIGGER_CHEVRON_CLASS, "transition-transform duration-160 group-data-[state=open]/report-control:rotate-180 motion-reduce:transition-none")} aria-hidden />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>{t("Sort groups by")}</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={activeId} onValueChange={onChange}>
           {SORT_OPTIONS.map((option) => (
-            <DropdownMenuRadioItem key={option.id} value={option.id} className={CONTROL_MENU_ITEM_CLASS}>
+            <DropdownMenuRadioItem key={option.id} value={option.id} className={cn(CONTROL_MENU_ITEM_CLASS, "transition-colors duration-160 data-[state=checked]:bg-dose-surface-muted data-[state=checked]:text-dose-accent-strong motion-reduce:transition-none")}>
               {t(option.label)}
             </DropdownMenuRadioItem>
           ))}
@@ -96,6 +80,7 @@ export function SubstanceFilterControl({
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const baseId = useId();
   const listId = `${baseId}-list`;
   const normalizedQuery = query.trim().toLowerCase();
@@ -126,18 +111,19 @@ export function SubstanceFilterControl({
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
+            ref={triggerRef}
             type="button"
             variant={active !== null ? "pillActive" : "pill"}
             size="auto"
-            className={CONTROL_TRIGGER_CLASS}
+            className={cn(CONTROL_TRIGGER_CLASS, "group/report-control transition-colors duration-160 data-[state=open]:bg-dose-surface-muted motion-reduce:transition-none md:w-[10.5rem] md:[@media(pointer:coarse)]:w-[10.5rem]")}
             aria-label={active !== null ? t("Substance filter, {{substance}} active", { substance: active }) : t("Filter by substance")}
             title={active !== null ? t("Substance filter, {{substance}} active", { substance: active }) : t("Filter by substance")}
           >
             <Icon icon="lucide:flask-conical" className="h-4 w-4 shrink-0" aria-hidden />
-            <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "max-w-[9rem] truncate")}>
+            <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "min-w-0 flex-1 truncate")}>
               {active ?? t("Filter")}
             </span>
-            <Icon icon="lucide:chevron-down" className={CONTROL_TRIGGER_CHEVRON_CLASS} aria-hidden />
+            <Icon icon="lucide:chevron-down" className={cn(CONTROL_TRIGGER_CHEVRON_CLASS, "transition-transform duration-160 group-data-[state=open]/report-control:rotate-180 motion-reduce:transition-none")} aria-hidden />
           </Button>
         </PopoverTrigger>
         <PopoverContent align="center" collisionPadding={8} className="w-[calc(100vw-1rem)] p-3 sm:w-72">
@@ -184,13 +170,14 @@ export function SubstanceFilterControl({
                 onClick={() => commit(option.name)}
                 onMouseEnter={() => setActiveIndex(index)}
                 className={cn(
-                  "flex cursor-pointer items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition",
+                  "flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors duration-160 motion-reduce:transition-none",
                   index === highlighted ? "bg-dose-surface-muted" : undefined,
                   option.name === active ? "text-dose-accent-strong font-semibold" : "theme-text-secondary",
                 )}
               >
-                <span className="truncate">{option.name}</span>
-                <span className="theme-text-faint shrink-0 text-xs">{option.count}</span>
+                <span className="min-w-0 flex-1 truncate">{option.name}</span>
+                <span className="theme-text-faint shrink-0 text-xs tabular-nums">{option.count}</span>
+                <Icon icon="lucide:check" className={cn("h-4 w-4 shrink-0 text-dose-accent-strong transition-opacity duration-160 motion-reduce:transition-none", option.name === active ? "opacity-100" : "opacity-0")} aria-hidden />
               </li>
             ))}
           </ul>
@@ -199,19 +186,24 @@ export function SubstanceFilterControl({
           ) : null}
         </PopoverContent>
       </Popover>
+      <div className="h-10 w-10 shrink-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 md:h-9 md:w-9">
       {active !== null ? (
         <Button
           type="button"
           variant="pill"
           size="auto"
-          className="h-10 w-10 shrink-0 justify-center p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 md:h-9 md:w-9"
+          className="theme-feedback-enter h-full w-full justify-center p-0"
           aria-label={t("Clear substance filter, {{substance}}", { substance: active })}
           title={t("Clear substance filter, {{substance}}", { substance: active })}
-          onClick={onClear}
+          onClick={() => {
+            onClear();
+            triggerRef.current?.focus();
+          }}
         >
           <Icon icon="lucide:x" className="h-4 w-4" aria-hidden />
         </Button>
       ) : null}
+      </div>
     </div>
   );
 }

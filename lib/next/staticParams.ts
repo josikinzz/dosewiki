@@ -1,7 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
-import { getPublicSubstanceLookup } from "../convex/publicData";
+import { getPublicSubstanceLookup } from "../data/publicData";
 import {
   getPublicRouteParams,
   getPublicRoutePlan,
@@ -11,7 +11,7 @@ import { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
 // Only build-enumerated families have loaders here. Demand-rendered pages return
 // [] from generateStaticParams and rely on ISR; the route plan still feeds their
-// sitemap entries. Substances prerender the important tiers, not the long tail.
+// sitemap entries. Every directly reachable substance is build-enumerated.
 const getStaticParamsFor = (family: PublicRouteFamily) =>
   cache(async () => getPublicRouteParams(await getPublicRoutePlan(), family));
 
@@ -22,20 +22,15 @@ export const getStaticReportParams = getStaticParamsFor("reports");
 export type SubstancePrerenderPriority = "high" | "normal" | "low";
 
 /**
- * Which substance priority tiers are prerendered at build time.
+ * Every public substance priority tier is prerendered at build time.
  *
- * The ISR page cache does not survive a Vercel deployment and this repo
- * deploys many times a day, so without prerendering nearly every reader's
- * first click into an article paid a cold server render. `high` is the
- * curated front of the library; `normal` is small enough (a few dozen slugs)
- * to include at little cost. `low` is the several-hundred-entry long tail
- * that the sitemap already omits, and it stays on demand so the build does
- * not scale with the whole corpus.
+ * The compact public lookup already projects only directly reachable articles,
+ * including URL-only low-priority entries while excluding hidden records.
+ * `dynamicParams` remains enabled on the route so articles published after a
+ * deployment still render on demand.
  */
-export const PRERENDERED_SUBSTANCE_PRIORITIES: readonly SubstancePrerenderPriority[] = [
-  "high",
-  "normal",
-];
+export const PRERENDERED_SUBSTANCE_PRIORITIES: readonly SubstancePrerenderPriority[] =
+  ["high", "normal", "low"];
 
 export type SubstancePrerenderCandidate = {
   slug: string;

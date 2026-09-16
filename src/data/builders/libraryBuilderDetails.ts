@@ -87,15 +87,16 @@ export function createMechanismDetailResolvers(
   mechanismMap: Map<string, MechanismEntry>,
   context: DetailContext,
 ) {
-  const getMechanismDetail = (mechanismSlug: string): MechanismDetail | null => {
+  const getMechanismDetail = (mechanismSlug: string, qualifierKey?: string): MechanismDetail | null => {
     const slug = normalizeKey(mechanismSlug);
     const entry = mechanismMap.get(slug);
     if (!entry) return null;
+    if (qualifierKey !== undefined && !entry.qualifierMap.has(qualifierKey)) return null;
 
     const qualifierDetails: MechanismQualifierDetail[] = entry.qualifiers.map(
       (qualifierEntry) => {
         const records = Array.from(qualifierEntry.records);
-        const groups = buildCategoryGroupsForRecords(
+        const groups = qualifierKey !== undefined && qualifierEntry.key !== qualifierKey ? [] : buildCategoryGroupsForRecords(
           records,
           context.manualSlugLookup,
           context.manualCategoryPresentations,

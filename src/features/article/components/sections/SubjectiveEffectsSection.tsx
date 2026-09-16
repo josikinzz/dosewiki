@@ -1,64 +1,24 @@
-"use client";
-
-import { memo, useState, type ReactNode } from "react";
-import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
-import { Icon } from "@/components/common/Icon";
-import { SEIRoadmapNotice } from "@/components/common/SEIRoadmapNotice";
+import { memo, type ReactNode } from "react";
+import { ArticleContributorAttribution } from "@/components/layout/ArticleContributorAttribution.client";
+import { msg } from "@/i18n/messages";
 import type { SubstanceArticle } from "@/schema";
-import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
-import {
-  ArticleSection,
-  ArticleSectionGroup,
-} from "@/components/common/ArticleSection";
-import { GuideLinkLine } from "@/features/articles/components/GuideLinkLine";
-import {
-  ARTICLE_GUIDES_BY_CLASS,
-  buildSummaryCaption,
-  resolveGuideClass,
-  resolveSubstanceGuide,
-} from "@/features/articles/domain/articleGuides";
-import { slugify } from "@/utils/slug";
+import { SENSORY_CATEGORIES } from "@/data/subjectiveEffectSubcategories";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText } from "../CitedText";
-import {
-  CategoryEffects,
-  CollapsibleStage,
-  SENSORY_CATEGORIES,
-  SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS,
-  countVisibleEffects,
-  getSubcategories,
-  getSubcategoryData,
-  hasEffects,
-  hasSenseEffects,
-} from "./subjectiveEffectsShared";
 import { ArticleGapNotice } from "./ArticleGapNotice";
-import { msg, useT } from "@/i18n/client";
+import { hasEffects, hasSenseEffects } from "./subjectiveEffectsModel";
+import {
+  SubjectiveEffectsOverviewFallback,
+  SubjectiveEffectsSectionView,
+} from "./SubjectiveEffectsSectionView.client";
 
 interface SubjectiveEffectsSectionProps {
   article: SubstanceArticle;
-  /** Called when an effect badge is clicked */
   onSelectEffect?: (effect: string) => void;
-  /** Profile href for the attribution author, resolved server-side; null when unmapped. */
   attributionHref?: string | null;
-  /**
-   * Streamed Replication Showcase (a server-rendered slot), drawn as the final
-   * content in Subjective Effects. Absent — the usual case — nothing changes.
-   */
+  attributionSection?: ReactNode;
   replicationShowcaseSection?: ReactNode;
 }
-
-const effectFamilyGroupClassName =
-  "theme-section-group-divider";
-const effectFamilyHeadingClassName =
-  "text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8";
-const effectFamilyIconClassName = "scale-110";
-const subjectiveEffectsStubText = msg(
-  "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.",
-);
-
-/** Where each family's subcategory notes live. See `EffectNotePathBase`. */
-const PHYSICAL_NOTE_PATH_BASE = ["subjective_effects", "physical"] as const;
-const COGNITIVE_NOTE_PATH_BASE = ["subjective_effects", "cognitive"] as const;
 
 function isArchivedSubjectiveEffectsAttribution({
   author,
@@ -74,379 +34,187 @@ function isArchivedSubjectiveEffectsAttribution({
   );
 }
 
+export function SubjectiveEffectsAttribution({
+  article,
+  attributionHref,
+  hasShowcase,
+}: {
+  article: SubstanceArticle;
+  attributionHref?: string | null;
+  hasShowcase: boolean;
+}) {
+  const attribution = article.subjective_effects.attribution;
+  if (!attribution || /\bAI editorial pipeline\b/i.test(attribution.author))
+    return null;
+  const { author, text, url } = attribution;
+  const contributorPath = isArchivedSubjectiveEffectsAttribution({
+    author,
+    url,
+  })
+    ? url
+    : (attributionHref ?? undefined);
+  return (
+    <ArticleContributorAttribution
+      className={hasShowcase ? "mt-4 mb-6" : "mt-4"}
+      author={author}
+      authorHref={contributorPath}
+      avatarSrc={
+        author === "Josie Kins"
+          ? "/profile-avatars/josie/avatar.webp"
+          : undefined
+      }
+      text={text}
+      url={url}
+    />
+  );
+}
+
+function effectNoteContent({
+  value,
+  path,
+  label,
+  emptyLabel,
+  labelValues,
+}: {
+  value?: string;
+  path: string;
+  label: string;
+  emptyLabel: string;
+  labelValues?: Record<string, string | number>;
+}) {
+  return value?.trim() ? (
+    <EditableValue
+      as="div"
+      label={label}
+      labelValues={labelValues}
+      path={path}
+      value={value}
+    >
+      <p className="theme-text-muted text-sm leading-relaxed">{value}</p>
+    </EditableValue>
+  ) : (
+    <EditableSlot
+      emptyLabel={emptyLabel}
+      label={label}
+      labelValues={labelValues}
+      path={path}
+      value={value ?? ""}
+    />
+  );
+}
+
+/** Server-compatible projection boundary around the interactive effect controls. */
 export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   article,
   onSelectEffect,
   attributionHref,
+  attributionSection,
   replicationShowcaseSection,
 }: SubjectiveEffectsSectionProps) {
-  const t = useT();
-  const { subjective_effects, comparisons } = article;
+  const { subjective_effects: effects, comparisons } = article;
+  const hasContent =
+    SENSORY_CATEGORIES.some(({ key }) =>
+      hasSenseEffects(effects.sensory[key as keyof typeof effects.sensory]),
+    ) ||
+    hasEffects(effects.cognitive) ||
+    hasEffects(effects.physical) ||
+    hasEffects(effects.progressive_stages) ||
+    comparisons.length > 0 ||
+    Boolean(effects.notes?.overview?.trim()) ||
+    effects.is_stub === true;
 
-  // Track which effect is currently expanded (only one at a time across all categories)
-  const [expandedEffect, setExpandedEffect] = useState<string | null>(null);
-
-  const toggleEffect = (effectName: string) => {
-    setExpandedEffect((prev) => (prev === effectName ? null : effectName));
-  };
-
-  const hasCognitive = hasEffects(subjective_effects.cognitive);
-  const hasPhysical = hasEffects(subjective_effects.physical);
-  const hasProgressiveStages = hasEffects(
-    subjective_effects.progressive_stages,
-  );
-  const hasComparisons = comparisons && comparisons.length > 0;
-  const hasOverviewNote = subjective_effects.notes?.overview?.trim().length > 0;
-  // The stored flag is the only thing that can keep an otherwise contentless
-  // section on the page; the computed verdict below decides the banner alone.
-  const isFlaggedStub = subjective_effects.is_stub === true;
-  const hasCognitiveNote =
-    subjective_effects.notes?.cognitive?.trim().length > 0;
-  const hasPhysicalNote = subjective_effects.notes?.physical?.trim().length > 0;
-
-  // Check if any sensory category has effects
-  const hasAnySensory = SENSORY_CATEGORIES.some(({ key }) =>
-    hasSenseEffects(
-      subjective_effects.sensory[
-        key as keyof typeof subjective_effects.sensory
-      ],
-    ),
-  );
-
-  const overviewText = hasOverviewNote
-    ? subjective_effects.notes.overview.trim()
-    : t("Effects vary widely by individual, dose, and context.");
-  // What is actually stored, which is not what the paragraph above renders: an
-  // empty note still draws the generic sentence. An editor seeded from the
-  // rendered text would let a reviewer save that fallback as real content
-  // without ever having typed it.
-  const overviewNote = subjective_effects.notes?.overview ?? "";
-
-  if (
-    !hasAnySensory &&
-    !hasCognitive &&
-    !hasPhysical &&
-    !hasProgressiveStages &&
-    !hasComparisons &&
-    !hasOverviewNote &&
-    !isFlaggedStub
-  ) {
+  if (!hasContent) {
     return <ArticleGapNotice article={article} section="subjective_effects" />;
   }
 
-  // Reached only when the section has something to render, so a computed stub
-  // verdict can never paper a banner over an empty section — that case exits
-  // above with the gap notice instead.
-  const hasStubNotice =
-    isFlaggedStub ||
-    countVisibleEffects(subjective_effects) <= SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS;
-
-  const guideClass = resolveGuideClass(
-    article.classification?.psychoactive_class ?? [],
-  );
-  const guides = guideClass ? ARTICLE_GUIDES_BY_CLASS[guideClass] : undefined;
-  // The scale grades every substance in the class; the guide is offered only on
-  // the page of the substance it is about. The article carries no slug field,
-  // and its route slug is the slugified title (`Dextromethorphan` ->
-  // `dextromethorphan`), which is what the guide names.
-  const guideLine = guides ? (
-    <GuideLinkLine
-      scale={guides.scale}
-      guide={resolveSubstanceGuide(guides, slugify(article.title))}
-      summaryCaption={buildSummaryCaption(t, guides)}
+  const resolvedAttribution = attributionSection ?? (
+    <SubjectiveEffectsAttribution
+      article={article}
+      attributionHref={attributionHref}
+      hasShowcase={Boolean(replicationShowcaseSection)}
     />
-  ) : null;
+  );
+
+  const overviewNote = effects.notes?.overview ?? "";
+  const overviewContent = (
+    <EditableValue
+      as="div"
+      emptyLabel={msg("Add an overview note")}
+      label={msg("Subjective effects overview")}
+      path="subjective_effects.notes.overview"
+      value={overviewNote}
+    >
+      <ArticleText cited={false} tone="muted">
+        {overviewNote.trim() || <SubjectiveEffectsOverviewFallback />}
+      </ArticleText>
+    </EditableValue>
+  );
+  const physicalNoteContent = effectNoteContent({
+    value: effects.notes?.physical,
+    path: "subjective_effects.notes.physical",
+    label: msg("Physical effects note"),
+    emptyLabel: msg("Add a physical effects note"),
+  });
+  const cognitiveNoteContent = effectNoteContent({
+    value: effects.notes?.cognitive,
+    path: "subjective_effects.notes.cognitive",
+    label: msg("Cognitive effects note"),
+    emptyLabel: msg("Add a cognitive effects note"),
+  });
+  const sensoryNoteContent = Object.fromEntries(
+    SENSORY_CATEGORIES.map(({ key, label }) => {
+      const value = effects.sensory[key as keyof typeof effects.sensory]?.note;
+      return [
+        key,
+        effectNoteContent({
+          value,
+          path: buildFieldPath("subjective_effects", "sensory", key, "note"),
+          label: msg("{{label}} note"),
+          labelValues: { label },
+          emptyLabel: msg("Add a {{label}} note"),
+        }),
+      ];
+    }),
+  );
+  const comparisonsContent = comparisons.length ? (
+    <ul className="space-y-3">
+      {comparisons.map((item, index) => (
+        <li key={index} className="text-sm leading-relaxed">
+          <span className="theme-accent-heading font-medium">{item.drug}</span>
+          <span className="theme-text-faint"> — </span>
+          <span className="theme-text-secondary">{item.comparison}</span>
+        </li>
+      ))}
+    </ul>
+  ) : undefined;
+  const projectedEffects = {
+    ...effects,
+    notes: { overview: "", sensory: "", cognitive: "", physical: "" },
+    attribution: null,
+    source_overview: undefined,
+    sensory: Object.fromEntries(
+      Object.entries(effects.sensory).map(([key, category]) => [
+        key,
+        { ...category, note: "" },
+      ]),
+    ) as typeof effects.sensory,
+  };
 
   return (
-    <ArticleSection
-      id="subjective-effects"
-      icon={SUBSTANCE_SECTION_ICONS["subjective-effects"]}
-      heading={t("Subjective Effects")}
-    >
-      {/* The roadmap note qualifies the whole section, and the stub notice
-          qualifies everything below it, so both lead rather than trail the
-          intro prose. */}
-      <SEIRoadmapNotice />
-      {hasStubNotice ? (
-        <aside
-          aria-label={t("Subjective effects stub notice")}
-          role="note"
-          className="theme-subjective-stub-panel backdrop-safe relative isolate flex items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-2 sm:px-4 sm:py-2.5"
-        >
-          <span className="theme-subjective-stub-icon grid size-9 shrink-0 place-items-center rounded-full border sm:size-10">
-            <Icon icon="tabler:egg-cracked" size={22} className="shrink-0" />
-          </span>
-          {/* No max-width: the copy is one line on a normal article column, and
-              the old 58ch cap wrapped it well before the container ran out. */}
-          <p className="theme-subjective-stub-copy text-sm font-medium leading-6 [text-wrap:pretty]">
-            {t(subjectiveEffectsStubText)}
-          </p>
-        </aside>
-      ) : null}
-
-      {/* Overview note as intro paragraph, or fallback to generic text */}
-      <EditableValue
-        as="div"
-        emptyLabel={t("Add an overview note")}
-        label={t("Subjective effects overview")}
-        path="subjective_effects.notes.overview"
-        value={overviewNote}
-      >
-        <ArticleText cited={false} tone="muted">
-          {overviewText}
-        </ArticleText>
-      </EditableValue>
-
-      {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
-      <div className="space-y-8">
-        {/* Physical Effects */}
-        {hasPhysical && (
-          <ArticleSectionGroup
-            heading={t("Physical")}
-            icon="lucide:hand"
-            spacing="loose"
-            className={effectFamilyGroupClassName}
-            headingClassName={effectFamilyHeadingClassName}
-            iconClassName={effectFamilyIconClassName}
-          >
-            {hasPhysicalNote && (
-              <EditableValue
-                as="div"
-                label={t("Physical effects note")}
-                path="subjective_effects.notes.physical"
-                value={subjective_effects.notes.physical}
-              >
-                <p className="theme-text-muted text-sm leading-relaxed">
-                  {subjective_effects.notes.physical}
-                </p>
-              </EditableValue>
-            )}
-            {!hasPhysicalNote && (
-              <EditableSlot
-                emptyLabel={t("Add a physical effects note")}
-                label={t("Physical effects note")}
-                path="subjective_effects.notes.physical"
-                value={subjective_effects.notes?.physical ?? ""}
-              />
-            )}
-            <CategoryEffects
-              location="physical"
-              category={subjective_effects.physical}
-              expandedEffect={expandedEffect}
-              notePathBase={PHYSICAL_NOTE_PATH_BASE}
-              onToggleEffect={toggleEffect}
-              onSelectEffect={onSelectEffect}
-            />
-          </ArticleSectionGroup>
-        )}
-
-        {/* Cognitive Effects */}
-        {hasCognitive && (
-          <ArticleSectionGroup
-            heading={t("Cognitive")}
-            icon="fluent:thinking-24-regular"
-            spacing="loose"
-            className={effectFamilyGroupClassName}
-            headingClassName={effectFamilyHeadingClassName}
-            iconClassName={effectFamilyIconClassName}
-          >
-            {hasCognitiveNote && (
-              <EditableValue
-                as="div"
-                label={t("Cognitive effects note")}
-                path="subjective_effects.notes.cognitive"
-                value={subjective_effects.notes.cognitive}
-              >
-                <p className="theme-text-muted text-sm leading-relaxed">
-                  {subjective_effects.notes.cognitive}
-                </p>
-              </EditableValue>
-            )}
-            {!hasCognitiveNote && (
-              <EditableSlot
-                emptyLabel={t("Add a cognitive effects note")}
-                label={t("Cognitive effects note")}
-                path="subjective_effects.notes.cognitive"
-                value={subjective_effects.notes?.cognitive ?? ""}
-              />
-            )}
-            <CategoryEffects
-              location="cognitive"
-              category={subjective_effects.cognitive}
-              expandedEffect={expandedEffect}
-              notePathBase={COGNITIVE_NOTE_PATH_BASE}
-              onToggleEffect={toggleEffect}
-              onSelectEffect={onSelectEffect}
-            />
-          </ArticleSectionGroup>
-        )}
-
-        {/* Progressive Stages */}
-        {hasProgressiveStages && subjective_effects.progressive_stages && (
-          <ArticleSectionGroup
-            heading={t("Progressive Stages")}
-            icon="lucide:list-ordered"
-            spacing="loose"
-            className={effectFamilyGroupClassName}
-            headingClassName={effectFamilyHeadingClassName}
-            iconClassName={effectFamilyIconClassName}
-          >
-            <div>
-              {getSubcategories(subjective_effects.progressive_stages).map(
-                (stageName) => {
-                  const stageData = getSubcategoryData(
-                    subjective_effects.progressive_stages!,
-                    stageName,
-                  );
-                  return (
-                    <CollapsibleStage
-                      key={stageName}
-                      name={stageName}
-                      note={stageData.note}
-                      isExpanded={expandedEffect === stageName}
-                      // Stage keys are article data — "1. Taking Off" carries a
-                      // dot that would split the path — so the path is built,
-                      // never interpolated.
-                      notePath={buildFieldPath(
-                        "subjective_effects",
-                        "progressive_stages",
-                        stageName,
-                        "note",
-                      )}
-                      onToggle={() => toggleEffect(stageName)}
-                    />
-                  );
-                },
-              )}
-            </div>
-          </ArticleSectionGroup>
-        )}
-
-        {/* Sensory categories - Visual, Auditory, then others */}
-        {SENSORY_CATEGORIES.map(({ key, label: rawLabel, icon: senseIcon }) => {
-          const label = t(rawLabel);
-          const senseCategory =
-            subjective_effects.sensory[
-              key as keyof typeof subjective_effects.sensory
-            ];
-          if (!hasSenseEffects(senseCategory)) return null;
-
-          const hasSenseNote = senseCategory.note?.trim().length > 0;
-          const senseNotePath = buildFieldPath(
-            "subjective_effects",
-            "sensory",
-            key,
-            "note",
-          );
-
-          return (
-            <ArticleSectionGroup
-              key={key}
-              heading={label}
-              icon={senseIcon ?? undefined}
-              spacing="loose"
-              className={effectFamilyGroupClassName}
-              headingClassName={effectFamilyHeadingClassName}
-              iconClassName={effectFamilyIconClassName}
-            >
-              {hasSenseNote && (
-                <EditableValue
-                  as="div"
-                  label={t("{{label}} note", { label })}
-                  path={senseNotePath}
-                  value={senseCategory.note}
-                >
-                  <p className="theme-text-muted text-sm leading-relaxed">
-                    {senseCategory.note}
-                  </p>
-                </EditableValue>
-              )}
-              {!hasSenseNote && (
-                <EditableSlot
-                  emptyLabel={t("Add a {{label}} note", { label: label.toLowerCase() })}
-                  label={t("{{label}} note", { label })}
-                  path={senseNotePath}
-                  value={senseCategory.note ?? ""}
-                />
-              )}
-              <CategoryEffects
-                location={`sensory.${key}`}
-                category={senseCategory.subcategories}
-                expandedEffect={expandedEffect}
-                notePathBase={["subjective_effects", "sensory", key, "subcategories"]}
-                onToggleEffect={toggleEffect}
-                onSelectEffect={onSelectEffect}
-              />
-            </ArticleSectionGroup>
-          );
-        })}
-
-        {/* Comparisons */}
-        {hasComparisons && (
-          <ArticleSectionGroup
-            heading={t("Comparisons")}
-            icon="lucide:git-compare-arrows"
-            spacing="loose"
-            className={effectFamilyGroupClassName}
-            headingClassName={effectFamilyHeadingClassName}
-            iconClassName={effectFamilyIconClassName}
-          >
-            <ul className="space-y-3">
-              {comparisons.map((item, idx) => (
-                <li key={idx} className="text-sm leading-relaxed">
-                  <span className="theme-accent-heading font-medium">
-                    {item.drug}
-                  </span>
-                  <span className="theme-text-faint"> — </span>
-                  <span className="theme-text-secondary">{item.comparison}</span>
-                </li>
-              ))}
-            </ul>
-          </ArticleSectionGroup>
-        )}
-      </div>
-
-      {/* Attribution Banner — AI generation is the default, so the pipeline's
-          self-attribution is redundant; only human contributors get credit. */}
-      {subjective_effects.attribution &&
-        !/\bAI editorial pipeline\b/i.test(subjective_effects.attribution.author) &&
-        (() => {
-          const { author, text, url } = subjective_effects.attribution;
-          const contributorPath = isArchivedSubjectiveEffectsAttribution({
-            author,
-            url,
-          })
-            ? url
-            : attributionHref ?? undefined;
-
-          return (
-            <ArticleContributorAttribution
-              // The adornment's -mb-8 pulls the next sibling up into the pill's
-              // row; with the Replication Showcase streaming in below, that
-              // collides the pill with the showcase card. Override with the
-              // section's own space-y-6 margin (mb-0 would also cancel the
-              // spacing Tailwind's space-y applies via margin-bottom).
-              className={replicationShowcaseSection ? "mt-4 mb-6" : "mt-4"}
-              author={author}
-              authorHref={contributorPath}
-              avatarSrc={
-                author === "Josie Kins"
-                  ? "/profile-avatars/josie/avatar.webp"
-                  : undefined
-              }
-              text={text}
-              url={url}
-            />
-          );
-        })()}
-
-      {/* Further reading closes the section: it points away from the page, so
-          it belongs after the effects and their credit rather than above the
-          prose. The roadmap note stays at the top, where it qualifies
-          everything below it. */}
-      {guideLine}
-
-      {replicationShowcaseSection ?? null}
-    </ArticleSection>
+    <SubjectiveEffectsSectionView
+      projection={{
+        subjective_effects: projectedEffects,
+        classification: article.classification,
+        title: article.title,
+      }}
+      onSelectEffect={onSelectEffect}
+      attributionSection={resolvedAttribution}
+      replicationShowcaseSection={replicationShowcaseSection}
+      overviewContent={overviewContent}
+      physicalNoteContent={physicalNoteContent}
+      cognitiveNoteContent={cognitiveNoteContent}
+      sensoryNoteContent={sensoryNoteContent}
+      comparisonsContent={comparisonsContent}
+    />
   );
 });

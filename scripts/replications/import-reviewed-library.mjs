@@ -6,14 +6,15 @@
  * ceremony plus --confirm-reviewed-library. The manifest remains the source of
  * truth; the script re-reads production, refuses live slug collisions, uploads
  * only the compressed delivery files named by the manifest, and records every
- * storage id in an atomic resume ledger before inserting the row.
+ * R2 key in an atomic resume ledger before inserting the row.
  */
 import { createHash } from "node:crypto";
 import { createReadStream, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
-import https from "node:https";
 import path from "node:path";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationFile, replicationImportReceipts } from "./lib/r2-upload.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -26,7 +27,6 @@ const EXTRA_CONFIRMATION = "--confirm-reviewed-library";
 const DEFAULT_PLAN = "/Users/josie/Documents/Dose Wiki Media Review/Data/production-upload-plan.json";
 const DEFAULT_LEDGER = "/Users/josie/Documents/Dose Wiki Media Review/Data/production-upload-ledger.json";
 const EXPECTED_TARGET = "https://glad-minnow-656.convex.cloud";
-const UPLOAD_ATTEMPTS = 8;
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
@@ -62,66 +62,12 @@ async function digestFile(filePath) {
   return hash.digest("hex");
 }
 
-async function postFile(uploadUrl, filePath) {
-  return await new Promise((resolve, reject) => {
-    const request = https.request(
-      uploadUrl,
-      {
-        method: "POST",
-        agent: false,
-        headers: {
-          "Content-Type": contentType(filePath),
-          "Content-Length": String(statSync(filePath).size),
-        },
-      },
-      (response) => {
-        const chunks = [];
-        response.on("data", (chunk) => chunks.push(chunk));
-        response.on("end", () => {
-          const body = Buffer.concat(chunks).toString("utf8");
-          if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 300) {
-            reject(new Error(`Upload failed: ${response.statusCode ?? "unknown"} ${body}`));
-            return;
-          }
-          try {
-            resolve(JSON.parse(body));
-          } catch (error) {
-            reject(new Error(`Upload returned invalid JSON: ${error.message}`));
-          }
-        });
-      },
-    );
-    request.on("error", reject);
-    const stream = createReadStream(filePath);
-    stream.on("error", reject);
-    stream.pipe(request);
-  });
-}
-
-async function uploadFile(client, apiKey, filePath) {
-  let lastError;
-  for (let attempt = 1; attempt <= UPLOAD_ATTEMPTS; attempt += 1) {
-    try {
-      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-      const payload = await postFile(uploadUrl, filePath);
-      if (!payload.storageId) throw new Error("Upload returned no storageId.");
-      return payload.storageId;
-    } catch (error) {
-      lastError = error;
-      if (String(error?.message).startsWith("Upload failed:") || attempt === UPLOAD_ATTEMPTS) {
-        throw error;
-      }
-      const delay = Math.min(1000 * 2 ** (attempt - 1), 30_000);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw lastError;
-}
 
 function loadLedger(ledgerPath, planPath) {
   try {
     const ledger = readJson(ledgerPath);
     requireCondition(ledger.planPath === planPath, "Ledger belongs to a different plan path.");
+    requireCondition(!Object.values(ledger.items ?? {}).some((item) => Object.values(item.storageIds ?? {}).some(Boolean)), "Legacy upload ledger requires explicit reconciliation before native R2 import.");
     return ledger;
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
@@ -143,6 +89,7 @@ function validatePlan(plan) {
   const slugs = new Set();
   for (const entry of creates) {
     requireCondition(!slugs.has(entry.slug), `Duplicate create slug: ${entry.slug}`);
+    requireCondition(!Object.keys(entry.proposedRow ?? {}).some((field) => field === "storage_id" || field.endsWith("_storage_id") || field === "r2_key" || field.endsWith("_r2_key")), `${entry.id}: proposed metadata must not contain preexisting media identities.`);
     slugs.add(entry.slug);
     requireCondition(entry.review.verdict === "replication", `${entry.id} is not a reviewed replication.`);
     requireCondition(entry.proposedRow.duration <= 600, `${entry.id} exceeds the 10-minute upload limit.`);
@@ -158,19 +105,20 @@ function validatePlan(plan) {
   return creates;
 }
 
-async function verifyInserted(client, apiKey, entry, productionId, storageIds) {
+async function verifyInserted(client, apiKey, entry, productionId, r2Keys) {
   const live = await client.query(api.replications.getResolvedById, { apiKey, id: productionId });
   requireCondition(live, `Inserted row disappeared: ${entry.slug}`);
   for (const field of ["slug", "title", "artist", "role", "type", "format", "effect_slug"]) {
     requireCondition(live[field] === entry.proposedRow[field], `${entry.slug} ${field} mismatch after insert.`);
   }
-  requireCondition(live.storage_id === storageIds.main, `${entry.slug} main storage mismatch.`);
-  requireCondition(live.thumbnail_storage_id === storageIds.thumbnail, `${entry.slug} thumbnail storage mismatch.`);
-  if (storageIds.preview) {
-    requireCondition(live.preview_storage_id === storageIds.preview, `${entry.slug} preview storage mismatch.`);
+  requireCondition(live.r2_key === r2Keys.main, `${entry.slug} main R2 mismatch.`);
+  requireCondition(live.thumbnail_r2_key === r2Keys.thumbnail, `${entry.slug} thumbnail R2 mismatch.`);
+  requireCondition(live.file_size === statSync(entry.upload.mainPath).size, `${entry.slug} file size mismatch.`);
+  if (r2Keys.preview) {
+    requireCondition(live.preview_r2_key === r2Keys.preview, `${entry.slug} preview R2 mismatch.`);
   }
   for (const [label, url] of [["main", live.url], ["thumbnail", live.thumbnail_url], ["preview", live.preview_url]]) {
-    if (label === "preview" && !storageIds.preview) continue;
+    if (label === "preview" && !r2Keys.preview) continue;
     requireCondition(typeof url === "string" && url, `${entry.slug} has no resolved ${label} URL.`);
     const response = await fetch(url, { method: "HEAD" });
     requireCondition(response.ok, `${entry.slug} ${label} URL returned HTTP ${response.status}.`);
@@ -194,11 +142,13 @@ async function main() {
     Number.isFinite(maxMainBytes) ? maxMainBytes > 0 : maxMainBytes === Number.POSITIVE_INFINITY,
     "--max-main-bytes must be positive.",
   );
-  requireCondition(command.targetUrl === EXPECTED_TARGET, `Pass --target-url=${EXPECTED_TARGET}.`);
+  const postgresTarget = requireCampaignTarget(command);
 
   const plan = readJson(planPath);
+  requireCondition(!plan.postgresTarget || plan.postgresTarget === postgresTarget, "Plan Postgres target differs from the explicit target.");
   const creates = validatePlan(plan);
   const ledger = loadLedger(ledgerPath, planPath);
+  bindCampaignTarget(ledger, postgresTarget);
   const client = createDataClient({ target: command.targetUrl }).client;
   const [liveRows, effects] = await Promise.all([
     client.query(api.replications.getAll, {}),
@@ -216,7 +166,7 @@ async function main() {
   const isOwnedLiveRow = (entry) => {
     const live = liveBySlug.get(entry.slug);
     const state = ledger.items[entry.id];
-    return Boolean(live && state?.storageIds?.main === live.storage_id);
+    return Boolean(live && state?.r2Keys?.main && state.r2Keys.main === live.r2_key);
   };
   const newlyColliding = creates.filter(
     (entry) => liveBySlug.has(entry.slug) && !isOwnedLiveRow(entry),
@@ -236,7 +186,7 @@ async function main() {
   }, 0);
 
   console.log(`Plan              : ${planPath}`);
-  console.log(`Target            : ${command.targetUrl}`);
+  console.log(`Target            : ${command.deploymentFingerprint}`);
   console.log(`Reviewed entries  : ${plan.entries.length}`);
   console.log(`Planned creates   : ${creates.length}`);
   console.log(`Live new collisions: ${newlyColliding.length}`);
@@ -247,7 +197,7 @@ async function main() {
   console.log(`Existing in plan  : ${plan.counts.existing}`);
 
   if (command.dryRun) {
-    console.log("Dry run complete: no files uploaded and no Convex records modified.");
+    console.log("Dry run complete: no files uploaded and no Postgres records modified.");
     return;
   }
 
@@ -263,36 +213,35 @@ async function main() {
     ledger.items[entry.id] = state;
     console.log(`[${index + 1}/${batch.length}] ${entry.slug}`);
 
-    if (!state.storageIds?.main) {
-      state.storageIds = state.storageIds ?? {};
-      state.hashes = state.hashes ?? {};
-      state.storageIds.main = await uploadFile(client, apiKey, entry.upload.mainPath);
-      state.hashes.main = await digestFile(entry.upload.mainPath);
-      state.status = "main-uploaded";
-      atomicJson(ledgerPath, ledger);
-    }
-    if (!state.storageIds.thumbnail) {
-      if (entry.upload.thumbnailPath === entry.upload.mainPath) {
-        state.storageIds.thumbnail = state.storageIds.main;
-        state.hashes.thumbnail = state.hashes.main;
-      } else {
-        state.storageIds.thumbnail = await uploadFile(client, apiKey, entry.upload.thumbnailPath);
-        state.hashes.thumbnail = await digestFile(entry.upload.thumbnailPath);
+    state.r2Keys = state.r2Keys ?? {};
+    state.hashes = state.hashes ?? {};
+    for (const [role, filePath] of Object.entries({
+      main: entry.upload.mainPath,
+      thumbnail: entry.upload.thumbnailPath,
+      ...(entry.upload.previewPath ? { preview: entry.upload.previewPath } : {}),
+    })) {
+      const hash = await digestFile(filePath);
+      if (state.r2Keys[role]) {
+        requireCondition(state.hashes[role] === hash, `${entry.slug} ${role} resume digest drifted.`);
+        requireCondition(state.r2Keys[role].startsWith(`media/sha256/${hash.slice(0, 2)}/${hash}.`), `${entry.slug} ${role} resume R2 digest mismatch.`);
+        continue;
       }
-      state.status = "thumbnail-uploaded";
+      state.r2Keys[role] = await uploadReplicationFile(client, apiKey, filePath, contentType(filePath));
+      requireCondition(state.r2Keys[role].startsWith(`media/sha256/${hash.slice(0, 2)}/${hash}.`), `${entry.slug} ${role} upload digest drifted.`);
+      state.hashes[role] = hash;
+      state.status = `${role}-uploaded`;
       atomicJson(ledgerPath, ledger);
     }
-    if (entry.upload.previewPath && !state.storageIds.preview) {
-      state.storageIds.preview = await uploadFile(client, apiKey, entry.upload.previewPath);
-      state.hashes.preview = await digestFile(entry.upload.previewPath);
-      state.status = "preview-uploaded";
-      atomicJson(ledgerPath, ledger);
-    }
+    const keys = {
+      r2_key: state.r2Keys.main,
+      thumbnail_r2_key: state.r2Keys.thumbnail,
+      ...(state.r2Keys.preview ? { preview_r2_key: state.r2Keys.preview } : {}),
+    };
 
     const latestRows = await client.query(api.replications.getAll, {});
     const existing = latestRows.find((row) => row.slug === entry.slug);
     if (existing) {
-      requireCondition(existing.storage_id === state.storageIds.main, `Unrelated row took slug ${entry.slug}.`);
+      requireCondition(existing.r2_key === state.r2Keys.main, `Unrelated row took slug ${entry.slug}.`);
       state.productionId = existing._id;
     } else {
       const result = await client.mutation(api.replications.insertMediaAsset, {
@@ -300,31 +249,17 @@ async function main() {
         expected_absent: true,
         ...entry.proposedRow,
         rights_status: entry.proposedRow.rights_status ?? "unknown",
-        storage_id: state.storageIds.main,
-        thumbnail_storage_id: state.storageIds.thumbnail,
+        ...keys,
+        file_size: statSync(entry.upload.mainPath).size,
+        ...(await replicationImportReceipts(client, apiKey, entry.slug, keys)),
       });
       state.productionId = result.id;
       state.status = "inserted";
       atomicJson(ledgerPath, ledger);
     }
 
-    if (state.storageIds.preview) {
-      const resolved = await client.query(api.replications.getResolvedById, { apiKey, id: state.productionId });
-      if (!resolved.preview_storage_id) {
-        await client.mutation(api.replications.updatePreviewStorageIds, {
-          apiKey,
-          updates: [{
-            id: state.productionId,
-            previewStorageId: state.storageIds.preview,
-            expectedStorageId: state.storageIds.main,
-          }],
-        });
-      } else {
-        requireCondition(resolved.preview_storage_id === state.storageIds.preview, `${entry.slug} preview was changed externally.`);
-      }
-    }
 
-    await verifyInserted(client, apiKey, entry, state.productionId, state.storageIds);
+    await verifyInserted(client, apiKey, entry, state.productionId, state.r2Keys);
     state.status = "verified";
     state.verifiedAt = new Date().toISOString();
     atomicJson(ledgerPath, ledger);

@@ -103,7 +103,13 @@ export function useReplicationIncoming({
     async (item: IncomingFile) => {
       patchIncoming(item.id, { status: "uploading", error: undefined });
       try {
-        const urlResponse = await fetch(UPLOAD_URL_API, { method: "POST" });
+        const sha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await item.file.arrayBuffer()))]
+          .map((byte) => byte.toString(16).padStart(2, "0")).join("");
+        const urlResponse = await fetch(UPLOAD_URL_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sha256, format: fileFormat(item.name), type: item.type, fileSize: item.file.size }),
+        });
         if (!urlResponse.ok) {
           patchIncoming(item.id, {
             status: "error",
@@ -111,17 +117,22 @@ export function useReplicationIncoming({
           });
           return;
         }
-        const { uploadUrl } = (await urlResponse.json()) as { uploadUrl: string };
+        const { uploadUrl, uploadHeaders, uploadToken } = (await urlResponse.json()) as {
+          uploadUrl: string;
+          uploadHeaders: Record<string, string>;
+          uploadToken: string;
+        };
         const uploadResponse = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": item.file.type || "application/octet-stream" },
+          method: "PUT",
+          headers: uploadHeaders,
           body: item.file,
         });
-        if (!uploadResponse.ok) {
-          patchIncoming(item.id, { status: "error", error: "Convex storage rejected the file." });
+        // A previous identical upload may already own this immutable key.
+        // The finish route verifies its bytes even when PUT returns 412.
+        if (!uploadResponse.ok && uploadResponse.status !== 412) {
+          patchIncoming(item.id, { status: "error", error: "R2 storage rejected the file." });
           return;
         }
-        const { storageId } = (await uploadResponse.json()) as { storageId: string };
         const slug = buildReplicationSlug(
           item.title,
           item.artist,
@@ -136,7 +147,7 @@ export function useReplicationIncoming({
             artist: item.artist.trim(),
             role: "replication",
             type: item.type,
-            storageId,
+            uploadToken,
             effectSlug: item.effectSlug,
             effectTags: item.effectTags,
             format: fileFormat(item.name),

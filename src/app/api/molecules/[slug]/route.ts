@@ -1,11 +1,11 @@
 /**
- * Public image endpoint for canonical Convex molecule depictions.
+ * Public image endpoint for canonical Postgres molecule depictions.
  *
  * The substance page points here when that slug has a `moleculeOverrides` row,
  * with a `?v=<updatedAt>` revision. Missing rows mean no depiction; lookup
  * failures remain transient errors rather than cached absence.
  *
- * The Convex deployment is shared by both publications, so the stored SVG is always in the
+ * The Postgres deployment is shared by both publications, so the stored SVG is always in the
  * dose.wiki brand palette and the Effect Index colourway is applied here, at serve time —
  * it cannot live in the data without breaking the other site.
  */
@@ -14,7 +14,7 @@ import {
   applyMoleculeColorway,
   resolveMoleculeColorway,
 } from "@/data/mappings/moleculePalette";
-import { getPublicMolecule, type PublicMolecule } from "@server/convex/publicData.molecules";
+import { getPublicMolecule, type PublicMolecule } from "@server/data/publicData.molecules";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";

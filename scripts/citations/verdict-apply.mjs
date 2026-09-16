@@ -18,23 +18,23 @@
  * requiring identical strings).
  *
  * Usage:
- *   npm run citations:verdict-apply -- --slug=<slug> --dry-run --expected-deployment=<id>
- *   TARGET_CONVEX_URL=https://<deployment>.convex.cloud npm run citations:verdict-apply -- \
- *     --slug=<slug> --write --confirm-citation-write \
- *     --confirm-write=apply-citation-verdict-draft --expected-deployment=<deployment>
+ *   DATA_BACKEND=postgres npm run citations:verdict-apply -- --slug=<slug> --dry-run --target=<postgres-url> --expected-deployment=<host>/<database>
+ *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=<postgres-url> POSTGRES_IMPORT_CONFIRM=<host> npm run citations:verdict-apply -- \
+ *     --slug=<slug> --write --allow-remote --confirm-citation-write \
+ *     --confirm-write=apply-citation-verdict-draft --expected-deployment=<host>/<database>
  *
  * Options:
  *   --slug=<slug>            Article slug (required; must match the draft).
  *   --draft-file=<path>      Verdict draft (default runs/citations/verdicts/<slug>/verdict-draft.json).
  *   --article-file=<path>    Offline article fixture for dry-run previews and tests; never valid with --write.
  *   --dry-run                Print the full plan and stop (default).
- *   --write                  Persist through convex citationEvidence.applyDraft with the guard stack.
+ *   --write                  Persist through native citationEvidence.applyDraft with the guard stack.
  *   --revalidate-url=<url>   Editor-host origin serving /api/dev/revalidate-article
  *                            (default $DOSEWIKI_REVALIDATE_URL, else https://dev.dose.wiki).
  *                            After a successful --write the script POSTs the slug there so
  *                            the public page re-renders now instead of on the next 1-hour
  *                            ISR window; authenticated with the same citationEvidenceWrite
- *                            token as the Convex write. Failure is a WARNING recorded in
+ *                            token as the Postgres write. Failure is a WARNING recorded in
  *                            the receipt — the write itself stays valid.
  *   --verify-public-url=<url> Optionally fetch <url>/<slug> after revalidation and confirm
  *                            each fully-stripped reference no longer renders; recorded in
@@ -46,7 +46,7 @@ import { resolve } from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { requiresStrictCitationReview } from "../../lib/citations/citationSafety.mjs";
 import { assertDataOpsWriteAllowed,
 backupBeforeWrite,
@@ -71,7 +71,7 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function stripConvexMetadata(article) {
+function stripDataMetadata(article) {
   const { _id, _creationTime, ...clean } = article;
   return clean;
 }
@@ -398,7 +398,7 @@ const REVALIDATE_ROUTE_PATH = "/api/dev/revalidate-article";
 /**
  * POST the slug to the editor host's revalidate route so the public page
  * re-renders now instead of on the next 1-hour ISR window
- * (`src/app/api/dev/revalidate-article/route.ts`). Never throws: the Convex
+ * (`src/app/api/dev/revalidate-article/route.ts`). Never throws: the Postgres
  * write has already landed and stays valid; a failure here only means public
  * visibility lags by up to an hour.
  */
@@ -449,7 +449,7 @@ export async function verifyPublicArticle({ slug, publicBaseUrl, checks, fetchIm
  * Post-write visibility step: revalidate the public page, then optionally
  * verify the stripped markers are gone from the live HTML. Returns the
  * receipt fields (`revalidation`, and `publicVerification` when a public URL
- * is given). Failures are warnings — the Convex write is already durable and
+ * is given). Failures are warnings — the Postgres write is already durable and
  * at worst the page refreshes on the next ISR window.
  */
 export async function recordPostWriteVisibility({
@@ -466,7 +466,7 @@ export async function recordPostWriteVisibility({
   if (!revalidation.ok) {
     warn(
       `WARNING: revalidation failed for ${slug} (${revalidation.error}). `
-        + "The Convex write is valid; the public page refreshes on the next ISR window (up to 1h).",
+        + "The Postgres write is valid; the public page refreshes on the next ISR window (up to 1h).",
     );
   }
   if (!verifyPublicBaseUrl) {
@@ -531,7 +531,7 @@ export async function main(argv = process.argv.slice(2)) {
     intent: "citation-verdicts",
     argv,
     sourceUrlKeys: [],
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,
@@ -560,7 +560,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (articleFile) {
     article = loadArticleFixture(articleFile);
   } else {
-    const targetUrl = requireTargetUrl(runContext, "Convex citation target URL");
+    const targetUrl = requireTargetUrl(runContext, "Postgres citation target URL");
     client = createDataClient({ target: targetUrl }).client;
     article = await client.query(api.substanceIndex.getBySlug, { slug });
   }
@@ -571,7 +571,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (!write) {
     console.log(
       "No writes performed. Re-run with --write --confirm-citation-write "
-        + "--confirm-write=apply-citation-verdict-draft --expected-deployment=<deployment> to update Convex.",
+        + "--confirm-write=apply-citation-verdict-draft --expected-deployment=<host>/<database> to update Postgres.",
     );
     return;
   }
@@ -602,7 +602,7 @@ export async function main(argv = process.argv.slice(2)) {
   });
 
   const articleForWrite = {
-    ...stripConvexMetadata(article),
+    ...stripDataMetadata(article),
     ...plan.sectionPatches,
   };
   const writeResult = await client.mutation(api.citationEvidence.applyDraft, {

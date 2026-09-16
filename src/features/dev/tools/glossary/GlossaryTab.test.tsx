@@ -25,6 +25,7 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
   let release: (() => void) | null = null;
   const gate = () => new Promise<void>((resolve) => { release = resolve; });
   let hold = false;
+  const refusals: Response[] = [];
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -44,10 +45,12 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
       }
       if (path.endsWith("/import")) {
         calls.push({ path, body: String(init?.body) });
-        return importResponse;
+        return refusals.shift() ?? importResponse.clone();
       }
       const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
       calls.push({ path, body });
+      const refusal = refusals.shift();
+      if (refusal) return refusal;
       if (hold) {
         hold = false;
         await gate();
@@ -76,6 +79,13 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
     /** The next write blocks until `release()` is called. */
     holdNextWrite: () => { hold = true; },
     release: () => release?.(),
+    refuseNextWrite: (terms = ["Artist", "Replicator"], collisionConfirmation = "a".repeat(64)) => {
+      refusals.push(Response.json({
+        error: "These terms share a rendering.",
+        collisions: [{ kind: "replication", target: "Künstler", terms }],
+        collisionConfirmation,
+      }, { status: 409 }));
+    },
   };
 }
 
@@ -312,5 +322,91 @@ describe("GlossaryTab", () => {
     render(<GlossaryTab viewerRole="editor" />);
     await screen.findByRole("button", { name: "Edit definition for anxiety" });
     expect(screen.getByRole("button", { name: "Edit definition for anxiety" })).toHaveTextContent("No definition yet");
+  });
+
+  it("cancels a collision without retrying or losing the edited rendering, then explicitly retries the captured edit", async () => {
+    const api = stubGlossaryApi([row("Artist", "draft"), row("Replicator", "approved", "Künstler")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    await user.clear(input);
+    await user.type(input, "Künstler");
+    api.refuseNextWrite();
+    await user.keyboard("{Enter}");
+    const warning = await screen.findByRole("dialog");
+    expect(within(warning).getByText("Künstler")).toBeInTheDocument();
+    expect(within(warning).getByText("Artist, Replicator")).toBeInTheDocument();
+    expect(within(warning).getByText(`replication · ${LOCALE}`)).toBeInTheDocument();
+    expect(api.calls).toHaveLength(1);
+    await user.click(within(warning).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(input).toHaveFocus());
+    expect(input).toHaveValue("Künstler");
+    expect(api.calls).toHaveLength(1);
+    api.refuseNextWrite();
+    await user.keyboard("{Enter}");
+    await screen.findByRole("dialog");
+    expect(api.calls).toHaveLength(2);
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, term: "Artist", target: "Künstler" });
+    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await screen.findByText('Saved "Artist" as Künstler; it is approved.');
+    expect(api.calls[2]).toEqual({
+      path: "/api/dev/translation-glossary/edit",
+      body: { locale: LOCALE, term: "Artist", target: "Künstler", collisionConfirmation: "a".repeat(64) },
+    });
+  });
+
+  it("asks again for changed collisions during individual approval and hands focus forward only after success", async () => {
+    const api = stubGlossaryApi([row("Artist", "draft", "Künstler"), row("Next", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    api.refuseNextWrite();
+    api.refuseNextWrite(["Artist", "Creator", "Replicator"], "b".repeat(64));
+    input.focus();
+    await user.keyboard("{Enter}");
+    await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await screen.findByText("Artist, Creator, Replicator");
+    expect(api.calls).toHaveLength(2);
+    expect(input).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await screen.findByText('Approved "Artist".');
+    expect(api.calls[2].body).toEqual({ locale: LOCALE, terms: ["Artist"], collisionConfirmation: "b".repeat(64) });
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for Next" })).toHaveFocus());
+  });
+
+  it("preserves the full bulk selection through the shared-rendering confirmation", async () => {
+    const api = stubGlossaryApi([row("Artist", "draft", "Künstler"), row("Replicator", "draft", "Künstler")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("Artist");
+    api.refuseNextWrite();
+    await user.click(screen.getByRole("button", { name: "Approve all 2 unreviewed terms shown" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Approve all shown" }));
+    await screen.findByRole("button", { name: "Allow shared rendering" });
+    expect(api.calls).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await screen.findByText("Approved 2 terms.");
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist", "Replicator"], collisionConfirmation: "a".repeat(64) });
+  });
+
+  it("retries the same CSV with a bounded acknowledgement header only after explicit confirmation", async () => {
+    const api = stubGlossaryApi([row("Artist", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("Artist");
+    const csv = "term,target,status\nArtist,Künstler,approved\n";
+    const file = new File([csv], "glossary.csv", { type: "text/csv" });
+    Object.defineProperty(file, "text", { value: async () => csv });
+    api.refuseNextWrite();
+    await user.upload(screen.getByLabelText("Choose a glossary CSV"), file);
+    await screen.findByRole("dialog");
+    expect(api.calls).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await screen.findByText("Imported 2 approved and 1 unreviewed renderings.");
+    expect(api.calls.map((call) => call.body)).toEqual([csv, csv]);
+    const requests = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/import?"));
+    expect(new Headers(requests[0][1]?.headers).has("X-Glossary-Collision-Confirmation")).toBe(false);
+    expect(new Headers(requests[1][1]?.headers).get("X-Glossary-Collision-Confirmation")).toBe("a".repeat(64));
   });
 });

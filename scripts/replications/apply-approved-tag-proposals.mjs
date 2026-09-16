@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -199,7 +199,7 @@ async function verify(client, desired) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION, startDir: ROOT });
   printProductionWriteCommand(command);
-  if (!command.targetUrl) throw new Error("Set TARGET_CONVEX_URL or pass --target-url.");
+  if (!command.targetUrl) throw new Error("Set TARGET_POSTGRES_URL or pass --target.");
 
   const proposalsPath = path.resolve(flagValue("--proposals") ?? DEFAULT_PROPOSALS);
   const notesPath = path.resolve(flagValue("--notes") ?? DEFAULT_NOTES);
@@ -283,7 +283,7 @@ async function main() {
   if (previousLedger && previousLedger.payloadDigest !== payloadDigest) {
     throw new Error("Existing ledger belongs to a different payload.");
   }
-  if (previousLedger && previousLedger.target !== command.targetUrl) {
+  if (previousLedger && previousLedger.target !== command.deploymentFingerprint) {
     throw new Error("Existing ledger belongs to a different deployment.");
   }
   const ledger = previousLedger ?? {
@@ -291,7 +291,7 @@ async function main() {
     payloadDigest,
     proposalSha256,
     notesSha256,
-    target: command.targetUrl,
+    target: command.deploymentFingerprint,
     startedAt: new Date().toISOString(),
     completed: {},
   };

@@ -222,7 +222,7 @@ export function ViewerThumbnailRail({
             aria-current={selected ? "true" : undefined}
             onClick={() => onSelect(itemIndex)}
             className={cn(
-              "relative block size-12 overflow-hidden rounded-md border transition-opacity motion-reduce:transition-none sm:size-14",
+              "relative block size-12 overflow-hidden rounded-md border transition-[border-color,opacity] duration-200 motion-reduce:transition-none sm:size-14",
               selected
                 ? "theme-media-thumbnail-selected opacity-100"
                 : "theme-media-thumbnail-border opacity-65 hover:opacity-100",

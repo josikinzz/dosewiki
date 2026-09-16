@@ -4,11 +4,11 @@
  * Owns:
  * - Draft aggregation state
  * - hasPendingChanges (2 sources -> 1 computation)
- * - Save operation state (phase/credentials) for the one destination, Convex
+ * - Save operation state (phase/credentials) for the one destination, Postgres
  * - The save notice
  *
  * Does NOT own (these stay as React hooks feeding events):
- * - Convex reactivity
+ * - Postgres reactivity
  * - Credential verification / Auth.js session
  * - Document session with conflict detection
  * - Notice auto-clear timers

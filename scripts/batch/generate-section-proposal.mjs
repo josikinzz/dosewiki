@@ -5,7 +5,7 @@ import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { BackendClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createBatchProposalReadContext,
   requireBatchProposalTargetUrl,
@@ -23,12 +23,12 @@ import {
   writeProposalArtifacts,
   writeRawResponseArtifact,
 } from "./proposal/core.mjs";
-import { createProposalReadApi, createQueryOnlyConvexClient } from "./proposal/read-only-convex.mjs";
+import { createProposalReadApi, createQueryOnlyPostgresClient } from "./proposal/read-only-postgres.mjs";
 import {
   getSectionProposalAdapter,
   sectionProposalAdapters,
 } from "./proposal/section-adapters.mjs";
-import { stripConvexMetadata } from "./summary/articles.mjs";
+import { stripDataMetadata } from "./summary/articles.mjs";
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const DEFAULT_OUTPUT_ROOT = resolve(PROJECT_ROOT, "notes-and-plans/exports/batch-proposals");
@@ -40,13 +40,13 @@ function valuesForFlag(argv, name) {
 
 export function parseProposalArgs(argv) {
   if (argv.includes("--write") || argv.some((entry) => entry.startsWith("--write="))) {
-    throw new Error("--write is forbidden: batch:proposal is review-only and cannot write Convex.");
+    throw new Error("--write is forbidden: batch:proposal is review-only and cannot write Postgres.");
   }
 
-  const known = new Set(["--help", "-h"]);
+  const known = new Set(["--help", "-h", "--allow-remote"]);
   for (const argument of argv) {
     if (known.has(argument)) continue;
-    if (["--slug=", "--section=", "--source-url=", "--target-url="].some((prefix) => argument.startsWith(prefix))) continue;
+    if (["--slug=", "--section=", "--source-url=", "--target="].some((prefix) => argument.startsWith(prefix))) continue;
     throw new Error(`Unknown argument: ${argument}`);
   }
 
@@ -69,17 +69,18 @@ export function parseProposalArgs(argv) {
 export function proposalHelpText() {
   const supportedSections = Object.keys(sectionProposalAdapters).join("|");
   return `Review-only section regeneration proposal\n\n` +
-    `Usage:\n  npm run batch:proposal -- --slug=<slug> --section=<${supportedSections}> --source-url=<url> --target-url=<url>\n\n` +
-    `Source identity must come from --source-url, SOURCE_CONVEX_URL, or CONVEX_PUBLIC_READ_URL. ` +
-    `Target identity must come from --target-url or TARGET_CONVEX_URL. ` +
-    `This command never accepts --write and never calls a Convex mutation.\n`;
+    `Usage:\n  DATA_BACKEND=postgres npm run batch:proposal -- --slug=<slug> --section=<${supportedSections}> --source-url=<url> --target=<url>\n\n` +
+    `Source identity comes from --source-url or SOURCE_POSTGRES_URL, otherwise the selected target. ` +
+    `Target identity must come from --target or TARGET_POSTGRES_URL. ` +
+    `Remote access requires --allow-remote and POSTGRES_IMPORT_CONFIRM=<hostname>. ` +
+    `This command never accepts --write and never calls a Postgres mutation.\n`;
 }
 
 export async function generateSectionProposal({
   argv = process.argv.slice(2),
   env = process.env,
   Client = BackendClient,
-  convexApi = api,
+  postgresApi = api,
   adapterRegistry = { get: getSectionProposalAdapter },
   callOpenRouter = null,
   now = () => new Date().toISOString(),
@@ -105,11 +106,11 @@ export async function generateSectionProposal({
     throw new Error("OPENROUTER_API_KEY is required to generate a proposal.");
   }
 
-  const readApi = createProposalReadApi(convexApi);
-  const sourceClient = createQueryOnlyConvexClient(Client, sourceUrl);
+  const readApi = createProposalReadApi(postgresApi);
+  const sourceClient = createQueryOnlyPostgresClient(Client, sourceUrl);
   const targetClient = sourceUrl === targetUrl
     ? sourceClient
-    : createQueryOnlyConvexClient(Client, targetUrl);
+    : createQueryOnlyPostgresClient(Client, targetUrl);
   const [sourceArticle, targetArticle] = await Promise.all([
     sourceClient.query(readApi.substanceIndex.getBySlug, { slug: options.slug }),
     targetClient.query(readApi.substanceIndex.getBySlug, { slug: options.slug }),
@@ -131,21 +132,21 @@ export async function generateSectionProposal({
     config: adapter.config,
   });
   const capturedAt = now();
-  const targetArticleContent = stripConvexMetadata(targetArticle);
+  const targetArticleContent = stripDataMetadata(targetArticle);
   const manifestWithoutDigest = {
-    schemaVersion: "section-proposal-manifest-v1",
+    schemaVersion: "section-proposal-manifest-v2",
     adapterVersion: adapter.adapterVersion,
     slug: options.slug,
     section: options.section,
     capturedAt,
     deployments: {
       source: {
-        url: sourceUrl,
+        identity: sourceDeploymentFingerprint,
         urlProvenanceKey: context.sourceUrlKey,
         fingerprint: sourceDeploymentFingerprint,
       },
       target: {
-        url: targetUrl,
+        identity: targetDeploymentFingerprint,
         urlProvenanceKey: context.targetUrlKey,
         fingerprint: targetDeploymentFingerprint,
       },

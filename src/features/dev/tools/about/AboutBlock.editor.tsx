@@ -11,11 +11,12 @@ import { EditorNotice, EditorSection, EditorToolbar, useConfirm } from "@/featur
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { AboutCopyEditors } from "./AboutCopyEditors";
 import { useAboutEditorController } from "./useAboutEditorController";
+import { canDraft } from "@/lib/auth/roles";
 
 export default function AboutBlock({ children, placeholderValues = {}, label = "Edit About copy" }: { children?: ReactNode; placeholderValues?: Record<string, string>; label?: string }) {
   const { enabled, mode, role } = useContextualEditing();
   const [open, setOpen] = useState(false);
-  if (!enabled || mode !== "edit" || (role !== "admin" && role !== "editor")) return children;
+  if (!enabled || mode !== "edit" || !canDraft(role)) return children;
   return <>{children}<Button variant="ghost" size="sm" onClick={() => setOpen(true)}>{label}</Button>{open && <AboutSession close={() => setOpen(false)} placeholderValues={placeholderValues} />}</>;
 }
 function AboutSession({ close, placeholderValues }: { close: () => void; placeholderValues: Record<string, string> }) {
@@ -40,7 +41,7 @@ function AboutSession({ close, placeholderValues }: { close: () => void; placeho
       <fieldset className="space-y-6" disabled={editor.saveState === "saving" || editor.publicationUncertain}>
       <AboutCopyEditors contextual aboutMarkdown={editor.draft.markdown} onMarkdownChange={(event) => editor.replaceMarkdown(event.target.value)} onResetMarkdown={() => confirm({ title: "Reset About copy?", description: "Replace your local About copy changes with the loaded source. Published copy will not change.", confirmLabel: "Reset About copy", cancelLabel: "Keep editing", destructive: true, onConfirm: () => { editor.resetMarkdown(); textareaRef.current?.focus(); } })} onCopyMarkdown={editor.copyMarkdown} isMarkdownDirty={editor.draft.markdown !== editor.original.markdown} textareaRef={textareaRef} aboutSubtitle={editor.draft.subtitle} onSubtitleChange={(event) => editor.replaceSubtitle(event.target.value)} onResetSubtitle={() => confirm({ title: "Reset subtitle and description?", description: "Replace your local subtitle and search-description changes with the loaded source. Published copy will not change.", confirmLabel: "Reset subtitle and description", cancelLabel: "Keep editing", destructive: true, onConfirm: () => { editor.resetSubtitle(); subtitleTextareaRef.current?.focus(); } })} onCopySubtitle={editor.copySubtitle} isSubtitleDirty={editor.draft.subtitle !== editor.original.subtitle} subtitleLength={editor.draft.subtitle.length} subtitleTextareaRef={subtitleTextareaRef} copyNotice={editor.copyNotice} />
       </fieldset>
-      <div ref={previewRef} tabIndex={-1} aria-label="Local About preview and review" className="min-w-0 space-y-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong">
+      <div ref={previewRef} tabIndex={-1} aria-label="Local About preview and review" className="min-w-0 space-y-6 theme-focus-ring">
         <EditorSection headingLevel="h3" title="Local preview" description="Rendered with live count placeholders. Nothing here has been published.">
           <p>{applyPlaceholders(editor.draft.subtitle, placeholderValues)}</p>
           <section className="space-y-6">

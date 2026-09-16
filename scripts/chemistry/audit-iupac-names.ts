@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import initRDKitModule, { type JSMol, type RDKitModule } from "@rdkit/rdkit";
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   MISSING_OPSIN,
   MISSING_PUBCHEM,
@@ -26,7 +26,6 @@ import {
   writeProviderCache,
 } from "./iupacNameProviders";
 
-const DEFAULT_CONVEX_URL = "https://glad-minnow-656.convex.cloud";
 const DEFAULT_REPORT = "tmp/iupac-audit/report.json";
 const DEFAULT_CACHE = "tmp/iupac-audit/provider-cache.json";
 
@@ -49,15 +48,15 @@ function parsePositiveInteger(value: string | null, name: string): number | null
 
 function printHelp() {
   console.log(`
-Audit live substance IUPAC names against their stored SMILES without Convex writes.
+Audit live substance IUPAC names against their stored SMILES without Postgres writes.
 
 Usage:
   npm run audit:iupac-names
   npm run audit:iupac-names -- --slug lsd --refresh
-  npm run audit:iupac-names -- --convex-url URL --report PATH --fail-on-review
+  npm run audit:iupac-names -- --source-url URL --report PATH --fail-on-review
 
 Options:
-  --convex-url URL    Read source (default: production ${DEFAULT_CONVEX_URL})
+  --source-url URL    Postgres read source (or SOURCE_POSTGRES_URL / selected target)
   --slug SLUG         Audit one substance
   --limit N           Audit the first N slug-sorted substances
   --report PATH       Local JSON report (default: ${DEFAULT_REPORT})
@@ -65,7 +64,7 @@ Options:
   --refresh           Ignore provider cache entries
   --fail-on-review    Exit non-zero when the review queue is non-empty
 
-The command performs public Convex queries and writes only the local report/cache.
+The command performs public Postgres queries and writes only the local report/cache.
 `);
 }
 
@@ -119,17 +118,6 @@ function resolveStructure(rdkit: RDKitModule, smiles: string | null): StructureR
   }
 }
 
-function resolveConvexUrl(argv: string[]): string {
-  return (
-    optionValue(argv, "--convex-url") ??
-    process.env.SOURCE_CONVEX_URL ??
-    process.env.CONVEX_PUBLIC_READ_URL ??
-    process.env.CONVEX_URL ??
-    process.env.VITE_CONVEX_URL ??
-    process.env.NEXT_PUBLIC_CONVEX_URL ??
-    DEFAULT_CONVEX_URL
-  );
-}
 
 async function main() {
   const argv = process.argv.slice(2);
@@ -141,11 +129,9 @@ async function main() {
     throw new Error("This audit is read-only and does not accept write/apply flags.");
   }
 
-  const convexUrl = resolveConvexUrl(argv);
-  const parsedUrl = new URL(convexUrl);
-  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-    throw new Error("--convex-url must use HTTP or HTTPS.");
-  }
+  const { client, fingerprint } = createDataClient({
+    target: optionValue(argv, "--source-url") ?? process.env.SOURCE_POSTGRES_URL ?? null,
+  });
   const reportPath = resolve(process.cwd(), optionValue(argv, "--report") ?? DEFAULT_REPORT);
   const cachePath = resolve(process.cwd(), optionValue(argv, "--cache") ?? DEFAULT_CACHE);
   const slugFilter = optionValue(argv, "--slug");
@@ -153,9 +139,8 @@ async function main() {
   const refresh = argv.includes("--refresh");
   const failOnReview = argv.includes("--fail-on-review");
 
-  console.log("IUPAC/SMILES audit: read-only Convex query; local report/cache writes only.");
-  console.log(`Source: ${convexUrl}`);
-  const client = createDataClient({ target: convexUrl }).client;
+  console.log("IUPAC/SMILES audit: read-only Postgres query; local report/cache writes only.");
+  console.log(`Source: ${fingerprint}`);
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   let chemistryRows = extractChemistryAuditRows(articles);
   if (slugFilter) {
@@ -221,7 +206,7 @@ async function main() {
   const report = buildChemistryAuditReport({
     rows,
     generatedAt: new Date().toISOString(),
-    convexUrl,
+    targetIdentity: fingerprint!,
     rdkitVersion: rdkit.version(),
     opsinEndpoint: OPSIN_ENDPOINT,
     pubchemEndpoint: PUBCHEM_ENDPOINT,
@@ -232,7 +217,7 @@ async function main() {
   console.log(`Review queue: ${report.reviewQueue.map((row) => row.slug).join(", ") || "none"}`);
   console.log(`Report: ${reportPath}`);
   console.log(`Provider cache: ${cachePath}`);
-  console.log("Convex writes: 0");
+  console.log("Postgres writes: 0");
 
   if (failOnReview && report.reviewQueue.length > 0) process.exitCode = 1;
 }

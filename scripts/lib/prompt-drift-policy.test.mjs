@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   META_COMMENTARY_RULE,
   PROMPT_DRIFT_STATUS,
-  collectConvexPromptInventory,
+  collectDataPromptInventory,
   collectLocalPromptInventory,
   comparePromptInventories,
   sectionFileToPromptKey,
@@ -23,19 +23,19 @@ function statusByKey(drift) {
 }
 
 describe("prompt drift policy", () => {
-  it("normalizes section prompt filenames into Convex prompt keys", () => {
+  it("normalizes section prompt filenames into Postgres prompt keys", () => {
     expect(sectionFileToPromptKey("base.md")).toBe("section_base");
     expect(sectionFileToPromptKey("harmPotential.md")).toBe("section_harm_potential");
     expect(sectionFileToPromptKey("dosageDuration.md")).toBe("section_dosage_duration");
   });
 
-  it("classifies identical, local-only, Convex-only, generator, and section prompt drift", () => {
+  it("classifies identical, local-only, Postgres-only, generator, and section prompt drift", () => {
     const source = new Map([
       ["generator", prompt("generator", "same")],
       ["section_base", prompt("section_base", "local only")],
       ["section_summary", prompt("section_summary", "same")],
     ]);
-    const target = collectConvexPromptInventory([
+    const target = collectDataPromptInventory([
       { key: "generator", content: "same", updatedAt: "2026-04-27T00:00:00.000Z" },
       { key: "section_summary", content: "same", updatedAt: "2026-04-27T00:00:00.000Z" },
       { key: "section_harm_potential", content: "target only", updatedAt: "2026-04-27T00:00:00.000Z" },
@@ -55,7 +55,7 @@ describe("prompt drift policy", () => {
       ["section_base", prompt("section_base", "local body")],
     ]);
     const target = new Map([
-      ["section_base", prompt("section_base", "convex body", { updatedAt: "2026-04-27T00:00:00.000Z" })],
+      ["section_base", prompt("section_base", "data body", { updatedAt: "2026-04-27T00:00:00.000Z" })],
     ]);
 
     const [result] = comparePromptInventories(source, target);
@@ -117,8 +117,8 @@ describe("prompt drift policy", () => {
     const source = new Map([
       ["generator", prompt("generator", "local generator")],
     ]);
-    const target = collectConvexPromptInventory([
-      { key: "generator", content: "convex generator", updatedAt: "2026-04-27T00:00:00.000Z" },
+    const target = collectDataPromptInventory([
+      { key: "generator", content: "data generator", updatedAt: "2026-04-27T00:00:00.000Z" },
     ]);
 
     expect(comparePromptInventories(source, target)).toMatchObject([

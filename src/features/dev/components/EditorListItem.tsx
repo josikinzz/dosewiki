@@ -40,7 +40,7 @@ export const EditorListItem = forwardRef<HTMLButtonElement, EditorListItemProps>
       }}
       className={cn(
         "group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+        "theme-focus-ring",
         active
           ? "border-[color:var(--theme-frosted-control-on-panel-hover-border)] bg-[var(--theme-frosted-control-on-panel-hover-bg)] shadow-[var(--theme-frosted-control-on-panel-hover-shadow)]"
           : "border-transparent bg-[var(--theme-frosted-control-on-panel-bg)] shadow-[var(--theme-frosted-control-on-panel-shadow)] hover:border-[color:var(--theme-frosted-control-on-panel-hover-border)] hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)]",

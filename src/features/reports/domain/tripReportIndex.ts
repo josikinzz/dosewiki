@@ -27,6 +27,8 @@ export interface TripReportGroup<TReport> {
   anchor: string;
   kind: ReportGroupKind;
   reports: TReport[];
+  /** Full group size when the reports array is a bounded browsing page. */
+  reportCount?: number;
 }
 
 export interface SubstanceTripReportGroups<TReport> {

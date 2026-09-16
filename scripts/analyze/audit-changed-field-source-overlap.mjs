@@ -6,20 +6,20 @@ import { fileURLToPath } from "node:url";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   DEFAULT_AUDIT_THRESHOLDS,
   compareFieldToSources,
   slugify,
 } from "./plagiarism-audit-core.mjs";
-import { getByPath } from "../convex/apply-dose-table-tolerance-plagiarism-rewrites.mjs";
+import { getByPath } from "../data-ops/apply-dose-table-tolerance-plagiarism-rewrites.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 function parseArgs(argv) {
   const options = {
-    convexUrl: null,
+    sourceUrl: null,
     proposals: null,
     output: null,
     fail: false,
@@ -35,7 +35,7 @@ function parseArgs(argv) {
     options[match[1].replace(/-([a-z])/g, (_, char) => char.toUpperCase())] = match[2];
   }
 
-  if (!options.convexUrl) throw new Error("Provide --convex-url=<url>");
+  if (!options.sourceUrl) throw new Error("Provide --source-url=<url>");
   if (!options.proposals) throw new Error("Provide --proposals=<path>");
   if (!options.output) throw new Error("Provide --output=<path>");
   return options;
@@ -62,7 +62,7 @@ function sourceDisplayName(sourceId, metadata = []) {
 async function loadSources(client, slug) {
   const doc = await client.query(api.articleSources.getBySlug, {
     slug,
-    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+    apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
   });
   return Object.entries(doc?.contents ?? {})
     .filter(([, text]) => typeof text === "string" && text.trim().length > 0)
@@ -70,7 +70,7 @@ async function loadSources(client, slug) {
       sourceId,
       displayName: sourceDisplayName(sourceId, doc?.sources),
       text,
-      origin: "convex_article_sources",
+      origin: "data_article_sources",
     }));
 }
 
@@ -82,7 +82,7 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const proposalDoc = readJson(options.proposals);
   const proposals = proposalDoc.proposals ?? [];
-  const client = createDataClient({ target: options.convexUrl }).client;
+  const { client, fingerprint } = createDataClient({ target: options.sourceUrl });
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const articlesBySlug = new Map(articles.map((article) => [getArticleSlug(article), article]));
   const sourceCache = new Map();
@@ -141,7 +141,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     remediationScope: proposalDoc.remediationScope ?? null,
     deployment: proposalDoc.deployment ?? null,
-    convexUrl: options.convexUrl,
+    sourceDeployment: fingerprint,
     proposalPath: options.proposals,
     changedFieldCount: proposals.length,
     auditedFieldCount: results.length,

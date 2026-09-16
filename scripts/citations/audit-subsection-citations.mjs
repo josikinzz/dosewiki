@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Step 1 of the subsection citation rollout: refresh the public-only
- * uncited-subsection audit from the live production Convex dataset.
+ * uncited-subsection audit from the live production Postgres dataset.
  *
  * Read-only. Covers all six canonical citable sections (including tolerance)
  * for every article in the public category-layout scope, and tags the
@@ -13,18 +13,18 @@
  *   node scripts/citations/audit-subsection-citations.mjs --out tmp/subsection-citation-audit.json
  *
  * Environment:
- *   SOURCE_CONVEX_URL / CONVEX_PUBLIC_READ_URL / VITE_CONVEX_URL ... selects the
- *   deployment to read (see scripts/lib/data-ops-run-context.mjs).
- *   CONVEX_ADMIN_KEY (optional) enables per-cohort citationEvidence status
+ *   DATA_BACKEND=postgres is required; --source-url / SOURCE_POSTGRES_URL selects
+ *   the read source, with the canonical Postgres target as fallback.
+ *   DATA_ADMIN_KEY (optional) enables per-cohort citationEvidence status
  *   counts; without it evidence fields are null.
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -87,9 +87,9 @@ function queueItemsFromPath(path) {
 }
 
 async function fetchCohortEvidence(client, cohortSlugs) {
-  const apiKey = process.env.CONVEX_ADMIN_KEY;
+  const apiKey = process.env.DATA_ADMIN_KEY;
   if (!apiKey) {
-    console.warn("CONVEX_ADMIN_KEY not set; evidence status fields will be null.");
+    console.warn("DATA_ADMIN_KEY not set; evidence status fields will be null.");
     return {};
   }
   const entries = [];
@@ -111,13 +111,7 @@ const runContext = createDataOpsRunContext({
   operation: "audit public subsection citation coverage",
   intent: "citation-subsection-audit",
   argv,
-  sourceUrlKeys: [
-    "SOURCE_CONVEX_URL",
-    "CONVEX_PUBLIC_READ_URL",
-    "VITE_CONVEX_URL",
-    "CONVEX_URL",
-    "NEXT_PUBLIC_CONVEX_URL",
-  ],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
   targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
@@ -130,7 +124,7 @@ async function main() {
     return;
   }
 
-  const sourceUrl = requireSourceUrl(runContext, "Convex audit source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Postgres audit source URL");
   printDataOpsRunContext(runContext);
 
   const client = createDataClient({ target: sourceUrl }).client;
@@ -138,8 +132,8 @@ async function main() {
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.categoryLayout.get, {}),
   ]);
-  if (!articles.length) throw new Error("No articles found in the source Convex deployment.");
-  if (!layout) throw new Error("No category layout found in the source Convex deployment.");
+  if (!articles.length) throw new Error("No articles found in the source Postgres database.");
+  if (!layout) throw new Error("No category layout found in the source Postgres database.");
 
   const cohortSlugs = cohortSlugsFromFinalAudit(resolve(runContext.repoRoot, options.cohortAudit));
   const queueItems = queueItemsFromPath(options.queuePath);
@@ -152,7 +146,7 @@ async function main() {
     queueItems,
     evidenceBySlug,
     generatedAt: new Date().toISOString(),
-    source: { convexUrl: sourceUrl },
+    source: { postgresIdentity: postgresFingerprintFromUrl(sourceUrl) },
   });
 
   const outPath = resolve(runContext.repoRoot, options.out);

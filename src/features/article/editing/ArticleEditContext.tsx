@@ -2,11 +2,11 @@
 
 import { createContext, useContext } from "react";
 
-import type { EditableFieldValue } from "../../../../convex/lib/articleFieldWrites";
+import type { EditableFieldValue } from "../../../../server/lib/articleFieldWrites";
 import type { Reference } from "@/schema";
 import type { CitationMarkerSpan } from "@/lib/citations/citationTokens";
 
-export type { EditableFieldValue } from "../../../../convex/lib/articleFieldWrites";
+export type { EditableFieldValue } from "../../../../server/lib/articleFieldWrites";
 
 /**
  * What a call site may hand an editable field.
@@ -26,7 +26,7 @@ export type EditableValueInput =
  * The write layer's code for "the stored value moved under you".
  *
  * The wire contract is `{ error, code }` where `code` is the stable half and
- * `error` is copy that will be reworded (see `src/lib/http/convexRejection.ts`).
+ * `error` is copy that will be reworded (see `src/lib/http/dataRejection.ts`).
  * Branching on the code is the only supported way to recognise a conflict;
  * matching the sentence is not.
  */

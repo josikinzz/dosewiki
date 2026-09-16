@@ -1,9 +1,7 @@
 /**
  * The public glossary: the translation glossary's terms with their one-line
- * English definitions, read straight from Postgres. A deployment not on the
- * Postgres backend has no glossary table to read, so it renders the empty
- * state rather than failing the route. The mirror at `src/app/zh/glossary`
- * adds each term's approved rendering.
+ * English definitions, read straight from Postgres. The mirror at
+ * `src/app/zh/glossary` adds each term's approved rendering.
  */
 import { getDataBackend } from "@server/postgres/runtime/backend";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
@@ -23,6 +21,7 @@ export async function generateMetadata() {
 }
 
 export default async function GlossaryPage() {
-  const glosses = getDataBackend() === "postgres" ? await readGlosses() : [];
+  getDataBackend();
+  const glosses = await readGlosses();
   return <GlossaryContentPage groups={buildGlossaryGroups(glosses)} renderingLang={null} />;
 }

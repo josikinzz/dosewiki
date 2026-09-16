@@ -139,13 +139,38 @@ describe("createViewerSession", () => {
     expect(state.replaces[state.replaces.length - 1]).toBe("/source?viewer=a3");
   });
 
-  it("syncs without history and re-resolves on collection replacement", () => {
-    const state = setup();
+  it("adopts an expanded reordered collection without history or losing group memory", () => {
+    const state = setup(
+      collection([
+        { key: "a", slugs: ["a1", "a2"] },
+        { key: "b", slugs: ["b1", "b2"] },
+      ]),
+    );
+    state.session.syncFromUrl("b2");
     state.session.syncFromUrl("a2");
-    expect(state.pushes).toEqual([]);
-    expect(state.replaces).toEqual([]);
-    state.session.setCollection(collection([{ key: "new", slugs: ["a2", "a1"] }]));
-    expect(state.session.snapshot().position).toEqual({ groupIndex: 0, itemIndex: 0 });
+    const historyBefore = {
+      pushes: state.pushes.length,
+      replaces: state.replaces.length,
+    };
+
+    state.session.setCollection(
+      collection([
+        { key: "b", slugs: ["b3", "b1", "b2"] },
+        { key: "a", slugs: ["a3", "a2", "a1"] },
+        { key: "c", slugs: ["c1"] },
+      ]),
+    );
+
+    expect(state.session.snapshot()).toEqual({
+      position: { groupIndex: 1, itemIndex: 1 },
+      entry: null,
+    });
+    expect(state.session.adjacentGroup(-1)).toEqual({
+      groupIndex: 0,
+      itemIndex: 2,
+    });
+    expect(state.pushes).toHaveLength(historyBefore.pushes);
+    expect(state.replaces).toHaveLength(historyBefore.replaces);
   });
 
   it("backs from viewer history and otherwise replaces the closed URL", () => {

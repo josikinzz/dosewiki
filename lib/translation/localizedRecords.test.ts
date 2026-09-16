@@ -7,8 +7,8 @@ const store = vi.hoisted(() => ({
   readTranslations: vi.fn(),
 }));
 vi.mock("./segmentStore", () => store);
-vi.mock("@server/convex/publicData", () => ({}));
-vi.mock("@server/convex/publicData.substances", () => ({}));
+vi.mock("@server/data/publicData", () => ({}));
+vi.mock("@server/data/publicData.substances", () => ({}));
 
 describe("getLocalizedEffectNames", () => {
   beforeEach(() => {

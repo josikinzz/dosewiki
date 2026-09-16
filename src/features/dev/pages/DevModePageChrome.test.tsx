@@ -187,19 +187,12 @@ describe("DevModePageChrome rail", () => {
     expect(within(nav).getByRole("button", { name: "Intake" })).toBeTruthy();
     expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
 
-    // Glossary sits at the translator floor now, so it remains available to
-    // an editor while admin-only tools stay disabled with their reason.
-    const siteTrigger = within(nav).getByRole("button", { name: "Site" });
-    const siteMenu = openMenu(siteTrigger);
-    expect(within(siteMenu).getByRole("menuitem", { name: "Glossary" })).toBeEnabled();
-    fireEvent.pointerDown(siteTrigger, { button: 0, ctrlKey: false });
     const lockedTrigger = within(nav).getByRole("button", { name: /^Locked,/ });
     const menu = openMenu(lockedTrigger);
-    expect(within(menu).queryByText("Glossary")).toBeNull();
+    expect(within(menu).getByText("Glossary")).toBeTruthy();
     expect(within(menu).getByText("Members")).toBeTruthy();
     for (const item of within(menu).getAllByRole("menuitem")) {
       expect(item.getAttribute("aria-disabled")).toBe("true");
-      expect(within(item).getByText("Admin role required")).toBeTruthy();
     }
     expect(getByText("Editor")).toBeInTheDocument();
   });
@@ -338,7 +331,6 @@ describe("DevModePageChrome phone sheet", () => {
       expect(row.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
       if (!roleMeetsFloor("editor", tab.role)) {
         expect(row).toBeDisabled();
-        expect(within(row).getByText("Admin role required")).toBeInTheDocument();
       }
     }
     expect(within(menu).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");

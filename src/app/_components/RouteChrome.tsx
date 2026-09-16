@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { RouteAnnouncer } from "@/components/common/RouteAnnouncer";
 import { NavigationProgress } from "./NavigationProgress";
+import {
+  beginPendingNavigation,
+  finishPendingNavigation,
+  type NavigationTransitionId,
+} from "@/components/common/SmartLink";
 import { isHomePathname, viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { isEffectIndex, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -164,6 +169,30 @@ export function RouteChrome() {
   const pathname = usePathname();
   const { model, setSearchQuery } = useRouteChromeModel();
   const liveSearchOriginViewRef = useRef<Parameters<typeof viewToPath>[0] | null>(null);
+  const [isProgrammaticNavigationPending, startProgrammaticNavigation] = useTransition();
+  const programmaticTransitionRef = useRef<NavigationTransitionId | null>(null);
+  const runProgrammaticNavigation = (navigate: () => void) => {
+    if (programmaticTransitionRef.current) {
+      finishPendingNavigation(programmaticTransitionRef.current);
+    }
+    programmaticTransitionRef.current = beginPendingNavigation();
+    startProgrammaticNavigation(navigate);
+  };
+
+  useEffect(() => {
+    if (isProgrammaticNavigationPending || !programmaticTransitionRef.current) {
+      return;
+    }
+    finishPendingNavigation(programmaticTransitionRef.current);
+    programmaticTransitionRef.current = null;
+  }, [isProgrammaticNavigationPending]);
+
+  useEffect(() => () => {
+    if (programmaticTransitionRef.current) {
+      finishPendingNavigation(programmaticTransitionRef.current);
+      programmaticTransitionRef.current = null;
+    }
+  }, []);
   useManualScrollRestoration();
   useResetScrollOnPathnameChange(pathname, {
     disabled: isSelfScrollingRoute(pathname),
@@ -180,7 +209,7 @@ export function RouteChrome() {
     } else {
       liveSearchOriginViewRef.current = null;
     }
-    router.push(navigationHref(nextView));
+    runProgrammaticNavigation(() => router.push(navigationHref(nextView)));
   };
 
   const replaceView = (nextView: Parameters<typeof viewToPath>[0]) => {
@@ -189,7 +218,7 @@ export function RouteChrome() {
     } else {
       liveSearchOriginViewRef.current = null;
     }
-    router.replace(navigationHref(nextView), { scroll: false });
+    runProgrammaticNavigation(() => router.replace(navigationHref(nextView), { scroll: false }));
   };
 
   const pushLiveSearchView = (nextView: Parameters<typeof viewToPath>[0]) => {
@@ -202,7 +231,7 @@ export function RouteChrome() {
       liveSearchOriginViewRef.current = model.currentView;
     }
     setSearchQuery(nextView.query);
-    router.push(navigationHref(nextView), { scroll: false });
+    runProgrammaticNavigation(() => router.push(navigationHref(nextView), { scroll: false }));
   };
 
   if (isChromelessAddress(pathname)) {

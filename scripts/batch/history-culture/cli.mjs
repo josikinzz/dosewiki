@@ -49,7 +49,7 @@ export function parseArgs() {
       "skip-backup": "skipBackup",
       "new-only": "newOnly",
       "source-url": "sourceUrl",
-      "target-url": "targetUrl",
+      "target": "targetUrl",
     },
   });
 }

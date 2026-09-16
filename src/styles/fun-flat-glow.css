@@ -20,10 +20,10 @@
   cannot re-tint these eight bloom recipes off the homepage, which is the point
   of the sheet.
 
-  Each override drops the coloured cast layer and keeps the hairline ring and
-  the inset highlight, so depth and edge survive; nothing here is
-  `box-shadow: none`. Neutral casts stay neutral (--theme-shadow-*), so a lifted
-  surface still reads as lifted rather than flat.
+  Most overrides keep the hairline ring and inset highlight while dropping the
+  coloured cast. Selected controls instead keep only a diffuse inset sheen.
+  Neutral casts stay neutral (--theme-shadow-*), so a lifted surface still
+  reads as lifted rather than flat.
 
   Unlayered on purpose, and imported last: see `src/app/_styles/dosewiki.ts`.
 */
@@ -31,8 +31,7 @@
 html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) {
   /* Selected controls (route tabs, dosage-mode pills, view switchers). */
   --theme-selected-control-shadow:
-    0 0 0 1px var(--theme-selected-control-border),
-    inset 0 1px 0 var(--theme-status-badge-inset);
+    inset 0 3px 10px -5px var(--theme-status-badge-inset);
   --theme-selected-control-glow: none;
 
   /* Accent- and violet-tinted lifts become their neutral-depth equivalents. */
@@ -49,6 +48,21 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) {
   --theme-frosted-control-on-panel-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-on-panel-hover-border),
     inset 0 1px 0 var(--theme-status-badge-inset);
+}
+
+/* Route pills share the soft, borderless treatment in both color schemes.
+   The icon recess follows the canvas, not the selected pill's accent wash.
+   Important declarations supersede the legacy light-mode control remaps. */
+html:not([data-visual-style="pro"]) .theme-route-tabs-list .theme-selected-control[data-state="active"] {
+  border-color: transparent !important;
+  box-shadow: inset 0 3px 10px -5px var(--theme-status-badge-inset) !important;
+  --tw-ring-color: transparent !important;
+}
+
+html:not([data-visual-style="pro"]) .theme-route-tabs-list .theme-selected-control[data-state="active"] .theme-selected-control-icon {
+  background: transparent !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
 }
 
 /* The bloom these carry is written at the call site rather than in a token, so
@@ -70,16 +84,11 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-cta
   }
 }
 
-/* Header search field: keep the focus hairline, drop the accent cast under it. */
+/* Header search keeps its inset depth without adding an outside focus ring. */
 html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-global-search-input:focus {
-  box-shadow: 0 0 0 1px var(--theme-ring-soft);
+  box-shadow: var(--theme-elevation-field-inset);
 }
 
-/* The pink radial the search field fades in behind itself on focus. The element
-   is shared with the homepage's own search, which keeps it. */
-html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-search-focus-glow {
-  background: none;
-}
 
 /* Mobile index tab: ring and inset only. */
 html:not([data-visual-style="pro"])

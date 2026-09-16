@@ -8,18 +8,18 @@ import { Button } from "@/components/ui/button";
 import { formatFileSize } from "@/utils/fileSize";
 import { icons } from "@/utils/iconNames";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
-import type { PublicDownloadStats } from "@server/open-data/downloadStats";
+import { getOpenDataDownloadStats, type OpenDataDownloadStats, type PublicDownloadStats } from "@/lib/openDataDownloadStats";
 import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 
 type AboutDownloadKey = "substances" | "effects" | "reports" | "molecules";
 
 /**
- * The files to list, each with the count and size measured on the file itself
- * (see `lib/open-data/downloadStats.ts`). Nothing is defaulted, so a caption
- * can never drift from what the reader downloads; a key that is absent is not
- * listed at all.
+ * `true` lists a live JSON download without constructing it for a caption.
+ * Its measurements arrive only on download intent, from the saved response.
+ * Committed files can supply their deployment-matched measurements directly.
+ * Omitted keys are not listed.
  */
-export type AboutDownloads = Partial<Record<AboutDownloadKey, PublicDownloadStats>>;
+export type AboutDownloads = Partial<Record<AboutDownloadKey, PublicDownloadStats | true>>;
 
 // Each download carries the icon its section uses in the site menu, so the list
 // reads as "the same things you navigate to, as files".
@@ -72,41 +72,77 @@ function DownloadPill({
   filename,
   stats,
   icon,
-  onClick,
+  href,
 }: {
   filename: string;
-  stats: PublicDownloadStats;
+  stats: PublicDownloadStats | true;
   icon: IconName;
-  onClick: () => void;
+  href: string;
 }) {
-  // One noun for every file: the count answers "how much is in here", and the
-  // filename already says what.
   const t = useT();
-  const entries = t("{{count}} entries", { count: stats.count.toLocaleString() });
-  const size = formatFileSize(stats.bytes);
+  const [measuredStats, setMeasuredStats] = useState<PublicDownloadStats | OpenDataDownloadStats | null>(
+    stats === true ? null : stats,
+  );
+  const [downloading, setDownloading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const entries = measuredStats ? t("{{count}} entries", { count: measuredStats.count.toLocaleString() }) : null;
+  const size = measuredStats ? formatFileSize(measuredStats.bytes) : null;
+  const revision = measuredStats && "revision" in measuredStats ? measuredStats.revision : undefined;
+
+  const handleDownload = async () => {
+    if (stats !== true) {
+      triggerDownload(href, filename);
+      return;
+    }
+    setDownloading(true);
+    setFailed(false);
+    setMeasuredStats(null);
+    try {
+      // No mount-time request: an ordinary page read never regenerates an export.
+      // Read the caption and file from one response so an ISR revision change
+      // cannot make the caption describe a different document from the download.
+      const response = await fetch(href);
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+      const metadata = getOpenDataDownloadStats(response.headers);
+      const blob = await response.blob();
+      setMeasuredStats(metadata?.bytes === blob.size ? metadata : null);
+      const objectUrl = URL.createObjectURL(blob);
+      triggerDownload(objectUrl, filename);
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch {
+      setMeasuredStats(null);
+      setFailed(true);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <Button
-      onClick={onClick}
-      aria-label={t("Download {{filename}}, {{entries}}, {{size}}", {
-        filename,
-        entries,
-        size,
-      })}
-      className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full pl-3.5 pr-4"
-    >
-      <Icon icon={icon} size={18} className="theme-accent-emphasis shrink-0" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold">{filename}</span>
-      {/* Below `sm` the two figures stack right-aligned inside the pill so the
-          filename keeps its width on narrow phones; wider, they sit on one line. */}
-      <span className="theme-text-faint flex shrink-0 flex-col items-end text-[0.6875rem] font-medium leading-[1.2] tabular-nums sm:flex-row sm:items-baseline sm:gap-1 sm:leading-normal">
-        <span>{entries}</span>
-        <span className="theme-text-ghost hidden sm:inline" aria-hidden="true">
-          ·
-        </span>
-        <span>{size}</span>
-      </span>
-      <Icon icon="charm:download" size={14} className="theme-text-faint shrink-0" aria-hidden="true" />
-    </Button>
+    <div>
+      <Button
+        onClick={handleDownload}
+        disabled={downloading}
+        aria-busy={downloading}
+        aria-label={entries && size
+          ? t("Download {{filename}}, {{entries}}, {{size}}", { filename, entries, size })
+          : t("Download {{filename}}", { filename })}
+        title={revision ? `SHA-256: ${revision}` : undefined}
+        data-download-revision={revision}
+        className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full pl-3.5 pr-4"
+      >
+        <Icon icon={icon} size={18} className="theme-accent-emphasis shrink-0" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold">{filename}</span>
+        {measuredStats ? (
+          <span className="theme-text-faint flex shrink-0 flex-col items-end text-[0.6875rem] font-medium leading-[1.2] tabular-nums sm:flex-row sm:items-baseline sm:gap-1 sm:leading-normal">
+            <span>{entries}</span>
+            <span className="theme-text-ghost hidden sm:inline" aria-hidden="true">·</span>
+            <span>{size}</span>
+          </span>
+        ) : null}
+        <Icon icon="charm:download" size={14} className="theme-text-faint shrink-0" aria-hidden="true" />
+      </Button>
+      {failed ? <p role="status" className="theme-text-secondary mt-1 text-sm">{t("Download failed. Please try again.")}</p> : null}
+    </div>
   );
 }
 
@@ -288,7 +324,7 @@ export function AboutArchivePreview({
               filename={download.filename}
               stats={download.stats}
               icon={download.icon}
-              onClick={() => triggerDownload(download.href, download.filename)}
+              href={download.href}
             />
           ))}
         </div>

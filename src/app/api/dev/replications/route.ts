@@ -1,10 +1,10 @@
 /**
  * Read + create endpoint for the Replication Studio (`/dev` → Replications).
  *
- * Both verbs go through the authenticated Convex write target rather than the
- * browser's public read deployment, for the same reason the molecule editor's
- * GET does: an editor must see and edit the same deployment, and the studio's
- * read includes figures and effect-less rows that no public projection returns.
+ * Both verbs use the authenticated Postgres write target, so an editor reads
+ * the same corpus they edit. The studio includes figures and effect-less rows
+ * that no public projection returns. Creation verifies an R2 upload receipt
+ * and the stored bytes before inserting a durable media reference.
  *
  *   GET  /api/dev/replications                       → { rows, effects }
  *   POST /api/dev/replications  { …asset fields }    → create one row
@@ -12,11 +12,13 @@
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishReplicationRecord } from "./publishReplicationRecord";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { diagnoseConvexAdminCredential } from "@/lib/http/convexAdminIntentError";
-import { probeServerConvexAdminCredential } from "@server/convex/serverWriteCapability";
+import { diagnoseDataAdminCredential } from "@/lib/http/dataAdminIntentError";
+import { probeServerDataAdminCredential } from "@server/data/serverWriteCapability";
+import { readR2MediaUploadReceipt, verifyMediaForPublication } from "@server/runtime/r2MediaStorage";
+import { assertDataWritesNotFrozen } from "@server/runtime/dataWriteFreeze";
 import {
   isValidReplicationSlug,
   type StudioMediaType,
@@ -35,7 +37,7 @@ type CreateAssetBody = {
   artist?: unknown;
   role?: unknown;
   type?: unknown;
-  storageId?: unknown;
+  uploadToken?: unknown;
   effectSlug?: unknown;
   effectTags?: unknown;
   format?: unknown;
@@ -49,7 +51,7 @@ type ParsedCreateAsset = {
   artist: string;
   role: StudioRole;
   type: StudioMediaType;
-  storageId: string;
+  uploadToken: string;
   effectSlug?: string;
   effectTags: string[];
   format: string;
@@ -122,7 +124,7 @@ function parseCreateBody(body: CreateAssetBody): ParsedCreateAsset {
     artist: requireString(body.artist, "artist", 200),
     role,
     type,
-    storageId: requireString(body.storageId, "storageId", 200),
+    uploadToken: requireString(body.uploadToken, "uploadToken", 4096),
     effectSlug,
     effectTags,
     format,
@@ -134,24 +136,24 @@ function parseCreateBody(body: CreateAssetBody): ParsedCreateAsset {
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load the replication corpus via Next route:",
   unexpectedErrorMessage: "Unable to load the replication corpus right now.",
-  operation: async ({ actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
     try {
-      const corpus = await convexWrite.client.query(api.replications.getStudioRows, { apiKey, actorEmail });
+      const corpus = await dataWrite.client.query(api.replications.getStudioRows, { apiKey, actorEmail });
       return NextResponse.json({ ok: true, ...corpus });
     } catch (error) {
-      // A stale admin token is a configuration fact, not an outage — but Convex
+      // A stale admin token is a configuration fact, not an outage — but Postgres
       // sends the same opaque error either way, so ask the deployment which it is.
-      const diagnosis = await diagnoseConvexAdminCredential({
+      const diagnosis = await diagnoseDataAdminCredential({
         intent: "replicationMaintenance",
-        probe: () => probeServerConvexAdminCredential(actorEmail, apiKey),
+        probe: () => probeServerDataAdminCredential(actorEmail, apiKey),
       });
       if (!diagnosis) throw error;
       return NextResponse.json({ ok: false, error: diagnosis }, { status: 503 });
@@ -163,16 +165,35 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseCreateBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to create a replication via Next route:",
   unexpectedErrorMessage: "Unable to create that replication right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
-    const result = await convexWrite.client.mutation(api.replications.insertMediaAsset, {
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
+    assertDataWritesNotFrozen("replication-studio.upload-finish");
+    let uploaded;
+    try {
+      uploaded = readR2MediaUploadReceipt(body.uploadToken, actorEmail);
+    } catch {
+      throw new JsonBodyError(400, "Invalid or expired upload receipt. Start the upload again.");
+    }
+    if (uploaded.fileSize !== body.fileSize || uploaded.mimeType.split("/")[0] !== body.type
+      || uploaded.r2Key.slice(uploaded.r2Key.lastIndexOf(".") + 1) !== body.format) {
+      throw new JsonBodyError(400, "Media metadata does not match the authorized upload.");
+    }
+    const authorization = await dataWrite.client.query(api.replications.authorizeMediaUpload, { apiKey, actorEmail });
+    const verified = await verifyMediaForPublication(uploaded.r2Key, {
+      purpose: "replication-import",
+      subject: body.slug,
+      actorEmail: authorization.actorEmail,
+      targetIdentity: authorization.targetIdentity,
+    }, uploaded);
+    assertDataWritesNotFrozen("replication-studio.create");
+    const result = await dataWrite.client.mutation(api.replications.insertMediaAsset, {
       apiKey,
       actorEmail,
       expected_absent: true,
@@ -181,11 +202,12 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
       artist: body.artist,
       role: body.role,
       type: body.type,
-      storage_id: body.storageId,
+      r2_key: uploaded.r2Key,
+      mediaReceipts: { r2_key: verified.token },
       effect_slug: body.effectSlug,
       effect_tags: body.effectTags.length > 0 ? body.effectTags : undefined,
       format: body.format,
-      file_size: body.fileSize,
+      file_size: uploaded.fileSize,
       rights_status: "unknown",
       credit_line: body.creditLine,
     });

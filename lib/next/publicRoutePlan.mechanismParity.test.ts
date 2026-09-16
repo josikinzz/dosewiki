@@ -6,7 +6,7 @@ import {
 import {
   parsePublicSubstanceLibraryInputRecords,
   parsePublicSubstanceRecords,
-} from "../convex/publicData.substanceContract";
+} from "../data/publicData.substanceContract";
 import { buildLibrary } from "../../src/data/builders/libraryBuilder";
 import { parseManualConfig } from "../../src/data/builders/manualIndexLoader";
 import type { SubstanceArticle } from "../../src/schema";

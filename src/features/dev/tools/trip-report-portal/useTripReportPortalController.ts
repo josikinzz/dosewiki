@@ -3,19 +3,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
-  ConvexTripReportImportPayload,
+  DataTripReportImportPayload,
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
+import type {
+  TripReportSubmissionPortalIndex,
+  TripReportSubmissionPortalSummary,
+} from "@/features/reports/submissions/dataTripReportSubmissionStore";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
-import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
 import type { PromotionAttribution } from "./PortalSubmissionReview";
 import {
   EMPTY_PORTAL_FACETS,
   filterPortalRows,
   groupPortalRows,
-  isNeedsReviewStatus,
   portalStats,
   toPortalRowFromReport,
   toPortalRowFromSubmission,
@@ -30,22 +33,17 @@ import {
 
 const CORPUS_API = "/api/dev/trip-reports";
 const RECORD_API = "/api/dev/trip-reports/record";
-/**
- * Every row the rail badge counts, uncapped: the Needs review bucket is cut
- * from these with the same status list the badge reads, so the two cannot
- * disagree however deep the queue gets.
- */
-const NEEDS_REVIEW_QUEUE_API = "/api/trip-report-submissions/queue?scope=needs-review";
-/** The rest of the private queue, at the store's cap: browse history, not a work list. */
-const QUEUE_API = "/api/trip-report-submissions/queue?limit=250";
+const SUBMISSION_INDEX_API = "/api/trip-report-submissions/queue?scope=portal";
+const SUBMISSION_DETAIL_API = "/api/trip-report-submissions/queue";
 
 type CorpusPayload = {
   reports: PublishedReportPayload[];
   contributors: PortalContributorOption[];
-  submissions: TripReportSubmissionRow[];
+  submissions: TripReportSubmissionPortalSummary[];
 };
 
-type LoadState = { status: "loading" } | { status: "ready" } | { status: "error"; message: string };
+type DatasetState = { status: "loading" | "ready" } | { status: "error"; message: string };
+type LoadState = { corpus: DatasetState; submissions: DatasetState };
 
 type ReportDetail = { id: string; fields: TripReportEditableFields; revision: string };
 
@@ -62,13 +60,19 @@ type Feedback = { tone: "success" | "danger"; message: string };
  * state. The refetch still runs on every mount; it just happens behind the
  * already-rendered list.
  */
-let cachedCorpus: CorpusPayload | null = null;
+let cachedPublished: Pick<CorpusPayload, "reports" | "contributors"> | null = null;
+let cachedSubmissions: TripReportSubmissionPortalSummary[] | null = null;
 
 export function useTripReportPortalController() {
-  const [corpus, setCorpus] = useState<CorpusPayload>(
-    () => cachedCorpus ?? { reports: [], contributors: [], submissions: [] },
-  );
-  const [load, setLoad] = useState<LoadState>(cachedCorpus ? { status: "ready" } : { status: "loading" });
+  const [corpus, setCorpus] = useState<CorpusPayload>(() => ({
+    reports: cachedPublished?.reports ?? [],
+    contributors: cachedPublished?.contributors ?? [],
+    submissions: cachedSubmissions ?? [],
+  }));
+  const [load, setLoad] = useState<LoadState>({
+    corpus: cachedPublished ? { status: "ready" } : { status: "loading" },
+    submissions: cachedSubmissions ? { status: "ready" } : { status: "loading" },
+  });
 
   const [bucket, setBucket] = useState<PortalBucket>("needs");
   const [query, setQuery] = useState("");
@@ -82,7 +86,8 @@ export function useTripReportPortalController() {
   const [draft, setDraft] = useState<TripReportEditableFields | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [promotionPayload, setPromotionPayload] = useState<ConvexTripReportImportPayload | null>(null);
+  const [promotionPayload, setPromotionPayload] = useState<DataTripReportImportPayload | null>(null);
+  const [submissionDetail, setSubmissionDetail] = useState<TripReportSubmissionRow | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const openReportRef = useRef<string | null>(null);
@@ -131,62 +136,98 @@ export function useTripReportPortalController() {
     }
   }, []);
 
-  const loadCorpus = useCallback(async (preferredId?: string) => {
-    if (!cachedCorpus) {
-      setLoad({ status: "loading" });
-    }
+  const loadSubmissionDetail = useCallback(async (id: string) => {
+    openReportRef.current = id;
+    setDetailState({ status: "loading" });
 
     try {
-      const [corpusResponse, needsReviewResponse, queueResponse] = await Promise.all([
-        fetch(CORPUS_API),
-        fetch(NEEDS_REVIEW_QUEUE_API),
-        fetch(QUEUE_API),
-      ]);
-
-      if (!corpusResponse.ok) {
-        setLoad({ status: "error", message: await readError(corpusResponse, "Failed to load the corpus.") });
-        return;
-      }
-
-      const failedQueue = [needsReviewResponse, queueResponse].find((response) => !response.ok);
-      if (failedQueue) {
-        setLoad({
+      const response = await fetch(`${SUBMISSION_DETAIL_API}?id=${encodeURIComponent(id)}`);
+      if (openReportRef.current !== id) return;
+      if (!response.ok) {
+        setDetailState({
           status: "error",
-          message: await readError(failedQueue, "Failed to load the submission queue."),
+          message: await readError(response, "Failed to load that submission."),
         });
         return;
       }
 
-      const [corpusPayload, needsReviewPayload, queuePayload] = await Promise.all([
-        corpusResponse.json(),
-        needsReviewResponse.json(),
-        queueResponse.json(),
-      ]);
-
-      const next: CorpusPayload = {
-        reports: Array.isArray(corpusPayload.reports) ? corpusPayload.reports : [],
-        contributors: Array.isArray(corpusPayload.contributors) ? corpusPayload.contributors : [],
-        submissions: mergeSubmissions(
-          Array.isArray(needsReviewPayload.submissions) ? needsReviewPayload.submissions : [],
-          Array.isArray(queuePayload.submissions) ? queuePayload.submissions : [],
-        ),
-      };
-
-      cachedCorpus = next;
-      setCorpus(next);
-      setLoad({ status: "ready" });
-
-      if (preferredId) {
-        setSelectedId(preferredId);
-
-        if (openReportRef.current === preferredId) {
-          void loadReportBody(preferredId);
-        }
-      }
+      const payload = await response.json();
+      if (openReportRef.current !== id || !payload?.submission) return;
+      setSubmissionDetail(payload.submission as TripReportSubmissionRow);
+      setDetailState({ status: "idle" });
     } catch {
-      setLoad({ status: "error", message: "Failed to reach the trip report endpoints." });
+      if (openReportRef.current === id) {
+        setDetailState({ status: "error", message: "Network error while loading the submission." });
+      }
     }
-  }, [loadReportBody]);
+  }, []);
+
+  const loadPublished = useCallback(async () => {
+    setLoad((current) => ({
+      ...current,
+      corpus: cachedPublished ? current.corpus : { status: "loading" },
+    }));
+    try {
+      const response = await fetch(CORPUS_API);
+      if (!response.ok) {
+        const message = await readError(response, "Failed to load the corpus.");
+        setLoad((current) => ({
+          ...current,
+          corpus: { status: "error", message },
+        }));
+        return;
+      }
+      const payload = await response.json();
+      const next = {
+        reports: Array.isArray(payload.reports) ? payload.reports : [],
+        contributors: Array.isArray(payload.contributors) ? payload.contributors : [],
+      };
+      cachedPublished = next;
+      setCorpus((current) => ({ ...current, ...next }));
+      setLoad((current) => ({ ...current, corpus: { status: "ready" } }));
+    } catch {
+      setLoad((current) => ({
+        ...current,
+        corpus: { status: "error", message: "Failed to reach the trip report corpus endpoint." },
+      }));
+    }
+  }, []);
+
+  const loadSubmissionIndex = useCallback(async () => {
+    setLoad((current) => ({
+      ...current,
+      submissions: cachedSubmissions ? current.submissions : { status: "loading" },
+    }));
+    try {
+      const response = await fetch(SUBMISSION_INDEX_API);
+      if (!response.ok) {
+        const message = await readError(response, "Failed to load the submission queue.");
+        setLoad((current) => ({
+          ...current,
+          submissions: { status: "error", message },
+        }));
+        return;
+      }
+      const payload = await response.json() as Partial<TripReportSubmissionPortalIndex>;
+      const next = [
+        ...(Array.isArray(payload.needsReview) ? payload.needsReview : []),
+        ...(Array.isArray(payload.history) ? payload.history : []),
+      ];
+      cachedSubmissions = next;
+      setCorpus((current) => ({ ...current, submissions: next }));
+      setLoad((current) => ({ ...current, submissions: { status: "ready" } }));
+    } catch {
+      setLoad((current) => ({
+        ...current,
+        submissions: { status: "error", message: "Failed to reach the submission queue endpoint." },
+      }));
+    }
+  }, []);
+
+  const loadCorpus = useCallback(async (preferredId?: string) => {
+    await Promise.all([loadPublished(), loadSubmissionIndex()]);
+    if (preferredId) setSelectedId(preferredId);
+  }, [loadPublished, loadSubmissionIndex]);
 
   useEffect(() => {
     void loadCorpus();
@@ -218,13 +259,16 @@ export function useTripReportPortalController() {
 
   const selectedSubmission = useMemo(
     () =>
-      selected?.origin === "submission"
-        ? corpus.submissions.find((submission) => submission.id === selected.id) ?? null
+      selected?.origin === "submission" && submissionDetail?.id === selected.id
+        ? submissionDetail
         : null,
-    [corpus.submissions, selected],
+    [selected, submissionDetail],
   );
 
-  const stats = useMemo(() => portalStats(rows), [rows]);
+  const stats = useMemo(
+    () => load.corpus.status === "ready" && load.submissions.status === "ready" ? portalStats(rows) : null,
+    [load, rows],
+  );
   const editorOpen = selected !== null;
 
   /** The rows in the order the list paints them: grouped, then sorted. */
@@ -244,16 +288,16 @@ export function useTripReportPortalController() {
       setPromotionPayload(null);
       setDetail(null);
       setDraft(null);
+      setSubmissionDetail(null);
 
       if (row.origin === "published") {
         void loadReportBody(row.id);
         return;
       }
 
-      openReportRef.current = null;
-      setDetailState({ status: "idle" });
+      void loadSubmissionDetail(row.id);
     },
-    [loadReportBody],
+    [loadReportBody, loadSubmissionDetail],
   );
 
   /**
@@ -285,6 +329,7 @@ export function useTripReportPortalController() {
     setDraft(null);
     setFeedback(null);
     setPromotionPayload(null);
+    setSubmissionDetail(null);
   }, []);
 
   useEffect(() => {
@@ -312,6 +357,16 @@ export function useTripReportPortalController() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [closeEditor]);
+
+  function patchSubmission(submission: TripReportSubmissionRow) {
+    const summary = submissionSummaryOf(submission);
+    setSubmissionDetail(submission);
+    setCorpus((current) => {
+      const submissions = current.submissions.map((row) => row.id === summary.id ? summary : row);
+      cachedSubmissions = submissions;
+      return { ...current, submissions };
+    });
+  }
 
   async function saveReport(request: EditorSaveRequest) {
     if (!selected || !selected.fields || !detail || detail.id !== selected.id) {
@@ -345,8 +400,32 @@ export function useTripReportPortalController() {
         return;
       }
 
-      setFeedback({ tone: "success", message: `Saved "${request.updates.title}".` });
-      await loadCorpus(selected.id);
+      const fields = payload.fields as TripReportEditableFields | undefined;
+      const revision = payload.revision;
+      if (!fields || typeof revision !== "string") {
+        setFeedback({ tone: "danger", message: "The saved report response was incomplete." });
+        return;
+      }
+
+      setDetail({ id: selected.id, fields, revision });
+      setDraft(structuredClone(fields));
+      setCorpus((current) => {
+        const reports = current.reports.map((report) =>
+          report.id === selected.id
+            ? {
+                ...report,
+                title: fields.title,
+                subject: { name: fields.subject.name, trip_date: fields.subject.trip_date },
+                substances: fields.substances,
+                tags: fields.tags,
+              }
+            : report,
+        );
+        cachedPublished = { reports, contributors: current.contributors };
+        return { ...current, reports };
+      });
+      setFeedback({ tone: "success", message: `Saved "${fields.title}".` });
+      void loadPublished();
     } catch {
       setFeedback({ tone: "danger", message: "Network error while saving the report." });
     } finally {
@@ -377,8 +456,13 @@ export function useTripReportPortalController() {
         return;
       }
 
+      setCorpus((current) => {
+        const reports = current.reports.filter((report) => report.id !== selected.id);
+        cachedPublished = { reports, contributors: current.contributors };
+        return { ...current, reports };
+      });
       closeEditor();
-      await loadCorpus();
+      void loadPublished();
     } catch {
       setFeedback({ tone: "danger", message: "Network error while deleting the report." });
     } finally {
@@ -409,10 +493,16 @@ export function useTripReportPortalController() {
         return;
       }
 
-      setFeedback({ tone: "success", message: STATUS_FEEDBACK[status](selectedSubmission.title) });
+      const updated = payload.submission as TripReportSubmissionRow | undefined;
+      if (!updated) {
+        setFeedback({ tone: "danger", message: "The updated submission response was incomplete." });
+        return;
+      }
+      patchSubmission(updated);
+      setFeedback({ tone: "success", message: STATUS_FEEDBACK[updated.status](updated.title) });
       setPromotionPayload(null);
       invalidateDevRailBadge("trip-reports");
-      await loadCorpus(selectedSubmission.id);
+      void loadSubmissionIndex();
     } catch {
       setFeedback({ tone: "danger", message: "Network error while updating the submission." });
     } finally {
@@ -447,6 +537,12 @@ export function useTripReportPortalController() {
         return;
       }
 
+      const updated = payload.submission as TripReportSubmissionRow | undefined;
+      if (!updated) {
+        setFeedback({ tone: "danger", message: "The promotion response was incomplete." });
+        return;
+      }
+      patchSubmission(updated);
       setPromotionPayload(payload.payload ?? null);
       setFeedback({
         tone: "success",
@@ -457,7 +553,8 @@ export function useTripReportPortalController() {
 
       if (publish) {
         invalidateDevRailBadge("trip-reports");
-        await loadCorpus();
+        void loadSubmissionIndex();
+        void loadPublished();
       }
     } catch {
       setFeedback({ tone: "danger", message: "Network error while promoting the submission." });
@@ -483,6 +580,7 @@ export function useTripReportPortalController() {
     load,
     loadCorpus,
     loadReportBody,
+    loadSubmissionDetail,
     promotionPayload,
     query,
     queuePosition,
@@ -522,22 +620,17 @@ async function readError(response: Response, fallback: string): Promise<string> 
   return typeof payload.error === "string" ? payload.error : fallback;
 }
 
-/**
- * The uncapped needs-review rows plus whatever else the capped queue page
- * holds. A row that changed status between the two reads could appear in
- * both; the needs-review read wins so the bucket never double-counts.
- */
-function mergeSubmissions(
-  needsReview: TripReportSubmissionRow[],
-  queue: TripReportSubmissionRow[],
-): TripReportSubmissionRow[] {
-  const seen = new Set(needsReview.map((row) => row.id));
-  const merged = [...needsReview];
-  for (const row of queue) {
-    if (!isNeedsReviewStatus(row.status) && !seen.has(row.id)) {
-      merged.push(row);
-    }
-  }
-
-  return merged;
+function submissionSummaryOf(submission: TripReportSubmissionRow): TripReportSubmissionPortalSummary {
+  return {
+    id: submission.id,
+    status: submission.status,
+    title: submission.title,
+    author_name: submission.author_name,
+    created_at: submission.created_at,
+    report: {
+      subject: submission.report.subject,
+      substances: submission.report.substances,
+      tags: submission.report.tags,
+    },
+  };
 }

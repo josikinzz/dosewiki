@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  collectConvexPromptInventory,
+  collectDataPromptInventory,
   comparePromptInventories,
 } from "../lib/prompt-drift-policy.mjs";
 import { renderPromptDriftReport } from "./compare-prompts.mjs";
@@ -12,8 +12,8 @@ describe("compare-prompts CLI report", () => {
       ["generator", { key: "generator", kind: "generator", content: "local generator", file: "generatorPrompt.md" }],
       ["section_base", { key: "section_base", kind: "section", content: "same", file: "base.md" }],
     ]);
-    const target = collectConvexPromptInventory([
-      { key: "generator", content: "convex generator", updatedAt: "2026-04-27T00:00:00.000Z", updatedBy: "tester" },
+    const target = collectDataPromptInventory([
+      { key: "generator", content: "data generator", updatedAt: "2026-04-27T00:00:00.000Z", updatedBy: "tester" },
       { key: "section_base", content: "same", updatedAt: "2026-04-27T00:00:00.000Z", updatedBy: "tester" },
     ]);
 

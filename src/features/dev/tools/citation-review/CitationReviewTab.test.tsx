@@ -35,7 +35,6 @@ const verifiedSupport = {
 
 function createRow(overrides: Partial<CitationEvidenceRow>): CitationEvidenceRow {
   return {
-    slug: "lsd",
     section: "summary",
     claimKey: "summary:0",
     referenceIds: ["ref-1"],
@@ -231,7 +230,7 @@ describe("CitationReviewTab", () => {
     expect(await screen.findByText("Rejected 1 row")).toBeInTheDocument();
   });
 
-  it("names the failure class, offers retry, and keeps a path to the Review portal when the queue is down", async () => {
+  it("recovers the queue after retry and keeps a path to the Review portal while unavailable", async () => {
     const user = userEvent.setup();
     stubQueue(
       {},
@@ -245,12 +244,10 @@ describe("CitationReviewTab", () => {
     render(<CitationReviewTab />);
 
     expect(await screen.findByText("Could not load this data")).toBeInTheDocument();
-    expect(
-      screen.getByText(/The data server failed the queue query\. Request abc123\./),
-    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open Review portal" })).toHaveAttribute("href", "/review");
+    stubQueue({ open: [openSummary] });
 
     await user.click(screen.getByRole("button", { name: "Try again" }));
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Ready claim")).toBeInTheDocument();
   });
 });

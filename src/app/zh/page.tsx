@@ -11,7 +11,11 @@ import { setRequestLocale, t } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { buildHomeQuickLinks } from "../_components/homeQuickLinks";
 import { HomeExperience } from "../_components/HomeExperience";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import {
+  flavoredCopyKey,
+  flavoredCopyText,
+  getCopyByKeys,
+} from "@server/next/copyBlocks";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
@@ -21,7 +25,7 @@ const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
 
 export async function generateMetadata() {
   setRequestLocale(LOCALE.code);
-  const copy = await getCopy();
+  const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
   const description = t(flavoredCopyText(copy, "home-hero-tagline", SITE_FLAVOR_CONFIG.description));
   const socialImage = pageSocialCardImage("home", "dose.wiki home");
   // The English homepage is the canonical address of this content; the mirror is unlisted.
@@ -62,7 +66,7 @@ export async function generateMetadata() {
 
 export default async function LocalizedHomePage() {
   setRequestLocale(LOCALE.code);
-  const copy = await getCopy();
+  const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
 
   return (
     <UiLocaleProvider locale={LOCALE.code}>

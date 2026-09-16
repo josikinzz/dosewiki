@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ openDataResponse: vi.fn() }));
 
 vi.mock("../shared", () => ({ openDataResponse: mocks.openDataResponse }));
-vi.mock("@server/convex/publicData", () => ({
+vi.mock("@server/data/publicData", () => ({
   getPublicFullSubstanceDocuments: vi.fn(),
   getPublicEffectArticles: vi.fn(),
   getPublicReportDetails: vi.fn(),

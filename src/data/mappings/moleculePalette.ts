@@ -16,8 +16,8 @@
  *
  * This module is the single source of truth for both Pro colourways. It is a
  * pure string transform (no DOM) used by `src/app/api/molecules/**`, which
- * recolours Convex molecule overrides (substances and `class:` skeletons) at
- * serve time. Convex stores only the canonical Fun bytes.
+ * recolours Postgres molecule overrides (substances and `class:` skeletons) at
+ * serve time. Postgres stores only the canonical Fun bytes.
  */
 import { SITE_FLAVOR_CONFIG, isEffectIndex, type SiteFlavorConfig } from "../../config/siteFlavor";
 import type { ColorScheme } from "../../theme";
@@ -67,7 +67,7 @@ export type MoleculeColorway = "brand" | "pro-light" | "pro-dark";
  * Three source palettes are covered, because a molecule SVG reaching this transform may
  * have come from any of them:
  *
- *   1. **Brand** — what the `/dev` molecule editor saves into Convex. Decoded from the
+ *   1. **Brand** — what the `/dev` molecule editor saves into Postgres. Decoded from the
  *      retired `scripts/chemistry/render_molecules.py` substance renderer, whose style
  *      contract `renderMoleculeSvg.ts` now implements.
  *   2. **RDKit standard** — the textbook colourway the same pipeline rendered with

@@ -9,7 +9,7 @@ import { buildPublicSitemapEntry, PUBLIC_SITE, type PublicSiteIdentity } from ".
 import {
   getPublicEffectIndexPosts,
   getPublishedEffectIndexArticles,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import {
   isEffectIndex,
   isFlavorRouteEnabled,

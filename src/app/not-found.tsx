@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { buildPageMetadata } from "@server/next/metadata";
-import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
+import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { NotFoundBody } from "./_components/NotFoundBody";
 
 // `not-found.tsx` takes a static `metadata` export — Next does not run
@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 export default async function NotFound() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["not-found-title", "not-found-body"]);
   const substancesLink = getStatusRecoveryLink("substances");
   const effectsLink = getStatusRecoveryLink("effects");
   const reportsLink = getStatusRecoveryLink("reports");

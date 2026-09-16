@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
 import type { SearchManifest } from "@/data/builders/searchManifest";
-import { getPublicSearchManifest } from "@server/convex/publicLibrary";
+import { getPublicSearchManifest } from "@server/data/publicLibrary";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { GET } from "./route";
 
@@ -14,7 +14,7 @@ const manifest: SearchManifest = {
   ],
 };
 
-vi.mock("@server/convex/publicLibrary", () => ({
+vi.mock("@server/data/publicLibrary", () => ({
   getPublicSearchManifest: vi.fn(async (locale = "en") => ({ ...manifest, locale })),
 }));
 

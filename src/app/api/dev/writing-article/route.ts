@@ -20,7 +20,7 @@
  *    appear.
  * 2. **Cache publication.** Every save publishes the `writing-articles`
  *    identity through the shared seam, which expires
- *    `PUBLIC_CONVEX_CACHE_TAGS.articles` here and delivers the same identity
+ *    `PUBLIC_DATA_CACHE_TAGS.articles` here and delivers the same identity
  *    to the public deployments, so a publish shows up on `/articles`, `/blog`
  *    and the route plan in seconds rather than at the end of the 15-minute
  *    public-data window. The tag covers both families: dose.wiki blog posts
@@ -30,7 +30,7 @@
  *    and enqueues the `library/<slug>` translation job the refresh cron works.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
@@ -41,7 +41,7 @@ import { contentHash } from "../../../../../lib/proposals/contentHash";
 
 export const runtime = "nodejs";
 
-/** Mirrors `SLUG_PATTERN` in `convex/effectIndexArticles.ts`. */
+/** Mirrors `SLUG_PATTERN` in `server/effectIndexArticles.ts`. */
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const TITLE_MAX_LENGTH = 200;
@@ -157,7 +157,7 @@ function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingArticle 
   }
 
   // The same refusal the mutation makes, made early so the editor gets a plain
-  // sentence back instead of a Convex error string.
+  // sentence back instead of a Postgres error string.
   if (raw.status === "published" && raw.body.trim() === "") {
     throw new JsonBodyError(400, "An empty body cannot be published. Save it as a draft instead.");
   }
@@ -191,27 +191,27 @@ function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingArticle 
  *   GET /api/dev/writing-article            → the slim listing, drafts included
  *   GET /api/dev/writing-article?slug=…     → one whole row, draft body included
  *
- * Both are editor-gated Convex queries, which the browser cannot call directly:
- * the dev shell's Convex client carries no identity, so every editor-only read
+ * Both are editor-gated Postgres queries, which the browser cannot call directly:
+ * the dev shell's Postgres client carries no identity, so every editor-only read
  * in this repo is delegated through an `/api/dev` route exactly like this one.
  */
 export const GET = protectedRouteOperation<undefined, undefined>({
   auth: "editor",
   rateLimit: "editorSmallWrite",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to read writing articles via Next route:",
   unexpectedErrorMessage: "Unable to load the writing articles right now.",
-  operation: async ({ actorEmail, convexWrite, request }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, dataWrite, request }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
     const slug = new URL(request.url).searchParams.get("slug")?.trim();
 
     if (slug) {
-      const article = await convexWrite.client.query(api.effectIndexArticles.getForEditor, {
+      const article = await dataWrite.client.query(api.effectIndexArticles.getForEditor, {
         apiKey,
         actorEmail,
         slug,
@@ -220,7 +220,7 @@ export const GET = protectedRouteOperation<undefined, undefined>({
       return NextResponse.json({ ok: true, article });
     }
 
-    const articles = await convexWrite.client.query(api.effectIndexArticles.listForEditor, {
+    const articles = await dataWrite.client.query(api.effectIndexArticles.listForEditor, {
       apiKey,
       actorEmail,
     });
@@ -236,18 +236,18 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
     maxBytes: 1024 * 1024,
     parse: parseWritingArticleBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save a writing article via Next route:",
   unexpectedErrorMessage: "Unable to save that article right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.effectIndexArticles.upsertArticle, {
+    const result = await dataWrite.client.mutation(api.effectIndexArticles.upsertArticle, {
       apiKey,
       actorEmail,
       slug: body.slug,

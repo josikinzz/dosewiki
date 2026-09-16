@@ -60,7 +60,7 @@ export function CitationSup({
             ? findMarker(fieldMarkers.markers, "cite", citation.markerOrdinal)
             : null;
         const citationClassName = cn(
-          "theme-citation-marker inline-flex items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
+          "theme-citation-marker theme-navigation-target inline-flex scroll-mt-20 items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
           linkClassName,
         );
 

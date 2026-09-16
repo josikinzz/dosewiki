@@ -5,11 +5,11 @@
  *   GET /api/editor/substances?page=lookup&numItems=200[&cursor=..]  -> substanceIndex.getLookupPage
  *   GET /api/editor/substances?page=search-input&numItems=200[&cursor=..] -> substanceIndex.getSearchInputPage
  *
- * Pages answer with the Convex pagination envelope (`page`, `continueCursor`,
+ * Pages answer with the Postgres pagination envelope (`page`, `continueCursor`,
  * `isDone`); the client threads `continueCursor` back as `cursor`, so the drain
  * is keyset-stable and never offset-based.
  */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { editorReadRoute, requireParam } from "../editorReadRoute";
 

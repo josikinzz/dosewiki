@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { translateMessage, type MessageValues, type UiLocale } from "./messages";
+import type { MessageValues, UiLocale } from "./messages";
+import { translateMessage } from "./serverMessages";
 
 /** Request-local UI locale; defaults to English for every request. */
 const localeBox = cache((): { locale: UiLocale } => ({ locale: "en" }));

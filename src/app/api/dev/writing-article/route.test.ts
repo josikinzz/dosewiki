@@ -1,10 +1,10 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     effectIndexArticles: {
       upsertArticle: "effectIndexArticles.upsertArticle",
@@ -32,11 +32,11 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 import { POST } from "./route";
@@ -69,13 +69,13 @@ describe("writing article route authorization", () => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
     });
   });
 
-  it("refuses an editor saving a row with 403 before touching Convex", async () => {
+  it("refuses an editor saving a row with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const response = await POST(saveRequest({}));
@@ -93,7 +93,7 @@ describe("writing article route rename", () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
     });
@@ -121,14 +121,14 @@ describe("writing article route rename", () => {
   });
 
 
-  it("rejects an original slug that is not a string before reaching Convex", async () => {
+  it("rejects an original slug that is not a string before reaching Postgres", async () => {
     const response = await POST(saveRequest({ originalSlug: 42 }));
 
     expect(response.status).toBe(400);
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("rejects an original slug outside the slug grammar before reaching Convex", async () => {
+  it("rejects an original slug outside the slug grammar before reaching Postgres", async () => {
     for (const originalSlug of ["Field Notes", "field--notes", "../field-notes", "field_notes"]) {
       const response = await POST(saveRequest({ originalSlug }));
 
@@ -139,10 +139,10 @@ describe("writing article route rename", () => {
 
 
   it("delivers a rename collision verbatim so the editor can pick another slug", async () => {
-    // The Convex HTTP client rebuilds a thrown `ConvexError` with its payload
+    // The Postgres HTTP client rebuilds a thrown `PostgresError` with its payload
     // on `data`, which is what the constructor does with an object argument.
     mocks.mutation.mockRejectedValue(
-      new ConvexError({
+      new PostgresError({
         code: "SLUG_TAKEN",
         message: '"field-guide" already belongs to "Field guide (old)". Choose another slug.',
       }),
@@ -159,7 +159,7 @@ describe("writing article route rename", () => {
 
   it("reports a renamed row that vanished as missing", async () => {
     mocks.mutation.mockRejectedValue(
-      new ConvexError({
+      new PostgresError({
         code: "ARTICLE_NOT_FOUND",
         message: 'No article found for slug "field-notes".',
       }),

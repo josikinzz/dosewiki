@@ -23,7 +23,7 @@ export type MaterializedContributorProfile = {
   hasCustomBio: boolean;
   // Free-text contributor title carried over from Effect Index ("Founder",
   // "Former Dev", "Replication Artist"). Deliberately unrelated to the
-  // authorization role union in convex/lib/contributorProfiles. Absent rather
+  // authorization role union in server/lib/contributorProfiles. Absent rather
   // than empty when unset, so consumers can render nothing at all.
   role?: string;
 };
@@ -77,7 +77,7 @@ export function normalizeProfileAliases(value: readonly string[] | null | undefi
  * retired handle like "witchy" must never leave the deployment — so the alias
  * was scrubbed from the stored row and the identity fact moved here, where
  * attribution code can keep matching against it without ever emitting it.
- * Both the Convex reviewer-email derivation and the changelog submitter
+ * Both the Postgres reviewer-email derivation and the changelog submitter
  * matching expand through these groups.
  */
 export const LEGACY_CONTRIBUTOR_HANDLE_GROUPS: readonly (readonly string[])[] = [

@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * Upload replications to Convex storage.
+ * Upload replication bytes to native R2 and publish Postgres metadata.
  * Processes videos first, then images.
- * Uses Convex generateUploadUrl + HTTP upload pattern.
  */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import sharp from 'sharp';
-import { api } from '../../convex/_generated/api.js';
+import { api } from '../../lib/postgres/runtime/api.ts';
+import { uploadReplicationFile, updateReplicationMedia, replicationImportReceipts } from './lib/r2-upload.mjs';
 import {
   readSimpleEnvFile,
   resolveReplicationsPaths,
@@ -44,13 +44,13 @@ const command = createProductionWriteCommand({
   env,
   loadsEnvLocal: false,
 });
-const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
+const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({ env }).url;
 
 if (!readUrl) {
-  throw new Error('Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.');
+  throw new Error('Set SOURCE_POSTGRES_URL for dry-run or an explicit target for writes.');
 }
 
-let client = createDataClient({ target: readUrl }).client;
+let client = createDataClient({ target: readUrl, env }).client;
 let writeCredential = null;
 
 const CONTENT_TYPES = {
@@ -78,9 +78,6 @@ const RIGHTS_FIELDS = [
   'removal_contact',
 ];
 
-// State
-let uploadUrlCache = null;
-let uploadUrlExpiry = 0;
 
 function formatTimestamp(seconds) {
   if (!Number.isFinite(seconds) || seconds <= 0) {
@@ -199,77 +196,14 @@ function pickRightsUpdates(replication) {
   );
 }
 
-async function getUploadUrl() {
-  // Cache upload URLs for 5 minutes to avoid excess mutation calls
-  const now = Date.now();
-  if (uploadUrlCache && now < uploadUrlExpiry) {
-    return uploadUrlCache;
-  }
 
-  console.log('  🔗 Requesting new upload URL...');
-
-  const url = await client.mutation(api.replications.generateUploadUrl, {
-    apiKey: writeCredential.token,
-  });
-
-  uploadUrlCache = url;
-  uploadUrlExpiry = now + (5 * 60 * 1000); // 5 minutes
-  return url;
-}
-
-async function uploadFile(filePath, filename, contentType) {
-  const fileBuffer = fs.readFileSync(filePath);
-  
-  console.log(`    📤 Uploading ${filename} (${(fileBuffer.length / 1024).toFixed(1)}KB)...`);
-
-  let lastError = null;
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      if (attempt > 1) {
-        uploadUrlCache = null;
-        uploadUrlExpiry = 0;
-        console.log(`    🔁 Retrying upload with a fresh URL (attempt ${attempt}/3)...`);
-      }
-
-      const uploadUrl = await getUploadUrl();
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: fileBuffer,
-        headers: { 'Content-Type': contentType },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const storageId = data.storageId;
-
-      if (!storageId) {
-        throw new Error('No storageId in response');
-      }
-
-      return storageId;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
-}
-
-async function persistReplication(rep, storageId, thumbnailStorageId, existingReplication) {
-  console.log(`    ✏️  ${existingReplication ? 'Updating' : 'Creating'} record...`);
+async function persistReplication(rep, keys, fileSize, existingReplication) {
+  console.log(`    ${existingReplication ? 'Updating' : 'Creating'} record...`);
   const replicationWithRights = withDefaultReplicationRights(rep);
   const rightsUpdates = pickRightsUpdates(replicationWithRights);
 
   if (existingReplication) {
-    await client.mutation(api.replications.updateStorageIds, {
-      apiKey: writeCredential.token,
-      id: existingReplication._id,
-      storage_id: storageId ?? existingReplication.storage_id,
-      thumbnail_storage_id: thumbnailStorageId ?? existingReplication.thumbnail_storage_id,
-    });
+    await updateReplicationMedia(client, writeCredential.token, existingReplication, keys, keys.r2_key ? fileSize : undefined);
     await client.mutation(api.replications.updateRightsMetadata, {
       apiKey: writeCredential.token,
       slug: existingReplication.slug,
@@ -284,7 +218,7 @@ async function persistReplication(rep, storageId, thumbnailStorageId, existingRe
     title: replicationWithRights.title,
     artist: replicationWithRights.artist || 'Unknown',
     type: replicationWithRights.type,
-    storage_id: storageId,
+    ...keys,
     effect_slug: replicationWithRights.effect_slug || 'unknown',
     format: replicationWithRights.format,
     ...rightsUpdates,
@@ -295,11 +229,13 @@ async function persistReplication(rep, storageId, thumbnailStorageId, existingRe
     args.artist_url = replicationWithRights.artist_url;
   }
 
-  if (replicationWithRights.fileSize) args.file_size = replicationWithRights.fileSize;
+  args.file_size = fileSize;
   if (replicationWithRights.type === 'video' && replicationWithRights.duration) args.duration = replicationWithRights.duration;
-  if (thumbnailStorageId) args.thumbnail_storage_id = thumbnailStorageId;
 
-  await client.mutation(api.replications.insertReplication, args);
+  await client.mutation(api.replications.insertReplication, {
+    ...args,
+    ...(await replicationImportReceipts(client, writeCredential.token, rep.slug, keys)),
+  });
 }
 
 async function processReplication(rep, index, total, existingReplication, options) {
@@ -324,19 +260,19 @@ async function processReplication(rep, index, total, existingReplication, option
     const metadata = rep.type === 'video' ? getVideoMetadata(filePath) : {};
     const shouldUploadMedia = !options.onlyMissingThumbnails;
 
-    let storageId = existingReplication?.storage_id;
+    const keys = {};
+    const fileSize = fs.statSync(filePath).size;
     if (shouldUploadMedia) {
       const contentType = CONTENT_TYPES[rep.format?.toLowerCase()] || 'application/octet-stream';
-      storageId = await uploadFile(filePath, rep.filename, contentType);
+      keys.r2_key = await uploadReplicationFile(client, writeCredential.token, filePath, contentType);
     }
 
-    let thumbnailStorageId = existingReplication?.thumbnail_storage_id;
     if (rep.type === 'video') {
       thumbnailPath = await createVideoThumbnail(filePath, rep.slug, metadata.duration ?? rep.duration);
-      thumbnailStorageId = await uploadFile(thumbnailPath, `${rep.slug}.webp`, 'image/webp');
+      keys.thumbnail_r2_key = await uploadReplicationFile(client, writeCredential.token, thumbnailPath, 'image/webp');
     }
 
-    await persistReplication(rep, storageId, thumbnailStorageId, existingReplication);
+    await persistReplication(rep, keys, fileSize, existingReplication);
     
     console.log(`${progress} ✅ Complete\n`);
     return { status: 'uploaded' };
@@ -351,7 +287,7 @@ async function processReplication(rep, index, total, existingReplication, option
 
 async function main() {
   console.log('\n' + '='.repeat(70));
-  console.log('🚀 Upload Replications to Convex');
+  console.log('Upload Replications to R2 and Postgres');
   console.log('='.repeat(70) + '\n');
   printProductionWriteCommand(command);
   
@@ -363,7 +299,7 @@ async function main() {
   
   if (skipImages) console.log('⏭️  Will skip images\n');
   if (skipVideos) console.log('⏭️  Will skip videos\n');
-  if (onlyMissing) console.log('🩹 Will only import replications missing from Convex\n');
+  if (onlyMissing) console.log('Will only import replications missing from Postgres\n');
   if (onlyMissingThumbnails) console.log('🖼️  Will only backfill missing video thumbnails\n');
   
   // Load metadata
@@ -392,7 +328,7 @@ async function main() {
         return false;
       }
 
-      return !current.thumbnail_storage_id && !current.thumbnail_url;
+      return !current.thumbnail_r2_key && !current.thumbnail_storage_id && !current.thumbnail_url;
     });
   }
 
@@ -412,7 +348,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   writeCredential = requireProductionWriteCredential('replicationMaintenance', { env });
-  client = createDataClient({ target: command.targetUrl }).client;
+  client = createDataClient({ target: command.targetUrl, env }).client;
   
   // Process
   const results = { uploaded: 0, skipped: 0, error: 0, errors: [] };

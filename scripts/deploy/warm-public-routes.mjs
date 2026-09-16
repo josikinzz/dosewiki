@@ -3,12 +3,11 @@
  * Post-deploy warmer: request every substance article URL listed in the
  * public sitemap so readers do not pay a cold render after a deployment.
  *
- * Vercel's ISR page cache does not survive a deployment. The high and normal
- * priority articles are prerendered at build time (lib/next/staticParams.ts),
- * but anything rendered on demand starts cold again after every deploy, and
- * even prerendered pages benefit from an edge-cache fill. This script walks
- * the sitemap of a base URL, fetches each article with bounded concurrency,
- * and reports hits versus misses from the `x-vercel-cache` header.
+ * Every directly reachable substance article is prerendered at build time
+ * (lib/next/staticParams.ts). This script still fills and verifies the deployed
+ * HTML and App Router navigation caches after the deployment becomes reachable.
+ * It walks the sitemap with bounded concurrency and reports each representation
+ * independently.
  *
  * Usage:
  *   node scripts/deploy/warm-public-routes.mjs --base-url https://dose.wiki
@@ -60,14 +59,21 @@ async function main() {
   }
 
   const startedAt = Date.now();
-  const { sitemapUrl, urls } = await collectSitemapUrls(options.baseUrl, { timeoutMs: options.timeoutMs });
-  const targets = selectWarmUrls(urls, { baseUrl: options.baseUrl, all: options.all });
+  const { sitemapUrl, urls } = await collectSitemapUrls(options.baseUrl, {
+    timeoutMs: options.timeoutMs,
+  });
+  const targets = selectWarmUrls(urls, {
+    baseUrl: options.baseUrl,
+    all: options.all,
+  });
   console.log(
     `[warm] ${sitemapUrl} lists ${urls.length} URL(s); warming ${targets.length} ` +
       `${options.all ? "URL(s)" : "substance article(s)"} with concurrency ${options.concurrency}`,
   );
   if (targets.length === 0) {
-    console.error("[warm] Nothing to warm. Is this the public host? Editor hosts publish an empty sitemap.");
+    console.error(
+      "[warm] Nothing to warm. Is this the public host? Editor hosts publish an empty sitemap.",
+    );
     return 1;
   }
 
@@ -75,7 +81,10 @@ async function main() {
     concurrency: options.concurrency,
     timeoutMs: options.timeoutMs,
     retries: 1,
-    headers: { "user-agent": "dosewiki-warm/1.0 (+scripts/deploy/warm-public-routes.mjs)" },
+    headers: {
+      "user-agent":
+        "dosewiki-warm/1.0 (+scripts/deploy/warm-public-routes.mjs)",
+    },
   });
   const summary = summarizeWarmResults(results, {
     slowest: options.slowest,

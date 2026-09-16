@@ -26,7 +26,11 @@ import {
   type EditableValueInput,
 } from "./ArticleEditContext";
 import { CitePopover } from "./CitePopover";
-import { parseCitationMarkers, type CitationMarkerSpan } from "@/lib/citations/citationTokens";
+import {
+  parseCitationMarkers,
+  type CitationMarkerSpan,
+} from "@/lib/citations/citationTokens";
+import { useT, type MessageValues } from "@/i18n/client";
 
 interface EditableValueProps<T extends EditableValueInput = string> {
   /** Concrete article field path, e.g. `dosage.routes[2].notes`. */
@@ -62,6 +66,8 @@ interface EditableValueProps<T extends EditableValueInput = string> {
   as?: "span" | "div";
   /** Human name for the field, used in the accessible label. */
   label?: string;
+  /** Interpolation values for a translated label projected outside the client boundary. */
+  labelValues?: MessageValues;
   /**
    * Placeholder shown when the field is empty, e.g. "Add dosage notes". Without
    * it an absent value renders nothing and can never be filled in — but the
@@ -114,14 +120,20 @@ export function EditableValue<T extends EditableValueInput = string>({
   parseErrorLabel,
   children,
   as = "span",
-  label,
-  emptyLabel,
+  label: labelKey,
+  labelValues,
+  emptyLabel: emptyLabelKey,
   className,
 }: EditableValueProps<T>) {
+  const t = useT();
+  const label = labelKey === undefined ? undefined : t(labelKey, labelValues);
+  const emptyLabel =
+    emptyLabelKey === undefined ? undefined : t(emptyLabelKey, labelValues);
   const editing = useArticleEdit();
   // The textarea is always a string; only the wire carries the parsed value.
   const toText = useCallback(
-    (next: T): string => (format ? format(next) : typeof next === "string" ? next : ""),
+    (next: T): string =>
+      format ? format(next) : typeof next === "string" ? next : "",
     [format],
   );
   const text = toText(value);
@@ -173,7 +185,9 @@ export function EditableValue<T extends EditableValueInput = string>({
     setDraft((current) => {
       const at = replacing
         ? replacing.start
-        : field ? Math.max(field.selectionStart, field.selectionEnd) : current.length;
+        : field
+          ? Math.max(field.selectionStart, field.selectionEnd)
+          : current.length;
       const after = replacing ? replacing.end : at;
       const next = `${current.slice(0, at)}${marker}${current.slice(after)}`;
       if (field) {
@@ -204,7 +218,12 @@ export function EditableValue<T extends EditableValueInput = string>({
   }, []);
 
   useEffect(() => {
-    if (isEditing && !isPending && error && document.activeElement === document.body) {
+    if (
+      isEditing &&
+      !isPending &&
+      error &&
+      document.activeElement === document.body
+    ) {
       textareaRef.current?.focus();
     }
   }, [error, isEditing, isPending]);
@@ -249,7 +268,9 @@ export function EditableValue<T extends EditableValueInput = string>({
           setIsPending(false);
           setStatus("");
           setError(
-            reason instanceof Error ? reason.message : "Unable to apply this edit locally.",
+            reason instanceof Error
+              ? reason.message
+              : "Unable to apply this edit locally.",
           );
 
           if (!isArticleFieldConflict(reason)) {
@@ -293,8 +314,16 @@ export function EditableValue<T extends EditableValueInput = string>({
     return editing.registerDraft(path, {
       save: async () => {
         const parsed = parse ? parse(draft) : (draft as T);
-        if (parsed === null) throw new Error(parseErrorLabel ?? `${label ?? path}: correct this value before saving.`);
-        await editing.commit(path, parsed as EditableFieldValue, baseValue as EditableFieldValue);
+        if (parsed === null)
+          throw new Error(
+            parseErrorLabel ??
+              `${label ?? path}: correct this value before saving.`,
+          );
+        await editing.commit(
+          path,
+          parsed as EditableFieldValue,
+          baseValue as EditableFieldValue,
+        );
         finish();
       },
       discard: () => {
@@ -303,7 +332,20 @@ export function EditableValue<T extends EditableValueInput = string>({
         finish();
       },
     });
-  }, [editing?.registerDraft, editing?.commit, isEditing, draft, baseText, baseValue, parse, parseErrorLabel, label, path, text, finish]);
+  }, [
+    editing?.registerDraft,
+    editing?.commit,
+    isEditing,
+    draft,
+    baseText,
+    baseValue,
+    parse,
+    parseErrorLabel,
+    label,
+    path,
+    text,
+    finish,
+  ]);
 
   // A callback ref rather than `autoFocus`: the field only mounts in response
   // to a deliberate activation, and the caret belongs at the end of the value.
@@ -334,35 +376,49 @@ export function EditableValue<T extends EditableValueInput = string>({
    * and the cite control already showing. Choosing a source then replaces the
    * sentinel rather than leaving the editor to delete raw text by hand.
    */
-  const citeAtMarker = useCallback((marker: CitationMarkerSpan) => {
-    cancelledRef.current = false;
-    setDraft(text);
-    setStatus("");
-    setError(null);
-    setConflict(null);
-    pendingCaretRef.current = marker.start;
-    replaceRangeRef.current = { start: marker.start, end: marker.end };
-    setCiteOpen(true);
-    setIsEditing(true);
-  }, [text]);
+  const citeAtMarker = useCallback(
+    (marker: CitationMarkerSpan) => {
+      cancelledRef.current = false;
+      setDraft(text);
+      setStatus("");
+      setError(null);
+      setConflict(null);
+      pendingCaretRef.current = marker.start;
+      replaceRangeRef.current = { start: marker.start, end: marker.end };
+      setCiteOpen(true);
+      setIsEditing(true);
+    },
+    [text],
+  );
   /**
    * Drop one marker from the stored value. The reference stays on the article:
    * a claim losing its citation is not the source leaving the bibliography.
    */
-  const removeMarker = useCallback((marker: CitationMarkerSpan) => {
-    if (!editing) return;
-    const next = `${text.slice(0, marker.start)}${text.slice(marker.end)}`.replace(/ {2,}/g, " ");
-    const parsed = parse ? parse(next) : (next as T);
-    if (parsed === null) return;
-    setStatus("Applying to preview…");
-    editing
-      .commit(path, parsed as EditableFieldValue, value as EditableFieldValue)
-      .then(() => setStatus("Citation removed from local preview."))
-      .catch((reason: unknown) => {
-        setStatus("");
-        setError(reason instanceof Error ? reason.message : "Unable to remove this citation.");
-      });
-  }, [editing, parse, path, text, value]);
+  const removeMarker = useCallback(
+    (marker: CitationMarkerSpan) => {
+      if (!editing) return;
+      const next =
+        `${text.slice(0, marker.start)}${text.slice(marker.end)}`.replace(
+          / {2,}/g,
+          " ",
+        );
+      const parsed = parse ? parse(next) : (next as T);
+      if (parsed === null) return;
+      setStatus("Applying to preview…");
+      editing
+        .commit(path, parsed as EditableFieldValue, value as EditableFieldValue)
+        .then(() => setStatus("Citation removed from local preview."))
+        .catch((reason: unknown) => {
+          setStatus("");
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Unable to remove this citation.",
+          );
+        });
+    },
+    [editing, parse, path, text, value],
+  );
   const markerContext = useMemo(
     () => ({ markers: parseCitationMarkers(text), citeAtMarker, removeMarker }),
     [text, citeAtMarker, removeMarker],
@@ -380,235 +436,249 @@ export function EditableValue<T extends EditableValueInput = string>({
 
   const fieldLabel = label ?? path;
   const Wrapper = as;
-  const statusMessage = <span role="status" className="sr-only">{status}</span>;
+  const statusMessage = (
+    <span role="status" className="sr-only">
+      {status}
+    </span>
+  );
 
   if (isEditing) {
     return (
       <>
-      <Wrapper
-        ref={(node) => { editorRef.current = node; }}
-        className={cn(className, "block min-w-0 text-base font-normal leading-normal tracking-normal [font-family:var(--font-family-body)] md:text-sm")}
-        data-editable-path={path}
-        aria-busy={isPending}
-        onBlur={(event) => {
-          if (event.currentTarget.contains(event.relatedTarget)) return;
-          if (cancelledRef.current || isPending || conflict) return;
-          commitDraft(draft);
-        }}
-      >
-        <Textarea
-          ref={focusOnMount}
-          aria-label={`Edit ${fieldLabel}`}
-          aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}`}
-          aria-invalid={!!error}
-          variant={error ? "error" : "default"}
-          textareaSize="sm"
-          rows={rowsFor(draft)}
-          value={draft}
-          disabled={isPending}
-          // The open editor can sit inside a clickable ancestor (the Notable
-          // Individuals card is one big button). Without this, every click in
-          // the textarea would also toggle that ancestor shut.
-          onClick={(event) => event.stopPropagation()}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-            if (event.key === "Escape") {
-              event.preventDefault();
-              event.stopPropagation();
-              cancelEditing();
-              return;
-            }
-            if (event.nativeEvent.isComposing) return;
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-              commitDraft(draft);
-            }
+        <Wrapper
+          ref={(node) => {
+            editorRef.current = node;
           }}
-          // Focus moving to the field's own actions is not a blur-apply.
-          // The wrapper handles only focus leaving the complete editor.
-        />
-        <span id={`${fieldId}-hint`} className="theme-text-faint mt-1 block text-sm leading-snug">
-          {isPending ? "Applying to preview…" : "Enter applies · Esc cancels"}
-        </span>
-        <span className="mt-2 flex flex-wrap items-center gap-2">
-          {editing.addReference && !conflict ? (
-            <CitePopover
-              open={citeOpen}
-              onOpenChange={setCiteOpen}
-              references={editing.references ?? []}
-              addReference={editing.addReference}
-              onInsert={insertAtCaret}
-              disabled={isPending}
-            />
-          ) : null}
-          {/* Enter and Esc already do this on a keyboard. A touch editor has
+          className={cn(
+            className,
+            "block min-w-0 text-base font-normal leading-normal tracking-normal [font-family:var(--font-family-body)] md:text-sm",
+          )}
+          data-editable-path={path}
+          aria-busy={isPending}
+          onBlur={(event) => {
+            if (event.currentTarget.contains(event.relatedTarget)) return;
+            if (cancelledRef.current || isPending || conflict) return;
+            commitDraft(draft);
+          }}
+        >
+          <Textarea
+            ref={focusOnMount}
+            aria-label={`Edit ${fieldLabel}`}
+            aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}`}
+            aria-invalid={!!error}
+            variant={error ? "error" : "default"}
+            textareaSize="sm"
+            rows={rowsFor(draft)}
+            value={draft}
+            disabled={isPending}
+            // The open editor can sit inside a clickable ancestor (the Notable
+            // Individuals card is one big button). Without this, every click in
+            // the textarea would also toggle that ancestor shut.
+            onClick={(event) => event.stopPropagation()}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                cancelEditing();
+                return;
+              }
+              if (event.nativeEvent.isComposing) return;
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                commitDraft(draft);
+              }
+            }}
+            // Focus moving to the field's own actions is not a blur-apply.
+            // The wrapper handles only focus leaving the complete editor.
+          />
+          <span
+            id={`${fieldId}-hint`}
+            className="theme-text-faint mt-1 block text-sm leading-snug"
+          >
+            {isPending ? "Applying to preview…" : "Enter applies · Esc cancels"}
+          </span>
+          <span className="mt-2 flex flex-wrap items-center gap-2">
+            {editing.addReference && !conflict ? (
+              <CitePopover
+                open={citeOpen}
+                onOpenChange={setCiteOpen}
+                references={editing.references ?? []}
+                addReference={editing.addReference}
+                onInsert={insertAtCaret}
+                disabled={isPending}
+              />
+            ) : null}
+            {/* Enter and Esc already do this on a keyboard. A touch editor has
               neither, so the explicit pair renders only where it is the only
               way to finish the field. */}
-          {!conflict ? (
+            {!conflict ? (
+              <Button
+                type="button"
+                variant="glass"
+                size="quiet"
+                className="hidden [@media(pointer:coarse)]:inline-flex"
+                disabled={isPending}
+                onPointerDown={(event) => event.preventDefault()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  commitDraft(draft);
+                }}
+              >
+                Apply locally
+              </Button>
+            ) : null}
             <Button
               type="button"
-              variant="glass"
+              variant="pill"
               size="quiet"
               className="hidden [@media(pointer:coarse)]:inline-flex"
               disabled={isPending}
               onPointerDown={(event) => event.preventDefault()}
               onClick={(event) => {
                 event.stopPropagation();
-                commitDraft(draft);
+                cancelEditing();
               }}
             >
-              Apply locally
+              Cancel
             </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="pill"
-            size="quiet"
-            className="hidden [@media(pointer:coarse)]:inline-flex"
-            disabled={isPending}
-            onPointerDown={(event) => event.preventDefault()}
-            onClick={(event) => {
-              event.stopPropagation();
-              cancelEditing();
-            }}
-          >
-            Cancel
-          </Button>
-        </span>
-        {error ? (
-          <span
-            id={`${fieldId}-error`}
-            role="alert"
-            className="theme-danger-text mt-1 block text-sm leading-snug"
-          >
-            {error}
           </span>
-        ) : null}
-        {conflict ? (
-          /* Below the box rather than over it: the reviewer's own text stays
+          {error ? (
+            <span
+              id={`${fieldId}-error`}
+              role="alert"
+              className="theme-danger-text mt-1 block text-sm leading-snug"
+            >
+              {error}
+            </span>
+          ) : null}
+          {conflict ? (
+            /* Below the box rather than over it: the reviewer's own text stays
              the thing in focus, and a phone keyboard is already covering the
              bottom half of the screen. `asChild` keeps this a `span` so the
              panel is still valid markup inside an inline field. */
-          <Surface
-            asChild
-            variant="subtle"
-            padding="xs"
-            radius="md"
-            className="mt-2"
-          >
-            <span className="block">
-              <span className="theme-text-faint block text-sm font-semibold">
-                Current preview
-              </span>
-              {/* Capped and scrollable: a long note must not push the two
+            <Surface
+              asChild
+              variant="subtle"
+              padding="xs"
+              radius="md"
+              className="mt-2"
+            >
+              <span className="block">
+                <span className="theme-text-faint block text-sm font-semibold">
+                  Current preview
+                </span>
+                {/* Capped and scrollable: a long note must not push the two
                   choices below the fold on a phone. */}
-              <span className="theme-text-secondary mt-1 block max-h-24 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-snug">
-                {conflict.storedText.trim() || (
-                  <span className="theme-text-faint italic">(empty)</span>
-                )}
+                <span className="theme-text-secondary mt-1 block max-h-24 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-snug">
+                  {conflict.storedText.trim() || (
+                    <span className="theme-text-faint italic">(empty)</span>
+                  )}
+                </span>
+                <span className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="glass"
+                    size="quiet"
+                    className="h-auto max-w-full whitespace-normal text-left"
+                    onPointerDown={(event) => event.preventDefault()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      commitDraft(draft);
+                    }}
+                    disabled={isPending}
+                  >
+                    <Icon icon="lucide:check" size={14} />
+                    Apply my text to preview
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="pill"
+                    size="quiet"
+                    className="h-auto max-w-full whitespace-normal text-left"
+                    onPointerDown={(event) => event.preventDefault()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setDraft(conflict.storedText);
+                      setError(null);
+                      textareaRef.current?.focus();
+                    }}
+                    disabled={isPending}
+                  >
+                    <Icon icon="lucide:corner-down-left" size={14} />
+                    Use current preview text
+                  </Button>
+                </span>
               </span>
-              <span className="mt-2 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="glass"
-                  size="quiet"
-                  className="h-auto max-w-full whitespace-normal text-left"
-                  onPointerDown={(event) => event.preventDefault()}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    commitDraft(draft);
-                  }}
-                  disabled={isPending}
-                >
-                  <Icon icon="lucide:check" size={14} />
-                  Apply my text to preview
-                </Button>
-                <Button
-                  type="button"
-                  variant="pill"
-                  size="quiet"
-                  className="h-auto max-w-full whitespace-normal text-left"
-                  onPointerDown={(event) => event.preventDefault()}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setDraft(conflict.storedText);
-                    setError(null);
-                    textareaRef.current?.focus();
-                  }}
-                  disabled={isPending}
-                >
-                  <Icon icon="lucide:corner-down-left" size={14} />
-                  Use current preview text
-                </Button>
-              </span>
-            </span>
-          </Surface>
-        ) : null}
-      </Wrapper>
-      {statusMessage}
+            </Surface>
+          ) : null}
+        </Wrapper>
+        {statusMessage}
       </>
     );
   }
 
   return (
     <>
-    <Wrapper
-      ref={focusTriggerOnMount}
-      role="button"
-      tabIndex={0}
-      aria-label={`Edit ${fieldLabel}`}
-      data-editable-path={path}
-      className={cn(
-        "group relative cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-none transition-colors duration-150",
-        "hover:decoration-current focus-visible:decoration-current focus-visible:ring-1 focus-visible:ring-current",
-        "motion-reduce:transition-none",
-        TOUCH_PILL,
-        "[@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:py-2 [@media(pointer:coarse)]:decoration-current",
-        as === "span" ? "[@media(pointer:coarse)]:inline-block" : "pe-5",
-        className,
-      )}
-      onClick={(event: ReactMouseEvent<HTMLElement>) => {
-        // Citation markers inside the value stay clickable as links, and in an
-        // editing surface they carry their own controls; either way the click
-        // belongs to the marker and must not also open the field.
-        if (
-          event.target instanceof Element &&
-          (event.target.closest("a") !== null ||
-            event.target.closest("[data-citation-control]") !== null)
-        ) {
-          return;
-        }
-        // A clickable ancestor (an expandable card, a row that toggles) would
-        // otherwise act on the same click and collapse the editor as it opens.
-        event.stopPropagation();
-        startEditing();
-      }}
-      onKeyDown={(event: ReactKeyboardEvent<HTMLElement>) => {
-        if (event.target !== event.currentTarget) return;
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
+      <Wrapper
+        ref={focusTriggerOnMount}
+        role="button"
+        tabIndex={0}
+        aria-label={`Edit ${fieldLabel}`}
+        data-editable-path={path}
+        className={cn(
+          "group relative cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-none transition-colors duration-150",
+          "hover:decoration-current focus-visible:decoration-current focus-visible:ring-1 focus-visible:ring-current",
+          "motion-reduce:transition-none",
+          TOUCH_PILL,
+          "[@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:py-2 [@media(pointer:coarse)]:decoration-current",
+          as === "span" ? "[@media(pointer:coarse)]:inline-block" : "pe-5",
+          className,
+        )}
+        onClick={(event: ReactMouseEvent<HTMLElement>) => {
+          // Citation markers inside the value stay clickable as links, and in an
+          // editing surface they carry their own controls; either way the click
+          // belongs to the marker and must not also open the field.
+          if (
+            event.target instanceof Element &&
+            (event.target.closest("a") !== null ||
+              event.target.closest("[data-citation-control]") !== null)
+          ) {
+            return;
+          }
+          // A clickable ancestor (an expandable card, a row that toggles) would
+          // otherwise act on the same click and collapse the editor as it opens.
           event.stopPropagation();
           startEditing();
-        }
-      }}
-    >
-      <FieldMarkerProvider value={markerContext}>
-        {text.trim() || !emptyLabel ? (
-          children
-        ) : (
-          <span className="theme-text-faint italic">{emptyLabel}</span>
-        )}
-      </FieldMarkerProvider>
-      <Icon
-        icon="lucide:pencil-line"
-        size={12}
-        className={cn(
-          "opacity-0 transition-opacity duration-150 group-hover:opacity-60 group-focus-visible:opacity-60 [@media(pointer:coarse)]:opacity-60 motion-reduce:transition-none",
-          as === "div" ? "absolute end-0 top-1 [@media(pointer:coarse)]:top-3" : "ml-1 inline-block align-baseline",
-        )}
-      />
-    </Wrapper>
-    {statusMessage}
+        }}
+        onKeyDown={(event: ReactKeyboardEvent<HTMLElement>) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.stopPropagation();
+            startEditing();
+          }
+        }}
+      >
+        <FieldMarkerProvider value={markerContext}>
+          {text.trim() || !emptyLabel ? (
+            children
+          ) : (
+            <span className="theme-text-faint italic">{emptyLabel}</span>
+          )}
+        </FieldMarkerProvider>
+        <Icon
+          icon="lucide:pencil-line"
+          size={12}
+          className={cn(
+            "opacity-0 transition-opacity duration-150 group-hover:opacity-60 group-focus-visible:opacity-60 [@media(pointer:coarse)]:opacity-60 motion-reduce:transition-none",
+            as === "div"
+              ? "absolute end-0 top-1 [@media(pointer:coarse)]:top-3"
+              : "ml-1 inline-block align-baseline",
+          )}
+        />
+      </Wrapper>
+      {statusMessage}
     </>
   );
 }

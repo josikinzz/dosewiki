@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateInviteCode, hashInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
 import { POST } from "./route";
@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   hashPassword: vi.fn(async (plain: string) => `hashed:${plain}`),
 }));
 
-vi.mock("@server/auth/convexMemberships", () => ({
+vi.mock("@server/auth/memberships", () => ({
   redeemInviteCode: mocks.redeemInviteCode,
 }));
 
@@ -101,7 +101,7 @@ describe("POST /api/invite/redeem", () => {
     ["a short password", { ...validBody, password: "short" }],
     ["a bad email", { ...validBody, email: "not-an-email" }],
     ["an over-long name", { ...validBody, name: "x".repeat(121) }],
-  ])("rejects %s with 400 before calling Convex", async (_label, body) => {
+  ])("rejects %s with 400 before calling Postgres", async (_label, body) => {
     const response = await POST(request(body));
 
     expect(response.status).toBe(400);
@@ -125,7 +125,7 @@ describe("POST /api/invite/redeem", () => {
     ["USERNAME_TAKEN", 409],
     ["EMAIL_TAKEN", 409],
   ])("maps the %s refusal to %i with route-owned copy", async (code, status) => {
-    mocks.redeemInviteCode.mockRejectedValueOnce(new ConvexError({ code, message: "convex internal wording" }));
+    mocks.redeemInviteCode.mockRejectedValueOnce(new PostgresError({ code, message: "internal diagnostic" }));
 
     const response = await POST(request(validBody));
 
@@ -133,11 +133,11 @@ describe("POST /api/invite/redeem", () => {
     const payload = await response.json();
     expect(payload.code).toBe(code);
     expect(payload.error).toEqual(expect.any(String));
-    expect(payload.error).not.toContain("convex internal wording");
+    expect(payload.error).not.toContain("data internal wording");
   });
 
   it("hides an unexpected failure behind a generic 500", async () => {
-    mocks.redeemInviteCode.mockRejectedValueOnce(new Error("Convex is down"));
+    mocks.redeemInviteCode.mockRejectedValueOnce(new Error("Postgres is down"));
 
     const response = await POST(request(validBody));
 

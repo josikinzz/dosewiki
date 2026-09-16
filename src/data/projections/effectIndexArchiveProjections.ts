@@ -1,15 +1,14 @@
 /**
  * Read projections for the lossless Effect Index archive table.
  *
- * The archive stores each imported Mongo document verbatim as a JSON **string** rather
- * than a Convex object, because the export contains reserved key names (`_id`, `__v`) and
- * Mongo's extended-JSON wrappers (`{"$oid": …}`, `{"$date": …}`) that Convex cannot hold
- * as a structured value. Decoding therefore means `JSON.parse` plus unwrapping, and every
- * step of it is attacker-adjacent in the sense that the row content is not schema-checked:
- * nothing in here may throw, or one malformed row would take the whole blog index down.
+ * The archive preserves imported Mongo documents as JSON strings, including
+ * extended-JSON wrappers (`{"$oid": …}`, `{"$date": …}`). This representation
+ * originated with the Convex import and remains unchanged in Postgres.
+ * Decoding means `JSON.parse` plus unwrapping. The row content is not
+ * schema-checked, so malformed rows must not take down the blog index.
  *
- * Plain TypeScript with no Convex imports on purpose, so it is unit-testable without a
- * Convex client and importable from both a Convex query handler and the Next read adapter
+ * Plain TypeScript with no Postgres imports on purpose, so it is unit-testable without a
+ * Postgres client and importable from both a Postgres query handler and the Next read adapter
  * (the same arrangement `substanceReadProjections.ts` already has).
  */
 

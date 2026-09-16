@@ -4,14 +4,14 @@
  * Public: the person resetting has no session, so the token from the link an
  * admin issued (`/api/dev/members/reset`) is the whole credential. Guessing a
  * token is a password-guessing attempt, so the route shares the sign-in
- * brake (`authCredentialAttempt`). The token is hashed here and Convex
+ * brake (`authCredentialAttempt`). The token is hashed here and Postgres
  * matches on the hash, so the plaintext is never stored anywhere.
  */
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
-import { consumePasswordReset } from "@server/auth/convexMemberships";
+import { consumePasswordReset } from "@server/auth/memberships";
 import { hashPassword, validateNewPassword } from "@server/auth/passwords";
-import { convexRejectionResponse } from "@/lib/http/convexRejection";
+import { dataRejectionResponse } from "@/lib/http/dataRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
@@ -55,9 +55,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    // An unknown or expired token is a deliberate Convex rejection with a
+    // An unknown or expired token is a deliberate Postgres rejection with a
     // sentence meant for the reader; everything else is an outage.
-    const rejection = convexRejectionResponse(error);
+    const rejection = dataRejectionResponse(error);
     if (rejection) {
       return rejection;
     }

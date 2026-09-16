@@ -7,7 +7,7 @@ import type {
   MechanismDetail,
   MechanismQualifierDetail,
 } from "@/data/builders/library";
-import type { PublicEffectPreview } from "@server/convex/publicData.shared";
+import type { PublicEffectPreview } from "@server/data/publicData.shared";
 import {
   buildSiteUrl,
   getPublicRoutePath,

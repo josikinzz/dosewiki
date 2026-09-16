@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Copy trip reports from one Convex deployment to another.
+ * Copy trip reports from one Postgres deployment to another.
  *
  * Usage:
- *   SOURCE_CONVEX_URL=https://dev.convex.cloud \
- *   TARGET_CONVEX_URL=https://prod.convex.cloud \
+ *   SOURCE_POSTGRES_URL=postgresql://localhost/dosewiki \
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *   node scripts/migrate-trip-reports-between-deployments.mjs --confirm-cross-deployment-copy
  */
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -19,10 +19,10 @@ import {
 } from "../lib/data-ops-run-context.mjs";
 
 const runContext = createDataOpsRunContext({
-  operation: "copy trip reports between Convex deployments",
+  operation: "copy trip reports between Postgres deployments",
   intent: "cross-deployment-copy",
-  sourceUrlKeys: ["SOURCE_CONVEX_URL"],
-  targetUrlKeys: ["TARGET_CONVEX_URL"],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL"],
+  targetUrlKeys: ["TARGET_POSTGRES_URL"],
   selectedTables: ["tripReports"],
   confirmationFlag: "--confirm-cross-deployment-copy",
   destructive: true,
@@ -31,8 +31,8 @@ const runContext = createDataOpsRunContext({
 let sourceUrl;
 let targetUrl;
 try {
-  sourceUrl = requireSourceUrl(runContext, "source Convex URL");
-  targetUrl = requireTargetUrl(runContext, "target Convex URL");
+  sourceUrl = requireSourceUrl(runContext, "source Postgres URL");
+  targetUrl = requireTargetUrl(runContext, "target Postgres URL");
   assertDataOpsWriteAllowed(runContext);
 } catch (error) {
   console.error(`❌ ${error.message}`);
@@ -45,7 +45,7 @@ const targetClient = createDataClient({ target: targetUrl }).client;
 const BATCH_SIZE = 10;
 
 async function main() {
-  console.log("🚚 Copying trip reports between Convex deployments");
+  console.log("🚚 Copying trip reports between Postgres deployments");
   printDataOpsRunContext(runContext);
 
   const reports = await sourceClient.query(api.tripReports.getAll, {});

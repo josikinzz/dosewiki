@@ -1,10 +1,10 @@
 import { vi } from "vitest";
-import type { MutationCtx } from "../convex/_generated/server";
+import type { MutationCtx } from "@server/postgres/runtime/server";
 import { projectEditorArticle } from "../src/data/projections/substanceReadProjections";
 import { minimalArticle } from "../src/test/fixtures/articles";
 import { contentHash } from "./proposals/contentHash";
 
-// Shared in-memory Convex fixture for the change proposal review tests.
+// Shared in-memory Postgres fixture for the change proposal review tests.
 export const SERVER_KEY = "test-admin-key";
 
 export type Row = Record<string, unknown> & { _id: string };

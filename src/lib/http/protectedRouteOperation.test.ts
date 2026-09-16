@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { NextResponse } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JsonBodyError } from "./readJsonBody";
@@ -8,7 +8,7 @@ vi.mock("server-only", () => ({}));
 const mocks = vi.hoisted(() => ({
   requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
@@ -19,8 +19,8 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 const editorSession = {
@@ -29,14 +29,15 @@ const editorSession = {
   session: { user: { email: "editor@example.com", name: "Editor" } },
 };
 
-const convexCapability = {
+const dataCapability = {
   client: { mutation: vi.fn() },
   adminKey: "admin-key",
-  deployment: { writeUrl: "https://example.convex.cloud" },
+  deployment: { writeUrl: "postgres://db.example/dosewiki" },
   health: {
     adminKeyConfigured: true,
-    convexUrlConfigured: true,
-    canSaveToConvex: true,
+    backend: "postgres",
+    postgresUrlConfigured: true,
+    canSaveToPostgres: true,
     issues: [],
   },
 };
@@ -55,9 +56,9 @@ describe("protectedRouteOperation", () => {
     vi.clearAllMocks();
     mocks.enforceRateLimit.mockResolvedValue(null);
     mocks.requireRoleSession.mockResolvedValue(editorSession);
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
-      capability: convexCapability,
+      capability: dataCapability,
     });
   });
   it("rejects foreign, opaque, and missing origins before any authenticated mutation", async () => {
@@ -190,17 +191,18 @@ describe("protectedRouteOperation", () => {
 
   it("maps missing write capability without invoking the operation", async () => {
     const operation = vi.fn();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: false,
       failure: {
         type: "configuration",
         missing: ["adminKey"],
-        message: "Convex admin key is not configured on the server.",
+        message: "Postgres admin key is not configured on the server.",
         health: {
           adminKeyConfigured: false,
-          convexUrlConfigured: true,
-          canSaveToConvex: false,
-          issues: ["Missing CONVEX_ADMIN_KEY on the server."],
+          backend: "postgres",
+          postgresUrlConfigured: true,
+          canSaveToPostgres: false,
+          issues: ["Missing DATA_ADMIN_KEY on the server."],
         },
       },
     });
@@ -209,7 +211,7 @@ describe("protectedRouteOperation", () => {
       auth: "editor",
       rateLimit: "editorSmallWrite",
       body: { maxBytes: 1024 },
-      capabilities: [{ type: "convexWrite" }],
+      capabilities: [{ type: "dataWrite" }],
       unexpectedErrorLabel: "test:",
       operation,
     });
@@ -218,7 +220,7 @@ describe("protectedRouteOperation", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
-      error: "Convex admin key is not configured on the server.",
+      error: "Postgres admin key is not configured on the server.",
     });
     expect(operation).not.toHaveBeenCalled();
   });
@@ -239,7 +241,7 @@ describe("protectedRouteOperation", () => {
           return { value: body.value };
         },
       },
-      capabilities: [{ type: "convexWrite" }],
+      capabilities: [{ type: "dataWrite" }],
       unexpectedErrorLabel: "test:",
       operation,
     });
@@ -253,7 +255,7 @@ describe("protectedRouteOperation", () => {
       auth: editorSession,
       actorEmail: "editor@example.com",
       body: { value: "parsed" },
-      convexWrite: convexCapability,
+      dataWrite: dataCapability,
     });
   });
 
@@ -286,14 +288,14 @@ describe("protectedRouteOperation", () => {
       return handler(request());
     }
 
-    /** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
+    /** Reproduces the native structured error payload seen at the route boundary. */
     function forwarded(data: unknown) {
-      const thrown = new ConvexError("Server Error");
+      const thrown = new PostgresError("Server Error");
       (thrown as { data: unknown }).data = data;
       return thrown;
     }
 
-    it("surfaces a deliberate Convex rejection with its own text and code", async () => {
+    it("surfaces a deliberate Postgres rejection with its own text and code", async () => {
       const response = await handleThrown(
         forwarded({
           code: "FIELD_CONFLICT",
@@ -309,7 +311,7 @@ describe("protectedRouteOperation", () => {
         code: "FIELD_CONFLICT",
       });
       // The reason still reaches the logs; the client only ever sees a sentence.
-      expect(warn).toHaveBeenCalledWith("test:", expect.any(ConvexError));
+      expect(warn).toHaveBeenCalledWith("test:", expect.any(PostgresError));
       expect(error).not.toHaveBeenCalled();
     });
 
@@ -324,8 +326,8 @@ describe("protectedRouteOperation", () => {
       expect(error).toHaveBeenCalledWith("test:", thrown);
     });
 
-    it("keeps an auth failure generic, since it is not a ConvexError", async () => {
-      // `convex/lib/auth.ts` extends `Error` on purpose so authorization
+    it("keeps an auth failure generic, since it is not a PostgresError", async () => {
+      // `server/lib/auth.ts` extends `Error` on purpose so authorization
       // detail never becomes a client-visible sentence.
       const thrown = Object.assign(
         new Error("Authentication required: Please sign in or provide an API key"),
@@ -337,14 +339,14 @@ describe("protectedRouteOperation", () => {
       expect(await response.json()).toEqual({ error: "Unable to save that edit right now." });
     });
 
-    it("keeps a ConvexError with an unrenderable payload generic", async () => {
+    it("keeps a PostgresError with an unrenderable payload generic", async () => {
       const response = await handleThrown(forwarded({ code: "FIELD_CONFLICT" }));
 
       expect(response.status).toBe(500);
       expect(await response.json()).toEqual({ error: "Unable to save that edit right now." });
     });
 
-    it("lets a route's own mapError win over the Convex classification", async () => {
+    it("lets a route's own mapError win over the Postgres classification", async () => {
       const { protectedRouteOperation } = await import("./protectedRouteOperation");
       const handler = protectedRouteOperation({
         auth: "editor",

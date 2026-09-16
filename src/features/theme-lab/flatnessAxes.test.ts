@@ -2,20 +2,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  BLUR_TOKEN_ID,
   CORNER_STEPS,
   CORNER_TOKEN_IDS,
   DEPTH_STEPS,
   DEPTH_TOKEN_IDS,
   GLOW_STEPS,
   GLOW_TOKEN_IDS,
-  blurDisabledIn,
   cornerOverrides,
   depthOverrides,
   detectStep,
   fadeColorsIn,
   glowOverrides,
 } from "./flatnessAxes";
+import { BLUR_TOKEN_ID, blurDisabledIn } from "./themeLabStorage";
 
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 const SITE_COLORS = fs.readFileSync(path.join(REPO_ROOT, "src/styles/site-colors.css"), "utf8");

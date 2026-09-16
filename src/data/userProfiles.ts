@@ -29,7 +29,7 @@ export type NormalizedUserProfile = {
   hasCustomBio: boolean;
   role?: string;
   /**
-   * The contributor's curated report ordering, passed through from Convex
+   * The contributor's curated report ordering, passed through from Postgres
    * (`contributorProfiles.reportOrder`). Optional because only the public
    * profile read carries it — a profile materialized locally (fallbacks, the
    * identity mapping, normalizeProfileRecord) has no curation, and absent
@@ -42,7 +42,7 @@ export type NormalizedUserProfile = {
   reportOrder?: string[];
   /**
    * The contributor's opt-out from the public /replications gallery, passed
-   * through from Convex (`contributorProfiles.exclude_from_gallery`). Absent
+   * through from Postgres (`contributorProfiles.exclude_from_gallery`). Absent
    * means included. It gates ONLY the gallery corpus
    * (`getPublicGalleryReplications`) — effect-article replication sections,
    * substance showcases, the contributor's own profile page, and permalinks
@@ -50,13 +50,13 @@ export type NormalizedUserProfile = {
    */
   exclude_from_gallery?: boolean;
   /**
-   * Staff-maintained archival marker, passed through from Convex
+   * Staff-maintained archival marker, passed through from Postgres
    * (`contributorProfiles.archival`). Absent means a normal profile; `true`
    * renders the "Archival profile" notice under the public profile handle.
    */
   archival?: boolean;
   /**
-   * Editorial endorsement of a replication artist, passed through from Convex
+   * Editorial endorsement of a replication artist, passed through from Postgres
    * (`contributorProfiles.approved_replicator`). Absent means an ordinary
    * artist; `true` stars the name on the /replications index, lifts the
    * artist's rail above the rest of the default order, and badges the Artist
@@ -64,7 +64,7 @@ export type NormalizedUserProfile = {
    */
   approved_replicator?: boolean;
   /**
-   * Signed staff commentary, passed through from Convex
+   * Signed staff commentary, passed through from Postgres
    * (`contributorProfiles.staffNote`). Absent renders nothing; present it is
    * the public "Editor's note" speech-bubble section under the bio.
    */

@@ -5,13 +5,13 @@
  *
  * Dry run:
  *   node scripts/replications/generate-gif-motion-renditions.mjs \
- *     --target-url=https://glad-minnow-656.convex.cloud
+ *     --target=postgresql://<host>/<database>
  *
  * Apply (requires the repository's production-write gates):
  *   node scripts/replications/generate-gif-motion-renditions.mjs \
  *     --write --confirm-write=generate-gif-motion-renditions \
- *     --expected-deployment=glad-minnow-656 \
- *     --target-url=https://glad-minnow-656.convex.cloud
+ *     --expected-deployment=<host>/<database> \
+ *     --target=postgresql://<host>/<database>
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -20,9 +20,9 @@ import { spawnSync } from "node:child_process";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
 import {
   assertProductionWriteAllowed,
@@ -33,9 +33,9 @@ import {
 import {
   hostOf,
   isProductionUrl,
-  PRODUCTION_HOST,
 } from "./lib/media-hosts.mjs";
-import { chunk, uploadFile } from "./repoint-renditions.mjs";
+import { chunk } from "./repoint-renditions.mjs";
+import { uploadReplicationFile, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import { assertToolsAvailable, probeVideo } from "./transcode-videos.mjs";
 
 const OPERATION = "generate-gif-motion-renditions";
@@ -59,7 +59,7 @@ export function planGifMotionGeneration(rows, { force = false } = {}) {
   const gifRows = rows.filter(isGifLike);
 
   for (const row of gifRows) {
-    if (row.motion_storage_id && row.motion_poster_storage_id && !force) {
+    if ((row.motion_r2_key || row.motion_storage_id) && (row.motion_poster_r2_key || row.motion_poster_storage_id) && !force) {
       skipped.push({
         slug: row.slug,
         reason: "already has a motion rendition and poster",
@@ -83,7 +83,8 @@ export function planGifMotionGeneration(rows, { force = false } = {}) {
       slug: row.slug,
       sourceUrl: row.url,
       expectedStorageId: row.storage_id,
-      hadMotion: Boolean(row.motion_storage_id && row.motion_poster_storage_id),
+      expectedR2Key: row.r2_key ?? null,
+      hadMotion: Boolean((row.motion_r2_key || row.motion_storage_id) && (row.motion_poster_r2_key || row.motion_poster_storage_id)),
     });
   }
 
@@ -219,7 +220,7 @@ export function verifyGifMotionGeneration({ before, after }) {
       reasons.push(`${field} is null — ${label} write did not resolve`);
     } else if (!isProductionUrl(value)) {
       reasons.push(
-        `${field} points at ${hostOf(value) ?? "an unknown host"}, not ${PRODUCTION_HOST}`,
+        `${field} points at ${hostOf(value) ?? "an unknown host"}, outside the configured R2 media namespace`,
       );
     }
   }
@@ -286,10 +287,10 @@ async function main() {
   );
 
   assertToolsAvailable();
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
     throw new Error(
-      "Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for dry run).",
+      "Set --target/TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL for dry run).",
     );
   }
 
@@ -309,7 +310,7 @@ async function main() {
     `Motion plan     : ${actions.length} row(s) in ${batches.length} batch(es)`,
   );
   console.log(`Skipped         : ${plan.skipped.length}`);
-  console.log("Fields written  : motion_storage_id + motion_poster_storage_id");
+  console.log("Fields written  : motion_r2_key + motion_poster_r2_key");
   console.log(
     `Encode spec     : full duration/cadence · H.264 High yuv420p · CRF ${GIF_MOTION_SPEC.crf} ${GIF_MOTION_SPEC.preset} · silent · faststart`,
   );
@@ -341,6 +342,7 @@ async function main() {
       slug: action.slug,
       rowId: action.rowId,
       expectedStorageId: action.expectedStorageId,
+      expectedR2Key: action.expectedR2Key,
       sourceUrl: action.sourceUrl,
       status: "planned",
     })),
@@ -366,14 +368,15 @@ async function main() {
         const live = await fetchResolvedRow(writeClient, apiKey, action.rowId);
         if (!live)
           throw new Error(`${action.slug}: row no longer exists. Stopping.`);
-        if (live.storage_id !== action.expectedStorageId) {
+        if ((live.storage_id ?? null) !== (action.expectedStorageId ?? null) ||
+            (live.r2_key ?? null) !== action.expectedR2Key) {
           throw new Error(
-            `${action.slug}: storage_id changed since the reviewed plan. Stopping.`,
+            `${action.slug}: media identity changed since the reviewed plan. Stopping.`,
           );
         }
         if (
-          live.motion_storage_id &&
-          live.motion_poster_storage_id &&
+          (live.motion_r2_key || live.motion_storage_id) &&
+          (live.motion_poster_r2_key || live.motion_poster_storage_id) &&
           !force &&
           !action.hadMotion
         ) {
@@ -436,7 +439,7 @@ async function main() {
           );
         }
 
-        const motionStorageId = await uploadFile(
+        const motionR2Key = await uploadReplicationFile(
           writeClient,
           apiKey,
           motionPath,
@@ -444,13 +447,13 @@ async function main() {
         );
         Object.assign(ledgerEntry, {
           status: "motion_uploaded",
-          motionStorageId,
+          motionR2Key,
           sourceBytes,
           motionBytes: fs.statSync(motionPath).size,
           at: new Date().toISOString(),
         });
         writeLedger();
-        const motionPosterStorageId = await uploadFile(
+        const motionPosterR2Key = await uploadReplicationFile(
           writeClient,
           apiKey,
           posterPath,
@@ -458,27 +461,20 @@ async function main() {
         );
         Object.assign(ledgerEntry, {
           status: "uploaded_pending_association",
-          motionPosterStorageId,
+          motionPosterR2Key,
           posterBytes: fs.statSync(posterPath).size,
           at: new Date().toISOString(),
         });
         writeLedger();
-        await writeClient.mutation(api.replications.updateMotionStorageIds, {
-          apiKey,
-          updates: [
-            {
-              id: action.rowId,
-              expectedStorageId: action.expectedStorageId,
-              motionStorageId,
-              motionPosterStorageId,
-            },
-          ],
+        await updateReplicationMedia(writeClient, apiKey, live, {
+          motion_r2_key: motionR2Key,
+          motion_poster_r2_key: motionPosterR2Key,
         });
 
         Object.assign(ledgerEntry, {
           status: "applied",
-          motionStorageId,
-          motionPosterStorageId,
+          motionR2Key,
+          motionPosterR2Key,
           sourceBytes,
           motionBytes: fs.statSync(motionPath).size,
           posterBytes: fs.statSync(posterPath).size,
@@ -488,6 +484,10 @@ async function main() {
 
         const after = await fetchResolvedRow(writeClient, apiKey, action.rowId);
         const verification = verifyGifMotionGeneration({ before, after });
+        if (after?.motion_r2_key !== motionR2Key || after.motion_poster_r2_key !== motionPosterR2Key) {
+          verification.ok = false;
+          verification.reasons.push("Native motion keys did not persist.");
+        }
         if (!verification.ok) {
           for (const reason of verification.reasons)
             console.error(`  ${reason}`);
@@ -522,7 +522,7 @@ async function main() {
     `\nGenerated ${generated} GIF motion rendition pair(s). Ledger: ${ledgerPath}`,
   );
   console.log(
-    'Run revalidateTag("convex-public:replications") to clear public caches.',
+    'Run revalidateTag("data-public:replications") to clear public caches.',
   );
 }
 

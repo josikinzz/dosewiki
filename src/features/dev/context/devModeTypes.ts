@@ -27,11 +27,17 @@ export type DevProposalSeed = {
     indexLayouts?: ReadonlyArray<ManualIndexConfig & { type: "psychoactive" | "chemical" | "mechanism" }>;
   };
 };
+export type DevIndexLayoutsReadiness =
+  | { status: "idle"; error: null }
+  | { status: "loading"; error: null }
+  | { status: "ready"; error: null }
+  | { status: "error"; error: string };
+
 
 export type DevModeContextValue = {
   articles: ArticleRecord[];
   /**
-   * The latest articles the live Convex query delivered.
+   * The latest articles the live Postgres query delivered.
    *
    * `articles` is the working-set draft, which stops accepting live updates
    * while it holds unapplied changes; this one never stops. The two agree
@@ -45,6 +51,12 @@ export type DevModeContextValue = {
   psychoactiveIndexManual: ManualPsychoactiveIndexConfig;
   chemicalIndexManual: ManualChemicalIndexConfig;
   mechanismIndexManual: ManualMechanismIndexConfig;
+  /** Revision-bearing editor layouts are loaded only after a consuming tool asks for them. */
+  indexLayoutsReadiness: DevIndexLayoutsReadiness;
+  requestIndexLayouts: () => void;
+  retryIndexLayouts: () => void;
+  /** Start the complete corpus + layout read at explicit editor intent. */
+  requestLibrary: () => Promise<void>;
   close: () => void;
   updateArticleAt: (index: number, nextArticle: ArticleRecord) => void;
   resetArticleAt: (index: number) => void;

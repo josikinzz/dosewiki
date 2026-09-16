@@ -1,6 +1,6 @@
 import Image, { type StaticImageData } from "next/image";
 import type { CSSProperties, ImgHTMLAttributes } from "react";
-import { publicConvexUrl } from "../../../lib/runtime/publicEnv";
+import { getManagedImageCandidates } from "../../../lib/next/r2ImagePolicy";
 
 type AppImageProps = {
   src: string | StaticImageData;
@@ -10,7 +10,7 @@ type AppImageProps = {
   className?: string;
   sizes?: string;
   priority?: boolean;
-  /** Skip the next/image optimizer. Required for SVG srcs that don't end in `.svg` (e.g. `/api/molecules/<slug>?v=…`) — the optimizer rejects SVG content. */
+  /** Preserve original bytes, skipping both Next optimization and Worker resizing. */
   unoptimized?: boolean;
   loading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
   draggable?: boolean;
@@ -19,34 +19,15 @@ type AppImageProps = {
 };
 
 function isLocalImage(src: string | StaticImageData) {
-  return typeof src !== "string" || src.startsWith("/");
+  return typeof src !== "string" || (src.startsWith("/") && !src.startsWith("//"));
 }
-
-const convexStorageOrigin = (() => {
-  if (!publicConvexUrl) return null;
-  try {
-    return new URL(publicConvexUrl).origin;
-  } catch {
-    return null;
-  }
-})();
 
 /**
- * Convex file-storage URLs on this build's own deployment (replication artwork,
- * posters, thumbnails). These are the one class of remote URL the optimizer is
- * configured to accept: next.config.ts derives its `images.remotePatterns`
- * entry from the same browser Convex URL, so routing exactly these through
- * next/image can never 400. Every other remote host (editor-entered covers,
- * artist favicons, …) stays on the plain <img> branch below.
+ * Only local images use Next's optimizer.
+ * Managed raster images request Worker renditions directly, so every candidate
+ * passes the withdrawal gate. Legacy and other external URLs remain direct
+ * fallbacks without managed withdrawal protection.
  */
-function isConvexStorageImage(src: string | StaticImageData) {
-  return (
-    typeof src === "string" &&
-    convexStorageOrigin !== null &&
-    src.startsWith(`${convexStorageOrigin}/api/storage/`)
-  );
-}
-
 export function AppImage({
   src,
   alt,
@@ -61,7 +42,7 @@ export function AppImage({
   style,
   title,
 }: AppImageProps) {
-  if (isLocalImage(src) || isConvexStorageImage(src)) {
+  if (isLocalImage(src)) {
     return (
       <Image
         src={src}
@@ -81,10 +62,12 @@ export function AppImage({
   }
 
   const imgSrc = typeof src === "string" ? src : src.src;
+  const candidates = unoptimized ? null : getManagedImageCandidates(imgSrc, width, sizes);
 
   return (
     <img
-      src={imgSrc}
+      srcSet={candidates?.srcSet}
+      src={candidates?.src ?? imgSrc}
       alt={alt}
       width={width}
       height={height}
@@ -98,4 +81,5 @@ export function AppImage({
       title={title}
     />
   );
+
 }

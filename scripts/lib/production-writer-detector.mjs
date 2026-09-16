@@ -113,14 +113,14 @@ export function detectProductionWriteSignals(source, fileName = "script.mjs") {
         isMutationMember(node.expression, constants) ||
         (ts.isIdentifier(node.expression) && mutationAliases.has(node.expression.text))
       ) {
-        add("convex-mutation", node);
+        add("data-mutation", node);
       }
 
       const staticArguments = node.arguments
         .map((argument) => evaluateStaticString(argument, constants))
         .filter((value) => value !== null);
       if (staticArguments.some((value) => /\b(?:npx|bunx)\s+convex\s+run\b/.test(value))) {
-        add("convex-cli-write", node);
+        add("legacy-cli-write", node);
       }
 
       for (const argument of node.arguments) {

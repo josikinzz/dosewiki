@@ -1,12 +1,11 @@
-import { notFound, permanentRedirect } from "next/navigation";
 
-import { UserProfilePage } from "@/components/pages/UserProfilePage";
+import { ContributorRoutePage } from "@/components/pages/ContributorRoutePage";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadContributorRoute } from "@server/next/routeLoaders.contributors";
+import { loadContributorIdentityRoute } from "@server/next/routeLoaders.contributors";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -24,7 +23,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: ContributorPageProps) {
   setRequestLocale(LOCALE.code);
   const { profileKey } = await params;
-  const result = await loadContributorRoute(profileKey, LOCALE);
+  const result = await loadContributorIdentityRoute(profileKey, LOCALE);
 
   if (result.kind === "not-found") {
     return buildPublicPageMetadata({
@@ -50,15 +49,11 @@ export async function generateMetadata({ params }: ContributorPageProps) {
 export default async function ContributorPage({ params }: ContributorPageProps) {
   setRequestLocale(LOCALE.code);
   const { profileKey } = await params;
-  const result = await loadContributorRoute(profileKey, LOCALE);
-
-  if (result.kind === "not-found") notFound();
-  if (result.kind === "redirect") permanentRedirect(result.target);
 
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
-        <UserProfilePage {...result.pageProps} />
+        <ContributorRoutePage profileKey={profileKey} locale={LOCALE} />
       </div>
     </UiLocaleProvider>
   );

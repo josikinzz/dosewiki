@@ -28,13 +28,17 @@ import {
 
 const CLEAN_EIGHT_CREATE_RESULT = { created: 8, updated: 0, unchanged: 0, skipped: 0, blocked: 0 };
 
+async function uploadedObject(contentType: string, bytes: Buffer) {
+  const digest = sha256(bytes);
+  const extension = contentType === "image/jpeg" ? "jpg" : contentType === "image/png" ? "png" : "webp";
+  return { r2Key: `media/sha256/${digest.slice(0, 2)}/${digest}.${extension}` };
+}
+
 async function completedUploadLedger() {
   const inputs = fixtureInputs();
   const ledger = createLedger(inputs, "2026-08-31T08:00:00.000Z");
-  let nextStorage = 0;
   const dependencies = {
-    generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/opaque",
-    upload: async () => ({ storageId: `storage-${++nextStorage}` }),
+    upload: uploadedObject,
     dryRunProfiles: async () => ({ ...CLEAN_EIGHT_CREATE_RESULT }),
     persist: vi.fn(),
     now: () => "2026-08-31T08:01:00.000Z",
@@ -48,7 +52,7 @@ async function verifiedEightProfileLedger() {
   const completed = await completedUploadLedger();
   const payload = buildEightProfilePayload(
     completed.inputs,
-    new Map(completed.ledger.uploads.map((row) => [row.key, row.storageId!])),
+    new Map(completed.ledger.uploads.map((row) => [row.key, row.r2Key!])),
   );
   await runProfileWritePhase(completed.inputs, completed.ledger, {
     writeProfiles: async () => createdResult(payload),
@@ -66,8 +70,8 @@ function exactReadback(payload: ReturnType<typeof buildEightProfilePayload>) {
       key: entry.profile.key,
       displayName: entry.profile.displayName,
       aliases: entry.profile.aliases,
-      ...(entry.profile.avatarStorageId
-        ? { avatarStorageId: entry.profile.avatarStorageId }
+      ...(entry.profile.avatarR2Key
+        ? { avatarR2Key: entry.profile.avatarR2Key }
         : {}),
       bio: entry.profile.bio,
       ...(entry.profile.role ? { role: entry.profile.role } : {}),
@@ -211,26 +215,27 @@ describe("Replication Index profile avatar uploader", () => {
       && entry.profile.avatarUrl === null)).toBe(true);
   });
 
-  it("binds only exact reviewed upload keys to returned Storage IDs", () => {
+  it("binds only exact reviewed upload keys to their content-addressed R2 objects", () => {
     const inputs = fixtureInputs();
-    const payload = buildEightProfilePayload(inputs, new Map([["BRYANITCH", "storage-canary"]]));
+    const source = inputs.uploads.find((row) => row.key === "BRYANITCH")!;
+    const r2Key = `media/sha256/${source.sha256.slice(0, 2)}/${source.sha256}.${source.contentType === "image/jpeg" ? "jpg" : "png"}`;
+    const payload = buildEightProfilePayload(inputs, new Map([["BRYANITCH", r2Key]]));
     const bryan = payload.entries.find(
       (entry) => entry.outcome === "reviewed-new" && entry.profile.key === "BRYANITCH",
     );
-    expect(bryan).toMatchObject({ profile: { avatarStorageId: "storage-canary" } });
+    expect(bryan).toMatchObject({ profile: { avatarStorageId: null, avatarR2Key: r2Key } });
     expect(() => buildEightProfilePayload(inputs, new Map([["TYPO", "storage"]])))
-      .toThrow(/Unexpected or empty avatar Storage binding/);
+      .toThrow();
   });
 
   it("uploads only the canary, persists no URL, and records an eight-profile dry run", async () => {
     const inputs = fixtureInputs();
     const ledger = createLedger(inputs, "2026-08-31T08:00:00.000Z");
     const snapshots: string[] = [];
-    const upload = vi.fn(async () => ({ storageId: "storage-canary" }));
+    const upload = vi.fn(uploadedObject);
     const dryRunProfiles = vi.fn(async () => ({ ...CLEAN_EIGHT_CREATE_RESULT }));
 
     const result = await runUploadPhase("canary", inputs, ledger, {
-      generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/one-time-secret",
       upload,
       dryRunProfiles,
       persist: (value) => snapshots.push(JSON.stringify(value)),
@@ -240,8 +245,7 @@ describe("Replication Index profile avatar uploader", () => {
     expect(upload).toHaveBeenCalledTimes(1);
     expect(dryRunProfiles).toHaveBeenCalledWith(expect.objectContaining({ dryRun: true }));
     expect(result.ledger.uploads.filter((row) => row.status === "uploaded")).toHaveLength(1);
-    expect(result.ledger.profileDryRuns).toMatchObject([{ phase: "canary", avatarStorageBindings: 1 }]);
-    expect(snapshots.join("\n")).not.toContain("one-time-secret");
+    expect(result.ledger.profileDryRuns).toMatchObject([{ phase: "canary", avatarR2Bindings: 1 }]);
     expect(snapshots.join("\n")).not.toContain("apiKey");
   });
 
@@ -249,7 +253,6 @@ describe("Replication Index profile avatar uploader", () => {
     const inputs = fixtureInputs();
     const ledger = createLedger(inputs);
     await expect(runUploadPhase("remaining", inputs, ledger, {
-      generateUploadUrl: vi.fn(),
       upload: vi.fn(),
       dryRunProfiles: vi.fn(),
       persist: vi.fn(),
@@ -259,10 +262,8 @@ describe("Replication Index profile avatar uploader", () => {
   it("uploads the other three only after canary verification and dry-runs all four bindings", async () => {
     const inputs = fixtureInputs();
     const ledger = createLedger(inputs);
-    let nextStorage = 0;
     const dependencies = {
-      generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/opaque",
-      upload: async () => ({ storageId: `storage-${++nextStorage}` }),
+      upload: uploadedObject,
       dryRunProfiles: vi.fn(async () => ({ ...CLEAN_EIGHT_CREATE_RESULT })),
       persist: vi.fn(),
     };
@@ -270,11 +271,11 @@ describe("Replication Index profile avatar uploader", () => {
     const result = await runUploadPhase("remaining", inputs, ledger, dependencies);
     expect(result.ledger.uploads.every((row) => row.status === "uploaded")).toBe(true);
     expect(result.ledger.profileDryRuns).toMatchObject([
-      { phase: "canary", avatarStorageBindings: 1 },
-      { phase: "remaining", avatarStorageBindings: 4 },
+      { phase: "canary", avatarR2Bindings: 1 },
+      { phase: "remaining", avatarR2Bindings: 4 },
     ]);
     expect(result.payload.entries.filter((entry) =>
-      entry.outcome === "reviewed-new" && entry.profile.avatarStorageId !== null)).toHaveLength(4);
+      entry.outcome === "reviewed-new" && entry.profile.avatarR2Key !== null)).toHaveLength(4);
   });
 
   it("marks an indeterminate upload uncertain and never auto-retries it", async () => {
@@ -282,18 +283,16 @@ describe("Replication Index profile avatar uploader", () => {
     const ledger = createLedger(inputs);
     const persist = vi.fn();
     await expect(runUploadPhase("canary", inputs, ledger, {
-      generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/opaque",
       upload: async () => { throw new Error("connection lost"); },
-      dryRunProfiles: vi.fn(),
+      dryRunProfiles: async () => ({ ...CLEAN_EIGHT_CREATE_RESULT }),
       persist,
     })).rejects.toThrow(/outcome is uncertain/);
     expect(ledger.uploads.find((row) => row.key === "BRYANITCH")).toMatchObject({
       status: "uncertain",
-      storageId: null,
+      r2Key: null,
       errorCode: "upload-outcome-uncertain",
     });
     await expect(runUploadPhase("canary", inputs, ledger, {
-      generateUploadUrl: vi.fn(),
       upload: vi.fn(),
       dryRunProfiles: vi.fn(),
       persist,
@@ -332,14 +331,13 @@ describe("Replication Index profile avatar uploader", () => {
     };
     const ledger = createLedger(changedInputs);
     writeFileSync(copiedAsset, Buffer.from("changed"));
-    const generateUploadUrl = vi.fn();
+    const upload = vi.fn();
     await expect(runUploadPhase("canary", changedInputs, ledger, {
-      generateUploadUrl,
-      upload: vi.fn(),
+      upload,
       dryRunProfiles: vi.fn(),
       persist: vi.fn(),
     })).rejects.toThrow(/Avatar bytes drifted before upload/);
-    expect(generateUploadUrl).not.toHaveBeenCalled();
+    expect(upload).not.toHaveBeenCalled();
   });
 
   it("gates the profile write until all uploads and the exact expectedAbsent dry run pass", async () => {
@@ -375,7 +373,7 @@ describe("Replication Index profile avatar uploader", () => {
     const { inputs, ledger } = await completedUploadLedger();
     const payload = buildEightProfilePayload(
       inputs,
-      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+      new Map(ledger.uploads.map((row) => [row.key, row.r2Key!])),
     );
     const snapshots: string[] = [];
     const writeProfiles = vi.fn(async (writePayload) => {
@@ -410,7 +408,7 @@ describe("Replication Index profile avatar uploader", () => {
     const { inputs, ledger } = await completedUploadLedger();
     const payload = buildEightProfilePayload(
       inputs,
-      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+      new Map(ledger.uploads.map((row) => [row.key, row.r2Key!])),
     );
     const writeProfiles = vi.fn(async () => { throw new Error("response lost"); });
     const firstRead = vi.fn(async () => []);
@@ -436,7 +434,7 @@ describe("Replication Index profile avatar uploader", () => {
     const { inputs, ledger } = await completedUploadLedger();
     const payload = buildEightProfilePayload(
       inputs,
-      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+      new Map(ledger.uploads.map((row) => [row.key, row.r2Key!])),
     );
     const readback = exactReadback(payload);
     readback[0] = { ...readback[0], displayName: "Wrong artist" };
@@ -455,7 +453,7 @@ describe("Replication Index profile avatar uploader", () => {
     const { inputs, ledger } = await completedUploadLedger();
     const payload = buildEightProfilePayload(
       inputs,
-      new Map(ledger.uploads.map((row) => [row.key, row.storageId!])),
+      new Map(ledger.uploads.map((row) => [row.key, row.r2Key!])),
     );
     const writeProfiles = vi.fn(async () => createdResult(payload));
     const readProfiles = vi.fn(async () => exactReadback(payload));

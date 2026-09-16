@@ -6,7 +6,7 @@ const memberships = vi.hoisted(() => ({
   touchSignIn: vi.fn(async () => undefined),
 }));
 
-vi.mock("./convexMemberships", () => memberships);
+vi.mock("./memberships", () => memberships);
 
 const passwords = vi.hoisted(() => ({ verifyPassword: vi.fn() }));
 
@@ -136,10 +136,12 @@ describe("jwt callback", () => {
     memberships.getMembershipByEmail.mockReset();
   });
 
-  it("stamps the stored role on every refresh", async () => {
+  it("replaces both capabilities and glossary scope on every refresh", async () => {
+    memberships.getMembershipByEmail.mockResolvedValue({ email: "josie@example.com", role: "editor_translator", glossaryLocales: ["nl"] });
+    const granted = await call({ email: "josie@example.com", role: "admin", glossaryLocales: ["zh-Hans"] });
+    expect(granted).toMatchObject({ role: "editor_translator", glossaryLocales: ["nl"] });
     memberships.getMembershipByEmail.mockResolvedValue({ email: "josie@example.com", role: "editor" });
-
-    await expect(call({ email: "josie@example.com", role: "admin" })).resolves.toMatchObject({ role: "editor" });
+    await expect(call(granted)).resolves.toMatchObject({ role: "editor", glossaryLocales: [] });
   });
 
   it("degrades a banned member to viewer", async () => {
@@ -149,16 +151,17 @@ describe("jwt callback", () => {
       bannedAt: "2026-09-01T00:00:00.000Z",
     });
 
-    await expect(call({ email: "josie@example.com", role: "admin" })).resolves.toMatchObject({ role: "viewer" });
+    await expect(call({ email: "josie@example.com", role: "editor_translator", glossaryLocales: ["nl"] })).resolves.toMatchObject({ role: "viewer", glossaryLocales: [] });
   });
 
   it("fails closed to viewer, and logs, when the membership read fails", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     memberships.getMembershipByEmail.mockRejectedValue(new Error("offline"));
 
-    await expect(call({ email: "josie@example.com", role: "admin" })).resolves.toMatchObject({
+    await expect(call({ email: "josie@example.com", role: "editor_translator", glossaryLocales: ["nl"] })).resolves.toMatchObject({
       email: "josie@example.com",
       role: "viewer",
+      glossaryLocales: [],
     });
     expect(logged).toHaveBeenCalledWith(expect.stringContaining("degraded to viewer"), expect.any(Error));
   });

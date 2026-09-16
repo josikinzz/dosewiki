@@ -774,25 +774,25 @@ html[data-theme="light"] .theme-selected-control-icon {
 }
 
 html[data-theme="light"] .theme-selected-control:focus-visible .theme-selected-control-icon {
-  background: var(--theme-selected-control-bg) !important;
+  background: transparent !important;
   color: var(--theme-selected-control-text) !important;
-  --tw-ring-color: var(--theme-selected-control-border) !important;
-  box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
+  --tw-ring-color: transparent !important;
+  box-shadow: none !important;
 }
 @media (hover: hover) {
   html[data-theme="light"] .theme-selected-control:hover .theme-selected-control-icon {
-    background: var(--theme-selected-control-bg) !important;
+    background: transparent !important;
     color: var(--theme-selected-control-text) !important;
-    --tw-ring-color: var(--theme-selected-control-border) !important;
-    box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
+    --tw-ring-color: transparent !important;
+    box-shadow: none !important;
   }
 }
 
 html[data-theme="light"] .theme-selected-control[data-state="active"] .theme-selected-control-icon {
-  background: var(--theme-selected-control-bg) !important;
+  background: transparent !important;
   color: var(--theme-selected-control-text) !important;
-  --tw-ring-color: var(--theme-selected-control-border) !important;
-  box-shadow: 0 0 0 1px var(--theme-selected-control-border) !important;
+  --tw-ring-color: transparent !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="light"] .theme-author-avatar-placeholder {

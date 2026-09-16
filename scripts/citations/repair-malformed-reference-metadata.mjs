@@ -5,9 +5,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl, resolvePostgresSource } from "../lib/data-client.ts";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   hasUnsafeReferenceMarkup,
   normalizeDoi,
@@ -17,7 +18,7 @@ import {
 } from "../../lib/citations/referenceIdentity.mjs";
 import { backupBeforeWrite,
 getFlagValue,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -55,7 +56,7 @@ function sha256Json(value) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-function stripConvexFields(article) {
+function stripDataFields(article) {
   const { _id: _id, _creationTime: _creationTime, ...stored } = article;
   return stored;
 }
@@ -193,6 +194,7 @@ export async function buildMalformedReferenceRepairProposal(
     now = () => new Date().toISOString(),
   } = {},
 ) {
+  assertCitationSourceIdentity(sourceDeployment);
   const malformedUses = [];
   const articleAudits = [];
 
@@ -295,6 +297,7 @@ export function validateMalformedReferenceRepairProposal(proposal) {
   if (sha256Json(proposalPayload(proposal)) !== proposal.artifactSha256) {
     throw new Error("The malformed-reference proposal hash is invalid.");
   }
+  assertCitationSourceIdentity(proposal.sourceDeployment);
   if (!Array.isArray(proposal.rows) || proposal.rows.length === 0) {
     throw new Error("The malformed-reference proposal has no affected articles.");
   }
@@ -352,14 +355,15 @@ function pendingProposalRows(articlesBySlug, proposal) {
 }
 
 async function buildProposal(command, argv, dependencies) {
-  const sourceUrl = command.targetUrl;
-  if (!sourceUrl) throw new Error("Set TARGET_CONVEX_URL explicitly to build the repair proposal.");
-  const client = dependencies.client ?? createDataClient({ target: sourceUrl }).client;
+  const env = dependencies.env ?? process.env;
+  const sourceUrl = resolvePostgresSource({ argv, env }).url;
+  if (!sourceUrl) throw new Error("Select a Postgres source with --source-url, SOURCE_POSTGRES_URL, or a target URL.");
+  const client = dependencies.client ?? createDataClient({ target: sourceUrl, argv, env }).client;
   const queryApi = dependencies.api ?? api;
   const articles = await getAllSubstanceDocuments(client, queryApi.substanceIndex.getFullDocumentPage);
   const proposal = await buildMalformedReferenceRepairProposal(articles, {
     enrich: dependencies.enrich,
-    sourceDeployment: sourceUrl,
+    sourceDeployment: postgresFingerprintFromUrl(sourceUrl),
   });
   const outPath = getFlagValue(argv, "--out");
   if (outPath) writeFileSync(resolve(outPath), `${JSON.stringify(proposal, null, 2)}\n`);
@@ -370,10 +374,10 @@ async function buildProposal(command, argv, dependencies) {
 
 async function applyProposal(command, argv, dependencies) {
   const proposal = readProposal(getFlagValue(argv, "--proposal"));
-  if (proposal.sourceDeployment?.replace(/\/$/, "") !== command.targetUrl?.replace(/\/$/, "")) {
+  if (proposal.sourceDeployment !== postgresFingerprintFromUrl(command.targetUrl)) {
     throw new Error("The proposal source deployment does not match the explicit target deployment.");
   }
-  const client = dependencies.client ?? createDataClient({ target: command.targetUrl }).client;
+  const client = dependencies.client ?? createDataClient({ target: command.targetUrl, argv, env: dependencies.env ?? process.env }).client;
   const queryApi = dependencies.api ?? api;
   const articles = await getAllSubstanceDocuments(client, queryApi.substanceIndex.getFullDocumentPage);
   const articlesBySlug = new Map(articles.map((article) => [article.slug, article]));
@@ -420,7 +424,7 @@ async function applyProposal(command, argv, dependencies) {
         throw new Error(`${row.slug}: REFERENCE_CONFLICT immediately before write.`);
       }
       const article = {
-        ...stripConvexFields(fresh),
+        ...stripDataFields(fresh),
         references: row.proposedReferences,
       };
       await client.mutation(queryApi.substanceIndex.saveSubstance, { apiKey, article });

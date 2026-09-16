@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicSubstanceLookup } from "@server/convex/publicData";
+import { getPublicSubstanceLookup } from "@server/data/publicData";
 import { PUBLIC_SITE } from "@server/next/publicSite";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { authorizeCronRequest } from "@server/http/cronAuthorization";

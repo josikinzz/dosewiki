@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getFunctionName } from "convex/server";
+import { getFunctionName } from "../../../lib/postgres/runtime/api.ts"
 import { digest } from "./executor-lib.mjs";
 import {
   JOSIE_PERSONAL_WEBSITE,
@@ -65,13 +65,15 @@ function finalReadback() {
 function command(writeRequested) {
   return {
     operation: "restore-josie-profile-curation",
-    targetUrl: "https://glad-minnow-656.convex.cloud",
-    deploymentFingerprint: "glad-minnow-656",
-    targetSource: "--target-url",
+    backend: "postgres",
+    dataWritesFrozen: false,
+    targetUrl: "postgresql://localhost/dosewiki",
+    deploymentFingerprint: "localhost/dosewiki",
+    targetSource: "--target",
     writeRequested,
     dryRun: !writeRequested,
     confirmationPhrase: writeRequested ? "restore-josie-profile-curation" : null,
-    expectedDeployment: writeRequested ? "glad-minnow-656" : null,
+    expectedDeployment: "localhost/dosewiki",
     compatibilityTargetsPresent: [],
   };
 }

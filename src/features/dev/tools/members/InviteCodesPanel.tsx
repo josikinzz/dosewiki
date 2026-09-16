@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import {
   ActionNotice,
   EditorField,
   EditorFieldRow,
-  EditorSelect,
   EditorStatusPill,
   LoadErrorState,
   type EditorStatusPillTone,
@@ -25,9 +24,8 @@ import {
   type MintedInvite,
 } from "./inviteCodeRequests";
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
-import { getRoleDisplayName, MANAGED_ROLES } from "@/lib/auth/roles";
-
-const ROLE_OPTIONS = MANAGED_ROLES.map((value) => ({ value, label: getRoleDisplayName(value) }));
+import { getRoleDisplayName, parseGlossaryLocaleGrant, roleMeetsFloor } from "@/lib/auth/roles";
+import { MemberPermissionFields } from "./MemberPermissionFields";
 
 const STATUS_TONE: Record<InviteCodeStatus, EditorStatusPillTone> = {
   active: "success",
@@ -51,6 +49,19 @@ const formatDate = (iso: string) =>
   });
 
 type Notice = { tone: "success" | "danger"; message: string };
+const mergeUniqueInvites = (
+  current: InviteCodeSummary[],
+  incoming: InviteCodeSummary[],
+) => {
+  const incomingById = new Map(incoming.map((invite) => [invite.id, invite]));
+  const merged = current.map((invite) => incomingById.get(invite.id) ?? invite);
+  const existingIds = new Set(current.map((invite) => invite.id));
+  for (const invite of incoming) {
+    if (!existingIds.has(invite.id)) merged.push(invite);
+  }
+  return merged;
+};
+
 
 /**
  * The body of the Members tab's "Invite codes" section: mint one, see its
@@ -62,7 +73,12 @@ type Notice = { tone: "success" | "danger"; message: string };
 export default function InviteCodesPanel() {
   const [invites, setInvites] = useState<InviteCodeSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [continuationCursor, setContinuationCursor] = useState<string | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const loadGeneration = useRef(0);
   const [role, setRole] = useState<InviteCodeRole>("editor");
+  const [glossaryLocales, setGlossaryLocales] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [expiresInDays, setExpiresInDays] = useState("7");
   const [maxUses, setMaxUses] = useState("1");
@@ -73,19 +89,65 @@ export default function InviteCodesPanel() {
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [listNotice, setListNotice] = useState<Notice | null>(null);
 
-  const reload = useCallback(async () => {
+  const loadContinuation = useCallback(async function loadContinuation(
+    cursor: string,
+    generation: number,
+  ): Promise<void> {
+    setIsLoadingHistory(true);
+    setHistoryError(null);
     try {
-      setInvites(await fetchInviteCodes());
-      setLoadError(null);
+      const page = await fetchInviteCodes(cursor);
+      if (loadGeneration.current !== generation) return;
+      setInvites((current) => mergeUniqueInvites(current ?? [], page.invites));
+      setContinuationCursor(page.continuationCursor);
+      if (page.continuationCursor) {
+        void loadContinuation(page.continuationCursor, generation);
+      } else {
+        setIsLoadingHistory(false);
+      }
     } catch (error) {
-      setLoadError(
-        error instanceof Error ? error.message : "Unable to load invite codes.",
+      if (loadGeneration.current !== generation) return;
+      setHistoryError(
+        error instanceof Error ? error.message : "Unable to load invite code history.",
       );
+      setIsLoadingHistory(false);
     }
   }, []);
 
+  const reload = useCallback(async (preserveCurrent = false) => {
+    const generation = ++loadGeneration.current;
+    if (!preserveCurrent) setInvites(null);
+    setLoadError(null);
+    setHistoryError(null);
+    setContinuationCursor(null);
+    setIsLoadingHistory(true);
+    try {
+      const page = await fetchInviteCodes();
+      if (loadGeneration.current !== generation) return;
+      setInvites(page.invites);
+      setContinuationCursor(page.continuationCursor);
+      if (page.continuationCursor) {
+        void loadContinuation(page.continuationCursor, generation);
+      } else {
+        setIsLoadingHistory(false);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to load invite codes.";
+      if (preserveCurrent) {
+        setHistoryError(message);
+      } else {
+        setLoadError(message);
+      }
+      setIsLoadingHistory(false);
+    }
+  }, [loadContinuation]);
+
   useEffect(() => {
     void reload();
+    return () => {
+      loadGeneration.current += 1;
+    };
   }, [reload]);
 
   const handleMint = async (event: FormEvent<HTMLFormElement>) => {
@@ -95,6 +157,7 @@ export default function InviteCodesPanel() {
     try {
       const result = await mintInviteCode({
         role,
+        glossaryLocales: parseGlossaryLocaleGrant(role, glossaryLocales),
         note: note.trim() || undefined,
         expiresInDays: Number(expiresInDays),
         maxUses: Number(maxUses),
@@ -103,6 +166,7 @@ export default function InviteCodesPanel() {
       setCopied(null);
       setNote("");
       setInvites((current) => [result.invite, ...(current ?? [])]);
+      void reload(true);
     } catch (error) {
       setMintNotice({
         tone: "danger",
@@ -142,6 +206,7 @@ export default function InviteCodesPanel() {
         ),
       );
       setListNotice({ tone: "success", message: "Invite revoked." });
+      void reload(true);
     } catch (error) {
       setListNotice({
         tone: "danger",
@@ -163,20 +228,10 @@ export default function InviteCodesPanel() {
         aria-label="Mint an invite code"
       >
         <EditorFieldRow layout="twoColumn">
-          <EditorField
-            label="Role"
-            htmlFor="invite-role"
-            description={ROLE_DESCRIPTIONS[role].summary}
-          >
-            <EditorSelect
-              id="invite-role"
-              value={role}
-              onChange={(event) =>
-                setRole(event.target.value as InviteCodeRole)
-              }
-              options={ROLE_OPTIONS}
-            />
-          </EditorField>
+          <div className="space-y-2">
+            <MemberPermissionFields label="Invite permissions" role={role} glossaryLocales={glossaryLocales} disabled={isMinting} onChange={(nextRole, nextLocales) => { setRole(nextRole); setGlossaryLocales(nextLocales); }} />
+            <p className="theme-text-faint text-xs">{ROLE_DESCRIPTIONS[role].summary}</p>
+          </div>
           <EditorField
             label="Note"
             htmlFor="invite-note"
@@ -225,7 +280,7 @@ export default function InviteCodesPanel() {
             variant="accent"
             size="pill"
             className="rounded-full"
-            disabled={isMinting}
+            disabled={isMinting || (roleMeetsFloor(role, "translator") && glossaryLocales.length === 0)}
           >
             {isMinting ? "Minting…" : "Mint invite"}
           </Button>
@@ -301,14 +356,11 @@ export default function InviteCodesPanel() {
               </Button>
             </div>
             <p className="theme-text-faint text-xs">
-              {
-                ROLE_OPTIONS.find(
-                  (option) => option.value === minted.invite.role,
-                )?.label
-              }{" "}
+              {getRoleDisplayName(minted.invite.role)}{" "}
               invite, expires {formatDate(minted.invite.expiresAt)},{" "}
               {minted.invite.maxUses}{" "}
               {minted.invite.maxUses === 1 ? "use" : "uses"}.
+              {roleMeetsFloor(minted.invite.role, "translator") && ` Approved glossary languages: ${minted.invite.glossaryLocales?.join(", ") || "none"}.`}
             </p>
           </div>
         </NestedContentCard>
@@ -344,6 +396,8 @@ export default function InviteCodesPanel() {
           <LoadErrorState message={loadError} onRetry={() => void reload()} />
         ) : invites === null ? (
           <p className="theme-text-faint text-sm">Loading invite codes…</p>
+        ) : invites.length === 0 && isLoadingHistory ? (
+          <p className="theme-text-faint text-sm">Loading invite code history…</p>
         ) : invites.length === 0 ? (
           <p className="theme-text-faint text-sm">No invite codes yet.</p>
         ) : (
@@ -358,11 +412,7 @@ export default function InviteCodesPanel() {
                           {STATUS_LABEL[invite.status]}
                         </EditorStatusPill>
                         <span className="text-sm font-medium text-primary">
-                          {
-                            ROLE_OPTIONS.find(
-                              (option) => option.value === invite.role,
-                            )?.label
-                          }
+                          {getRoleDisplayName(invite.role)}
                         </span>
                         {invite.note ? (
                           <span className="theme-text-secondary text-sm">
@@ -370,6 +420,7 @@ export default function InviteCodesPanel() {
                           </span>
                         ) : null}
                       </div>
+                      {roleMeetsFloor(invite.role, "translator") && <p className="theme-text-faint text-xs">Glossary languages: {invite.glossaryLocales?.join(", ") || "none"}</p>}
                       <p className="theme-text-faint text-xs">
                         {invite.redemptions.length}/{invite.maxUses} used.
                         Minted {formatDate(invite.createdAt)} by{" "}
@@ -406,6 +457,24 @@ export default function InviteCodesPanel() {
             ))}
           </ul>
         )}
+        {isLoadingHistory && invites !== null && invites.length > 0 ? (
+          <p className="theme-text-faint text-sm" role="status">
+            Loading invite code history…
+          </p>
+        ) : null}
+        {historyError ? (
+          <LoadErrorState
+            message={historyError}
+            onRetry={() => {
+              if (continuationCursor) {
+                const generation = ++loadGeneration.current;
+                void loadContinuation(continuationCursor, generation);
+              } else {
+                void reload(true);
+              }
+            }}
+          />
+        ) : null}
       </div>
     </div>
   );

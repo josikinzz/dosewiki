@@ -6,7 +6,7 @@ import {
 } from "./citation-promotion-applicator.mjs";
 
 describe("citation promotion applicator", () => {
-  it("builds the Convex applyDraft payload shape used by citation applicators", () => {
+  it("builds the Postgres applyDraft payload shape used by citation applicators", () => {
     const article = { id: 1, slug: "2c-b", title: "2C-B", references: [] };
     const evidence = [{ claimKey: "claim-1", status: "supported" }];
 

@@ -2,12 +2,12 @@ import "server-only";
 
 import { createHmac, randomUUID } from "node:crypto";
 
-import { makeFunctionReference } from "convex/server";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
 
 import {
   getPublicIntakeWriteCapability,
-  getServerConvexWriteCapability,
-} from "@server/convex/serverWriteCapability";
+  getServerDataWriteCapability,
+} from "@server/data/serverWriteCapability";
 import {
   createSiteFeedbackRow,
   validateSiteFeedback,
@@ -15,6 +15,22 @@ import {
   type SiteFeedbackRow,
   type SiteFeedbackStatus,
 } from "./siteFeedback";
+
+export type SiteFeedbackQueueItem = Pick<
+  SiteFeedbackRow,
+  | "id"
+  | "status"
+  | "category"
+  | "urgency"
+  | "details"
+  | "page"
+  | "email"
+  | "honeypot_triggered"
+  | "review_notes"
+  | "reviewed_by"
+  | "reviewed_at"
+  | "created_at"
+>;
 
 export class SiteFeedbackStorageConfigurationError extends Error {
   constructor(message = "Site feedback storage is not configured.") {
@@ -38,7 +54,7 @@ export class SiteFeedbackNotFoundError extends Error {
   }
 }
 
-type ConvexCallableClient = {
+type DataCallableClient = {
   mutation(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   mutationAsService(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   query(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
@@ -67,7 +83,7 @@ const createFeedbackRef = makeFunctionReference<
 const listFeedbackRef = makeFunctionReference<
   "query",
   { apiKey: string; status?: SiteFeedbackStatus; limit?: number },
-  SiteFeedbackRow[]
+  SiteFeedbackQueueItem[]
 >("siteFeedback:list");
 
 const countFeedbackRef = makeFunctionReference<
@@ -86,13 +102,38 @@ const transitionFeedbackRef = makeFunctionReference<
     reviewer: string;
     note?: string;
   },
-  SiteFeedbackRow
+  SiteFeedbackQueueItem
 >("siteFeedback:transition");
 
-export class ConvexSiteFeedbackStore {
+type FeedbackCreateOptions = {
+  client: Pick<DataCallableClient, "mutationAsService">;
+  apiKey: string;
+  idFactory?: () => string;
+  now?: () => Date;
+};
+
+async function createFeedback(
+  options: FeedbackCreateOptions,
+  input: SiteFeedbackInput,
+  context: SiteFeedbackCreateContext = {},
+): Promise<SiteFeedbackRow> {
+  const validation = validateSiteFeedback(input);
+  if (validation.ok === false) throw new SiteFeedbackValidationError(validation.errors);
+  const row = createSiteFeedbackRow(validation.normalized, {
+    id: options.idFactory?.() ?? randomUUID(),
+    now: options.now?.() ?? new Date(),
+    ip_hash: hashIpAddress(context.ip, context.ip_hash_secret),
+  });
+  return await options.client.mutationAsService(createFeedbackRef, {
+    apiKey: options.apiKey,
+    feedback: row,
+  }) as SiteFeedbackRow;
+}
+
+export class DataSiteFeedbackStore {
   constructor(
     private readonly options: {
-      client: ConvexCallableClient;
+      client: DataCallableClient;
       apiKey: string;
       idFactory?: () => string;
       now?: () => Date;
@@ -103,29 +144,15 @@ export class ConvexSiteFeedbackStore {
     input: SiteFeedbackInput,
     context: SiteFeedbackCreateContext = {},
   ): Promise<SiteFeedbackRow> {
-    const validation = validateSiteFeedback(input);
-    if (validation.ok === false) {
-      throw new SiteFeedbackValidationError(validation.errors);
-    }
-
-    const row = createSiteFeedbackRow(validation.normalized, {
-      id: this.options.idFactory?.() ?? randomUUID(),
-      now: this.options.now?.() ?? new Date(),
-      ip_hash: hashIpAddress(context.ip, context.ip_hash_secret),
-    });
-
-    return await this.options.client.mutationAsService(createFeedbackRef, {
-      apiKey: this.options.apiKey,
-      feedback: row,
-    }) as SiteFeedbackRow;
+    return createFeedback(this.options, input, context);
   }
 
-  async list(filters: SiteFeedbackListFilters = {}): Promise<SiteFeedbackRow[]> {
+  async list(filters: SiteFeedbackListFilters = {}): Promise<SiteFeedbackQueueItem[]> {
     return await this.options.client.query(listFeedbackRef, {
       apiKey: this.options.apiKey,
       ...(filters.status ? { status: filters.status } : {}),
       limit: clampLimit(filters.limit),
-    }) as SiteFeedbackRow[];
+    }) as SiteFeedbackQueueItem[];
   }
 
   /** Total rows in the given statuses, computed on the server: no list travels. */
@@ -139,7 +166,7 @@ export class ConvexSiteFeedbackStore {
   async transition(
     id: string,
     options: { status: SiteFeedbackStatus; reviewer: string; actorEmail: string; note?: string },
-  ): Promise<SiteFeedbackRow> {
+  ): Promise<SiteFeedbackQueueItem> {
     try {
       return await this.options.client.mutation(transitionFeedbackRef, {
         apiKey: this.options.apiKey,
@@ -148,7 +175,7 @@ export class ConvexSiteFeedbackStore {
         status: options.status,
         reviewer: options.reviewer,
         ...(options.note !== undefined ? { note: options.note } : {}),
-      }) as SiteFeedbackRow;
+      }) as SiteFeedbackQueueItem;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Site feedback not found")) {
         throw new SiteFeedbackNotFoundError(id);
@@ -158,30 +185,27 @@ export class ConvexSiteFeedbackStore {
   }
 }
 
-let store: ConvexSiteFeedbackStore | null = null;
+let store: DataSiteFeedbackStore | null = null;
 let storeCacheKey: string | null = null;
 
 export async function getPublicSiteFeedbackStore(): Promise<
-  Pick<ConvexSiteFeedbackStore, "create">
+  Pick<DataSiteFeedbackStore, "create">
 > {
   const capability = getPublicIntakeWriteCapability();
   if (!capability) {
     throw new SiteFeedbackStorageConfigurationError(
-      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE to enable public site feedback.",
+      "Configure the Postgres target and the public-intake create credential to enable public site feedback.",
     );
   }
 
-  return new ConvexSiteFeedbackStore({
-    client: capability.client,
-    apiKey: capability.apiKey,
-  });
+  return { create: (input, context) => createFeedback(capability, input, context) };
 }
 
-export async function getSiteFeedbackStore(): Promise<ConvexSiteFeedbackStore> {
-  const writeCapability = getServerConvexWriteCapability();
+export async function getSiteFeedbackStore(): Promise<DataSiteFeedbackStore> {
+  const writeCapability = getServerDataWriteCapability();
   if (writeCapability.ok === false) {
     throw new SiteFeedbackStorageConfigurationError(
-      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_KEY to enable private site feedback.",
+      "Configure the Postgres target and an editorial write credential to enable private site feedback.",
     );
   }
 
@@ -194,7 +218,7 @@ export async function getSiteFeedbackStore(): Promise<ConvexSiteFeedbackStore> {
     return store;
   }
 
-  store = new ConvexSiteFeedbackStore({
+  store = new DataSiteFeedbackStore({
     client: capability.client,
     apiKey,
   });

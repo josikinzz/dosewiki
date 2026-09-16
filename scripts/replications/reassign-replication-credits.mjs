@@ -45,13 +45,13 @@
  *   node scripts/replications/reassign-replication-credits.mjs
  *
  * Apply:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *   node scripts/replications/reassign-replication-credits.mjs --write \
  *     --confirm-write=reassign-replication-credits \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  */
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -245,10 +245,10 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
     throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
+      "Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL) so the script knows which deployment to read.",
     );
   }
 
@@ -266,7 +266,7 @@ async function main() {
   }
 
   if (command.dryRun) {
-    console.log("\nDry run — no Convex writes performed.");
+    console.log("\nDry run — no Postgres writes performed.");
     return;
   }
 

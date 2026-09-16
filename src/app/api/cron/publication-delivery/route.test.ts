@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { MutationCtx } from "../../../../../convex/_generated/server";
-import { claimDue, recordDelivery } from "../../../../../convex/publicationRecovery";
+import type { MutationCtx } from "@server/postgres/runtime/server";
+import { claimDue, recordDelivery } from "../../../../../server/publicationRecovery";
 
 const seams = vi.hoisted(() => ({
   client: null as { mutationAsService: (reference: unknown, args: Record<string, unknown>) => Promise<unknown> } | null,
   dispatch: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: () => seams.client
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: () => seams.client
     ? { ok: true, capability: { client: seams.client } }
     : { ok: false, failure: { message: "missing fixture client" } },
 }));
@@ -79,7 +79,7 @@ type RegisteredHandler = {
 };
 
 function invoke(handler: unknown, ctx: MutationCtx, args: Record<string, unknown> = {}) {
-  // Convex retains the registered handler at runtime but omits it from the builder type.
+  // Postgres retains the registered handler at runtime but omits it from the builder type.
   const registered = handler as RegisteredHandler;
   return registered._handler(ctx, args);
 }

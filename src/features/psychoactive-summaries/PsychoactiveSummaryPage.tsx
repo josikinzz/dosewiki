@@ -11,7 +11,7 @@ import {
   type ArtistCreditLinks,
 } from "@/features/effects/vcode/artistCreditLinks";
 import { t } from "@/i18n/server";
-import type { PublicEffectArticle } from "@server/convex/publicData";
+import type { PublicEffectSummary } from "@server/data/publicData";
 
 import { PsychoactiveEffectLongSummary } from "./PsychoactiveEffectLongSummary";
 import type {
@@ -20,7 +20,7 @@ import type {
 } from "./summaryDefinitions";
 
 interface PsychoactiveSummarySection extends PsychoactiveSummarySectionDefinition {
-  effects: PublicEffectArticle[];
+  effects: PublicEffectSummary[];
 }
 
 interface PsychoactiveSummaryPageProps {

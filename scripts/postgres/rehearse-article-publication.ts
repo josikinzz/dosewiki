@@ -29,7 +29,7 @@ import {
   GeneratedPublicationError,
   computeOwnedSectionHash,
   type ReviewedPublicationProposal,
-} from "../../convex/lib/generatedPublication";
+} from "../../server/lib/generatedPublication";
 import {
   articlePublicationKey,
   publishReviewedSectionInPostgres,
@@ -37,7 +37,7 @@ import {
   readPublicArticleBySlug,
   type PublishReviewedSectionResult,
 } from "../../lib/postgres/articlePublication";
-import { documentHash } from "../../lib/postgres/convexDocumentCodec";
+import { documentHash } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
 import { minimalArticle } from "../../src/test/fixtures/articles";
 import { guardTarget, resolveTarget } from "./targetGuard";

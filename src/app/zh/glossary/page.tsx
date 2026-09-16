@@ -31,10 +31,8 @@ export async function generateMetadata() {
 
 export default async function LocalizedGlossaryPage() {
   setRequestLocale(LOCALE.code);
-  const [glosses, renderings] =
-    getDataBackend() === "postgres"
-      ? await Promise.all([readGlosses(), readGlossaryRows(LOCALE.code, { status: "approved" })])
-      : [[], []];
+  getDataBackend();
+  const [glosses, renderings] = await Promise.all([readGlosses(), readGlossaryRows(LOCALE.code, { status: "approved" })]);
 
   return (
     <UiLocaleProvider locale={LOCALE.code}>

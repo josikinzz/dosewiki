@@ -2,8 +2,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, resolvePostgresTarget, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
 import { buildProvenanceAudit } from "./lib/provenance-audit.mjs";
 
@@ -15,7 +15,7 @@ const JSON_PATH = path.join(OUTPUT_DIR, "audit-latest.json");
 const MARKDOWN_PATH = path.join(OUTPUT_DIR, "audit-latest.md");
 const CONTACT_SHEET_PATH = path.join(OUTPUT_DIR, "contact-sheet.html");
 const SKIP_HEALTH = process.argv.includes("--skip-health");
-const TARGET_DEPLOYMENT = process.argv.includes("--target");
+const TARGET_DEPLOYMENT = process.argv.some((arg) => arg === "--target" || arg.startsWith("--target=")) || Boolean(process.env.TARGET_POSTGRES_URL);
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -146,11 +146,9 @@ function writeMarkdown(audit) {
 
 async function main() {
   loadEnvFiles({ rootDir: ROOT });
-  const convexUrl = TARGET_DEPLOYMENT
-    ? process.env.VITE_CONVEX_URL
-    : (process.env.CONVEX_PUBLIC_READ_URL || process.env.VITE_CONVEX_URL);
-  if (!convexUrl) throw new Error(TARGET_DEPLOYMENT ? "VITE_CONVEX_URL is required for --target." : "CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL is required.");
-  const client = createDataClient({ target: convexUrl }).client;
+  const selected = TARGET_DEPLOYMENT ? resolvePostgresTarget({ explicitOnly: true }) : resolvePostgresSource();
+  if (!selected.url) throw new Error("Set --source-url/SOURCE_POSTGRES_URL or an explicit --target/TARGET_POSTGRES_URL.");
+  const client = createDataClient({ target: selected.url }).client;
   const [liveReplications, effects] = await Promise.all([
     client.query(api.replications.getPublicReplications, {}),
     client.query(api.subjectiveEffects.getAll, {}),
@@ -160,7 +158,7 @@ async function main() {
   const effectsById = new Map(effectIndexEffects.map((effect) => [objectId(effect._id), effect]));
   const healthById = await resolveHealth(liveReplications);
   const audit = buildProvenanceAudit({ liveReplications, effectIndexReplications, effectsById, healthById });
-  audit.sources = { convex_url_variable: TARGET_DEPLOYMENT ? "VITE_CONVEX_URL" : (process.env.CONVEX_PUBLIC_READ_URL ? "CONVEX_PUBLIC_READ_URL" : "VITE_CONVEX_URL"), live_effects_count: effects.length, effect_index_dump: DUMP_DIR, effect_index_replications_count: effectIndexReplications.length };
+  audit.sources = { postgres_target: postgresFingerprintFromUrl(selected.url), target_selected: TARGET_DEPLOYMENT, live_effects_count: effects.length, effect_index_dump: DUMP_DIR, effect_index_replications_count: effectIndexReplications.length };
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   fs.writeFileSync(JSON_PATH, `${JSON.stringify(audit, null, 2)}\n`);
   writeMarkdown(audit);

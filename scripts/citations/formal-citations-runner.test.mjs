@@ -149,7 +149,7 @@ describe("formal citations runner", () => {
         disableReasoning: false,
         artifactsDir,
       },
-      sourceUrl: "https://source.example",
+      sourceUrl: "postgres://reader:secret@source.example/dosewiki?sslmode=require",
       runSection,
       mergeDraft,
       log: () => {},
@@ -173,6 +173,10 @@ describe("formal citations runner", () => {
     expect(progress.sections.pharmacology.status).toBe("merged");
     expect(progress.sections.legality.status).toBe("merged");
     expect(progress.merge.status).toBe("completed");
+    expect(progress.sourceDeployment).toBe("source.example/dosewiki");
+    expect(progress).not.toHaveProperty("sourceUrl");
+    expect(JSON.stringify(progress)).not.toContain("reader:secret");
+    expect(JSON.stringify(progress)).not.toContain("sslmode");
   });
 
   it("reuses validated section artifacts when resume is enabled", async () => {
@@ -194,7 +198,7 @@ describe("formal citations runner", () => {
         disableReasoning: false,
         artifactsDir,
       },
-      sourceUrl: "https://source.example",
+      sourceUrl: "postgres://reader:secret@source.example/dosewiki?sslmode=require",
       runSection: firstRunSection,
       mergeDraft: ({ article }) => ({
         slug: article.slug,
@@ -231,7 +235,7 @@ describe("formal citations runner", () => {
         disableReasoning: false,
         artifactsDir,
       },
-      sourceUrl: "https://source.example",
+      sourceUrl: "postgres://reader:secret@source.example/dosewiki?sslmode=require",
       runSection: resumedRunSection,
       mergeDraft: ({ article, sectionResults }) => ({
         slug: article.slug,

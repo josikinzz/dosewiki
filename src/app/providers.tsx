@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { clearEditorHint, writeEditorHint } from "@/lib/auth/editorHint";
 import { canAccessDev } from "@/lib/auth/roles";
@@ -50,12 +51,12 @@ function EditorHint() {
   return null;
 }
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({ children, session }: { children: ReactNode; session?: Session | null }) {
   const [queryClient] = useState(() => new QueryClient(queryClientOptions));
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider>
+      <SessionProvider session={session}>
         <EditorHint />
         {children}
       </SessionProvider>

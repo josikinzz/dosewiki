@@ -28,7 +28,7 @@ afterEach(() => {
   }
 });
 
-const convexApi = {
+const postgresApi = {
   substanceIndex: {
     getBySlug: "substanceIndex.getBySlug",
     publishReviewedSection: "substanceIndex.publishReviewedSection",
@@ -45,8 +45,11 @@ function makeArtifact(customize = (value) => value) {
   const baseArticle = { slug: "2c-b", summary: "before summary", pharmacology: { text: "unchanged" } };
   const proposedArticle = { ...baseArticle, summary: "after summary" };
   const manifest = attachManifestDigest({
-    schemaVersion: "section-proposal-manifest-v1",
-    deployments: { target: { fingerprint: "target-test" } },
+    schemaVersion: "section-proposal-manifest-v2",
+    deployments: {
+      source: { identity: "localhost/source-test", fingerprint: "localhost/source-test", urlProvenanceKey: "--source-url" },
+      target: { identity: "localhost/target-test", fingerprint: "localhost/target-test", urlProvenanceKey: "--target" },
+    },
   });
   const manifestPath = resolve(artifactDirectory, "target-manifest.json");
   writeFileSync(manifestPath, `${JSON.stringify(manifest)}\n`);
@@ -62,7 +65,7 @@ function makeArtifact(customize = (value) => value) {
     manifestDigest: manifest.manifestDigest,
     manifestPath: relative(root, manifestPath),
     rawResponseHash: sha256Text(rawResponse),
-    targetDeploymentFingerprint: "target-test",
+    targetDeploymentFingerprint: "localhost/target-test",
     section: "summary",
     profile: "summary",
     hashVersion: "section-cas-v1",
@@ -131,7 +134,7 @@ function makeClient(initialArticle) {
     }
 
     async query(reference, args) {
-      expect(reference).toBe(convexApi.substanceIndex.getBySlug);
+      expect(reference).toBe(postgresApi.substanceIndex.getBySlug);
       expect(args).toEqual({ slug: "2c-b" });
       return structuredClone(article);
     }
@@ -152,13 +155,13 @@ describe("reviewed section publication command", () => {
     const result = await publishReviewedPublication({
       argv: [
         `--proposal=${relative(root, proposalPath)}`,
-        "--target-url=https://target-test.convex.cloud",
+        "--target=postgresql://localhost/target-test",
         "--dry-run",
       ],
-      env: {},
+      env: { DATA_BACKEND: "postgres",},
       repoRoot: root,
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       logger: { log: vi.fn() },
     });
 
@@ -180,20 +183,20 @@ describe("reviewed section publication command", () => {
     await expect(publishReviewedPublication({
       argv: [
         `--proposal=${relative(root, proposalPath)}`,
-        "--target-url=https://target-test.convex.cloud",
+        "--target=postgresql://localhost/target-test",
         "--write",
         "--confirm-reviewed-publication",
         "--confirm-write=publish-reviewed-section",
-        "--expected-deployment=target-test",
+        "--expected-deployment=localhost/target-test",
         "--actor-email=editor@example.com",
         "--reviewed-by=Editor Example",
         "--reviewed-at=2026-07-15T15:00:00.000Z",
         `--approve-artifact=${proposal.artifactDigest}`,
       ],
-      env: { CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
       repoRoot: root,
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       logger: { log: vi.fn() },
     })).rejects.toThrow(/Publication is stale/);
     expect(mutation).not.toHaveBeenCalled();
@@ -206,26 +209,26 @@ describe("reviewed section publication command", () => {
     const result = await publishReviewedPublication({
       argv: [
         `--proposal=${relative(root, proposalPath)}`,
-        "--target-url=https://target-test.convex.cloud",
+        "--target=postgresql://localhost/target-test",
         "--write",
         "--confirm-reviewed-publication",
         "--confirm-write=publish-reviewed-section",
-        "--expected-deployment=target-test",
+        "--expected-deployment=localhost/target-test",
         "--actor-email=editor@example.com",
         "--reviewed-by=Editor Example",
         "--reviewed-at=2026-07-15T15:00:00.000Z",
         `--approve-artifact=${proposal.artifactDigest}`,
       ],
-      env: { CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
       repoRoot: root,
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       logger: { log: vi.fn() },
     });
 
     expect(result).toMatchObject({ status: "updated", proposalId: proposalIdForArtifact(proposal.artifactDigest) });
     expect(mutation).toHaveBeenCalledTimes(1);
-    expect(mutation).toHaveBeenCalledWith(convexApi.substanceIndex.publishReviewedSection, {
+    expect(mutation).toHaveBeenCalledWith(postgresApi.substanceIndex.publishReviewedSection, {
       apiKey: "scoped-token",
       actorEmail: "editor@example.com",
       proposal: expect.objectContaining({
@@ -257,20 +260,20 @@ describe("reviewed section publication command", () => {
     await expect(publishReviewedPublication({
       argv: [
         `--proposal=${relative(root, proposalPath)}`,
-        "--target-url=https://target-test.convex.cloud",
+        "--target=postgresql://localhost/target-test",
         "--write",
         "--confirm-reviewed-publication",
         "--confirm-write=publish-reviewed-section",
-        "--expected-deployment=target-test",
+        "--expected-deployment=localhost/target-test",
         "--actor-email=editor@example.com",
         "--reviewed-by=Editor Example",
         "--reviewed-at=2026-07-15T15:00:00.000Z",
         `--approve-artifact=${"f".repeat(64)}`,
       ],
-      env: { CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
       repoRoot: root,
       Client: FakeClient,
-      convexApi,
+      postgresApi,
       logger: { log: vi.fn() },
     })).rejects.toThrow(/approve-artifact/);
     expect(mutation).not.toHaveBeenCalled();
@@ -318,8 +321,8 @@ describe("reviewed regeneration publication command", () => {
     }));
     const Client = vi.fn();
     await expect(publishReviewedPublication({
-      argv: [`--proposal=${relative(root, proposalPath)}`, "--target-url=https://target-test.convex.cloud", "--dry-run"],
-      env: {}, repoRoot: root, Client, convexApi, logger: { log: vi.fn() },
+      argv: [`--proposal=${relative(root, proposalPath)}`, "--target=postgresql://localhost/target-test", "--dry-run"],
+      env: { DATA_BACKEND: "postgres" }, repoRoot: root, Client, postgresApi, logger: { log: vi.fn() },
     })).rejects.toThrow(/regeneration trust gate failed/);
     expect(Client).not.toHaveBeenCalled();
   });
@@ -357,8 +360,8 @@ describe("reviewed regeneration publication command", () => {
       priority: "normal", index_categories: [],
     });
     await expect(publishReviewedPublication({
-      argv: [`--proposal=${relative(root, proposalPath)}`, "--target-url=https://target-test.convex.cloud", "--dry-run"],
-      env: {}, repoRoot: root, Client: FakeClient, convexApi, logger: { log: vi.fn() },
+      argv: [`--proposal=${relative(root, proposalPath)}`, "--target=postgresql://localhost/target-test", "--dry-run"],
+      env: { DATA_BACKEND: "postgres" }, repoRoot: root, Client: FakeClient, postgresApi, logger: { log: vi.fn() },
     })).rejects.toThrow(/Live article is no longer eligible/);
     expect(mutation).not.toHaveBeenCalled();
   });
@@ -368,17 +371,17 @@ describe("reviewed regeneration publication command", () => {
     const { FakeClient, mutation } = makeClient(proposal.baseArticle);
     const result = await publishReviewedPublication({
       argv: [
-        `--proposal=${relative(root, proposalPath)}`, "--target-url=https://target-test.convex.cloud",
+        `--proposal=${relative(root, proposalPath)}`, "--target=postgresql://localhost/target-test",
         "--write", "--confirm-reviewed-publication", "--confirm-write=publish-reviewed-section",
-        "--expected-deployment=target-test", "--actor-email=editor@example.com",
+        "--expected-deployment=localhost/target-test", "--actor-email=editor@example.com",
         "--reviewed-by=Editor Example", "--reviewed-at=2026-07-15T15:00:00.000Z",
         `--approve-artifact=${proposal.artifactDigest}`,
       ],
-      env: { CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
-      repoRoot: root, Client: FakeClient, convexApi, logger: { log: vi.fn() },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      repoRoot: root, Client: FakeClient, postgresApi, logger: { log: vi.fn() },
     });
     expect(result.status).toBe("updated");
-    expect(mutation).toHaveBeenCalledWith(convexApi.substanceIndex.publishReviewedSection, expect.objectContaining({
+    expect(mutation).toHaveBeenCalledWith(postgresApi.substanceIndex.publishReviewedSection, expect.objectContaining({
       proposal: expect.objectContaining({
         regenerationAudit: proposal.regenerationAudit, sourceArtifactKind: "excerpt_section_regeneration",
         approvedPaths: ["summary"], proposedArticle: proposal.proposedArticle,

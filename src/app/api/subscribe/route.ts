@@ -1,25 +1,20 @@
 /**
- * `POST /api/subscribe`: the Next replacement for the `POST /subscribe` Convex
- * HTTP action in `convex/http.ts` (ticket 16). Same body contract, same
+ * `POST /api/subscribe`: the Next replacement for the `POST /subscribe` Postgres
+ * HTTP action in `server/http.ts` (ticket 16). Same body contract, same
  * allowed-origin policy, same two rate limits, same HMAC IP hashing, and the
  * same generic `{ ok: true }` for subscribed, duplicate, and spam so the
  * endpoint never enumerates addresses or reveals the honeypot.
  *
- * `mailingList:subscribe` is an internal mutation, which a Convex HTTP client
- * cannot invoke without a deploy key, so the route only runs it in-process on
- * the Postgres backend. On the Convex backend it forwards the validated request
- * to the deployment's HTTP action, which still owns the durable limiter there.
- * A credential-free Postgres deployment (Effect Index) forwards instead to
- * `MAILING_LIST_FORWARD_URL`, the dosewiki route that owns the list.
- * `next.config.ts` rewrites `/subscribe` here so the public sites only swap the
- * origin at cutover.
+ * The intake mutation runs only on Postgres. A credential-free deployment
+ * (Effect Index) forwards to `MAILING_LIST_FORWARD_URL`, the route owning the
+ * list. The receiver limits the relay's platform-observed IP, not an unsigned
+ * end-user IP header. `next.config.ts` rewrites `/subscribe` here.
  */
+import { isIP } from "node:net";
 import { isDataWriteFreezeActive } from "@server/runtime/dataWriteFreeze";
-import { makeFunctionReference } from "convex/server";
-import { getConvexDeploymentName, getPrivilegedWriteTarget } from "@server/convex/runtimeTargets";
-import { getPublicIntakeWriteCapability } from "@server/convex/serverWriteCapability";
-import { getClientIp } from "@server/http/nextRateLimit";
-import { getDataBackend } from "@server/postgres/runtime/backend";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
+import { getPublicIntakeWriteCapability } from "@server/data/serverWriteCapability";
+import { getDataBackend, getPostgresClient } from "@server/postgres/runtime/backend";
 import {
   SUBSCRIBE_RATE_LIMITS,
   corsPreflightHeaders,
@@ -31,7 +26,7 @@ import {
   type MailingList,
 } from "./subscribePolicy";
 
-/** The internal intake mutation the Convex HTTP action ran, referenced by name as `convex/publicationDelivery.ts` does. */
+/** The internal intake mutation the Postgres HTTP action ran, referenced by name as `server/publicationDelivery.ts` does. */
 const subscribeMutation = makeFunctionReference<"mutation", {
   email: string; list: MailingList; honeypotTriggered: boolean; ipHash?: string; userAgent?: string;
 }, "subscribed" | "duplicate" | "spam" | "invalid">("mailingList:subscribe");
@@ -41,7 +36,6 @@ export const dynamic = "force-dynamic";
 
 const JSON_HEADERS = { "Content-Type": "application/json" } as const;
 
-const rateLimiter = createSubscribeRateLimiter(SUBSCRIBE_RATE_LIMITS);
 
 function respond(origin: string, ok: boolean, status: number): Response {
   return new Response(JSON.stringify({ ok }), { status, headers: { ...JSON_HEADERS, ...corsResponseHeaders(origin) } });
@@ -66,55 +60,58 @@ export async function POST(request: Request) {
   const parsed = parseSubscribeBody(body);
   if (!parsed) return respond(origin, false, 400);
 
-  const clientIp = getClientIp(request);
+  // Vercel overwrites this header at ingress. Outside that platform, unsigned
+  // forwarding headers are not proof of identity: use one conservative bucket.
+  // https://vercel.com/docs/headers/request-headers#x-vercel-forwarded-for
+  const platformIp = process.env.VERCEL === "1" ? request.headers.get("x-vercel-forwarded-for")?.trim() : undefined;
+  const clientIp = platformIp && isIP(platformIp) ? platformIp : "unknown";
   const userAgent = request.headers.get("user-agent") ?? undefined;
 
-  // The Convex forward bypasses `serverWriteCapability`, so the freeze must be
-  // honoured here or a frozen window still writes into Convex (manifest, s7).
   if (isDataWriteFreezeActive()) return respond(origin, false, 503);
-
-  if (getDataBackend() !== "postgres") {
-    const siteUrl = getConvexSiteUrl();
-    return siteUrl ? forwardSignup(`${siteUrl}/subscribe`, origin, parsed, clientIp, userAgent) : respond(origin, false, 503);
+  try {
+    getDataBackend();
+  } catch {
+    return respond(origin, false, 503);
   }
 
   // A credential-free deployment (Effect Index, by invariant) cannot run the
   // mutation in-process; it relays to the deployment that owns the list.
   const forwardUrl = process.env.MAILING_LIST_FORWARD_URL?.trim();
   if (forwardUrl && /^https:\/\/\S+$/.test(forwardUrl)) {
-    return forwardSignup(forwardUrl, origin, parsed, clientIp, userAgent);
+    return forwardSignup(forwardUrl, origin, parsed, userAgent);
   }
 
-  if (!rateLimiter.limit("subscribePerIp", clientIp).ok) return respond(origin, false, 429);
-  if (!rateLimiter.limit("subscribeGlobal").ok) return respond(origin, false, 429);
+  try {
+    const capability = getPublicIntakeWriteCapability();
+    if (!capability) return respond(origin, false, 503);
+    const rateLimiter = createSubscribeRateLimiter(
+      SUBSCRIBE_RATE_LIMITS,
+      getPostgresClient(),
+      process.env.MAILING_LIST_IP_HASH_SECRET ?? "",
+    );
+    if (!(await rateLimiter.limit("subscribePerIp", clientIp)).ok) return respond(origin, false, 429);
+    if (!(await rateLimiter.limit("subscribeGlobal")).ok) return respond(origin, false, 429);
 
-  const capability = getPublicIntakeWriteCapability();
-  if (!capability) return respond(origin, false, 503);
+    const outcome = await capability.client.mutationAsService(subscribeMutation, {
+      email: parsed.email,
+      list: parsed.list,
+      honeypotTriggered: typeof parsed.website === "string" && parsed.website.trim().length > 0,
+      ipHash: hashClientIp(clientIp, process.env.MAILING_LIST_IP_HASH_SECRET),
+      userAgent,
+    });
 
-  const outcome = await capability.client.mutationAsService(subscribeMutation, {
-    email: parsed.email,
-    list: parsed.list,
-    honeypotTriggered: typeof parsed.website === "string" && parsed.website.trim().length > 0,
-    ipHash: hashClientIp(clientIp, process.env.MAILING_LIST_IP_HASH_SECRET),
-    userAgent,
-  });
-
-  return respond(origin, outcome !== "invalid", outcome === "invalid" ? 400 : 200);
+    return respond(origin, outcome !== "invalid", outcome === "invalid" ? 400 : 200);
+  } catch {
+    // Fail closed without exposing database, credential, or subscription state.
+    return respond(origin, false, 503);
+  }
 }
 
-/** The deployment's HTTP-actions origin (`.convex.site`), never the client origin. */
-function getConvexSiteUrl(): string | null {
-  const explicit = process.env.NEXT_PUBLIC_CONVEX_SITE_URL?.trim();
-  if (explicit) return explicit.replace(/\/+$/, "");
-  const deployment = getConvexDeploymentName(getPrivilegedWriteTarget().selectedUrl);
-  return deployment ? `https://${deployment}.convex.site` : null;
-}
 
 async function forwardSignup(
   url: string,
   origin: string,
   parsed: { email: string; list: string; website: unknown },
-  clientIp: string,
   userAgent: string | undefined,
 ): Promise<Response> {
   let upstream: Response;
@@ -124,7 +121,6 @@ async function forwardSignup(
       headers: {
         ...JSON_HEADERS,
         Origin: origin,
-        "X-Forwarded-For": clientIp,
         ...(userAgent ? { "User-Agent": userAgent } : {}),
       },
       body: JSON.stringify({ email: parsed.email, list: parsed.list, website: parsed.website }),

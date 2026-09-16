@@ -32,14 +32,14 @@
  *
  * Usage:
  *   node scripts/contributors/seed-marker-contributor-profiles.mjs
- *   TARGET_CONVEX_URL=https://enchanted-echidna-791.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *     node scripts/contributors/seed-marker-contributor-profiles.mjs --write \
  *       --confirm-write=seed-marker-contributor-profiles \
  *       --expected-deployment=enchanted-echidna-791
  */
 
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -101,15 +101,11 @@ async function seedMarkerProfiles() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  const readUrl =
-    command.targetUrl ??
-    process.env.CONVEX_URL ??
-    process.env.VITE_CONVEX_URL ??
-    process.env.NEXT_PUBLIC_CONVEX_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
     throw new Error(
-      "No Convex URL to read from. Set TARGET_CONVEX_URL (or VITE_CONVEX_URL for a dry run).",
+      "No Postgres URL to read from. Set TARGET_POSTGRES_URL (or POSTGRES_POOLED_URL for a dry run).",
     );
   }
 
@@ -136,7 +132,7 @@ async function seedMarkerProfiles() {
   const present = new Set(existingKeys);
   const missing = MARKER_PROFILES.filter((profile) => !present.has(profile.key));
 
-  console.log(`\nReading from: ${readUrl}`);
+  console.log(`\nReading from: ${postgresFingerprintFromUrl(readUrl)}`);
   console.log(`Replication rows: ${replications.length}`);
   console.log(`Rows in the unattributed bucket (never seeded): ${unattributed}`);
   for (const profile of MARKER_PROFILES) {

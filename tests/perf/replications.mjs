@@ -69,6 +69,7 @@ async function main() {
   const pageBytes = [];
   const pageTimes = [];
   let cursor = null;
+  let expectedTotal = null;
 
   do {
     if (cursor && visitedCursors.has(cursor)) {
@@ -85,21 +86,27 @@ async function main() {
     assertBudget("gallery page JSON bytes", page.bytes, BUDGETS.pageJsonBytes);
 
     const payload = JSON.parse(page.body);
-    if (!Array.isArray(payload.data) || typeof payload.hasMore !== "boolean") {
+    if (!Array.isArray(payload.data) || !Number.isSafeInteger(payload.total) ||
+        (payload.nextCursor !== null && typeof payload.nextCursor !== "string")) {
       throw new Error("gallery page returned an invalid payload");
     }
+    expectedTotal ??= payload.total;
+    if (expectedTotal !== payload.total) throw new Error("gallery membership changed during traversal");
     for (const row of payload.data) {
       if (!row || typeof row._id !== "string") {
         throw new Error("gallery page returned a row without a stable _id");
       }
+      if (rowsById.has(row._id)) throw new Error(`gallery traversal repeated identity ${row._id}`);
       rowsById.set(row._id, row);
     }
     cursor = payload.nextCursor;
-    if (payload.hasMore && (typeof cursor !== "string" || cursor.length === 0)) {
-      throw new Error("gallery page omitted a required continuation cursor");
+    if (cursor !== null && (typeof cursor !== "string" || cursor.length === 0)) {
+      throw new Error("gallery page returned an invalid continuation cursor");
     }
-    if (!payload.hasMore) cursor = null;
   } while (cursor);
+  if (rowsById.size !== expectedTotal) {
+    throw new Error(`gallery traversal reached ${rowsById.size} of ${expectedTotal} matching works`);
+  }
 
   global.gc?.();
   const retainedHeapBytes = Math.max(0, process.memoryUsage().heapUsed - heapBefore);

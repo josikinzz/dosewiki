@@ -12,6 +12,7 @@ export type InviteCodeStatus = "active" | "expired" | "exhausted" | "revoked";
 export type InviteCodeSummary = {
   id: string;
   role: InviteCodeRole;
+  glossaryLocales?: string[];
   createdBy: string;
   createdAt: string;
   expiresAt: string;
@@ -24,6 +25,7 @@ export type InviteCodeSummary = {
 
 export type MintInviteInput = {
   role: InviteCodeRole;
+  glossaryLocales?: string[];
   note?: string;
   expiresInDays: number;
   maxUses: number;
@@ -37,12 +39,22 @@ export type MintedInvite = {
 
 const BASE_PATH = "/api/dev/invites";
 
-export async function fetchInviteCodes(): Promise<InviteCodeSummary[]> {
-  const payload = await requestJson(BASE_PATH, undefined, {
+export type InviteCodePage = {
+  invites: InviteCodeSummary[];
+  continuationCursor: string | null;
+};
+
+export async function fetchInviteCodes(cursor?: string): Promise<InviteCodePage> {
+  const url = cursor ? `${BASE_PATH}?cursor=${encodeURIComponent(cursor)}` : BASE_PATH;
+  const payload = await requestJson(url, undefined, {
     network: "Network error while loading invite codes.",
     failure: "Unable to load invite codes.",
   });
-  return Array.isArray(payload.invites) ? (payload.invites as InviteCodeSummary[]) : [];
+  return {
+    invites: Array.isArray(payload.invites) ? (payload.invites as InviteCodeSummary[]) : [],
+    continuationCursor:
+      typeof payload.continuationCursor === "string" ? payload.continuationCursor : null,
+  };
 }
 
 export async function mintInviteCode(input: MintInviteInput): Promise<MintedInvite> {

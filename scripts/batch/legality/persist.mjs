@@ -3,10 +3,10 @@ import {
   assertNoPublicProseArtifactLanguage,
   assertNoPublicProseNamedSourceAttribution,
 } from "../../analyze/public-prose-artifact-language-core.mjs";
-import { api } from "../../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
+import { api } from "../../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../../lib/data-pagination.mjs";
 import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
-import { sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
+import { sanitizeObjectKeys, stripDataMetadata } from "../summary/articles.mjs";
 import {
   createDryRunResultFromSourceMaterial,
   resolveQuoteSourceMaterial,
@@ -25,8 +25,8 @@ return resolveQuoteSourceMaterial({
   slug,
   loadQuotes: loadLegalityQuotes,
   buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-  missingReason: "No legality quotes in Convex",
-  emptyReason: "No legality quotes in Convex",
+  missingReason: "No legality quotes in Postgres",
+  emptyReason: "No legality quotes in Postgres",
 }); }
 
 export async function processArticle(apiKey, article, systemPrompt, verbose) {
@@ -153,11 +153,11 @@ function assertSuccessfulSync(slug, syncResult) {
     .filter(Boolean);
 
   const reason = [...errors, ...skippedOutcomes].join("; ") || `${skipped} skipped ingestion outcome(s)`;
-  throw new Error(`Convex sync failed for ${slug}: ${reason}`);
+  throw new Error(`Postgres sync failed for ${slug}: ${reason}`);
 }
 
-export async function applyAndSyncUpdates(results, _allArticles, convexClient, adminKey) {
-  const targetArticles = await getAllSubstanceDocuments(convexClient, api.substanceIndex.getFullDocumentPage);
+export async function applyAndSyncUpdates(results, _allArticles, postgresClient, adminKey) {
+  const targetArticles = await getAllSubstanceDocuments(postgresClient, api.substanceIndex.getFullDocumentPage);
   const targetArticlesBySlug = new Map(
     targetArticles.map((article) => [article.slug || titleToSlug(article.title), article]),
   );
@@ -174,14 +174,14 @@ export async function applyAndSyncUpdates(results, _allArticles, convexClient, a
     const slug = update.slug || titleToSlug(update.title);
     const baseArticle = targetArticlesBySlug.get(slug);
     if (!baseArticle) {
-      throw new Error(`No target Convex article found for slug "${slug}"`);
+      throw new Error(`No target Postgres article found for slug "${slug}"`);
     }
 
     const nextArticle = applyLegalityUpdate(
-      normalizeArticleInput(stripConvexMetadata(baseArticle)),
+      normalizeArticleInput(stripDataMetadata(baseArticle)),
       update,
     );
-    const syncResult = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+    const syncResult = await postgresClient.mutation(api.substanceIndex.saveSubstances, {
       apiKey: adminKey,
       articles: [sanitizeObjectKeys(nextArticle)],
     });

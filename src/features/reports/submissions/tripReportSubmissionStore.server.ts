@@ -1,13 +1,14 @@
 import "server-only";
 
 import {
-  ConvexTripReportSubmissionStore,
+  DataTripReportSubmissionStore,
+  createSubmissionForIntake,
   type TripReportSubmissionStore,
-} from "./convexTripReportSubmissionStore";
+} from "./dataTripReportSubmissionStore";
 import {
   getPublicIntakeWriteCapability,
-  getServerConvexWriteCapability,
-} from "@server/convex/serverWriteCapability";
+  getServerDataWriteCapability,
+} from "@server/data/serverWriteCapability";
 
 export class TripReportSubmissionStorageConfigurationError extends Error {
   constructor(message = "Trip report submission storage is not configured.") {
@@ -25,21 +26,18 @@ export async function getPublicTripReportSubmissionStore(): Promise<
   const capability = getPublicIntakeWriteCapability();
   if (!capability) {
     throw new TripReportSubmissionStorageConfigurationError(
-      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE to enable public trip report submissions.",
+      "Configure the Postgres target and the public-intake create credential to enable public trip report submissions.",
     );
   }
 
-  return new ConvexTripReportSubmissionStore({
-    client: capability.client,
-    apiKey: capability.apiKey,
-  });
+  return { create: (input) => createSubmissionForIntake(capability, input) };
 }
 
 export async function getTripReportSubmissionStore(): Promise<TripReportSubmissionStore> {
-  const writeCapability = getServerConvexWriteCapability();
+  const writeCapability = getServerDataWriteCapability();
   if (writeCapability.ok === false) {
     throw new TripReportSubmissionStorageConfigurationError(
-      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_KEY to enable private trip report submissions.",
+      "Configure the Postgres target and an editorial write credential to enable private trip report submissions.",
     );
   }
 
@@ -52,7 +50,7 @@ export async function getTripReportSubmissionStore(): Promise<TripReportSubmissi
     return store;
   }
 
-  store = new ConvexTripReportSubmissionStore({
+  store = new DataTripReportSubmissionStore({
     client: capability.client,
     apiKey,
   });

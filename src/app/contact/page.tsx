@@ -1,6 +1,6 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { requireEffectIndexFlavor } from "@/config/siteFlavor";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { ContactPage } from "@/features/effect-index/pages/ContactPage";
 
 const METADATA = {
@@ -12,7 +12,7 @@ const METADATA = {
 
 export async function generateMetadata() {
   requireEffectIndexFlavor();
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-contact-description", "contact-intro-effect-index"]);
 
   return buildPublicPageMetadata({
     ...METADATA,
@@ -23,7 +23,7 @@ export async function generateMetadata() {
 export default async function ContactRoute() {
   // Flavor gate first: on the dose.wiki build this route does not exist.
   requireEffectIndexFlavor();
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-contact-description", "contact-intro-effect-index"]);
 
   return (
     <ContactPage

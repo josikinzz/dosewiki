@@ -88,7 +88,7 @@ function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [pu
       // The record endpoint serves both the GET body read and the POST writes.
       if (url.includes("/api/dev/trip-reports/record")) {
         return init?.method === "POST"
-          ? Response.json({ ok: true, slug: "alpine-clarity" })
+          ? Response.json({ ok: true, slug: "alpine-clarity", fields: publishedReportRecord.fields, revision: "1".repeat(64) })
           : Response.json({ ok: true, report: publishedReportRecord });
       }
 
@@ -108,10 +108,19 @@ function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [pu
       }
 
       if (url.includes("/queue")) {
-        const scoped = url.includes("scope=needs-review")
-          ? storedSubmissions.filter((row) => row.status === "submitted" || row.status === "reviewing")
-          : storedSubmissions;
-        return Response.json({ ok: true, submissions: scoped });
+        const requestUrl = new URL(url, "https://dose.wiki");
+        const id = requestUrl.searchParams.get("id");
+        if (id) {
+          const submission = storedSubmissions.find((row) => row.id === id);
+          return submission
+            ? Response.json({ ok: true, submission })
+            : Response.json({ error: "Not found" }, { status: 404 });
+        }
+        return Response.json({
+          ok: true,
+          needsReview: storedSubmissions.filter((row) => row.status === "submitted" || row.status === "reviewing"),
+          history: storedSubmissions.filter((row) => row.status !== "submitted" && row.status !== "reviewing"),
+        });
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -154,10 +163,12 @@ describe("TripReportPortalTab", () => {
       }
 
       if (url.pathname === "/api/trip-report-submissions/queue") {
-        // The scoped read is uncapped; the browse read is what the store caps.
-        return url.searchParams.get("scope") === "needs-review"
-          ? Response.json({ ok: true, submissions: pending })
-          : Response.json({ ok: true, submissions: [...pending.slice(0, 249), accepted] });
+        const id = url.searchParams.get("id");
+        if (id) {
+          const row = [...pending, accepted].find((entry) => entry.id === id);
+          return row ? Response.json({ ok: true, submission: row }) : Response.json({ error: "Not found" }, { status: 404 });
+        }
+        return Response.json({ ok: true, needsReview: pending, history: [accepted] });
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -266,12 +277,20 @@ describe("TripReportPortalTab", () => {
       }
 
       if (url.includes("/queue")) {
-        return Response.json({ ok: true, submissions: [acceptedSubmission] });
+        const requestUrl = new URL(url, "https://dose.wiki");
+        return requestUrl.searchParams.has("id")
+          ? Response.json({ ok: true, submission: acceptedSubmission })
+          : Response.json({ ok: true, needsReview: [], history: [acceptedSubmission] });
       }
 
       if (url.includes("/promote")) {
         const body = JSON.parse(String(init?.body ?? "{}")) as { publish?: boolean };
-        return Response.json({ ok: true, published: body.publish === true, payload: promotionPayload });
+        return Response.json({
+          ok: true,
+          published: body.publish === true,
+          submission: body.publish ? { ...acceptedSubmission, status: "exported" } : acceptedSubmission,
+          payload: promotionPayload,
+        });
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -369,11 +388,17 @@ describe("TripReportPortalTab", () => {
 
     render(<TripReportPortalTab />);
 
-    expect(await screen.findByText("Unable to load trip reports")).toBeInTheDocument();
+    expect(await screen.findByText("Submission queue unavailable")).toBeInTheDocument();
     expect(screen.getByText("Trip report submission storage is not configured.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
-    // The needs-review bucket must not read as "nothing to do".
+    // The failed Needs review source stays explicitly incomplete rather than
+    // masquerading as an empty queue, while the independent published source
+    // remains usable.
+    expect(screen.getByRole("button", { name: /^Needs review/ })).toHaveTextContent("…");
     expect(screen.queryByText(/No reports/)).not.toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByRole("button", { name: /^Published/ }));
+    expect(await screen.findByText("Alpine clarity")).toBeInTheDocument();
   });
 
   it("invalidates the rail badge after a submission transition", async () => {

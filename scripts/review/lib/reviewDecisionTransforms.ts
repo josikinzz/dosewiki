@@ -2,7 +2,7 @@
  * Transforms a reviewed proposal from the REVIEW model into the STORAGE model.
  *
  * The substance-article review run emits patches in a shape convenient for
- * human reading, not for writing to Convex:
+ * human reading, not for writing to Postgres:
  *
  *   review model                      storage model
  *   --------------------------------  ------------------------------------------
@@ -13,8 +13,8 @@
  *   { target, assay, EC50, Emax }     { target, tag, affinity, efficacy }
  *   "pharmacology.bindingSites"       "pharmacology.binding_sites"
  *
- * Convex does not validate article content: every content section is `v.any()`
- * (convex/lib/contentSchemaValidators.ts:26-44). A misspelled path is therefore
+ * Postgres does not validate article content: every content section is `v.any()`
+ * (server/lib/contentSchemaValidators.ts:26-44). A misspelled path is therefore
  * written successfully and silently, producing an orphan key no renderer reads.
  * Every function here refuses rather than guesses, and callers must run
  * `validateArticle` before any write.
@@ -459,7 +459,7 @@ export function assertCitationsResolve(article: unknown, where: string): void {
 }
 
 /**
- * Validates a whole article against the real Zod contract. Convex accepts any
+ * Validates a whole article against the real Zod contract. Postgres accepts any
  * shape, so this is the only thing standing between a bad transform and silent
  * corruption.
  */

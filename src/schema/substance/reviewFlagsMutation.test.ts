@@ -5,7 +5,7 @@ import {
   deleteReviewFlagByIdentity,
   preserveEditorialReviewWithFlags,
   replaceAgentReviewFlags,
-} from "../../../convex/lib/reviewFlags";
+} from "../../../server/lib/reviewFlags";
 
 const createdAt = "2026-08-02T12:00:00.000Z";
 

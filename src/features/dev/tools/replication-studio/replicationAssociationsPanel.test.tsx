@@ -452,7 +452,7 @@ describe("ReplicationAssociationsPanel", () => {
     const fetchMock = vi.fn(async () => {
       attempt += 1;
       if (attempt === 1) {
-        return new Response(JSON.stringify({ error: "Convex is unreachable." }), {
+        return new Response(JSON.stringify({ error: "Postgres is unreachable." }), {
           status: 500,
           headers: { "Content-Type": "application/json" },
         });
@@ -466,7 +466,7 @@ describe("ReplicationAssociationsPanel", () => {
 
     render(<ReplicationAssociationsPanel row={ROW} />);
 
-    expect(await screen.findByText("Convex is unreachable.")).toBeInTheDocument();
+    expect(await screen.findByText("Postgres is unreachable.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /retry/i }));
 
     expect(await screen.findByText("Showing on 3 of 3 drug articles")).toBeInTheDocument();

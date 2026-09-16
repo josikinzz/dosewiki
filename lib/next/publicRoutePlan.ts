@@ -19,7 +19,7 @@ import {
   getPublicReplications,
   getPublicReports,
   getPublicSubstanceLookup,
-} from "../convex/publicData";
+} from "../data/publicData";
 import { getPublicRoutePath } from "./publicSite";
 import { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
@@ -195,7 +195,7 @@ function articleEntriesFromRecords(
     // Blog posts share the `effectIndexArticles` table with articles but not
     // the `/articles/<slug>` route family; they are served from `/blog/<slug>`
     // and must never be prerendered here. Drafts are already gone upstream —
-    // the Convex query and `normalizePublicEffectIndexArticle` both drop them —
+    // the Postgres query and `normalizePublicEffectIndexArticle` both drop them —
     // so nothing with `status: "draft"` can reach this input at all.
     if (article.kind === "blog") continue;
 

@@ -1,3 +1,4 @@
+import { isVisualStyle } from "./visualStyle";
 import {
   ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_HUE_STORAGE_KEY,
@@ -14,7 +15,6 @@ import {
   isColorScheme,
   isColorSchemePreference,
   isFontPreference,
-  isVisualStyle,
   LEGACY_FONT_PREFERENCES,
   type ColorScheme,
   type ColorSchemePreference,

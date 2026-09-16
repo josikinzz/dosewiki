@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
 
-vi.mock("@server/convex/publicLibrary", () => ({
+vi.mock("@server/data/publicLibrary", () => ({
   // Projection away from index internals (keywords, meta, score) is covered by
   // the publicLibrary tests; the route serves the cached projection verbatim.
   getPublicSearchSuggestions: vi.fn(async () => [
@@ -49,7 +49,7 @@ describe("search suggestions route", () => {
   });
 
   it("allows larger localized result sets for the full search page", async () => {
-    const { getPublicSearchSuggestions } = await import("@server/convex/publicLibrary");
+    const { getPublicSearchSuggestions } = await import("@server/data/publicLibrary");
     const { GET } = await import("./route");
 
     await GET(

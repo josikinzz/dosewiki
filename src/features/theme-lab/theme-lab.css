@@ -1,5 +1,5 @@
-/* Theme Lab's document-level geometry. Imported by the global theme stylesheet;
-   local panel and control styles stay in ThemeLab.module.css. */
+/* Theme Lab's document-level geometry, loaded with the on-demand panel.
+   Local panel and control styles stay in ThemeLab.module.css. */
 :root {
   --pl-sidebar-width: 23.5rem;
   /* Mobile bottom-sheet height. Deliberately short of full-screen: the strip of

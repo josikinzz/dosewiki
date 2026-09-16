@@ -69,6 +69,7 @@ export const proFont = siteFont;
  * variable when this is non-null.
  */
 export const bodyFont = null;
+export const bodyItalicFace = null;
 
 /**
  * Effect Index offers no font axis (`showFontToggle: false`), so this build

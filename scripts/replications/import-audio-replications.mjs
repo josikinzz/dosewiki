@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -146,7 +146,7 @@ async function main() {
 
   printPlan(payloadsByEffect, skipped);
   if (command.dryRun) {
-    console.log("\n[DRY RUN] No Convex mutations were called.");
+    console.log("\n[DRY RUN] No Postgres mutations were called.");
     return;
   }
   if (!process.argv.includes("--confirm-audio-import")) {

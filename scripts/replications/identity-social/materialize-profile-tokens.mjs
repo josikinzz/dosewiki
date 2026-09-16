@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "../lib/postgres-target.mjs";
 import { createDataClient } from "../../lib/data-client.ts";
-import { api } from "../../../convex/_generated/api.js";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -10,7 +11,6 @@ import {
 import { appendLedger, digest, PINNED_PROFILE_SNAPSHOT_DIGEST } from "./executor-lib.mjs";
 import { drainPinnedProfileSnapshot } from "./export-profile-snapshot.mjs";
 
-const TARGET_URL = "https://glad-minnow-656.convex.cloud";
 const flag = (argv, name) => { const value = argv.find((item) => item.startsWith(`${name}=`)); return value ? value.slice(name.length + 1) : null; };
 const normalize = (value) => String(value ?? "").trim().toLowerCase();
 
@@ -30,8 +30,9 @@ export async function materializeProfileTokens(argv = process.argv.slice(2), ada
   if (!actor || !ledger || !["dry-run", "seed", "rollback"].includes(requestedMode)) throw new Error("--actor-email, --ledger, and --mode=dry-run|seed|rollback are required.");
   const command = adapters.command ?? createProductionWriteCommand({ operation: "materialize-identity-profile-tokens", argv });
   if (requestedMode !== "dry-run") assertProductionWriteAllowed(command);
+  requireCampaignTarget(command);
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  const client = adapters.client ?? createDataClient({ target: TARGET_URL }).client;
+  const client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const mutate = adapters.mutate ?? ((ref, args) => client.mutation(ref, args));
   const { profiles, metadata } = await drainPinnedProfileSnapshot({ query, apiKey, actor });

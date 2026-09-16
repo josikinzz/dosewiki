@@ -10,6 +10,7 @@ import { EditorField, EditorNotice, useConfirm } from "@/features/dev/components
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { proposalSubmittedNotice } from "../proposalSubmission";
+import { canDraft } from "@/lib/auth/roles";
 
 const OPEN_EVENT = "dosewiki:edit-index-item";
 type Source = { article: SubstanceArticle; baseHash: string; draft: unknown };
@@ -18,7 +19,7 @@ export default function IndexItem({ slug, name }: { slug?: string; name?: string
   const { enabled, mode, role } = useContextualEditing();
   const pathname = usePathname();
   const [selected, setSelected] = useState<ItemSelection | null>(null);
-  const allowed = enabled && mode === "edit" && (role === "admin" || role === "editor") && !!pathname?.startsWith("/substances");
+  const allowed = enabled && mode === "edit" && canDraft(role) && !!pathname?.startsWith("/substances");
   useEffect(() => {
     if (slug || !allowed) return;
     const open = (event: Event) => { const value = (event as CustomEvent<ItemSelection>).detail; if (value && typeof value.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.slug) && value.returnFocusTarget instanceof HTMLElement) setSelected((current) => current ?? value); };

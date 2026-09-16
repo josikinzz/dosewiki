@@ -8,10 +8,10 @@
  * from `/api/trip-report-submissions/queue`, which already exists and already
  * owns the submission shape.
  *
- *   GET /api/dev/trip-reports → { reports, authors, contributors }
+ *   GET /api/dev/trip-reports → { reports, contributors }
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
@@ -19,25 +19,23 @@ export const runtime = "nodejs";
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load the trip report corpus via Next route:",
   unexpectedErrorMessage: "Unable to load the trip report corpus right now.",
-  operation: async ({ actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-    const [reports, authors, profiles] = await Promise.all([
-      convexWrite.client.query(api.tripReports.getPortalRows, { apiKey, actorEmail }),
-      convexWrite.client.query(api.tripReports.getAuthorNames, {}),
-      convexWrite.client.query(api.contributorProfiles.getAll, {}),
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+    const [reports, profiles] = await Promise.all([
+      dataWrite.client.query(api.tripReports.getPortalRows, { apiKey, actorEmail }),
+      dataWrite.client.query(api.contributorProfiles.getAll, {}),
     ]);
 
     return NextResponse.json({
       ok: true,
       reports,
-      authors,
       // The byline picker offers contributor display names alongside existing
       // bylines, because assigning one is the case that needs a profile key.
       contributors: profiles.map((profile) => ({

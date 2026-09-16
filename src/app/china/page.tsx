@@ -5,7 +5,7 @@ import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import { getMoleculePackDownloadStats, getMoleculePackSlugs } from "@server/open-data/downloadStats";
 import { getTranslationPacks, getTranslationSamples } from "@server/next/translationPacks";
 import { Bilingual, DownloadsCatalogue, ExternalLink } from "./DownloadsCatalogue";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { AppImage } from "@/components/common/AppImage";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { ConsoleGreeting, CountUp, MoleculeCarousel, Signature } from "./ChinaDelight";
@@ -66,7 +66,7 @@ export default async function DownloadsPage() {
     notFound();
   }
 
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["china-statement-zh", "china-statement-en"]);
   const statementDate = new Date("2026-09-09T12:00:00Z");
   const translations = getTranslationPacks();
   const samples = getTranslationSamples();

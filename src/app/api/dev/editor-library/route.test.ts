@@ -1,4 +1,4 @@
-import { getFunctionName } from "convex/server";
+import { getFunctionName } from "@server/postgres/runtime/api";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(async () => null),
   query: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
@@ -19,8 +19,8 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 function queriedNames(): string {
@@ -34,7 +34,7 @@ beforeEach(() => {
   mocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   mocks.query.mockReset().mockResolvedValue({ page: [], continueCursor: "", isDone: true });
-  mocks.getServerConvexWriteCapability.mockReset().mockReturnValue({
+  mocks.getServerDataWriteCapability.mockReset().mockReturnValue({
     ok: true,
     capability: {
       adminKey: "admin-key",

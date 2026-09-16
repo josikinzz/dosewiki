@@ -1,6 +1,6 @@
 import { roleMeetsFloor, type AppRole, type RoleFloor } from "@/lib/auth/roles";
 
-type SessionUser = { email: string; name?: string | null };
+type SessionUser = { email: string; name?: string | null; glossaryLocales?: string[] };
 
 const DEFAULT_USER: SessionUser = { email: "editor@example.com", name: "Editor" };
 

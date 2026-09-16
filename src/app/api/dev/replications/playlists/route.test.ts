@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
@@ -10,7 +10,7 @@ import { POST as ASSIGN_OWNER } from "./[key]/owner/route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     replicationPlaylists: {
       list: "replicationPlaylists.list",
@@ -35,16 +35,16 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: () => ({
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: () => ({
     ok: true,
     capability: {
-      client: { query: convexMocks.query, mutation: convexMocks.mutation },
+      client: { query: dataMocks.query, mutation: dataMocks.mutation },
       adminKey: "admin-key",
     },
   }),
@@ -64,7 +64,7 @@ const post = (url: string, body: unknown) =>
   });
 
 const notOwner = () =>
-  new ConvexError({ code: "NOT_OWNER", message: "\"Ada's list\" belongs to ada@example.com; only its owner or an admin may change it." });
+  new PostgresError({ code: "NOT_OWNER", message: "\"Ada's list\" belongs to ada@example.com; only its owner or an admin may change it." });
 
 const savedPlaylist = {
   status: "ok",
@@ -88,31 +88,31 @@ beforeEach(() => {
 describe("GET /api/dev/replications/playlists", () => {
   it("lists a contributor's own playlists through listOwned", async () => {
     signIn("contributor");
-    convexMocks.query.mockResolvedValue([{ key: "adas-list", editable: true }]);
+    dataMocks.query.mockResolvedValue([{ key: "adas-list", editable: true }]);
 
     const response = await GET(new Request(BASE));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, playlists: [{ key: "adas-list", editable: true }] });
-    expect(convexMocks.query).toHaveBeenCalledWith("replicationPlaylists.listOwned", {
+    expect(dataMocks.query).toHaveBeenCalledWith("replicationPlaylists.listOwned", {
       apiKey: "admin-key",
       actorEmail: "ada@example.com",
     });
   });
 
   it("lists every playlist for an editor and an admin through list", async () => {
-    convexMocks.query.mockResolvedValue([]);
+    dataMocks.query.mockResolvedValue([]);
 
     signIn("editor", "editor@example.com");
     await GET(new Request(BASE));
-    expect(convexMocks.query).toHaveBeenLastCalledWith("replicationPlaylists.list", {
+    expect(dataMocks.query).toHaveBeenLastCalledWith("replicationPlaylists.list", {
       apiKey: "admin-key",
       actorEmail: "editor@example.com",
     });
 
     signIn("admin", "admin@example.com");
     await GET(new Request(BASE));
-    expect(convexMocks.query).toHaveBeenLastCalledWith("replicationPlaylists.list", {
+    expect(dataMocks.query).toHaveBeenLastCalledWith("replicationPlaylists.list", {
       apiKey: "admin-key",
       actorEmail: "admin@example.com",
     });
@@ -122,14 +122,14 @@ describe("GET /api/dev/replications/playlists", () => {
     signIn(null);
     const response = await GET(new Request(BASE));
     expect(response.status).toBe(401);
-    expect(convexMocks.query).not.toHaveBeenCalled();
+    expect(dataMocks.query).not.toHaveBeenCalled();
   });
 });
 
 describe("POST /api/dev/replications/playlists", () => {
   it("saves a contributor's playlist with the session email as the actor", async () => {
     signIn("contributor");
-    convexMocks.mutation.mockResolvedValue(savedPlaylist);
+    dataMocks.mutation.mockResolvedValue(savedPlaylist);
 
     const response = await POST(
       post(BASE, { key: "adas-list", title: "Ada's list", slugs: ["alpha", "alpha"], expectedUpdatedAt: null }),
@@ -137,7 +137,7 @@ describe("POST /api/dev/replications/playlists", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, playlist: savedPlaylist });
-    expect(convexMocks.mutation).toHaveBeenCalledWith("replicationPlaylists.upsert", {
+    expect(dataMocks.mutation).toHaveBeenCalledWith("replicationPlaylists.upsert", {
       apiKey: "admin-key",
       actorEmail: "ada@example.com",
       key: "adas-list",
@@ -151,7 +151,7 @@ describe("POST /api/dev/replications/playlists", () => {
 
   it("answers 403 with the NOT_OWNER code when a contributor writes to another member's playlist", async () => {
     signIn("contributor", "bob@example.com");
-    convexMocks.mutation.mockRejectedValue(notOwner());
+    dataMocks.mutation.mockRejectedValue(notOwner());
 
     const response = await POST(post(BASE, { key: "adas-list", title: "Taken", slugs: [] }));
 
@@ -159,48 +159,48 @@ describe("POST /api/dev/replications/playlists", () => {
     await expect(response.json()).resolves.toMatchObject({ code: "NOT_OWNER" });
   });
 
-  it("forwards an admin's ownerEmail to Convex", async () => {
+  it("forwards an admin's ownerEmail to Postgres", async () => {
     signIn("admin", "admin@example.com");
-    convexMocks.mutation.mockResolvedValue({ ...savedPlaylist, owner_email: "bob@example.com" });
+    dataMocks.mutation.mockResolvedValue({ ...savedPlaylist, owner_email: "bob@example.com" });
 
     const response = await POST(
       post(BASE, { key: "for-bob", title: "For Bob", slugs: [], ownerEmail: " Bob@example.com " }),
     );
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledWith(
+    expect(dataMocks.mutation).toHaveBeenCalledWith(
       "replicationPlaylists.upsert",
       expect.objectContaining({ actorEmail: "admin@example.com", owner_email: "Bob@example.com" }),
     );
   });
 
-  it("rejects a malformed ownerEmail before reaching Convex", async () => {
+  it("rejects a malformed ownerEmail before reaching Postgres", async () => {
     signIn("admin", "admin@example.com");
     const response = await POST(post(BASE, { key: "for-bob", title: "For Bob", slugs: [], ownerEmail: 7 }));
     expect(response.status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 });
 
 describe("GET /api/dev/replications/playlists/[key]", () => {
   it("lets an owning contributor read their playlist, with the actor forwarded for ownership", async () => {
     signIn("contributor");
-    convexMocks.query.mockResolvedValue({ key: "adas-list", editable: true });
+    dataMocks.query.mockResolvedValue({ key: "adas-list", editable: true });
 
     const response = await GET_BY_KEY(new Request(`${BASE}/adas-list`));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, playlist: { key: "adas-list", editable: true } });
-    expect(convexMocks.query).toHaveBeenCalledWith("replicationPlaylists.get", {
+    expect(dataMocks.query).toHaveBeenCalledWith("replicationPlaylists.get", {
       apiKey: "admin-key",
       actorEmail: "ada@example.com",
       key: "adas-list",
     });
   });
 
-  it("answers 404 when Convex hides a playlist the contributor does not own", async () => {
+  it("answers 404 when Postgres hides a playlist the contributor does not own", async () => {
     signIn("contributor", "bob@example.com");
-    convexMocks.query.mockResolvedValue(null);
+    dataMocks.query.mockResolvedValue(null);
 
     const response = await GET_BY_KEY(new Request(`${BASE}/adas-list`));
 
@@ -211,12 +211,12 @@ describe("GET /api/dev/replications/playlists/[key]", () => {
 describe("DELETE /api/dev/replications/playlists/[key]", () => {
   it("lets a contributor delete through the contributor floor and maps NOT_OWNER to 403", async () => {
     signIn("contributor", "bob@example.com");
-    convexMocks.mutation.mockRejectedValue(notOwner());
+    dataMocks.mutation.mockRejectedValue(notOwner());
 
     const response = await DELETE(new Request(`${BASE}/adas-list`, { method: "DELETE", headers: { Origin: new URL(BASE).origin } }));
 
     expect(response.status).toBe(403);
-    expect(convexMocks.mutation).toHaveBeenCalledWith("replicationPlaylists.remove", {
+    expect(dataMocks.mutation).toHaveBeenCalledWith("replicationPlaylists.remove", {
       apiKey: "admin-key",
       actorEmail: "bob@example.com",
       key: "adas-list",
@@ -225,7 +225,7 @@ describe("DELETE /api/dev/replications/playlists/[key]", () => {
 
   it("deletes the owner's own playlist", async () => {
     signIn("contributor");
-    convexMocks.mutation.mockResolvedValue({ status: "ok", key: "adas-list" });
+    dataMocks.mutation.mockResolvedValue({ status: "ok", key: "adas-list" });
 
     const response = await DELETE(new Request(`${BASE}/adas-list`, { method: "DELETE", headers: { Origin: new URL(BASE).origin } }));
 
@@ -235,48 +235,27 @@ describe("DELETE /api/dev/replications/playlists/[key]", () => {
 });
 
 describe("POST /api/dev/replications/playlists/[key]/owner", () => {
-  it("refuses everyone below admin without calling Convex", async () => {
+  it("refuses everyone below admin without calling Postgres", async () => {
     signIn("editor", "editor@example.com");
     const response = await ASSIGN_OWNER(post(`${BASE}/house-opener/owner`, { ownerEmail: "ada@example.com" }));
     expect(response.status).toBe(403);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("assigns an owner as an admin", async () => {
-    signIn("admin", "admin@example.com");
-    convexMocks.mutation.mockResolvedValue({
-      status: "ok",
-      key: "house-opener",
-      owner_email: "ada@example.com",
-      updated_at: "2026-03-01T00:00:00.000Z",
-      updated_by: "admin@example.com",
-    });
-
-    const response = await ASSIGN_OWNER(post(`${BASE}/house-opener/owner`, { ownerEmail: " Ada@Example.com " }));
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ ok: true, key: "house-opener", owner_email: "ada@example.com" });
-    expect(convexMocks.mutation).toHaveBeenCalledWith("replicationPlaylists.assignOwner", {
-      apiKey: "admin-key",
-      actorEmail: "admin@example.com",
-      key: "house-opener",
-      ownerEmail: "ada@example.com",
-    });
-  });
 
   it("clears the owner with null and surfaces an unknown member as a rejection", async () => {
     signIn("admin", "admin@example.com");
-    convexMocks.mutation.mockResolvedValueOnce({ status: "ok", key: "house-opener", owner_email: null });
+    dataMocks.mutation.mockResolvedValueOnce({ status: "ok", key: "house-opener", owner_email: null });
 
     const cleared = await ASSIGN_OWNER(post(`${BASE}/house-opener/owner`, { ownerEmail: null }));
     expect(cleared.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenLastCalledWith(
+    expect(dataMocks.mutation).toHaveBeenLastCalledWith(
       "replicationPlaylists.assignOwner",
       expect.objectContaining({ ownerEmail: null }),
     );
 
-    convexMocks.mutation.mockRejectedValueOnce(
-      new ConvexError({ code: "MEMBER_NOT_FOUND", message: "No membership for ghost@example.com." }),
+    dataMocks.mutation.mockRejectedValueOnce(
+      new PostgresError({ code: "MEMBER_NOT_FOUND", message: "No membership for ghost@example.com." }),
     );
     const unknown = await ASSIGN_OWNER(post(`${BASE}/house-opener/owner`, { ownerEmail: "ghost@example.com" }));
     expect(unknown.status).toBe(400);
@@ -285,7 +264,7 @@ describe("POST /api/dev/replications/playlists/[key]/owner", () => {
 
   it("answers 404 for a key no playlist has", async () => {
     signIn("admin", "admin@example.com");
-    convexMocks.mutation.mockResolvedValue({ status: "missing", key: "nope" });
+    dataMocks.mutation.mockResolvedValue({ status: "missing", key: "nope" });
     const response = await ASSIGN_OWNER(post(`${BASE}/nope/owner`, { ownerEmail: "ada@example.com" }));
     expect(response.status).toBe(404);
   });

@@ -11,10 +11,10 @@
  *   POST /api/dev/editorial-review   { slug, status }  → set review status
  */
 import { NextResponse } from "next/server";
-import { makeFunctionReference } from "convex/server";
+import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { revalidatePath } from "next/cache";
-import { api } from "../../../../../convex/_generated/api";
-import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
+import { api } from "@server/postgres/runtime/api";
+import { revalidateSavedPaths } from "../../save-article/revalidateSavedPaths";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { canApprove } from "@/lib/auth/roles";
@@ -88,25 +88,25 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
     maxBytes: 4 * 1024,
     parse: parseSetReviewBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to set editorial review via Next route:",
   unexpectedErrorMessage: "Unable to update the review status right now.",
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
     if (body.action === "status" && body.status === "completed" && !canApprove(auth.role)) {
       return NextResponse.json({ error: "Admin access required." }, { status: 403 });
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
     const result = body.action === "add-flag"
-      ? await convexWrite.client.mutation(addHumanReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, flag: body.flag })
+      ? await dataWrite.client.mutation(addHumanReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, flag: body.flag })
       : body.action === "delete-flag"
-        ? await convexWrite.client.mutation(deleteReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, identity: body.identity })
-        : await convexWrite.client.mutation(api.substanceIndex.setEditorialReview, { apiKey, actorEmail, slug: body.slug, status: body.status });
+        ? await dataWrite.client.mutation(deleteReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, identity: body.identity })
+        : await dataWrite.client.mutation(api.substanceIndex.setEditorialReview, { apiKey, actorEmail, slug: body.slug, status: body.status });
 
     // The tick changes the public-safe `expert_reviewed` derivation, so the
     // coverage audit and the article's own cached projections must refresh.

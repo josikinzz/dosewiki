@@ -1,42 +1,30 @@
-"use client";
-
-import { memo, type ReactNode, useEffect, useId, useRef, useState } from "react";
-import { ArticleSection } from "@/components/common/ArticleSection";
+import { memo, type ReactNode } from "react";
 import { AppImage } from "@/components/common/AppImage";
-import { ExpandButton } from "@/components/common/ExpandButton";
-import { cn } from "@/lib/utils";
-import { useT } from "@/i18n/client";
 import { msg } from "@/i18n/messages";
 import { stripCitationTokens } from "@/lib/citations/citationTokens";
-import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
-// Deep-import the Zod-free status type instead of `@/schema/substance/shared`,
-// which would drag the Zod graph into this client component's bundle.
-import { CANONICAL_STATUS_LABELS, type CanonicalLegalStatus } from "@/schema/substance/legalStatuses";
-import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
+import type {
+  CountryLegality,
+  SubstanceArticle,
+  USStateLegality,
+} from "@/schema";
+import {
+  CANONICAL_STATUS_LABELS,
+  type CanonicalLegalStatus,
+} from "@/schema/substance/legalStatuses";
 import { getCountryCode } from "@/utils/data/countryCodes";
-import type { CountryLegality, SubstanceArticle, USStateLegality } from "@/schema";
+import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 import { buildFieldPath, EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
+import {
+  LegalityRowView,
+  LegalitySectionView,
+  ToneGroupHeading,
+  type LegalityTone,
+} from "./LegalitySectionView.client";
 
-// ============================================================================
-// Status Color System
-// ============================================================================
-
-type StatusColor = "red" | "yellow" | "blue" | "green" | "gray";
-
-const COLOR_CLASSES: Record<
-  StatusColor,
-  { className: string; tone: StatusColor }
-> = {
-  red: { className: "theme-semantic-danger-badge", tone: "red" },
-  yellow: { className: "theme-semantic-caution-badge", tone: "yellow" },
-  blue: { className: "", tone: "blue" },
-  green: { className: "theme-evidence-surface", tone: "green" },
-  gray: { className: "theme-article-subsection-card-nested theme-text-muted", tone: "gray" },
-};
-
-const CANONICAL_STATUS_COLORS: Record<CanonicalLegalStatus, StatusColor> = {
+type LegalityEntry = CountryLegality | USStateLegality;
+const STATUS_COLORS: Record<CanonicalLegalStatus, LegalityTone> = {
   prohibited: "red",
   analog_covered: "red",
   precursor_controlled: "yellow",
@@ -46,17 +34,7 @@ const CANONICAL_STATUS_COLORS: Record<CanonicalLegalStatus, StatusColor> = {
   unscheduled: "gray",
   restricted_other: "yellow",
 };
-
-const CANONICAL_STATUS_DISPLAY = Object.fromEntries(
-  Object.entries(CANONICAL_STATUS_LABELS).map(([status, label]) => [
-    status,
-    { label, color: CANONICAL_STATUS_COLORS[status as CanonicalLegalStatus] },
-  ]),
-) as Record<CanonicalLegalStatus, { label: string; color: StatusColor }>;
-
-// Exact matches for common statuses (case-sensitive)
-const STATUS_COLOR_MAP: Record<string, StatusColor> = {
-  // Red - Strictly illegal (no medical use)
+const EXACT: Record<string, LegalityTone> = {
   Illegal: "red",
   Prohibited: "red",
   Banned: "red",
@@ -66,8 +44,6 @@ const STATUS_COLOR_MAP: Record<string, StatusColor> = {
   "Class A": "red",
   "Controlled (narcotic)": "red",
   "Illegal (NPSG)": "red",
-
-  // Yellow - Controlled (regulated, has medical uses)
   Controlled: "yellow",
   "Controlled substance": "yellow",
   "Controlled (Verzeichnis E)": "yellow",
@@ -95,79 +71,35 @@ const STATUS_COLOR_MAP: Record<string, StatusColor> = {
   "Category 1": "yellow",
   "Category 2": "yellow",
   "Category 3": "yellow",
-
-  // Blue - Prescription/Medical
   "Prescription only": "blue",
   "Prescription required": "blue",
   "Medical use only": "blue",
   Regulated: "blue",
   Restricted: "blue",
-
-  // Green - Affirmatively legal/uncontrolled
   Legal: "green",
   Uncontrolled: "green",
   "Not controlled": "green",
   Decriminalized: "green",
-
-  // Gray - Unscheduled status does not imply legality
   Unscheduled: "gray",
   "Not scheduled": "gray",
 };
-
-// Pattern fallbacks for variations (checked in order)
-const STATUS_PATTERNS: [RegExp, StatusColor][] = [
-  // Red patterns - check first
+const PATTERNS: [RegExp, LegalityTone][] = [
   [/\billegal\b|\bprohibited\b|\bbanned\b|\bforbidden\b/i, "red"],
   [/\bclass\s*a\b/i, "red"],
-  [/\bschedule\s*i\b(?!\s*i)/i, "red"], // Schedule I but not II/III/IV
+  [/\bschedule\s*i\b(?!\s*i)/i, "red"],
   [/\bnarcotic\b/i, "red"],
-
-  // Blue patterns - prescription/medical
   [/\bprescription\b|\bmedical\s*use\b/i, "blue"],
   [/\brestricted\b|\bregulated\b/i, "blue"],
-
-  // Gray patterns - unscheduled status does not imply legality
   [/\bunscheduled\b|\bnot\s*scheduled\b/i, "gray"],
-
-  // Green patterns - affirmatively legal/uncontrolled
   [/\blegal\b|\buncontrolled\b|\bdecriminalized\b/i, "green"],
   [/\bnot\s*controlled\b/i, "green"],
-
-  // Yellow patterns - catch-all for controlled substances (checked last)
   [/\bcontrolled\b|\bschedule\b|\bscheduled\b/i, "yellow"],
   [/\bclass\s*[b-z]\b/i, "yellow"],
   [/\banlage\b|\btabella\b|\blist\s*[ivx\d]/i, "yellow"],
   [/\bcategory\s*\d/i, "yellow"],
   [/\bverzeichnis\b|\bnpsg\b|\bbtmg\b/i, "yellow"],
 ];
-
-function getStatusColor(status: string): {
-  className: string;
-  tone: StatusColor;
-} {
-  // Try exact match first
-  const exactMatch = STATUS_COLOR_MAP[status];
-  if (exactMatch) {
-    return COLOR_CLASSES[exactMatch];
-  }
-
-  // Try pattern matching
-  for (const [pattern, color] of STATUS_PATTERNS) {
-    if (pattern.test(status)) {
-      return COLOR_CLASSES[color];
-    }
-  }
-
-  // Fallback to gray
-  return COLOR_CLASSES.gray;
-}
-
-/**
- * The country list renders as one group per tone, ordered most restrictive
- * first. Headers name the tone family, not any specific status string, and
- * double as the aggregate summary via each group's count.
- */
-const TONE_GROUPS: { tone: StatusColor; label: string; title?: string }[] = [
+const GROUPS: { tone: LegalityTone; label: string; title?: string }[] = [
   { tone: "red", label: msg("Illegal") },
   { tone: "yellow", label: msg("Controlled / restricted") },
   { tone: "blue", label: msg("Prescription") },
@@ -182,282 +114,73 @@ const TONE_GROUPS: { tone: StatusColor; label: string; title?: string }[] = [
 export function orderCountryLegalityEntries(
   entries: [string, CountryLegality][],
 ) {
-  return [...entries].sort(([left], [right]) => {
-    if (left === "United States") return -1;
-    if (right === "United States") return 1;
-    return left.localeCompare(right);
-  });
-}
-
-interface LegalitySectionProps {
-  article: SubstanceArticle;
-}
-
-
-type LegalityEntry = CountryLegality | USStateLegality;
-
-/**
- * The prose note under a country, state, or city.
- *
- * `notesPath` is absent wherever the entry's own record key is not in scope, and
- * an entry without one renders exactly as it always did. Note that only `notes`
- * is editable here: the badge beside it shows a canonical label *derived* from
- * `canonicalStatus`, not the stored status, so making it editable would write
- * display text ("Illegal") into a data field.
- */
-function EditableLegalityNotes({
-  children,
-  label,
-  notesPath,
-  value,
-}: {
-  children: ReactNode;
-  label: string;
-  notesPath?: string;
-  value: string;
-}) {
-  if (!notesPath) return <>{children}</>;
-  return (
-    <EditableValue as="div" label={label} path={notesPath} value={value}>
-      {children}
-    </EditableValue>
+  return [...entries].sort(([left], [right]) =>
+    left === "United States"
+      ? -1
+      : right === "United States"
+        ? 1
+        : left.localeCompare(right),
   );
 }
 
-type StatusSize = "sm" | "xs";
-
-/**
- * Statuses render as tone-colored text, not pills: real status labels run
- * long and a wrapping pill breaks the one-line row. Tone arrives via
- * `theme-status-text`, which colors the label and its `bg-current` tick from
- * the same semantic inks as the badge tones, keyed off `data-badge-tone`.
- * The statutory instrument stays out of the collapsed row entirely; it
- * renders as the quote-styled law line once the row is expanded.
- */
-const STATUS_SIZE_CLASSES: Record<StatusSize, string> = {
-  sm: "text-[10px] tracking-[0.09em]",
-  xs: "text-[9px] tracking-[0.08em]",
-};
-
-/**
- * Everything the card and the state row derive from one entry's status fields,
- * resolved once so both surfaces badge an entry identically.
- */
-function resolveLegalityBadges(info: LegalityEntry) {
-  const canonicalStatus = info.canonicalStatus
-    ? CANONICAL_STATUS_DISPLAY[info.canonicalStatus]
-    : undefined;
-  const displayStatus = info.status ? stripCitationTokens(info.status) : "";
-  const statusColor = canonicalStatus
-    ? COLOR_CLASSES[canonicalStatus.color]
-    : displayStatus
-      ? getStatusColor(displayStatus)
-      : COLOR_CLASSES.gray;
-  // The expanded law line prefers the full statutory instrument; an explicit
-  // designation stands in when no instrument was recorded.
-  const lawText = info.instrument?.trim() || info.designation?.trim();
-
+function badge(info: LegalityEntry) {
+  const canonical = info.canonicalStatus;
+  const raw = info.status ? stripCitationTokens(info.status) : "";
+  let tone = canonical ? STATUS_COLORS[canonical] : EXACT[raw];
+  if (!tone)
+    tone = PATTERNS.find(([pattern]) => pattern.test(raw))?.[1] ?? "gray";
   return {
-    canonicalStatus,
-    statusColor,
-    hasStatusBadge: Boolean(canonicalStatus || info.status?.trim()),
-    statusLabel: canonicalStatus ? canonicalStatus.label : displayStatus,
-    lawText,
-    showLaw: Boolean(canonicalStatus && lawText),
+    tone,
+    label: canonical ? CANONICAL_STATUS_LABELS[canonical] : raw,
+    canonical,
+    law: info.instrument?.trim() || info.designation?.trim(),
   };
 }
 
-function LegalityStatusLine({
-  article,
-  info,
-  size,
-}: {
-  article: SubstanceArticle;
-  info: LegalityEntry;
-  size: StatusSize;
-}) {
-  const t = useT();
-  const { canonicalStatus, hasStatusBadge, statusColor, statusLabel } =
-    resolveLegalityBadges(info);
-
-  return (
-    <>
-      {hasStatusBadge && (
-        <span
-          className={cn(
-            "theme-status-text inline-flex max-w-[60%] shrink-0 items-center gap-1.5 font-semibold uppercase",
-            STATUS_SIZE_CLASSES[size],
-          )}
-          data-badge-tone={statusColor.tone}
-          title={statusLabel ? t(statusLabel) : undefined}
-        >
-          <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-current" />
-          <span className="truncate">
-            {canonicalStatus ? t(canonicalStatus.label) : <CitedText text={info.status} article={article} />}
-          </span>
-        </span>
-      )}
-    </>
-  );
-}
-
-type LegalityRowVariant = "country" | "state" | "city";
-
-const ROW_VARIANT: Record<
-  LegalityRowVariant,
-  {
-    header: string;
-    name: string;
-    statusSize: StatusSize;
-    toggle: string;
-    details: string;
-  }
-> = {
-  country: {
-    header: "flex min-w-0 items-center gap-2 rounded-lg py-2.5 transition-colors hover:bg-dose-surface-muted/40",
-    name: "shrink-0 whitespace-nowrap text-sm font-medium theme-text-primary",
-    statusSize: "sm",
-    toggle: "px-2 py-1",
-    details: "min-w-0 pb-3 pl-7",
-  },
-  state: {
-    header: "-mx-2 flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-dose-surface-muted/40",
-    name: "shrink-0 whitespace-nowrap text-xs font-medium theme-text-primary",
-    statusSize: "xs",
-    toggle: "px-1.5 py-0.5",
-    details: "mt-2 min-w-0",
-  },
-  city: {
-    header: "-mx-2 flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-dose-surface-muted/40",
-    name: "shrink-0 whitespace-nowrap text-xs font-medium theme-text-primary",
-    statusSize: "xs",
-    toggle: "px-1.5 py-0.5",
-    details: "mt-2 min-w-0",
-  },
-};
-
-/**
- * One collapsible legality row: flag + name + status badges + chevron, with
- * the instrument citation, prose note, nested rows, and any footer behind the
- * disclosure. Collapsed details stay in the DOM (upgraded to
- * `hidden="until-found"` after hydration) so find-in-page still matches the
- * prose and, in supporting browsers, `beforematch` expands the row.
- */
-function LegalityRow({
+function Row({
   article,
   name,
   info,
-  flag,
   variant,
   pathParts,
+  flag,
   footer,
 }: {
   article: SubstanceArticle;
   name: string;
   info: LegalityEntry;
-  flag?: ReactNode;
-  variant: LegalityRowVariant;
-  /**
-   * Decoded path parts addressing this entry, e.g.
-   * `["legality", "usStates", "Florida"]`. Omit to leave the row read-only.
-   * Every part is a data-chosen record key, so it is encoded by
-   * `buildFieldPath` rather than interpolated.
-   */
+  variant: "country" | "state" | "city";
   pathParts?: readonly string[];
+  flag?: ReactNode;
   footer?: ReactNode;
 }) {
-  const t = useT();
-  const detailsId = useId();
-  const detailsRef = useRef<HTMLDivElement | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const { lawText, showLaw } = resolveLegalityBadges(info);
-  const styles = ROW_VARIANT[variant];
-  const displayText = info.notes || "";
-  // Entry-level citationNeeded renders as the same free-floating gray
-  // `[citation-needed]` marker used in article prose, appended to the note so
-  // CitedText's suppression rules apply (a note ending on a resolved citation
-  // shows no marker). The raw note - not the sentinel - seeds the editor.
-  const renderText = info.citationNeeded && displayText
-    ? `${displayText} [citation-needed]`
-    : displayText;
-  const notesPath = pathParts ? buildFieldPath(...pathParts, "notes") : undefined;
-  // Only `usStates.*.cities.*` is allow-listed, so a city never nests further.
-  const cityPathParts = pathParts && variant === "state" ? pathParts : undefined;
-
-  useEffect(() => {
-    const el = detailsRef.current;
-    if (!el) return;
-    const expand = () => setIsExpanded(true);
-    el.addEventListener("beforematch", expand);
-    return () => el.removeEventListener("beforematch", expand);
-  }, []);
-
-  // SSR emits the boolean `hidden`; after hydration the collapsed state is
-  // expressed as `hidden="until-found"`. React never rewrites the attribute
-  // while `hidden` stays `true` in JSX, so the upgrade survives re-renders.
-  useEffect(() => {
-    const el = detailsRef.current;
-    if (!el) return;
-    if (isExpanded) {
-      el.removeAttribute("hidden");
-    } else {
-      el.setAttribute("hidden", "until-found");
-    }
-  }, [isExpanded]);
-
-  return (
-    <div
-      className={cn(
-        "min-w-0",
-        variant === "city" && "pl-4",
-        // Countries carry no divider; a collapsed row is delimited by its
-        // flag and rhythm alone, and an expanded row becomes a soft nested
-        // surface that contains its law line, prose, and state rows. The
-        // constant -mx-2/px-2 geometry keeps text aligned in both states.
-        variant === "country" && "-mx-2 rounded-xl px-2 transition-colors",
-        variant === "country" && isExpanded && "my-1 bg-dose-surface-muted/55",
-      )}
-    >
-      {/*
-        The whole header toggles: the chevron alone is a small, distant
-        target. Links inside the status line keep their own behavior, and the
-        nested ExpandButton remains the accessible keyboard control, so the
-        div's pointer handler is a pointer-only convenience enlargement.
-      */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div
-        className={cn(styles.header, "cursor-pointer select-none")}
-        onClick={(event) => {
-          if ((event.target as HTMLElement).closest("a, button")) return;
-          setIsExpanded((expanded) => !expanded);
-        }}
-      >
-        {flag}
-        <span className={styles.name}>{t(name)}</span>
-        <LegalityStatusLine article={article} info={info} size={styles.statusSize} />
-        <ExpandButton
-          variant="faint"
-          isExpanded={isExpanded}
-          onToggle={() => setIsExpanded((expanded) => !expanded)}
-          ariaControls={detailsId}
-          ariaLabel={isExpanded ? t("Hide details for {{name}}", { name: t(name) }) : t("Show details for {{name}}", { name: t(name) })}
-          className={cn("shrink-0", styles.toggle)}
-        />
-      </div>
-      <div id={detailsId} ref={detailsRef} hidden className={styles.details}>
-        {showLaw && lawText && (
-          <div
-            className="min-w-0 break-words border-l border-dose-border pl-2.5 text-[11px] italic leading-relaxed theme-text-muted"
-            data-testid="legality-instrument-citation"
-          >
-            <CitedText text={lawText} article={article} />
-          </div>
-        )}
-        {displayText ? (
-          <EditableLegalityNotes
-            label={t("{{name}} legality notes", { name: t(name) })}
-            notesPath={notesPath}
-            value={displayText}
+  const resolved = badge(info);
+  const note = info.notes || "";
+  const renderText =
+    info.citationNeeded && note ? `${note} [citation-needed]` : note;
+  const notesPath = pathParts
+    ? buildFieldPath(...pathParts, "notes")
+    : undefined;
+  const cityBase = pathParts && variant === "state" ? pathParts : undefined;
+  const cities =
+    "cities" in info && info.cities ? Object.entries(info.cities) : [];
+  const details = (
+    <>
+      {resolved.canonical && resolved.law ? (
+        <div
+          className="min-w-0 break-words border-l border-dose-border pl-2.5 text-[11px] italic leading-relaxed theme-text-muted"
+          data-testid="legality-instrument-citation"
+        >
+          <CitedText text={resolved.law} article={article} />
+        </div>
+      ) : null}
+      {note ? (
+        notesPath ? (
+          <EditableValue
+            as="div"
+            label={`${name} legality notes`}
+            path={notesPath}
+            value={note}
           >
             <ArticleText
               as="div"
@@ -466,37 +189,65 @@ function LegalityRow({
               tone="muted"
               className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
             />
-          </EditableLegalityNotes>
-        ) : notesPath ? (
-          <EditableSlot
-            className="mt-1"
-            emptyLabel={t("Add {{name}} legality notes", { name: t(name) })}
-            label={t("{{name}} legality notes", { name: t(name) })}
-            path={notesPath}
-            value=""
+          </EditableValue>
+        ) : (
+          <ArticleText
+            as="div"
+            text={renderText}
+            article={article}
+            tone="muted"
+            className="mt-1 min-w-0 whitespace-pre-line break-words text-sm leading-relaxed theme-text-muted"
           />
-        ) : null}
-        {"cities" in info && info.cities && Object.keys(info.cities).length > 0 && (
-          <div className="mt-3 space-y-1 border-l border-dose-border pl-2" data-testid="legality-city-list">
-            {Object.entries(info.cities).map(([cityName, cityInfo]) => (
-              <LegalityRow
-                key={cityName}
-                article={article}
-                name={cityName}
-                info={cityInfo}
-                variant="city"
-                pathParts={cityPathParts ? [...cityPathParts, "cities", cityName] : undefined}
-              />
-            ))}
-          </div>
-        )}
-        {footer}
-      </div>
-    </div>
+        )
+      ) : notesPath ? (
+        <EditableSlot
+          className="mt-1"
+          emptyLabel={`Add ${name} legality notes`}
+          label={`${name} legality notes`}
+          path={notesPath}
+          value=""
+        />
+      ) : null}
+      {cities.length ? (
+        <div
+          className="mt-3 space-y-1 border-l border-dose-border pl-2"
+          data-testid="legality-city-list"
+        >
+          {cities.map(([city, cityInfo]) => (
+            <Row
+              key={city}
+              article={article}
+              name={city}
+              info={cityInfo}
+              variant="city"
+              pathParts={cityBase ? [...cityBase, "cities", city] : undefined}
+            />
+          ))}
+        </div>
+      ) : null}
+      {footer}
+    </>
+  );
+  return (
+    <LegalityRowView
+      name={name}
+      variant={variant}
+      flag={flag}
+      statusTone={resolved.tone}
+      statusTitle={resolved.label}
+      statusLabel={
+        resolved.canonical ? (
+          resolved.label
+        ) : info.status ? (
+          <CitedText text={info.status} article={article} />
+        ) : undefined
+      }
+      details={details}
+    />
   );
 }
 
-function USStatesFooter({
+function States({
   article,
   note,
   states,
@@ -505,16 +256,20 @@ function USStatesFooter({
   note?: string;
   states: [string, USStateLegality][];
 }) {
-  const t = useT();
   return (
     <div className="mt-4 pt-4">
       <div className="theme-horizontal-divider mb-3" />
-      <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">{t("By state")}</div>
+      <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">
+        {msg("By state")}
+      </div>
       {note ? (
-        <div className="mb-4 min-w-0 break-words text-sm leading-relaxed theme-text-muted" data-testid="us-states-summary">
+        <div
+          className="mb-4 min-w-0 break-words text-sm leading-relaxed theme-text-muted"
+          data-testid="us-states-summary"
+        >
           <EditableValue
             as="div"
-            label={t("US states legality summary")}
+            label="US states legality summary"
             path="legality.usStatesNote"
             value={note}
           >
@@ -524,181 +279,137 @@ function USStatesFooter({
       ) : (
         <EditableSlot
           className="mb-4"
-          emptyLabel={t("Add a US states legality summary")}
-          label={t("US states legality summary")}
+          emptyLabel="Add a US states legality summary"
+          label="US states legality summary"
           path="legality.usStatesNote"
           value=""
         />
       )}
-      <div className="space-y-1">{states.map(([stateName, stateInfo]) => {
-        // Mapping values carry the file extension: detailed seal flags are
-        // rasterized to small webp (they render at 24x16); simple geometric
-        // flags stay as tiny svg.
-        const flagFile = usStateFlagMappings[stateName as keyof typeof usStateFlagMappings];
-        return (
-          <LegalityRow
-            key={stateName}
-            article={article}
-            name={stateName}
-            info={stateInfo}
-            variant="state"
-            flag={flagFile ? (
-              <img
-                src={`/flags/us/${flagFile}`}
-                alt={t("{{name}} flag", { name: t(stateName) })}
-                width={24}
-                height={16}
-                loading="lazy"
-                decoding="async"
-                className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
-              />
-            ) : undefined}
-            pathParts={["legality", "usStates", stateName]}
-          />
-        );
-      })}</div>
-    </div>
-  );
-}
-
-/**
- * Overline header for one tone group: label, count, and a gradient rule that
- * fades out to the right, matching the section-heading hairline.
- */
-function ToneGroupHeading({ label, count, title }: { label: string; count: number; title?: string }) {
-  const t = useT();
-  return (
-    <div className="mb-1 flex items-center gap-2" title={title ? t(title) : undefined}>
-      <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">
-        {t(label)}
-      </span>
-      <span className="font-mono text-[10px] tabular-nums theme-text-faint">{count}</span>
-      <div aria-hidden className="theme-horizontal-divider flex-1" />
+      <div className="space-y-1">
+        {states.map(([name, info]) => {
+          const file =
+            usStateFlagMappings[name as keyof typeof usStateFlagMappings];
+          return (
+            <Row
+              key={name}
+              article={article}
+              name={name}
+              info={info}
+              variant="state"
+              flag={
+                file ? (
+                  <img
+                    src={`/flags/us/${file}`}
+                    alt={`${name} flag`}
+                    width={24}
+                    height={16}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-4 w-6 shrink-0 overflow-hidden rounded-sm object-cover object-center"
+                  />
+                ) : undefined
+              }
+              pathParts={["legality", "usStates", name]}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 export const LegalitySection = memo(function LegalitySection({
   article,
-}: LegalitySectionProps) {
-  const t = useT();
-  const { legality } = article;
-  const hasInternational = legality.international.length > 0;
-  const countries = orderCountryLegalityEntries(Object.entries(legality.countries));
-  const hasCountries = countries.length > 0;
-  const usStates = legality.usStates ?? {};
-  const usStateEntries = Object.entries(usStates);
-  const hasUsStates = usStateEntries.length > 0;
-
-  const toneGroups = TONE_GROUPS.map((group) => ({
-    ...group,
-    entries: countries.filter(
-      ([, info]) => resolveLegalityBadges(info).statusColor.tone === group.tone,
-    ),
-  })).filter((group) => group.entries.length > 0);
-
-  if (!hasInternational && !hasCountries && !hasUsStates) {
+}: {
+  article: SubstanceArticle;
+}) {
+  const legality = article.legality;
+  const countries = orderCountryLegalityEntries(
+    Object.entries(legality.countries),
+  );
+  const states = Object.entries(legality.usStates ?? {});
+  if (!legality.international.length && !countries.length && !states.length)
     return <ArticleGapNotice article={article} section="legality" />;
-  }
-
-  return (
-    <ArticleSection
-      id="legality"
-      icon={SUBSTANCE_SECTION_ICONS["legality"]}
-      heading={t("Legality")}
-    >
-      {/* International */}
-      {hasInternational && (
-        <ArticleSection.Group
-          icon="lucide:globe"
-          heading={t("International")}
-          className="mb-4"
-          headingClassName="font-semibold normal-case tracking-normal"
+  const international = legality.international.length ? (
+    <div className="space-y-2">
+      {legality.international.map((item, index) => (
+        <EditableValue
+          key={index}
+          as="div"
+          label={`International legality entry ${index + 1}`}
+          path={buildFieldPath("legality", "international", index)}
+          value={item}
         >
-          <div className="space-y-2">
-            {legality.international.map((item, idx) => (
-              <EditableValue
-                key={idx}
-                as="div"
-                label={t("International legality entry {{number}}", { number: idx + 1 })}
-                path={buildFieldPath("legality", "international", idx)}
-                value={item}
-              >
-                <ArticleText text={item} article={article} />
-              </EditableValue>
-            ))}
-          </div>
-        </ArticleSection.Group>
-      )}
-
-      {/* Countries */}
-      {(hasCountries || hasUsStates) && (
-        <ArticleSection.Group
-          icon="lucide:map-pin"
-          heading={t("By Country")}
-          className="mt-4"
-          headingClassName="font-semibold normal-case tracking-normal"
-        >
-          {hasCountries && (
-            <div className="space-y-6">
-              {toneGroups.map((group) => (
-                <section key={group.tone} className="min-w-0">
-                  <ToneGroupHeading
-                    label={group.label}
-                    count={group.entries.length}
-                    title={group.title}
-                  />
-                  {/*
-                    Two independently flowing columns, split column-major so
-                    each column reads alphabetically top to bottom. Unlike a
-                    shared grid, expanding a row only grows its own column;
-                    the neighbor never gains phantom space.
-                  */}
-                  <div className="min-w-0 sm:flex sm:gap-10">
-                    {[
-                      group.entries.slice(0, Math.ceil(group.entries.length / 2)),
-                      group.entries.slice(Math.ceil(group.entries.length / 2)),
-                    ].map((column, columnIndex) => (
-                      <div key={columnIndex} className="min-w-0 sm:w-0 sm:flex-1">
-                        {column.map(([countryName, info]) => {
-                          const countryCode = getCountryCode(countryName);
-                          return (
-                            <div key={countryName} className="min-w-0">
-                              <LegalityRow
-                                article={article}
-                                name={countryName}
-                                info={info}
-                                variant="country"
-                                pathParts={["legality", "countries", countryName]}
-                                flag={countryCode ? (
-                                  <AppImage
-                                    src={`/flags/${countryCode}.svg`}
-                                    alt={t("{{name}} flag", { name: t(countryName) })}
-                                    width={24}
-                                    height={24}
-                                    className="theme-country-flag h-5 w-5 shrink-0"
-                                  />
-                                ) : undefined}
-                                footer={countryName === "United States" && hasUsStates ? (
-                                  <USStatesFooter
-                                    article={article}
-                                    note={legality.usStatesNote}
-                                    states={usStateEntries}
-                                  />
-                                ) : undefined}
+          <ArticleText text={item} article={article} />
+        </EditableValue>
+      ))}
+    </div>
+  ) : undefined;
+  const groups = GROUPS.map((group) => ({
+    ...group,
+    entries: countries.filter(([, info]) => badge(info).tone === group.tone),
+  })).filter((group) => group.entries.length);
+  const countryGroups =
+    countries.length || states.length ? (
+      <div className="space-y-6">
+        {groups.map((group) => (
+          <section key={group.tone} className="min-w-0">
+            <ToneGroupHeading
+              label={group.label}
+              count={group.entries.length}
+              title={group.title}
+            />
+            <div className="min-w-0 sm:flex sm:gap-10">
+              {[
+                group.entries.slice(0, Math.ceil(group.entries.length / 2)),
+                group.entries.slice(Math.ceil(group.entries.length / 2)),
+              ].map((column, index) => (
+                <div key={index} className="min-w-0 sm:w-0 sm:flex-1">
+                  {column.map(([name, info]) => {
+                    const code = getCountryCode(name);
+                    return (
+                      <div key={name} className="min-w-0">
+                        <Row
+                          article={article}
+                          name={name}
+                          info={info}
+                          variant="country"
+                          pathParts={["legality", "countries", name]}
+                          flag={
+                            code ? (
+                              <AppImage
+                                src={`/flags/${code}.svg`}
+                                alt={`${name} flag`}
+                                width={24}
+                                height={24}
+                                className="theme-country-flag h-5 w-5 shrink-0"
                               />
-                            </div>
-                          );
-                        })}
+                            ) : undefined
+                          }
+                          footer={
+                            name === "United States" && states.length ? (
+                              <States
+                                article={article}
+                                note={legality.usStatesNote}
+                                states={states}
+                              />
+                            ) : undefined
+                          }
+                        />
                       </div>
-                    ))}
-                  </div>
-                </section>
+                    );
+                  })}
+                </div>
               ))}
             </div>
-          )}
-        </ArticleSection.Group>
-      )}
-    </ArticleSection>
+          </section>
+        ))}
+      </div>
+    ) : undefined;
+  return (
+    <LegalitySectionView
+      internationalContent={international}
+      countryGroups={countryGroups}
+    />
   );
 });

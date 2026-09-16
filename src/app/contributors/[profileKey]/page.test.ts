@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type * as SiteFlavorModule from "@/config/siteFlavor";
 
 const mocks = vi.hoisted(() => ({
-  loadContributorRoute: vi.fn(),
+  loadContributorIdentityRoute: vi.fn(),
 }));
 vi.mock("@/config/siteFlavor", async (importOriginal) => {
   const actual = await importOriginal<typeof SiteFlavorModule>();
@@ -16,10 +16,10 @@ vi.mock("@/config/siteFlavor", async (importOriginal) => {
 
 
 vi.mock("@server/next/routeLoaders.contributors", () => ({
-  loadContributorRoute: mocks.loadContributorRoute,
+  loadContributorIdentityRoute: mocks.loadContributorIdentityRoute,
 }));
-vi.mock("@/components/pages/UserProfilePage", () => ({
-  UserProfilePage: () => null,
+vi.mock("@/components/pages/ContributorRoutePage", () => ({
+  ContributorRoutePage: () => null,
 }));
 vi.mock("@/data/entitySocialCardManifest.generated.json", () => ({
   default: {
@@ -46,7 +46,7 @@ import { generateMetadata } from "./page";
 
 describe("contributor social metadata", () => {
   it("uses the canonical profile card for an alias that forwards to an artist page", async () => {
-    mocks.loadContributorRoute.mockResolvedValueOnce({
+    mocks.loadContributorIdentityRoute.mockResolvedValueOnce({
       kind: "redirect",
       target: "/replications/artist/ada",
       metadata: {
@@ -81,7 +81,7 @@ describe("contributor social metadata", () => {
   });
 
   it("uses the publication fallback when no contributor entity exists", async () => {
-    mocks.loadContributorRoute.mockResolvedValueOnce({
+    mocks.loadContributorIdentityRoute.mockResolvedValueOnce({
       kind: "not-found",
       normalizedKey: "MISSING",
     });

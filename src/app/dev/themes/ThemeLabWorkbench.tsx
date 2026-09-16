@@ -23,6 +23,13 @@ export function ThemeLabWorkbench() {
   const wasOpen = useRef(false);
 
   useEffect(() => {
+    // This route always intends to open Theme Lab. Start both independent
+    // chunks together; ThemeLabLazy still withholds the panel until the runtime
+    // has restored persisted state and reported readiness.
+    void Promise.allSettled([
+      import("@/features/theme-lab/ThemeLabRuntimeMount"),
+      import("@/features/theme-lab/ThemeLab"),
+    ]);
     setThemeLabOpen(true);
   }, []);
 

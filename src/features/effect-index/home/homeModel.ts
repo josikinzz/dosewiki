@@ -9,7 +9,7 @@ import type { GalleryReplication } from "@/types/replications";
  * stays a total function of (data, seed). That keeps the panels testable and keeps the
  * server and client agreeing on the order they render.
  *
- * None of these types are the Convex read models. The loader narrows those down to exactly
+ * None of these types are the Postgres read models. The loader narrows those down to exactly
  * what the panels display, so the homepage's client bundle never has to carry article
  * bodies or report timelines it does not render.
  */
@@ -86,6 +86,7 @@ export interface HomeArticleInput {
   publicationDate?: string;
   shortDescription?: string;
   body_raw?: string;
+  readMinutes?: number;
 }
 
 export interface HomeFeaturedArticle {
@@ -202,7 +203,7 @@ export function selectFeaturedArticle(
     title: article.title,
     authorLine: formatAuthorLine(article.authors),
     dateLabel: formatFeaturedArticleDate(article.publicationDate),
-    readTimeLabel: formatReadTime(article.body_raw),
+    readTimeLabel: article.readMinutes ? `${article.readMinutes} min read` : formatReadTime(article.body_raw),
     description: description && description.length > 0 ? description : undefined,
   };
 }

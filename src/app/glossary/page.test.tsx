@@ -4,7 +4,7 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildGlossaryGroups, GlossaryPage as GlossaryContentPage } from "@/components/pages/GlossaryPage";
 
 const mocks = vi.hoisted(() => ({
-  getDataBackend: vi.fn<() => "postgres" | "convex">(() => "postgres"),
+  getDataBackend: vi.fn<() => "postgres">(() => "postgres"),
   readGlosses: vi.fn(),
 }));
 
@@ -57,16 +57,6 @@ describe("/glossary", () => {
     expect(offset).toHaveTextContent("Duration stage 4 of 6: effects declining");
     expect(screen.getByText("Filed under Other").closest("div")).toHaveTextContent("kind-nobody-names");
     expect(screen.queryByText("No glossary entries yet")).not.toBeInTheDocument();
-  });
-
-  it("renders the empty state without reading Postgres when the backend is not Postgres", async () => {
-    mocks.getDataBackend.mockReturnValue("convex");
-
-    render(await GlossaryPage());
-
-    expect(mocks.readGlosses).not.toHaveBeenCalled();
-    expect(screen.getByText("No glossary entries yet")).toBeInTheDocument();
-    expect(screen.queryByRole("term")).not.toBeInTheDocument();
   });
 
   it("renders the empty state when no gloss is stored yet", async () => {

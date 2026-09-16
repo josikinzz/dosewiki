@@ -3,6 +3,8 @@
 import { SmartLink } from "@/components/common/SmartLink";
 import { useCallback, useId, useState, memo, type ReactNode } from "react";
 import { InteractiveSurface } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { ExpandIndicator } from "./ExpandButton";
 import { Icon, type IconName } from "./Icon";
 import { cn } from "@/lib/utils";
 
@@ -130,7 +132,6 @@ export const IndexCard = memo(function IndexCard({
   const [uncontrolledExpanded, setUncontrolledExpanded] =
     useState(defaultExpanded);
   const isExpanded = expanded ?? uncontrolledExpanded;
-  const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
   const resolvedContentId = contentId ?? `index-card-${generatedId}`;
   const resolvedToggleLabel =
     toggleLabel ?? `${isExpanded ? "Collapse" : "Expand"} ${title}`;
@@ -203,7 +204,7 @@ export const IndexCard = memo(function IndexCard({
       surfaceVariant={tone === "dim" ? "indexDim" : undefined}
       padding="md"
       radius="index"
-      className="group w-full transition-all duration-300"
+      className="group w-full"
     >
       <section>
         {/* Header */}
@@ -247,23 +248,25 @@ export const IndexCard = memo(function IndexCard({
             aria-expanded={isExpanded}
             aria-controls={resolvedContentId}
             aria-label={resolvedToggleLabel}
-            className="theme-index-card-toggle theme-focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition"
+            className={cn("theme-index-card-toggle theme-focus-ring flex h-8 min-w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors motion-reduce:transition-none", TOUCH_ICON)}
           >
-            <Icon icon={chevronIcon} size={16} />
+            <ExpandIndicator isExpanded={isExpanded} />
           </button>
         </header>
 
         <div
           id={resolvedContentId}
+          aria-hidden={!isExpanded}
+          inert={!isExpanded}
           className={cn(
-            "grid transition-all duration-300 ease-in-out",
+            "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
             isExpanded
-              ? "mt-2 grid-rows-[1fr] opacity-100"
-              : "mt-0 grid-rows-[0fr] opacity-0",
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0",
           )}
         >
-          <div className={isExpanded ? "overflow-visible" : "overflow-hidden"}>
-            {children}
+          <div className="min-h-0 overflow-hidden">
+            <div className="pt-2">{children}</div>
           </div>
         </div>
       </section>
@@ -408,7 +411,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   }, [onClick, slug, onSelect]);
 
   const className = cn(
-    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl py-2.5 pr-3 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong",
+    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl py-2.5 pr-3 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text theme-focus-ring",
     depth === 1 ? "pl-8 text-[0.875rem]" : "pl-3",
   );
 

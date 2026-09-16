@@ -6,7 +6,7 @@ import {
   getTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError,
 } from "@/features/reports/submissions/tripReportSubmissionStore.server";
-import { TripReportSubmissionNotFoundError } from "@/features/reports/submissions/convexTripReportSubmissionStore";
+import { TripReportSubmissionNotFoundError } from "@/features/reports/submissions/dataTripReportSubmissionStore";
 import {
   isTripReportSubmissionStatus,
   type TripReportSubmissionStatus,

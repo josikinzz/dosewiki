@@ -15,9 +15,15 @@ import {
 } from "@/features/replications/replicationsInfoCopy";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { t } from "@/i18n/server";
 import CopyBlock from "@/features/dev/tools/copy-studio/CopyBlock.editor";
+
+const REPLICATIONS_INFO_COPY_KEYS = [
+  "seo-replications-more-info-description",
+  REPLICATIONS_INTRO_KEY,
+  REPLICATIONS_FAIR_USE_NOTICE_KEY,
+];
 
 const introMarkdownComponents = {
   ...publicMarkdownComponents,
@@ -27,7 +33,7 @@ const introMarkdownComponents = {
 };
 
 export async function getReplicationsInfoMetadata(locale: LiveLocale | null = null) {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(REPLICATIONS_INFO_COPY_KEYS);
 
   return buildPublicPageMetadata({
     title: "About Replications",
@@ -47,7 +53,7 @@ export async function getReplicationsInfoMetadata(locale: LiveLocale | null = nu
  * renders in English until the catalog catches up.
  */
 export async function ReplicationsInfoRoute() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(REPLICATIONS_INFO_COPY_KEYS);
 
   return (
     <>

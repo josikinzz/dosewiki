@@ -42,10 +42,9 @@ export const siteFont = localFont({
  * files to `--font-body`, which that stack now leads with, so every platform gets the
  * same reading face. Preloaded, on the display face's reasoning: it paints on every page.
  *
- * Two sources, one family: Google serves Inter 4 as an upright and an italic VARIABLE
- * font (`wght` 100 to 900, `opsz` 14 to 32), so every weight and both slopes the sheets
- * ask for under `base.css`'s `font-synthesis: none` have a real face. See
- * `public/fonts/inter/README.md` for provenance and the OFL beside it.
+ * Only upright is preloaded. The matching real italic face is registered in the
+ * document head under the same generated family, so CSS fetches it on use without
+ * introducing a second body family or synthesizing italics.
  */
 export const bodyFont = localFont({
   variable: "--font-body",
@@ -56,13 +55,10 @@ export const bodyFont = localFont({
       weight: "100 900",
       style: "normal",
     },
-    {
-      path: "../../../public/fonts/inter/inter-variable-italic-latin.woff2",
-      weight: "100 900",
-      style: "italic",
-    },
   ],
 });
+
+export const bodyItalicFace = `@font-face{font-family:${bodyFont.style.fontFamily.split(",")[0]};src:url("/fonts/inter/inter-variable-italic-latin.woff2") format("woff2");font-style:italic;font-weight:100 900;font-display:swap;}`;
 
 /**
  * Pro face — Titillium Web, the typeface the Pro visual style is set in. Bound to

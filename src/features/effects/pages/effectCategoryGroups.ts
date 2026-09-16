@@ -34,6 +34,10 @@ function normalizeTags(tags: string[]): string[] {
   return Array.from(new Set(tags.map((tag) => tag.toLowerCase()))).sort();
 }
 
+export function getNormalizedEffectTags(tags: string[]): Set<string> {
+  return new Set(tags.map((tag) => tag.toLowerCase()));
+}
+
 function sameTags(left: string[], right: string[]): boolean {
   const a = normalizeTags(left);
   const b = normalizeTags(right);
@@ -107,7 +111,7 @@ export function buildEffectCategoryGroups({
 
   const effectsWithLowerTags = effects.map((effect) => ({
     effect,
-    lowerTags: new Set(effect.tags.map((tag) => tag.toLowerCase())),
+    lowerTags: getNormalizedEffectTags(effect.tags),
   }));
   const groupedSlugs = new Set<string>();
 

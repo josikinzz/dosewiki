@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/app/_components/public-routes/showcaseCollections", () => ({
   getSubstanceShowcaseWorks: mocks.getSubstanceShowcaseWorks,
 }));
-vi.mock("@server/convex/publicData", () => ({
+vi.mock("@server/data/publicData", () => ({
   getPublicReplicationsForSubstance: mocks.getPublicReplicationsForSubstance,
 }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));

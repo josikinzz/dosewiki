@@ -6,12 +6,12 @@
  *   DELETE /api/dev/replications/playlists/<key> → drop it
  * Updates go through the collection route's POST, which is already an upsert
  * keyed by `key`; there is no second write shape to maintain here. Both writes
- * sit at the contributor floor: Convex admits the playlist's owner or an admin
+ * sit at the contributor floor: Postgres admits the playlist's owner or an admin
  * and answers `NOT_OWNER` (a 403 here) to anyone else, so an unowned playlist
  * stays admin-only. `<key>/owner` hands a playlist to a member (admin).
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/replicationStudioModel";
@@ -49,18 +49,18 @@ function parseMembershipBody(raw: MembershipBody): {
 export const GET = protectedRouteOperation({
   auth: "contributor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load a replication playlist via Next route:",
   unexpectedErrorMessage: "Unable to load that playlist right now.",
-  operation: async ({ request, actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    // Convex applies ownership: a contributor reads only their own playlist,
+    // Postgres applies ownership: a contributor reads only their own playlist,
     // so the actor must travel with the call.
-    const playlist = await convexWrite.client.query(api.replicationPlaylists.get, {
-      apiKey: convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey,
+    const playlist = await dataWrite.client.query(api.replicationPlaylists.get, {
+      apiKey: dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey,
       actorEmail,
       key: playlistKeyOf(request),
     });
@@ -80,19 +80,19 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   auth: "contributor",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 4 * 1024, parse: parseMembershipBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to update playlist membership via Next route:",
   unexpectedErrorMessage: "Unable to update that playlist right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
-    const result = await convexWrite.client.mutation(
+    const result = await dataWrite.client.mutation(
       api.replicationPlaylists.setMembership,
       {
         apiKey:
-          convexWrite.getAdminIntentToken?.("editorArticleWrite") ??
-          convexWrite.adminKey,
+          dataWrite.getAdminIntentToken?.("editorArticleWrite") ??
+          dataWrite.adminKey,
         actorEmail,
         key: playlistKeyOf(request),
         replicationSlug: body.slug,
@@ -106,18 +106,18 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
 export const DELETE = protectedRouteOperation({
   auth: "contributor",
   rateLimit: "editorSmallWrite",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to delete a replication playlist via Next route:",
   unexpectedErrorMessage: "Unable to delete that playlist right now.",
-  operation: async ({ request, actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.replicationPlaylists.remove, {
+    const result = await dataWrite.client.mutation(api.replicationPlaylists.remove, {
       apiKey,
       actorEmail,
       key: playlistKeyOf(request),

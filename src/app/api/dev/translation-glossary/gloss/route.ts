@@ -12,9 +12,10 @@ import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
+import { getDataBackend } from "@server/postgres/runtime/backend";
 import { GLOSS_MAX_LENGTH, GlossaryGlossError, findGloss, knownGlossaryTerms, upsertGlosses } from "@server/translation/glossaryGloss";
-import { GLOSSARY_BODY_MAX_BYTES, glossaryUnavailable, parseTerm } from "../glossaryRoutes";
+import { GLOSSARY_BODY_MAX_BYTES, parseTerm } from "../glossaryRoutes";
 
 export const runtime = "nodejs";
 
@@ -40,8 +41,7 @@ export const POST = protectedRouteOperation<GlossBody, ParsedGloss>({
   unexpectedErrorMessage: "Unable to save that gloss right now.",
   mapError: (error) => (error instanceof GlossaryGlossError ? NextResponse.json({ error: error.message }, { status: 400 }) : null),
   operation: async ({ actorEmail, body }) => {
-    const unavailable = glossaryUnavailable();
-    if (unavailable) return unavailable;
+    getDataBackend();
 
     const existing = await findGloss(body.term);
     const wanted = body.term.toLowerCase();

@@ -5,8 +5,8 @@
 
 import { readFileSync, writeFileSync } from "fs";
 import { createDataClient } from "./lib/data-client.ts";
-import { api } from "../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "./lib/convex-pagination.mjs";
+import { api } from "../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "./lib/data-pagination.mjs";
 
 function loadEnv() {
   try {
@@ -33,8 +33,8 @@ function loadEnv() {
 
 async function main() {
   loadEnv();
-  const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  const client = createDataClient({ target: convexUrl }).client;
+  const dataUrl = process.env.POSTGRES_DIRECT_URL || process.env.POSTGRES_POOLED_URL;
+  const client = createDataClient({ target: dataUrl }).client;
 
   console.log("Fetching articles...");
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
@@ -51,7 +51,7 @@ async function main() {
   const sorted = Object.entries(headingCounts).sort((a, b) => b[1] - a[1]);
 
   let md = "# History & Culture Section Headings\n\n";
-  md += "> Generated from Convex articles database\n\n";
+  md += "> Generated from Postgres articles database\n\n";
   md += "| Count | Heading |\n";
   md += "|------:|:--------|\n";
 

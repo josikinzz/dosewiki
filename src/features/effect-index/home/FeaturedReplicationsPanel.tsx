@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { AppImage } from "@/components/common/AppImage";
@@ -42,7 +42,7 @@ import type { HomeFeaturedReplication } from "./homeModel";
  */
 const STAGE_BACKGROUND = "bg-[color:var(--ei-chrome-dark,#2e2e2e)]";
 const ON_DARK_FOCUS_RING =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--ei-on-dark,#f2f2f0)]";
+  "focus-visible:outline focus-visible:outline-1 focus-visible:outline-[color:var(--ei-on-dark,#f2f2f0)]";
 
 const CONTROL_CLASS =
   "absolute top-1/2 z-10 flex h-24 w-11 -translate-y-1/2 items-center justify-center text-[color:var(--ei-on-dark-muted,#cccccc)] transition-colors hover:text-[color:var(--ei-on-dark,#f2f2f0)] focus-visible:outline-offset-2 [filter:drop-shadow(0_0_4px_rgb(0_0_0/0.8))]";
@@ -68,6 +68,9 @@ export function FeaturedReplicationsPanel({
 }: FeaturedReplicationsPanelProps) {
   const [index, setIndex] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const activeLayerRef = useRef<HTMLDivElement>(null);
+  const [outgoing, setOutgoing] = useState<HomeFeaturedReplication | null>(null);
+  const [videoReady, setVideoReady] = useState(false);
   const autoplayAllowed = useMotionAllowed().autoplay;
   const inView = useInView(stageRef, 0.25, autoplayAllowed);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -82,6 +85,7 @@ export function FeaturedReplicationsPanel({
     }
     const previous = videoRef.current;
     videoRef.current = null;
+    setVideoReady(false);
     if (previous) releaseVideoElement(previous);
   }, []);
 
@@ -93,9 +97,10 @@ export function FeaturedReplicationsPanel({
         return;
       }
 
+      setOutgoing(items[Math.min(index, count - 1)]);
       setIndex((current) => (current + delta + count) % count);
     },
-    [count],
+    [count, index, items],
   );
 
   /**
@@ -115,6 +120,32 @@ export function FeaturedReplicationsPanel({
     },
     [step],
   );
+
+  useEffect(() => {
+    if (!outgoing) return;
+    const layer = activeLayerRef.current;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!layer?.animate || motion.matches) {
+      setOutgoing(null);
+      return;
+    }
+    // The outgoing layer is a still, never a second decoding video.
+    const animation = layer.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 240, easing: "cubic-bezier(0.25,1,0.5,1)" },
+    );
+    animation.onfinish = () => setOutgoing(null);
+    const stop = () => {
+      if (!motion.matches) return;
+      animation.cancel();
+      setOutgoing(null);
+    };
+    motion.addEventListener("change", stop);
+    return () => {
+      animation.cancel();
+      motion.removeEventListener("change", stop);
+    };
+  }, [index, outgoing]);
 
   // A curated list that resolves to nothing renders no panel at all rather than an empty
   // stage. Hooks stay above this so their order never depends on the data.
@@ -146,6 +177,28 @@ export function FeaturedReplicationsPanel({
         aria-label="Featured replications"
         className={`relative h-[250px] w-full overflow-hidden border border-dose-border ${STAGE_BACKGROUND}`}
       >
+        {outgoing ? (
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {(outgoing.replication.type === "video"
+              ? outgoing.replication.thumbnail_url
+              : outgoing.replication.url) ? (
+              <AppImage
+                src={(outgoing.replication.type === "video"
+                  ? outgoing.replication.thumbnail_url
+                  : outgoing.replication.url)!}
+                alt=""
+                width={outgoing.replication.width ?? 800}
+                height={outgoing.replication.height ?? 600}
+                className="h-full w-full object-contain"
+              />
+            ) : null}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/60 to-transparent px-3 pb-3 pt-10 text-center text-[0.9375rem] leading-snug text-[color:var(--ei-on-dark,#f2f2f0)] [text-shadow:0_1px_2px_rgb(0_0_0/0.9)]">
+              <p>{outgoing.introduction}<span className={CAPTION_LINK_CLASS}>{outgoing.effectName}</span></p>
+              <p className="mt-0.5 text-[0.8125rem] italic text-[color:var(--ei-on-dark-muted,#cccccc)]">{getCreatorByline(outgoing.replication)}</p>
+            </div>
+          </div>
+        ) : null}
+        <div ref={activeLayerRef} className="absolute inset-0">
         <Link
           href={buildReplicationViewerUrl(
             publicHref.effect(item.effectSlug),
@@ -155,6 +208,15 @@ export function FeaturedReplicationsPanel({
           aria-label={`View ${replication.title}`}
           className={`absolute inset-0 flex h-full w-full items-center justify-center focus-visible:-outline-offset-2 ${ON_DARK_FOCUS_RING}`}
         >
+          {staticImageSource ? (
+            <AppImage
+              src={staticImageSource}
+              alt={replication.title}
+              width={replication.width ?? 800}
+              height={replication.height ?? 600}
+              className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-[180ms] motion-reduce:transition-none ${isVideo && autoplayAllowed && inView && videoReady ? "opacity-0" : "opacity-100"}`}
+            />
+          ) : null}
           {isVideo && autoplayAllowed && inView ? (
             <video
               key={replication.slug}
@@ -166,20 +228,16 @@ export function FeaturedReplicationsPanel({
               playsInline
               autoPlay
               preload="auto"
+              onLoadedData={(event) => {
+                if (event.currentTarget.readyState >= 2) setVideoReady(true);
+              }}
+              onError={() => setVideoReady(false)}
               // Fills the link and paints above it, so without this every click on
               // a video stage lands on the media element and never reaches the
               // anchor. The caption band below uses the same guard.
-              className="pointer-events-none h-full w-full object-contain"
+              className={`pointer-events-none absolute inset-0 h-full w-full object-contain transition-opacity duration-[180ms] motion-reduce:transition-none ${videoReady ? "opacity-100" : "opacity-0"}`}
             />
-          ) : staticImageSource ? (
-            <AppImage
-              src={staticImageSource}
-              alt={replication.title}
-              width={replication.width ?? 800}
-              height={replication.height ?? 600}
-              className="h-full w-full object-contain"
-            />
-          ) : (
+          ) : staticImageSource ? null : (
             <span
               aria-hidden
               className="grid h-full w-full place-items-center text-[color:var(--ei-on-dark-muted,#cccccc)]"
@@ -189,6 +247,25 @@ export function FeaturedReplicationsPanel({
           )}
         </Link>
 
+
+        <div
+          aria-live="polite"
+          className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/60 to-transparent px-3 pb-3 pt-10 text-center text-[0.9375rem] leading-snug text-[color:var(--ei-on-dark,#f2f2f0)] [text-shadow:0_1px_2px_rgb(0_0_0/0.9)]"
+        >
+          <p>
+            {item.introduction}
+            <Link
+              href={publicHref.effect(item.effectSlug)}
+              className={`${CAPTION_LINK_CLASS} ${ON_DARK_FOCUS_RING}`}
+            >
+              {item.effectName}
+            </Link>
+          </p>
+          <p className="mt-0.5 text-[0.8125rem] italic text-[color:var(--ei-on-dark-muted,#cccccc)]">
+            {byline}
+          </p>
+        </div>
+        </div>
         {count > 1 ? (
           <>
             <button
@@ -211,24 +288,6 @@ export function FeaturedReplicationsPanel({
             </button>
           </>
         ) : null}
-
-        <div
-          aria-live="polite"
-          className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/60 to-transparent px-3 pb-3 pt-10 text-center text-[0.9375rem] leading-snug text-[color:var(--ei-on-dark,#f2f2f0)] [text-shadow:0_1px_2px_rgb(0_0_0/0.9)]"
-        >
-          <p>
-            {item.introduction}
-            <Link
-              href={publicHref.effect(item.effectSlug)}
-              className={`${CAPTION_LINK_CLASS} ${ON_DARK_FOCUS_RING}`}
-            >
-              {item.effectName}
-            </Link>
-          </p>
-          <p className="mt-0.5 text-[0.8125rem] italic text-[color:var(--ei-on-dark-muted,#cccccc)]">
-            {byline}
-          </p>
-        </div>
       </div>
     </HomePanel>
   );

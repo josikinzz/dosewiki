@@ -53,7 +53,7 @@ export const effectIndexLegacyRedirects = [
   // selector that should be a fragment — are fixed in `IntLink` instead, because
   // those are patterns rather than one-offs.
   //
-  // The underlying article bodies in Convex still carry the wrong hrefs; see the
+  // The underlying article bodies in Postgres still carry the wrong hrefs; see the
   // 2026-07-29 handoff for the data-side pass that would retire these entries.
   { source: "/effects/acuity-suppression", destination: "/effects/visual-acuity-suppression" },
   {

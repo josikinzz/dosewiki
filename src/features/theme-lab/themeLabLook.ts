@@ -1,4 +1,5 @@
-import { isVisualStyle, type VisualStyle } from "@/theme";
+import type { VisualStyle } from "@/theme";
+import { isVisualStyle } from "@/theme/visualStyle";
 
 /**
  * The appearance the Theme Lab's edits belong to.

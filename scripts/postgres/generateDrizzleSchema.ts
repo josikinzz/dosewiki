@@ -1,14 +1,14 @@
 /**
- * Generates the Drizzle Postgres schema from the composed Convex schema.
+ * Generates the Drizzle Postgres schema and native model from the document schema.
  *
- * Source of truth: `convex/schema.ts` (via `schema.export()`), so the SQL
- * shape never drifts from the Convex validators by hand. Rerun with
- * `npm run generate:postgres-schema` after any Convex schema change.
+ * Source of truth: `server/schema.ts`, composed with owned definitions.
+ * SQL columns, indexes, and document types are generated from the same validators.
+ * Run `npm run generate:postgres-schema` after a document schema change.
  *
  * Mapping (recorded as migration decision D1 in
  * notes-and-plans/plans/convex-to-planetscale/decisions.md):
  * - Table and column identifiers are kept verbatim so import needs no renames.
- * - `_id` text primary key; `_creation_time` double precision (Convex float64 ms).
+ * - `_id` text primary key; `_creation_time` double precision (float64 ms).
  * - Top-level scalars become typed columns; string-literal unions become text.
  * - Objects, arrays, records, `any`, and mixed unions become jsonb.
  * - A field that is both optional and nullable becomes jsonb so an absent
@@ -16,8 +16,8 @@
  * - `v.id("x")` becomes text. Reference edges are exported as data instead of
  *   foreign keys; ticket 02 reconciliation verifies them before constraints
  *   are added.
- * - Every Convex index becomes a btree index with `_creation_time` appended,
- *   matching Convex's implicit trailing sort key. Dotted index fields index
+ * - Every document index becomes a btree index with `_creation_time` appended,
+ *   matching the runtime's trailing sort key. Dotted index fields index
  *   the jsonb path expression.
  */
 
@@ -25,7 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { exportConvexTables, objectFieldsOf, type ValidatorJson } from "./convexSchemaExport";
+import { exportSchemaTables, objectFieldsOf, type ValidatorJson } from "./schemaExport";
 
 export type ColumnKind = "text" | "double" | "boolean" | "bigint" | "bytea" | "jsonb";
 
@@ -69,7 +69,7 @@ const UNIQUE_IDENTITIES: Partial<Record<string, readonly string[]>> = {
   replicationSourceAttribution: ["by_replication_id"],
   replicationTaxonomyEvidence: ["by_replication_digest"],
   replications: ["by_source_catalog_id", "by_taxonomy_record_key"],
-  // `convex/lib/publicReadIndexes.ts` reduces this table to one row per
+  // `server/lib/publicReadIndexes.ts` reduces this table to one row per
   // article and deletes any extras, so uniqueness is its own invariant.
   reviewedArticles: ["by_article"],
   substanceIndex: ["by_slug"],
@@ -81,7 +81,7 @@ const UNIQUE_IDENTITIES: Partial<Record<string, readonly string[]>> = {
 type ColumnPlan = {
   name: string;
   kind: ColumnKind;
-  /** Field may be absent from the Convex document. */
+  /** Field may be absent from the stored document. */
   optional: boolean;
   /** Column accepts SQL NULL (absent field or explicit null on a scalar). */
   nullable: boolean;
@@ -90,6 +90,7 @@ type ColumnPlan = {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = path.join(__dirname, "../../lib/postgres/schema.generated.ts");
+const MODEL_PATH = path.join(__dirname, "../../lib/postgres/runtime/dataModel.ts");
 const PG_IDENTIFIER_LIMIT = 63;
 
 function scalarKind(v: ValidatorJson): ColumnKind | null {
@@ -107,7 +108,7 @@ function scalarKind(v: ValidatorJson): ColumnKind | null {
     case "id":
       return "text";
     case "literal":
-      return typeof v.value === "string" ? "text" : typeof v.value === "number" ? "double" : "boolean";
+      return typeof v.value === "string" ? "text" : typeof v.value === "number" ? "double" : typeof v.value === "bigint" ? "bigint" : "boolean";
     default:
       return null;
   }
@@ -143,7 +144,7 @@ function indexName(table: string, descriptor: string): string {
 }
 
 /**
- * Convex orders strings by code unit. Postgres' default locale collation
+ * Document strings retain code-unit ordering. Postgres' default locale collation
  * sorts punctuation differently ("25b-nboh" before "2-aminoindane"), so every
  * text index sorts `COLLATE "C"` and the runtime compares the same way.
  * Equality and uniqueness are unaffected: both collations are deterministic.
@@ -181,19 +182,19 @@ function columnBuilder(column: ColumnPlan): string {
 }
 
 function main() {
-  const tables = exportConvexTables().sort((a, b) => a.tableName.localeCompare(b.tableName));
+  const tables = exportSchemaTables().sort((a, b) => a.tableName.localeCompare(b.tableName));
 
   const lines: string[] = [];
   lines.push("// GENERATED FILE. Do not edit by hand.");
   lines.push("// Producer: scripts/postgres/generateDrizzleSchema.ts (npm run generate:postgres-schema)");
-  lines.push("// Input: convex/schema.ts composed export.");
+  lines.push("// Input: server/schema.ts composed export.");
   lines.push("");
   lines.push('import { sql } from "drizzle-orm";');
   lines.push('import { bigint, boolean, customType, doublePrecision, index, jsonb, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";');
   lines.push("");
   lines.push('export type ColumnKind = "text" | "double" | "boolean" | "bigint" | "bytea" | "jsonb";');
   lines.push("");
-  lines.push("/** `optional` means the Convex field may be absent; a NULL in such a column reconstructs as an absent field, otherwise as an explicit null. */");
+  lines.push("/** `optional` means the document field may be absent; a NULL in such a column reconstructs as an absent field, otherwise as an explicit null. */");
   lines.push("export type ColumnSpec = { kind: ColumnKind; optional: boolean };");
   lines.push("");
 
@@ -266,7 +267,7 @@ function main() {
   lines.push(...uniqueEntries);
   lines.push("} as const satisfies Record<string, readonly (readonly string[])[]>;");
   lines.push("");
-  lines.push("/** Convex index descriptors per table: name -> indexed fields in order (`_creationTime` is implicitly last). */");
+  lines.push("/** Document index descriptors per table: name -> indexed fields in order (`_creationTime` is implicitly last). */");
   lines.push("export const tableIndexes = {");
   lines.push(...indexEntries);
   lines.push("} as const satisfies Record<string, Record<string, readonly string[]>>;");
@@ -289,7 +290,27 @@ function main() {
 
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, output);
+  fs.writeFileSync(MODEL_PATH, `// GENERATED FILE. Do not edit by hand.
+// Producer: scripts/postgres/generateDrizzleSchema.ts (npm run generate:postgres-schema)
+import type schema from "../../../server/schema";
+import type { Id as DocumentId } from "./values";
+
+export type TableNames = keyof typeof schema.tables;
+export type Id<Table extends TableNames | "_storage" | "_scheduled_functions"> = DocumentId<Table>;
+export type Doc<Table extends TableNames> = (typeof schema.tables)[Table]["validator"]["type"] & { _id: Id<Table>; _creationTime: number };
+type DeclaredIndexes<Table extends TableNames> = (typeof schema.tables)[Table]["indexTypes"];
+export type DataModel = {
+  [Table in TableNames]: {
+    document: Doc<Table>;
+    fieldPaths: (typeof schema.tables)[Table]["validator"]["fieldPaths"] | "_id" | "_creationTime";
+    indexes: { [Name in keyof DeclaredIndexes<Table>]: readonly [...Extract<DeclaredIndexes<Table>[Name], readonly string[]>, "_creationTime"] } & { by_id: readonly ["_id"]; by_creation_time: readonly ["_creationTime"] };
+    searchIndexes: {};
+    vectorIndexes: {};
+  };
+};
+`);
   console.log(`Wrote ${path.relative(process.cwd(), OUTPUT_PATH)}: ${tables.length} tables, ${tables.reduce((n, t) => n + t.indexes.length + 1, 0)} indexes`);
+  console.log(`Wrote ${path.relative(process.cwd(), MODEL_PATH)}: native document and index types`);
 }
 
 function indexBuilder(kind: "index" | "uniqueIndex", name: string, expressions: string[]): string {

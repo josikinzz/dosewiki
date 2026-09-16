@@ -5,7 +5,7 @@ import { basename, resolve } from "node:path";
 
 import { createDataClient, type DataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { SUBSTANCE_SECTION_IDS } from "../../src/schema/substance/sectionCatalog";
 import { assertDataOpsWriteAllowed,
 createDataOpsRunContext,
@@ -45,13 +45,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseReviewApplyOptions(argv: string[]): ReviewApplyOptions {
   let runId = "";
   let write = false;
-  const acceptedExact = new Set(["--write", "--dry-run", CONFIRMATION_FLAG]);
-  const acceptedWithValue = ["--run-id=", "--confirm-write=", "--expected-deployment="];
+  const acceptedExact: Record<string, true> = { "--write": true, "--dry-run": true, "--allow-remote": true, [CONFIRMATION_FLAG]: true };
+  const acceptedWithValue = ["--run-id=", "--confirm-write=", "--expected-deployment=", "--target="];
 
-  for (const argument of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === "--target") {
+      const value = argv[++index];
+      if (!value || value.startsWith("--")) throw new Error("--target requires a Postgres URL.");
+      continue;
+    }
     if (argument.startsWith("--run-id=")) runId = argument.slice(9).trim();
     else if (argument === "--write") write = true;
-    else if (!acceptedExact.has(argument) && !acceptedWithValue.some((prefix) => argument.startsWith(prefix))) {
+    else if (!Object.hasOwn(acceptedExact, argument) && !acceptedWithValue.some((prefix) => argument.startsWith(prefix))) {
       throw new Error(`Unknown option: ${argument}`);
     }
   }
@@ -174,7 +180,7 @@ export async function runReviewApply(
     intent: "editorArticleWrite",
     argv: options.argv,
     env,
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,
@@ -197,7 +203,7 @@ export async function runReviewApply(
   }
 
   assertDataOpsWriteAllowed(context);
-  const targetUrl = requireTargetUrl(context, "Convex Review Flag target URL");
+  const targetUrl = requireTargetUrl(context, "Postgres Review Flag target URL");
   const token = requireAdminIntentToken("editorArticleWrite", { env });
   const client = createClient(targetUrl);
   const audit = writeAudit({

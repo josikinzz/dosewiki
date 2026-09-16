@@ -148,12 +148,12 @@ export function transformArticle(rawArticle, assetMap = new Map()) {
   };
 
   if (bodyAst) {
-    // Convex rejects documents nested deeper than 16 levels. The public reader
+    // Postgres rejects documents nested deeper than 16 levels. The public reader
     // re-parses body_raw whenever body_ast is absent, so over-deep ASTs are
     // simply not stored.
     const depth = astDepth(bodyAst);
     if (depth > 16) {
-      notes.push(`body_ast omitted: nesting depth ${depth} exceeds Convex storage limits (rendered from body_raw instead)`);
+      notes.push(`body_ast omitted: nesting depth ${depth} exceeds the document nesting limit (rendered from body_raw instead)`);
     } else {
       article.body_ast = bodyAst;
     }

@@ -1,10 +1,10 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyKey, flavoredCopyText, getCopyByKeys } from "@server/next/copyBlocks";
 import { TripReportSubmissionPage } from "@/features/reports/submissions/TripReportSubmissionPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export async function generateMetadata() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys([flavoredCopyKey("seo-reports-submit-description")]);
 
   return buildPublicPageMetadata({
     title: "Submit a Trip Report",

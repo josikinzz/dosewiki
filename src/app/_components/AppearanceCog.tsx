@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   useEffect,
   useRef,
@@ -17,8 +18,12 @@ import {
 import { setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { cn } from "@/lib/utils";
 import type { AppearanceAxesRows } from "./AppearanceAxes";
-import { AppearancePanel } from "./AppearancePanel";
 import { useT } from "@/i18n/client";
+
+const AppearancePanel = dynamic(
+  () => import("./AppearancePanel").then((module) => module.AppearancePanel),
+  { ssr: false },
+);
 
 /**
  * Which controls this instrument offers. The reader panel owns the reader preferences;
@@ -117,7 +122,7 @@ export function AppearanceCog({
           <Icon
             icon="lucide:cog"
             size={iconSize}
-            className="transition-transform duration-300 ease-out group-hover:rotate-45 group-data-[state=open]:rotate-90 motion-reduce:transition-none"
+            className="transition-transform duration-[180ms] ease-out group-hover:rotate-45 group-data-[state=open]:rotate-90 motion-reduce:transition-none"
           />
         </button>
       </PopoverTrigger>
@@ -126,7 +131,7 @@ export function AppearanceCog({
         // fluid and nowrap, so the panel keeps its height at this width, while the viewport
         // clamp keeps a 320px phone on-screen.
         // `theme-chrome-dark` pins the dark control palette even when the page is light.
-        className="theme-chrome-dark theme-appearance-popover w-[min(18rem,calc(100vw-1.5rem))] max-w-none p-0 motion-reduce:animate-none"
+        className="theme-chrome-dark theme-appearance-popover w-[min(18rem,calc(100vw-1.5rem))] max-w-none p-0 data-[state=open]:[animation-duration:180ms] data-[state=closed]:[animation-duration:120ms] data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 motion-reduce:animate-none"
         align="end"
         // Radix places the panel `sideOffset + arrow height` from the trigger, so 0 here
         // plus the 8px stem below lands the visible edge 8px under the cog — the same
@@ -159,7 +164,7 @@ export function AppearanceCog({
           className="theme-popover-arrow"
         />
         <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
-          <AppearancePanel
+          {popoverOpen && <AppearancePanel
             showVisualStyle={showVisualStyle}
             showColorScheme={showColorScheme}
             showSurface={showSurface}
@@ -184,7 +189,7 @@ export function AppearanceCog({
                 </button>
               ) : null
             }
-          />
+          />}
         </div>
       </PopoverContent>
     </Popover>

@@ -10,18 +10,18 @@
  * Slugs that no longer resolve are pruned by the mutation and reported back, so
  * the panel can say what it dropped rather than silently losing a position.
  *
- * Editor floor, ownership in Convex: `setContributorOrdering` lets an admin
+ * Editor floor, ownership in Postgres: `setContributorOrdering` lets an admin
  * curate any profile and an editor only their own, refused here as 403.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { revalidateContributorSurfaces } from "../contributorRevalidation";
 
 export const runtime = "nodejs";
 
-/** Matches `MAX_ORDER_SLUGS` in `convex/lib/contributorProfiles.ts`. */
+/** Matches `MAX_ORDER_SLUGS` in `server/lib/contributorProfiles.ts`. */
 const MAX_ORDER_SLUGS = 500;
 const MAX_SLUG_LENGTH = 200;
 
@@ -87,11 +87,11 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
     maxBytes: 128 * 1024,
     parse: parseOrderingBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save a contributor ordering via Next route:",
   unexpectedErrorMessage: "Unable to save that ordering right now.",
   mapError: (error) => {
-    // Convex wraps thrown mutation errors, so match by substring.
+    // Postgres wraps thrown mutation errors, so match by substring.
     const message = error instanceof Error ? error.message : "";
     if (message.includes("You can only edit your own contributor profile")) {
       return NextResponse.json(
@@ -101,14 +101,14 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
     }
     return null;
   },
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("profileMediaWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("profileMediaWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(
+    const result = await dataWrite.client.mutation(
       api.contributorProfiles.setContributorOrdering,
       {
         apiKey,

@@ -1,25 +1,22 @@
 #!/usr/bin/env node
 /**
- * Export production Convex substanceIndex to JSON file.
+ * Export production Postgres substanceIndex to JSON file.
  */
 
 import { createDataClient } from "./lib/data-client.ts";
-import { api } from "../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "./lib/convex-pagination.mjs";
+import { api } from "../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "./lib/data-pagination.mjs";
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-const PROD_URL = "https://glad-minnow-656.convex.cloud";
 
 async function main() {
-  console.log("🔄 Fetching substances from production Convex...");
-  console.log(`   URL: ${PROD_URL}\n`);
-
-  const client = createDataClient({ target: PROD_URL }).client;
+  const { client, fingerprint } = createDataClient();
+  console.log(`Fetching substances from Postgres ${fingerprint}...`);
 
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
-  // Strip Convex internal fields
+  // Strip Postgres internal fields
   const cleanArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);
 
   console.log(`✅ Fetched ${cleanArticles.length} substances`);
@@ -30,6 +27,13 @@ async function main() {
 
   console.log(`\n📁 Written to: ${outputPath}`);
   console.log(`   File size: ${(JSON.stringify(cleanArticles).length / 1024 / 1024).toFixed(2)} MB`);
+}
+
+main().catch((error) => {
+  console.error("❌ Export failed:", error);
+  process.exit(1);
+});
+)} MB`);
 }
 
 main().catch((error) => {

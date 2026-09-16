@@ -59,7 +59,7 @@ export function deriveReviewFlagSummary(
 /**
  * A locally recorded review tick, keyed by slug.
  *
- * The tick persists straight to Convex through its own endpoint, so the dev
+ * The tick persists straight to Postgres through its own endpoint, so the dev
  * shell's in-memory article set is deliberately left untouched — mutating it
  * would register a phantom pending change with the commit panel. `baseStatus`
  * records what the article said when the tick happened: if the article's own
@@ -70,7 +70,7 @@ export interface ReviewStatusOverride {
   status: ReviewStatus;
   baseStatus: ReviewStatus;
   /**
-   * The `editorial_review` record Convex returned for the tick. The queue only
+   * The `editorial_review` record Postgres returned for the tick. The queue only
    * needs `status`, but the rendered article, the citation panel, and the
    * editor form all read the whole object, and the working set will not carry
    * it until the slug re-hydrates or the library list refreshes, so the write
@@ -134,7 +134,7 @@ function resolveReferenceCount(article: SubstanceArticle & ReferenceCounted): nu
 }
 
 /**
- * The article's review record as Convex now holds it: the ticked one while the
+ * The article's review record as Postgres now holds it: the ticked one while the
  * override is still live, otherwise the article's own.
  *
  * Same shadowing rule as `resolveEntryStatus` — once the working set reports a
@@ -285,7 +285,7 @@ export function flattenHomeOrder(layout: {
   return orderedSlugs;
 }
 
-/** The slice of the Convex category layout the grouped picker needs. */
+/** The slice of the Postgres category layout the grouped picker needs. */
 export interface ReviewGroupLayout {
   categories: Array<{
     key: string;

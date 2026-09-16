@@ -2,14 +2,14 @@ import "server-only";
 
 import {
   publicDataCache,
-  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_CONVEX_CACHE_TAGS,
-} from "../convex/publicData.cache";
+  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_DATA_CACHE_TAGS,
+} from "../data/publicData.cache";
 import { cache } from "react";
 import { CORPORA } from "../../scripts/translation/corpora.mjs";
 import { localizeDataset } from "../translation/liveTranslation";
 
-import { getPublicDataReadAdapter } from "../convex/publicData.reads";
+import { getPublicDataReadAdapter } from "../data/publicData.reads";
 import {
   clampSafetyBannerIconSize,
   isWarningBannerTone,
@@ -21,9 +21,9 @@ import {
 /**
  * Server read for the drug-class safety banners.
  *
- * One Convex read serves every banner on a page — `warningBanners:listPresets`
+ * One Postgres read serves every banner on a page — `warningBanners:listPresets`
  * returns the whole (small) preset table — cached under
- * `PUBLIC_CONVEX_CACHE_TAGS.banners` so the Banner Studio save route can make an
+ * `PUBLIC_DATA_CACHE_TAGS.banners` so the Banner Studio save route can make an
  * enablement public immediately by revalidating that one tag.
  *
  * Resolution is NOT done here. This returns rows; `resolveEnabledBanners` in
@@ -37,7 +37,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * Keeps the strings and drops everything else. The ceilings live on the write
- * path (`src/app/api/dev/warning-banner/route.ts`) and in the Convex mutation;
+ * path (`src/app/api/dev/warning-banner/route.ts`) and in the Postgres mutation;
  * re-checking lengths here would silently delete a stored bullet instead of
  * surfacing the row that broke the rule.
  */
@@ -126,10 +126,10 @@ export const getWarningBannerPresets = cache(
       return [];
     }
   },
-  ["convex-public-warning-banners"],
+  ["data-public-warning-banners"],
   {
-    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.banners],
   },),
 );
 
@@ -197,9 +197,9 @@ export const getSafetyBannerIconSize = cache(
       return SAFETY_BANNER_ICON_SIZE_DEFAULT;
     }
   },
-  ["convex-public-safety-banner-icon-size"],
+  ["data-public-safety-banner-icon-size"],
   {
-    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.banners],
   },),
 );

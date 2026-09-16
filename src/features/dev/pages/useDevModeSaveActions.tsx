@@ -7,7 +7,7 @@ import {
   useEditorServerConfigHealth,
   type EditorServerConfigHealth,
 } from "@/hooks/useEditorServerConfigHealth";
-import { useSaveToConvexMutation, useSubmitProposalMutation } from "@/hooks/useApiMutations";
+import { useSaveArticleMutation, useSubmitProposalMutation } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import type { DevCommitRebase } from "../components/DevCommitCard";
@@ -23,7 +23,7 @@ import {
 import { DevModeCommitPanel } from "./DevModeCommitPanel";
 import {
   buildDevSaveDraft,
-  createConvexSaveAdapter,
+  createDataSaveAdapter,
   createProposalSaveAdapter,
   type DevSaveCredentials,
 } from "./devSaveCommand";
@@ -76,8 +76,8 @@ const NOTICE_CLEAR_MS = { success: 5000, error: 10000 } as const;
 function CommitButton({
   canDraft,
   canApprove,
-  convexServerHealth,
-  refreshConvexServerHealth,
+  dataServerHealth,
+  refreshDataServerHealth,
   isSaving,
   hasPendingChanges,
   isCommitBlocked,
@@ -85,8 +85,8 @@ function CommitButton({
 }: {
   canDraft: boolean;
   canApprove: boolean;
-  convexServerHealth: EditorServerConfigHealth;
-  refreshConvexServerHealth: () => Promise<void>;
+  dataServerHealth: EditorServerConfigHealth;
+  refreshDataServerHealth: () => Promise<void>;
   isSaving: boolean;
   hasPendingChanges: boolean;
   isCommitBlocked: boolean;
@@ -94,11 +94,11 @@ function CommitButton({
 }) {
   return (
     <div className="flex items-center gap-2">
-      {canApprove && convexServerHealth.status !== "healthy" ? (
+      {canApprove && dataServerHealth.status !== "healthy" ? (
         <EditorServerHealthIndicator
-          health={convexServerHealth}
+          health={dataServerHealth}
           onRefresh={() => {
-            void refreshConvexServerHealth();
+            void refreshDataServerHealth();
           }}
         />
       ) : null}
@@ -147,10 +147,10 @@ export function useDevModeSaveActions({
   onClearActiveProposal,
   onDiscardActiveProposal,
 }: UseDevModeSaveActionsArgs): UseDevModeSaveActionsResult {
-  // Only an admin writes production, so only an admin polls the server health
-  // that gates that write; an editor's proposal has no such precondition.
-  const { health: convexServerHealth, refresh: refreshConvexServerHealth } =
-    useEditorServerConfigHealth(canApprove);
+  // Production health is relevant only once there is something to commit.
+  // The check still starts before the production action can become enabled.
+  const { health: dataServerHealth, refresh: refreshDataServerHealth } =
+    useEditorServerConfigHealth(canApprove && hasPendingChanges);
   // The session cookie is the credential; this only names who the save is
   // attributed to and refuses to start a save nobody is signed in for.
   const verifySaveSession = useCallback(async (): Promise<DevSaveCredentials> => {
@@ -160,7 +160,7 @@ export function useDevModeSaveActions({
     return { key: sessionProfileKey || "USER" };
   }, [isSignedIn, sessionProfileKey]);
 
-  const saveToConvexMutation = useSaveToConvexMutation();
+  const saveArticleMutation = useSaveArticleMutation();
   const submitProposalMutation = useSubmitProposalMutation();
 
   // Create orchestrator once
@@ -270,9 +270,9 @@ export function useDevModeSaveActions({
   const handleEffect = useCallback(
     async function runEffect(effect: SaveOrchestratorEffect): Promise<void> {
       const adapter = canApprove
-        ? createConvexSaveAdapter({
-            serverHealth: convexServerHealth,
-            saveToConvex: saveToConvexMutation.mutateAsync,
+        ? createDataSaveAdapter({
+            serverHealth: dataServerHealth,
+            saveArticle: saveArticleMutation.mutateAsync,
           })
         : createProposalSaveAdapter({
             submitProposal: submitProposalMutation.mutateAsync,
@@ -356,13 +356,13 @@ export function useDevModeSaveActions({
     [
       activeProposal,
       canApprove,
-      convexServerHealth,
+      dataServerHealth,
       draft,
       markChangesSaved,
       onAppendChangeLogEntry,
       onClearActiveProposal,
       orchestrator,
-      saveToConvexMutation.mutateAsync,
+      saveArticleMutation.mutateAsync,
       submitProposalMutation.mutateAsync,
       scheduleNoticeAutoClear,
       verifySaveSession,
@@ -399,15 +399,15 @@ export function useDevModeSaveActions({
   const notice: ChangeNotice | null = orchestratorState.notice;
 
   const isCommitBlocked =
-    canApprove && convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
+    canApprove && dataServerHealth.status === "unhealthy" && !dataServerHealth.canSaveToPostgres;
 
   const commitButton = useMemo(
     () => (
       <CommitButton
         canDraft={canDraft}
         canApprove={canApprove}
-        convexServerHealth={convexServerHealth}
-        refreshConvexServerHealth={refreshConvexServerHealth}
+        dataServerHealth={dataServerHealth}
+        refreshDataServerHealth={refreshDataServerHealth}
         isSaving={isSaving}
         hasPendingChanges={hasPendingChanges}
         isCommitBlocked={isCommitBlocked}
@@ -417,14 +417,14 @@ export function useDevModeSaveActions({
       />
     ),
     [
-      convexServerHealth,
+      dataServerHealth,
       handleCommit,
       canDraft,
       canApprove,
       hasPendingChanges,
       isCommitBlocked,
       isSaving,
-      refreshConvexServerHealth,
+      refreshDataServerHealth,
     ],
   );
 

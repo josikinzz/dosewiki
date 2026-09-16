@@ -148,11 +148,6 @@ export function WritingTab({
   const selectionKey = selection.type === "row" ? `row:${selection.slug}` : selection.type;
   useScrollToDetail(detailRef, selectionKey, STACKED_BELOW_XL_QUERY);
 
-  if (entries === null) {
-    return (
-      <StateCard loading compact className="mt-10" title="Loading writing" />
-    );
-  }
 
   return (
     <div className="mt-6 space-y-8 md:mt-8">
@@ -201,6 +196,9 @@ export function WritingTab({
                 if (!pinned) guard(selectPinned);
               }}
             />
+            {entries === null ? (
+              <StateCard loading compact title="Loading writing list" />
+            ) : null}
 
             {selection.type === "new" ? (
               <EditorListItem
@@ -233,7 +231,7 @@ export function WritingTab({
               />
             ))}
 
-            {kindEntries.length === 0 ? (
+            {entries !== null && kindEntries.length === 0 ? (
               <p className="theme-text-faint px-1 text-sm">Nothing written here yet.</p>
             ) : null}
           </div>

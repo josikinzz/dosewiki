@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { normalizeQuoteSectionId } from "../../../../lib/quoteSections.mjs";
@@ -61,7 +61,7 @@ export const POST = protectedRouteOperation<SaveQuoteBody, { slug: string; secti
     maxBytes: MAX_QUOTE_PAYLOAD_BYTES,
     parse: parseBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save quote via Next route:",
   unexpectedErrorMessage: "Unable to save quote right now.",
   mapError: (error) => {
@@ -71,16 +71,16 @@ export const POST = protectedRouteOperation<SaveQuoteBody, { slug: string; secti
 
     return null;
   },
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ auth, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const { slug, section, content } = body;
     const updatedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
-    const apiKey = convexWrite.getAdminIntentToken?.("quoteMigrationWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("quoteMigrationWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.quotes.save, {
+    const result = await dataWrite.client.mutation(api.quotes.save, {
       apiKey,
       actorEmail,
       slug,

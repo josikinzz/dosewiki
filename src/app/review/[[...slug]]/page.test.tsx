@@ -2,17 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const ALIGNED = {
   status: "aligned" as const,
-  read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-  write: { deploymentName: "glad-minnow-656", sourceEnvVar: "CONVEX_URL" },
-  overrideAcknowledged: false,
+  read: { deploymentName: "db.example/dosewiki", sourceEnvVar: "POSTGRES_POOLED_URL" },
+  write: { deploymentName: "db.example/dosewiki", sourceEnvVar: "POSTGRES_DIRECT_URL" },
   summary: "aligned",
 };
 
 const SPLIT = {
   status: "split" as const,
-  read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-  write: { deploymentName: "enchanted-echidna-791", sourceEnvVar: "VITE_CONVEX_URL" },
-  overrideAcknowledged: false,
+  read: { deploymentName: "db.example/dosewiki", sourceEnvVar: "POSTGRES_POOLED_URL" },
+  write: { deploymentName: "db.example/other", sourceEnvVar: "POSTGRES_DIRECT_URL" },
   summary: "split",
 };
 
@@ -36,8 +34,7 @@ vi.mock("@auth", () => ({
   authOptions: {},
 }));
 
-vi.mock("@server/convex/serverWriteHealth", () => ({
-  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR: "CONVEX_ALLOW_TARGET_SPLIT",
+vi.mock("@server/data/serverWriteHealth", () => ({
   getEditorTargetAlignment: getEditorTargetAlignmentMock,
 }));
 
@@ -55,12 +52,11 @@ vi.mock("../_components/ReviewRouteClient", () => ({
 
 import ReviewPage from "./page";
 import {
-  ConvexTargetSplitBanner,
-  ConvexTargetSplitRefusal,
-} from "../../_components/ConvexTargetSplitNotice";
+  DataTargetSplitRefusal,
+} from "../../_components/DataTargetSplitNotice";
 import { ReviewRouteClient } from "../_components/ReviewRouteClient";
 
-describe("ReviewPage Convex target alignment gate", () => {
+describe("ReviewPage Postgres target alignment gate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getEditorTargetAlignmentMock.mockReturnValue(ALIGNED);
@@ -81,31 +77,8 @@ describe("ReviewPage Convex target alignment gate", () => {
 
     const element = await ReviewPage({ params: Promise.resolve({ slug: ["2c-b"] }) });
 
-    expect(element.type).toBe(ConvexTargetSplitRefusal);
+    expect(element.type).toBe(DataTargetSplitRefusal);
     expect(element.props).toMatchObject({ alignment: SPLIT, surface: "review workbench" });
   });
 
-  it("renders the workbench under a banner when the split is acknowledged", async () => {
-    getEditorTargetAlignmentMock.mockReturnValue({ ...SPLIT, overrideAcknowledged: true });
-
-    const element = await ReviewPage({ params: Promise.resolve({ slug: [] }) });
-
-    const children = element.props.children as Array<{ type: unknown }>;
-    expect(children[0].type).toBe(ConvexTargetSplitBanner);
-    expect(children[1].type).toBe(ReviewRouteClient);
-  });
-
-  it("leaves the read-only no-write-target posture alone", async () => {
-    getEditorTargetAlignmentMock.mockReturnValue({
-      status: "no-write-target",
-      read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-      write: { deploymentName: null, sourceEnvVar: null },
-      overrideAcknowledged: false,
-      summary: "read-only",
-    });
-
-    const element = await ReviewPage({ params: Promise.resolve({ slug: [] }) });
-
-    expect(element.type).toBe(ReviewRouteClient);
-  });
 });

@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/common/Icon";
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { useT } from "@/i18n/client";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import { prefersReducedMotion } from "@/utils/navigation";
 
 const MASONRY_CLASS =
   "columns-2 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
@@ -34,14 +35,44 @@ export function IncrementalMasonry({
   const t = useT();
   const [visibleCount, setVisibleCount] = useState(MASONRY_PAGE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const previousItemsRef = useRef(items);
+  const seenRef = useRef<Set<string> | null>(null);
+  if (!seenRef.current) {
+    seenRef.current = new Set(items.slice(0, MASONRY_PAGE).map((item) => item._id));
+  }
 
   useEffect(() => {
-    setVisibleCount(MASONRY_PAGE);
+    const previous = previousItemsRef.current;
+    previousItemsRef.current = items;
+    const appended = items.length >= previous.length &&
+      previous.every((item, index) => item._id === items[index]._id);
+    if (!appended) {
+      setVisibleCount(MASONRY_PAGE);
+      seenRef.current = new Set(items.slice(0, MASONRY_PAGE).map((item) => item._id));
+    }
   }, [items]);
 
   const visible =
     items.length > visibleCount ? items.slice(0, visibleCount) : items;
   const exhausted = visible.length === items.length;
+
+  useEffect(() => {
+    const seen = seenRef.current!;
+    const reduceMotion = prefersReducedMotion();
+    const nodes = gridRef.current?.children;
+    visible.forEach((item, index) => {
+      if (seen.has(item._id)) return;
+      seen.add(item._id);
+      const node = nodes?.[index];
+      if (!node || reduceMotion) return;
+      const rect = node.getBoundingClientRect();
+      // Never choreograph a whole masonry column or queue offscreen entrances.
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        node.classList.add("theme-reveal-enter");
+      }
+    });
+  }, [visible]);
 
   useEffect(() => {
     if (exhausted) return;
@@ -61,7 +92,7 @@ export function IncrementalMasonry({
 
   return (
     <>
-      <div className={MASONRY_CLASS}>
+      <div ref={gridRef} className={MASONRY_CLASS}>
         {visible.map((replication) => (
           <GalleryMediaTile
             key={replication._id}
@@ -92,7 +123,7 @@ export function IncrementalMasonry({
             className="min-h-11 gap-1.5"
           >
             {t("Show more works")}
-            <Icon icon="lucide:chevron-down" className="h-4 w-4" aria-hidden />
+            <ExpandIndicator isExpanded={false} />
           </Button>
           <span className="theme-text-faint text-xs tabular-nums">
             {t("Showing {{visible}} of {{total}} works", {

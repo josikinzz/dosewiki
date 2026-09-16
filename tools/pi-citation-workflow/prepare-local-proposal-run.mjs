@@ -2,7 +2,7 @@
 /**
  * Prepare one permanently local citation-workbench run from an immutable
  * section proposal. This script reads repository-local proposal artifacts and
- * an existing workbench input packet; it never contacts Convex, applies a
+ * an existing workbench input packet; it never contacts Postgres, applies a
  * draft, or updates queue/tracker state.
  */
 
@@ -105,7 +105,7 @@ function containsCitationMarker(value) {
   return false;
 }
 
-function stripConvexMetadata(article) {
+function stripDataMetadata(article) {
   const copy = structuredClone(article);
   delete copy._id;
   delete copy._creationTime;
@@ -273,7 +273,7 @@ function assertProposalIntegrity({ proposal, proposalPath, repoRoot, exportRoot 
     throw new Error("Manifest target deployment does not match the proposal.");
   }
   if (manifest.targetArticleHash !== canonicalHash(manifest.targetArticle)) throw new Error("manifest.targetArticleHash does not recompute.");
-  const manifestTargetContent = stripConvexMetadata(manifest.targetArticle);
+  const manifestTargetContent = stripDataMetadata(manifest.targetArticle);
   if (manifest.targetArticleContentHash !== canonicalHash(manifestTargetContent)) {
     throw new Error("manifest.targetArticleContentHash does not recompute.");
   }

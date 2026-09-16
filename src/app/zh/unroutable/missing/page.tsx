@@ -8,9 +8,9 @@
  * static route's tree, so a `headers()` call there flips ISR articles dynamic
  * at runtime and crashes them.
  */
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
-import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
+import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { NotFoundBody } from "../../../_components/NotFoundBody";
@@ -21,7 +21,7 @@ const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
 
 export default async function LocalizedNotFoundPage() {
   setRequestLocale(LOCALE.code);
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["not-found-title", "not-found-body"]);
   const substancesLink = getStatusRecoveryLink("substances");
   const effectsLink = getStatusRecoveryLink("effects");
   const reportsLink = getStatusRecoveryLink("reports");

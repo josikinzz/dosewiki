@@ -13,8 +13,8 @@ import {
 } from "@/utils/indexViewRoutes";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { getCategoryDefinitions } from "@server/next/categoryDefinitions";
-import { getCopy } from "@server/next/copyBlocks";
-import { getPublicDataOverview } from "@server/convex/publicData";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
+import { getPublicSubstanceLookup } from "@server/data/publicData";
 import { getSubstancesLayoutRouteOutcome } from "@server/next/publicRouteOutcomes";
 import {
   buildPublicPageMetadata,
@@ -23,6 +23,10 @@ import {
 } from "@server/next/publicSite";
 
 const ITEM_LIST_LIMIT = 100;
+const SUBSTANCE_INDEX_COPY_KEYS = [
+  "seo-substances-index-description",
+  ...getCopyKeysByPrefix("substances-category-"),
+];
 
 const LEGACY_HASHES = [
   SUBSTANCE_INDEX_DEFAULT_VIEW,
@@ -32,15 +36,16 @@ export async function getSubstancesIndexMetadata(
   pathname: string,
   options: { noIndex?: boolean; canonicalPathname?: string } = {},
 ) {
-  const [overview, copy] = await Promise.all([getPublicDataOverview(), getCopy()]);
+  const [substances, copy] = await Promise.all([getPublicSubstanceLookup(), getCopyByKeys(SUBSTANCE_INDEX_COPY_KEYS)]);
+  const substanceCount = substances.filter((substance) => substance.priority !== "low").length;
   const template =
     copy.text("seo-substances-index-description") ||
     msg(`Browse {{substanceCount}} substance records in {{siteName}}.`);
 
   return buildPublicPageMetadata({
     title: t(msg("Substance Index")),
-    description: applyPlaceholders(t(template, { substanceCount: overview.substanceCount, siteName: SITE_FLAVOR_CONFIG.name }), {
-      substanceCount: overview.substanceCount,
+    description: applyPlaceholders(t(template, { substanceCount, siteName: SITE_FLAVOR_CONFIG.name }), {
+      substanceCount,
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
     pathname: options.canonicalPathname ?? pathname,
@@ -61,7 +66,7 @@ export async function SubstancesIndexRoute({
 }) {
   const [outcome, copy] = await Promise.all([
     getSubstancesLayoutRouteOutcome(),
-    getCopy(),
+    getCopyByKeys(SUBSTANCE_INDEX_COPY_KEYS),
   ]);
 
   if (outcome.state === "unavailable") {

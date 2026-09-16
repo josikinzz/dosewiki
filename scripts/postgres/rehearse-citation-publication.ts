@@ -3,8 +3,8 @@
  *
  *   bun scripts/postgres/rehearse-citation-publication.ts [--target <url>] [--allow-remote] [--keep]
  *
- * Every call goes through `PostgresConvexClient` with the same `api.*`
- * references the app uses, so the registered Convex handlers run unchanged.
+ * Every call goes through `PostgresClient` with the same `api.*`
+ * references the app uses, so the registered native handlers run unchanged.
  * The script creates one scratch article, two scratch memberships (admin and
  * editor), and its own evidence rows under a `t07-<random>` prefix, then
  * deletes them unless `--keep`. Nothing outside the prefix is written. The
@@ -16,7 +16,7 @@
  *      `approvedWriteMode: preserve` leaves approved rows byte-identical.
  *   b. invalidation: an admin publish of the cited `summary` section through
  *      `api.articleLifecycle.write` decertifies only the evidence owned by
- *      that section (`convex/lib/articleRevisionJournal.ts`), retaining the
+ *      that section (`server/lib/articleRevisionJournal.ts`), retaining the
  *      old support for audit and leaving other sections' rows untouched.
  *   c. guarded publication: `api.substanceIndex.publishReviewedSection`
  *      refuses a tampered owned hash, a stale base, a changed manifest digest,
@@ -30,33 +30,32 @@
  *
  * Deployment binding: `requireGeneratedPublicationDeploymentFingerprint`
  * reads GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT from the process env. The
- * Postgres deployment has no Convex deployment name, so the rehearsal binds to
- * the ticket 04 value (`postgres-rehearsal`) unless the env already names one.
+ * rehearsal uses `postgres-rehearsal` unless the environment supplies a fingerprint.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { ConvexError } from "convex/values";
+import { PostgresError } from "../../lib/postgres/runtime/values";
 import { Pool } from "pg";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api";
 import { computeReviewedArtifactDigest, REVIEWED_ARTIFACT_DIGEST_VERSION } from "../../lib/generatedPublication/canonical.mjs";
 import {
   GENERATED_PUBLICATION_HASH_VERSION,
   computeOwnedSectionHash,
   type ReviewedPublicationProposal,
-} from "../../convex/lib/generatedPublication";
+} from "../../server/lib/generatedPublication";
 import { articlePublicationKey } from "../../lib/postgres/articlePublication";
-import { documentHash, type ConvexDocument } from "../../lib/postgres/convexDocumentCodec";
+import { documentHash, type DataDocument } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
-import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
+import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { minimalArticle } from "../../src/test/fixtures/articles";
 import { guardTarget, resolveTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-// Tokens are read from the process env exactly as on Convex. Distinct random
+// Tokens are read from the editor process environment. Distinct random
 // values per intent make "scoped" and "legacy" credentials distinguishable.
 process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT ||= "postgres-rehearsal";
 const FINGERPRINT = process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT;
@@ -66,11 +65,11 @@ const TOKENS = {
   citationEvidenceReview: `t07-scoped-evidence-review-${randomBytes(12).toString("hex")}`,
   generatedPublicationWrite: `t07-scoped-publication-${randomBytes(12).toString("hex")}`,
 };
-process.env.CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE = TOKENS.editorArticleWrite;
-process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE = TOKENS.citationEvidenceWrite;
-process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW = TOKENS.citationEvidenceReview;
-process.env.CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = TOKENS.generatedPublicationWrite;
-process.env.CONVEX_ADMIN_KEY ||= `t07-legacy-${randomBytes(12).toString("hex")}`;
+process.env.DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE = TOKENS.editorArticleWrite;
+process.env.DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE = TOKENS.citationEvidenceWrite;
+process.env.DATA_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW = TOKENS.citationEvidenceReview;
+process.env.DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = TOKENS.generatedPublicationWrite;
+process.env.DATA_ADMIN_KEY ||= `t07-legacy-${randomBytes(12).toString("hex")}`;
 
 const INVALIDATION_REASON = "Article content or reference metadata changed; retained support must be rechecked against this revision.";
 
@@ -91,13 +90,13 @@ function canon(value: unknown): string {
 }
 
 type Refusal = { code: string | null; message: string } | null;
-/** Null when the call succeeded; otherwise the ConvexError code (or error name) and message. */
+/** Null when the call succeeded; otherwise the PostgresError code (or error name) and message. */
 async function refusal(run: () => Promise<unknown>): Promise<Refusal> {
   try {
     await run();
     return null;
   } catch (error) {
-    if (error instanceof ConvexError) {
+    if (error instanceof PostgresError) {
       const data = error.data as Record<string, unknown> | string;
       if (typeof data === "object" && data) return { code: String(data.code ?? ""), message: String(data.message ?? error.message) };
       return { code: String(data), message: error.message };
@@ -106,7 +105,7 @@ async function refusal(run: () => Promise<unknown>): Promise<Refusal> {
   }
 }
 
-function stripSystemFields(document: ConvexDocument): Record<string, unknown> {
+function stripSystemFields(document: DataDocument): Record<string, unknown> {
   const { _id, _creationTime, ...content } = document;
   return content;
 }
@@ -140,7 +139,7 @@ async function main() {
   guardTarget(target, argv.includes("--allow-remote"));
   const keep = argv.includes("--keep");
   const pool = new Pool({ connectionString: target, max: 4 });
-  const convex = PostgresConvexClient.fromUrl(target);
+  const data = PostgresClient.fromUrl(target);
   const prefix = `t07-${mintDocumentId().slice(0, 8)}`;
   const slug = `${prefix}-article`;
   const adminEmail = `${prefix}-admin@rehearsal.invalid`;
@@ -168,7 +167,7 @@ async function main() {
       evidenceHash: documentHash({ rows: await evidenceRows() }),
     };
   };
-  const readEvidence = () => convex.query(api.citationEvidence.getBySlug, { apiKey: TOKENS.citationEvidenceReview, actorEmail: editorEmail, slug });
+  const readEvidence = () => data.query(api.citationEvidence.getBySlug, { apiKey: TOKENS.citationEvidenceReview, actorEmail: editorEmail, slug });
 
   try {
     // Scratch memberships and article. The numeric id must not collide with a fixture article.
@@ -246,7 +245,7 @@ async function main() {
         supportingSnippet: single?.supportingQuote, supportRationale: single?.rationale,
       };
     };
-    const write1 = await convex.mutation(api.citationEvidence.upsertMany, {
+    const write1 = await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence, approvedWriteMode: "replace",
     });
     expect("round-trip", "upsertMany created three rows", write1.created === 3 && write1.updated === 0, write1);
@@ -259,7 +258,7 @@ async function main() {
       expect("round-trip", `${row.claimKey} stamps updatedBy with the scoped intent and actor`, updatedBy === `apiKey:citationEvidenceWrite:${adminEmail}` && typeof updatedAt === "string" && createdAt === updatedAt, { updatedBy, updatedAt, createdAt });
     }
     const sqlRows = await evidenceByClaim();
-    expect("round-trip", "runtime read and SQL documents are the same documents", read1.length === 3 && read1.every((row) => documentHash(row as ConvexDocument) === documentHash(sqlRows.get(row.claimKey)!)));
+    expect("round-trip", "runtime read and SQL documents are the same documents", read1.length === 3 && read1.every((row) => documentHash(row as DataDocument) === documentHash(sqlRows.get(row.claimKey)!)));
     const a1 = sqlRows.get(rowA.claimKey)!;
     expect("round-trip", "offsets keep numbers and nulls distinct inside jsonb",
       (a1.supports as typeof rowA.supports)[0].verifiedQuote.startOffset === 12
@@ -268,7 +267,7 @@ async function main() {
       && !("strictReviewEvidence" in sqlRows.get(rowC.claimKey)!));
     // preserve: approved rows are not rewritten even when the payload differs.
     const tampered = evidence.map((row) => (row.status === "approved" ? { ...row, confidence: 0.1 } : { ...row, claimText: `${row.claimText} (rewritten)` }));
-    const write2 = await convex.mutation(api.citationEvidence.upsertMany, {
+    const write2 = await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence: tampered, approvedWriteMode: "preserve",
     });
     const sqlRows2 = await evidenceByClaim();
@@ -279,7 +278,7 @@ async function main() {
     // refresh with the original payload: content restored, only the stamp moves.
     // tsconfig.scripts.json targets a lib without Promise.withResolvers.
     await new Promise<void>((resolve) => setTimeout(resolve, 2));
-    const write3 = await convex.mutation(api.citationEvidence.upsertMany, {
+    const write3 = await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence, approvedWriteMode: "refresh",
     });
     const sqlRows3 = await evidenceByClaim();
@@ -290,7 +289,7 @@ async function main() {
         const { updatedAt: after, ...third } = sqlRows3.get(row.claimKey)!;
         return canon(first) === canon(third) && before !== after;
       }));
-    const status1 = await convex.mutation(api.citationEvidence.setManyStatus, {
+    const status1 = await data.mutation(api.citationEvidence.setManyStatus, {
       apiKey: TOKENS.citationEvidenceReview, actorEmail: adminEmail, slug, claimKeys: [rowC.claimKey], status: "needs_review", statusReason: "Ticket 07 reviewer note",
     });
     const c4 = (await evidenceByClaim()).get(rowC.claimKey)!;
@@ -298,10 +297,10 @@ async function main() {
 
     // ---------------------------------------------------------------- b. invalidation
     const before = await evidenceByClaim();
-    const state = await convex.query(api.articleLifecycle.get, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug });
+    const state = await data.query(api.articleLifecycle.get, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug });
     const edited = { ...structuredClone(state.article), summary: `Summary claim about overdose risk, revised wording. [cite:${REF1}]` };
     const publishStart = Date.now();
-    const published = await convex.mutation(api.articleLifecycle.write, {
+    const published = await data.mutation(api.articleLifecycle.write, {
       apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, action: "publish", slug,
       baseHash: state.baseHash, changeId: `${prefix}-publish-1`, article: edited, summary: "Ticket 07 rehearsal: revise the summary wording",
     });
@@ -325,12 +324,12 @@ async function main() {
     const history = await selectDocuments(pool, "articleHistory", { where: '"slug" = $1', params: [slug] });
     expect("invalidation", "changelog insert synced the derived articleHistory row (indexedMutation)", history.length === 1 && history[0].changelog_id === changelog[0]?._id, { history: history.length });
     // Re-approve the summary row so the guarded publication scenario has strict evidence to protect.
-    await convex.mutation(api.citationEvidence.upsertMany, {
+    await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence, approvedWriteMode: "refresh",
     });
 
     // ---------------------------------------------------------------- c. guarded publication
-    const publishAs = (proposal: ReviewedPublicationProposal) => convex.mutation(api.substanceIndex.publishReviewedSection, {
+    const publishAs = (proposal: ReviewedPublicationProposal) => data.mutation(api.substanceIndex.publishReviewedSection, {
       apiKey: TOKENS.generatedPublicationWrite, actorEmail: editorEmail, proposal,
     });
     const liveBase = stripSystemFields(await article());
@@ -354,7 +353,7 @@ async function main() {
     expect("guarded", "wrong targetDeploymentFingerprint is refused by the deployment binding", wrongTarget?.code === "TARGET_DEPLOYMENT_MISMATCH", wrongTarget);
     expect("guarded", "wrong fingerprint wrote nothing", canon(await guardSnapshot()) === canon(s0));
 
-    const legacy = await refusal(() => convex.mutation(api.substanceIndex.publishReviewedSection, { apiKey: process.env.CONVEX_ADMIN_KEY, actorEmail: editorEmail, proposal: valid }));
+    const legacy = await refusal(() => data.mutation(api.substanceIndex.publishReviewedSection, { apiKey: process.env.DATA_ADMIN_KEY, actorEmail: editorEmail, proposal: valid }));
     expect("guarded", "legacy admin key cannot authorize generated publication", legacy?.code === "SCOPED_TOKEN_REQUIRED", legacy);
 
     const ok = await publishAs(valid);
@@ -375,43 +374,43 @@ async function main() {
     };
     const editorCall = (token: string) => ({ apiKey: token, actorEmail: editorEmail });
 
-    const d1 = await refusal(() => convex.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "completed" }));
+    const d1 = await refusal(() => data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "completed" }));
     expect("reviewed-gate", "setEditorialReview completed with scoped token + editor actor is refused at the admin floor", d1?.message === "Admin access required", d1);
     await unchanged("setEditorialReview by editor");
-    const d2 = await refusal(() => convex.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.citationEvidenceWrite), slug, status: "completed" }));
+    const d2 = await refusal(() => data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.citationEvidenceWrite), slug, status: "completed" }));
     expect("reviewed-gate", "setEditorialReview with a token scoped to another intent is refused as an invalid key", d2?.message === "Authentication failed: Invalid API key", d2);
-    const d3 = await refusal(() => convex.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.generatedPublicationWrite), slug, status: "completed" }));
+    const d3 = await refusal(() => data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.generatedPublicationWrite), slug, status: "completed" }));
     expect("reviewed-gate", "the generated-publication token cannot reach setEditorialReview", d3?.message === "Authentication failed: Invalid API key", d3);
     await unchanged("wrong-intent tokens");
 
-    const progress = await convex.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "in_progress" });
+    const progress = await data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "in_progress" });
     expect("reviewed-gate", "editor may move the review to in_progress (notes kept, no reviewer stamp)", progress.editorial_review.status === "in_progress" && progress.editorial_review.notes === "ticket 07 scratch" && !("reviewed_by" in progress.editorial_review), progress);
-    const back = await convex.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "needed" });
+    const back = await data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "needed" });
     expect("reviewed-gate", "editor may move it back to needed", back.editorial_review.status === "needed");
 
-    const flagged = await convex.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Check wording", severity: "minor", note: "Ticket 07 flag", section: "summary" } });
+    const flagged = await data.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Check wording", severity: "minor", note: "Ticket 07 flag", section: "summary" } });
     expect("reviewed-gate", "addHumanReviewFlag appends a flag and preserves status", flagged.flags.length === 1 && (await reviewStatus()) === "needed", flagged);
-    const agentFlags = await convex.mutation(api.substanceIndex.replaceAgentReviewFlagsForArticle, { apiKey: TOKENS.editorArticleWrite, slug, runId: `${prefix}-review-run`, flags: [{ label: "Agent flag", severity: "note", note: "Ticket 07 agent flag" }] });
+    const agentFlags = await data.mutation(api.substanceIndex.replaceAgentReviewFlagsForArticle, { apiKey: TOKENS.editorArticleWrite, slug, runId: `${prefix}-review-run`, flags: [{ label: "Agent flag", severity: "note", note: "Ticket 07 agent flag" }] });
     expect("reviewed-gate", "replaceAgentReviewFlagsForArticle (bare-token script path) replaces agent flags only and preserves status",
       agentFlags.flags.length === 2 && agentFlags.flags.some((flag) => flag.source === "human") && (await reviewStatus()) === "needed", agentFlags);
-    const injected = await refusal(() => convex.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Smuggled", severity: "note", note: "", status: "completed" } as never }));
+    const injected = await refusal(() => data.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Smuggled", severity: "note", note: "", status: "completed" } as never }));
     expect("reviewed-gate", "a flag payload carrying extra keys is rejected before the article is touched", injected !== null, injected);
-    const deleted = await convex.mutation(api.substanceIndex.deleteReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, identity: { created_at: flagged.flags[0].created_at, label: "Check wording", source: "human" } });
+    const deleted = await data.mutation(api.substanceIndex.deleteReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, identity: { created_at: flagged.flags[0].created_at, label: "Check wording", source: "human" } });
     expect("reviewed-gate", "deleteReviewFlag removes the flag and preserves status", deleted.flags.length === 1 && (await reviewStatus()) === "needed");
 
-    const lifecycle = await convex.query(api.articleLifecycle.get, { apiKey: TOKENS.editorArticleWrite, actorEmail: editorEmail, slug });
+    const lifecycle = await data.query(api.articleLifecycle.get, { apiKey: TOKENS.editorArticleWrite, actorEmail: editorEmail, slug });
     const reviewedArticle = { ...structuredClone(lifecycle.article), editorial_review: { ...(lifecycle.article.editorial_review as Record<string, unknown>), status: "completed", reviewed_by: editorEmail, reviewed_at: now } };
     for (const action of ["saveDraft", "submit"] as const) {
-      const result = await refusal(() => convex.mutation(api.articleLifecycle.write, {
+      const result = await refusal(() => data.mutation(api.articleLifecycle.write, {
         ...editorCall(TOKENS.editorArticleWrite), action, slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-${action}-review`, article: reviewedArticle, summary: "Ticket 07 attempt", draftVersion: lifecycle.draftVersion,
       }));
       expect("reviewed-gate", `articleLifecycle.write ${action} carrying a completed review is refused as an invalid content edit`, result?.code === "ARTICLE_INVALID" && result.message.startsWith("editorial_review:"), result);
     }
-    const editorPublish = await refusal(() => convex.mutation(api.articleLifecycle.write, {
+    const editorPublish = await refusal(() => data.mutation(api.articleLifecycle.write, {
       ...editorCall(TOKENS.editorArticleWrite), action: "publish", slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-publish-review-editor`, article: reviewedArticle, summary: "Ticket 07 attempt",
     }));
     expect("reviewed-gate", "articleLifecycle.write publish by an editor is refused at the admin floor", editorPublish?.message === "Admin access required", editorPublish);
-    const adminPublish = await refusal(() => convex.mutation(api.articleLifecycle.write, {
+    const adminPublish = await refusal(() => data.mutation(api.articleLifecycle.write, {
       apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, action: "publish", slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-publish-review-admin`, article: reviewedArticle, summary: "Ticket 07 attempt",
     }));
     expect("reviewed-gate", "even an admin content publish cannot carry a review status change", adminPublish?.code === "ARTICLE_INVALID" && adminPublish.message.startsWith("editorial_review:"), adminPublish);
@@ -421,14 +420,14 @@ async function main() {
       && (await selectDocuments(pool, "articleDraftReceipts", { where: '"ownerEmail" = $1', params: [editorEmail] })).length === 0
       && (await selectDocuments(pool, "articleProposalTargets", { where: '"slug" = $1', params: [slug] })).length === 0);
 
-    const fieldWrite = await refusal(() => convex.mutation(api.substanceIndex.setArticleField, {
+    const fieldWrite = await refusal(() => data.mutation(api.substanceIndex.setArticleField, {
       apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug, path: "editorial_review.status", value: "completed", expected: "needed", baseHash: lifecycle.baseHash, changeId: `${prefix}-field-review`,
     }));
     expect("reviewed-gate", "setArticleField refuses editorial_review as a field path", fieldWrite !== null && fieldWrite.code !== "ARTICLE_CONFLICT", fieldWrite);
     await unchanged("setArticleField");
 
     const reviewProposal = (() => {
-      const base = stripSystemFields(lifecycle.article as ConvexDocument);
+      const base = stripSystemFields(lifecycle.article as DataDocument);
       const value = { ...proposalFor(slug, base, base.summary as string, `${prefix}-proposal-review`), proposedArticle: { ...structuredClone(base), editorial_review: reviewedArticle.editorial_review }, approvedPaths: ["editorial_review"] };
       const artifactDigest = computeReviewedArtifactDigest(value);
       return { ...value, artifactDigest, review: { ...value.review, artifactDigest } };
@@ -437,22 +436,22 @@ async function main() {
     expect("reviewed-gate", "publishReviewedSection refuses editorial_review as a protected field", generated?.code === "UNOWNED_FIELD_CHANGE", generated);
     await unchanged("publishReviewedSection");
 
-    const draftAsEditor = await refusal(() => convex.mutation(api.citationEvidence.applyDraft, { ...editorCall(TOKENS.citationEvidenceWrite), slug, article: reviewedArticle, evidence: [] }));
+    const draftAsEditor = await refusal(() => data.mutation(api.citationEvidence.applyDraft, { ...editorCall(TOKENS.citationEvidenceWrite), slug, article: reviewedArticle, evidence: [] }));
     expect("reviewed-gate", "citationEvidence.applyDraft with a delegated editor is refused at the admin floor", draftAsEditor?.message === "Admin access required", draftAsEditor);
-    const draftAsScript = await convex.mutation(api.citationEvidence.applyDraft, { apiKey: TOKENS.citationEvidenceWrite, slug, article: reviewedArticle, evidence: [], approvedWriteMode: "preserve" });
+    const draftAsScript = await data.mutation(api.citationEvidence.applyDraft, { apiKey: TOKENS.citationEvidenceWrite, slug, article: reviewedArticle, evidence: [], approvedWriteMode: "preserve" });
     expect("reviewed-gate", "citationEvidence.applyDraft (bare-token script path) patches only citable sections and ignores editorial_review", draftAsScript.article.updated === true && (await reviewStatus()) === "needed", draftAsScript.article.outcome);
 
-    const saveAsEditor = await refusal(() => convex.mutation(api.substanceIndex.saveSubstance, { ...editorCall(TOKENS.editorArticleWrite), article: reviewedArticle }));
+    const saveAsEditor = await refusal(() => data.mutation(api.substanceIndex.saveSubstance, { ...editorCall(TOKENS.editorArticleWrite), article: reviewedArticle }));
     expect("reviewed-gate", "saveSubstance with a delegated editor is refused at the admin floor", saveAsEditor?.message === "Admin access required", saveAsEditor);
     await unchanged("agent-reachable mutations");
     expect("reviewed-gate", "no receipt or outbox generation was minted by the refused attempts", canon((await guardSnapshot()).operations) === canon(gateBase.operations));
 
     // Positive control: the admin tick is the one path that sets Reviewed and stamps the reviewer.
-    const completed = await convex.mutation(api.substanceIndex.setEditorialReview, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug, status: "completed" });
+    const completed = await data.mutation(api.substanceIndex.setEditorialReview, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug, status: "completed" });
     const reviewedRows = await selectDocuments(pool, "reviewedArticles", { where: '"article_id" = $1', params: [articleDocumentId] });
     expect("reviewed-gate", "admin actor sets completed with reviewer stamp and the derived reviewedArticles row appears",
       completed.editorial_review.status === "completed" && completed.editorial_review.reviewed_by === adminEmail && reviewedRows.length === 1 && reviewedRows[0].reviewer_email === adminEmail, { review: completed.editorial_review, derived: reviewedRows.length });
-    const reopened = await convex.mutation(api.substanceIndex.setEditorialReview, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug, status: "needed" });
+    const reopened = await data.mutation(api.substanceIndex.setEditorialReview, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug, status: "needed" });
     expect("reviewed-gate", "reopening drops the derived row again", reopened.editorial_review.status === "needed" && (await selectDocuments(pool, "reviewedArticles", { where: '"article_id" = $1', params: [articleDocumentId] })).length === 0);
   } finally {
     if (!keep) {
@@ -491,7 +490,7 @@ async function main() {
     console.log(`\nReport: ${path.relative(ROOT, runDirectory)}/report.json`);
     console.log(JSON.stringify({ passed, failed: summary.failed, elapsedMs: summary.elapsedMs }));
     process.exitCode = summary.failed === 0 ? 0 : 1;
-    await convex.end();
+    await data.end();
     await pool.end();
   }
 }

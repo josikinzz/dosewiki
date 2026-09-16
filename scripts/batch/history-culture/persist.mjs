@@ -30,8 +30,8 @@ return resolveQuoteSourceMaterial({
   slug,
   loadQuotes: loadHistoryCultureQuotes,
   buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-  missingReason: "No history culture quotes in Convex",
-  emptyReason: "No history culture quotes in Convex",
+  missingReason: "No history culture quotes in Postgres",
+  emptyReason: "No history culture quotes in Postgres",
 }); }
 
 async function processArticle(apiKey, article, systemPrompt, verbose) {
@@ -191,11 +191,11 @@ export function applyHistoryCultureUpdate(article, update) {
   return article;
 }
 
-export async function applyAndSyncUpdates(results, allArticles, convexClient, adminKey) {
+export async function applyAndSyncUpdates(results, allArticles, postgresClient, adminKey) {
   return applySuccessfulUpdates({
     results,
     allArticles,
-    convexClient,
+    postgresClient,
     adminKey,
     applyUpdate: applyHistoryCultureUpdate,
   });

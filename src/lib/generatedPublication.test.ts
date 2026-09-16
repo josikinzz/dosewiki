@@ -14,7 +14,7 @@ import {
   publishReviewedSectionTransaction,
   validateReviewedPublicationProposal,
   type ReviewedPublicationProposal,
-} from "../../convex/lib/generatedPublication";
+} from "../../server/lib/generatedPublication";
 
 function article(summary = "before summary") {
   return { ...structuredClone(minimalArticle), slug: "2c-b", summary } as Record<string, unknown>;

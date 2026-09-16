@@ -1,0 +1,991 @@
+@layer components {
+  .mantra-experience {
+    --mantra-stage-min: min(78vh, 48rem);
+    box-sizing: border-box;
+    max-width: 100vw !important;
+    overflow-x: hidden;
+  }
+
+  .mantra-focus-mode {
+    max-width: 92rem;
+  }
+
+  .mantra-hero-title {
+    width: min(100%, calc(100vw - 2rem));
+    max-width: 22rem;
+    overflow-wrap: anywhere;
+    font-size: clamp(1.9rem, 8vw, 2.2rem);
+    line-height: 1.04;
+    text-wrap: wrap;
+  }
+
+  .mantra-hero-title-line {
+    display: block;
+  }
+
+  @media (max-width: 639px) {
+    .mantra-experience {
+      width: 100vw !important;
+      max-width: 100vw !important;
+      padding-inline: 1rem !important;
+    }
+
+    .mantra-experience > section,
+    .mantra-experience :where(.theme-public-card, .theme-public-card-subtle, .mantra-stage, p) {
+      max-width: calc(100vw - 2rem) !important;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .mantra-hero-title {
+      max-width: 64rem;
+      font-size: clamp(3.75rem, 7vw, 5.7rem);
+      line-height: 0.9;
+      text-wrap: balance;
+    }
+
+    .mantra-hero-title-line {
+      display: inline;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .mantra-experience {
+      max-width: 80rem !important;
+    }
+
+    .mantra-hero-title {
+      max-width: 64rem;
+    }
+  }
+
+  .mantra-side-panel {
+    min-width: 0;
+  }
+
+  .mantra-stage {
+    isolation: isolate;
+  }
+
+  .mantra-stage::before {
+    position: absolute;
+    inset: -18%;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 22% 12%, color-mix(in oklch, var(--theme-accent-strong) 20%, transparent), transparent 34%),
+      radial-gradient(circle at 76% 78%, color-mix(in oklch, var(--theme-accent) 16%, transparent), transparent 38%),
+      linear-gradient(135deg, color-mix(in oklch, var(--theme-body-bg) 82%, var(--theme-accent) 18%), transparent);
+    content: "";
+  }
+
+  .mantra-stage-grid {
+    display: grid;
+    min-height: var(--mantra-stage-min);
+    grid-template-rows: auto minmax(20rem, 1fr) auto;
+    gap: 1.5rem;
+  }
+
+  .mantra-stage-header,
+  .mantra-stage-footer {
+    position: relative;
+    z-index: 2;
+  }
+
+  .mantra-stage-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .mantra-visual-shell {
+    position: relative;
+    display: grid;
+    min-height: 22rem;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 0.5rem;
+  }
+
+  .mantra-visual-shell::before {
+    position: absolute;
+    inset: 8%;
+    border: 1px solid color-mix(in oklch, var(--theme-accent-strong) 18%, transparent);
+    border-radius: 999px;
+    background:
+      linear-gradient(color-mix(in oklch, var(--theme-text-primary) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, var(--theme-text-primary) 6%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    content: "";
+    mask-image: radial-gradient(circle, black 48%, transparent 72%);
+    opacity: 0.6;
+  }
+
+  .mantra-glyph-frame {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 1;
+    width: min(100%, 40rem);
+    color: var(--mantra-primary);
+    filter: drop-shadow(0 24px 80px var(--mantra-halo));
+  }
+
+  .mantra-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .mantra-svg-wide {
+    aspect-ratio: 760 / 520;
+  }
+
+  .mantra-spin-slow,
+  .mantra-spin-reverse {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .mantra-spin-slow {
+    animation: mantra-spin 72s linear infinite;
+  }
+
+  .mantra-spin-reverse {
+    animation: mantra-spin-reverse 96s linear infinite;
+  }
+
+  .mantra-ring-text {
+    fill: color-mix(in oklch, var(--mantra-primary) 78%, var(--theme-text-primary));
+    font-family: var(--font-family-display);
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mantra-ring-text-large {
+    font-size: 18px;
+  }
+
+  .mantra-ring-text-small {
+    font-size: 13px;
+    opacity: 0.82;
+  }
+
+  .mantra-ring-text-mini {
+    font-size: 10px;
+    opacity: 0.75;
+  }
+
+  .mantra-ring-text-faint {
+    fill: color-mix(in oklch, var(--mantra-secondary) 68%, var(--theme-text-secondary));
+    font-size: 9px;
+    opacity: 0.42;
+  }
+
+  .mantra-syllable {
+    fill: color-mix(in oklch, var(--mantra-secondary) 70%, var(--theme-text-primary));
+    font-family: var(--font-family-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .mantra-syllable-gold {
+    fill: color-mix(in oklch, var(--mantra-primary) 86%, var(--theme-text-primary));
+  }
+
+  .mantra-ray {
+    stroke: color-mix(in oklch, var(--mantra-primary) 70%, transparent);
+    stroke-linecap: round;
+    stroke-width: 2;
+  }
+
+  .mantra-ray-violet {
+    stroke: color-mix(in oklch, var(--mantra-secondary) 75%, transparent);
+  }
+
+  .mantra-core-ring,
+  .mantra-panel-border {
+    fill: none;
+    stroke: color-mix(in oklch, var(--mantra-primary) 64%, var(--theme-border-subtle));
+    stroke-width: 1.5;
+  }
+
+  .mantra-core-ring-soft,
+  .mantra-spiral-line-soft {
+    stroke: color-mix(in oklch, var(--mantra-secondary) 42%, var(--theme-border-subtle));
+  }
+
+  .mantra-core {
+    fill: color-mix(in oklch, var(--mantra-primary) 84%, var(--theme-text-primary));
+    font-family: var(--font-family-display);
+    font-weight: 700;
+    paint-order: stroke fill;
+    stroke: color-mix(in oklch, var(--theme-body-bg) 72%, transparent);
+    stroke-width: 2px;
+  }
+
+  .mantra-core-display {
+    font-size: 62px;
+  }
+
+  .mantra-core-hung {
+    font-size: 82px;
+  }
+
+  .mantra-core-caption {
+    font-size: 18px;
+    letter-spacing: 0.08em;
+  }
+
+  .mantra-petals ellipse {
+    fill: color-mix(in oklch, var(--mantra-secondary) 13%, transparent);
+    stroke: color-mix(in oklch, var(--mantra-primary) 38%, transparent);
+    stroke-width: 1;
+  }
+
+  .mantra-spiral-line {
+    fill: none;
+    stroke: color-mix(in oklch, var(--mantra-primary) 34%, var(--theme-border-subtle));
+    stroke-width: 1;
+  }
+
+  .mantra-panel {
+    stroke: color-mix(in oklch, var(--mantra-primary) 54%, var(--theme-border-subtle));
+    stroke-width: 1;
+  }
+
+  .mantra-card-line {
+    fill: color-mix(in oklch, var(--theme-text-primary) 84%, var(--mantra-primary));
+    font-family: var(--font-family-display);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    paint-order: stroke fill;
+    stroke: color-mix(in oklch, var(--theme-body-bg) 74%, transparent);
+    stroke-width: 2px;
+  }
+
+  .mantra-card-line-primary {
+    font-size: 27px;
+  }
+
+  .mantra-card-line-secondary {
+    font-size: 34px;
+  }
+
+  .mantra-divider-path,
+  .mantra-corners path {
+    fill: none;
+    stroke: color-mix(in oklch, var(--mantra-primary) 72%, var(--theme-text-primary));
+    stroke-linecap: round;
+    stroke-width: 3;
+  }
+
+  .mantra-orbit-dot {
+    fill: color-mix(in oklch, var(--mantra-primary) 82%, var(--theme-text-primary));
+  }
+
+  .mantra-triad-labels .mantra-syllable {
+    font-size: 13px;
+    opacity: 0.84;
+  }
+
+  @keyframes mantra-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes mantra-spin-reverse {
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mantra-spin-slow,
+    .mantra-spin-reverse {
+      animation-duration: 0.01ms;
+      animation-iteration-count: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mantra-experience {
+      --mantra-stage-min: 34rem;
+    }
+
+    .mantra-stage-grid {
+      gap: 1rem;
+    }
+
+    .mantra-stage-header {
+      display: grid;
+    }
+
+    .mantra-glyph-frame {
+      width: min(100%, 28rem);
+    }
+
+    .mantra-card-line-primary {
+      font-size: 22px;
+    }
+
+    .mantra-card-line-secondary {
+      font-size: 28px;
+    }
+  }
+
+  .mantra-immersive {
+    --mantra-tibetan-font: "Noto Sans Tibetan", "Kailasa", "Himalaya", "Microsoft Himalaya", serif;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh;
+    padding: 0 !important;
+    background:
+      radial-gradient(circle at 50% 44%, oklch(36% 0.12 318 / 0.32), transparent 34%),
+      radial-gradient(circle at 16% 12%, oklch(72% 0.16 75 / 0.16), transparent 28%),
+      radial-gradient(circle at 84% 18%, oklch(67% 0.17 306 / 0.16), transparent 32%),
+      linear-gradient(145deg, oklch(12% 0.035 322), oklch(8% 0.024 318) 68%);
+    color: oklch(94% 0.025 86);
+    overflow-x: hidden;
+  }
+
+  body:has(.mantra-immersive) nextjs-portal,
+  body:has(.mantra-immersive) [data-nextjs-dev-tools-button],
+  body:has(.mantra-immersive) [data-nextjs-toast] {
+    display: none !important;
+  }
+
+  .mantra-field {
+    position: relative;
+    width: 100vw;
+    max-width: none !important;
+    min-height: 100dvh;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .mantra-immersive > .mantra-field {
+    width: 100vw !important;
+    max-width: none !important;
+  }
+
+  .mantra-field::before {
+    position: absolute;
+    inset: -18vmax;
+    z-index: -2;
+    background:
+      conic-gradient(from 24deg at 50% 50%, transparent, oklch(72% 0.15 82 / 0.13), transparent, oklch(70% 0.16 326 / 0.12), transparent),
+      repeating-radial-gradient(circle at 50% 50%, oklch(96% 0.02 88 / 0.08) 0 1px, transparent 1px 6.5vmin);
+    animation: mantra-field-breathe 36s ease-in-out infinite alternate;
+    content: "";
+    opacity: 0.7;
+    will-change: transform;
+  }
+
+  .mantra-field-aura {
+    position: absolute;
+    inset: 8vmin;
+    z-index: -1;
+    border: 1px solid oklch(84% 0.08 84 / 0.12);
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0 22%, oklch(78% 0.12 88 / 0.08) 22.2% 22.5%, transparent 23% 44%, oklch(74% 0.13 322 / 0.07) 44.2% 44.45%, transparent 45%),
+      radial-gradient(circle at 50% 50%, oklch(68% 0.18 318 / 0.16), transparent 58%);
+    opacity: 0.72;
+  }
+
+  .mantra-screen-reader-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .mantra-field-title {
+    position: absolute;
+    top: clamp(1rem, 3.2vw, 3rem);
+    left: clamp(1rem, 3.8vw, 4rem);
+    z-index: 6;
+    width: min(30rem, calc(100vw - 2rem));
+    pointer-events: none;
+  }
+
+  .mantra-field-title p:first-child {
+    margin: 0;
+    color: oklch(84% 0.13 82);
+    font-size: 0.72rem;
+    font-weight: 720;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .mantra-field-title h1 {
+    margin: 0.7rem 0 0;
+    max-width: 9.5em;
+    color: oklch(97% 0.025 84);
+    font-family: var(--font-family-display);
+    font-size: clamp(2.4rem, 6.6vw, 6.8rem);
+    font-weight: 680;
+    letter-spacing: 0;
+    line-height: 0.9;
+    text-wrap: balance;
+  }
+
+  .mantra-field-title p:last-child {
+    margin: 1rem 0 0;
+    max-width: 39rem;
+    color: oklch(86% 0.025 84 / 0.78);
+    font-size: clamp(0.9rem, 1.15vw, 1.08rem);
+    line-height: 1.65;
+  }
+
+  .mantra-constellation {
+    position: relative;
+    display: grid;
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
+    place-items: center;
+    overflow: hidden;
+    contain: layout paint;
+  }
+
+  .mantra-rain {
+    position: absolute;
+    inset: -12dvh 0;
+    z-index: 0;
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    pointer-events: none;
+    opacity: 0.22;
+    mask-image: radial-gradient(circle at 50% 50%, black 0 44%, transparent 78%);
+    contain: layout paint style;
+  }
+
+  .mantra-rain-column {
+    color: oklch(76% 0.08 142 / 0.28);
+    contain: layout paint style;
+    font-family: var(--mantra-tibetan-font);
+    font-size: clamp(0.72rem, 1.15vw, 1.08rem);
+    font-weight: 700;
+    line-height: 1.1;
+    text-orientation: mixed;
+    text-shadow: 0 0 16px oklch(62% 0.12 145 / 0.18);
+    transform: translateY(-34%);
+    animation: mantra-rain-fall var(--rain-duration) ease-in-out infinite alternate;
+    animation-delay: var(--rain-delay);
+    will-change: transform;
+    writing-mode: vertical-rl;
+  }
+
+  .mantra-rain-column:nth-child(3n) {
+    color: oklch(78% 0.08 84 / 0.24);
+  }
+
+  .mantra-rain-column:nth-child(4n) {
+    color: oklch(74% 0.1 315 / 0.2);
+  }
+
+  .mantra-orbit-stage {
+    position: relative;
+    z-index: 2;
+    aspect-ratio: 1;
+    width: min(142vmin, calc(100vw + 18rem), calc(100dvh + 28rem));
+    max-width: none;
+    contain: layout paint style;
+    isolation: isolate;
+  }
+
+  .mantra-orbit-stage::before {
+    position: absolute;
+    inset: 7%;
+    z-index: -1;
+    border-radius: 999px;
+    background: radial-gradient(circle, oklch(70% 0.13 315 / 0.16), transparent 68%);
+    content: "";
+    pointer-events: none;
+  }
+
+  .mantra-spiral-sheet,
+  .mantra-core-svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .mantra-spiral-sheet {
+    z-index: 1;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  .mantra-spiral-sheet-main {
+    animation: mantra-mandala-orbit 96s linear infinite;
+  }
+
+  .mantra-spiral-sheet-echo {
+    z-index: 0;
+    opacity: 0.26;
+    animation: mantra-mandala-counter-orbit 164s linear infinite;
+  }
+
+  .mantra-core-svg {
+    z-index: 2;
+    overflow: visible;
+  }
+
+  .mantra-orbit-guide {
+    fill: none;
+    stroke: oklch(88% 0.06 84 / 0.12);
+    stroke-width: 1;
+  }
+
+  .mantra-orbit-guide:nth-child(2n) {
+    stroke: oklch(80% 0.08 315 / 0.12);
+  }
+
+  .mantra-spiral-guide {
+    fill: none;
+    stroke: oklch(88% 0.06 84 / 0.07);
+    stroke-width: 0.8;
+  }
+
+  .mantra-spiral-guide:nth-child(2n) {
+    stroke: oklch(80% 0.08 315 / 0.08);
+  }
+
+  .mantra-orbit-layer {
+    animation: mantra-spiral-breathe var(--orbit-duration) ease-in-out infinite;
+    animation-delay: var(--orbit-delay);
+    will-change: opacity;
+  }
+
+  .mantra-orbit-layer-reverse {
+    animation-name: mantra-spiral-breathe-reverse;
+  }
+
+  .mantra-orbit-ring-text,
+  .mantra-orbit-symbol,
+  .mantra-orbit-core-mark,
+  .mantra-swap-char,
+  .mantra-floating-talisman {
+    font-family: var(--mantra-tibetan-font);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .mantra-orbit-ring-text {
+    fill: color-mix(in oklch, var(--mantra-primary) 82%, oklch(98% 0.02 84));
+    font-size: clamp(12px, 1.58vmin, 23px);
+    font-weight: 760;
+    paint-order: stroke fill;
+    stroke: oklch(7% 0.03 318 / 0.68);
+    stroke-width: 2px;
+  }
+
+  .mantra-spiral-text {
+    font-size: clamp(8.5px, 1.08vmin, 16px);
+    opacity: 0.86;
+    stroke-width: 1.35px;
+  }
+
+  .mantra-orbit-ring-text-1,
+  .mantra-orbit-ring-text-2 {
+    font-size: clamp(16px, 2.05vmin, 30px);
+  }
+
+  .mantra-spiral-text.mantra-orbit-ring-text-1,
+  .mantra-spiral-text.mantra-orbit-ring-text-2 {
+    font-size: clamp(9.5px, 1.22vmin, 17px);
+  }
+
+  .mantra-orbit-ring-text-5,
+  .mantra-orbit-ring-text-6 {
+    opacity: 0.76;
+  }
+
+  .mantra-spiral-text.mantra-orbit-ring-text-5,
+  .mantra-spiral-text.mantra-orbit-ring-text-6 {
+    opacity: 0.72;
+  }
+
+  .mantra-orbit-symbol {
+    fill: color-mix(in oklch, var(--mantra-secondary) 82%, oklch(98% 0.02 84));
+    font-size: clamp(18px, 2.4vmin, 34px);
+    font-weight: 780;
+    opacity: 0.86;
+    paint-order: stroke fill;
+    stroke: oklch(7% 0.03 318 / 0.72);
+    stroke-width: 2px;
+  }
+
+  .mantra-orbit-core {
+    filter: none;
+  }
+
+  .mantra-orbit-core-halo {
+    fill: color-mix(in oklch, var(--mantra-primary) 12%, transparent);
+    stroke: color-mix(in oklch, var(--mantra-primary) 54%, transparent);
+    stroke-width: 1.4;
+  }
+
+  .mantra-orbit-core-ring {
+    fill: none;
+    stroke: color-mix(in oklch, var(--mantra-secondary) 46%, transparent);
+    stroke-width: 1.6;
+  }
+
+  .mantra-orbit-core-mark {
+    fill: color-mix(in oklch, var(--mantra-primary) 86%, oklch(98% 0.02 84));
+    font-size: clamp(90px, 14vmin, 152px);
+    font-weight: 780;
+    paint-order: stroke fill;
+    stroke: oklch(7% 0.03 318 / 0.72);
+    stroke-width: 3px;
+  }
+
+  .mantra-swap-halo {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    contain: layout paint style;
+    pointer-events: none;
+  }
+
+  .mantra-swap-char {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: oklch(95% 0.03 84 / 0.56);
+    font-size: clamp(1rem, 2.2vmin, 2rem);
+    font-weight: 760;
+    opacity: 0;
+    text-shadow: 0 0 20px oklch(78% 0.12 84 / 0.2);
+    transform:
+      rotate(var(--swap-angle))
+      translateY(calc(var(--swap-distance) * -1))
+      rotate(var(--swap-counter-angle))
+      scale(0.72);
+    animation: mantra-swap-char var(--swap-duration) ease-in-out infinite;
+    animation-delay: var(--swap-delay);
+    will-change: opacity, transform;
+  }
+
+  .mantra-floating-talisman {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: min(30rem, 42vw);
+    max-width: calc(100vw - 2rem);
+    gap: 0.75rem;
+    justify-items: center;
+    padding: clamp(0.9rem, 1.8vw, 1.35rem) clamp(1rem, 2.4vw, 1.8rem);
+    border: 1px solid color-mix(in oklch, var(--talisman-primary) 46%, transparent);
+    border-radius: 0.5rem;
+    background:
+      linear-gradient(135deg, color-mix(in oklch, var(--talisman-primary) 13%, oklch(14% 0.045 318 / 0.88)), color-mix(in oklch, var(--talisman-secondary) 12%, oklch(9% 0.03 318 / 0.72)));
+    box-shadow: 0 0 54px color-mix(in oklch, var(--talisman-primary) 18%, transparent);
+    color: oklch(96% 0.03 84 / 0.74);
+    font-size: clamp(0.82rem, 1.55vw, 1.38rem);
+    font-weight: 760;
+    line-height: 1.35;
+    text-align: center;
+    opacity: 0.58;
+    transform: translate(-50%, -50%) translate(-28vmin, 26vmin) rotate(-2deg);
+    animation: mantra-talisman-drift 44s ease-in-out infinite;
+    animation-delay: var(--talisman-delay, 0s);
+    contain: layout paint style;
+    will-change: transform;
+  }
+
+  .mantra-floating-talisman i {
+    display: block;
+    width: min(18rem, 72%);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--talisman-primary) 74%, transparent), transparent);
+  }
+
+  .mantra-immersive .mantra-ring-text,
+  .mantra-immersive .mantra-syllable,
+  .mantra-immersive .mantra-core,
+  .mantra-immersive .mantra-card-line {
+    font-family: var(--mantra-tibetan-font);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .mantra-immersive .mantra-ring-text-large {
+    font-size: 20px;
+  }
+
+  .mantra-immersive .mantra-ring-text-small {
+    font-size: 15px;
+  }
+
+  .mantra-immersive .mantra-ring-text-mini {
+    font-size: 11px;
+  }
+
+  .mantra-immersive .mantra-syllable {
+    font-size: 18px;
+  }
+
+  .mantra-immersive .mantra-core-display {
+    font-size: 76px;
+  }
+
+  .mantra-immersive .mantra-core-hung {
+    font-size: 108px;
+  }
+
+  .mantra-immersive .mantra-core-caption {
+    font-size: 23px;
+  }
+
+  .mantra-immersive .mantra-card-line-primary {
+    font-size: 28px;
+  }
+
+  .mantra-immersive .mantra-card-line-secondary {
+    font-size: 42px;
+  }
+
+  .mantra-source-band {
+    display: grid;
+    gap: 1rem;
+    max-width: none !important;
+    padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 4vw, 4rem);
+    background: oklch(9% 0.024 318);
+    border-top: 1px solid oklch(84% 0.08 84 / 0.12);
+    color: oklch(84% 0.024 84 / 0.78);
+  }
+
+  .mantra-source-band > p {
+    margin: 0;
+    max-width: 72ch;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .mantra-explanation-list {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  }
+
+  .mantra-explanation-list article {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .mantra-explanation-list h2,
+  .mantra-explanation-list p {
+    margin: 0;
+  }
+
+  .mantra-explanation-list h2 {
+    color: oklch(86% 0.13 82);
+    font-size: 0.75rem;
+    font-weight: 760;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .mantra-explanation-list p {
+    color: oklch(84% 0.024 84 / 0.72);
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+
+  .mantra-source-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .mantra-source-links a {
+    color: oklch(86% 0.13 82);
+    font-size: 0.8rem;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  @keyframes mantra-field-breathe {
+    from {
+      transform: rotate(-2deg) scale(1);
+    }
+
+    to {
+      transform: rotate(2deg) scale(1.035);
+    }
+  }
+
+  @keyframes mantra-mandala-orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes mantra-mandala-counter-orbit {
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  @keyframes mantra-spiral-breathe {
+    0%,
+    100% {
+      opacity: 0.68;
+    }
+
+    48%,
+    58% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mantra-spiral-breathe-reverse {
+    0%,
+    100% {
+      opacity: 0.96;
+    }
+
+    44%,
+    62% {
+      opacity: 0.58;
+    }
+  }
+
+  @keyframes mantra-rain-fall {
+    from {
+      transform: translateY(-30%);
+    }
+
+    to {
+      transform: translateY(10%);
+    }
+  }
+
+  @keyframes mantra-swap-char {
+    0%,
+    100% {
+      opacity: 0.08;
+    }
+
+    38%,
+    62% {
+      opacity: 0.54;
+    }
+
+    50% {
+      opacity: 0.64;
+    }
+  }
+
+  @keyframes mantra-talisman-drift {
+    0% {
+      transform: translate(-50%, -50%) translate(-35vmin, 31vmin) rotate(-3deg);
+    }
+
+    25% {
+      transform: translate(-50%, -50%) translate(-40vmin, -24vmin) rotate(2deg);
+    }
+
+    50% {
+      transform: translate(-50%, -50%) translate(34vmin, -31vmin) rotate(3deg);
+    }
+
+    75% {
+      transform: translate(-50%, -50%) translate(41vmin, 23vmin) rotate(-2deg);
+    }
+
+    100% {
+      transform: translate(-50%, -50%) translate(-35vmin, 31vmin) rotate(-3deg);
+    }
+  }
+
+  @media (max-width: 920px) {
+    .mantra-constellation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100dvh;
+      min-height: 100dvh;
+    }
+
+    .mantra-rain {
+      grid-template-columns: repeat(14, minmax(0, 1fr));
+      opacity: 0.16;
+    }
+
+    .mantra-rain-column:nth-child(n + 15) {
+      display: none;
+    }
+
+    .mantra-orbit-stage {
+      flex: 0 0 auto;
+      width: min(156vmin, calc(100vw + 15rem), calc(100dvh + 12rem));
+    }
+
+    .mantra-floating-talisman {
+      width: min(20rem, 70vw);
+      font-size: clamp(0.72rem, 3.2vw, 1rem);
+      transform: translate(-50%, -50%) translate(-12vmin, 31vmin) rotate(-2deg);
+    }
+
+    .mantra-swap-char {
+      font-size: clamp(0.85rem, 3.8vmin, 1.3rem);
+    }
+
+    .mantra-immersive .mantra-ring-text-large {
+      font-size: 15px;
+    }
+
+    .mantra-immersive .mantra-ring-text-small {
+      font-size: 11px;
+    }
+
+    .mantra-immersive .mantra-core-display {
+      font-size: 58px;
+    }
+
+    .mantra-immersive .mantra-core-hung {
+      font-size: 82px;
+    }
+
+    .mantra-immersive .mantra-card-line-primary {
+      font-size: 24px;
+    }
+
+    .mantra-immersive .mantra-card-line-secondary {
+      font-size: 36px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mantra-field::before,
+    .mantra-rain-column,
+    .mantra-spiral-sheet,
+    .mantra-orbit-layer,
+    .mantra-swap-char,
+    .mantra-floating-talisman {
+      animation: none;
+    }
+  }
+}

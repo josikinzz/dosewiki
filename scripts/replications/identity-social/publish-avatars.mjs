@@ -368,7 +368,7 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
   const write = argv.includes("--write");
   const preflight = argv.includes("--preflight-r2");
   if (!write && !preflight) {
-    console.log("[avatars:r2] Dry run complete: no network, R2, ledger, manifest, metadata, or Convex writes.");
+    console.log("[avatars:r2] Dry run complete: no network, R2, ledger, manifest, metadata, or Postgres writes.");
     return { mode: "dry-run", plan };
   }
   if (preflight && write) throw new Error("Choose either read-only --preflight-r2 or --write, not both");

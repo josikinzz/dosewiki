@@ -1,14 +1,13 @@
 /**
- * Cutover step 8: rebuild the derived tables on a freshly imported Postgres
- * target. Drives the unchanged Convex backfill mutations through
- * `PostgresConvexClient`, paging each until `isDone`, with the write freeze
- * still on (these are operator writes, not user writes, so they use the
- * service path the freeze does not gate).
+ * Rebuild derived tables on an explicitly selected Postgres target.
+ * Drives owned backfill mutations through `PostgresClient`, paging each until
+ * `isDone`. Operator writes obey the same write-freeze guard as application
+ * writes; this command never bypasses a frozen target.
  *
  *   bun scripts/postgres/rebuild-derived-tables.ts --target <url> [--allow-remote]
  */
-import { makeFunctionReference } from "convex/server";
-import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
+import { makeFunctionReference } from "../../lib/postgres/runtime/api";
+import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { guardTarget, resolveTarget } from "./targetGuard";
 
 type Page = { processed?: number; inserted?: number; removed?: number; cursor: string | null; isDone: boolean };
@@ -40,7 +39,7 @@ async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const target = resolveTarget(argv);
   guardTarget(target, argv.includes("--allow-remote"));
-  const client = PostgresConvexClient.fromUrl(target);
+  const client = PostgresClient.fromUrl(target);
   try {
     for (const name of ["gallery", "history", "reviews"] as const) {
       await drain(`publicReadIndexes:backfill ${name}`, (cursor) => client.mutation(publicReadIndexes, { name, cursor, limit: 50 }));

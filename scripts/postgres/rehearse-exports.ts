@@ -7,18 +7,17 @@
  * cannot prove for themselves outside `next start`:
  *
  *   1. static: every open-data and /api/v1 route, and lib/open-data/datasets.ts,
- *      reads through the public read layer (`@server/convex/publicData*`), never
- *      through a Convex client or a backend env var, so the same code serves
- *      both backends;
- *   2. script export (scripts/convex/export-convex-to-json.mjs): draining
- *      `substanceIndex:getFullDocumentPage` through scripts/lib/convex-pagination.mjs
+ *      reads through the public read layer (`@server/data/publicData*`), never
+ *      through a browser database client or a backend env var;
+ *   2. script export (scripts/data-ops/export-data-to-json.mjs): draining
+ *      `substanceIndex:getFullDocumentPage` through scripts/lib/data-pagination.mjs
  *      terminates on opaque runtime cursors, strips `_id` / `_creationTime`,
  *      and sorts by numeric id; two runs order the shared rows identically;
  *   3. open-data documents (SubstanceIndex, EffectIndex, TripReports): built
  *      by the real `buildOpenDataDocument` from an uncached adapter
- *      (`createConvexPublicDataReadAdapter(queryConvex)`; the cached adapter
+ *      (`createDataPublicDataReadAdapter(queryData)`; the cached adapter
  *      needs Next's `unstable_cache`), the items carry the license envelope,
- *      no Convex bookkeeping, none of the private fields catalogued in
+ *      no document bookkeeping, none of the private fields catalogued in
  *      notes-and-plans/plans/convex-to-planetscale/inventory/tables.md, and two
  *      builds order the shared rows identically.
  *
@@ -31,10 +30,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { api } from "../../convex/_generated/api";
-import { queryConvex } from "../../lib/convex/serverClient";
-import { createConvexPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
-import { projectPublicReportDetails } from "../../lib/convex/publicData.reportProfileProjection";
+import { api } from "../../lib/postgres/runtime/api";
+import { queryData } from "../../lib/data/serverClient";
+import { createDataPublicDataReadAdapter } from "../../lib/data/publicData.reads";
+import { projectPublicReportDetails } from "../../lib/data/publicData.reportProfileProjection";
 import {
   OPEN_DATA_DATASETS,
   OPEN_DATA_LICENSE_URL,
@@ -43,7 +42,7 @@ import {
   type OpenDataDataset,
 } from "../../lib/open-data/datasets";
 import { createDataClient, type DataClient } from "../lib/data-client.ts";
-import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
+import { drainDataPageQuery } from "../lib/data-pagination.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -84,7 +83,7 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-const PUBLIC_READ_LAYER = /@server\/convex\/publicData|@server\/open-data\/datasets|@server\/reagentData/;
+const PUBLIC_READ_LAYER = /@server\/data\/publicData|@server\/open-data\/datasets|@server\/reagentData/;
 const DIRECT_BACKEND_ACCESS = /convex\/browser|ConvexHttpClient|process\.env\.[A-Z_]*(?:CONVEX|POSTGRES)[A-Z_]*|from "convex\/_generated|DATA_BACKEND/;
 /** Routes that serve static API metadata and read no data at all. */
 const METADATA_ROUTES = ["src/app/api/v1/meta/route.ts", "src/app/api/v1/openapi.json/route.ts"];
@@ -114,7 +113,7 @@ function staticBoundary(): void {
       const helpers = [...source.matchAll(/from "(@server\/[^"]+)"/g)].map((match) => resolveServerImport(match[1]));
       return !helpers.some((helper) => helper && PUBLIC_READ_LAYER.test(fs.readFileSync(helper, "utf8")));
     });
-  expect("static", "every data route reads through @server/convex/publicData* (directly or via one lib/public-api helper)", unclassified.length === 0, unclassified);
+  expect("static", "every data route reads through @server/data/publicData* (directly or via one lib/public-api helper)", unclassified.length === 0, unclassified);
 }
 
 type Page = { page: unknown[]; isDone: boolean; continueCursor: string | null };
@@ -128,11 +127,11 @@ async function scriptExport(client: DataClient): Promise<Record<string, unknown>
       return result;
     },
   };
-  const articles = await drainConvexPageQuery({ client: recording, query: api.substanceIndex.getFullDocumentPage }) as Record<string, unknown>[];
+  const articles = await drainDataPageQuery({ client: recording, query: api.substanceIndex.getFullDocumentPage }) as Record<string, unknown>[];
   expect("script-export", "drain terminated on isDone after several opaque cursors", pages.length >= 2 && pages[pages.length - 1].isDone && pages.slice(0, -1).every((page) => typeof page.continueCursor === "string" && page.continueCursor.length > 0), { pages: pages.length });
   expect("script-export", "every cursor is distinct (no stall)", new Set(pages.slice(0, -1).map((page) => page.continueCursor)).size === pages.length - 1);
   expect("script-export", "page sizes respect the 32 clamp", pages.every((page) => page.page.length <= 32));
-  // Exactly what scripts/convex/export-convex-to-json.mjs does before writing.
+  // Exactly what scripts/data-ops/export-data-to-json.mjs does before writing.
   const cleaned = articles.map(({ _id, _creationTime, ...article }) => article);
   cleaned.sort((a, b) => {
     const idA = typeof a.id === "number" ? a.id : null;
@@ -188,12 +187,12 @@ async function main() {
 
     const exportA = await scriptExport(created.client);
     const exportB = await scriptExport(created.client);
-    expect("script-export", "no Convex bookkeeping fields survive", exportA.every((record) => !("_id" in record) && !("_creationTime" in record)));
+    expect("script-export", "no document bookkeeping fields survive", exportA.every((record) => !("_id" in record) && !("_creationTime" in record)));
     const scriptPrivate = findPrivateFields(exportA.map(({ editorial_review: _editorialReview, section_gaps: _sectionGaps, ...rest }) => rest)).filter((field) => !/\.references\[\d+\]\.authors/.test(field));
     expect("script-export", "no private-personal or credential fields in the corpus rows", scriptPrivate.length === 0, scriptPrivate.slice(0, 10));
     sharedOrderingIdentical("script-export", exportA, exportB, "id");
 
-    const adapter = createConvexPublicDataReadAdapter(queryConvex);
+    const adapter = createDataPublicDataReadAdapter(queryData);
     const loaders: Record<OpenDataDataset["name"], () => Promise<readonly unknown[]>> = {
       // The synthetic fixture mints +/-Infinity ids, which JSON renders as null;
       // production ids are finite, so drop that fixture noise before the ordering check.

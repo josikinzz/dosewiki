@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { SmartLink } from "@/components/common/SmartLink";
 import { HighlightedText } from "@/components/common/HighlightedText";
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -8,6 +9,7 @@ import { SearchingIndicator } from "@/components/common/SearchingIndicator";
 import { Surface } from "@/components/ui/surface";
 import type { SearchEntryType, SearchSuggestion } from "@/data/builders/search";
 import { useT } from "@/i18n/client";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { publicHref } from "@/utils/publicHref";
 import { icons } from "@/utils/iconNames";
 
@@ -73,11 +75,18 @@ const SEARCH_RESULT_GROUPS: Array<{
   { type: "category" },
 ];
 
-const groupSearchResults = (results: SearchSuggestion[]) =>
-  SEARCH_RESULT_GROUPS.map((group) => ({
-    ...group,
-    results: results.filter((match) => match.type === group.type),
-  })).filter((group) => group.results.length > 0);
+const groupSearchResults = (results: SearchSuggestion[]) => {
+  const resultsByType = new Map<SearchEntryType, SearchSuggestion[]>(
+    SEARCH_RESULT_GROUPS.map(({ type }) => [type, []]),
+  );
+  for (const result of results) {
+    resultsByType.get(result.type)?.push(result);
+  }
+  return SEARCH_RESULT_GROUPS.flatMap((group) => {
+    const groupedResults = resultsByType.get(group.type) ?? [];
+    return groupedResults.length > 0 ? [{ ...group, results: groupedResults }] : [];
+  });
+};
 
 export function FocusedSearchResultsPage({
   query,
@@ -86,8 +95,40 @@ export function FocusedSearchResultsPage({
 }: FocusedSearchResultsPageProps) {
   const t = useT();
   const trimmed = query.trim();
-  const resultGroups = groupSearchResults(results);
-  const bestMatchId = results[0]?.id ?? null;
+  const [visibleResults, setVisibleResults] = useState(results);
+  const resultRegionRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  // Keep useful matches through an empty pending response. Updating during
+  // render avoids painting an empty frame between the old and new result sets.
+  if (results !== visibleResults && (!isLoading || results.length > 0)) {
+    setVisibleResults(results);
+  }
+
+  const displayedResults = isLoading && results.length === 0 ? visibleResults : results;
+  const resultGroups = groupSearchResults(displayedResults);
+  const highlightQuery = isLoading ? "" : trimmed;
+  const bestMatchId = isLoading ? null : displayedResults[0]?.id ?? null;
+
+  useEffect(() => {
+    const region = resultRegionRef.current;
+    if (
+      isLoading ||
+      prefersReducedMotion ||
+      !region?.animate ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    // Animate the settled handoff, not the input or a keyed result subtree:
+    // existing focused links remain mounted throughout a refinement.
+    const animation = region.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 160, easing: "ease-out" },
+    );
+    return () => animation.cancel();
+  }, [isLoading, prefersReducedMotion, results, trimmed]);
 
   return (
     <main
@@ -96,16 +137,26 @@ export function FocusedSearchResultsPage({
       className="theme-page-shell theme-search-page-shell min-h-screen px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
     >
       <section className="mx-auto flex w-full max-w-[62rem] flex-col gap-4">
-        {isLoading ? (
+        <div role="status" aria-live="polite" aria-atomic="true" className="theme-search-suggestion-secondary min-h-10 text-sm leading-5">
+          {isLoading
+            ? displayedResults.length > 0
+              ? t("Updating results for “{{query}}”. Previous or partial matches remain visible.", { query: trimmed })
+              : t("Searching for “{{query}}”", { query: trimmed })
+            : displayedResults.length === 0
+              ? t("No matches for “{{query}}”", { query: trimmed })
+              : t("Results for “{{query}}”", { query: trimmed })}
+        </div>
+        <div ref={resultRegionRef} aria-busy={isLoading} className="flex flex-col gap-4">
+        {isLoading && displayedResults.length === 0 ? (
           <Surface
             variant="public"
             padding="none"
             radius="xl"
             className="p-2 pr-3 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl"
           >
-            <SearchingIndicator className="px-6 py-10" />
+            <SearchingIndicator className="theme-feedback-enter px-6 py-10" />
           </Surface>
-        ) : results.length === 0 ? (
+        ) : displayedResults.length === 0 ? (
           <Surface
             variant="public"
             padding="none"
@@ -143,7 +194,7 @@ export function FocusedSearchResultsPage({
                       ) : null}
                       <SmartLink
                         href={getMatchHref(match)}
-                        className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-4 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 focus-visible:outline-none focus-visible:ring-2 sm:px-5"
+                        className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-4 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 theme-focus-ring sm:px-5"
                         data-highlighted={isBestMatch}
                       >
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -153,14 +204,14 @@ export function FocusedSearchResultsPage({
                           <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
                             <HighlightedText
                               text={match.label}
-                              query={trimmed}
+                              query={highlightQuery}
                               className="theme-search-suggestion-title min-w-0 max-w-full break-words text-base font-semibold leading-6 [overflow-wrap:anywhere]"
                               markClassName="theme-search-highlight-mark"
                             />
                             {aliasPreview ? (
                               <HighlightedText
                                 text={aliasPreview}
-                                query={trimmed}
+                                query={highlightQuery}
                                 className="theme-search-suggestion-aliases min-w-0 truncate text-[0.6875rem] font-medium leading-4"
                                 markClassName="theme-search-highlight-mark"
                               />
@@ -180,7 +231,7 @@ export function FocusedSearchResultsPage({
                           {descriptionText ? (
                             <HighlightedText
                               text={descriptionText}
-                              query={trimmed}
+                              query={highlightQuery}
                               className="theme-search-suggestion-secondary line-clamp-2 text-[0.8125rem] leading-5"
                               markClassName="theme-search-highlight-mark"
                             />
@@ -194,6 +245,7 @@ export function FocusedSearchResultsPage({
             </Surface>
           ))
         )}
+        </div>
       </section>
     </main>
   );

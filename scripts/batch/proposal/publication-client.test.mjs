@@ -8,8 +8,8 @@ function context(argv) {
     operation: "publish reviewed section",
     intent: "generated-publication",
     argv,
-    env: { TARGET_CONVEX_URL: "https://target-test.convex.cloud" },
-    targetUrlKeys: ["TARGET_CONVEX_URL"],
+    env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgresql://localhost/target-test" },
+    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     loadsEnvLocal: false,
   });
 }
@@ -20,7 +20,7 @@ describe("future reviewed publication caller", () => {
     const publish = createReviewedSectionPublisher({
       context: context([]),
       actorEmail: "editor@example.com",
-      env: { CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
       mutate,
     });
 
@@ -34,16 +34,16 @@ describe("future reviewed publication caller", () => {
       context: context([
         "--write",
         "--confirm-write=publish-reviewed-section",
-        "--expected-deployment=target-test",
+        "--expected-deployment=localhost/target-test",
       ]),
       actorEmail: "editor@example.com",
-      env: { CONVEX_ADMIN_KEY: "master-token" },
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_KEY: "master-token" },
       mutate,
     });
 
     await expect(publish({
       artifactDigest: "a".repeat(64),
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       review: { status: "approved", artifactDigest: "a".repeat(64) },
     })).rejects.toThrow(/legacy admin key is not accepted/);
     expect(mutate).not.toHaveBeenCalled();
@@ -55,18 +55,18 @@ describe("future reviewed publication caller", () => {
       context: context([
         "--write",
         "--confirm-write=publish-reviewed-section",
-        "--expected-deployment=target-test",
+        "--expected-deployment=localhost/target-test",
       ]),
       actorEmail: "editor@example.com",
-      env: {
-        CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token",
-        CONVEX_ADMIN_KEY: "master-token",
+      env: { DATA_BACKEND: "postgres",
+        DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token",
+        DATA_ADMIN_KEY: "master-token",
       },
       mutate,
     });
     const reviewedProposal = {
       artifactDigest: "a".repeat(64),
-      targetDeploymentFingerprint: "target-test",
+      targetDeploymentFingerprint: "localhost/target-test",
       review: { status: "approved", artifactDigest: "a".repeat(64) },
       proposalId: "proposal-1",
     };

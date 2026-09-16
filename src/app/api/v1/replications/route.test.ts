@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   getPublicReplicationsBySlugs: vi.fn(),
   enforceRateLimit: vi.fn(),
 }));
-vi.mock("@server/convex/publicData", () => ({
+vi.mock("@server/data/publicData", () => ({
   getPublicReplications: mocks.getPublicReplications,
   getPublicReplicationsBySlugs: mocks.getPublicReplicationsBySlugs,
 }));

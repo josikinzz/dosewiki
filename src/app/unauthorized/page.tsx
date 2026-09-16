@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
   buildNoIndexPageMetadata,
-  getStatusRecoveryLink,
   getUnauthorizedFrom,
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
+import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { Button } from "@/components/ui/button";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { SignOutButton } from "../_components/SignOutButton";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 
@@ -25,7 +25,7 @@ type UnauthorizedPageProps = {
 
 export default async function UnauthorizedPage({ searchParams }: UnauthorizedPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["unauthorized-badge", "unauthorized-title"]);
   const from = getUnauthorizedFrom(resolvedSearchParams?.from);
   const publicSiteLink = getStatusRecoveryLink("substances");
   const inlineCodeClassName =

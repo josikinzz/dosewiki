@@ -8,7 +8,7 @@ import { JsonBodyError } from "@/lib/http/readJsonBody";
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const COPY_BLOCK_KINDS = ["markdown", "plain", "list"] as const;
 
-/** Matches the Convex-side ceilings in `convex/copyBlocks.ts`. */
+/** Matches the Postgres-side ceilings in `server/copyBlocks.ts`. */
 const BODY_MAX_LENGTH = 20_000;
 const ITEM_MAX_LENGTH = 2_000;
 const MAX_ITEMS = 64;

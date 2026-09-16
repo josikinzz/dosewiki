@@ -16,14 +16,14 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: dataMocks.getServerDataWriteCapability,
 }));
 
 const publishMocks = vi.hoisted(() => ({
@@ -50,17 +50,17 @@ beforeEach(() => {
   authMocks.requireRoleSession.mockImplementation(
     roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
   );
-  convexMocks.getServerConvexWriteCapability.mockReturnValue({
+  dataMocks.getServerDataWriteCapability.mockReturnValue({
     ok: true,
     capability: {
-      client: { query: convexMocks.query, mutation: convexMocks.mutation },
+      client: { query: dataMocks.query, mutation: dataMocks.mutation },
       adminKey: "admin-key",
     },
   });
 });
 
 describe("molecule class template routes", () => {
-  it("refuses an editor session with 403 on every verb before touching Convex", async () => {
+  it("refuses an editor session with 403 on every verb before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const responses = await Promise.all([
@@ -73,12 +73,12 @@ describe("molecule class template routes", () => {
     expect(responses.map((response) => response.status)).toEqual([403, 403, 403, 403]);
     expect(authMocks.requireRoleSession).toHaveBeenCalledTimes(4);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(convexMocks.query).not.toHaveBeenCalled();
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.query).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("lets an admin list the saved template keys", async () => {
-    convexMocks.query.mockResolvedValue(["phenethylamines"]);
+    dataMocks.query.mockResolvedValue(["phenethylamines"]);
 
     const response = await GET(new Request("https://dose.wiki/api/dev/molecule-class-template?list=1"));
 
@@ -87,14 +87,14 @@ describe("molecule class template routes", () => {
   });
 
   it("saves a template as the admin actor", async () => {
-    convexMocks.mutation.mockResolvedValue({ updated: true, updatedAt: 1 });
+    dataMocks.mutation.mockResolvedValue({ updated: true, updatedAt: 1 });
 
     const response = await POST(
       postRequest("molecule-class-template", { classKey: "phenethylamines", molblock: "mol" }),
     );
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledWith(
+    expect(dataMocks.mutation).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         apiKey: "admin-key",
@@ -105,7 +105,7 @@ describe("molecule class template routes", () => {
   });
 
   it("publishes every applied member plus the class index", async () => {
-    convexMocks.mutation.mockImplementation(async (_reference, args: { slug: string }) => ({
+    dataMocks.mutation.mockImplementation(async (_reference, args: { slug: string }) => ({
       applied: true,
       slug: args.slug,
       updated: true,
@@ -136,7 +136,7 @@ describe("molecule class template routes", () => {
   });
 
   it("publishes nothing when every member was protected from the template", async () => {
-    convexMocks.mutation.mockImplementation(async (_reference, args: { slug: string }) => ({
+    dataMocks.mutation.mockImplementation(async (_reference, args: { slug: string }) => ({
       applied: false,
       slug: args.slug,
       reason: "protected-hand-edit",

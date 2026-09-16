@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
 import {
-  buildConvexCommandPayload,
+  buildDataCommandPayload,
   buildDevSaveDraft,
   buildProposalSummary,
-  createConvexSaveAdapter,
+  createDataSaveAdapter,
   createProposalSaveAdapter,
   type DevSaveCredentials,
 } from "./devSaveCommand";
 
 const healthyServer: EditorServerConfigHealth = {
   status: "healthy",
-  canSaveToConvex: true,
+  canSaveToPostgres: true,
   issues: [],
   summary: "Server ready",
   checkedAt: null,
@@ -74,8 +74,8 @@ describe("dev save command contract", () => {
     expect("generatorPrompt" in draft).toBe(false);
   });
 
-  it("builds Convex payloads from changed document snapshots", () => {
-    expect(buildConvexCommandPayload(createDraft())).toEqual({
+  it("builds Postgres payloads from changed document snapshots", () => {
+    expect(buildDataCommandPayload(createDraft())).toEqual({
       changedArticles: [{ id: 2, title: "MDMA" }],
       payload: {
         articles: [{ id: 2, title: "MDMA" }],
@@ -105,8 +105,8 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("normalizes successful Convex saves and marks local changes saved", async () => {
-    const saveToConvex = vi.fn().mockResolvedValue({
+  it("normalizes successful Postgres saves and marks local changes saved", async () => {
+    const saveArticle = vi.fn().mockResolvedValue({
       success: true,
       requestId: "save-1",
       savedItems: ["1 article(s)"],
@@ -122,7 +122,7 @@ describe("dev save command contract", () => {
         submittedBy: "JOSIE",
       },
     });
-    const adapter = createConvexSaveAdapter({ serverHealth: healthyServer, saveToConvex });
+    const adapter = createDataSaveAdapter({ serverHealth: healthyServer, saveArticle });
 
     await expect(adapter.execute(createDraft(), credentials)).resolves.toMatchObject({
       savedItems: ["1 article(s)"],
@@ -137,14 +137,14 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("keeps warning Convex saves from marking local changes saved", async () => {
-    const saveToConvex = vi.fn().mockResolvedValue({
+  it("keeps warning Postgres saves from marking local changes saved", async () => {
+    const saveArticle = vi.fn().mockResolvedValue({
       success: true,
       savedItems: ["1 article(s)"],
       submittedBy: "",
       warnings: ["Skipped malformed article"],
     });
-    const adapter = createConvexSaveAdapter({ serverHealth: healthyServer, saveToConvex });
+    const adapter = createDataSaveAdapter({ serverHealth: healthyServer, saveArticle });
 
     await expect(adapter.execute(createDraft(), credentials)).resolves.toMatchObject({
       savedItems: ["1 article(s)"],
@@ -154,14 +154,14 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("normalizes no-op Convex saves without marking local changes saved", async () => {
-    const saveToConvex = vi.fn().mockResolvedValue({
+  it("normalizes no-op Postgres saves without marking local changes saved", async () => {
+    const saveArticle = vi.fn().mockResolvedValue({
       success: true,
       savedItems: [],
       submittedBy: "JOSIE",
       warnings: [],
     });
-    const adapter = createConvexSaveAdapter({ serverHealth: healthyServer, saveToConvex });
+    const adapter = createDataSaveAdapter({ serverHealth: healthyServer, saveArticle });
 
     await expect(adapter.execute(createDraft(), credentials)).resolves.toMatchObject({
       savedItems: [],
@@ -172,24 +172,24 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("reports unavailable Convex credentials before mutation", () => {
-    const adapter = createConvexSaveAdapter({
+  it("reports unavailable Postgres credentials before mutation", () => {
+    const adapter = createDataSaveAdapter({
       serverHealth: {
         ...healthyServer,
         status: "unhealthy",
-        canSaveToConvex: false,
-        issues: ["Missing CONVEX_ADMIN_KEY"],
+        canSaveToPostgres: false,
+        issues: ["Missing DATA_ADMIN_KEY"],
       },
-      saveToConvex: vi.fn(),
+      saveArticle: vi.fn(),
     });
 
     expect(adapter.validateAvailability(createDraft())).toEqual({
       ok: false,
-      message: "Missing CONVEX_ADMIN_KEY",
+      message: "Missing DATA_ADMIN_KEY",
     });
   });
 
-  it("submits the same payload as a proposal, never touches Convex health, and points at the queue", async () => {
+  it("submits the same payload as a proposal, never touches Postgres health, and points at the queue", async () => {
     const submitProposal = vi.fn().mockResolvedValue({ proposalId: "k57zyx987654" });
     const adapter = createProposalSaveAdapter({ submitProposal });
     const draft = createDraft();

@@ -1,4 +1,9 @@
-export const PUBLICATION_SIGNAL_VERSION = 1;
+import {
+  isPublicLocaleCode,
+  type TranslationLocaleCode,
+} from "../../src/i18n/localeRegistry.mjs";
+
+export const PUBLICATION_SIGNAL_VERSION = 2;
 
 /** A signal older than this is refused: a replayed capture is not a publication. */
 export const PUBLICATION_SIGNAL_MAX_SKEW_MS = 300_000;
@@ -12,7 +17,7 @@ export const PUBLICATION_SIGNATURE_HEADER = "x-dosewiki-publication-signature";
 
 /** The same vocabulary the derived-cache invalidation already speaks. */
 export type PublicationSource =
-  | "save-to-convex"
+  | "save-article"
   | "proposal-apply"
   | "proposal-revert"
   | "save-quote"
@@ -22,7 +27,7 @@ export type PublicationSource =
   | "test-write";
 
 const PUBLICATION_SOURCES: readonly PublicationSource[] = [
-  "save-to-convex",
+  "save-article",
   "proposal-apply",
   "proposal-revert",
   "save-quote",
@@ -38,8 +43,24 @@ const PUBLICATION_SOURCES: readonly PublicationSource[] = [
  * key the identity needs; the kinds that address a single fixed surface carry
  * none.
  */
+export type ArticlePublicationDependency = "detail" | "content" | "membership";
+
 export type PublicationTarget =
-  | { kind: "article"; slug: string }
+  | {
+      kind: "article";
+      slug: string;
+      /**
+       * Omitted by old or detail-less writers on purpose: receivers then take
+       * the conservative membership path rather than guessing that an edit
+       * was prose-only.
+       */
+      dependency?: ArticlePublicationDependency;
+    }
+  | {
+      kind: "article-translation";
+      slug: string;
+      locale: TranslationLocaleCode;
+    }
   | { kind: "effect"; slug: string }
   | { kind: "contributor"; slug: string }
   | { kind: "chemical-class"; slug: string }
@@ -81,17 +102,19 @@ const REPLICATION_SLUG_RE = /^[a-z0-9][a-z0-9_-]{0,127}$/;
 const MOLECULE_SLUG_RE = /^(?:class:)?[a-z0-9][a-z0-9-]{0,127}$/;
 const CONTRIBUTOR_KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 
-const SLUG_PATTERN_BY_KIND: Partial<Record<PublicationTarget["kind"], RegExp>> = {
-  article: SLUG_RE,
-  effect: SLUG_RE,
-  "chemical-class": SLUG_RE,
-  report: SLUG_RE,
-  library: SLUG_RE,
-  replication: REPLICATION_SLUG_RE,
-  "blog-post": SLUG_RE,
-  molecule: MOLECULE_SLUG_RE,
-  contributor: CONTRIBUTOR_KEY_RE,
-};
+const SLUG_PATTERN_BY_KIND: Partial<Record<PublicationTarget["kind"], RegExp>> =
+  {
+    article: SLUG_RE,
+    "article-translation": SLUG_RE,
+    effect: SLUG_RE,
+    "chemical-class": SLUG_RE,
+    report: SLUG_RE,
+    library: SLUG_RE,
+    replication: REPLICATION_SLUG_RE,
+    "blog-post": SLUG_RE,
+    molecule: MOLECULE_SLUG_RE,
+    contributor: CONTRIBUTOR_KEY_RE,
+  };
 
 const UNKEYED_KINDS: Partial<Record<PublicationTarget["kind"], true>> = {
   "substance-lists": true,
@@ -110,15 +133,54 @@ const UNKEYED_KINDS: Partial<Record<PublicationTarget["kind"], true>> = {
   banners: true,
   home: true,
 };
-export function isPublicationTarget(value: unknown): value is PublicationTarget {
+export function isPublicationTarget(
+  value: unknown,
+): value is PublicationTarget {
   if (!value || typeof value !== "object") return false;
-  const candidate = value as { kind?: unknown; slug?: unknown };
+  const candidate = value as {
+    kind?: unknown;
+    slug?: unknown;
+    dependency?: unknown;
+    locale?: unknown;
+  };
   if (typeof candidate.kind !== "string") return false;
   if (UNKEYED_KINDS[candidate.kind as PublicationTarget["kind"]] === true) {
-    return candidate.slug === undefined;
+    return (
+      candidate.slug === undefined &&
+      candidate.dependency === undefined &&
+      candidate.locale === undefined
+    );
   }
-  const pattern = SLUG_PATTERN_BY_KIND[candidate.kind as PublicationTarget["kind"]];
-  return typeof candidate.slug === "string" && pattern !== undefined && pattern.test(candidate.slug);
+  const pattern =
+    SLUG_PATTERN_BY_KIND[candidate.kind as PublicationTarget["kind"]];
+  if (
+    typeof candidate.slug !== "string" ||
+    pattern === undefined ||
+    !pattern.test(candidate.slug)
+  ) {
+    return false;
+  }
+  if (candidate.kind === "article") {
+    return (
+      candidate.locale === undefined &&
+      (candidate.dependency === undefined ||
+        candidate.dependency === "detail" ||
+        candidate.dependency === "content" ||
+        candidate.dependency === "membership")
+    );
+  }
+  if (candidate.kind === "article-translation") {
+    const keys = Object.keys(candidate).sort();
+    return (
+      keys.length === 3 &&
+      keys[0] === "kind" &&
+      keys[1] === "locale" &&
+      keys[2] === "slug" &&
+      candidate.dependency === undefined &&
+      isPublicLocaleCode(candidate.locale)
+    );
+  }
+  return candidate.dependency === undefined && candidate.locale === undefined;
 }
 
 export type PublicationSignalParse =
@@ -135,7 +197,8 @@ export function parsePublicationSignal(
   value: unknown,
   now: number = Date.now(),
 ): PublicationSignalParse {
-  if (!value || typeof value !== "object") return { status: "refused", reason: "body_not_object" };
+  if (!value || typeof value !== "object")
+    return { status: "refused", reason: "body_not_object" };
   const candidate = value as Record<string, unknown>;
   if (candidate.version !== PUBLICATION_SIGNAL_VERSION) {
     return { status: "refused", reason: "unsupported_version" };
@@ -146,10 +209,16 @@ export function parsePublicationSignal(
   ) {
     return { status: "refused", reason: "unknown_source" };
   }
-  if (typeof candidate.dispatchId !== "string" || !/^[A-Za-z0-9_-]{8,64}$/.test(candidate.dispatchId)) {
+  if (
+    typeof candidate.dispatchId !== "string" ||
+    !/^[A-Za-z0-9_-]{8,64}$/.test(candidate.dispatchId)
+  ) {
     return { status: "refused", reason: "invalid_dispatch_id" };
   }
-  if (typeof candidate.issuedAt !== "number" || !Number.isFinite(candidate.issuedAt)) {
+  if (
+    typeof candidate.issuedAt !== "number" ||
+    !Number.isFinite(candidate.issuedAt)
+  ) {
     return { status: "refused", reason: "invalid_issued_at" };
   }
   if (Math.abs(now - candidate.issuedAt) > PUBLICATION_SIGNAL_MAX_SKEW_MS) {
@@ -162,7 +231,8 @@ export function parsePublicationSignal(
     return { status: "refused", reason: "too_many_targets" };
   }
   for (const target of candidate.targets) {
-    if (!isPublicationTarget(target)) return { status: "refused", reason: "unknown_target" };
+    if (!isPublicationTarget(target))
+      return { status: "refused", reason: "unknown_target" };
   }
   return {
     status: "accepted",

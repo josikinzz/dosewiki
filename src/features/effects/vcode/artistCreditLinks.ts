@@ -28,7 +28,7 @@ function creditKey(artist: string | undefined): string {
  * artists whose only works are withheld from artist views.
  */
 export function buildArtistCreditLinks(
-  replications: readonly PublicGalleryReplicationPreview[],
+  replications: readonly Pick<PublicGalleryReplicationPreview, "artist" | "artist_url" | "effect_slug" | "url">[],
 ): ArtistCreditLinks {
   const links = new Map<string, ArtistCreditLink>();
 

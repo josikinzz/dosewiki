@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * Push a single prompt seed file to Convex by key.
+ * Push a single prompt seed file to Postgres by key.
  *
- * Unlike migrate-prompts-to-convex.mjs (which bulk-imports every prompt and
- * would overwrite Convex-side hand edits to unrelated prompts), this writes
+ * Unlike migrate-prompts-to-data.mjs (which bulk-imports every prompt and
+ * would overwrite Postgres-side hand edits to unrelated prompts), this writes
  * exactly one prompt row, then verifies the write by read-back.
  *
  * Usage:
- *   TARGET_CONVEX_URL="https://..." node scripts/migrate/push-single-prompt.mjs --key=section_subjective_effects
+ *   TARGET_POSTGRES_URL="https://..." node scripts/migrate/push-single-prompt.mjs --key=section_subjective_effects
  *   node scripts/migrate/push-single-prompt.mjs --key=section_subjective_effects --dry-run
  */
 
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
 import {
   assertDataOpsWriteAllowed,
@@ -39,8 +39,8 @@ async function main() {
   }
 
   const runContext = createDataOpsRunContext({
-    operation: `push single prompt (${promptKey}) to Convex`,
-    intent: "dev-convex-import",
+    operation: `push single prompt (${promptKey}) to Postgres`,
+    intent: "dev-data-import",
     sourceUrlKeys: [],
     localArtifacts: [prompt.filePath],
   });
@@ -53,16 +53,16 @@ async function main() {
     return;
   }
 
-  let convexUrl;
+  let dataUrl;
   try {
-    convexUrl = requireTargetUrl(runContext);
+    dataUrl = requireTargetUrl(runContext);
     assertDataOpsWriteAllowed(runContext);
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 
-  const client = createDataClient({ target: convexUrl }).client;
+  const client = createDataClient({ target: dataUrl }).client;
   const adminKey = requireAdminIntentToken("promptMigrationWrite").token;
 
   const before = await client.query(api.prompts.getByKey, { key: promptKey });
@@ -89,8 +89,8 @@ async function main() {
   const lineage = tryWriteArtifactLineageSidecar({
     artifactPath: prompt.filePath,
     sourceDeployment: "local working tree",
-    targetDeployment: convexUrl,
-    schemaVersion: "convex/prompts.ts",
+    targetDeployment: postgresFingerprintFromUrl(dataUrl),
+    schemaVersion: "server/prompts.ts",
     extra: {
       promptKey: prompt.key,
       charCount: prompt.content.length,

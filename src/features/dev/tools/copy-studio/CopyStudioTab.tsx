@@ -83,7 +83,7 @@ type CopyStudioTabProps = {
  * matches, across all groups, while the editor stays on the selected block.
  */
 export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
-  const rows = useEditorRead("copyBlocks:getAll", {}, "list") as CopyBlockRow[] | undefined;
+  const rows = useEditorRead("copyBlocks:getEditorCatalogue", {}, "list") as CopyBlockRow[] | undefined;
   const invalidateEditorReads = useInvalidateEditorReads();
 
   const blocks = useMemo(() => buildCopyStudioBlocks(rows ?? []), [rows]);
@@ -130,26 +130,28 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
 
   // Live production updates must never replace an unsaved draft or its baseline.
   useEffect(() => {
-    if (!activeBlock || rows === undefined || selectedSnapshot === undefined) {
-      return;
-    }
-    const authoritative = buildCopyStudioBlocks(selectedSnapshot.document ? [selectedSnapshot.document] : []).find((block) => block.key === activeBlock.key);
-    if (!authoritative || blockCurrentText(authoritative) !== blockCurrentText(activeBlock)) return;
+    if (!activeBlock || selectedSnapshot === undefined) return;
+    const authoritative = buildCopyStudioBlocks(
+      selectedSnapshot.document ? [selectedSnapshot.document] : [],
+    ).find((block) => block.key === activeBlock.key);
+    if (!authoritative) return;
     if (awaitingWrite.current?.key === activeBlock.key) {
-      if (blockCurrentText(awaitingWrite.current) !== blockCurrentText(activeBlock)) return;
+      if (blockCurrentText(awaitingWrite.current) !== blockCurrentText(authoritative)) return;
       awaitingWrite.current = null;
     }
-    if (loadedBlock === activeBlock) {
-      if (!isDraftDirty(activeBlock, draft)) setBaselineRevision(selectedSnapshot.revision);
-      return;
+    if (loadedBlock?.key === activeBlock.key) {
+      if (isDraftDirty(loadedBlock, draft)) return;
+      if (blockCurrentText(loadedBlock) === blockCurrentText(authoritative)) {
+        setBaselineRevision(selectedSnapshot.revision);
+        return;
+      }
     }
-    if (loadedBlock?.key === activeBlock.key && isDraftDirty(loadedBlock, draft)) return;
-    setLoadedBlock(activeBlock);
+    setLoadedBlock(authoritative);
     setBaselineRow(selectedSnapshot.document);
     setBaselineRevision(selectedSnapshot.revision);
-    setDraft(draftFromBlock(activeBlock));
+    setDraft(draftFromBlock(authoritative));
     setSaveState("idle");
-  }, [activeBlock, rows, loadedBlock, draft, selectedSnapshot]);
+  }, [activeBlock, loadedBlock, draft, selectedSnapshot]);
 
   // The address names the open block so a reload or a shared link lands on it.
   // Only a change writes: the address the editor arrived on is left alone.
@@ -265,14 +267,14 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       const savedBlock: CopyStudioBlock = {
         ...activeBlock,
         current: { body: "body" in block ? block.body : "", items: "items" in block ? block.items : [] },
-        source: "convex",
+        source: "data",
       };
       awaitingWrite.current = savedBlock;
       setLoadedBlock(savedBlock);
       setBaselineRow({ ...block, revision: receipt.revision });
       setBaselineRevision(receipt.revision);
       detailSource.reload();
-      void invalidateEditorReads(["copyBlocks:getAll"]);
+      void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
 
       setSaveState("saved");
       setNotice({
@@ -311,7 +313,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
 
   /** Revert deletes the stored row, so the public read serves the default. */
   const handleRevertToDefault = useCallback(async () => {
-    if (!activeBlock || activeBlock.source !== "convex" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
+    if (!activeBlock || activeBlock.source !== "data" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
       return;
     }
 
@@ -329,7 +331,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       const receipt = acknowledge(response, payload);
       setBaselineRevision(receipt.revision);
       awaitingWrite.current = null; setBaselineRow(null); detailSource.reload();
-      void invalidateEditorReads(["copyBlocks:getAll"]);
+      void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
 
       setSaveState("saved");
       setNotice({
@@ -346,11 +348,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     }
   }, [activeBlock, baselineRow, baselineRevision, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload, invalidateEditorReads]);
 
-  if (rows === undefined) {
-    return (
-      <StateCard loading compact className="mt-10" title="Loading site copy" />
-    );
-  }
 
   return (
     <div className="mt-6 space-y-8 md:mt-8">
@@ -429,7 +426,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                           {copyBlockFlavorLabel(block.flavor)}
                         </EditorStatusPill>
                       ) : null}
-                      {block.source === "convex" ? (
+                      {block.source === "data" ? (
                         <EditorStatusPill tone="info">Edited</EditorStatusPill>
                       ) : null}
                     </span>
@@ -491,7 +488,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        disabled={activeBlock.source !== "convex" || saveState === "saving"}
+                        disabled={activeBlock.source !== "data" || saveState === "saving"}
                         onClick={() =>
                           confirm({
                             title: "Remove stored copy?",

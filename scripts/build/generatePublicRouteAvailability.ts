@@ -5,11 +5,10 @@ import path from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api";
-import { getPublicServerReadTarget } from "../../lib/convex/runtimeTargets";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { isPublishableReplication } from "../../src/types/replications";
 
-const DEFAULT_PUBLIC_CONVEX_URL = "https://glad-minnow-656.convex.cloud";
 const OUTPUT_PATH = path.join(
   process.cwd(),
   "src/data/publicRouteAvailability.generated.json",
@@ -62,16 +61,11 @@ async function drainPages<Item>(
 }
 
 async function main(): Promise<void> {
-  const runtimeTarget = getPublicServerReadTarget(process.env);
-  const convexUrl = runtimeTarget.selectedUrl ?? DEFAULT_PUBLIC_CONVEX_URL;
-  const deploymentName = new URL(convexUrl).hostname.split(".")[0];
-  if (deploymentName !== "glad-minnow-656") {
-    throw new Error(
-      `Public route availability must use production Convex glad-minnow-656; resolved ${deploymentName}.`,
-    );
+  const { client, fingerprint: deploymentName } = createDataClient();
+  const expected = getFlagValue(process.argv.slice(2), "--expected-deployment");
+  if (!expected || expected !== deploymentName) {
+    throw new Error(`Public route availability requires --expected-deployment=${deploymentName} for the selected Postgres source.`);
   }
-
-  const client = createDataClient({ target: convexUrl }).client;
   const [substances, replications] = await Promise.all([
     drainPages((cursor) =>
       client.query(api.substanceIndex.getPublicLookupPage, {

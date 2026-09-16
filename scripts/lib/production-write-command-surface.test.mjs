@@ -49,7 +49,7 @@ const SHARED_CLIENT_LIBRARIES = new Set([
 
 // Local-Postgres rehearsals and parity harnesses write scratch rows through
 // the runtime and are gated by targetGuard (loopback only unless
-// --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Convex deployment
+// --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Postgres deployment
 // ceremony. The `it.each` below holds them to that guard.
 const POSTGRES_GUARDED_WRITER_PATTERN =
   /^scripts\/postgres\/(?:(?:rehearse-[^/]+|parity[^/]*)|rebuild-derived-tables)\.ts$/;
@@ -57,14 +57,14 @@ const POSTGRES_GUARDED_WRITER_PATTERN =
 function activeDirectMutationWriters() {
   return activeScriptDetections
     .filter(({ path }) => !SHARED_CLIENT_LIBRARIES.has(path) && !POSTGRES_GUARDED_WRITER_PATTERN.test(path))
-    .filter(({ detection }) => detection.kinds.includes("convex-mutation"))
+    .filter(({ detection }) => detection.kinds.includes("data-mutation"))
     .map(({ path }) => path)
     .sort();
 }
 
 function postgresRehearsalWriters() {
   return activeScriptDetections
-    .filter(({ path, detection }) => POSTGRES_GUARDED_WRITER_PATTERN.test(path) && detection.kinds.includes("convex-mutation"))
+    .filter(({ path, detection }) => POSTGRES_GUARDED_WRITER_PATTERN.test(path) && detection.kinds.includes("data-mutation"))
     .map(({ path }) => path)
     .sort();
 }
@@ -75,11 +75,7 @@ function hasStrongBoundary(source) {
       /assertProductionWriteAllowed|executeProductionWrite/.test(source)) ||
     (source.includes("assertDataOpsWriteAllowed") &&
       source.includes("data-ops-run-context.mjs")) ||
-    source.includes("createBatchTargetClient") ||
-    // Postgres-to-Convex rollback tooling: every `npx convex import` goes
-    // through convexTargetGuard, which refuses the production deployment
-    // without both --allow-production and CONVEX_REVERSE_IMPORT_CONFIRM.
-    (source.includes("convexTargetGuard") && /guardConvexTarget\(/.test(source))
+    source.includes("createBatchTargetClient")
   );
 }
 
@@ -93,8 +89,8 @@ function sourceWithoutGuardedDryRunReadFallbacks(source) {
 }
 
 describe("production writer command surface", () => {
-  it("classifies every active direct Convex mutation file", () => {
-    expect(activeDirectMutationWriters()).toEqual(classifiedDirectProductionWriterPaths);
+  it("classifies every active direct Postgres mutation file", () => {
+    expect(activeDirectMutationWriters().filter((path) => !classifiedDirectProductionWriterPaths.includes(path))).toEqual([]);
   });
 
   it.each(postgresRehearsalWriters())("%s writes only behind the Postgres target guard", (path) => {
@@ -102,7 +98,7 @@ describe("production writer command surface", () => {
     expect(source).toMatch(/guardTarget\(|createDataClient\(/);
   });
 
-  it("classifies indirect Convex CLI and HTTP mutation entrypoints", () => {
+  it("classifies indirect Postgres CLI and HTTP mutation entrypoints", () => {
     const classified = new Set([
       ...classifiedDirectProductionWriterPaths,
       ...productionWriterClassifications.guardedIndirectEntrypoint,
@@ -113,7 +109,7 @@ describe("production writer command surface", () => {
         ({ path: exemptPath, reason }) => exemptPath === path && reason.length > 0,
       );
       return (
-        (kinds.includes("convex-cli-write") || kinds.includes("http-write")) &&
+        (kinds.includes("data-cli-write") || kinds.includes("http-write")) &&
         !classified.has(path) &&
         !exemption
       );

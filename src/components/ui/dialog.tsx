@@ -49,7 +49,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       {showClose ? (
-        <DialogPrimitive.Close className={cn("theme-icon-button absolute right-4 top-4 grid place-items-center rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent-strong)] focus:ring-offset-2 focus:ring-offset-[var(--theme-body-bg)] disabled:pointer-events-none", TOUCH_ICON)}>
+        <DialogPrimitive.Close className={cn("theme-focus-ring theme-icon-button absolute right-4 top-4 grid place-items-center rounded-sm opacity-70 transition-opacity hover:opacity-100 disabled:pointer-events-none", TOUCH_ICON)}>
           <Icon icon="lucide:x" size={16} />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

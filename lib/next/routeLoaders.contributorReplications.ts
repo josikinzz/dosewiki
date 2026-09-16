@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getReplicationsByContributor } from "@server/convex/publicData";
+import { getReplicationsByContributor } from "@server/data/publicData";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { ReplicationWithUrl } from "../../src/types/replications";
 

@@ -12,7 +12,7 @@ const publicData = vi.hoisted(() => ({
   getPublicSubstanceLookup: vi.fn(),
 }));
 
-vi.mock("@server/convex/publicData", () => publicData);
+vi.mock("@server/data/publicData", () => publicData);
 
 describe("public route outcomes", () => {
   beforeEach(() => {

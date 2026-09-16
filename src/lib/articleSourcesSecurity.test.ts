@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getAll, getBySlug, getSubstanceList } from "../../convex/articleSources";
+import { getAll, getBySlug, getSubstanceList } from "../../server/articleSources";
 
 type Role = "admin" | "editor" | "contributor" | "viewer";
 
@@ -7,7 +7,7 @@ const collect = vi.fn(async () => [] as unknown[]);
 const first = vi.fn(async () => null);
 const paginate = vi.fn(async () => ({ page: [], continueCursor: "", isDone: true }));
 
-/** Same fake ctx shape as `lib/convexSubstanceIndexEditorReadAuth.test.ts`. */
+/** Same fake ctx shape as `lib/dataSubstanceIndexEditorReadAuth.test.ts`. */
 function createCtx(memberships: Record<string, Role>) {
   return {
     auth: { getUserIdentity: vi.fn(async () => null) },
@@ -47,8 +47,8 @@ function createCtx(memberships: Record<string, Role>) {
 
 type Handler = (ctx: never, args: unknown) => Promise<unknown>;
 
-// Convex registered functions keep the original handler on `_handler`; there is
-// no in-repo Convex runtime harness, so the handler is exercised directly.
+// Postgres registered functions keep the original handler on `_handler`; there is
+// no in-repo Postgres runtime harness, so the handler is exercised directly.
 function handlerOf(registered: unknown): Handler {
   const withHandler = registered as { _handler: Handler };
   return withHandler._handler;
@@ -62,14 +62,14 @@ const handlers: Array<[string, Handler, Record<string, unknown>]> = [
 
 describe("articleSources query security", () => {
   beforeEach(() => {
-    process.env.CONVEX_ADMIN_KEY = "secret";
+    process.env.DATA_ADMIN_KEY = "secret";
     collect.mockClear();
     first.mockClear();
     paginate.mockClear();
   });
 
   afterEach(() => {
-    delete process.env.CONVEX_ADMIN_KEY;
+    delete process.env.DATA_ADMIN_KEY;
   });
 
   it.each(handlers)("%s refuses an unauthenticated caller before reading", async (_name, handler, args) => {

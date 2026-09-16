@@ -31,7 +31,7 @@ describe("MechanismDetailPage", () => {
     Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it("renders the active qualifier section first on qualifier routes", () => {
+  it("renders only the requested qualifier while retaining sibling navigation", () => {
     render(
       <MechanismDetailPage
         detail={mechanismDetail}
@@ -41,9 +41,9 @@ describe("MechanismDetailPage", () => {
       />,
     );
 
-    const sections = screen.getAllByRole("heading", { level: 2 });
-
-    expect(sections[0]).toHaveTextContent("5-HT2A receptor agonist (Partial)");
-    expect(sections[1]).toHaveTextContent("5-HT2A receptor agonist (Full)");
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("5-HT2A receptor agonist (Partial)");
+    expect(screen.getByRole("link", { name: /5-HT2A receptor agonist \(Full\)/ })).toHaveAttribute(
+      "href", "/mechanism/5-ht2a-receptor-agonist",
+    );
   });
 });

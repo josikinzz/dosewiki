@@ -2,7 +2,7 @@ import type { Classification, Identification } from "./classification";
 import type { Interactions } from "./interactions";
 import type { SubstanceArticle } from "./article";
 import type { PublicArticleProjection } from "./editorialReviewVisibilityPolicy";
-import type { PublicSubstanceLibraryInputRecord } from "../../../lib/convex/publicData.substanceContract";
+import type { PublicSubstanceLibraryInputRecord } from "../../../lib/data/publicData.substanceContract";
 import {
   getLegacyAwareMechanismTags,
   normalizePharmacologySection,

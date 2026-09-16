@@ -2,7 +2,7 @@
  * Editor read endpoint for the `/dev` and `/review` editor library.
  *
  * Every projection here returns editor-only state — `editorial_review` notes
- * and review flags — so all of them require an editor actor on the Convex side.
+ * and review flags — so all of them require an editor actor on the Postgres side.
  * The browser holds no admin intent token, so the reads happen here: the route
  * checks the editor session, then queries with the server's own token.
  *
@@ -24,14 +24,14 @@
  * was retired when the review workbench moved to per-slug hydration.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
 
 /**
  * Rows in every drained projection are small (no prose, no references), so a
- * hundred per Convex page stays far inside the per-execution read limit and
+ * hundred per Postgres page stays far inside the per-execution read limit and
  * the whole list lands in a handful of round trips.
  */
 const PAGE_LIMIT = 100;
@@ -76,23 +76,23 @@ async function drainPages(
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load the editor library via Next route:",
   unexpectedErrorMessage: "Unable to load the editor library right now.",
-  operation: async ({ convexWrite, actorEmail, request }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ dataWrite, actorEmail, request }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
     const params = new URL(request.url).searchParams;
     const slug = params.get("slug")?.trim();
 
     if (slug) {
       const idParam = Number.parseInt(params.get("id") ?? "", 10);
-      const article = await convexWrite.client.query(api.substanceIndex.getEditorBySlug, {
+      const article = await dataWrite.client.query(api.substanceIndex.getEditorBySlug, {
         slug,
         ...(Number.isFinite(idParam) ? { id: idParam } : {}),
         apiKey,
@@ -126,7 +126,7 @@ export const GET = protectedRouteOperation({
         : api.substanceIndex.getEditorLibraryPage;
     const { rows, done } = await drainPages(
       (cursor) =>
-        convexWrite.client.query(projection, {
+        dataWrite.client.query(projection, {
           apiKey,
           actorEmail,
           paginationOpts: { numItems: PAGE_LIMIT, cursor },

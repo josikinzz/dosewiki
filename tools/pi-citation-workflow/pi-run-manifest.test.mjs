@@ -64,7 +64,7 @@ function fixture() {
     JSON.stringify({
       taskId: "example-drug",
       allowLiveWebResearch: false,
-      provenance: { source: "live_convex_export", applyBound: true },
+      provenance: { source: "live_postgres_export", applyBound: true },
       article: { slug: "example-drug", citableSections: Object.fromEntries(sections.map((section) => [section, `${section} prose`])) },
     }),
   );

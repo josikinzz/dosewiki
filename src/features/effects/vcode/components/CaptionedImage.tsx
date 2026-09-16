@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { SmartLink } from "@/components/common/SmartLink";
 import { AppImage } from "@/components/common/AppImage";
@@ -13,6 +13,7 @@ interface CaptionedImageProps {
   artistHref?: string;
   /** True when `artistHref` leaves the site (the artist's own page). */
   artistHrefExternal?: boolean;
+  artistCredit?: ReactNode;
   title?: string;
   caption?: string;
   align?: "left" | "right" | "center";
@@ -62,6 +63,7 @@ export function CaptionedImage({
   artist,
   artistHref,
   artistHrefExternal = false,
+  artistCredit,
   title,
   caption,
   align = "center",
@@ -149,7 +151,7 @@ export function CaptionedImage({
             {artist && (
               <div className="theme-text-faint mt-0.5 text-[11px]">
                 by{" "}
-                {artistHref ? (
+                {artistCredit ?? (artistHref ? (
                   artistHrefExternal ? (
                     <a
                       href={artistHref}
@@ -169,7 +171,7 @@ export function CaptionedImage({
                   )
                 ) : (
                   artist
-                )}
+                ))}
               </div>
             )}
           </figcaption>

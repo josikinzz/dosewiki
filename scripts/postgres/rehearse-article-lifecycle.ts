@@ -1,6 +1,6 @@
 /**
  * Ticket 06 rehearsal: the editor article lifecycle on Postgres, driven through
- * `PostgresConvexClient` with the same `api.*` calls the app makes.
+ * `PostgresClient` with the same `api.*` calls the app makes.
  *
  *   bun scripts/postgres/rehearse-article-lifecycle.ts [--target <url>] [--allow-remote] [--keep]
  *
@@ -38,12 +38,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { FunctionArgs } from "convex/server";
-import { ConvexError } from "convex/values";
+import type { FunctionArgs } from "../../lib/postgres/runtime/api";
+import { PostgresError } from "../../lib/postgres/runtime/values";
 import { Pool } from "pg";
-import { api } from "../../convex/_generated/api";
-import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
-import { documentHash } from "../../lib/postgres/convexDocumentCodec";
+import { api } from "../../lib/postgres/runtime/api";
+import { PostgresClient } from "../../lib/postgres/runtime/client";
+import { documentHash } from "../../lib/postgres/documentCodec";
 import { insertDocument, selectDocuments, withTransaction, type SqlClient } from "../../lib/postgres/documentStore";
 import type { TableName } from "../../lib/postgres/schema.generated";
 import { projectEditorArticle } from "../../src/data/projections/substanceReadProjections";
@@ -75,7 +75,7 @@ function canonicalJson(value: unknown): string {
 }
 
 function codeOf(error: unknown): string {
-  const code = error instanceof ConvexError && error.data && typeof error.data === "object" && "code" in error.data ? String(error.data.code) : "";
+  const code = error instanceof PostgresError && error.data && typeof error.data === "object" && "code" in error.data ? String(error.data.code) : "";
   const label = code || (error instanceof Error ? `Error:${error.message}` : String(error));
   observedCodes.add(label.replace(/\b[a-z0-9]{32}\b/, "<id>"));
   return label;
@@ -166,11 +166,11 @@ async function main() {
   const target = resolveTarget(argv);
   guardTarget(target, argv.includes("--allow-remote"));
   const keep = argv.includes("--keep");
-  const apiKey = process.env.CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE || process.env.CONVEX_ADMIN_KEY;
-  if (!apiKey) throw new Error("CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or CONVEX_ADMIN_KEY must be set");
+  const apiKey = process.env.DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE || process.env.DATA_ADMIN_KEY;
+  if (!apiKey) throw new Error("DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or DATA_ADMIN_KEY must be set");
 
   const pool = new Pool({ connectionString: target, max: 4 });
-  const client = PostgresConvexClient.fromUrl(target, 6);
+  const client = PostgresClient.fromUrl(target, 6);
   const random = Math.random().toString(36).slice(2, 10);
   const prefix = `t06-${random}`;
   const triggerName = `t06_${random}_inject`;

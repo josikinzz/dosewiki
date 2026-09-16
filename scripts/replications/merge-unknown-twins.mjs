@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -10,7 +10,7 @@ import {
 import { planHighConfidenceDuplicateMerges } from "./lib/duplicate-merge-plan.mjs";
 
 const command = createProductionWriteCommand({ operation: "merge-replication-unknown-twins" });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const client = createDataClient({ target: command.targetUrl }).client;

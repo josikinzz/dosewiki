@@ -3,7 +3,7 @@ import { openDataResponse } from "../shared";
 
 /**
  * Open-data download: the substance corpus described by
- * `OPEN_DATA_DATASETS.SubstanceIndex`. Served live from Convex and refreshed
+ * `OPEN_DATA_DATASETS.SubstanceIndex`. Served live from Postgres and refreshed
  * daily by the vercel.json cron.
  */
 export const revalidate = 86400;

@@ -43,7 +43,7 @@ function StructureRow({
     <li>
       <SmartLink
         href={`/${slug}`}
-        className="group flex min-h-14 items-center justify-between gap-4 rounded-xl px-3 py-1.5 transition-[background-color] duration-200 hover:bg-dose-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-dose-accent-strong"
+        className="group flex min-h-14 items-center justify-between gap-4 rounded-xl px-3 py-1.5 transition-[background-color] duration-200 hover:bg-dose-surface-muted theme-focus-ring-inset"
       >
         <span className="theme-text-secondary min-w-0 text-[0.9375rem] font-medium leading-snug transition-colors duration-200 group-hover:text-dose-text">
           {name}
@@ -108,7 +108,7 @@ function StructurePanel({
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          className="theme-text-faint mt-1 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition-colors duration-200 hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+          className="theme-text-faint mt-1 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition-colors duration-200 hover:text-dose-text theme-focus-ring"
         >
           <Icon icon={expanded ? icons.chevronUp : icons.chevronDown} size={14} />
           {expanded ? t("Show fewer") : t("Show all {{count}}", { count: panel.total })}

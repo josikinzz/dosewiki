@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   DEFAULT_AUDIT_THRESHOLDS,
   DOSE_TABLE_TOLERANCE_SCOPE_FIELDS,
@@ -24,7 +24,7 @@ const defaultDoseMarkdownPath = path.join(repoRoot, "docs/audits/dose-table-tole
 const defaultDoseJsonPath = path.join(repoRoot, "docs/audits/dose-table-tolerance-plagiarism-audit.json");
 const defaultOtherMarkdownPath = path.join(repoRoot, "docs/audits/other-sections-plagiarism-audit.md");
 const defaultOtherJsonPath = path.join(repoRoot, "docs/audits/other-sections-plagiarism-audit.json");
-const sourceUrlKeys = ["SOURCE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL", "CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"];
+const sourceUrlKeys = ["SOURCE_POSTGRES_URL", "TARGET_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"];
 
 const scopeConfigs = {
   "dose-table-tolerance": {
@@ -85,9 +85,9 @@ async function main() {
   loadEnvFile(path.join(repoRoot, ".env.local"));
   const args = parseArgs(process.argv.slice(2));
   const scopeConfig = resolveScopeConfig(args);
-  const dataSource = args.source ?? "convex";
-  const convexUrl = resolveConvexUrl(args);
-  const client = dataSource === "convex" ? createConvexClient(convexUrl) : null;
+  const dataSource = args.source ?? "postgres";
+  const sourceUrl = resolvePostgresUrl(args);
+  const client = dataSource === "postgres" ? createPostgresClient(sourceUrl) : null;
   const articles = await loadArticles({ dataSource, client, args });
   const selectedArticles = filterArticles(articles, args);
   const localArchiveIndex = buildLocalArchiveIndex(path.join(repoRoot, "archive/drug-info-articles"));
@@ -103,7 +103,7 @@ async function main() {
   const report = {
     generatedAt: new Date().toISOString(),
     dataSource,
-    convexUrlKey: client ? convexUrl.key : null,
+    dataUrlKey: client ? sourceUrl.key : null,
     scopeKey: scopeConfig.key,
     reportTitle: scopeConfig.title,
     scope: scopeConfig.scope,
@@ -159,19 +159,19 @@ function loadEnvFile(filePath) {
   }
 }
 
-function resolveConvexUrl(args) {
+function resolvePostgresUrl(args) {
   if (args.source === "local") return null;
-  if (args.convexUrl) return { key: "--convex-url", value: args.convexUrl };
+  if (args.sourceUrl) return { key: "--source-url", value: args.sourceUrl };
 
   for (const key of sourceUrlKeys) {
     if (process.env[key]) return { key, value: process.env[key] };
   }
 
-  throw new Error(`No Convex read URL found. Set one of: ${sourceUrlKeys.join(", ")}, or run with --source=local.`);
+  throw new Error(`No Postgres read URL found. Set one of: ${sourceUrlKeys.join(", ")}, or run with --source=local.`);
 }
 
-function createConvexClient(convexUrl) {
-  return createDataClient({ target: convexUrl.value }).client;
+function createPostgresClient(sourceUrl) {
+  return createDataClient({ target: sourceUrl.value }).client;
 }
 
 async function loadArticles({ dataSource, client, args }) {
@@ -200,17 +200,17 @@ async function loadSourcesForArticle({ article, client, dataSource, localArchive
   const bySourceId = new Map();
   const slug = article.slug ?? slugify(article.title);
 
-  if (dataSource === "convex" && client) {
+  if (dataSource === "postgres" && client) {
     const doc = await client.query(api.articleSources.getBySlug, {
       slug,
-      apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+      apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
     });
     for (const [sourceId, text] of Object.entries(doc?.contents ?? {})) {
       addSource(bySourceId, {
         sourceId,
         displayName: getDisplayName(sourceId, doc?.sources),
         text,
-        origin: "convex_article_sources",
+        origin: "data_article_sources",
       });
     }
   }
@@ -338,7 +338,7 @@ function renderMarkdownReport(report) {
   lines.push(`# ${report.reportTitle ?? "Plagiarism Audit"}`);
   lines.push("");
   lines.push(`Generated: ${report.generatedAt}`);
-  lines.push(`Article data source: ${report.dataSource}${report.convexUrlKey ? ` (${report.convexUrlKey})` : ""}`);
+  lines.push(`Article data source: ${report.dataSource}${report.dataUrlKey ? ` (${report.dataUrlKey})` : ""}`);
   lines.push("");
   lines.push("## Scope");
   lines.push("");

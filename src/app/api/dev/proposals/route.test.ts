@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   describeRoleFloor,
@@ -7,7 +7,7 @@ import {
   resetRouteMocks,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     changeProposals: {
       submit: "changeProposals.submit",
@@ -57,7 +57,7 @@ describe("dev proposals route", () => {
   });
 
 
-  it("refuses a submission with no loaded baseline before calling Convex", async () => {
+  it("refuses a submission with no loaded baseline before calling Postgres", async () => {
     const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
     const response = await POST(post({
@@ -70,7 +70,7 @@ describe("dev proposals route", () => {
 
   it("returns a stale-baseline conflict with the preserve-draft recovery message", async () => {
     const client = grantWriteCapability(createClient());
-    client.mutation.mockRejectedValue(new ConvexError({
+    client.mutation.mockRejectedValue(new PostgresError({
       code: "PROPOSAL_BASELINE_STALE", message: "Production changed. Your draft is preserved.",
     }));
     const { POST } = await import("./route");
@@ -105,7 +105,7 @@ describe("dev proposals route", () => {
 
 
 
-  it("rejects an empty payload and a missing summary before calling Convex", async () => {
+  it("rejects an empty payload and a missing summary before calling Postgres", async () => {
     const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
 
@@ -118,7 +118,7 @@ describe("dev proposals route", () => {
     expect(client.mutation).not.toHaveBeenCalled();
   });
 
-  it("rejects a blank revision id before calling Convex", async () => {
+  it("rejects a blank revision id before calling Postgres", async () => {
     const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
     const response = await POST(post({
@@ -198,10 +198,10 @@ describe("dev proposals route", () => {
     expect(client.mutation).not.toHaveBeenCalled();
   });
 
-  it("surfaces a Convex rejection of the proposal as an actionable error", async () => {
+  it("surfaces a Postgres rejection of the proposal as an actionable error", async () => {
     const client = grantWriteCapability(createClient());
     client.mutation.mockRejectedValue(
-      new ConvexError({ code: "PROPOSAL_ARTICLE_INVALID", message: "LSD: summary: Invalid input" }),
+      new PostgresError({ code: "PROPOSAL_ARTICLE_INVALID", message: "LSD: summary: Invalid input" }),
     );
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -251,7 +251,7 @@ describe("dev proposals list route", () => {
     });
   });
 
-  it("rejects a status outside the enum before calling Convex", async () => {
+  it("rejects a status outside the enum before calling Postgres", async () => {
     const client = grantWriteCapability(createClient());
     const { GET } = await import("./route");
 

@@ -102,7 +102,7 @@ describe("malformed reference metadata repair", () => {
       ],
     }], {
       enrich,
-      sourceDeployment: "https://glad-minnow-656.convex.cloud",
+      sourceDeployment: "example/dosewiki",
       now: () => "2026-08-31T00:00:00.000Z",
     });
 
@@ -179,7 +179,7 @@ describe("malformed reference metadata repair", () => {
       slug: "dextromethorphan",
       summary: "Supported.[cite:doi-10-2147-sar-s36761]",
       references: [{ ...malformedUsed, pmid: "24648790" }],
-    }], { enrich, sourceDeployment: "https://glad-minnow-656.convex.cloud" })).rejects.toThrow(
+    }], { enrich, sourceDeployment: "example/dosewiki" })).rejects.toThrow(
       /Crossref and PubMed titles disagree/,
     );
   });

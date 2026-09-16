@@ -2,9 +2,9 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -22,14 +22,14 @@ function parseOptions(argv) {
 
 function printHelp() {
   console.log(`
-Archive the current production/public Convex substance dataset before citation rollout writes.
+Archive the current production/public Postgres substance dataset before citation rollout writes.
 
 Usage:
   npm run citations:archive-production-dataset -- --label=pre-2c-b-prod
 
 Environment:
-  SOURCE_CONVEX_URL, TARGET_CONVEX_URL, CONVEX_PUBLIC_READ_URL, VITE_CONVEX_URL,
-  CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL must point at the deployment to archive.
+  DATA_BACKEND=postgres is required. Select --source-url / SOURCE_POSTGRES_URL,
+  --target / TARGET_POSTGRES_URL, or POSTGRES_POOLED_URL / POSTGRES_DIRECT_URL.
 
 Options:
   --label=<label>      Human-readable archive label (default: pre-citation-rollout)
@@ -46,7 +46,7 @@ function slugifyLabel(label) {
     .replace(/^-+|-+$/g, "") || "dataset";
 }
 
-function stripConvexFields(article) {
+function stripStorageFields(article) {
   const { _id, _creationTime, ...rest } = article;
   return rest;
 }
@@ -65,14 +65,7 @@ const runContext = createDataOpsRunContext({
   operation: "archive production citation rollout dataset",
   intent: "citation-rollout-archive",
   argv,
-  sourceUrlKeys: [
-    "SOURCE_CONVEX_URL",
-    "TARGET_CONVEX_URL",
-    "CONVEX_PUBLIC_READ_URL",
-    "VITE_CONVEX_URL",
-    "CONVEX_URL",
-    "NEXT_PUBLIC_CONVEX_URL",
-  ],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL", "TARGET_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
   targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
@@ -85,14 +78,14 @@ async function main() {
     return;
   }
 
-  const sourceUrl = requireSourceUrl(runContext, "Convex dataset archive source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Postgres dataset archive source URL");
   printDataOpsRunContext(runContext);
   console.log(`Archive label: ${options.label}`);
 
   const client = createDataClient({ target: sourceUrl }).client;
-  const articles = sortArticles((await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage)).map(stripConvexFields));
+  const articles = sortArticles((await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage)).map(stripStorageFields));
   if (articles.length === 0) {
-    throw new Error("No articles found in the source Convex deployment.");
+    throw new Error("No articles found in the source Postgres database.");
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -111,7 +104,7 @@ async function main() {
   writeFileSync(manifestPath, `${JSON.stringify({
     archivedAt: new Date().toISOString(),
     label: options.label,
-    sourceUrl,
+    sourceDeployment: postgresFingerprintFromUrl(sourceUrl),
     articleCount: articles.length,
     citedArticleCount,
     uncitedArticleCount: articles.length - citedArticleCount,

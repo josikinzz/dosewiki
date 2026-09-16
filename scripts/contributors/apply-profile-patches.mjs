@@ -34,14 +34,15 @@
  *     --plan=runs/contributor-profile-patches/2026-09-02-approved-replicators.json
  *
  * Apply:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
- *   node scripts/contributors/apply-profile-patches.mjs --plan=<file> --write \
+ *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
+ *   bun scripts/contributors/apply-profile-patches.mjs --plan=<file> --write \
  *     --confirm-write=apply-contributor-profile-patches \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=localhost/dosewiki
  */
 import fs from "node:fs";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { verifyProfileAvatarForImport } from "../../lib/runtime/r2MediaStorage.ts";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
   assertProductionWriteAllowed,
@@ -189,12 +190,7 @@ async function main() {
     throw new Error("Usage: --plan=<path> [--write ...]");
   }
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
-  if (!readUrl) {
-    throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
-    );
-  }
+  const readUrl = resolvePostgresSource({ argv }).url;
 
   const entries = loadPlan(planFile);
   const client = createDataClient({ target: readUrl }).client;
@@ -214,13 +210,13 @@ async function main() {
     return;
   }
   if (command.dryRun) {
-    console.log("\nDry run: no Convex writes performed.");
+    console.log("\nDry run: no Postgres writes performed.");
     return;
   }
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
-  const writeClient = createDataClient({ target: command.targetUrl }).client;
+  const { client: writeClient, fingerprint } = createDataClient({ target: command.targetUrl });
 
   // The plan was checked against `readUrl`; check it once more against the
   // write target, immediately before writing, so a profile edited in between
@@ -235,12 +231,16 @@ async function main() {
   }
 
   for (const row of updates) {
+    const avatarR2Receipt = row.patch.avatarR2Key && row.patch.avatarR2Key !== liveProfiles.get(row.key)?.avatarR2Key
+      ? await verifyProfileAvatarForImport(row.patch.avatarR2Key, row.key, "system@dosewiki.internal", fingerprint)
+      : undefined;
     const result = await writeClient.mutation(api.contributorProfiles.saveProfileAsEditor, {
       apiKey,
       key: row.key,
       expectedUpdatedAt: liveProfiles.get(row.key)?.updatedAt ?? null,
       operationId: crypto.randomUUID(),
       patch: row.patch,
+      avatarR2Receipt,
     });
     const readBack = result?.profile;
     const landed =

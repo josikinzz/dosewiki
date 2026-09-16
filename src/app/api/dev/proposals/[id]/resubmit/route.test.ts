@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import {
   describeRoleFloor,
@@ -7,7 +7,7 @@ import {
   resetRouteMocks,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     changeProposals: {
       submit: "changeProposals.submit",
@@ -64,7 +64,7 @@ describe("dev proposal resubmit route", () => {
     );
   });
 
-  it("rejects malformed JSON and an empty payload before calling Convex", async () => {
+  it("rejects malformed JSON and an empty payload before calling Postgres", async () => {
     // Resubmit parses the body itself (to pin `revisionOf`) before delegating, so the
     // malformed-JSON 400 is this route's own layer, not protectedRouteOperation's.
     const client = useClient(vi.fn());
@@ -80,10 +80,10 @@ describe("dev proposal resubmit route", () => {
     expect(client.mutation).not.toHaveBeenCalled();
   });
 
-  it("maps a Convex refusal of the revision to the caller", async () => {
+  it("maps a Postgres refusal of the revision to the caller", async () => {
     useClient(
       vi.fn(async () => {
-        throw new ConvexError({ code: "PROPOSAL_STATUS_INVALID", message: "A rejected proposal cannot be revised." });
+        throw new PostgresError({ code: "PROPOSAL_STATUS_INVALID", message: "A rejected proposal cannot be revised." });
       }),
     );
     vi.spyOn(console, "warn").mockImplementation(() => undefined);

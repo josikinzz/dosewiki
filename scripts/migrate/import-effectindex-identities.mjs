@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Give everyone who had a public profile on the old effectindex.com a
- * contributor profile on the Convex-backed site.
+ * contributor profile on the Postgres-backed site.
  *
  * A `contributorProfiles` row needs no auth account: `membershipEmail` stays
  * optional and neither the public read nor the materialiser consults it, so
@@ -18,7 +18,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -107,7 +107,7 @@ const sourceDir = path.resolve(sourceArg ? sourceArg.slice("--source-dir=".lengt
 
 const runContext = createDataOpsRunContext({
   operation: "import Effect Index identities",
-  intent: "dev-convex-import",
+  intent: "dev-data-import",
   argv: writeRequested ? argv : [...argv, "--dry-run"],
   sourceUrlKeys: [],
   localArtifacts: [
@@ -160,12 +160,12 @@ if (shouldQueryExisting) {
         "This import merges into the live rows, so it will not continue without them.",
         "Two causes produce this, and they look identical from here:",
         "  1. That deployment's functions predate the admin-intent registry, so the",
-        "     authorization check errors before it runs. Deploy Convex functions there first.",
+        "     authorization check errors before it runs. Verify the current native function registry before continuing.",
         "  2. The admin token is not one that deployment accepts.",
         "",
         "Tell the two apart with:",
-        `  npm run convex:doctor -- --url=${target.url}`,
-        "See docs/agents/convex-credentials.md.",
+      "  npm run postgres:check-env-isolation",
+        "See docs/agents/data-credentials.md.",
         "",
         "--offline plans against the committed seed instead. It is for working without",
         "network access, not for validating a rollout: its baseline is a snapshot.",
@@ -199,7 +199,7 @@ assertNoEmail(rows);
 
 console.log(`Effect Index source: ${sourceDir}`);
 printDataOpsRunContext(runContext);
-console.log(`Mode: ${writeRequested ? "LIVE WRITE REQUESTED" : "DRY RUN ONLY — no Convex writes performed"}`);
+console.log(`Mode: ${writeRequested ? "LIVE WRITE REQUESTED" : "DRY RUN ONLY — no Postgres writes performed"}`);
 console.log(`Existing profile state: ${existingMode}`);
 console.log(`Archive writes: ${archiveEntries.length} (posts: ${posts.length}, people: ${people.length}, profiles: ${profiles.length})`);
 console.log(`Contributor profile writes: ${rows.length}`);
@@ -223,7 +223,7 @@ console.log("\nExact contributorProfiles.bulkImport rows:");
 console.log(JSON.stringify(rows, null, 2));
 
 if (!writeRequested) {
-  console.log("\nDry run only. No Convex writes performed.");
+  console.log("\nDry run only. No Postgres writes performed.");
   console.log(`Archive entries withheld from this log (${archiveEntries.length} verbatim legacy payloads).`);
   process.exit(0);
 }

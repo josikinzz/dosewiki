@@ -42,7 +42,7 @@ describe("GlobalSearch", () => {
 
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
-    // The mount-time manifest preload may fetch; typing itself must not.
+    // Focus starts the manifest, while typing itself makes no suggestion request.
     const suggestionCalls = () =>
       fetchSpy.mock.calls.filter(([input]) => String(input).includes("/api/search-suggestions"));
     expect(suggestionCalls()).toEqual([]);
@@ -100,7 +100,7 @@ describe("GlobalSearch", () => {
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     const suggestionCalls = () =>
       fetchSpy.mock.calls.filter(([input]) => String(input).includes("/api/search-suggestions"));
-    // The mount-time manifest preload may fetch; typing itself must not.
+    // The shared manifest may load on focus; typing itself must not refine eagerly.
     expect(suggestionCalls()).toEqual([]);
 
     first.unmount();

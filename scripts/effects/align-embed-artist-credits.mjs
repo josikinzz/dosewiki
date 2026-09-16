@@ -20,13 +20,13 @@
  * Credits with no corpus counterpart are left exactly as written: an unlinked
  * credit is correct when the artist genuinely holds nothing on the site.
  *
- *   node scripts/effects/align-embed-artist-credits.mjs --target-url=<url>
- *   node scripts/effects/align-embed-artist-credits.mjs --target-url=<url> \
+ *   node scripts/effects/align-embed-artist-credits.mjs --target=<url>
+ *   node scripts/effects/align-embed-artist-credits.mjs --target=<url> \
  *     --write --confirm-write=align-embed-artist-credits \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  */
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -36,7 +36,7 @@ import {
 
 const operation = "align-embed-artist-credits";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const mediaFields = [

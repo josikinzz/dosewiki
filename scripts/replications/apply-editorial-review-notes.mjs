@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -470,7 +470,7 @@ async function verify(client, plan) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION, startDir: ROOT });
   printProductionWriteCommand(command);
-  if (!command.targetUrl) throw new Error("Set TARGET_CONVEX_URL or pass --target-url.");
+  if (!command.targetUrl) throw new Error("Set TARGET_POSTGRES_URL or pass --target.");
 
   const inputPath = path.resolve(flagValue("--input") ?? DEFAULT_INPUT);
   const audioPath = path.resolve(flagValue("--audio-inventory") ?? DEFAULT_AUDIO);
@@ -569,7 +569,7 @@ async function main() {
     schemaVersion: 1,
     payloadDigest,
     sourceSha256: summary.sourceSha256,
-    target: command.targetUrl,
+    target: command.deploymentFingerprint,
     startedAt: new Date().toISOString(),
     completed: {},
   };

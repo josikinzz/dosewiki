@@ -2,9 +2,9 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 
 const TARGET = "https://glad-minnow-656.convex.cloud";
 const MANIFEST_PATH =
@@ -34,7 +34,7 @@ async function main() {
     throw new Error(`Expected 357 unreviewed rows, found ${unreviewed.length}.`);
   }
 
-  const liveRows = await createDataClient({ target: TARGET }).client.query(api.replications.getAll, {});
+  const liveRows = await createDataClient({ target: resolvePostgresSource().url }).client.query(api.replications.getAll, {});
   const liveById = new Map(liveRows.map((row) => [row._id, row]));
   const items = unreviewed
     .map((taxonomy) => {
@@ -125,7 +125,8 @@ async function main() {
   writeJson(join(WORK_DIR, "assignment-index.json"), {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
-    target: TARGET,
+    target: TARGET, // Historical campaign source pin.
+    postgresTarget: postgresFingerprintFromUrl(resolvePostgresSource().url),
     manifestPath: MANIFEST_PATH,
     snapshotDigest: manifest.snapshotDigest,
     scope: {

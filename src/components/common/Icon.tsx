@@ -5,23 +5,21 @@ import type { IconifyJSON } from "@iconify/react";
 import { customIcons } from "./customIcons";
 import iconData from "./iconData.generated.json";
 import { getSpriteReference, useIconSpriteAvailable } from "./IconSprite";
+import registerEditorIcons from "./iconData.editor";
 
-// Every icon name that appears as a literal in the repo is bundled offline in
-// `iconData.generated.json` (built by `npm run generate:icon-data`, which
-// extracts exactly the used names from the `@iconify-json/*` devDependencies —
-// ~150KB raw / ~41KB gzip for the whole site, versus the ~568KB that bundling
-// the full lucide collection alone used to cost). Registering the data at
-// module scope means `getIconData` resolves synchronously on both server and
-// client, so with the `ssr` prop below every bundled glyph is in the
-// server-rendered HTML and never waits on a network request.
+// The producer keeps the public catalog separate from editor-only literals.
+// Both catalogs register synchronously, but the public artifact replaces the
+// editor bridge before compilation and cannot aggregate its private glyphs.
+// Authored names outside these catalogs retain Iconify's existing fallback.
 //
-// Names outside the bundle — editor-authored strings stored in Convex (warning
+// Names outside the bundle — editor-authored strings stored in Postgres (warning
 // banner presets, index-layout `iconKey`s) and /dev picker experiments — keep
 // the old behaviour: `@iconify/react` fetches them from the Iconify API at
 // runtime, rotating in its two backup hosts after 750ms of silence.
 for (const collection of iconData.collections as unknown as IconifyJSON[]) {
   addCollection(collection);
 }
+registerEditorIcons();
 
 export type IconName = string; // e.g., "lucide:search", "mdi:home", "custom:benzene"
 

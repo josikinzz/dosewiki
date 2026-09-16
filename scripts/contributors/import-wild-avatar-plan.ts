@@ -1,6 +1,6 @@
 // Pure identity resolution for wild-sourced contributor avatars: which artist a
 // findings row belongs to, which profile carries it, and which spellings fold
-// into it. No network, no filesystem, no Convex - so the decision that matters
+// into it. No network, no filesystem, no Postgres - so the decision that matters
 // most here is the one that is cheapest to test.
 import {
   findContributorProfileByAuthorName,

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, extname } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationBytes, r2MediaPublicUrl } from "../replications/lib/r2-upload.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -20,7 +20,7 @@ import {
 
 const operation = "repair-legacy-article-media";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const recoveryDir = getFlagValue(process.argv.slice(2), "--recovery-dir");
@@ -73,20 +73,24 @@ function mediaForKey(key) {
 const client = createDataClient({ target: command.targetUrl }).client;
 const uploadStatePath = join(
   recoveryDir,
-  `uploads-${new URL(command.targetUrl).hostname.split(".")[0]}.json`,
+  `uploads-${encodeURIComponent(command.deploymentFingerprint)}.json`,
 );
 const uploadState = existsSync(uploadStatePath)
   ? JSON.parse(readFileSync(uploadStatePath, "utf8"))
   : {};
-const storageIds = new Map(
-  Object.entries(uploadState).map(([key, value]) => [key, value.split("/").at(-1)]),
-);
-const staleUrlToKey = new Map(
-  [...storageIds].map(([key, storageId]) => [
-    `${command.targetUrl}/api/storage/${storageId}`,
-    key,
-  ]),
-);
+const priorEntries = Object.entries(uploadState);
+const priorUrls = await client.query(api.replications.resolveStorageUrls, {
+  storageIds: priorEntries.map(([, value]) => value.split("/").at(-1)),
+});
+const staleUrlToKey = new Map(priorEntries.flatMap(([key, value], index) => {
+  const url = /^https?:\/\//.test(value) ? value : priorUrls[index];
+  return url ? [[url, key]] : [];
+}));
+const nativeStatePath = join(recoveryDir, `r2-uploads-${encodeURIComponent(command.deploymentFingerprint)}.json`);
+const nativeState = existsSync(nativeStatePath)
+  ? JSON.parse(readFileSync(nativeStatePath, "utf8"))
+  : { target: command.deploymentFingerprint, r2Keys: {} };
+if (nativeState.target !== command.deploymentFingerprint) throw new Error("R2 upload ledger belongs to another Postgres target.");
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 const affected = effects.map((effect) => ({
   effect,
@@ -112,31 +116,16 @@ if (command.dryRun) {
 assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 for (const key of recoverable) {
-  if (storageIds.has(key)) continue;
-  const { body, contentType } = mediaForKey(key);
-  const uploadUrl = await client.mutation(api.replications.generateUploadUrl, {
-    apiKey: credential.token,
-  });
-  const upload = spawnSync(
-    "curl",
-    ["--fail-with-body", "--silent", "--show-error", "--request", "POST",
-      "--header", `Content-Type: ${contentType}`, "--data-binary", "@-", uploadUrl],
-    { input: body, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
-  );
-  if (upload.status !== 0) {
-    throw new Error(`Convex upload failed for ${key}: ${upload.stderr.trim()}`);
-  }
-  const { storageId } = JSON.parse(upload.stdout);
-  storageIds.set(key, storageId);
-  writeFileSync(uploadStatePath, JSON.stringify(Object.fromEntries(storageIds), null, 2));
+  const { body, contentType, file } = mediaForKey(key);
+  const r2Key = await uploadReplicationBytes(client, credential.token, body, contentType, extname(file));
+  if (nativeState.r2Keys[key] && nativeState.r2Keys[key] !== r2Key) throw new Error(`Recovered media changed for ${key}.`);
+  nativeState.r2Keys[key] = r2Key;
+  writeFileSync(nativeStatePath, JSON.stringify(nativeState, null, 2));
   console.log(`UPLOADED ${key}`);
 }
 
-const resolvedUrls = await client.query(api.replications.resolveStorageUrls, {
-  storageIds: [...storageIds.values()],
-});
 const replacements = new Map(
-  [...storageIds.keys()].map((key, index) => [key, resolvedUrls[index]]),
+  recoverable.map((key) => [key, r2MediaPublicUrl(nativeState.r2Keys[key])]),
 );
 const knownReplacements = new Map(
   [...staleUrlToKey].map(([url, key]) => [url, replacements.get(key)]),

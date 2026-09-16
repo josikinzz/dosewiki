@@ -160,7 +160,7 @@ interface AboutPageProps {
   communityIntro?: ReactNode;
   docBlurbs?: string[];
   docCopyControl?: ReactNode;
-  /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
+  /** Editor-managed tagline from Postgres siteConfig; falls back to the canonical line. */
   subtitle?: string;
   subtitleControl?: ReactNode;
   downloads: AboutDownloads;

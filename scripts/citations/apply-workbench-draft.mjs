@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { assertDataOpsWriteAllowed,
 backupBeforeWrite,
 createDataOpsRunContext,

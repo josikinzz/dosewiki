@@ -16,6 +16,7 @@ const VIDEO: GalleryReplication = {
   format: "mp4",
   created_at: "2024-01-01",
   url: "https://example.test/geometry-frog.mp4",
+  preview_url: "https://example.test/geometry-frog-preview.mp4",
   thumbnail_url: "https://example.test/geometry-frog.jpg",
   width: 1280,
   height: 720,
@@ -75,7 +76,7 @@ describe("GalleryMediaTile", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", VIEWER_HREF);
   });
 
-  it("lets a click on the hover preview reach the link underneath it", async () => {
+  it("keeps the frame link navigable while its hover preview is mounted", async () => {
     stubDesktopPointer();
     stubPlayback();
     const user = userEvent.setup();
@@ -83,16 +84,25 @@ describe("GalleryMediaTile", () => {
     const { container } = render(
       <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
     );
-    await user.hover(screen.getByRole("link"));
+    const link = screen.getByRole("link");
+    const navigate = vi.fn((event: MouseEvent) => {
+      event.preventDefault();
+      return (event.currentTarget as HTMLAnchorElement).getAttribute("href");
+    });
+    link.addEventListener("click", navigate);
+    await user.hover(link);
 
-    // The preview is the anchor's last child at inset-0, so it is the topmost
-    // hit target across the entire tile, and a browser does not forward a media
-    // element's click to an ancestor anchor the way it does for an image.
-    // Without this guard every video tile stops navigating — which is how it
-    // shipped once.
     const video = container.querySelector("video");
     expect(video).not.toBeNull();
-    expect(video).toHaveClass("pointer-events-none");
+    expect(video).toHaveAttribute("src", VIDEO.preview_url);
+
+    // The pointer-transparent preview leaves the anchor as the browser's hit
+    // target. jsdom cannot hit-test; targeting the video directly instead
+    // blurs the anchor and removes the preview before the click can occur.
+    await user.click(link);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveReturnedWith(VIEWER_HREF);
   });
 
   it("mounts no preview when the pointer is not a hover-capable mouse", async () => {
@@ -119,13 +129,9 @@ describe("GalleryMediaTile", () => {
 
   it("plays nothing at rest, even on a desktop pointer", () => {
     stubDesktopPointer();
-    const preview = {
-      ...VIDEO,
-      preview_url: "https://example.test/geometry-frog-preview.mp4",
-    };
 
     const { container } = render(
-      <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
     );
 
     // Playback is hover-gated; an unhovered tile never mounts a video.
@@ -136,23 +142,33 @@ describe("GalleryMediaTile", () => {
     stubDesktopPointer();
     stubPlayback();
     const user = userEvent.setup();
-    const preview = {
-      ...VIDEO,
-      preview_url: "https://example.test/geometry-frog-preview.mp4",
-    };
 
     const { container } = render(
-      <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
     );
     await user.hover(screen.getByRole("link"));
 
     const video = container.querySelector("video");
     expect(video).not.toBeNull();
-    expect(video).toHaveAttribute("src", preview.preview_url);
-    expect(video).toHaveClass("pointer-events-none");
+    expect(video).toHaveAttribute("src", VIDEO.preview_url);
 
     // Mouse-out unmounts the preview again.
     await user.unhover(screen.getByRole("link"));
+    expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("keeps a video without a preview static instead of loading its full source", async () => {
+    stubDesktopPointer();
+    const user = userEvent.setup();
+    const { container } = render(
+      <GalleryMediaTile
+        replication={{ ...VIDEO, preview_url: undefined }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
+
+    await user.hover(screen.getByRole("link"));
+
     expect(container.querySelector("video")).toBeNull();
   });
 
@@ -170,13 +186,9 @@ describe("GalleryMediaTile", () => {
         }) as unknown as MediaQueryList,
     );
     const user = userEvent.setup();
-    const preview = {
-      ...VIDEO,
-      preview_url: "https://example.test/geometry-frog-preview.mp4",
-    };
 
     const { container } = render(
-      <GalleryMediaTile replication={preview} viewerHref={VIEWER_HREF} />,
+      <GalleryMediaTile replication={VIDEO} viewerHref={VIEWER_HREF} />,
     );
     await user.hover(screen.getByRole("link"));
 

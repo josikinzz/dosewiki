@@ -14,16 +14,16 @@ This repository builds three Next.js application surfaces from one route tree:
 
 ## Runtime data
 
-PlanetScale Postgres is production runtime truth. `DATA_BACKEND=postgres` runs the existing `convex/` handlers in-process through `lib/postgres/runtime/`. `convex/schema.ts` owns persisted table and function contracts; `src/schema/substance.schema.ts` owns the stricter article shape.
+PlanetScale Postgres is production runtime truth. `DATA_BACKEND=postgres` runs authored `server/` handlers in-process through `lib/postgres/runtime/`. `server/schema.ts` owns persisted document validation; the handler modules own callable contracts. `src/schema/substance.schema.ts` owns the stricter article shape.
 
-Convex `glad-minnow-656` is a frozen recovery source through the ticket 24 observation decision. It is not a normal runtime write target. Post-cutover recovery requires reverse export and an owner-gated replace import, not an environment flip. [Data credentials](docs/agents/convex-credentials.md) owns current targets and write gates; [release manifest section 10](notes-and-plans/plans/convex-to-planetscale/release-manifest.md#10-post-write-rollback-postgres-to-convex) owns recovery.
+The active repository contains only the native Postgres runtime and operator graph. [Data credentials](docs/agents/data-credentials.md) owns current targets and write gates. Non-executable historical recovery evidence is isolated under `scripts/recovery/convex/`; using it requires a separately approved historical checkout, not an environment flip or a command in this application. Repository retirement does not delete hosted infrastructure or revoke credentials.
 
 Public DoseWiki and Effect Index are read-only and carry no admin credential. Only the editor deployment may carry the write credential tier. All surfaces require `REPLICATION_MEDIA_BASE_URL` for complete replication reads. `DATA_WRITES_FROZEN=1` closes application and operator write boundaries.
 
 ## Runtime boundaries
 
 - Public pages use the App Router under `src/app/`, with static generation or ISR where declared.
-- Public data loaders live under `lib/convex/` and `lib/next/`; their names remain for compatibility while Postgres executes the handlers.
+- Public data loaders live under `lib/data/` and `lib/next/`; native Postgres executes the registered handlers.
 - Protected editor routes live under `/dev`; `middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
 - Auth.js supplies identity, database membership rows supply roles, and server write capabilities enforce actor and intent.
 - The public `/api/v1` surface exposes public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints.
@@ -36,7 +36,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 | `src/app/` | App Router pages and route handlers |
 | `src/features/` | Feature UI and editor modules |
 | `lib/` | Runtime, server, Postgres, auth, and Next adapters |
-| `convex/` | Persisted schema and handler contracts executed by both backends |
+| `server/` | Authored Postgres schema, handlers, and domain contracts |
 | `scripts/` | Guarded operator, migration, generation, and analysis workflows |
 | `src/data/` | Inputs, exports, static configuration, and generated helpers |
 

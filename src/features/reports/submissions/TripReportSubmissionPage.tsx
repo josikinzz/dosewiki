@@ -7,12 +7,11 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-
-import { motion, useReducedMotion } from "framer-motion";
 
 import { Icon } from "@/components/common/Icon";
 import { PublicSegmentedTabs, type PublicSegmentedTabItem } from "@/components/layout/PublicSegmentedTabs";
@@ -200,6 +199,14 @@ function TripReportSubmissionForm() {
   const [narrativeMode, setNarrativeMode] = useState<NarrativeMode>("simple");
   const [result, setResult] = useState<SubmissionResult>({ kind: "idle" });
   const nextIdRef = useRef(2);
+  const formRef = useRef<HTMLFormElement>(null);
+  const pendingFocusRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    if (!pendingFocusRef.current) return;
+    formRef.current?.querySelector<HTMLInputElement>(`#${pendingFocusRef.current}`)?.focus();
+    pendingFocusRef.current = null;
+  }, [draft.substances, draft.timeline]);
 
   const progress = useMemo(() => {
     const complete = [
@@ -236,6 +243,7 @@ function TripReportSubmissionForm() {
 
   const addSubstance = useCallback(() => {
     const id = nextIdRef.current++;
+    pendingFocusRef.current = `substance-${id}-name`;
     setDraft((current) => ({
       ...current,
       substances: [...current.substances, { id: `substance-${id}`, name: "", dose: "", roa: "" }],
@@ -263,6 +271,7 @@ function TripReportSubmissionForm() {
 
   const addTimelineEntry = useCallback((phase: TimelinePhase) => {
     const id = nextIdRef.current++;
+    pendingFocusRef.current = `${phase}-${id}-time`;
     setDraft((current) => ({
       ...current,
       timeline: {
@@ -357,7 +366,7 @@ function TripReportSubmissionForm() {
   };
 
   return (
-    <form className="space-y-10" onSubmit={submitReport}>
+    <form ref={formRef} className="space-y-10" onSubmit={submitReport}>
       <FormStatus result={result} />
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -443,13 +452,18 @@ function TripReportSubmissionForm() {
         <p className="max-w-md text-sm leading-6 text-[var(--theme-text-muted)]">
           Reports are not published automatically. Editors can reject, accept, or promote a submission from the private queue.
         </p>
-        <Button type="submit" variant="accent" size="lg" disabled={result.kind === "submitting"} className="sm:min-w-48">
+        <Button type="submit" variant="accent" size="lg" disabled={result.kind === "submitting"} aria-busy={result.kind === "submitting"} className="min-w-48">
           {result.kind === "submitting" ? (
             <Icon icon="lucide:loader-circle" className="animate-spin motion-reduce:animate-none" size={18} />
           ) : (
             <Icon icon="lucide:send" size={18} />
           )}
-          {result.kind === "submitting" ? "Submitting" : "Submit report"}
+          <span className="grid">
+            <span aria-hidden="true" className="invisible col-start-1 row-start-1">Submit report</span>
+            <span className="col-start-1 row-start-1" aria-live="polite">
+              {result.kind === "submitting" ? "Submitting" : "Submit report"}
+            </span>
+          </span>
         </Button>
       </div>
     </form>
@@ -520,6 +534,8 @@ const SubstanceDetailsSection = memo(function SubstanceDetailsSection({
   onUpdate: (id: string, field: SubstanceField, value: string) => void;
   substances: SubstanceDraft[];
 }) {
+  const [revealedIds, setRevealedIds] = useState(() => new Set(substances.map((substance) => substance.id)));
+
   return (
     <FormSection
       icon="lucide:pill"
@@ -542,7 +558,12 @@ const SubstanceDetailsSection = memo(function SubstanceDetailsSection({
         {substances.map((substance, index) => (
           <div
             key={substance.id}
-            className="grid gap-3 py-4 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto]"
+            className={cn("grid gap-3 py-4 first:pt-0 last:pb-0 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_auto]", !revealedIds.has(substance.id) && "theme-reveal-enter")}
+            onAnimationEnd={(event) => {
+              if (event.target === event.currentTarget) {
+                setRevealedIds((current) => new Set(current).add(substance.id));
+              }
+            }}
           >
             <Field id={`${substance.id}-name`} label={`Substance ${index + 1} name`} required>
               <Input
@@ -737,34 +758,25 @@ const NarrativeSection = memo(function NarrativeSection({
             items={narrativeModeItems}
             className="justify-start"
           />
-          <p className="text-sm leading-6 text-[var(--theme-text-muted)]">
+          <p key={mode} className="theme-feedback-enter text-sm leading-6 text-[var(--theme-text-muted)]">
             {narrativeModeOptions.find((option) => option.mode === mode)?.text}
           </p>
         </div>
 
-        {mode === "simple" ? (
-          <Field id="report-introduction" label="Report">
-            <Textarea
-              id="report-introduction"
-              value={introduction}
-              textareaSize="lg"
-              className="min-h-64"
-              placeholder="Tell the whole story: context and intention, what you took, how it unfolded, and how it ended"
-              onChange={(event) => onReportFieldChange("introduction", event.target.value)}
-            />
-          </Field>
-        ) : (
-          <>
-            <Field id="report-introduction" label="Introduction">
-              <Textarea
-                id="report-introduction"
-                value={introduction}
-                textareaSize="lg"
-                placeholder="Context, intention, preparation, and baseline state"
-                onChange={(event) => onReportFieldChange("introduction", event.target.value)}
-              />
-            </Field>
+        <Field id="report-introduction" label={mode === "simple" ? "Report" : "Introduction"}>
+          <Textarea
+            id="report-introduction"
+            value={introduction}
+            textareaSize="lg"
+            className={mode === "simple" ? "min-h-64" : undefined}
+            placeholder={mode === "simple"
+              ? "Tell the whole story: context and intention, what you took, how it unfolded, and how it ended"
+              : "Context, intention, preparation, and baseline state"}
+            onChange={(event) => onReportFieldChange("introduction", event.target.value)}
+          />
+        </Field>
 
+        <div hidden={mode !== "detailed"} className={cn("space-y-6", mode === "detailed" && "theme-reveal-enter")}>
             {(["onset", "peak", "offset"] as const).map((phase) => (
               <TimelinePhaseEditor
                 key={phase}
@@ -785,8 +797,7 @@ const NarrativeSection = memo(function NarrativeSection({
                 onChange={(event) => onReportFieldChange("conclusion", event.target.value)}
               />
             </Field>
-          </>
-        )}
+        </div>
       </div>
     </FormSection>
   );
@@ -933,6 +944,7 @@ const TimelinePhaseEditor = memo(function TimelinePhaseEditor({
   phase: TimelinePhase;
 }) {
   const meta = phaseLabels[phase];
+  const [revealedIds, setRevealedIds] = useState(() => new Set(entries.map((entry) => entry.id)));
 
   return (
     <fieldset className="space-y-4 border-t border-[var(--theme-border-subtle)] pt-5">
@@ -959,7 +971,15 @@ const TimelinePhaseEditor = memo(function TimelinePhaseEditor({
           const entryName = `${meta.title} entry ${index + 1}`;
 
           return (
-            <div key={entry.id} className="grid gap-3 md:grid-cols-[10rem_minmax(0,1fr)_auto]">
+            <div
+              key={entry.id}
+              className={cn("grid gap-3 md:grid-cols-[10rem_minmax(0,1fr)_auto]", !revealedIds.has(entry.id) && "theme-reveal-enter")}
+              onAnimationEnd={(event) => {
+                if (event.target === event.currentTarget) {
+                  setRevealedIds((current) => new Set(current).add(entry.id));
+                }
+              }}
+            >
               <Field id={`${entry.id}-time`} label={`${entryName} time`}>
                 <Input
                   id={`${entry.id}-time`}
@@ -1027,7 +1047,7 @@ function ConsentCheckbox({
       />
       <span
         aria-hidden="true"
-        className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border border-[var(--theme-border-strong)] bg-[var(--theme-field-surface)] text-[var(--theme-surface-deep)] transition peer-checked:border-[var(--theme-accent-strong)] peer-checked:bg-[var(--theme-accent-strong)] peer-focus-visible:border-[var(--theme-frosted-control-hover-border)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--theme-ring-soft)]"
+        className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border border-[var(--theme-border-strong)] bg-[var(--theme-field-surface)] text-[var(--theme-surface-deep)] transition peer-checked:border-[var(--theme-accent-strong)] peer-checked:bg-[var(--theme-accent-strong)] theme-peer-focus-ring"
       >
         {checked ? <Icon icon="lucide:check" size={14} /> : null}
       </span>
@@ -1043,82 +1063,23 @@ function ConsentCheckbox({
   );
 }
 
-const celebrationParticleCount = 10;
-
-function SuccessCelebration({ children }: { children: ReactNode }) {
-  const reduceMotion = useReducedMotion();
+function SubmissionConfirmation({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof containerRef.current?.scrollIntoView !== "function") {
-      return;
-    }
-
-    containerRef.current.scrollIntoView({
-      behavior: reduceMotion ? "auto" : "smooth",
+    containerRef.current?.scrollIntoView?.({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
       block: "center",
     });
-  }, [reduceMotion]);
+  }, []);
 
   return (
-    <motion.div
-      ref={containerRef}
-      initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: "spring", stiffness: 280, damping: 24 }}
-    >
-      <Alert variant="success" aria-live="polite" className="overflow-hidden">
-        <svg
-          viewBox="0 0 24 24"
-          width={18}
-          height={18}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <motion.circle
-            cx={12}
-            cy={12}
-            r={10}
-            initial={reduceMotion ? false : { pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-          />
-          <motion.path
-            d="m8 12.5 2.8 2.8L16 9.5"
-            initial={reduceMotion ? false : { pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.35, delay: 0.35, ease: "easeOut" }}
-          />
-        </svg>
-        {!reduceMotion ? (
-          <span aria-hidden="true" className="pointer-events-none absolute left-[1.55rem] top-[1.55rem]">
-            {Array.from({ length: celebrationParticleCount }, (_, index) => {
-              const angle = (index / celebrationParticleCount) * Math.PI * 2;
-
-              return (
-                <motion.span
-                  key={index}
-                  className="absolute h-1 w-1 rounded-full bg-[color:var(--theme-success-text-strong)]"
-                  initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-                  animate={{
-                    x: Math.cos(angle) * (24 + (index % 3) * 8),
-                    y: Math.sin(angle) * (24 + (index % 3) * 8),
-                    opacity: 0,
-                    scale: 0.3,
-                  }}
-                  transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                />
-              );
-            })}
-          </span>
-        ) : null}
+    <div ref={containerRef} className="theme-feedback-enter">
+      <Alert variant="success" aria-live="polite">
+        <Icon icon="lucide:circle-check" size={18} />
         {children}
       </Alert>
-    </motion.div>
+    </div>
   );
 }
 
@@ -1129,7 +1090,7 @@ function FormStatus({ result }: { result: SubmissionResult }) {
 
   if (result.kind === "success") {
     return (
-      <SuccessCelebration>
+      <SubmissionConfirmation>
         <AlertTitle>Report received</AlertTitle>
         <AlertDescription>
           <p>
@@ -1143,7 +1104,7 @@ function FormStatus({ result }: { result: SubmissionResult }) {
             </ul>
           ) : null}
         </AlertDescription>
-      </SuccessCelebration>
+      </SubmissionConfirmation>
     );
   }
 

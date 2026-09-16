@@ -10,9 +10,10 @@ import {
 } from "react";
 import { Search, X } from "lucide-react";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
-import { preloadSearchManifestIndex } from "../../hooks/useSearchManifest";
+import { loadSearchManifestIndex } from "../../hooks/useSearchManifest";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { useT, useUiLocale } from "@/i18n/client";
 
@@ -116,6 +117,9 @@ export function GlobalSearch({
   const queryRef = useRef(query);
   const liveSearchOriginViewRef = useRef<AppView | null>(null);
   const inputId = useId();
+  const requestSearchManifest = useCallback(() => {
+    void loadSearchManifestIndex(locale);
+  }, [locale]);
 
   const restoreLiveSearchInputFocus = useCallback((nextQuery: string) => {
     if (typeof window === "undefined") {
@@ -138,13 +142,6 @@ export function GlobalSearch({
       }
     });
   }, []);
-
-  // Warm the client-side search manifest as soon as a search surface exists,
-  // so the first keystroke matches names and aliases locally instead of
-  // racing the manifest download.
-  useEffect(() => {
-    preloadSearchManifestIndex(locale);
-  }, [locale]);
 
   useEffect(() => {
     queryRef.current = query;
@@ -323,8 +320,10 @@ export function GlobalSearch({
   }, []);
 
   const handleSubmit = useCallback(() => {
+    requestSearchManifest();
     const trimmed = query.trim();
     if (!trimmed) {
+      inputRef.current?.focus();
       return;
     }
     isEditingLiveSearchRef.current = false;
@@ -333,11 +332,12 @@ export function GlobalSearch({
     closeSearchMode();
     onNavigate({ type: "search", query: trimmed });
     inputRef.current?.blur();
-  }, [closeSearchMode, onNavigate, query]);
+  }, [closeSearchMode, onNavigate, query, requestSearchManifest]);
 
   const handleFocus = useCallback(() => {
     setIsActiveSearch(true);
-  }, []);
+    requestSearchManifest();
+  }, [requestSearchManifest]);
 
   const handleInputPointerDown = useCallback(() => {
     if (isHomeVariant) {
@@ -422,21 +422,14 @@ export function GlobalSearch({
   const wrapperClassName = containerClassName ?? "mx-auto w-full max-w-3xl px-4 sm:px-6";
   const isCompactHeaderVariant = !isHomeVariant && compact;
   const inputClassName = isHomeVariant
-    ? `theme-home-search-input min-h-16 min-w-0 w-full rounded-full pl-8 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 ${
-        clearButtonVisible ? "pr-32" : "pr-24"
-      } md:min-h-[4.5rem] md:pl-10 md:text-xl`
+    ? "theme-home-search-input min-h-16 min-w-0 w-full rounded-full pl-8 pr-32 text-base transition-[border-color,background-color,box-shadow,transform] duration-200 md:min-h-[4.5rem] md:pl-10 md:text-xl"
     : isCompactHeaderVariant
-      ? `theme-global-search-input min-w-0 w-full rounded-full py-2 pl-4 transition-[border-color,background-color,box-shadow,transform] duration-200 placeholder:italic placeholder:opacity-60 ${
-          clearButtonVisible ? "pr-24" : "pr-16"
-        }`
-    : `theme-global-search-input min-w-0 w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
-        clearButtonVisible ? "pr-14" : "pr-10"
-      } py-3`;
+      ? "theme-global-search-input min-w-0 w-full rounded-full py-2 pl-4 pr-24 transition-[border-color,background-color,box-shadow,transform] duration-200 placeholder:italic placeholder:opacity-60"
+      : "theme-global-search-input min-w-0 w-full rounded-2xl pl-10 pr-16 transition-[border-color,background-color,box-shadow,transform] duration-200 py-3";
 
   return (
     <div className={wrapperClassName}>
       <div className="relative min-w-0" ref={containerRef}>
-        <div className={`theme-search-focus-glow pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100 ${isHomeVariant ? "rounded-full" : "rounded-[1.75rem]"}`} />
         <label htmlFor={inputId} className="sr-only">
           {t("Search the library")}
         </label>
@@ -466,8 +459,12 @@ export function GlobalSearch({
             size={16}
           />
         ) : null}
-        {clearButtonVisible && (
-          <div className={`absolute top-1/2 flex -translate-y-1/2 items-center ${
+          <div
+            inert={!clearButtonVisible}
+            aria-hidden={!clearButtonVisible}
+            className={`absolute top-1/2 flex -translate-y-1/2 items-center transition-opacity duration-[160ms] motion-reduce:transition-none ${
+              clearButtonVisible ? "opacity-100" : "pointer-events-none opacity-0"
+            } ${
             isHomeVariant
               ? "right-16 md:right-20"
               : isCompactHeaderVariant
@@ -476,13 +473,15 @@ export function GlobalSearch({
           }`}>
             <button
               type="button"
+              disabled={!clearButtonVisible}
+              tabIndex={clearButtonVisible ? 0 : -1}
               onMouseDown={preventDefaultMouseDown}
               onClick={handleClear}
-              className={`${
+              className={`${TOUCH_ICON} theme-focus-ring ${
                 isHomeVariant
-                  ? "theme-home-search-clear inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                  ? "theme-home-search-clear inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                   : isCompactHeaderVariant
-                    ? "theme-home-search-clear inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                    ? "theme-home-search-clear inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                     : "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
               }`}
               aria-label={t("Clear search")}
@@ -490,7 +489,7 @@ export function GlobalSearch({
               <X size={16} />
             </button>
           </div>
-        )}
+
         {isHomeVariant || isCompactHeaderVariant ? (
           <div className={`absolute top-1/2 flex -translate-y-1/2 items-center gap-2 ${
             isHomeVariant ? "right-2.5 md:right-3" : "right-0"
@@ -502,7 +501,7 @@ export function GlobalSearch({
               type="button"
               onMouseDown={preventDefaultMouseDown}
               onClick={handleSubmit}
-              className={`theme-home-search-button inline-flex items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 ${
+              className={`theme-home-search-button theme-focus-ring inline-flex items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 ${
                 isHomeVariant ? "h-11 w-11 md:h-12 md:w-12" : "h-11 w-11"
               }`}
               aria-label={t("Search {{name}}", { name: SITE_FLAVOR_CONFIG.name })}

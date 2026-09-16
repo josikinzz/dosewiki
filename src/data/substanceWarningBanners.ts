@@ -1,5 +1,5 @@
 /**
- * Substance-article safety banners: pure rules shared by Convex, the Banner
+ * Substance-article safety banners: pure rules shared by Postgres, the Banner
  * Studio, and public article rendering.
  *
  * Every banner is editorially opt-in. A preset can target an explicit slug
@@ -7,7 +7,7 @@
  * article. Classification strings remain search-only and never assign copy.
  *
  * Keep this module free of server-only imports: the Studio imports it in the
- * browser and `convex/warningBanners.ts` imports it on the server.
+ * browser and `server/warningBanners.ts` imports it on the server.
  */
 
 export const WARNING_BANNER_TONES = ["danger", "unsafe", "caution"] as const;
@@ -54,7 +54,7 @@ export type WarningBannerPreset = {
  */
 export const MAX_BANNERS_PER_ARTICLE = 2;
 
-/** Matches `MAX_GALLERY_CURATION_SLUGS` in `convex/substanceGalleries.ts`. */
+/** Matches `MAX_GALLERY_CURATION_SLUGS` in `server/substanceGalleries.ts`. */
 export const MAX_ENABLED_SLUGS = 250;
 
 /**
@@ -96,7 +96,7 @@ export const WARNING_BANNER_LIMITS = {
  * 44 is the shipped value — the literal that `SafetyBanner` rendered before the
  * size became editable — so a deployment that has never stored a setting must
  * resolve to exactly 44 and paint byte-identically to what shipped. That is why
- * the default lives here rather than in the storage layer: the Convex document,
+ * the default lives here rather than in the storage layer: the Postgres document,
  * the Next read, the write route and the Studio control all resolve an absent
  * value the same way instead of each inventing a fallback.
  *
@@ -167,7 +167,7 @@ type ClassSource = {
  * Studio prints the one that matched, so the reader-facing spelling is what
  * has to survive.
  *
- * Defensive by design: Convex stores `classification` as `v.any()`, so the
+ * Defensive by design: Postgres stores `classification` as `v.any()`, so the
  * Studio receives whatever is in the document rather than a parsed shape.
  */
 export function substanceClassValues(source: ClassSource): string[] {
@@ -190,7 +190,7 @@ export function substanceClassValues(source: ClassSource): string[] {
   return unique;
 }
 
-/** Reads `classification` / `index_categories` off a raw Convex substance row. */
+/** Reads `classification` / `index_categories` off a raw Postgres substance row. */
 export function classSourceFromSubstanceDocument(document: {
   classification?: unknown;
   index_categories?: unknown;
@@ -329,7 +329,7 @@ export function warningBannerPresetState(
 }
 
 /**
- * Server-side normalization shared by the Convex mutation and the Next route so
+ * Server-side normalization shared by the Postgres mutation and the Next route so
  * the two cannot disagree about what a valid preset is.
  */
 export function normalizeEnabledSlugs(slugs: readonly string[]): string[] {

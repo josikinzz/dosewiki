@@ -5,7 +5,7 @@
  *   GET /api/dev/replications/substances → { substances }
  *
  * One response feeds the whole picker: every substance with its publishable
- * match count and whether a curation row exists. The Convex side reads the
+ * match count and whether a curation row exists. The Postgres side reads the
  * corpus once (`getCurationMatchDigest`) and then pages the article table
  * (`listCurationCandidatesPage`) to stay under its 16 MB read limit; this
  * route drains the cursor so the browser makes exactly one request.
@@ -15,12 +15,12 @@
  * offering a row that could never load.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
 
-/** Articles are large; 32 per page stays under the Convex read limit with room. */
+/** Articles are large; 32 per page stays under the Postgres read limit with room. */
 const PAGE_LIMIT = 32;
 /** Hard stop against a cursor that never reports done. */
 const MAX_PAGES = 400;
@@ -37,24 +37,24 @@ type CandidateItem = {
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load the substance gallery candidates via Next route:",
   unexpectedErrorMessage: "Unable to load the substance list right now.",
-  operation: async ({ convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
 
-    const digest = await convexWrite.client.query(api.substanceGalleries.getCurationMatchDigest, {
+    const digest = await dataWrite.client.query(api.substanceGalleries.getCurationMatchDigest, {
       apiKey,
     });
 
     const items: CandidateItem[] = [];
     let cursor: string | undefined;
     for (let pages = 0; pages < MAX_PAGES; pages += 1) {
-      const page = (await convexWrite.client.query(api.substanceGalleries.listCurationCandidatesPage, {
+      const page = (await dataWrite.client.query(api.substanceGalleries.listCurationCandidatesPage, {
         apiKey,
         digest,
         cursor,

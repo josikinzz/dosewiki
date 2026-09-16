@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -137,9 +137,53 @@ function GuidanceList({
   );
 }
 
-export function StoryCard({ story }: { story: StoryDef }) {
+export function StoryCard({
+  story,
+  activateExamples = false,
+}: {
+  story: StoryDef;
+  activateExamples?: boolean;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [examplesActive, setExamplesActive] = useState(activateExamples);
+
+  useEffect(() => {
+    if (activateExamples) {
+      setExamplesActive(true);
+      return;
+    }
+    const card = cardRef.current;
+    if (!card || examplesActive) return;
+
+    const activateHashTarget = () => {
+      if (window.location.hash === `#${story.id}`) setExamplesActive(true);
+    };
+    activateHashTarget();
+    window.addEventListener("hashchange", activateHashTarget);
+
+    if (typeof IntersectionObserver === "undefined") {
+      setExamplesActive(true);
+      return () => window.removeEventListener("hashchange", activateHashTarget);
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setExamplesActive(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(card);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("hashchange", activateHashTarget);
+    };
+  }, [activateExamples, examplesActive, story.id]);
+
   return (
     <Surface
+      ref={cardRef}
       id={story.id}
       variant="card"
       padding="lg"
@@ -157,11 +201,18 @@ export function StoryCard({ story }: { story: StoryDef }) {
 
       <CopyableCode code={story.importLine} />
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {story.examples.map((example) => (
-          <ExampleStage key={example.label} example={example} />
-        ))}
-      </div>
+      {examplesActive ? (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {story.examples.map((example) => (
+            <ExampleStage key={example.label} example={example} />
+          ))}
+        </div>
+      ) : (
+        <div
+          aria-hidden="true"
+          className="min-h-24 rounded-lg bg-[var(--theme-surface-muted)]"
+        />
+      )}
 
       {story.props && story.props.length > 0 ? <PropsTable props={story.props} /> : null}
 

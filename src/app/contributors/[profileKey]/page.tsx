@@ -1,7 +1,6 @@
-import { notFound, permanentRedirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { loadContributorRoute } from "@server/next/routeLoaders.contributors";
-import { UserProfilePage } from "@/components/pages/UserProfilePage";
+import { loadContributorIdentityRoute } from "@server/next/routeLoaders.contributors";
+import { ContributorRoutePage } from "@/components/pages/ContributorRoutePage";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
 export const revalidate = 3600;
@@ -9,7 +8,7 @@ export const dynamicParams = true;
 
 export async function generateStaticParams() {
   // ~2,000+ contributor profiles would otherwise prerender on every clean
-  // deploy, each with its own per-key Convex reads. A real key (including a
+  // deploy, each with its own per-key Postgres reads. A real key (including a
   // forwarded profile's 301) renders on first request and then enters the
   // hourly ISR cache. The sitemap still advertises unclaimed profiles from
   // the route plan.
@@ -24,7 +23,7 @@ type ContributorPageProps = {
 
 export async function generateMetadata({ params }: ContributorPageProps) {
   const { profileKey } = await params;
-  const result = await loadContributorRoute(profileKey);
+  const result = await loadContributorIdentityRoute(profileKey);
 
   if (result.kind === "not-found") {
     return buildPublicPageMetadata({
@@ -47,14 +46,5 @@ export async function generateMetadata({ params }: ContributorPageProps) {
 
 export default async function ContributorPage({ params }: ContributorPageProps) {
   const { profileKey } = await params;
-  const result = await loadContributorRoute(profileKey);
-
-  if (result.kind === "not-found") {
-    notFound();
-  }
-  if (result.kind === "redirect") {
-    permanentRedirect(result.target);
-  }
-
-  return <UserProfilePage {...result.pageProps} />;
+  return <ContributorRoutePage profileKey={profileKey} />;
 }

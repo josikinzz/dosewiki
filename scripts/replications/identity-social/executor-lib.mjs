@@ -248,7 +248,7 @@ export function transformOperation(operation, context) {
 }
 
 export function buildExecutionPlan(projection, context) {
-  if (projection.target?.convexDeployment !== PRODUCTION_DEPLOYMENT) throw new Error("Projection targets the wrong Convex deployment.");
+  if (projection.target?.convexDeployment !== PRODUCTION_DEPLOYMENT) throw new Error("Projection records the wrong historical Convex deployment.");
   verifyBaseProjection(projection, context.expectedProjectionDigest);
   const verificationOperations = new Map(projection.operations.filter((operation) => operation.kind === "replicator-verification").map((operation) => [operation.operationId, operation]));
   const boundVerificationIds = new Set(projection.operations.filter((operation) => operation.kind === "profile-binding").map((operation) => operation.after?.verificationDependency?.verificationOperationId).filter(Boolean));
@@ -350,7 +350,7 @@ export function makeBatches(entries) {
   for (const kind of ["profile-binding", "attribution", "alias", "avatar", "verification", "social-asset"]) {
     // Profile bindings perform several indexed reads and canonical-digest checks per
     // entry. Keep them below the server's hard 25-record input ceiling so a full
-    // transaction stays inside Convex's execution budget.
+    // transaction stays inside Postgres's execution budget.
     const kindLimit = kind === "profile-binding" ? 10 : MAX_BATCH_COUNT;
     let batch = [];
     const kindEntries = entries.filter((x) => x.kind === kind);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChangelogDiff } from "@/components/changelog/ChangelogDiff";
+import { HistoryDiff } from "@/components/changelog/HistoryDiff";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { PublicPill } from "@/components/common/PublicTokens";
@@ -9,12 +9,13 @@ import { NestedContentCard } from "@/components/ui/surface";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import { applyCuratedOrder } from "@server/curatedOrder";
-import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { PublicProfileHistoryEntry } from "@server/data/publicData.changelog";
 import type { ReportCardModel } from "@/types/tripReport";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import { useT, useUiLocale } from "@/i18n/client";
 import { formattingLocale } from "@/i18n/messages";
+import { cn } from "@/lib/utils";
 
 interface UserTripReportsSectionProps {
   profileKey: string;
@@ -30,7 +31,7 @@ interface UserTripReportsSectionProps {
 
 interface UserContributionsSectionProps {
   profileKey: string;
-  history: ChangeLogEntry[];
+  history: PublicProfileHistoryEntry[];
 }
 
 /** How many changelog rows the section shows before the count expander. */
@@ -73,16 +74,17 @@ export function UserTripReportsSection({
       <div id={reportsSectionId} className="space-y-4">
         {sortedTripReports
           .slice(0, isReportsExpanded ? undefined : 3)
-          .map((report) => (
-            <ReportCard
-              key={report.slug}
-              report={report}
-              href={
-                reportHrefPrefix
-                  ? `${reportHrefPrefix}${report.slug}`
-                  : publicHref.report(report.slug)
-              }
-            />
+          .map((report, index) => (
+            <div key={report.slug} className={index >= 3 ? "theme-reveal-enter" : undefined}>
+              <ReportCard
+                report={report}
+                href={
+                  reportHrefPrefix
+                    ? `${reportHrefPrefix}${report.slug}`
+                    : publicHref.report(report.slug)
+                }
+              />
+            </div>
           ))}
         {sortedTripReports.length > 3 && (
           <ExpandButton
@@ -107,15 +109,16 @@ const CONTRIBUTION_ARTICLE_PILL_CAP = 3;
  * article pills · a faint per-row expander that reveals the diff. Resting
  * state never shows diff text.
  */
-function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
+function ContributionRow({ entry }: { entry: PublicProfileHistoryEntry }) {
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
+  const [hasOpenedDiff, setHasOpenedDiff] = useState(false);
   const t = useT();
   const locale = useUiLocale();
   const timeFormat = new Intl.DateTimeFormat(formattingLocale(locale), {
     hour: "numeric",
     minute: "2-digit",
   });
-  const hasDiff = entry.markdown.trim().length > 0;
+  const hasDiff = entry.hasDiff;
   const diffId = `contribution-diff-${entry.id}`;
   const stamp = entry.commit?.sha
     ? entry.commit.sha.slice(0, 7)
@@ -161,7 +164,10 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
           {hasDiff && (
             <ExpandButton
               isExpanded={isDiffExpanded}
-              onToggle={() => setIsDiffExpanded(!isDiffExpanded)}
+              onToggle={() => {
+                setHasOpenedDiff(true);
+                setIsDiffExpanded((expanded) => !expanded);
+              }}
               variant="faint"
               ariaControls={diffId}
               ariaLabel={isDiffExpanded ? t("Hide change diff") : t("Show change diff")}
@@ -169,8 +175,10 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
           )}
         </div>
       </div>
-      {hasDiff && isDiffExpanded && (
-        <ChangelogDiff markdown={entry.markdown} id={diffId} keyPrefix={entry.id} />
+      {hasDiff && hasOpenedDiff && (
+        <div hidden={!isDiffExpanded} className={isDiffExpanded ? "theme-reveal-enter" : undefined}>
+          <HistoryDiff entryId={entry.id} id={diffId} wholeEntry />
+        </div>
       )}
     </div>
   );
@@ -178,22 +186,23 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
 
 type ContributionDayGroup = {
   label: string;
-  entries: ChangeLogEntry[];
+  startIndex: number;
+  entries: PublicProfileHistoryEntry[];
 };
 
 /** Groups already-sorted entries into contiguous same-day runs. */
 function groupContributionsByDay(
-  entries: readonly ChangeLogEntry[],
+  entries: readonly PublicProfileHistoryEntry[],
   dayFormat: Intl.DateTimeFormat,
 ): ContributionDayGroup[] {
   const groups: ContributionDayGroup[] = [];
-  for (const entry of entries) {
+  for (const [index, entry] of entries.entries()) {
     const label = dayFormat.format(new Date(entry.createdAt));
     const current = groups[groups.length - 1];
     if (current && current.label === label) {
       current.entries.push(entry);
     } else {
-      groups.push({ label, entries: [entry] });
+      groups.push({ label, startIndex: index, entries: [entry] });
     }
   }
   return groups;
@@ -238,13 +247,18 @@ export function UserContributionsSection({
       <div id={contributionsSectionId} className="space-y-4">
         {dayGroups.map((group) => (
           <div key={group.label} className="space-y-2">
-            <div className="theme-text-faint text-[10.5px] font-semibold uppercase tracking-[0.12em]">
+            <div className={cn("theme-text-faint text-[10.5px] font-semibold uppercase tracking-[0.12em]", group.startIndex >= COLLAPSED_CONTRIBUTION_ROWS && "theme-reveal-enter")}>
               {group.label}
             </div>
             <NestedContentCard radius="xl" padding="none" className="overflow-hidden">
               <div className="divide-y divide-dose-border">
-                {group.entries.map((entry) => (
-                  <ContributionRow key={entry.id} entry={entry} />
+                {group.entries.map((entry, index) => (
+                  <div
+                    key={entry.id}
+                    className={group.startIndex + index >= COLLAPSED_CONTRIBUTION_ROWS ? "theme-reveal-enter" : undefined}
+                  >
+                    <ContributionRow entry={entry} />
+                  </div>
                 ))}
               </div>
             </NestedContentCard>

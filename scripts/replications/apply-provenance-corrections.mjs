@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -52,7 +52,7 @@ async function main() {
   });
   printProductionWriteCommand(command);
   const audit = JSON.parse(fs.readFileSync(AUDIT_PATH, "utf8"));
-  if (audit.sources?.convex_url_variable !== "VITE_CONVEX_URL") {
+  if (!audit.sources?.target_selected || audit.sources.postgres_target !== command.deploymentFingerprint) {
     throw new Error("Audit was not generated against the configured write target. Re-run with --target.");
   }
   const proposals = audit.records.filter((record) => record.action === "correct" && record.proposal);
@@ -86,7 +86,7 @@ async function main() {
     applied_at: new Date().toISOString(),
     audit_generated_at: audit.generated_at,
     payload_digest: payloadDigest,
-    target_variable: "VITE_CONVEX_URL",
+    postgres_target: command.deploymentFingerprint,
     summary: {
       proposed: proposals.length,
       applied: outcomes.filter((outcome) => outcome.status === "applied").length,

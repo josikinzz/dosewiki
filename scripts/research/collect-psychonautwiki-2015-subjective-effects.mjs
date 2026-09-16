@@ -585,7 +585,7 @@ function writeIndexFiles(results) {
     "",
     "## Run todo",
     "",
-    `- [x] Query live dose.wiki Convex/public data for missing subjective effects (${missing.length} missing).`,
+    `- [x] Query live dose.wiki Postgres/public data for missing subjective effects (${missing.length} missing).`,
     `- [x] Collect archived 2015 subjective effects sections found so far (${collected.length}).`,
     `- [${pending.length === 0 ? "x" : " "}] Finish probing missing dose.wiki substances (${pending.length} pending).`,
     "- [ ] Review collected files and adapt into dose.wiki schema in a separate write task.",

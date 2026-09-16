@@ -2,10 +2,18 @@
 
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import { useSelectedLayoutSegments } from "next/navigation";
-import { localeForPathname, translateMessage, type MessageValues, type UiLocale } from "./messages";
+import { formatMessage, localeForPathname, type MessageValues, type UiLocale } from "./messages";
 import { LOCALE_REGISTRY } from "./localeRegistry.mjs";
 
 const UiLocaleContext = createContext<UiLocale | null>(null);
+const UiMessagesContext = createContext<Readonly<Record<string, string>>>({});
+
+export function UiMessagesProvider({ messages, children }: {
+  messages: Readonly<Record<string, string>>;
+  children: ReactNode;
+}) {
+  return <UiMessagesContext.Provider value={messages}>{children}</UiMessagesContext.Provider>;
+}
 
 /** Rendered by a localized page around its subtree. */
 export function UiLocaleProvider({ locale, children }: { locale: UiLocale; children: ReactNode }) {
@@ -25,7 +33,12 @@ export function useUiLocale(): UiLocale {
 /** `t("English literal")` for client components. */
 export function useT(): (text: string, values?: MessageValues) => string {
   const locale = useUiLocale();
-  return useCallback((text: string, values?: MessageValues) => translateMessage(locale, text, values), [locale]);
+  const messages = useContext(UiMessagesContext);
+  return useCallback(
+    (text: string, values?: MessageValues) =>
+      formatMessage((locale === "en" ? undefined : messages[text]) ?? text, values),
+    [locale, messages],
+  );
 }
 
 export { msg } from "./messages";

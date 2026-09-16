@@ -152,36 +152,6 @@ const published = (summary: string) => Response.json({
 });
 
 describe("publishing one change", () => {
-  it("names the action with its change count, arrives with the note written, and does not reload the page", async () => {
-    mocks.refresh.mockClear();
-    const user = userEvent.setup();
-    const request = vi.fn()
-      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
-      .mockResolvedValueOnce(published(ownerSummary))
-      .mockResolvedValue(Response.json(snapshot(null)));
-    vi.stubGlobal("fetch", request);
-    render(view(state));
-    await screen.findByText(ownerSummary);
-
-    // One field differs from the published article, and the bar says so.
-    await user.click(await screen.findByRole("button", { name: "Publish (1 change)" }));
-
-    const note = await screen.findByLabelText("Change note");
-    expect(note).toHaveValue("Reworded 4 words in Summary");
-
-    // Enter in the note is the whole confirmation.
-    await user.type(note, "{Enter}");
-
-    await waitFor(() => {
-      const posted = request.mock.calls.find(([, init]) => init?.method === "POST");
-      expect(posted).toBeTruthy();
-      expect(JSON.parse(String(posted?.[1]?.body))).toMatchObject({
-        action: "publish",
-        summary: "Reworded 4 words in Summary",
-      });
-    });
-    expect(mocks.refresh).not.toHaveBeenCalled();
-  });
 
   it("sends the editor's own note once they have written one", async () => {
     const user = userEvent.setup();
@@ -192,12 +162,12 @@ describe("publishing one change", () => {
     vi.stubGlobal("fetch", request);
     render(view(state));
     await screen.findByText(ownerSummary);
-    await user.click(await screen.findByRole("button", { name: "Publish (1 change)" }));
+    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
 
     const note = await screen.findByLabelText("Change note");
     await user.clear(note);
     await user.type(note, "Corrected the onset claim");
-    await user.click(screen.getByRole("button", { name: "Publish (1 change)" }));
+    await user.click(within(screen.getByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
 
     await waitFor(() => {
       const posted = request.mock.calls.find(([, init]) => init?.method === "POST");

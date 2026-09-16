@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Doc } from "../convex/_generated/dataModel";
-import { publicTripReport, publicTripReportPreview } from "../convex/lib/tripReportPublicProjection";
+import type { Doc } from "@server/postgres/runtime/dataModel";
+import { publicTripReport, publicTripReportPreview } from "../server/lib/tripReportPublicProjection";
 
 function publishedReport(): Doc<"tripReports"> {
   return {

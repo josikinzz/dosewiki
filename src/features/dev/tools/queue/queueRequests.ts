@@ -20,8 +20,9 @@ export async function fetchProposals(status?: ProposalStatus): Promise<ProposalS
   return payload.proposals as ProposalSummary[];
 }
 
-export async function fetchProposal(id: string): Promise<ProposalDetail> {
-  const payload = await requestJson(`${BASE_PATH}/${encodeURIComponent(id)}`, undefined, {
+export async function fetchProposal(id: string, options: { includePayload?: boolean } = {}): Promise<ProposalDetail> {
+  const suffix = options.includePayload ? "?seed=1" : "";
+  const payload = await requestJson(`${BASE_PATH}/${encodeURIComponent(id)}${suffix}`, undefined, {
     network: "Network error while loading the proposal.",
     failure: "Unable to load that proposal.",
   });

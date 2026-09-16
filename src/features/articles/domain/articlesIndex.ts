@@ -18,6 +18,8 @@ export interface ArticleIndexEntry {
   shortDescription?: string;
   publicationDate?: string;
   body_raw?: string;
+  readMinutes?: number;
+  indexDescription?: string;
   /**
    * Writing-system fields. A row written in the Writing tab carries
    * `bodyFormat: "markdown"`; every legacy Effect Index import carries neither
@@ -171,7 +173,7 @@ function publishedMonthOf(publicationDate: string | undefined): string | undefin
  * text is cut at the first sentence end and, past the limit, on a word boundary,
  * so a truncated fragment still reads as prose rather than as a cut-off word.
  */
-function deriveDescription(body: string | undefined): string | undefined {
+export function deriveDescription(body: string | undefined): string | undefined {
   const prose = bodyProse(body?.replace(HEADING_PATTERN, " "));
 
   if (prose.length === 0) {
@@ -211,9 +213,9 @@ function toIndexRow(entry: ArticleIndexEntry): ArticleIndexRow {
     description:
       description && description.length > 0
         ? description
-        : deriveDescription(entry.body_raw),
+        : entry.indexDescription ?? deriveDescription(entry.body_raw),
     publishedMonth: publishedMonthOf(entry.publicationDate),
-    readMinutes: readMinutesOf(bodyProse(entry.body_raw)),
+    readMinutes: entry.readMinutes ?? readMinutesOf(bodyProse(entry.body_raw)),
   };
 }
 

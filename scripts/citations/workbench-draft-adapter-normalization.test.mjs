@@ -41,7 +41,7 @@ describe("workbench draft adapter normalization", () => {
     const draft = buildWorkbenchApplyDraft({
       article: {
         ...createArticle(),
-        _id: "convex-id",
+        _id: "data-id",
         _creationTime: 123,
       },
       workbenchDraft: createWorkbenchDraft(),

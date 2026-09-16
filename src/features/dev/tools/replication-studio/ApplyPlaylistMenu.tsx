@@ -8,16 +8,15 @@
  * Save action before it reaches the article.
  */
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { isShowcaseEligible } from "@/data/substanceReplicationGallery";
 
 import type { ReplicationPlaylist } from "./replicationPlaylistModel";
 import type { StudioRow } from "./replicationStudioModel";
-import { usePlaylistsController } from "./usePlaylistsController";
+import { fetchReplicationPlaylist, usePlaylistsController } from "./usePlaylistsController";
 
 export type PlaylistApplicationSummary = {
   added: readonly string[];
@@ -31,16 +30,14 @@ export type ApplyPlaylistMenuProps = {
   onApply: (playlist: ReplicationPlaylist) => PlaylistApplicationSummary;
 };
 
-export function ApplyPlaylistMenu({ corpusRows, onApply }: ApplyPlaylistMenuProps) {
+export function ApplyPlaylistMenu({ corpusRows: _corpusRows, onApply }: ApplyPlaylistMenuProps) {
   const { playlists, loaded } = usePlaylistsController();
   const [summary, setSummary] = useState<{
     title: string;
     result: PlaylistApplicationSummary;
   } | null>(null);
-  const eligibleSlugs = useMemo(
-    () => new Set(corpusRows.filter(isShowcaseEligible).map((row) => row.slug)),
-    [corpusRows],
-  );
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   return (
     <Popover>
@@ -76,31 +73,37 @@ export function ApplyPlaylistMenu({ corpusRows, onApply }: ApplyPlaylistMenuProp
           </p>
         ) : (
           <ul className="space-y-1">
-            {playlists.map((playlist) => {
-              const eligible = playlist.replication_slugs.filter((slug) =>
-                eligibleSlugs.has(slug),
-              ).length;
-              return (
-                <li key={playlist.key} className="list-none">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() =>
-                      setSummary({ title: playlist.title, result: onApply(playlist) })
-                    }
-                  >
-                    <span className="min-w-0 flex-1 truncate text-left">{playlist.title}</span>
-                    <span className="theme-text-faint shrink-0 font-mono text-xs">
-                      {eligible} eligible
-                    </span>
-                  </Button>
-                </li>
-              );
-            })}
+            {playlists.map((playlist) => (
+              <li key={playlist.key} className="list-none">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start"
+                  disabled={loadingKey !== null}
+                  onClick={() => {
+                    setLoadingKey(playlist.key);
+                    setLoadError(null);
+                    void fetchReplicationPlaylist(playlist.key)
+                      .then((full) => {
+                        setSummary({ title: full.title, result: onApply(full) });
+                      })
+                      .catch((error) => {
+                        setLoadError(error instanceof Error ? error.message : "Could not load that playlist.");
+                      })
+                      .finally(() => setLoadingKey(null));
+                  }}
+                >
+                  <span className="min-w-0 flex-1 truncate text-left">{playlist.title}</span>
+                  <span className="theme-text-faint shrink-0 font-mono text-xs">
+                    {loadingKey === playlist.key ? "Loading…" : `${playlist.work_count} works`}
+                  </span>
+                </Button>
+              </li>
+            ))}
           </ul>
         )}
+        {loadError ? <p className="text-sm" role="alert">{loadError}</p> : null}
       </PopoverContent>
     </Popover>
   );

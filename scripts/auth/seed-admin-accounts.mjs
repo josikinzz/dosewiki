@@ -1,31 +1,31 @@
 #!/usr/bin/env node
 /**
- * Seed (or reset) admin accounts in the Convex `memberships` table.
+ * Seed (or reset) admin accounts in the Postgres `memberships` table.
  *
  * Prompts on the terminal for each admin's username, email, display name,
  * and password (hidden input, typed twice), hashes the password locally with
  * the same scrypt scheme the app verifies against, and calls
- * `memberships:setAdminAccount` with `CONVEX_ADMIN_KEY`. Re-running for an
+ * `memberships:setAdminAccount` with `DATA_ADMIN_KEY`. Re-running for an
  * existing username rotates that account's password and forces role admin.
  *
  * Passwords are never read from env, files, or argv. Nothing is printed
  * except the outcome per account.
  *
  * Usage (the shared production-write boundary: every flag is required):
- *   TARGET_CONVEX_URL=https://<deployment>.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *   node scripts/auth/seed-admin-accounts.mjs --write \
  *     --confirm-write=seed-admin-accounts --expected-deployment=<fingerprint>
  *
  * Without `--write` the script only prints the target and exits. The
- * fingerprint is printed by the dry run. `CONVEX_ADMIN_KEY` comes from the
- * environment or `.env.local`; the ambiguous `CONVEX_URL` fallbacks are refused
+ * fingerprint is printed by the dry run. `DATA_ADMIN_KEY` comes from the
+ * environment or `.env.local`; the ambiguous `POSTGRES_DIRECT_URL` fallbacks are refused
  * on purpose: this writes admin credentials and must name its deployment.
  */
 
 import { stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
-import { createDataClient } from "../lib/data-client.ts";
-import { makeFunctionReference } from "convex/server";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -107,7 +107,7 @@ async function main() {
   const client = createDataClient({ target: command.targetUrl }).client;
   const rl = createInterface({ input: stdin, output: stdout });
 
-  console.log(`Seeding admin accounts on ${command.targetUrl}`);
+  console.log(`Seeding admin accounts on ${postgresFingerprintFromUrl(command.targetUrl)}`);
   console.log("Leave the username blank to finish.\n");
 
   try {

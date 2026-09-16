@@ -77,7 +77,7 @@ describe("publication dispatch", () => {
 
     const receipts = await dispatchPublicationSignal(
       [{ kind: "article", slug: "2c-b" }],
-      "save-to-convex",
+      "save-article",
       env(),
     );
 
@@ -110,7 +110,7 @@ describe("publication dispatch", () => {
 
     const receipts = await dispatchPublicationSignal(
       [{ kind: "article", slug: "lsd" }],
-      "save-to-convex",
+      "save-article",
       env({ PUBLIC_CACHE_PUBLISH_TARGETS: "https://dose.wiki" }),
     );
 
@@ -131,7 +131,7 @@ describe("publication dispatch", () => {
 
     const receipts = await dispatchPublicationSignal(
       [{ kind: "article", slug: "lsd" }],
-      "save-to-convex",
+      "save-article",
       env({ PUBLIC_CACHE_PUBLISH_TARGETS: "https://dose.wiki" }),
     );
 
@@ -146,7 +146,7 @@ describe("publication dispatch", () => {
 
     const receipts = await dispatchPublicationSignal(
       [{ kind: "article", slug: "lsd" }],
-      "save-to-convex",
+      "save-article",
       env({ PUBLIC_CACHE_PUBLISH_TARGETS: "https://dose.wiki" }),
     );
 
@@ -184,7 +184,7 @@ describe("publication dispatch", () => {
       return Promise.resolve(new Response(`<meta name="dosewiki-public-revision" content="${observed}">`));
     });
     const receipts = await dispatchPublicationSignal(
-      [{ kind: "article", slug: "lsd" }], "save-to-convex", env(), [{ slug: "lsd", revision }],
+      [{ kind: "article", slug: "lsd" }], "save-article", env(), [{ slug: "lsd", revision }],
     );
     expect(receipts.map(({ status, verification }) => ({ status, verification }))).toEqual([
       { status: "accepted", verification: "verified" },
@@ -212,7 +212,7 @@ describe("publication dispatch", () => {
 
     const receipts = await dispatchPublicationSignal(
       targets,
-      "save-to-convex",
+      "save-article",
       env({ PUBLIC_CACHE_PUBLISH_TARGETS: "https://dose.wiki" }),
     );
 

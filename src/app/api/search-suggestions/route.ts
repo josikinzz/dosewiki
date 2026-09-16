@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicSearchSuggestions } from "@server/convex/publicLibrary";
+import { getPublicSearchSuggestions } from "@server/data/publicLibrary";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { parseUiLocale } from "@/i18n/messages";
 

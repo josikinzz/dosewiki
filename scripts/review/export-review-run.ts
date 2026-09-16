@@ -5,8 +5,8 @@ import { resolve } from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   hasHarmPotentialContent,
   hasPharmacologyContent,
@@ -18,7 +18,7 @@ import {
 } from "../../src/schema/substance/dosageDurationPresence";
 import { getSubstanceSectionManifestEntries } from "../../src/schema/substance/sectionCatalog";
 import { substanceVisibility } from "../../src/schema/substance/substanceVisibilityPolicy";
-import { getArticleSlug, stripConvexMetadata } from "../batch/summary/articles.mjs";
+import { getArticleSlug, stripDataMetadata } from "../batch/summary/articles.mjs";
 import {
   createDataOpsRunContext,
   printDataOpsRunContext,
@@ -66,7 +66,14 @@ export function parseReviewExportOptions(
     articles: [],
   };
 
-  for (const argument of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === "--allow-remote" || argument.startsWith("--target=") || argument.startsWith("--source-url=")) continue;
+    if (argument === "--target" || argument === "--source-url") {
+      const value = argv[++index];
+      if (!value || value.startsWith("--")) throw new Error(`${argument} requires a Postgres URL.`);
+      continue;
+    }
     if (argument === "--include-hidden") options.includeHidden = true;
     else if (argument === "--include-low-priority") options.includeLowPriority = true;
     else if (argument.startsWith("--run-id=")) options.runId = argument.slice(9).trim();
@@ -232,7 +239,7 @@ function renderReferences(article: Article): string[] {
 }
 
 export function renderReviewMarkdown(rawArticle: Article): string {
-  const article = stripConvexMetadata(rawArticle);
+  const article = stripDataMetadata(rawArticle);
   const lines: string[] = [`# ${article.title}`, ""];
   if (present(article.summary)) lines.push("## Summary", "", article.summary.trim(), "");
   lines.push(...renderNamedSection("Classification", article.classification));
@@ -260,7 +267,7 @@ function citationCount(value: unknown): number {
 }
 
 export function derivePresenceSidecar(rawArticle: Article): Record<string, unknown> {
-  const article = stripConvexMetadata(rawArticle);
+  const article = stripDataMetadata(rawArticle);
   const sections = Object.fromEntries(
     getSubstanceSectionManifestEntries()
       .filter((section) => section.id !== "editorial-review" && section.id !== "citations")
@@ -330,13 +337,13 @@ async function main(): Promise<void> {
   const runContext = createDataOpsRunContext({
     operation: "export Review Run articles",
     intent: "local-export",
-    argv: [],
-    sourceUrlKeys: ["VITE_CONVEX_URL", "CONVEX_PUBLIC_READ_URL"],
+    argv: process.argv.slice(2),
+    sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL"],
     targetUrlKeys: [],
     selectedTables: ["substanceIndex"],
     localArtifacts: [`runs/${options.runId}`],
   });
-  const sourceUrl = requireSourceUrl(runContext, "Review Run Convex source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Review Run Postgres source URL");
   printDataOpsRunContext(runContext);
   const client = createDataClient({ target: sourceUrl }).client;
   const allArticles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);

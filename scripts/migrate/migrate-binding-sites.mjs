@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   createProductionWriteCommand,
   executeProductionWrite,
@@ -52,12 +52,12 @@ function sourceUrl() {
   const url = command.writeRequested
     ? command.targetUrl
     : flagValue("--source-url") ??
-      process.env.SOURCE_CONVEX_URL ??
-      process.env.CONVEX_PUBLIC_READ_URL ??
+      process.env.SOURCE_POSTGRES_URL ??
+      process.env.SOURCE_POSTGRES_URL ??
       command.targetUrl;
   if (!url) {
     throw new Error(
-      "Provide --source-url or SOURCE_CONVEX_URL for a dry run; writes require an explicit target.",
+      "Provide --source-url or SOURCE_POSTGRES_URL for a dry run; writes require an explicit target.",
     );
   }
   return url;

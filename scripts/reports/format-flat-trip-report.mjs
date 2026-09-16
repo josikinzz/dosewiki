@@ -6,24 +6,24 @@
  * The reshaping is pure text movement, and this command refuses to write unless
  * it can prove that: the record is rebuilt back into a single body with
  * `reconstructBody`, and the result must equal the stored body character for
- * character. The same proof runs again against what Convex actually stored, so a
+ * character. The same proof runs again against what Postgres actually stored, so a
  * successful run ends with evidence rather than an assumption. The phase
  * boundaries come from a small plan file, because deciding where the peak begins
  * is editorial judgement and does not belong in a parser.
  *
  * Usage:
  *   node scripts/reports/format-flat-trip-report.mjs --slug=ego-rebirth --dry-run
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *     node scripts/reports/format-flat-trip-report.mjs --slug=ego-rebirth --write \
- *     --confirm-write=format-flat-trip-report --expected-deployment=glad-minnow-656
+ *     --confirm-write=format-flat-trip-report --expected-deployment=localhost/dosewiki
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -125,7 +125,7 @@ async function main() {
   printPlanPreview(record);
 
   if (!runContext.writeEnabled) {
-    console.log(`\n[DRY RUN] would reshape ${slug} on ${targetUrl}. Nothing was written.`);
+    console.log(`\n[DRY RUN] would reshape ${slug} on ${postgresFingerprintFromUrl(targetUrl)}. Nothing was written.`);
     return;
   }
 

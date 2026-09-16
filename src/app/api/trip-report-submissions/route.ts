@@ -5,7 +5,7 @@ import {
   getPublicTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError,
 } from "@/features/reports/submissions/tripReportSubmissionStore.server";
-import { TripReportSubmissionValidationError } from "@/features/reports/submissions/convexTripReportSubmissionStore";
+import { TripReportSubmissionValidationError } from "@/features/reports/submissions/dataTripReportSubmissionStore";
 import type {
   TimelineEntryInput,
   TripReportSubmissionInput,

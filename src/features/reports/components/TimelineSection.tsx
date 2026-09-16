@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { msg, useT } from "@/i18n/client";
+import { msg, type Translate } from "@/i18n/messages";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { TimelineEntry } from "@/types/tripReport";
 
@@ -8,6 +8,8 @@ type TimelinePhase = "onset" | "peak" | "offset";
 interface TimelineSectionProps {
   phase: TimelinePhase;
   entries: TimelineEntry[];
+  t: Translate;
+  id?: string;
 }
 
 const PHASE_CONFIG: Record<TimelinePhase, {
@@ -45,8 +47,9 @@ const PHASE_CONFIG: Record<TimelinePhase, {
 export const TimelineSection = memo(function TimelineSection({
   phase,
   entries,
+  t,
+  id,
 }: TimelineSectionProps) {
-  const t = useT();
   if (entries.length === 0) {
     return null;
   }
@@ -55,7 +58,7 @@ export const TimelineSection = memo(function TimelineSection({
 
   return (
     <section className="relative">
-      <h2 className={`relative flex items-center gap-2.5 text-xl font-bold tracking-tight ${config.timeColor}`}>
+      <h2 id={id} className={`theme-navigation-target relative flex scroll-mt-24 items-center gap-2.5 rounded-lg text-xl font-bold tracking-tight ${config.timeColor}`}>
         <span className={`theme-report-rail-marker absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${config.dotColor}`} />
         <Icon icon={config.icon} size={22} />
         {t(config.label)}

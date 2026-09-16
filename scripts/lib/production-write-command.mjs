@@ -12,12 +12,6 @@ import {
   resolvePostgresTarget,
 } from "./data-client.ts";
 
-const EXPLICIT_TARGET_ENV_VAR = "TARGET_CONVEX_URL";
-const COMPATIBILITY_TARGET_ENV_VARS = Object.freeze([
-  "CONVEX_URL",
-  "VITE_CONVEX_URL",
-  "NEXT_PUBLIC_CONVEX_URL",
-]);
 
 function readNonEmpty(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -32,37 +26,11 @@ function validateOperation(operation) {
   return operation;
 }
 
-function deploymentFingerprintFromUrl(targetUrl) { if (!targetUrl) {
-  return null;
-}
-
-let parsed;
-try {
-  parsed = new URL(targetUrl);
-} catch {
-  throw new Error("Production write target must be a valid HTTPS Convex URL.");
-}
-
-if (parsed.protocol !== "https:") {
-  throw new Error("Production write target must use HTTPS.");
-}
-
-const suffix = ".convex.cloud";
-if (!parsed.hostname.endsWith(suffix)) {
-  throw new Error("Production write target must be a Convex deployment cloud URL.");
-}
-
-const fingerprint = parsed.hostname.slice(0, -suffix.length);
-if (!fingerprint || fingerprint.includes(".")) {
-  throw new Error("Production write target must identify one exact Convex deployment.");
-}
-return fingerprint; }
 
 /**
- * Convex: `--target-url` or TARGET_CONVEX_URL; fingerprint is the deployment slug.
- * Postgres (DATA_BACKEND=postgres): `--target` or TARGET_POSTGRES_URL; the
- * pooled/direct app variables are compatibility fallbacks that production
- * writes ignore, and the fingerprint is `<host>/<database>`.
+ * Postgres production writes require `--target` or TARGET_POSTGRES_URL.
+ * Pooled/direct application variables never authorize production writes.
+ * The confirmation fingerprint is `<host>/<database>`.
  */
 export function createProductionWriteCommand({
   operation,
@@ -90,26 +58,13 @@ export function createProductionWriteCommand({
     expectedDeployment: readNonEmpty(getFlagValue(argv, "--expected-deployment")),
   };
 
-  if (backend === "postgres") {
-    const { url, source } = resolvePostgresTarget({ argv, env, explicitOnly: true });
-    return Object.freeze({
-      ...base,
-      targetUrl: url,
-      targetSource: source,
-      deploymentFingerprint: postgresFingerprintFromUrl(url),
-      compatibilityTargetsPresent: POSTGRES_FALLBACK_TARGET_ENV_VARS.filter((key) => readNonEmpty(env[key])),
-    });
-  }
-
-  const cliTarget = readNonEmpty(getFlagValue(argv, "--target-url"));
-  const envTarget = readNonEmpty(env[EXPLICIT_TARGET_ENV_VAR]);
-  const targetUrl = cliTarget ?? envTarget;
+  const { url, source } = resolvePostgresTarget({ argv, env, explicitOnly: true });
   return Object.freeze({
     ...base,
-    targetUrl,
-    targetSource: cliTarget ? "--target-url" : envTarget ? EXPLICIT_TARGET_ENV_VAR : null,
-    deploymentFingerprint: deploymentFingerprintFromUrl(targetUrl),
-    compatibilityTargetsPresent: COMPATIBILITY_TARGET_ENV_VARS.filter((key) => readNonEmpty(env[key])),
+    targetUrl: url,
+    targetSource: source,
+    deploymentFingerprint: postgresFingerprintFromUrl(url),
+    compatibilityTargetsPresent: POSTGRES_FALLBACK_TARGET_ENV_VARS.filter((key) => readNonEmpty(env[key])),
   });
 }
 
@@ -124,9 +79,7 @@ export function assertProductionWriteAllowed(command) {
     const compatibilityHint = command.compatibilityTargetsPresent?.length
       ? ` Browser/compatibility variables were ignored: ${command.compatibilityTargetsPresent.join(", ")}.`
       : "";
-    const required = command.backend === "postgres"
-      ? "TARGET_POSTGRES_URL or --target"
-      : "TARGET_CONVEX_URL or --target-url";
+    const required = "TARGET_POSTGRES_URL or --target";
     throw new Error(`Production writes require ${required}.${compatibilityHint}`);
   }
   if (command.confirmationPhrase !== command.operation) {
@@ -160,7 +113,7 @@ export function requireProductionWriteCredential(intent, { env = process.env } =
 
 export function printProductionWriteCommand(command, { logger = console } = {}) {
   logger.log(`Operation: ${command.operation}`);
-  logger.log(`Backend: ${command.backend ?? "convex"}`);
+  logger.log(`Backend: ${command.backend}`);
   logger.log(`Mode: ${command.dryRun ? "dry-run" : "write requested"}`);
   if (command.targetUrl) {
     logger.log(

@@ -18,7 +18,7 @@ const DETAILS_VARIANT_CLASS = {
 } as const;
 
 const SUMMARY_CLASS =
-  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong group-open/disclosure:bg-dose-surface-muted/45 [&::marker]:content-[''] [&::-webkit-details-marker]:hidden";
+  "theme-accent-heading flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-dose-surface-muted/60 theme-focus-ring group-open/disclosure:bg-dose-surface-muted/45 [&::marker]:content-[''] [&::-webkit-details-marker]:hidden";
 
 const CHEVRON_CLASS =
   "theme-icon-muted h-4 w-4 shrink-0 transition-transform duration-200 group-open/disclosure:rotate-180 group-open/disclosure:text-dose-accent-strong";

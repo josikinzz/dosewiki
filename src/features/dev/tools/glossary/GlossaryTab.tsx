@@ -28,6 +28,7 @@ import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   EditorNotice,
   EditorSection,
@@ -49,6 +50,7 @@ import {
   filterRows,
   glossaryExportUrl,
   groupRows,
+  GlossaryReviewCollision,
   importGlossaryCsv,
   retranslateTerms,
   saveGloss,
@@ -79,6 +81,14 @@ type Writing = { term: string; field: "rendering" | "definition" };
 /** Where focus goes after a single-row write: the terms in document order at the time of the write, and the written row's place in them. */
 type Handoff = { order: string[]; index: number };
 
+type CollisionReview = {
+  locale: string;
+  error: GlossaryReviewCollision;
+  kind: Exclude<Busy, null>;
+  action: (collisionConfirmation?: string) => Promise<string>;
+  term?: string;
+};
+
 type GlossaryTabProps = {
   /** Drafting, retranslating, and the main translation call the model, so they are admin-only; definitions are editor and up; everything else is open to a translator. */
   viewerRole: AppRole | null;
@@ -98,10 +108,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const handoff = useRef<Handoff | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [collisionReview, setCollisionReview] = useState<CollisionReview | null>(null);
+  const collisionReturnFocus = useRef<HTMLElement | null>(null);
+  const actionVersion = useRef(0);
   /** What "Retranslate" sends: derived on the server from review and retranslate stamps, so it is the same list after a reload or on another machine. */
   const pending = data?.pending ?? [];
   const { confirm, dialog } = useConfirm();
-  const locked = busy !== null || writingTerm !== null;
+  const locked = busy !== null || writingTerm !== null || collisionReview !== null;
 
   const load = useCallback(async (code: string | null) => {
     setLoadError(null);
@@ -110,6 +123,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       setData(next);
       setLocale(next.locale);
     } catch (error) {
+      setData(null);
       setLoadError(error instanceof Error ? error.message : "Unable to load the glossary.");
     }
   }, []);
@@ -159,18 +173,26 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   /** Runs one write, reloads the locale, and reports the outcome; with a term, only that row locks and focus moves on afterwards. */
   const run = useCallback(
-    async (kind: Exclude<Busy, null>, action: () => Promise<string>, term?: string) => {
+    async (kind: Exclude<Busy, null>, action: (collisionConfirmation?: string) => Promise<string>, term?: string, collisionConfirmation?: string) => {
       if (!locale) return;
+      const version = ++actionVersion.current;
+      setCollisionReview(null);
+      if (!collisionConfirmation) collisionReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       if (term) setWriting({ term, field: "rendering" }); else setBusy(kind);
       setNotice(null);
       try {
         const order = Array.from(document.querySelectorAll<HTMLElement>("tr[data-term]"), (row) => row.dataset.term ?? "");
-        const message = await action();
+        const message = await action(collisionConfirmation);
         await load(locale);
         if (term) handoff.current = { order, index: order.indexOf(term) };
         setNotice({ tone: "success", message });
       } catch (error) {
-        setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The change did not go through." });
+        if (version !== actionVersion.current) return;
+        if (error instanceof GlossaryReviewCollision) {
+          setCollisionReview({ locale, error, kind, action, term });
+        } else {
+          setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The change did not go through." });
+        }
       } finally {
         if (term) setWriting(null); else setBusy(null);
       }
@@ -179,14 +201,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   );
 
   const approveOne = (row: GlossaryRow) =>
-    run("approve", async () => {
-      await approveTerms(locale!, [row.term]);
+    run("approve", async (collisionConfirmation) => {
+      await approveTerms(locale!, [row.term], collisionConfirmation);
       return `Approved "${row.term}".`;
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
-    run("approve", async () => {
-      const approved = await approveTerms(locale!, terms);
+    run("approve", async (collisionConfirmation) => {
+      const approved = await approveTerms(locale!, terms, collisionConfirmation);
       return `Approved ${count(approved.length, "term")}.`;
     });
 
@@ -204,13 +226,15 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   };
 
   const saveTarget = (row: GlossaryRow, target: string) =>
-    run("approve", async () => {
-      const saved = await editTerm(locale!, row.term, target);
+    run("approve", async (collisionConfirmation) => {
+      const saved = await editTerm(locale!, row.term, target, collisionConfirmation);
       return `Saved "${saved.term}" as ${saved.target}; it is approved.`;
     }, row.term);
 
   /** Locks the row like a rendering save, but the definition is locale-independent, so the map updates in place and nothing reloads. */
   const saveDefinition = async (row: GlossaryRow, gloss: string) => {
+    ++actionVersion.current;
+    setCollisionReview(null);
     setWriting({ term: row.term, field: "definition" });
     setNotice(null);
     try {
@@ -273,15 +297,17 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** Reads the chosen file here and sends it whole; the server writes all of it or none. */
   const importFile = async (file: File | undefined) => {
     if (!file) return;
-    const csv = await file.text();
-    await run("import", async () => {
-      const summary = await importGlossaryCsv(locale!, csv);
+    const csv = file.text();
+    await run("import", async (collisionConfirmation) => {
+      const summary = await importGlossaryCsv(locale!, await csv, collisionConfirmation);
       const total = summary.approved + summary.drafts;
       return `Imported ${summary.approved} approved and ${summary.drafts} ${STATE_WORD.draft} ${total === 1 ? "rendering" : "renderings"}.`;
     });
   };
 
   const changeLocale = (code: string) => {
+    ++actionVersion.current;
+    setCollisionReview(null);
     setLocale(code);
     setFilters(DEFAULT_FILTERS);
     setCollapsed({});
@@ -484,6 +510,43 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       </EditorSection>
 
       {dialog}
+      <Dialog open={collisionReview !== null} onOpenChange={(open) => { if (!open) setCollisionReview(null); }}>
+        <DialogContent
+          showClose={false}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            collisionReturnFocus.current?.focus({ preventScroll: true });
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Allow these terms to share a rendering?</DialogTitle>
+            <DialogDescription>
+              Nothing was written. These English terms would read the same in {collisionReview?.locale}.
+              Allow this only when the shared rendering is appropriate for every listed term.
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="theme-text-secondary max-h-64 space-y-4 overflow-y-auto text-sm">
+            {collisionReview?.error.collisions.map((collision) => (
+              <li key={`${collision.kind}:${collision.target}`} className="space-y-1">
+                <p className="font-medium theme-text-primary">{collision.target}</p>
+                <p>{collision.kind} · {collisionReview.locale}</p>
+                <p>{collision.terms.join(", ")}</p>
+              </li>
+            ))}
+          </ul>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={() => setCollisionReview(null)}>Cancel</Button>
+            <Button type="button" variant="accent" onClick={() => {
+              if (!collisionReview || collisionReview.locale !== locale) return;
+              const review = collisionReview;
+              setCollisionReview(null);
+              void run(review.kind, review.action, review.term, review.error.collisionConfirmation);
+            }}>
+              Allow shared rendering
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

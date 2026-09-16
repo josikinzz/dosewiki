@@ -3,9 +3,10 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl, resolvePostgresSource } from "../lib/data-client.ts";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { normalizeDoi, normalizePmid } from "../../lib/citations/referenceIdentity.mjs";
 import { backupBeforeWrite,
 getFlagValue,
@@ -168,6 +169,7 @@ export function validateApprovedCitationAuthorProposal(proposal, approval) {
   if (!proposal.artifactSha256 || proposal.artifactSha256 !== computedHash) {
     throw new Error("The proposal artifact hash is missing or invalid.");
   }
+  assertCitationSourceIdentity(proposal.sourceDeployment);
   if (approval?.artifactType !== "citation_author_repair_approval"
       || approval?.artifactVersion !== 1
       || approval?.decision !== "approved"
@@ -266,14 +268,15 @@ export async function runApplyReferenceAuthorRepairs(argv = process.argv.slice(2
     if (!hasFlag(argv, CITATION_CONFIRMATION_FLAG)) {
       throw new Error(`Production citation-author repair requires ${CITATION_CONFIRMATION_FLAG}.`);
     }
-    if (proposal.sourceDeployment?.replace(/\/$/, "") !== command.targetUrl?.replace(/\/$/, "")) {
-      throw new Error("The approved proposal source deployment does not match the write target.");
-    }
   }
 
-  const readUrl = command.targetUrl ?? proposal.sourceDeployment;
-  if (!readUrl) throw new Error("No proposal source or explicit target URL is available.");
-  const client = dependencies.client ?? createDataClient({ target: readUrl }).client;
+  const env = dependencies.env ?? process.env;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({ argv, env }).url;
+  if (!readUrl) throw new Error("A Postgres source URL or explicit target URL is required.");
+  if (proposal.sourceDeployment !== postgresFingerprintFromUrl(readUrl)) {
+    throw new Error("The approved proposal source identity does not match the selected Postgres database.");
+  }
+  const client = dependencies.client ?? createDataClient({ target: readUrl, argv, env }).client;
   const queryApi = dependencies.api ?? api;
   const plan = [];
   for (const row of rows) {

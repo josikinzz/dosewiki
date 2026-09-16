@@ -17,8 +17,8 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-vi.mock("@server/convex/serverClient", () => ({
-  queryConvex: vi.fn(async () => ({ publicRevision: "a".repeat(64) })),
+vi.mock("@server/data/serverClient", () => ({
+  queryData: vi.fn(async () => ({ publicRevision: "a".repeat(64) })),
 }));
 
 const TOKEN = "citation-write-secret";
@@ -39,8 +39,8 @@ describe("revalidate-article route", () => {
     
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE = TOKEN;
-    delete process.env.CONVEX_ADMIN_KEY;
+    process.env.DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE = TOKEN;
+    delete process.env.DATA_ADMIN_KEY;
   });
 
   it("rejects a missing token without touching the cache", async () => {
@@ -67,8 +67,8 @@ describe("revalidate-article route", () => {
   });
 
   it("accepts the legacy admin key when no scoped token is configured", async () => {
-    delete process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE;
-    process.env.CONVEX_ADMIN_KEY = "legacy-secret";
+    delete process.env.DATA_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE;
+    process.env.DATA_ADMIN_KEY = "legacy-secret";
     
 
     const response = await POST(revalidateRequest({ slug: "2c-b" }, "legacy-secret"));

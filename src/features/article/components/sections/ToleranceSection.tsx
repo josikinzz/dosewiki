@@ -1,143 +1,106 @@
-"use client";
-
 import { memo } from "react";
-import Masonry from "react-masonry-css";
-import {
-  ArticleInfoCard,
-  ArticleSection,
-} from "@/components/common/ArticleSection";
 import type { IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
-import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
+import { msg } from "@/i18n/messages";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
-import { ArticleDisclaimer } from "./ArticleDisclaimer";
 import { TOLERANCE_SECTION_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
-import { msg, useT } from "@/i18n/client";
-
-const MASONRY_BREAKPOINTS = {
-  default: 2,
-  640: 1,
-};
+import { ToleranceSectionView } from "./ToleranceSectionView.client";
 
 interface ToleranceSectionProps {
   article: SubstanceArticle;
-  /**
-   * The `tolerance-section-disclaimer` copy block, threaded from the route
-   * loader. Absent falls back to the checked-in default.
-   */
   disclaimer?: string;
 }
-
 const TOLERANCE_ITEMS: Array<{ key: string; label: string; icon: IconName }> = [
-  { key: "full_tolerance", label: msg("Full Tolerance"), icon: "lucide:arrow-up-wide-narrow" },
-  { key: "half_tolerance", label: msg("Half Tolerance"), icon: "lucide:circle-slash-2" },
-  { key: "baseline_tolerance", label: msg("Baseline Reset"), icon: "lucide:arrow-down-wide-narrow" },
+  {
+    key: "full_tolerance",
+    label: msg("Full Tolerance"),
+    icon: "lucide:arrow-up-wide-narrow",
+  },
+  {
+    key: "half_tolerance",
+    label: msg("Half Tolerance"),
+    icon: "lucide:circle-slash-2",
+  },
+  {
+    key: "baseline_tolerance",
+    label: msg("Baseline Reset"),
+    icon: "lucide:arrow-down-wide-narrow",
+  },
 ];
 
 export const ToleranceSection = memo(function ToleranceSection({
   article,
   disclaimer = TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
 }: ToleranceSectionProps) {
-  const t = useT();
-  const { tolerance } = article;
-
-  const hasFull = tolerance?.full_tolerance?.trim().length > 0;
-  const hasHalf = tolerance?.half_tolerance?.trim().length > 0;
-  const hasBaseline = tolerance?.baseline_tolerance?.trim().length > 0;
-  const hasCross = tolerance?.cross_tolerance?.length > 0;
-
-  if (!hasFull && !hasHalf && !hasBaseline && !hasCross) {
+  const tolerance = article.tolerance;
+  const cards = TOLERANCE_ITEMS.flatMap(({ key, label, icon }) => {
+    const value = tolerance?.[key as keyof typeof tolerance];
+    if (typeof value !== "string" || value.trim().length === 0) return [];
+    return [
+      {
+        key,
+        label,
+        icon,
+        content: (
+          <EditableValue
+            as="div"
+            label={label}
+            path={`tolerance.${key}`}
+            value={value}
+          >
+            <ArticleText article={article} as="div" text={value} />
+          </EditableValue>
+        ),
+      },
+    ];
+  });
+  const cross = tolerance?.cross_tolerance ?? [];
+  if (cards.length === 0 && cross.length === 0)
     return <ArticleGapNotice article={article} section="tolerance" />;
-  }
-
-  return (
-    <ArticleSection id="tolerance" icon={SUBSTANCE_SECTION_ICONS["tolerance"]} heading={t("Tolerance")}>
-      {/* Above the grid, and outside the masonry: the caveat qualifies every
-          timing in the section, and Masonry hands its children to columns by
-          index, so anything conditional inside it would move which card lands
-          in which column. */}
-      <ArticleDisclaimer text={t(disclaimer)} />
-
-      <Masonry
-        breakpointCols={MASONRY_BREAKPOINTS}
-        className="flex w-full gap-4"
-        columnClassName="flex flex-col gap-4"
-      >
-        {TOLERANCE_ITEMS.map(({ key, label, icon }) => {
-          const value = tolerance[key as keyof typeof tolerance];
-          if (typeof value !== "string" || value.trim().length === 0) return null;
-
-          return (
-            <ArticleInfoCard
-              key={key}
-              icon={icon}
-              padding="sm"
-              variant="nested"
-              title={t(label)}
-              tone="accent"
-            >
+  if (cross.length > 0)
+    cards.push({
+      key: "cross-tolerance",
+      label: msg("Cross Tolerance"),
+      icon: "lucide:merge",
+      content: (
+        <p>
+          {cross.map((value, index) => (
+            <span key={`${value}-${index}`}>
+              {index > 0 ? ", " : null}
               <EditableValue
-                as="div"
-                label={t(label)}
-                path={`tolerance.${key}`}
+                label={msg("Cross tolerance entry {{n}}")}
+                labelValues={{ n: index + 1 }}
+                path={buildFieldPath("tolerance", "cross_tolerance", index)}
                 value={value}
               >
-                <ArticleText
-                  article={article}
-                  as="div"
-                  text={value}
-                />
+                <CitedText text={value} article={article} />
               </EditableValue>
-            </ArticleInfoCard>
-          );
-        })}
-
-        {/* Cross Tolerance */}
-        {hasCross && (
-          <ArticleInfoCard
-            icon="lucide:merge"
-            padding="sm"
-            variant="nested"
-            title={t("Cross Tolerance")}
-            tone="accent"
-          >
-            <p>
-              {tolerance.cross_tolerance.map((entry, index) => (
-                <span key={`${entry}-${index}`}>
-                  {index > 0 ? ", " : null}
-                  <EditableValue
-                    label={t("Cross tolerance entry {{n}}", { n: index + 1 })}
-                    path={buildFieldPath("tolerance", "cross_tolerance", index)}
-                    value={entry}
-                  >
-                    <CitedText text={entry} article={article} />
-                  </EditableValue>
-                </span>
-              ))}
-            </p>
-          </ArticleInfoCard>
-        )}
-      </Masonry>
-
-      {/* Empty-field prompts sit *outside* the masonry on purpose: it hands its
-          children to columns by index, so an element that renders nothing would
-          still shift which card lands in which column on the public page. */}
-      {TOLERANCE_ITEMS.map(({ key, label }) => {
-        const value = tolerance[key as keyof typeof tolerance];
-        if (typeof value === "string" && value.trim().length > 0) return null;
-
-        return (
-          <EditableSlot
-            emptyLabel={t("Add {{label}}", { label: t(label).toLowerCase() })}
-            key={key}
-            label={t(label)}
-            path={buildFieldPath("tolerance", key)}
-            value={typeof value === "string" ? value : ""}
-          />
-        );
-      })}
-    </ArticleSection>
+            </span>
+          ))}
+        </p>
+      ),
+    });
+  const emptySlots = TOLERANCE_ITEMS.flatMap(({ key, label }) => {
+    const value = tolerance?.[key as keyof typeof tolerance];
+    if (typeof value === "string" && value.trim().length > 0) return [];
+    return [
+      <EditableSlot
+        emptyLabel={msg("Add {{label}}")}
+        labelValues={{ label }}
+        key={key}
+        label={label}
+        path={buildFieldPath("tolerance", key)}
+        value={typeof value === "string" ? value : ""}
+      />,
+    ];
+  });
+  return (
+    <ToleranceSectionView
+      cards={cards}
+      emptySlots={emptySlots}
+      disclaimer={disclaimer}
+    />
   );
 });

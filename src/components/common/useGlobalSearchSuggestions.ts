@@ -8,11 +8,10 @@ const MAX_SUGGESTIONS = 8;
 /**
  * How long to wait before asking the server to refine local results.
  *
- * The manifest is preloaded during idle time, so local matching answers the
- * keystroke and this delay is invisible; it exists to collapse a burst of
- * typing into one request. It applies even before the manifest has landed —
- * firing per keystroke there would burn through the endpoint's rate limit
- * (30/min/IP) during the brief window the manifest is still downloading.
+ * The manifest starts on search intent, so this delay collapses a burst of
+ * typing while the shared locale-specific index is still downloading. It also
+ * avoids burning through the endpoint's rate limit (30/min/IP) during that
+ * brief window.
  */
 const SERVER_REFINE_DELAY_MS = 400;
 
@@ -54,6 +53,9 @@ type UseGlobalSearchSuggestionsArgs = {
   isActiveSearch: boolean;
   query: string;
   limit?: number;
+  initialResults?: SearchSuggestion[];
+  initialQuery?: string;
+  loadManifestOnActivate?: boolean;
 };
 
 /**
@@ -68,6 +70,9 @@ export function useGlobalSearchSuggestions({
   isActiveSearch,
   query,
   limit = MAX_SUGGESTIONS,
+  initialResults = [],
+  initialQuery = "",
+  loadManifestOnActivate = true,
 }: UseGlobalSearchSuggestionsArgs) {
   const locale = useUiLocale();
   const trimmed = query.trim();
@@ -75,13 +80,16 @@ export function useGlobalSearchSuggestions({
   const isSearching = isActiveSearch && trimmed.length > 0;
   const cacheKey = buildCacheKey(trimmed, resolvedLimit, locale);
 
-  const manifestIndex = useSearchManifestIndex(isActiveSearch, locale);
+  const manifestIndex = useSearchManifestIndex(isActiveSearch, locale, loadManifestOnActivate);
   const [serverResults, setServerResults] = useState<{
     key: string;
     results: SearchSuggestion[];
   } | null>(null);
-  const [isRequestInFlight, setIsRequestInFlight] = useState(false);
+  const [requestState, setRequestState] = useState<{ key: string; pending: boolean } | null>(null);
   const [isCleared, setIsCleared] = useState(false);
+  const initialCacheKey = buildCacheKey(initialQuery.trim(), resolvedLimit, locale);
+  const seededResults =
+    initialResults.length > 0 && cacheKey === initialCacheKey ? initialResults : undefined;
 
   // Synchronous: when the manifest is loaded there is no state round trip
   // between a keystroke and its results.
@@ -98,19 +106,19 @@ export function useGlobalSearchSuggestions({
 
   useEffect(() => {
     if (!isSearching) {
-      setIsRequestInFlight(false);
+      setRequestState(null);
       return;
     }
 
     const cached = searchSuggestionsCache.get(cacheKey);
     if (cached) {
       setServerResults({ key: cacheKey, results: cached });
-      setIsRequestInFlight(false);
+      setRequestState({ key: cacheKey, pending: false });
       return;
     }
 
     let disposed = false;
-    setIsRequestInFlight(true);
+    setRequestState({ key: cacheKey, pending: true });
 
     const runRequest = async () => {
       try {
@@ -149,7 +157,7 @@ export function useGlobalSearchSuggestions({
         }
       } finally {
         if (!disposed) {
-          setIsRequestInFlight(false);
+          setRequestState({ key: cacheKey, pending: false });
         }
       }
     };
@@ -179,23 +187,30 @@ export function useGlobalSearchSuggestions({
     if (serverResults?.key === cacheKey) {
       return serverResults.results;
     }
-    return localResults ?? findPrefixSuggestions(trimmed, resolvedLimit, locale) ?? [];
+    return searchSuggestionsCache.get(cacheKey) ?? localResults ?? seededResults ?? findPrefixSuggestions(trimmed, resolvedLimit, locale) ?? [];
   }, [
     cacheKey,
     isCleared,
     isSearching,
-    localResults,
+    seededResults,
     locale,
     resolvedLimit,
     serverResults,
     trimmed,
   ]);
 
+  // Include the render before the request effect starts, without treating a
+  // cached answer as pending or borrowing another query's request status.
+  const isUpdatingSuggestions =
+    isSearching &&
+    !isCleared &&
+    !searchSuggestionsCache.has(cacheKey) &&
+    (requestState?.key !== cacheKey || requestState.pending);
+
   return {
     suggestions,
-    // Only a genuinely empty screen counts as loading; once anything is
-    // rendered, refinement happens silently underneath it.
-    isFetchingSuggestions: isRequestInFlight && suggestions.length === 0 && !isCleared,
+    isUpdatingSuggestions,
+    isFetchingSuggestions: isUpdatingSuggestions && suggestions.length === 0,
     clearSuggestions,
   };
 }

@@ -56,7 +56,7 @@ export function NotFoundBody({
         <div className="flex items-center gap-x-3 text-sm">
           <Link
             href={effectsHref}
-            className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+            className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline theme-focus-ring"
           >
             {t(effectsLabel)}
           </Link>
@@ -65,7 +65,7 @@ export function NotFoundBody({
           </span>
           <Link
             href={reportsHref}
-            className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+            className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline theme-focus-ring"
           >
             {t(reportsLabel)}
           </Link>

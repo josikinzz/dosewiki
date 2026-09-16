@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   PREVIEW_SPEC,
   buildPreviewFfmpegArgs,
@@ -8,9 +8,15 @@ import {
   verifyPreviewGeneration,
 } from "./generate-preview-renditions.mjs";
 
-const PROD = "https://glad-minnow-656.convex.cloud/api/storage/media";
-const PROD_PREVIEW = "https://glad-minnow-656.convex.cloud/api/storage/preview";
+const MEDIA_BASE = "https://media.example.test/assets";
+const MEDIA_KEY = `media/sha256/${"a".repeat(64)}.mp4`;
+const PREVIEW_KEY = `media/sha256/${"b".repeat(64)}.mp4`;
+const PROD = `${MEDIA_BASE}/${MEDIA_KEY}`;
+const PROD_PREVIEW = `${MEDIA_BASE}/${PREVIEW_KEY}`;
 const ORPHAN = "https://warmhearted-mosquito-204.convex.cloud/api/storage/media";
+
+beforeEach(() => vi.stubEnv("REPLICATION_MEDIA_BASE_URL", MEDIA_BASE));
+afterEach(() => vi.unstubAllEnvs());
 
 let seq = 0;
 const row = (extra = {}) => {
@@ -20,6 +26,7 @@ const row = (extra = {}) => {
     slug: `work-${seq}`,
     type: "video",
     storage_id: `storageid00000000000000000000${seq}`,
+    r2_key: MEDIA_KEY,
     url: PROD,
     thumbnail_url: `${PROD}-thumb`,
     duration: 42,
@@ -30,7 +37,7 @@ const row = (extra = {}) => {
 };
 
 describe("planPreviewGeneration", () => {
-  it("plans a video replication with a CAS expectation on its current storage_id", () => {
+  it("plans a video with both native and historical compare-and-swap identities", () => {
     const source = row();
     const { actions, skipped } = planPreviewGeneration([source]);
 
@@ -41,6 +48,7 @@ describe("planPreviewGeneration", () => {
       slug: source.slug,
       sourceUrl: PROD,
       expectedStorageId: source.storage_id,
+      expectedR2Key: source.r2_key,
       durationSeconds: 42,
       hadPreview: false,
     });
@@ -60,7 +68,7 @@ describe("planPreviewGeneration", () => {
   });
 
   it("skips a row that already has a preview, unless forced", () => {
-    const done = row({ preview_storage_id: "existingpreview0000000000000" });
+    const done = row({ preview_r2_key: PREVIEW_KEY });
 
     const withoutForce = planPreviewGeneration([done]);
     expect(withoutForce.actions).toEqual([]);
@@ -77,10 +85,15 @@ describe("planPreviewGeneration", () => {
     expect(skipped[0].reason).toMatch(/resolved url is null/);
   });
 
-  it("skips a rendition still served from an orphan host", () => {
-    const { actions, skipped } = planPreviewGeneration([row({ url: ORPHAN })]);
+  it("skips unknown and legacy storage sources", () => {
+    const sources = [
+      ORPHAN,
+      "https://glad-minnow-656.convex.cloud/api/storage/media",
+      "https://unknown.example.test/video.mp4",
+    ];
+    const { actions, skipped } = planPreviewGeneration(sources.map((url) => row({ url })));
     expect(actions).toEqual([]);
-    expect(skipped[0].reason).toMatch(/warmhearted-mosquito-204/);
+    expect(skipped).toHaveLength(sources.length);
   });
 });
 
@@ -158,7 +171,6 @@ describe("verifyPreviewGeneration", () => {
       after: { ...goodAfter, preview_url: ORPHAN },
     });
     expect(verdict.ok).toBe(false);
-    expect(verdict.reasons[0]).toMatch(/glad-minnow-656/);
   });
 
   it("fails when the delivered url changed — a null url deletes the page", () => {

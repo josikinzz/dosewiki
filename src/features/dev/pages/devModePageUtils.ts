@@ -1,5 +1,5 @@
 import type { ChangeLogArticleSummary, ChangeLogEntry } from "@/data/changelog/changeLog";
-import type { SaveToConvexPayload, SaveToConvexResult } from "@/hooks/useApiMutations";
+import type { SaveArticlePayload, SaveArticleResult } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import { slugify } from "@/utils/slug";
@@ -17,11 +17,7 @@ export const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set(
   DEV_TAB_REGISTRY.filter((tab) => tab.data.has("library")).map((tab) => tab.id),
 );
 
-/**
- * Tabs that make the shell drain the editor corpus at all: the blocking set
- * plus the tabs that render straight away and fill in late. Every other tab
- * reads none of it and must issue zero corpus requests.
- */
+/** Tabs that make the shell drain the editor corpus, including deferred consumers. */
 export const LIBRARY_FETCHING_TABS: ReadonlySet<DevModeTab> = new Set(
   DEV_TAB_REGISTRY.filter((tab) => tab.data.has("library") || tab.data.has("library-deferred")).map(
     (tab) => tab.id,
@@ -40,6 +36,10 @@ export function tabNeedsChangelogFeed(tab: DevModeTab): boolean {
 /** Tabs that read the contributor profile directory. */
 export function tabNeedsContributorProfiles(tab: DevModeTab): boolean {
   return findDevTab(tab).data.has("contributors");
+}
+/** Tabs that consume revision-bearing editor index layouts. */
+export function tabNeedsIndexLayouts(tab: DevModeTab): boolean {
+  return findDevTab(tab).data.has("layouts");
 }
 
 export type MarkdownChange = {
@@ -167,7 +167,7 @@ export function getChangedArticles(
   });
 }
 
-export function buildConvexSavePayload({
+export function buildDataSavePayload({
   articles,
   originalArticles,
   datasetChangelog,
@@ -177,7 +177,7 @@ export function buildConvexSavePayload({
   datasetChangelog: DatasetChangelogResult;
 }): {
   changedArticles: ArticleRecord[];
-  payload: SaveToConvexPayload;
+  payload: SaveArticlePayload;
 } {
   const changedArticles = getChangedArticles(articles, originalArticles);
 
@@ -200,8 +200,8 @@ export function buildConvexSavePayload({
   };
 }
 
-export function normalizeConvexChangeLogEntry(
-  entry: NonNullable<SaveToConvexResult["entry"]>,
+export function normalizeDataChangeLogEntry(
+  entry: NonNullable<SaveArticleResult["entry"]>,
 ): ChangeLogEntry {
   return {
     id: entry.id,

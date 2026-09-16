@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 
 const target = "https://glad-minnow-656.convex.cloud";
 const reviewRoot = "/Users/josie/Documents/Dose Wiki Media Review";
@@ -16,7 +16,7 @@ if (manifest.status !== "validated" || manifest.completed !== 73) throw new Erro
 if (preparation.entries.length !== 73) throw new Error(`Expected 73 prepared entries, found ${preparation.entries.length}.`);
 const renditionById = new Map(manifest.items.map((item) => [item.id, item]));
 
-const client = createDataClient({ target: target }).client;
+const client = createDataClient({ target: resolvePostgresSource().url }).client;
 const [liveRows, effects] = await Promise.all([
   client.query(api.replications.getAll, {}),
   client.query(api.subjectiveEffects.getPublicPreviews, {}),
@@ -75,7 +75,8 @@ const entries = preparation.entries.map((prepared) => {
 const counts = Object.fromEntries(["create", "existing", "collision", "exclude"].map((action) => [action, entries.filter((entry) => entry.action === action).length]));
 const creates = entries.filter((entry) => entry.action === "create");
 const plan = {
-  schemaVersion: 1, generatedAt: new Date().toISOString(), target,
+  schemaVersion: 1, generatedAt: new Date().toISOString(), target, // Historical campaign source pin.
+  postgresTarget: postgresFingerprintFromUrl(resolvePostgresSource().url),
   sourcePreparation: preparationPath, sourceRenditionManifest: manifestPath,
   sourceFilesPreserved: true, dryRunOnlyUntilExplicitWriteFlags: true, counts,
   createMainBytes: creates.reduce((sum, entry) => sum + entry.proposedRow.file_size, 0),

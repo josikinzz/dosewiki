@@ -11,14 +11,14 @@ test("pharmacology CLI accepts the shared production write ceremony flags", () =
     [
       "--write",
       "--confirm-write=batch-pharmacology-generation",
-      "--expected-deployment=glad-minnow-656",
+      "--expected-deployment=localhost/glad-minnow-656",
     ],
     { maxConcurrency: 3 },
   );
 
   assert.equal(options.write, true);
   assert.equal(options.confirmWrite, "batch-pharmacology-generation");
-  assert.equal(options.expectedDeployment, "glad-minnow-656");
+  assert.equal(options.expectedDeployment, "localhost/glad-minnow-656");
 });
 
 test("pharmacology replacement rejects empty and field-regressing output", () => {

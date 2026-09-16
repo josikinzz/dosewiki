@@ -18,7 +18,7 @@ export const CHANGELOG_FEED_MAX_ROWS = 500;
  * the tab can say so instead of presenting a capped feed as the whole record.
  */
 export type ChangelogFeedWindow = {
-  /** Server rows currently held; 0 until the first page arrives or when Convex is off. */
+  /** Server rows currently held; 0 until the first page arrives or when Postgres is off. */
   loadedCount: number;
   /** The last page came back full and the server cap is not reached: older saves can be loaded. */
   hasMore: boolean;
@@ -29,8 +29,8 @@ export type ChangelogFeedWindow = {
   loadMore: () => void;
 };
 
-function normalizeConvexChangelogEntries(
-  convexEntries: readonly {
+function normalizeDataChangelogEntries(
+  dataEntries: readonly {
     entryId: string;
     createdAt: string;
     message: string;
@@ -39,7 +39,7 @@ function normalizeConvexChangelogEntries(
     submittedBy?: string | null;
   }[],
 ): ChangeLogEntry[] {
-  return convexEntries.map((entry) => ({
+  return dataEntries.map((entry) => ({
     id: entry.entryId,
     createdAt: entry.createdAt,
     commit: {
@@ -53,13 +53,13 @@ function normalizeConvexChangelogEntries(
   }));
 }
 
-function mergeStaticAndConvexChangelogEntries(
+function mergeStaticAndDataChangelogEntries(
   staticEntries: readonly ChangeLogEntry[],
-  convexEntries: readonly ChangeLogEntry[],
+  dataEntries: readonly ChangeLogEntry[],
 ): ChangeLogEntry[] {
   const staticIds = new Set(staticEntries.map((entry) => entry.id));
   return sortChangeLogEntries([
-    ...convexEntries.filter((entry) => !staticIds.has(entry.id)),
+    ...dataEntries.filter((entry) => !staticIds.has(entry.id)),
     ...staticEntries,
   ]);
 }
@@ -74,18 +74,18 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   const [limit, setLimit] = useState(CHANGELOG_FEED_PAGE_SIZE);
   const [loadedCount, setLoadedCount] = useState(0);
 
-  const convexChangelogEntries = useEditorRead("changelog:getRecent", active ? { limit } : "skip", "list");
+  const dataChangelogEntries = useEditorRead("changelog:getRecent", active ? { limit } : "skip", "list");
 
   useEffect(() => {
-    if (!convexChangelogEntries) {
+    if (!dataChangelogEntries) {
       return;
     }
 
-    setLoadedCount(convexChangelogEntries.length);
+    setLoadedCount(dataChangelogEntries.length);
     setChangeLogEntries((previous) => {
-      const merged = mergeStaticAndConvexChangelogEntries(
+      const merged = mergeStaticAndDataChangelogEntries(
         initialChangeLogEntries,
-        normalizeConvexChangelogEntries(convexChangelogEntries),
+        normalizeDataChangelogEntries(dataChangelogEntries),
       );
 
       // Keep locally appended entries (a save's entry can land here before
@@ -98,7 +98,7 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
         ? sortChangeLogEntries([...localOnlyEntries, ...merged])
         : merged;
     });
-  }, [convexChangelogEntries]);
+  }, [dataChangelogEntries]);
 
   const appendChangeLogEntryToState = useCallback((entry: ChangeLogEntry) => {
     setChangeLogEntries((previous) => appendChangeLogEntry(previous, entry));
@@ -106,7 +106,7 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
 
   // A page is loading whenever the read is live but has no answer: a changed
   // `limit` reads as undefined until the wider page lands.
-  const loading = active && convexChangelogEntries === undefined;
+  const loading = active && dataChangelogEntries === undefined;
   const atServerCap = loadedCount >= CHANGELOG_FEED_MAX_ROWS;
   const hasMore = !atServerCap && loadedCount >= limit && limit < CHANGELOG_FEED_MAX_ROWS;
 

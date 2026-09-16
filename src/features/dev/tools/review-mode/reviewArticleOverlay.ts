@@ -9,7 +9,7 @@ type ReviewArticleOverlay = {
   editorialReview?: SubstanceArticle["editorial_review"] | null;
 };
 
-/** Rebuild the article Convex now holds without dirtying the editor working set. */
+/** Rebuild the article Postgres now holds without dirtying the editor working set. */
 export function applyReviewArticleOverlay(
   article: SubstanceArticle,
   { editorialReview = null }: ReviewArticleOverlay,

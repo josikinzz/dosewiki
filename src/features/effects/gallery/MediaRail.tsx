@@ -5,6 +5,7 @@ import { SmartLink } from "@/components/common/SmartLink";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
@@ -138,7 +139,7 @@ export function MediaRail({
   // `disabled:opacity-0` (not a bare `opacity-0`) so it outranks the base
   // Button's `disabled:opacity-50`; disabled already kills pointer events.
   const arrowClass =
-    "theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full disabled:opacity-0 [@media(hover:hover)]:inline-flex";
+    cn("theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full transition-[opacity,transform] duration-[160ms] active:scale-95 disabled:opacity-0 motion-reduce:transition-none motion-reduce:active:scale-100 [@media(hover:hover)]:inline-flex", TOUCH_ICON);
 
   /**
    * A person's face is the fastest way to recognize their section in a column
@@ -266,7 +267,7 @@ export function MediaRail({
         {hasMore ? (
           <SmartLink
             href={viewAllHref}
-            className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+            className="theme-text-muted group/all inline-flex min-h-11 items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] theme-focus-ring"
           >
             {viewAllLabel}
             <Icon
@@ -321,7 +322,7 @@ export function MediaRail({
             <SmartLink
               href={viewAllHref}
               style={{ aspectRatio: "4 / 5" }}
-              className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] sm:h-52 motion-reduce:transition-none"
+              className="theme-text-muted flex h-44 shrink-0 snap-start self-start flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--theme-border-strong)] bg-[var(--theme-surface-soft)] px-4 text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] hover:border-[color:var(--theme-card-border-strong)] theme-focus-ring sm:h-52 motion-reduce:transition-none"
             >
               <Icon icon="lucide:arrow-right" className="h-5 w-5" />
               {viewAllLabel}

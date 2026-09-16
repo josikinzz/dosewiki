@@ -5,7 +5,7 @@ import {
   getPublicSubstanceLookup,
   type PublicCategoryLayout,
   type PublicSubstanceLookupEntry,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 
 export type PublicRouteEmptyState = {
   badge: string;

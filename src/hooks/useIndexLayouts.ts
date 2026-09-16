@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from "react";
-import { useEditorRead } from "./useEditorRead";
+import { useEditorIndexLayouts, type EditorIndexLayoutRows } from "./useEditorRead";
 import { parseManualConfig } from "../data/builders/manualIndexLoader";
 import type { IndexConfigs } from "../data/builders/libraryBuilder";
 
@@ -19,25 +19,26 @@ import type { IndexConfigs } from "../data/builders/libraryBuilder";
  */
 export function useIndexLayouts(enabled: boolean): {
   configs: IndexConfigs | undefined;
+  layouts: EditorIndexLayoutRows | undefined;
+  error: string | null;
   isLoading: boolean;
+  retry: () => void;
 } {
-  // Single query for all layouts
-  const allLayouts = useEditorRead("indexLayouts:getAll", enabled ? {} : "skip", "list");
-
+  const allLayouts = useEditorIndexLayouts(enabled);
   // Parse and normalize the configs
   const configs = useMemo<IndexConfigs | undefined>(() => {
     // Not enabled
     if (!enabled) return undefined;
 
     // Still loading (undefined means query in progress)
-    if (allLayouts === undefined) {
+    if (allLayouts.data === undefined) {
       return undefined;
     }
 
     // Build lookup by type
     const byType = Object.fromEntries(
-      allLayouts.map((layout) => [layout.type, layout])
-    ) as Record<string, (typeof allLayouts)[number]>;
+      allLayouts.data.map((layout) => [layout.type, layout])
+    ) as Record<string, EditorIndexLayoutRows[number]>;
 
     const psychoactive = byType["psychoactive"];
     const chemical = byType["chemical"];
@@ -75,9 +76,16 @@ export function useIndexLayouts(enabled: boolean): {
       console.error("[useIndexLayouts] Failed to parse configs:", error);
       return undefined;
     }
-  }, [enabled, allLayouts]);
+  }, [enabled, allLayouts.data]);
 
-  const isLoading = enabled && allLayouts === undefined;
-
-  return { configs, isLoading };
+  return {
+    configs,
+    layouts: allLayouts.data,
+    error: allLayouts.error
+      ?? (enabled && allLayouts.data !== undefined && configs === undefined
+        ? "The editing source did not return three valid index layouts."
+        : null),
+    isLoading: allLayouts.isLoading,
+    retry: allLayouts.retry,
+  };
 }

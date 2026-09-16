@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "../lib/postgres-target.mjs";
 import { createDataClient } from "../../lib/data-client.ts";
-import { api } from "../../../convex/_generated/api.js";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import { createProductionWriteCommand, assertProductionWriteAllowed, requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
 import { appendLedger, assertPreviewMatches, batchesAfterCanaries, buildExecutionPlan, completedBatchesForRollback, indexProfiles, loadLedger, pendingBatches, PRODUCTION_DEPLOYMENT, rollbackManifest, selectCanaries, validatePinnedProfileSnapshot, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
 
@@ -29,7 +30,7 @@ export function parseArgs(argv) {
 }
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
 
-export function isTransientConvexTransportError(error) {
+export function isTransientDataTransportError(error) {
   const code = String(error?.code ?? error?.cause?.code ?? "").toUpperCase();
   const message = String(error?.message ?? error ?? "").toLowerCase();
   return ["ECONNRESET", "ECONNREFUSED", "EPIPE", "ETIMEDOUT", "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT"].includes(code)
@@ -43,7 +44,7 @@ export async function runBatchWithTransportRecovery({ batch, mutateBatch, readRe
       const result = await mutateBatch();
       return { result, receipt: null, recovered: false, attempts: attempt };
     } catch (error) {
-      if (!isTransientConvexTransportError(error)) throw error;
+      if (!isTransientDataTransportError(error)) throw error;
       lastError = error;
       recreateClient();
       try {
@@ -53,22 +54,22 @@ export async function runBatchWithTransportRecovery({ batch, mutateBatch, readRe
           return { result: { payload_digest: receipt.payload_digest, recovered_after_transport_error: true }, receipt, recovered: true, attempts: attempt };
         }
       } catch (receiptError) {
-        if (!isTransientConvexTransportError(receiptError)) throw receiptError;
+        if (!isTransientDataTransportError(receiptError)) throw receiptError;
         lastError = receiptError;
         recreateClient();
       }
     }
   }
-  throw new Error(`Convex transport remained unavailable after ${maxAttempts} attempts for ${batch.operation_id}: ${lastError?.message ?? lastError}`);
+  throw new Error(`Postgres transport remained unavailable after ${maxAttempts} attempts for ${batch.operation_id}: ${lastError?.message ?? lastError}`);
 }
 
-export async function runQueryWithTransportRecovery({ query, recreateClient, maxAttempts = 4, label = "Convex query" }) {
+export async function runQueryWithTransportRecovery({ query, recreateClient, maxAttempts = 4, label = "Postgres query" }) {
   let lastError;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
       return await query();
     } catch (error) {
-      if (!isTransientConvexTransportError(error)) throw error;
+      if (!isTransientDataTransportError(error)) throw error;
       lastError = error;
       recreateClient();
     }
@@ -91,7 +92,7 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
 
   const command = createProductionWriteCommand({ operation: "apply-identity-social-projection", argv });
   assertProductionWriteAllowed(command);
-  if (command.deploymentFingerprint !== PRODUCTION_DEPLOYMENT) throw new Error(`Writes are restricted to ${PRODUCTION_DEPLOYMENT}.`);
+  requireCampaignTarget(command);
   if (!options.actor) throw new Error("--actor-email is required for writes.");
   if (!options.rollback && !["canary", "full"].includes(options.phase)) throw new Error("Write mode requires --phase=canary or --phase=full.");
   const apiKey = requireProductionWriteCredential("replicationMaintenance").token;

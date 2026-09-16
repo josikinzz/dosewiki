@@ -14,7 +14,7 @@ Use `bun scripts/...` only when no package command exists. Postgres-backed scrip
 
 ## Production data boundary
 
-PlanetScale Postgres is production truth. Normal commands must not write Convex. Read [data credentials and write targets](../docs/agents/convex-credentials.md) before any remote database operation.
+PlanetScale Postgres is production truth. Normal commands use only the native data runtime. Read [data credentials and write targets](../docs/agents/data-credentials.md) before any remote database operation.
 
 Every production data write requires all of the following:
 
@@ -28,16 +28,16 @@ Every production data write requires all of the following:
 
 Implementing the shared guards does not authorize a command or expand the operator-write allowlist. `DATA_WRITES_FROZEN=1` must refuse all writes. Never bypass target, credential, freeze, role, or confirmation failures.
 
-Expected result: the command names the intended target, reports the reviewed plan, then reports matching applied counts with no unexplained rejects or mismatches. On partial or unexpected output, stop and use the command's recovery artifact. Database-wide recovery is owner-gated and follows [the Postgres to Convex recovery procedure](../notes-and-plans/plans/convex-to-planetscale/release-manifest.md#10-post-write-rollback-postgres-to-convex).
+Expected result: the command names the intended target, reports the reviewed plan, then reports matching applied counts with no unexplained rejects or mismatches. On partial or unexpected output, stop and use the command's recovery artifact. Database-wide recovery requires separate owner authorization; historical hosted-backend recovery is not an active command surface.
 
 ## Postgres operations
 
 - `npm run postgres:migrate` is the sole schema migration path. It uses the fixed repository Drizzle configuration, requires an explicit target, rejects arbitrary forwarded Drizzle arguments, and must expose a no-write plan before execution.
-- `npm run postgres:import` imports a reviewed Convex snapshot into an explicit Postgres target and verifies counts, hashes, duplicate IDs, and references.
+- `npm run postgres:import` imports a reviewed document snapshot into an explicit Postgres target and verifies counts, hashes, duplicate IDs, and references. Historical Convex snapshots retain their original IDs and provenance.
 - `npm run postgres:rehearse-publication`, `npm run postgres:rehearse-commands`, and other `postgres:rehearse-*` commands operate on explicit rehearsal targets. Scratch writes they create and delete are not production authorization.
 - `npm run postgres:check-env-isolation` proves preview-shaped environments cannot inherit a production writer.
 - `npm run postgres:verify-migrations` checks generated schema and migration snapshot agreement.
-- `npm run postgres:reverse-export` is read-only against Postgres, but its output is an input to an owner-gated Convex recovery. It is not a normal publishing path.
+- `scripts/recovery/convex/` contains non-executable historical references, not normal publishing or rollback commands. Any hosted-backend recovery requires a separately approved isolated historical checkout; never run or adapt these records as routine production tooling.
 
 For local rehearsal:
 
@@ -46,13 +46,13 @@ DATA_BACKEND=postgres npm run <command> -- \
   --target postgres://localhost:5432/dosewiki
 ```
 
-For production-shaped planning, follow the literal environment and guard sequence in [data credentials](../docs/agents/convex-credentials.md). Do not mentally translate Convex examples.
+For production-shaped planning, follow the literal environment and guard sequence in [data credentials](../docs/agents/data-credentials.md). Do not adapt historical provider examples.
 
 ## Read-only and generated workflows
 
 A read-only script receives no mutation capability and must reject `--write`. Remote Postgres reads still require an explicit target plus the remote-host guard. Public DoseWiki and Effect Index remain credential-free read-only flavors.
 
-Before changing generated output, inspect `src/data/artifactLineageManifest.json`, change the recorded producer input, and rerun its recorded command. Do not hand-edit generated article-schema helpers or Convex generated files.
+Before changing generated output, inspect `src/data/artifactLineageManifest.json`, change the recorded producer input, and rerun its recorded command. Do not hand-edit generated article-schema helpers or native data runtime registries.
 
 The nightly molecule workflow is owner-blocked until GitHub has secret `POSTGRES_POOLED_READONLY_URL` and repository variable `REPLICATION_MEDIA_BASE_URL`. Its source contract is `DATA_BACKEND=postgres`, `DATA_WRITES_FROZEN=1`, and the read-only pooled URL. Do not create those values or claim the workflow is active.
 
@@ -64,6 +64,6 @@ The nightly molecule workflow is owner-blocked until GitHub has secret `POSTGRES
 - Replication intake: [replication intake runbook](../docs/agents/reddit-replication-intake.md)
 - Locale mirrors: [locale mirrors runbook](../docs/agents/locale-mirrors.md)
 - Deployment and artifact separation: [deployment](../docs/agents/deployment.md)
-- Credentials, targets, confirmations, and recovery: [data credentials](../docs/agents/convex-credentials.md)
+- Credentials, targets, confirmations, and recovery: [data credentials](../docs/agents/data-credentials.md)
 
 The citation workbench guide is the portable repository authority. Do not place workstation-specific private paths in always-loaded guidance or publish private queue contents.

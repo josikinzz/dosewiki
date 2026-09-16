@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildGifMotionFfmpegArgs,
@@ -9,6 +9,14 @@ import {
   verifyGifMotionGeneration,
 } from "./generate-gif-motion-renditions.mjs";
 
+const MEDIA_BASE = "https://media.example.test/assets";
+const ORIGINAL_KEY = `media/sha256/${"a".repeat(64)}.gif`;
+const MOTION_KEY = `media/sha256/${"b".repeat(64)}.mp4`;
+const POSTER_KEY = `media/sha256/${"c".repeat(64)}.png`;
+
+beforeEach(() => vi.stubEnv("REPLICATION_MEDIA_BASE_URL", MEDIA_BASE));
+afterEach(() => vi.unstubAllEnvs());
+
 const row = (overrides = {}) => ({
   _id: "row-id",
   slug: "animated-grid",
@@ -18,7 +26,8 @@ const row = (overrides = {}) => ({
   type: "image",
   format: "gif",
   storage_id: "originalstorage0001",
-  url: "https://glad-minnow-656.convex.cloud/api/storage/originalstorage0001",
+  r2_key: ORIGINAL_KEY,
+  url: `${MEDIA_BASE}/${ORIGINAL_KEY}`,
   ...overrides,
 });
 
@@ -35,12 +44,16 @@ describe("planGifMotionGeneration", () => {
     expect(plan.actions.map((action) => action.slug)).toEqual([
       "animated-grid",
     ]);
+    expect(plan.actions[0]).toMatchObject({
+      expectedStorageId: "originalstorage0001",
+      expectedR2Key: ORIGINAL_KEY,
+    });
   });
 
   it("skips a complete pair unless forced", () => {
     const complete = row({
-      motion_storage_id: "motionstorage000001",
-      motion_poster_storage_id: "posterstorage000001",
+      motion_r2_key: MOTION_KEY,
+      motion_poster_r2_key: POSTER_KEY,
     });
     expect(planGifMotionGeneration([complete]).actions).toHaveLength(0);
     expect(
@@ -51,7 +64,7 @@ describe("planGifMotionGeneration", () => {
   it("regenerates an incomplete pair atomically", () => {
     expect(
       planGifMotionGeneration([
-        row({ motion_storage_id: "motionstorage000001" }),
+        row({ motion_r2_key: MOTION_KEY }),
       ]).actions,
     ).toHaveLength(1);
   });
@@ -60,9 +73,10 @@ describe("planGifMotionGeneration", () => {
     const plan = planGifMotionGeneration([
       row({ slug: "missing", url: null }),
       row({ slug: "foreign", url: "https://example.test/work.gif" }),
+      row({ slug: "legacy", url: "https://glad-minnow-656.convex.cloud/api/storage/original" }),
     ]);
     expect(plan.actions).toHaveLength(0);
-    expect(plan.skipped).toHaveLength(2);
+    expect(plan.skipped).toHaveLength(3);
   });
 });
 
@@ -123,11 +137,8 @@ describe("GIF motion encode contracts", () => {
         source: { video: { width: 801, height: 599 } },
         motion: { video: { width: 802, height: 600 } },
         poster: { video: { width: 801, height: 599 } },
-      }),
-    ).toEqual({
-      ok: true,
-      reason: "source pixels and poster dimensions are preserved",
-    });
+      }).ok,
+    ).toBe(true);
     expect(
       verifyRenditionDimensions({
         source: { video: { width: 801, height: 599 } },
@@ -140,8 +151,8 @@ describe("GIF motion encode contracts", () => {
 
 describe("verifyGifMotionGeneration", () => {
   const before = {
-    url: "https://glad-minnow-656.convex.cloud/original.gif",
-    thumbnail_url: "https://glad-minnow-656.convex.cloud/thumb.webp",
+    url: `${MEDIA_BASE}/${ORIGINAL_KEY}`,
+    thumbnail_url: `${MEDIA_BASE}/${POSTER_KEY}`,
     preview_url: null,
   };
 
@@ -151,8 +162,8 @@ describe("verifyGifMotionGeneration", () => {
         before,
         after: {
           ...before,
-          motion_url: "https://glad-minnow-656.convex.cloud/motion.mp4",
-          motion_poster_url: "https://glad-minnow-656.convex.cloud/poster.webp",
+          motion_url: `${MEDIA_BASE}/${MOTION_KEY}`,
+          motion_poster_url: `${MEDIA_BASE}/${POSTER_KEY}`,
         },
       }),
     ).toEqual({ ok: true, reasons: [] });
@@ -163,12 +174,28 @@ describe("verifyGifMotionGeneration", () => {
       before,
       after: {
         ...before,
-        url: "https://glad-minnow-656.convex.cloud/changed.gif",
-        motion_url: "https://glad-minnow-656.convex.cloud/motion.mp4",
+        url: `${MEDIA_BASE}/media/sha256/${"d".repeat(64)}.gif`,
+        motion_url: `${MEDIA_BASE}/${MOTION_KEY}`,
         motion_poster_url: null,
       },
     });
     expect(verdict.ok).toBe(false);
     expect(verdict.reasons).toHaveLength(2);
+  });
+
+  it("rejects derived URLs on unknown or retired storage hosts", () => {
+    for (const motionUrl of [
+      "https://unknown.example.test/motion.mp4",
+      "https://glad-minnow-656.convex.cloud/api/storage/motion",
+    ]) {
+      expect(verifyGifMotionGeneration({
+        before,
+        after: {
+          ...before,
+          motion_url: motionUrl,
+          motion_poster_url: `${MEDIA_BASE}/${POSTER_KEY}`,
+        },
+      }).ok).toBe(false);
+    }
   });
 });

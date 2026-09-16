@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicSubstanceBySlug } from "@server/convex/publicData";
+import { getPublicSubstanceBySlug } from "@server/data/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import {

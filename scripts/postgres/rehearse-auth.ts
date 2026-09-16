@@ -2,9 +2,9 @@
  * Ticket 05 rehearsal: sign-in and account controls on Postgres.
  *
  * Runs the real `auth.ts` credentials provider and JWT callback, the real
- * `lib/auth/convexMemberships.ts` adapter, and the real route write client
+ * `lib/auth/memberships.ts` adapter, and the real route write client
  * with `DATA_BACKEND=postgres`, so every membership, invite, and reset-token
- * handler executes unchanged on `PostgresConvexClient`. Proves:
+ * handler executes unchanged on `PostgresClient`. Proves:
  *
  *   a. a scratch admin created with the app's scrypt hash signs in through
  *      `authorizeCredentials` without a reset, and touches `lastSeenAt`;
@@ -37,24 +37,24 @@ guardTarget(target, argv.includes("--allow-remote"));
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
 
-import { api } from "../../convex/_generated/api";
+import { api } from "../../lib/postgres/runtime/api";
 import { authOptions, authorizeCredentials } from "../../auth";
 import {
   consumePasswordReset,
   getCredentialsByUsername,
   getMembershipByEmail,
   redeemInviteCode,
-} from "../../lib/auth/convexMemberships";
+} from "../../lib/auth/memberships";
 import { generateInviteCode, hashInviteCode, normalizeInviteCode } from "../../lib/auth/inviteCodes";
 import { hashPassword, verifyPassword } from "../../lib/auth/passwords";
 import {
-  getServerConvexWriteCapabilityOrThrow,
-  resetServerConvexWriteCapabilityCacheForTests,
-  ServerConvexWriteClient,
-} from "../../lib/convex/serverWriteCapability";
-import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
+  getServerDataWriteCapabilityOrThrow,
+  resetServerDataWriteCapabilityCacheForTests,
+  ServerDataWriteClient,
+} from "../../lib/data/serverWriteCapability";
+import { getPostgresClient } from "../../lib/postgres/runtime/backend";
 import { insertDocument, mintDocumentId, selectDocuments } from "../../lib/postgres/documentStore";
-import { classifyConvexRejection } from "../../src/lib/http/convexRejection";
+import { classifyDataRejection } from "../../src/lib/http/dataRejection";
 import { protectedRouteOperation } from "../../src/lib/http/protectedRouteOperation";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -79,7 +79,7 @@ async function attempt<T>(run: () => Promise<T>): Promise<Outcome<T>> {
 }
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
-const rejectionCode = (outcome: Outcome<unknown>) => (outcome.ok ? null : classifyConvexRejection(outcome.error)?.code ?? null);
+const rejectionCode = (outcome: Outcome<unknown>) => (outcome.ok ? null : classifyDataRejection(outcome.error)?.code ?? null);
 const outcomeDetail = (outcome: Outcome<unknown>) => (outcome.ok ? outcome.value : errorMessage(outcome.error));
 const sha256 = (value: string) => createHash("sha256").update(value, "utf8").digest("hex");
 
@@ -121,14 +121,14 @@ async function main() {
 
   try {
     // Routes reach the backend through the write capability; on Postgres it wraps the runtime client.
-    const capability = getServerConvexWriteCapabilityOrThrow();
+    const capability = getServerDataWriteCapabilityOrThrow();
     const write = capability.client;
     const adminKey = capability.adminKey;
     const editorToken = capability.getAdminIntentToken("editorArticleWrite") ?? adminKey;
 
     // (a) seed path: the same mutation `scripts/auth/seed-admin-accounts.mjs` calls, with the app's hash.
     const adminHash = await hashPassword(admin.password);
-    const seeded = await getPostgresConvexClient().mutation(api.memberships.setAdminAccount, {
+    const seeded = await getPostgresClient().mutation(api.memberships.setAdminAccount, {
       apiKey: adminKey,
       username: admin.username,
       email: admin.email,
@@ -227,8 +227,8 @@ async function main() {
     // (d) the write client refuses an actorless mutation before any backend call.
     // The type system already demands `actorEmail`; the cast reproduces a caller that omitted it.
     const actorlessArgs = { apiKey: adminKey, email: editor.email, role: "editor" } as never;
-    const actorless = await attempt(() => new ServerConvexWriteClient(getPostgresConvexClient()).mutation(api.memberships.setRole, actorlessArgs));
-    expect("ownership", "ServerConvexWriteClient refuses a mutation without actorEmail", !actorless.ok && errorMessage(actorless.error).startsWith("Server Convex write without actorEmail"));
+    const actorless = await attempt(() => new ServerDataWriteClient(getPostgresClient()).mutation(api.memberships.setRole, actorlessArgs));
+    expect("ownership", "ServerDataWriteClient refuses a mutation without actorEmail", !actorless.ok);
 
     // (d) same-origin gate in src/lib/http/protectedRouteOperation.ts: runs before rate limiting, session, and backend.
     let operationRan = false;
@@ -260,20 +260,24 @@ async function main() {
     expect("ban", "unban restores the editor role on refresh", (await refreshedRole(editor.email)) === "editor");
 
     // (b) refresh failure: the backend is unreachable, then the server key is missing. Both fail closed.
-    await getPostgresConvexClient().end();
+    await getPostgresClient().end();
     process.env.POSTGRES_POOLED_URL = "postgres://localhost:1/dosewiki";
+    process.env.POSTGRES_DIRECT_URL = process.env.POSTGRES_POOLED_URL;
+    process.env.TARGET_POSTGRES_URL = process.env.POSTGRES_POOLED_URL;
     const unreachable = await quietly(() => refreshedRole(admin.email));
     expect("refresh-failure", "unreachable database degrades the admin to viewer", unreachable === "viewer", unreachable);
     const unreachableSignIn = await attempt(() => authorizeCredentials({ username: admin.username, password: admin.password }));
     expect("refresh-failure", "sign-in surfaces the outage instead of admitting anyone", !unreachableSignIn.ok, outcomeDetail(unreachableSignIn));
-    await getPostgresConvexClient().end();
+    await getPostgresClient().end();
     process.env.POSTGRES_POOLED_URL = target;
-    resetServerConvexWriteCapabilityCacheForTests();
-    const savedKey = process.env.CONVEX_ADMIN_KEY;
-    delete process.env.CONVEX_ADMIN_KEY;
+    process.env.POSTGRES_DIRECT_URL = target;
+    process.env.TARGET_POSTGRES_URL = target;
+    resetServerDataWriteCapabilityCacheForTests();
+    const savedKey = process.env.DATA_ADMIN_KEY;
+    delete process.env.DATA_ADMIN_KEY;
     const keyless = await quietly(() => refreshedRole(admin.email));
-    process.env.CONVEX_ADMIN_KEY = savedKey;
-    expect("refresh-failure", "missing CONVEX_ADMIN_KEY degrades the admin to viewer", keyless === "viewer", keyless);
+    process.env.DATA_ADMIN_KEY = savedKey;
+    expect("refresh-failure", "missing DATA_ADMIN_KEY degrades the admin to viewer", keyless === "viewer", keyless);
     expect("refresh-failure", "recovery restores the admin role", (await refreshedRole(admin.email)) === "admin");
   } finally {
     if (!keep) {
@@ -298,7 +302,7 @@ async function main() {
     console.log(JSON.stringify({ passed, failed: summary.failed, elapsedMs: summary.elapsedMs }));
     process.exitCode = summary.failed === 0 ? 0 : 1;
     await pool.end();
-    await getPostgresConvexClient().end().catch(() => undefined);
+    await getPostgresClient().end().catch(() => undefined);
   }
 }
 

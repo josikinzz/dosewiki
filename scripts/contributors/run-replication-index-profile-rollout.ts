@@ -13,7 +13,8 @@ import { fileURLToPath } from "node:url";
 
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { withVerifiedProfileAvatars } from "../lib/reviewed-profile-r2.ts";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -21,8 +22,8 @@ import {
 } from "../lib/production-write-command.mjs";
 
 export const OPERATION = "replication-index-profile-rollout";
-export const EXPECTED_DEPLOYMENT = "glad-minnow-656";
-export const EXPECTED_TARGET_URL = `https://${EXPECTED_DEPLOYMENT}.convex.cloud`;
+// These pins identify the reviewed source artifact, never the runtime writer.
+const SOURCE_DEPLOYMENT = "glad-minnow-656";
 export const DEFAULT_PLAN_PATH =
   "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/attribution-profile-materialization-2026-08-31.json";
 export const DEFAULT_LEDGER_PATH =
@@ -71,7 +72,7 @@ export type Materialization = {
   contentSha256: string;
 };
 /** A materialization whose file bytes matched their pin; carries that proven file hash. */
-export type ValidatedMaterialization = Materialization & { fileSha256: string };
+export type ValidatedMaterialization = Materialization & { fileSha256: string; targetIdentity?: string };
 type BatchLedger = {
   batchNumber: number;
   operationId: string;
@@ -83,7 +84,7 @@ type BatchLedger = {
   rolledBackAt: string | null;
 };
 export type ProfileRolloutLedger = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   artifactFileSha256: string;
   artifactContentSha256: string;
   targetDeployment: string;
@@ -143,7 +144,7 @@ export function validateMaterialization(
   required(sha256(canonical(withoutSelfHash)) === contentSha256, "Profile materialization self-hash mismatch.");
   required(parsed.schemaVersion === 1, "Unsupported profile materialization schema.");
   required(parsed.artifactType === "replication-index-attribution-profile-materialization", "Wrong artifact type.");
-  required(parsed.target.deployment === `prod:${EXPECTED_DEPLOYMENT}`, "Wrong pinned production deployment.");
+  required(parsed.target.deployment === `prod:${SOURCE_DEPLOYMENT}`, "Wrong pinned source deployment.");
   required(parsed.target.writesPerformed === 0, "Input artifact unexpectedly records production writes.");
   required(parsed.policy.batchCap === 50, "Profile batch cap must be exactly 50.");
   required(parsed.batches.length === parsed.counts.batches, "Batch count mismatch.");
@@ -190,11 +191,12 @@ export function validateMaterialization(
 }
 
 export function createLedger(plan: ValidatedMaterialization): ProfileRolloutLedger {
+  required(plan.targetIdentity, "A Postgres target identity is required before creating a ledger.");
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     artifactFileSha256: plan.fileSha256,
     artifactContentSha256: plan.contentSha256,
-    targetDeployment: EXPECTED_DEPLOYMENT,
+    targetDeployment: plan.targetIdentity,
     batches: plan.batches.map((batch) => ({
       batchNumber: batch.batchNumber,
       operationId: batch.payload.operationId,
@@ -209,10 +211,10 @@ export function createLedger(plan: ValidatedMaterialization): ProfileRolloutLedg
 }
 
 export function validateLedger(ledger: ProfileRolloutLedger, plan: ValidatedMaterialization) {
-  required(ledger.schemaVersion === 1, "Unsupported profile rollout ledger schema.");
+  required(ledger.schemaVersion === 2, "Unsupported profile rollout ledger schema.");
   required(ledger.artifactFileSha256 === plan.fileSha256, "Ledger artifact file hash mismatch.");
   required(ledger.artifactContentSha256 === plan.contentSha256, "Ledger artifact content hash mismatch.");
-  required(ledger.targetDeployment === EXPECTED_DEPLOYMENT, "Ledger target deployment mismatch.");
+  required(plan.targetIdentity && ledger.targetDeployment === plan.targetIdentity, "Ledger target deployment mismatch.");
   required(ledger.batches.length === plan.batches.length, "Ledger batch count mismatch.");
   ledger.batches.forEach((row, index) => {
     const batch = plan.batches[index]!;
@@ -440,8 +442,9 @@ export async function runProfileRollout({
   }
   required(!(liveDryRun && writeRequested), "--live-dry-run and --write cannot be combined.");
   const command = createProductionWriteCommand({ operation: OPERATION, argv, env, loadsEnvLocal: false });
-  required(command.targetUrl === EXPECTED_TARGET_URL, `Target must be exactly ${EXPECTED_TARGET_URL}.`);
-  required(command.expectedDeployment === EXPECTED_DEPLOYMENT, `--expected-deployment must be ${EXPECTED_DEPLOYMENT}.`);
+  required(command.targetSource && command.targetUrl && command.deploymentFingerprint, "An explicit Postgres target is required.");
+  required(command.expectedDeployment === command.deploymentFingerprint, "--expected-deployment must match the selected Postgres target.");
+  plan.targetIdentity = command.deploymentFingerprint;
   if (writeRequested) {
     required(phase === "canary" || phase === "remaining" || phase === "rollback", "Writes require --phase=canary, --phase=remaining, or --phase=rollback.");
     assertProductionWriteAllowed(command);
@@ -451,15 +454,15 @@ export async function runProfileRollout({
   const credential = requireProductionWriteCredential("profileMediaWrite", { env });
   required(
     credential.source === "scoped",
-    "Replication Index profile rollout requires CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE; the legacy broad admin key is not accepted.",
+    "Replication Index profile rollout requires DATA_ADMIN_TOKEN_PROFILE_MEDIA_WRITE; the legacy broad admin key is not accepted.",
   );
   const token = credential.token;
-  const client = dependencies ? null : createDataClient({ target: EXPECTED_TARGET_URL }).client;
+  const client = dependencies ? null : createDataClient({ target: command.targetUrl }).client;
   const deps: RolloutDependencies = {
     dryRunBatch: dependencies?.dryRunBatch ?? (async (payload, apiKey) =>
-      client!.mutation(api.contributorProfiles.importReviewedProfilePlan, { ...payload, apiKey } as never)),
+      client!.mutation(api.contributorProfiles.importReviewedProfilePlan, { ...await withVerifiedProfileAvatars(payload, plan.targetIdentity!), apiKey } as never)),
     writeBatch: dependencies?.writeBatch ?? (async (payload, apiKey) =>
-      client!.mutation(api.contributorProfiles.importReviewedProfilePlan, { ...payload, apiKey } as never)),
+      client!.mutation(api.contributorProfiles.importReviewedProfilePlan, { ...await withVerifiedProfileAvatars(payload, plan.targetIdentity!), apiKey } as never)),
     rollbackBatch: dependencies?.rollbackBatch ?? (async (payload, apiKey) =>
       client!.mutation(api.contributorProfiles.rollbackReviewedProfilePlan, { ...payload, apiKey } as never)),
     readProfiles: dependencies?.readProfiles ?? (async (keys, apiKey) =>

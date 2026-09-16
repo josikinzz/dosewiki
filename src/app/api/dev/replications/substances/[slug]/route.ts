@@ -11,13 +11,13 @@
  *     → 409 { error, conflict } when the save is stale — nothing was written
  *
  * The write mirrors the featured-carousel route: editor session checked here,
- * Convex called with the server's token plus the actor's email for the audit
+ * Postgres called with the server's token plus the actor's email for the audit
  * trail, full arrays every time, zero optimism — the panel adopts the pruned
  * echo verbatim.
  *
  * `expectedUpdatedAt` is the panel's version check: the `updated_at` it loaded,
  * or `null` when it loaded no curation row at all. Omitting it saves
- * unconditionally. When it disagrees with the stored row Convex writes nothing
+ * unconditionally. When it disagrees with the stored row Postgres writes nothing
  * and reports the current server state, which this route relays as a 409 —
  * and, having written nothing, publishes nothing.
  *
@@ -26,7 +26,7 @@
  * deployments immediately instead of at the end of the public-data cache window.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -36,7 +36,7 @@ export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 32 * 1024;
 
-/** One shared ceiling: the Convex mutation and the portal's meter read the same number. */
+/** One shared ceiling: the Postgres mutation and the portal's meter read the same number. */
 const MAX_CURATION_SLUGS = GALLERY_CURATION_SLUG_CAP;
 
 /** Substance slugs are kebab-case with the occasional dotted segment. */
@@ -153,18 +153,18 @@ function parseCurationBody(raw: CurationBody): ParsedCurationBody {
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load a substance gallery via Next route:",
   unexpectedErrorMessage: "Unable to load that substance's gallery right now.",
-  operation: async ({ request, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const slug = substanceSlugOf(request);
-    const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("replicationMaintenance") ?? dataWrite.adminKey;
 
-    const detail = await convexWrite.client.query(api.substanceGalleries.getCurationDetail, {
+    const detail = await dataWrite.client.query(api.substanceGalleries.getCurationDetail, {
       apiKey,
       substance_slug: slug,
     });
@@ -178,7 +178,7 @@ export const GET = protectedRouteOperation({
 
     /*
      * `effectOptions` is newer than the deployment may be. Between a checkout
-     * and its Convex deploy the query still answers without the field, and the
+     * and its Postgres deploy the query still answers without the field, and the
      * panel's tag-and-curate chooser would read `undefined.length`. An empty
      * list degrades that one control to "no effect to tag with" instead of
      * taking the whole gallery down, matching how the public read tolerates an
@@ -192,18 +192,18 @@ export const POST = protectedRouteOperation<CurationBody, ParsedCurationBody>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseCurationBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save a substance gallery via Next route:",
   unexpectedErrorMessage: "Unable to save that substance's gallery right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const slug = substanceSlugOf(request);
-    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.substanceGalleries.upsert, {
+    const result = await dataWrite.client.mutation(api.substanceGalleries.upsert, {
       apiKey,
       actorEmail,
       substance_slug: slug,
@@ -258,13 +258,13 @@ export const PATCH = protectedRouteOperation<
       return { disabled: raw.disabled, expectedRevision: raw.expectedRevision };
     },
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to change substance gallery eligibility:",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) throw new Error("Postgres write capability is required.");
     const slug = substanceSlugOf(request);
-    const result = await convexWrite.client.mutation(api.substanceGalleries.setDisabled, {
-      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+    const result = await dataWrite.client.mutation(api.substanceGalleries.setDisabled, {
+      apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail, substance_slug: slug, ...body,
     });
     await publishPublicCache({

@@ -12,8 +12,9 @@
  * or the tab's "Draft missing terms") or written by a reviewer.
  */
 import "server-only";
+import { createHash } from "node:crypto";
 
-import { getDataBackend, getPostgresConvexClient } from "@server/postgres/runtime/backend";
+import { getPostgresClient } from "@server/postgres/runtime/backend";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 
 export type GlossaryStatus = "draft" | "approved";
@@ -41,23 +42,16 @@ export type GlossaryDraft = Pick<TranslationGlossaryRow, "term" | "target" | "ki
 
 export type GlossaryLocaleSummary = { locale: string; draft: number; approved: number };
 
-function db() {
-  if (getDataBackend() !== "postgres") {
-    throw new Error("The translation glossary lives in Postgres; run with DATA_BACKEND=postgres");
-  }
-  return getPostgresConvexClient();
-}
-
 const ROW_COLUMNS = '"locale", "term", "target", "kind", "status", "source", "reviewed_at", "reviewed_by", "retranslated_at", "updated_at"';
 
 /** Every row for one locale (optionally one status), sorted by term the way the digest sorts them. */
 export async function readGlossaryRows(locale: string, options: { status?: GlossaryStatus } = {}): Promise<TranslationGlossaryRow[]> {
   const rows = options.status
-    ? await db().sql<TranslationGlossaryRow>(
+    ? await getPostgresClient().sql<TranslationGlossaryRow>(
       `SELECT ${ROW_COLUMNS} FROM "translationGlossary" WHERE "locale" = $1 AND "status" = $2`,
       [locale, options.status],
     )
-    : await db().sql<TranslationGlossaryRow>(`SELECT ${ROW_COLUMNS} FROM "translationGlossary" WHERE "locale" = $1`, [locale]);
+    : await getPostgresClient().sql<TranslationGlossaryRow>(`SELECT ${ROW_COLUMNS} FROM "translationGlossary" WHERE "locale" = $1`, [locale]);
   return rows
     .map((row) => ({
       ...row,
@@ -88,14 +82,14 @@ export async function markRetranslated(locale: string, terms?: readonly string[]
   assertDataWritesNotFrozen("markRetranslated");
   const now = Date.now();
   if (terms === undefined) {
-    const updated = await db().sql<{ term: string }>(
+    const updated = await getPostgresClient().sql<{ term: string }>(
       `UPDATE "translationGlossary" SET "retranslated_at" = $2 WHERE "locale" = $1 AND "status" = 'approved' RETURNING "term"`,
       [locale, now],
     );
     return updated.length;
   }
   if (terms.length === 0) return 0;
-  const updated = await db().sql<{ term: string }>(
+  const updated = await getPostgresClient().sql<{ term: string }>(
     `UPDATE "translationGlossary" SET "retranslated_at" = $2 WHERE "locale" = $1 AND "status" = 'approved' AND "term" = ANY($3::text[]) RETURNING "term"`,
     [locale, now, [...terms]],
   );
@@ -118,13 +112,18 @@ export function glossaryDigestInput(glossary: Glossary): string {
   return JSON.stringify(Object.entries(glossary).sort(([a], [b]) => a.localeCompare(b)));
 }
 
-/** Draft and approved counts for every locale that has a row. */
-export async function glossaryLocales(): Promise<GlossaryLocaleSummary[]> {
-  const rows = await db().sql<{ locale: string; draft: string; approved: string }>(
+/** Draft and approved counts for the requested locales that have rows. */
+export async function glossaryLocales(allowedLocales?: readonly string[]): Promise<GlossaryLocaleSummary[]> {
+  if (allowedLocales?.length === 0) return [];
+  const constrained = allowedLocales !== undefined;
+  const rows = await getPostgresClient().sql<{ locale: string; draft: string; approved: string }>(
     `SELECT "locale",
             COUNT(*) FILTER (WHERE "status" = 'draft')::text AS draft,
             COUNT(*) FILTER (WHERE "status" = 'approved')::text AS approved
-     FROM "translationGlossary" GROUP BY "locale" ORDER BY "locale"`,
+     FROM "translationGlossary"
+     ${constrained ? 'WHERE "locale" = ANY($1::text[])' : ""}
+     GROUP BY "locale" ORDER BY "locale"`,
+    constrained ? [[...allowedLocales]] : [],
   );
   return rows.map((row) => ({ locale: row.locale, draft: Number(row.draft), approved: Number(row.approved) }));
 }
@@ -134,14 +133,13 @@ export type GlossaryCollision = { kind: string; target: string; terms: string[] 
 
 /**
  * An approved write refused because two terms of one kind would share a
- * rendering. A shared rendering makes the mirror ambiguous (a reader cannot
- * tell which English term a passage meant), so it never reaches the approved
- * set; drafts may still hold one until a reviewer picks.
+ * rendering. Drafts may hold one, but an approved write needs an explicit
+ * reviewer acknowledgement of the current collision set.
  */
 export class GlossaryCollisionError extends Error {
   collisions: GlossaryCollision[];
 
-  constructor(collisions: GlossaryCollision[]) {
+  constructor(collisions: GlossaryCollision[], readonly collisionConfirmation?: string) {
     super(
       collisions
         .map((c) => `${c.terms.length === 2 ? "Two" : String(c.terms.length)} terms in ${c.kind} would share the rendering ${c.target}: ${c.terms.join(", ")}`)
@@ -177,39 +175,55 @@ function lexeme(term: string): string {
  * Candidates with an empty rendering are ignored, and terms that are one
  * lexeme (singular and plural) never collide with each other.
  */
-export async function findGlossaryCollisions(locale: string, candidates: readonly GlossaryDraft[]): Promise<GlossaryCollision[]> {
+async function inspectGlossaryCollisions(locale: string, candidates: readonly GlossaryDraft[]): Promise<{ collisions: GlossaryCollision[]; collisionConfirmation: string }> {
   const byTerm = new Map<string, GlossaryDraft>();
   for (const candidate of candidates) {
     if (candidate.target.trim() !== "") byTerm.set(candidate.term, candidate);
   }
-  if (byTerm.size === 0) return [];
+  if (byTerm.size === 0) return { collisions: [], collisionConfirmation: "" };
 
-  const groups = new Map<string, { kind: string; target: string; terms: Set<string> }>();
+  const groups = new Map<string, { kind: string; target: string; terms: Set<string>; renderings: Map<string, string> }>();
   for (const candidate of byTerm.values()) {
     const key = collisionKey(candidate.kind, candidate.target);
-    const group = groups.get(key) ?? { kind: candidate.kind, target: candidate.target.trim(), terms: new Set<string>() };
+    const group = groups.get(key) ?? { kind: candidate.kind, target: candidate.target.trim(), terms: new Set<string>(), renderings: new Map<string, string>() };
     group.terms.add(candidate.term);
+    group.renderings.set(candidate.term, candidate.target);
     groups.set(key, group);
   }
 
-  const approved = await db().sql<{ term: string; target: string; kind: string }>(
+  const approved = await getPostgresClient().sql<{ term: string; target: string; kind: string }>(
     `SELECT "term", "target", "kind" FROM "translationGlossary"
      WHERE "locale" = $1 AND "status" = 'approved' AND "kind" = ANY($2::text[])`,
     [locale, [...new Set([...byTerm.values()].map((candidate) => candidate.kind))]],
   );
   for (const row of approved) {
     if (byTerm.has(row.term)) continue;
-    groups.get(collisionKey(row.kind, row.target))?.terms.add(row.term);
+    const group = groups.get(collisionKey(row.kind, row.target));
+    group?.terms.add(row.term);
+    group?.renderings.set(row.term, row.target);
   }
 
-  return [...groups.values()]
-    .filter((group) => new Set([...group.terms].map(lexeme)).size > 1)
-    .map((group) => ({ kind: group.kind, target: group.target, terms: [...group.terms].sort((a, b) => a.localeCompare(b)) }));
+  const shared = [...groups.values()].filter((group) => new Set([...group.terms].map(lexeme)).size > 1);
+  const collisions = shared.map((group) => ({ kind: group.kind, target: group.target, terms: [...group.terms].sort((a, b) => a.localeCompare(b)) }));
+  // Bind the acknowledgement to the locale and every exact English/target pair,
+  // not just the case-folded rendering used to discover a collision.
+  const identities = shared.map((group) => JSON.stringify([
+    group.kind,
+    [...group.renderings].sort(([a], [b]) => a.localeCompare(b)),
+  ])).sort();
+  const collisionConfirmation = createHash("sha256").update(JSON.stringify([locale, identities])).digest("hex");
+  return { collisions, collisionConfirmation };
 }
 
-async function assertNoCollisions(locale: string, candidates: readonly GlossaryDraft[]): Promise<void> {
-  const collisions = await findGlossaryCollisions(locale, candidates);
-  if (collisions.length > 0) throw new GlossaryCollisionError(collisions);
+export async function findGlossaryCollisions(locale: string, candidates: readonly GlossaryDraft[]): Promise<GlossaryCollision[]> {
+  return (await inspectGlossaryCollisions(locale, candidates)).collisions;
+}
+
+async function assertNoCollisions(locale: string, candidates: readonly GlossaryDraft[], confirmation?: string): Promise<void> {
+  const inspected = await inspectGlossaryCollisions(locale, candidates);
+  if (inspected.collisions.length > 0 && confirmation !== inspected.collisionConfirmation) {
+    throw new GlossaryCollisionError(inspected.collisions, inspected.collisionConfirmation);
+  }
 }
 
 /**
@@ -218,20 +232,21 @@ async function assertNoCollisions(locale: string, candidates: readonly GlossaryD
  * reviewer editing or importing a reviewed list) replaces whatever is there.
  * An approved write is refused whole (GlossaryCollisionError) when two of
  * its rows, or a row and an approved one it does not replace, would share a
- * rendering within a kind; drafts are never held to that.
+ * rendering within a kind, unless a human reviewer acknowledges the exact
+ * current collision set; drafts are never held to that.
  */
 export async function upsertGlossaryRows(
   locale: string,
   rows: readonly GlossaryDraft[],
-  by: { status: GlossaryStatus; source: GlossarySource; reviewedBy?: string },
+  by: { status: GlossaryStatus; source: GlossarySource; reviewedBy?: string; collisionConfirmation?: string },
 ): Promise<number> {
   if (rows.length === 0) return 0;
   assertDataWritesNotFrozen("upsertGlossaryRows");
   const reviewed = by.status === "approved";
-  if (reviewed) await assertNoCollisions(locale, rows);
+  if (reviewed) await assertNoCollisions(locale, rows, by.source === "human" && by.reviewedBy ? by.collisionConfirmation : undefined);
   const now = Date.now();
   const guard = by.source === "model" ? `WHERE "translationGlossary"."status" <> 'approved'` : "";
-  const written = await db().sql<{ term: string }>(
+  const written = await getPostgresClient().sql<{ term: string }>(
     `INSERT INTO "translationGlossary" ("locale", "term", "target", "kind", "status", "source", "reviewed_at", "reviewed_by", "updated_at")
      SELECT $1, t, g, k, $5, $6, $7, $8, $9 FROM UNNEST($2::text[], $3::text[], $4::text[]) AS draft(t, g, k)
      ON CONFLICT ("locale", "term") DO UPDATE SET
@@ -258,20 +273,20 @@ export async function upsertGlossaryRows(
  * Mark rows approved as they stand; returns the terms that changed status.
  * Throws GlossaryCollisionError, writing nothing, when the rows as drafted
  * would share a rendering with each other or with an approved row of the
- * same kind.
+ * same kind, unless the reviewer acknowledges the exact current collision set.
  */
-export async function approveGlossaryTerms(locale: string, terms: readonly string[], reviewedBy: string): Promise<string[]> {
+export async function approveGlossaryTerms(locale: string, terms: readonly string[], reviewedBy: string, collisionConfirmation?: string): Promise<string[]> {
   if (terms.length === 0) return [];
   assertDataWritesNotFrozen("approveGlossaryTerms");
-  const pending = await db().sql<GlossaryDraft>(
+  const pending = await getPostgresClient().sql<GlossaryDraft>(
     `SELECT "term", "target", "kind" FROM "translationGlossary"
      WHERE "locale" = $1 AND "term" = ANY($2::text[]) AND "status" <> 'approved'`,
     [locale, [...terms]],
   );
   if (pending.length === 0) return [];
-  await assertNoCollisions(locale, pending);
+  await assertNoCollisions(locale, pending, reviewedBy ? collisionConfirmation : undefined);
   const now = Date.now();
-  const rows = await db().sql<{ term: string }>(
+  const rows = await getPostgresClient().sql<{ term: string }>(
     `UPDATE "translationGlossary" SET "status" = 'approved', "reviewed_at" = $3, "reviewed_by" = $4, "updated_at" = $3
      WHERE "locale" = $1 AND "term" = ANY($2::text[]) AND "status" <> 'approved'
      RETURNING "term"`,
@@ -284,18 +299,18 @@ export async function approveGlossaryTerms(locale: string, terms: readonly strin
  * A reviewer's rendering: approved on write, since writing it is the review.
  * Null when the locale has no row for the term. Throws GlossaryCollisionError,
  * writing nothing, when the rendering is already an approved rendering of
- * another term of the same kind.
+ * another term of the same kind without its current collision acknowledgement.
  */
-export async function editGlossaryTerm(locale: string, term: string, target: string, reviewedBy: string): Promise<TranslationGlossaryRow | null> {
+export async function editGlossaryTerm(locale: string, term: string, target: string, reviewedBy: string, collisionConfirmation?: string): Promise<TranslationGlossaryRow | null> {
   assertDataWritesNotFrozen("editGlossaryTerm");
-  const [current] = await db().sql<{ kind: string }>(
+  const [current] = await getPostgresClient().sql<{ kind: string }>(
     `SELECT "kind" FROM "translationGlossary" WHERE "locale" = $1 AND "term" = $2`,
     [locale, term],
   );
   if (!current) return null;
-  await assertNoCollisions(locale, [{ term, target, kind: current.kind }]);
+  await assertNoCollisions(locale, [{ term, target, kind: current.kind }], reviewedBy ? collisionConfirmation : undefined);
   const now = Date.now();
-  const [row] = await db().sql<TranslationGlossaryRow>(
+  const [row] = await getPostgresClient().sql<TranslationGlossaryRow>(
     `UPDATE "translationGlossary"
      SET "target" = $3, "status" = 'approved', "source" = 'human', "reviewed_at" = $4, "reviewed_by" = $5, "updated_at" = $4
      WHERE "locale" = $1 AND "term" = $2

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { readFileSync, existsSync } from "fs";
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { loadGalleryOrderMapping } from "../replications/lib/reconciliation.mjs";
 import {
   assertDataOpsWriteAllowed,
@@ -111,16 +111,16 @@ async function main() {
 
   printDataOpsRunContext(runContext);
 
-  let convexUrl;
+  let dataUrl;
   try {
-    convexUrl = requireTargetUrl(runContext);
+    dataUrl = requireTargetUrl(runContext);
   } catch (error) {
     console.error(`\n❌ ${error.message}`);
     process.exit(1);
   }
 
   if (dryRun) {
-    console.log("\nDry run only. No Convex writes performed.");
+    console.log("\nDry run only. No Postgres writes performed.");
     process.exit(0);
   }
 
@@ -131,8 +131,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`\n🔗 Connecting to Convex: ${convexUrl}`);
-  const client = createDataClient({ target: convexUrl }).client;
+  console.log(`\n🔗 Connecting to Postgres: ${postgresFingerprintFromUrl(dataUrl)}`);
+  const client = createDataClient({ target: dataUrl }).client;
 
   console.log(`\n📤 Importing ${transformedEffects.length} effects in batches of ${BATCH_SIZE}...\n`);
   const { totalCreated, totalUpdated, allErrors } = await importEffectsInBatches({

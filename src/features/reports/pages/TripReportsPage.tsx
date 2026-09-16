@@ -4,7 +4,6 @@ import { t } from "@/i18n/server";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/PageHeader";
-import type { ReportCardModel } from "@/types/tripReport";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
@@ -13,9 +12,11 @@ import {
   REPORTS_INDEX_DEFAULT_VIEW,
   type ReportsIndexView,
 } from "@/utils/indexViewRoutes";
+import type { ReportBrowsePage } from "../domain/reportBrowsePage";
 
 interface TripReportsPageProps {
-  reports: ReportCardModel[];
+  browsingPage: ReportBrowsePage;
+  locale?: string;
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
   /** Server-resolved URL state for the first rendered grouping. */
@@ -29,7 +30,8 @@ interface TripReportsPageProps {
  * 4,600px page was reaching 7% of readers.
  */
 export function TripReportsPage({
-  reports,
+  browsingPage,
+  locale,
   reportHrefPrefix,
   emptyState,
   initialView = REPORTS_INDEX_DEFAULT_VIEW,
@@ -55,7 +57,8 @@ export function TripReportsPage({
       <TripReportsExplorer
         key={initialView}
         initialView={initialView}
-        reports={reports}
+        browsingPage={browsingPage}
+        locale={locale}
         reportHrefPrefix={reportHrefPrefix}
         emptyState={emptyState}
       />

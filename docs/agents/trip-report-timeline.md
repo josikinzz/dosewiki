@@ -2,13 +2,13 @@
 
 Most of the corpus renders on the phase rail: `introduction`, timestamped `onset` / `peak` / `offset` entries, `conclusion`. A submitted report often arrives as one flat `introduction` with the author's own timestamps buried in prose, so the rail renders empty.
 
-Reshaping it moves text and edits none of it. `scripts/reports/` makes that **lossless** claim checkable rather than asserted: `reconstructBody` rebuilds the record back into a single body from the fields that reach Convex, and it must equal the stored body character for character. Your work is supplying the one thing the scripts cannot infer, where the phases begin, and letting the gates fail you when the claim breaks.
+Reshaping it moves text and edits none of it. `scripts/reports/` makes that **lossless** claim checkable rather than asserted: `reconstructBody` rebuilds the record back into a single body from the fields that reach Postgres, and it must equal the stored body character for character. Your work is supplying the one thing the scripts cannot infer, where the phases begin, and letting the gates fail you when the claim breaks.
 
 ## Scripts
 
 | Path | Role |
 | --- | --- |
-| `scripts/reports/flatTripReportTimeline.mjs` | The formatter, its inverse, and `assertLossless`. Pure; no Convex. |
+| `scripts/reports/flatTripReportTimeline.mjs` | The formatter, its inverse, and `assertLossless`. Pure; no Postgres. |
 | `scripts/reports/format-flat-trip-report.mjs` | The command. Dry run by default; snapshots the original, writes, re-proves. |
 | `scripts/reports/timeline-plans/<slug>.json` | The **plan**: your phase boundaries, one file per report. |
 | `scripts/reports/flatTripReportTimeline.test.mjs` | `node --test`; covers the round trip and every refusal. |
@@ -40,7 +40,7 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 
    Done when it prints `reproduces the original exactly` and the previewed phases read the way the plan intended. A refusal instead is the next section.
 
-3. Run `npm run postgres:check-env-isolation` and confirm the dry run printed backend `postgres` and target `aws-us-east-1-2.pg.psdb.cloud/postgres`. `CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` keeps its name on the Postgres runtime. On a rejected credential, read [data credentials](convex-credentials.md).
+3. Run `npm run postgres:check-env-isolation` and confirm the dry run printed backend `postgres` and target `aws-us-east-1-2.pg.psdb.cloud/postgres`. Use the scoped `DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` credential. On a rejected credential, read [data credentials](data-credentials.md).
 
 4. Apply:
 
@@ -61,7 +61,7 @@ Every refusal below means the lossless claim cannot be made yet. Each is repaire
 | Refusal | What it found | Move |
 | --- | --- | --- |
 | `already has timeline entries` | The report is reshaped already. | Stop. |
-| `not separated by exactly one blank line`, `leading or trailing whitespace` | The stored body uses wider gaps or padded edges, which Convex would trim on write. | Repairing this changes stored text: get the user's go-ahead, fix the body in the Trip Report Portal (`/dev` → Trip reports), re-run. |
+| `not separated by exactly one blank line`, `leading or trailing whitespace` | The stored body uses wider gaps or padded edges, which Postgres would trim on write. | Repairing this changes stored text: get the user's go-ahead, fix the body in the Trip Report Portal (`/dev` → Trip reports), re-run. |
 | `no timestamped paragraph` | Either there is no inline timeline, or the labels use a style `TIME_LABEL_PATTERN` misses. | For a genuine new style, widen the pattern and add a case to the test file, keeping the author's label verbatim. |
 | `matches no timestamp`, `matches no paragraph`, `matches N paragraphs` | A plan boundary is wrong or ambiguous. | Fix the plan; lengthen `conclusionFrom` until it is unique. |
 | `changed since it was opened` | Someone edited the report between the read and the write. | Re-run from step 2. |

@@ -12,7 +12,7 @@
  * serializable fields the client stage needs. Credit and rights lines are
  * composed by `buildShowcaseWorks` with the shared replication-credit helpers
  * so the showcase reads identically to the gallery tiles and the permalink
- * page, and so the client bundle carries strings rather than the whole Convex
+ * page, and so the client bundle carries strings rather than the whole Postgres
  * record.
  */
 export type ShowcaseWork = {

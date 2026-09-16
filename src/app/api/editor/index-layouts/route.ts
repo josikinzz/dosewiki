@@ -1,5 +1,5 @@
 /** Public index layouts for the editor shell: every stored psychoactive/chemical/mechanism layout. */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { editorReadRoute } from "../editorReadRoute";
 
 export const runtime = "nodejs";

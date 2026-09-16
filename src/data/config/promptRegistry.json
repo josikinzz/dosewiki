@@ -4,7 +4,7 @@
     "kind": "generator",
     "label": "Generator",
     "seedPath": "src/data/config/generatorPrompt.md",
-    "convexKey": "generator",
+    "dataKey": "generator",
     "editorVisible": true
   },
   {
@@ -13,7 +13,7 @@
     "label": "Formal Citations Agent",
     "description": "Shared system instructions for the formal citations LLM agent",
     "seedPath": "src/data/config/formalCitationsPrompts/agent.md",
-    "convexKey": "formal_citations_agent",
+    "dataKey": "formal_citations_agent",
     "editorVisible": true
   },
   {
@@ -23,7 +23,7 @@
     "label": "Formal Citations: Summary",
     "description": "Section-specific citation agent instructions for summary claims",
     "seedPath": "src/data/config/formalCitationsPrompts/summary.md",
-    "convexKey": "formal_citations_section_summary",
+    "dataKey": "formal_citations_section_summary",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -34,7 +34,7 @@
     "label": "Formal Citations: Pharmacology",
     "description": "Section-specific citation agent instructions for pharmacology claims",
     "seedPath": "src/data/config/formalCitationsPrompts/pharmacology.md",
-    "convexKey": "formal_citations_section_pharmacology",
+    "dataKey": "formal_citations_section_pharmacology",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -45,7 +45,7 @@
     "label": "Formal Citations: Harm Potential",
     "description": "Section-specific citation agent instructions for harm-potential claims",
     "seedPath": "src/data/config/formalCitationsPrompts/harmPotential.md",
-    "convexKey": "formal_citations_section_harm_potential",
+    "dataKey": "formal_citations_section_harm_potential",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -56,7 +56,7 @@
     "label": "Formal Citations: Legality",
     "description": "Section-specific citation agent instructions for legality claims",
     "seedPath": "src/data/config/formalCitationsPrompts/legality.md",
-    "convexKey": "formal_citations_section_legality",
+    "dataKey": "formal_citations_section_legality",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -67,7 +67,7 @@
     "label": "Formal Citations: History & Culture",
     "description": "Section-specific citation agent instructions for history and culture claims",
     "seedPath": "src/data/config/formalCitationsPrompts/historyCulture.md",
-    "convexKey": "formal_citations_section_history_culture",
+    "dataKey": "formal_citations_section_history_culture",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -78,7 +78,7 @@
     "label": "Formal Citations: Tolerance",
     "description": "Section-specific citation agent instructions for tolerance claims",
     "seedPath": "src/data/config/formalCitationsPrompts/tolerance.md",
-    "convexKey": "formal_citations_section_tolerance",
+    "dataKey": "formal_citations_section_tolerance",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -89,7 +89,7 @@
     "label": "Summary",
     "description": "Brief overview paragraph introducing the substance",
     "seedPath": "src/data/config/sectionPrompts/summary.md",
-    "convexKey": "section_summary",
+    "dataKey": "section_summary",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -100,7 +100,7 @@
     "label": "Identification & Classification",
     "description": "Chemical names, SMILES, CAS numbers, and classification tags",
     "seedPath": "src/data/config/sectionPrompts/identification.md",
-    "convexKey": "section_identification",
+    "dataKey": "section_identification",
     "sourceMaterial": "none",
     "editorVisible": true
   },
@@ -111,7 +111,7 @@
     "label": "Base",
     "description": "Shared base article generation instructions",
     "seedPath": "src/data/config/sectionPrompts/base.md",
-    "convexKey": "section_base",
+    "dataKey": "section_base",
     "sourceMaterial": "none",
     "editorVisible": false
   },
@@ -122,7 +122,7 @@
     "label": "Dosage & Duration",
     "description": "Dose ranges by route and duration timelines",
     "seedPath": "src/data/config/sectionPrompts/dosageDuration.md",
-    "convexKey": "section_dosage_duration",
+    "dataKey": "section_dosage_duration",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -133,7 +133,7 @@
     "label": "Subjective Effects",
     "description": "Sensory, cognitive, and physical effects",
     "seedPath": "src/data/config/sectionPrompts/subjectiveEffects.md",
-    "convexKey": "section_subjective_effects",
+    "dataKey": "section_subjective_effects",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -144,7 +144,7 @@
     "label": "Pharmacology",
     "description": "Mechanism of action, receptor binding, metabolism",
     "seedPath": "src/data/config/sectionPrompts/pharmacology.md",
-    "convexKey": "section_pharmacology",
+    "dataKey": "section_pharmacology",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -155,7 +155,7 @@
     "label": "Interactions",
     "description": "Dangerous, unsafe, and caution drug combinations",
     "seedPath": "src/data/config/sectionPrompts/interactions.md",
-    "convexKey": "section_interactions",
+    "dataKey": "section_interactions",
     "sourceMaterial": "none",
     "editorVisible": true
   },
@@ -166,7 +166,7 @@
     "label": "Tolerance",
     "description": "Tolerance development and cross-tolerance",
     "seedPath": "src/data/config/sectionPrompts/tolerance.md",
-    "convexKey": "section_tolerance",
+    "dataKey": "section_tolerance",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -177,7 +177,7 @@
     "label": "Harm Potential",
     "description": "Addiction, toxicity, and health risks",
     "seedPath": "src/data/config/sectionPrompts/harmPotential.md",
-    "convexKey": "section_harm_potential",
+    "dataKey": "section_harm_potential",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -188,7 +188,7 @@
     "label": "History & Culture",
     "description": "Discovery, medical history, cultural significance, notable figures",
     "seedPath": "src/data/config/sectionPrompts/historyCulture.md",
-    "convexKey": "section_history_culture",
+    "dataKey": "section_history_culture",
     "sourceMaterial": "extracted",
     "editorVisible": true
   },
@@ -199,7 +199,7 @@
     "label": "Legality",
     "description": "International and country-specific legal status",
     "seedPath": "src/data/config/sectionPrompts/legality.md",
-    "convexKey": "section_legality",
+    "dataKey": "section_legality",
     "sourceMaterial": "extracted",
     "editorVisible": true
   }

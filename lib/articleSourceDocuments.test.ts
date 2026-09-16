@@ -10,7 +10,7 @@ import {
   loadLocalArticleSourceDocument,
   normalizeArticleSourceDocument,
   parseLocalArticleSourceModule,
-  toConvexArticleSourcePayload,
+  toDataArticleSourcePayload,
   validateArticleSourceDocument,
 } from "../scripts/article-source-documents/contract.mjs";
 
@@ -23,12 +23,12 @@ const SOURCE_META = {
 };
 
 describe("article source document contract", () => {
-  it("normalizes Convex-shaped documents without changing metadata or source ids", () => {
+  it("normalizes Postgres-shaped documents without changing metadata or source ids", () => {
     const doc = normalizeArticleSourceDocument({
       slug: "fixtureamine",
       substanceName: "Fixtureamine",
       sources: [SOURCE_META],
-      contents: { erowid: "Convex content" },
+      contents: { erowid: "Postgres content" },
       _id: "ignored",
     });
 
@@ -36,9 +36,9 @@ describe("article source document contract", () => {
       slug: "fixtureamine",
       substanceName: "Fixtureamine",
       sources: [SOURCE_META],
-      contents: { erowid: "Convex content" },
+      contents: { erowid: "Postgres content" },
     });
-    expect(toConvexArticleSourcePayload(doc)).toEqual(doc);
+    expect(toDataArticleSourcePayload(doc)).toEqual(doc);
   });
 
   it("parses local TypeScript source modules into the same normalized shape", () => {

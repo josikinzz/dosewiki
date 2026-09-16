@@ -21,7 +21,7 @@ import {
   getPublicReplicationsByEffect,
   getPublicReplicationsForSubstance,
   getPublicSubstanceBySlug,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import { getLocalizedPublicEffectBySlug, getLocalizedPublicEffects } from "@server/translation/localizedRecords";
 import { localizeRecords } from "@server/translation/liveTranslation";
 
@@ -36,7 +36,7 @@ import { localizeRecords } from "@server/translation/liveTranslation";
  * Every read below is the same request-deduped public-data call the article
  * render performs, backed by top-level `unstable_cache` leaves (the substance
  * record, the one-shot substance gallery or its corpus pages, the effect
- * record, the by-effect chunks), so the section path costs no extra Convex
+ * record, the by-effect chunks), so the section path costs no extra Postgres
  * traffic over what the route loader already paid.
  */
 

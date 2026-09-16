@@ -25,7 +25,7 @@ the live catalog and component how-to.
 Public/common promotion requires all of these:
 
 - At least a second runtime consumer with the same UI intent.
-- Stable, data-shaped props; no imports from `src/features`, `src/app`, schema modules, Convex data modules, or public route builders.
+- Stable, data-shaped props; no imports from `src/features`, `src/app`, schema modules, server data modules, or public route builders.
 - Styling through shared tokens, `Surface`, `Button`, `Badge`, or existing public token classes.
 - Accessible semantics are owned by the primitive when the behavior is reusable.
 

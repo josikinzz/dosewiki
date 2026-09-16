@@ -55,7 +55,6 @@ test("the executable wrapper cannot invoke a deploy child for any deploy-key cla
 
       assert.equal(result.status, 0, result.stderr);
       const calls = await readFile(callsPath, "utf8");
-      assert.match(calls, /node scripts\/convex\/check-function-drift\.mjs --checkout-only/);
       assert.match(calls, /bun run build/);
       assert.doesNotMatch(calls, /bunx|convex deploy/);
 
@@ -76,7 +75,6 @@ test("the executable wrapper cannot invoke a deploy child for any deploy-key cla
       });
       assert.equal(failedVerification.status, 1);
       const failedCalls = await readFile(callsPath, "utf8");
-      assert.match(failedCalls, /node scripts\/convex\/check-function-drift\.mjs --checkout-only/);
       assert.doesNotMatch(failedCalls, /bun run build|bunx|convex deploy/);
 
       const escapedKey = new RegExp(deployKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));

@@ -7,13 +7,12 @@
  * which is where ownership is decided.
  */
 
-import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 
 export type OwnedReportRow = {
   id: string;
   slug: string;
   title: string;
-  ownerEmail?: string;
   tripDate?: string;
   createdAt: number;
 };
@@ -48,13 +47,13 @@ export async function fetchOwnedRecord(id: string): Promise<OwnedReportRecord> {
   return payload.report as OwnedReportRecord;
 }
 
-/** Returns the saved slug; the route revalidates the public pages. */
+/** Returns the authoritative snapshot stored by the route after publication. */
 export async function saveOwnedReport(
   id: string,
   expected: TripReportEditableFields,
   updates: TripReportEditableFields,
   expectedRevision: string,
-): Promise<string> {
+): Promise<Pick<OwnedReportRecord, "slug" | "fields" | "revision">> {
   const payload = await requestJson(
     RECORD_API,
     {
@@ -64,10 +63,17 @@ export async function saveOwnedReport(
     },
     { network: "Network error while saving the report.", failure: "Unable to save that report." },
   );
-  return typeof payload.slug === "string" ? payload.slug : "";
+  if (typeof payload.slug !== "string" || typeof payload.fields !== "object" || payload.fields === null || typeof payload.revision !== "string") {
+    throw new Error("The save route returned no authoritative report snapshot.");
+  }
+  return {
+    slug: payload.slug,
+    fields: payload.fields as TripReportEditableFields,
+    revision: payload.revision,
+  };
 }
 
-/** Admin only; the route refuses anyone else before touching Convex. */
+/** Admin only; the route refuses anyone else before touching Postgres. */
 export async function assignReportOwner(
   slug: string,
   email: string,

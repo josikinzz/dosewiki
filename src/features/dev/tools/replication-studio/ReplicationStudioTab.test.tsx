@@ -47,9 +47,11 @@ vi.mock("./PlaylistsPanel", () => ({
     renderSavedPlaylistAction?: (playlist: {
       key: string;
       title: string;
-      replication_slugs: string[];
+      work_count: number;
       updated_at: string;
-      updated_by: string;
+      updated_by: string | null;
+      owner_email: string | null;
+      editable: boolean;
     }) => ReactNode;
   }) => (
     <div data-testid="playlists-workspace">
@@ -62,9 +64,11 @@ vi.mock("./PlaylistsPanel", () => ({
       {props.renderSavedPlaylistAction?.({
         key: "visual-journey",
         title: "Visual journey",
-        replication_slugs: ["kaleidoscopic-highway-hypnagogist"],
+        work_count: 1,
         updated_at: "2026-08-20T10:00:00.000Z",
         updated_by: "josie",
+        owner_email: "josie@example.com",
+        editable: true,
       })}
     </div>
   ),

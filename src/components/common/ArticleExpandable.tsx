@@ -89,9 +89,8 @@ export function ExpandableList<T>({
   }, [collapsedCount, items.length, visibleItems]);
   const canExpand = hasCollapsedItems ?? hiddenCount > 0;
   const shouldRenderToggle = canExpand && (!isExpanded || !hideToggleWhenExpanded);
-  const renderedItems = isExpanded
-    ? items
-    : getCollapsedItems(items, visibleItems, hiddenCount);
+  const collapsedItems = getCollapsedItems(items, visibleItems, hiddenCount);
+  const renderedItems = isExpanded ? items : collapsedItems;
   const state = {
     hiddenCount,
     isExpanded,
@@ -119,7 +118,13 @@ export function ExpandableList<T>({
         ) : renderItem ? (
           <List className={cn("space-y-2", listClassName)}>
             {renderedItems.map((item, index) => (
-              <li key={index} className={itemClassName}>
+              <li
+                key={index}
+                className={cn(
+                  isExpanded && !defaultExpanded && !collapsedItems.includes(item) && "theme-reveal-enter",
+                  itemClassName,
+                )}
+              >
                 {renderItem(item, index, state)}
               </li>
             ))}

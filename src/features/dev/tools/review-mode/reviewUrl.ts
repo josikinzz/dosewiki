@@ -6,7 +6,7 @@ import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
  *
  * The workbench flips between articles without routing (see `navigateTo` in
  * `ReviewExperience`): the route is `force-dynamic` and the client re-downloads
- * the whole Convex library on mount, so a `router.push` per article would
+ * the whole Postgres library on mount, so a `router.push` per article would
  * remount the workbench. That leaves the History API as the only navigation
  * mechanism, and this module is the single place that knows how a workbench
  * position is written into a URL and read back out of one.

@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   getCachedReagentDataForArticle: vi.fn(),
 }));
 
-vi.mock("@server/convex/publicData", () => ({ getPublicSubstanceBySlug: mocks.getPublicSubstanceBySlug }));
+vi.mock("@server/data/publicData", () => ({ getPublicSubstanceBySlug: mocks.getPublicSubstanceBySlug }));
 vi.mock("@server/reagentData", () => ({ getCachedReagentDataForArticle: mocks.getCachedReagentDataForArticle }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 

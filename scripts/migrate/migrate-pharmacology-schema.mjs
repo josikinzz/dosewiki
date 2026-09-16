@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   getAllSubstanceDocuments,
   getUniqueSubstanceDocumentBySlug,
-} from "../lib/convex-pagination.mjs";
+} from "../lib/data-pagination.mjs";
 import {
   normalizePharmacologySection,
   normalizeRouteName,
@@ -33,12 +33,12 @@ function getFlagValue(name) {
 function requireReadUrl() {
   const sourceUrl =
     getFlagValue("--source-url") ??
-    process.env.SOURCE_CONVEX_URL ??
-    process.env.CONVEX_PUBLIC_READ_URL ??
+    process.env.SOURCE_POSTGRES_URL ??
+    process.env.SOURCE_POSTGRES_URL ??
     command.targetUrl;
   if (!sourceUrl) {
     throw new Error(
-      "Dry-run requires --source-url or SOURCE_CONVEX_URL; writes require TARGET_CONVEX_URL or --target-url.",
+      "Dry-run requires --source-url or SOURCE_POSTGRES_URL; writes require TARGET_POSTGRES_URL or --target.",
     );
   }
   return sourceUrl;

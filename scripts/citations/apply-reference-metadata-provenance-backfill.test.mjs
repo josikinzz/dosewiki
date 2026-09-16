@@ -83,7 +83,7 @@ function artifacts() {
     artifactType: "citation_reference_provenance_backfill_proposal",
     artifactVersion: 1,
     generatedAt: "2026-08-10T00:00:00.000Z",
-    sourceDeployment: "https://example.convex.cloud",
+    sourceDeployment: "example/dosewiki",
     mode: "read_only_proposal",
     lineageManifest: { path: "lineage.json", fileSha256: digest("f"), artifactVersion: 2 },
     evidenceBundle: { path: "evidence.json", fileSha256: digest("8"), bundleDigest: digest("7"), artifactVersion: 1 },
@@ -193,10 +193,22 @@ describe("reference metadata provenance backfill apply", () => {
     const result = await runApplyReferenceProvenanceBackfill([
       `--proposal=${values.proposalPath}`,
       `--approval=${values.approvalPath}`,
-    ], { client, env: {}, logger: { log: vi.fn() } });
+    ], { client, env: { DATA_BACKEND: "postgres", SOURCE_POSTGRES_URL: "postgres://example/dosewiki" }, logger: { log: vi.fn() } });
     expect(result).toEqual({ status: "dry_run", pending: 759, alreadyApplied: 0 });
     expect(client.query).toHaveBeenCalledTimes(759);
     expect(client.mutation).toBeUndefined();
+  });
+
+  it("rejects a different database before reading any proposal rows", async () => {
+    const values = writeArtifacts();
+    const client = { query: vi.fn(), mutation: vi.fn() };
+    await expect(runApplyReferenceProvenanceBackfill([
+      `--proposal=${values.proposalPath}`,
+      `--approval=${values.approvalPath}`,
+      "--source-url=postgres://reader:secret@example/other",
+    ], { client, env: { DATA_BACKEND: "postgres" }, logger: { log: vi.fn() } })).rejects.toThrow(Error);
+    expect(client.query).not.toHaveBeenCalled();
+    expect(client.mutation).not.toHaveBeenCalled();
   });
 
   it("requires explicit production confirmations, rereads, backs up, audits, and verifies", async () => {
@@ -224,15 +236,16 @@ describe("reference metadata provenance backfill apply", () => {
     const result = await runApplyReferenceProvenanceBackfill([
       `--proposal=${values.proposalPath}`,
       `--approval=${values.approvalPath}`,
-      "--target-url=https://example.convex.cloud",
+      "--target=postgres://example/dosewiki",
       "--write",
+      "--allow-remote",
       "--confirm-write=apply-citation-reference-provenance-backfill",
-      "--expected-deployment=example",
+      "--expected-deployment=example/dosewiki",
       "--confirm-citation-provenance-write",
     ], {
       client,
       apiKey: "scoped-token",
-      env: {},
+      env: { DATA_BACKEND: "postgres", POSTGRES_IMPORT_CONFIRM: "example" },
       logger: { log: vi.fn() },
       backupBeforeWrite: vi.fn(async () => ({ path: "/tmp/backup.json", documentCount: 1 })),
       writeAuditLog,

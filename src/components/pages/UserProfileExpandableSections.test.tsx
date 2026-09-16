@@ -1,39 +1,51 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
-import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { PublicProfileHistoryEntry } from "@server/data/publicData.changelog";
 import { formattingLocale } from "@/i18n/messages";
 import { UserContributionsSection } from "./UserProfileExpandableSections";
 
-const entry = (overrides: Partial<ChangeLogEntry> = {}): ChangeLogEntry => ({
+const entry = (overrides: Partial<PublicProfileHistoryEntry> = {}): PublicProfileHistoryEntry => ({
   id: "entry-1",
   createdAt: "2026-08-13T18:05:00.000Z",
   commit: { sha: "", url: "", message: "Corrected 2C-B tolerance curve wording" },
   articles: [{ id: 101, title: "2C-B", slug: "2c-b" }],
-  markdown: "- old wording\n+ new wording",
+  hasDiff: true,
   submittedBy: "LYREA",
   ...overrides,
 });
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("UserContributionsSection", () => {
   it("shows no diff text at rest and reveals it through the row expander", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ markdown: "@@ summary @@\n- old wording\n+ new wording" }),
+    });
+    vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
     render(<UserContributionsSection profileKey="LYREA" history={[entry()]} />);
 
     expect(screen.getByText("Corrected 2C-B tolerance curve wording")).toBeInTheDocument();
     expect(screen.queryByText(/new wording/)).not.toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Show change diff" }));
 
-    expect(screen.getByLabelText("Diff of changed lines")).toHaveTextContent("new wording");
+    expect(await screen.findByLabelText("Diff of changed lines")).toHaveTextContent("new wording");
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/history/entry-1?view=entry",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
 
     await user.click(screen.getByRole("button", { name: "Hide change diff" }));
 
-    expect(screen.queryByText(/new wording/)).not.toBeInTheDocument();
+    expect(screen.getByText(/new wording/)).not.toBeVisible();
   });
 
   it("renders no expander for an entry without a diff", () => {
-    render(<UserContributionsSection profileKey="LYREA" history={[entry({ markdown: "" })]} />);
+    render(<UserContributionsSection profileKey="LYREA" history={[entry({ hasDiff: false })]} />);
 
     expect(screen.queryByRole("button", { name: "Show change diff" })).not.toBeInTheDocument();
   });

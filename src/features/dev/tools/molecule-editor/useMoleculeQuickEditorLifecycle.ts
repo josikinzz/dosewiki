@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import type { InchiComparison } from "./stereoGuard";
 import { compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import { smilesToMolblock } from "./smilesToMolblock";
 import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
+import { useMoleculeSourceRead } from "./useMoleculeSourceRead";
 
 interface MoleculeOverride {
   slug: string;
@@ -26,13 +27,7 @@ interface SaveResult {
 const SAVE_API = "/api/dev/molecule-override";
 const LOAD_TIMEOUT_MS = 8000;
 
-export function useMoleculeQuickEditorLifecycle({
-  slug,
-  extractSmiles,
-}: {
-  slug: string;
-  extractSmiles: (article: unknown) => string;
-}) {
+export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
   const { ocl, error: oclError } = useOcl();
   const { rdkit, error: rdkitError } = useRdkit();
   const [variant, setVariant] = useState<"saved" | "auto">("saved");
@@ -53,9 +48,9 @@ export function useMoleculeQuickEditorLifecycle({
   const [refreshToken, setRefreshToken] = useState(0);
   const loadedSlugRef = useRef<string | null>(null);
 
-  const article = useEditorRead("substanceIndex:getBySlug", slug ? { slug } : "skip", "document");
+  const moleculeSource = useMoleculeSourceRead(slug || null);
   const invalidateEditorReads = useInvalidateEditorReads();
-  const smiles = useMemo(() => extractSmiles(article), [article, extractSmiles]);
+  const smiles = moleculeSource?.smiles ?? "";
 
   useEffect(() => {
     setVariant("saved");
@@ -117,7 +112,7 @@ export function useMoleculeQuickEditorLifecycle({
       setComputing(false);
       return;
     }
-    if (article === undefined) {
+    if (moleculeSource === undefined) {
       setComputing(true);
       return;
     }
@@ -147,7 +142,7 @@ export function useMoleculeQuickEditorLifecycle({
     return () => {
       cancelled = true;
     };
-  }, [slug, variant, overrideDoc, article, smiles]);
+  }, [slug, variant, overrideDoc, moleculeSource, smiles]);
 
   useEffect(() => {
     if (!ocl || !edited) {
@@ -164,7 +159,7 @@ export function useMoleculeQuickEditorLifecycle({
 
   const dataPending =
     overrideDoc === undefined ||
-    article === undefined ||
+    moleculeSource === undefined ||
     (!ocl && !oclError) ||
     (!rdkit && !rdkitError);
   useEffect(() => {

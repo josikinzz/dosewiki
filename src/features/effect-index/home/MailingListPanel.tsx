@@ -51,7 +51,7 @@ export function MailingListPanel() {
               autoComplete="email"
               placeholder="you@example.com"
               onChange={(event) => setEmail(event.target.value)}
-              className="theme-text-primary min-w-0 flex-1 rounded-md border border-dose-border bg-transparent px-3 py-2 text-[1rem] placeholder:text-dose-text-ghost focus:border-dose-accent focus:outline-none focus:ring-1 focus:ring-dose-accent"
+              className="theme-text-primary min-w-0 flex-1 rounded-md border border-dose-border bg-transparent px-3 py-2 text-[1rem] placeholder:text-dose-text-ghost theme-field-focus"
             />
             <Button
               type="submit"

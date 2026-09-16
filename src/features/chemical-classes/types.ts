@@ -5,7 +5,7 @@ import type { IconName } from "@/components/common/Icon";
 export interface ChemicalClassMolecule {
   slug: string;
   name: string;
-  url: string; // Convex image route when published; static fallback otherwise.
+  url: string; // Postgres image route when published; static fallback otherwise.
 }
 
 /**
@@ -64,7 +64,7 @@ export interface ChemicalClassDetail extends ChemicalClassIndexEntry {
   /** Secondary parents (this class is a DAG node), for "Also classified under". */
   otherParents: Array<{ key: string; label: string }>;
   /**
-   * Versioned Convex override image URL (`/api/molecules/classes/<key>?v=…`),
+   * Versioned Postgres override image URL (`/api/molecules/classes/<key>?v=…`),
    * or `null` when the class has no stored drawing yet.
    */
   structureUrl: string | null;

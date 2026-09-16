@@ -7,7 +7,7 @@ import type { CopyBlockRow } from "./copyStudioUtils";
 const query = vi.hoisted(() => ({ rows: [] as CopyBlockRow[] }));
 
 vi.mock("@/hooks/useEditorRead", () => ({
-  useEditorRead: (name: string) => (name === "copyBlocks:getAll" ? query.rows : undefined),
+  useEditorRead: (name: string) => (name === "copyBlocks:getEditorCatalogue" ? query.rows : undefined),
   useInvalidateEditorReads: () => async () => undefined,
 }));
 vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: (url: string | null) => ({ data: url ? { document: query.rows.find((row) => row.key === new URL(url, "https://dose.wiki").searchParams.get("key")) ?? null, revision: 0 } : undefined, error: null, reload: vi.fn() }) }));

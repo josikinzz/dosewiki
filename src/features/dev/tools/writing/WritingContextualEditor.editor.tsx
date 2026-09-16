@@ -10,13 +10,14 @@ import { WritingEditor } from "./WritingEditor";
 import { useWritingWorkbenchController } from "./useWritingWorkbenchController";
 import type { WritingKind } from "./writingEditorModel";
 import type { ArticleBylineAuthor } from "@/features/articles/domain/articleByline";
+import { canDraft } from "@/lib/auth/roles";
 
 type Props = { slug: string; writingKind: WritingKind; bylineAuthors?: ArticleBylineAuthor[] };
 export default function WritingContextualEditor(props: Props) {
   const { enabled, mode, role } = useContextualEditing();
   const [started, setStarted] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  if (!enabled || mode !== "edit" || (role !== "admin" && role !== "editor")) return null;
+  if (!enabled || mode !== "edit" || !canDraft(role)) return null;
   if (!started) return <Button variant="outline" onClick={() => setStarted(true)}>Edit {props.writingKind === "blog" ? "post" : "writing"}</Button>;
   return <WritingSession key={`${props.writingKind}:${props.slug}:${attempt}`} {...props} onRetry={() => setAttempt(value => value + 1)} />;
 }

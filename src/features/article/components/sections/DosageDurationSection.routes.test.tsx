@@ -371,14 +371,12 @@ describe("DosageDurationSection route tabs", () => {
       },
     };
 
-    const { container } = render(<DosageDurationSection article={article} />);
+    render(<DosageDurationSection article={article} />);
 
-    expect(container.querySelector("[data-motion-exit='true']")).not.toBeInTheDocument();
     expect(screen.getByText("10-15 mg")).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Insufflated route" }));
 
-    expect(container.querySelector("[data-motion-exit='true']")).not.toBeInTheDocument();
     expect(screen.getByText("4-8 mg")).toBeInTheDocument();
     expect(screen.queryByText("10-15 mg")).not.toBeInTheDocument();
   });
@@ -564,7 +562,7 @@ describe("DosageDurationSection duration units", () => {
     const { commit } = renderEditing(articleWithRoutes([], [mixedScaleRoute("oral")]));
 
     expect(screen.getByText("2-7 hours")).toBeInTheDocument();
-    // Display-only: the editor opens on what Convex holds, and an untouched
+    // Display-only: the editor opens on what Postgres holds, and an untouched
     // save round-trips the stored triple byte for byte.
     const field = await openEditor(user, "Oral onset duration");
     expect(field).toHaveValue("120-420 minutes");

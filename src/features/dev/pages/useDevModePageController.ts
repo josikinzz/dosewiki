@@ -3,7 +3,11 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { useDevMode } from "../context/DevModeContext";
 import type { DevProposalSeed } from "../context/devModeTypes";
-import { tabNeedsChangelogFeed, tabNeedsContributorProfiles } from "./devModePageUtils";
+import {
+  tabNeedsChangelogFeed,
+  tabNeedsContributorProfiles,
+  tabNeedsIndexLayouts,
+} from "./devModePageUtils";
 import type { DevModeTab } from "./devTabRegistry";
 import type { DevModePageControllerState, DevModePageProps } from "./devModePageTypes";
 import { useDevChangelogFeed } from "./useDevChangelogFeed";
@@ -37,6 +41,10 @@ export function useDevModePageController({
     clearActiveProposal,
     discardActiveProposal,
     loadProposal,
+    indexLayoutsReadiness,
+    requestIndexLayouts,
+    retryIndexLayouts,
+    requestLibrary,
   } = useDevMode();
 
   // The contributor directory and the changelog feed are per-tab, not per-shell:
@@ -75,6 +83,11 @@ export function useDevModePageController({
     onTabChange,
     onClearNoticesForTab: clearNoticesForTab,
   });
+  useEffect(() => {
+    if (routeAccess.canDraft && tabNeedsIndexLayouts(activeTab)) {
+      requestIndexLayouts();
+    }
+  }, [activeTab, requestIndexLayouts, routeAccess.canDraft]);
 
   const {
     changeLogEntries,
@@ -152,12 +165,13 @@ export function useDevModePageController({
   // substances tab never renders a half-applied rebase.
   const handleLoadProposal = useCallback(
     async (seed: DevProposalSeed) => {
+      requestIndexLayouts();
+      await requestLibrary();
       await loadProposal(seed);
       changeTab("articles");
     },
-    [changeTab, loadProposal],
+    [changeTab, loadProposal, requestIndexLayouts, requestLibrary],
   );
-
   return {
     activePrimaryTab: routeAccess.activePrimaryTab,
     mainClassName: chromeEnvironment.mainClassName,
@@ -176,6 +190,8 @@ export function useDevModePageController({
     articlesLength: articles.length,
     // Treat "still draining" and "drained to nothing" alike: both mean the
     // corpus-backed tools have nothing real to show yet.
+    indexLayoutsReadiness,
+    retryIndexLayouts,
     isLibraryLoading: isLibraryLoading || articles.length === 0,
     activeTab,
     changeLog,

@@ -944,7 +944,7 @@
   {
     "key": "docs-code-toc-s6",
     "kind": "plain",
-    "label": "TOC label · 06 · The Convex data layer",
+    "label": "TOC label · 06 · The Postgres data layer",
     "group": "Docs · Code",
     "body": "06 · The data layer"
   },
@@ -1138,9 +1138,9 @@
     "body": "/dev editor"
   },
   {
-    "key": "docs-code-s2-legend-convex",
+    "key": "docs-code-s2-legend-data",
     "kind": "plain",
-    "label": "02 · Overview · legend: Convex data",
+    "label": "02 · Overview · legend: Postgres data",
     "group": "Docs · Code",
     "body": "Database and server functions"
   },
@@ -1163,7 +1163,7 @@
     "kind": "markdown",
     "label": "02 · Overview · no-REST-backend callout",
     "group": "Docs · Code",
-    "body": "**There is no separate REST service.** TypeScript queries (reads) and mutations (writes) in `convex/*.ts` run inside the Next.js app and scripts through the Postgres adapter in `lib/postgres/runtime/`. Browser saves and submissions enter through Next.js route handlers in `src/app/api/`; [access controls](#s7) differ by route."
+    "body": "**There is no separate REST service.** TypeScript queries (reads) and mutations (writes) in `server/*.ts` run inside the Next.js app and scripts through the Postgres adapter in `lib/postgres/runtime/`. Browser saves and submissions enter through Next.js route handlers in `src/app/api/`; [access controls](#s7) differ by route."
   },
   {
     "key": "docs-code-s3-framework-label",
@@ -1205,7 +1205,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Database + backend: body",
     "group": "Docs · Code",
-    "body": "PlanetScale hosts the production relational database. The site moved from Convex on 2026-09-10; `convex/` and several helper names retain that history. The former `glad-minnow-656` deployment is a frozen recovery source, not the runtime database."
+    "body": "PlanetScale Postgres hosts the production database. Authored queries, mutations, and schema definitions live in `server/`; `lib/postgres/runtime/` executes them inside database transactions."
   },
   {
     "key": "docs-code-s3-auth-label",
@@ -1317,7 +1317,7 @@
     "kind": "markdown",
     "label": "04 · Repository map · intro",
     "group": "Docs · Code",
-    "body": "Four directories hold most code: `src/` for the app, `convex/` for database functions, `scripts/` for pipelines, and `lib/` for shared server helpers. The rest holds documentation, assets, vendored dependencies, and configuration."
+    "body": "Four directories hold most code: `src/` for the app, `server/` for database functions, `scripts/` for pipelines, and `lib/` for shared server helpers. The rest holds documentation, assets, vendored dependencies, and configuration."
   },
   {
     "key": "docs-code-s4-skills",
@@ -1371,7 +1371,7 @@
     "items": [
       "`/dev`: a catch-all page (`src/app/dev/[[...segments]]`) dispatches ~17 tabs: articles, writing, citations, trip-report submissions, article and site feedback, replications, molecules, copy, banners, contributors, tags, index layout, change log, and profiles.",
       "`/review`: a standalone, full-width article-review workbench.",
-      "`/api/dev/*`: ~15 per-tool write endpoint families. `/api/save-to-convex`: whole-article saves.",
+      "`/api/dev/*`: ~15 per-tool write endpoint families. `/api/save-article`: whole-article saves.",
       "`/sign-in`: next-auth sign-in. Protected routes require an authorised session."
     ]
   },
@@ -1426,7 +1426,7 @@
     "kind": "markdown",
     "label": "06 · Data layer · intro",
     "group": "Docs · Code",
-    "body": "`convex/schema.ts` declares the data shapes (~45 in the recorded inventory); most tables have a matching `convex/<table>.ts` query-and-mutation module. The groups below describe purpose, not visibility: editorial records can include public profiles, while content configuration can hold unpublished drafts. Related tables share a row. Stored-record estimates are historical snapshots, distinct from the live published counts above."
+    "body": "`server/schema.ts` declares the data shapes (~45 in the recorded inventory); most tables have a matching `server/<table>.ts` query-and-mutation module. The groups below describe purpose, not visibility: editorial records can include public profiles, while content configuration can hold unpublished drafts. Related tables share a row. Stored-record estimates are historical snapshots, distinct from the live published counts above."
   },
   {
     "key": "docs-code-s6-th-table",
@@ -1664,7 +1664,7 @@
     "kind": "markdown",
     "label": "07 · Traffic · read card: how",
     "group": "Docs · Code",
-    "body": "Server components use route loaders in `lib/next/` and cached `lib/convex/publicData.*` readers. Cache tags identify related data for invalidation."
+    "body": "Server components use route loaders in `lib/next/` and cached `lib/data/publicData.*` readers. Cache tags identify related data for invalidation."
   },
   {
     "key": "docs-code-s7-read-key",
@@ -1720,7 +1720,7 @@
     "kind": "markdown",
     "label": "07 · Traffic · write card: how",
     "group": "Docs · Code",
-    "body": "Whole-article saves use `save-orchestrator/` and `/api/save-to-convex`; other tools use `/api/dev/*`. Routes enforce session roles and named rate limits. The browser never holds an admin key."
+    "body": "Whole-article saves use `save-orchestrator/` and `/api/save-article`; other tools use `/api/dev/*`. Routes enforce session roles and named rate limits. The browser never holds an admin key."
   },
   {
     "key": "docs-code-s7-write-generation",
@@ -1783,7 +1783,7 @@
     "kind": "markdown",
     "label": "08 · Scripts · backups and audit records",
     "group": "Docs · Code",
-    "body": "`scripts/lib/data-ops-run-context.mjs` resolves intent-scoped tokens (`CONVEX_ADMIN_TOKEN_<INTENT>`); `scripts/lib/production-write-command.mjs` supplies shared write gates. Migration-style scripts use pre-write backups and `scripts/data/audit-logs/`. Run `npm run convex:doctor` for environment diagnostics, and follow `docs/agents/convex-credentials.md` for the current allowlist and exact write procedure."
+    "body": "`scripts/lib/data-ops-run-context.mjs` resolves intent-scoped tokens (`DATA_ADMIN_TOKEN_<INTENT>`); `scripts/lib/production-write-command.mjs` supplies shared write gates. Migration-style scripts use pre-write backups and `scripts/data/audit-logs/`. Follow `docs/agents/data-credentials.md` for native environment diagnostics, the current allowlist, and the exact write procedure."
   },
   {
     "key": "docs-code-s8-families-intro",
@@ -1803,7 +1803,7 @@
       "`scripts/replications/`: media intake and R2 migration, the largest family.",
       "`scripts/contributors/`: contributor avatars.",
       "`scripts/chemistry/`: molecule and chemistry audits.",
-      "`scripts/migrate/`, `scripts/convex/`: migration and export tooling, including legacy Convex workflows.",
+      "`scripts/migrate/`, `scripts/data-ops/`: guarded Postgres migration and export tooling.",
       "`scripts/build/`: social-card and theme-CSS generators."
     ]
   },
@@ -1826,7 +1826,7 @@
     "kind": "markdown",
     "label": "09 · Replications · intro",
     "group": "Docs · Code",
-    "body": "Replications are artist-made videos, images, and audio recreations of subjective effects. **Postgres stores metadata; Cloudflare R2 stores files** under content-addressed keys derived from their contents. `convex/lib/replicationUrls.ts` constructs public URLs using `REPLICATION_MEDIA_BASE_URL`, required in every deployment."
+    "body": "Replications are artist-made videos, images, and audio recreations of subjective effects. **Postgres stores metadata; Cloudflare R2 stores files** under content-addressed keys derived from their contents. `server/lib/replicationUrls.ts` constructs public URLs using `REPLICATION_MEDIA_BASE_URL`, required in every deployment."
   },
   {
     "key": "docs-code-s9-intake",
@@ -1840,7 +1840,7 @@
     "kind": "markdown",
     "label": "09 · Replications · curation paragraph",
     "group": "Docs · Code",
-    "body": "`substanceGalleries` controls pinned and suppressed showcase items; `replicationPlaylists` supplies ordered sets to gallery drafts; `siteConfig` stores the Effect Index homepage carousel order. These database edits need no deploy. Public reads use `lib/convex/publicData.replications.ts`, `/api/replications/gallery`, and `/api/replications/showcase`; both JSON endpoints are cacheable."
+    "body": "`substanceGalleries` controls pinned and suppressed showcase items; `replicationPlaylists` supplies ordered sets to gallery drafts; `siteConfig` stores the Effect Index homepage carousel order. These database edits need no deploy. Public reads use `lib/data/publicData.replications.ts`, `/api/replications/gallery`, and `/api/replications/showcase`; both JSON endpoints are cacheable."
   },
   {
     "key": "docs-code-s9-rights",
@@ -1889,7 +1889,7 @@
     "kind": "markdown",
     "label": "10 · Flow A · step2 body",
     "group": "Docs · Code",
-    "body": "A `lib/next/` loader calls the tagged, cached, read-only `lib/convex/publicData.*` readers."
+    "body": "A `lib/next/` loader calls the tagged, cached, read-only `lib/data/publicData.*` readers."
   },
   {
     "key": "docs-code-s10-flow-a-step3-title",
@@ -1903,7 +1903,7 @@
     "kind": "markdown",
     "label": "10 · Flow A · step3 body",
     "group": "Docs · Code",
-    "body": "`lib/convex/publicData.substanceContract.ts` validates the record against the Zod schemas in `src/schema/`."
+    "body": "`lib/data/publicData.substanceContract.ts` validates the record against the Zod schemas in `src/schema/`."
   },
   {
     "key": "docs-code-s10-flow-a-step4-title",
@@ -1980,7 +1980,7 @@
     "kind": "markdown",
     "label": "10 · Flow B · step3 body",
     "group": "Docs · Code",
-    "body": "`/api/save-to-convex` checks the session role, rate limit, and Zod contract."
+    "body": "`/api/save-article` checks the session role, rate limit, and Zod contract."
   },
   {
     "key": "docs-code-s10-flow-b-step4-title",
@@ -2185,11 +2185,11 @@
     "group": "Docs · Code",
     "items": [
       "**`README.md`, `ARCHITECTURE.md`**: orientation, routes, package commands, and system layout.",
-      "**`convex/schema.ts`**: the data model; start with `substanceIndex`.",
-      "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/convex/publicData.*` → `src/features/article/`**: follow the public read path in Flow A.",
+      "**`server/schema.ts`**: the data model; start with `substanceIndex`.",
+      "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/data/publicData.*` → `src/features/article/`**: follow the public read path in Flow A.",
       "**`src/middleware.ts`, `auth.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
       "**`src/lib/http/protectedRouteOperation.ts`, `lib/http/rateLimitPolicy.ts`**: protected API handling, session roles, named rate limits, and payload caps. Public intake uses separate controls.",
-      "**`src/features/dev/save-orchestrator/`, `src/app/api/save-to-convex/`**: follow Flow B's saves and audit trail.",
+      "**`src/features/dev/save-orchestrator/`, `src/app/api/save-article/`**: follow Flow B's saves and audit trail.",
       "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points."
     ]
   },

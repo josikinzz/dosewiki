@@ -11,12 +11,9 @@
  * directory into a gitignored scratch folder, runs `drizzle-kit generate`
  * against the copy through a temporary config, and treats any newly written
  * migration as drift (its SQL is printed). The repository's migrations are
- * never touched. Two static invariants are checked alongside:
- *
- *   - every `_journal.json` entry has its SQL file and snapshot, and no SQL
- *     file exists outside the journal;
- *   - no package script runs `drizzle-kit push`, and no DDL (CREATE / ALTER /
- *     DROP TABLE, CREATE INDEX) lives outside lib/postgres/migrations.
+ * never touched. Journal integrity is checked alongside schema agreement.
+ * Target selection, planning, and write refusal are exercised by the migration
+ * command's behavioral tests, not by searching source strings for SQL.
  */
 
 import { spawnSync } from "node:child_process";
@@ -26,9 +23,6 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const MIGRATIONS = path.join(ROOT, "lib", "postgres", "migrations");
-const DDL_PATTERN = /\b(?:CREATE|ALTER|DROP)\s+TABLE\b|\bCREATE\s+(?:UNIQUE\s+)?INDEX\b/;
-const DDL_SCAN_ROOTS = ["lib", "scripts", "src/app/api", "convex"];
-const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mjs", ".js", ".cjs", ".sql"]);
 
 type Check = { check: string; pass: boolean; detail?: unknown };
 const checks: Check[] = [];
@@ -37,15 +31,6 @@ function expect(check: string, pass: boolean, detail?: unknown): void {
   console.log(`${pass ? "ok  " : "FAIL"} ${check}${detail === undefined || pass ? "" : ` ${JSON.stringify(detail)}`}`);
 }
 
-function walk(dir: string, out: string[] = []): string[] {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === ".next" || entry.name === "deprecated") continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(full, out);
-    else if (SOURCE_EXTENSIONS.has(path.extname(entry.name))) out.push(full);
-  }
-  return out;
-}
 
 function journalIntegrity(): void {
   const journal = JSON.parse(fs.readFileSync(path.join(MIGRATIONS, "meta", "_journal.json"), "utf8")) as {
@@ -59,20 +44,6 @@ function journalIntegrity(): void {
   expect("no SQL file exists outside the journal", JSON.stringify(sqlFiles) === JSON.stringify(journalTags), { sqlFiles, journalTags });
 }
 
-function singleSchemaPath(): void {
-  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")) as { scripts: Record<string, string> };
-  const drizzleScripts = Object.entries(pkg.scripts).filter(([, command]) => command.includes("drizzle-kit"));
-  const pushers = drizzleScripts.filter(([, command]) => /drizzle-kit\s+push/.test(command)).map(([name]) => name);
-  const migrators = drizzleScripts.filter(([, command]) => /drizzle-kit\s+migrate/.test(command)).map(([name]) => name);
-  expect("no package script runs drizzle-kit push", pushers.length === 0, pushers);
-  expect("postgres:migrate is the only drizzle-kit migrate script", JSON.stringify(migrators) === JSON.stringify(["postgres:migrate"]), migrators);
-
-  const offenders = DDL_SCAN_ROOTS.flatMap((relative) => walk(path.join(ROOT, relative)))
-    .filter((file) => !file.startsWith(MIGRATIONS + path.sep) && file !== fileURLToPath(import.meta.url))
-    .filter((file) => DDL_PATTERN.test(fs.readFileSync(file, "utf8")))
-    .map((file) => path.relative(ROOT, file));
-  expect("no DDL outside lib/postgres/migrations", offenders.length === 0, offenders);
-}
 
 function schemaDrift(): void {
   const scratch = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-verify-migrations`);
@@ -100,7 +71,6 @@ function schemaDrift(): void {
 }
 
 journalIntegrity();
-singleSchemaPath();
 schemaDrift();
 
 const passed = checks.filter((check) => check.pass).length;

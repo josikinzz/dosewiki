@@ -4,6 +4,7 @@ import {
   ARTICLE_FEEDBACK_STATUS_TRANSITIONS,
   type ArticleFeedbackRow,
 } from "@/features/article/feedback/articleFeedback";
+
 import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
 import {
   FeedbackMetadataItem,
@@ -13,6 +14,24 @@ import {
 } from "./FeedbackReviewQueue";
 import { createFeedbackRequests } from "./feedbackRequests";
 
+type ArticleFeedbackQueueItem = Pick<
+  ArticleFeedbackRow,
+  | "id"
+  | "status"
+  | "substance_slug"
+  | "substance_title"
+  | "category"
+  | "importance"
+  | "details"
+  | "source_url"
+  | "contact_email"
+  | "honeypot_triggered"
+  | "review_notes"
+  | "reviewed_by"
+  | "reviewed_at"
+  | "created_at"
+>;
+
 const IMPORTANCE_PILL_TONE: Record<ArticleFeedbackRow["importance"], EditorStatusPillTone> = {
   critical: "danger",
   high: "caution",
@@ -20,9 +39,9 @@ const IMPORTANCE_PILL_TONE: Record<ArticleFeedbackRow["importance"], EditorStatu
   low: "neutral",
 };
 
-export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackRow> = {
+export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackQueueItem> = {
   source: "article",
-  ...createFeedbackRequests<ArticleFeedbackRow>("/api/article-feedback"),
+  ...createFeedbackRequests<ArticleFeedbackQueueItem>("/api/article-feedback"),
   transitions: ARTICLE_FEEDBACK_STATUS_TRANSITIONS,
   labels: {
     icon: "lucide:message-square-plus",

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
-import { spawn } from "node:child_process";
 import { createReadStream, existsSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -12,6 +12,7 @@ import {
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
+import { uploadReplicationFile, uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 
 const OPERATION = "replace-reviewed-video-quality-renditions";
 const EXPECTED_TARGET = "https://glad-minnow-656.convex.cloud";
@@ -41,71 +42,18 @@ async function digest(file) {
   return hash.digest("hex");
 }
 
-async function postFile(uploadUrl, file) {
-  return await new Promise((resolve, reject) => {
-    const child = spawn("curl", [
-      "--silent", "--show-error", "--http1.1",
-      "--request", "POST",
-      "--header", "Content-Type: video/mp4",
-      "--data-binary", `@${file}`,
-      "--write-out", "\n%{http_code}",
-      uploadUrl,
-    ], { stdio: ["ignore", "pipe", "pipe"] });
-    const stdout = [];
-    const stderr = [];
-    child.stdout.on("data", (chunk) => stdout.push(chunk));
-    child.stderr.on("data", (chunk) => stderr.push(chunk));
-    child.on("error", reject);
-    child.on("close", (code) => {
-      const output = Buffer.concat(stdout).toString("utf8");
-      const split = output.lastIndexOf("\n");
-      const body = split >= 0 ? output.slice(0, split) : output;
-      const parsedStatusCode = split >= 0 ? Number.parseInt(output.slice(split + 1), 10) : null;
-      const statusCode = code === 0 ? parsedStatusCode : null;
-      if (code !== 0 || !statusCode || statusCode < 200 || statusCode >= 300) {
-        const detail = Buffer.concat(stderr).toString("utf8").trim() || body;
-        const error = new Error(`Upload failed: ${statusCode ?? "transport"} ${detail}`);
-        error.statusCode = statusCode;
-        reject(error);
-        return;
-      }
-      try {
-        resolve(JSON.parse(body));
-      } catch (error) {
-        reject(new Error(`Upload returned invalid JSON: ${error.message}`));
-      }
-    });
-  });
-}
-
-async function upload(client, apiKey, file) {
-  let lastError;
-  for (let attempt = 1; attempt <= 8; attempt += 1) {
-    try {
-      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-      const payload = await postFile(uploadUrl, file);
-      required(payload.storageId, "Upload returned no storageId.");
-      return payload.storageId;
-    } catch (error) {
-      lastError = error;
-      if ((error?.statusCode && error.statusCode < 500) || attempt === 8) throw error;
-      const delay = Math.min(1000 * 2 ** (attempt - 1), 30_000);
-      console.log(`  upload transport failed (${error.code ?? error.message}); retry ${attempt}/8 after ${delay}ms`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw lastError;
-}
 
 function loadLedger(file, manifestPath) {
   if (existsSync(file)) {
     const ledger = readJson(file);
     required(ledger.manifestPath === manifestPath, "Replacement ledger belongs to another manifest.");
     required(ledger.target === EXPECTED_TARGET, "Replacement ledger belongs to another target.");
+    required(ledger.schemaVersion === 2 || Object.keys(ledger.items ?? {}).length === 0, "Legacy replacement ledger has activity; reconcile it and use a new native R2 ledger.");
+    ledger.schemaVersion = 2;
     return ledger;
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     operation: OPERATION,
     target: EXPECTED_TARGET,
     manifestPath,
@@ -124,7 +72,7 @@ async function main() {
   const deliveryOverridesPath = path.resolve(getFlagValue(argv, "--delivery-overrides") ?? DEFAULT_DELIVERY_OVERRIDES);
   const limitValue = getFlagValue(argv, "--limit");
   const limit = limitValue ? Number.parseInt(limitValue, 10) : Number.POSITIVE_INFINITY;
-  required(command.targetUrl === EXPECTED_TARGET, `Pass --target-url=${EXPECTED_TARGET}.`);
+  const postgresTarget = requireCampaignTarget(command);
   required(Number.isFinite(limit) ? limit > 0 : limit === Number.POSITIVE_INFINITY, "--limit must be positive.");
 
   const manifest = readJson(manifestPath);
@@ -141,17 +89,17 @@ async function main() {
     required(!ids.has(item.id), `${item.id}: duplicate manifest ID.`);
     ids.add(item.id);
     const delivery = deliveryOverrides.items?.[item.id];
-    if (delivery) item.output = { ...item.output, ...delivery, method: "convex-delivery-h264-videotoolbox" };
+    if (delivery) item.output = { ...item.output, ...delivery, method: "convex-delivery-h264-videotoolbox" }; // Reviewed historical delivery provenance.
     if (!item.publicationEligible) continue;
     if (item.priorAction === "exclude") continue;
     required(existsSync(item.output.path), `${item.id}: output file is missing.`);
     required(statSync(item.output.path).size === item.output.bytes, `${item.id}: output size drifted.`);
     const original = originalLedger.items[item.id];
     const planned = plan.entries.find((entry) => entry.id === item.id);
-    if (original?.status === "verified" && original.productionId && original.storageIds?.main) {
-      candidates.push({ item, productionId: original.productionId, expectedStorageId: original.storageIds.main, source: "verified-upload-ledger" });
-    } else if (planned?.action === "existing" && planned.productionId && planned.productionStorageId) {
-      candidates.push({ item, productionId: planned.productionId, expectedStorageId: planned.productionStorageId, source: "existing-production-row" });
+    if (original?.status === "verified" && original.productionId && (original.r2Keys?.main || original.storageIds?.main)) {
+      candidates.push({ item, productionId: original.productionId, expectedStorageId: original.storageIds?.main ?? null, expectedR2Key: original.r2Keys?.main ?? null, source: "verified-upload-ledger" });
+    } else if (planned?.action === "existing" && planned.productionId && (planned.productionR2Key || planned.productionStorageId)) {
+      candidates.push({ item, productionId: planned.productionId, expectedStorageId: planned.productionStorageId ?? null, expectedR2Key: planned.productionR2Key ?? null, source: "existing-production-row" });
     }
   }
 
@@ -165,6 +113,7 @@ async function main() {
     rowsBySlug.set(row.slug, rows);
   }
   const ledger = loadLedger(ledgerPath, manifestPath);
+  bindCampaignTarget(ledger, postgresTarget);
   const actions = [];
   const skipped = [];
   for (const candidate of candidates) {
@@ -182,9 +131,24 @@ async function main() {
     }
     required(live.type === "video", `${candidate.item.id}: production row is not video.`);
     const state = ledger.items[candidate.item.id];
-    const expectedCurrent = state?.newStorageId ?? state?.previousStorageId ?? live.storage_id;
-    required(live.storage_id === expectedCurrent, `${candidate.item.id}: production storage changed outside this run.`);
-    actions.push({ ...candidate, productionId: live._id, expectedStorageId: state?.previousStorageId ?? live.storage_id, live, state });
+    required((live.storage_id ?? null) === candidate.expectedStorageId &&
+      ((live.r2_key ?? null) === candidate.expectedR2Key || (state?.r2Key && live.r2_key === state.r2Key)),
+      `${candidate.item.id}: production media changed outside this run.`);
+    if (state) {
+      required(state.productionId === live._id, `${candidate.item.id}: replacement ledger row identity drifted.`);
+      if (state.status === "verified" || state.status === "repointed") {
+        required(live.r2_key === state.r2Key && live.file_size === candidate.item.output.bytes,
+          `${candidate.item.id}: applied replacement no longer matches its ledger.`);
+        for (const [field, key] of Object.entries(state.r2Keys ?? {})) {
+          required(live[field] === key, `${candidate.item.id}: applied ${field} changed outside this run.`);
+        }
+      }
+      required(state.previousStorageId === candidate.expectedStorageId && state.previousR2Key === candidate.expectedR2Key,
+        `${candidate.item.id}: replacement ledger source identity differs from reviewed original.`);
+      required(state.outputPath === candidate.item.output.path && state.outputBytes === candidate.item.output.bytes &&
+        state.sha256 === candidate.item.output.sha256, `${candidate.item.id}: replacement ledger output differs from reviewed manifest.`);
+    }
+    actions.push({ ...candidate, productionId: live._id, live, state });
   }
   actions.sort((a, b) => a.item.output.bytes - b.item.output.bytes || a.item.id.localeCompare(b.item.id));
   const pending = actions.filter(({ state }) => state?.status !== "verified");
@@ -200,7 +164,7 @@ async function main() {
   console.log(`Largest pending   : ${pending.reduce((max, action) => Math.max(max, action.item.output.bytes), 0)}`);
 
   if (command.dryRun) {
-    console.log("Dry run complete: no files uploaded and no Convex rows modified.");
+    console.log("Dry run complete: no files uploaded and no Postgres rows modified.");
     return;
   }
 
@@ -215,6 +179,7 @@ async function main() {
       sourceSlug: item.slug,
       productionId: action.productionId,
       previousStorageId: action.expectedStorageId,
+      previousR2Key: action.expectedR2Key,
       previousFileSize: action.live.file_size ?? null,
       outputPath: item.output.path,
       outputBytes: item.output.bytes,
@@ -233,34 +198,49 @@ async function main() {
 
     const beforeUpload = await client.query(api.replications.getResolvedById, { apiKey, id: state.productionId });
     required(beforeUpload, `${item.id}: row disappeared before upload.`);
-    required(beforeUpload.storage_id === (state.newStorageId ?? state.previousStorageId), `${item.id}: storage changed before upload.`);
+    required((beforeUpload.storage_id ?? null) === state.previousStorageId &&
+      ((beforeUpload.r2_key ?? null) === state.previousR2Key || (state.r2Key && beforeUpload.r2_key === state.r2Key)),
+      `${item.id}: media identity changed before upload.`);
 
-    if (!state.newStorageId) {
+    if (!state.r2Key) {
       state.sha256 = await digest(item.output.path);
       required(state.sha256 === item.output.sha256, `${item.id}: output hash drifted.`);
-      state.newStorageId = await upload(client, apiKey, item.output.path);
+      state.r2Key = await uploadReplicationFile(client, apiKey, item.output.path, "video/mp4");
       state.status = "uploaded";
       atomicJson(ledgerPath, ledger);
     }
 
     const beforeWrite = await client.query(api.replications.getResolvedById, { apiKey, id: state.productionId });
     required(beforeWrite, `${item.id}: row disappeared before write.`);
-    if (beforeWrite.storage_id === state.previousStorageId) {
-      await client.mutation(api.replications.updateStorageIds, { apiKey, id: state.productionId, storage_id: state.newStorageId });
+    required((beforeWrite.storage_id ?? null) === state.previousStorageId, `${item.id}: historical source identity changed.`);
+    if ((beforeWrite.r2_key ?? null) === state.previousR2Key) {
+      const keys = { r2_key: state.r2Key };
+      for (const field of ["thumbnail", "preview", "motion", "motion_poster"]) {
+        if (beforeWrite[`${field}_r2_key`]) {
+          keys[`${field}_r2_key`] = beforeWrite[`${field}_r2_key`];
+        } else if (beforeWrite[`${field}_url`]) {
+          const response = await fetch(beforeWrite[`${field}_url`]);
+          required(response.ok, `${item.id}: ${field} download returned HTTP ${response.status}.`);
+          const contentType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
+          const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif", "video/mp4": "mp4", "video/webm": "webm" }[contentType];
+          required(extension, `${item.id}: ${field} has unsupported content type ${contentType}.`);
+          keys[`${field}_r2_key`] = await uploadReplicationBytes(client, apiKey, new Uint8Array(await response.arrayBuffer()), contentType, extension);
+        }
+      }
+      state.r2Keys = keys;
+      atomicJson(ledgerPath, ledger);
+      await updateReplicationMedia(client, apiKey, beforeWrite, keys, item.output.bytes);
       state.status = "repointed";
       atomicJson(ledgerPath, ledger);
     } else {
-      required(beforeWrite.storage_id === state.newStorageId, `${item.id}: unexpected storage before write.`);
+      required(beforeWrite.r2_key === state.r2Key, `${item.id}: unexpected media identity before write.`);
     }
 
-    await client.mutation(api.replications.updateDeliveredFileSize, {
-      apiKey,
-      id: state.productionId,
-      expectedStorageId: state.newStorageId,
-      file_size: item.output.bytes,
-    });
     const after = await client.query(api.replications.getResolvedById, { apiKey, id: state.productionId });
-    required(after?.storage_id === state.newStorageId, `${item.id}: replacement did not persist.`);
+    required(after?.r2_key === state.r2Key && (after.storage_id ?? null) === state.previousStorageId, `${item.id}: replacement did not persist.`);
+    for (const [field, key] of Object.entries(state.r2Keys ?? {})) {
+      required(after[field] === key, `${item.id}: ${field} did not persist.`);
+    }
     required(after.file_size === item.output.bytes, `${item.id}: file size did not persist.`);
     required(typeof after.url === "string" && after.url, `${item.id}: resolved URL is missing.`);
     const response = await fetch(after.url, { method: "HEAD", cache: "no-store" });

@@ -30,6 +30,7 @@ import {
   resolveDrugClassSections,
   CATEGORY_OVERVIEW_ANCHOR_ID,
   CATEGORY_SUBSTANCES_ANCHOR_ID,
+  INITIAL_DRUG_CLASS_SECTION_LIMIT,
   type CategoryEffect,
   type CategorySectionWithEffects,
 } from "./categoryPageContents";
@@ -45,7 +46,6 @@ interface CategoryPageProps {
   artistCreditLinks?: ArtistCreditLinks;
 }
 
-const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
 const BODY_COPY_CLASS = "theme-text-muted type-supporting-copy type-reading-measure";
 const ASIDE_COPY_CLASS = "theme-text-faint type-detail-copy type-reading-measure italic";
 

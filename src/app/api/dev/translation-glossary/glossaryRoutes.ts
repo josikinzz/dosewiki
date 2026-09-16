@@ -1,14 +1,14 @@
 /**
  * Shared pieces of the `/api/dev/translation-glossary/*` routes: body parsing
  * (a locale the translation pipeline knows, terms as written) and the rows
- * the tab renders. Every route is admin-only and runs on Postgres; on any
- * other backend the glossary does not exist, so the routes answer 503.
+ * the tab renders. Mutations require their existing role floor and Postgres.
  */
 import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
-import { getDataBackend } from "@server/postgres/runtime/backend";
-import type { GlossaryLocaleSummary, TranslationGlossaryRow } from "@server/translation/glossary";
+import { approvedGlossaryLocales, canAccessGlossaryLocale } from "@/lib/auth/roles";
+import type { RoleSessionGranted } from "@/lib/auth/requireEditorSession";
+import { GlossaryCollisionError, type GlossaryLocaleSummary, type TranslationGlossaryRow } from "@server/translation/glossary";
 import { TRANSLATION_LOCALE_CODES } from "@server/translation/liveTranslation";
 
 export const GLOSSARY_BODY_MAX_BYTES = 64 * 1024;
@@ -23,6 +23,15 @@ export function parseLocale(raw: unknown): string {
     throw new JsonBodyError(400, `Unknown locale. Known: ${TRANSLATION_LOCALE_CODES.join(", ")}.`);
   }
   return locale;
+}
+
+export function glossaryLocaleAccess(auth: RoleSessionGranted, locale: string): NextResponse | null {
+  if (canAccessGlossaryLocale({ role: auth.role, glossaryLocales: auth.session.user.glossaryLocales }, locale)) return null;
+  return NextResponse.json({ error: `You are not approved to access the ${locale} translation glossary. Ask an admin to assign this language.` }, { status: 403 });
+}
+
+export function glossaryAccessibleLocales(auth: RoleSessionGranted): string[] {
+  return approvedGlossaryLocales({ role: auth.role, glossaryLocales: auth.session.user.glossaryLocales });
 }
 
 export function parseTerm(raw: unknown): string {
@@ -48,10 +57,22 @@ export function parseTarget(raw: unknown): string {
   return target;
 }
 
-/** The 503 every glossary route answers when the process is not on Postgres. */
-export function glossaryUnavailable(): NextResponse | null {
-  if (getDataBackend() === "postgres") return null;
-  return NextResponse.json({ error: "The translation glossary lives in Postgres; this deployment is not on the Postgres backend." }, { status: 503 });
+/** A fixed-size acknowledgement, never a blanket override or a body in a query. */
+export function parseCollisionConfirmation(raw: unknown): string | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !/^[a-f0-9]{64}$/.test(raw)) {
+    throw new JsonBodyError(400, "Invalid shared-rendering confirmation.");
+  }
+  return raw;
+}
+
+export function glossaryCollisionResponse(error: unknown): NextResponse | null {
+  if (!(error instanceof GlossaryCollisionError)) return null;
+  return NextResponse.json({
+    error: error.message,
+    collisions: error.collisions,
+    collisionConfirmation: error.collisionConfirmation,
+  }, { status: 409 });
 }
 
 /** One locale in the picker: the live mirrors always, plus any locale with rows. */

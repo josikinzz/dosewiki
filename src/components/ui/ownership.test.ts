@@ -72,7 +72,7 @@ describe("shared UI ownership boundaries", () => {
     expect(devImportsFromCommon).toEqual([]);
   });
 
-  it("policy: src/components/common imports nothing from app, features, data, schema, citations, or lib/convex", () => {
+  it("policy: src/components/common imports nothing from app, features, data, schema, citations, or lib/data", () => {
     const allowedCommonBoundaryImports = [
       {
         filePath: "src/components/common/GlobalSearch.tsx",
@@ -91,7 +91,7 @@ describe("shared UI ownership boundaries", () => {
       "src/data/",
       "src/schema/",
       "src/lib/citations/",
-      "lib/convex/",
+      "lib/data/",
     ];
     const forbiddenImports = collectImports("src/components/common").filter((record) => {
       const isForbiddenPath = forbiddenPathPrefixes.some((prefix) =>

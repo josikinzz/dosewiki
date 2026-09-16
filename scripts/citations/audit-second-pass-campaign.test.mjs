@@ -20,7 +20,7 @@ function fixture() {
   const plan = {
     schemaVersion: "dosewiki_citation_second_pass_plan_v1",
     generatedAt: "2026-07-19T00:00:00.000Z",
-    source: { auditSha256: "abc", convexUrl: "https://example.convex.cloud" },
+    source: { auditSha256: "abc", postgresIdentity: "example/dosewiki" },
     substances: [{
       slug: "example",
       title: "Example",

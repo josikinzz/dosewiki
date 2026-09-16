@@ -15,18 +15,30 @@ import {
 } from "./routeLoaders.reports";
 import { effectsIndexEmptyState, reportsIndexEmptyState } from "./publicRouteOutcomes";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import type { SubjectiveEffectDetailRecord } from "../convex/publicData";
-import type { PublicSubstanceRecord } from "../convex/publicData.shared";
+import type { SubjectiveEffectDetailRecord } from "../data/publicData";
+import type { PublicEffectArticle } from "../data/publicData";
+import type { PublicSubstanceRecord } from "../data/publicData.shared";
 
 const localizedRecords = vi.hoisted(() => ({
-  getLocalizedPublicEffectArticles: vi.fn(),
   getLocalizedPublicEffectBySlug: vi.fn(),
-  getLocalizedPublicEffects: vi.fn(),
 }));
 vi.mock("@server/translation/localizedRecords", () => localizedRecords);
 
+const translations = vi.hoisted(() => ({
+  localizeRecords: vi.fn(async (records: unknown[], _locale: string, _kind: string) => ({ records })),
+}));
+vi.mock("@server/translation/liveTranslation", () => translations);
+
 const { publicData, publicLibrary, publicMolecules, reagentData, warningBanners } =
   getRouteLoaderMocks();
+
+function mockSummaryEffects(effects: Omit<PublicEffectArticle, "featured">[]) {
+  const records = effects.map((effect) => ({ ...effect, featured: false }));
+  publicData.getPublicEffects.mockResolvedValueOnce(records);
+  publicData.getPublicEffectSummariesBySlugs.mockImplementationOnce(async (slugs) =>
+    records.filter((effect) => slugs.includes(effect.slug)),
+  );
+}
 
 describe("substance, effect, publication, and report route loaders", () => {
   beforeEach(() => {
@@ -61,9 +73,6 @@ describe("substance, effect, publication, and report route loaders", () => {
     expect(result.canonicalRoute).toEqual({ family: "substance", params: { slug: "lsd" } });
     expect(result.pageProps.fromSubstanceSlug).toBe("lsd");
     expect(result.pageProps.article.summary).toBe("A lysergamide [cite:paper-a][cite:paper-b].");
-    expect(result.pageProps.linkableSubstanceSlugs).toEqual(["lsd", "mdma"]);
-    expect(result.pageProps.linkableCategoryKeys).toEqual(["psychedelic"]);
-    expect(publicData.getPublicSubstances).not.toHaveBeenCalled();
     expect(result.pageProps.content?.moleculeAsset?.url).toBe(
       "/api/molecules/lsd?v=2026-07-11T12%3A00%3A00.000Z",
     );
@@ -72,7 +81,33 @@ describe("substance, effect, publication, and report route loaders", () => {
       "lsd",
     );
     expect(result.pageProps.externalReagentData).toBeNull();
-    expect(result.pageProps.hasRelatedTripReports).toBe(false);
+  });
+
+  it("returns article text while secondary report and contributor reads are pending", async () => {
+    let releaseReports!: (rows: never[]) => void;
+    let releaseDirectory!: (rows: never[]) => void;
+    let releaseProfile!: (profile: null) => void;
+    const reports = new Promise<never[]>((resolve) => { releaseReports = resolve; });
+    const directory = new Promise<never[]>((resolve) => { releaseDirectory = resolve; });
+    const profile = new Promise<null>((resolve) => { releaseProfile = resolve; });
+    publicData.getPublicSubstanceBySlug.mockResolvedValueOnce({
+      slug: "lsd",
+      title: "LSD",
+      summary: "Readable before related content.",
+    } as PublicSubstanceRecord);
+    publicData.getPublicReportsBySubstanceNames.mockReturnValueOnce(reports);
+    publicData.getPublicContributorDirectory.mockReturnValueOnce(directory);
+    publicData.getPublicContributorByKey.mockReturnValueOnce(profile).mockReturnValueOnce(profile);
+
+    try {
+      const result = await loadSubstanceRoute("lsd");
+      if (result.kind !== "ok") throw new Error("expected readable article");
+      expect(result.pageProps.article.summary).toBe("Readable before related content.");
+    } finally {
+      releaseReports([]);
+      releaseDirectory([]);
+      releaseProfile(null);
+    }
   });
 
   it("returns substance not-found results", async () => {
@@ -139,7 +174,7 @@ describe("substance, effect, publication, and report route loaders", () => {
     expect(publicData.getPublicSubstanceBySlug).not.toHaveBeenCalled();
   });
 
-  it("returns effect ok and not-found results", async () => {
+  it("returns effect prose without waiting for membership or credit enrichment", async () => {
     const effect: SubjectiveEffectDetailRecord = {
       slug: "visual-drifting",
       name: "Visual drifting",
@@ -150,14 +185,13 @@ describe("substance, effect, publication, and report route loaders", () => {
       gallery_order: [],
     };
     publicData.getPublicEffectBySlug.mockResolvedValueOnce(effect);
-    publicLibrary.getPublicEffectDetail.mockResolvedValueOnce(null);
-    publicData.getPublicContributorDirectory.mockResolvedValueOnce([
-      { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
-    ]);
+    const blocked = new Promise<never>(() => {});
+    publicLibrary.getPublicEffectDetail.mockReturnValue(blocked);
+    publicData.getPublicContributorDirectory.mockReturnValue(blocked);
+    publicData.getPublicArtistCreditRows.mockReturnValue(blocked);
+    try {
     publicData.getPublicSubstanceSlugs.mockResolvedValueOnce(["lsd"]);
-    publicData.getPublicEffects.mockResolvedValueOnce([
-      { slug: "visual-drifting", name: "Visual drifting" } as never,
-    ]);
+    publicData.getPublicEffectSlugs.mockResolvedValueOnce(["visual-drifting"]);
 
     const result = await loadEffectRoute("visual-drifting");
 
@@ -174,23 +208,25 @@ describe("substance, effect, publication, and report route loaders", () => {
       params: { effectSlug: "visual-drifting" },
     });
     expect(result.pageProps.article.hero.name).toBe("Visual drifting");
-    // Contributor credits render as plain text unless the page receives the
-    // directory, so the loader must carry it through to the page props.
-    expect(result.pageProps.contributorDirectory).toEqual([
-      { key: "JOSIE", displayName: "Josie Kins", aliases: ["josie"] },
-    ]);
+    expect(publicLibrary.getPublicEffectDetail).not.toHaveBeenCalled();
+    expect(publicData.getPublicContributorDirectory).not.toHaveBeenCalled();
+    expect(publicData.getPublicArtistCreditRows).not.toHaveBeenCalled();
     expect(result.pageProps.linkableSubstanceSlugs).toEqual(["lsd"]);
     expect(result.pageProps.linkableEffectSlugs).toEqual(["visual-drifting"]);
     expect(publicData.getPublicSubstances).not.toHaveBeenCalled();
 
     publicData.getPublicEffectBySlug.mockResolvedValueOnce(null);
-    publicLibrary.getPublicEffectDetail.mockResolvedValueOnce(null);
 
     await expect(loadEffectRoute("missing")).resolves.toEqual({ kind: "not-found" });
+    } finally {
+      publicLibrary.getPublicEffectDetail.mockReset();
+      publicData.getPublicContributorDirectory.mockReset();
+      publicData.getPublicArtistCreditRows.mockReset();
+    }
   });
 
   it("assembles curated psychoactive sections with all-tag matching and exclusions", async () => {
-    publicData.getPublicEffectArticles.mockResolvedValueOnce([
+    mockSummaryEffects([
       {
         slug: "visual-acuity-enhancement",
         name: "Visual acuity enhancement",
@@ -246,7 +282,7 @@ describe("substance, effect, publication, and report route loaders", () => {
   });
 
   it("keeps the Effect Index name order for dissociative disconnective effects", async () => {
-    publicData.getPublicEffectArticles.mockResolvedValueOnce([
+    mockSummaryEffects([
       {
         slug: "visual-disconnection",
         name: "Visual disconnection",
@@ -322,11 +358,11 @@ describe("substance, effect, publication, and report route loaders", () => {
         tags: ["dissociative", "physical", "disconnective"],
       },
     ];
-    publicData.getPublicEffectArticles.mockResolvedValueOnce(english);
-    localizedRecords.getLocalizedPublicEffectArticles.mockResolvedValueOnce([
+    mockSummaryEffects(english);
+    translations.localizeRecords.mockResolvedValueOnce({ records: [
       { ...english[0], name: "认知脱离" },
       { ...english[1], name: "身体脱离" },
-    ]);
+    ] });
 
     const result = await loadPsychoactiveSummaryRoute(["dissociative"], {
       code: "zh-Hans",
@@ -338,7 +374,6 @@ describe("substance, effect, publication, and report route loaders", () => {
     if (result.kind !== "ok") {
       throw new Error("expected ok result");
     }
-    expect(localizedRecords.getLocalizedPublicEffectArticles).toHaveBeenCalledWith("zh-Hans");
     expect(
       result.pageProps.sections[0].effects.map((effect) => [effect.slug, effect.name]),
     ).toEqual([
@@ -351,11 +386,11 @@ describe("substance, effect, publication, and report route loaders", () => {
     await expect(
       loadPsychoactiveSummaryRoute(["psychedelic"]),
     ).resolves.toEqual({ kind: "not-found" });
-    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
+    expect(publicData.getPublicEffects).not.toHaveBeenCalled();
   });
 
   it("resolves article bylines from authorProfileKeys and drops keys no profile claims", async () => {
-    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
+    publicData.getPublicContributorIdentities.mockResolvedValueOnce([
       { key: "JOSIE", displayName: "Josie Kins", aliases: ["josikinz"] },
     ] as unknown as NormalizedUserProfile[]);
     publicData.getPublicEffectIndexArticleBySlug.mockResolvedValueOnce({
@@ -412,13 +447,15 @@ describe("substance, effect, publication, and report route loaders", () => {
       },
     });
 
-    publicData.getPublishedEffectIndexArticles.mockResolvedValueOnce([
+    publicData.getPublishedPublicationIndex.mockResolvedValueOnce([
       {
         slug: "lucid-dreaming",
         title: "Lucid dreaming",
         publication_status: "published",
         tags: ["dreams"],
-        body_raw: "[p]Lucid dreaming.[/p]",
+        indexDescription: "Lucid dreaming.",
+        readMinutes: 1,
+        excerpt: "Lucid dreaming.",
       },
     ]);
 
@@ -434,9 +471,8 @@ describe("substance, effect, publication, and report route loaders", () => {
   });
 
   it("returns effects index results with an empty state only when empty", async () => {
-    publicData.getPublicDataOverview.mockResolvedValueOnce({ effectCount: 1 });
-    publicData.getPublicEffects.mockResolvedValueOnce([
-      { slug: "visuals", name: "Visuals", summary: "", featured: false, tags: ["sensory"] },
+    publicData.getPublicEffectIndex.mockResolvedValueOnce([
+      { slug: "visuals", name: "Visuals", featured: false, tags: ["sensory"] },
     ]);
 
     await expect(loadEffectsIndexRoute()).resolves.toMatchObject({
@@ -449,8 +485,7 @@ describe("substance, effect, publication, and report route loaders", () => {
       },
     });
 
-    publicData.getPublicDataOverview.mockResolvedValueOnce({ effectCount: 0 });
-    publicData.getPublicEffects.mockResolvedValueOnce([]);
+    publicData.getPublicEffectIndex.mockResolvedValueOnce([]);
 
     await expect(loadEffectsIndexRoute()).resolves.toMatchObject({
       kind: "ok",
@@ -462,7 +497,6 @@ describe("substance, effect, publication, and report route loaders", () => {
   });
 
   it("returns reports index results with an empty state only when empty", async () => {
-    publicData.getPublicDataOverview.mockResolvedValueOnce({ reportCount: 1 });
     publicData.getPublicReports.mockResolvedValueOnce([
       {
         slug: "first-trip",
@@ -488,7 +522,6 @@ describe("substance, effect, publication, and report route loaders", () => {
       },
     });
 
-    publicData.getPublicDataOverview.mockResolvedValueOnce({ reportCount: 0 });
     publicData.getPublicReports.mockResolvedValueOnce([]);
 
     await expect(loadReportsIndexRoute()).resolves.toMatchObject({
@@ -506,7 +539,7 @@ describe("substance, effect, publication, and report route loaders", () => {
       title: "First trip",
       introduction: "An intro [cite:paper-a] with tokens [cite:paper-b].",
     });
-    publicData.getPublicSubstances.mockResolvedValueOnce([{ slug: "lsd", title: "LSD" }]);
+    publicData.getPublicSubstanceLookup.mockResolvedValueOnce([{ slug: "lsd", name: "LSD", priority: "high" }]);
 
     const result = await loadReportRoute("first-trip");
 
@@ -529,7 +562,7 @@ describe("substance, effect, publication, and report route loaders", () => {
       slug: "no-intro",
       title: "No intro",
     });
-    publicData.getPublicSubstances.mockResolvedValueOnce([]);
+    publicData.getPublicSubstanceLookup.mockResolvedValueOnce([]);
 
     const result = await loadReportRoute("no-intro");
 
@@ -542,7 +575,7 @@ describe("substance, effect, publication, and report route loaders", () => {
 
   it("returns report not-found results", async () => {
     publicData.getPublicReportBySlug.mockResolvedValueOnce(null);
-    publicData.getPublicSubstances.mockResolvedValueOnce([]);
+    publicData.getPublicSubstanceLookup.mockResolvedValueOnce([]);
 
     await expect(loadReportRoute("missing")).resolves.toEqual({ kind: "not-found" });
   });

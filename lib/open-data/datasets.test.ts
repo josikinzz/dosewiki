@@ -6,7 +6,7 @@ const reads = vi.hoisted(() => ({
   getPublicReportDetails: vi.fn(),
 }));
 
-vi.mock("../convex/publicData", () => reads);
+vi.mock("../data/publicData", () => reads);
 
 import {
   OPEN_DATA_DATASETS,
@@ -89,7 +89,7 @@ describe("open-data datasets", () => {
   });
 
   it.each(["SubstanceIndex", "EffectIndex", "TripReports"] as const)(
-    "strips Convex bookkeeping and the dataset's internal fields from every %s item",
+    "strips Postgres bookkeeping and the dataset's internal fields from every %s item",
     async (name) => {
       const items = await itemsOf(name);
       const forbidden = ["_id", "_creationTime", ...OPEN_DATA_DATASETS[name].stripFields];

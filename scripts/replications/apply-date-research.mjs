@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { makeFunctionReference } from "convex/server";
+import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -269,7 +269,7 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION, startDir: ROOT });
   printProductionWriteCommand(command);
   if (!command.targetUrl) {
-    throw new Error("Set TARGET_CONVEX_URL or --target-url for the production comparison.");
+    throw new Error("Set TARGET_POSTGRES_URL or --target for the production comparison.");
   }
 
   const inputFlag = flagValue("--input");

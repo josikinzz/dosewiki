@@ -2,9 +2,9 @@
 
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { DISSOCIATIVE_TITLE_DRUG_RULES } from "../../src/data/replicationTitleDrugAliases.ts";
 
 export const TARGET = "https://glad-minnow-656.convex.cloud";
@@ -515,7 +515,7 @@ function buildRow(row, context) {
         ? `youtube:${channel.youtubeId}`
         : feet
           ? `youtube:${feet.id}`
-          : `convex:${row._id}`,
+          : `convex:${row._id}`, // Durable historical record key; not the current backend.
     ...(row.source_catalog_id ? { sourceCatalogId: row.source_catalog_id } : {}),
     expected: {
       slug: row.slug,
@@ -560,7 +560,7 @@ function countsBy(rows, key) {
   );
 }
 
-export async function buildManifest(client = createDataClient({ target: TARGET }).client) {
+export async function buildManifest(client = createDataClient({ target: resolvePostgresSource().url }).client) {
   const [rows, existing, channelReview, channelPlan, channelLedger, feetPlan, feetLedger] = await Promise.all([
     client.query(api.replications.getAll, {}),
     Promise.resolve(readJson(PATHS.existing)),
@@ -639,7 +639,8 @@ export async function buildManifest(client = createDataClient({ target: TARGET }
     schemaVersion: 2,
     operation: "classify-current-replication-library",
     generatedAt: new Date().toISOString(),
-    target: TARGET,
+    target: TARGET, // Historical campaign source pin.
+    postgresTarget: postgresFingerprintFromUrl(resolvePostgresSource().url),
     snapshotDigest,
     sources: Object.fromEntries(
       Object.entries(PATHS).map(([key, path]) => [key, { path, sha256: sha256File(path) }]),

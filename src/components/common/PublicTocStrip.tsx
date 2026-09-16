@@ -206,7 +206,7 @@ export const PublicTocStrip = memo(function PublicTocStrip({
                     data-tone={item.tone}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "theme-article-toc-item flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium transition-[background-color,color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none",
+                      "theme-article-toc-item flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium transition-[background-color,color] duration-[180ms] ease-out motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       isWarning
                         ? "border"
                         : isAccent
@@ -216,7 +216,7 @@ export const PublicTocStrip = memo(function PublicTocStrip({
                   >
                     <span
                       className={cn(
-                        "theme-article-toc-item-icon flex h-4 w-4 shrink-0 items-center justify-center",
+                        "theme-article-toc-item-icon flex h-4 w-4 shrink-0 items-center justify-center transition-colors duration-[180ms] ease-out motion-reduce:transition-none",
                         isAccent
                           ? "theme-accent-emphasis"
                           : isWarning

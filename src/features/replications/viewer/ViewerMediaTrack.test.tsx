@@ -428,23 +428,32 @@ describe("ViewerMediaTrack", () => {
     expect(players.every((video) => !video.hasAttribute("src"))).toBe(true);
   });
 
-  it("stages an audio work on its own player rather than an empty video pane", () => {
+  it("loads an audio work on its own player only after the reader presses play", () => {
     const clip = item({ slug: "hum", type: "audio", format: "ogg", url: "https://cdn.test/hum.ogg", preview_url: undefined });
     const { view } = renderTrack({ activeItem: clip, positionKey: "group|hum" });
 
-    const player = view.container.querySelector<HTMLAudioElement>('audio[src="https://cdn.test/hum.ogg"]');
-    expect(player).not.toBeNull();
+    const player = view.getByRole("group", { name: "Audio player: Clip" }).querySelector("audio")!;
+    expect(player).not.toHaveAttribute("src");
     // The clip belongs to neither pooled layer: as a video source it presents
     // no frame, and as an image source it never decodes.
     expect(view.container.querySelector('video[src="https://cdn.test/hum.ogg"]')).toBeNull();
     expect(view.container.querySelector('img[src="https://cdn.test/hum.ogg"]')).toBeNull();
-    expect(view.getByRole("button", { name: "Play Clip" })).toBeInTheDocument();
+    fireEvent.click(view.getByRole("button", { name: "Play Clip" }));
+
+    expect(player).toHaveAttribute("src", clip.replication.url);
+    expect(player.play).toHaveBeenCalled();
+    fireEvent.play(player);
+    expect(view.getByRole("button", { name: "Pause Clip" })).toBeInTheDocument();
   });
 
   it("stops a clip once its slide leaves the centre pane", () => {
     const clip = item({ slug: "hum", type: "audio", format: "ogg", url: "https://cdn.test/hum.ogg", preview_url: undefined });
     const { view, ref, floor, handlers, rerender } = renderTrack({ activeItem: clip, positionKey: "group|hum" });
-    const player = view.container.querySelector<HTMLAudioElement>('audio[src="https://cdn.test/hum.ogg"]')!;
+    const player = view.getByRole("group", { name: "Audio player: Clip" }).querySelector("audio")!;
+    fireEvent.click(view.getByRole("button", { name: "Play Clip" }));
+    expect(player).toHaveAttribute("src", clip.replication.url);
+    fireEvent.play(player);
+    expect(view.getByRole("button", { name: "Pause Clip" })).toBeInTheDocument();
     const pause = vi.fn();
     Object.defineProperty(player, "pause", { configurable: true, value: pause });
     handlers.onNavigateWork.mockImplementation(() => rerender({
@@ -453,6 +462,7 @@ describe("ViewerMediaTrack", () => {
       nextItem: null,
       positionKey: "group|next",
     }));
+    expect(pause).not.toHaveBeenCalled();
 
     act(() => expect(ref.current!.slide(1)).toBe(true));
     fireEvent.transitionEnd(floor, { propertyName: "transform" });

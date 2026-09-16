@@ -3,11 +3,12 @@
  *
  *   GET /api/trip-report-submissions/queue?status=&limit=   newest first, capped at 250
  *   GET /api/trip-report-submissions/queue?scope=needs-review
+ *   GET /api/trip-report-submissions/queue?scope=portal
+ *   GET /api/trip-report-submissions/queue?id=…
  *
- * The `needs-review` scope is uncapped and reads `NEEDS_REVIEW_SUBMISSION_STATUSES`,
- * the same list `/api/dev/trip-reports/needs-review-count` counts, so the portal's
- * bucket holds exactly the rows the rail badge announces. It takes no `status`
- * or `limit`: the scope is the filter.
+ * The portal scope is a compact, non-overlapping projection: uncapped needs
+ * review plus non-needs rows from the existing newest-250 history window. Full
+ * private submission detail is read only when the editor selects a row.
  */
 import { NextResponse } from "next/server";
 
@@ -43,17 +44,40 @@ export const GET = protectedRouteOperation({
   operation: async ({ request }) => {
     const { searchParams } = new URL(request.url);
     const scope = searchParams.get("scope");
+    const id = searchParams.get("id");
+
+    if (id !== null) {
+      if (!id.trim() || id.length > 200 || scope !== null || searchParams.has("status") || searchParams.has("limit")) {
+        throw new InvalidQueueFilterError("Submission detail takes only a valid id.");
+      }
+
+      const store = await getTripReportSubmissionStore();
+      const submission = await store.get(id.trim());
+      if (!submission) {
+        return NextResponse.json({ error: "Trip report submission not found." }, { status: 404 });
+      }
+
+      return NextResponse.json(
+        { ok: true, submission },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
 
     if (scope !== null) {
-      if (scope !== "needs-review") {
+      if (scope !== "needs-review" && scope !== "portal") {
         throw new InvalidQueueFilterError(`Unknown trip report queue scope: ${scope}`);
       }
 
       if (searchParams.has("status") || searchParams.has("limit")) {
-        throw new InvalidQueueFilterError("The needs-review scope takes no status or limit.");
+        throw new InvalidQueueFilterError(`The ${scope} scope takes no status or limit.`);
       }
 
       const store = await getTripReportSubmissionStore();
+      if (scope === "portal") {
+        const index = await store.listPortalSummaries();
+        return NextResponse.json({ ok: true, ...index });
+      }
+
       const submissions = await store.listByStatuses({ statuses: NEEDS_REVIEW_SUBMISSION_STATUSES });
       return NextResponse.json({ ok: true, submissions });
     }

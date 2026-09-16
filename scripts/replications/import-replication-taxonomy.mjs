@@ -9,9 +9,10 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -100,7 +101,7 @@ async function fetchLiveRows(client, apiKey) {
     });
     rows.push(...page.rows);
     if (page.isDone) return rows;
-    required(page.cursor, "Convex pagination returned no continuation cursor.");
+    required(page.cursor, "Postgres pagination returned no continuation cursor.");
     cursor = page.cursor;
   }
 }
@@ -424,7 +425,7 @@ async function verifyArtistBatch(client, apiKey, batch, sourceDigest) {
 async function main(argv = process.argv.slice(2)) {
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
-  required(command.targetUrl === EXPECTED_TARGET, `Pass --target-url=${EXPECTED_TARGET}.`);
+  const postgresTarget = requireCampaignTarget(command);
 
   const taxonomyPath = resolve(flagValue(argv, "--taxonomy-path", DEFAULT_TAXONOMY_PATH));
   const uploadPlanPath = resolve(flagValue(argv, "--upload-plan", DEFAULT_UPLOAD_PLAN_PATH));
@@ -474,7 +475,7 @@ async function main(argv = process.argv.slice(2)) {
     schemaVersion: 1,
     operation: OPERATION,
     generatedAt: new Date(importedAt).toISOString(),
-    target: command.targetUrl,
+    target: command.deploymentFingerprint,
     taxonomyPath,
     taxonomySourceDigest: sourceDigest,
     taxonomyVersion: schemaVersion,
@@ -523,7 +524,7 @@ async function main(argv = process.argv.slice(2)) {
   console.log(`Statuses: ${JSON.stringify(plan.counts.replicationStatuses)}`);
 
   if (command.dryRun) {
-    console.log("Dry run complete — no Convex writes performed.");
+    console.log("Dry run complete — no Postgres writes performed.");
     return;
   }
 
@@ -531,6 +532,7 @@ async function main(argv = process.argv.slice(2)) {
   required(hasFlag(argv, "--confirm-taxonomy-import"), "Write requires --confirm-taxonomy-import.");
   const canary = hasFlag(argv, "--canary");
   const ledger = loadLedger(importLedgerPath, sourceDigest, schemaVersion);
+  bindCampaignTarget(ledger, postgresTarget);
   if (!canary) {
     required(ledger.canaryVerified === true, "Run and verify --canary before the full import.");
   }

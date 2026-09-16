@@ -39,7 +39,7 @@ describe('hasKnownCreator', () => {
 
   it('folds the Reddit-intake "Unknown Artist" marker into no-creator', () => {
     // Missing/deleted Reddit posters retain exactly this credit line
-    // (convex/lib/replicationAttribution.ts); it must never rank as a named
+    // (server/lib/replicationAttribution.ts); it must never rank as a named
     // artist on gallery surfaces.
     expect(hasKnownCreator('Unknown Artist')).toBe(false);
     expect(hasKnownCreator(' unknown artist ')).toBe(false);

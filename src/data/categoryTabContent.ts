@@ -7,7 +7,7 @@
  * tab config in `DosagesPage`. Both are projected into this shape.
  *
  * Strings are single-paragraph Markdown. This content is only used to render
- * the intro blurb on the substance index; it is not stored in Convex.
+ * the intro blurb on the substance index; it is not stored in Postgres.
  */
 export interface CategoryTabContent {
   /** Markdown paragraph defining the category. */

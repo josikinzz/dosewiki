@@ -10,7 +10,7 @@
  * Gating in middleware fixes the status at its source: the request is rewritten to a
  * path no route matches, and Next answers an unmatched path with the global not-found
  * page at a real 404. The in-page guard stays as the second line of defence (and is what
- * keeps a Convex read from being issued for a route this flavor does not serve).
+ * keeps a Postgres read from being issued for a route this flavor does not serve).
  */
 import {
   SITE_FLAVOR_CONFIG,

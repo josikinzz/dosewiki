@@ -4,24 +4,22 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
+import { ThemeLabRuntimeMount } from "./ThemeLabRuntimeMount";
 import { DEFAULT_LOOK, lookKey } from "./themeLabLook";
 import {
   THEME_LAB_OVERRIDE_STYLE_ID,
   THEME_LAB_PERSIST_DELAY_MS,
   THEME_LAB_STORAGE_KEY,
   emptyOverrides,
+  serializeEnvelope,
 } from "./themeLabStorage";
 import { setActiveEdits, setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
 
 /**
- * The runtime half of the lab: *stored envelope in → applied document state out*,
- * with the editor panel never opened.
- *
- * This is the regression suite the lazy-loading bug slipped through — every test
- * here mounts the global lab and asserts on the injected override style, the
- * persisted envelope, or the panel's honest status line without requiring the
- * editor to have opened first.
+ * Runtime cases mount the persistence owner directly before editing its store.
+ * Lazy integration cases exercise saved state and cross-tab activation without
+ * opening the panel, then assert on document state and persisted envelopes.
  */
 
 vi.mock("@/components/common/Icon", () => ({
@@ -240,29 +238,43 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
 
   it("adopts edits saved by another tab without echoing them back to storage", async () => {
     render(<Harness><ThemeLab /></Harness>);
+    const newValue = serializeEnvelope({
+      editsByLook: { [BASE_LOOK]: { dark: { "--theme-accent": "#fa11ed" }, light: {} } },
+    });
+    // Native storage events reach this tab after shared storage has changed.
+    window.localStorage.setItem(THEME_LAB_STORAGE_KEY, newValue);
     const writesBefore = setItemCalls;
 
     act(() => {
       window.dispatchEvent(
         new StorageEvent("storage", {
           key: THEME_LAB_STORAGE_KEY,
-          newValue: JSON.stringify({
-            version: 5,
-            editsByLook: { [BASE_LOOK]: { dark: { "--theme-accent": "#fa11ed" }, light: {} } },
-            roleEditsByLook: {},
-          }),
+          newValue,
         }),
       );
     });
 
-    expect(overrideCss()).toContain("--theme-accent:#fa11ed");
+    await waitFor(() => expect(overrideCss()).toContain("--theme-accent:#fa11ed"));
     // A flush would have written any pending echo; the foreign value stands.
     hideTab();
+    expect(setItemCalls).toBe(writesBefore);
+
+    window.localStorage.removeItem(THEME_LAB_STORAGE_KEY);
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: THEME_LAB_STORAGE_KEY,
+        oldValue: newValue,
+        newValue: null,
+      }));
+    });
+    expect(overrideCss()).toBe("");
+    hideTab();
+    expect(stored()).toBeNull();
     expect(setItemCalls).toBe(writesBefore);
   });
 
   it("persists edits made just before the tab is hidden", async () => {
-    render(<Harness><ThemeLab /></Harness>);
+    render(<Harness><ThemeLabRuntimeMount /></Harness>);
 
     act(() => {
       setActiveEdits({ dark: { "--theme-accent": "#abcdef" }, light: {} });
@@ -275,7 +287,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   });
 
   it("persists edits made just before the page is unloaded", async () => {
-    render(<Harness><ThemeLab /></Harness>);
+    render(<Harness><ThemeLabRuntimeMount /></Harness>);
 
     act(() => {
       setActiveEdits({ dark: { "--theme-accent": "#fedcba" }, light: {} });
@@ -290,7 +302,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
   });
 
   it("does not resurrect an edit the reader undid inside the debounce window", async () => {
-    render(<Harness><ThemeLab /></Harness>);
+    render(<Harness><ThemeLabRuntimeMount /></Harness>);
 
     // Both moves land inside one debounce window, so the edit's write is still
     // armed when the reset supersedes it. The armed value has to be dropped
@@ -316,7 +328,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     render(
       <Harness>
         <StyleControls />
-        <ThemeLab />
+        <ThemeLabRuntimeMount />
       </Harness>,
     );
 
@@ -354,7 +366,7 @@ describe("Theme Lab runtime", { timeout: 15_000 }, () => {
     render(
       <Harness>
         <StyleControls />
-        <ThemeLab />
+        <ThemeLabRuntimeMount />
       </Harness>,
     );
 

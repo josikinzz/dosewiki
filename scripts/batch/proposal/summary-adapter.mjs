@@ -60,7 +60,7 @@ export async function loadSummaryProposalInputs({
   const promptKey = sectionKeyToPromptKey("summary");
   const promptRecord = await sourceClient.query(api.prompts.getByKey, { key: promptKey });
   if (!promptRecord || typeof promptRecord.content !== "string") {
-    throw new Error(`${promptKey} prompt not found in source Convex deployment.`);
+    throw new Error(`${promptKey} prompt not found in source Postgres deployment.`);
   }
 
   const quoteRecord = await sourceClient.query(api.quotes.getBySlugAndSection, {
@@ -93,18 +93,18 @@ export async function loadSummaryProposalInputs({
 
   const rawSourceDocument = await sourceClient.query(api.articleSources.getBySlug, {
     slug,
-    apiKey: process.env.CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.CONVEX_ADMIN_KEY,
+    apiKey: process.env.DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION ?? process.env.DATA_ADMIN_KEY,
   });
   if (!rawSourceDocument) {
-    throw new Error("No summary quote doc or articleSources doc in source Convex deployment.");
+    throw new Error("No summary quote doc or articleSources doc in source Postgres deployment.");
   }
   const sourceDocument = normalizeArticleSourceDocument(rawSourceDocument, {
     slug,
-    adapter: "convex",
+    adapter: "postgres",
   });
   const excerpts = buildGenericExcerptProvenance(sourceDocument, config);
   if (excerpts.length === 0) {
-    throw new Error("No usable generic source content found in Convex articleSources.");
+    throw new Error("No usable generic source content found in Postgres articleSources.");
   }
 
   // This call deliberately preserves the current summary pipeline's exact message construction.

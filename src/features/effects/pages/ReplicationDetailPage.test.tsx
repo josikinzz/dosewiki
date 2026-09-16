@@ -100,10 +100,31 @@ describe("ReplicationDetailPage", () => {
       "https://cdn.test/tracers-poster.webp",
     );
     expect(container.querySelector("video")).toBeNull();
-    // The play badge replaced the explanatory caption.
-    expect(
-      screen.queryByText("Video playback opens in the shared viewer."),
-    ).toBeNull();
+  });
+
+  it("keeps GIF provenance static even when its poster is unavailable", () => {
+    const gif = {
+      ...replication,
+      format: "gif",
+      url: "https://cdn.test/tracers.gif",
+      motion_poster_url: "https://cdn.test/tracers-poster.webp",
+    };
+    const { container, rerender } = render(
+      <ReplicationDetailPage {...props} replication={gif} />,
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute("src", gif.motion_poster_url);
+    expect(screen.getByRole("link", { name: "Open full size" })).toHaveAttribute("href", gif.url);
+
+    rerender(
+      <ReplicationDetailPage {...props} replication={{ ...gif, motion_poster_url: undefined }} />,
+    );
+    expect(container.querySelector("img, video")).toBeNull();
+    expect(screen.getByRole("link", { name: "Open in Tracers replications" })).toHaveAttribute(
+      "href",
+      "/effects/tracers?viewer=tracers-chelsea-morgan",
+    );
+    expect(screen.getByRole("link", { name: "Open full size" })).toHaveAttribute("href", gif.url);
   });
 
   it("falls back to the gallery collection when no effect owns the work", () => {

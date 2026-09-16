@@ -10,7 +10,7 @@ import { msg } from "@/i18n/messages";
 import { normalizeVCodeContent, unwrapTopLevelQuotes } from "./vcode/normalize";
 
 /**
- * Subjective effect article from Convex.
+ * Subjective effect article from Postgres.
  */
 export interface SubjectiveEffectArticle {
   slug: string;

@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { getSubstanceShowcaseWorks } from "@/app/_components/public-routes/showcaseCollections";
 import type { SubstanceGalleryMatchProvenance } from "@/data/substanceReplicationGallery";
-import { getPublicReplicationsForSubstance } from "@server/convex/publicData";
+import { getPublicReplicationsForSubstance } from "@server/data/publicData";
 import { projectPublicApiReplication } from "./v1";
 
 const collectionCursorSchema = z.object({

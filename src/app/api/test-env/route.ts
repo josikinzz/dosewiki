@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { getServerConvexWriteHealth } from "@server/convex/serverWriteHealth";
+import { getServerDataWriteHealth } from "@server/data/serverWriteHealth";
 import { getDiagnosticsRuntimeConfig } from "@server/runtime/envContract";
 import { createDiagnosticsDisclosureView } from "@server/runtime/diagnosticsDisclosurePolicy";
 
 export const runtime = "nodejs";
 
 // Presence-only diagnostics for the secrets sign-in and editor writes need.
-// Member passwords live hashed in Convex, not in env.
-const DIAGNOSTIC_KEYS = ["AUTH_SECRET", "CONVEX_ADMIN_KEY"];
+// Member passwords live hashed in Postgres, not in env.
+const DIAGNOSTIC_KEYS = ["AUTH_SECRET", "DATA_ADMIN_KEY"];
 
 function hasConfiguredValue(key: string): boolean {
   const value = process.env[key];
@@ -23,7 +23,7 @@ const testEnvOperation = protectedRouteOperation({
   operation: () => {
     const diagnosticsConfig = getDiagnosticsRuntimeConfig();
     const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
-    const convexHealth = getServerConvexWriteHealth();
+    const dataHealth = getServerDataWriteHealth();
 
     const view = createDiagnosticsDisclosureView("editor", {
       now: new Date(),
@@ -34,12 +34,12 @@ const testEnvOperation = protectedRouteOperation({
         configured: hasConfiguredValue(name),
         sensitive: true,
       })),
-      convexWriteHealth: convexHealth,
+      dataWriteHealth: dataHealth,
     });
 
     return NextResponse.json({
       ...view,
-      convexIssues: view.issues,
+      dataIssues: view.issues,
     });
   },
 });

@@ -10,7 +10,7 @@ describe("production writer detector", () => {
     ["aliased mutation method", "const mutate = db.mutation; await mutate(fn, args)"],
   ])("detects %s", (_label, source) => {
     expect(detectProductionWriteSignals(source, "fixture.mjs").kinds).toContain(
-      "convex-mutation",
+      "data-mutation",
     );
   });
 
@@ -32,13 +32,13 @@ describe("production writer detector", () => {
     );
   });
 
-  it("detects Convex CLI writes in constructed commands", () => {
+  it("detects retired provider CLI writes in constructed commands", () => {
     const source = `
       const command = "convex" + " run";
       execSync(\`npx \${command} subjectiveEffects:update\`);
     `;
     expect(detectProductionWriteSignals(source, "fixture.mjs").kinds).toContain(
-      "convex-cli-write",
+      "legacy-cli-write",
     );
   });
 

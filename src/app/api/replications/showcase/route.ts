@@ -6,6 +6,8 @@ import {
 } from "@/app/_components/public-routes/showcaseCollections";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { parseUiLocale } from "@/i18n/messages";
+import { getArtistViewerGroups } from "@server/next/artistViewerCollection";
+import { isEmbedSlug } from "@/features/replications/embed/embedModel";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -38,6 +40,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const substanceSlug = searchParams.get("substance");
     const effectSlug = searchParams.get("effect");
+    const artistKey = searchParams.get("artist");
+    if (artistKey !== null) {
+      if (!isEmbedSlug(artistKey) || substanceSlug !== null || effectSlug !== null) {
+        return NextResponse.json({ error: "Provide one valid artist collection." }, { status: 400 });
+      }
+      const groups = await getArtistViewerGroups(artistKey, parseUiLocale(searchParams.get("locale")));
+      return NextResponse.json({ groups }, { headers: { "Cache-Control": CACHE_CONTROL } });
+    }
     if ((substanceSlug === null) === (effectSlug === null)) {
       return NextResponse.json(
         { error: "Provide exactly one of ?substance= or ?effect=." },

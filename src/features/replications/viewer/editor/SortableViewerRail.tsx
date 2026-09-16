@@ -74,7 +74,7 @@ function SortableRailItem({
         onClick={() => onActivate(item.replication.slug)}
         className={cn(
           "theme-media-thumbnail-border grid size-20 place-items-center overflow-hidden rounded-lg border bg-black/45 p-1 transition",
-          active && "theme-media-thumbnail-selected ring-2 ",
+          active && "theme-media-thumbnail-selected",
         )}
       >
         {thumbnail ? (

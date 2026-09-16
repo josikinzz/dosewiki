@@ -112,7 +112,7 @@ function artifacts({ residual = [], highConfidence = [row()], sourceKind } = {})
     artifactType: "citation_author_repair_proposal",
     artifactVersion: 1,
     generatedAt: "2026-08-09T00:00:00.000Z",
-    sourceDeployment: "https://example.convex.cloud",
+    sourceDeployment: "example/dosewiki",
     mode: "dry_run",
     ...(sourceKind ? {
       sourceKind,
@@ -284,7 +284,7 @@ describe("citation author repair apply command", () => {
     const result = await runApplyReferenceAuthorRepairs([
       `--proposal=${values.proposalPath}`,
       `--approval=${values.approvalPath}`,
-    ], { client, env: {}, logger: { log: vi.fn() } });
+    ], { client, env: { DATA_BACKEND: "postgres", SOURCE_POSTGRES_URL: "postgres://example/dosewiki" }, logger: { log: vi.fn() } });
     expect(result).toEqual({ status: "dry_run", pending: 1, alreadyApplied: 0, residualExcluded: 1 });
     expect(client.query).toHaveBeenCalledTimes(1);
   });
@@ -309,15 +309,16 @@ describe("citation author repair apply command", () => {
     await runApplyReferenceAuthorRepairs([
       `--proposal=${values.proposalPath}`,
       `--approval=${values.approvalPath}`,
-      "--target-url=https://example.convex.cloud",
+      "--target=postgres://example/dosewiki",
       "--write",
+      "--allow-remote",
       "--confirm-write=apply-citation-author-repairs",
-      "--expected-deployment=example",
+      "--expected-deployment=example/dosewiki",
       "--confirm-citation-author-write",
     ], {
       client,
       apiKey: "scoped-token",
-      env: {},
+      env: { DATA_BACKEND: "postgres", POSTGRES_IMPORT_CONFIRM: "example" },
       logger: { log: vi.fn() },
       backupBeforeWrite: vi.fn(async () => ({ path: "/tmp/backup.json", documentCount: 1 })),
       writeAuditLog,
@@ -347,15 +348,16 @@ describe("citation author repair apply command", () => {
     const result = await runApplyReferenceAuthorRepairs([
       `--proposal=${values.proposalPath}`,
       `--approval=${values.approvalPath}`,
-      "--target-url=https://example.convex.cloud",
+      "--target=postgres://example/dosewiki",
       "--write",
+      "--allow-remote",
       "--confirm-write=apply-citation-author-repairs",
-      "--expected-deployment=example",
+      "--expected-deployment=example/dosewiki",
       "--confirm-citation-author-write",
     ], {
       client,
       apiKey: "scoped-token",
-      env: {},
+      env: { DATA_BACKEND: "postgres", POSTGRES_IMPORT_CONFIRM: "example" },
       logger: { log: vi.fn() },
       backupBeforeWrite,
       writeAuditLog,

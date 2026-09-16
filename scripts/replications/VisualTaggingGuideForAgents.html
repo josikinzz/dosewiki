@@ -513,7 +513,7 @@ test -x "$FFPROBE_BIN" &amp;&amp; test -x "$FFMPEG_BIN"
           </div>
           <div class="code-shell">
             <header><span>ID-keyed audio evidence</span><button class="copy-button" type="button" data-copy-target="audio-evidence-template">copy</button></header>
-            <pre id="audio-evidence-template">replicationId: &lt;stable Convex ID&gt;
+            <pre id="audio-evidence-template">replicationId: &lt;stable document ID&gt;
 sourceUrl: &lt;current resolved media URL&gt;
 hasAudio: true | false | uncertain
 reason: no_audio_stream | digitally_silent | audible_candidate | evidence_failure
@@ -627,7 +627,7 @@ effectAssessment:
         <div class="section-head">
           <div class="section-kicker">07 · Reviewed specimens</div>
           <h2>Positive and negative evidence belong together.</h2>
-          <p>Video controls include four seek points. Compare the early, middle, and late states before reading the verdict.</p>
+          <p>These are historical note/batch review specimens; their original source URLs are retained as provenance, not current database targets. For new work, resolve each stable document ID through the approved Postgres reader. Video controls include four seek points; compare early, middle, and late states before reading the verdict.</p>
         </div>
         <div class="section-body">
           <div class="case-grid">
@@ -833,7 +833,7 @@ effectAssessment:
           </div>
           <div class="code-shell">
             <header><span>ID-keyed proposal template</span><button class="copy-button" type="button" data-copy-target="proposal-template">copy</button></header>
-            <pre id="proposal-template">replicationId: &lt;stable Convex ID&gt;
+            <pre id="proposal-template">replicationId: &lt;stable document ID&gt;
 slug: &lt;live slug&gt;
 viewingMode: open-eye | closed-eye | immersive | mixed | uncertain
 evidence:

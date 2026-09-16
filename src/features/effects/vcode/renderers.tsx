@@ -42,6 +42,7 @@ type VCodeRendererContext = {
    * by surfaces that load the gallery corpus; absent leaves bylines plain.
    */
   artistCreditLinks?: ArtistCreditLinks;
+  renderArtistCredit?: (artist: string) => ReactNode;
   /**
    * The drug class this surface speaks for ("deliriant", "psychedelic"). Set
    * only by per-class summary pages; it selects an embed's `imageRoutes`
@@ -405,6 +406,7 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
         artist={artist}
         artistHref={credit?.href}
         artistHrefExternal={credit?.external}
+        artistCredit={artist ? context.renderArtistCredit?.(artist) : undefined}
         title={variant?.title ?? node.properties.title}
         caption={variant?.caption ?? node.properties.caption}
         align={node.properties.align as "left" | "right" | "center"}

@@ -3,7 +3,7 @@ import {
   applyMoleculeColorway,
   type MoleculeColorway,
 } from "@/data/mappings/moleculePalette";
-import { getPublicMolecule } from "@server/convex/publicData.molecules";
+import { getPublicMolecule } from "@server/data/publicData.molecules";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
   applyPublicApiCors,

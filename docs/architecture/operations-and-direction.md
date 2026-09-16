@@ -26,9 +26,8 @@ Use the current `next build` route summary when a point-in-time page count is ne
 Route cache behavior is owned by the route modules and the Postgres publication
 outbox. Inspect the current route's `revalidate` export and its matching
 `lib/postgres/` publication transaction before changing freshness behavior.
-The historical endpoint name `/api/save-to-convex` is unchanged, but under
-`DATA_BACKEND=postgres` its successful writes and path invalidations are
-Postgres-backed.
+`/api/save-article` writes through the native Postgres handlers and revalidates
+the affected public paths.
 
 Persistent public cache keys use an opaque digest for Postgres target identity,
 never a connection URL: Next includes those keys in revalidation errors.
@@ -52,8 +51,9 @@ Operational tools live under `scripts/`, grouped by their actual directory:
 
 - `postgres/`: schema generation, guarded migration, import, rehearsal, rollback export, and environment isolation
 - `batch/`: AI generation and quote extraction
-- `migrate/`: bounded content transforms whose filenames may retain historical backend names
-- `convex/`: rollback-backend and compatibility utilities, not the normal production write path
+- `migrate/`: bounded content transforms
+- `data-ops/`: guarded native data maintenance utilities
+- `recovery/convex/`: non-executable historical recovery references, never a routine operator target
 - `prepopulate/`: derive article content from parsed sources
 - `analyze/`: audits and coverage inspection
 - `replications/`: effect gallery asset ingestion and maintenance
@@ -62,8 +62,7 @@ Operational tools live under `scripts/`, grouped by their actual directory:
 
 PlanetScale Postgres is the production runtime authority. Local JSON and
 generated artifacts remain inputs, exports, fixtures, or recovery material only
-where their owning script says so. A historical filename or endpoint containing
-`convex` does not change the backend selected by `DATA_BACKEND=postgres`.
+where their owning script says so. Native operators select Postgres explicitly.
 
 ## Testing and Quality Gates
 
@@ -112,11 +111,11 @@ an explicit `TARGET_POSTGRES_URL`, `DATA_BACKEND=postgres`, `--allow-remote`,
 confirmation. Never forward arbitrary migration arguments or infer a production
 writer from application fallback variables.
 
-Convex remains only as an observation and recovery backend during the current
-recovery window. Commands that genuinely target it must be labelled rollback
-or observation work and separately approved. Historical endpoint, token, and
-module names containing `Convex` stay unchanged when code depends on those exact
-names; prose must not treat those names as proof of runtime ownership.
+The archived Convex recovery service is non-runtime and is not a routine
+operator target. Any recovery operation requires separate owner approval and
+the isolated historical recovery procedure. Local source retirement does not
+assert hosted deletion, credential revocation, or completion of the observation
+window.
 
 Current maintenance priorities are:
 
@@ -135,13 +134,14 @@ Start from the current tree rather than audit-era file counts:
 - Runtime routes and APIs: `src/app/`
 - Feature UI and editor workflows: `src/features/`
 - Postgres runtime, transactions, and schema: `lib/postgres/`
-- Compatibility-shaped public data adapters: `lib/convex/`
+- Public server data adapters: `lib/data/`
 - Static params and metadata: `lib/next/`
 - Auth config and policy: `auth.ts`, `lib/auth/`
 - Route protection: `src/middleware.ts`
 - Protected route wrapper: `src/lib/http/protectedRouteOperation.ts`
 - Article schema: `src/schema/substance.schema.ts`
-- Retiring Convex recovery implementation: `convex/`
+- Authored Postgres handlers: `server/`
+- Isolated historical recovery evidence: `scripts/recovery/convex/`
 - Operational tools: `scripts/`
 
 ## Maintenance Rules

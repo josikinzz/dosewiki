@@ -20,14 +20,14 @@
  * artist's page. Both the raw markup and the parsed AST move together, because
  * the AST is what renders when present.
  *
- *   node scripts/effects/repoint-dead-gfycat-embeds.mjs --target-url=<url>
- *   node scripts/effects/repoint-dead-gfycat-embeds.mjs --target-url=<url> \
+ *   node scripts/effects/repoint-dead-gfycat-embeds.mjs --target=<url>
+ *   node scripts/effects/repoint-dead-gfycat-embeds.mjs --target=<url> \
  *     --write --confirm-write=repoint-dead-gfycat-embeds \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  */
 import { readFileSync } from "node:fs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -37,7 +37,7 @@ import {
 
 const operation = "repoint-dead-gfycat-embeds";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const picks = ["a", "b", "c", "d"].flatMap((suffix) =>

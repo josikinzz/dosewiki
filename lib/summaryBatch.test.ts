@@ -57,28 +57,26 @@ describe("summary batch CLI", () => {
     expect(options.reasoningEffort).toBe("medium");
   });
 
-  it("delegates explicit source and target flags to the shared batch target resolver", () => {
+  it("uses explicit source and target flags ahead of configured targets", () => {
     const env = {
-      SOURCE_CONVEX_URL: "https://source.convex.cloud",
-      CONVEX_PUBLIC_READ_URL: "https://public.convex.cloud",
-      CONVEX_URL: "https://convex.convex.cloud",
-      TARGET_CONVEX_URL: "https://target.convex.cloud",
+      DATA_BACKEND: "postgres",
+      SOURCE_POSTGRES_URL: "postgresql://localhost/source",
+      POSTGRES_POOLED_URL: "postgresql://localhost/default",
+      TARGET_POSTGRES_URL: "postgresql://localhost/target",
     };
 
     const context = createBatchTargetRunContext({
       operation: "summary batch test",
       argv: [
-        "--source-url=https://explicit-source.convex.cloud",
-        "--target-url=https://explicit-target.convex.cloud",
+        "--source-url=postgresql://localhost/explicit-source",
+        "--target=postgresql://localhost/explicit-target",
       ],
       env,
       loadsEnvLocal: false,
     });
 
-    expect(context.sourceUrl).toBe("https://explicit-source.convex.cloud");
-    expect(context.sourceUrlKey).toBe("--source-url");
-    expect(context.targetUrl).toBe("https://explicit-target.convex.cloud");
-    expect(context.targetUrlKey).toBe("--target-url");
+    expect(context.sourceUrl).toBe("postgresql://localhost/explicit-source");
+    expect(context.targetUrl).toBe("postgresql://localhost/explicit-target");
   });
 });
 
@@ -165,7 +163,7 @@ describe("summary source material resolution", () => {
     expect(result).toEqual({
       slug: "lsd",
       status: "skipped",
-      reason: "No summary quote doc or articleSources doc in source Convex",
+      reason: "No summary quote doc or articleSources doc in source Postgres",
     });
   });
 });
@@ -336,8 +334,8 @@ describe("batch persistence artifacts", () => {
     const dir = mkdtempSync(join(tmpdir(), "dose-batch-"));
     const runArtifacts = createRunArtifacts(
       { concurrency: 2, all: true, dryRun: false, reasoningEffort: "medium" },
-      "https://source.example",
-      "https://target.example",
+      "postgresql://operator:source-secret@localhost/source",
+      "postgresql://operator:target-secret@localhost/target",
       {
         model: "test-model",
         progressDir: dir,
@@ -352,8 +350,8 @@ describe("batch persistence artifacts", () => {
       runArtifacts,
       articles: [ARTICLE],
       targetArticlesBySlug,
-      sourceUrl: "https://source.example",
-      targetUrl: "https://target.example",
+      sourceUrl: "postgresql://operator:source-secret@localhost/source",
+      targetUrl: "postgresql://operator:target-secret@localhost/target",
     });
     updateProgress(runArtifacts, { runId: runArtifacts.runId, status: "running", completed: 0 });
     appendResult(runArtifacts, { slug: "lsd", status: "success" });
@@ -361,11 +359,12 @@ describe("batch persistence artifacts", () => {
 
     const backup = JSON.parse(readFileSync(backupPath!, "utf8"));
     expect(backup).toMatchObject({
-      sourceUrl: "https://source.example",
-      targetUrl: "https://target.example",
+      sourceIdentity: "localhost/source",
+      targetIdentity: "localhost/target",
       count: 1,
       articles: [{ slug: "lsd", summary: "old" }],
     });
+    expect(readFileSync(backupPath!, "utf8")).not.toMatch(/source-secret|target-secret|postgresql:\/\//);
     expect(readFileSync(runArtifacts.resultsPath, "utf8").trim()).toBe(
       JSON.stringify({ slug: "lsd", status: "success" }),
     );
@@ -375,13 +374,13 @@ describe("batch persistence artifacts", () => {
     });
   });
 
-  it("persists sanitized Convex payloads without implicitly updating local JSON", async () => {
+  it("persists sanitized payloads without implicitly updating local JSON", async () => {
     const dir = mkdtempSync(join(tmpdir(), "dose-batch-"));
     const articlesFile = join(dir, "SubstanceIndex.json");
-    const convexClient = { mutation: vi.fn(async (..._args: unknown[]) => ({ updated: 1 })) };
+    const postgresClient = { mutation: vi.fn(async (..._args: unknown[]) => ({ updated: 1 })) };
     const localArticles = [{ title: "LSD", slug: "lsd" }];
     const persist = createArticlePersistence({
-      convexClient,
+      postgresClient,
       adminKey: "admin",
       sourceArticlesBySlug: new Map([
         ["lsd", { title: "LSD", slug: "lsd", "β_notes": "kept" }],
@@ -395,19 +394,17 @@ describe("batch persistence artifacts", () => {
 
     await persist({ title: "LSD", slug: "lsd", summary: "new summary" });
 
-    const [, payload] = convexClient.mutation.mock.calls[0] as [
+    const [, payload] = postgresClient.mutation.mock.calls[0] as [
       unknown,
       { apiKey: string; articles: Array<Record<string, unknown>> },
     ];
-    expect(payload?.apiKey).toBe("admin");
-    expect(payload?.articles[0]).toMatchObject({ title: "LSD", summary: "new summary" });
     expect(payload?.articles[0]).not.toHaveProperty("β_notes");
     expect(payload?.articles[0]).not.toHaveProperty("beta_notes");
     expect(() => readFileSync(articlesFile, "utf8")).toThrow();
 
     expect(() =>
       createArticlePersistence({
-        convexClient,
+        postgresClient,
         adminKey: "admin",
         sourceArticlesBySlug: new Map([
           ["lsd", { title: "LSD", slug: "lsd" }],

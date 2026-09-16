@@ -9,6 +9,11 @@ import {
   validateDesiredInsert,
 } from "./run-replication-index-production-import.mjs";
 
+// This suite exercises command/ledger transitions; storage verification is a separate boundary.
+vi.mock("./lib/r2-upload.mjs", () => ({
+  replicationImportReceipts: async () => ({ mediaReceipts: { r2_key: "verified-fixture-receipt" } }),
+}));
+
 const SHA = "a".repeat(64);
 const SECOND_SHA = "b".repeat(64);
 const TEST_COMMIT = "4".repeat(40);
@@ -129,7 +134,7 @@ describe("replication index production import runner", () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files } = artifacts(root);
     const clientFactory = vi.fn();
-    const result = await runProductionImport({ argv: argvFor(files), env: {}, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } });
+    const result = await runProductionImport({ argv: argvFor(files), env: { DATA_BACKEND: "postgres" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } });
     expect(result).toMatchObject({ mode: "dry-run", selected: 1, networkCalls: 0 });
     expect(clientFactory).not.toHaveBeenCalled();
   });
@@ -138,7 +143,7 @@ describe("replication index production import runner", () => {
     for (const fixture of [{ action: "hold" }, { action: "blocked", blockers: ["metadata"] }, { action: "create", blockers: ["hold"] }]) {
       const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
       const { files } = artifacts(root, fixture);
-      await expect(runProductionImport({ argv: argvFor(files), env: {}, gitCommit: TEST_COMMIT, logger: { log() {} } })).rejects.toThrow(/create|blocked|hold/i);
+      await expect(runProductionImport({ argv: argvFor(files), env: { DATA_BACKEND: "postgres" }, gitCommit: TEST_COMMIT, logger: { log() {} } })).rejects.toThrow(/create|blocked|hold/i);
     }
   });
 
@@ -180,8 +185,8 @@ describe("replication index production import runner", () => {
   it("pins the application commit and explicit plan digest before writing", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan } = artifacts(root);
-    await expect(runProductionImport({ argv: argvFor(files, ["--write"]), env: {}, gitCommit: "b".repeat(40), logger: { log() {} } })).rejects.toThrow(/application commit/i);
-    await expect(runProductionImport({ argv: argvFor(files, ["--write", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", "b".repeat(64), "--expected-application-commit", TEST_COMMIT]), env: {}, gitCommit: TEST_COMMIT, logger: { log() {} } })).rejects.toThrow(/expected-plan-digest/i);
+    await expect(runProductionImport({ argv: argvFor(files, ["--write"]), env: { DATA_BACKEND: "postgres" }, gitCommit: "b".repeat(40), logger: { log() {} } })).rejects.toThrow(/application commit/i);
+    await expect(runProductionImport({ argv: argvFor(files, ["--write", "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", "b".repeat(64), "--expected-application-commit", TEST_COMMIT]), env: { DATA_BACKEND: "postgres" }, gitCommit: TEST_COMMIT, logger: { log() {} } })).rejects.toThrow(/expected-plan-digest/i);
     expect(plan.planDigestSha256).toHaveLength(64);
   });
 
@@ -192,8 +197,8 @@ describe("replication index production import runner", () => {
     const stored = { _id: "row1", _creationTime: 1, ...insert, ...insert.taxonomy };
     delete stored.effect_tags;
     const query = vi.fn().mockResolvedValue(stored);
-    const argv = argvFor(files, ["--write", "--phase", "canary", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
-    const result = await runProductionImport({ argv, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => ({ mutation, query }), logger: { log() {} } });
+    const argv = argvFor(files, ["--write", "--phase", "canary", "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
+    const result = await runProductionImport({ argv, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => ({ mutation, query }), logger: { log() {} } });
     expect(result).toMatchObject({ mode: "write", verified: 1 });
     expect(mutation).toHaveBeenCalledTimes(1);
     expect(mutation.mock.calls[0][1].apiKey).toBe("secret");
@@ -207,39 +212,39 @@ describe("replication index production import runner", () => {
   it("marks a post-dispatch failure uncertain and never retries it", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan } = artifacts(root);
-    const args = argvFor(files, ["--write", "--phase", "canary", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
+    const args = argvFor(files, ["--write", "--phase", "canary", "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
     const clientFactory = () => ({ mutation: vi.fn().mockRejectedValue(new Error("timeout")), query: vi.fn() });
-    await expect(runProductionImport({ argv: args, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
+    await expect(runProductionImport({ argv: args, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
     const uncertain = JSON.parse(readFileSync(files.ledger, "utf8")).items[SHA];
     expect(uncertain.status).toBe("uncertain");
     expect(uncertain.error.diagnostic).toBe("timeout");
     expect(JSON.stringify(uncertain)).not.toContain("secret");
-    await expect(runProductionImport({ argv: args, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
+    await expect(runProductionImport({ argv: args, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
   });
 
   it("stops and records uncertainty when read-back metadata drifts", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan, insert } = artifacts(root);
-    const args = argvFor(files, ["--write", "--phase", "canary", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
+    const args = argvFor(files, ["--write", "--phase", "canary", "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
     const client = {
       mutation: vi.fn().mockResolvedValue({ inserted: true, id: "row1", slug: insert.slug, role: "replication" }),
       query: vi.fn().mockResolvedValue({ _id: "row1", _creationTime: 1, ...insert, ...insert.taxonomy, rights_status: "unknown" }),
     };
-    await expect(runProductionImport({ argv: args, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => client, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
+    await expect(runProductionImport({ argv: args, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => client, logger: { log() {} } })).rejects.toThrow(/uncertain/i);
     expect(JSON.parse(readFileSync(files.ledger, "utf8")).items[SHA].status).toBe("uncertain");
   });
 
   it("blocks remaining work until canary verification and bounds the next batch", async () => {
     const root = mkdtempSync(path.join(tmpdir(), "replication-import-"));
     const { files, plan, insert } = artifacts(root, { includeRemaining: true });
-    await expect(runProductionImport({ argv: argvFor(files, ["--phase", "remaining", "--batch-size", "1"]), env: {}, gitCommit: TEST_COMMIT, logger: { log() {} } })).rejects.toThrow(/canary/i);
+    await expect(runProductionImport({ argv: argvFor(files, ["--phase", "remaining", "--batch-size", "1"]), env: { DATA_BACKEND: "postgres" }, gitCommit: TEST_COMMIT, logger: { log() {} } })).rejects.toThrow(/canary/i);
     const client = {
       mutation: vi.fn().mockResolvedValue({ inserted: true, id: "row1", slug: insert.slug, role: "replication" }),
       query: vi.fn().mockResolvedValue({ _id: "row1", _creationTime: 1, ...insert, ...insert.taxonomy }),
     };
-    const writeArgs = argvFor(files, ["--write", "--phase", "canary", "--target-url", plan.target, "--expected-deployment", "glad-minnow-656", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
-    await runProductionImport({ argv: writeArgs, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => client, logger: { log() {} } });
-    const result = await runProductionImport({ argv: argvFor(files, ["--phase", "remaining", "--batch-size", "1"]), env: {}, gitCommit: TEST_COMMIT, logger: { log() {} } });
+    const writeArgs = argvFor(files, ["--write", "--phase", "canary", "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", "--confirm-write", "replication-index-production-import", "--expected-plan-digest", plan.planDigestSha256, "--expected-application-commit", TEST_COMMIT]);
+    await runProductionImport({ argv: writeArgs, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: "secret" }, gitCommit: TEST_COMMIT, clientFactory: () => client, logger: { log() {} } });
+    const result = await runProductionImport({ argv: argvFor(files, ["--phase", "remaining", "--batch-size", "1"]), env: { DATA_BACKEND: "postgres" }, gitCommit: TEST_COMMIT, logger: { log() {} } });
     expect(result).toMatchObject({ mode: "dry-run", selected: 1, networkCalls: 0 });
   });
 });

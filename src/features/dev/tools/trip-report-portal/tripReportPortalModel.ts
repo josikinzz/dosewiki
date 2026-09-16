@@ -16,7 +16,7 @@ import type { ReportViewMode } from "@/types/tripReport";
 import type {
   TripReportEditableFields,
   TripReportEditableSubstance,
-} from "../../../../../convex/lib/tripReportEditing";
+} from "../../../../../server/lib/tripReportEditing";
 
 type TripReportSubmissionStatus =
   | "submitted"
@@ -59,7 +59,7 @@ export const EMPTY_PORTAL_FACETS: PortalFacets = { substance: [], author: [], ta
 type PortalSubjectSummary = { name: string; trip_date?: string };
 
 export type PortalRow = {
-  /** Convex document id for a published report, public submission id otherwise. */
+  /** Postgres document id for a published report, public submission id otherwise. */
   id: string;
   origin: "published" | "submission";
   /** Stable key for grouping; a submission has no public URL of its own. */

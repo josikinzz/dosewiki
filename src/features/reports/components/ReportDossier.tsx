@@ -1,5 +1,5 @@
 import { memo, type ReactNode } from "react";
-import { msg, useT } from "@/i18n/client";
+import { msg, type Translate } from "@/i18n/messages";
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { TripReportSubject, TripReportSubstance } from "@/types/tripReport";
@@ -7,6 +7,7 @@ import type { TripReportSubject, TripReportSubstance } from "@/types/tripReport"
 interface ReportDossierProps {
   subject: TripReportSubject;
   substances: TripReportSubstance[];
+  t: Translate;
   /** Map of substance name -> public article href, for substances that resolve
    *  to a known article. Resolved chips link to the article; the rest stay
    *  static text. */
@@ -37,8 +38,8 @@ export const ReportDossier = memo(function ReportDossier({
   subject,
   substances,
   substanceLinks,
+  t,
 }: ReportDossierProps) {
-  const t = useT();
   const visibleFields = FIELD_CONFIG.filter(({ key }) => {
     const value = subject[key];
     return value && value.toString().trim().length > 0;
@@ -78,7 +79,7 @@ export const ReportDossier = memo(function ReportDossier({
                   key={`${substance.name}-${index}`}
                   href={href}
                   title={t("Read the {{substance}} article", { substance: substance.name })}
-                  className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong [@media(hover:hover)]:hover:shadow-[var(--theme-elevation-accent-ring)]`}
+                  className={`${baseClass} transition-shadow theme-focus-ring [@media(hover:hover)]:hover:shadow-[var(--theme-elevation-accent-ring)]`}
                 >
                   {inner}
                   <Icon
@@ -115,7 +116,7 @@ export const ReportDossier = memo(function ReportDossier({
             href={subject.pdf_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="theme-link-muted inline-flex w-fit items-center gap-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
+            className="theme-link-muted inline-flex w-fit items-center gap-2 text-sm font-medium theme-focus-ring"
           >
             <Icon icon="lucide:external-link" className="h-4 w-4" />
             {t("Subjective Effect Tracker PDF")}

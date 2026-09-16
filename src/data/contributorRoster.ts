@@ -4,7 +4,7 @@
  *
  * Two publications share this codebase and they want different things here:
  *
- * - **dose.wiki** shows a curated founder subset chosen by an editor in Convex
+ * - **dose.wiki** shows a curated founder subset chosen by an editor in Postgres
  *   (`siteConfig.founderProfileKeys`). Nothing in this module changes that: the dose.wiki
  *   branch returns those profiles untouched, in the editor's order.
  * - **Effect Index** lists *every* contributor profile, with Josie Kins pinned first as the
@@ -25,7 +25,7 @@
  * | ------------------- | ----------------------------------------------------------------- |
  * | `/effects/<slug>`   | `subjectiveEffects.contributors[]`, `audio_replications[].artist`, and the `artist` of every replication whose `effect_slug` is that effect |
  * | `/reports/<slug>`   | `tripReports.subject.name`, and `subject.profile_key` when set     |
- * | `/substances/<slug>` | the completed `editorial_review`, resolved to a contributor profile key inside Convex (`substanceIndex:getPublicReviewedArticleCreditsPage`) — expert-reviewing an article is a contribution to the page it gates |
+ * | `/substances/<slug>` | the completed `editorial_review`, resolved to a contributor profile key inside Postgres (`substanceIndex:getPublicReviewedArticleCreditsPage`) — expert-reviewing an article is a contribution to the page it gates |
  *
  * Deliberately excluded:
  *
@@ -168,7 +168,7 @@ type ContributorReferenceReportInput = {
 
 /**
  * One expert-reviewed substance article. `reviewerProfileKey` was resolved from the stored
- * reviewer email inside Convex, so no email reaches this module; the key still goes through
+ * reviewer email inside Postgres, so no email reaches this module; the key still goes through
  * the key-or-alias matcher here, like a report's `authorProfileKey`.
  */
 type ContributorReferenceReviewedArticleInput = {
@@ -481,7 +481,7 @@ export type SelectAboutContributorsInput = {
   readonly isEffectIndex: boolean;
   /** Every public contributor profile. Only read on the roster branch. */
   readonly allProfiles?: readonly NormalizedUserProfile[];
-  /** The editor-curated founder subset from Convex `siteConfig`. */
+  /** The editor-curated founder subset from Postgres `siteConfig`. */
   readonly curatedFounderProfiles: readonly NormalizedUserProfile[];
   readonly referenceCounts?: ReadonlyMap<string, number>;
 };

@@ -8,14 +8,14 @@
  * of `introduction` with the phase rail empty. Reshaping it is pure text
  * movement, and this module exists to make that claim checkable rather than
  * asserted: `reconstructBody` is the exact inverse of `formatFlatBody` and reads
- * only the fields that reach Convex, so a caller can prove the record still
+ * only the fields that reach Postgres, so a caller can prove the record still
  * spells the original body character for character before writing it.
  *
  * Anything that would make the proof impossible is refused, never normalized:
  *
  *   - a paragraph separator other than one blank line (`\n\n`),
- *   - a paragraph, or the body, with untrimmed edges — Convex trims every
- *     editable field on write (`convex/lib/tripReportEditing.ts`), so untrimmed
+ *   - a paragraph, or the body, with untrimmed edges — Postgres trims every
+ *     editable field on write (`server/lib/tripReportEditing.ts`), so untrimmed
  *     text would silently change in storage,
  *   - a timestamp head not followed by exactly `": "`.
  *
@@ -65,7 +65,7 @@ export function splitParagraphs(body) {
     throw new Error("Report body is empty; nothing to reshape.");
   }
   if (body !== body.trim()) {
-    throw new Error("Report body has leading or trailing whitespace; Convex would trim it away.");
+    throw new Error("Report body has leading or trailing whitespace; Postgres would trim it away.");
   }
 
   const paragraphs = body.split(PARAGRAPH_SEPARATOR);
@@ -82,7 +82,7 @@ export function splitParagraphs(body) {
     }
     if (paragraph !== paragraph.trim()) {
       throw new Error(
-        `Paragraph ${index + 1} has leading or trailing whitespace; Convex would trim it away.`,
+        `Paragraph ${index + 1} has leading or trailing whitespace; Postgres would trim it away.`,
       );
     }
   });
@@ -212,7 +212,7 @@ export function formatFlatBody({ body, peakFrom, offsetFrom, conclusionFrom }) {
 
 /**
  * The original body, rebuilt from the reshaped record alone. Deliberately reads
- * nothing the write does not carry to Convex, so equality with the source body
+ * nothing the write does not carry to Postgres, so equality with the source body
  * is real evidence that reshaping moved text without editing it.
  */
 export function reconstructBody(record) {

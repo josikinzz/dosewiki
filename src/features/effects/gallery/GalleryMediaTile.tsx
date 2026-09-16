@@ -114,6 +114,7 @@ export function GalleryMediaTile({
   const t = useT();
   const { hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const frameRef = useRef<HTMLAnchorElement | null>(null);
   // While bytes are in flight a visible <img> paints its alt text (the title)
@@ -137,6 +138,7 @@ export function GalleryMediaTile({
     }
     const previous = videoRef.current;
     videoRef.current = null;
+    setPreviewReady(false);
     if (previous) releaseVideoElement(previous);
   }, []);
 
@@ -145,11 +147,7 @@ export function GalleryMediaTile({
   const gifLike = replication.format.toLowerCase() === "gif";
   const gifReady =
     gifLike && Boolean(replication.motion_url && replication.motion_poster_url);
-  const motionSource = isVideo
-    ? replication.url
-    : gifReady
-      ? replication.motion_url
-      : undefined;
+  const motionSource = gifReady ? replication.motion_url : undefined;
   // An audio row has no poster and no still of its own: its `url` is the clip.
   // Handing that to <AppImage> would wait forever on bytes that never decode,
   // so audio never reaches the image path and draws its own frame below.
@@ -178,13 +176,11 @@ export function GalleryMediaTile({
       : fallbackRatio;
 
   // Playback is strictly hover-gated: a hover-capable fine pointer starts the
-  // low-resolution preview rendition (or the full source for legacy rows with
-  // no rendition; the controllable motion rendition for GIF-like works), and
-  // mouse-out stops it. Touch devices and reduced-motion readers get fully
-  // static tiles — the poster plus the motion chip — so nothing decodes at
-  // rest. The raw GIF never bypasses reduced-motion or playback controls.
+  // low-resolution preview rendition, or the controllable motion rendition
+  // for GIF-like works. Missing previews stay static. Mouse-out stops playback;
+  // touch, Save-Data and reduced-motion readers receive static tiles.
   const previewSource = isVideo
-    ? (replication.preview_url ?? motionSource)
+    ? replication.preview_url
     : motionSource;
   const showPreview = hoverPreviewAllowed && hovered && Boolean(previewSource);
 
@@ -245,7 +241,7 @@ export function GalleryMediaTile({
           "border-[color:var(--theme-border-subtle)] bg-[var(--theme-surface-strong)]",
           "transition duration-300 hover:border-[color:var(--theme-card-border-strong)]",
           "hover:-translate-y-0.5 hover:shadow-[var(--theme-elevation-tile-hover)]",
-          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+          "theme-focus-ring",
           "motion-reduce:transition-none motion-reduce:hover:translate-y-0",
           frameClassName,
         )}
@@ -284,9 +280,9 @@ export function GalleryMediaTile({
               height={replication.height ?? 800}
               sizes={sizes}
               className={cn(
-                "absolute inset-0 h-full w-full object-cover text-transparent transition duration-500",
+                "absolute inset-0 h-full w-full object-cover text-transparent transition duration-[180ms]",
                 "group-hover/frame:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover/frame:scale-100",
-                poster === "ready" && !showPreview ? "opacity-100" : "opacity-0",
+                poster === "ready" && !(showPreview && previewReady) ? "opacity-100" : "opacity-0",
               )}
             />
           </>
@@ -306,12 +302,18 @@ export function GalleryMediaTile({
             loop
             playsInline
             preload="metadata"
+            onLoadedData={(event) => {
+              if (event.currentTarget.readyState >= 2) setPreviewReady(true);
+            }}
+            onError={() => setPreviewReady(false)}
             // The preview covers the whole anchor and paints last, so without
             // this it swallows every click on a video tile. Browsers do not
             // forward a media element's click to an ancestor link the way they
-            // do for images. Playback state itself is not tracked: the corner
-            // chip stays put whether or not frames are moving.
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            // do for images. The metadata chip stays put during the crossfade.
+            className={cn(
+              "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-[180ms] motion-reduce:transition-none",
+              previewReady ? "opacity-100" : "opacity-0",
+            )}
           />
         ) : null}
 

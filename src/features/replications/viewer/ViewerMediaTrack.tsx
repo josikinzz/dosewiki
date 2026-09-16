@@ -325,7 +325,7 @@ function ViewerSlide({
             width={width}
             height={height}
             priority={active}
-            loading="eager"
+            loading={active ? "eager" : "lazy"}
             unoptimized
             className="h-full w-full object-contain"
           />
@@ -338,6 +338,7 @@ function ViewerSlide({
             alt={replication.title}
             width={width}
             height={height}
+            priority={active}
             controlsVisible={controlsVisible}
             onToggleControls={onSurfaceTap}
             onProbeAspect={probeAspect}

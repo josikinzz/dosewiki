@@ -26,7 +26,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
 import {
   assertProductionWriteAllowed,
@@ -259,7 +259,7 @@ async function main() {
   );
   const { analyses, errors } = await probeAll(candidates, knownAnalyses);
 
-  // Convex row ids for the ledger and the write path. Reads need no
+  // Postgres row ids for the ledger and the write path. Reads need no
   // credential; without a configured target the dry run leaves ids null.
   let idsBySlug = new Map();
   if (command.targetUrl) {
@@ -281,7 +281,7 @@ async function main() {
     silenceFloorDb: SILENCE_FLOOR_DB,
     generatedAt: new Date().toISOString(),
     apiBase,
-    target: command.targetUrl ?? null,
+    target: command.deploymentFingerprint ?? null,
     entries,
     errors,
   });

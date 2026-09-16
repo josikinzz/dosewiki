@@ -43,7 +43,7 @@ import { REPLICATION_VOCABULARY } from "../../src/features/replications/replicat
 import { REAGENT_LABELS } from "../../src/lib/reagentTesting";
 import { CANONICAL_LEGAL_STATUSES, CANONICAL_STATUS_LABELS } from "../../src/schema/substance/legalStatuses";
 import { getCatalogSchemaSections, getSubstanceSectionManifestEntries } from "../../src/schema/substance/sectionCatalog";
-import type { PublicDataReadAdapter } from "../convex/publicData.reads";
+import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { readGlossaryRows, upsertGlossaryRows, type GlossaryDraft } from "./glossary";
 
 /**

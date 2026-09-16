@@ -1,15 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GLOSS_MAX_LENGTH, GlossaryGlossError, glossDigestInput, knownGlossaryTerms, readGlosses, upsertGlosses } from "./glossaryGloss";
-import type { PublicDataReadAdapter } from "../convex/publicData.reads";
+import type { PublicDataReadAdapter } from "../data/publicData.reads";
 
 const sql = vi.hoisted(() => vi.fn());
 vi.mock("@server/postgres/runtime/backend", () => ({
-  getDataBackend: () => "postgres",
-  getPostgresConvexClient: () => ({ sql }),
+  getPostgresClient: () => ({ sql }),
 }));
-vi.mock("@server/convex/publicData", () => ({}));
-vi.mock("@server/convex/publicData.substances", () => ({}));
+vi.mock("@server/data/publicData", () => ({}));
+vi.mock("@server/data/publicData.substances", () => ({}));
 
 const universe = vi.hoisted(() => ({ collectGlossaryTerms: vi.fn() }));
 vi.mock("./glossaryDraft", () => universe);

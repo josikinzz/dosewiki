@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "status": "non-operational-historical-reference",
+  "purpose": "Preserve historical hosted-service migration, deployment, parity and recovery source outside the active Postgres application and operator graph.",
+  "boundary": "Files ending in .reference are source evidence, not executable entrypoints or importable modules. The current package intentionally does not install the Convex SDK. Do not rename these files in the active checkout or add an SDK shim to make them runnable.",
+  "restorePrerequisites": [
+    "Obtain explicit owner approval for historical recovery and its exact target and scope. Possession of this source or credentials is not authorization.",
+    "Use an isolated checkout of the approved pre-cutover revision and its dependency lockfile, schema, generated bindings, application modules, and script helpers. Restore the historical toolchain and Convex SDK there, not in the current Postgres checkout.",
+    "Treat this manifest as a source snapshot, not a self-contained recovery environment. Review each retained source against the approved pre-cutover revision before restoring it to its original path. Regenerate producer-owned bindings only with that historical producer and toolchain.",
+    "Supply only approved historical environment variables and credentials in the isolated recovery environment. The retained source intentionally preserves historical credential names and removed dual-backend, storage, cache, and scheduler contracts.",
+    "Review the existing target, read-only, confirmation, and write-freeze guards before execution. Any provider mutation requires the separate owner-approved recovery procedure and point-of-risk authorization. Do not execute either transfer or SQL insertion from these references in normal operation."
+  ],
+  "retainedNativeSources": [
+    "scripts/postgres/targetGuard.ts"
+  ],
+  "files": [
+    {
+      "original": "scripts/postgres/copy-storage-objects-to-r2.mjs",
+      "reference": "scripts/recovery/convex/copy-storage-objects-to-r2.mjs.reference",
+      "sha256": "e9c4336f72646a3fdc7484b50f408900603f7629c7b82f08dc9924e2cfc173ad"
+    },
+    {
+      "original": "scripts/postgres/parity-public-reads.ts",
+      "reference": "scripts/recovery/convex/parity-public-reads.ts.reference",
+      "sha256": "4ba2e53b9868b24b1d37e5670db4e4c78825a4b9545c9106bcb4482d5642a1cc"
+    },
+    {
+      "original": "scripts/postgres/parityInProcess.ts",
+      "reference": "scripts/recovery/convex/parityInProcess.ts.reference",
+      "sha256": "4e543fd520550264696cbc83fb5c6c89922bdf865869c3f61344c752289a39c7"
+    },
+    {
+      "original": "convex/_generated/api.d.ts",
+      "reference": "scripts/recovery/convex/_generated/api.d.ts.reference",
+      "sha256": "c13692166b1d2131c2bef52dd035b71cbd209e5344ae5c271f73b8d70d7a9a35"
+    },
+    {
+      "original": "convex/_generated/api.js",
+      "reference": "scripts/recovery/convex/_generated/api.js.reference",
+      "sha256": "f513058549831e85376f8d19cafaf2a4a770b6eb1b859fb371141f2c9dec0d70"
+    },
+    {
+      "original": "convex/_generated/dataModel.d.ts",
+      "reference": "scripts/recovery/convex/_generated/dataModel.d.ts.reference",
+      "sha256": "db177073d16a4393c7a96bcdc3a2a904e88c2432d54d138ca7715cc431982c17"
+    },
+    {
+      "original": "convex/_generated/server.d.ts",
+      "reference": "scripts/recovery/convex/_generated/server.d.ts.reference",
+      "sha256": "b0c8d708aaa165b10633bb6181dea1af4b9976a71ad001d75f42785ddfbca458"
+    },
+    {
+      "original": "convex/_generated/server.js",
+      "reference": "scripts/recovery/convex/_generated/server.js.reference",
+      "sha256": "aea87b3ee367e0e870f3da81ffce8babd8ea1aea695a1e38689841aebc09a1e8"
+    },
+    {
+      "original": "scripts/postgres/export-postgres-to-convex.ts",
+      "reference": "scripts/recovery/convex/export-postgres-to-convex.ts.reference",
+      "sha256": "7bc01a5fdf7776faa7664f65afe125d2d07afc20e684cb41b17c95ae9c6f4d3c"
+    },
+    {
+      "original": "scripts/postgres/rehearse-rollback.ts",
+      "reference": "scripts/recovery/convex/rehearse-rollback.ts.reference",
+      "sha256": "0093ec8d74ac128b9e1d0c551085c2117e68add9640626908181c06b722a5c8a"
+    },
+    {
+      "original": "scripts/postgres/convexSnapshotImport.ts",
+      "reference": "scripts/recovery/convex/convexSnapshotImport.ts.reference",
+      "sha256": "604e00e85a7e58997c531b3ce6e331c2dbad7683f98464011a6abde6b8b2768f"
+    },
+    {
+      "original": "scripts/postgres/convexTargetGuard.ts",
+      "reference": "scripts/recovery/convex/convexTargetGuard.ts.reference",
+      "sha256": "b0b6c03fd6828cde32eed3fbddcb04179f12b161f106f4c380908b2eee2ea34e"
+    },
+    {
+      "original": "scripts/recovery/convex/doctor.mjs",
+      "reference": "scripts/recovery/convex/doctor.mjs.reference",
+      "sha256": "6684458b630b8242b6e9fa4daf99fe13447e6ecd20c8a8470cba21440d76d343"
+    },
+    {
+      "original": "scripts/recovery/convex/convex-deploy.mjs",
+      "reference": "scripts/recovery/convex/convex-deploy.mjs.reference",
+      "sha256": "e130e1561cd1f5749a8735be1c20d5964404e070c87533a07a27de8e7623b761"
+    },
+    {
+      "original": "scripts/recovery/convex/check-function-drift.mjs",
+      "reference": "scripts/recovery/convex/check-function-drift.mjs.reference",
+      "sha256": "e56735f4aa0d370283bd84b887e3cb77d558eb986cf9c5c5675957597720ee04"
+    },
+    {
+      "original": "lib/postgres/documentId.ts",
+      "reference": "scripts/recovery/convex/documentId.ts.reference",
+      "sha256": "54debf42d8a1e103a05bc30a7de4ff61dd3153294e3348b4a6bb6878b602e157"
+    },
+    {
+      "original": "scripts/postgres/build-storage-manifest.ts",
+      "reference": "scripts/recovery/convex/build-storage-manifest.ts.reference",
+      "sha256": "57fa142e93869bb0e8f2f880f807890b3e44f6760b51a60541f3926ce16a43d9"
+    },
+    {
+      "original": "scripts/postgres/verify-storage-manifest.ts",
+      "reference": "scripts/recovery/convex/verify-storage-manifest.ts.reference",
+      "sha256": "1027ebcc1a61410a1ccdb3c67ffa05c2b89e208e4a81a528d40178e836e47c40"
+    },
+    {
+      "original": "scripts/postgres/parityShared.ts",
+      "reference": "scripts/recovery/convex/parityShared.ts.reference",
+      "sha256": "23eba7993eed0980dc6e43359ed23407b4a6e1045c4864878bcc0c890d36e8b0"
+    },
+    {
+      "original": "scripts/replications/import-replications-simple.mjs",
+      "reference": "scripts/deprecated/archive/import-replications-simple.mjs.reference",
+      "sha256": "6a44809f031bacbf32180f0f842d8b91a944249801c3aa308adec3e016d2b55d"
+    },
+    {
+      "original": "scripts/replications/build-r2-media-ledger.mjs",
+      "reference": "scripts/recovery/convex/build-r2-media-ledger.mjs.reference",
+      "sha256": "e6b7ce99f01a597cef44685a13b936aec73d7e00861d2f29bb125ce3543e29a0"
+    },
+    {
+      "original": "scripts/replications/build-r2-media-ledger.test.mjs",
+      "reference": "scripts/recovery/convex/build-r2-media-ledger.test.mjs.reference",
+      "sha256": "6add97ca9a08c6e9f3be29fd51857d9eb7e7f55ae6565cf0cfdf7c5593b39c65"
+    },
+    {
+      "original": "scripts/replications/copy-missing-r2-media.mjs",
+      "reference": "scripts/recovery/convex/copy-missing-r2-media.mjs.reference",
+      "sha256": "c93c5c52b1b5a0de398b1d3b020547e8d7c63384f890689852ffc43ba7db7eec"
+    },
+    {
+      "original": "scripts/lib/data-function-inventory.mjs",
+      "reference": "scripts/recovery/convex/data-function-inventory.mjs.reference",
+      "sha256": "7c2cd78e8a76fa5a336f7dda4ce09bb821df0833ce4a49a5276de0867c3d3019",
+      "scope": "Snapshot before removal of unused hosted function-spec comparison; the active files retain only native callable integrity."
+    },
+    {
+      "original": "scripts/lib/data-drift-report.mjs",
+      "reference": "scripts/recovery/convex/data-drift-report.mjs.reference",
+      "sha256": "a14c021cc528cf26bdd95dfb5786b85b996f72bbf1f384fdd244f054d1d440db",
+      "scope": "Snapshot before removal of unused hosted function-spec comparison; the active files retain only native callable integrity."
+    },
+    {
+      "original": "scripts/lib/data-function-inventory.test.mjs",
+      "reference": "scripts/recovery/convex/data-function-inventory.test.mjs.reference",
+      "sha256": "dec3e29a069493748df161befcb09584b8c25601cde9472e529b1f4527981ee4",
+      "scope": "Snapshot before removal of unused hosted function-spec comparison; the active files retain only native callable integrity."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 /**
  * The size ceiling for a stored diff or change-log markdown body, shared by
- * the Next routes that receive it and the Convex mutations that store it.
+ * the Next routes that receive it and the Postgres mutations that store it.
  * Truncation always yields a string within the ceiling, marker included, so a
  * clipped body is never refused by the mutation behind the route that clipped
  * it.

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Seed the category layout to Convex.
+ * Seed the category layout to Postgres.
  *
  * This script reads the existing psychoactiveIndexManual.json and uploads it
- * to the Convex categoryLayout table. Run this once to initialize the data.
+ * to the Postgres categoryLayout table. Run this once to initialize the data.
  *
  * Usage:
  *   node scripts/seed-category-layout.mjs
@@ -11,7 +11,7 @@
  */
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -29,7 +29,7 @@ const command = createProductionWriteCommand({ operation: "seed-category-layout"
 
 async function main() {
   printProductionWriteCommand(command);
-  console.log("🌱 Seeding category layout to Convex...\n");
+  console.log("🌱 Seeding category layout to Postgres...\n");
 
   // Read the existing psychoactiveIndexManual.json
   const indexPath = join(__dirname, "../../src/data/indexes/psychoactiveIndexManual.json");
@@ -74,7 +74,7 @@ async function main() {
     return;
   }
 
-  // Connect to Convex and save
+  // Connect to Postgres and save
   try {
     assertProductionWriteAllowed(command);
     const credential = requireProductionWriteCredential("seed-category-layout");

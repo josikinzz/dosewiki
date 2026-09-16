@@ -14,8 +14,8 @@ jobs:
     name: Verification & Policy Checks
     runs-on: ubuntu-latest
     env:
-      CONVEX_PUBLIC_READ_URL: https://glad-minnow-656.convex.cloud
-      VITE_CONVEX_URL: https://glad-minnow-656.convex.cloud
+      DATA_BACKEND: postgres
+      DATA_WRITES_FROZEN: "1"
 
     steps:
       - name: Checkout code
@@ -37,42 +37,10 @@ jobs:
       - name: Run canonical verification graph
         run: bun run verify:all
 
-      # The app build never deploys Convex functions: vercel.json runs only
-      # `bun install` / `bun run build`, and `build` is plain `next build`.
-      # Functions move only on an explicit `convex deploy`, so a green build can
-      # ship a UI that calls a mutation production has never seen. Production
-      # redacts every error to a bare "Server Error", so only a static
-      # comparison can catch it.
-      #
-      # This half needs no credential and always runs: every Convex function the
-      # app names must at least exist in this checkout. Typecheck covers the
-      # `api.*` form, but lib/convex/publicData.reads.ts addresses production by
-      # untyped STRING ("substanceIndex:getPublicBySlug"), and this is the only
-      # static coverage those names have.
-      - name: Check Convex call sites resolve in this checkout
-        run: bun run convex:check-functions -- --checkout-only
+      - name: Check owned Postgres function references
+        run: node scripts/build/check-function-references.mjs
 
-      # HONEST LIMITATION: reading a deployment's live function list needs a
-      # deploy key. This repository currently has NO GitHub Actions secrets, so
-      # the step below skips with a notice and the deployment half of this gate
-      # is NOT enforced in CI. Add CONVEX_DEPLOY_KEY_PROD as a repository secret
-      # to turn it on; nothing else needs to change. See
-      # docs/agents/convex-credentials.md.
-      - name: Check Convex function drift against production
-        env:
-          CONVEX_DEPLOY_KEY_PROD: ${{ secrets.CONVEX_DEPLOY_KEY_PROD }}
-        run: bun run convex:check-functions -- --prod --skip-without-credentials
-
-      # The structural fix for the same outage: the Vercel build command now
-      # routes through scripts/deploy/vercel-build.mjs, which deploys Convex
-      # functions when the project holds a CONVEX_DEPLOY_KEY and verifies when
-      # it does not. That distinction is what lets ONE build command serve both
-      # the full app and the read-only Effect Index project — Effect Index keeps
-      # its no-write-credentials posture and simply takes the verify path.
-      #
-      # The whole fix is one string in vercel.json, and an edit back to a plain
-      # `bun run build` would restore the outage with nothing else failing.
-      - name: Check the Vercel build command still deploys Convex
+      - name: Check the Postgres-only Vercel build command
         run: node scripts/deploy/check-build-command-wiring.mjs
 
       - name: Validate Vercel configuration

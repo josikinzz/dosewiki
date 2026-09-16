@@ -49,8 +49,6 @@ import {
 type QueueTabProps = {
   /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
   canApprove: boolean;
-  /** The substance corpus has drained: a rebase can seed over production rows. */
-  libraryReady: boolean;
   /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
   onLoadIntoEditor: (seed: DevProposalSeed) => Promise<void>;
 };
@@ -73,7 +71,7 @@ const targetCount = (count: number) => `${count} ${count === 1 ? "item" : "items
 const affectedRows = (targets: readonly TargetDrift[], showChanges = true) =>
   targets.map((target) => `${TARGET_KIND_LABELS[target.kind]} ${target.key}${showChanges && target.drifted ? " (changed since submission)" : ""}`);
 
-export function QueueTab({ canApprove, libraryReady, onLoadIntoEditor }: QueueTabProps) {
+export function QueueTab({ canApprove, onLoadIntoEditor }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
@@ -268,7 +266,7 @@ export function QueueTab({ canApprove, libraryReady, onLoadIntoEditor }: QueueTa
     setPending("load");
     setNotice(null);
     try {
-      const proposal = await fetchProposal(selectedId);
+      const proposal = await fetchProposal(selectedId, { includePayload: true });
       if (!canLoadIntoEditor(proposal, { canApprove })) {
         throw new Error(`A ${STATUS_LABELS[proposal.status].toLowerCase()} proposal can no longer be loaded.`);
       }
@@ -397,7 +395,7 @@ export function QueueTab({ canApprove, libraryReady, onLoadIntoEditor }: QueueTa
               canApprove={canApprove}
               isAuthor={detail.proposal.isAuthor}
               canLoad={canLoadIntoEditor(detail.proposal, { canApprove })}
-              libraryReady={libraryReady}
+              libraryReady
               pending={pending}
               commentText={commentText}
               rejectNote={rejectNote}

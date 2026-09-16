@@ -62,11 +62,11 @@ function fixture(root) {
 }
 
 function options(f, extra = {}) {
-  return { argv: ["--plan", f.planPath], env: {}, expectedPlanPath: f.planPath, expectedPlanFileSha256: f.fileSha256, expectedPlanContentSha256: f.plan.contentSha256, clientFactory: vi.fn(), logger: { log() {} }, ...extra };
+  return { argv: ["--plan", f.planPath], env: { DATA_BACKEND: "postgres" }, expectedPlanPath: f.planPath, expectedPlanFileSha256: f.fileSha256, expectedPlanContentSha256: f.plan.contentSha256, clientFactory: vi.fn(), logger: { log() {} }, ...extra };
 }
 
 function liveArgs(...extra) {
-  return ["--plan", extra.shift(), "--target-url", TARGET, "--expected-deployment", DEPLOYMENT, ...extra];
+  return ["--plan", extra.shift(), "--target", "postgresql://localhost/dosewiki", "--expected-deployment", "localhost/dosewiki", ...extra];
 }
 
 function resultFor(batch, kind = "suppression", dryRun = false) {
@@ -109,7 +109,7 @@ describe("pinned duplicate suppression runner", () => {
     const mutation = vi.fn().mockResolvedValue(resultFor(f.plan.suppressionBatches[0], "suppression", true));
     const result = await runPinnedDuplicateSuppression(options(f, {
       argv: liveArgs(f.planPath, "--live-dry-run", "--phase", "canary"),
-      env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => ({ mutation }),
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => ({ mutation }),
     }));
     expect(result).toMatchObject({ mode: "live-dry-run", batches: 1, networkCalls: 1 });
     expect(mutation.mock.calls[0][1]).toMatchObject({ apiKey: SECRET, dry_run: true });
@@ -119,7 +119,7 @@ describe("pinned duplicate suppression runner", () => {
   it("rejects live operation without the scoped credential", async () => {
     const f = fixture(mkdtempSync(path.join(tmpdir(), "duplicate-runner-")));
     await expect(runPinnedDuplicateSuppression(options(f, {
-      argv: liveArgs(f.planPath, "--live-dry-run"), env: { CONVEX_ADMIN_KEY: "legacy-secret" },
+      argv: liveArgs(f.planPath, "--live-dry-run"), env: { DATA_BACKEND: "postgres", DATA_ADMIN_KEY: "legacy-secret" },
     }))).rejects.toThrow(/scoped replicationMaintenance/i);
   });
 
@@ -129,7 +129,7 @@ describe("pinned duplicate suppression runner", () => {
     const ledger = path.join(root, "ledger.json");
     const argv = liveArgs(f.planPath, "--ledger", ledger, "--write", "--phase", "remaining", "--confirm-write", "apply-pinned-duplicate-suppression");
     const mutation = vi.fn();
-    await expect(runPinnedDuplicateSuppression(options(f, { argv, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => ({ mutation }) }))).rejects.toThrow(/verified canary/i);
+    await expect(runPinnedDuplicateSuppression(options(f, { argv, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => ({ mutation }) }))).rejects.toThrow(/verified canary/i);
     expect(mutation).not.toHaveBeenCalled();
   });
 
@@ -139,7 +139,7 @@ describe("pinned duplicate suppression runner", () => {
     const ledger = path.join(root, "ledger.json");
     const argv = liveArgs(f.planPath, "--ledger", ledger, "--write", "--phase", "canary", "--confirm-write", "apply-pinned-duplicate-suppression");
     const mutation = vi.fn().mockRejectedValue(new Error(`timeout ${SECRET}`));
-    const runOptions = options(f, { argv, env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => ({ mutation, query: vi.fn() }) });
+    const runOptions = options(f, { argv, env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => ({ mutation, query: vi.fn() }) });
     await expect(runPinnedDuplicateSuppression(runOptions)).rejects.toThrow(/uncertain.*without retry/i);
     const text = readFileSync(ledger, "utf8");
     expect(text).not.toContain(SECRET);
@@ -194,8 +194,8 @@ describe("pinned duplicate suppression runner", () => {
       }),
     };
     const common = ["--ledger", ledger, "--write", "--confirm-write", "apply-pinned-duplicate-suppression"];
-    await runPinnedDuplicateSuppression(options(f, { argv: liveArgs(f.planPath, ...common, "--phase", "canary"), env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => client }));
-    const result = await runPinnedDuplicateSuppression(options(f, { argv: liveArgs(f.planPath, ...common, "--phase", "rollback", "--batch", "1"), env: { CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => client }));
+    await runPinnedDuplicateSuppression(options(f, { argv: liveArgs(f.planPath, ...common, "--phase", "canary"), env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => client }));
+    const result = await runPinnedDuplicateSuppression(options(f, { argv: liveArgs(f.planPath, ...common, "--phase", "rollback", "--batch", "1"), env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE: SECRET }, clientFactory: () => client }));
     expect(result).toMatchObject({ mode: "write", phase: "rollback", verified: 1 });
     expect(client.mutation.mock.calls[1][1]).toEqual({ apiKey: SECRET, ...rollback.payload, dry_run: false });
     expect(JSON.parse(readFileSync(ledger, "utf8")).batches["rollback:01"].status).toBe("verified");

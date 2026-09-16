@@ -103,7 +103,7 @@ export type TripReportSubmissionRow = {
   updated_at: string;
 };
 
-export type ConvexTripReportImportPayload = Omit<NormalizedTripReportSubmissionReport, "subject"> & {
+export type DataTripReportImportPayload = Omit<NormalizedTripReportSubmissionReport, "subject"> & {
   // Attribution appears only on the promotion payload, where a trusted editor
   // assigned it; it never survives the submission itself.
   subject: NormalizedTripReportSubmissionSubject & { profile_key?: string };
@@ -261,9 +261,9 @@ export function transitionTripReportSubmission(
   };
 }
 
-export function buildConvexTripReportImportPayload(
+export function buildDataTripReportImportPayload(
   row: TripReportSubmissionRow,
-): ConvexTripReportImportPayload {
+): DataTripReportImportPayload {
   if (row.status !== "accepted") {
     throw new Error(`Only accepted submissions can be promoted. Current status: ${row.status}.`);
   }
@@ -309,7 +309,7 @@ function normalizeReport(report: TripReportSubmissionReportInput): NormalizedTri
       // `profile_key`, `avatar_url`, and `pdf_url` are deliberately absent: an
       // anonymous submitter has no identity to attach and no standing to put a
       // remote image or outbound link on a published dose.wiki page, so the
-      // claims are dropped before they can be stored or promoted. Convex
+      // claims are dropped before they can be stored or promoted. Postgres
       // `tripReportSubmissions.create` strips them again.
       trip_date: emptyToUndefined(trim(report.subject.trip_date)),
       age: emptyToUndefined(trim(report.subject.age)),

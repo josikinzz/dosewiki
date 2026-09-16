@@ -15,7 +15,7 @@
  *     OUT of it (drives preview, stereo guard, dirty state, and the save payload)
  *   • Save POSTs `{ slug, molblock, svg, smiles }` and then re-reads the published row
  *
- * The host must provide a ConvexProvider and an authenticated editor session.
+ * The host must provide a DataProvider and an authenticated editor session.
  */
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
@@ -43,12 +43,6 @@ export type MoleculeQuickEditorProps = {
   className?: string;
 };
 
-/** Pull the article's SMILES from whichever shape the Convex doc carries. */
-export function extractSubstanceSmiles(article: unknown): string {
-  const a = article as { identification?: { smiles?: unknown } } | null | undefined;
-  const smiles = a?.identification?.smiles;
-  return typeof smiles === "string" ? smiles.trim() : "";
-}
 
 export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProps) {
   const {
@@ -80,7 +74,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     save,
     applyRevert,
     revertToAuto,
-  } = useMoleculeQuickEditorLifecycle({ slug, extractSmiles: extractSubstanceSmiles });
+  } = useMoleculeQuickEditorLifecycle({ slug });
   const guardMismatch = guard != null && !guard.match;
 
   return (

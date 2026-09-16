@@ -41,19 +41,19 @@ describe("copy studio block reconciliation", () => {
       },
     ]);
 
-    expect(block.source).toBe("convex");
+    expect(block.source).toBe("data");
     expect(block.current.body).toBe("Stored wording");
     expect(block.fallback?.body).toBe(defaultBlock.body);
     expect(block.kind).toBe("markdown");
   });
 
-  it("keeps a Convex-only block editable but gives it no reset target", () => {
-    const block = findBlock("convex-only-block", [
+  it("keeps a Postgres-only block editable but gives it no reset target", () => {
+    const block = findBlock("data-only-block", [
       {
-        key: "convex-only-block",
+        key: "data-only-block",
         kind: "plain",
-        body: "Added straight in Convex",
-        label: "Convex only",
+        body: "Added straight in Postgres",
+        label: "Postgres only",
         group: "Home",
       },
     ]);

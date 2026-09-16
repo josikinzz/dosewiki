@@ -25,8 +25,8 @@ async function resolveToleranceSourceMaterial(article) {
     slug,
     loadQuotes: loadToleranceQuotes,
     buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-    missingReason: "No tolerance quotes in Convex",
-    emptyReason: "No tolerance quotes in Convex",
+    missingReason: "No tolerance quotes in Postgres",
+    emptyReason: "No tolerance quotes in Postgres",
   });
 }
 
@@ -79,10 +79,10 @@ function applyToleranceUpdate(article, update) {
   return article;
 }
 
-function createTolerancePersistence({ adminKey, convexClient, sourceArticlesBySlug, targetArticlesBySlug }) {
+function createTolerancePersistence({ adminKey, postgresClient, sourceArticlesBySlug, targetArticlesBySlug }) {
   return createArticlePersistence({
     adminKey,
-    convexClient,
+    postgresClient,
     sourceArticlesBySlug,
     targetArticlesBySlug,
     applyUpdate: applyToleranceUpdate,

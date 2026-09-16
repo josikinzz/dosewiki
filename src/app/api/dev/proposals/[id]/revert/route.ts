@@ -5,10 +5,10 @@
  * else changed those rows since; edit them directly instead.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../../convex/_generated/api";
-import type { Id } from "../../../../../../../convex/_generated/dataModel";
+import { api } from "@server/postgres/runtime/api";
+import type { Id } from "@server/postgres/runtime/dataModel";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { revalidateSavedPaths } from "../../../../save-to-convex/revalidateSavedPaths";
+import { revalidateSavedPaths } from "../../../../save-article/revalidateSavedPaths";
 import { proposalIdOf } from "../../proposalRouteId";
 
 export const runtime = "nodejs";
@@ -16,17 +16,17 @@ export const runtime = "nodejs";
 export const POST = protectedRouteOperation({
   auth: "admin",
   rateLimit: "editorHeavyWrite",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to revert a change proposal via Next route:",
   unexpectedErrorMessage: "Unable to revert the proposal right now.",
-  operation: async ({ request, actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
     const proposalId = proposalIdOf(request) as Id<"changeProposals">;
 
-    const result = await convexWrite.client.mutation(api.changeProposalReview.revert, {
-      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+    const result = await dataWrite.client.mutation(api.changeProposalReview.revert, {
+      apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail,
       proposalId,
     });

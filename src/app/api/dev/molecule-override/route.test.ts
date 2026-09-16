@@ -5,7 +5,7 @@ import { DELETE, GET, POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     moleculeOverrides: {
       getBySlug: "moleculeOverrides.getBySlug",
@@ -28,11 +28,11 @@ vi.mock("@server/http/nextRateLimit", () => ({
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
@@ -59,8 +59,8 @@ describe("molecule override route", () => {
     }));
     mocks.query.mockReset();
     mocks.mutation.mockReset();
-    mocks.getServerConvexWriteCapability.mockReset();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReset();
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { query: mocks.query, mutation: mocks.mutation }, adminKey: "admin-key" },
     });
@@ -82,7 +82,7 @@ describe("molecule override route", () => {
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
   });
 
-  it("refuses an editor session on every verb before touching Convex", async () => {
+  it("refuses an editor session on every verb before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const responses = await Promise.all([
       GET(new Request("https://dose.wiki/api/dev/molecule-override?slug=2c-b")),

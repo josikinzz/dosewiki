@@ -14,19 +14,19 @@
 // counts (legacy resume behavior).
 //
 // Environment:
-//   SOURCE_CONVEX_URL / CONVEX_PUBLIC_READ_URL / VITE_CONVEX_URL ... selects the
-//   deployment to read (see scripts/lib/data-ops-run-context.mjs).
-//   CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW (or legacy CONVEX_ADMIN_KEY)
+//   DATA_BACKEND=postgres is required; --source-url / SOURCE_POSTGRES_URL selects
+//   the read source, with the canonical Postgres target as fallback.
+//   DATA_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW (or legacy DATA_ADMIN_KEY)
 //   optionally enables existing-verdict lookup; without it existingVerdict is
 //   null and every pair is actionable.
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 
-import { api } from "../../convex/_generated/api.js";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -50,13 +50,7 @@ const runContext = createDataOpsRunContext({
   operation: "audit citation verdict claim-citation pairs",
   intent: "citation-verdict-audit",
   argv,
-  sourceUrlKeys: [
-    "SOURCE_CONVEX_URL",
-    "CONVEX_PUBLIC_READ_URL",
-    "VITE_CONVEX_URL",
-    "CONVEX_URL",
-    "NEXT_PUBLIC_CONVEX_URL",
-  ],
+  sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
   targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
@@ -67,7 +61,7 @@ async function fetchEvidenceRows(client, slugs) {
   const resolved = resolveAdminIntentToken("citationEvidenceReview");
   if (!resolved) {
     console.warn(
-      "No citationEvidenceReview token (CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW / CONVEX_ADMIN_KEY); "
+      "No citationEvidenceReview token (DATA_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW / DATA_ADMIN_KEY); "
         + "existingVerdict will be null for every pair.",
     );
     return [];
@@ -89,14 +83,14 @@ async function fetchEvidenceRows(client, slugs) {
 
 async function main() {
   printDataOpsRunContext(runContext);
-  const sourceUrl = requireSourceUrl(runContext, "Convex audit source URL");
+  const sourceUrl = requireSourceUrl(runContext, "Postgres audit source URL");
   const client = createDataClient({ target: sourceUrl }).client;
   const [articles, layout] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.categoryLayout.get, {}),
   ]);
-  if (!articles.length) throw new Error("No articles found in the source Convex deployment.");
-  if (!layout) throw new Error("No category layout found in the source Convex deployment.");
+  if (!articles.length) throw new Error("No articles found in the source Postgres database.");
+  if (!layout) throw new Error("No category layout found in the source Postgres database.");
 
   const articleBySlug = new Map(articles.map((article) => [article.slug, article]));
   const bareRows = [];
@@ -114,7 +108,7 @@ async function main() {
     schemaVersion: AUDIT_SCHEMA_VERSION,
     generatedAt: new Date().toISOString(),
     source: {
-      convexUrl: sourceUrl,
+      postgresIdentity: postgresFingerprintFromUrl(sourceUrl),
       publicScope: "categoryLayout",
       sections: CITABLE_SECTIONS,
       evidenceRowCount: evidenceRows.length,

@@ -3,7 +3,7 @@ import { projectLibraryInput } from "../projections/substanceReadProjections";
 import {
   parsePublicSubstanceLibraryInputRecords,
   parsePublicSubstanceRecords,
-} from "../../../lib/convex/publicData.substanceContract";
+} from "../../../lib/data/publicData.substanceContract";
 import type { SubstanceArticle } from "@/schema";
 import type { LibraryData } from "../SubstanceIndexProvider";
 import { buildLibrary } from "./libraryBuilder";

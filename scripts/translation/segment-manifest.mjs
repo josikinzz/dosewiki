@@ -99,7 +99,7 @@ function prepare(corpus) {
 }
 
 /**
- * @param {object} dataset - a published export or a Convex-backed envelope
+ * @param {object} dataset - a published export or a Postgres-backed envelope
  * @param {object} [corpusInput] - corpus descriptor; defaults to the substance index
  * @returns {{segments: Array, counts: object}}
  */

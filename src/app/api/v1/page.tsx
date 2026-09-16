@@ -1,14 +1,14 @@
 import Link from "next/link";
 
 import { buildPageMetadata } from "@server/next/metadata";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { Icon } from "@/components/common/Icon";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import { ContentCard, NestedContentCard } from "@/components/ui/surface";
 
 export async function generateMetadata() {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-api-v1-description"]);
 
   return buildPageMetadata({
     title: "Public API",

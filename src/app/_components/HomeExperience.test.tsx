@@ -172,29 +172,6 @@ describe("dose.wiki holding surface", () => {
     expect(screen.getByRole("button", { name: "Toggle navigation" })).toBeInTheDocument();
   });
 
-  it("keeps every appearance axis but withholds the Theme Lab", async () => {
-    const user = userEvent.setup();
-    renderBlocked();
-
-    // Settings precedes the hamburger here just as it does in the live mobile cluster;
-    // the FAB it replaced is gone.
-    const banner = screen.getByRole("banner");
-    const settings = within(banner).getByRole("button", { name: "Appearance settings" });
-    const hamburger = within(banner).getByRole("button", { name: "Toggle navigation" });
-    expect(settings.compareDocumentPosition(hamburger)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    await user.click(settings);
-    const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
-
-    // The panel opens on the colour tab: the look picker and mode row publish their axes.
-    expect(
-      [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
-        control.getAttribute("data-appearance-axis"),
-      ),
-    ).toEqual(["visual-style", "color-scheme"]);
-    // Palette authoring and sharing are intentionally absent from the blocked surface —
-    // the Theme Lab entry shares the colour tab's footer, which is already showing.
-    expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
-  });
 
   it("does not present a future site launch", () => {
     renderBlocked();

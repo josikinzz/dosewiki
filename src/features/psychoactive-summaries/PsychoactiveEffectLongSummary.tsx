@@ -6,11 +6,11 @@ import { publicHref } from "@/utils/publicHref";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
 import type { ArtistCreditLinks } from "@/features/effects/vcode/artistCreditLinks";
-import type { PublicEffectArticle } from "@server/convex/publicData";
+import type { PublicEffectSummary } from "@server/data/publicData";
 import { t } from "@/i18n/server";
 
 interface PsychoactiveEffectLongSummaryProps {
-  effect: PublicEffectArticle;
+  effect: PublicEffectSummary;
   artistCreditLinks?: ArtistCreditLinks;
   /** The drug class this summary page speaks for. */
   mediaVariantKey?: string;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/** Full-byte and range verification for objects copied by copy-missing-r2-media.mjs. */
+/** Full-byte and range verification of R2 objects against a retained migration ledger. */
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -60,7 +60,7 @@ export function validateDeliveryHeaders(headers, object, label) {
     throw new Error(`${label} content type mismatch for ${object.key}: expected ${object.contentType}, got ${contentType}`);
   }
   const cacheControl = headers.get("cache-control") ?? "";
-  if (!/\bpublic\b/i.test(cacheControl) || !/\bimmutable\b/i.test(cacheControl) || !/\bmax-age=31536000\b/i.test(cacheControl)) {
+  if (!/(?:^|,)\s*no-store\s*(?:,|$)/i.test(cacheControl)) {
     throw new Error(`${label} cache policy mismatch for ${object.key}`);
   }
   const contentDisposition = headers.get("content-disposition") ?? "";

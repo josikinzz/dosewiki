@@ -6,8 +6,6 @@ import {
 } from "../data/builders/searchManifest";
 import type { UiLocale } from "../i18n/messages";
 
-const MAX_LOAD_ATTEMPTS = 2;
-
 /**
  * One manifest per locale per document, shared by every search surface.
  *
@@ -22,7 +20,6 @@ const manifestIndexPromises = new Map<UiLocale, Promise<SearchManifestIndex | nu
  * labels from the previous language while the requested manifest loads.
  */
 const loadedManifestIndexes = new Map<UiLocale, SearchManifestIndex>();
-const loadAttemptsByLocale = new Map<UiLocale, number>();
 const manifestListeners = new Set<() => void>();
 
 function emitManifestChange() {
@@ -50,12 +47,8 @@ export function loadSearchManifestIndex(
     return existing;
   }
 
-  const attempts = loadAttemptsByLocale.get(locale) ?? 0;
-  if (attempts >= MAX_LOAD_ATTEMPTS) {
-    return Promise.resolve(null);
-  }
-
-  loadAttemptsByLocale.set(locale, attempts + 1);
+  // A failed request is removed from the in-flight map below. The next focus
+  // or explicit search action can therefore retry without remounting search.
   const promise = fetchSearchManifestIndex(locale)
     .then((index) => {
       if (index) loadedManifestIndexes.set(locale, index);
@@ -64,43 +57,17 @@ export function loadSearchManifestIndex(
     })
     .catch(() => {
       manifestIndexPromises.delete(locale);
+      emitManifestChange();
       return null;
     });
   manifestIndexPromises.set(locale, promise);
   return promise;
 }
 
-/**
- * Warm the manifest during browser idle time, well before the user engages
- * search. The download (~85 KB gzipped) never competes with hydration or
- * user-visible work, and repeat visits revalidate against the route's ETag in
- * a 304. Safe to call from every search surface: the module-level promise
- * makes it a no-op after the first call.
- */
-export function preloadSearchManifestIndex(locale: UiLocale = "en") {
-  if (
-    typeof window === "undefined" ||
-    manifestIndexPromises.has(locale) ||
-    loadedManifestIndexes.has(locale)
-  ) {
-    return;
-  }
-
-  const schedule =
-    typeof window.requestIdleCallback === "function"
-      ? (callback: () => void) => window.requestIdleCallback(callback)
-      : (callback: () => void) => window.setTimeout(callback, 200);
-
-  schedule(() => {
-    void loadSearchManifestIndex(locale);
-  });
-}
-
-/** Test seam: forget any loaded manifest and reset the attempt counter. */
+/** Test seam: forget any loaded or in-flight manifest. */
 export function resetSearchManifestForTests() {
   manifestIndexPromises.clear();
   loadedManifestIndexes.clear();
-  loadAttemptsByLocale.clear();
   emitManifestChange();
 }
 
@@ -111,6 +78,7 @@ export function resetSearchManifestForTests() {
 export function useSearchManifestIndex(
   enabled: boolean,
   locale: UiLocale = "en",
+  requestIfMissing = true,
 ): SearchManifestIndex | null {
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -127,12 +95,12 @@ export function useSearchManifestIndex(
   const index = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
   useEffect(() => {
-    if (!enabled || index) {
+    if (!enabled || index || !requestIfMissing) {
       return;
     }
 
     void loadSearchManifestIndex(locale);
-  }, [enabled, index, locale]);
+  }, [enabled, index, locale, requestIfMissing]);
 
   return index;
 }

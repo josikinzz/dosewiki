@@ -1,10 +1,10 @@
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { AppRole } from "@/lib/auth/roles";
-import type { DevProposalSeed } from "../context/devModeTypes";
-import type { useDevModeChangeLog } from "./useDevModeChangeLog";
+import type { DevIndexLayoutsReadiness, DevProposalSeed } from "../context/devModeTypes";
 import type { DevModePrimaryTab } from "./devModePageUtils";
 import type { DevModeTab } from "./devTabRegistry";
 import type { useDevSupportTabsController } from "./useDevModeSupportTabProps";
+import type { ChangeLogController } from "./useDevModeChangeLog";
 
 export type DevModePageProps = {
   activeTab: DevModeTab;
@@ -44,8 +44,10 @@ export type DevModePageControllerState = {
   userName?: string | null;
   articlesLength: number;
   isLibraryLoading: boolean;
+  indexLayoutsReadiness: DevIndexLayoutsReadiness;
+  retryIndexLayouts: () => void;
   activeTab: DevModeTab;
-  changeLog: ReturnType<typeof useDevModeChangeLog>;
+  changeLog: ChangeLogController;
   commitPanel: ReturnType<
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["commitPanel"];

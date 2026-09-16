@@ -13,6 +13,7 @@ import { toWritingBlogPost } from "@/features/blog/domain/writingBlogModel";
 import type { ArticleBylineAuthor } from "@/features/articles/domain/articleByline";
 import { NarrativeHistory } from "@/features/effects/editing/NarrativeHistory";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import { useT } from "@/i18n/client";
 import {
   EditorActionStatus,
   EditorField,
@@ -54,6 +55,7 @@ export function WritingEditor({
   bylineAuthors = [],
   contextual = false,
 }: WritingEditorProps) {
+  const t = useT();
   const {
     kind,
     draft,
@@ -282,7 +284,7 @@ export function WritingEditor({
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.loadedRow} onClick={() => void controller.reconcile()}>Reload published baseline</Button>
       </EditorToolbar>
       {discarding ? <EditorSection headingLevel="h3" title="Discard local edits?" description="This restores the loaded document. Your local changes will be lost."><EditorToolbar><Button ref={keepLocalEditsRef} variant="outline" onClick={() => setDiscarding(false)}>Keep local edits</Button><Button variant="destructive" disabled={readOnly} onClick={() => { controller.discard(); setDiscarding(false); }}>Confirm discard</Button></EditorToolbar></EditorSection> : null}
-      {reviewed === fingerprint ? <div ref={reviewRef} tabIndex={-1} aria-label="Review document changes" className="min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"><EditorSection headingLevel="h3" title="Review document changes" description="Only these fields will change. This preview has not been published.">
+      {reviewed === fingerprint ? <div ref={reviewRef} tabIndex={-1} aria-label="Review document changes" className="min-w-0 theme-focus-ring"><EditorSection headingLevel="h3" title="Review document changes" description="Only these fields will change. This preview has not been published.">
         {changes.map(key => <div key={key} className="min-w-0 space-y-2"><h4 className="font-semibold">{WRITING_FIELD_LABELS[key]}</h4><div className="grid gap-3 md:grid-cols-2"><div className="min-w-0"><p className="theme-text-muted text-sm">Published baseline</p><pre className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof controller.baseline[key] === "string" ? controller.baseline[key] : JSON.stringify(controller.baseline[key], null, 2)}</pre></div><div className="min-w-0"><p className="theme-text-muted text-sm">Local changes</p><pre className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof draft[key] === "string" ? draft[key] : JSON.stringify(draft[key], null, 2)}</pre></div></div></div>)}
         <Button type="button" variant="accent" disabled={!saveEnabled} onClick={() => void save(draft.status)}>{draft.status === "published" ? "Confirm publication" : "Confirm save as unpublished"}</Button>
         <Button type="button" variant="outline" onClick={() => { setReviewed(null); reviewButtonRef.current?.focus(); }}>Back to editing</Button>
@@ -294,7 +296,7 @@ export function WritingEditor({
         title="Local preview"
         description="The public reading layout. Nothing here is published until you confirm."
       >
-        {kind === "blog" ? <WritingBlogPostPage post={toWritingBlogPost(previewArticle, previewAuthors)} /> : <EffectIndexArticlePage article={previewArticle} bylineAuthors={previewAuthors} />}
+        {kind === "blog" ? <WritingBlogPostPage post={toWritingBlogPost(previewArticle, previewAuthors)} /> : <EffectIndexArticlePage article={previewArticle} bylineAuthors={previewAuthors} t={t} />}
       </EditorSection> : null}
       <NarrativeHistory entries={controller.loadedRow?.history ?? []} />
     </>

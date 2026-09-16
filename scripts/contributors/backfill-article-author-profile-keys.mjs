@@ -21,14 +21,14 @@
  * Usage:
  *   node scripts/contributors/backfill-article-author-profile-keys.mjs
  *   node scripts/contributors/backfill-article-author-profile-keys.mjs --limit=5
- *   TARGET_CONVEX_URL=https://<deployment>.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
  *     node scripts/contributors/backfill-article-author-profile-keys.mjs --write \
  *       --confirm-write=backfill-article-author-profile-keys \
  *       --expected-deployment=<deployment>
  */
 
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -64,15 +64,11 @@ async function backfillAuthorProfileKeys() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  const readUrl =
-    command.targetUrl ??
-    process.env.CONVEX_URL ??
-    process.env.VITE_CONVEX_URL ??
-    process.env.NEXT_PUBLIC_CONVEX_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
     throw new Error(
-      "No Convex URL to read from. Set TARGET_CONVEX_URL (or VITE_CONVEX_URL for a dry run).",
+      "No Postgres URL to read from. Set TARGET_POSTGRES_URL (or POSTGRES_POOLED_URL for a dry run).",
     );
   }
 
@@ -104,7 +100,7 @@ async function backfillAuthorProfileKeys() {
     pending = pending.slice(0, limit);
   }
 
-  console.log(`\nReading from: ${readUrl}`);
+  console.log(`\nReading from: ${postgresFingerprintFromUrl(readUrl)}`);
   console.log(`Articles readable (drafts excluded): ${articles.length}`);
   console.log(`Carrying the legacy author id ${LEGACY_AUTHOR_OBJECT_ID}: ${legacy.length}`);
   console.log(`Already carrying authorProfileKeys: ${legacy.length - pending.length}`);

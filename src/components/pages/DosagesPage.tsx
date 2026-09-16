@@ -308,9 +308,8 @@ export function DosagesPage({
 
       <CategoryIntro content={activeContent} activeTab={activeTab} />
 
-      <div ref={panelsStartRef} className="mt-6 scroll-mt-24 sm:mt-10">
+      <div key={activeTab} ref={panelsStartRef} className="theme-tab-panel-enter mt-6 scroll-mt-24 sm:mt-10">
         <CategoryGrid
-          key={activeTab}
           groups={resolvedGroups}
           columnLayout={activeTab === "all" ? SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT : undefined}
           drugHrefPrefix="/"

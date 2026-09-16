@@ -5,6 +5,7 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useArticleEdit, type EditableValueInput } from "./ArticleEditContext";
 import { EditableValue } from "./EditableValue";
+import type { MessageValues } from "@/i18n/messages";
 
 interface EditableSlotProps<T extends EditableValueInput = string> {
   /** Concrete article field path, e.g. `legality.countries.Germany.notes`. */
@@ -15,6 +16,7 @@ interface EditableSlotProps<T extends EditableValueInput = string> {
   emptyLabel: string;
   /** Human name for the field, used in the accessible label. */
   label?: string;
+  labelValues?: MessageValues;
   /** See `EditableValue`; a range slot supplies both. */
   format?: (value: T) => string;
   parse?: (raw: string) => T | null;
@@ -49,6 +51,7 @@ export function EditableSlot<T extends EditableValueInput = string>({
   value,
   emptyLabel,
   label,
+  labelValues,
   format,
   parse,
   parseErrorLabel,
@@ -66,6 +69,7 @@ export function EditableSlot<T extends EditableValueInput = string>({
       emptyLabel={emptyLabel}
       format={format}
       label={label ?? emptyLabel}
+      labelValues={labelValues}
       parse={parse}
       parseErrorLabel={parseErrorLabel}
       path={path}

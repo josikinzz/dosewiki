@@ -19,7 +19,7 @@ const tagTokenVariantClasses: Record<NonNullable<TagTokenProps["variant"]>, stri
   compact:
     "gap-1 rounded-md px-1.5 py-0.5 text-xs",
   interactive:
-    "gap-1.5 rounded-lg px-2.5 py-1 text-sm hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg-subtle)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-dose-accent-strong",
+    "gap-1.5 rounded-lg px-2.5 py-1 text-sm hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg-subtle)]",
   readonly:
     "gap-1.5 rounded-lg px-2.5 py-1 text-sm opacity-80",
   danger:

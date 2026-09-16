@@ -1,7 +1,7 @@
 /**
  * Tickets 12 and 13 rehearsal: replication curation, playback metadata,
- * contributor identity and attribution, all through `PostgresConvexClient`
- * with the unchanged Convex handlers.
+ * contributor identity and attribution, all through `PostgresClient`
+ * with the owned native handlers.
  *
  *   a. curation: publishMetadata on a scratch replication updates the derived
  *      `replicationGalleryCandidates` rows and writes one `replicationEditReceipts`
@@ -25,15 +25,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
 import ts from "typescript";
-import { ConvexError } from "convex/values";
-import { makeFunctionReference } from "convex/server";
-import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
-import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
-import { mintConvexId } from "../../lib/postgres/runtime/db";
-import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
-import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
-import { documentHash } from "../../lib/postgres/convexDocumentCodec";
+import { PostgresError } from "../../lib/postgres/runtime/values";
+import { makeFunctionReference } from "../../lib/postgres/runtime/api";
+import { api } from "../../lib/postgres/runtime/api";
+import type { Id } from "../../lib/postgres/runtime/dataModel";
+import { PostgresClient } from "../../lib/postgres/runtime/client";
+import { mintDataId } from "../../lib/postgres/runtime/db";
+import { getPostgresClient } from "../../lib/postgres/runtime/backend";
+import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
+import { documentHash } from "../../lib/postgres/documentCodec";
 import { insertDocument, mintDocumentId, selectDocuments } from "../../lib/postgres/documentStore";
 import type { TableName } from "../../lib/postgres/schema.generated";
 import { contributorMatchNames } from "../../lib/contributorProfileIdentity";
@@ -45,7 +45,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const RUN = mintDocumentId().slice(0, 8);
 const P12 = `t12-${RUN}`;
 const P13 = `t13-${RUN}`;
-const API_KEY = process.env.CONVEX_ADMIN_KEY ?? "";
+const API_KEY = process.env.DATA_ADMIN_KEY ?? "";
 const OWNER_EMAIL = `${P13}-owner@rehearsal.invalid`;
 const OTHER_EMAIL = `${P13}-other@rehearsal.invalid`;
 const ADMIN_EMAIL = `${P13}-admin@rehearsal.invalid`;
@@ -73,7 +73,7 @@ function expect(scenario: string, check: string, pass: boolean, detail?: unknown
 type Row = Record<string, unknown>;
 const same = (left: unknown, right: unknown) => JSON.stringify(left) === JSON.stringify(right);
 function errorCode(error: unknown): string | null {
-  if (!(error instanceof ConvexError) || typeof error.data !== "object" || error.data === null || !("code" in error.data)) return null;
+  if (!(error instanceof PostgresError) || typeof error.data !== "object" || error.data === null || !("code" in error.data)) return null;
   return typeof error.data.code === "string" ? error.data.code : null;
 }
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : String(error);
@@ -90,9 +90,9 @@ class Scratch {
   readonly rows: { table: TableName | "storageObjects"; id: string }[] = [];
   constructor(private readonly pool: Pool) {}
   async seed<T extends TableName>(table: T, doc: Row): Promise<Id<T>> {
-    const id = await insertDocument(this.pool, table, { _id: mintConvexId(table), ...doc });
+    const id = await insertDocument(this.pool, table, { _id: mintDataId(table), ...doc });
     this.rows.push({ table, id });
-    // The store hands back the text primary key; on Convex it would be the branded id.
+    // The store hands back the text primary key; the callable API uses the branded type.
     return id as Id<T>;
   }
   /** The R2 manifest is a runtime table keyed by storage_id, outside the document codec. */
@@ -162,7 +162,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const target = resolveTarget(argv);
   guardTarget(target, argv.includes("--allow-remote"));
-  if (!API_KEY) throw new Error("CONVEX_ADMIN_KEY is required (Bun loads .env.local)");
+  if (!API_KEY) throw new Error("DATA_ADMIN_KEY is required (Bun loads .env.local)");
   // The app boundary reads its target from env; point it at the rehearsal target, never PlanetScale.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
@@ -173,7 +173,7 @@ async function main() {
 
   const keep = argv.includes("--keep");
   const pool = new Pool({ connectionString: target, max: 4 });
-  const client = PostgresConvexClient.fromUrl(target);
+  const client = PostgresClient.fromUrl(target);
   const scratch = new Scratch(pool);
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-replications-identity`);
   const started = performance.now();
@@ -537,7 +537,7 @@ async function main() {
     console.log(JSON.stringify({ passed, failed: summary.failed, elapsedMs: summary.elapsedMs }));
     process.exitCode = summary.failed === 0 ? 0 : 1;
     await client.end();
-    await getPostgresConvexClient().end();
+    await getPostgresClient().end();
     await pool.end();
   }
 }

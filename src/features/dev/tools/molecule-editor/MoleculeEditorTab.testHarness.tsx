@@ -153,6 +153,57 @@ vi.mock("./OclEditor", () => ({
     </div>
   ),
 }));
+type PickerFixture = {
+  slug: string;
+  title: string;
+  priority?: string | null;
+  index_categories?: string[] | null;
+  classification?: unknown;
+  hasOverride: boolean;
+};
+
+type SourceFixture = { slug: string; smiles: string };
+
+/** Serve the bounded picker projection, selected chemistry, and saved depictions. */
+export function stubMoleculeEditorFetch({
+  picker = [],
+  sources = {},
+  overrides = {},
+}: {
+  picker?: PickerFixture[];
+  sources?: Record<string, SourceFixture | null>;
+  overrides?: Record<string, Record<string, unknown> | null>;
+} = {}) {
+  const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.startsWith("/api/dev/molecule-editor?")) {
+      const params = new URLSearchParams(url.slice(url.indexOf("?") + 1));
+      if (params.get("scope") === "source") {
+        const slug = params.get("slug") ?? "";
+        return Promise.resolve(Response.json(sources[slug] ?? null));
+      }
+      return Promise.resolve(Response.json({
+        page: picker,
+        continueCursor: "",
+        isDone: true,
+      }));
+    }
+    if (url.startsWith("/api/dev/molecule-override")) {
+      const slug = new URL(url, "https://dose.test").searchParams.get("slug") ?? "";
+      if (init?.method === "POST") {
+        return Promise.resolve(Response.json({ ok: true, override: JSON.parse(String(init.body)) }));
+      }
+      return Promise.resolve(Response.json({ ok: true, override: overrides[slug] ?? null }));
+    }
+    if (url === "/api/dev/molecule-class-template?list=1") {
+      return Promise.resolve(Response.json({ templates: [] }));
+    }
+    return Promise.reject(new Error(`Unstubbed molecule-editor request: ${url}`));
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
 
 export function installMoleculeEditorTestHarness() {
   beforeEach(() => {
@@ -165,7 +216,9 @@ export function installMoleculeEditorTestHarness() {
       isLoading: false,
       status: "Exhausted",
     });
-    useRdkitMock.mockReturnValue({ rdkit: null, error: null });
+    // Behavioral tab scenarios run after the chemistry engines have loaded.
+    // Individual readiness cases can still override this with a null engine.
+    useRdkitMock.mockReturnValue({ rdkit: {}, error: null });
     // A functional identity stub, not null: the tab installs baselines through
     // `normalizeForComparison` (ocl.Molecule.fromMolfile(m).toMolfile()) and
     // waits for OCL before resolving any source, so a null default would keep
@@ -175,6 +228,7 @@ export function installMoleculeEditorTestHarness() {
       ocl: { Molecule: { fromMolfile: (molblock: string) => ({ toMolfile: () => molblock }) } },
       error: null,
     });
+    renderMoleculeSvgMock.mockReturnValue("<svg />");
     vi.stubGlobal(
       "ResizeObserver",
       class {
@@ -183,6 +237,7 @@ export function installMoleculeEditorTestHarness() {
         disconnect() {}
       },
     );
+    stubMoleculeEditorFetch();
   });
 
   afterEach(() => {
@@ -225,14 +280,22 @@ const SAVED_EXAMPLE_OVERRIDE = {
   updatedAt: "2026-07-12T00:00:00.000Z",
 }
 
-/** GET /api/dev/molecule-override answers with `override` (null = no saved depiction). */
+/** Serve one substance through the current picker, source, and override contracts. */
 export function stubOverrideFetch(override: Record<string, unknown> | null = SAVED_EXAMPLE_OVERRIDE) {
-  return vi.spyOn(globalThis, "fetch").mockResolvedValue(
-    new Response(JSON.stringify({ ok: true, override }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+  return stubMoleculeEditorFetch({
+    picker: [{
+      slug: "example",
+      title: "Example",
+      priority: "normal",
+      index_categories: ["substance"],
+      classification: null,
+      hasOverride: override !== null,
+    }],
+    sources: {
+      example: { slug: "example", smiles: "CCO" },
+    },
+    overrides: { example: override },
+  });
 }
 
 /** Seeded-class flow: no saved override, RDKit generates the Markush molblock. */

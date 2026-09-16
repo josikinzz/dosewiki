@@ -1,22 +1,22 @@
 import { NextResponse } from "next/server";
 import { requireRoleSession, type RoleSessionGranted } from "@/lib/auth/requireEditorSession";
 import type { RoleFloor } from "@/lib/auth/roles";
-import { convexRejectionResponse } from "@/lib/http/convexRejection";
+import { dataRejectionResponse } from "@/lib/http/dataRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
-import { getServerConvexWriteCapability, type ServerConvexWriteCapability, type ServerConvexWriteConfigurationFailure } from "@server/convex/serverWriteCapability";
+import { getServerDataWriteCapability, type ServerDataWriteCapability, type ServerDataWriteConfigurationFailure } from "@server/data/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
 
-type ConvexWriteCapabilityPolicy = {
-  type: "convexWrite";
-  errorMessage?: (failure: ServerConvexWriteConfigurationFailure) => string;
+type DataWriteCapabilityPolicy = {
+  type: "dataWrite";
+  errorMessage?: (failure: ServerDataWriteConfigurationFailure) => string;
 };
 
 type ProtectedRouteOperationContext = {
   request: Request;
   auth: RoleSessionGranted;
   actorEmail: string;
-  convexWrite?: ServerConvexWriteCapability;
+  dataWrite?: ServerDataWriteCapability;
 };
 
 type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
@@ -30,7 +30,7 @@ type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
     maxBytes: number;
     parse?: (body: RawBody, context: ProtectedRouteOperationContext) => ParsedBody;
   };
-  capabilities?: ConvexWriteCapabilityPolicy[];
+  capabilities?: DataWriteCapabilityPolicy[];
   unexpectedErrorLabel: string;
   unexpectedErrorMessage?: string;
   mapError?: (error: unknown) => NextResponse | null;
@@ -39,7 +39,7 @@ type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
     auth: RoleSessionGranted;
     actorEmail: string;
     body: ParsedBody;
-    convexWrite?: ServerConvexWriteCapability;
+    dataWrite?: ServerDataWriteCapability;
   }) => Promise<NextResponse> | NextResponse;
 };
 
@@ -79,10 +79,10 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
     }
 
     const actorEmail = auth.session.user.email;
-    let convexWrite: ServerConvexWriteCapability | undefined;
+    let dataWrite: ServerDataWriteCapability | undefined;
     for (const capabilityPolicy of options.capabilities ?? []) {
-      if (capabilityPolicy.type === "convexWrite") {
-        const capability = getServerConvexWriteCapability();
+      if (capabilityPolicy.type === "dataWrite") {
+        const capability = getServerDataWriteCapability();
         if (capability.ok === false) {
           return NextResponse.json(
             {
@@ -92,7 +92,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
           );
         }
 
-        convexWrite = capability.capability;
+        dataWrite = capability.capability;
       }
     }
 
@@ -101,7 +101,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         request,
         auth,
         actorEmail,
-        convexWrite,
+        dataWrite,
       };
       const rawBody = options.body
         ? await readJsonBody<RawBody>(request, { maxBytes: options.body.maxBytes })
@@ -113,7 +113,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         auth,
         actorEmail,
         body: parsedBody,
-        convexWrite,
+        dataWrite,
       });
     } catch (error) {
       const mapped = options.mapError?.(error) ?? mapDefaultError(error);
@@ -121,12 +121,12 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         return mapped;
       }
 
-      // A `ConvexError` is the write layer refusing on purpose, with text meant
+      // A `PostgresError` is the write layer refusing on purpose, with text meant
       // for whoever triggered the write — a stale value, a slug that is not
       // there, a field nobody may edit. Collapsing those into the generic
       // message leaves an editor unable to tell a mistake from an outage. Every
       // other throw keeps falling through below.
-      const rejection = convexRejectionResponse(error);
+      const rejection = dataRejectionResponse(error);
       if (rejection) {
         // Still logged: an actionable rejection is also how a deployment drift
         // or a client bug shows up, and the client only sees the sentence.

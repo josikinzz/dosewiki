@@ -37,8 +37,12 @@ GET /embed/replications?kind=substance&slug=lsd&parentOrigin=https%3A%2F%2Fosman
 
 `src/app/embed/replications/page.tsx` reads the same
 `getEffectShowcaseWorks` and `getSubstanceShowcaseWorks` collections as the
-website. `src/features/replications/embed/ReplicationEmbed.tsx` directly renders
-the canonical public `ReplicationShowcase` and `ReplicationViewerOverlay`.
+website. The document serializes at most 12 opening works, the total count,
+and collection identity. Its opening poster is visible before hydration.
+`src/features/replications/embed/ReplicationEmbed.tsx` renders the canonical
+public `ReplicationShowcase`; viewer intent resolves the complete validated
+collection and loads `ReplicationViewerOverlay`. Failed reads and chunk loads
+remain retryable without replacing the playlist with the opening strip.
 There is no alternate player, copied media, or consumer-side sorting.
 
 Effect embeds omit the collection heading/count strip and generic media-rights
@@ -96,6 +100,10 @@ payload. Always send to the exact target origin, never `"*"`.
 The publisher acknowledges `select` with a `viewer` message even when unchanged.
 This lets the host reject stale work events while Close/Back is settling.
 Ordinary viewer navigation reports its work without resetting group position.
+The opening `ready` does not wait for the full playlist. A selection outside
+the opening strip resolves against the complete publisher collection before
+its `viewer` acknowledgment. A newer selection or Close supersedes an in-flight
+selection, and stale responses cannot reopen the viewer.
 The iframe remains in one DOM location across open/close and history changes;
 the host expands it to its own viewport and restores focus/scroll on return.
 Osmanthus retains its `osMediaCollection=<kind>:<canonical-key>` and
@@ -662,7 +670,7 @@ const absoluteMoleculeUrl = new URL(
 ).toString();
 ```
 
-A depiction may come from the canonical Convex override or a static publication fallback. A missing depiction returns `404`; chemical identifiers may still be present in the article.
+A depiction may come from the canonical Postgres override or a static publication fallback. A missing depiction returns `404`; chemical identifiers may still be present in the article.
 
 ## Replication collections
 
@@ -834,7 +842,7 @@ There are no API webhooks, delta feeds, write endpoints, or guaranteed `ETag` wo
 
 ## What is not exposed yet
 
-The public website contains more Convex-backed surfaces than API v1 currently exposes. In particular, API v1 does **not** currently provide:
+The public website contains more database-backed surfaces than API v1 currently exposes. In particular, API v1 does **not** currently provide:
 
 - standalone subjective-effect article bodies or an effect index (only effect-linked replications);
 - trip reports or trip-report listings;

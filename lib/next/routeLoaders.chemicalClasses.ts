@@ -3,11 +3,13 @@ import "server-only";
 import {
   getPublicChemicalClassDetailPayload,
   getPublicChemicalClassTreePayload,
-} from "@server/convex/publicChemicalClassIndex";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+} from "@server/data/publicChemicalClassIndex";
+import { flavoredCopyKey, flavoredCopyText, getCopyByKeys } from "@server/next/copyBlocks";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { msg, type MessageValues } from "@/i18n/messages";
 import type { ChemicalClassDetail } from "@/features/chemical-classes/types";
+
+const CHEMICAL_CLASS_COPY_KEYS = [flavoredCopyKey("seo-chemical-classes-description")];
 
 /** Preserve the class route's metadata-length contract after locale lookup. */
 export function formatChemicalClassMetadataDescription(value: string): string {
@@ -20,7 +22,7 @@ export function formatChemicalClassMetadataDescription(value: string): string {
 }
 
 export async function loadChemicalClassTreeRoute() {
-  const [payload, copy] = await Promise.all([getPublicChemicalClassTreePayload(), getCopy()]);
+  const [payload, copy] = await Promise.all([getPublicChemicalClassTreePayload(), getCopyByKeys(CHEMICAL_CLASS_COPY_KEYS)]);
   const classCount = Object.keys(payload.nodes).length;
   const descriptionTemplate = flavoredCopyText(
     copy,

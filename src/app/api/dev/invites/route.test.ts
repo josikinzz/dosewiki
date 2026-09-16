@@ -1,4 +1,4 @@
-import { ConvexError } from "convex/values";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 import { hashInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
@@ -7,7 +7,7 @@ import { POST as REVOKE } from "./[id]/revoke/route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     inviteCodes: {
       list: "inviteCodes.list",
@@ -27,16 +27,16 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: () => ({
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: () => ({
     ok: true,
     capability: {
-      client: { query: convexMocks.query, mutation: convexMocks.mutation },
+      client: { query: dataMocks.query, mutation: dataMocks.mutation },
       adminKey: "admin-key",
     },
   }),
@@ -72,29 +72,40 @@ beforeEach(() => {
   authMocks.requireRoleSession.mockImplementation(
     roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
   );
-  convexMocks.query.mockResolvedValue([summary]);
-  convexMocks.mutation.mockResolvedValue(summary);
+  dataMocks.query.mockResolvedValue({ invites: [summary], continuationCursor: null });
+  dataMocks.mutation.mockResolvedValue(summary);
 });
 
 describe("GET /api/dev/invites", () => {
-  it("refuses an editor with 403 before touching Convex", async () => {
+  it("refuses an editor with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     const response = await GET(listRequest());
 
     expect(response.status).toBe(403);
-    expect(convexMocks.query).not.toHaveBeenCalled();
+    expect(dataMocks.query).not.toHaveBeenCalled();
   });
 
-  it("lists invites for an admin, naming the actor", async () => {
+  it("lists one invite page for an admin, naming the actor and forwarding its cursor", async () => {
+    dataMocks.query.mockResolvedValue({
+      invites: [summary],
+      continuationCursor: "next-page",
+    });
 
-    const response = await GET(listRequest());
+    const response = await GET(
+      new Request("https://dev.dose.wiki/api/dev/invites?cursor=current-page"),
+    );
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ ok: true, invites: [summary] });
-    expect(convexMocks.query).toHaveBeenCalledWith("inviteCodes.list", {
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      invites: [summary],
+      continuationCursor: "next-page",
+    });
+    expect(dataMocks.query).toHaveBeenCalledWith("inviteCodes.list", {
       apiKey: "admin-key",
       actorEmail: "admin@example.com",
+      cursor: "current-page",
     });
   });
 });
@@ -106,22 +117,24 @@ describe("POST /api/dev/invites", () => {
     const response = await POST(mintRequest({ role: "editor" }));
 
     expect(response.status).toBe(403);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("refuses a signed-out caller with 401", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor(null));
 
     expect((await POST(mintRequest({ role: "editor" }))).status).toBe(401);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("rejects a bad role, expiry, or uses without calling Convex", async () => {
+  it("rejects a bad role, expiry, or uses without calling Postgres", async () => {
 
     expect((await POST(mintRequest({ role: "admin" }))).status).toBe(400);
     expect((await POST(mintRequest({ role: "editor", expiresInDays: 0 }))).status).toBe(400);
     expect((await POST(mintRequest({ role: "editor", maxUses: "lots" }))).status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect((await POST(mintRequest({ role: "translator" }))).status).toBe(400);
+    expect((await POST(mintRequest({ role: "editor_translator", glossaryLocales: ["xx"] }))).status).toBe(400);
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("mints with the hashed code and returns the plaintext once with the row", async () => {
@@ -135,13 +148,14 @@ describe("POST /api/dev/invites", () => {
     expect(payload).toEqual({ ok: true, code: expect.any(String), invite: summary });
     expect(payload.code).toMatch(/^[a-z2-9]{4}(-[a-z2-9]{4}){5}$/);
 
-    expect(convexMocks.mutation).toHaveBeenCalledTimes(1);
-    const [name, args] = convexMocks.mutation.mock.calls[0];
+    expect(dataMocks.mutation).toHaveBeenCalledTimes(1);
+    const [name, args] = dataMocks.mutation.mock.calls[0];
     expect(name).toBe("inviteCodes.mint");
     expect(args).toEqual({
       apiKey: "admin-key",
       actorEmail: "admin@example.com",
       role: "contributor",
+      glossaryLocales: [],
       codeHash: hashInviteCode(normalizeInviteCode(payload.code)),
       note: "For Ada",
       expiresInDays: 14,
@@ -152,19 +166,20 @@ describe("POST /api/dev/invites", () => {
 
   it("applies the defaults of 7 days and one use, and mints translator invites", async () => {
 
-    await POST(mintRequest({ role: "translator" }));
+    await POST(mintRequest({ role: "translator", glossaryLocales: ["nl"] }));
 
-    expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({
+    expect(dataMocks.mutation.mock.calls[0][1]).toMatchObject({
       role: "translator",
+      glossaryLocales: ["nl"],
       expiresInDays: 7,
       maxUses: 1,
       note: undefined,
     });
   });
 
-  it("forwards a Convex refusal as a 4xx with its code", async () => {
-    convexMocks.mutation.mockRejectedValueOnce(
-      new ConvexError({ code: "INVITE_HASH_TAKEN", message: "That invite code already exists; mint another." }),
+  it("forwards a Postgres refusal as a 4xx with its code", async () => {
+    dataMocks.mutation.mockRejectedValueOnce(
+      new PostgresError({ code: "INVITE_HASH_TAKEN", message: "That invite code already exists; mint another." }),
     );
 
     const response = await POST(mintRequest({ role: "editor" }));
@@ -178,21 +193,21 @@ describe("POST /api/dev/invites", () => {
 });
 
 describe("POST /api/dev/invites/[id]/revoke", () => {
-  it("refuses an editor with 403 before touching Convex", async () => {
+  it("refuses an editor with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     expect((await REVOKE(revokeRequest("inv1"))).status).toBe(403);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("revokes by the id in the path, naming the actor", async () => {
-    convexMocks.mutation.mockResolvedValueOnce(null);
+    dataMocks.mutation.mockResolvedValueOnce(null);
 
     const response = await REVOKE(revokeRequest("inv1"));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true });
-    expect(convexMocks.mutation).toHaveBeenCalledWith("inviteCodes.revoke", {
+    expect(dataMocks.mutation).toHaveBeenCalledWith("inviteCodes.revoke", {
       apiKey: "admin-key",
       actorEmail: "admin@example.com",
       id: "inv1",
@@ -200,8 +215,8 @@ describe("POST /api/dev/invites/[id]/revoke", () => {
   });
 
   it("forwards the exhausted refusal", async () => {
-    convexMocks.mutation.mockRejectedValueOnce(
-      new ConvexError({ code: "INVITE_EXHAUSTED", message: "Already fully redeemed." }),
+    dataMocks.mutation.mockRejectedValueOnce(
+      new PostgresError({ code: "INVITE_EXHAUSTED", message: "Already fully redeemed." }),
     );
 
     const response = await REVOKE(revokeRequest("inv1"));

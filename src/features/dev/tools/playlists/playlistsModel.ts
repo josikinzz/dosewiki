@@ -11,16 +11,21 @@ import { playlistKeyOf } from "@/features/dev/tools/replication-studio/replicati
 
 export { playlistKeyOf };
 
-/** One playlist as the collection route returns it. */
-export type OwnedPlaylist = {
+/** Compact playlist metadata returned by the collection route. */
+export type OwnedPlaylistSummary = {
   key: string;
   title: string;
-  replication_slugs: string[];
+  work_count: number;
   updated_at: string;
   updated_by: string | null;
   owner_email: string | null;
   /** Whether the signed-in member may change this row (owner or admin). */
   editable: boolean;
+};
+
+/** Complete playlist returned by keyed reads and mutations. */
+export type OwnedPlaylist = Omit<OwnedPlaylistSummary, "work_count"> & {
+  replication_slugs: string[];
 };
 
 /** The playlist being edited: an existing key, or a new one not yet saved. */
@@ -80,13 +85,25 @@ export function isDraftDirty(draft: PlaylistDraft, saved: OwnedPlaylist | null):
 
 const BASE_PATH = "/api/dev/replications/playlists";
 
-export async function fetchPlaylists(): Promise<OwnedPlaylist[]> {
+export async function fetchPlaylists(): Promise<OwnedPlaylistSummary[]> {
   const payload = await requestJson(BASE_PATH, undefined, {
     network: "Network error while loading playlists.",
     failure: "Unable to load playlists.",
   });
-  return Array.isArray(payload.playlists) ? (payload.playlists as OwnedPlaylist[]) : [];
+  return Array.isArray(payload.playlists) ? (payload.playlists as OwnedPlaylistSummary[]) : [];
 }
+/** Fetch one deep-linked playlist without waiting for the collection projection. */
+export async function fetchPlaylist(key: string): Promise<OwnedPlaylist> {
+  const payload = await requestJson(`${BASE_PATH}/${encodeURIComponent(key)}`, undefined, {
+    network: "Network error while loading that playlist.",
+    failure: "Unable to load that playlist.",
+  });
+  if (typeof payload.playlist !== "object" || payload.playlist === null) {
+    throw new Error("The playlist route returned no playlist.");
+  }
+  return payload.playlist as OwnedPlaylist;
+}
+
 
 export class PlaylistConflictError extends Error {
   constructor() {
@@ -131,8 +148,11 @@ export async function deletePlaylist(key: string): Promise<void> {
 }
 
 /** Admin: hand a playlist to a member, or (`null`) leave it unowned. */
-export async function assignPlaylistOwner(key: string, ownerEmail: string | null): Promise<void> {
-  await requestJson(
+export async function assignPlaylistOwner(
+  key: string,
+  ownerEmail: string | null,
+): Promise<{ key: string; owner_email: string | null; updated_at: string; updated_by: string | null }> {
+  const payload = await requestJson(
     `${BASE_PATH}/${encodeURIComponent(key)}/owner`,
     {
       method: "POST",
@@ -141,6 +161,7 @@ export async function assignPlaylistOwner(key: string, ownerEmail: string | null
     },
     { network: "Network error while changing the owner.", failure: "Unable to change that playlist's owner." },
   );
+  return payload as { key: string; owner_email: string | null; updated_at: string; updated_by: string | null };
 }
 
 async function requestJson(

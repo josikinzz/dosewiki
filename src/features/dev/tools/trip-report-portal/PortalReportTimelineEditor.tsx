@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type {
   TripReportEditableFields,
   TripReportTimelinePhase,
-} from "../../../../../convex/lib/tripReportEditing";
+} from "../../../../../server/lib/tripReportEditing";
 
 const PHASES: {
   key: keyof TripReportEditableFields;

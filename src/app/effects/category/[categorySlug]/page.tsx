@@ -9,7 +9,7 @@ import {
 import { getEffectCategoryDefinition } from "@/data/effectCategoryDefinitions";
 import { EffectCategoryPage as EffectCategoryDetailPage } from "@/features/effects/pages/EffectCategoryPage";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import {
   effectCategoryCopyKey,
   getEffectCategoryDescriptions,
@@ -17,6 +17,8 @@ import {
 
 export const revalidate = 3600;
 export const dynamicParams = false;
+
+const EFFECT_CATEGORY_COPY_KEYS = getCopyKeysByPrefix("effects-category-");
 
 export async function generateStaticParams() {
   return loadTaxonomyStaticParams(effectCategoryRouteDescriptor);
@@ -42,7 +44,7 @@ export default async function EffectCategoryPage({ params }: EffectCategoryPageP
   const { categorySlug } = await params;
   const [result, copy] = await Promise.all([
     loadEffectCategoryRoute(categorySlug),
-    getCopy(),
+    getCopyByKeys(EFFECT_CATEGORY_COPY_KEYS),
   ]);
 
   if (result.kind === "redirect") {

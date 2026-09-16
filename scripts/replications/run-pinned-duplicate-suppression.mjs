@@ -11,8 +11,9 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -54,7 +55,7 @@ function hasFlag(argv, name) {
 }
 
 function normalizeCommandArgv(argv) {
-  const values = new Set(["--target-url", "--confirm-write", "--expected-deployment"]);
+  const values = new Set(["--target", "--confirm-write", "--expected-deployment"]);
   const normalized = [];
   for (let index = 0; index < argv.length; index += 1) {
     const entry = argv[index];
@@ -355,11 +356,8 @@ async function assertExactKeeperReadback({ client, plan, ledger, keeperIds }) {
   return calls;
 }
 
-function validateLiveTarget(argv) {
-  const target = flagValue(argv, "--target-url");
-  const deployment = flagValue(argv, "--expected-deployment");
-  required(target === EXACT_TARGET, `Live execution requires --target-url=${EXACT_TARGET}.`);
-  required(deployment === EXACT_DEPLOYMENT, `Live execution requires --expected-deployment=${EXACT_DEPLOYMENT}.`);
+function validateLiveTarget(command) {
+  return requireCampaignTarget(command);
 }
 
 export async function runPinnedDuplicateSuppression({
@@ -396,14 +394,14 @@ export async function runPinnedDuplicateSuppression({
     return { mode: "local-dry-run", phase, batches: phase === "canary" ? 1 : phase === "remaining" ? 17 : 1, suppressedRows: 331, networkCalls: 0 };
   }
 
-  validateLiveTarget(argv);
+  const postgresTarget = validateLiveTarget(command);
   if (!liveDryRun) {
     assertProductionWriteAllowed(command);
-    required(command.targetUrl === EXACT_TARGET && command.deploymentFingerprint === EXACT_DEPLOYMENT, "Production target drifted.");
+
   }
   const credential = requireProductionWriteCredential("replicationMaintenance", { env });
   required(credential.source === "scoped", "Live execution requires the scoped replicationMaintenance credential; legacy fallback is disabled.");
-  const client = clientFactory(EXACT_TARGET);
+  const client = clientFactory(command.targetUrl);
 
   if (liveDryRun) {
     required(phase !== "rollback", "Live dry-run validates suppression only; rollback requires the explicit write phase.");
@@ -424,11 +422,12 @@ export async function runPinnedDuplicateSuppression({
 
   const ledgerPath = path.resolve(flagValue(argv, "--ledger") ?? path.join(path.dirname(planPath), "expanded-duplicate-suppression-production-ledger.json"));
   const ledger = loadLedger({ ledgerPath, planPath, plan, planFileSha256: expectedPlanFileSha256 });
+  bindCampaignTarget(ledger, postgresTarget);
   const uncertain = Object.entries(ledger.batches).filter(([, value]) => value.status === "uncertain").map(([key]) => key);
   if (phase === "reconcile") {
     const uncertainSuppression = uncertain.filter((key) => key.startsWith("suppression:"));
     required(uncertainSuppression.length > 0, "No uncertain suppression batch is available to reconcile.");
-    const client = clientFactory(EXACT_TARGET);
+    const client = clientFactory(command.targetUrl);
     let networkCalls = 0;
     for (const key of uncertainSuppression) {
       const batchNumber = Number(key.split(":")[1]);

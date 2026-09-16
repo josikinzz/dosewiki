@@ -12,7 +12,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { ContributorWorksCarousel } from "@/features/effects/gallery/ContributorWorksCarousel";
 import { icons } from "@/utils/iconNames";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
-import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { PublicProfileHistoryEntry } from "@server/data/publicData.changelog";
 import type { ContributorEffectCredit } from "@/types/effectCredits";
 import type { GalleryReplication } from "@/types/replications";
 import type { ReportCardModel } from "@/types/tripReport";
@@ -38,7 +38,7 @@ export interface UserProfileEditorNote {
 }
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;
-  history: ChangeLogEntry[];
+  history: PublicProfileHistoryEntry[];
   tripReports?: ReportCardModel[];
   /** Replications credited to this contributor, already ordered. */
   replications?: readonly GalleryReplication[];
@@ -52,6 +52,10 @@ interface UserProfilePageProps {
   editorNote?: UserProfileEditorNote | null;
   /** Reviewed identity-sheet outcome; absent/false renders no claim. */
   verifiedReplicator?: boolean;
+  /** Server-rendered enrichment can stream after the profile identity header. */
+  children?: ReactNode;
+  sectionsOnly?: boolean;
+  hideBio?: boolean;
 }
 
 export function UserProfilePage({
@@ -65,15 +69,18 @@ export function UserProfilePage({
   bioContent,
   editorNote = null,
   verifiedReplicator = false,
+  children,
+  sectionsOnly = false,
+  hideBio = false,
 }: UserProfilePageProps) {
   const hasLinks = profile.links.length > 0;
-  const hasBio = profile.hasCustomBio;
+  const hasBio = profile.hasCustomBio && !hideBio;
   const hasTripReports = tripReports.length > 0;
   const hasReplications = replications.length > 0;
   const hasEffectArticles = effectArticles.length > 0;
   const hasReviewedArticles = reviewedArticles.length > 0;
   const hasProfileSections =
-    hasBio ||
+    profile.hasCustomBio ||
     editorNote !== null ||
     hasReplications ||
     hasEffectArticles ||
@@ -86,8 +93,9 @@ export function UserProfilePage({
   // byte-for-byte as it was before roles existed.
   const role = t(profile.role?.trim() ?? "");
 
-  return (
-    <PublicContentShell focusTarget className="pb-24 pt-10 md:pt-14">
+  const content = (
+    <>
+      {!sectionsOnly ? (
       <header className="relative flex flex-col items-center gap-8 overflow-hidden py-6 text-center sm:py-10">
         <ContributorAvatar
           imageUrl={profile.avatarUrl}
@@ -164,18 +172,11 @@ export function UserProfilePage({
           )}
         </div>
       </header>
+      ) : null}
 
-      {hasProfileSections ? (
+      {children ?? (hasProfileSections ? (
         <div className="mt-12 space-y-10 sm:mt-14 sm:space-y-12">
-          {hasBio ? (
-            <section className="space-y-5">
-              <PublicSectionHeading icon="lucide:user" title={t("About")} />
-
-              <div className="relative max-w-[72ch] px-1 sm:px-4 sm:py-1">
-                {bioContent}
-              </div>
-            </section>
-          ) : null}
+          {hasBio ? <UserProfileBio>{bioContent}</UserProfileBio> : null}
 
           {/* Signed staff commentary. The speech bubble reuses the profile
               quote chrome (the "a person said this" surface), with a tail
@@ -266,7 +267,19 @@ export function UserProfilePage({
             description={t("{{name}} doesn't have a bio or published work on the wiki yet. Check back once they've added a profile or contributed an article or trip report.", { name: profile.displayName })}
           />
         </div>
-      )}
-    </PublicContentShell>
+      ))}
+    </>
+  );
+  return sectionsOnly ? content : (
+    <PublicContentShell focusTarget className="pb-24 pt-10 md:pt-14">{content}</PublicContentShell>
+  );
+}
+
+export function UserProfileBio({ children }: { children: ReactNode }) {
+  return (
+    <section className="space-y-5">
+      <PublicSectionHeading icon="lucide:user" title={t("About")} />
+      <div className="relative max-w-[72ch] px-1 sm:px-4 sm:py-1">{children}</div>
+    </section>
   );
 }

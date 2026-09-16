@@ -4,7 +4,7 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SectionCard } from "@/components/common/SectionCard";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys } from "@server/next/copyBlocks";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import { t } from "@/i18n/server";
@@ -48,7 +48,7 @@ const TUTORIALS = [
 ] as const;
 
 export async function getReplicationTutorialsMetadata(locale: LiveLocale | null = null) {
-  const copy = await getCopy();
+  const copy = await getCopyByKeys(["seo-replications-tutorials-description"]);
 
   return buildPublicPageMetadata({
     title: "Replication Tutorials",

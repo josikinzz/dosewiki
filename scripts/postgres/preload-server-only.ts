@@ -1,6 +1,6 @@
 /**
  * Bun preload: `server-only` is a Next-resolved marker module with no package
- * behind it. Scripts that import `lib/convex/*` or `lib/postgres/runtime/*`
+ * behind it. Scripts that import `lib/data/*` or `lib/postgres/runtime/*`
  * under Bun get a no-op module, the same as vitest's `src/test/server-only.ts`.
  */
 // `bun` types are not in tsconfig.scripts.json; the global is present at runtime.

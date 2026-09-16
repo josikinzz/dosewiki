@@ -6,7 +6,7 @@ import {
   resetRouteMocks,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     changeProposalReview: {
       reject: "changeProposalReview.reject",
@@ -49,7 +49,7 @@ describe("dev proposal reject route", () => {
     });
   });
 
-  it("returns 400 on an empty note without calling Convex", async () => {
+  it("returns 400 on an empty note without calling Postgres", async () => {
     const client = useClient(vi.fn());
     const { POST } = await import("./route");
 

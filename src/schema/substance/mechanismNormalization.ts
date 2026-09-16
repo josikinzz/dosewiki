@@ -8,7 +8,7 @@ import { stripCitationTokens } from "../../lib/citations/citationTokens";
  * slug derivation via the canonical slugify, and `slug + qualifier` dedupe.
  *
  * Builders (src/data/builders) delegate here; this module must stay free of
- * imports from the data/builder layer. Convex ingestion does not rewrite
+ * imports from the data/builder layer. Postgres ingestion does not rewrite
  * stored mechanism tags with this yet — it is exported so ingestion can adopt
  * it later without changing stored data today.
  */

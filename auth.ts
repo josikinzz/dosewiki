@@ -1,11 +1,11 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { resolveSessionRole } from "./src/lib/auth/roles";
+import { approvedGlossaryLocales, resolveSessionRole } from "./src/lib/auth/roles";
 import {
   getCredentialsByUsername,
   getMembershipByEmail,
   touchSignIn,
-} from "./lib/auth/convexMemberships";
+} from "./lib/auth/memberships";
 import { UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./lib/auth/passwords";
 import { authSecret } from "./lib/auth/runtimePolicy";
 import { safeAuthRedirect } from "./src/lib/auth/returnPath";
@@ -17,7 +17,7 @@ type AuthorizedMember = {
 };
 
 /**
- * Username + password against the Convex memberships table. Returns the
+ * Username + password against the Postgres memberships table. Returns the
  * member for the session, or null for every failure: unknown username,
  * banned member, no password set, wrong password. Auth.js maps null to a
  * generic CredentialsSignin error, so the reason never reaches the browser.
@@ -80,16 +80,18 @@ export const authOptions: NextAuthOptions = {
       // Re-read the stored role on every JWT refresh so a role change or a
       // ban takes effect on the next request instead of at the next sign-in.
       // A failed read fails closed: the token keeps its identity but carries
-      // no privilege until Convex answers again, so a just-banned or demoted
+      // no privilege until Postgres answers again, so a just-banned or demoted
       // member cannot ride out an outage on their old role.
       try {
         const membership = await getMembershipByEmail(email);
         token.role = membership?.bannedAt
           ? "viewer"
           : (resolveSessionRole({ role: membership?.role }) ?? "viewer");
+        token.glossaryLocales = approvedGlossaryLocales({ role: token.role, glossaryLocales: membership?.glossaryLocales });
       } catch (error) {
         console.error("[Auth] Failed to read membership role; session degraded to viewer", error);
         token.role = "viewer";
+        token.glossaryLocales = [];
       }
 
       return token;
@@ -112,6 +114,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       session.user.role = token.role;
+      session.user.glossaryLocales = approvedGlossaryLocales(token);
 
       return session;
     },

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getQuoteSectionById } from "../../lib/quoteSections.mjs";
 import { normalizeIdentifier } from "../../lib/citations/referenceIdentity.mjs";
 import { getFormalCitationSectionConfig } from "./formal-citations-section-config.mjs";

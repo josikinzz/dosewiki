@@ -31,7 +31,7 @@ export function parseArgsFromArgv(argv, config, inputBounds) {
       "include-existing": "includeExisting",
       "skip-backup": "skipBackup",
       "source-url": "sourceUrl",
-      "target-url": "targetUrl",
+      "target": "targetUrl",
       "reasoning-effort": "reasoningEffort",
     },
   });
@@ -57,8 +57,8 @@ Options:
 --all                     Include low-priority articles (default is high/normal only)
 --include-existing        Regenerate articles that already have a summary
 --skip-backup             Skip backup export for target articles
---source-url=<url>        Override the source Convex deployment
---target-url=<url>        Override the target Convex deployment
+--source-url=<url>        Override the source Postgres deployment
+--target=<url>        Override the target Postgres deployment
 --reasoning-effort=<lvl>  minimal|low|medium|high|xhigh (default: high)
 --help, -h                Show this help message
 `; }

@@ -12,14 +12,14 @@
  * for the audit trail.
  *
  * The About page reads the document through `getPublicAboutData`, which is
- * persisted under `PUBLIC_CONVEX_CACHE_TAGS.about`. Every save publishes the
+ * persisted under `PUBLIC_DATA_CACHE_TAGS.about`. Every save publishes the
  * `about` content identity through the shared publication seam, which expires
  * that cache here and delivers the same identity to the public deployments,
  * so `/about` shows the edit in seconds rather than at the end of the
  * public-data window.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { parseAboutBody, type AboutBody, type ParsedAbout } from "./parseAboutBody";
@@ -29,11 +29,17 @@ import { parseCopyIndexPublicationInput, type CopyIndexPublicationInput } from "
 export const runtime = "nodejs";
 
 export const GET = protectedRouteOperation({
-  auth: "editor", rateLimit: "diagnosticRead", capabilities: [{ type: "convexWrite" }],
+  auth: "editor", rateLimit: "diagnosticRead", capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load About editing source:", unexpectedErrorMessage: "The About editing source could not be loaded.",
-  operation: async ({ actorEmail, convexWrite }) => NextResponse.json(await convexWrite!.client.query(api.siteConfig.getAboutForEditor, {
-    apiKey: convexWrite!.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite!.adminKey, actorEmail,
-  })),
+  operation: async ({ actorEmail, dataWrite }) => {
+    const result = await dataWrite!.client.query(api.siteConfig.getAboutForEditor, {
+      apiKey: dataWrite!.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite!.adminKey,
+      actorEmail,
+    });
+    return NextResponse.json(result.about ? { ...result.about, aggregates: result.aggregates } : {
+      aggregates: result.aggregates,
+    });
+  },
 });
 
 export const POST = protectedRouteOperation<AboutBody & { expected?: unknown; expectedRevision?: unknown; operationId?: unknown }, ParsedAbout & { expected: unknown } & CopyIndexPublicationInput>({
@@ -46,18 +52,18 @@ export const POST = protectedRouteOperation<AboutBody & { expected?: unknown; ex
       return { ...parseAboutBody(raw), expected: raw.expected, ...parseCopyIndexPublicationInput(raw) };
     },
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save the About page via Next route:",
   unexpectedErrorMessage: "Unable to save the About page right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const receipt = await convexWrite.client.mutation(api.siteConfig.saveAbout, {
+    const receipt = await dataWrite.client.mutation(api.siteConfig.saveAbout, {
       apiKey,
       actorEmail,
       aboutMarkdown: body.aboutMarkdown,

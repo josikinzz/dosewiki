@@ -2,7 +2,7 @@ import { isPubliclyListedSubstance, type PublicArticleProjection, type Substance
 import type {
   PublicSubstanceArticleRecord,
   PublicSubstanceLibraryInputRecord,
-} from "../../../lib/convex/publicData.substanceContract";
+} from "../../../lib/data/publicData.substanceContract";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 
 export type LibraryArticleInput =

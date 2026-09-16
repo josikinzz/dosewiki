@@ -33,8 +33,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
-import { api } from "../../convex/_generated/api";
-import { documentHash } from "../../lib/postgres/convexDocumentCodec";
+import { api } from "../../lib/postgres/runtime/api";
+import { documentHash } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, patchDocument, selectDocumentById, selectDocuments } from "../../lib/postgres/documentStore";
 import { tableColumns } from "../../lib/postgres/schema.generated";
 import { minimalArticle } from "../../src/test/fixtures/articles";
@@ -326,7 +326,7 @@ async function legality(r: Rehearsal): Promise<void> {
     const auditEntry = auditPath && fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, "utf8")) : null;
     expect(family, "the audit entry names the slug, completes, and points at the backup and the applied receipt", auditEntry?.slug === slug && auditEntry?.status === "completed" && auditEntry?.backupPath === backupPath && typeof auditEntry?.appliedPath === "string" && fs.existsSync(auditEntry.appliedPath), auditEntry && { slug: auditEntry.slug, status: auditEntry.status });
     // `substanceIndex.saveSubstance` patches the article row and nothing else
-    // (convex/lib/substanceIngestion.ts), so this family's reconciliation trail
+    // (server/lib/substanceIngestion.ts), so this family's reconciliation trail
     // is the local backup, audit entry, and applied.json, not a server journal.
     const revisions = await selectDocuments(r.pool, "articleRevisions", { where: '"slug" = $1', params: [slug] });
     expect(family, "saveSubstance wrote no server-side revision row (local artifacts are the trail)", revisions.length === 0, revisions.length);
@@ -486,7 +486,7 @@ async function identity(r: Rehearsal): Promise<void> {
   r.succeeded(family, "write applied through contributorProfiles.saveProfileAsEditor", r.run(script, [...base, "--write", "--confirm-write=apply-contributor-profile-patches", `--expected-deployment=${r.fingerprint}`]), /Updated 1 profile/);
   const after = await r.get("contributorProfiles", id);
   // An explicit alias list replaces the stored one, and the key plus the new
-  // display name are always folded back in, lowercased (convex/lib/contributorProfilePatches.ts).
+  // display name are always folded back in, lowercased (server/lib/contributorProfilePatches.ts).
   const aliases = Array.isArray(after?.aliases) ? (after.aliases as string[]) : [];
   expect(family, "profile reads back with the planned patch and the folded-in identity aliases", after?.displayName === "After Rehearsal" && after?.approved_replicator === true && aliases.length === 3 && ["rehearsal alias", key.toLowerCase(), "after rehearsal"].every((alias) => aliases.includes(alias)), { displayName: after?.displayName, approved_replicator: after?.approved_replicator, aliases });
   const revisions = await selectDocuments(r.pool, "contentRevisions", { where: '"table" = $1 AND "key" = $2', params: ["contributorProfiles", key] });

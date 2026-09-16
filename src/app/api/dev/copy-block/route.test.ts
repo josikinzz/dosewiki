@@ -5,7 +5,7 @@ import { DELETE, POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     copyBlocks: {
       upsert: "copyBlocks.upsert",
@@ -30,13 +30,13 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
-const convexMocks = vi.hoisted(() => ({
+const dataMocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: dataMocks.getServerDataWriteCapability,
 }));
 
 function jsonRequest(method: "POST" | "DELETE", body: unknown) {
@@ -59,19 +59,19 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "error").mockImplementation(() => {});
   authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-  convexMocks.getServerConvexWriteCapability.mockReturnValue({
+  dataMocks.getServerDataWriteCapability.mockReturnValue({
     ok: true,
-    capability: { client: { mutation: convexMocks.mutation }, adminKey: "admin-key" },
+    capability: { client: { mutation: dataMocks.mutation }, adminKey: "admin-key" },
   });
 });
 
 describe("copy block route", () => {
-  it("refuses an editor saving a block with 403 before touching Convex", async () => {
+  it("refuses an editor saving a block with 403 before touching Postgres", async () => {
     const response = await POST(jsonRequest("POST", blockBody));
 
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
@@ -79,7 +79,7 @@ describe("copy block route", () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
-    convexMocks.mutation.mockResolvedValue({ updated: true, key: "home-hero", revision: 1, replayed: false, unchanged: false });
+    dataMocks.mutation.mockResolvedValue({ updated: true, key: "home-hero", revision: 1, replayed: false, unchanged: false });
 
     const response = await POST(jsonRequest("POST", blockBody));
 
@@ -92,12 +92,12 @@ describe("copy block route", () => {
     });
   });
 
-  it("refuses an editor resetting a block with 403 before touching Convex", async () => {
+  it("refuses an editor resetting a block with 403 before touching Postgres", async () => {
     const response = await DELETE(jsonRequest("DELETE", { key: "home-hero" }));
 
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(dataMocks.mutation).not.toHaveBeenCalled();
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
@@ -105,7 +105,7 @@ describe("copy block route", () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
-    convexMocks.mutation.mockResolvedValue({ removed: true, key: "home-hero", revision: 1, replayed: false, unchanged: false });
+    dataMocks.mutation.mockResolvedValue({ removed: true, key: "home-hero", revision: 1, replayed: false, unchanged: false });
 
     const response = await DELETE(jsonRequest("DELETE", { key: "home-hero" }));
 

@@ -277,7 +277,7 @@ describe("stub verdict", () => {
       harm_potential: { summary: "Cardiovascular strain at high doses." },
       history_culture: { content: "First synthesized in 1970." },
       legality: { international: ["Unscheduled under the 1971 Convention."] },
-      // Raw Convex documents are looser than the article type — the scaffold
+      // Raw Postgres documents are looser than the article type — the scaffold
       // route carries nulls where the type wants numbers, which is the shape
       // this fixture exists to describe.
     } as unknown as Partial<CoverageArticleInput>);

@@ -2,8 +2,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { requireCampaignTarget } from "../lib/postgres-target.mjs";
 import { createDataClient } from "../../lib/data-client.ts";
-import { api } from "../../../convex/_generated/api.js";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import { createProductionWriteCommand, requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
 import { APPROVED_MERGES, assertExactReceipt, completedAppliedOperations, loadLedger as loadMergeLedger, mergeOperationId } from "../../contributors/approved-profile-merge-executor-lib.mjs";
 import { buildExecutionPlan, indexProfiles, loadLedger, validatePinnedProfileSnapshot, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
@@ -142,7 +143,7 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   if (!options.actor) throw new Error("--actor-email is required for authenticated read-only validation.");
   if (!Number.isInteger(options.maxAttempts) || options.maxAttempts < 1 || options.maxAttempts > 10) throw new Error("--max-attempts must be 1 through 10.");
   const command = createProductionWriteCommand({ operation: "validate-identity-social-production", argv: options.argv });
-  if (!command.targetUrl || command.deploymentFingerprint !== "glad-minnow-656") throw new Error("Read-only validation requires TARGET_CONVEX_URL (or --target-url) for glad-minnow-656.");
+  requireCampaignTarget(command);
   const projection = json(options.projection);
   const profileRows = validatePinnedProfileSnapshot(json(options.profiles));
   const sidecarDocument = json(options.receipts);

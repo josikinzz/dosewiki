@@ -8,7 +8,7 @@ export type QuoteSectionId =
   | "legality"
   | "subjective_effects";
 
-export type QuoteStorageMode = "convex" | "local-file";
+export type QuoteStorageMode = "data" | "local-file";
 
 export type QuoteSectionDescriptor = {
   id: QuoteSectionId;

@@ -7,9 +7,10 @@
  */
 import "server-only";
 
-import { getDataBackend, getPostgresConvexClient } from "@server/postgres/runtime/backend";
+import { getPostgresClient } from "@server/postgres/runtime/backend";
 import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
+import { refreshLocalizedPublicationIndexes } from "./publicationIndexStore";
 
 export type TranslationSegmentRow = {
   locale: string;
@@ -30,14 +31,10 @@ export type TranslationJobRow = {
 const JOB_LEASE_MS = 10 * 60 * 1000;
 const MAX_JOB_ATTEMPTS = 5;
 
-function db() {
-  return getPostgresConvexClient();
-}
-
 /** `hash -> target` for every stored segment among `hashes`. */
 export async function readTranslations(locale: string, hashes: readonly string[]): Promise<Map<string, string>> {
-  if (hashes.length === 0 || getDataBackend() !== "postgres") return new Map();
-  const rows = await db().sql<{ hash: string; target: string }>(
+  if (hashes.length === 0) return new Map();
+  const rows = await getPostgresClient().sql<{ hash: string; target: string }>(
     'SELECT "hash", "target" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
     [locale, [...hashes]],
   );
@@ -52,8 +49,8 @@ export async function missingTranslationHashes(locale: string, hashes: readonly 
 
 /** Hashes among `hashes` with no row, or a row stamped with another prompt digest: what a record refresh sends to the model. */
 export async function pendingTranslationHashes(locale: string, hashes: readonly string[], promptVersion: string): Promise<string[]> {
-  if (hashes.length === 0 || getDataBackend() !== "postgres") return [];
-  const rows = await db().sql<{ hash: string }>(
+  if (hashes.length === 0) return [];
+  const rows = await getPostgresClient().sql<{ hash: string }>(
     'SELECT "hash" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[]) AND "prompt_version" = $3',
     [locale, [...hashes], promptVersion],
   );
@@ -66,7 +63,8 @@ export async function writeTranslations(rows: readonly TranslationSegmentRow[]):
   if (rows.length === 0) return;
   assertDataWritesNotFrozen("writeTranslations");
   const now = Date.now();
-  await db().sql(
+  await getPostgresClient().sqlTransaction(async (client) => {
+    await client.query(
     `INSERT INTO "translationSegments" ("locale", "hash", "source", "target", "model", "prompt_version", "created_at")
      SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::bigint[])
      ON CONFLICT ("locale", "hash") DO UPDATE SET
@@ -82,6 +80,8 @@ export async function writeTranslations(rows: readonly TranslationSegmentRow[]):
       rows.map(() => now),
     ],
   );
+    await refreshLocalizedPublicationIndexes(client);
+  });
 }
 
 export type TranslationRejectionRow = {
@@ -97,10 +97,10 @@ export type TranslationRejectionRow = {
 export async function writeTranslationRejections(
   rows: readonly Pick<TranslationRejectionRow, "locale" | "hash" | "source" | "defects">[],
 ): Promise<void> {
-  if (rows.length === 0 || getDataBackend() !== "postgres") return;
+  if (rows.length === 0) return;
   assertDataWritesNotFrozen("writeTranslationRejections");
   const now = Date.now();
-  await db().sql(
+  await getPostgresClient().sql(
     `INSERT INTO "translationRejections" ("locale", "hash", "source", "defects", "attempts", "last_tried_at")
      SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::int[], $6::bigint[])
      ON CONFLICT ("locale", "hash") DO UPDATE SET
@@ -117,15 +117,15 @@ export async function writeTranslationRejections(
 }
 
 export async function clearTranslationRejections(locale: string, hashes: readonly string[]): Promise<void> {
-  if (hashes.length === 0 || getDataBackend() !== "postgres") return;
+  if (hashes.length === 0) return;
   assertDataWritesNotFrozen("clearTranslationRejections");
-  await db().sql('DELETE FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])', [locale, [...hashes]]);
+  await getPostgresClient().sql('DELETE FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])', [locale, [...hashes]]);
 }
 
 /** `hash -> rejection` among `hashes`; an empty `hashes` reads every rejection for the locale. */
 export async function readTranslationRejections(locale: string, hashes?: readonly string[]): Promise<Map<string, TranslationRejectionRow>> {
-  if (getDataBackend() !== "postgres" || hashes?.length === 0) return new Map();
-  const rows = await db().sql<Omit<TranslationRejectionRow, "defects"> & { defects: string }>(
+  if (hashes?.length === 0) return new Map();
+  const rows = await getPostgresClient().sql<Omit<TranslationRejectionRow, "defects"> & { defects: string }>(
     hashes
       ? 'SELECT * FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])'
       : 'SELECT * FROM "translationRejections" WHERE "locale" = $1',
@@ -136,7 +136,7 @@ export async function readTranslationRejections(locale: string, hashes?: readonl
 
 /** Rows whose prompt digest differs from the current one; the backfill script retranslates them. */
 export async function readStaleTranslationHashes(locale: string, promptVersion: string): Promise<string[]> {
-  const rows = await db().sql<{ hash: string }>(
+  const rows = await getPostgresClient().sql<{ hash: string }>(
     'SELECT "hash" FROM "translationSegments" WHERE "locale" = $1 AND "prompt_version" <> $2',
     [locale, promptVersion],
   );
@@ -145,7 +145,7 @@ export async function readStaleTranslationHashes(locale: string, promptVersion: 
 
 /** How many segments the locale stores and how many carry the current digest; the rest are due for a stale replay. */
 export async function translationSegmentCounts(locale: string, promptVersion: string): Promise<{ total: number; current: number }> {
-  const [row] = await db().sql<{ n: string; current: string }>(
+  const [row] = await getPostgresClient().sql<{ n: string; current: string }>(
     'SELECT COUNT(*)::text AS n, COUNT(*) FILTER (WHERE "prompt_version" = $2)::text AS current FROM "translationSegments" WHERE "locale" = $1',
     [locale, promptVersion],
   );
@@ -161,7 +161,7 @@ export async function readTranslationsMentioning(locale: string, terms: readonly
   const matched = new Map<string, { hash: string; source: string }>();
   for (const term of terms) {
     const pattern = glossaryTermPattern(term);
-    const rows = await db().sql<{ hash: string; source: string }>(
+    const rows = await getPostgresClient().sql<{ hash: string; source: string }>(
       'SELECT "hash", "source" FROM "translationSegments" WHERE "locale" = $1 AND "source" ILIKE $2',
       [locale, `%${term.replace(/[\\%_]/g, (char) => `\\${char}`)}%`],
     );
@@ -186,11 +186,11 @@ export async function scopeStaleTranslations(
   promptVersion: string,
 ): Promise<{ marked: number; restamped: number }> {
   assertDataWritesNotFrozen("scopeStaleTranslations");
-  const marked = await db().sql<{ hash: string }>(
+  const marked = await getPostgresClient().sql<{ hash: string }>(
     'UPDATE "translationSegments" SET "prompt_version" = $3 WHERE "locale" = $1 AND "hash" = ANY($2::text[]) RETURNING "hash"',
     [locale, [...hashes], STALE_MARK],
   );
-  const restamped = await db().sql<{ hash: string }>(
+  const restamped = await getPostgresClient().sql<{ hash: string }>(
     'UPDATE "translationSegments" SET "prompt_version" = $2 WHERE "locale" = $1 AND "prompt_version" <> $2 AND "prompt_version" <> $3 RETURNING "hash"',
     [locale, promptVersion, STALE_MARK],
   );
@@ -202,10 +202,10 @@ export async function scopeStaleTranslations(
  * place; a completed row is reopened with a fresh request time.
  */
 export async function enqueueTranslationJobs(locales: readonly string[], slugs: readonly string[]): Promise<void> {
-  if (locales.length === 0 || slugs.length === 0 || getDataBackend() !== "postgres") return;
+  if (locales.length === 0 || slugs.length === 0) return;
   assertDataWritesNotFrozen("enqueueTranslationJobs");
   const pairs = locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })));
-  await db().sql(
+  await getPostgresClient().sql(
     `INSERT INTO "translationJobs" ("locale", "slug", "requested_at", "claimed_at", "completed_at", "attempts", "last_error")
      SELECT l, s, $3::bigint, NULL, NULL, 0, NULL FROM UNNEST($1::text[], $2::text[]) AS pending(l, s)
      ON CONFLICT ("locale", "slug") DO UPDATE SET
@@ -218,7 +218,7 @@ export async function enqueueTranslationJobs(locales: readonly string[], slugs: 
 export async function claimTranslationJobs(limit: number): Promise<TranslationJobRow[]> {
   assertDataWritesNotFrozen("claimTranslationJobs");
   const now = Date.now();
-  return await db().sql<TranslationJobRow>(
+  return await getPostgresClient().sql<TranslationJobRow>(
     `UPDATE "translationJobs" SET "claimed_at" = $1::bigint, "attempts" = "attempts" + 1
      WHERE ("locale", "slug") IN (
        SELECT "locale", "slug" FROM "translationJobs"
@@ -232,7 +232,7 @@ export async function claimTranslationJobs(limit: number): Promise<TranslationJo
 
 export async function completeTranslationJob(job: TranslationJobRow): Promise<void> {
   assertDataWritesNotFrozen("completeTranslationJob");
-  await db().sql(
+  await getPostgresClient().sql(
     'UPDATE "translationJobs" SET "completed_at" = $3, "claimed_at" = NULL, "last_error" = NULL WHERE "locale" = $1 AND "slug" = $2',
     [job.locale, job.slug, Date.now()],
   );
@@ -241,7 +241,7 @@ export async function completeTranslationJob(job: TranslationJobRow): Promise<vo
 /** Release the lease so the next run retries, keeping the error for the operator. */
 export async function failTranslationJob(job: TranslationJobRow, error: string): Promise<void> {
   assertDataWritesNotFrozen("failTranslationJob");
-  await db().sql(
+  await getPostgresClient().sql(
     'UPDATE "translationJobs" SET "claimed_at" = NULL, "last_error" = $3 WHERE "locale" = $1 AND "slug" = $2',
     [job.locale, job.slug, error.slice(0, 2000)],
   );

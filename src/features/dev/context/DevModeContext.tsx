@@ -1,9 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { canDraft, resolveSessionRole } from "@/lib/auth/roles";
-import { Button } from "@/components/ui";
-import { useCopyIndexSource } from "../tools/useCopyIndexSource";
-import { useEditorRead } from "@/hooks/useEditorRead";
+import { useIndexLayouts } from "@/hooks/useIndexLayouts";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevModeContextValue } from "./devModeTypes";
@@ -20,18 +18,22 @@ export function DevModeProvider({
   children,
   navigate,
   getCurrentPath,
+  requestLibrary,
 }: {
   children: ReactNode;
   navigate?: (path: string) => void;
   getCurrentPath?: () => string;
+  requestLibrary?: () => Promise<void>;
 }) {
   const { articles: articlesSource } = useLibrary();
 
   const session = useSession();
-  const canReadPrivateLayouts = session.status === "authenticated" && canDraft(resolveSessionRole({ role: session.data?.user?.role }));
-  const privateLayouts = useCopyIndexSource<Array<ManualIndexConfig & { type: "psychoactive" | "chemical" | "mechanism" }>>(canReadPrivateLayouts ? "/api/dev/index-layout?type=all" : null);
-  const publicLayouts = useEditorRead("indexLayouts:getAll", canReadPrivateLayouts ? "skip" : {}, "list");
-  const indexLayouts = canReadPrivateLayouts ? privateLayouts.data : publicLayouts?.map((layout) => ({ ...layout, revision: 0 }));
+  const canReadPrivateLayouts =
+    session.status === "authenticated"
+    && canDraft(resolveSessionRole({ role: session.data?.user?.role }));
+  const [layoutsRequested, setLayoutsRequested] = useState(false);
+  const privateLayouts = useIndexLayouts(canReadPrivateLayouts && layoutsRequested);
+  const indexLayouts = privateLayouts.layouts;
 
   type IndexLayoutRow = NonNullable<typeof indexLayouts>[number];
 
@@ -43,6 +45,43 @@ export function DevModeProvider({
   const psychoactiveLayout = layoutsByType.get("psychoactive");
   const chemicalLayout = layoutsByType.get("chemical");
   const mechanismLayout = layoutsByType.get("mechanism");
+  const hasCompleteLayouts = Boolean(psychoactiveLayout && chemicalLayout && mechanismLayout);
+  const requestCompleteLibrary = useCallback(() => {
+    if (requestLibrary) return requestLibrary();
+    return Promise.reject(new Error("The editor library loader is unavailable."));
+  }, [requestLibrary]);
+  const requestIndexLayouts = useCallback(() => {
+    if (canReadPrivateLayouts) setLayoutsRequested(true);
+  }, [canReadPrivateLayouts]);
+  const retryIndexLayouts = useCallback(() => {
+    if (!canReadPrivateLayouts) return;
+    setLayoutsRequested(true);
+    privateLayouts.retry();
+  }, [canReadPrivateLayouts, privateLayouts.retry]);
+  const indexLayoutsReadiness = useMemo<DevModeContextValue["indexLayoutsReadiness"]>(() => {
+    if (!layoutsRequested || !canReadPrivateLayouts) {
+      return { status: "idle", error: null };
+    }
+    if (privateLayouts.error) {
+      return { status: "error", error: privateLayouts.error };
+    }
+    if (privateLayouts.layouts === undefined) {
+      return { status: "loading", error: null };
+    }
+    if (!hasCompleteLayouts) {
+      return {
+        status: "error",
+        error: "The editing source did not return all three index layouts.",
+      };
+    }
+    return { status: "ready", error: null };
+  }, [
+    canReadPrivateLayouts,
+    hasCompleteLayouts,
+    layoutsRequested,
+    privateLayouts.layouts,
+    privateLayouts.error,
+  ]);
 
   const psychoactiveSource = useMemo<ManualIndexConfig>(() => {
     if (!psychoactiveLayout) {
@@ -107,26 +146,33 @@ export function DevModeProvider({
   const markChangesSaved = useCallback(() => {
     articleContextValue.markChangesSaved();
     markIndexManualsSaved();
-    if (canReadPrivateLayouts) privateLayouts.reload();
-  }, [articleContextValue, markIndexManualsSaved, canReadPrivateLayouts, privateLayouts.reload]);
+    if (canReadPrivateLayouts) privateLayouts.retry();
+  }, [articleContextValue, markIndexManualsSaved, canReadPrivateLayouts, privateLayouts.retry]);
 
   const value = useMemo<DevModeContextValue>(() => ({
     ...navigationState,
     ...articleContextValue,
     articleHydration,
     ...indexContextValue,
+    indexLayoutsReadiness,
+    requestIndexLayouts,
+    retryIndexLayouts,
+    requestLibrary: requestCompleteLibrary,
     markChangesSaved,
     ...proposalSeed,
   }), [
     articleContextValue,
     articleHydration,
     indexContextValue,
+    indexLayoutsReadiness,
     markChangesSaved,
     navigationState,
     proposalSeed,
+    requestIndexLayouts,
+    requestCompleteLibrary,
+    retryIndexLayouts,
   ]);
 
-  if (canReadPrivateLayouts && privateLayouts.data === undefined) return <div role="status">{privateLayouts.error ? <><p role="alert">{privateLayouts.error}</p><Button onClick={privateLayouts.reload}>Retry loading editor layouts</Button></> : "Loading editor layouts…"}</div>;
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;
 }
 

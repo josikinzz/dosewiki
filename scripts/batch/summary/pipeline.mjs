@@ -31,7 +31,7 @@ export function createPersistSuccessfulUpdate({
     adminKey,
     sourceArticlesBySlug,
     targetArticlesBySlug,
-    convexClient: targetClient,
+    postgresClient: targetClient,
     applyUpdate: applySummaryUpdate,
   });
 }

@@ -7,7 +7,7 @@ import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { DevModePage } from "@/features/dev/pages/DevModePage";
-import { tabNeedsLibrary } from "@/features/dev/pages/devModePageUtils";
+import { LIBRARY_DEPENDENT_TABS } from "@/features/dev/pages/devModePageUtils";
 import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 import { parsePath, viewToPath } from "@/utils/routing";
 import { useOwnedProfileKey } from "./useOwnedProfileKey";
@@ -19,7 +19,7 @@ type NextDevRouteClientProps = {
   initialProfileKey?: string;
   /**
    * The canonical contributor key for the signed-in editor, resolved through a
-   * privileged Convex read that must stay on the server. It arrives as an
+   * privileged Postgres read that must stay on the server. It arrives as an
    * unawaited promise so the HTML ships without waiting on it; until it lands
    * the shell runs on the key derived from the session email, which is what
    * that read falls back to anyway.
@@ -93,19 +93,20 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
   navigate: (path: string) => void;
   getCurrentPath: () => string;
 }) {
-  // Only the corpus-backed tools drain the editor projection, and once a
-  // session has drained it the library stays mounted: navigating from the
-  // article editor to a non-library tool must not throw away unsaved edits
-  // held in `DevModeProvider`, which is fed from this library.
-  const needsLibrary = useLibraryLatch(tabNeedsLibrary(routeState.tab));
-  const { library, isLoading: isLoadingLibrary } = useLazyLibrary(needsLibrary);
+  // Blocking corpus tools and the two late-fill consumers keep their existing
+  // behavior. Change Review waits until "Load into editor" is actually used.
+  const needsLibrary = useLibraryLatch(
+    LIBRARY_DEPENDENT_TABS.has(routeState.tab)
+    || routeState.tab === "tag-editor",
+  );
+  const { library, isLoading: isLoadingLibrary, requestLibrary } = useLazyLibrary(needsLibrary);
 
   // Nothing gates the shell. The tab rail paints on the first client render;
   // the corpus drain lands behind it, and the tools that need it show their
   // own loading state instead of holding the chrome back.
   return (
     <SubstanceIndexProvider libraryData={library ?? getEmptyEditorLibrary()}>
-      <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
+      <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath} requestLibrary={requestLibrary}>
         <DevModePage
           activeTab={routeState.tab}
           initialArticleSlug={routeState.slug}

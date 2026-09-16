@@ -10,16 +10,17 @@ import {
 import { dirname, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createDataClient } from "../lib/data-client.ts";
+import { createDataClient, getDataBackend, postgresFingerprintFromUrl, resolvePostgresSource } from "../lib/data-client.ts";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   normalizeDoi,
   normalizePmid,
   normalizeReferenceMetadataProvenance,
 } from "../../lib/citations/referenceIdentity.mjs";
 import { findRepoRoot, getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
-import { getAllReferenceMetadata } from "../lib/convex-pagination.mjs";
+import { getAllReferenceMetadata } from "../lib/data-pagination.mjs";
 import {
   DEFAULT_LINEAGE_MANIFEST,
   validateCitationAuthorRepairLineage,
@@ -59,14 +60,6 @@ function canonicalIsoTimestamp(value) {
   return value;
 }
 
-function explicitConvexSource(value) {
-  assert(typeof value === "string" && value.trim(), "--source-url is required");
-  const url = new URL(value.trim());
-  assert(url.protocol === "https:" && url.hostname.endsWith(".convex.cloud"), "--source-url must identify an HTTPS Convex deployment");
-  assert(!url.hostname.slice(0, -".convex.cloud".length).includes("."), "--source-url must identify one exact Convex deployment");
-  assert((url.pathname === "/" || url.pathname === "") && !url.search && !url.hash, "--source-url must be the deployment root URL");
-  return value.trim().replace(/\/$/, "");
-}
 
 function exactAuthors(value, key) {
   assert(Array.isArray(value) && value.length > 0, `${key} has no expected authors`);
@@ -144,7 +137,7 @@ export function buildReferenceProvenanceBackfillProposal({
   generatedAt,
 }) {
   canonicalIsoTimestamp(generatedAt);
-  explicitConvexSource(sourceDeployment);
+  assertCitationSourceIdentity(sourceDeployment);
   assert(SHA256_PATTERN.test(lineageManifestSha256), "Lineage manifest SHA-256 is invalid");
   const articlesBySlug = new Map();
   for (const article of articles) {
@@ -251,7 +244,11 @@ export async function runPlanReferenceProvenanceBackfill(argv = process.argv.sli
     throw new Error("The provenance backfill planner is read-only and rejects --write/--execute.");
   }
   const repoRoot = dependencies.repoRoot ?? findRepoRoot();
-  const sourceDeployment = explicitConvexSource(getFlagValue(argv, "--source-url"));
+  const env = dependencies.env ?? process.env;
+  getDataBackend(env);
+  const { url: sourceUrl } = resolvePostgresSource({ argv, env });
+  assert(sourceUrl, "--source-url or SOURCE_POSTGRES_URL must select a Postgres source");
+  const sourceDeployment = postgresFingerprintFromUrl(sourceUrl);
   const outputValue = getFlagValue(argv, "--output");
   assert(outputValue, "--output is required and must name a new immutable proposal path");
   const outputPath = resolve(repoRoot, outputValue);
@@ -264,7 +261,7 @@ export async function runPlanReferenceProvenanceBackfill(argv = process.argv.sli
   const evidenceBundle = JSON.parse(evidenceBundleBytes.toString("utf8"));
   const evidenceBundleFileSha256 = sha256Bytes(evidenceBundleBytes);
   assert(evidenceBundleFileSha256 === lineage.evidenceBundle.fileSha256, "Tracked evidence bundle file hash mismatch");
-  const client = dependencies.client ?? createDataClient({ target: sourceDeployment }).client;
+  const client = dependencies.client ?? createDataClient({ target: sourceUrl, argv, env }).client;
   const queryApi = dependencies.api ?? api;
   const articles = await getAllReferenceMetadata(client, queryApi.substanceIndex.getReferenceMetadataPage);
   const proposal = buildReferenceProvenanceBackfillProposal({

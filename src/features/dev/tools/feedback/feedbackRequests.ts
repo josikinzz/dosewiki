@@ -2,7 +2,7 @@ import { FEEDBACK_QUEUE_WINDOW, type FeedbackTransitionInput } from "./FeedbackR
 
 type FeedbackRequests<Item> = {
   fetchList: () => Promise<Item[]>;
-  transition: (id: string, input: FeedbackTransitionInput) => Promise<void>;
+  transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
 };
 
 /**
@@ -21,7 +21,7 @@ export function createFeedbackRequests<Item>(basePath: string): FeedbackRequests
       return Array.isArray(payload.feedback) ? (payload.feedback as Item[]) : [];
     },
     async transition(id, input) {
-      await requestJson(
+      const payload = await requestJson(
         `${basePath}/${encodeURIComponent(id)}/status`,
         {
           method: "POST",
@@ -33,6 +33,7 @@ export function createFeedbackRequests<Item>(basePath: string): FeedbackRequests
           failure: "Unable to update feedback.",
         },
       );
+      return payload.feedback as Item;
     },
   };
 }

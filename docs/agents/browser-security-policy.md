@@ -27,15 +27,15 @@ The source inventory below comes from repository tracing plus a local production
 | Deterministic `'sha256-…'` hashes | `script-src` on `/dev` HTML only | Authorize the exact Zod jitless and theme bootstrap text emitted by the root layout because those two inline scripts do not carry nonce attributes. Tests recompute both hashes from the builders so content drift fails validation. |
 | `'wasm-unsafe-eval'` | `script-src` | RDKit.js compiles the same-origin molecule-editor WASM module in the browser. The asset copy step replaces the package loader's two JavaScript code-generation paths with Emscripten's generic, non-dynamic invokers. This source does not permit JavaScript `eval`; plain `'unsafe-eval'` remains forbidden. |
 | Same-origin editor API | Covered by `'self'` in `connect-src` | The protected editor reads and writes through same-origin API routes backed by Postgres. No browser Postgres origin is permitted. |
-| Exact configured Convex HTTPS/WSS origins | `connect-src` | Temporary observation and recovery compatibility only. Keep the exact origins while the recovery window is open; do not describe them as the active editor data path. |
+| Native data access | Covered by same-origin API routes | No hosted database HTTPS/WSS origin is needed by the browser. Archived recovery services do not receive runtime CSP allowances. |
 | `https://api.iconify.design`, `https://api.unisvg.com`, `https://api.simplesvg.com` | `connect-src` | The installed Iconify client fetches uncached icon collections from these three observed redundancy providers. Exact origins are listed; no Iconify wildcard is allowed. |
 | `https://api.crossref.org` | `connect-src` | The protected editor's quick-add reference card resolves DOI metadata directly from Crossref. |
 | `https://eutils.ncbi.nlm.nih.gov` | `connect-src` | The protected editor's quick-add reference card resolves PMID metadata through NCBI E-utilities. |
-| `https://glad-minnow-656.convex.site` | `connect-src` | Retained only through the Convex observation window and removed with Convex retirement. Both homepages' mailing-list signup now posts same-origin to `/api/subscribe`, covered by `'self'` (dose.wiki writes Postgres; Effect Index relays server-side to `https://dose.wiki/api/subscribe`). |
+| Same-origin `/api/subscribe` | Covered by `'self'` in `connect-src` | Both homepages use same-origin signup intake; DoseWiki writes Postgres and Effect Index relays server-side to `https://dose.wiki/api/subscribe`. No browser connection to an archived recovery service is required. |
 | Same-origin `/ingest` | Covered by `'self'` in `connect-src` | Dose Wiki's approved-host PostHog client posts to this reverse proxy. CSP source lists cannot contain a bare path such as `/ingest`; the existing `'self'` expression authorizes it without a browser warning. The library is bundled and initialises with `disable_external_dependency_loading`, so it never injects a remote script and buys no `script-src` entry on any host. |
 | `data:` | `img-src` and `font-src` | Existing inline image/font payloads and browser-generated presentation assets use data URLs. |
 | `blob:` | `img-src`, `media-src`, and `worker-src` | Editor previews/downloads and media tooling create local object URLs; worker-capable tooling may use blob workers. |
-| `https:` | `img-src` and `media-src` only | Convex-managed replications, contributor avatars, source favicons, and article media are editor-curated but intentionally span many external HTTPS publishers. This is a conscious content-source exception, not a script or connection wildcard. |
+| `https:` | `img-src` and `media-src` only | Database-managed replications, contributor avatars, source favicons, and article media are editor-curated but intentionally span many external HTTPS publishers. This is a conscious content-source exception, not a script or connection wildcard. |
 | `'unsafe-inline'` | `style-src` on all documents | Existing React style props and editor visual tools emit style attributes. In `script-src`, it is restricted to public documents as described above. |
 | `/api/csp-report` | `report-uri` | Same-origin collection of directive and redacted-origin violation metadata. |
 
@@ -75,7 +75,7 @@ Before deployment, run the focused policy and middleware tests, lint, typecheck,
 - representative public pages hydrate and contain their JSON-LD;
 - the database-backed molecule SVG loads and retains its sandbox CSP;
 - a state-changing save request remains protected when anonymous;
-- same-origin APIs are the active editor data path; any exact Convex HTTPS/WSS origins are limited to the documented observation and recovery window; Crossref and NCBI are limited to citation metadata lookups;
+- same-origin APIs are the editor data path; archived database services add no browser connection origins; Crossref and NCBI remain limited to citation metadata lookups;
 - admin HTML contains neither an analytics script nor an analytics CSP source.
 - the molecule editor initializes RDKit in Firefox without an `unsafe-eval` CSP violation.
 - the hash-authorized browser bootstrap selects Zod's supported `jitless` interpreter before application chunks load, avoiding its caught `Function("")` capability probe under strict `/dev` CSP.

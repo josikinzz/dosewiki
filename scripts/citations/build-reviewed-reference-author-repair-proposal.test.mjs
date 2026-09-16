@@ -38,7 +38,7 @@ function originalProposal(rows) {
     artifactType: "citation_author_repair_proposal",
     artifactVersion: 1,
     generatedAt: "2026-08-09T00:00:00.000Z",
-    sourceDeployment: "https://example.convex.cloud",
+    sourceDeployment: "example/dosewiki",
     mode: "dry_run",
     summary: {},
     highConfidence: [],

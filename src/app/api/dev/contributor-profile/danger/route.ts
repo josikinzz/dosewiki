@@ -13,11 +13,11 @@
  * `confirmKey` to be typed to match the profile that is about to change: the
  * source of a merge, the profile being deleted, the contributor being credited.
  * The check lives here as well as in the UI because a confirmation that only
- * exists in the browser is not a confirmation, and the Convex mutations see
+ * exists in the browser is not a confirmation, and the Postgres mutations see
  * only intent flags.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { revalidateContributorSurfaces } from "../contributorRevalidation";
@@ -53,7 +53,7 @@ function requireText(raw: unknown, label: string): string {
 
 /**
  * The typed confirmation. Compared case-insensitively because profile keys are
- * normalized to upper case on the Convex side, and a correct answer in the
+ * normalized to upper case on the Postgres side, and a correct answer in the
  * wrong case is not a different answer.
  */
 function requireConfirmation(raw: unknown, expected: string, label: string): void {
@@ -105,18 +105,18 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
     maxBytes: 8 * 1024,
     parse: parseDangerBody,
   },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to run a contributor identity operation via Next route:",
   unexpectedErrorMessage: "Unable to complete that contributor operation right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const apiKey = convexWrite.getAdminIntentToken?.("profileMediaWrite") ?? convexWrite.adminKey;
+    const apiKey = dataWrite.getAdminIntentToken?.("profileMediaWrite") ?? dataWrite.adminKey;
 
     if (body.action === "merge") {
-      const result = await convexWrite.client.mutation(api.contributorProfiles.mergeProfileInto, {
+      const result = await dataWrite.client.mutation(api.contributorProfiles.mergeProfileInto, {
         apiKey,
         actorEmail,
         fromKey: body.fromKey,
@@ -140,7 +140,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
     }
 
     if (body.action === "delete") {
-      const result = await convexWrite.client.mutation(api.contributorProfiles.deleteProfile, {
+      const result = await dataWrite.client.mutation(api.contributorProfiles.deleteProfile, {
         apiKey,
         actorEmail,
         key: body.key,
@@ -160,7 +160,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
       });
     }
 
-    const result = await convexWrite.client.mutation(
+    const result = await dataWrite.client.mutation(
       api.contributorProfiles.retargetTripReportsToContributor,
       {
         apiKey,

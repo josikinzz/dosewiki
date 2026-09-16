@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
+import { GlossaryUsageDisclosure } from "@/components/glossary/GlossaryUsageDisclosure";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -176,6 +177,7 @@ function GlossaryTableRow({ row, gloss, canDefine, disabled, writing, onApprove,
         ) : gloss ? (
           <span className="theme-text-secondary block text-xs">{gloss}</span>
         ) : null}
+        <GlossaryUsageDisclosure term={row.term} />
       </EditorTableCell>
       <EditorTableCell label="Kind" className="theme-text-secondary text-xs">
         {kindLabel(row.kind)}

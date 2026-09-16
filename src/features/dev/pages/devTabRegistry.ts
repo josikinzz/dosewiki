@@ -16,14 +16,14 @@ export type DevToolGroup = "content" | "intake" | "site";
 /**
  * - `library`: reads the substance corpus and waits on the library drain
  *   before rendering.
- * - `library-deferred`: makes the shell drain the corpus, but renders straight
- *   away and fills in late (the Writing tab's About placeholder counts).
- * - `changelog`: reads the shared changelog feed (`changelog.getRecent`).
+ * - `library-deferred`: starts the corpus read without blocking the active tool.
  * - `contributors`: reads the contributor profile directory. Corpus tools need
  *   it for changelog attribution on save; the people and writing tools need it
  *   for their pickers.
+ * - `layouts`: reads the private, revision-bearing index layouts used by
+ *   staged corpus drafts and proposal application.
  */
-type DevTabDataNeed = "library" | "library-deferred" | "changelog" | "contributors"
+type DevTabDataNeed = "library" | "library-deferred" | "changelog" | "contributors" | "layouts"
 
 type DevTabDestination = { kind: "shell" } | { kind: "external"; href: string }
 
@@ -51,6 +51,11 @@ type DevTabDescriptorOf<Id extends string> = {
 
 const NO_DATA: ReadonlySet<DevTabDataNeed> = new Set();
 const CORPUS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>(["library", "contributors"]);
+const CORPUS_WITH_LAYOUTS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>([
+  "library",
+  "contributors",
+  "layouts",
+]);
 const SHELL: DevTabDestination = { kind: "shell" };
 
 /**
@@ -64,7 +69,7 @@ const REGISTRY = [
     group: "content",
     aliases: ["generator", "gen"],
     role: "editor",
-    data: CORPUS,
+    data: CORPUS_WITH_LAYOUTS,
     saveFamily: "staged",
     destination: SHELL,
   },
@@ -84,7 +89,7 @@ const REGISTRY = [
     group: "intake",
     aliases: ["citations"],
     role: "admin",
-    data: CORPUS,
+    data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
   },
@@ -118,7 +123,7 @@ const REGISTRY = [
     group: "content",
     aliases: ["tag"],
     role: "editor",
-    data: CORPUS,
+    data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveFamily: "staged",
     destination: SHELL,
   },
@@ -161,7 +166,7 @@ const REGISTRY = [
     group: "site",
     aliases: [],
     role: "editor",
-    data: new Set<DevTabDataNeed>(["library-deferred", "contributors"]),
+    data: new Set<DevTabDataNeed>(["contributors"]),
     saveFamily: "immediate",
     destination: SHELL,
     // Blog folded in as the kind filter; `/dev/blog/<slug>` still opens the post.
@@ -182,11 +187,8 @@ const REGISTRY = [
     label: "Change Review",
     group: "intake",
     aliases: ["proposals"],
-    // Every editor reads the review queue and comments; approve, reject and
-    // revert are admin buttons inside the tab. The corpus drains behind it so
-    // "Load into editor" can seed a rebase over the production rows.
     role: "editor",
-    data: new Set<DevTabDataNeed>(["library-deferred"]),
+    data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
     badge: "proposals",
@@ -212,7 +214,7 @@ const REGISTRY = [
     group: "site",
     aliases: [],
     // A member's own replication playlists: the descriptor sits at the
-    // contributor floor and Convex's ownership rule decides which rows they
+    // contributor floor and Postgres's ownership rule decides which rows they
     // may change. Applying a playlist to a gallery stays in the studio.
     role: "contributor",
     data: NO_DATA,
@@ -224,7 +226,7 @@ const REGISTRY = [
     label: "Members",
     group: "site",
     aliases: [],
-    // Roster, roles, bans, resets, invites: every action is admin-only in Convex too.
+    // Roster, roles, bans, resets, invites: every action is admin-only in Postgres too.
     role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
@@ -248,7 +250,7 @@ const REGISTRY = [
     label: "My reports",
     group: "site",
     aliases: [],
-    // A member's own published trip reports; ownership is checked per row in Convex.
+    // A member's own published trip reports; ownership is checked per row in Postgres.
     role: "contributor",
     data: NO_DATA,
     saveFamily: "immediate",
@@ -260,7 +262,7 @@ const REGISTRY = [
     group: "content",
     aliases: ["index"],
     role: "editor",
-    data: CORPUS,
+    data: CORPUS_WITH_LAYOUTS,
     saveFamily: "staged",
     destination: SHELL,
   },
@@ -270,7 +272,7 @@ const REGISTRY = [
     group: "chrome",
     aliases: ["changelog"],
     role: "editor",
-    data: new Set<DevTabDataNeed>(["library", "changelog", "contributors"]),
+    data: new Set<DevTabDataNeed>(["changelog"]),
     saveFamily: "immediate",
     destination: SHELL,
   },

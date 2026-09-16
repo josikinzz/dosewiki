@@ -1,6 +1,5 @@
 import { ELEVATION_GROUP } from "./paletteTokensElevation";
 import { RADIUS_TOKEN_IDS, formatRem, parseRem } from "./paletteTokensRadius";
-import type { PaletteOverrides } from "./themeLabStorage";
 
 /**
  * The flatness axes: bulk controls over token families that already exist.
@@ -21,8 +20,6 @@ import type { PaletteOverrides } from "./themeLabStorage";
  * in site-colors.css keys on.
  */
 
-/** Sentinel token: `on` (default, defined in site-colors.css) or `off`. */
-export const BLUR_TOKEN_ID = "--theme-backdrop-blur";
 
 /** Every elevation token except the deliberate `none` sentinel. */
 export const DEPTH_TOKEN_IDS = ELEVATION_GROUP.tokens
@@ -222,10 +219,3 @@ export function detectStep(
   return null;
 }
 
-/** Whether an effective override map disables backdrop blur in either theme. */
-export function blurDisabledIn(overrides: PaletteOverrides): boolean {
-  return (
-    overrides.dark[BLUR_TOKEN_ID]?.trim() === "off" ||
-    overrides.light[BLUR_TOKEN_ID]?.trim() === "off"
-  );
-}

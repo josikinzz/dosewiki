@@ -48,7 +48,7 @@ describe("batch CLI option parsing", () => {
   });
 
   it("fails closed for unknown flags instead of silently using defaults", () => {
-    expect(() => parseBatchCliArgs(["--target=https://prod.convex.cloud"], CONFIG)).toThrow(
+    expect(() => parseBatchCliArgs(["--target=postgresql://localhost/prod"], CONFIG)).toThrow(
       /Unknown batch option: --target/,
     );
   });

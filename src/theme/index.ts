@@ -193,9 +193,6 @@ export function isColorSchemePreference(
   return value === "system" || isColorScheme(value);
 }
 
-export function isVisualStyle(value: string | null | undefined): value is VisualStyle {
-  return SUPPORTED_VISUAL_STYLES.includes(value as VisualStyle);
-}
 
 export function isFontPreference(value: string | null | undefined): value is FontPreference {
   return (

@@ -117,12 +117,10 @@ describe("MembersTab", () => {
 
     // An editor row carries the full set of enabled actions.
     const ada = rowFor("ada@example.com");
-    expect(ada.getByRole("combobox", { name: "Role for ada" })).toHaveValue(
-      "editor",
-    );
+    expect(ada.getByRole("checkbox", { name: "Editor" })).toBeChecked();
+    expect(ada.getByRole("checkbox", { name: "Translator" })).not.toBeChecked();
     expect(ada.getByRole("button", { name: "Ban" })).toBeEnabled();
     expect(ada.getByRole("button", { name: "Reset password" })).toBeEnabled();
-    expect(ada.getByText("Editor", { selector: ":not(option)" })).toBeTruthy();
     expect(ada.getByText("2026-08-02")).toBeTruthy();
     expect(ada.getByText(SELF)).toBeTruthy();
 
@@ -140,9 +138,8 @@ describe("MembersTab", () => {
 
     await screen.findByText("josie");
     const self = rowFor(SELF);
-    const select = self.getByRole("combobox", { name: "Role for josie" });
-    expect(select).toBeDisabled();
-    expect(select).toHaveAttribute("title", "This is your own account.");
+    expect(self.getByRole("checkbox", { name: "Editor" })).toBeDisabled();
+    expect(self.getByRole("checkbox", { name: "Translator" })).toBeDisabled();
     expect(self.getByRole("button", { name: "Ban" })).toBeDisabled();
     expect(self.getByRole("button", { name: "Reset password" })).toBeDisabled();
   });
@@ -165,9 +162,7 @@ describe("MembersTab", () => {
     ).toBeTruthy();
 
     const actions = ada.getByRole("group", { name: "Actions for ada" });
-    expect(
-      within(actions).getByRole("combobox", { name: "Role for ada" }),
-    ).toHaveValue("editor");
+    expect(within(actions).getByRole("checkbox", { name: "Editor" })).toBeChecked();
     expect(within(actions).getByRole("button", { name: "Ban" })).toBeEnabled();
     expect(
       within(actions).getByRole("button", { name: "Reset password" }),
@@ -250,36 +245,30 @@ describe("MembersTab", () => {
     expect(await screen.findByText("ada is banned.")).toBeTruthy();
   });
 
-  it("asks before a role change, keeps the current role on cancel, and posts on confirm", async () => {
+  it("stages independent roles and languages, and writes only after confirmation", async () => {
     const { calls } = stubMembersApi(ROSTER);
     const user = userEvent.setup();
     render(<MembersTab />);
     await screen.findByText("ada");
-
-    const select = () =>
-      rowFor("ada@example.com").getByRole("combobox", { name: "Role for ada" });
-    await user.selectOptions(select(), "contributor");
-    const dialog = await screen.findByRole("dialog", {
-      name: "Change ada to Contributor?",
-    });
+    const row = rowFor("ada@example.com");
+    await user.click(row.getByRole("checkbox", { name: "Translator" }));
+    expect(row.getByRole("checkbox", { name: "Editor" })).toBeChecked();
+    expect(row.getByRole("button", { name: "Save permissions" })).toBeDisabled();
+    await user.click(row.getByRole("checkbox", { name: /Dutch/ }));
+    await user.click(row.getByRole("checkbox", { name: /Simplified Chinese/ }));
+    expect(calls).toHaveLength(0);
+    await user.click(row.getByRole("button", { name: "Save permissions" }));
+    const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(calls).toHaveLength(0);
-    expect(select()).toHaveValue("editor");
-
-    await user.selectOptions(select(), "contributor");
-    const again = await screen.findByRole("dialog", {
-      name: "Change ada to Contributor?",
-    });
-    await user.click(
-      within(again).getByRole("button", { name: "Change to Contributor" }),
-    );
+    await user.click(row.getByRole("button", { name: "Save permissions" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Save permissions" }));
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({
       path: "/api/dev/members/role",
-      body: { email: "ada@example.com", role: "contributor" },
+      body: { email: "ada@example.com", role: "editor_translator", glossaryLocales: ["nl", "zh-Hans"] },
     });
-    expect(await screen.findByText("ada is now contributor.")).toBeTruthy();
   });
 
   it("surfaces a refused action without dropping the roster", async () => {

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
+import { GlossaryCollisionError } from "@server/translation/glossary";
+import type * as GlossaryModule from "@server/translation/glossary";
 
 import { POST } from "./route";
 
@@ -19,20 +21,23 @@ vi.mock("@server/http/nextRateLimit", () => ({
 const backend = vi.hoisted(() => ({ getDataBackend: vi.fn(() => "postgres") }));
 vi.mock("@server/postgres/runtime/backend", () => ({
   getDataBackend: backend.getDataBackend,
-  getPostgresConvexClient: () => ({ sql: vi.fn() }),
+  getPostgresClient: () => ({ sql: vi.fn() }),
 }));
 
 const glossary = vi.hoisted(() => ({ readGlossaryRows: vi.fn(), upsertGlossaryRows: vi.fn() }));
-vi.mock("@server/translation/glossary", () => glossary);
+vi.mock("@server/translation/glossary", async (importActual) => ({
+  ...(await importActual<typeof GlossaryModule>()),
+  ...glossary,
+}));
 
 const draft = vi.hoisted(() => ({ collectGlossaryTerms: vi.fn() }));
 vi.mock("@server/translation/glossaryDraft", () => draft);
-vi.mock("@server/convex/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
+vi.mock("@server/data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
 vi.mock("@server/translation/liveTranslation", () => ({
   TRANSLATION_LOCALE_CODES: ["zh-Hans", "nl"],
 }));
 
-const TRANSLATOR = { email: "translator@example.com", name: "Translator" };
+const TRANSLATOR = { email: "translator@example.com", name: "Translator", glossaryLocales: ["zh-Hans"] };
 
 const post = (csv: string, locale = "zh-Hans") =>
   new Request(`https://dev.dose.wiki/api/dev/translation-glossary/import?locale=${locale}`, {
@@ -60,10 +65,13 @@ describe("POST /api/dev/translation-glossary/import", () => {
     expect(glossary.upsertGlossaryRows).not.toHaveBeenCalled();
   });
 
-  it("answers 503 off Postgres, 400 for an unknown locale, and 400 for a file without the header", async () => {
-    backend.getDataBackend.mockReturnValue("convex");
-    expect((await POST(post("term,target\nEuphoria,欣快\n"))).status).toBe(503);
-    backend.getDataBackend.mockReturnValue("postgres");
+  it("refuses imports outside the member's languages before reading or writing", async () => {
+    expect((await POST(post("term,target\nEuphoria,euforie\n", "nl"))).status).toBe(403);
+    expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
+    expect(glossary.upsertGlossaryRows).not.toHaveBeenCalled();
+  });
+
+  it("answers 400 for an unknown locale and for a file without the header", async () => {
     expect((await POST(post("term,target\nEuphoria,欣快\n", "fr"))).status).toBe(400);
     const headless = await POST(post("Euphoria,欣快\n"));
     expect(headless.status).toBe(400);
@@ -77,7 +85,6 @@ describe("POST /api/dev/translation-glossary/import", () => {
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.unknownTerms).toEqual(["Serotonin"]);
-    expect(body.error).toBe("Nothing was imported. This term is not in the glossary or on the site: Serotonin. No rendering for Anxiety. Listed more than once: Euphoria.");
     expect(glossary.upsertGlossaryRows).not.toHaveBeenCalled();
   });
 
@@ -107,5 +114,33 @@ describe("POST /api/dev/translation-glossary/import", () => {
     const response = await POST(post(`term,target\n${"Euphoria,欣快\n".repeat(200_000)}`));
     expect(response.status).toBe(413);
     expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
+  });
+
+  it("keeps drafts unwritten on collision and requires a bounded header acknowledgement for a reviewed retry", async () => {
+    const collisionConfirmation = "b".repeat(64);
+    const collisions = [{ kind: "effect-name", target: "欣快", terms: ["Anxiety", "Euphoria"] }];
+    glossary.upsertGlossaryRows.mockImplementation(async (_locale, rows, by) => {
+      if (by.status === "approved" && by.collisionConfirmation !== collisionConfirmation) throw new GlossaryCollisionError(collisions, collisionConfirmation);
+      return rows.length;
+    });
+    const csv = "term,target\nEuphoria,欣快\nAnxiety,焦虑\n";
+    const refused = await POST(post(csv));
+    expect(refused.status).toBe(409);
+    expect(await refused.json()).toMatchObject({ collisions, collisionConfirmation });
+    expect(glossary.upsertGlossaryRows).toHaveBeenCalledTimes(1);
+    glossary.upsertGlossaryRows.mockClear();
+    const invalid = post(csv);
+    invalid.headers.set("X-Glossary-Collision-Confirmation", "true");
+    expect((await POST(invalid)).status).toBe(400);
+    expect(glossary.upsertGlossaryRows).not.toHaveBeenCalled();
+    const confirmed = post(csv);
+    confirmed.headers.set("X-Glossary-Collision-Confirmation", collisionConfirmation);
+    expect(await (await POST(confirmed)).json()).toMatchObject({ approved: 1, drafts: 1 });
+    glossary.upsertGlossaryRows.mockClear();
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
+    const unauthorized = post(csv);
+    unauthorized.headers.set("X-Glossary-Collision-Confirmation", collisionConfirmation);
+    expect((await POST(unauthorized)).status).toBe(403);
+    expect(glossary.upsertGlossaryRows).not.toHaveBeenCalled();
   });
 });

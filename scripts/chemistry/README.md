@@ -3,16 +3,16 @@
 The canonical molecule set lives in the active data backend's
 `moleculeOverrides` table: one MOL block and one brand-coloured SVG per row.
 Production selects PlanetScale Postgres with `DATA_BACKEND=postgres`.
-Convex-shaped table, function, script, and intent-token names remain exact
-compatibility contracts and do not identify the active backend.
+Authored handlers live in `server/`; operator tools use native data commands
+and `DATA_ADMIN_TOKEN_*` scoped credentials. Persisted record IDs stay stable.
 
 `/dev` â†’ Molecules, public substance pages, chemical-class detail and comparison
 views, and the download pack all read that same row set. There is no static
 molecule art: the retired substance SVGs and class-skeleton pipeline are gone.
 The baseline set is generated from each live
 `substanceIndex.identification.smiles` with the editor's exact OpenChemLib path
-and renderer. `npm run molecules:rerender-convex` keeps its historical command
-name; it regenerates stored SVGs on the selected backend and defaults to dry run.
+and renderer. `npm run molecules:rerender-data` regenerates stored SVGs on
+Postgres and defaults to dry run.
 Writes retain `--write --confirm-molecule-rerender` plus the shared data-ops
 production-write flags.
 
@@ -32,7 +32,7 @@ Used by `molecules:smiles-coverage` and the historically named seeder:
 
 For current depiction coverage, query `api.moleculeOverrides.listSlugs`. To
 compare that live row set with the live substance corpus, run
-`npm run molecules:seed-convex -- --dry-run` and inspect
+`npm run molecules:seed-data -- --dry-run` and inspect
 `tmp/molecule-seed/report.json`.
 
 ## Audit IUPAC names against live SMILES
@@ -48,7 +48,7 @@ PubChem CID 5362460 and scopolamine against FDA GSRS UNII DL48G20X8X. Each
 decision is accepted only while the slug, stored name, and RDKit-computed
 stored-SMILES InChIKey all remain exact; any change returns the row to review.
 
-The command never calls a Convex mutation. It writes its report and a 30-day
+The command never calls a Postgres mutation. It writes its report and a 30-day
 provider cache under `tmp/iupac-audit/`:
 
 ```bash
@@ -56,14 +56,14 @@ npm run audit:iupac-names
 npm run audit:iupac-names -- --slug lsd --refresh
 ```
 
-Use `--convex-url`, `--report`, or `--cache` to override those defaults.
+Use `--source-url` (or `SOURCE_POSTGRES_URL`) for the Postgres read source, and `--report` or `--cache` for local outputs. Remote reads retain the shared explicit-target and remote-host guards.
 `--fail-on-review` makes a non-empty review queue fail for automation. Missing
 identifiers, mixtures, preparations, salts, and representative active compounds
 remain explicit coverage/review cases; the audit does not turn them into single
 chemical entities or write generated names back to articles.
 
 Approved corrections use the dedicated `substanceIndex:setIupacName` mutation
-through `scripts/admin/convex-admin.mjs`. The caller must provide the currently
+through `scripts/admin/data-admin.mjs`. The caller must provide the currently
 stored name as `expected`; the mutation patches only
 `identification.iupac_name` and refuses a concurrent change. Chemical
 identifiers remain excluded from the review portal's generic inline editor.
@@ -75,7 +75,7 @@ overwrites an existing row, and writes a JSON summary plus up to five
 `.mol`/`.svg` samples under `tmp/molecule-seed/`:
 
 ```bash
-npm run molecules:seed-convex -- --dry-run --limit 5
+npm run molecules:seed-data -- --dry-run --limit 5
 ```
 
 The deliberate production sequence is:
@@ -85,8 +85,8 @@ export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
 export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
 npm run postgres:check-env-isolation
-npm run molecules:seed-convex -- --dry-run --limit 5 --allow-remote
-npm run molecules:seed-convex -- --write --confirm-molecule-seed \
+npm run molecules:seed-data -- --dry-run --limit 5 --allow-remote
+npm run molecules:seed-data -- --write --confirm-molecule-seed \
   --confirm-write=seed-canonical-molecule-depictions \
   --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
@@ -102,7 +102,7 @@ the initial read.
 
 Chemical-class taxonomy and canonical structures are authored in
 `src/data/indexes/chemicalIndexManual.json` (`classes[].structure.smiles` plus the
-`rLabels` map naming each R position). The drawing itself lives in Convex: seeding
+`rLabels` map naming each R position). The drawing itself lives in Postgres: seeding
 generates each class MOL block from that SMILES (the same auto-layout the editor's
 class-creation flow uses, with the R positions kept as plain dummy atoms carrying atom
 maps), renders the brand SVG with the shared OpenChemLib renderer, and writes the
@@ -112,7 +112,7 @@ Dry-run is the default and never writes; it reports the plan (skipping existing 
 under `tmp/molecule-class-seed/`:
 
 ```bash
-npm run molecules:seed-classes-convex
+npm run molecules:seed-classes-data
 ```
 
 The deliberate production sequence is:
@@ -122,8 +122,8 @@ export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
 export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
 npm run postgres:check-env-isolation
-npm run molecules:seed-classes-convex -- --dry-run --allow-remote
-npm run molecules:seed-classes-convex -- --apply --confirm-class-seed \
+npm run molecules:seed-classes-data -- --dry-run --allow-remote
+npm run molecules:seed-classes-data -- --apply --confirm-class-seed \
   --confirm-write=seed-class-molecule-depictions \
   --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
@@ -165,7 +165,7 @@ changes. Updating generated downloads locally does not deploy them.
 
 The Pro light and dark colourways are pure string substitutions over the stored SVG
 bytes, defined once in `src/data/mappings/moleculePalette.ts` and applied at serve time
-to Convex `moleculeOverrides` rows by `src/app/api/molecules/**`. They need no Python
+to Postgres `moleculeOverrides` rows by `src/app/api/molecules/**`. They need no Python
 env, and no recoloured static copies exist.
 
 ## Pre-rendered social cards
@@ -198,14 +198,14 @@ rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` â
 - The editor (OpenChemLib canvas) loads the molecule's MOL block, you reposition atoms and
   reassign wedge/hash bonds, and a live preview rendered by the same OpenChemLib engine + an
   RDKit-backed InChI **stereo guard** confirm you only changed the *drawing*, not the *chemistry*.
-- The editor starts from the Convex MOL block, including rows created by the seed. **Revert to
+- The editor starts from the Postgres MOL block, including rows created by the seed. **Revert to
   auto** regenerates the SMILES layout in the canvas only; the public article does not change
   until **Save depiction** is pressed.
 - Saving writes the MOL block plus pre-rendered SVG to `moleculeOverrides` through
   `/api/dev/molecule-override`, then revalidates the article path. Versioned image URLs use
   `updatedAt` and immutable caching, so a refreshed article requests the new asset URL. There can
   still be a short platform revalidation propagation delay after Save.
-- Convex rows are the whole story: there is no static substance pipeline behind them.
+- Postgres rows are the whole story: there is no static substance pipeline behind them.
 
 ## Hand-fixing a class structure
 
@@ -221,8 +221,8 @@ stored SVG from the active backend.
 
 - `validate_smiles.py`: stdin JSON array of SMILES to JSON array of booleans;
   needs the RDKit venv (`npm run molecules:setup-venv`).
-- `seed-convex-molecules.ts` / `rerender-convex-molecules.ts`: historically
-  named compatibility commands that seed and re-render the selected backend.
+- `seed-data-molecules.ts` / `rerender-data-molecules.ts`: native Postgres
+  commands that seed and re-render canonical molecule depictions.
 - `seed-class-molecules.ts`: seed or refresh `class:<class-key>` rows from
   `chemicalIndexManual.json`.
 - `../data/resolveSmilesCoverage.mjs`: resolve a SMILES per substance.

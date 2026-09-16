@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Generate low-res muted preview renditions for the gallery's in-view autoplay
- * and attach them to production rows as `preview_storage_id`.
+ * and attach them to production rows as `preview_r2_key`.
  *
  * The /replications gallery autoplays a short, cheap preview while a tile is in
  * view (the redgifs pattern) instead of pulling the full rendition on hover.
  * The preview is a derived asset: nothing about the delivered media changes.
- * `resolveReplicationUrls` resolves `preview_storage_id` into `preview_url`
- * as a purely additive field — a row without one keeps hover-to-play.
+ * Native R2 delivery resolves `preview_r2_key` into `preview_url`
+ * as a purely additive field; a row without one keeps hover-to-play.
  *
  * ENCODE SPEC (Contract 5 — the tile is written against exactly this)
  * -------------------------------------------------------------------
@@ -17,9 +17,9 @@
  *
  * WHY THE WRITE IS SHAPED THE WAY IT IS
  * -------------------------------------
- * 1. The write is compare-and-swapped on the row's current `storage_id`
- *    (`updatePreviewStorageIds`). A preview is derived from one exact
- *    rendition; if the rendition was repointed after the plan was made, the
+ * 1. The write is compare-and-swapped on the full media identity, with both
+ *    the original `r2_key` and historical `storage_id` checked against the
+ *    reviewed plan; if the rendition was repointed after the plan was made, the
  *    preview would describe bytes the row no longer serves.
  * 2. It never touches `storage_id`, `url`, `thumbnail_storage_id` or
  *    `thumbnail_url` — and verification proves it didn't: after every row the
@@ -30,7 +30,7 @@
  *    is a safety property, not pedantry.
  * 3. A per-row ledger is flushed to disk after each row, so an interrupted run
  *    documents exactly what it wrote and a rerun skips finished rows anyway
- *    (they now have a `preview_storage_id`).
+ *    (they now have a `preview_r2_key`).
  *
  * Dry run (default — reads production, prints the plan, writes nothing):
  *   node scripts/replications/generate-preview-renditions.mjs
@@ -39,8 +39,8 @@
  *   node scripts/replications/generate-preview-renditions.mjs \
  *     --batch-size=5 \
  *     --write --confirm-write=generate-preview-renditions \
- *     --expected-deployment=glad-minnow-656 \
- *     --target-url=https://glad-minnow-656.convex.cloud
+ *     --expected-deployment=<host>/<database> \
+ *     --target=postgresql://<host>/<database>
  *
  * Regenerate rows that already have a preview:  add --force
  * Cap a careful first run:                      add --limit=5
@@ -51,8 +51,8 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { spawnSync } from "node:child_process";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -60,8 +60,9 @@ import {
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
-import { hostOf, isProductionUrl, PRODUCTION_HOST } from "./lib/media-hosts.mjs";
-import { chunk, uploadFile } from "./repoint-renditions.mjs";
+import { hostOf, isProductionUrl } from "./lib/media-hosts.mjs";
+import { chunk } from "./repoint-renditions.mjs";
+import { uploadReplicationFile, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import {
   assertToolsAvailable,
   computeScaledDimensions,
@@ -103,7 +104,7 @@ export function planPreviewGeneration(rows, { force = false } = {}) {
   );
 
   for (const row of videoRows) {
-    if (row.preview_storage_id && !force) {
+    if ((row.preview_r2_key || row.preview_storage_id) && !force) {
       skipped.push({ slug: row.slug, reason: "already has a preview rendition (use --force to redo)" });
       continue;
     }
@@ -128,10 +129,11 @@ export function planPreviewGeneration(rows, { force = false } = {}) {
       // Compare-and-swap expectation: the reviewed plan describes this exact
       // rendition, so the row must still hold it at write time.
       expectedStorageId: row.storage_id,
+      expectedR2Key: row.r2_key ?? null,
       durationSeconds: Number.isFinite(row.duration) ? row.duration : null,
       width: Number.isFinite(row.width) ? row.width : null,
       height: Number.isFinite(row.height) ? row.height : null,
-      hadPreview: Boolean(row.preview_storage_id),
+      hadPreview: Boolean(row.preview_r2_key || row.preview_storage_id),
     });
   }
 
@@ -223,7 +225,7 @@ export function verifyPreviewGeneration({ before, after }) {
     reasons.push("resolved preview_url is null — the write did not take effect");
   } else if (!isProductionUrl(after.preview_url)) {
     reasons.push(
-      `resolved preview_url points at ${hostOf(after.preview_url) ?? "an unknown host"}, not ${PRODUCTION_HOST}`,
+      `resolved preview_url points at ${hostOf(after.preview_url) ?? "an unknown host"}, outside the configured R2 media namespace`,
     );
   }
 
@@ -339,9 +341,9 @@ async function main() {
 
   assertToolsAvailable();
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
-    throw new Error("Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for a dry run).");
+    throw new Error("Set --target/TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL for a dry run).");
   }
   const readClient = createDataClient({ target: readUrl }).client;
 
@@ -371,7 +373,7 @@ async function main() {
   console.log(`\nRows read       : ${rows.length} (${plan.videoRowCount} video replications)`);
   console.log(`Preview plan    : ${actions.length} row(s) in ${batches.length} batch(es) of ${batchSize}${limit ? ` (limited from ${plan.actions.length})` : ""}`);
   console.log(`Skipped         : ${plan.skipped.length}`);
-  console.log(`Field written   : preview_storage_id (additive — storage_id/url/thumbnails are never touched)`);
+  console.log(`Field written   : preview_r2_key (additive; source and thumbnails are never touched)`);
   console.log(`Encode spec     : first ${PREVIEW_SPEC.maxSeconds}s · ${PREVIEW_SPEC.maxLongEdge}px long edge, no upscale · H.264 High yuv420p · CRF ${PREVIEW_SPEC.crf} ${PREVIEW_SPEC.preset} · ≤${PREVIEW_SPEC.maxFps}fps · muted · faststart`);
   console.log(`Projected bytes : ~${formatBytes(projectedTotal)} across the run${probedRemotely ? ` (${probedRemotely} duration(s) probed remotely via ffprobe)` : ""}\n`);
 
@@ -387,11 +389,11 @@ async function main() {
   if (command.dryRun) {
     console.log("\nPer-row verification that would run after each write:");
     console.log("  1. re-query api.replications.getResolvedById (same resolver the site's queries use, one row)");
-    console.log(`  2. require the resolved preview_url to be non-null and on ${PRODUCTION_HOST}`);
+    console.log("  2. require the resolved preview_url to be non-null and in the configured R2 media namespace");
     console.log("  3. require the resolved url to be UNCHANGED       — a null url removes the page");
     console.log("  4. require the resolved thumbnail_url to be UNCHANGED");
     console.log("  A failing row stops the entire run before the next row.");
-    console.log("\nDry run — nothing downloaded, nothing encoded, no Convex writes performed.");
+    console.log("\nDry run: nothing downloaded, nothing encoded, no Postgres writes performed.");
     return;
   }
 
@@ -414,12 +416,13 @@ async function main() {
       // Compare and swap: the row must still be what the reviewed plan described.
       const live = await fetchResolvedRow(writeClient, apiKey, action.rowId);
       if (!live) throw new Error(`${action.slug}: row no longer exists. Stopping.`);
-      if (live.storage_id !== action.expectedStorageId) {
+      if ((live.storage_id ?? null) !== (action.expectedStorageId ?? null) ||
+          (live.r2_key ?? null) !== action.expectedR2Key) {
         throw new Error(
-          `${action.slug}: storage_id changed since the plan (${action.expectedStorageId} -> ${live.storage_id}). Stopping.`,
+          `${action.slug}: media identity changed since the reviewed plan. Stopping.`,
         );
       }
-      if (live.preview_storage_id && !force && !action.hadPreview) {
+      if ((live.preview_r2_key || live.preview_storage_id) && !force && !action.hadPreview) {
         console.log(`  ${action.slug}: preview appeared since the plan — skipping.`);
         continue;
       }
@@ -457,23 +460,15 @@ async function main() {
       }
       const previewBytes = fs.statSync(previewPath).size;
 
-      const previewStorageId = await uploadFile(writeClient, apiKey, previewPath, "video/mp4");
-      await writeClient.mutation(api.replications.updatePreviewStorageIds, {
-        apiKey,
-        updates: [
-          {
-            id: action.rowId,
-            previewStorageId,
-            expectedStorageId: action.expectedStorageId,
-          },
-        ],
-      });
+      const previewR2Key = await uploadReplicationFile(writeClient, apiKey, previewPath, "video/mp4");
+      await updateReplicationMedia(writeClient, apiKey, live, { preview_r2_key: previewR2Key });
 
       ledger.push({
         slug: action.slug,
         rowId: action.rowId,
         expectedStorageId: action.expectedStorageId,
-        previewStorageId,
+        expectedR2Key: action.expectedR2Key,
+        previewR2Key,
         sourceBytes,
         previewBytes,
         at: new Date().toISOString(),
@@ -482,6 +477,10 @@ async function main() {
 
       const after = await fetchResolvedRow(writeClient, apiKey, action.rowId);
       const verdict = verifyPreviewGeneration({ before, after });
+      if (after?.preview_r2_key !== previewR2Key) {
+        verdict.ok = false;
+        verdict.reasons.push("Native preview key did not persist.");
+      }
       if (!verdict.ok) {
         console.error(`  ${action.slug}: VERIFICATION FAILED`);
         for (const reason of verdict.reasons) console.error(`    ${reason}`);
@@ -502,7 +501,7 @@ async function main() {
   }
 
   console.log(`\nGenerated ${generated} preview rendition(s). Ledger: ${ledgerPath}`);
-  console.log('Run revalidateTag("convex-public:replications") to clear the 900s/3600s caches.');
+  console.log('Run revalidateTag("data-public:replications") to clear the 900s/3600s caches.');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

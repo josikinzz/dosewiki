@@ -2,7 +2,7 @@
 
 /**
  * Attach R2 archive keys to production replication rows, from the
- * reconciliation ledger written by build-r2-media-ledger.mjs.
+ * retained historical reconciliation ledger reviewed for the storage migration.
  *
  * This writes ONLY the five optional `*_r2_key` fields, through the
  * compare-and-swap mutation `replications.updateR2Keys`: every key travels
@@ -11,7 +11,7 @@
  * `url`, and `thumbnail_url` are never touched — they are the rollback source.
  *
  * Only ledger entries with `status: "exact"` (a single byte-identical R2
- * object) are ever written. Missing/ambiguous/error entries stay on Convex
+ * object) are ever written. Missing/ambiguous/error entries stay on Postgres
  * and are reported.
  *
  * Dry run (default — prints the plan, writes nothing):
@@ -20,20 +20,20 @@
  * Canary (bounded set, then stop and verify end-to-end before expanding):
  *   node scripts/replications/backfill-r2-keys.mjs --ledger <ledger.json> \
  *     --slugs slug-a,slug-b --write --confirm-write=backfill-r2-keys \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  *
  * Full run: same command without --slugs (batches of 100; add --limit N to
  * bound a batch-sized expansion wave).
  *
- * Requires TARGET_CONVEX_URL and the replicationMaintenance credential; run
- * `npm run convex:doctor` first, per docs/agents/convex-credentials.md.
+ * Requires TARGET_POSTGRES_URL and the replicationMaintenance credential; run
+ * `npm run postgres:check-env-isolation` first, per docs/agents/data-credentials.md.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -126,9 +126,9 @@ async function main() {
   const slugsFlag = getFlagValue(argv, "--slugs");
   const limitFlag = getFlagValue(argv, "--limit");
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
-    throw new Error("Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for a dry run).");
+    throw new Error("Set --target/TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL for a dry run).");
   }
   const readClient = createDataClient({ target: readUrl }).client;
   const liveRows = await readClient.query(api.replications.getAll, {});

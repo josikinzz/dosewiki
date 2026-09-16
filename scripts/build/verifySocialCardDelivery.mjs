@@ -107,8 +107,8 @@ export function validateDeliveryHeaders(headers, key, expectedSize) {
   const contentType = headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
   if (contentType !== CONTENT_TYPE) throw new Error(`Content-Type mismatch for ${key}: ${contentType}`);
   const cacheControl = headers.get("cache-control") ?? "";
-  if (!/\bpublic\b/i.test(cacheControl) || !/\bimmutable\b/i.test(cacheControl) || !/\bmax-age=31536000\b/i.test(cacheControl)) {
-    throw new Error(`Immutable cache policy missing for ${key}: ${cacheControl}`);
+  if (!/(?:^|,)\s*no-store\s*(?:,|$)/i.test(cacheControl)) {
+    throw new Error(`Withdrawal-safe cache policy missing for ${key}: ${cacheControl}`);
   }
   const disposition = headers.get("content-disposition") ?? "";
   if (!/^inline(?:;|$)/i.test(disposition.trim())) throw new Error(`Inline disposition missing for ${key}: ${disposition}`);

@@ -14,6 +14,7 @@ vi.mock("next/link", () => ({
       {children}
     </a>
   ),
+  useLinkStatus: () => ({ pending: false }),
 }));
 
 vi.mock("next/image", () => ({
@@ -139,15 +140,8 @@ describe("Header", () => {
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
       const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
 
-      // The panel opens on the colour tab: the look picker and mode row publish their
-      // axes, and the type glyph beside them leads to the font tab.
       expect(
-        [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
-          control.getAttribute("data-appearance-axis"),
-        ),
-      ).toEqual(["visual-style", "color-scheme"]);
-      expect(
-        within(panel).getByRole("button", { name: "Show font controls" }),
+        await within(panel).findByRole("button", { name: "Show font controls" }),
       ).toBeInTheDocument();
 
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);

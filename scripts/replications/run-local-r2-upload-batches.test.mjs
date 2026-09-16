@@ -73,10 +73,12 @@ describe("upload ledger", () => {
       ...plan.objects[0],
       size: plan.objects[0].byteSize,
       plan_sha256: PLAN_SHA,
-      delivery_headers: { content_type: plan.objects[0].contentType, cache_control: "public, max-age=31536000, immutable", content_disposition: "inline", accept_ranges: "bytes" },
+      delivery_headers: { content_type: plan.objects[0].contentType, cache_control: "no-store", content_disposition: "inline", accept_ranges: "bytes" },
     }];
     expect(validatePublicCanaryReceipt(canaryPlan, valid, PLAN_SHA)).toMatchObject({ verifiedCanaryObjects: 1 });
     expect(() => validatePublicCanaryReceipt(canaryPlan, [], PLAN_SHA)).toThrow(/missing public verification/);
+    const reusable = [{ ...valid[0], delivery_headers: { ...valid[0].delivery_headers, cache_control: "public, max-age=31536000, immutable" } }];
+    expect(() => validatePublicCanaryReceipt(canaryPlan, reusable, PLAN_SHA)).toThrow(/delivery contract failed/);
   });
 
   it("revalidates staged symlink targets, sizes, and SHA-256 immediately before copy", async () => {

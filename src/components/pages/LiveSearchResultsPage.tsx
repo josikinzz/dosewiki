@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import type { SearchSuggestion } from "@/data/builders/search";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResultsPage";
 import { useGlobalSearchSuggestions } from "@/components/common/useGlobalSearchSuggestions";
@@ -10,17 +10,20 @@ import { useT } from "@/i18n/client";
 
 interface LiveSearchResultsPageProps {
   initialQuery: string;
+  initialResults?: SearchSuggestion[];
 }
 
-export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPageProps) {
+export function LiveSearchResultsPage({ initialQuery, initialResults = [] }: LiveSearchResultsPageProps) {
   const t = useT();
-  const searchParams = useSearchParams();
-  const query = searchParams.get("q") ?? initialQuery;
+  const query = initialQuery;
   const trimmed = query.trim();
-  const { suggestions, isFetchingSuggestions } = useGlobalSearchSuggestions({
+  const { suggestions, isUpdatingSuggestions } = useGlobalSearchSuggestions({
     isActiveSearch: trimmed.length > 0,
     query: trimmed,
     limit: 60,
+    initialQuery,
+    initialResults,
+    loadManifestOnActivate: false,
   });
 
   if (!trimmed) {
@@ -35,7 +38,7 @@ export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPagePro
             variant="public"
             padding="none"
             radius="xl"
-            className="p-6 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl sm:p-8"
+            className="theme-feedback-enter p-6 shadow-[var(--theme-elevation-xl)] ring-1 backdrop-blur-xl sm:p-8"
           >
             <SearchEmptyState
               icon="lucide:search"
@@ -54,7 +57,7 @@ export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPagePro
     <FocusedSearchResultsPage
       query={trimmed}
       results={suggestions}
-      isLoading={isFetchingSuggestions}
+      isLoading={isUpdatingSuggestions}
     />
   );
 }

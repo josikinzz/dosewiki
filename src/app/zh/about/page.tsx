@@ -12,11 +12,10 @@ import {
   getPublicAboutPreviewSubstances,
   getPublicAboutData,
   getPublicDataOverview,
-} from "@server/convex/publicData";
-import { getLocalizedPublicContributorProfiles } from "@server/translation/localizedRecords";
-import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
+} from "@server/data/publicData";
+import { getMoleculePackDownloadStats } from "@server/open-data/downloadStats";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { flavoredCopyKey, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyKey, getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
 import { splitAboutMarkdown } from "@/data/content/aboutSections";
 import { selectAboutContributors } from "@/data/contributorRoster";
@@ -35,6 +34,7 @@ import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 export const revalidate = 3600;
 
 const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
+const ABOUT_COPY_KEYS = getCopyKeysByPrefix("about-");
 
 function resolveAboutSubtitle(cmsSubtitle: string): string {
   // dose.wiki never owns its About prose; see the English page.
@@ -58,28 +58,21 @@ export async function generateMetadata() {
 
 export default async function LocalizedAboutPage() {
   setRequestLocale(LOCALE.code);
-  const copy = await getCopy();
 
   const [
+    copy,
     about,
     overview,
     substances,
     chemicalLayout,
     mechanismLayout,
-    contributorProfiles,
-    substanceDownload,
-    effectDownload,
-    reportDownload,
   ] = await Promise.all([
+    getCopyByKeys(ABOUT_COPY_KEYS),
     getPublicAboutData(),
     getPublicDataOverview(),
     getPublicAboutPreviewSubstances(),
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
-    getLocalizedPublicContributorProfiles(LOCALE.code),
-    getOpenDataDownloadStats("SubstanceIndex"),
-    getOpenDataDownloadStats("EffectIndex"),
-    getOpenDataDownloadStats("TripReports"),
   ]);
 
   const previewSnapshots = buildAboutPreviewSnapshots(
@@ -108,7 +101,7 @@ export default async function LocalizedAboutPage() {
 
   const contributors = selectAboutContributors({
     isEffectIndex: false,
-    allProfiles: contributorProfiles,
+    allProfiles: [],
     curatedFounderProfiles: about.founderProfiles,
     referenceCounts: new Map<string, number>(),
   });
@@ -144,9 +137,9 @@ export default async function LocalizedAboutPage() {
           }
           subtitle={applyPlaceholders(t(resolveAboutSubtitle(about.subtitle), placeholderValues), placeholderValues)}
           downloads={{
-            substances: substanceDownload,
-            effects: effectDownload,
-            reports: reportDownload,
+            substances: true,
+            effects: true,
+            reports: true,
             molecules: getMoleculePackDownloadStats(),
           }}
         />

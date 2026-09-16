@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useSaveToConvexMutation, useSubmitProposalMutation } from "./useApiMutations";
+import { useSaveArticleMutation, useSubmitProposalMutation } from "./useApiMutations";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -24,21 +24,21 @@ describe("useApiMutations", () => {
     vi.restoreAllMocks();
   });
 
-  it("surfaces Convex save network failures with the shared transport helper", async () => {
+  it("surfaces Postgres save network failures with the shared transport helper", async () => {
     vi.spyOn(console, "info").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
-    const { result } = renderHook(() => useSaveToConvexMutation(), {
+    const { result } = renderHook(() => useSaveArticleMutation(), {
       wrapper: createWrapper(),
     });
 
     await expect(result.current.mutateAsync({ articles: [{ slug: "lsd" }] })).rejects.toThrow(
-      "Convex save request failed: offline",
+      "Postgres save request failed: offline",
     );
   });
 
-  it("returns normalized Convex save metadata from a successful response", async () => {
+  it("returns normalized Postgres save metadata from a successful response", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -88,7 +88,7 @@ describe("useApiMutations", () => {
       }),
     );
 
-    const { result } = renderHook(() => useSaveToConvexMutation(), {
+    const { result } = renderHook(() => useSaveArticleMutation(), {
       wrapper: createWrapper(),
     });
 
@@ -123,23 +123,23 @@ describe("useApiMutations", () => {
     ]);
   });
 
-  it("includes Convex save diagnostics in failed save errors", async () => {
+  it("includes Postgres save diagnostics in failed save errors", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: false,
         status: 403,
         json: async () => ({
-          error: "Editor access required for Convex writes.",
+          error: "Editor access required for Postgres writes.",
           details: ["Missing admin/editor membership."],
-          code: "convex_editor_access_required",
+          code: "data_editor_access_required",
           phase: "article-mutation",
           requestId: "save-test",
         }),
       }),
     );
 
-    const { result } = renderHook(() => useSaveToConvexMutation(), {
+    const { result } = renderHook(() => useSaveArticleMutation(), {
       wrapper: createWrapper(),
     });
 
@@ -148,7 +148,7 @@ describe("useApiMutations", () => {
         articles: [{ slug: "lsd" }],
       }),
     ).rejects.toThrow(
-      "Editor access required for Convex writes. Missing admin/editor membership. (code=convex_editor_access_required, phase=article-mutation, requestId=save-test)",
+      "Editor access required for Postgres writes. Missing admin/editor membership. (code=data_editor_access_required, phase=article-mutation, requestId=save-test)",
     );
   });
 

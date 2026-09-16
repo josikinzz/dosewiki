@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { isTransientConvexTransportError, parseArgs, runBatchWithTransportRecovery, runQueryWithTransportRecovery } from "./executor.mjs";
+import { isTransientDataTransportError, parseArgs, runBatchWithTransportRecovery, runQueryWithTransportRecovery } from "./executor.mjs";
 import { appendLedger, assertPreviewMatches, batchesAfterCanaries, bindSharedProfileGroups, buildExecutionPlan, completedBatchesForRollback, digest, indexProfiles, loadLedger, makeBatches, pendingBatches, reconcileCrossKindSharedProfileVerifications, rollbackManifest, selectCanaries, transformOperation, validatePinnedProfileSnapshot, verifyBaseProjection, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
 
 const profiles = indexProfiles([{ profileId: "profile-1", key: "ARTIST" }, { profileId: "profile-2", key: "LOKA" }]);
@@ -188,8 +188,8 @@ test("operation-kind selection is validated and client retry is bounded", () => 
   assert.equal(parseArgs(["--max-client-attempts=2"]).maxClientAttempts, 2);
   assert.throws(() => parseArgs(["--operation-kind=anything"]), /Unsupported/);
   assert.throws(() => parseArgs(["--max-client-attempts=0"]), /integer from 1 through 10/);
-  assert.equal(isTransientConvexTransportError(new Error("HTTP/2 GOAWAY")), true);
-  assert.equal(isTransientConvexTransportError(new Error("validation failed")), false);
+  assert.equal(isTransientDataTransportError(new Error("HTTP/2 GOAWAY")), true);
+  assert.equal(isTransientDataTransportError(new Error("validation failed")), false);
 });
 
 test("transient mutation failure checks receipt before idempotent retry", async () => {

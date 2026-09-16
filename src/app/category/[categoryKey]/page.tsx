@@ -3,6 +3,7 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { buildCategoryItemListSchema } from "@server/next/taxonomyItemListSchema";
 import {
   loadCategoryRoute,
+  loadCategoryMetadataRoute,
 } from "@server/next/routeLoaders.taxonomy";
 import { CategoryPage as CategoryDetailPage } from "@/components/pages/CategoryPage";
 import { serializeJsonLd } from "@/utils/seo/structuredData";
@@ -23,7 +24,7 @@ type CategoryPageProps = {
 
 export async function generateMetadata({ params }: CategoryPageProps) {
   const { categoryKey } = await params;
-  const result = await loadCategoryRoute(categoryKey);
+  const result = await loadCategoryMetadataRoute(categoryKey);
 
   if (result.kind === "redirect") {
     redirect(result.target);

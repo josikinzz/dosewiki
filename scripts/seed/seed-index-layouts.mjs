@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Seed index layouts to Convex.
+ * Seed index layouts to Postgres.
  *
  * Reads the JSON files from src/data/indexes/ and uploads them to the
- * indexLayouts table in Convex.
+ * indexLayouts table in Postgres.
  *
  * Usage:
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/seed/seed-index-layouts.mjs --type psychoactive --dry-run
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki node scripts/seed/seed-index-layouts.mjs --type psychoactive --dry-run
  */
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -53,7 +53,7 @@ async function seedIndexLayouts() {
 
     const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-    // Transform to Convex format (remove $schema, add type)
+    // Transform to Postgres format (remove $schema, add type)
     const layout = {
       type,
       version: content.version || 1,
@@ -88,7 +88,7 @@ async function seedIndexLayouts() {
     return;
   }
 
-  console.log(`\nUploading ${layouts.length} layouts to Convex...`);
+  console.log(`\nUploading ${layouts.length} layouts to Postgres...`);
 
   try {
     assertProductionWriteAllowed(command);

@@ -105,7 +105,7 @@ export function AppearanceTogglePill<Value extends string>({
       aria-label={label}
       data-appearance-axis={axis}
       data-appearance-value={value}
-      className="theme-toggle-pill relative grid h-11 min-w-0 items-center rounded-full px-1 transition-[border-color,background-color] duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
+      className="theme-toggle-pill relative grid h-11 min-w-0 items-center rounded-full px-1 transition-[border-color,background-color] duration-[180ms] motion-reduce:transition-none [@media(pointer:coarse)]:h-13"
       style={
         {
           gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
@@ -114,7 +114,7 @@ export function AppearanceTogglePill<Value extends string>({
     >
       <span
         aria-hidden="true"
-        className="theme-toggle-thumb pointer-events-none absolute inset-y-1 left-1 rounded-full border transition-transform duration-300 motion-reduce:transition-none"
+        className="theme-toggle-thumb pointer-events-none absolute inset-y-1 left-1 rounded-full border transition-transform duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none"
         style={{
           width: `calc((100% - 0.5rem) / ${options.length})`,
           transform: `translateX(${selectedIndex * 100}%)`,
@@ -135,7 +135,7 @@ export function AppearanceTogglePill<Value extends string>({
             onClick={() => activate(index)}
             onKeyDown={handleKeyDown}
             className={cn(
-              "theme-focus-ring relative z-10 inline-flex h-9 min-w-0 items-center justify-center gap-1 rounded-full px-1 text-xs font-semibold whitespace-nowrap transition-colors duration-300 motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
+              "theme-focus-ring relative z-10 inline-flex h-9 min-w-0 items-center justify-center gap-1 rounded-full px-1 text-xs font-semibold whitespace-nowrap transition-colors duration-[180ms] motion-reduce:transition-none [@media(pointer:coarse)]:h-11",
               checked ? "theme-toggle-icon-accent" : "theme-toggle-icon-muted",
             )}
           >

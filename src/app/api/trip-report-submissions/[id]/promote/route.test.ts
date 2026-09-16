@@ -102,7 +102,7 @@ describe("trip report submission promotion route", () => {
     });
   });
 
-  it("publishes through the Convex promotion path only when explicitly requested", async () => {
+  it("publishes through the Postgres promotion path only when explicitly requested", async () => {
     const { POST } = await import("./route");
 
     const response = await POST(
@@ -188,14 +188,14 @@ describe("trip report submission promotion route", () => {
   });
 
   it("relays an unadjudicated author-name claim as a conflict the editor must resolve", async () => {
-    // Convex frames a thrown mutation error with its own request prefix and a
+    // Postgres frames a thrown mutation error with its own request prefix and a
     // stack; the editor only needs the sentence naming the two ways out.
     mocks.storePromote.mockRejectedValue(
       new Error(
-        "[CONVEX M(tripReportSubmissions:promote)] [Request ID: abc] Server Error\n" +
+        "[DATA M(tripReportSubmissions:promote)] [Request ID: abc] Server Error\n" +
           'Uncaught Error: Author name "nervewing" matches contributor profile "NERVEWING". ' +
           "Assign that profile key to attribute the report, or confirm publishing it without attribution.\n" +
-          "    at handler (../convex/tripReportSubmissions.ts:1:1)",
+          "    at handler (../server/tripReportSubmissions.ts:1:1)",
       ),
     );
     const { POST } = await import("./route");

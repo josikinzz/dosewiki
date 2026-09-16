@@ -1,8 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import { SmartLink } from "@/components/common/SmartLink";
-import { useT } from "@/i18n/client";
+import { t } from "@/i18n/server";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
@@ -41,8 +39,6 @@ function LineageRow({
   depth: number;
   tone: "ancestor" | "current" | "child" | "bioisostere";
 }) {
-  const t = useT();
-
   const content = (
     <>
       <span>{t(item.label)}</span>
@@ -87,8 +83,6 @@ function LineageRow({
  * unrelated siblings happens by walking back up the ancestor chain.
  */
 function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
-  const t = useT();
-
   const ancestors = detail.lineage.slice(0, -1);
   const currentDepth = Math.max(detail.lineage.length - 1, 0);
   const current: ChemicalClassTreeSummary = detail.lineage[currentDepth] ?? {
@@ -120,8 +114,6 @@ function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
 }
 
 function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
-  const t = useT();
-
   return (
     <section
       aria-label={t("{{className}} classification", { className: t(detail.label) })}
@@ -153,6 +145,7 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
           <figure className="shrink-0 self-center sm:self-start">
             <MoleculeImage
               src={detail.structureUrl}
+              priority
               alt={t("Generic {{className}} structure with variable R-group positions", {
                 className: t(detail.label),
               })}
@@ -171,8 +164,6 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
 }
 
 export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps) {
-  const t = useT();
-
   const panels = detail.panels;
 
   return (

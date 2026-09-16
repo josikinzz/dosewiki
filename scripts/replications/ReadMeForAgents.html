@@ -746,7 +746,7 @@
       <section class="hero" id="start">
         <div class="eyebrow">Dose Wiki · scripts/replications</div>
         <h1>Handle the corpus like an archive, not a pile of files.</h1>
-        <p class="lede">This folder manages replication media, credits, effects, dates, rights, duplicates, and substance showcases. Production Convex is the runtime truth.</p>
+        <p class="lede">This folder manages replication media, credits, effects, dates, rights, duplicates, and substance showcases. The explicitly selected Postgres database is the runtime truth; Convex media URLs remain historical provenance.</p>
         <div class="hero-actions">
           <a class="button" href="#routing">Choose a task</a>
           <button class="button secondary" type="button" data-copy-target="startup-brief">Copy agent startup brief</button>
@@ -757,9 +757,9 @@
           <div class="snapshot-cell"><strong>26</strong><span>figures</span></div>
           <div class="snapshot-cell"><strong>175</strong><span>artist strings</span></div>
         </div>
-        <p class="snapshot-caption">Read-only production snapshot from <code>glad-minnow-656</code> on 2026-08-22. Re-query before every operation.</p>
+        <p class="snapshot-caption">Historical production snapshot from <code>glad-minnow-656</code> on 2026-08-22. Re-query the approved Postgres reader before current operations.</p>
         <div class="code-shell" hidden>
-          <pre id="startup-brief">Work in /Users/josie/Documents/repos/dosewiki-admin. Read AGENTS.md, CONTEXT.md, scripts/replications/ReadMeForAgents.html, docs/agents/convex-credentials.md, and docs/agents/deployment.md. Treat https://glad-minnow-656.convex.cloud as production and runtime truth. Preserve unrelated work. Start read-only. Re-query live rows. Use immutable replication IDs with slug cross-checks. Build a dry-run plan. Freeze source hashes and a payload digest for batches. Use compare-and-set mutations and a resumable ledger. Never infer an unknown artist. Never treat created_at as an artwork date. Verify live records, URLs, showcase curation, and public routes before reporting completion.</pre>
+          <pre id="startup-brief">Work in /Users/josie/Documents/repos/dosewiki-admin. Read AGENTS.md, CONTEXT.md, scripts/replications/ReadMeForAgents.html, docs/agents/data-credentials.md, and docs/agents/deployment.md. Set DATA_BACKEND=postgres and select an explicit Postgres target. Confirm its exact host/database identity before writes. Preserve unrelated work. Start read-only. Re-query live rows. Use immutable replication IDs with slug cross-checks. Build a dry-run plan. Freeze source hashes and a payload digest for batches. Use compare-and-set mutations and a resumable ledger. Never infer an unknown artist. Never treat created_at as an artwork date. Verify live records, URLs, showcase curation, and public routes before reporting completion.</pre>
         </div>
       </section>
 
@@ -770,7 +770,7 @@
         </div>
         <div class="alert">
           <div class="alert-icon">!</div>
-          <div><strong>Every configured Convex target is production.</strong><p>The repository invariant points local, preview, and production work at <code>prod:glad-minnow-656</code>. Effect Index remains read-only.</p></div>
+          <div><strong>Every remote Postgres target requires explicit confirmation.</strong><p>Select <code>--target</code> or <code>TARGET_POSTGRES_URL</code> and confirm <code>--expected-deployment=&lt;host&gt;/&lt;database&gt;</code>. Effect Index remains read-only.</p></div>
         </div>
         <div class="pipeline" aria-label="Safe replication workflow">
           <article class="pipeline-step"><h3>Inspect</h3><p>Read the live row, schema, current artist, storage IDs, and recent ledger.</p></article>
@@ -785,7 +785,7 @@
             <ol>
               <li><code>AGENTS.md</code> for repository invariants.</li>
               <li><code>CONTEXT.md</code> for canonical replication language.</li>
-              <li><code>docs/agents/convex-credentials.md</code> before a write.</li>
+              <li><code>docs/agents/data-credentials.md</code> before a write.</li>
               <li><code>docs/agents/deployment.md</code> before a function deploy.</li>
               <li>The target script and its tests before execution.</li>
             </ol>
@@ -830,7 +830,7 @@
         </figure>
         <div class="three-col">
           <article class="panel"><h3>Media type</h3><p><code>image</code>, <code>video</code>, and <code>audio</code> are valid. Animated GIFs remain image rows.</p></article>
-          <article class="panel"><h3>URL resolution</h3><p>Native Convex storage wins. Direct row URLs are fallbacks. Preview URLs have no direct fallback.</p></article>
+          <article class="panel"><h3>URL resolution</h3><p>Content-addressed R2 keys resolve through the configured media base, then native Postgres storage identities and permitted direct URLs. Preview URLs have no direct fallback.</p></article>
           <article class="panel"><h3>Audio exception</h3><p>Legacy effect audio can also live in <code>subjectiveEffects.audio_replications</code>. Audit both surfaces.</p></article>
         </div>
       </section>
@@ -856,10 +856,10 @@
       <section id="writes">
         <div class="section-head">
           <div><div class="section-kicker">04 · Write boundary</div><h2>A production write needs four locks.</h2></div>
-          <p>The shared command ignores browser compatibility URLs. A privileged write must name its exact target.</p>
+          <p>A privileged write requires the existing operator allowlist, exact owner authorization, an explicit Postgres target, and every command guard. A dry-run does not grant authority.</p>
         </div>
         <div class="checklist" data-checklist="write-startup">
-          <label class="check-row"><input type="checkbox"><span>Run <code>npm run convex:doctor</code>.<small>Confirm the deployment, credential intent, and function inventory.</small></span></label>
+          <label class="check-row"><input type="checkbox"><span>Select <code>DATA_BACKEND=postgres</code> and review the exact Postgres host/database.<small>Confirm the target identity, credential intent, write freeze, and remote connection guard.</small></span></label>
           <label class="check-row"><input type="checkbox"><span>Read the target script and its latest ledger.<small>Know its mutation surface, defaults, resume behavior, and stop conditions.</small></span></label>
           <label class="check-row"><input type="checkbox"><span>Run the dry plan against the explicit production URL.<small>Review IDs, slugs, expected snapshots, counts, hashes, and exclusions.</small></span></label>
           <label class="check-row"><input type="checkbox"><span>Freeze the plan before the write.<small>Bind the source hashes, target fingerprint, payload digest, and ledger path.</small></span></label>
@@ -867,16 +867,17 @@
         </div>
         <div class="code-shell">
           <header><span>shared production ceremony</span><button class="copy-button" type="button" data-copy-target="write-template">copy</button></header>
-          <pre id="write-template">TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+          <pre id="write-template">DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" \
 node scripts/replications/&lt;guarded-script&gt;.mjs \
   --write \
   --confirm-write=&lt;operation-name&gt; \
-  --expected-deployment=glad-minnow-656 \
+  --allow-remote \
+  --expected-deployment=&lt;host&gt;/&lt;database&gt; \
   &lt;operation-specific-confirmation&gt;</pre>
         </div>
         <div class="alert amber">
           <div class="alert-icon">i</div>
-          <div><strong>Never deploy Convex functions with a bare CLI command.</strong><p>Use <code>npm run convex:deploy -- --prod --from-head-worktree --confirm</code>. The wrapper protects concurrent local work and live-only functions.</p></div>
+          <div><strong>Do not deploy or mutate provider resources as part of an operator run.</strong><p>Remote connections also require <code>--allow-remote</code> and <code>POSTGRES_IMPORT_CONFIRM</code> matching the target host. Historical campaign pins do not authorize a new live target.</p></div>
         </div>
         <div class="two-col">
           <article class="panel">
@@ -917,7 +918,7 @@ node scripts/replications/&lt;guarded-script&gt;.mjs \
           <div><strong>Use the dedicated visual tagging field guide.</strong><p><a href="VisualTaggingGuideForAgents.html">Open VisualTaggingGuideForAgents.html</a> for frame sampling, the deterministic <code>hasAudio</code> gate, viewing-mode classification, confusion checks, and reviewed examples.</p></div>
         </div>
         <details open><summary>Video delivery contract</summary><div><p>Use H.264 with <code>yuv420p</code> and <code>+faststart</code>. Keep audited masters outside the delivery copy. Preview renditions are muted, short, and capped at 480px.</p></div></details>
-        <details><summary>Storage rules</summary><div><p>Store Convex storage IDs on rows. Resolve URLs during reads. Direct URLs remain fallbacks. A foreign storage ID can silently serve the wrong fallback media.</p></div></details>
+        <details><summary>Storage rules</summary><div><p>Store approved native storage identities and R2 keys on rows; preserve historical IDs as provenance. Resolve URLs through the server reader. Direct URLs remain constrained fallbacks. Never substitute a foreign storage identity.</p></div></details>
         <details><summary>Deletion rules</summary><div><p>Deleting a database row does not authorize storage deletion. Keep media objects unless the user explicitly includes them and a recovery path exists.</p></div></details>
         <div class="alert amber">
           <div class="alert-icon">i</div>
@@ -1038,7 +1039,7 @@ node scripts/replications/&lt;guarded-script&gt;.mjs \
               <tr data-kind="write"><td><code>import-missing-effectindex-images.mjs</code></td><td><span class="badge write">write</span></td><td>Import reviewed recoverable images.</td><td>The default dry run can still use the network.</td></tr>
               <tr data-kind="write"><td><code>import-recovered-effectindex-videos.mjs</code></td><td><span class="badge write">write</span></td><td>Import recovered videos through the configured delivery service.</td><td>Review external API behavior and cost before use.</td></tr>
               <tr data-kind="write"><td><code>seed-featured-replications.mjs</code></td><td><span class="badge write">write</span></td><td>Seed the database-backed featured carousel once.</td><td>Existing curation wins. The script must remain non-destructive.</td></tr>
-              <tr data-kind="caution"><td><code>import-replications-simple.mjs</code></td><td><span class="badge caution">inspect first</span></td><td>Older metadata-only import path.</td><td>Prefer current guarded manifest workflows.</td></tr>
+              <tr data-kind="caution"><td><code>scripts/deprecated/archive/import-replications-simple.mjs.reference</code></td><td><span class="badge caution">do not run</span></td><td>Non-executable historical import evidence.</td><td>Use current guarded manifest workflows.</td></tr>
               <tr data-kind="caution"><td><code>upload-replications.mjs</code></td><td><span class="badge caution">inspect first</span></td><td>Legacy generic storage upload.</td><td>It lacks the richer reviewed-library contract.</td></tr>
               <tr data-kind="caution"><td><code>import-replications.mjs.bak</code></td><td><span class="badge caution">do not run</span></td><td>Historical backup only.</td><td>A <code>.bak</code> file is not an active workflow.</td></tr>
               <tr data-kind="local"><td><code>article-media-*.mjs</code></td><td><span class="badge local">library</span></td><td>Plan, inspect, publish, and report article media migration.</td><td>Use through the tested migration entrypoint.</td></tr>
@@ -1065,7 +1066,7 @@ node scripts/replications/&lt;guarded-script&gt;.mjs \
           <pre id="verify-template">npm run test:workflow
 npm run lint:scripts
 npm run typecheck:scripts
-npm run typecheck:convex
+npm run typecheck:handlers
 
 # For one script test:
 npx vitest run --config scripts/test/vitest.workflow.config.ts \
@@ -1085,14 +1086,14 @@ npx vitest run --config scripts/test/vitest.workflow.config.ts \
         <div class="source-list">
           <div class="source-item"><strong>Repository invariants</strong><span><code>AGENTS.md</code></span></div>
           <div class="source-item"><strong>Domain language</strong><span><code>CONTEXT.md</code> → Replications Surface Language</span></div>
-          <div class="source-item"><strong>Row schema</strong><span><code>convex/lib/effectMediaSchemaValidators.ts:80–191</code></span></div>
-          <div class="source-item"><strong>Date contract</strong><span><code>convex/lib/replicationDateValidators.ts:3–131</code></span></div>
-          <div class="source-item"><strong>Editorial compare-and-set</strong><span><code>convex/lib/replicationStudio.ts:70–108</code></span></div>
-          <div class="source-item"><strong>Storage resolution</strong><span><code>convex/lib/replicationUrls.ts:1–71</code></span></div>
-          <div class="source-item"><strong>Showcase curation</strong><span><code>convex/substanceGalleries.ts:49–105, 270–385</code></span></div>
-          <div class="source-item"><strong>Reusable gallery playlists</strong><span><code>convex/replicationPlaylists.ts</code></span></div>
+          <div class="source-item"><strong>Row schema</strong><span><code>server/lib/effectMediaSchemaValidators.ts:80–191</code></span></div>
+          <div class="source-item"><strong>Date contract</strong><span><code>server/lib/replicationDateValidators.ts:3–131</code></span></div>
+          <div class="source-item"><strong>Editorial compare-and-set</strong><span><code>server/lib/replicationStudio.ts:70–108</code></span></div>
+          <div class="source-item"><strong>Storage resolution</strong><span><code>server/lib/replicationUrls.ts:1–71</code></span></div>
+          <div class="source-item"><strong>Showcase curation</strong><span><code>server/substanceGalleries.ts:49–105, 270–385</code></span></div>
+          <div class="source-item"><strong>Reusable gallery playlists</strong><span><code>server/replicationPlaylists.ts</code></span></div>
           <div class="source-item"><strong>Production write guard</strong><span><code>scripts/lib/production-write-command.mjs</code></span></div>
-          <div class="source-item"><strong>Credential routing</strong><span><code>docs/agents/convex-credentials.md</code></span></div>
+          <div class="source-item"><strong>Credential routing</strong><span><code>docs/agents/data-credentials.md</code></span></div>
           <div class="source-item"><strong>Deployment routing</strong><span><code>docs/agents/deployment.md</code></span></div>
           <div class="source-item"><strong>Latest effect batch</strong><span><code>scripts/replications/apply-editorial-review-notes-v3.mjs</code></span></div>
           <div class="source-item"><strong>Visual tagging handbook</strong><span><code>scripts/replications/VisualTaggingGuideForAgents.html</code></span></div>

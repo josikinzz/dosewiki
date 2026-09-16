@@ -1,5 +1,5 @@
 /**
- * Applies a reviewed-decision plan to Convex through the repository's gated
+ * Applies a reviewed-decision plan to Postgres through the repository's gated
  * write path.
  *
  * The plan is built and validated by `scripts/review/build-review-plan.ts`,
@@ -8,12 +8,12 @@
  * convert without guessing. This command only writes what that plan contains.
  *
  * Dry run is the default. A production write additionally requires
- * `--write`, an explicit `TARGET_CONVEX_URL` (or `--target-url`),
+ * `--write`, an explicit `TARGET_POSTGRES_URL` (or `--target`),
  * `--confirm-write=apply-review-plan`, and `--expected-deployment=<fingerprint>`.
  *
  * Usage:
  *   node scripts/review/apply-review-plan.mjs --plan outputs/review-decisions/plan.json
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
  *     node scripts/review/apply-review-plan.mjs \
  *       --plan outputs/review-decisions/plan.json \
  *       --write --confirm-write=apply-review-plan \
@@ -22,7 +22,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { assertDataOpsWriteAllowed,
 backupBeforeWrite,
 batchAndApplyMutations,
@@ -68,8 +68,8 @@ if (!plan.articles?.length) {
   process.exit(0);
 }
 
-/** Convex bookkeeping fields are rejected by the save mutation's validator. */
-function stripForConvexWrite(document) {
+/** Postgres bookkeeping fields are rejected by the save mutation's validator. */
+function stripForDataWrite(document) {
   const { _id, _creationTime, ...rest } = document;
   return rest;
 }
@@ -128,7 +128,7 @@ if (!write) {
   console.log("");
   console.log("Dry run. No writes performed. To apply:");
   console.log(
-    `  TARGET_CONVEX_URL=<url> node scripts/review/apply-review-plan.mjs --plan ${planPath} \\`,
+    `  TARGET_POSTGRES_URL=<url> node scripts/review/apply-review-plan.mjs --plan ${planPath} \\`,
   );
   console.log(
     `    --write --confirm-write=${OPERATION} --expected-deployment=<fingerprint>`,
@@ -177,7 +177,7 @@ const writeResult = await batchAndApplyMutations({
   runContext,
   transformBatch: (batch) => ({
     apiKey: adminToken.token,
-    articles: batch.map(stripForConvexWrite),
+    articles: batch.map(stripForDataWrite),
   }),
   onBatchResult: (result, batchIndex, batch) => {
     console.log(

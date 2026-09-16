@@ -29,10 +29,7 @@ export function MechanismDetailPage({
   const targetQualifierKey = activeQualifierSlug ?? defaultQualifierKey;
   const qualifierNav = qualifiers.length > 1;
   const orderedQualifiers = activeQualifierSlug
-    ? [
-        ...qualifiers.filter((qualifier) => qualifier.key === targetQualifierKey),
-        ...qualifiers.filter((qualifier) => qualifier.key !== targetQualifierKey),
-      ]
+    ? qualifiers.filter((qualifier) => qualifier.key === targetQualifierKey)
     : qualifiers;
 
   return (

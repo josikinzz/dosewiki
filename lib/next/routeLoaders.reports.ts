@@ -2,13 +2,11 @@ import "server-only";
 
 import { cache } from "react";
 import {
-  getPublicDataOverview,
   getPublicReportBySlug,
-  getPublicReports,
-  getPublicSubstances,
+  getPublicSubstanceLookup,
   type TripReportDetailRecord,
-} from "@server/convex/publicData";
-import { getLocalizedPublicReportBySlug, getLocalizedPublicReports } from "@server/translation/localizedRecords";
+} from "@server/data/publicData";
+import { getLocalizedPublicReportBySlug } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import { reportsIndexEmptyState, type PublicRouteEmptyState } from "./publicRouteOutcomes";
@@ -19,18 +17,19 @@ import {
   type RouteMetadataSource,
   toRouteMetadata,
 } from "./routeLoaderResults";
+import { getReportBrowsePage } from "./reportBrowse";
+import type { ReportBrowsePage } from "../../src/features/reports/domain/reportBrowsePage";
+import type { ReportViewMode } from "../../src/types/tripReport";
 
 export type ReportsIndexRouteResult = OkRouteResult<
-  ReportsIndexViewModel["pageProps"] & { emptyState?: PublicRouteEmptyState }
+  ReportsIndexViewModel["pageProps"] & { browsingPage: ReportBrowsePage; emptyState?: PublicRouteEmptyState }
 >;
 
-export const loadReportsIndexRoute = cache(async (locale: LiveLocale | null = null): Promise<ReportsIndexRouteResult> => {
-  const [overview, reports] = await Promise.all([
-    getPublicDataOverview(),
-    locale ? getLocalizedPublicReports(locale.code) : getPublicReports(),
-  ]);
+export const loadReportsIndexRoute = cache(async (locale: LiveLocale | null = null, view: ReportViewMode = "substance"): Promise<ReportsIndexRouteResult> => {
+  const browsingPage = await getReportBrowsePage({ view }, locale?.code ?? null);
+  const reports = browsingPage.groups.flatMap((group) => group.reports);
   const viewModel = buildReportsIndexViewModel({
-    reportCount: overview.reportCount,
+    reportCount: browsingPage.total,
     reports,
   });
 
@@ -38,7 +37,8 @@ export const loadReportsIndexRoute = cache(async (locale: LiveLocale | null = nu
     kind: "ok",
     pageProps: {
       ...viewModel.pageProps,
-      emptyState: reports.length === 0 ? reportsIndexEmptyState : undefined,
+      browsingPage,
+      emptyState: browsingPage.total === 0 ? reportsIndexEmptyState : undefined,
     },
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "reports" },
@@ -59,7 +59,7 @@ export type ReportRouteResult =
 export const loadReportRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<ReportRouteResult> => {
   const [report, substances] = await Promise.all([
     locale ? getLocalizedPublicReportBySlug(slug, locale.code) : getPublicReportBySlug(slug),
-    getPublicSubstances(),
+    getPublicSubstanceLookup(),
   ]);
 
   if (!report) {
@@ -70,7 +70,7 @@ export const loadReportRoute = cache(async (slug: string, locale: LiveLocale | n
     kind: "ok",
     pageProps: { report },
     substanceBySlug: Object.fromEntries(
-      substances.map((substance) => [substance.slug, { name: substance.title }]),
+      substances.map((substance) => [substance.slug, { name: substance.name }]),
     ),
     metadata: {
       title: report.title,

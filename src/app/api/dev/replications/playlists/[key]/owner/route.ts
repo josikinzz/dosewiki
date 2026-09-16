@@ -3,10 +3,10 @@
  *
  * Admin only. Hands a playlist to a member so they can edit it at the
  * contributor floor, or (`null`) takes it back to the unowned, admin-only
- * state. Convex refuses an address with no membership (`MEMBER_NOT_FOUND`).
+ * state. Postgres refuses an address with no membership (`MEMBER_NOT_FOUND`).
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
@@ -45,16 +45,16 @@ export const POST = protectedRouteOperation<OwnerBody, ParsedOwner>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 4 * 1024, parse: parseOwnerBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to assign a playlist owner via Next route:",
   unexpectedErrorMessage: "Unable to change that playlist's owner right now.",
-  operation: async ({ request, actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ request, actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const result = await convexWrite.client.mutation(api.replicationPlaylists.assignOwner, {
-      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+    const result = await dataWrite.client.mutation(api.replicationPlaylists.assignOwner, {
+      apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail,
       key: playlistKeyOf(request),
       ownerEmail: body.ownerEmail,
@@ -64,6 +64,12 @@ export const POST = protectedRouteOperation<OwnerBody, ParsedOwner>({
       return NextResponse.json({ ok: false, error: "No playlist with that key." }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true, key: result.key, owner_email: result.owner_email });
+    return NextResponse.json({
+      ok: true,
+      key: result.key,
+      owner_email: result.owner_email,
+      updated_at: result.updated_at,
+      updated_by: result.updated_by,
+    });
   },
 });

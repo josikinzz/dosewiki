@@ -1,7 +1,7 @@
 import { buildUserMessage, formatOutputFile, saveOutput } from "./formatter.mjs";
 import { CATEGORIES } from "./categories.mjs";
-import { loadConvexArticleSourceDocument, loadSourceFile } from "./loader.mjs";
-import { api } from "../../../convex/_generated/api.js";
+import { loadPostgresArticleSourceDocument, loadSourceFile } from "./loader.mjs";
+import { api } from "../../../lib/postgres/runtime/api.ts"
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 import {
   createDryRunResultFromSourceMaterial,
@@ -9,19 +9,19 @@ import {
 } from "../lib/source-material-resolver.mjs";
 
 async function resolveExtractQuotesSourceMaterial(slug, category, options = {}) {
-  if (options.source === "convex") {
-    const sourceData = await loadConvexArticleSourceDocument(options.sourceClient, slug);
+  if (options.source === "postgres") {
+    const sourceData = await loadPostgresArticleSourceDocument(options.sourceClient, slug);
     if (!sourceData) {
-      return { slug, status: "skipped", reason: "No Convex articleSources doc" };
+      return { slug, status: "skipped", reason: "No Postgres articleSources doc" };
     }
     if (!Array.isArray(sourceData.sources) || sourceData.sources.length === 0) {
-      return { slug, status: "skipped", reason: "No sources in Convex articleSources doc" };
+      return { slug, status: "skipped", reason: "No sources in Postgres articleSources doc" };
     }
 
     return {
       slug,
       status: "ready",
-      materialType: "convex_article_sources",
+      materialType: "postgres_article_sources",
       sourceData,
       userMessage: buildUserMessage(sourceData.substanceName, sourceData.sources, sourceData.contents, category),
     };
@@ -36,7 +36,7 @@ async function resolveExtractQuotesSourceMaterial(slug, category, options = {}) 
 }
 
 async function saveExtractedQuotes({ slug, category, content, options }) {
-  if (options.save === "convex") {
+  if (options.save === "postgres") {
     const config = CATEGORIES[category];
     await options.targetClient.mutation(api.quotes.save, {
       apiKey: options.adminKey,
@@ -45,7 +45,7 @@ async function saveExtractedQuotes({ slug, category, content, options }) {
       content,
       updatedBy: "batch-extract-script",
     });
-    return { storage: "convex" };
+    return { storage: "postgres" };
   }
 
   return { storage: "local", path: saveOutput(slug, category, content) };

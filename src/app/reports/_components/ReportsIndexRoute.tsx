@@ -6,7 +6,7 @@ import { t } from "@/i18n/server";
 import { msg } from "@/i18n/messages";
 import type { ReportsIndexView } from "@/utils/indexViewRoutes";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import {
   buildPublicPageMetadata,
@@ -16,20 +16,27 @@ import {
 import { loadReportsIndexRoute } from "@server/next/routeLoaders.reports";
 
 const ITEM_LIST_LIMIT = 100;
+const REPORTS_COPY_KEYS = [
+  "seo-reports-index-description",
+  ...getCopyKeysByPrefix("empty-reports-"),
+];
 
 export async function getReportsIndexMetadata(
   pathname: string,
   options: { noIndex?: boolean; canonicalPathname?: string; locale?: LiveLocale | null } = {},
 ) {
-  const [result, copy] = await Promise.all([loadReportsIndexRoute(options.locale), getCopy()]);
+  const [result, copy] = await Promise.all([
+    loadReportsIndexRoute(options.locale),
+    getCopyByKeys(REPORTS_COPY_KEYS),
+  ]);
   const template =
     copy.text("seo-reports-index-description") ||
     msg("Browse {{reportCount}} trip reports in {{siteName}}.");
 
   return buildPublicPageMetadata({
     ...result.metadata,
-    description: applyPlaceholders(t(template, { reportCount: result.pageProps.reports.length, siteName: SITE_FLAVOR_CONFIG.name }), {
-      reportCount: result.pageProps.reports.length,
+    description: applyPlaceholders(t(template, { reportCount: result.pageProps.browsingPage.total, siteName: SITE_FLAVOR_CONFIG.name }), {
+      reportCount: result.pageProps.browsingPage.total,
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
     pathname: options.canonicalPathname ?? pathname,
@@ -46,7 +53,10 @@ export async function ReportsIndexRoute({
   pathname: string;
   locale?: LiveLocale | null;
 }) {
-  const [result, copy] = await Promise.all([loadReportsIndexRoute(locale), getCopy()]);
+  const [result, copy] = await Promise.all([
+    loadReportsIndexRoute(locale, initialView),
+    getCopyByKeys(REPORTS_COPY_KEYS),
+  ]);
   const canonicalUrl = buildSiteUrl(pathname);
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({
@@ -71,6 +81,7 @@ export async function ReportsIndexRoute({
       <TripReportsPage
         {...result.pageProps}
         initialView={initialView}
+        locale={locale?.code}
         emptyState={resolveEmptyStateCopy(copy, "reports", result.pageProps.emptyState)}
       />
     </>

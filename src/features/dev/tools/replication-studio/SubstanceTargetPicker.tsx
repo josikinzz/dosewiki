@@ -199,7 +199,7 @@ export function SubstanceTargetPicker({
               <span className="truncate">{candidate.title}</span>
               <button
                 type="button"
-                className="theme-text-faint rounded-full p-0.5 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2"
+                className="theme-text-faint rounded-full p-0.5 transition-opacity hover:opacity-100 theme-focus-ring"
                 aria-label={`Remove ${candidate.title}`}
                 disabled={disabled || busy}
                 onClick={() =>

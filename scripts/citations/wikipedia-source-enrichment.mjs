@@ -477,8 +477,8 @@ export async function loadWikipediaSourceForArticle({
   fetchImpl = globalThis.fetch,
 }) {
   const sourceId = source?.id ?? "wikipedia";
-  const convexSource = articleSources?.contents?.[sourceId] ?? articleSources?.contents?.wikipedia ?? "";
-  if (typeof convexSource === "string" && convexSource.includes("<ref")) {
+  const storedSource = articleSources?.contents?.[sourceId] ?? articleSources?.contents?.wikipedia ?? "";
+  if (typeof storedSource === "string" && storedSource.includes("<ref")) {
     const resolved = findWikipediaTitleFromArticle(article) ?? findWikipediaTitleFromSources(articleSources, source);
     return {
       document: {
@@ -489,9 +489,9 @@ export async function loadWikipediaSourceForArticle({
         pageUrl: resolved?.url ?? null,
         revisionId: null,
         revisionTimestamp: null,
-        source: convexSource,
+        source: storedSource,
         fetchedAt: nowIso(),
-        sourceOrigin: "convex",
+        sourceOrigin: "postgres",
       },
       diagnostics: [],
     };

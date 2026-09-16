@@ -1,7 +1,7 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type {
-  SaveToConvexPayload,
-  SaveToConvexResult,
+  SaveArticlePayload,
+  SaveArticleResult,
   SubmitProposalPayload,
   SubmitProposalResult,
 } from "@/hooks/useApiMutations";
@@ -11,8 +11,8 @@ import type { DevCommitDestination } from "../components/DevCommitCard";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import {
   buildCommitMarkdown,
-  buildConvexSavePayload,
-  normalizeConvexChangeLogEntry,
+  buildDataSavePayload,
+  normalizeDataChangeLogEntry,
   type ArticleRecord,
   type MarkdownChange,
 } from "./devModePageUtils";
@@ -86,7 +86,7 @@ export type DevSaveCommandAdapter = {
 
 function buildIndexLayoutPayload(
   layout: ManualLayoutDocument,
-): NonNullable<SaveToConvexPayload["indexLayouts"]>[number] | null {
+): NonNullable<SaveArticlePayload["indexLayouts"]>[number] | null {
   if (!layout.changelog.hasChanges || typeof layout.data !== "object" || layout.data === null) {
     return null;
   }
@@ -115,18 +115,18 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
   };
 }
 
-export function buildConvexCommandPayload(draft: DevSaveDraft): {
+export function buildDataCommandPayload(draft: DevSaveDraft): {
   changedArticles: ArticleRecord[];
-  payload: SaveToConvexPayload;
+  payload: SaveArticlePayload;
 } {
-  const result = buildConvexSavePayload({
+  const result = buildDataSavePayload({
     articles: draft.articles,
     originalArticles: draft.originalArticles,
     datasetChangelog: draft.changelog.dataset,
   });
   const changedLayouts = draft.layouts
     .map(buildIndexLayoutPayload)
-    .filter((layout): layout is NonNullable<SaveToConvexPayload["indexLayouts"]>[number] =>
+    .filter((layout): layout is NonNullable<SaveArticlePayload["indexLayouts"]>[number] =>
       layout !== null,
     );
 
@@ -150,18 +150,18 @@ export function buildConvexCommandPayload(draft: DevSaveDraft): {
   return result;
 }
 
-export function createConvexSaveAdapter({
+export function createDataSaveAdapter({
   serverHealth,
-  saveToConvex,
+  saveArticle,
 }: {
   serverHealth: EditorServerConfigHealth;
-  saveToConvex: (payload: SaveToConvexPayload) => Promise<SaveToConvexResult>;
+  saveArticle: (payload: SaveArticlePayload) => Promise<SaveArticleResult>;
 }): DevSaveCommandAdapter {
   return {
     noChangesMessage: "No changes to commit.",
     verifiedMessage: (key) => `Committing to production as ${key}...`,
     validateAvailability: () => {
-      if (serverHealth.status === "unhealthy" && !serverHealth.canSaveToConvex) {
+      if (serverHealth.status === "unhealthy" && !serverHealth.canSaveToPostgres) {
         return {
           ok: false,
           message:
@@ -173,14 +173,14 @@ export function createConvexSaveAdapter({
       return { ok: true };
     },
     execute: async (draft, credentials) => {
-      const { payload } = buildConvexCommandPayload(draft);
+      const { payload } = buildDataCommandPayload(draft);
       for (const layout of payload.indexLayouts ?? []) {
         const original = draft.layouts.find((row) => row.type === layout.type)?.originalData;
         if (original === undefined) throw new Error("The layout baseline is unavailable. Your draft is preserved; reload the source.");
         layout.expected = original === EMPTY_INDEX_CONFIG ? null : original;
         layout.expectedRevision = original && typeof original === "object" && "revision" in original && typeof original.revision === "number" ? original.revision : 0;
       }
-      const result = await saveToConvex(payload);
+      const result = await saveArticle(payload);
       const resolvedSubmitterKey = result.submittedBy?.trim() || credentials.key;
 
       return {
@@ -188,7 +188,7 @@ export function createConvexSaveAdapter({
         savedItems: result.savedItems,
         warnings: result.warnings ?? [],
         resolvedSubmitterKey,
-        changelogEntry: result.entry ? normalizeConvexChangeLogEntry(result.entry) : null,
+        changelogEntry: result.entry ? normalizeDataChangeLogEntry(result.entry) : null,
         markChangesSaved: result.savedItems.length > 0 && !(result.warnings?.length),
         revalidatedPaths: result.revalidatedPaths,
         requestId: result.requestId,
@@ -197,14 +197,14 @@ export function createConvexSaveAdapter({
   };
 }
 
-/** Short id shown in the notice: the tail of a Convex id is what differs between rows. */
+/** Short id shown in the notice: the tail of a Postgres id is what differs between rows. */
 const PROPOSAL_ID_DISPLAY_LENGTH = 6;
 
 /**
  * One-line summary of a proposal for the queue: the changed article titles and
  * layout types, in payload order, so an admin can tell rows apart at a glance.
  */
-export function buildProposalSummary(draft: DevSaveDraft, payload: SaveToConvexPayload): string {
+export function buildProposalSummary(draft: DevSaveDraft, payload: SaveArticlePayload): string {
   const articleTitles = (payload.articles ?? []).map((article) => {
     const record = article && typeof article === "object" ? (article as { title?: unknown }) : {};
     return typeof record.title === "string" && record.title.trim() ? record.title.trim() : "Untitled article";
@@ -221,7 +221,7 @@ export function buildProposalSummary(draft: DevSaveDraft, payload: SaveToConvexP
 }
 
 /**
- * The editor-side adapter: the same payload the Convex adapter would save is
+ * The editor-side adapter: the same payload the Postgres adapter would save is
  * posted to /api/dev/proposals with the original documents the editor loaded.
  * The server refuses stale baselines and derives its own diff. With `revisionOf`
  * the submission revises that returned proposal, which the server supersedes.
@@ -238,7 +238,7 @@ export function createProposalSaveAdapter({
     verifiedMessage: (key) => `Submitting for review as ${key}...`,
     validateAvailability: () => ({ ok: true }),
     execute: async (draft, credentials) => {
-      const { payload } = buildConvexCommandPayload(draft);
+      const { payload } = buildDataCommandPayload(draft);
       const baselines: ProposalBaseline[] = [
         ...(payload.articles ?? []).map((value) => {
           const article = value as SubstanceArticle;

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type EditorServerConfigHealth = {
   status: "idle" | "checking" | "healthy" | "unhealthy" | "error";
-  canSaveToConvex: boolean;
+  canSaveToPostgres: boolean;
   issues: string[];
   summary: string;
   checkedAt: string | null;
@@ -13,15 +13,15 @@ export type EditorServerConfigHealth = {
 
 const idleHealthState: EditorServerConfigHealth = {
   status: "idle",
-  canSaveToConvex: false,
+  canSaveToPostgres: false,
   issues: [],
   summary: "",
   checkedAt: null,
   isRefreshing: false,
 };
 
-function summarizeIssues(canSaveToConvex: boolean, issues: string[]): string {
-  if (canSaveToConvex) {
+function summarizeIssues(canSaveToPostgres: boolean, issues: string[]): string {
+  if (canSaveToPostgres) {
     return "Server ready";
   }
 
@@ -29,12 +29,12 @@ function summarizeIssues(canSaveToConvex: boolean, issues: string[]): string {
     return "Credential check failed";
   }
 
-  if (issues.some((issue) => issue.includes("CONVEX_ADMIN_KEY"))) {
+  if (issues.some((issue) => issue.includes("DATA_ADMIN_KEY"))) {
     return "Missing admin key";
   }
 
-  if (issues.some((issue) => issue.includes("Convex URL"))) {
-    return "Missing Convex URL";
+  if (issues.some((issue) => issue.includes("Postgres URL"))) {
+    return "Missing Postgres URL";
   }
 
   return issues[0] ?? "Server issue";
@@ -85,7 +85,7 @@ export function useEditorServerConfigHealth(enabled: boolean) {
 
         setHealth({
           status: "error",
-          canSaveToConvex: false,
+          canSaveToPostgres: false,
           issues: [message],
           summary: "Check failed",
           checkedAt: null,
@@ -97,20 +97,20 @@ export function useEditorServerConfigHealth(enabled: boolean) {
       const issues = Array.isArray(result.issues)
         ? result.issues.filter((value): value is string => typeof value === "string")
         : [];
-      const canSaveToConvex = result.canSaveToConvex === true;
+      const canSaveToPostgres = result.canSaveToPostgres === true;
 
       setHealth({
-        status: canSaveToConvex ? "healthy" : "unhealthy",
-        canSaveToConvex,
+        status: canSaveToPostgres ? "healthy" : "unhealthy",
+        canSaveToPostgres,
         issues,
-        summary: summarizeIssues(canSaveToConvex, issues),
+        summary: summarizeIssues(canSaveToPostgres, issues),
         checkedAt: typeof result.checkedAt === "string" ? result.checkedAt : null,
         isRefreshing: false,
       });
     } catch {
       setHealth({
         status: "error",
-        canSaveToConvex: false,
+        canSaveToPostgres: false,
         issues: ["Unable to reach the editor health check."],
         summary: "Check failed",
         checkedAt: null,

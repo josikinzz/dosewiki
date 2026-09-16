@@ -148,7 +148,7 @@ _Avoid_: one-off live write, disposable run output
 
 **Production Rollout Batch**:
 A deliberate group of locally archived citation results promoted to production together, ordered as homepage `common` substances, other homepage-visible substances, then remaining SubstanceIndex entries.
-_Avoid_: per-drug automatic publish, immediate Convex write
+_Avoid_: per-drug automatic publish, immediate production write
 
 **Citation Rollout Stage Gate**:
 A deliberate pause between rollout tiers. Calibration on `2c-b` is complete. Publish and review the homepage `common` substances. Then stop before expansion to other homepage-visible substances.
@@ -207,8 +207,8 @@ An adversarial verification run in a fresh blank context on the session model. I
 _Avoid_: rubber-stamp check, producer reviewing its own finding, unbounded recovery
 
 **Legality Draft**:
-The run-local artifact containing verified entries, corrections, International Convention Status, evidence, and gaps for one substance. It reaches Convex only through a dry-run followed by a confirmed write.
-_Avoid_: direct Convex write, hand-edited local JSON fix
+The run-local artifact containing verified entries, corrections, International Convention Status, evidence, and gaps for one substance. It reaches production only through a dry-run followed by a confirmed write.
+_Avoid_: direct production write, hand-edited local JSON fix
 
 **Per-Substance Autopilot**:
 The post-pilot mode in which each validated draft is dry-run and then applied to production one substance at a time without another human pause. Before the user approves the pilot canaries, every apply stops after dry-run for explicit confirmation.
@@ -241,7 +241,7 @@ The one-to-three-word badge that names a Review Flag. Reuse a canonical article-
 _Avoid_: flag code, category enum, long badge text
 
 **Review Run**:
-One dated review of a chosen article set. It replaces agent-sourced flags for covered articles, preserves human-created flags until human deletion, and keeps history in the dated run folder rather than Convex.
+One dated review of a chosen article set. It replaces agent-sourced flags for covered articles, preserves human-created flags until human deletion, and keeps history in the dated run folder rather than the database.
 _Avoid_: resolved flag state, dismissed-flag audit trail, incremental agent flag edits
 
 **Reviewed**:
@@ -293,7 +293,7 @@ A replication artist dose.wiki vouches for, recorded as `approved_replicator` on
 _Avoid_: verified replicator, official artist, featured artist, star rating
 
 **Replication Showcase**:
-The shared full-frame preview pattern inside substance and effect articles: one prominent work, a compact work strip or count, and an explicit entry into the Replication Viewer. Substance showcases use per-substance Convex-backed curation; effect showcases use the owning effect's collection.
+The shared full-frame preview pattern inside substance and effect articles: one prominent work, a compact work strip or count, and an explicit entry into the Replication Viewer. Substance showcases use per-substance database-backed curation; effect showcases use the owning effect's collection.
 _Avoid_: substance gallery tab, article replication gallery, competing inline player
 
 **Replication Viewer**:

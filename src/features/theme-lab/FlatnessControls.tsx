@@ -2,7 +2,6 @@
 
 import { PanelChip } from "./panelKit";
 import {
-  BLUR_TOKEN_ID,
   CORNER_STEPS,
   CORNER_TOKEN_IDS,
   DEPTH_STEPS,
@@ -15,6 +14,7 @@ import {
   glowOverrides,
   type FlatnessStep,
 } from "./flatnessAxes";
+import { BLUR_TOKEN_ID } from "./themeLabStorage";
 import styles from "./ThemeLab.module.css";
 
 /**

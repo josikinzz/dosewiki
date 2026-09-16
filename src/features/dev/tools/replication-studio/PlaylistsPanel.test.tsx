@@ -70,6 +70,8 @@ const PLAYLISTS: ReplicationPlaylist[] = [
     replication_slugs: ["work-0", "work-1"],
     updated_at: "2026-08-01T00:00:00.000Z",
     updated_by: "editor@example.com",
+    owner_email: "editor@example.com",
+    editable: true,
   },
   {
     key: "beta",
@@ -77,6 +79,8 @@ const PLAYLISTS: ReplicationPlaylist[] = [
     replication_slugs: ["work-2"],
     updated_at: "2026-08-02T00:00:00.000Z",
     updated_by: "editor@example.com",
+    owner_email: "editor@example.com",
+    editable: true,
   },
 ];
 
@@ -89,7 +93,14 @@ function stubPlaylistFetch(playlists: ReplicationPlaylist[] = PLAYLISTS) {
       const method = init?.method ?? "GET";
       calls.push({ url, method });
       if (method === "DELETE") return Response.json({ ok: true });
-      return Response.json({ playlists });
+      const keyed = playlists.find((playlist) => url.endsWith(`/${playlist.key}`));
+      if (keyed) return Response.json({ playlist: keyed });
+      return Response.json({
+        playlists: playlists.map(({ replication_slugs, ...playlist }) => ({
+          ...playlist,
+          work_count: replication_slugs.length,
+        })),
+      });
     }),
   );
   return calls;
@@ -205,7 +216,7 @@ describe("PlaylistsPanel", () => {
         const method = init?.method ?? "GET";
         calls.push(method);
         if (method === "DELETE") return deleteResponse;
-        return Response.json({ playlists: PLAYLISTS });
+        return Response.json({ playlists: PLAYLISTS.map(({ replication_slugs, ...playlist }) => ({ ...playlist, work_count: replication_slugs.length })) });
       }),
     );
     const user = userEvent.setup();
@@ -234,12 +245,15 @@ describe("PlaylistsPanel", () => {
     const calls: { method: string; body?: string }[] = [];
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const method = init?.method ?? "GET";
         calls.push({ method, body: typeof init?.body === "string" ? init.body : undefined });
         if (method === "POST") return saveResponse;
         if (method === "DELETE") return Response.json({ ok: true });
-        return Response.json({ playlists: PLAYLISTS });
+        const url = String(input);
+        const keyed = PLAYLISTS.find((playlist) => url.endsWith(`/${playlist.key}`));
+        if (keyed) return Response.json({ playlist: keyed });
+        return Response.json({ playlists: PLAYLISTS.map(({ replication_slugs, ...playlist }) => ({ ...playlist, work_count: replication_slugs.length })) });
       }),
     );
     const user = userEvent.setup();
@@ -306,13 +320,17 @@ describe("PlaylistsPanel", () => {
       const method = init?.method ?? "GET";
       if (method === "POST") return saveResponse;
       if (method === "DELETE") return Response.json({ ok: true });
-      return Response.json({ playlists: PLAYLISTS });
+      const url = String(_input);
+      const keyed = PLAYLISTS.find((playlist) => url.endsWith(`/${playlist.key}`));
+      if (keyed) return Response.json({ playlist: keyed });
+      return Response.json({ playlists: PLAYLISTS.map(({ replication_slugs, ...playlist }) => ({ ...playlist, work_count: replication_slugs.length })) });
     });
     vi.stubGlobal("fetch", fetchMock);
     const { result } = renderHook(() => usePlaylistsController());
 
     await waitFor(() => expect(result.current.loaded).toBe(true));
-    act(() => result.current.openPlaylist(PLAYLISTS[0]));
+    act(() => result.current.openPlaylist(result.current.playlists[0]));
+    await waitFor(() => expect(result.current.draft?.key).toBe("alpha"));
     act(() => result.current.setDraftTitle("Alpha changed"));
     act(() => result.current.startNewPlaylist());
     expect(result.current.pendingTransition).not.toBeNull();
@@ -328,10 +346,10 @@ describe("PlaylistsPanel", () => {
       result.current.setDraftSlugs(["work-2"]);
       result.current.resetDraft();
       result.current.closeDraft();
-      result.current.openPlaylist(PLAYLISTS[1]);
+      result.current.openPlaylist(result.current.playlists[1]);
       result.current.startNewPlaylist();
       result.current.discardPendingTransition();
-      void result.current.remove(PLAYLISTS[0]);
+      void result.current.remove(result.current.playlists[0]);
     });
 
     expect(result.current.draft).toMatchObject({

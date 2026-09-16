@@ -1,3 +1,4 @@
+import type { SubstanceArticle } from "@/schema";
 import type { Reference } from "@/schema/substance/shared";
 import {
   CITE_TOKEN_PATTERN,
@@ -29,6 +30,36 @@ export type CitationNumbering = {
   referencesById: Map<string, Reference>;
   numberedReferences: NumberedReference[];
 };
+
+export type ArticleCitationModel = {
+  readonly orderedIds: readonly string[];
+  readonly numbersById: ReadonlyMap<string, number>;
+  readonly unknownIds: readonly string[];
+  readonly referencesById: ReadonlyMap<string, Reference>;
+  readonly numberedReferences: readonly Readonly<NumberedReference>[];
+  readonly numberedReferencesById: ReadonlyMap<string, Readonly<NumberedReference>>;
+};
+
+// Article objects are immutable revision snapshots, including editor previews.
+// Weak ownership keeps server requests and discarded previews collectible, while
+// every fragment in the same render environment shares the complete numbering.
+const articleCitationModels = new WeakMap<SubstanceArticle, ArticleCitationModel>();
+
+export function getArticleCitationModel(article: SubstanceArticle): ArticleCitationModel {
+  const cached = articleCitationModels.get(article);
+  if (cached) return cached;
+  const numbering = buildCitationNumbering(article.references ?? [], article);
+  const numberedReferences = Object.freeze(numbering.numberedReferences.map((reference) => Object.freeze(reference)));
+  const model: ArticleCitationModel = Object.freeze({
+    ...numbering,
+    orderedIds: Object.freeze(numbering.orderedIds),
+    unknownIds: Object.freeze(numbering.unknownIds),
+    numberedReferences,
+    numberedReferencesById: new Map(numberedReferences.map((reference) => [reference.id, reference])),
+  });
+  articleCitationModels.set(article, model);
+  return model;
+}
 
 
 function collectStrings(value: unknown, seen: WeakSet<object>, strings: string[]) {
@@ -257,7 +288,7 @@ export function buildCitationNumbering(references: Reference[], content: unknown
   return { orderedIds: citationIds, numbersById, unknownIds, referencesById, numberedReferences };
 }
 
-export function renderCitationTokenText(text: string, numbering: Pick<CitationNumbering, "numbersById">): string {
+export function renderCitationTokenText(text: string, numbering: Pick<ArticleCitationModel, "numbersById">): string {
   return text.replace(CITE_TOKEN_PATTERN, (_token, id: string) => {
     const number = numbering.numbersById.get(id);
     return number ? `[${number}]` : "[?]";

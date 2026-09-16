@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Renders a Mermaid diagram natively (no iframe). The diagram source is passed
- * as a string and rendered client-side; mermaid + the ELK layout engine are
- * lazy-loaded so they only ship in the /docs route chunk.
+ * as a string and rendered client-side. Mermaid is loaded only when a figure
+ * approaches the viewport, then retained for subsequent theme/source updates.
  *
  * Theming: the `base` theme with hand-tuned light/dark `themeVariables`, a
  * light-mode remap of the shared classDef palette (see LIGHT_PALETTE below),
@@ -217,26 +217,63 @@ function applySiteStyling(svg: SVGElement, isDark: boolean) {
 let renderSeq = 0;
 
 export function Mermaid({ chart, title }: { chart: string; title?: string }) {
+  const figureRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [activated, setActivated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const figure = figureRef.current;
+    if (!figure) {
+      return;
+    }
+    // Unlike optional autoplay, diagrams must remain available in older browsers.
+    if (typeof IntersectionObserver === "undefined") {
+      setActivated(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setActivated(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(figure);
+    return () => observer.disconnect();
+  }, []);
+
+  // Invalidate pending work synchronously when a new chart commits, before an
+  // old promise can populate the canvas between commit and passive effects.
+  useLayoutEffect(() => {
+    if (!activated) {
+      return;
+    }
     let cancelled = false;
+    let latestRender = 0;
 
     const render = async () => {
       const canvas = canvasRef.current;
       if (!canvas) {
         return;
       }
+      const revision = ++latestRender;
+      const isDark = isDarkTheme();
+      const isCurrent = () =>
+        !cancelled &&
+        revision === latestRender &&
+        canvasRef.current === canvas &&
+        isDark === isDarkTheme();
 
       try {
         const mermaid = await loadMermaid();
-        if (cancelled) {
+        if (!isCurrent()) {
           return;
         }
 
-        const isDark = isDarkTheme();
         const id = `docs-mermaid-${(renderSeq += 1)}`;
         const source = isDark
           ? chart.trim()
@@ -244,16 +281,19 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
               .trim()
               .replace(/#[0-9a-fA-F]{6}\b/g, (hex) => LIGHT_PALETTE[hex.toLowerCase()] ?? hex);
         const svg = await queueRender(async () => {
+          if (!isCurrent()) {
+            return null;
+          }
           mermaid.initialize(themeConfig(isDark));
           const out = await mermaid.render(id, source);
           return out.svg;
         });
-        if (cancelled || !canvasRef.current) {
+        if (svg === null || !isCurrent()) {
           return;
         }
 
-        canvasRef.current.innerHTML = svg;
-        const svgEl = canvasRef.current.querySelector("svg");
+        canvas.innerHTML = svg;
+        const svgEl = canvas.querySelector("svg");
         if (svgEl) {
           svgEl.removeAttribute("height");
           svgEl.style.maxWidth = DIAGRAM_MAX_WIDTH;
@@ -263,7 +303,7 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
         setError(null);
         setReady(true);
       } catch (renderError) {
-        if (!cancelled) {
+        if (isCurrent()) {
           setError(renderError instanceof Error ? renderError.message : "Diagram failed to render");
         }
       }
@@ -284,10 +324,10 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
       cancelled = true;
       observer.disconnect();
     };
-  }, [chart]);
+  }, [activated, chart]);
 
   return (
-    <figure className="my-6">
+    <figure ref={figureRef} className="my-6">
       <div className="theme-card-surface flex min-h-[300px] items-center justify-center overflow-auto rounded-2xl border p-6">
         <div className="relative w-full">
           <div

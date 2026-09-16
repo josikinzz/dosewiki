@@ -19,6 +19,10 @@ export function parseBatchCliArgs(args, config) {
   const options = { ...defaults };
   const knownFlags = new Set([
     "help",
+    "write",
+    "confirm-write",
+    "expected-deployment",
+    "allow-remote",
     ...booleanFlags,
     ...stringFlags,
     ...csvFlags,
@@ -49,7 +53,9 @@ export function parseBatchCliArgs(args, config) {
       continue;
     }
 
-    const [rawFlag, rawValue = ""] = arg.slice(2).split("=");
+    const separator = arg.indexOf("=");
+    const rawFlag = arg.slice(2, separator);
+    const rawValue = arg.slice(separator + 1);
     const flag = aliases[rawFlag] ?? rawFlag;
 
     if (stringFlags.includes(flag)) {

@@ -2,31 +2,7 @@ import "server-only";
 
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { cache } from "react";
-import { buildOpenDataDocument, OPEN_DATA_DATASETS, type OpenDataDatasetName } from "./datasets";
-
-/** What a download button states about its file: records inside, bytes on disk. */
-export type PublicDownloadStats = {
-  count: number;
-  bytes: number;
-};
-
-/**
- * Entry count and decoded size of one `/open-data` JSON download, measured on
- * the document the route serves rather than estimated from the page's own
- * counts (the About page's substance total includes unlisted articles the
- * export leaves out).
- *
- * This composition reuses the public readers' persistent leaves. An outer
- * persistent cache would bypass those leaves on misses and rescan Convex.
- * The containing page's ISR caches the rendered labels with the document.
- */
-export const getOpenDataDownloadStats = cache(
-  async (dataset: OpenDataDatasetName): Promise<PublicDownloadStats> => {
-    const { count, json } = await buildOpenDataDocument(OPEN_DATA_DATASETS[dataset]);
-    return { count, bytes: Buffer.byteLength(json) };
-  },
-);
+import type { PublicDownloadStats } from "../../src/lib/openDataDownloadStats";
 
 let moleculePackDownloadStats: PublicDownloadStats | null = null;
 
@@ -34,7 +10,7 @@ let moleculePackDownloadStats: PublicDownloadStats | null = null;
  * Entry count and size of the committed molecule pack. Both come from the
  * files the reader downloads (`public/dosewiki-molecules.{json,zip}`, rebuilt
  * and committed nightly by `npm run molecules:pack`), so the label describes
- * the zip on this deployment even when Convex has gained a depiction since.
+ * the zip on this deployment even when Postgres has gained a depiction since.
  * The manifest's `count` already excludes class skeletons and unlisted
  * substances. Read once per process: the files never change between deploys.
  */

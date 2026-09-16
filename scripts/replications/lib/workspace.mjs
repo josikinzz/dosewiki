@@ -465,51 +465,12 @@ export function planReplicationMediaChanges({
   };
 }
 
-export function createConvexReplicationMediaAdapter({ client, api, apiKey, fetchFn = fetch }) {
+export function createReplicationMediaAdapter({ client, api, apiKey }) {
   if (!client || !api || !apiKey) {
-    throw new Error("createConvexReplicationMediaAdapter requires client, api, and apiKey.");
+    throw new Error("createReplicationMediaAdapter requires client, api, and apiKey.");
   }
 
   return {
-    async generateUploadUrl() {
-      return await client.mutation(api.replications.generateUploadUrl, { apiKey });
-    },
-
-    async uploadBuffer(uploadUrl, buffer, contentType) {
-      const response = await fetchFn(uploadUrl, {
-        method: "POST",
-        body: buffer,
-        headers: { "Content-Type": contentType },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (!data.storageId) {
-        throw new Error("No storageId in response");
-      }
-
-      return data.storageId;
-    },
-
-    async insertReplication(replication) {
-      return await client.mutation(api.replications.insertReplication, {
-        apiKey,
-        ...replication,
-      });
-    },
-
-    async updateStorageIds({ id, storage_id, thumbnail_storage_id }) {
-      return await client.mutation(api.replications.updateStorageIds, {
-        apiKey,
-        id,
-        storage_id,
-        thumbnail_storage_id,
-      });
-    },
-
     async updateEffectSlug({ slug, effect_slug }) {
       return await client.mutation(api.replications.updateEffectSlug, {
         apiKey,

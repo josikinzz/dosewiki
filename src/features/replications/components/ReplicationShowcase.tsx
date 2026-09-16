@@ -9,6 +9,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
+import { isManagedResponsiveImage } from "@server/next/r2ImagePolicy";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
@@ -27,7 +28,7 @@ import {
   VIEWER_SOUND_STORAGE_KEY,
 } from "@/features/replications/viewer/viewerPreferences";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
-import { ReplicationViewerOverlay } from "@/features/replications/viewer/ReplicationViewerOverlay";
+import { LazyReplicationViewerOverlay } from "@/features/replications/components/LazyReplicationViewerOverlay";
 import { publicHref } from "@/utils/publicHref";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import {
@@ -39,6 +40,73 @@ import {
   useShowcaseViewerController,
   type ReplicationShowcaseController,
 } from "./useShowcaseViewerController";
+
+function ShowcasePoster({
+  url,
+  title,
+  priority,
+  motionPending,
+  motionReady,
+  motionFailed,
+  unavailableDescription,
+}: {
+  url?: string;
+  title: string;
+  priority: boolean;
+  motionPending: boolean;
+  motionReady: boolean;
+  motionFailed: boolean;
+  unavailableDescription?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [poster, setPoster] = useState<"ready" | "pending" | "failed">(url ? "pending" : "ready");
+  useEffect(() => {
+    const image = ref.current?.querySelector("img");
+    if (!image) return;
+    if (image.complete) {
+      setPoster(image.naturalWidth > 0 ? "ready" : "failed");
+      return;
+    }
+    setPoster("pending");
+    const onLoad = () => setPoster("ready");
+    const onError = () => setPoster("failed");
+    image.addEventListener("load", onLoad);
+    image.addEventListener("error", onError);
+    return () => {
+      image.removeEventListener("load", onLoad);
+      image.removeEventListener("error", onError);
+    };
+  }, [url]);
+  const loading = !motionReady && (
+    poster === "pending" || (motionPending && (!url || poster === "failed"))
+  );
+  const unavailable = !motionReady && !loading && (
+    unavailableDescription || poster === "failed" || (motionFailed && !url)
+  );
+  return (
+    <div ref={ref} className="absolute inset-0" aria-busy={loading || undefined}>
+      {loading ? (
+        <span aria-hidden className="theme-skeleton-pulse theme-skeleton-pulse-soft absolute inset-0 animate-pulse motion-reduce:animate-none" />
+      ) : null}
+      {url && poster !== "failed" ? (
+        <AppImage
+          src={url}
+          alt={title}
+          width={1280}
+          height={800}
+          sizes="(max-width: 768px) 100vw, 680px"
+          priority={priority}
+          className={cn(
+            "absolute inset-0 h-full w-full object-contain text-transparent transition-opacity duration-[180ms] motion-reduce:transition-none",
+            poster === "pending" ? "opacity-0" : "opacity-100",
+          )}
+        />
+      ) : unavailable ? (
+        <MediaPlaceholder title={title} description={unavailableDescription} />
+      ) : null}
+    </div>
+  );
+}
 
 /**
  * The autoplay gate's viewport half. Where IntersectionObserver does not
@@ -104,10 +172,9 @@ export interface ReplicationShowcaseProps {
    * Where the complete collection can be lazily fetched
    * (`/api/replications/showcase`). When set, the server serializes only the
    * compact `works` strip; the expanded viewer's long tail — and `?viewer=`
-   * deep links to works beyond the strip — resolve against the fetched
-   * collection, degrading to the bundled works when the fetch fails. A locale
-   * mirror asks the route for its locale so the tail arrives translated like
-   * the strip; English is the route's default and adds nothing to the URL.
+   * deep links to works beyond the strip resolve against the fetched collection.
+   * Read failures remain retryable instead of silently truncating the viewer.
+   * Locale mirrors request their own translated collection.
    */
   collectionSource?: { kind: "substance" | "effect"; slug: string };
   /** The owning substance article's slug. */
@@ -128,6 +195,8 @@ export interface ReplicationShowcaseProps {
    * stands alone and the section carries the label as `aria-label`.
    */
   showHeading?: boolean;
+  /** Only an above-the-fold opening stage should request eager poster loading. */
+  priority?: boolean;
   /**
    * The heading's document level. Article embeds sit under a section `h2`, so
    * `3` is right there and is the default. A page whose only heading above
@@ -175,6 +244,7 @@ export function ReplicationShowcase({
   collectionLabel,
   showCreator = true,
   showHeading = true,
+  priority = false,
   headingLevel = 3,
   controller,
 }: ReplicationShowcaseProps) {
@@ -200,6 +270,7 @@ export function ReplicationShowcase({
     viewerSlug,
     unavailableViewerSlug,
     viewerCollection,
+    resolveViewerCollection,
     launchViewer,
     handleViewerLinkClick,
     closeViewer,
@@ -218,6 +289,8 @@ export function ReplicationShowcase({
    * storage, keeping the server and first client render identical.
    */
   const [inlineMuted, setInlineMuted] = useState(true);
+  const [readyMotionSource, setReadyMotionSource] = useState<string | null>(null);
+  const [failedMotionSource, setFailedMotionSource] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   /** Latest effective muted value, readable from the stable attach callback. */
   const effectiveMutedRef = useRef(true);
@@ -276,6 +349,14 @@ export function ReplicationShowcase({
   const activeIsMoving = active.type === "video" || activeGifReady;
   const activeHasAudio = active.type === "video" && active.hasAudio !== false;
   const activeEffectiveMuted = activeHasAudio ? inlineMuted : true;
+  // Autoplay uses the stored compact, silent preview when available. Explicit
+  // play or sound intent retains the full work; missing previews keep the
+  // existing viewport-gated full-source behavior.
+  const useCompactPreview =
+    active.type === "video" &&
+    Boolean(active.previewUrl) &&
+    activeEffectiveMuted &&
+    playOverride?.slug !== active.slug;
   // Render-phase mirror write: idempotent, read only from commit-phase
   // code (the attach callback) and gesture handlers.
   effectiveMutedRef.current = activeEffectiveMuted;
@@ -283,12 +364,16 @@ export function ReplicationShowcase({
     ? activeGifReady
       ? active.motionUrl
       : undefined
-    : active.url;
+    : useCompactPreview ? active.previewUrl : active.url;
   const activePosterUrl = activeGifLike
     ? active.motionPosterUrl
     : activeIsMoving
       ? active.thumbnailUrl
-      : active.url;
+      // Resize from the master for dense stages rather than enlarging a small
+      // thumbnail. AppImage delivers a responsive rendition, not master bytes.
+      : isManagedResponsiveImage(active.url)
+        ? active.url
+        : (active.thumbnailUrl ?? active.url);
   const activePlaying =
     activeIsMoving &&
     (playOverride?.slug === active.slug
@@ -356,6 +441,7 @@ export function ReplicationShowcase({
               // honor an unmute that happens during user activation.
               if (videoRef.current) videoRef.current.muted = nextMuted;
               setInlineMuted(nextMuted);
+              setPlayOverride({ slug: active.slug, playing: true });
               try {
                 window.sessionStorage.setItem(
                   VIEWER_SOUND_STORAGE_KEY,
@@ -452,6 +538,7 @@ export function ReplicationShowcase({
                   viewerCollection.sourcePath,
                   active.slug,
                 )}
+                prefetch={false}
                 onClick={handleViewerLinkClick(active.slug)}
                 className={cn(
                   "theme-media-tile-title pointer-events-auto inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold leading-tight sm:text-sm",
@@ -481,6 +568,7 @@ export function ReplicationShowcase({
                     ) : (
                       <Link
                         href={active.artistHref}
+                        prefetch={false}
                         className={cn(
                           "pointer-events-auto underline decoration-current/40 underline-offset-2",
                           "transition-opacity hover:opacity-80",
@@ -504,6 +592,7 @@ export function ReplicationShowcase({
               <PublicNameChip
                 as={Link}
                 href={publicHref.effect(active.effectSlug)}
+                prefetch={false}
                 interactive
                 icon={icons.subjectiveEffectIndex}
                 aria-label={t("Demonstrates: {{effect}}", { effect: active.effectName })}
@@ -525,28 +614,18 @@ export function ReplicationShowcase({
               key={active.slug}
               className={cn(slideFadeClassName, "opacity-100")}
             >
-              {activePosterUrl ? (
-                <AppImage
-                  src={activePosterUrl}
-                  alt={active.title}
-                  width={1280}
-                  height={800}
-                  /* The stage is aspect-video capped at 380px tall, so the
-                     poster never paints wider than ~676px. */
-                  sizes="(max-width: 768px) 100vw, 680px"
-                  className="absolute inset-0 h-full w-full object-contain"
-                />
-              ) : (
-                <MediaPlaceholder
-                  icon={activeIsMoving ? "lucide:play" : "lucide:image"}
-                  title={active.title}
-                  description={
-                    activeGifLike && !activeGifReady
-                      ? t("Animation unavailable until its controllable rendition is ready.")
-                      : undefined
-                  }
-                />
-              )}
+              <ShowcasePoster
+                key={activePosterUrl}
+                url={activePosterUrl}
+                title={active.title}
+                priority={priority && activeIndex === 0}
+                motionPending={activePlaying && readyMotionSource !== activeMotionSource && failedMotionSource !== activeMotionSource}
+                motionReady={activePlaying && readyMotionSource === activeMotionSource}
+                motionFailed={failedMotionSource === activeMotionSource}
+                unavailableDescription={activeGifLike && !activeGifReady
+                  ? t("Animation unavailable until its controllable rendition is ready.")
+                  : undefined}
+              />
 
               {activePlaying ? (
                 // Replications are non-verbal visual media: there is no
@@ -556,11 +635,16 @@ export function ReplicationShowcase({
                 // eslint-disable-next-line jsx-a11y/media-has-caption
                 <video
                   src={activeMotionSource}
-                  poster={activePosterUrl}
                   ref={attachStageVideo}
                   autoPlay
                   muted={activeEffectiveMuted}
-                  loop={shouldLoopReplicationMotion(
+                  onLoadStart={() => {
+                    setReadyMotionSource(null);
+                    setFailedMotionSource(null);
+                  }}
+                  onLoadedData={() => setReadyMotionSource(activeMotionSource ?? null)}
+                  onError={() => setFailedMotionSource(activeMotionSource ?? null)}
+                  loop={useCompactPreview || shouldLoopReplicationMotion(
                     active.format ?? "",
                     active.duration,
                   )}
@@ -572,7 +656,10 @@ export function ReplicationShowcase({
                     setPlayOverride({ slug: active.slug, playing: false });
                   }}
                   preload="none"
-                  className="absolute inset-0 h-full w-full object-contain"
+                  className={cn(
+                    "absolute inset-0 h-full w-full object-contain",
+                    readyMotionSource !== activeMotionSource && "opacity-0",
+                  )}
                 />
               ) : null}
 
@@ -617,6 +704,7 @@ export function ReplicationShowcase({
                 viewerCollection.sourcePath,
                 active.slug,
               )}
+              prefetch={false}
               onClick={handleViewerLinkClick(active.slug)}
               aria-label={t("Open viewer")}
               className={cn(
@@ -660,7 +748,7 @@ export function ReplicationShowcase({
                       ? work.motionPosterUrl
                       : work.type === "video"
                         ? work.thumbnailUrl
-                        : work.url;
+                        : (work.thumbnailUrl ?? work.url);
                     return (
                       <button
                         key={work.slug}
@@ -697,6 +785,7 @@ export function ReplicationShowcase({
                             alt=""
                             width={128}
                             height={128}
+                            sizes="44px"
                             className="absolute inset-0 h-full w-full object-cover"
                           />
                         ) : (
@@ -732,6 +821,7 @@ export function ReplicationShowcase({
                       viewerCollection.sourcePath,
                       active.slug,
                     )}
+                    prefetch={false}
                     onClick={handleViewerLinkClick(active.slug)}
                     aria-label={
                       substanceSlug
@@ -763,6 +853,7 @@ export function ReplicationShowcase({
             {rightsBefore}
             <Link
               href="/docs/license#replication-media-terms"
+              prefetch={false}
               className={proseLinkClassName}
             >
               {t("licensing terms")}
@@ -776,8 +867,9 @@ export function ReplicationShowcase({
         </div>
       </section>
       {!controller && viewerSlug ? (
-        <ReplicationViewerOverlay
+        <LazyReplicationViewerOverlay
           collection={viewerCollection}
+          resolveCollection={resolveViewerCollection}
           initialSlug={viewerSlug}
           open
           onOpenChange={(nextOpen) => {

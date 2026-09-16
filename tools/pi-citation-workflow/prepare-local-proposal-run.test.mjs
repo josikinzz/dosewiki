@@ -69,14 +69,14 @@ function fixture(section = "summary") {
     : { pharmacodynamics: "Proposal pharmacology.", nested: ["exact", "shape"] };
   const targetArticle = { _id: "article-id", _creationTime: 1, ...baseArticle };
   const manifest = attachManifestDigest({
-    schemaVersion: "section-proposal-manifest-v1",
+    schemaVersion: "section-proposal-manifest-v2",
     adapterVersion: `${section}-proposal-v1`,
     slug: "2c-b",
     section,
     capturedAt: "2026-07-01T00:00:00.000Z",
     deployments: {
-      source: { fingerprint: "source-test" },
-      target: { fingerprint: "target-test" },
+      source: { identity: "localhost/source-test", fingerprint: "localhost/source-test" },
+      target: { identity: "localhost/target-test", fingerprint: "localhost/target-test" },
     },
     targetArticle,
     targetArticleHash: canonicalHash(targetArticle),
@@ -99,7 +99,7 @@ function fixture(section = "summary") {
 
   const proposal = buildSectionProposal({
     slug: "2c-b",
-    targetDeploymentFingerprint: "target-test",
+    targetDeploymentFingerprint: "localhost/target-test",
     targetArticle: baseArticle,
     sectionKey: section,
     generatedValue,

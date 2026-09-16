@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { convexState } = vi.hoisted(() => ({
-  convexState: {
+const { dataState } = vi.hoisted(() => ({
+  dataState: {
     lastArgs: undefined as undefined | "skip" | { limit: number },
     entries: undefined as
       | undefined
@@ -19,8 +19,8 @@ const { convexState } = vi.hoisted(() => ({
 
 vi.mock("@/hooks/useEditorRead", () => ({
   useEditorRead: (_name: unknown, args: "skip" | { limit: number }) => {
-    convexState.lastArgs = args;
-    return convexState.entries;
+    dataState.lastArgs = args;
+    return dataState.entries;
   },
 }));
 
@@ -60,23 +60,23 @@ vi.mock("@/data/changelog/changeLog", async (importOriginal) => {
 
 import { CHANGELOG_FEED_MAX_ROWS, CHANGELOG_FEED_PAGE_SIZE, useDevChangelogFeed } from "./useDevChangelogFeed";
 
-const makeConvexEntries = (count: number, startIndex = 0) =>
+const makeDataEntries = (count: number, startIndex = 0) =>
   Array.from({ length: count }, (_, offset) => {
     const index = startIndex + offset;
     return {
-      entryId: `convex-${index}`,
+      entryId: `data-${index}`,
       createdAt: new Date(Date.UTC(2026, 0, 1) + index * 60_000).toISOString(),
-      message: `Convex ${index}`,
+      message: `Postgres ${index}`,
       articles: [{ id: index, title: `Article ${index}`, slug: `article-${index}` }],
-      markdown: `convex ${index}`,
+      markdown: `data ${index}`,
       submittedBy: "ABC",
     };
   });
 
 describe("useDevChangelogFeed", () => {
   beforeEach(() => {
-    convexState.entries = undefined;
-    convexState.lastArgs = undefined;
+    dataState.entries = undefined;
+    dataState.lastArgs = undefined;
   });
 
   it("starts with sorted static entries", () => {
@@ -89,22 +89,22 @@ describe("useDevChangelogFeed", () => {
     ]);
   });
 
-  it("hydrates Convex entries, drops duplicate static IDs, and sorts newest first", async () => {
-    convexState.entries = [
+  it("hydrates Postgres entries, drops duplicate static IDs, and sorts newest first", async () => {
+    dataState.entries = [
       {
-        entryId: "convex-new",
+        entryId: "data-new",
         createdAt: "2026-01-04T00:00:00.000Z",
-        message: "Convex newer",
+        message: "Postgres newer",
         articles: [{ id: 3, title: "Ketamine", slug: "ketamine" }],
-        markdown: "convex new",
+        markdown: "data new",
         submittedBy: "ABC",
       },
       {
         entryId: "static-duplicate",
         createdAt: "2026-01-05T00:00:00.000Z",
-        message: "Convex duplicate",
+        message: "Postgres duplicate",
         articles: [{ id: 4, title: "Ignored", slug: "ignored" }],
-        markdown: "convex duplicate",
+        markdown: "data duplicate",
         submittedBy: "ABC",
       },
     ];
@@ -113,7 +113,7 @@ describe("useDevChangelogFeed", () => {
 
     await waitFor(() => {
       expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
-        "convex-new",
+        "data-new",
         "static-duplicate",
         "static-witchy",
         "static-1",
@@ -139,15 +139,15 @@ describe("useDevChangelogFeed", () => {
     expect(result.current.changeLogEntries[0].id).toBe("appended");
   });
 
-  it("reports a closed window when Convex returns fewer rows than the page", async () => {
-    convexState.entries = makeConvexEntries(3);
+  it("reports a closed window when Postgres returns fewer rows than the page", async () => {
+    dataState.entries = makeDataEntries(3);
 
     const { result } = renderHook(() => useDevChangelogFeed({}));
 
     await waitFor(() => {
       expect(result.current.feedWindow.loadedCount).toBe(3);
     });
-    expect(convexState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE });
+    expect(dataState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE });
     expect(result.current.feedWindow).toMatchObject({
       hasMore: false,
       atServerCap: false,
@@ -156,7 +156,7 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("offers older saves when a page comes back full and widens the query on loadMore", async () => {
-    convexState.entries = makeConvexEntries(CHANGELOG_FEED_PAGE_SIZE);
+    dataState.entries = makeDataEntries(CHANGELOG_FEED_PAGE_SIZE);
 
     const { result, rerender } = renderHook(() => useDevChangelogFeed({}));
 
@@ -168,11 +168,11 @@ describe("useDevChangelogFeed", () => {
     // The wider subscription answers undefined until the next page lands:
     // the rows already held must stay on screen and the window must read
     // as loading rather than empty.
-    convexState.entries = undefined;
+    dataState.entries = undefined;
     act(() => {
       result.current.feedWindow.loadMore();
     });
-    expect(convexState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE * 2 });
+    expect(dataState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE * 2 });
     expect(result.current.feedWindow.loading).toBe(true);
     expect(result.current.feedWindow.hasMore).toBe(false);
     expect(result.current.changeLogEntries.length).toBeGreaterThanOrEqual(CHANGELOG_FEED_PAGE_SIZE);
@@ -181,9 +181,9 @@ describe("useDevChangelogFeed", () => {
     act(() => {
       result.current.feedWindow.loadMore();
     });
-    expect(convexState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE * 2 });
+    expect(dataState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE * 2 });
 
-    convexState.entries = makeConvexEntries(CHANGELOG_FEED_PAGE_SIZE + 40);
+    dataState.entries = makeDataEntries(CHANGELOG_FEED_PAGE_SIZE + 40);
     rerender();
     await waitFor(() => {
       expect(result.current.feedWindow.loadedCount).toBe(CHANGELOG_FEED_PAGE_SIZE + 40);
@@ -192,7 +192,7 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("stops paging at the server cap and says so", async () => {
-    convexState.entries = makeConvexEntries(CHANGELOG_FEED_MAX_ROWS);
+    dataState.entries = makeDataEntries(CHANGELOG_FEED_MAX_ROWS);
 
     const { result } = renderHook(() => useDevChangelogFeed({}));
 

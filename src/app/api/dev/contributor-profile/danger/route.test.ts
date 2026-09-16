@@ -6,7 +6,7 @@ import { POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     contributorProfiles: {
       mergeProfileInto: "contributorProfiles.mergeProfileInto",
@@ -31,8 +31,8 @@ const mocks = vi.hoisted(() => ({
   revalidateContributorSurfaces: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: () => ({
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: () => ({
     ok: true,
     capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
   }),
@@ -58,7 +58,7 @@ describe("contributor profile danger route", () => {
     authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", ADMIN));
   });
 
-  it("refuses an editor on every action before touching Convex", async () => {
+  it("refuses an editor on every action before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
 
     for (const body of [

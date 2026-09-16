@@ -34,7 +34,15 @@ function stubPlaylistsApi(playlists: OwnedPlaylist[]) {
     const path = new URL(String(input), "https://dev.dose.wiki").pathname;
     const method = init?.method ?? "GET";
     if (method === "GET") {
-      return Response.json({ ok: true, playlists });
+      const keyed = playlists.find((playlist) => path.endsWith(`/${playlist.key}`));
+      if (keyed) return Response.json({ ok: true, playlist: keyed });
+      return Response.json({
+        ok: true,
+        playlists: playlists.map(({ replication_slugs, ...playlist }) => ({
+          ...playlist,
+          work_count: replication_slugs.length,
+        })),
+      });
     }
     const body = typeof init?.body === "string" ? (JSON.parse(init.body) as Record<string, unknown>) : null;
     calls.push({ method, path, body });
@@ -49,6 +57,17 @@ function stubPlaylistsApi(playlists: OwnedPlaylist[]) {
           pruned: [],
           updated_at: "2026-03-01T00:00:00.000Z",
         },
+      });
+    }
+    if (method === "POST" && path.endsWith("/owner")) {
+      const parts = path.split("/");
+      const key = parts[parts.length - 2];
+      return Response.json({
+        ok: true,
+        key,
+        owner_email: body?.ownerEmail ?? null,
+        updated_at: "2026-03-01T00:00:00.000Z",
+        updated_by: "admin@example.com",
       });
     }
     return Response.json({ ok: true });
@@ -227,7 +246,10 @@ describe("PlaylistsTab", () => {
     const user = userEvent.setup();
     stubPlaylistsApi([mine]);
     const fetchMock = vi.mocked(fetch);
-    fetchMock.mockImplementationOnce(async () => Response.json({ ok: true, playlists: [mine] }));
+    fetchMock.mockImplementationOnce(async () => {
+      const { replication_slugs, ...summary } = mine;
+      return Response.json({ ok: true, playlists: [{ ...summary, work_count: replication_slugs.length }] });
+    });
     fetchMock.mockImplementationOnce(async () =>
       Response.json({ error: "\"Ada's list\" belongs to ada@example.com; only its owner or an admin may change it.", code: "NOT_OWNER" }, { status: 403 }),
     );

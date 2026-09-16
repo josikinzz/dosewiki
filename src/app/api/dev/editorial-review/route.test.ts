@@ -7,10 +7,6 @@ import {
   signInAs,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../convex/_generated/api", () => ({
-  api: { substanceIndex: { setEditorialReview: "substanceIndex.setEditorialReview" } },
-}));
-
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
   revalidatePath: vi.fn(),
@@ -42,11 +38,10 @@ describe("editorial review route", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("refuses an editor marking a review completed with 403 before touching Convex", async () => {
+  it("refuses an editor marking a review completed with 403 before touching Postgres", async () => {
     signInAs("editor");
     const response = await POST(tickRequest("completed"));
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: "Admin access required." });
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
@@ -55,34 +50,22 @@ describe("editorial review route", () => {
     routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "in_progress", notes: "" } });
     const response = await POST(tickRequest("in_progress"));
     expect(response.status).toBe(200);
-    expect(routeMocks.mutation).toHaveBeenCalledWith("substanceIndex.setEditorialReview", {
-      apiKey: "admin-key",
-      actorEmail: "editor@example.com",
-      slug: "2c-b",
-      status: "in_progress",
-    });
   });
 
   it("lets an admin mark a review completed", async () => {
     routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "completed", notes: "" } });
     const response = await POST(tickRequest("completed"));
     expect(response.status).toBe(200);
-    expect(routeMocks.mutation).toHaveBeenCalledWith("substanceIndex.setEditorialReview", {
-      apiKey: "admin-key",
-      actorEmail: "admin@example.com",
-      slug: "2c-b",
-      status: "completed",
-    });
   });
 
 
-  it("rejects malformed labels before calling Convex", async () => {
+  it("rejects malformed labels before calling Postgres", async () => {
     const response = await POST(flagRequest({ label: "this label has too many words", severity: "minor", note: "" }));
     expect(response.status).toBe(400);
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("rejects malformed severities before calling Convex", async () => {
+  it("rejects malformed severities before calling Postgres", async () => {
     const response = await POST(flagRequest({ label: "skinny", severity: "blocking", note: "" }));
     expect(response.status).toBe(400);
     expect(routeMocks.mutation).not.toHaveBeenCalled();

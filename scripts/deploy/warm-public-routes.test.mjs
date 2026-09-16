@@ -44,7 +44,12 @@ test("parseSitemapLocations reads, trims, decodes, and dedupes <loc> entries", (
     "https://dose.wiki/search?q=a&b=c",
   ]);
   assert.equal(isSitemapIndex(URLSET), false);
-  assert.equal(isSitemapIndex(`<sitemapindex><sitemap><loc>x</loc></sitemap></sitemapindex>`), true);
+  assert.equal(
+    isSitemapIndex(
+      `<sitemapindex><sitemap><loc>x</loc></sitemap></sitemapindex>`,
+    ),
+    true,
+  );
 });
 
 test("isSubstanceArticleUrl keeps single-segment article paths on the same origin", () => {
@@ -52,9 +57,15 @@ test("isSubstanceArticleUrl keeps single-segment article paths on the same origi
   assert.equal(isSubstanceArticleUrl("https://dose.wiki/lsd", base), true);
   assert.equal(isSubstanceArticleUrl("https://dose.wiki/2c-b/", base), true);
   assert.equal(isSubstanceArticleUrl("https://dose.wiki/", base), false);
-  assert.equal(isSubstanceArticleUrl("https://dose.wiki/substances", base), false);
+  assert.equal(
+    isSubstanceArticleUrl("https://dose.wiki/substances", base),
+    false,
+  );
   assert.equal(isSubstanceArticleUrl("https://dose.wiki/Blog", base), false);
-  assert.equal(isSubstanceArticleUrl("https://dose.wiki/effects/x", base), false);
+  assert.equal(
+    isSubstanceArticleUrl("https://dose.wiki/effects/x", base),
+    false,
+  );
   assert.equal(isSubstanceArticleUrl("https://dev.dose.wiki/lsd", base), false);
   assert.equal(isSubstanceArticleUrl("not a url", base), false);
 });
@@ -65,7 +76,10 @@ test("selectWarmUrls picks articles by default and everything with --all", () =>
     "https://dose.wiki/lsd",
     "https://dose.wiki/2c-b",
   ]);
-  assert.equal(selectWarmUrls(urls, { baseUrl: "https://dose.wiki", all: true }).length, 7);
+  assert.equal(
+    selectWarmUrls(urls, { baseUrl: "https://dose.wiki", all: true }).length,
+    7,
+  );
 });
 
 test("classifyCacheHeaders maps Vercel and Next cache headers", () => {
@@ -75,7 +89,11 @@ test("classifyCacheHeaders maps Vercel and Next cache headers", () => {
   expect(new Headers({ "x-vercel-cache": "HIT" }), "hit", "HIT");
   expect(new Headers({ "x-vercel-cache": "stale" }), "hit", "STALE");
   expect(new Headers({ "x-vercel-cache": "PRERENDER" }), "hit", "PRERENDER");
-  expect(new Headers({ "x-vercel-cache": "REVALIDATED" }), "hit", "REVALIDATED");
+  expect(
+    new Headers({ "x-vercel-cache": "REVALIDATED" }),
+    "hit",
+    "REVALIDATED",
+  );
   expect(new Headers({ "x-vercel-cache": "MISS" }), "miss", "MISS");
   expect(new Headers({ "x-vercel-cache": "BYPASS" }), "miss", "BYPASS");
   expect({ "X-Nextjs-Cache": "MISS" }, "miss", "MISS");
@@ -83,7 +101,11 @@ test("classifyCacheHeaders maps Vercel and Next cache headers", () => {
   expect(new Headers(), "unknown", null);
   expect(null, "unknown", null);
   // Vercel's header wins when both are present.
-  expect(new Headers({ "x-vercel-cache": "HIT", "x-nextjs-cache": "MISS" }), "hit", "HIT");
+  expect(
+    new Headers({ "x-vercel-cache": "HIT", "x-nextjs-cache": "MISS" }),
+    "hit",
+    "HIT",
+  );
 });
 
 test("runWithConcurrency bounds in-flight work and keeps order", async () => {
@@ -103,59 +125,94 @@ test("runWithConcurrency bounds in-flight work and keeps order", async () => {
   assert.deepEqual(results.slice(4), [50, 60]);
 });
 
-function fakeResponse(status, headers = {}) {
+function fakeResponse(status, headers = {}, bytes = 1) {
   return {
     status,
     ok: status < 400,
     headers: new Headers(headers),
-    arrayBuffer: async () => new ArrayBuffer(0),
+    arrayBuffer: async () => new ArrayBuffer(bytes),
     text: async () => "",
   };
 }
 
-test("warmUrl retries once on a 5xx and reports the cache header", async () => {
-  const calls = [];
-  const fetchImpl = async (url) => {
-    calls.push(url);
-    return calls.length === 1
-      ? fakeResponse(503)
-      : fakeResponse(200, { "x-vercel-cache": "MISS" });
-  };
-  const result = await warmUrl("https://dose.wiki/lsd", { fetchImpl, retries: 1 });
-  assert.equal(calls.length, 2);
+function validResponse(init, status = 200, cache = "MISS") {
+  const navigation = new Headers(init?.headers).get("rsc") === "1";
+  return fakeResponse(status, {
+    "content-type": navigation
+      ? "text/x-component"
+      : "text/html; charset=utf-8",
+    "x-vercel-cache": cache,
+  });
+}
+
+test("warmUrl validates complete HTML and genuine Next navigation responses", async () => {
+  const requests = [];
+  const result = await warmUrl("https://dose.wiki/lsd", {
+    fetchImpl: async (url, init) => {
+      requests.push({ url: String(url), headers: new Headers(init.headers) });
+      return validResponse(init);
+    },
+    retries: 0,
+  });
+
   assert.equal(result.ok, true);
-  assert.equal(result.status, 200);
-  assert.equal(result.cache, "miss");
-  assert.equal(result.attempts, 2);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0].headers.get("rsc"), null);
+  assert.equal(requests[1].headers.get("rsc"), "1");
+  assert.ok(requests[1].headers.get("next-router-state-tree"));
+  assert.ok(new URL(requests[1].url).searchParams.get("_rsc"));
+  assert.equal(result.representations.html.contentType, "text/html");
+  assert.equal(
+    result.representations.navigation.contentType,
+    "text/x-component",
+  );
 });
 
-test("warmUrl does not retry a 404 and records it as a failure", async () => {
-  let calls = 0;
-  const fetchImpl = async () => {
-    calls += 1;
-    return fakeResponse(404, { "x-vercel-cache": "MISS" });
-  };
-  const result = await warmUrl("https://dose.wiki/nope", { fetchImpl });
-  assert.equal(calls, 1);
+test("warmUrl rejects an HTML fallback returned to a navigation request", async () => {
+  const result = await warmUrl("https://dose.wiki/lsd", {
+    fetchImpl: async (_url, init) => {
+      const navigation = new Headers(init.headers).get("rsc") === "1";
+      return fakeResponse(200, {
+        "content-type": navigation ? "text/html" : "text/html; charset=utf-8",
+      });
+    },
+    retries: 0,
+  });
   assert.equal(result.ok, false);
-  assert.equal(result.status, 404);
-  assert.equal(result.error, "HTTP 404");
+  assert.equal(result.representations.html.ok, true);
+  assert.equal(result.representations.navigation.ok, false);
+  assert.match(
+    result.representations.navigation.error,
+    /expected text\/x-component/,
+  );
 });
 
-test("warmUrl gives up after the retry on a network error", async () => {
+test("warmUrl retries a 5xx independently and does not retry a 404", async () => {
   let calls = 0;
-  const fetchImpl = async () => {
-    calls += 1;
-    throw new Error("ECONNRESET");
-  };
-  const result = await warmUrl("https://dose.wiki/lsd", { fetchImpl, retries: 1 });
+  const recovered = await warmUrl("https://dose.wiki/lsd", {
+    fetchImpl: async (_url, init) => {
+      calls += 1;
+      return calls === 1 ? validResponse(init, 503) : validResponse(init);
+    },
+    retries: 1,
+  });
+  assert.equal(recovered.ok, true);
+  assert.equal(recovered.representations.html.attempts, 2);
+
+  calls = 0;
+  const missing = await warmUrl("https://dose.wiki/nope", {
+    fetchImpl: async (_url, init) => {
+      calls += 1;
+      return validResponse(init, 404);
+    },
+  });
   assert.equal(calls, 2);
-  assert.equal(result.ok, false);
-  assert.equal(result.status, null);
-  assert.equal(result.error, "ECONNRESET");
+  assert.equal(missing.ok, false);
+  assert.equal(missing.representations.html.attempts, 1);
+  assert.equal(missing.representations.navigation.attempts, 1);
 });
 
-test("warmUrl reports a timeout when the request aborts", async () => {
+test("warmUrl reports bounded timeouts for both representations", async () => {
   const fetchImpl = (_url, { signal }) =>
     new Promise((_resolve, reject) => {
       signal.addEventListener("abort", () => {
@@ -164,71 +221,46 @@ test("warmUrl reports a timeout when the request aborts", async () => {
         reject(error);
       });
     });
-  const result = await warmUrl("https://dose.wiki/lsd", { fetchImpl, timeoutMs: 5, retries: 0 });
+  const result = await warmUrl("https://dose.wiki/lsd", {
+    fetchImpl,
+    timeoutMs: 5,
+    retries: 0,
+  });
   assert.equal(result.ok, false);
-  assert.match(result.error, /timeout after 5ms/);
+  assert.match(result.representations.html.error, /timeout after 5ms/);
+  assert.match(result.representations.navigation.error, /timeout after 5ms/);
 });
 
-test("warmUrls stops dispatching after the deadline and reports the rest as remaining", async () => {
+test("warmUrls stops dispatching after the deadline and reports the rest", async () => {
   let clock = 0;
-  const fetchImpl = async () => {
-    clock += 10;
-    return fakeResponse(200, { "x-vercel-cache": "HIT" });
-  };
-  const urls = ["https://a/1", "https://a/2", "https://a/3", "https://a/4"];
+  const urls = ["https://a/1", "https://a/2", "https://a/3"];
   const { results, remaining } = await warmUrls(urls, {
-    fetchImpl,
+    fetchImpl: async (_url, init) => {
+      clock += 10;
+      return validResponse(init, 200, "HIT");
+    },
     concurrency: 1,
     deadlineAt: 25,
     now: () => clock,
   });
-  assert.equal(results.length, 3);
-  assert.deepEqual(remaining, ["https://a/4"]);
+  assert.equal(results.length, 2);
+  assert.deepEqual(remaining, ["https://a/3"]);
 });
 
-test("warmUrls keeps a failed request in its results so the summary can count it", async () => {
-  const fetchImpl = async (url) =>
-    fakeResponse(String(url).endsWith("/missing") ? 404 : 200, { "x-vercel-cache": "MISS" });
-  const { results } = await warmUrls(["https://a/ok", "https://a/missing"], { fetchImpl, retries: 0 });
-  assert.deepEqual(
-    results.map(({ url, ok, status, error }) => ({ url, ok, status, error })),
-    [
-      { url: "https://a/ok", ok: true, status: 200, error: null },
-      { url: "https://a/missing", ok: false, status: 404, error: "HTTP 404" },
-    ],
-  );
-});
-
-test("summarizeWarmResults counts hits, misses, failures, and the slowest URLs", () => {
-  const results = [
-    { url: "https://a/1", ok: true, status: 200, cache: "hit", durationMs: 50, error: null },
-    { url: "https://a/2", ok: true, status: 200, cache: "miss", durationMs: 900, error: null },
-    { url: "https://a/3", ok: false, status: 500, cache: "unknown", durationMs: 300, error: "HTTP 500" },
-    { url: "https://a/4", ok: true, status: 200, cache: "hit", durationMs: 120, error: null },
-  ];
-  const summary = summarizeWarmResults(results, { slowest: 2, totalMs: 1000, remaining: ["https://a/5"] });
-  assert.equal(summary.count, 4);
-  assert.equal(summary.ok, 3);
+test("summarizeWarmResults exposes failures and timing by representation", async () => {
+  const { results } = await warmUrls(["https://a/ok", "https://a/bad"], {
+    fetchImpl: async (url, init) =>
+      validResponse(init, String(url).includes("/bad") ? 404 : 200),
+    retries: 0,
+  });
+  const summary = summarizeWarmResults(results, { slowest: 2, totalMs: 1000 });
+  assert.equal(summary.count, 2);
+  assert.equal(summary.ok, 1);
   assert.equal(summary.failed, 1);
-  assert.equal(summary.failureRate, 0.25);
-  assert.equal(summary.hits, 2);
-  assert.equal(summary.misses, 1);
-  assert.equal(summary.unknown, 1);
-  assert.deepEqual(
-    summary.slowest.map((entry) => entry.url),
-    ["https://a/2", "https://a/3"],
-  );
-  assert.equal(summary.remaining, 1);
-  assert.equal(summary.totalMs, 1000);
-  assert.equal(summary.maxMs, 900);
-  assert.equal(summary.meanMs, 343);
-
-  const text = formatWarmSummary(summary);
-  assert.match(text, /Warmed 4 URL\(s\) in 1\.0s/);
-  assert.match(text, /Cache: 2 hit, 1 miss, 1 unknown/);
-  assert.match(text, /Failures: 1 \(25\.0%\)/);
-  assert.match(text, /Not attempted \(time budget\): 1/);
-  assert.match(text, /https:\/\/a\/3\s{2}HTTP 500/);
+  assert.equal(summary.representations.html.ok, 1);
+  assert.equal(summary.representations.navigation.failed, 1);
+  assert.equal(summary.failures.length, 2);
+  assert.match(formatWarmSummary(summary), /Navigation: 1 ok, 1 failed/);
 });
 
 test("summarizeWarmResults handles an empty run", () => {
@@ -264,7 +296,10 @@ test("parseWarmArgs reads flags in both forms and falls back to the env", () => 
   assert.equal(parsed.timeoutMs, 500);
   assert.equal(parsed.maxFailurePercent, 0);
   assert.throws(() => parseWarmArgs(["--bogus"]), /Unknown flag --bogus/);
-  assert.throws(() => parseWarmArgs(["--concurrency=abc"]), /--concurrency must be/);
+  assert.throws(
+    () => parseWarmArgs(["--concurrency=abc"]),
+    /--concurrency must be/,
+  );
 });
 
 test("collectSitemapUrls follows a sitemap index one level deep", async () => {
@@ -277,7 +312,10 @@ test("collectSitemapUrls follows a sitemap index one level deep", async () => {
     status: 200,
     text: async () => documents[url],
   });
-  const { sitemapUrl, urls } = await collectSitemapUrls("https://dose.wiki/lsd", { fetchImpl });
+  const { sitemapUrl, urls } = await collectSitemapUrls(
+    "https://dose.wiki/lsd",
+    { fetchImpl },
+  );
   assert.equal(sitemapUrl, "https://dose.wiki/sitemap.xml");
   assert.equal(urls.length, 7);
 });

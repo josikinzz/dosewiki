@@ -18,7 +18,7 @@ import { roleSessionFor } from "./routeSession";
 export const routeMocks = {
   requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
   query: vi.fn(),
   mutation: vi.fn(),
 };
@@ -32,8 +32,8 @@ export function installProtectedRouteMocks(): void {
   vi.doMock("@server/http/nextRateLimit", () => ({
     enforceRateLimit: routeMocks.enforceRateLimit,
   }));
-  vi.doMock("@server/convex/serverWriteCapability", () => ({
-    getServerConvexWriteCapability: routeMocks.getServerConvexWriteCapability,
+  vi.doMock("@server/data/serverWriteCapability", () => ({
+    getServerDataWriteCapability: routeMocks.getServerDataWriteCapability,
   }));
 }
 
@@ -45,14 +45,14 @@ export function signInAs(role: AppRole | null, user?: SessionUser): void {
 }
 
 /**
- * Grant the convexWrite capability around a client. Pass `intentToken` when the route
+ * Grant the dataWrite capability around a client. Pass `intentToken` when the route
  * asks `getAdminIntentToken(...)`; omit it to exercise the adminKey fallback.
  */
 export function grantWriteCapability(
   client: RouteClient = { query: routeMocks.query, mutation: routeMocks.mutation },
   options: { adminKey?: string; intentToken?: string } = {},
 ): RouteClient {
-  routeMocks.getServerConvexWriteCapability.mockReturnValue({
+  routeMocks.getServerDataWriteCapability.mockReturnValue({
     ok: true,
     capability: {
       adminKey: options.adminKey ?? "admin-key",
@@ -80,7 +80,7 @@ type RouteCall = { name: string; call: () => Promise<Response> };
 /**
  * The floor contract every protected route owns individually: the exact `RoleFloor`
  * it asks for, the exact rate-limit policy, and that a refused role never reaches
- * Convex. Refusal mechanics (401/403 bodies, ordering) are owned by
+ * Postgres. Refusal mechanics (401/403 bodies, ordering) are owned by
  * src/lib/http/protectedRouteOperation.test.ts and are not re-asserted here.
  */
 export function describeRoleFloor(options: {
@@ -98,7 +98,7 @@ export function describeRoleFloor(options: {
     });
 
     it.each(options.calls.map((c) => [c.name, c] as const))(
-      `refuses a ${options.refused} on %s before touching Convex`,
+      `refuses a ${options.refused} on %s before touching Postgres`,
       async (_name, route) => {
         signInAs(options.refused);
 
@@ -111,7 +111,7 @@ export function describeRoleFloor(options: {
       },
     );
 
-    it("refuses a signed-out caller with 401 before touching Convex", async () => {
+    it("refuses a signed-out caller with 401 before touching Postgres", async () => {
       signInAs(null);
 
       const response = await options.calls[0].call();

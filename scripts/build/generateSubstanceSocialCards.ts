@@ -8,16 +8,15 @@ import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
 import sharp from "sharp";
 
-import { api } from "../../convex/_generated/api";
-import { getPublicServerReadTarget } from "../../lib/convex/runtimeTargets";
+import { api } from "../../lib/postgres/runtime/api.ts";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
   renderMoleculeSocialCardPng,
   SUBSTANCE_SOCIAL_CARD_RENDER_VERSION,
 } from "../../lib/og/moleculeSocialCard";
 import { recolorMoleculeSvgToEffectIndex } from "../../src/data/mappings/moleculePalette";
-import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
+import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 
-const DEFAULT_PUBLIC_CONVEX_URL = "https://glad-minnow-656.convex.cloud";
 const OUTPUT_DIR = path.join(process.cwd(), "public/images/social/substances");
 const MANIFEST_PATH = path.join(
   process.cwd(),
@@ -92,17 +91,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  const runtimeTarget = getPublicServerReadTarget(process.env);
-  const convexUrl = runtimeTarget.selectedUrl ?? DEFAULT_PUBLIC_CONVEX_URL;
-  const deploymentName = new URL(convexUrl).hostname.split(".")[0];
-  if (deploymentName !== "glad-minnow-656") {
-    throw new Error(
-      `Social cards must use production Convex glad-minnow-656; resolved ${deploymentName}.`,
-    );
+  const { client, fingerprint: deploymentName } = createDataClient();
+  const expected = getFlagValue(process.argv.slice(2), "--expected-deployment");
+  if (!expected || expected !== deploymentName) {
+    throw new Error(`Social cards require --expected-deployment=${deploymentName} for the selected Postgres source.`);
   }
-
-  console.log(`[social-cards] Reading substances and molecule revisions from ${convexUrl}...`);
-  const client = createDataClient({ target: convexUrl }).client;
+  console.log(`[social-cards] Reading substances and molecule revisions from ${deploymentName}...`);
   const [rawArticles, moleculeRevisions] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.moleculeOverrides.listSlugs, {}),

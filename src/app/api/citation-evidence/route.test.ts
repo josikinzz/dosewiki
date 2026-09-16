@@ -3,7 +3,7 @@ import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     citationEvidence: {
       getBySlug: "citationEvidence.getBySlug",
@@ -21,20 +21,20 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 describe("citation evidence detail route", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.query.mockReset();
-    mocks.getServerConvexWriteCapability.mockReset();
+    mocks.getServerDataWriteCapability.mockReset();
     mocks.query.mockResolvedValue([{ claimKey: "summary:0" }]);
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: {
         client: { query: mocks.query },

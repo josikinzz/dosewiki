@@ -22,8 +22,8 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -240,14 +240,11 @@ async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
 
-  const readUrl =
-    command.targetUrl ||
-    process.env.CONVEX_PUBLIC_READ_URL ||
-    process.env.VITE_CONVEX_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
     throw new Error(
-      "Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL) so the script knows which deployment to read.",
+      "Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL) so the script knows which deployment to read.",
     );
   }
 
@@ -286,7 +283,7 @@ async function main() {
   console.log(`\nWrote ${Object.keys(merged).length} aliases to ${path.relative(process.cwd(), ALIAS_FILE)}`);
 
   if (command.dryRun) {
-    console.log("\nDry run — no Convex writes performed.");
+    console.log("\nDry run — no Postgres writes performed.");
     return;
   }
 

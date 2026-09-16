@@ -18,7 +18,7 @@ import {
 } from "@/features/dev/components";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import type {
-  ConvexTripReportImportPayload,
+  DataTripReportImportPayload,
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
@@ -95,7 +95,7 @@ export function PortalSubmissionReview({
   onNavigate: (direction: -1 | 1) => void;
   onPromotion: (publish: boolean, attribution: PromotionAttribution) => void;
   onStatusChange: (status: TripReportSubmissionStatus, notes: string) => void;
-  promotionPayload: ConvexTripReportImportPayload | null;
+  promotionPayload: DataTripReportImportPayload | null;
   /** Where this row sits in the list as painted; `index` is -1 once it has filtered out. */
   queuePosition: { index: number; total: number };
   submission: TripReportSubmissionRow;

@@ -6,7 +6,7 @@ import type { GalleryGroup, GalleryMode } from "./galleryTypes";
 export const UNATTRIBUTED_KEY = "__unattributed__";
 export const UNKNOWN_ARTIST_URL_KEY = "unknown";
 
-export function isDisplayable(replication: PublicGalleryReplicationPreview): boolean {
+export function isDisplayable(replication: Pick<PublicGalleryReplicationPreview, "url">): boolean {
   return Boolean(replication.url);
 }
 

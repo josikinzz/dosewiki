@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
 import { msg } from "@/i18n/messages";
 import { CITATION_MARKER_PATTERN } from "@/lib/citations/citationTokens";
-import { buildCitationNumbering } from "@/lib/citations/referenceModel";
+import { getArticleCitationModel } from "@/lib/citations/referenceModel";
 import { cn } from "@/lib/utils";
 import { CitationNeededMarker, CitationSup, type CitationLink } from "./CitationMarks";
 
@@ -37,7 +37,7 @@ type InlineCitationToken = {
 };
 
 export function renderCitedText(text: string, article: SubstanceArticle): ReactNode[] {
-  const numbering = buildCitationNumbering(article.references ?? [], article);
+  const numbering = getArticleCitationModel(article);
   const tokens: InlineCitationToken[] = [];
   let cursor = 0;
   let citeOrdinal = 0;
@@ -50,9 +50,7 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
       tokens.push({ gap, kind: "needed", ordinal: neededOrdinal++ });
     } else {
       const number = numbering.numbersById.get(match[1]);
-      const reference = number
-        ? numbering.numberedReferences.find((item) => item.number === number)
-        : undefined;
+      const reference = numbering.numberedReferencesById.get(match[1]);
       tokens.push({
         gap,
         kind: "cite",
@@ -211,7 +209,7 @@ export function CitationMarker({
     return null;
   }
 
-  const numbering = buildCitationNumbering(article.references ?? [], article);
+  const numbering = getArticleCitationModel(article);
   // Same rule as token rendering: an id that never earned a number is a review
   // finding, not a reader-facing "?" — it simply does not render here.
   const citations = referenceIds.flatMap((referenceId) => {

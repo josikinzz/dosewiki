@@ -9,7 +9,7 @@
 import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
-import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
+import { loadSubstanceMetadataRoute, loadSubstanceRoute } from "@server/next/routeLoaders.substances";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { UiLocaleProvider } from "@/i18n/client"
@@ -36,7 +36,7 @@ type LocalizedSubstancePageProps = {
 
 export async function generateMetadata({ params }: LocalizedSubstancePageProps) {
   const { slug } = await params;
-  const result = await loadSubstanceRoute(slug, LOCALE);
+  const result = await loadSubstanceMetadataRoute(slug, LOCALE);
 
   if (result.kind === "not-found") {
     notFound();

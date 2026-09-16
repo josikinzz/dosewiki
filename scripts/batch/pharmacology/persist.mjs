@@ -8,7 +8,7 @@ import {
   assertNoPublicProseNamedSourceAttribution,
 } from "../../analyze/public-prose-artifact-language-core.mjs";
 import { CONFIG } from "./cli.mjs";
-import { getConvexClient, loadPharmacologyQuotes } from "./loader.mjs";
+import { getPostgresClient, loadPharmacologyQuotes } from "./loader.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 import { buildUserMessage, parseGeneratedYaml } from "./parser.mjs";
 import {
@@ -29,7 +29,7 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
   const quotes = await loadPharmacologyQuotes(slug);
 
   if (!quotes) {
-    return { slug, status: "skipped", reason: "No pharmacology quotes in Convex", tokens: 0 };
+    return { slug, status: "skipped", reason: "No pharmacology quotes in Postgres", tokens: 0 };
   }
 
   const result = await callWithRetry(() =>
@@ -76,7 +76,7 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
 export async function persistSuccessfulUpdate(result, persistenceContext) {
   const persist = createArticlePersistence({
     adminKey: persistenceContext.adminKey,
-    convexClient: persistenceContext.convexClient ?? getConvexClient(),
+    postgresClient: persistenceContext.postgresClient ?? getPostgresClient(),
     sourceArticlesBySlug: persistenceContext.sourceArticlesBySlug ?? new Map(),
     targetArticlesBySlug: persistenceContext.targetArticlesBySlug ?? new Map(),
     applyUpdate: applyPharmacologyUpdate,
@@ -122,7 +122,7 @@ export async function processAll(apiKey, articles, systemPrompt, options, persis
             slug: articleSlug,
             title: article.title,
             status: quotes ? "dry-run" : "would-skip",
-            reason: quotes ? null : "No pharmacology quotes in Convex",
+            reason: quotes ? null : "No pharmacology quotes in Postgres",
             tokens: 0,
           };
         }

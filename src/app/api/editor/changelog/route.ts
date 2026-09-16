@@ -1,5 +1,5 @@
 /** The server change log feed shown on the /dev change log tab. */
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { editorReadRoute, requireParam } from "../editorReadRoute";
 
 export const runtime = "nodejs";

@@ -15,6 +15,16 @@
    break every page's stylesheet. Nothing under `.impeccable` is authored markup. */
 @source not "../.impeccable";
 
+/* Keep Tailwind's build-time source graph to runtime owners. Tests, build tooling,
+   archived runs, and prose documentation can quote utility strings but do not render
+   in an application route. The live /dev/kit route renders src/dev stories, so that
+   tree deliberately remains scanned. */
+@source not "./**/*.test.*";
+@source not "../scripts";
+@source not "../docs";
+@source not "../runs";
+@source not "../notes-and-plans";
+
 @import "./styles/base.css" layer(base);
 @import "./styles/theme-overrides.css";
 @import "./styles/site-colors.css";

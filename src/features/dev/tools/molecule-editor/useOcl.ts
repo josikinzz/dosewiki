@@ -13,12 +13,13 @@ export interface UseOclResult {
   error: string | null;
 }
 
-/** Returns the OpenChemLib module once ready (null while loading), or an error string. */
-export function useOcl(): UseOclResult {
+/** Returns the OpenChemLib module once enabled and ready, or an error string. */
+export function useOcl(enabled = true): UseOclResult {
   const [ocl, setOcl] = useState<OclModule | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     let alive = true;
     loadOcl().then(
       (mod) => alive && setOcl(mod),
@@ -27,7 +28,7 @@ export function useOcl(): UseOclResult {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [enabled]);
 
   return { ocl, error };
 }

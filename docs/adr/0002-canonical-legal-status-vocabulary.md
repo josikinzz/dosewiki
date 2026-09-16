@@ -9,6 +9,6 @@ We chose this over keeping free strings (zero migration work, but 277 articles t
 
 **Consequences**
 
-- `countryLegalitySchema` widens to carry the canonical status and legal instrument fields; Convex data migrates widen-then-narrow as runs roll out, so mixed old/new entries coexist during the rollout.
+- `countryLegalitySchema` widens to carry the canonical status and legal instrument fields; stored article data migrates widen-then-narrow as runs roll out, so mixed old/new entries coexist during the rollout.
 - Badge colors and any future per-country comparison or filtering UI key off the canonical status instead of `STATUS_COLOR_MAP` string patterns.
 - The vocabulary itself becomes a maintained contract: adding a value is a deliberate schema-and-prompt change, not an ad hoc string.

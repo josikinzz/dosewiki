@@ -12,7 +12,7 @@ import {
   EditorToolbar,
   TagToken,
 } from "@/features/dev/components";
-import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { PortalContributorOption, PortalRow } from "./tripReportPortalModel";
 import { PortalReportTimelineEditor } from "./PortalReportTimelineEditor";
 

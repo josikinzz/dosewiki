@@ -85,7 +85,7 @@ describe("trip report submission status route", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     // Imported after resetModules so the class is the same object the route checks with instanceof.
     const { TripReportSubmissionNotFoundError } = await import(
-      "@/features/reports/submissions/convexTripReportSubmissionStore"
+      "@/features/reports/submissions/dataTripReportSubmissionStore"
     );
     mocks.storeTransition.mockRejectedValue(new TripReportSubmissionNotFoundError("submission-1"));
     const { POST } = await import("./route");

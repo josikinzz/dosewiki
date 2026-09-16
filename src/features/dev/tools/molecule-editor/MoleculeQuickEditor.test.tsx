@@ -12,6 +12,9 @@ vi.mock("@/hooks/useEditorRead", () => ({
   useEditorRead: useQueryMock,
   useInvalidateEditorReads: () => async () => undefined,
 }));
+vi.mock("./useMoleculeSourceRead", () => ({
+  useMoleculeSourceRead: () => ({ slug: "example", smiles: "CCO" }),
+}));
 
 vi.mock("./useRdkit", () => ({
   useRdkit: useRdkitMock,
@@ -46,7 +49,7 @@ vi.mock("./OclEditor", () => ({
   ),
 }));
 
-import { MoleculeQuickEditor, extractSubstanceSmiles } from "./MoleculeQuickEditor";
+import { MoleculeQuickEditor } from "./MoleculeQuickEditor";
 
 function overrideResponse() {
   return new Response(
@@ -63,17 +66,6 @@ function overrideResponse() {
   );
 }
 
-describe("extractSubstanceSmiles", () => {
-  it("reads and trims the article's identification SMILES", () => {
-    expect(extractSubstanceSmiles({ identification: { smiles: "  CCO " } })).toBe("CCO");
-  });
-
-  it("returns an empty string for missing or non-string values", () => {
-    expect(extractSubstanceSmiles(null)).toBe("");
-    expect(extractSubstanceSmiles({})).toBe("");
-    expect(extractSubstanceSmiles({ identification: { smiles: 42 } })).toBe("");
-  });
-});
 
 describe("MoleculeQuickEditor", () => {
   beforeEach(() => {

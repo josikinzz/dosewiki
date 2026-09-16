@@ -92,7 +92,7 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
     applyArticlesTransform,
     hasUnsavedArticleChanges: document.isDirty,
     articles: document.draft,
-    // The newest snapshot the live Convex query delivered. It keeps updating
+    // The newest snapshot the live Postgres query delivered. It keeps updating
     // while `articles` is frozen, so it is the only in-process record of what
     // the database now holds once the working set has stopped taking updates.
     sourceArticles: document.refreshConflict?.incomingSource ?? document.original,

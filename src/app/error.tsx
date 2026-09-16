@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
+import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { Button } from "@/components/ui/button";
 import { StatusPageShell } from "./_components/StatusPageShell";

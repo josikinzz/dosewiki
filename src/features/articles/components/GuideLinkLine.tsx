@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SmartLink } from "@/components/common/SmartLink";
 import { Fragment } from "react";
 import { useT } from "@/i18n/client";
 import { Icon } from "@/components/common/Icon";
@@ -84,9 +84,9 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
         {entries.map((entry, index) => (
           <Fragment key={entry.href}>
             {index > 0 ? ", " : null}
-            <Link href={entry.href} className={quietLinkClassName}>
+            <SmartLink href={entry.href} className={quietLinkClassName}>
               {entry.label}
-            </Link>
+            </SmartLink>
           </Fragment>
         ))}
         {groupLabel ? (
@@ -97,9 +97,9 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
             {summaries.map((summary, index) => (
               <Fragment key={summary.href}>
                 {index > 0 ? ", " : null}
-                <Link href={summary.href} className={quietLinkClassName}>
+                <SmartLink href={summary.href} className={quietLinkClassName}>
                   {t(summary.title)}
-                </Link>
+                </SmartLink>
               </Fragment>
             ))}
             {")"}

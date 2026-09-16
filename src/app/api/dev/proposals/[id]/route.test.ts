@@ -6,7 +6,7 @@ import {
   resetRouteMocks,
 } from "@/test/routeHarness";
 
-vi.mock("../../../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     changeProposals: {
       get: "changeProposals.get",
@@ -67,7 +67,7 @@ describe("dev proposal detail and comment routes", () => {
     const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { GET } = await import("./route");
 
-    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
+    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1?seed=1"));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, proposal: PROPOSAL });
@@ -75,6 +75,7 @@ describe("dev proposal detail and comment routes", () => {
       apiKey: "article-token",
       actorEmail: "editor@example.com",
       id: "cp_1",
+      includePayload: true,
     });
   });
 
@@ -100,7 +101,7 @@ describe("dev proposal detail and comment routes", () => {
     }), { intentToken: "article-token" });
     const { GET } = await import("./route");
 
-    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
+    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1?seed=1"));
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(JSON.stringify(body)).not.toContain(privateEmail);
@@ -144,7 +145,7 @@ describe("dev proposal detail and comment routes", () => {
     expect(JSON.stringify(body)).not.toContain("private@example.com");
   });
 
-  it("answers 404 when Convex knows no such proposal", async () => {
+  it("answers 404 when Postgres knows no such proposal", async () => {
     grantWriteCapability(createClient(null), { intentToken: "article-token" });
     const { GET } = await import("./route");
 

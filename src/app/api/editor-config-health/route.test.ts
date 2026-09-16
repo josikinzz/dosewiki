@@ -1,146 +1,61 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type * as WriteHealth from "@server/data/serverWriteHealth";
 
-const probeServerConvexAdminCredentialMock = vi.hoisted(() => vi.fn());
-
+const probe = vi.hoisted(() => vi.fn());
 vi.mock("server-only", () => ({}));
-vi.mock("@server/convex/serverWriteHealth", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@server/convex/serverWriteHealth")>();
-  return {
-    ...original,
-    probeServerConvexAdminCredential: probeServerConvexAdminCredentialMock,
-  };
-});
-
+vi.mock("@server/data/serverWriteHealth", async (importOriginal) => ({
+  ...await importOriginal<typeof WriteHealth>(), probeServerDataAdminCredential: probe,
+}));
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com" } },
-    role: "editor",
-  })),
+  requireRoleSession: vi.fn(async () => ({ ok: true, session: { user: { email: "editor@example.com" } }, role: "editor" })),
 }));
+vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: vi.fn(async () => null) }));
 
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
+const originalEnv = process.env;
+beforeEach(() => {
+  vi.resetModules();
+  process.env = { NODE_ENV: "test", DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://private-user:private-password@localhost/dosewiki", DATA_ADMIN_KEY: "admin-secret" };
+  probe.mockReset().mockResolvedValue(undefined);
+});
+afterEach(() => { process.env = originalEnv; vi.restoreAllMocks(); });
 
-describe("editor config health route", () => {
-  beforeEach(() => {
-    vi.resetModules();
-    probeServerConvexAdminCredentialMock.mockReset();
-    probeServerConvexAdminCredentialMock.mockResolvedValue(undefined);
-    delete process.env.CONVEX_ADMIN_KEY;
-    delete process.env.CONVEX_URL;
-    delete process.env.VITE_CONVEX_URL;
-    delete process.env.NEXT_PUBLIC_CONVEX_URL;
-  });
+const request = async () => {
+  // Re-import after resetModules so each test exercises fresh capability configuration.
+  const { GET } = await import("./route");
+  return GET(new Request("https://dose.wiki/api/editor-config-health"));
+};
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
-  it("derives Convex diagnostics from the server write capability facts", async () => {
-    process.env.CONVEX_ADMIN_KEY = "admin-key";
-    process.env.VITE_CONVEX_URL = "https://vite.convex.cloud";
-    const { enforceRateLimit } = await import("@server/http/nextRateLimit");
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/editor-config-health"));
+describe("editor Postgres diagnostics", () => {
+  it("reports a healthy Postgres capability without exposing connection credentials", async () => {
+    const response = await request();
     const body = await response.json();
-
     expect(response.status).toBe(200);
-    expect(body).toEqual(expect.objectContaining({
-      ok: true,
-      audience: "editor",
-      available: true,
-      status: "healthy",
-      canSaveToConvex: true,
-      convexAdminKeyConfigured: true,
-      convexUrlConfigured: true,
-      issues: [],
-      diagnostics: expect.objectContaining({
-        warnings: [],
-        targets: expect.objectContaining({
-          privilegedWrite: expect.objectContaining({
-            selectedUrl: "https://vite.convex.cloud",
-            sourceEnvVar: "VITE_CONVEX_URL",
-            browserSafe: false,
-          }),
-          editorBrowserRead: expect.objectContaining({
-            selectedUrl: "https://vite.convex.cloud",
-            sourceEnvVar: "VITE_CONVEX_URL",
-            browserSafe: true,
-          }),
-          adminKeyConfigured: true,
-        }),
-      }),
-      checkedAt: expect.any(String),
-    }));
-    expect(enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "diagnosticRead");
+    expect(body).toMatchObject({ status: "healthy", canSaveToPostgres: true, postgresUrlConfigured: true });
+    expect(body.diagnostics.targets.privilegedWrite.selectedUrl).toBe("postgres://localhost/dosewiki");
+    expect(JSON.stringify(body)).not.toContain("private-password");
+    expect(JSON.stringify(body)).not.toContain("private-user");
+    expect(JSON.stringify(body)).not.toContain("admin-secret");
   });
 
-  it("reports missing write capability without exposing secret values", async () => {
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/editor-config-health"));
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.canSaveToConvex).toBe(false);
-    expect(body.convexAdminKeyConfigured).toBe(false);
-    expect(body.convexUrlConfigured).toBe(false);
-    expect(body.issues).toEqual(["Missing CONVEX_ADMIN_KEY on the server.", "Missing Convex URL on the server."]);
-    expect(body.issueDetails).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ severity: "error", message: "Missing CONVEX_ADMIN_KEY on the server." }),
-        expect.objectContaining({ severity: "error", message: "Missing Convex URL on the server." }),
-      ]),
-    );
-    expect(JSON.stringify(body)).not.toContain("admin-key");
+  it("fails closed without probing when the target is absent or mismatched", async () => {
+    delete process.env.POSTGRES_POOLED_URL;
+    process.env.DATA_URL = "https://legacy.convex.cloud";
+    let body = await (await request()).json();
+    expect(body.canSaveToPostgres).toBe(false);
+    expect(probe).not.toHaveBeenCalled();
+    process.env.POSTGRES_POOLED_URL = "postgres://localhost/dosewiki";
+    process.env.POSTGRES_DIRECT_URL = "postgres://localhost/other";
+    body = await (await request()).json();
+    expect(body.canSaveToPostgres).toBe(false);
+    expect(probe).not.toHaveBeenCalled();
   });
 
-  it("reports an active credential probe failure without exposing the credential", async () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    process.env.CONVEX_ADMIN_KEY = "stale-admin-key";
-    process.env.VITE_CONVEX_URL = "https://vite.convex.cloud";
-    probeServerConvexAdminCredentialMock.mockRejectedValue(new Error("Server Error"));
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/editor-config-health"));
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body).toEqual(expect.objectContaining({
-      ok: false,
-      status: "unhealthy",
-      canSaveToConvex: false,
-      convexAdminKeyConfigured: true,
-      convexUrlConfigured: true,
-      issues: ["Convex admin credential probe failed against the configured deployment."],
-    }));
-    expect(probeServerConvexAdminCredentialMock).toHaveBeenCalledWith("editor@example.com");
-    expect(JSON.stringify(body)).not.toContain("stale-admin-key");
-    expect(consoleError).toHaveBeenCalledWith("Editor Convex credential probe failed:", expect.any(Error));
-    consoleError.mockRestore();
-  });
-
-  it("surfaces compatibility warnings without exposing admin secrets", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    process.env.CONVEX_ADMIN_KEY = "admin-key";
-    process.env.NEXT_PUBLIC_CONVEX_URL = "https://browser.convex.cloud";
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/editor-config-health"));
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.canSaveToConvex).toBe(true);
-    expect(body.diagnostics.targets.privilegedWrite).toMatchObject({
-      selectedUrl: "https://browser.convex.cloud",
-      sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL",
-    });
-    expect(body.diagnostics.warnings).toContain(
-      "Production privileged writes are using a browser-exposed Convex URL fallback in compatibility mode.",
-    );
-    expect(JSON.stringify(body)).not.toContain("admin-key");
+  it("reports active credential rejection without disclosing rejected values", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    probe.mockRejectedValue(new Error("private credential rejection detail"));
+    const body = await (await request()).json();
+    expect(body).toMatchObject({ status: "unhealthy", canSaveToPostgres: false, postgresUrlConfigured: true });
+    expect(JSON.stringify(body)).not.toContain("private credential rejection detail");
+    expect(JSON.stringify(body)).not.toContain("admin-secret");
   });
 });

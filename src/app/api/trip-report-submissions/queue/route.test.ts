@@ -13,8 +13,10 @@ vi.mock("@server/http/nextRateLimit", () => ({
 }));
 
 const mocks = vi.hoisted(() => ({
+  storeGet: vi.fn(),
   storeList: vi.fn(),
   storeListByStatuses: vi.fn(),
+  storeListPortalSummaries: vi.fn(),
   getTripReportSubmissionStore: vi.fn(),
 }));
 
@@ -26,12 +28,16 @@ vi.mock("@/features/reports/submissions/tripReportSubmissionStore.server", () =>
 describe("trip report submissions editor queue route", () => {
   beforeEach(() => {
     vi.resetModules();
+    mocks.storeGet.mockReset();
     mocks.storeList.mockReset();
     mocks.storeListByStatuses.mockReset();
+    mocks.storeListPortalSummaries.mockReset();
     mocks.getTripReportSubmissionStore.mockReset();
     mocks.getTripReportSubmissionStore.mockResolvedValue({
+      get: mocks.storeGet,
       list: mocks.storeList,
       listByStatuses: mocks.storeListByStatuses,
+      listPortalSummaries: mocks.storeListPortalSummaries,
     });
     mocks.storeList.mockResolvedValue([
       {
@@ -91,6 +97,30 @@ describe("trip report submissions editor queue route", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     expect(payload.submissions).toHaveLength(300);
+  });
+
+  it("serves a compact non-overlapping portal index and selected detail separately", async () => {
+    const { GET } = await import("./route");
+    mocks.storeListPortalSummaries.mockResolvedValue({
+      needsReview: [{ id: "pending", status: "submitted" }],
+      history: [{ id: "accepted", status: "accepted" }],
+    });
+    mocks.storeGet.mockResolvedValue({ id: "pending", status: "submitted", report: { introduction: "Full body" } });
+
+    const index = await GET(
+      new Request("https://dose.wiki/api/trip-report-submissions/queue?scope=portal"),
+    );
+    await expect(index.json()).resolves.toMatchObject({
+      needsReview: [{ id: "pending" }],
+      history: [{ id: "accepted" }],
+    });
+
+    const detail = await GET(
+      new Request("https://dose.wiki/api/trip-report-submissions/queue?id=pending"),
+    );
+    await expect(detail.json()).resolves.toMatchObject({
+      submission: { id: "pending", report: { introduction: "Full body" } },
+    });
   });
 
   it("rejects an unknown scope and a scope combined with status or limit", async () => {

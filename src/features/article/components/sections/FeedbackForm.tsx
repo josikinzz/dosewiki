@@ -52,7 +52,7 @@ export function FeedbackForm({
 }: FeedbackFormProps) {
   const t = useT();
   return (
-<form className="max-w-2xl space-y-5" onSubmit={onSubmit}>
+<form className="theme-reveal-enter max-w-2xl space-y-5" onSubmit={onSubmit}>
   <div className="grid gap-4 sm:grid-cols-2">
     <FeedbackField id={`${fieldPrefix}-category`} label={t("What kind of feedback?")}>
       <Select
@@ -159,15 +159,21 @@ export function FeedbackForm({
   ) : null}
 
   <div className="flex flex-wrap items-center gap-3">
-    <Button type="submit" variant="accent" disabled={state.kind === "submitting"}>
+    <Button type="submit" variant="accent" disabled={state.kind === "submitting"} aria-busy={state.kind === "submitting"}>
       {state.kind === "submitting" ? (
         <Icon icon="lucide:loader-circle" className="animate-spin motion-reduce:animate-none" size={16} />
       ) : (
         <Icon icon="lucide:send" size={16} />
       )}
-      {state.kind === "submitting" ? t("Sending") : t("Send feedback")}
+      <span className="grid">
+        <span aria-hidden="true" className="invisible col-start-1 row-start-1">{t("Send feedback")}</span>
+        <span aria-hidden="true" className="invisible col-start-1 row-start-1">{t("Sending")}</span>
+        <span className="col-start-1 row-start-1" aria-live="polite">
+          {state.kind === "submitting" ? t("Sending") : t("Send feedback")}
+        </span>
+      </span>
     </Button>
-    <Button type="button" variant="outline" onClick={onCancel}>
+    <Button type="button" variant="outline" onClick={onCancel} disabled={state.kind === "submitting"}>
       {t("Cancel")}
     </Button>
   </div>

@@ -17,13 +17,13 @@ import {
 /* ----------------------------------------------------------------------------
  * Global pending-navigation store
  *
- * Each in-flight SmartLink navigation registers here the moment it starts.
- * `NavigationProgress` (mounted once in the route chrome) subscribes to render
- * the top-of-page progress bar. A counter (not a boolean) keeps rapid
- * double-clicks and overlapping navigations honest.
+ * Each in-flight navigation owns an identity here the moment it starts.
+ * `NavigationProgress` subscribes to render the top-of-page progress bar.
+ * Releasing one identity cannot clear another overlapping transition.
  * ------------------------------------------------------------------------- */
 
-let pendingNavigationCount = 0;
+export type NavigationTransitionId = symbol;
+const pendingNavigations = new Set<NavigationTransitionId>();
 const pendingListeners = new Set<() => void>();
 
 function subscribeToPendingNavigation(listener: () => void): () => void {
@@ -32,19 +32,23 @@ function subscribeToPendingNavigation(listener: () => void): () => void {
 }
 
 function readPendingNavigation(): boolean {
-  return pendingNavigationCount > 0;
+  return pendingNavigations.size > 0;
 }
 
-function trackPendingNavigation(): () => void {
-  pendingNavigationCount += 1;
+function emitPendingNavigationChange() {
   for (const listener of pendingListeners) listener();
-  let released = false;
-  return () => {
-    if (released) return;
-    released = true;
-    pendingNavigationCount -= 1;
-    for (const listener of pendingListeners) listener();
-  };
+}
+
+export function beginPendingNavigation(): NavigationTransitionId {
+  const id = Symbol("pending-navigation");
+  pendingNavigations.add(id);
+  emitPendingNavigationChange();
+  return id;
+}
+
+export function finishPendingNavigation(id: NavigationTransitionId): void {
+  if (!pendingNavigations.delete(id)) return;
+  emitPendingNavigationChange();
 }
 
 /**
@@ -81,10 +85,10 @@ function PendingBeacon({ anchorRef }: { anchorRef: React.RefObject<HTMLAnchorEle
   useLayoutEffect(() => {
     if (!pending) return;
     anchorRef.current?.setAttribute("data-nav-pending", "true");
-    const release = trackPendingNavigation();
+    const transitionId = beginPendingNavigation();
     return () => {
       anchorRef.current?.removeAttribute("data-nav-pending");
-      release();
+      finishPendingNavigation(transitionId);
     };
   }, [pending, anchorRef]);
 
@@ -98,10 +102,9 @@ function PendingBeacon({ anchorRef }: { anchorRef: React.RefObject<HTMLAnchorEle
 export type SmartLinkProps = Omit<ComponentProps<typeof Link>, "prefetch"> & {
   /**
    * Keep `next/link`'s viewport prefetching instead of waiting for hover or
-   * focus. For the handful of always-visible, high-value links whose count is
-   * fixed and small — the header nav, the homepage tile grid — the speculative
-   * fetch is worth paying on sight, and a touch user who taps without ever
-   * hovering still gets a warm cache.
+   * focus. For a fixed, small set such as the home link and homepage tile grid, the
+   * speculative fetch can be worth paying on sight. Expensive indexes and
+   * secondary article destinations should keep the default intent-only policy.
    */
   eager?: boolean;
 };
@@ -131,8 +134,8 @@ function canIntentPrefetch(href: SmartLinkProps["href"]): href is string {
  * (dim + progress cursor; index entries shimmer instead) and the route
  * chrome's `NavigationProgress` bar appears.
  *
- * For the handful of always-visible, high-value links (header nav, home
- * tiles), pass `eager` to keep viewport prefetching.
+ * For the handful of always-visible, high-value links (home and home tiles),
+ * pass `eager` to keep viewport prefetching.
  */
 export function SmartLink({
   href,

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationFile, r2MediaPublicUrl } from "../replications/lib/r2-upload.mjs";
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -14,7 +14,7 @@ import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 
 const operation = "upgrade-article-media";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const args = process.argv.slice(2);
@@ -26,21 +26,28 @@ if (!upgradeDir || !previousStatePath) {
 
 const manifest = JSON.parse(readFileSync(join(upgradeDir, "manifest.json"), "utf8"));
 const previousState = JSON.parse(readFileSync(previousStatePath, "utf8"));
-const deployment = new URL(command.targetUrl).hostname.split(".")[0];
-const uploadStatePath = join(upgradeDir, `uploads-${deployment}.json`);
+const deployment = encodeURIComponent(command.deploymentFingerprint);
+const uploadStatePath = join(upgradeDir, `r2-uploads-${deployment}.json`);
 const uploadState = existsSync(uploadStatePath)
   ? JSON.parse(readFileSync(uploadStatePath, "utf8"))
-  : {};
-const previousStorageIds = manifest.map(({ key }) => {
-  const storageId = previousState[key]?.split("/").at(-1);
-  if (!storageId) throw new Error(`Previous storage ID missing for ${key}.`);
-  return storageId;
-});
+  : { target: command.deploymentFingerprint, r2Keys: {} };
+if (uploadState.target !== command.deploymentFingerprint) throw new Error("R2 upload ledger belongs to another Postgres target.");
 const client = createDataClient({ target: command.targetUrl }).client;
-const previousUrls = await client.query(api.replications.resolveStorageUrls, {
-  storageIds: previousStorageIds,
+const previousValues = manifest.map(({ key }) => {
+  const value = previousState.r2Keys?.[key] ?? previousState[key];
+  if (typeof value !== "string" || !value) throw new Error(`Previous media identity missing for ${key}.`);
+  return value;
 });
-const oldUrls = new Map(manifest.map(({ key }, index) => [key, previousUrls[index]]));
+if (previousState.target && previousState.target !== command.deploymentFingerprint) throw new Error("Previous upload ledger belongs to another Postgres target.");
+const historicalUrls = await client.query(api.replications.resolveStorageUrls, {
+  storageIds: previousValues.map((value) => value.startsWith("media/") || /^https?:\/\//.test(value) ? "" : value),
+});
+const oldUrls = new Map(manifest.map(({ key }, index) => {
+  const value = previousValues[index];
+  const url = value.startsWith("media/") ? r2MediaPublicUrl(value) : /^https?:\/\//.test(value) ? value : historicalUrls[index];
+  if (!url) throw new Error(`Previous media URL cannot be resolved for ${key}.`);
+  return [key, url];
+}));
 
 const mediaFields = [
   "description_raw", "description_ast", "long_summary_raw", "long_summary_ast",
@@ -98,25 +105,14 @@ if (command.dryRun) {
 assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 for (const item of usedKeys) {
-  if (uploadState[item.key]) continue;
-  const uploadUrl = await client.mutation(api.replications.generateUploadUrl, {
-    apiKey: credential.token,
-  });
-  const upload = spawnSync(
-    "curl",
-    ["--fail-with-body", "--silent", "--show-error", "--request", "POST",
-      "--header", `Content-Type: ${item.contentType}`, "--data-binary", `@${join(upgradeDir, item.file)}`, uploadUrl],
-    { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
-  );
-  if (upload.status !== 0) throw new Error(`Convex upload failed for ${item.key}: ${upload.stderr.trim()}`);
-  uploadState[item.key] = JSON.parse(upload.stdout).storageId;
+  const r2Key = await uploadReplicationFile(client, credential.token, join(upgradeDir, item.file), item.contentType);
+  if (uploadState.r2Keys[item.key] && uploadState.r2Keys[item.key] !== r2Key) throw new Error(`Upgrade bytes changed for ${item.key}.`);
+  uploadState.r2Keys[item.key] = r2Key;
   writeFileSync(uploadStatePath, JSON.stringify(uploadState, null, 2));
   console.log(`UPLOADED ${item.key}`);
 }
 
-const storageIds = usedKeys.map(({ key }) => uploadState[key].split("/").at(-1));
-const resolvedUrls = await client.query(api.replications.resolveStorageUrls, { storageIds });
-const replacements = new Map(usedKeys.map(({ key }, index) => [key, resolvedUrls[index]]));
+const replacements = new Map(usedKeys.map(({ key }) => [key, r2MediaPublicUrl(uploadState.r2Keys[key])]));
 let repaired = 0;
 for (const effect of affectedEffects) {
   const changes = mediaFields.flatMap((field) => {

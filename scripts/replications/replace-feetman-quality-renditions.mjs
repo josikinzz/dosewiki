@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
 import { createReadStream, existsSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
-import https from "node:https";
 import path from "node:path";
+import { requireCampaignTarget, bindCampaignTarget } from "./lib/postgres-target.mjs";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -12,6 +12,7 @@ import {
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
+import { uploadReplicationFile, uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 
 const isStasCampaign = process.env.REPLACEMENT_CAMPAIGN === "stas";
 const OPERATION = isStasCampaign ? "replace-stas-quality-renditions" : "replace-feetman-quality-renditions";
@@ -47,66 +48,18 @@ async function digest(file) {
   return hash.digest("hex");
 }
 
-async function postFile(uploadUrl, file) {
-  return await new Promise((resolve, reject) => {
-    const request = https.request(uploadUrl, {
-      method: "POST",
-      agent: false,
-      headers: {
-        "Content-Type": "video/mp4",
-        "Content-Length": String(statSync(file).size),
-      },
-    }, (response) => {
-      const chunks = [];
-      response.on("data", (chunk) => chunks.push(chunk));
-      response.on("end", () => {
-        const body = Buffer.concat(chunks).toString("utf8");
-        if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 300) {
-          reject(new Error(`Upload failed: ${response.statusCode ?? "unknown"} ${body}`));
-          return;
-        }
-        try {
-          resolve(JSON.parse(body));
-        } catch (error) {
-          reject(new Error(`Upload returned invalid JSON: ${error.message}`));
-        }
-      });
-    });
-    request.on("error", reject);
-    const stream = createReadStream(file);
-    stream.on("error", reject);
-    stream.pipe(request);
-  });
-}
-
-async function upload(client, apiKey, file) {
-  let lastError;
-  for (let attempt = 1; attempt <= 8; attempt += 1) {
-    try {
-      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-      const payload = await postFile(uploadUrl, file);
-      requireCondition(payload.storageId, "Upload returned no storageId.");
-      return payload.storageId;
-    } catch (error) {
-      lastError = error;
-      if (String(error?.message).startsWith("Upload failed:") || attempt === 8) throw error;
-      const delay = Math.min(1000 * 2 ** (attempt - 1), 30_000);
-      console.log(`  upload transport failed (${error.code ?? error.message}); retry ${attempt}/8 after ${delay}ms`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw lastError;
-}
 
 function loadLedger(file, manifestPath) {
   if (existsSync(file)) {
     const ledger = readJson(file);
     requireCondition(ledger.manifestPath === manifestPath, "Replacement ledger belongs to another manifest.");
     requireCondition(ledger.target === EXPECTED_TARGET, "Replacement ledger belongs to another target.");
+    requireCondition(ledger.schemaVersion === 2 || Object.keys(ledger.items ?? {}).length === 0, "Legacy replacement ledger has activity; reconcile it and use a new native R2 ledger.");
+    ledger.schemaVersion = 2;
     return ledger;
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     operation: OPERATION,
     target: EXPECTED_TARGET,
     manifestPath,
@@ -123,7 +76,7 @@ async function main() {
   const ledgerPath = path.resolve(getFlagValue(argv, "--ledger") ?? DEFAULT_LEDGER);
   const limitValue = getFlagValue(argv, "--limit");
   const limit = limitValue ? Number.parseInt(limitValue, 10) : Number.POSITIVE_INFINITY;
-  requireCondition(command.targetUrl === EXPECTED_TARGET, `Pass --target-url=${EXPECTED_TARGET}.`);
+  const postgresTarget = requireCampaignTarget(command);
   requireCondition(Number.isFinite(limit) ? limit > 0 : limit === Number.POSITIVE_INFINITY, "--limit must be positive.");
 
   const manifest = readJson(manifestPath);
@@ -140,13 +93,14 @@ async function main() {
     requireCondition(item.output.bytes <= MAX_BYTES, `${item.id}: output exceeds upload ceiling.`);
     requireCondition(originalLedger.items[item.id]?.status === "verified", `${item.id}: original production ledger is not verified.`);
     requireCondition(originalLedger.items[item.id]?.productionId, `${item.id}: original production row ID is missing.`);
-    requireCondition(originalLedger.items[item.id]?.storageIds?.main, `${item.id}: original production storage ID is missing.`);
+    requireCondition(originalLedger.items[item.id]?.r2Keys?.main || originalLedger.items[item.id]?.storageIds?.main, `${item.id}: original production media identity is missing.`);
   }
 
   const client = createDataClient({ target: command.targetUrl }).client;
   const liveRows = await client.query(api.replications.getAll, {});
   const liveById = new Map(liveRows.map((row) => [row._id, row]));
   const ledger = loadLedger(ledgerPath, manifestPath);
+  bindCampaignTarget(ledger, postgresTarget);
   const actions = manifest.items.map((item) => {
     const original = originalLedger.items[item.id];
     const live = liveById.get(original.productionId);
@@ -154,9 +108,26 @@ async function main() {
     requireCondition(live.slug === item.slug, `${item.id}: production slug drifted.`);
     requireCondition(live.artist === EXPECTED_ARTIST, `${item.id}: production artist drifted.`);
     const state = ledger.items[item.id];
-    const expectedCurrent = state?.newStorageId ?? original.storageIds.main;
-    requireCondition(live.storage_id === expectedCurrent, `${item.id}: production storage changed outside this replacement (${expectedCurrent} -> ${live.storage_id}).`);
-    return { item, original, live, state };
+    const previousStorageId = original.storageIds?.main ?? null;
+    const previousR2Key = original.r2Keys?.main ?? null;
+    requireCondition((live.storage_id ?? null) === previousStorageId &&
+      ((live.r2_key ?? null) === previousR2Key || (state?.r2Key && live.r2_key === state.r2Key)),
+      `${item.id}: production media changed outside this replacement.`);
+    if (state) {
+      requireCondition(state.productionId === live._id, `${item.id}: replacement ledger row identity drifted.`);
+      if (state.status === "verified" || state.status === "repointed") {
+        requireCondition(live.r2_key === state.r2Key && live.file_size === item.output.bytes,
+          `${item.id}: applied replacement no longer matches its ledger.`);
+        for (const [field, key] of Object.entries(state.r2Keys ?? {})) {
+          requireCondition(live[field] === key, `${item.id}: applied ${field} changed outside this run.`);
+        }
+      }
+      requireCondition(state.previousStorageId === previousStorageId && state.previousR2Key === previousR2Key,
+        `${item.id}: replacement ledger source identity differs from reviewed original.`);
+      requireCondition(state.outputPath === item.outputPath && state.outputBytes === item.output.bytes &&
+        state.sha256 === item.output.sha256, `${item.id}: replacement ledger output differs from reviewed manifest.`);
+    }
+    return { item, original, live, state, previousStorageId, previousR2Key };
   });
   const pending = actions.filter(({ state }) => state?.status !== "verified");
 
@@ -170,7 +141,7 @@ async function main() {
   console.log(`Grain encodes     : ${manifest.items.filter((item) => !item.sourceVideoPreserved).length}`);
 
   if (command.dryRun) {
-    console.log("Dry run complete: no files uploaded and no Convex rows modified.");
+    console.log("Dry run complete: no files uploaded and no Postgres rows modified.");
     return;
   }
 
@@ -185,7 +156,10 @@ async function main() {
       id: item.id,
       slug: item.slug,
       productionId: original.productionId,
-      previousStorageId: original.storageIds.main,
+      previousStorageId: action.previousStorageId,
+      previousR2Key: action.previousR2Key,
+      outputPath: item.outputPath,
+      outputBytes: item.output.bytes,
       previousFileSize: action.live.file_size ?? null,
       status: "pending",
     };
@@ -195,44 +169,52 @@ async function main() {
     const currentBeforeUpload = await client.query(api.replications.getResolvedById, { apiKey, id: original.productionId });
     requireCondition(currentBeforeUpload, `${item.id}: row disappeared before upload.`);
     requireCondition(
-      currentBeforeUpload.storage_id === (state.newStorageId ?? state.previousStorageId),
-      `${item.id}: storage changed before upload/repoint.`,
+      (currentBeforeUpload.storage_id ?? null) === state.previousStorageId &&
+        ((currentBeforeUpload.r2_key ?? null) === state.previousR2Key || (state.r2Key && currentBeforeUpload.r2_key === state.r2Key)),
+      `${item.id}: media identity changed before upload/repoint.`,
     );
 
-    if (!state.newStorageId) {
+    if (!state.r2Key) {
       state.sha256 = await digest(item.outputPath);
       requireCondition(state.sha256 === item.output.sha256, `${item.id}: output hash drifted.`);
-      state.newStorageId = await upload(client, apiKey, item.outputPath);
+      state.r2Key = await uploadReplicationFile(client, apiKey, item.outputPath, "video/mp4");
       state.status = "uploaded";
       atomicJson(ledgerPath, ledger);
     }
 
     const currentBeforeWrite = await client.query(api.replications.getResolvedById, { apiKey, id: original.productionId });
     requireCondition(currentBeforeWrite, `${item.id}: row disappeared before write.`);
-    if (currentBeforeWrite.storage_id === state.previousStorageId) {
-      await client.mutation(api.replications.updateStorageIds, {
-        apiKey,
-        id: original.productionId,
-        storage_id: state.newStorageId,
-      });
+    requireCondition((currentBeforeWrite.storage_id ?? null) === state.previousStorageId, `${item.id}: historical source identity changed.`);
+    if ((currentBeforeWrite.r2_key ?? null) === state.previousR2Key) {
+      const keys = { r2_key: state.r2Key };
+      for (const field of ["thumbnail", "preview", "motion", "motion_poster"]) {
+        if (currentBeforeWrite[`${field}_r2_key`]) {
+          keys[`${field}_r2_key`] = currentBeforeWrite[`${field}_r2_key`];
+        } else if (currentBeforeWrite[`${field}_url`]) {
+          const response = await fetch(currentBeforeWrite[`${field}_url`]);
+          requireCondition(response.ok, `${item.id}: ${field} download returned HTTP ${response.status}.`);
+          const contentType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
+          const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif", "video/mp4": "mp4", "video/webm": "webm" }[contentType];
+          requireCondition(extension, `${item.id}: ${field} has unsupported content type ${contentType}.`);
+          keys[`${field}_r2_key`] = await uploadReplicationBytes(client, apiKey, new Uint8Array(await response.arrayBuffer()), contentType, extension);
+        }
+      }
+      state.r2Keys = keys;
+      atomicJson(ledgerPath, ledger);
+      await updateReplicationMedia(client, apiKey, currentBeforeWrite, keys, item.output.bytes);
       state.status = "repointed";
       atomicJson(ledgerPath, ledger);
     } else {
-      requireCondition(currentBeforeWrite.storage_id === state.newStorageId, `${item.id}: unexpected storage before write.`);
+      requireCondition(currentBeforeWrite.r2_key === state.r2Key, `${item.id}: unexpected media identity before write.`);
     }
 
-    await client.mutation(api.replications.updateDeliveredFileSize, {
-      apiKey,
-      id: original.productionId,
-      expectedStorageId: state.newStorageId,
-      file_size: item.output.bytes,
-    });
 
     const after = await client.query(api.replications.getResolvedById, { apiKey, id: original.productionId });
-    requireCondition(after?.storage_id === state.newStorageId, `${item.id}: main storage replacement did not persist.`);
+    requireCondition(after?.r2_key === state.r2Key && (after.storage_id ?? null) === state.previousStorageId, `${item.id}: main replacement did not persist.`);
     requireCondition(after.file_size === item.output.bytes, `${item.id}: delivered file size did not persist.`);
-    requireCondition(after.thumbnail_storage_id === original.storageIds.thumbnail, `${item.id}: thumbnail storage changed.`);
-    requireCondition(after.preview_storage_id === original.storageIds.preview, `${item.id}: preview storage changed.`);
+    for (const [field, key] of Object.entries(state.r2Keys ?? {})) {
+      requireCondition(after[field] === key, `${item.id}: ${field} did not persist.`);
+    }
     requireCondition(typeof after.url === "string" && after.url, `${item.id}: resolved main URL is missing.`);
     const response = await fetch(after.url, { method: "HEAD", cache: "no-store" });
     requireCondition(response.ok, `${item.id}: resolved main URL returned HTTP ${response.status}.`);

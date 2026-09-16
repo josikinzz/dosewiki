@@ -20,8 +20,9 @@ import {
   PRO_THEME_STYLESHEET_LINK_ID,
 } from "@/theme/appearanceSheets";
 import { DocumentRuntime } from "./_components/DocumentRuntime";
-import { bodyFont, dyslexicFont, proFont, siteFont } from "./fonts";
+import { bodyFont, bodyItalicFace, dyslexicFont, proFont, siteFont } from "./fonts";
 import "@site-styles";
+import themeLabBootstrap from "@/features/theme-lab/themeLabBootstrap.generated.json";
 
 // One appearance policy feeds all three resolvers, so they cannot disagree: the server
 // renders both root attributes and the matching browser-chrome tint, the pre-paint script
@@ -100,25 +101,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <meta id={THEME_META_ID} name="theme-color" content={initialThemeMetaColor} />
-        {/* Every icon named as a literal in the repo is bundled offline
-            (`iconData.generated.json`, registered at module scope in
-            `src/components/common/Icon.tsx`) and rendered into the server HTML, so no
-            public chrome waits on the Iconify API anymore. This preconnect stays for
-            the names that cannot be known at build time: editor-authored strings
-            stored in Convex — warning-banner preset icons, index-layout `iconKey`s
-            that `getCategoryIcon` passes through verbatim — and the /dev icon
-            pickers, all of which still fetch from the API at runtime, so a cold visit
-            that hits one shouldn't also pay DNS + TLS.
-            One host, not three: this is `@iconify/react`'s primary resource, and its
-            two redundant APIs are only rotated in when this one stays silent past
-            750ms, so warming all three would leave two sockets nothing opens.
-            `connect-src` already lists this exact origin
-            (`lib/next/cspObservationPolicy.ts:19-23,135,144`), so no policy changes
-            with this. `crossOrigin` is required rather than decorative: the icon
-            request is a CORS `fetch`, and an anonymous preconnect is the only one it
-            can reuse. There is no font equivalent to add — `next/font` self-hosts
-            both faces. */}
-        <link rel="preconnect" href="https://api.iconify.design" crossOrigin="anonymous" />
+        {bodyItalicFace ? <style data-body-italic-face>{bodyItalicFace}</style> : null}
+        {/* Literal repository icons are bundled offline. Runtime Iconify fallback
+            remains available for exceptional editor-authored database strings and
+            development pickers without speculatively opening an API connection on
+            every public document. */}
         {/* The attribute-gated appearance sheets, server-rendered only when the flavor's
             DEFAULT appearance needs them (a saved preference the server cannot see is the
             bootstrap's job, same guarded link ids). dose.wiki opens fun+dark and renders
@@ -153,6 +140,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             and so cannot be a *pre*-paint restore. This script is the only thing standing
             between a reader with a saved preference and a frame of the wrong appearance. */}
         <script id="theme-bootstrap" dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+        {SITE_FLAVOR === "dosewiki" ? (
+          <script id="theme-lab-bootstrap" dangerouslySetInnerHTML={{ __html: themeLabBootstrap.script }} />
+        ) : null}
       </head>
       <body className="app-container theme-page-shell relative">
         <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">

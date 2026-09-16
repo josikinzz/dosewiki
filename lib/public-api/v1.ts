@@ -2,7 +2,7 @@ import { z } from "zod";
 import type {
   PublicSubstancePreview,
   PublicSubstanceRecord,
-} from "@server/convex/publicData";
+} from "@server/data/publicData";
 import type { NormalizedReagentData } from "@/types/reagent";
 import { curatedEffectPosition, type GalleryReplication } from "@/types/replications";
 

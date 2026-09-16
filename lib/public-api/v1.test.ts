@@ -8,7 +8,7 @@ import {
   projectPublicApiSubstancePreview,
 } from "./v1";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
-import { parsePublicSubstanceRecord } from "../convex/publicData.substanceContract";
+import { parsePublicSubstanceRecord } from "../data/publicData.substanceContract";
 
 describe("public API v1 contract helpers", () => {
   it("round-trips opaque pagination cursors", () => {

@@ -24,8 +24,8 @@
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { parsePath, normalizeFieldPath, sanitizeReference } from "./rebase-workbench-draft.mjs";
 
@@ -105,8 +105,8 @@ export function findRecoverableSentences({ originalText, currentText, fieldPath,
   return candidates;
 }
 
-async function loadLiveArticle(slug, convexUrl) {
-  const client = createDataClient({ target: convexUrl }).client;
+async function loadLiveArticle(slug, sourceUrl) {
+  const client = createDataClient({ target: sourceUrl }).client;
   const article = await client.query(api.substanceIndex.getBySlug, { slug });
   if (!article) throw new Error(`No article found for slug: ${slug}`);
   return article;
@@ -146,9 +146,9 @@ async function main() {
     return;
   }
 
-  const url = process.env.TARGET_CONVEX_URL ?? process.env.CONVEX_PUBLIC_READ_URL ?? process.env.VITE_CONVEX_URL;
+  const { url } = resolvePostgresSource({ argv });
   if (!url) {
-    console.error("Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL/VITE_CONVEX_URL) to the deployment holding the live article.");
+    console.error("Select the live Postgres source with --source-url / SOURCE_POSTGRES_URL or the canonical target.");
     process.exit(1);
   }
   const liveArticle = await loadLiveArticle(slug, url);

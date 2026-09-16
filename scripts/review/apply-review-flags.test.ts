@@ -70,7 +70,7 @@ describe("Review Flag apply command", () => {
     process.chdir(repoRoot);
     try {
       await runReviewApply(parseReviewApplyOptions([`--run-id=${runId}`]), {
-        env: {} as unknown as NodeJS.ProcessEnv, logger: { log }, createClient,
+        env: { NODE_ENV: "test", DATA_BACKEND: "postgres" }, logger: { log }, createClient,
       });
     } finally {
       process.chdir(cwd);
@@ -88,10 +88,10 @@ describe("Review Flag apply command", () => {
     process.chdir(repoRoot);
     try {
       const base = [`--run-id=${runId}`, "--write"];
-      const env = { NODE_ENV: "test", TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" } as const;
+      const env = { NODE_ENV: "test", DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgresql://localhost/test-deployment", DATA_ADMIN_KEY: "test-token" } as const;
       await expect(runReviewApply(parseReviewApplyOptions(base), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--confirm-review-flags/);
       await expect(runReviewApply(parseReviewApplyOptions([...base, "--confirm-review-flags"]), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--confirm-write=apply-review-flags/);
-      await expect(runReviewApply(parseReviewApplyOptions([...base, "--confirm-review-flags", "--confirm-write=apply-review-flags"]), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--expected-deployment=test-deployment/);
+      await expect(runReviewApply(parseReviewApplyOptions([...base, "--confirm-review-flags", "--confirm-write=apply-review-flags"]), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--expected-deployment=localhost\/test-deployment/);
     } finally {
       process.chdir(cwd);
     }
@@ -109,9 +109,9 @@ describe("Review Flag apply command", () => {
         "--write",
         "--confirm-review-flags",
         "--confirm-write=apply-review-flags",
-        "--expected-deployment=test-deployment",
+        "--expected-deployment=localhost/test-deployment",
       ]), {
-        env: { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" } as unknown as NodeJS.ProcessEnv,
+        env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgresql://localhost/test-deployment", DATA_ADMIN_KEY: "test-token" } as unknown as NodeJS.ProcessEnv,
         logger: { log: vi.fn() },
         createClient: () => ({ mutation } as never),
         writeAudit: () => ({ path: "/mock/audit.json", entry: {} }),
@@ -142,9 +142,9 @@ describe("Review Flag apply command", () => {
         "--write",
         "--confirm-review-flags",
         "--confirm-write=apply-review-flags",
-        "--expected-deployment=test-deployment",
+        "--expected-deployment=localhost/test-deployment",
       ]), {
-        env: { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" } as unknown as NodeJS.ProcessEnv,
+        env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgresql://localhost/test-deployment", DATA_ADMIN_KEY: "test-token" } as unknown as NodeJS.ProcessEnv,
         logger: { log: vi.fn() },
         createClient: () => ({ mutation } as never),
       })).rejects.toThrow(/findings validation failed/);

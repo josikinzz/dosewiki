@@ -1,21 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import {
-  LIBRARY_DEPENDENT_TABS,
-  LIBRARY_FETCHING_TABS,
   buildCombinedChangelogMarkdown,
   buildCommitMarkdown,
-  buildConvexSavePayload,
+  buildDataSavePayload,
   extractChangeLogSummary,
   formatArticleLabel,
   getChangedArticles,
   mergeArticleWithOriginal,
-  normalizeConvexChangeLogEntry,
+  normalizeDataChangeLogEntry,
   resolvePrimaryTab,
-  tabNeedsChangelogFeed,
-  tabNeedsContributorProfiles,
 } from "./devModePageUtils";
-import { DEV_TAB_REGISTRY } from "./devTabRegistry";
 
 describe("devModePageUtils", () => {
   it("resolves primary tabs for dev mode navigation", () => {
@@ -24,33 +19,6 @@ describe("devModePageUtils", () => {
     expect(resolvePrimaryTab("change-log")).toBe("change-log");
   });
 
-  it("derives the corpus loading policy from the registry", () => {
-    expect([...LIBRARY_DEPENDENT_TABS].sort()).toEqual(
-      ["articles", "change-log", "citation-review", "index-layout", "tag-editor"],
-    );
-    // Writing drains the corpus for the About placeholder counts, and the queue
-    // drains it so a loaded proposal overlays real production rows; both render
-    // without waiting on it.
-    expect([...LIBRARY_FETCHING_TABS].sort()).toEqual(
-      ["articles", "change-log", "citation-review", "index-layout", "queue", "tag-editor", "writing"],
-    );
-  });
-
-  it("derives the changelog and contributor feeds from the registry", () => {
-    const ids = DEV_TAB_REGISTRY.map((tab) => tab.id);
-    // Only the change log reads the feed; the profile tab that used to fetch it
-    // and never render it folded into Contributors.
-    expect(ids.filter(tabNeedsChangelogFeed)).toEqual(["change-log"]);
-    expect(ids.filter(tabNeedsContributorProfiles).sort()).toEqual([
-      "articles",
-      "change-log",
-      "citation-review",
-      "contributors",
-      "index-layout",
-      "tag-editor",
-      "writing",
-    ]);
-  });
 
   it("formats labels and extracts changelog summaries", () => {
     expect(formatArticleLabel({ title: "LSD", id: 12 }, 0)).toBe("LSD · #12");
@@ -80,7 +48,7 @@ describe("devModePageUtils", () => {
     expect(buildCommitMarkdown(changes)).toBe("# One\n\n+ a\n\n---\n\n# Three\n\n- c\n");
   });
 
-  it("detects changed articles and builds Convex save payloads", () => {
+  it("detects changed articles and builds Postgres save payloads", () => {
     const articles = [{ id: 1, title: "LSD" }, { id: 2, title: "MDMA" }] as never[];
     const originalArticles = [{ id: 1, title: "LSD" }] as never[];
     const datasetChangelog: DatasetChangelogResult = {
@@ -92,7 +60,7 @@ describe("devModePageUtils", () => {
     expect(getChangedArticles(articles, originalArticles)).toEqual([{ id: 2, title: "MDMA" }]);
 
     expect(
-      buildConvexSavePayload({
+      buildDataSavePayload({
         articles,
         originalArticles,
         datasetChangelog,
@@ -118,8 +86,8 @@ describe("devModePageUtils", () => {
 
   it("normalizes changelog entries from save results", () => {
     expect(
-      normalizeConvexChangeLogEntry({
-        id: "convex-1",
+      normalizeDataChangeLogEntry({
+        id: "data-1",
         createdAt: "2026-04-09T00:00:00.000Z",
         commit: { sha: "", url: "", message: "Saved" },
         articles: [{ id: 1, title: "LSD", slug: "lsd" }],
@@ -127,7 +95,7 @@ describe("devModePageUtils", () => {
         submittedBy: "JOSIE",
       }),
     ).toEqual({
-      id: "convex-1",
+      id: "data-1",
       createdAt: "2026-04-09T00:00:00.000Z",
       commit: { sha: "", url: "", message: "Saved" },
       articles: [{ id: 1, title: "LSD", slug: "lsd" }],

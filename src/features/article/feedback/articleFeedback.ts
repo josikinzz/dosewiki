@@ -4,7 +4,7 @@
  *
  * This module stays isomorphic (no Node imports) so the public form and the
  * /dev review tab can share the enums, labels, and validation at runtime.
- * Server-only concerns (IP hashing, Convex store) live in
+ * Server-only concerns (IP hashing, Postgres store) live in
  * articleFeedbackStore.server.ts.
  */
 

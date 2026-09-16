@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -144,7 +144,7 @@ async function main() {
   if (!(maxWrites === Infinity || (Number.isInteger(maxWrites) && maxWrites >= 1))) {
     throw new Error("--max-writes must be a positive integer.");
   }
-  if (!command.targetUrl) throw new Error("Set TARGET_CONVEX_URL or --target-url.");
+  if (!command.targetUrl) throw new Error("Set TARGET_POSTGRES_URL or --target.");
   const client = createDataClient({ target: command.targetUrl }).client;
 
   if (command.dryRun) {
@@ -196,7 +196,7 @@ async function main() {
   }
   const ledger = existingLedger ?? {
     schemaVersion: 1,
-    target: command.targetUrl,
+    target: command.deploymentFingerprint,
     payloadDigest: plan.payloadDigest,
     startedAt: new Date().toISOString(),
     completed: {},

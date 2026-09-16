@@ -22,8 +22,8 @@
  *     --confirm-write=apply-replication-license \
  *     --expected-deployment=<fingerprint>
  */
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -126,10 +126,9 @@ async function main() {
   console.log(`Artist: ${artist}`);
   console.log(`Licence: ${license.name} (${license.url})`);
 
-  const readUrl =
-    command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL || process.env.VITE_CONVEX_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
-    throw new Error("Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL).");
+    throw new Error("Set TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL).");
   }
 
   const client = createDataClient({ target: readUrl }).client;

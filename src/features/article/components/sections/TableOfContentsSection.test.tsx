@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { useReagentData } from "@/hooks/useReagentData";
-import { TableOfContentsSection } from "./TableOfContentsSection";
+import { ArticleTableOfContents } from "./ArticleTableOfContents";
 
 vi.mock("@/hooks/useReagentData", () => ({
   useReagentData: vi.fn(() => ({
@@ -65,17 +65,16 @@ describe("TableOfContentsSection", () => {
       },
     };
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
     expect(document.querySelector("[data-nosnippet]")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Subjective Effects" })).toHaveAttribute(
-      "href",
-      "#subjective-effects",
-    );
+    expect(
+      screen.getByRole("link", { name: "Subjective Effects" }),
+    ).toHaveAttribute("href", "#subjective-effects");
   });
 
   it("frames article content with introduction, status, and feedback links", () => {
-    render(<TableOfContentsSection article={createEmptyArticle()} />);
+    render(<ArticleTableOfContents article={createEmptyArticle()} />);
 
     const links = screen.getAllByRole("link");
     expect(links[0]).toHaveTextContent("Introduction");
@@ -122,12 +121,11 @@ describe("TableOfContentsSection", () => {
       reagent_testing: {},
     };
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
-    expect(screen.getByRole("link", { name: "Reagent Testing" })).toHaveAttribute(
-      "href",
-      "#reagent-testing",
-    );
+    expect(
+      screen.getByRole("link", { name: "Reagent Testing" }),
+    ).toHaveAttribute("href", "#reagent-testing");
   });
 
   it("shows reagent testing while ProtestKit data is loading", () => {
@@ -149,9 +147,11 @@ describe("TableOfContentsSection", () => {
       reagent_testing: {},
     };
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
-    expect(screen.getByRole("link", { name: "Reagent Testing" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Reagent Testing" }),
+    ).toBeInTheDocument();
   });
 
   it("shows trip reports only when the host reports related reports exist", () => {
@@ -166,7 +166,7 @@ describe("TableOfContentsSection", () => {
     };
 
     const { rerender } = render(
-      <TableOfContentsSection article={article} hasTripReports />,
+      <ArticleTableOfContents article={article} hasTripReports />,
     );
 
     expect(screen.getByRole("link", { name: "Trip Reports" })).toHaveAttribute(
@@ -174,9 +174,11 @@ describe("TableOfContentsSection", () => {
       "#trip-reports",
     );
 
-    rerender(<TableOfContentsSection article={article} />);
+    rerender(<ArticleTableOfContents article={article} />);
 
-    expect(screen.queryByRole("link", { name: "Trip Reports" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Trip Reports" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders reagent testing with the default TOC styling", () => {
@@ -215,11 +217,13 @@ describe("TableOfContentsSection", () => {
       reagent_testing: {},
     };
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
     const reagentLink = screen.getByRole("link", { name: "Reagent Testing" });
     expect(reagentLink).toBeInTheDocument();
-    expect(reagentLink).not.toHaveClass("border-[color:var(--theme-warning-border)]");
+    expect(reagentLink).not.toHaveClass(
+      "border-[color:var(--theme-warning-border)]",
+    );
     expect(reagentLink).not.toHaveClass("bg-[color:var(--theme-warning-bg)]");
   });
 
@@ -235,7 +239,7 @@ describe("TableOfContentsSection", () => {
     target.dataset.tocTestTarget = "true";
     document.body.appendChild(target);
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
     fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }));
 
@@ -268,7 +272,7 @@ describe("TableOfContentsSection", () => {
     target.dataset.tocTestTarget = "true";
     document.body.appendChild(target);
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
     fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }));
 
@@ -290,9 +294,11 @@ describe("TableOfContentsSection", () => {
     target.dataset.tocTestTarget = "true";
     document.body.appendChild(target);
 
-    render(<TableOfContentsSection article={article} />);
+    render(<ArticleTableOfContents article={article} />);
 
-    fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }), { metaKey: true });
+    fireEvent.click(screen.getByRole("link", { name: "Harm Potential" }), {
+      metaKey: true,
+    });
 
     expect(scrollIntoView).not.toHaveBeenCalled();
     expect(window.location.hash).toBe("");

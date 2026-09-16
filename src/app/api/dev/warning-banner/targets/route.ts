@@ -11,13 +11,13 @@
  * slug list or its deliberate sitewide scope. This endpoint remains search and
  * coverage input; classification never assigns a banner.
  *
- * The Convex side pages the article table (`listSubstanceTargetsPage`) to stay
+ * The Postgres side pages the article table (`listSubstanceTargetsPage`) to stay
  * under its read limits; this route drains the cursor so the browser makes
  * exactly one request. No `revalidatePath` here: this reads, and the public
  * pages do not consume it.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import type { WarningBannerTarget } from "@/data/substanceWarningBanners";
 
@@ -30,23 +30,23 @@ const MAX_PAGES = 100;
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  // Read-only, but the Convex query is editor-gated like every corpus walk, and
+  // Read-only, but the Postgres query is editor-gated like every corpus walk, and
   // the browser holds no token; the capability is what supplies one here.
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load the warning banner substance targets via Next route:",
   unexpectedErrorMessage: "Unable to load the substance list right now.",
-  operation: async ({ actorEmail, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
     const items: WarningBannerTarget[] = [];
     let cursor: string | undefined;
     for (let pages = 0; pages < MAX_PAGES; pages += 1) {
-      const page = (await convexWrite.client.query(api.warningBanners.listSubstanceTargetsPage, {
+      const page = (await dataWrite.client.query(api.warningBanners.listSubstanceTargetsPage, {
         apiKey,
         actorEmail,
         cursor,

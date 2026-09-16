@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
  * focus ring that drifts between surfaces is a focus ring people stop
  * trusting.
  */
-export const focusRingClassName =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]";
+export const focusRingClassName = "theme-focus-ring";
 
 const surfaceVariants = cva("relative border", {
   variants: {

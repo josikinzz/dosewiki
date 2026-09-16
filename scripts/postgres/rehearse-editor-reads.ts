@@ -1,7 +1,7 @@
 /**
  * Ticket 20 rehearsal: the editor surfaces read through `/api/editor/*` route
  * handlers backed by the server read client, on Postgres, with no browser
- * Convex client. Every route handler is imported and invoked in-process with
+ * database client. Every route handler is imported and invoked in-process with
  * `DATA_BACKEND=postgres`.
  *
  *   bun scripts/postgres/rehearse-editor-reads.ts [--target <url>] [--allow-remote]
@@ -17,7 +17,7 @@
  * Per route:
  *   1. auth: no session -> 401; foreign Origin / cross-site Sec-Fetch-Site -> 403.
  *   2. parity: the JSON body equals the registered query's own answer, so the
- *      hook receives exactly the shape it consumed from Convex.
+ *      hook receives exactly the native callable result shape.
  *   3. hygiene: the body never carries a Postgres URL, the admin key, or an
  *      admin intent token.
  * Plus: the paginated substance reads drain the fixture by continueCursor
@@ -27,7 +27,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { FunctionReference } from "convex/server";
+import type { FunctionReference } from "../../lib/postgres/runtime/api";
 import { Pool } from "pg";
 import { guardTarget, resolveTarget } from "./targetGuard";
 
@@ -107,7 +107,7 @@ function canonical(value: unknown): string {
 
 function secrets(): string[] {
   return Object.entries(process.env)
-    .filter(([name, value]) => (name === "CONVEX_ADMIN_KEY" || name.startsWith("CONVEX_ADMIN_TOKEN_") || name.startsWith("POSTGRES_")) && value && value.length >= 8)
+    .filter(([name, value]) => (name === "DATA_ADMIN_KEY" || name.startsWith("DATA_ADMIN_TOKEN_") || name.startsWith("POSTGRES_")) && value && value.length >= 8)
     .map(([, value]) => value as string);
 }
 
@@ -125,9 +125,9 @@ async function main() {
   try {
     // Dynamic on purpose: these modules must resolve after the forged-session
     // plugin above is registered, or the real `getServerSession` gate loads.
-    const { api } = await import("../../convex/_generated/api");
-    const { getServerConvexReadClient } = await import("../../lib/convex/serverClient");
-    const client = getServerConvexReadClient();
+    const { api } = await import("../../lib/postgres/runtime/api");
+    const { getServerDataReadClient } = await import("../../lib/data/serverClient");
+    const client = getServerDataReadClient();
 
     const routes = {
       "index-layouts": (await import("../../src/app/api/editor/index-layouts/route")).GET,

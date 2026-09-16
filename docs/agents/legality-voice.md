@@ -41,7 +41,7 @@ npm run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.jso
 1. Batch the voice-audit rows eight per file into `tmp/legality-voice-fix-<date>/inputs/batch-NN.json` (`{ batch, rows: [...] }`, rows copied from the voice audit).
 2. Launch one `legality-voice-fixer` child (`.omp/agents/legality-voice-fixer.md`, gpt-5.6-sol low) per batch with the input and `proposals/batch-NN.json` output paths. The fixer re-judges every regex hit; a `noChange` verdict with a legal-usage reason is a valid outcome.
 3. `npm run legality:build-repair-drafts -- --voice-audit=... --proposals=... --campaign=voice-scrub-<date>` folds proposals into `runs/legality/<slug>/voice-scrub-<date>/legality-draft.json` using `notesRepairs` / `statusRepairs` / `designationRepairs` / `instrumentRepairs`. It rejects a proposal whose `expected` differs from the audited value, that drops or reorders a `[cite:...]` marker, or whose new text still trips the blocking pattern, and writes `runs/legality/_manifests/voice-scrub-<date>.json`. Send each rejection back to its fixer with the reason.
-4. Validate, dry-run, and apply each draft with `legality:validate` and `legality:apply` (guards as in `docs/agents/convex-credentials.md`). Re-run both audits; confirm the set of changed content hashes equals the set of accepted proposals and the total citation-marker count is unchanged.
+4. Validate, dry-run, and apply each draft with `legality:validate` and `legality:apply` (guards as in `docs/agents/data-credentials.md`). Re-run both audits; confirm the set of changed content hashes equals the set of accepted proposals and the total citation-marker count is unchanged.
 
 ## Accepted advisory hits
 

@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent-strong)] focus:ring-offset-2 focus:ring-offset-transparent",
+  "theme-focus-ring inline-flex items-center rounded-full border transition-colors",
   {
     variants: {
       variant: {
@@ -24,7 +24,7 @@ const badgeVariants = cva(
         effect:
           "border-transparent bg-[var(--theme-frosted-control-bg)] px-3.5 py-1.5 text-xs text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)]",
         effectInteractive:
-          "border-transparent bg-[var(--theme-frosted-control-bg)] px-3.5 py-1.5 text-xs text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] cursor-pointer hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",
+          "border-transparent bg-[var(--theme-frosted-control-bg)] px-3.5 py-1.5 text-xs text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] cursor-pointer hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]",
         ghostPill:
           "border-[var(--theme-border-subtle)] bg-[var(--theme-surface-deep)] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--theme-text-secondary)] shadow-[var(--theme-elevation-top-highlight-faint)]",
       },

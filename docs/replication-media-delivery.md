@@ -5,9 +5,12 @@ Last verified: 2026-08-30
 The replication corpus contains 247 rows: 125 raw, never-transcoded video
 masters totalling 44.62 GB and 122 images totalling 235 MB. Video playback was
 slow, and **almost none of those bytes lived on production**. This document
-records the completed rescue, the rerun procedure, and two silent failure modes.
+records the completed rescue and historical rerun procedure. Current runtime
+metadata lives in PlanetScale Postgres; historical hosted-service operations
+below are not current operator instructions. Recovery requires a separately
+approved isolated historical checkout, never an application environment flip.
 
-Three scripts implement it:
+Historical rescue scripts and their original write targets:
 
 | Step | Script | Writes |
 | --- | --- | --- |
@@ -30,32 +33,34 @@ resolve to an orphan or development host, and 0 resolve to null.** The stored
 rollback path (section 5).
 
 The rest of this document records the decisions behind the completed operation
-and the requirements for a rerun.
+and its historical rerun requirements; it does not authorize a rerun.
 
 ## Current media origin: Cloudflare R2
 
-The migration completed on 2026-08-30. Metadata stays in Convex and media bytes
-are backed by the existing Cloudflare R2 archive. The implementation and
+The media migration completed on 2026-08-30. Since the database cutover,
+metadata lives in PlanetScale Postgres and media bytes remain backed by the
+existing Cloudflare R2 archive. The implementation and
 acceptance record is
 `docs/agents/convex-to-cloudflare-r2-media-handoff.md`. The dual-read seam is
 live in code:
 
 - Schema: five optional keys — `r2_key`, `thumbnail_r2_key`, `preview_r2_key`,
   `motion_r2_key`, `motion_poster_r2_key`
-  (`convex/lib/effectMediaSchemaValidators.ts`). Storage IDs, `url`, and
+  (`server/lib/effectMediaSchemaValidators.ts`). Storage IDs, `url`, and
   `thumbnail_url` stay populated as the rollback source.
 - Resolution: `resolveReplicationUrls` prefers a valid content-addressed key
-  (`media/sha256/<first-two-hex>/<sha256>.<ext>`) joined to the Convex
-  deployment variable `REPLICATION_MEDIA_BASE_URL`, then Convex Storage, then
-  the row's direct-URL fallback. Unset the variable to disable R2-first
-  resolution everywhere at once — that is the rollback switch.
+  (`media/sha256/<first-two-hex>/<sha256>.<ext>`) joined to the application
+  `REPLICATION_MEDIA_BASE_URL`; retained storage identities resolve through
+  Postgres `storageObjects`, followed by permitted direct URLs. The media base
+  is required at runtime; do not unset it as a recovery shortcut.
 - Writes: `replications.updateR2Keys`, compare-and-swap per variant — every
   key travels with the storage ID it was derived from and the batch fails if
   the row was repointed since the plan.
-- Tooling: `scripts/replications/build-r2-media-ledger.mjs` (read-only SHA-256
-  reconciliation ledger; identity is the digest, never filename or size) and
-  `scripts/replications/backfill-r2-keys.mjs` (dry-run default, canary via
-  `--slugs`, gated by the standard production-write flags).
+- Tooling: the reviewed historical SHA-256 reconciliation ledger retains digest
+  identity, never filename or size. Its hosted-source producers are now
+  non-executable references under `scripts/recovery/convex/`.
+  `scripts/replications/backfill-r2-keys.mjs` remains the native guarded consumer
+  (dry-run default, canary via `--slugs`, existing production-write gates).
 
 The checked-in ledger reconciles 2,804 populated replication media fields with
 zero missing, ambiguous, or error results. Its R2 copy verification covers
@@ -67,8 +72,8 @@ rollback sources; deleting those objects was not part of this migration.
 Note for reruns of the repoint procedure below: on a row whose `r2_key` is set
 while `REPLICATION_MEDIA_BASE_URL` is configured, repointing `storage_id` no
 longer changes what the browser sees (`fieldThatWins()` in
-`repoint-renditions.mjs` predates the R2 tier). During an R2 rollback the
-variable is unset, so the documented rerun behaviour still holds exactly.
+`repoint-renditions.mjs` predates the R2 tier). That observation describes the historical rescue tool, not permission to
+unset the required runtime media base or invoke a hosted recovery target.
 
 Urgent URL withdrawal is separate from gallery hiding and ordinary outage
 rollback. The existing R2 Worker now checks a private per-object withdrawal
@@ -79,13 +84,75 @@ delivery verification remain required. Follow the
 never unset the R2-first switch during an active withdrawal if a native fallback
 could re-expose the bytes. Originals and rollback locators remain intact.
 
+Responsive managed raster images use `AppImage` to request the media Worker
+directly with `?width=<allowed-width>`. The Worker checks the original object's
+withdrawal marker before serving a private WebP rendition from
+`_renditions/v1/<original-key>/<width>.webp`. The bucket remains private.
+Originals, variants, conditional responses, ranges, and errors all use no-store
+headers. A missing rendition is a 404, never a redirect to an unguarded source.
+
+The earlier Next image optimizer design failed the 2026-09-14 real Vercel canary:
+its warmed cache bypassed middleware after the Worker returned 410. Managed and
+legacy R2 hosts are therefore excluded from Next's optimizer. The native
+application optimizes local images only; managed images use the Worker.
+
+New avatar and Studio publication receipts now prepare and verify all responsive
+renditions before allowing a database reference to be saved. Preparation streams
+the verified original to a private temporary file, uses the same encoder as the
+operator command, writes create-only private variants, and checks remote size,
+MIME, and digest metadata. Freeze and withdrawal checks remain authoritative;
+failure issues no publication receipt. Temporary files are removed on success
+and failure. Editor deployment `dpl_3iNngG4UHwBUTovVrs5DkgVMzUuM` carries this
+contract in production. The bounded release canary verified 14 new unreferenced
+objects, all 13 public responsive widths, both receipt paths, and create-only
+replay refusal without creating library or profile records. Evidence:
+`runs/postgres-import/2026-09-15T02-25-03Z-integrated-production-release/r2-backend-canary-proof.json`.
+
+For bulk preparation of existing managed raster keys, use
+`bun run replications:prepare-image-renditions --keys <keys.json> --out <directory>`.
+The input contains a `keys` array of canonical original keys. Preparation only
+reads the public Worker and writes local files, verifies source digests, records
+missing or withdrawn sources explicitly, and writes a pinned `plan.json`.
+Unavailable originals retain their 404 or 410 status rather than receiving a
+substitute image. Upload requires the explicit
+`--write --confirm-write=upload-r2-image-renditions --bucket=replications
+--confirm-plan=<printed-sha256>` flags with the same `--out`. The uploader checks
+the write freeze, exact account/bucket, source markers, local hashes, create-only
+destinations, and remote size/digest metadata. It never edits article content or
+originals. Retain the plan and upload receipts. Verify the public variant URLs
+before publishing references to new images.
+
+Animated WebP inputs retain their animation: preparation reads all frames,
+and resizing preserves frame delays and loop count without upscaling. Do not
+flatten an animated source to bypass a preparation failure.
+
+Previously issued optimizer URLs require provider containment as well as this
+source change. The previously installed gate on the three Vercel projects
+(`dosewiki-public`, `dosewiki-admin`, and `effectindex`) was
+`WITHDRAWAL-REPAIR-1 optimizer source gate`:
+deny `/_next/image` requests unless the `url` query value starts with `/` or
+`https://glad-minnow-656.convex.cloud/api/storage/`. That historical provider rule allowed
+local and hosted-storage sources while blocking managed R2 optimizer inputs.
+Native source configuration permits local images only. Source cleanup does
+not change the provider rule: reconcile it under explicit provider approval
+and verify containment, without reopening any managed-media optimizer path.
+
+Vercel's hard source-image deletion forces foreground revalidation but accepts
+only eight exact source URLs per call. Ordinary invalidation can serve stale
+bytes; neither enumerating known URLs nor invalidation replaces the edge gate.
+Keep historical generated deployment URLs protected. Verify old exact optimizer
+URLs, source-query variants, conditional requests, local-image behavior, and
+direct Worker delivery after release. Editor local-image checks must preserve
+the existing unauthenticated sign-in redirect rather than require HTTP 200.
+No server-side mechanism can retract already downloaded or displayed bytes.
+
 ## Corrections to earlier readings of this corpus
 
 - **`notes-and-plans/reports/replication-provenance/audit-latest.json` is stale
   and has now misled three separate readings.** It was generated against
   `VITE_CONVEX_URL`, then pointed at development deployment
   `enchanted-echidna-791` (now retired), so its resolved URLs do not describe
-  production. Re-measure against `glad-minnow-656`.
+  current production. Fresh measurements must use the approved Postgres reader.
 - **Posters are fine.** All 125 videos resolve a `thumbnail_url` on production
   and every row carries a `thumbnail_storage_id`. An earlier claim that 60 rows
   had no poster came from the stale audit and was wrong. Posters are not a
@@ -93,18 +160,17 @@ could re-expose the bytes. Originals and rollback locators remain intact.
 
 ## 1. How a video URL reaches the browser
 
-Application code does not construct, rewrite, prefix, or proxy replication media
-URLs. There is no media proxy route, `next/image` loader, rewrite, or CDN prefix.
-Convex produces the URL used by the browser, and the application passes it
-through unchanged.
+Video URLs are produced by the canonical resolver and passed to the browser
+unchanged. They do not use an image optimizer, proxy route or custom loader.
+Responsive still-image delivery is described above.
 
 | Step | Location |
 | --- | --- |
-| URL produced | `convex/lib/replicationUrls.ts:6-52` `resolveReplicationUrls` |
-| Query entry points | `convex/replications.ts:20-43`; handlers in `convex/lib/replicationReads.ts:57-132` |
-| Transport | `lib/convex/serverClient.ts:57-75` `queryConvex` |
-| Adapter | `lib/convex/publicData.reads.ts:705-729` |
-| Cache | `lib/convex/publicData.effects.ts:143-164`; 900 s and tags are defined in `lib/convex/publicData.cache.ts:1-10` |
+| URL produced | `server/lib/replicationUrls.ts:6-52` `resolveReplicationUrls` |
+| Query entry points | `server/replications.ts:20-43`; handlers in `server/lib/replicationReads.ts:57-132` |
+| Transport | `lib/data/serverClient.ts:57-75` `queryData` |
+| Adapter | `lib/data/publicData.reads.ts:705-729` |
+| Cache | `lib/data/publicData.effects.ts:143-164`; 900 s and tags are defined in `lib/data/publicData.cache.ts:1-10` |
 | Route loader | `lib/next/routeLoaders.replications.ts:57-154` `loadReplicationRoute` |
 | Page | `src/app/replications/[slug]/page.tsx:9-99` (`revalidate = 3600`, `dynamicParams = false`) |
 | Element | `src/features/effects/pages/ReplicationDetailPage.tsx:155-181` |
@@ -189,9 +255,9 @@ if (!url && rep.url) url = rep.url;
 
 The resolver comment and implementation agree: a valid content-addressed R2 key
 wins when `REPLICATION_MEDIA_BASE_URL` is configured, followed by the old
-`storage_id`, then the stored `url`. Unsetting the deployment variable restores
-the previous Convex-first behavior globally. Section 5 explains why this
-precedence determines recovery and reruns.
+`storage_id` through native identity rows, then the stored `url`. Runtime
+startup requires the media base. Section 5 preserves historical recovery
+behavior, not a supported current backend switch.
 
 ### Consequences
 
@@ -202,9 +268,9 @@ precedence determines recovery and reruns.
   at build time has no page. The blast radius of a bad repoint is page removal,
   not a broken video.
 - **Resolved URLs are cached twice** — 900 s in
-  `lib/convex/publicData.effects.ts`, then ISR HTML at 3600 s.
-  `revalidateTag("convex-public:replications")`, whose tag is defined in
-  `lib/convex/publicData.cache.ts:3-10`, forces refresh.
+  `lib/data/publicData.effects.ts`, then ISR HTML at 3600 s.
+  `revalidateTag("data-public:replications")`, whose tag is defined in
+  `lib/data/publicData.cache.ts:3-10`, forces refresh.
 - **CSP already permits any HTTPS media host** —
   `lib/next/cspObservationPolicy.ts:165-168`. No CSP change is needed.
 - **`next/image` is not in the path.** `src/components/common/AppImage.tsx:20-22`
@@ -216,7 +282,10 @@ precedence determines recovery and reruns.
 This section records the superseded 2026-08-16 operating state so earlier
 performance measurements remain interpretable. The owner later selected
 Cloudflare R2, and the R2 migration completed on 2026-08-30. The limitations
-below describe the rollback origin, not current R2 delivery.
+below describe the historical origin, not current R2 delivery. Sections 2–5
+and their command examples are historical evidence only; use current native
+operator contracts for ordinary work and the isolated owner-approved recovery
+procedure for any historical service restoration.
 
 ### What the transcode fixes
 

@@ -2,17 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const ALIGNED = {
   status: "aligned" as const,
-  read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-  write: { deploymentName: "glad-minnow-656", sourceEnvVar: "CONVEX_URL" },
-  overrideAcknowledged: false,
+  read: { deploymentName: "db.example/dosewiki", sourceEnvVar: "POSTGRES_POOLED_URL" },
+  write: { deploymentName: "db.example/dosewiki", sourceEnvVar: "POSTGRES_DIRECT_URL" },
   summary: "aligned",
 };
 
 const SPLIT = {
   status: "split" as const,
-  read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-  write: { deploymentName: "enchanted-echidna-791", sourceEnvVar: "VITE_CONVEX_URL" },
-  overrideAcknowledged: false,
+  read: { deploymentName: "db.example/dosewiki", sourceEnvVar: "POSTGRES_POOLED_URL" },
+  write: { deploymentName: "db.example/other", sourceEnvVar: "POSTGRES_DIRECT_URL" },
   summary: "split",
 };
 
@@ -40,12 +38,11 @@ vi.mock("@auth", () => ({
   authOptions: {},
 }));
 
-vi.mock("@server/convex/publicData", () => ({
+vi.mock("@server/data/publicData", () => ({
   getOwnedContributorProfile: getOwnedContributorProfileMock,
 }));
 
-vi.mock("@server/convex/serverWriteHealth", () => ({
-  CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR: "CONVEX_ALLOW_TARGET_SPLIT",
+vi.mock("@server/data/serverWriteHealth", () => ({
   getEditorTargetAlignment: getEditorTargetAlignmentMock,
 }));
 
@@ -64,9 +61,8 @@ vi.mock("../_components/NextDevRouteClient", () => ({
 import NextDevPage from "./page";
 import { DEV_TAB_REGISTRY } from "@/features/dev/pages/devTabRegistry";
 import {
-  ConvexTargetSplitBanner,
-  ConvexTargetSplitRefusal,
-} from "../../_components/ConvexTargetSplitNotice";
+  DataTargetSplitRefusal,
+} from "../../_components/DataTargetSplitNotice";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 
 describe("NextDevPage shell selection", () => {
@@ -149,12 +145,12 @@ describe("NextDevPage shell selection", () => {
         role: "editor",
       },
     });
-    getOwnedContributorProfileMock.mockRejectedValue(new Error("Convex credential rejected"));
+    getOwnedContributorProfileMock.mockRejectedValue(new Error("Postgres credential rejected"));
 
     const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
 
     // The lookup is handed down unresolved, so the shell is built and returned
-    // without ever waiting on the failing Convex read.
+    // without ever waiting on the failing Postgres read.
     expect(element.type).toBe(NextDevRouteClient);
     expect(element.props).toEqual(
       expect.objectContaining({
@@ -181,43 +177,12 @@ describe("NextDevPage shell selection", () => {
 
     const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
 
-    expect(element.type).toBe(ConvexTargetSplitRefusal);
+    expect(element.type).toBe(DataTargetSplitRefusal);
     expect(element.props).toMatchObject({ alignment: SPLIT, surface: "/dev editor shell" });
-    // The shell is never constructed, so no Convex round-trip is made on a split.
+    // The shell is never constructed, so no Postgres round-trip is made on a split.
     expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
   });
 
-  it("renders the shell under a permanent banner once the split is explicitly acknowledged", async () => {
-    getEditorTargetAlignmentMock.mockReturnValue({ ...SPLIT, overrideAcknowledged: true });
-    getServerSessionMock.mockResolvedValue({
-      user: { email: "editor@example.com", role: "editor" },
-    });
-    getOwnedContributorProfileMock.mockResolvedValue(null);
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
-
-    const children = element.props.children as Array<{ type: unknown }>;
-    expect(children[0].type).toBe(ConvexTargetSplitBanner);
-    expect(children[1].type).toBe(NextDevRouteClient);
-  });
-
-  it("does not warn when the deployment has no write target at all", async () => {
-    getEditorTargetAlignmentMock.mockReturnValue({
-      status: "no-write-target",
-      read: { deploymentName: "glad-minnow-656", sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" },
-      write: { deploymentName: null, sourceEnvVar: null },
-      overrideAcknowledged: false,
-      summary: "read-only",
-    });
-    getServerSessionMock.mockResolvedValue({
-      user: { email: "editor@example.com", role: "editor" },
-    });
-    getOwnedContributorProfileMock.mockResolvedValue(null);
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
-
-    expect(element.type).toBe(NextDevRouteClient);
-  });
 
   describe("route resolution", () => {
     const asEditor = () => {

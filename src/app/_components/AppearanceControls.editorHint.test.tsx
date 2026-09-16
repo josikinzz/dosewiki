@@ -88,6 +88,7 @@ async function openPanel(user: UserEvent) {
   await user.click(trigger);
 
   const panel = await screen.findByRole("dialog");
+  await within(panel).findAllByRole("button");
 
   const swap = within(panel).queryByRole("button", { name: "Show colour controls" });
   if (swap) {

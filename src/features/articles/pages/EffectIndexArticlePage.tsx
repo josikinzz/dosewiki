@@ -14,7 +14,7 @@ import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings"
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
-import { formattingLocale, translateMessage, type UiLocale } from "@/i18n/messages";
+import { formattingLocale, type Translate, type UiLocale } from "@/i18n/messages";
 import {
   buildEffectIndexArticleModel,
   type ArticleBodyContent,
@@ -43,6 +43,7 @@ interface EffectIndexArticle {
 interface EffectIndexArticlePageProps {
   article: EffectIndexArticle;
   locale?: UiLocale;
+  t: Translate;
   /**
    * Resolved from the article's `authorProfileKeys` by the route loader. Empty
    * for an article whose keys are missing or claim no profile, and then no
@@ -116,8 +117,8 @@ export function EffectIndexArticlePage({
   article,
   bylineAuthors = [],
   locale = "en",
+  t,
 }: EffectIndexArticlePageProps) {
-  const t = (text: string) => translateMessage(locale, text);
   // A date is not a tag: it gets a `<time>` of its own, set in figures rather
   // than in the tracked-out caps a tag wears, so the row reads as "published
   // then, filed under these" instead of as one undifferentiated run of chips.

@@ -7,7 +7,7 @@
  *
  * The browser holds no admin intent token, so the write is delegated here the
  * way the Copy Studio delegates its own: the route checks the session floor,
- * then calls Convex with the server's token plus the actor's email for the
+ * then calls Postgres with the server's token plus the actor's email for the
  * audit trail. The selection is site configuration, so the write is admin.
  *
  * `curated: false` on the GET means this deployment has never stored a
@@ -24,7 +24,7 @@
  */
 import { NextResponse } from "next/server";
 import { publishPublicCache } from "@server/next/publishPublicCache";
-import { api } from "../../../../../../convex/_generated/api";
+import { api } from "@server/postgres/runtime/api";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "@server/next/effectIndexHome";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -34,7 +34,7 @@ export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 
-/** Matches the ceiling enforced in `convex/siteConfig.ts`. */
+/** Matches the ceiling enforced in `server/siteConfig.ts`. */
 const MAX_FEATURED = 120;
 
 type FeaturedBody = { slugs?: unknown };
@@ -66,15 +66,15 @@ function parseFeaturedBody(raw: FeaturedBody): string[] {
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to load the featured replications via Next route:",
   unexpectedErrorMessage: "Unable to load the featured selection right now.",
-  operation: async ({ convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
-    const config = await convexWrite.client.query(api.siteConfig.getFeaturedReplications, {});
+    const config = await dataWrite.client.query(api.siteConfig.getFeaturedReplications, {});
 
     return NextResponse.json({
       ok: true,
@@ -90,18 +90,18 @@ export const POST = protectedRouteOperation<FeaturedBody, string[]>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseFeaturedBody },
-  capabilities: [{ type: "convexWrite" }],
+  capabilities: [{ type: "dataWrite" }],
   unexpectedErrorLabel: "Failed to save the featured replications via Next route:",
   unexpectedErrorMessage: "Unable to save the featured selection right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
+  operation: async ({ actorEmail, body, dataWrite }) => {
+    if (!dataWrite) {
+      throw new Error("Postgres write capability is required.");
     }
 
     const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+      dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
 
-    const result = await convexWrite.client.mutation(api.siteConfig.saveFeaturedReplications, {
+    const result = await dataWrite.client.mutation(api.siteConfig.saveFeaturedReplications, {
       apiKey,
       actorEmail,
       slugs: body,

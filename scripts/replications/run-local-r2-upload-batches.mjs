@@ -177,7 +177,7 @@ export function validatePublicCanaryReceipt(plan, records, planSha256) {
       throw new Error(`Public canary receipt drift for ${key}`);
     }
     const headers = record.delivery_headers ?? {};
-    if (headers.content_type !== object.contentType || !/\bimmutable\b/.test(headers.cache_control ?? "") || !/^inline(?:;|$)/i.test(headers.content_disposition ?? "") || headers.accept_ranges !== "bytes") {
+    if (headers.content_type !== object.contentType || !/(?:^|,)\s*no-store\s*(?:,|$)/i.test(headers.cache_control ?? "") || !/^inline(?:;|$)/i.test(headers.content_disposition ?? "") || headers.accept_ranges !== "bytes") {
       throw new Error(`Public canary delivery contract failed for ${key}`);
     }
   }

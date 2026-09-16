@@ -6,7 +6,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createLedger,
-  EXPECTED_TARGET_URL,
   rollbackPayloadFor,
   runProfileRollout,
   runRollbackPhase,
@@ -31,10 +30,10 @@ const FIXTURE_PINS: MaterializationPins = {
 const FIXTURE_ROWS = 8;
 const FIXTURE_BATCHES = 3;
 
-const scopedEnv = { CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE: "test-scoped-profile-token" } as unknown as NodeJS.ProcessEnv;
+const scopedEnv = { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_PROFILE_MEDIA_WRITE: "test-scoped-profile-token" } as unknown as NodeJS.ProcessEnv;
 const targetFlags = [
-  `--target-url=${EXPECTED_TARGET_URL}`,
-  "--expected-deployment=glad-minnow-656",
+  "--target=postgresql://fixture:fixture@localhost/avatar_fixture",
+  "--expected-deployment=localhost/avatar_fixture",
 ];
 
 function sha256(value: string | Buffer) {
@@ -42,7 +41,7 @@ function sha256(value: string | Buffer) {
 }
 
 function fixturePlan() {
-  return validateMaterialization(FIXTURE_PLAN, FIXTURE_PINS);
+  return { ...validateMaterialization(FIXTURE_PLAN, FIXTURE_PINS), targetIdentity: "localhost/avatar_fixture" };
 }
 
 function rollout(options: { argv: string[]; env: NodeJS.ProcessEnv; dependencies: Partial<RolloutDependencies> }) {
@@ -157,7 +156,7 @@ describe("Replication Index profile rollout runner", () => {
     });
     expect(result).toMatchObject({ batches: FIXTURE_BATCHES, rows: FIXTURE_ROWS, wrote: false });
     expect(dryRunBatch).toHaveBeenCalledTimes(FIXTURE_BATCHES);
-    expect(dryRunBatch.mock.calls.every(([payload, token]) => payload.dryRun === true && token === scopedEnv.CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE)).toBe(true);
+    expect(dryRunBatch.mock.calls.every(([payload, token]) => payload.dryRun === true && token === scopedEnv.DATA_ADMIN_TOKEN_PROFILE_MEDIA_WRITE)).toBe(true);
     expect(deps.writeBatch).not.toHaveBeenCalled();
     expect(deps.readProfiles).not.toHaveBeenCalled();
   });
@@ -166,12 +165,12 @@ describe("Replication Index profile rollout runner", () => {
     const deps = dependencies();
     await expect(rollout({
       argv: ["--live-dry-run", ...targetFlags],
-      env: {} as unknown as NodeJS.ProcessEnv,
+      env: { DATA_BACKEND: "postgres" } as unknown as NodeJS.ProcessEnv,
       dependencies: deps,
     })).rejects.toThrow(/Missing admin token/);
     await expect(rollout({
       argv: ["--live-dry-run", ...targetFlags],
-      env: { CONVEX_ADMIN_KEY: "legacy-broad-token" } as unknown as NodeJS.ProcessEnv,
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_KEY: "legacy-broad-token" } as unknown as NodeJS.ProcessEnv,
       dependencies: deps,
     })).rejects.toThrow(/legacy broad admin key is not accepted/);
     expect(deps.dryRunBatch).not.toHaveBeenCalled();
@@ -282,7 +281,7 @@ describe("Replication Index profile rollout runner", () => {
     });
     const text = readFileSync(ledgerPath, "utf8");
     expect(statSync(ledgerPath).mode & 0o777).toBe(0o600);
-    expect(text).not.toContain(scopedEnv.CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE);
+    expect(text).not.toContain(scopedEnv.DATA_ADMIN_TOKEN_PROFILE_MEDIA_WRITE);
     const persisted = JSON.parse(text);
     expect(persisted.batches[0].status).toBe("verified");
     expect(persisted.artifactFileSha256).toBe(FIXTURE_PINS.fileSha256);

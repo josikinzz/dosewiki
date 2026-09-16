@@ -4,7 +4,7 @@ import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
-vi.mock("../../../../convex/_generated/api", () => ({
+vi.mock("@server/postgres/runtime/api", () => ({
   api: {
     prompts: {
       save: "prompts.save",
@@ -24,26 +24,26 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
+  getServerDataWriteCapability: vi.fn(),
 }));
 
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
+vi.mock("@server/data/serverWriteCapability", () => ({
+  getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
 describe("save prompt route write capability handling", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.mutation.mockReset();
-    mocks.getServerConvexWriteCapability.mockReset();
+    mocks.getServerDataWriteCapability.mockReset();
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
   });
 
-  it("refuses an editor with 403 before touching Convex", async () => {
+  it("refuses an editor with 403 before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
     });
@@ -63,17 +63,18 @@ describe("save prompt route write capability handling", () => {
   });
 
   it("maps missing write capability to the existing HTTP 500 response shape", async () => {
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: false,
       failure: {
         type: "configuration",
         missing: ["adminKey"],
-        message: "Convex admin key is not configured on the server.",
+        message: "Postgres admin key is not configured on the server.",
         health: {
           adminKeyConfigured: false,
-          convexUrlConfigured: true,
-          canSaveToConvex: false,
-          issues: ["Missing CONVEX_ADMIN_KEY on the server."],
+          backend: "postgres",
+          postgresUrlConfigured: true,
+          canSaveToPostgres: false,
+          issues: ["Missing DATA_ADMIN_KEY on the server."],
         },
       },
     });
@@ -89,13 +90,13 @@ describe("save prompt route write capability handling", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
-      error: "Convex admin key is not configured on the server.",
+      error: "Postgres admin key is not configured on the server.",
     });
   });
 
 
   it("rejects unknown prompt keys before writing", async () => {
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: {
         client: { mutation: mocks.mutation },
@@ -118,9 +119,9 @@ describe("save prompt route write capability handling", () => {
     });
   });
 
-  it("delegates the authenticated admin email to the Convex prompt write", async () => {
+  it("delegates the authenticated admin email to the Postgres prompt write", async () => {
     mocks.mutation.mockResolvedValue({ updated: true, id: "prompt-id" });
-    mocks.getServerConvexWriteCapability.mockReturnValue({
+    mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
       capability: {
         client: {

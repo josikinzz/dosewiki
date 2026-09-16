@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Backfill creator-retained rights metadata for existing Convex replication rows
+ * Backfill creator-retained rights metadata for existing Postgres replication rows
  * from notes-and-plans/exports/replications/replications-metadata.json.
  */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   readSimpleEnvFile,
   resolveReplicationsPaths,
@@ -63,13 +63,13 @@ const command = createProductionWriteCommand({
   env,
   loadsEnvLocal: false,
 });
-const readUrl = env.SOURCE_CONVEX_URL || env.CONVEX_PUBLIC_READ_URL || command.targetUrl || env.CONVEX_URL;
+const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({ env }).url;
 const inputPath = readArg("--input", metadataFile);
 const limitArg = readArg("--limit", "");
 const limit = limitArg ? Number.parseInt(limitArg, 10) : null;
 
 if (!readUrl) {
-  throw new Error("Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.");
+  throw new Error("Set SOURCE_POSTGRES_URL for dry-run or an explicit target for writes.");
 }
 
 if (!fs.existsSync(inputPath)) {
@@ -81,7 +81,7 @@ if (!Array.isArray(metadata.replications)) {
   throw new Error(`Expected ${inputPath} to contain a replications array.`);
 }
 
-const sourceClient = createDataClient({ target: readUrl }).client;
+const sourceClient = createDataClient({ target: readUrl, env }).client;
 const desiredBySlug = new Map(
   metadata.replications.map((replication) => [
     replication.slug,
@@ -118,7 +118,7 @@ if (command.dryRun) {
 let updated = 0;
 assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance", { env });
-const targetClient = createDataClient({ target: command.targetUrl }).client;
+const targetClient = createDataClient({ target: command.targetUrl, env }).client;
 for (const replication of toProcess) {
   await targetClient.mutation(api.replications.updateRightsMetadata, {
     apiKey: credential.token,

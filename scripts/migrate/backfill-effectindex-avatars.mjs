@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import { assertDataOpsWriteAllowed, createDataOpsRunContext, printDataOpsRunContext, requireAdminIntentToken, requireTargetUrl } from "../lib/data-ops-run-context.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -56,7 +56,7 @@ async function main() {
   if (writeRequested && !confirmed) throw new Error("Writes require --write --confirm-avatar-backfill.");
   if (!fs.existsSync(PROBE_PATH)) throw new Error("The media-recovery probe report is unavailable.");
   const argv = process.argv.slice(2);
-  const runContext = createDataOpsRunContext({ operation: "backfill Effect Index avatars", intent: "dev-convex-import", argv: writeRequested ? argv : [...argv, "--dry-run"], targetUrlKeys: ["TARGET_CONVEX_URL"], localArtifacts: [PROBE_PATH], confirmationFlag: "--confirm-avatar-backfill", destructive: true });
+  const runContext = createDataOpsRunContext({ operation: "backfill Effect Index avatars", intent: "dev-data-import", argv: writeRequested ? argv : [...argv, "--dry-run"], targetUrlKeys: ["TARGET_POSTGRES_URL"], localArtifacts: [PROBE_PATH], confirmationFlag: "--confirm-avatar-backfill", destructive: true });
   const { selected, skipped } = chooseAssets();
   console.log(`Mode: ${writeRequested ? "write requested" : "dry run"}`);
   printDataOpsRunContext(runContext);
@@ -64,7 +64,7 @@ async function main() {
   for (const candidate of selected) console.log(`PLAN ${candidate.identity.key} | ${candidate.asset.media} -> ${candidate.avatarUrl}`);
   for (const { asset, reason } of skipped) console.log(`SKIP ${asset.media} — ${reason}.`);
   if (!writeRequested && !onlineDryRun) { console.log(`Plan total: ${selected.filter((candidate) => candidate.identity.key !== "JOSIE").length} possible avatar backfill(s), subject to live empty-avatar guards.`); return; }
-  if (!runContext.targetUrl) throw new Error("--online and --write require an explicit TARGET_CONVEX_URL.");
+  if (!runContext.targetUrl) throw new Error("--online and --write require an explicit TARGET_POSTGRES_URL.");
   if (writeRequested) assertDataOpsWriteAllowed(runContext);
   const credential = requireAdminIntentToken("profileMediaWrite");
   const client = createDataClient({ target: requireTargetUrl(runContext) }).client;
@@ -80,7 +80,7 @@ async function main() {
     // deployments: an earlier run against another deployment materialized it and
     // it is now a committed asset. The refusal exists to protect a file whose
     // bytes differ from what this run would write, so verify rather than assume
-    // — matching bytes mean the asset is already correct and only the Convex
+    // — matching bytes mean the asset is already correct and only the Postgres
     // row is outstanding.
     const fileExists = fs.existsSync(filePath);
     updates.push({ candidate, profile, filePath, fileExists });

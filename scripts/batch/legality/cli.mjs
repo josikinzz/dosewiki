@@ -44,7 +44,7 @@ export function parseArgs() {
       "dry-run": "dryRun",
       "skip-backup": "skipBackup",
       "source-url": "sourceUrl",
-      "target-url": "targetUrl",
+      "target": "targetUrl",
     },
   });
 }

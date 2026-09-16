@@ -15,7 +15,7 @@
  *      file that is the entire download before the first frame paints.
  *
  * This script fixes both, locally, on files the operator has already pulled
- * down. It performs NO Convex write and never contacts a deployment: it reads a
+ * down. It performs NO Postgres write and never contacts a deployment: it reads a
  * directory of masters and writes a directory of renditions plus a manifest.
  * Uploading the renditions and repointing `storage_id` is a separate, later
  * operation that consumes this manifest — see docs/replication-media-delivery.md.
@@ -182,7 +182,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
-  console.log("Convex writes: none — this operation is local-only.\n");
+  console.log("Postgres writes: none — this operation is local-only.\n");
 
   const sourceDir = getFlagValue(argv, "--source-dir");
   const mastersDir = getFlagValue(argv, "--masters-dir");
@@ -481,7 +481,7 @@ async function main() {
 
   if (command.dryRun) {
     console.log(
-      `\nDry run — nothing encoded, nothing copied, no Convex writes. Re-run with --write --confirm-transcode to execute.`,
+      `\nDry run — nothing encoded, nothing copied, no Postgres writes. Re-run with --write --confirm-transcode to execute.`,
     );
     return;
   }

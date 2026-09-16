@@ -1,58 +1,17 @@
 #!/usr/bin/env node
 /**
- * Upload the copy production should serve into production Convex storage and
- * repoint the rows at it, retiring the orphan deployments.
+ * Upload reviewed archive renditions to native R2 and associate their verified
+ * keys with Postgres replication rows. Historical storage IDs and URL fields
+ * remain recovery data; native R2 keys control delivery.
  *
- * This is the step that actually fixes the corpus. For video it replaced 44.19
- * GB spread across two deployments nobody controls — plus 65 thumbnails served
- * from the *development* deployment — with faststart web renditions on
- * production storage, which is the only host this project can keep alive. For
- * images it does the same rescue with the archived master itself: 105 of 122
- * image rows still resolve from `warmhearted-mosquito-204` (79) and
- * `adept-goldfish-624` (26).
+ * Video uploads use the transcoded rendition plus a separate thumbnail.
+ * Images use the archived master unchanged, sharing its key with the thumbnail
+ * when both previously resolved to the same object.
  *
- * `--media-type` selects which half of the corpus is being moved, and with it
- * where the uploaded bytes come from. Video is the default, so every invocation
- * written before images existed still means exactly what it meant.
- *
- * WHAT GETS UPLOADED, AND WHY IT DIFFERS
- * --------------------------------------
- *   video  the transcoded rendition from the archive run's `--output-dir`, plus
- *          the archived poster as a separate `thumbnail_storage_id`.
- *   image  the archived master, byte for byte. No re-encode, no resize, no
- *          metadata strip: the corpus is 166 MB in total, so there is nothing to
- *          gain, and several rows are third-party artworks where altering the
- *          file is an attribution problem as well as a quality one. An image
- *          row's `thumbnail_url` is normally the same stored object as its
- *          `url`, so both fields are pointed at the one uploaded object rather
- *          than uploading identical bytes twice.
- *
- * Two properties of the live resolver make a naive version of this script
- * dangerous, and both are defended against here.
- *
- * 1. `storage_id` outranks `url`.
- *
- *    `resolveReplicationUrls` (convex/replications.ts:89-99) tries
- *    `ctx.storage.getUrl(storage_id)` first and only falls through to the `url`
- *    string when that yields nothing. The doc comments above the queries claim
- *    the opposite order and are simply wrong. So writing `url` — the obvious
- *    move, since `url` is what currently points at the orphan hosts — silently
- *    does nothing for the 60 rows that already hold a live `storage_id`. This
- *    script therefore writes `storage_id`, the field that actually wins, and
- *    never trusts the write: it re-resolves every row through the same public
- *    query the website uses and requires the delivered URL to have changed.
- *
- * 2. A null URL removes the page, it does not break the video.
- *
- *    `loadReplicationRoute` returns not-found when `url` is falsy, and the route
- *    sets `dynamicParams = false`, so an unresolvable row loses its page
- *    entirely at the next build. Verification therefore treats "resolved to
- *    null" as a hard failure that stops the whole run, not a warning.
- *
- * The old `url` value is deliberately left in place. It is the rollback path: it
- * costs nothing, and clearing it would turn a reversible migration into a
- * one-way door. A later cleanup pass can null it once the new storage has been
- * trusted for a while.
+ * Every reviewed source is guarded by both its original R2 key and historical
+ * storage ID. The association uses the complete live media snapshot as CAS and
+ * updates delivered file size atomically. Public resolver readback must show
+ * the new delivery URL without removing a working thumbnail.
  *
  * Dry run (default — plans and prints the exact per-row verification, uploads
  * nothing, writes nothing):
@@ -67,8 +26,8 @@
  *     --batch-size=5 \
  *     --write --confirm-write=repoint-replication-renditions \
  *     --confirm-repoint \
- *     --expected-deployment=glad-minnow-656 \
- *     --target-url=https://glad-minnow-656.convex.cloud
+ *     --expected-deployment=<host>/<database> \
+ *     --target=postgresql://<host>/<database>
  *
  * Images (uploads come from the archive, so no --renditions-dir):
  *   node scripts/replications/repoint-renditions.mjs \
@@ -77,14 +36,13 @@
  *     --batch-size=10 \
  *     --write --confirm-write=repoint-replication-renditions \
  *     --confirm-repoint \
- *     --expected-deployment=glad-minnow-656 \
- *     --target-url=https://glad-minnow-656.convex.cloud
+ *     --expected-deployment=<host>/<database> \
+ *     --target=postgresql://<host>/<database>
  */
 import fs from "node:fs";
-import { Agent } from "undici";
 import path from "node:path";
-import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -92,26 +50,23 @@ import {
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
-import { hostOf, isProductionUrl, PRODUCTION_HOST } from "./lib/media-hosts.mjs";
+import { hostOf, isProductionUrl } from "./lib/media-hosts.mjs";
 import { assertMediaType, DEFAULT_MEDIA_TYPE } from "./lib/media-types.mjs";
+import { uploadReplicationFile, uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 
 const OPERATION = "repoint-replication-renditions";
 
 /**
- * The field that has to change for the browser to see anything different.
- *
- * Returned as a value rather than hard-coded at the call site so the reasoning
- * is testable: if `resolveReplicationUrls` ever changes its precedence, this
- * function and its tests are what fail first.
+ * The native media field that takes precedence over historical recovery URLs.
  */
 export function fieldThatWins() {
-  return "storage_id";
+  return "r2_key";
 }
 
 /**
  * The MIME type a file must be stored under for the browser to display it.
  *
- * Convex serves back whatever `Content-Type` the upload declared, so getting
+ * Postgres serves back whatever `Content-Type` the upload declared, so getting
  * this wrong does not corrupt the file — it makes the browser download the image
  * instead of rendering it, which looks exactly like a broken page. The source
  * deployment's own response header is the authority and is recorded by the
@@ -217,6 +172,10 @@ export function planRepoint(rows, sourcesBySlug, { includeThumbnails = true, med
       // Compare-and-swap expectation. The plan is reviewed before it is applied,
       // so the row must still look the way it did when the plan was made.
       expectedStorageId: row.storage_id,
+      expectedR2Key: row.r2_key ?? null,
+      expectedThumbnailR2Key: row.thumbnail_r2_key ?? null,
+      expectedThumbnailStorageId: row.thumbnail_storage_id ?? null,
+      expectedFileSize: row.file_size ?? null,
       expectedUrl: row.url ?? null,
       expectedThumbnailUrl: row.thumbnail_url ?? null,
       sourcePath: source.sourcePath,
@@ -247,6 +206,7 @@ export function verifyRepoint({
   after,
   expectProduction = true,
   expectThumbnailProduction = false,
+  expectedR2Key = null,
 }) {
   const reasons = [];
 
@@ -255,12 +215,16 @@ export function verifyRepoint({
     return { ok: false, reasons: ["resolved URL is null — this row's page would be removed"] };
   }
 
-  if (before?.url && after.url === before.url) {
+  // Content-addressed media may keep its URL when only its thumbnail is rescued.
+  // In that case the native key readback, not URL churn, proves the association.
+  if (expectedR2Key !== null && after.r2_key !== expectedR2Key) {
+    reasons.push("Native media identity did not persist.");
+  } else if (before?.url && after.url === before.url && expectedR2Key === null) {
     reasons.push("resolved URL did not change — the write did not take effect");
   }
 
   if (expectProduction && !isProductionUrl(after.url)) {
-    reasons.push(`resolved URL still points at ${hostOf(after.url) ?? "an unknown host"}, not ${PRODUCTION_HOST}`);
+    reasons.push(`resolved URL still points at ${hostOf(after.url) ?? "an unknown host"}, outside the configured R2 media namespace`);
   }
 
   // Never trade a working poster for a missing one.
@@ -274,7 +238,7 @@ export function verifyRepoint({
   // API — the rescue would be half-done and look complete.
   if (expectThumbnailProduction && after.thumbnail_url && !isProductionUrl(after.thumbnail_url)) {
     reasons.push(
-      `resolved thumbnail still points at ${hostOf(after.thumbnail_url) ?? "an unknown host"}, not ${PRODUCTION_HOST}`,
+      `resolved thumbnail still points at ${hostOf(after.thumbnail_url) ?? "an unknown host"}, outside the configured R2 media namespace`,
     );
   }
 
@@ -286,18 +250,18 @@ export function buildRollbackEntry(action, applied) {
   return {
     rowId: action.rowId,
     slug: action.slug,
-    previous: {
-      storage_id: action.expectedStorageId,
-      url: action.expectedUrl,
-      thumbnail_url: action.expectedThumbnailUrl,
-    },
+    previous: Object.fromEntries([
+      "storage_id", "r2_key", "url", "format", "file_size",
+      "thumbnail_storage_id", "thumbnail_r2_key", "thumbnail_url",
+      "preview_storage_id", "preview_r2_key", "preview_url",
+      "motion_storage_id", "motion_r2_key", "motion_url",
+      "motion_poster_storage_id", "motion_poster_r2_key", "motion_poster_url",
+    ].map((field) => [field, applied.before[field] ?? null])),
     applied: {
-      storage_id: applied.storageId,
-      thumbnail_storage_id: applied.thumbnailStorageId ?? null,
+      r2_key: applied.r2Key,
+      thumbnail_r2_key: applied.thumbnailR2Key ?? null,
     },
-    // Reversal is a single mutation with the previous storage id; `url` was
-    // never touched, so it is still the fallback if the id is cleared.
-    reverseWith: "api.replications.updateStorageIds",
+    recovery: "Review the previous media identity and use an explicitly approved recovery operation.",
   };
 }
 
@@ -397,65 +361,6 @@ function readUploadSources(manifestPath, { renditionsDir, mediaType }) {
   return bySlug;
 }
 
-const UPLOAD_ATTEMPTS = 8;
-const UPLOAD_BACKOFF_CAP_MS = 30_000;
-
-/**
- * Upload one file, retrying the transport.
- *
- * Pushing five gigabytes over sixty-five requests means the occasional
- * connection-level failure is expected rather than exceptional — a run died on
- * the very first batch with a TLS `bad record mac`, and the identical upload
- * succeeded four times in a row moments later. Without a retry, one blip
- * halfway through abandons the migration in a half-applied state.
- *
- * Only the transport is retried. A non-2xx response is the server refusing the
- * upload and means something is actually wrong, so it fails immediately rather
- * than hammering the deployment. Each attempt takes a fresh upload URL, since
- * a Convex upload URL is single-use.
- */
-export async function uploadFile(client, apiKey, filePath, contentType) {
-  const body = fs.readFileSync(filePath);
-  let lastError;
-
-  for (let attempt = 1; attempt <= UPLOAD_ATTEMPTS; attempt += 1) {
-    // A fresh dispatcher per attempt, torn down afterwards. The failure this
-    // guards against poisons the connection rather than the request: a TLS
-    // `bad record mac` was followed by ERR_HTTP2_INVALID_SESSION on every
-    // retry, because each one reused the session that had just broken. Pinning
-    // to a single non-pooled HTTP/1.1 connection means a retry genuinely starts
-    // over instead of re-entering a dead socket.
-    const dispatcher = new Agent({ connections: 1, pipelining: 0, allowH2: false });
-    try {
-      const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
-      const response = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": contentType },
-        body,
-        dispatcher,
-      });
-      if (!response.ok) throw new Error(`Upload failed: ${response.status} ${await response.text()}`);
-      const { storageId } = await response.json();
-      if (!storageId) throw new Error("Upload returned no storageId.");
-      return storageId;
-    } catch (error) {
-      lastError = error;
-      if (error.message?.startsWith("Upload failed:") || attempt === UPLOAD_ATTEMPTS) throw error;
-
-      let root = error.cause;
-      while (root?.cause) root = root.cause;
-      const delayMs = Math.min(1000 * 2 ** (attempt - 1), UPLOAD_BACKOFF_CAP_MS);
-      console.warn(
-        `    upload attempt ${attempt}/${UPLOAD_ATTEMPTS} failed (${root?.code ?? error.message}); retrying in ${delayMs / 1000}s`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    } finally {
-      await dispatcher.close().catch(() => {});
-    }
-  }
-
-  throw lastError;
-}
 
 async function main() {
   const argv = process.argv.slice(2);
@@ -476,9 +381,9 @@ async function main() {
   }
   if (!fs.existsSync(manifestPath)) throw new Error(`Manifest not found: ${manifestPath}`);
 
-  const readUrl = command.targetUrl || process.env.CONVEX_PUBLIC_READ_URL;
+  const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
   if (!readUrl) {
-    throw new Error("Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for a dry run).");
+    throw new Error("Set --target/TARGET_POSTGRES_URL (or SOURCE_POSTGRES_URL for a dry run).");
   }
 
   const readClient = createDataClient({ target: readUrl }).client;
@@ -513,7 +418,7 @@ async function main() {
   for (const entry of skipped) console.log(`  SKIP ${entry.slug}: ${entry.reason}`);
   for (const action of actions.slice(0, 10)) {
     console.log(
-      `  ${action.slug}\n    ${hostOf(action.expectedUrl) ?? "unresolved"} -> ${PRODUCTION_HOST}  (${action.sourceBytes} bytes, ${action.contentType})`,
+      `  ${action.slug}\n    ${hostOf(action.expectedUrl) ?? "unresolved"} -> configured R2 media namespace  (${action.sourceBytes} bytes, ${action.contentType})`,
     );
   }
   if (actions.length > 10) console.log(`  … and ${actions.length - 10} more`);
@@ -522,14 +427,14 @@ async function main() {
     console.log("\nPer-row verification that would run after each write:");
     console.log("  1. re-query api.replications.getPublicReplications (the resolver the site uses)");
     console.log("  2. require the resolved url to be non-null      — a null url removes the page");
-    console.log("  3. require the resolved url to have changed     — proves the write took effect");
-    console.log(`  4. require the resolved host to be ${PRODUCTION_HOST}`);
+    console.log("  3. require the reviewed native media key to persist, even when its content-addressed URL is unchanged");
+    console.log("  4. require the resolved URL to be in the configured R2 media namespace");
     console.log("  5. require the thumbnail not to regress to null");
     console.log(
-      `  6. require the resolved thumbnail host to be ${PRODUCTION_HOST} on the ${actions.filter((action) => action.writesThumbnail).length} row(s) whose thumbnail this run sets`,
+      `  6. require the resolved thumbnail to be in the configured R2 media namespace on the ${actions.filter((action) => action.writesThumbnail).length} row(s) whose thumbnail this run sets`,
     );
     console.log("  A failing row stops the entire run before the next batch.");
-    console.log("\nDry run — nothing uploaded, no Convex writes performed.");
+    console.log("\nDry run: nothing uploaded, no Postgres writes performed.");
     return;
   }
 
@@ -552,49 +457,51 @@ async function main() {
 
     for (const action of batch) {
       // Compare and swap: the row must still be what the reviewed plan described.
-      const live = (await readClient.query(api.replications.getPublicReplications, {})).find(
-        (row) => row._id === action.rowId,
-      );
+      const live = await writeClient.query(api.replications.getResolvedById, { apiKey, id: action.rowId });
       if (!live) throw new Error(`${action.slug}: row no longer exists. Stopping.`);
-      if (live.storage_id !== action.expectedStorageId) {
+      if ((live.storage_id ?? null) !== (action.expectedStorageId ?? null) ||
+          (live.r2_key ?? null) !== action.expectedR2Key) {
         throw new Error(
-          `${action.slug}: storage_id changed since the plan (${action.expectedStorageId} -> ${live.storage_id}). Stopping.`,
+          `${action.slug}: media identity changed since the reviewed plan. Stopping.`,
         );
       }
 
       const before = { url: live.url, thumbnail_url: live.thumbnail_url };
 
-      const storageId = await uploadFile(writeClient, apiKey, action.sourcePath, action.contentType);
+      const r2Key = await uploadReplicationFile(writeClient, apiKey, action.sourcePath, action.contentType);
       // Three cases, in order of specificity: a thumbnail that is the same
       // stored object as the media (point both fields at the one upload), a
       // genuinely separate poster file (upload it), or no thumbnail at all.
-      const thumbnailStorageId = action.mirrorThumbnail
-        ? storageId
+      let thumbnailR2Key = action.mirrorThumbnail
+        ? r2Key
         : action.posterPath
-          ? await uploadFile(writeClient, apiKey, action.posterPath, action.posterContentType)
+          ? await uploadReplicationFile(writeClient, apiKey, action.posterPath, action.posterContentType)
           : undefined;
+      // Keeping a reviewed poster requires an explicit native association:
+      // main replacement clears every unsupplied stale derivative.
+      if (!thumbnailR2Key && live.thumbnail_r2_key) {
+        thumbnailR2Key = live.thumbnail_r2_key;
+      } else if (!thumbnailR2Key && live.thumbnail_url) {
+        const response = await fetch(live.thumbnail_url);
+        if (!response.ok) throw new Error(`${action.slug}: existing thumbnail returned HTTP ${response.status}.`);
+        const bytes = Buffer.from(await response.arrayBuffer());
+        const contentType = imageContentTypeFor({
+          sniffed: sniffImageContentType(bytes),
+          declared: response.headers.get("content-type"),
+        });
+        const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" }[contentType];
+        if (!extension) throw new Error(`${action.slug}: unsupported thumbnail type ${contentType}.`);
+        thumbnailR2Key = await uploadReplicationBytes(writeClient, apiKey, bytes, contentType, extension);
+      }
 
-      await writeClient.mutation(api.replications.updateStorageIds, {
-        apiKey,
-        id: action.rowId,
-        storage_id: storageId,
-        ...(thumbnailStorageId ? { thumbnail_storage_id: thumbnailStorageId } : {}),
-      });
+      const deliveredBytes = fs.statSync(action.sourcePath).size;
+      if (deliveredBytes !== action.sourceBytes) throw new Error(`${action.slug}: source size changed since planning.`);
+      await updateReplicationMedia(writeClient, apiKey, live, {
+        r2_key: r2Key,
+        ...(thumbnailR2Key ? { thumbnail_r2_key: thumbnailR2Key } : {}),
+      }, deliveredBytes);
 
-      // The row now points at different bytes, so the size it advertises is
-      // stale the instant the line above lands. The detail page prints
-      // `file_size` verbatim, and the first pass of this migration left every
-      // video row claiming its master's size — a 4.79 GB label on a 299 MB
-      // download. Write it in the same step that invalidates it, guarded by the
-      // id just written so it can never describe a different object.
-      await writeClient.mutation(api.replications.updateDeliveredFileSize, {
-        apiKey,
-        id: action.rowId,
-        expectedStorageId: storageId,
-        file_size: action.sourceBytes,
-      });
-
-      rollback.push(buildRollbackEntry(action, { storageId, thumbnailStorageId }));
+      rollback.push(buildRollbackEntry(action, { r2Key, thumbnailR2Key, before: live }));
       writeRollback();
 
       const after = (await readClient.query(api.replications.getPublicReplications, {})).find(
@@ -604,7 +511,13 @@ async function main() {
         before,
         after,
         expectThumbnailProduction: action.writesThumbnail,
+        expectedR2Key: r2Key,
       });
+      if (after?.file_size !== deliveredBytes ||
+          (thumbnailR2Key && after.thumbnail_r2_key !== thumbnailR2Key)) {
+        verdict.ok = false;
+        verdict.reasons.push("Native media identity or delivered file size did not persist.");
+      }
 
       if (!verdict.ok) {
         console.error(`  ${action.slug}: VERIFICATION FAILED`);
@@ -623,7 +536,7 @@ async function main() {
   }
 
   console.log(`\nRepointed ${repointed} row(s). Rollback ledger: ${rollbackPath}`);
-  console.log('Run revalidateTag("convex-public:replications") to clear the 900s/3600s caches.');
+  console.log('Run revalidateTag("data-public:replications") to clear the 900s/3600s caches.');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

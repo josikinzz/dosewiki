@@ -23,23 +23,23 @@
  *
  * Dry run (default; read-only — queries only, zero writes):
  *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target-url https://enchanted-echidna-791.convex.cloud
+ *     --target postgresql://<host>/<database>
  *
  * Prod dry run (read-only):
  *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target-url https://glad-minnow-656.convex.cloud
+ *     --target postgresql://<host>/<database>
  *
  * Real run against dev:
  *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target-url https://enchanted-echidna-791.convex.cloud \
+ *     --target postgresql://<host>/<database> \
  *     --write --confirm-write=upgrade-embed-resolutions \
  *     --expected-deployment=enchanted-echidna-791
  *
  * Real run against prod (DO NOT run before the DW-25 gate review):
  *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target-url https://glad-minnow-656.convex.cloud \
+ *     --target postgresql://<host>/<database> \
  *     --write --confirm-write=upgrade-embed-resolutions \
- *     --expected-deployment=glad-minnow-656
+ *     --expected-deployment=<host>/<database>
  *
  * Writes go through `subjectiveEffects.repairLegacyMedia`, which patches raw
  * and AST fields atomically behind exact-expected-value preconditions. After
@@ -52,7 +52,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,
@@ -63,7 +63,7 @@ import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 
 const operation = "upgrade-embed-resolutions";
 const command = createProductionWriteCommand({ operation });
-if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
+if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
 
 const args = process.argv.slice(2);
@@ -90,7 +90,7 @@ const mediaFields = [
   "personal_commentary_raw", "personal_commentary_ast",
 ];
 
-const storageUrlPattern = /^https:\/\/[a-z0-9-]+\.convex\.cloud\/api\/storage\/[0-9a-f-]+$/i;
+const storageUrlPattern = /^https:\/\/[a-z0-9-]+\.data\.cloud\/api\/storage\/[0-9a-f-]+$/i;
 const captionedImagePattern = /\[captioned-image\b([^\]]*?)\/\]/g;
 const attributePattern = /([a-z-]+)="([^"]*)"/g;
 
@@ -425,7 +425,7 @@ const flagged = flaggedImages.map((item) => {
 const report = {
   operation,
   deployment,
-  targetUrl: command.targetUrl,
+  postgresTarget: command.deploymentFingerprint,
   generated_at: new Date().toISOString(),
   guards: {
     minDimensionGain: MIN_GAIN,
@@ -444,15 +444,15 @@ const report = {
   },
   prodWriteCommand:
     "node scripts/effects/upgrade-embed-resolutions.mjs " +
-    "--target-url https://glad-minnow-656.convex.cloud " +
+    "--target postgresql://<host>/<database> " +
     "--write --confirm-write=upgrade-embed-resolutions " +
-    "--expected-deployment=glad-minnow-656",
+    "--expected-deployment=<host>/<database>",
   autoSwaps,
   ambiguous,
   flagged,
 };
 mkdirSync(reportDir, { recursive: true });
-const reportPath = join(reportDir, `${operation}-${deployment}.json`);
+const reportPath = join(reportDir, `${operation}-${encodeURIComponent(deployment)}.json`);
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 
 console.log(`Already aligned with replication master: ${aligned}`);

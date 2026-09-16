@@ -1,14 +1,14 @@
 /**
  * Shared shape of the `/api/editor/*` read endpoints.
  *
- * The editor surfaces (`/dev`, `/review`) used to subscribe to public Convex
+ * The editor surfaces (`/dev`, `/review`) used to subscribe to public Postgres
  * queries from the browser. Those reads now go through these routes so the
  * browser holds no data-backend client at all: the route checks the editor
  * session, then runs the same registered query through the server read client
- * (`getServerConvexReadClient`), which is Convex over HTTP or the in-process
+ * (`getServerDataReadClient`), which is Postgres over HTTP or the in-process
  * Postgres runtime depending on `DATA_BACKEND`.
  *
- * Every route answers one query family with the exact JSON the Convex hook
+ * Every route answers one query family with the exact JSON the Postgres hook
  * used to deliver, so the TanStack hooks in `src/hooks/useEditorRead.ts` can
  * hand components an unchanged shape.
  *
@@ -22,7 +22,7 @@ import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import type { RoleFloor } from "@/lib/auth/roles";
-import { getServerConvexReadClient, type ServerReadClient } from "@server/convex/serverClient";
+import { getServerDataReadClient, type ServerReadClient } from "@server/data/serverClient";
 
 export type EditorReadOperation = (input: {
   params: URLSearchParams;
@@ -57,8 +57,8 @@ export function editorReadRoute(options: {
     unexpectedErrorMessage: `The ${options.label} could not be loaded.`,
     operation: async ({ request }) => {
       const params = new URL(request.url).searchParams;
-      const result = await options.read({ params, client: getServerConvexReadClient() });
-      // A Convex query may resolve to `null` (no document); JSON carries that
+      const result = await options.read({ params, client: getServerDataReadClient() });
+      // A Postgres query may resolve to `null` (no document); JSON carries that
       // as-is. `undefined` never crosses the wire, which is what lets the
       // hooks keep "undefined means loading".
       return NextResponse.json(result ?? null);

@@ -32,13 +32,13 @@ export async function loadPharmacologyProposalInputs({
   ]);
 
   if (!promptRecord || typeof promptRecord.content !== "string" || !promptRecord.content.trim()) {
-    throw new Error(`${promptKey} prompt not found in source Convex deployment.`);
+    throw new Error(`${promptKey} prompt not found in source Postgres deployment.`);
   }
   if (promptRecord.key !== promptKey) {
     throw new Error(`Pharmacology prompt identity mismatch: expected ${promptKey}, received ${promptRecord.key ?? "missing"}.`);
   }
   if (!quoteRecord) {
-    throw new Error("Pharmacology quote doc not found in source Convex deployment.");
+    throw new Error("Pharmacology quote doc not found in source Postgres deployment.");
   }
   if (quoteRecord.slug !== slug || quoteRecord.section !== "pharmacology") {
     throw new Error("Pharmacology quote doc identity does not match the requested slug and section.");

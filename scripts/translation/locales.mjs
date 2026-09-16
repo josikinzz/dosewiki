@@ -13,6 +13,7 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import translationLocaleNames from "../../src/i18n/translationLocaleNames.json" with { type: "json" };
 
 /** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code) {
@@ -42,7 +43,7 @@ const SHARED_RULES = `## Rules
 export const LOCALES = Object.freeze({
   "zh-Hans": {
     code: "zh-Hans",
-    label: "Simplified Chinese (mainland)",
+    label: translationLocaleNames["zh-Hans"],
     scriptGate: "simplified",
     lengthBand: [0.12, 1.2],
     systemPrompt: `You are a professional Simplified Chinese (zh-Hans) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
@@ -54,13 +55,123 @@ ${SHARED_RULES}
   },
   nl: {
     code: "nl",
-    label: "Dutch",
+    label: translationLocaleNames.nl,
     scriptGate: "none",
     lengthBand: [0.6, 1.8],
     systemPrompt: `You are a professional Dutch (nl) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
 
 ${SHARED_RULES}
 9. REGISTER: standard Netherlands Dutch, u-neutral, no Flemish-specific vocabulary.`,
+  },
+  ar: {
+    code: "ar",
+    label: translationLocaleNames.ar,
+    scriptGate: "none",
+    lengthBand: [0.4, 1.8],
+    systemPrompt: `You are a professional Arabic (ar) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: Modern Standard Arabic, not a regional dialect. Prefer established medical terminology and preserve Latin-script identifiers and source numerals.`,
+  },
+  cs: {
+    code: "cs",
+    label: translationLocaleNames.cs,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional Czech (cs) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written Czech with correct diacritics and established Czech medical terminology.`,
+  },
+  de: {
+    code: "de",
+    label: translationLocaleNames.de,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional German (de) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written German, using established medical terminology and natural German compounds rather than literal English phrasing.`,
+  },
+  es: {
+    code: "es",
+    label: translationLocaleNames.es,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional Spanish (es) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: neutral international Spanish, avoiding regional slang and using established medical terminology.`,
+  },
+  fr: {
+    code: "fr",
+    label: translationLocaleNames.fr,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional French (fr) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written French, avoiding regional slang and using established medical terminology.`,
+  },
+  hi: {
+    code: "hi",
+    label: translationLocaleNames.hi,
+    scriptGate: "none",
+    lengthBand: [0.4, 2.0],
+    systemPrompt: `You are a professional Hindi (hi) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written Hindi in Devanagari, not Romanized Hindi. Prefer familiar clinical terminology over unnecessarily Sanskritized wording; preserve Latin-script identifiers and source numerals.`,
+  },
+  ja: {
+    code: "ja",
+    label: translationLocaleNames.ja,
+    scriptGate: "none",
+    lengthBand: [0.15, 1.4],
+    systemPrompt: `You are a professional Japanese (ja) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written Japanese in a consistent encyclopedic plain style, using modern Japanese kanji and kana and established medical terminology. Do not impose Simplified Chinese character forms.`,
+  },
+  ko: {
+    code: "ko",
+    label: translationLocaleNames.ko,
+    scriptGate: "none",
+    lengthBand: [0.2, 1.6],
+    systemPrompt: `You are a professional Korean (ko) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard South Korean written Korean in Hangul, using consistent encyclopedic declarative endings and established medical terminology.`,
+  },
+  pl: {
+    code: "pl",
+    label: translationLocaleNames.pl,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional Polish (pl) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written Polish with correct diacritics and natural grammatical inflection, using established medical terminology.`,
+  },
+  pt: {
+    code: "pt",
+    label: translationLocaleNames.pt,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional Portuguese (pt) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written Portuguese understandable in Brazil and Portugal, avoiding regional slang and using established medical terminology. Follow approved glossary spellings consistently rather than alternating regional variants.`,
+  },
+  ru: {
+    code: "ru",
+    label: translationLocaleNames.ru,
+    scriptGate: "none",
+    lengthBand: [0.6, 1.8],
+    systemPrompt: `You are a professional Russian (ru) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
+
+${SHARED_RULES}
+9. REGISTER: standard written Russian in Cyrillic, using established medical terminology and natural grammatical inflection rather than transliterated English prose.`,
   },
 });
 

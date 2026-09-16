@@ -78,7 +78,8 @@ import {
   type GalleryYearFilter,
 } from "@/features/effects/gallery/galleryTypes";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
-import { ReplicationViewerOverlay } from "./viewer/ReplicationViewerOverlay";
+import { useGalleryViewerHost } from "./components/GalleryViewerHost";
+import { LazyReplicationViewerOverlay } from "./components/LazyReplicationViewerOverlay";
 import { viewerCollectionFromGalleryGroups } from "./viewer/viewerModel";
 import { resolveGalleryFocus } from "./galleryFocus";
 import {
@@ -111,7 +112,8 @@ import {
   parseReplicationViewerSlug,
   type GalleryFocus,
 } from "./galleryUrlState";
-import { useCompleteGalleryCorpus } from "./useCompleteGalleryCorpus";
+import { useGalleryPagination } from "./useGalleryPagination";
+import type { GalleryPageState } from "./galleryPage";
 
 /**
  * The two effect fields the gallery reads: `name` for lookups/labels and
@@ -220,38 +222,16 @@ function optionCase(name: string): string {
 }
 
 
-/**
- * One server-precomputed artist rail: the group's identity and its
- * complete-corpus counts, without items. Items come from the inlined
- * `replications` subset until the complete corpus arrives.
- */
-interface ArtistRailDigest { key: string;
-label: string;
-count: number;
-imageCount: number;
-videoCount: number; }
-
 export interface ReplicationsGalleryExplorerProps {
   replications: PublicGalleryReplicationPreview[];
   effects: EffectSummary[];
   /**
-   * Endpoint serving the complete gallery corpus in one cacheable response.
-   * Its presence marks `replications` as a server-curated subset; the
-   * explorer fetches the rest on idle after hydration, or eagerly for deep
-   * links and non-default browse states. Artist pages omit it because their
-   * already-focused corpus is intentionally complete.
+   * Endpoint serving bounded, query-keyed gallery pages. The explorer applies
+   * the current URL state to each request and follows its continuation cursor.
    */
-  completeCorpusUrl?: string;
-  /**
-   * The default artist view, precomputed on the server against the complete
-   * corpus: the first rail page's groups in their true video-first order,
-   * each carrying its *complete* counts. While the corpus is still the
-   * inlined subset, the explorer renders rails in this order with these
-   * counts instead of trusting client-side grouping of a partial corpus.
-   */
-  initialArtistRails?: ArtistRailDigest[];
-  /** Total artist groups in the complete corpus, for "Showing X of Y artists". */
-  artistGroupTotal?: number;
+  galleryPageUrl?: string;
+  /** The canonical bounded first page, including its normalized query and cursor. */
+  initialPage?: GalleryPageState;
   /**
    * Complete-corpus stats for the default artist view's header line,
    * precomputed on the server so the index never reports the size of a
@@ -406,11 +386,68 @@ function GalleryUrlStateBridge({
   return null;
 }
 
+/** Keep the last committed collection mounted until its replacement arrives. */
+function SettledGalleryResults({
+  pending,
+  busy,
+  revision,
+  children,
+}: {
+  pending: boolean;
+  busy: boolean;
+  revision: string;
+  children: ReactNode;
+}) {
+  const committed = useRef(children);
+  const committedRevision = useRef(revision);
+  const regionRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (pending) return;
+    committed.current = children;
+  }, [children, pending]);
+  useEffect(() => {
+    if (pending || committedRevision.current === revision) return;
+    committedRevision.current = revision;
+    if (!regionRef.current?.animate) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motion.matches) return;
+    const animation = regionRef.current.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 160, easing: "ease-out" },
+    );
+    const stop = () => { if (motion.matches) animation.cancel(); };
+    motion.addEventListener("change", stop);
+    return () => {
+      animation.cancel();
+      motion.removeEventListener("change", stop);
+    };
+  }, [pending, revision]);
+  return (
+    <div
+      ref={regionRef}
+      aria-busy={busy}
+      data-gallery-results=""
+      data-results-pending={pending || undefined}
+      onClickCapture={pending ? (event) => {
+        // Retained works still open their own source URL, not the new filter's
+        // viewer collection. Retained paging controls must wait for that query.
+        if (!(event.target instanceof Element)) return;
+        if (event.target.closest("a[href]")) event.stopPropagation();
+        else if (event.target.closest("button")) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      } : undefined}
+    >
+      {pending ? committed.current : children}
+    </div>
+  );
+}
+
 function GalleryExplorer({
   replications,
-  completeCorpusUrl,
-  initialArtistRails,
-  artistGroupTotal,
+  galleryPageUrl,
+  initialPage,
   corpusStats,
   effects,
   effectHrefPrefix = "/effects",
@@ -425,43 +462,43 @@ function GalleryExplorer({
   urlStateResolved,
 }: ReplicationsGalleryExplorerProps & GalleryUrlState) {
   const t = useT();
-  const browseStateKey = [
-    browse.view,
-    browse.query,
-    browse.type,
-    browse.sort,
-    browse.viewing,
-    browse.artistType,
-    browse.effect,
-    browse.drug,
-    browse.drugClass,
-    browse.family,
-  ].join("\u0000");
-  const browseRequiresCompleteCorpus = (
-    Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[]
-  ).some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
+  const galleryBrowseQuery = buildGalleryBrowseUrl({
+    ...browse,
+    view: browse.view,
+  }).split("?")[1] ?? "";
   const {
     galleryReplications,
     hasMore,
-    hasMoreRef,
     pageLoadState,
-    completionAnnouncement,
     contributorDirectory,
-    cancelPendingCorpusAction,
-    queueCorpusAction,
-    completeCorpusAction,
-    loadCompleteCorpus,
-    runWithCompleteCorpus,
-    retryCompleteCorpus,
-  } = useCompleteGalleryCorpus({
+    total: pagedTotal,
+    groups: groupSummaries,
+    facets,
+    loadNextPage,
+    retry,
+    viewerResolutionState,
+    retryViewerResolution,
+  } = useGalleryPagination({
     replications,
-    completeCorpusUrl,
+    galleryPageUrl,
     initialContributorDirectory,
-    browseStateKey,
-    browseRequiresCompleteCorpus,
+    initialPage,
+    browseQuery: galleryBrowseQuery,
+    focus,
     urlStateResolved,
     viewerSlugParam,
   });
+  const [settledPage, setSettledPage] = useState({
+    rows: galleryReplications,
+    query: galleryBrowseQuery,
+  });
+  const replacementArrived = settledPage.rows !== galleryReplications;
+  if (replacementArrived) {
+    setSettledPage({ rows: galleryReplications, query: galleryBrowseQuery });
+  }
+  const resultsPending = Boolean(
+    galleryPageUrl && !replacementArrived && settledPage.query !== galleryBrowseQuery,
+  );
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
   const typeFilter = browse.type;
@@ -510,34 +547,21 @@ function GalleryExplorer({
 
   const navigate = (url: string, method: "push" | "replace") => {
     cancelQueryWrite();
-    cancelPendingCorpusAction();
     writeBrowseUrl(url, method);
   };
 
   const updateQuery = (next: string) => {
     clearTimeout(debounceRef.current);
-    cancelPendingCorpusAction();
     setQueryWritePending(true);
-    const completeCorpus = hasMoreRef.current ? loadCompleteCorpus() : null;
     debounceRef.current = window.setTimeout(() => {
       setQueryWritePending(false);
-      const writeQuery = () => {
-        lastWrittenQueryRef.current = next;
-        const url = buildGalleryBrowseUrl({
-          ...browse,
-          view: mode,
-          query: next,
-        });
-        writeBrowseUrl(url, focus ? "push" : "replace");
-      };
-      const generation = queueCorpusAction(writeQuery);
-      if (!completeCorpus) {
-        completeCorpusAction(generation);
-        return;
-      }
-      void completeCorpus.then((loaded) => {
-        if (loaded) completeCorpusAction(generation);
+      lastWrittenQueryRef.current = next;
+      const url = buildGalleryBrowseUrl({
+        ...browse,
+        view: mode,
+        query: next,
       });
+      writeBrowseUrl(url, focus ? "push" : "replace");
     }, QUERY_WRITE_DELAY_MS);
   };
 
@@ -559,68 +583,37 @@ function GalleryExplorer({
 
   const switchMode = (next: GalleryMode) => {
     const query = currentInputQuery();
-    runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          view: next,
-          query,
-          sort: orderForView(next),
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(buildGalleryBrowseUrl({
+      ...browse, view: next, query, sort: orderForView(next),
+    }), "push");
   };
 
   const setTypeFilter = (next: GalleryTypeFilter) => {
     const query = currentInputQuery();
-    runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        focus
-          ? buildGalleryFocusUrl(focus, { type: next })
-          : buildGalleryBrowseUrl({
-              ...browse,
-              view: mode,
-              query,
-              type: next,
-            }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(
+      focus ? buildGalleryFocusUrl(focus, { type: next }) : buildGalleryBrowseUrl({
+        ...browse, view: mode, query, type: next,
+      }),
+      "push",
+    );
   };
 
   const setOrder = (next: GalleryOrder) => {
     const query = currentInputQuery();
-    runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          view: mode,
-          query,
-          sort: next,
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(buildGalleryBrowseUrl({
+      ...browse, view: mode, query, sort: next,
+    }), "push");
   };
 
   const setYearFilter = (next: GalleryYearFilter) => {
     const query = currentInputQuery();
-    runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          view: mode === "year" ? "year" : mode,
-          query,
-          year: next,
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(buildGalleryBrowseUrl({
+      ...browse, view: mode === "year" ? "year" : mode, query, year: next,
+    }), "push");
   };
 
   /**
@@ -630,20 +623,15 @@ function GalleryExplorer({
    */
   const clearAllFilters = () => {
     const query = currentInputQuery();
-    runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          ...DEFAULT_GALLERY_TAXONOMY_FILTERS,
-          view: mode === "year" ? "year" : mode,
-          query,
-          type: "all",
-          year: "all",
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(buildGalleryBrowseUrl({
+      ...browse,
+      ...DEFAULT_GALLERY_TAXONOMY_FILTERS,
+      view: mode === "year" ? "year" : mode,
+      query,
+      type: "all",
+      year: "all",
+    }), "push");
   };
 
   const displayable = useMemo(
@@ -683,45 +671,27 @@ function GalleryExplorer({
   const hasRemovableFilters =
     hasActiveTaxonomyFilters || typeFilter !== "all" || browse.year !== "all";
   const drugOptions = useMemo(
-    () =>
-      [
-        ...new Map(
-          displayable.flatMap((item) =>
-            (item.title_drugs ?? []).map(
-              (drug) => [drug.slug, drug.name] as const,
-            ),
-          ),
-        ),
-      ]
-        .map(([value, label]) => ({ value, label }))
-        .sort((left, right) => left.label.localeCompare(right.label)),
-    [displayable],
+    () => facets.drugs.length > 0 ? facets.drugs : [
+      ...new Map(displayable.flatMap((item) =>
+        (item.title_drugs ?? []).map((drug) => [drug.slug, drug.name] as const),
+      )),
+    ].map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    [displayable, facets.drugs],
   );
 
   const setTaxonomyFilters = (next: GalleryTaxonomyFilterState) => {
     const query = currentInputQuery();
-    runWithCompleteCorpus(() => {
-      lastWrittenQueryRef.current = query;
-      navigate(
-        buildGalleryBrowseUrl({
-          ...browse,
-          ...next,
-          view: mode,
-          query,
-        }),
-        "push",
-      );
-    });
+    lastWrittenQueryRef.current = query;
+    navigate(buildGalleryBrowseUrl({
+      ...browse, ...next, view: mode, query,
+    }), "push");
   };
 
   const taxonomyDisplayable = useMemo(
-    () =>
-      displayable.filter((item) =>
-        matchesTaxonomyFilters(item, taxonomyFilters),
-      ),
+    () => displayable.filter((item) => matchesTaxonomyFilters(item, taxonomyFilters)),
     [displayable, taxonomyFilters],
   );
-
   const effectName = useMemo(() => effectNameLookup(effects), [effects]);
   const linkableEffectSlugSet = useMemo(
     () => new Set(effects.map(({ slug }) => slug)),
@@ -731,30 +701,19 @@ function GalleryExplorer({
     () => effectHrefBuilder(effectHrefPrefix, linkableEffectSlugSet),
     [effectHrefPrefix, linkableEffectSlugSet],
   );
-
-  /**
-   * Depicted-effect options come from the corpus itself — every owning
-   * `effect_slug` plus every `effect_tags` entry a displayable work carries —
-   * so the select never offers an effect that would empty the grid outright.
-   */
   const effectOptions = useMemo(() => {
-    const slugs = new Set<string>();
-    for (const item of displayable) {
-      if (item.effect_slug) slugs.add(item.effect_slug);
-      for (const tag of item.effect_tags ?? []) slugs.add(tag);
+    if (facets.effects.length > 0) {
+      return facets.effects.map(({ value, label }) => ({ value, label: optionCase(label) }));
     }
-    return [...slugs]
-      .map((slug) => ({ value: slug, label: optionCase(effectName(slug)) }))
-      .sort((left, right) => left.label.localeCompare(right.label));
-  }, [displayable, effectName]);
+    const slugs = new Set(displayable.flatMap((item) =>
+      [item.effect_slug, ...(item.effect_tags ?? [])].filter((slug): slug is string => Boolean(slug)),
+    ));
+    return [...slugs].map((value) => ({ value, label: optionCase(effectName(value)) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [displayable, effectName, facets.effects]);
 
   const query = focus ? "" : browse.query;
   const searching = query.trim().length > 0;
-  /**
-   * A year rail's "View all". Unlike an artist or an effect, a year owns no
-   * page of its own, so the overflow target is this same browse view narrowed
-   * to that rail's span: one flat grid that pages in the whole year.
-   */
   const singleYear = !focus && !searching && yearFilter !== "all";
 
   const filtered = useMemo(
@@ -763,9 +722,9 @@ function GalleryExplorer({
         (item) =>
           matchesType(item, typeFilter) &&
           matchesYear(item, yearFilter) &&
-          matchesQuery(item, query, effectName),
+          (galleryPageUrl !== undefined || matchesQuery(item, query, effectName)),
       ),
-    [taxonomyDisplayable, typeFilter, yearFilter, query, effectName],
+    [taxonomyDisplayable, typeFilter, yearFilter, query, effectName, galleryPageUrl],
   );
 
   /**
@@ -799,7 +758,7 @@ function GalleryExplorer({
    * paging state survives unrelated re-renders — a fresh array identity here
    * would read as a new result set and rewind the grid to its first page.
    */
-  const searchResults = useMemo(() => sortWithinGroup(filtered), [filtered]);
+  const searchResults = useMemo(() => searching ? sortWithinGroup(filtered) : [], [filtered, searching]);
 
   /**
    * One year rail opened in full. Same memoization reason as the search grid,
@@ -807,8 +766,8 @@ function GalleryExplorer({
    * reshuffle the works the reader was just looking at.
    */
   const yearItems = useMemo(
-    () => sortWorksByDate(filtered, order === "oldest" ? "oldest" : "newest"),
-    [filtered, order],
+    () => singleYear ? sortWorksByDate(filtered, order === "oldest" ? "oldest" : "newest") : [],
+    [filtered, order, singleYear],
   );
 
   const groups = useMemo(() => {
@@ -857,40 +816,29 @@ function GalleryExplorer({
       ),
     );
   }, [pool]);
-
-  /**
-   * While only the server-curated subset is loaded, the default artist view
-   * must not trust client-side grouping for ordering or counts: every group
-   * would hold at most one rail's preview, so counts tie and the video-first
-   * order scrambles. The server's digest — computed against the complete
-   * corpus — supplies the true order and per-artist counts; the loaded items
-   * fill the rails. Any other state eagerly loads the corpus, after which
-   * plain grouping takes over and the digest is inert.
-   */
-  const digestActive =
-    mode === "artist" &&
-    !focus &&
-    !searching &&
-    hasMore &&
-    !browseRequiresCompleteCorpus &&
-    Boolean(initialArtistRails?.length);
+  const activeGroupSummaries = groupSummaries;
+  const digestActive = activeGroupSummaries.length > 0;
   const displayRails = useMemo(() => {
-    if (!digestActive || !initialArtistRails) return rails;
+    if (!digestActive) return rails;
     const byKey = new Map(rails.map((group) => [group.key, group]));
-    return initialArtistRails.flatMap((digest) => {
+    const byId = new Map(filtered.map((item) => [item._id, item]));
+    return activeGroupSummaries.flatMap((digest) => {
       const group = byKey.get(digest.key);
-      return group
-        ? [
-            {
-              ...group,
-              count: digest.count,
-              imageCount: digest.imageCount,
-              videoCount: digest.videoCount,
-            },
-          ]
-        : [];
+      const items = digest.itemIds
+        ? digest.itemIds.flatMap((id) => {
+          const item = byId.get(id);
+          return item ? [item] : [];
+        })
+        : group?.items;
+      return group && items?.length ? [{
+        ...group,
+        items,
+        count: digest.count,
+        imageCount: digest.imageCount,
+        videoCount: digest.videoCount,
+      }] : [];
     });
-  }, [digestActive, initialArtistRails, rails]);
+  }, [activeGroupSummaries, digestActive, filtered, rails]);
 
   /**
    * The denominator: the client-side count of whatever is loaded, except in
@@ -898,9 +846,8 @@ function GalleryExplorer({
    * is authoritative until the corpus arrives. Until one of them is complete
    * the line says "so far" instead of inventing a total.
    */
-  const statsComplete = !hasMore || (digestActive && Boolean(corpusStats));
-  const corpusTotal =
-    hasMore && digestActive && corpusStats ? corpusStats.total : archiveTotal;
+  const statsComplete = !galleryPageUrl || pagedTotal !== null;
+  const corpusTotal = pagedTotal ?? archiveTotal;
 
   const [visibleRailCount, setVisibleRailCount] = useState(ARTIST_RAIL_PAGE);
   useEffect(() => {
@@ -909,7 +856,7 @@ function GalleryExplorer({
   const visibleRails =
     mode === "artist" ? displayRails.slice(0, visibleRailCount) : displayRails;
   const hiddenRailCount =
-    (digestActive ? (artistGroupTotal ?? displayRails.length) : displayRails.length) -
+    Math.max(activeGroupSummaries.length, displayRails.length) -
     visibleRails.length;
 
   /**
@@ -1015,7 +962,7 @@ function GalleryExplorer({
     viewerSourcePath,
   ]);
   const viewerResolutionPending = Boolean(
-    viewerSlugParam && completeCorpusUrl && hasMore,
+    viewerSlugParam && viewerResolutionState !== "idle",
   );
   const validViewerSlugParam =
     !viewerResolutionPending &&
@@ -1058,7 +1005,7 @@ function GalleryExplorer({
     if (viewerResolutionPending) {
       setViewerSlug(null);
       setUnavailableViewerSlug(null);
-      if (pageLoadState === "error") dismissViewerDeepLinkCover();
+      if (viewerResolutionState === "error") dismissViewerDeepLinkCover();
       return;
     }
 
@@ -1071,7 +1018,7 @@ function GalleryExplorer({
     if (!validViewerSlugParam) {
       const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       window.history.replaceState(
-        window.history.state,
+        null,
         "",
         closeReplicationViewerUrl(source),
       );
@@ -1083,6 +1030,7 @@ function GalleryExplorer({
     validViewerSlugParam,
     viewerParamPresent,
     viewerResolutionPending,
+    viewerResolutionState,
     viewerSlugParam,
   ]);
 
@@ -1097,7 +1045,7 @@ function GalleryExplorer({
     }
     const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     window.history.pushState(
-      { ...window.history.state, replicationViewer: true },
+      { replicationViewer: true },
       "",
       buildReplicationViewerUrl(source, slug),
     );
@@ -1124,10 +1072,7 @@ function GalleryExplorer({
   // The gallery section exists whenever it holds media at all — the mode
   // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
-  const hideIncompleteResults =
-    Boolean(completeCorpusUrl) &&
-    hasMore &&
-    browseRequiresCompleteCorpus;
+  const hideIncompleteResults = pageLoadState === "loading" && galleryReplications.length === 0;
   const browseAllUrl = buildGalleryBrowseUrl({
     ...browse,
     view: mode,
@@ -1168,6 +1113,10 @@ function GalleryExplorer({
     : t("{{shown}} works so far", {
         shown: shown.length.toLocaleString("en-US"),
       });
+  const settledSummaryRef = useRef(resultSummary);
+  useLayoutEffect(() => {
+    if (!resultsPending) settledSummaryRef.current = resultSummary;
+  }, [resultSummary, resultsPending]);
 
   /**
    * `/` focuses the gallery search from anywhere on the page. Every other
@@ -1194,6 +1143,43 @@ function GalleryExplorer({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [chrome]);
+  const viewerRegistration = useMemo(
+    () => ({
+      collection: viewerCollection,
+      slug: viewerSlug,
+      collectionPending: !urlStateResolved || viewerResolutionPending,
+      onClose: () => {
+        setViewerSlug(null);
+        dismissViewerDeepLinkCover();
+        const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        window.history.replaceState(window.history.state, "", closeReplicationViewerUrl(source));
+      },
+      onRegroup: (grouping: "artist" | "effect", slug: string) => {
+        lastWrittenQueryRef.current = currentInputQuery();
+        navigate(
+          buildReplicationViewerUrl(
+            buildGalleryBrowseUrl({
+              ...browse,
+              view: grouping,
+              query: currentInputQuery(),
+            }),
+            slug,
+          ),
+          "push",
+        );
+      },
+    }),
+    [
+      browse,
+      navigate,
+      urlStateResolved,
+      viewerCollection,
+      viewerResolutionPending,
+      viewerSlug,
+    ],
+  );
+  const galleryViewerHost = useGalleryViewerHost(viewerRegistration);
+
 
   return (
     <>
@@ -1201,7 +1187,7 @@ function GalleryExplorer({
         aria-label={t("Replications gallery")}
         className="mx-auto mt-2 w-full max-w-7xl"
       >
-        {!hasMedia && !hasMore ? (
+        {!hasMedia && !hasMore && !galleryBrowseQuery && !focus && pageLoadState === "idle" ? (
           <SearchEmptyState
             className="mt-6"
             icon="lucide:image-off"
@@ -1488,28 +1474,19 @@ function GalleryExplorer({
               </div>
             ) : null}
 
-            {/* What the reader just did, in the slot the corpus census used to
-                spend on a number nobody asks twice. It appears only when
-                something narrows the grid, so the resting page pays no pixels
-                for it, and it shares its row with the removable chips because
-                a result count and the filters producing it are one statement.
-                `role="status"` finally announces something worth hearing: the
-                previous occupant recited the whole archive's size no matter
-                what the grid held. */}
+            {/* Reserve one chip-height row so pending counts and selected
+                filters do not displace the results. Announce settled counts,
+                keeping the previous count while its replacement is fetched. */}
             {chrome === "full" ? (
               <div
-                className={cn(
-                  "flex flex-wrap items-center gap-x-3 gap-y-2 px-1",
-                  (narrowing || corpusLoading || hasActiveTaxonomyFilters) &&
-                    "mt-3",
-                )}
+                className="mt-3 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2 px-1"
               >
                 <p
                   role="status"
                   aria-live="polite"
                   className="theme-text-faint flex items-center gap-1.5 text-xs tabular-nums"
                 >
-                  {narrowing ? <span>{resultSummary}</span> : null}
+                  {narrowing ? <span>{resultsPending ? settledSummaryRef.current : resultSummary}</span> : null}
                   {corpusLoading ? (
                     <>
                       <Icon
@@ -1518,11 +1495,9 @@ function GalleryExplorer({
                         aria-hidden
                       />
                       <span className={narrowing ? "sr-only" : undefined}>
-                        {t("Loading the complete gallery…")}
+                        {t("Loading gallery results…")}
                       </span>
                     </>
-                  ) : completionAnnouncement ? (
-                    <span className="sr-only">{t(completionAnnouncement)}.</span>
                   ) : null}
                 </p>
                 {hasRemovableFilters ? (
@@ -1544,13 +1519,28 @@ function GalleryExplorer({
               <Alert variant="destructive" role="alert" className="mt-4">
                 <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
                   <span>
-                    {t("The complete gallery could not finish loading. Everything already shown remains available; retry from the last page.")}
+                    {t("Gallery results could not finish loading. Everything already shown remains available; retry from the last page.")}
                   </span>
                   <Button
                     type="button"
                     variant="pill"
                     size="pill"
-                    onClick={() => void retryCompleteCorpus()}
+                    onClick={() => void retry()}
+                  >
+                    {t("Retry")}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            {viewerResolutionState === "error" ? (
+              <Alert variant="destructive" role="alert" className="mt-4">
+                <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+                  <span>{t("The linked replication could not be loaded.")}</span>
+                  <Button
+                    type="button"
+                    variant="pill"
+                    size="pill"
+                    onClick={() => void retryViewerResolution()}
                   >
                     {t("Retry")}
                   </Button>
@@ -1558,6 +1548,11 @@ function GalleryExplorer({
               </Alert>
             ) : null}
 
+            <SettledGalleryResults
+              pending={resultsPending}
+              busy={corpusLoading}
+              revision={galleryBrowseQuery}
+            >
             {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
             {hideIncompleteResults ? null : focus && focusedGroup ? (
               <div className="mt-4 space-y-3">
@@ -1565,7 +1560,7 @@ function GalleryExplorer({
                   <div className="min-w-0">
                     <Link
                       href={browseAllUrl}
-                      className="theme-text-muted group inline-flex min-h-11 items-center gap-1 rounded-full text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] motion-reduce:transition-none"
+                      className="theme-text-muted group inline-flex min-h-11 items-center gap-1 rounded-full text-sm font-medium transition-colors hover:text-[var(--theme-accent-strong)] theme-focus-ring motion-reduce:transition-none"
                     >
                       <Icon
                         icon="lucide:arrow-left"
@@ -1655,13 +1650,13 @@ function GalleryExplorer({
               filtered.length > 0 ? (
                 <div className="mt-4 space-y-3">
                   <p className="theme-text-faint px-1 text-xs tabular-nums">
-                    {filtered.length === 1
+                    {(pagedTotal ?? filtered.length) === 1
                       ? t("{{count}} result for “{{query}}”", {
-                          count: filtered.length,
+                          count: pagedTotal ?? filtered.length,
                           query: query.trim(),
                         })
                       : t("{{count}} results for “{{query}}”", {
-                          count: filtered.length,
+                          count: pagedTotal ?? filtered.length,
                           query: query.trim(),
                         })}
                   </p>
@@ -1719,7 +1714,7 @@ function GalleryExplorer({
                   <MediaRail
                     key={group.key}
                     group={group}
-                    countIsComplete={!hasMore || digestActive}
+                    countIsComplete={digestActive || !hasMore}
                     viewAllHref={
                       mode === "year"
                         ? buildGalleryBrowseUrl({
@@ -1766,36 +1761,34 @@ function GalleryExplorer({
                     onTileOpen={openViewerAt}
                   />
                 ))}
-                {hiddenRailCount > 0 ? (
+                {hiddenRailCount > 0 || hasMore ? (
                   <div className="flex flex-col items-center gap-1.5">
                     <Button
                       type="button"
                       variant="pill"
                       size="pill"
-                      onClick={() =>
-                        runWithCompleteCorpus(() =>
-                          setVisibleRailCount(
-                            (count) => count + ARTIST_RAIL_PAGE,
-                          ),
-                        )
-                      }
+                      disabled={corpusLoading}
+                      onClick={() => {
+                        setVisibleRailCount((count) => count + ARTIST_RAIL_PAGE);
+                        if (hasMore) void loadNextPage();
+                      }}
                       className="min-h-11 gap-1.5"
                     >
-                      {t("Show more artists")}
+                      {corpusLoading ? t("Loading…") : mode === "artist" ? t("Show more artists") : t("Load more works")}
                       <Icon
-                        icon="lucide:chevron-down"
-                        className="h-4 w-4"
+                        icon={corpusLoading ? "lucide:loader-circle" : "lucide:chevron-down"}
+                        className={cn("h-4 w-4", corpusLoading && "animate-spin motion-reduce:animate-none")}
                         aria-hidden
                       />
                     </Button>
-                    <span className="theme-text-faint text-xs tabular-nums">
-                      {t("Showing {{visible}} of {{total}} artists", {
-                        visible: visibleRails.length,
-                        total: digestActive
-                          ? (artistGroupTotal ?? displayRails.length)
-                          : displayRails.length,
-                      })}
-                    </span>
+                    {mode === "artist" ? (
+                      <span className="theme-text-faint text-xs tabular-nums">
+                        {t("Showing {{visible}} of {{total}} artists", {
+                          visible: visibleRails.length,
+                          total: activeGroupSummaries.length || displayRails.length,
+                        })}
+                      </span>
+                    ) : null}
                   </div>
                 ) : null}
                 {pooledItems.length > 0 ? (
@@ -1827,6 +1820,26 @@ function GalleryExplorer({
                 ) : null}
               </div>
             )}
+            {(focus || searching || singleYear) && hasMore ? (
+              <div className="mt-5 flex justify-center">
+                <Button
+                  type="button"
+                  variant="pill"
+                  size="pill"
+                  disabled={corpusLoading}
+                  onClick={() => void loadNextPage()}
+                  className="min-h-11 gap-1.5"
+                >
+                  {corpusLoading ? t("Loading…") : t("Load more works")}
+                  <Icon
+                    icon={corpusLoading ? "lucide:loader-circle" : "lucide:chevron-down"}
+                    className={cn("h-4 w-4", corpusLoading && "animate-spin motion-reduce:animate-none")}
+                    aria-hidden
+                  />
+                </Button>
+              </div>
+            ) : null}
+            </SettledGalleryResults>
 
             {/* Rights footnote — the gallery page replaces it with the
                 editable fair-use notice it renders below the explorer. */}
@@ -1846,31 +1859,16 @@ function GalleryExplorer({
         )}
       </section>
 
-      {viewerSlug && viewerCollection.groups.length > 0 ? (
-        <ReplicationViewerOverlay
+      {!galleryViewerHost && viewerSlug && viewerCollection.groups.length > 0 ? (
+        <LazyReplicationViewerOverlay
           collection={viewerCollection}
           initialSlug={viewerSlug}
+          collectionPending={false}
           open
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) {
-              setViewerSlug(null);
-              dismissViewerDeepLinkCover();
-            }
+          onOpenChange={(open) => {
+            if (!open) viewerRegistration.onClose();
           }}
-          onRegroup={(grouping, slug) => {
-            lastWrittenQueryRef.current = currentInputQuery();
-            navigate(
-              buildReplicationViewerUrl(
-                buildGalleryBrowseUrl({
-                  ...browse,
-                  view: grouping,
-                  query: currentInputQuery(),
-                }),
-                slug,
-              ),
-              "push",
-            );
-          }}
+          onRegroup={viewerRegistration.onRegroup}
         />
       ) : null}
     </>

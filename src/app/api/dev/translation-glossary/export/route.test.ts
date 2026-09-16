@@ -19,7 +19,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 const backend = vi.hoisted(() => ({ getDataBackend: vi.fn(() => "postgres") }));
 vi.mock("@server/postgres/runtime/backend", () => ({
   getDataBackend: backend.getDataBackend,
-  getPostgresConvexClient: () => ({ sql: vi.fn() }),
+  getPostgresClient: () => ({ sql: vi.fn() }),
 }));
 
 const glossary = vi.hoisted(() => ({ readGlossaryRows: vi.fn() }));
@@ -36,7 +36,7 @@ describe("GET /api/dev/translation-glossary/export", () => {
   beforeEach(() => {
     glossary.readGlossaryRows.mockReset();
     backend.getDataBackend.mockReturnValue("postgres");
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("translator"));
+    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("translator", { email: "translator@example.com", glossaryLocales: ["zh-Hans"] }));
   });
 
   it("admits a translator and refuses a contributor before reading", async () => {
@@ -45,10 +45,14 @@ describe("GET /api/dev/translation-glossary/export", () => {
     expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
   });
 
-  it("answers 503 off the Postgres backend and 400 for an unknown locale", async () => {
-    backend.getDataBackend.mockReturnValue("convex");
-    expect((await GET(get("?locale=zh-Hans"))).status).toBe(503);
-    backend.getDataBackend.mockReturnValue("postgres");
+  it("refuses a different approved language and legacy unscoped translators before reading", async () => {
+    expect((await GET(get("?locale=nl"))).status).toBe(403);
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("translator"));
+    expect((await GET(get("?locale=zh-Hans"))).status).toBe(403);
+    expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
+  });
+
+  it("answers 400 for an unknown locale", async () => {
     expect((await GET(get("?locale=fr"))).status).toBe(400);
     expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
   });

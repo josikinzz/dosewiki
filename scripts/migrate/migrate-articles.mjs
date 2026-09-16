@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -72,7 +72,7 @@ async function main() {
   );
   const runContext = createDataOpsRunContext({
     operation: "migrate Effect Index articles",
-    intent: "dev-convex-import",
+    intent: "dev-data-import",
     argv: writeRequested ? argv : [...argv, "--dry-run"],
     sourceUrlKeys: [],
     localArtifacts: [articlesPath, replicationsPath],
@@ -127,7 +127,7 @@ async function main() {
   printDataOpsRunContext(runContext);
   console.log(
     `Mode: ${
-      writeRequested ? "LIVE WRITE REQUESTED" : "DRY RUN ONLY — no Convex writes performed"
+      writeRequested ? "LIVE WRITE REQUESTED" : "DRY RUN ONLY — no Postgres writes performed"
     }`,
   );
   console.log(

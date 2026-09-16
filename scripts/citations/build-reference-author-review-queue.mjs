@@ -10,6 +10,7 @@ import {
   printDataOpsRunContext,
 } from "../lib/data-ops-run-context.mjs";
 import { sha256Json } from "./plan-reference-author-repairs.mjs";
+import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
 
 const ARTIFACT_VERSION = 1;
 const DEFAULT_OUTPUT_DIRECTORY = "tmp/citation-author-repair-review-queues";
@@ -57,6 +58,7 @@ export function validateCitationAuthorRepairProposal(proposal) {
   if (!proposal.artifactSha256 || proposal.artifactSha256 !== computedHash) {
     throw new Error("The proposal artifact hash is missing or invalid.");
   }
+  assertCitationSourceIdentity(proposal.sourceDeployment);
   if (!Array.isArray(proposal.residual)) {
     throw new Error("The proposal artifact is missing its residual queue.");
   }
@@ -113,7 +115,7 @@ export function buildCitationAuthorReviewQueue(proposal, { generatedAt = new Dat
     const guideKeys = guideKeysForReasons(reasonCodes);
     return {
       batchId: batchId(proposal.artifactSha256, index, rows),
-      assignment: "Assign this entire batch to one reviewer or subagent; return row-level decisions with inspected-source evidence and do not write to Convex.",
+      assignment: "Assign this entire batch to one reviewer or subagent; return row-level decisions with inspected-source evidence and do not write to Postgres.",
       articleSlugs: [...new Set(rows.map((row) => row.slug))],
       reasonCodes,
       reviewInstructions: guideKeys.map((key) => ({ category: key, instruction: RESIDUAL_REVIEW_GUIDE[key] })),

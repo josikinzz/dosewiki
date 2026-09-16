@@ -3,13 +3,13 @@
  * Seed the siteConfig table with existing static About page content.
  *
  * Usage (dry run by default):
- *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/seed/seed-site-config.mjs
+ *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki node scripts/seed/seed-site-config.mjs
  *
  * Write: add --write --confirm-write=seed-site-config --expected-deployment=<fingerprint>.
  */
 
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

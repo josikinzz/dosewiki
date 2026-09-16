@@ -189,7 +189,7 @@ function projectWarningBannerText(row: unknown): WarningBannerTextProjection | n
 async function loadWarningBannerKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   if (!values["live-copy"]) return out;
-  const { getPublicDataReadAdapter } = await import("../../lib/convex/publicData.reads");
+  const { getPublicDataReadAdapter } = await import("../../lib/data/publicData.reads");
   const rawRows = await getPublicDataReadAdapter().getPublicWarningBannerPresets();
   if (!Array.isArray(rawRows)) {
     throw new Error("Public warning-banner corpus is not an array");
@@ -275,7 +275,7 @@ async function loadAboutSectionKeys(): Promise<Set<string>> {
   // the locale route looks each live section up verbatim, so the live text
   // is what needs a catalog entry.
   if (values["live-copy"]) {
-    const { getPublicDataReadAdapter } = await import("../../lib/convex/publicData.reads");
+    const { getPublicDataReadAdapter } = await import("../../lib/data/publicData.reads");
     const about = await getPublicDataReadAdapter().getPublicAboutConfig();
     addDocument(about?.aboutMarkdown ?? "", about?.aboutSubtitle ?? "");
   }
@@ -331,7 +331,7 @@ async function loadCopyKeys(): Promise<Set<string>> {
   };
   add(JSON.parse(await readFile(path.join(repoRoot, "src/data/content/copyBlocks.json"), "utf8")));
   if (values["live-copy"]) {
-    const { getPublicDataReadAdapter } = await import("../../lib/convex/publicData.reads");
+    const { getPublicDataReadAdapter } = await import("../../lib/data/publicData.reads");
     add(await getPublicDataReadAdapter().getPublicCopyBlocks());
   }
   return out;

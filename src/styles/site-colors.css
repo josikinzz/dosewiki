@@ -374,19 +374,20 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
     inset 0 1px 0 rgb(var(--c-white) / 0.07);
   /* Selected controls combine the active Accent with the current Surface. The
      Accent owns hue; the Surface only supplies material and depth. */
-  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent) 24%, var(--theme-control-base));
-  --theme-selected-control-border: color-mix(in srgb, var(--theme-accent-strong) 46%, transparent);
-  --theme-selected-control-highlight: color-mix(in srgb, rgb(var(--c-white)) 8%, var(--theme-selected-control-base));
+  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-control-base));
+  --theme-selected-control-border: transparent;
+  --theme-selected-control-highlight: color-mix(in srgb, rgb(var(--c-white)) 16%, var(--theme-selected-control-base));
   --theme-selected-control-primary: var(--theme-selected-control-base);
-  --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 18%, var(--theme-body-bg));
+  --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 7%, var(--theme-body-bg));
   --theme-selected-control-bg:
-    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 42%),
+    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 62%),
     linear-gradient(135deg, var(--theme-selected-control-primary), var(--theme-selected-control-secondary));
   --theme-selected-control-text: var(--theme-accent);
   --theme-selected-control-shadow:
-    0 0 0 1px var(--theme-selected-control-border),
-    0 12px 26px -22px color-mix(in srgb, var(--theme-selected-control-text) 42%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
+    0 12px 28px -18px color-mix(in srgb, var(--theme-selected-control-text) 42%, transparent),
+    0 0 26px -8px color-mix(in srgb, var(--theme-accent) 30%, transparent),
+    inset 0 3px 8px -4px color-mix(in srgb, var(--theme-text-primary) 12%, transparent),
+    inset 0 -10px 18px -14px color-mix(in srgb, var(--theme-accent-strong) 28%, transparent);
   --theme-selected-control-focus: var(--theme-accent);
   --theme-selected-control-glow:
     linear-gradient(90deg, color-mix(in srgb, var(--theme-accent) 10%, transparent), color-mix(in srgb, var(--theme-accent-soft) 12%, transparent), color-mix(in srgb, var(--theme-accent) 10%, transparent));
@@ -748,9 +749,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --theme-index-card-count-bg: var(--theme-plum-chip-bg);
   --theme-index-card-count-shadow: var(--theme-plum-chip-shadow);
-  /* Homepage search halo and the StateCard accent sheen: pink/violet accent
-     decorations, tokenised so they follow accent rotation (both schemes). */
-  --theme-search-focus-glow-bg: radial-gradient(circle at top, rgba(244, 114, 182, 0.12), transparent 58%);
+  /* StateCard accent sheen follows accent rotation in both schemes. */
   --theme-state-card-sheen: linear-gradient(135deg, rgba(244, 114, 182, 0.08), transparent 40%, rgba(139, 92, 246, 0.08));
   --theme-construction-banner-text: #fbbf24;
   --theme-home-nav-card-border: rgba(217, 70, 239, 0.18);
@@ -905,19 +904,19 @@ html[data-theme="light"] {
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
   /* Light selected controls keep the same Accent ownership with a brighter
      Surface mix. Pro replaces the treatment, not the owner. */
-  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent-soft) 14%, var(--theme-control-base));
-  --theme-selected-control-border: color-mix(in srgb, var(--theme-accent-strong) 30%, transparent);
-  --theme-selected-control-highlight: color-mix(in srgb, oklch(100% 0 0) 68%, var(--theme-selected-control-base));
+  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent-soft) 10%, var(--theme-control-base));
+  --theme-selected-control-border: transparent;
+  --theme-selected-control-highlight: color-mix(in srgb, oklch(100% 0 0) 78%, var(--theme-selected-control-base));
   --theme-selected-control-primary: var(--theme-selected-control-base);
-  --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 12%, var(--theme-body-bg));
+  --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 8%, var(--theme-body-bg));
   --theme-selected-control-bg:
-    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 42%),
+    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 60%),
     linear-gradient(135deg, var(--theme-selected-control-primary), var(--theme-selected-control-secondary));
   --theme-selected-control-text: var(--theme-accent-strong);
   --theme-selected-control-shadow:
-    0 0 0 1px var(--theme-selected-control-border),
-    0 12px 24px -22px color-mix(in srgb, var(--theme-selected-control-text) 34%, transparent),
-    inset 0 1px 0 oklch(100% 0 0 / 0.72);
+    0 12px 24px -22px color-mix(in srgb, var(--theme-selected-control-text) 42%, transparent),
+    0 0 16px -8px color-mix(in srgb, var(--theme-accent) 22%, transparent),
+    inset 0 3px 8px -4px oklch(100% 0 0 / 0.6);
   --theme-selected-control-focus: var(--theme-accent-strong);
   --theme-selected-control-glow:
     linear-gradient(90deg, color-mix(in srgb, var(--theme-accent) 8%, transparent), color-mix(in srgb, var(--theme-accent-soft) 11%, transparent), color-mix(in srgb, var(--theme-accent) 8%, transparent));

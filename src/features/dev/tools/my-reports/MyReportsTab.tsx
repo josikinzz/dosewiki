@@ -7,7 +7,7 @@
  * Contributor floor. The editor is deliberately narrower than the portal's:
  * title, tags, and the report body (introduction, the three timelines, the
  * conclusion). Byline, attribution, trip subject, substances and the slug are
- * editor decisions and stay on the portal; Convex refuses them from an owner
+ * editor decisions and stay on the portal; Postgres refuses them from an owner
  * regardless of what this form sends. Nothing here deletes.
  */
 
@@ -33,7 +33,7 @@ import {
   useDirtyGuard,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
-import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import { PortalReportTimelineEditor } from "../trip-report-portal/PortalReportTimelineEditor";
 import {
   assignReportOwner,
@@ -100,12 +100,17 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     setSaving(true);
     setNotice(null);
     try {
-      await saveOwnedReport(open.record.id, open.record.fields, open.draft, open.record.revision);
-      // The saved draft becomes the snapshot the next save is checked against.
-      const record = await fetchOwnedRecord(open.record.id);
-      setOpen({ record, draft: record.fields });
-      setNotice({ tone: "success", message: `Saved /reports/${record.slug}.` });
-      await load();
+      const saved = await saveOwnedReport(open.record.id, open.record.fields, open.draft, open.record.revision);
+      const record: OwnedReportRecord = { ...open.record, ...saved };
+      setOpen({ record, draft: saved.fields });
+      setRows((current) =>
+        current?.map((row) =>
+          row.id === open.record.id
+            ? { ...row, slug: saved.slug, title: saved.fields.title, tripDate: saved.fields.subject.trip_date }
+            : row,
+        ) ?? current,
+      );
+      setNotice({ tone: "success", message: `Saved /reports/${saved.slug}.` });
     } catch (error) {
       setNotice({
         tone: "danger",

@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { DEV_TAB_REGISTRY, findDevTab } from "@/features/dev/pages/devTabRegistry";
 import {
   canAccessDev,
+  approvedGlossaryLocales,
+  canAccessGlossaryLocale,
+  parseGlossaryLocaleGrant,
   canApprove,
   canDraft,
   canUseSelfProfileRoute,
@@ -20,6 +23,7 @@ describe("role policy", () => {
     ["contributor", "contributor", "contributor"],
     ["translator", "translator", "translator"],
     ["editor", "editor", "editor"],
+    ["both", "editor_translator", "editor_translator"],
     ["admin", "admin", "admin"],
     ["invalid token role", "owner", null],
   ] as const)("resolves the %s session role", (_label, role, expectedRole) => {
@@ -38,7 +42,8 @@ describe("role policy", () => {
     ["viewer", false, false, false, false],
     ["contributor", true, false, false, false],
     ["translator", true, true, false, false],
-    ["editor", true, true, true, false],
+    ["editor", true, false, true, false],
+    ["editor_translator", true, true, true, false],
     ["admin", true, true, true, true],
   ] as const)("ranks %s against each floor", (role, contributor, translator, editor, admin) => {
     expect(roleMeetsFloor(role, "contributor")).toBe(contributor);
@@ -48,6 +53,17 @@ describe("role policy", () => {
     expect(canAccessDev(role)).toBe(contributor);
     expect(canDraft(role)).toBe(editor);
     expect(canApprove(role)).toBe(admin);
+  });
+
+  it("fails closed for missing language grants and never lets Editor imply Translator", () => {
+    expect(approvedGlossaryLocales({ role: "translator" })).toEqual([]);
+    expect(canAccessGlossaryLocale({ role: "editor", glossaryLocales: ["nl"] }, "nl")).toBe(false);
+    expect(canAccessGlossaryLocale({ role: "editor_translator", glossaryLocales: ["nl"] }, "nl")).toBe(true);
+    expect(canAccessGlossaryLocale({ role: "translator", glossaryLocales: ["nl"] }, "zh-Hans")).toBe(false);
+    expect(canAccessGlossaryLocale({ role: "admin" }, "zh-Hans")).toBe(true);
+    expect(() => parseGlossaryLocaleGrant("translator", [])).toThrow();
+    expect(() => parseGlossaryLocaleGrant("translator", ["unknown"])).toThrow();
+    expect(() => parseGlossaryLocaleGrant("editor", ["nl"])).toThrow();
   });
 
   it("names why a floor is closed, and nothing when it is open", () => {
@@ -77,7 +93,7 @@ describe("role policy", () => {
     expect(getDevRouteDecision({ pathname, search, email, role })).toEqual(expected);
   });
 
-  const roleMatrix: readonly (AppRole | null)[] = ["admin", "editor", "translator", "contributor", "viewer", null];
+  const roleMatrix: readonly (AppRole | null)[] = ["admin", "editor_translator", "editor", "translator", "contributor", "viewer", null];
 
   it.each([
     ["an admin tab", findDevTab("banners").role],

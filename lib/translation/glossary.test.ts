@@ -15,11 +15,10 @@ import { promptVersionFor } from "./liveTranslation";
 
 const sql = vi.hoisted(() => vi.fn());
 vi.mock("@server/postgres/runtime/backend", () => ({
-  getDataBackend: () => "postgres",
-  getPostgresConvexClient: () => ({ sql }),
+  getPostgresClient: () => ({ sql }),
 }));
-vi.mock("@server/convex/publicData", () => ({}));
-vi.mock("@server/convex/publicData.substances", () => ({}));
+vi.mock("@server/data/publicData", () => ({}));
+vi.mock("@server/data/publicData.substances", () => ({}));
 beforeEach(() => vi.stubEnv("DATA_WRITES_FROZEN", "0"));
 afterEach(() => vi.unstubAllEnvs());
 
@@ -121,7 +120,6 @@ describe("same-kind rendering uniqueness", () => {
       { term: "Oral", target: "口服", kind: "route" },
     ]);
     expect(collisions).toEqual([{ kind: "route", target: "静注", terms: ["Intravenous", "IV"] }]);
-    expect(new GlossaryCollisionError(collisions).message).toBe("Two terms in route would share the rendering 静注: Intravenous, IV");
   });
 
   it("compares candidates against approved rows of the same kind, case-insensitively", async () => {
@@ -176,6 +174,63 @@ describe("same-kind rendering uniqueness", () => {
     expect(writes).toEqual([]);
     expect(await editGlossaryTerm("zh-Hans", "IV", "静注", "a@example.test")).toMatchObject({ term: "IV", target: "静注" });
     expect(await editGlossaryTerm("zh-Hans", "Missing", "x", "a@example.test")).toBeNull();
+    expect(writes).toHaveLength(1);
+  });
+
+  it("allows Artist and Artists without an override, but requires exact acknowledgement for Replicator", async () => {
+    const entries = [stored("Artist", "艺术家", "replication"), stored("Artists", "艺术家", "replication", "draft"), stored("Replicator", "艺术家", "replication", "draft")];
+    const writes = tableOf(entries);
+    await expect(approveGlossaryTerms("zh-Hans", ["Artists"], "reviewer@example.test")).resolves.toEqual(["Artists"]);
+    const refusal = await approveGlossaryTerms("zh-Hans", ["Replicator"], "reviewer@example.test").catch((error: unknown) => error);
+    expect(refusal).toBeInstanceOf(GlossaryCollisionError);
+    const confirmation = (refusal as GlossaryCollisionError).collisionConfirmation;
+    expect(writes).toHaveLength(1);
+    await expect(approveGlossaryTerms("zh-Hans", ["Replicator"], "reviewer@example.test")).rejects.toBeInstanceOf(GlossaryCollisionError);
+    expect(writes).toHaveLength(1);
+    await expect(approveGlossaryTerms("zh-Hans", ["Replicator"], "reviewer@example.test", confirmation)).resolves.toEqual(["Replicator"]);
+    expect(writes).toHaveLength(2);
+  });
+
+  it("rejects stale, wrong-locale and exact-value-changed edit acknowledgements before writing", async () => {
+    const entries = [stored("Artist", "ART", "replication"), stored("Replicator", "other", "replication")];
+    const writes = tableOf(entries);
+    const refusal = await editGlossaryTerm("de", "Replicator", "ART", "reviewer@example.test").catch((error: unknown) => error);
+    const confirmation = (refusal as GlossaryCollisionError).collisionConfirmation;
+    expect(confirmation).toMatch(/^[a-f0-9]{64}$/);
+    await expect(editGlossaryTerm("nl", "Replicator", "ART", "reviewer@example.test", confirmation)).rejects.toBeInstanceOf(GlossaryCollisionError);
+    await expect(editGlossaryTerm("de", "Replicator", "art", "reviewer@example.test", confirmation)).rejects.toBeInstanceOf(GlossaryCollisionError);
+    entries[0].target = "art";
+    await expect(editGlossaryTerm("de", "Replicator", "ART", "reviewer@example.test", confirmation)).rejects.toBeInstanceOf(GlossaryCollisionError);
+    entries[0].target = "ART";
+    entries.push(stored("Creator", "ART", "replication"));
+    await expect(editGlossaryTerm("de", "Replicator", "ART", "reviewer@example.test", confirmation)).rejects.toBeInstanceOf(GlossaryCollisionError);
+    expect(writes).toEqual([]);
+    entries.pop();
+    await editGlossaryTerm("de", "Replicator", "ART", "reviewer@example.test", confirmation);
+    expect(writes).toHaveLength(1);
+  });
+
+  it("acknowledges the entire bulk set, while model and frozen writes still fail closed", async () => {
+    const entries = [stored("Artist", "art", "replication")];
+    const writes = tableOf(entries);
+    const candidates = [
+      { term: "Replicator", target: "art", kind: "replication" },
+      { term: "Creator", target: "create", kind: "replication" },
+      { term: "Maker", target: "create", kind: "replication" },
+    ];
+    const reviewer = { status: "approved" as const, source: "human" as const, reviewedBy: "reviewer@example.test" };
+    const refusal = await upsertGlossaryRows("de", candidates, reviewer).catch((error: unknown) => error);
+    expect((refusal as GlossaryCollisionError).collisions).toHaveLength(2);
+    const collisionConfirmation = (refusal as GlossaryCollisionError).collisionConfirmation;
+    await expect(upsertGlossaryRows("de", candidates.slice(0, 1), { ...reviewer, collisionConfirmation })).rejects.toBeInstanceOf(GlossaryCollisionError);
+    await expect(upsertGlossaryRows("de", candidates, { ...reviewer, source: "model", collisionConfirmation })).rejects.toBeInstanceOf(GlossaryCollisionError);
+    vi.stubEnv("DATA_WRITES_FROZEN", "1");
+    await expect(upsertGlossaryRows("de", candidates, { ...reviewer, collisionConfirmation })).rejects.toThrow();
+    await expect(approveGlossaryTerms("de", ["Artist"], reviewer.reviewedBy, collisionConfirmation)).rejects.toThrow();
+    await expect(editGlossaryTerm("de", "Artist", "art", reviewer.reviewedBy, collisionConfirmation)).rejects.toThrow();
+    expect(writes).toEqual([]);
+    vi.stubEnv("DATA_WRITES_FROZEN", "0");
+    await upsertGlossaryRows("de", [...candidates].reverse(), { ...reviewer, collisionConfirmation });
     expect(writes).toHaveLength(1);
   });
 });

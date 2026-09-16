@@ -244,7 +244,7 @@ describe("formal citations agent surface", () => {
       },
     };
     const prompts = {
-      [getFormalCitationAgentPromptDescriptor().convexKey]: "System prompt",
+      [getFormalCitationAgentPromptDescriptor().dataKey]: "System prompt",
       [formalCitationSectionKeyToPromptKey("pharmacology")]: "Evaluate pharmacology claims conservatively.",
     };
     const sourceClient = {

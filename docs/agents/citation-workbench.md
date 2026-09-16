@@ -73,8 +73,8 @@ values, current revision hash, recovery snapshot, and guarded write ceremony.
 guard. `scripts/lib/production-write-command.mjs` requires an explicit writer
 target, matching deployment fingerprint, and exact confirmation phrase.
 `package.json` maps the `citations:*` command names to their implementations.
-Historical filenames and `CONVEX_ADMIN_TOKEN_*` intent-token names stay exact
-because the compatibility layer consumes them.
+Active operators use native data paths and `DATA_ADMIN_TOKEN_*` intent tokens.
+Historical recovery artifacts do not select a runtime backend or grant authority.
 
 ## Completion
 

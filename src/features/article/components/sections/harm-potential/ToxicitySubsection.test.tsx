@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { normalizeHarmPotential } from "./HarmPotentialUtils";
 import { UiLocaleProvider } from "@/i18n/client";
+import ChineseMessagesProvider from "@/i18n/ChineseMessagesProvider";
 import { ToxicitySubsection } from "./ToxicitySubsection";
 
 vi.mock("@/components/common/Icon", () => ({
@@ -54,7 +55,9 @@ describe("ToxicitySubsection organ cards", () => {
 
     const { getByText } = render(
       <UiLocaleProvider locale="zh-Hans">
-        <ToxicitySubsection toxicity={harm.toxicity} article={article} />
+        <ChineseMessagesProvider>
+          <ToxicitySubsection toxicity={harm.toxicity} article={article} />
+        </ChineseMessagesProvider>
       </UiLocaleProvider>,
     );
 

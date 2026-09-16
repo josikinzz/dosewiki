@@ -11,7 +11,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Agent, fetch as undiciFetch } from "undici";
 import { createDataClient } from "../lib/data-client.ts";
-import { api } from "../../convex/_generated/api.js";
+import { api } from "../../lib/postgres/runtime/api.ts"
+import { uploadReplicationBytes, replicationImportReceipts } from "./lib/r2-upload.mjs";
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -140,24 +141,16 @@ async function downloadVideo(candidate) {
   if (!bytes.length) throw new Error(`Streamable MP4 for ${candidate.streamable_id} was empty.`);
   return bytes;
 }
-async function uploadVideo(client, credential, candidate, bytes) {
-  const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey: credential.token });
-  const response = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": "video/mp4" }, body: bytes });
-  if (!response.ok) throw new Error(`Convex upload for ${candidate.slug} returned HTTP ${response.status}`);
-  const result = await response.json();
-  if (!result.storageId) throw new Error(`Convex upload for ${candidate.slug} returned no storageId.`);
-  return result.storageId;
-}
 async function main() {
   if (writeRequested && !confirmed) throw new Error("Writes require --write --confirm-replication-import.");
   if (!fs.existsSync(PROBE_PATH) || !fs.existsSync(RECONCILIATION_PATH)) throw new Error("The media-recovery probe or reconciliation report is unavailable.");
   const argv = process.argv.slice(2);
-  const runContext = createDataOpsRunContext({ operation: "import recovered Effect Index videos", intent: "dev-convex-import", argv: writeRequested ? argv : [...argv, "--dry-run"], sourceUrlKeys: ["CONVEX_PUBLIC_READ_URL", "VITE_CONVEX_URL"], targetUrlKeys: ["TARGET_CONVEX_URL"], localArtifacts: [PROBE_PATH, RECONCILIATION_PATH], confirmationFlag: "--confirm-replication-import", destructive: true });
+  const runContext = createDataOpsRunContext({ operation: "import recovered Effect Index videos", intent: "dev-data-import", argv: writeRequested ? argv : [...argv, "--dry-run"], sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL"], targetUrlKeys: ["TARGET_POSTGRES_URL"], localArtifacts: [PROBE_PATH, RECONCILIATION_PATH], confirmationFlag: "--confirm-replication-import", destructive: true });
   const { candidates, skipped } = loadCandidates();
   const targetUrl = runContext.targetUrl;
   const readUrl = targetUrl || runContext.sourceUrl;
-  if (!skipDownload && !readUrl) throw new Error("Set CONVEX_PUBLIC_READ_URL (dry run) or TARGET_CONVEX_URL (write).");
-  if (writeRequested && !targetUrl) throw new Error("Writes require an explicit TARGET_CONVEX_URL.");
+  if (!skipDownload && !readUrl) throw new Error("Set SOURCE_POSTGRES_URL (dry run) or TARGET_POSTGRES_URL (write).");
+  if (writeRequested && !targetUrl) throw new Error("Writes require an explicit TARGET_POSTGRES_URL.");
   console.log(`Mode: ${writeRequested ? "write requested" : "dry run"}`);
   printDataOpsRunContext(runContext);
   console.log(`Download check: ${skipDownload ? "skipped" : "enabled"}`);
@@ -210,15 +203,12 @@ async function main() {
       console.log(`FAILED ${candidate.slug} | ${candidate.title} — ${error.message}`);
       continue;
     }
-    // Upload and insert are per-item failures for the same reason the download
-    // above is: a multi-megabyte transfer can exhaust its retries when the HTTP/2
-    // session to Convex goes bad, and letting that abort the process leaves the
-    // remaining items untried. Every item is idempotent across runs — the
-    // duplicate guard re-reads live state — so skipping one and continuing is
-    // strictly better than dying, and a rerun picks up whatever failed.
+    // Keep transfer and publication failures scoped to the current item.
+    // The live duplicate guard makes a later run safe to resume.
     try {
-      const storageId = await withRetries(() => uploadVideo(client, credential, candidate, bytes));
-      await withRetries(() => client.mutation(api.replications.insertReplication, { apiKey: credential.token, slug: candidate.slug, title: candidate.title, artist: candidate.artist, artist_url: candidate.artist_url, type: "video", storage_id: storageId, effect_slug: candidate.effect_slug, format: "mp4", file_size: bytes.length, ...pickRightsMetadata(candidate) }));
+      const r2Key = await withRetries(() => uploadReplicationBytes(client, credential.token, bytes, "video/mp4", "mp4"));
+      const receipts = await replicationImportReceipts(client, credential.token, candidate.slug, { r2_key: r2Key });
+      await withRetries(() => client.mutation(api.replications.insertReplication, { apiKey: credential.token, slug: candidate.slug, title: candidate.title, artist: candidate.artist, artist_url: candidate.artist_url, type: "video", r2_key: r2Key, effect_slug: candidate.effect_slug, format: "mp4", file_size: bytes.length, ...pickRightsMetadata(candidate), ...receipts }));
       createdSlugs.add(candidate.slug);
       console.log(`CREATED ${candidate.slug}.`);
     } catch (error) {
