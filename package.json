@@ -353,13 +353,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/josikinzz/dosewiki-admin.git"
+    "url": "git+https://github.com/josikinzz/dosewiki.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/josikinzz/dosewiki-admin/issues"
+    "url": "https://github.com/josikinzz/dosewiki/issues"
   },
-  "homepage": "https://github.com/josikinzz/dosewiki-admin#readme"
+  "homepage": "https://github.com/josikinzz/dosewiki#readme"
 }

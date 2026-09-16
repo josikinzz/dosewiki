@@ -97,7 +97,7 @@ const legacyProfiles = [
       "Hi, my name is Rho. I am fascinated by the intersection of complex systems, philosophy, and art.",
       "",
       "- **Discord** - zenx2#6213",
-      "- **Email** - contact@dose.wiki",
+      "- **Email** - rho.fixture@example.invalid",
       "- **Reddit** - [/u/zenx2](https://reddit.com/u/zenx2)",
     ].join("\n"),
   },
@@ -106,7 +106,7 @@ const legacyProfiles = [
     body: [
       "**StingrayZ** is a talented replication artist based in Latvia and a well-known contributor.",
       "",
-      "His dedication to reproducing the psychedelic experience stems from extensive personal usage. He can be contacted at contact@dose.wiki",
+      "His dedication to reproducing the psychedelic experience stems from extensive personal usage. He can be contacted at stingray.fixture@example.invalid",
       "",
       "#### SOCIAL MEDIA",
       "- **Patreon** - www.patreon.com/stingrayz",
@@ -212,7 +212,7 @@ describe("Effect Index legacy bio markup", () => {
   it("drops an email without taking the surrounding prose or list with it", () => {
     const stingrayz = normalizeLegacyMarkdownBody(legacyProfiles[3].body).body;
     expect(stingrayz).toContain("His dedication to reproducing the psychedelic experience stems from extensive personal usage.");
-    expect(stingrayz).not.toContain("raimisx");
+    expect(stingrayz).not.toContain("stingray.fixture");
     expect(stingrayz).not.toContain("contacted at");
 
     // The emptied list item is removed, keeping the remaining items tight.
