@@ -34,7 +34,10 @@ outputs/
 # (scripts/postgres/local-db.mjs) and raw database snapshots, which carry
 # private tables and must never be committed.
 /.postgres/
-/runs/postgres-import/
+
+# Run evidence and scratch output live outside the tree
+# (~/Documents/Utilities/dosewiki-runs/runs), never in git.
+/runs/
 
 # Logs & env
 npm-debug.log*
@@ -98,8 +101,6 @@ learning/
 # Molecule SVG generation Python venv
 .venv-molecules/
 __pycache__/
-/runs/legality/
-/runs/section-generation/
 
 # Runtime lock for the headless pi citation loop (held by a live process)
 .pi-loop.json.lock
@@ -132,4 +133,3 @@ __pycache__/
 
 # Generated GT translation bundles (npx gt translate output)
 public/_gt/
-/runs/translation/
