@@ -61,6 +61,15 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
 3. **Promote intentionally.** Keep feature-local components beside their feature
    until they have multiple real consumers and a stable, data-shaped API. The
    promotion criteria live in `docs/ui-system.md`.
+   The same rule governs CSS: a `.theme-*` class one feature consumes lives in
+   that feature's own sheet (`src/features/dev/dev-tools.css`,
+   `src/app/china/china.css`), declared inside `@layer utilities`; a class two
+   features or the shared tiers consume lives in
+   `src/styles/utilities-theme.css`. `npm run theme:classes:check` reports
+   classes nothing renders.
+   Never key a component rule on `data-theme`: a value that differs between
+   dark and light is a `--theme-*` token with a value per scheme in
+   `src/styles/site-colors.css`. `src/theme/lightSheet.test.ts` holds that line.
 4. **Disclosure affordances use the doubled ellipsis + chevron indicator.**
    Expand/collapse controls go through `ExpandButton`/`ExpandIndicator`
    (`src/components/common/ExpandButton.tsx`), never a bare chevron. The

@@ -59,12 +59,16 @@ const SITE_STYLE_MODULES = {
   effectindex: "./src/app/_styles/effectindex.ts",
 } as const;
 
+// The editor surface layers the dev tool chrome over the dose.wiki entry; see the module.
+const EDITOR_STYLE_MODULE = "./src/app/_styles/dosewiki-editor.ts";
+
 const siteFlavor =
   process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() === "effectindex"
     ? "effectindex"
     : "dosewiki";
 const siteFontModule = SITE_FONT_MODULES[siteFlavor];
-const siteStyleModule = SITE_STYLE_MODULES[siteFlavor];
+const siteStyleModule =
+  editorBuild && siteFlavor === "dosewiki" ? EDITOR_STYLE_MODULE : SITE_STYLE_MODULES[siteFlavor];
 
 const categoryRouteAliases = {
   psychedelics: "psychedelic",
@@ -207,6 +211,19 @@ const nextConfig: NextConfig = {
       type: "asset/source",
     });
 
+    // tsconfig.json also declares `@site-font` / `@site-styles` paths so the type checker
+    // resolves them, and those point at the dose.wiki modules. Next feeds tsconfig paths
+    // to webpack through JsConfigPathsPlugin, which resolves the same `described-resolve`
+    // hook as `resolve.alias` and won: every webpack build, whatever the flavor, bundled
+    // dose.wiki's fonts and sheets, and effectindex.com shipped dose.wiki's plum over
+    // its own teal. Turbopack honours `resolveAlias` first, which is why `next dev` never
+    // showed it. Strip the two keys from the plugin so the alias is the only resolver.
+    for (const plugin of config.resolve.plugins ?? []) {
+      if (plugin?.jsConfigPlugin === true && plugin.paths) {
+        delete plugin.paths["@site-font"];
+        delete plugin.paths["@site-styles"];
+      }
+    }
     config.resolve.alias = {
       ...config.resolve.alias,
       "@site-font": path.resolve(process.cwd(), siteFontModule),

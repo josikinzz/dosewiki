@@ -10,6 +10,8 @@ import { AppImage } from "@/components/common/AppImage";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { ConsoleGreeting, CountUp, MoleculeCarousel, Signature } from "./ChinaDelight";
 import { Icon } from "@/components/common/Icon";
+// Route-owned styles; see the sheet header. Same utilities layer as the shared sheet.
+import "./china.css";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";

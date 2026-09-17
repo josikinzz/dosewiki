@@ -1,3 +1,27 @@
+/* Shared theme utilities: the .theme-* recipes the component kit and more than
+   one feature read. Imported into the utilities cascade layer by
+   src/styles/utilities.css.
+
+   Ownership rule. A class used by one feature directory belongs beside that
+   feature, in a sheet the feature's route or entry imports and that declares
+   its rules inside `@layer utilities` so nothing changes in the cascade:
+     src/features/dev/dev-tools.css   (editor-only; loaded by the editor style entry)
+     src/app/china/china.css          (one route)
+     src/styles/mantras.css           (one route)
+   A class used by two features, or by anything under src/components, stays
+   here. `npm run theme:classes:check` reports classes nothing consumes.
+
+   Scheme rule. Nothing here keys on data-theme. Every value that differs
+   between dark and light is a --theme-* token in site-colors.css with a value
+   per scheme; src/theme/lightSheet.test.ts enforces it. The only scheme
+   selectors left are the molecule colourway switch and the dark chrome
+   islands, which are structural rather than stylistic.
+
+   Families still authored here that a later pass may co-locate: article
+   sections (src/features/article), replications, effects, and reports. They
+   stay for now because moving them changes source order against the shared
+   recipes they sit beside, and that has to be verified per route. */
+
 .hyphenate {
   hyphens: auto;
   overflow-wrap: anywhere;
@@ -2161,15 +2185,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-ghost);
 }
 
-.theme-elevation-none {
-  box-shadow: var(--theme-elevation-none);
-}
-
-/* Floating surfaces (sheets, menus) that sit above the page. */
-.theme-overlay-shadow {
-  box-shadow: var(--theme-elevation-overlay);
-}
-
 /* Accent roles: standalone headings follow --theme-section-heading (which
      palettes and Pro pin separately), accented emphasis follows
      --theme-accent-strong. */
@@ -2197,11 +2212,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-danger-border);
 }
 
-.theme-danger-surface {
-  border-color: var(--theme-danger-border);
-  background-color: var(--theme-danger-bg);
-}
-
 /* Article Status ladder (ContributorsSection). A done step's check takes the
    success ink; a step not yet performed puts the vivid danger ink on its
    shield-off marker and the danger surface on its badge and "Pending" chip.
@@ -2220,21 +2230,12 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-danger-text-vivid);
 }
 
-.theme-warning-text {
-  color: var(--theme-warning-text);
-}
-
 .theme-success-text-strong {
   color: var(--theme-success-text-strong);
 }
 
 .theme-warning-text-strong {
   color: var(--theme-warning-text-strong);
-}
-
-/* Soft accent rule for inline support quotes (citation evidence rows). */
-.theme-quote-accent-border {
-  border-color: var(--theme-accent-soft);
 }
 
 .theme-report-substance-text {
@@ -2773,37 +2774,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   width: 100%;
 }
 
-/* Recessed scroll lists in the dev editors (tag panels etc.): a deep
-     surface with a subtle border, hairline row separation, and the shared
-     frosted row treatment for hovered/active rows. */
-.theme-deep-list-surface {
-  border-color: var(--theme-border-subtle);
-  background-color: var(--theme-surface-deep);
-}
-
-.theme-deep-list-divide > :not(:last-child) {
-  border-color: var(--theme-divider);
-}
-
-.theme-deep-list-row[data-active="true"] {
-  background-color: var(--theme-frosted-control-on-panel-hover-bg);
-}
-
-@media (hover: hover) {
-  .theme-deep-list-row:hover {
-    background-color: var(--theme-frosted-control-on-panel-hover-bg);
-  }
-}
-
 /* Text-styled inline label inputs (index-layout taxonomy editors): border
      is transparent at rest, surfaces on hover, and takes the accent on focus
      (kept here after the hover rule so focus wins while hovered). */
-
-/* Repeat-entry card wrapper in the dev form editors. */
-.theme-entry-card {
-  border-color: var(--theme-border-subtle);
-  background-color: var(--theme-surface-soft);
-}
 
 .theme-horizontal-divider-block {
   position: relative;
@@ -2977,12 +2950,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-toggle-icon-accent {
   color: var(--theme-accent-strong);
-}
-
-.theme-select-panel {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: 0 14px 36px -14px var(--theme-shadow-strong);
 }
 
 .theme-code-surface {
@@ -3688,151 +3655,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-/*
-   * Dev workbench rail. One slim chrome row on the dark chrome-rail tone, the
-   * same surface the header and footer use, so the tools read as an app frame
-   * rather than a stack of page-level pills.
-   */
-.theme-dev-rail {
-  background: var(--theme-frosted-control-on-panel-bg);
-  border-color: var(--theme-frosted-control-on-panel-border);
-}
-
-.theme-dev-rail-divider {
-  background: var(--theme-frosted-control-on-panel-border);
-}
-
-.theme-dev-rail-group {
-  color: var(--theme-text-faint);
-}
-
-.theme-dev-rail-tab,
-.theme-dev-rail-button {
-  color: var(--theme-text-muted);
-}
-
-.theme-dev-rail-tab:focus-visible,
-.theme-dev-rail-button:focus-visible {
-  outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 2px;
-}
-
-@media (hover: hover) {
-  .theme-dev-rail-tab:not([data-state="active"]):not([data-active]):hover,
-  .theme-dev-rail-button:hover {
-    background: var(--theme-frosted-control-on-panel-hover-bg);
-    color: var(--theme-text-primary);
-  }
-}
-
 .theme-selected-control-glow {
   background-image: var(--theme-selected-control-glow);
-}
-
-.theme-dev-rail-tab[data-state="active"],
-.theme-dev-rail-tab[data-active] {
-  background: var(--theme-selected-control-bg);
-  color: var(--theme-selected-control-text);
-  box-shadow: 0 0 0 1px var(--theme-selected-control-border);
-}
-
-.theme-dev-rail-user {
-  color: var(--theme-text-secondary);
-}
-
-/*
-   * Replication studio. The dev-only media triage surface: quiet muted panels
-   * for rows and cards, a field tone for inputs, and deep media wells behind
-   * thumbnails so artwork and waveforms sit on their own ground.
-   */
-.theme-replication-field {
-  background: var(--theme-field-surface);
-}
-
-.theme-replication-suggestions {
-  background: var(--theme-surface-strong);
-  box-shadow: var(--theme-elevation-overlay);
-}
-
-.theme-replication-muted-panel {
-  background: var(--theme-surface-muted);
-}
-
-.theme-replication-curated-wash {
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent-soft) 9%,
-    transparent
-  );
-}
-
-.theme-replication-fold {
-  border-color: var(--theme-accent-strong);
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent-strong) 14%,
-    transparent
-  );
-}
-
-.theme-replication-association-row {
-  background-color: var(--theme-frosted-control-on-panel-bg);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
-}
-
-.theme-replication-facet-option {
-  color: var(--theme-text-secondary);
-}
-
-@media (hover: hover) {
-  .theme-replication-facet-option:hover {
-    background: var(--theme-surface-muted);
-  }
-}
-
-.theme-replication-facet-option[data-state="active"] {
-  background: var(--theme-selected-control-bg);
-  color: var(--theme-selected-control-text);
-}
-
-.theme-replication-checkbox {
-  accent-color: var(--theme-accent-strong);
-}
-
-.theme-replication-card {
-  background: var(--theme-surface-muted);
-}
-
-.theme-replication-card:focus-visible {
-  outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 2px;
-}
-
-@media (hover: hover) {
-  .theme-replication-card:not([data-state="active"]):hover {
-    background: var(--theme-surface-soft);
-    border-color: var(--theme-frosted-panel-hover-border);
-  }
-}
-
-.theme-replication-card[data-state="active"] {
-  background: var(--theme-selected-control-bg);
-  border-color: var(--theme-selected-control-border);
-  box-shadow: var(--theme-elevation-control-active);
-}
-
-.theme-replication-card-check {
-  background: var(--theme-accent-strong);
-  color: var(--theme-surface-deep);
-}
-
-.theme-replication-overlay-scrim {
-  background: var(--theme-shadow-strong);
-}
-
-.theme-replication-overlay-card {
-  background: var(--theme-panel-base);
-  border-color: var(--theme-frosted-panel-border);
 }
 
 .theme-replication-media-well {
@@ -3843,97 +3667,9 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   background: var(--theme-accent-muted);
 }
 
-.theme-replication-media-badge {
-  background: var(--theme-shadow-strong);
-  color: var(--theme-text-on-media);
-}
-
-/*
-   * Trip Report Portal. The corpus index is a flat hairline list, not a card
-   * grid (style guide §9, "index lists"): homogeneous rows sit directly on the
-   * canvas, separated by a 1px rule, and selection is the violet route-active
-   * fill with a 1px inset outline rather than a border stripe.
-   */
-.theme-portal-rule {
-  border-color: var(--theme-border-subtle);
-}
-
-.theme-portal-row {
-  color: var(--theme-text-secondary);
-}
-
-@media (hover: hover) {
-  .theme-portal-row:not([data-state="active"]):hover {
-    background: var(--theme-frosted-control-hover-bg);
-  }
-}
-
-.theme-portal-row[data-state="active"] {
-  background: var(--theme-selected-control-bg);
-  box-shadow: inset 0 0 0 1px var(--theme-selected-control-border);
-}
-
-.theme-portal-row[data-state="active"] .theme-portal-row-title {
-  color: var(--theme-selected-control-text);
-}
-
-.theme-portal-row:focus-visible {
-  outline: 1px solid var(--theme-text-secondary);
-  outline-offset: -2px;
-}
-
-.theme-portal-bucket {
-  color: var(--theme-text-muted);
-}
-
-@media (hover: hover) {
-  .theme-portal-bucket:not([data-state="active"]):hover {
-    background: var(--theme-frosted-control-on-panel-hover-bg);
-    color: var(--theme-text-primary);
-  }
-}
-
-.theme-portal-bucket[data-state="active"] {
-  background: var(--theme-selected-control-bg);
-  color: var(--theme-selected-control-text);
-  box-shadow: 0 0 0 1px var(--theme-selected-control-border);
-}
-
-/* The needs-review marker, and the same magenta pill on the dev tab. */
-.theme-portal-needs-dot {
-  background: var(--theme-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 18%, transparent);
-}
-
-.theme-portal-count-badge {
-  background: var(--theme-accent);
-  color: var(--theme-surface-deep);
-}
-
-/*
-   * The two prose sections that bookend the timeline. They hang the same dots
-   * on the same spine as the coloured phases, but read as neutral because they
-   * are not a phase of the experience.
-   */
-.theme-portal-prose-phase-dot {
-  background-color: var(--theme-text-ghost);
-}
-
 .theme-portal-prose-phase-text,
 .theme-portal-group-heading {
   color: var(--theme-section-heading);
-}
-
-.theme-portal-ghost-pill {
-  border-color: var(--theme-border-strong);
-  color: var(--theme-text-faint);
-}
-
-@media (hover: hover) {
-  .theme-portal-ghost-pill:hover {
-    border-color: var(--theme-frosted-control-hover-border);
-    color: var(--theme-accent-strong);
-  }
 }
 
 .theme-index-mobile-tab {
@@ -4653,13 +4389,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   outline-offset: -2px;
 }
 
-/* Tight variant for very small inline controls (equivalent to
-     `outline-offset-1`). */
-.theme-focus-ring-tight:focus-visible {
-  outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 1px;
-}
-
 /* Text-entry controls use their existing border instead of an outside ring.
    Low specificity lets semantic validation borders retain their meaning. */
 :where(.theme-field-focus):focus {
@@ -4693,60 +4422,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 .theme-audio-scrubber-thumb {
   background-color: var(--theme-accent-strong);
   box-shadow: 0 2px 8px -2px var(--theme-shadow-soft);
-}
-
-/* Review route status and command surfaces. Components consume these semantic
-     classes so theme implementation details stay inside the token layer. */
-.theme-review-status-completed {
-  background-color: var(--theme-review-status-completed-dot);
-}
-
-/* The flat color is the fallback the gradient paints over, so a run is still
-     unmistakably green if the gradient token ever fails to resolve. */
-.theme-review-progress-fill {
-  background-color: rgb(var(--c-emerald));
-  background-image: var(--theme-review-progress-fill-gradient);
-}
-
-.theme-review-status-in-progress {
-  background-color: var(--theme-warning-text);
-}
-
-.theme-review-status-needed {
-  background-color: var(--theme-text-faint);
-}
-
-.theme-review-progress-track {
-  background-color: var(--theme-review-progress-track-bg);
-}
-
-.theme-review-toast-success,
-.theme-review-complete-badge {
-  border-color: var(--theme-success-border);
-  background-color: var(--theme-success-bg);
-  color: var(--theme-success-text);
-}
-
-.theme-review-toast-neutral {
-  border-color: var(--theme-frosted-control-hover-border);
-  background: var(--theme-frosted-control-bg);
-  color: var(--theme-text-primary);
-}
-
-/* The bar's own background is a fully opaque gradient in both themes, so it
-     carries no backdrop blur: a filter with nothing to see through costs a
-     compositing layer and per-scroll-frame GPU work for no visual result. */
-.theme-review-command-bar {
-  border-color: var(--theme-border-subtle);
-  background: var(--theme-frosted-control-on-panel-bg);
-}
-
-.theme-review-settings-dot {
-  background-color: var(--theme-accent-strong);
-}
-
-.theme-review-inline-edit-banner {
-  color: var(--theme-warning-text);
 }
 
 /* The review workbench pins a command bar the public site does not have, so
@@ -4834,14 +4509,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-.theme-review-success-text {
-  color: var(--theme-success-text);
-}
-
-.theme-review-complete-ping {
-  background-color: var(--theme-success-bg);
-}
-
 /* Review delight, in three loudness tiers. Tier 1 (every tick): the badge
      check pops and draws itself on the Reviewed button, and the progress
      fill's leading edge blooms. Tier 2 (a chemical-class subsection
@@ -4850,150 +4517,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
      twice, and the confetti + medallion card components take the stage.
      Everything animates transform/opacity only, one-shot, and the
      reduced-motion block at the end zeroes all of it out. */
-
-/* Sealed bucket chip — the picker's N/N counter once N/N is reality. */
-.theme-review-seal {
-  border-color: var(--theme-success-border);
-  background-color: var(--theme-success-bg);
-  color: var(--theme-success-text);
-}
-
-.theme-review-celebration-card {
-  border-color: var(--theme-success-border-strong);
-  background-color: var(--theme-success-bg-strong);
-  color: var(--theme-success-text-strong);
-  box-shadow: var(--theme-elevation-xl);
-}
-
-.theme-review-trophy-medallion {
-  border-color: var(--theme-border-subtle);
-  background-color: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-text-faint);
-}
-
-.theme-review-trophy-medallion--earned {
-  border-color: var(--theme-success-border-strong);
-  background-color: var(--theme-success-bg);
-  color: var(--theme-success-text);
-  box-shadow: 0 0 10px var(--theme-success-ring);
-}
-
-.theme-review-check-pop {
-  animation: theme-review-check-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes theme-review-check-pop {
-  0% {
-    transform: scale(0.6);
-  }
-  60% {
-    transform: scale(1.12);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* The check path is ~8.5 units long; 10 covers it with margin, so the draw
-     starts fully hidden and lands fully shown. */
-.theme-review-check-draw {
-  stroke-dasharray: 10;
-  stroke-dashoffset: 10;
-  animation: theme-review-check-draw 260ms ease-out 120ms forwards;
-}
-
-@keyframes theme-review-check-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* The tick's sip: a soft glow at the fill's leading edge, timed to the
-     500ms width transition it decorates. */
-.theme-review-progress-bloom {
-  background: radial-gradient(
-    closest-side,
-    rgb(var(--c-emerald-bright) / 0.9),
-    transparent
-  );
-  opacity: 0;
-  animation: theme-review-progress-bloom 650ms ease-out;
-}
-
-@keyframes theme-review-progress-bloom {
-  0% {
-    opacity: 0;
-  }
-  35% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-/* The celebration sweep: a highlight crossing the filled run once. It lives
-     inside the fill (which clips it), so it only ever crosses real progress.
-     `forwards` parks it off the right edge when the run ends. */
-.theme-review-progress-sweep {
-  background-image: linear-gradient(
-    105deg,
-    transparent 25%,
-    rgb(var(--c-white) / 0.6) 50%,
-    transparent 75%
-  );
-  transform: translateX(-100%);
-  animation: theme-review-progress-sweep 700ms ease-in-out forwards;
-}
-
-@keyframes theme-review-progress-sweep {
-  to {
-    transform: translateX(100%);
-  }
-}
-
-/* A finished category takes a victory lap: the same sweep, twice. */
-.theme-review-progress-sweep--lap {
-  animation: theme-review-progress-sweep 650ms ease-in-out 2 forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .theme-review-check-pop,
-  .theme-review-check-draw,
-  .theme-review-progress-bloom,
-  .theme-review-progress-sweep,
-  .theme-review-progress-sweep--lap {
-    animation: none;
-  }
-
-  /* The check must still be *visible* — only its drawing-in is motion. */
-  .theme-review-check-draw {
-    stroke-dashoffset: 0;
-  }
-
-  .theme-review-progress-bloom,
-  .theme-review-progress-sweep {
-    opacity: 0;
-  }
-}
-
-/* Disclosure triggers in the editor forms — the section cards and the
-     citation-diagnostics summary — share one hover/focus material so a new
-     collapsible never has to re-derive the recipe from raw theme variables. */
-.theme-editor-disclosure-trigger {
-  transition: background-color 200ms ease;
-}
-
-.theme-editor-disclosure-trigger:focus-visible {
-  outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 2px;
-}
-
-@media (hover: hover) {
-  .theme-editor-disclosure-trigger:hover {
-    background: var(--theme-frosted-control-hover-bg);
-  }
-}
 
 /* ---------------------------------------------------------------------
    About page · Partners & Community (AboutCommunitySection.tsx)
@@ -5175,113 +4698,3 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   filter: var(--theme-cutout-glow-filter);
 }
 
-/* /china delight. Every motion here sits behind the reduced-motion query and
-   none of it gates a download or a read. */
-@media (prefers-reduced-motion: no-preference) {
-  /* The banner arms lean into the grip on hover. Origin sits on the clasped
-     hands (about 52% across, 45% down the artwork). */
-  .theme-china-banner {
-    transform-origin: 52% 45%;
-    transition: transform 700ms cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .theme-china-banner:hover {
-    transform: rotate(-1.2deg) scale(1.01);
-  }
-
-  /* A freshly shuffled record: the two sides slide in from their own edge. */
-  .theme-china-reveal-left {
-    animation: theme-china-reveal-left 320ms cubic-bezier(0.25, 1, 0.5, 1) both;
-  }
-  .theme-china-reveal-right {
-    animation: theme-china-reveal-right 320ms cubic-bezier(0.25, 1, 0.5, 1) 60ms both;
-  }
-
-  /* The signature fades and settles once the reader reaches the end. */
-  .theme-china-signature {
-    opacity: 0.6;
-    transform: translateY(2px) rotate(-6deg);
-    transition: opacity 600ms ease-out, transform 600ms cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .theme-china-signature[data-seen="true"] {
-    opacity: 1;
-    transform: translateY(0) rotate(-4deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .theme-china-signature {
-    opacity: 1;
-    transform: rotate(-4deg);
-  }
-}
-
-.theme-china-signature {
-  font-family: var(--font-family-display);
-  font-style: italic;
-  color: var(--theme-accent-strong);
-}
-
-@keyframes theme-china-reveal-left {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes theme-china-reveal-right {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* The /china molecule carousel. Fades at both edges so drawings enter and
-   leave rather than pop. The animation is transform-only. */
-.theme-china-carousel {
-  contain: layout paint;
-  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .theme-china-carousel-track {
-    animation: theme-china-carousel linear infinite;
-    will-change: transform;
-  }
-}
-@keyframes theme-china-carousel {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-/* The /china format switch: the chosen segment takes a solid accent fill with
-   body-coloured text, the same pairing as the accent CTA, so the pair reads as
-   one control with one side lit. */
-.theme-china-switch {
-  border-color: var(--theme-border-subtle);
-  background: var(--theme-surface-muted);
-}
-.theme-china-segment {
-  color: var(--theme-text-secondary);
-}
-.theme-china-segment:hover {
-  background: var(--theme-frosted-control-bg);
-}
-.theme-china-segment[data-state="on"] {
-  color: var(--theme-body-bg);
-  background: var(--theme-accent-strong);
-}
-.theme-china-segment[data-state="on"]:hover {
-  color: var(--theme-body-bg);
-  background: var(--theme-accent-strong);
-}

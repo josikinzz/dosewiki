@@ -57,8 +57,9 @@ export const DEFAULT_CLASS_USAGE_STYLESHEETS = [
   "src/styles/theme-status.css",
   "src/styles/utilities-theme.css",
   "src/styles/utilities-typography.css",
+  "src/features/dev/dev-tools.css",
+  "src/app/china/china.css",
 ] as const;
-
 export const DEFAULT_CLASS_USAGE_SOURCE_ROOTS = ["src", "lib"] as const;
 
 const LIGHT_SHEET_NAME = "theme-light-mode.css";
