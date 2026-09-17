@@ -41,20 +41,19 @@ Protected dev/editor primitives live under `src/features/dev/components`. They m
 
 Forbidden new variant names include route or feature terms such as `searchOption`, `substanceListItem`, `categoryHeader`, `pickerListItem`, `generatePrimary`, and similar domain recipes.
 
-Temporary composed-recipe allowlist during migration:
+Composed-recipe variants still on the primitive, with a decision per row.
+`tabPrimary`, `tabPrimaryDisabled`, and `tabSecondary` were removed once
+`PublicSegmentedTabs` absorbed them.
 
-| Variant | Current owner to migrate toward |
-| --- | --- |
-| `card` | Public/search result card component |
-| `listItem` | Taxonomy/list row component |
-| `suggestion` | Search suggestion option component |
-| `suggestionActive` | Search suggestion option component |
-| `tabPrimary` | Public segmented tabs or feature tab trigger |
-| `tabPrimaryDisabled` | Public segmented tabs or feature tab trigger |
-| `tabSecondary` | Public segmented tabs or feature tab trigger |
-| `tagRemove` | Dev `TagToken` or owning tag control |
+| Variant | Consumers | Decision |
+| --- | --- | --- |
+| `card` | Public/search result cards, article section cards, catalog | Migrate into a public card-button component after geometry normalization (Phase 2 of the kit polish plan). |
+| `listItem` | `PublicPagePrimitives` | Migrate into the taxonomy/list row component in the same Phase 2 ticket. |
+| `suggestion` | `EffectTagInput` | Migrate into a search suggestion option component in the same Phase 2 ticket. |
+| `suggestionActive` | `EffectTagInput` | Same as `suggestion`; the pair moves together. |
+| `tagRemove` | Dev `TagToken` | Migrate into `TagToken`; it has one consumer and no public surface. |
 
-Remove entries from this allowlist as owning components absorb each recipe.
+Remove a row when its owning component absorbs the recipe. Do not add rows.
 
 ## Name Chip Policy
 

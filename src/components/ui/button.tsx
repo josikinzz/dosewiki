@@ -55,12 +55,6 @@ const buttonVariants = cva(
           "w-full justify-between rounded-xl border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         suggestionActive:
           "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,rgb(var(--c-brand))_20%,var(--theme-control-base))] to-[color-mix(in_srgb,rgb(var(--c-violet))_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)]",
-        tabPrimary:
-          "flex-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)] sm:flex-none sm:tracking-[0.3em] data-[active=true]:bg-[var(--theme-frosted-control-bg)] data-[active=true]:text-[var(--theme-text-primary)]",
-        tabPrimaryDisabled:
-          "flex-1 cursor-not-allowed rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-text-muted)] sm:flex-none sm:tracking-[0.3em]",
-        tabSecondary:
-          "flex-1 rounded-full text-sm font-medium text-[var(--theme-text-secondary)] transition hover:text-[var(--theme-text-primary)] sm:flex-none data-[active=true]:bg-[var(--theme-frosted-control-bg)] data-[active=true]:text-[var(--theme-text-primary)]",
         tagRemove:
           "rounded-full p-0.5 text-[var(--theme-text-muted)] transition hover:text-[var(--theme-text-primary)]",
         iconGhost:
@@ -90,8 +84,6 @@ const buttonVariants = cva(
         listItem: "px-3 py-2 text-sm",
         card: "gap-4 px-5 py-4",
         suggestion: "px-3 py-2 text-sm",
-        tabPrimary: "min-w-[9rem] gap-2 px-4 py-2 sm:min-w-0",
-        tabSecondary: "min-w-[8rem] gap-2 px-4 py-2 sm:min-w-0",
         auto: "h-auto w-auto",
       },
     },

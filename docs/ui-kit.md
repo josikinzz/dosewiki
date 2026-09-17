@@ -20,6 +20,12 @@ The appearance cog contains four independent controls: color scheme, visual styl
 surfaces, and accent. The catalog sweep covers color scheme and visual style.
 The appearance matrix tests cover all 196 supported combinations.
 
+Two vocabularies name the same axes. Readers see **Vivid** and **Clinical** in
+the cog's Style picker; code and stylesheets call them `fun` and `pro`
+(`data-visual-style`). Readers see dark and light; code calls the axis
+`ColorScheme` and carries it as `data-theme`. The identifiers never change;
+only the labels are reader-facing.
+
 - Route: **`/dev/kit`** (auth-gated under `/dev`, like the rest of the editor surface).
 - Run `npm run dev` and open `/dev/kit`. The catalog demonstrates the current
   component behavior; when prose and a rendered component disagree, inspect the

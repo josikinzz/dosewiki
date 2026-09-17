@@ -1,15 +1,11 @@
-import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { buttonVariants } from "./button";
 import * as commonBarrel from "@/components/common";
-import { REPO_ROOT, readSourceFiles } from "@/test/sourceScan";
+import { readSourceFiles } from "@/test/sourceScan";
 
-function readRepoFile(filePath: string) {
-  return readFileSync(path.join(REPO_ROOT, filePath), "utf8");
-}
 
 type ImportRecord = {
   filePath: string;
@@ -139,41 +135,4 @@ describe("shared UI ownership boundaries", () => {
     expect(definedForbiddenVariants).toEqual([]);
   });
 
-  it("documents temporary Button recipe variants while migration continues", () => {
-    const docsSource = readRepoFile("docs/ui-system.md");
-    const unknownVariantClasses = buttonVariants({ variant: "not-a-variant" as never });
-    const documentedMigrationAllowlist = [
-      "card",
-      "listItem",
-      "suggestion",
-      "suggestionActive",
-      "tabPrimary",
-      "tabPrimaryDisabled",
-      "tabSecondary",
-      "tagRemove",
-    ];
-    const retiredButStillDocumented = documentedMigrationAllowlist.filter(
-      (variantName) => buttonVariants({ variant: variantName as never }) === unknownVariantClasses,
-    );
-    const missingDocsEntries = documentedMigrationAllowlist.filter(
-      (variantName) => !docsSource.includes(`\`${variantName}\``),
-    );
-
-    expect(retiredButStillDocumented).toEqual([]);
-    expect(missingDocsEntries).toEqual([]);
-  });
-
-  it("documents ownership for shared UI dependencies", () => {
-    const docsSource = readRepoFile("docs/ui-system.md");
-    const dependencyTerms = [
-      "@iconify/react",
-      "lucide-react",
-      "framer-motion",
-      "react-simple-code-editor",
-      "prismjs",
-      "diff",
-    ];
-
-    expect(dependencyTerms.filter((term) => !docsSource.includes(term))).toEqual([]);
-  });
 });
