@@ -54,9 +54,9 @@ interface EffectIndexArticlePageProps {
 
 /** Keep narrative measure independent of the full-width shared effect panels. */
 const SECTION_PROSE_CLASS_NAME =
-  "article-narrative-body theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none";
+  "article-narrative-body theme-text-secondary prose prose-fuchsia mt-6 max-w-none";
 const OVERVIEW_PROSE_CLASS_NAME =
-  "article-narrative-body theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7";
+  "article-narrative-body theme-text-secondary prose prose-fuchsia max-w-none overflow-hidden text-[1.0625rem] leading-7";
 
 interface ArticleBodyProps {
   body: ArticleBodyContent;
@@ -264,7 +264,7 @@ export function EffectIndexArticlePage({
                     <CommentaryBubble>
                       <div
                         className={cn(
-                          "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
+                          "effect-vcode-card-body prose prose-fuchsia max-w-none",
                           "theme-text-secondary text-[0.9375rem] leading-[1.75]",
                         )}
                       >

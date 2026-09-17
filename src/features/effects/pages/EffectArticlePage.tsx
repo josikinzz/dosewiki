@@ -81,7 +81,7 @@ function EffectArticleRichSection({
       spacing="effect"
       className={className}
     >
-      <div className={contentClassName ?? "theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none"}>
+      <div className={contentClassName ?? "theme-text-secondary prose prose-fuchsia mt-6 max-w-none"}>
         <VCodeRenderer
           content={content}
           citations={section.citations}
@@ -191,7 +191,7 @@ export function EffectArticlePage({
             case "overview":
               return (
                 <section key={section.id} id={section.id} className="scroll-mt-24">
-                  <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7">
+                  <div className="theme-text-secondary prose prose-fuchsia max-w-none overflow-hidden text-[1.0625rem] leading-7">
                     <VCodeRenderer
                       content={section.content}
                       citations={section.citations}
@@ -277,7 +277,7 @@ export function EffectArticlePage({
                     <CommentaryBubble>
                       <div
                         className={cn(
-                          "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
+                          "effect-vcode-card-body prose prose-fuchsia max-w-none",
                           "theme-text-secondary text-[0.9375rem] leading-[1.75]",
                         )}
                       >

@@ -369,13 +369,13 @@ export type ArticleKeyValueRowsProps = Omit<
 
 const articleKeyValueDensityClasses = {
   compact: {
-    list: "divide-y divide-white/5",
+    list: "divide-y divide-dose-divider",
     row: "gap-3 py-2 text-xs sm:grid-cols-[minmax(7rem,0.7fr)_minmax(0,1.3fr)]",
     label: "theme-text-faint",
     value: "theme-text-secondary",
   },
   comfortable: {
-    list: "divide-y divide-white/8",
+    list: "divide-y divide-dose-divider",
     row: "gap-4 py-3 text-sm sm:grid-cols-[minmax(9rem,0.8fr)_minmax(0,1.2fr)]",
     label: "theme-text-muted",
     value: "theme-text-primary",

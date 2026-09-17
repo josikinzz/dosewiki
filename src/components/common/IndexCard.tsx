@@ -145,7 +145,7 @@ export const IndexCard = memo(function IndexCard({
   }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] ring-1 ring-white/10 outline-none transition-colors duration-200",
+    "theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] ring-1 ring-dose-ring outline-none transition-colors duration-200",
     onIconClick
       ? "theme-focus-ring cursor-pointer"
       : undefined,

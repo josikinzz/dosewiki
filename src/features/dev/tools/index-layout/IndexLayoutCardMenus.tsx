@@ -188,7 +188,7 @@ function CategoryIdentityDialog({
                 Icon key
               </label>
               <div className="flex items-center gap-2">
-                <span className="theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-white/10">
+                <span className="theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-dose-ring">
                   <Icon icon={preview} size={20} className="theme-index-card-icon-glyph" />
                 </span>
                 <Input

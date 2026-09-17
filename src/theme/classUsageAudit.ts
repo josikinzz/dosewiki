@@ -91,8 +91,11 @@ type EmittedNames = { literals: Set<string>; templatePrefixes: Set<string> };
 
 /**
  * Every class-shaped token a runtime source can emit. Template literals contribute
- * their static prefixes: `theme-foo-${tone}` yields the prefix `theme-foo-`, and any
- * defined class that starts with that prefix counts as live.
+ * their static prefixes when the prefix is itself a theme class stem: `theme-foo-${tone}`
+ * yields the prefix `theme-foo-`, and any defined class that starts with it counts as
+ * live. Generic stems (`group-${id}`, `text-${tone}`) are ignored: they are ids and
+ * data keys far more often than class names, and one of them would keep every
+ * utility that shares the stem alive.
  */
 function collectEmittedNames(sources: ClassUsageAuditInput["sources"]): EmittedNames {
   const literals = new Set<string>();
@@ -102,7 +105,7 @@ function collectEmittedNames(sources: ClassUsageAuditInput["sources"]): EmittedN
     for (const match of text.matchAll(/[A-Za-z0-9_][A-Za-z0-9_/.[\]-]*/g)) {
       literals.add(match[0]);
     }
-    for (const match of text.matchAll(/([A-Za-z0-9_][A-Za-z0-9_-]*-)\$\{/g)) {
+    for (const match of text.matchAll(/\b(theme-[A-Za-z0-9_-]*-)\$\{/g)) {
       templatePrefixes.add(match[1]);
     }
   }

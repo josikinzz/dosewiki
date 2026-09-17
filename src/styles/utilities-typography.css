@@ -159,17 +159,3 @@
   .effect-vcode-caption > :where(*) {
     margin: 0;
   }
-
-  @media (prefers-contrast: more) {
-    .text-white\/45,
-    .text-white\/50,
-    .text-white\/60 {
-      --tw-text-opacity: 0.9 !important;
-    }
-
-    .border-white\/5,
-    .border-white\/10,
-    .border-white\/15 {
-      --tw-border-opacity: 0.4 !important;
-    }
-  }

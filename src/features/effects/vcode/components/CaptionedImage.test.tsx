@@ -11,7 +11,7 @@ vi.mock("@/components/common/AppImage", () => ({
 describe("CaptionedImage", () => {
   it("applies explicit auto side margins for centered effect article images", () => {
     render(
-      <div className="prose prose-invert prose-fuchsia">
+      <div className="prose prose-fuchsia">
         <CaptionedImage
           src="/img/gallery/example.jpg"
           caption="Example replication"
@@ -76,7 +76,7 @@ describe("CaptionedImage", () => {
 
   it("renders caption and credit as plain caption text without paragraph tags", () => {
     render(
-      <div className="prose prose-invert prose-fuchsia">
+      <div className="prose prose-fuchsia">
         <CaptionedImage
           src="/img/gallery/example.jpg"
           caption="Example replication"

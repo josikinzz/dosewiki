@@ -33,6 +33,12 @@ const sources = [
     filePath: "src/components/common/Card.test.tsx",
     text: 'expect(el.className).toContain("theme-only-in-tests"); className="text-white/78"',
   },
+  {
+    // Generic stems in templates are ids and data keys, never class stems; they
+    // must not keep text-white/* alive.
+    filePath: "src/features/gallery/Group.tsx",
+    text: "const id = `group-${index}`; const cls = `text-${tone}`;",
+  },
 ];
 
 describe("theme class usage audit", () => {

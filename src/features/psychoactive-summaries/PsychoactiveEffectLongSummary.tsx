@@ -54,7 +54,7 @@ export function PsychoactiveEffectLongSummary({
       </p>
 
       {longSummaryContent ? (
-        <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal mt-5 max-w-none">
+        <div className="theme-text-secondary prose prose-fuchsia mt-5 max-w-none">
           <VCodeRenderer
             content={longSummaryContent}
             citations={effect.citations}

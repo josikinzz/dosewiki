@@ -93,7 +93,7 @@ function EffectLongSummary({
       </h3>
 
       {longSummaryContent ? (
-        <div className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal type-reading-measure mt-3">
+        <div className="theme-text-secondary prose prose-fuchsia type-reading-measure mt-3">
           <VCodeRenderer
             content={longSummaryContent}
             citations={effect.citations}
@@ -215,7 +215,7 @@ function DrugClassArticleSection({
           titleElement="h2"
         />
         <div
-          className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal type-lead type-reading-measure"
+          className="theme-text-secondary prose prose-fuchsia type-lead type-reading-measure"
           dangerouslySetInnerHTML={{ __html: localizeParagraphHtml(content.introHtml) }}
         />
         <p className={ASIDE_COPY_CLASS}>{t(content.applicableSubstances)}</p>

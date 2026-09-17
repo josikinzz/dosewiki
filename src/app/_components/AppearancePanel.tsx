@@ -525,7 +525,7 @@ function ColorAxisGroup({
       <div className="flex items-center gap-2.5 px-1">
         <span
           aria-hidden="true"
-          className="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-inset ring-white/20"
+          className="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-inset ring-dose-ring"
           style={{ backgroundColor: dotColor }}
         />
         <span className="text-[0.8125rem] font-semibold">{axisName}</span>
