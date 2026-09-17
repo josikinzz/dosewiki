@@ -47,6 +47,46 @@ function collectImports(entryPath: string): ImportRecord[] {
   );
 }
 
+/**
+ * Axis names each shared component's `cva` variants object may declare. The
+ * vocabulary lives in docs/ui-system.md ("Variant Axis Vocabulary"); this is the
+ * enforcement. `size` collides with the native attribute on <input> and <select>,
+ * so the three field primitives carry a prefixed size axis as recorded exceptions.
+ */
+const VARIANT_AXIS_VOCABULARY = ["variant", "size", "tone", "selected", "padding", "radius"];
+const VARIANT_AXIS_EXCEPTIONS: Record<string, string[]> = {
+  "src/components/ui/input.tsx": ["inputSize"],
+  "src/components/ui/select.tsx": ["selectSize"],
+  "src/components/ui/textarea.tsx": ["textareaSize"],
+};
+
+/** Top-level keys of every `variants: { … }` object inside a `cva(` call. */
+function collectVariantAxes(entryPath: string) {
+  return readSourceFiles([entryPath], { extensions: /\.tsx?$/ }).flatMap(({ path: filePath, text }) => {
+    if (/\.test\.tsx?$/.test(filePath)) return [];
+    const axes: { filePath: string; axis: string }[] = [];
+    for (const match of text.matchAll(/\bvariants\s*:\s*\{/g)) {
+      let depth = 1;
+      let i = match.index + match[0].length;
+      while (i < text.length && depth > 0) {
+        const ch = text[i];
+        if (ch === "{") depth += 1;
+        else if (ch === "}") depth -= 1;
+        else if (depth === 1) {
+          const key = /^\s*([A-Za-z_$][\w$]*)\s*:\s*\{/.exec(text.slice(i, i + 80));
+          if (key && (i === 0 || /[\s{,]/.test(text[i - 1]))) {
+            axes.push({ filePath, axis: key[1] });
+            i += key[0].length - 1;
+            depth += 1;
+          }
+        }
+        i += 1;
+      }
+    }
+    return axes;
+  });
+}
+
 describe("shared UI ownership boundaries", () => {
   it("keeps dev-owned editor widgets out of the common barrel", () => {
     expect(Object.keys(commonBarrel)).not.toEqual(
@@ -133,6 +173,19 @@ describe("shared UI ownership boundaries", () => {
     );
 
     expect(definedForbiddenVariants).toEqual([]);
+  });
+
+  it("names every shared variant axis from the documented vocabulary", () => {
+    const offAxis = ["src/components/ui", "src/components/common", "src/components/layout"]
+      .flatMap(collectVariantAxes)
+      .filter(
+        ({ filePath, axis }) =>
+          !VARIANT_AXIS_VOCABULARY.includes(axis) &&
+          !(VARIANT_AXIS_EXCEPTIONS[filePath] ?? []).includes(axis),
+      )
+      .map(({ filePath, axis }) => `${filePath}: ${axis}`);
+
+    expect(offAxis).toEqual([]);
   });
 
 });

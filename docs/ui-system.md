@@ -35,6 +35,25 @@ Public layout/content primitives live in `src/components/layout` when they compo
 
 Protected dev/editor primitives live under `src/features/dev/components`. They may use editor-only dependencies and dense workflow language. Promotion out of dev requires removing protected-editor assumptions and satisfying the public/common criteria.
 
+## Variant Axis Vocabulary
+
+Every shared component that declares `cva` variants names its axes from this
+list, so `tone` means the same thing on `Button`, `Badge`, and `Surface`:
+
+| Axis | Meaning | Values |
+| --- | --- | --- |
+| `variant` | The visual recipe: tone, emphasis, and shape together, until a component splits them | Component-specific; primitive names only, per the Button policy below |
+| `size` | Type size and control height | `sm`, `default`, `lg`, plus the touch-target recipes named in the kit |
+| `tone` | Semantic color: status and severity | `StatusBadge` today: `red`, `rose`, `yellow`, `orange`, `blue`, `green`, `emerald`, `gray`, `white`. Color names, not meanings; the geometry and tone normalization in the kit polish plan renames them. |
+| `selected` | Boolean selected state on a surface or control | `true`, `false` |
+| `padding` | Inner spacing role on a surface | `none`, `xs`, `sm`, `md`, `lg`, `xl` |
+| `radius` | Corner role on a surface | `none`, `md`, `lg`, `xl`, plus the role names `index`, `state`, `compactState` until geometry tokens replace them |
+
+Recorded exceptions: `Input`, `Select`, and `Textarea` carry `inputSize`,
+`selectSize`, and `textareaSize` because `size` collides with the native
+attribute on `<input>` and `<select>`, and the three field controls keep one
+shape. `src/components/ui/ownership.test.ts` rejects any other axis name.
+
 ## Button Variant Policy
 
 `Button` variants should describe primitive visual behavior: tone, emphasis, shape, icon-only affordances, and broad interaction state. Feature names and composed UI recipes belong in the owning component.
