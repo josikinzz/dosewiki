@@ -110,7 +110,7 @@ export function ExternalSourcePill({
         icon="lucide:external-link"
         size={12}
         className={cn(
-          "theme-external-link-badge-icon shrink-0 text-current opacity-60 transition group-hover:opacity-90",
+          "theme-external-link-badge-icon shrink-0",
           isCredit ? "mb-0.5 ml-1.5 inline-block align-middle" : "-ml-1",
         )}
       />

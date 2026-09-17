@@ -18,11 +18,12 @@
       so these rules win over Tailwind call-site utilities (backdrop-blur-*,
       shadow-[...]) and over everything in utilities-theme.css /
       components.css with no !important at all.
-   2. theme-light-mode.css carries ~367 !important declarations that
-      resolve to var(--theme-*). Those cannot be out-specified — so this
-      sheet works through the TOKENS they read, not through their
-      selectors. The rule blocks further down exist only for the handful
-      of decorations that hardcode colour instead of reading a token.
+   2. theme-light-mode.css carries no component rules any more: the light
+      scheme is a token swap in site-colors.css, and utilities-theme.css
+      reads those tokens once for both schemes (src/theme/lightSheet.test.ts
+      holds that line). This sheet therefore works through the TOKENS the
+      Fun rules read, and the rule blocks further down exist only for the
+      handful of decorations that hardcode colour instead of reading a token.
 
    Every selector is scoped to html[data-visual-style="pro"], so the sheet
    is inert on Fun: the attribute value is never "pro" there.

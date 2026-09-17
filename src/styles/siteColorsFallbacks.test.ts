@@ -15,9 +15,7 @@ import {
  * they can drift: someone retunes `--theme-panel-base`, the recipe follows, the literal does
  * not, and only Safari 16.x readers see the stale colour. This measures every pair the base
  * sheets declare, in both places the shape is authored: the token blocks of
- * `site-colors.css` (fallback in the block, recipe in the trailing `@supports`) and the
- * light `.theme-home-nav-icon` rules of `utilities-theme.css` (the same shape on ordinary
- * properties).
+ * `site-colors.css` (fallback in the block, recipe in the trailing `@supports`).
  *
  * The comparison bakes each recipe through the fixture's colour evaluator and requires the
  * fallback to name the same colours in the same skeleton, to within 8-bit rounding.
@@ -113,46 +111,19 @@ describe("literal fallbacks match their relative-colour recipes", () => {
   });
 
   it("names the same probe the chroma sheet and the runtime writers use", () => {
-    for (const sheet of ["src/styles/site-colors.css", "src/styles/utilities-theme.css"]) {
-      const css = read(sheet).replace(/\/\*[\s\S]*?\*\//g, "");
-      const relativeColourQueries = [...css.matchAll(/@supports[^{]*oklch\(\s*from[^{]*/g)].map(
-        (match) => match[0].trim(),
-      );
-      expect(relativeColourQueries.length, sheet).toBeGreaterThan(0);
-      for (const query of relativeColourQueries) expect(query, sheet).toBe(PROBE);
-    }
+    const css = read("src/styles/site-colors.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const relativeColourQueries = [...css.matchAll(/@supports[^{]*oklch\(\s*from[^{]*/g)].map(
+      (match) => match[0].trim(),
+    );
+    expect(relativeColourQueries.length).toBeGreaterThan(0);
+    for (const query of relativeColourQueries) expect(query).toBe(PROBE);
   });
 
-  it("in the light home-tile rules of utilities-theme.css", () => {
-    const css = read("src/styles/utilities-theme.css");
-    const tokens = resolveBasePaletteTokens({ visualStyle: "fun", theme: "light" });
-    const substitute = (value: string) =>
-      value.replace(/var\((--[a-z0-9-]+)\)/g, (whole, name: string) => tokens[name] ?? whole);
-    const declarationsOf = (body: string) =>
-      new Map(
-        [...body.matchAll(/([a-z-]+)\s*:\s*([^;]+);/g)].map((match) => [match[1]!, match[2]!.trim()]),
-      );
-
-    // Leaf blocks, in source order, so a selector's literal rule precedes its recipe rule.
-    const blocks = [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-      .map((match) => ({ selector: match[1]!.replace(/\s+/g, " ").trim(), body: match[2]! }))
-      .filter((block) => !block.selector.startsWith("@"));
-    const recipeRules = blocks.filter((block) => /oklch\(\s*from/.test(block.body));
-    expect(recipeRules.length).toBeGreaterThanOrEqual(3);
-
-    for (const rule of recipeRules) {
-      const literalRule = blocks.find(
-        (block) => block.selector === rule.selector && block !== rule && !/oklch\(\s*from/.test(block.body),
-      );
-      expect(literalRule, `${rule.selector} has no literal rule`).toBeDefined();
-      const literals = declarationsOf(literalRule!.body);
-      for (const [property, recipe] of declarationsOf(rule.body)) {
-        if (!/oklch\(\s*from/.test(recipe)) continue;
-        const fallback = literals.get(property);
-        expect(fallback, `${rule.selector} ${property}`).toBeDefined();
-        expectBaked(substitute(recipe), fallback!, `${rule.selector} ${property}`);
-      }
-    }
+  it("keeps every relative-colour recipe in site-colors.css, never in a component rule", () => {
+    // The home-tile recipes used to sit beside their literal rules in utilities-theme.css.
+    // They are tokens now, so the first test above measures them with every other pair.
+    const css = read("src/styles/utilities-theme.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(css).not.toMatch(/oklch\(\s*from/);
   });
 
   it("drops cleanly to the literals when the @supports blocks are stripped", () => {

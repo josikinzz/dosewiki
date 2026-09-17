@@ -6,42 +6,10 @@
 
 .theme-page-shell {
   background-color: var(--theme-body-bg);
-  background-image: none;
+  background-image: var(--theme-page-shell-background-image);
   background-repeat: no-repeat;
   background-size: 100% 100%;
   color: var(--theme-text-primary);
-}
-
-html[data-theme="light"] .theme-page-shell {
-  background-image:
-    linear-gradient(
-      90deg,
-      var(--theme-page-edge-vignette) 0%,
-      transparent 16%,
-      transparent 84%,
-      var(--theme-page-edge-vignette) 100%
-    ),
-    radial-gradient(
-      150% 88% at 50% -18%,
-      var(--theme-page-halo-top) 0%,
-      transparent 58%
-    ),
-    radial-gradient(
-      82% 118% at -14% 22%,
-      var(--theme-page-halo-left) 0%,
-      transparent 54%
-    ),
-    radial-gradient(
-      84% 122% at 114% 34%,
-      var(--theme-page-halo-right) 0%,
-      transparent 52%
-    ),
-    linear-gradient(
-      180deg,
-      var(--theme-page-start) 0%,
-      color-mix(in srgb, var(--theme-page-mid) 88%, var(--theme-page-start)) 42%,
-      var(--theme-page-end) 100%
-    );
 }
 
 .theme-card-surface {
@@ -62,6 +30,13 @@ html[data-theme="light"] .theme-page-shell {
   background: transparent !important;
   box-shadow: none !important;
   --tw-ring-color: transparent !important;
+}
+
+.theme-dosage-mode-tabs {
+  background: var(--theme-dosage-mode-tabs-background) !important;
+  color: var(--theme-dosage-mode-tabs-color);
+  box-shadow: var(--theme-dosage-mode-tabs-box-shadow) !important;
+  --tw-ring-color: var(--theme-dosage-mode-tabs-tw-ring-color) !important;
 }
 
 .theme-overlay-surface {
@@ -359,22 +334,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-html[data-theme="light"]
-  :is(.theme-public-card, .theme-card-surface, .theme-overlay-surface) {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  color: var(--theme-text-primary);
-  box-shadow: var(--theme-frosted-panel-shadow);
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-public-card-interactive:hover {
-    border-color: var(--theme-frosted-panel-hover-border);
-    background: var(--theme-frosted-panel-hover-bg);
-    box-shadow: var(--theme-frosted-panel-hover-shadow);
-  }
-}
-
 .theme-icon-accent {
   color: var(--theme-accent-strong);
 }
@@ -438,11 +397,7 @@ html[data-theme="light"]
 }
 
 .theme-control-pill {
-  background-color: color-mix(
-    in srgb,
-    var(--theme-surface-muted) 78%,
-    var(--theme-body-bg)
-  );
+  background-color: var(--theme-control-pill-background-color);
   box-shadow: 0 10px 24px -22px var(--theme-shadow-soft);
 }
 
@@ -457,11 +412,7 @@ html[data-theme="light"]
     var(--theme-accent) 28%,
     var(--theme-border-strong)
   );
-  background-color: color-mix(
-    in srgb,
-    var(--theme-surface-strong) 82%,
-    var(--theme-accent) 8%
-  );
+  background-color: var(--theme-control-pill-focus-visible-background-color);
   color: var(--theme-text-primary);
 }
 @media (hover: hover) {
@@ -471,11 +422,7 @@ html[data-theme="light"]
       var(--theme-accent) 28%,
       var(--theme-border-strong)
     );
-    background-color: color-mix(
-      in srgb,
-      var(--theme-surface-strong) 82%,
-      var(--theme-accent) 8%
-    );
+    background-color: var(--theme-control-pill-hover-background-color);
     color: var(--theme-text-primary);
   }
 }
@@ -487,11 +434,7 @@ html[data-theme="light"]
     var(--theme-accent) 22%,
     var(--theme-border-strong)
   );
-  background-color: color-mix(
-    in srgb,
-    var(--theme-surface-muted) 72%,
-    var(--theme-body-bg)
-  );
+  background-color: var(--theme-control-pill-quiet-focus-visible-background-color);
   color: var(--theme-text-primary);
 }
 @media (hover: hover) {
@@ -501,11 +444,7 @@ html[data-theme="light"]
       var(--theme-accent) 22%,
       var(--theme-border-strong)
     );
-    background-color: color-mix(
-      in srgb,
-      var(--theme-surface-muted) 72%,
-      var(--theme-body-bg)
-    );
+    background-color: var(--theme-control-pill-quiet-hover-background-color);
     color: var(--theme-text-primary);
   }
 }
@@ -700,11 +639,10 @@ html[data-theme="light"]
 
 .theme-evidence-surface {
   border-color: var(--theme-evidence-border);
-  background-color: var(--theme-evidence-bg);
+  background-color: var(--theme-evidence-surface-background-color);
   color: var(--theme-evidence-text);
   --tw-ring-color: var(--theme-evidence-ring);
 }
-
 
 .theme-citation-marker,
 .theme-reference-number {
@@ -774,14 +712,7 @@ html[data-theme="light"]
   color: var(--theme-text-secondary);
 }
 
-html[data-theme="light"] .theme-public-card-subtle {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  color: var(--theme-text-secondary);
-  box-shadow: var(--theme-frosted-panel-shadow);
-}
-
-html:not([data-theme="light"]) .theme-chemistry-identifier-code {
+.theme-chemistry-identifier-code {
   border-color: transparent !important;
   background: var(--theme-frosted-control-on-panel-bg) !important;
   color: var(--theme-text-primary) !important;
@@ -812,190 +743,8 @@ html:not([data-theme="light"]) .theme-chemistry-identifier-code {
   }
 }
 
-html[data-theme="light"] .theme-public-card-hover-quiet {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: var(--theme-frosted-panel-shadow);
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-public-card-hover-quiet:hover {
-    border-color: var(--theme-frosted-panel-hover-border);
-    background: var(--theme-frosted-panel-hover-bg);
-    box-shadow: var(--theme-frosted-panel-hover-shadow);
-  }
-}
-
-html[data-theme="light"]
-  :is(
-    .theme-badge-surface,
-    .theme-name-chip,
-    .theme-external-source-pill,
-    .theme-control-pill,
-    .theme-control-pill-quiet
-  ) {
-  border-color: transparent;
-  background: var(--theme-frosted-control-bg);
-  color: var(--theme-text-primary);
-  box-shadow: var(--theme-frosted-control-shadow);
-  --tw-ring-color: var(--theme-frosted-control-border);
-}
-
-html[data-theme="light"]
-  :is(
-    .theme-name-chip-interactive:focus-visible,
-    .theme-control-pill:focus-visible,
-    .theme-control-pill[data-active="true"],
-    .theme-control-pill-quiet:focus-visible,
-    .theme-control-pill-quiet[data-active="true"]
-  ) {
-  border-color: transparent;
-  background: var(--theme-frosted-control-hover-bg);
-  color: var(--theme-accent-strong);
-  box-shadow: var(--theme-frosted-control-hover-shadow);
-  --tw-ring-color: var(--theme-frosted-control-hover-border);
-}
-@media (hover: hover) {
-  html[data-theme="light"]
-    :is(
-      .theme-name-chip-interactive:hover,
-      .theme-external-source-pill:hover,
-      .theme-control-pill:hover,
-      .theme-control-pill-quiet:hover
-    ) {
-    border-color: transparent;
-    background: var(--theme-frosted-control-hover-bg);
-    color: var(--theme-accent-strong);
-    box-shadow: var(--theme-frosted-control-hover-shadow);
-    --tw-ring-color: var(--theme-frosted-control-hover-border);
-  }
-}
-
-html[data-theme="light"]
-  :is(
-    .theme-public-card,
-    .theme-public-card-subtle,
-    .theme-public-card-hover-quiet,
-    .theme-card-surface,
-    .theme-overlay-surface,
-    .theme-article-hero,
-    .theme-article-subsection-card,
-    .theme-article-subsection-card-nested,
-    .theme-article-subsection-card-interactive,
-    .theme-inline-expanded-card,
-    .theme-dose-duration-panel,
-    .theme-article-toc-panel,
-    .theme-interaction-danger,
-    .theme-interaction-unsafe,
-    .theme-interaction-caution
-  )
-  :is(
-    .theme-badge-surface,
-    .theme-name-chip,
-    .theme-external-source-pill,
-    .theme-control-pill,
-    .theme-control-pill-quiet,
-    .theme-interaction-severity-badge-danger,
-    .theme-interaction-severity-badge-unsafe,
-    .theme-interaction-severity-badge-caution
-  ) {
-  border-color: transparent;
-  background: var(--theme-frosted-control-on-panel-bg);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
-}
-
-html[data-theme="light"]
-  :is(
-    .theme-public-card,
-    .theme-public-card-subtle,
-    .theme-public-card-hover-quiet,
-    .theme-card-surface,
-    .theme-overlay-surface,
-    .theme-article-hero,
-    .theme-article-subsection-card,
-    .theme-article-subsection-card-nested,
-    .theme-article-subsection-card-interactive,
-    .theme-inline-expanded-card,
-    .theme-dose-duration-panel,
-    .theme-article-toc-panel,
-    .theme-interaction-danger,
-    .theme-interaction-unsafe,
-    .theme-interaction-caution
-  )
-  :is(
-    .theme-name-chip-interactive:focus-visible,
-    .theme-control-pill:focus-visible,
-    .theme-control-pill[data-active="true"],
-    .theme-control-pill-quiet:focus-visible,
-    .theme-control-pill-quiet[data-active="true"]
-  ) {
-  background: var(--theme-frosted-control-on-panel-hover-bg);
-  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
-  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
-}
-@media (hover: hover) {
-  html[data-theme="light"]
-    :is(
-      .theme-public-card,
-      .theme-public-card-subtle,
-      .theme-public-card-hover-quiet,
-      .theme-card-surface,
-      .theme-overlay-surface,
-      .theme-article-hero,
-      .theme-article-subsection-card,
-      .theme-article-subsection-card-nested,
-      .theme-article-subsection-card-interactive,
-      .theme-inline-expanded-card,
-      .theme-dose-duration-panel,
-      .theme-article-toc-panel,
-      .theme-interaction-danger,
-      .theme-interaction-unsafe,
-      .theme-interaction-caution
-    )
-    :is(
-      .theme-name-chip-interactive:hover,
-      .theme-external-source-pill:hover,
-      .theme-control-pill:hover,
-      .theme-control-pill-quiet:hover,
-      .theme-interaction-severity-badge-danger:hover,
-      .theme-interaction-severity-badge-unsafe:hover,
-      .theme-interaction-severity-badge-caution:hover
-    ) {
-    background: var(--theme-frosted-control-on-panel-hover-bg);
-    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
-    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
-  }
-}
-
 .theme-home-ambient {
-  background:
-    radial-gradient(
-      circle at 50% 28%,
-      var(--theme-home-glow-top),
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 50% 62%,
-      var(--theme-home-glow-bottom),
-      transparent 46%
-    ),
-    linear-gradient(180deg, rgba(5, 4, 12, 0.3), rgba(5, 4, 12, 0.54));
-}
-
-html[data-theme="light"] .theme-home-ambient {
-  background:
-    radial-gradient(
-      circle at 50% 24%,
-      var(--theme-home-glow-top),
-      transparent 44%
-    ),
-    radial-gradient(
-      circle at 50% 66%,
-      var(--theme-home-glow-bottom),
-      transparent 50%
-    ),
-    linear-gradient(180deg, rgba(255, 253, 255, 0.22), rgba(250, 247, 255, 0.2));
+  background: var(--theme-home-ambient-background);
 }
 
 .theme-home-shell {
@@ -1142,60 +891,10 @@ html[data-theme="light"] .theme-home-ambient {
 .theme-home-shell[data-search-mode="true"] .theme-home-nav-icon {
   width: 2.875rem;
   height: 2.875rem;
-  border-color: var(--theme-border-subtle);
-  background-color: color-mix(
-    in srgb,
-    var(--theme-surface-strong) 78%,
-    var(--theme-body-bg)
-  );
-  box-shadow:
-    0 14px 34px -26px var(--theme-shadow-strong),
-    inset 0 1px 0
-      color-mix(in srgb, var(--theme-surface-muted) 56%, transparent);
+  border-color: var(--theme-home-nav-icon-search-border-color);
+  background: var(--theme-home-nav-icon-search-background);
+  box-shadow: var(--theme-home-nav-icon-search-box-shadow);
   backdrop-filter: blur(14px);
-}
-
-html[data-theme="light"]
-  .theme-home-shell[data-search-mode="true"]
-  .theme-home-nav-icon {
-  border-color: var(--theme-home-nav-card-border);
-  /* Literal fallbacks; the panel-base recipes follow in @supports (see the
-     light .theme-home-nav-icon rule below for why). */
-  background:
-    radial-gradient(
-      circle at 30% 18%,
-      rgb(255 246 255 / 0.62),
-      transparent 34%
-    ),
-    linear-gradient(135deg, #f8d4f8, #eab6eb);
-  box-shadow:
-    0 14px 28px -24px rgb(132 60 135 / 0.3),
-    inset 0 1px 0 rgb(255 249 255 / 0.78),
-    inset 0 0 0 1px rgb(255 248 255 / 0.22);
-}
-
-@supports (color: oklch(from red l c calc(h + 1))) {
-  html[data-theme="light"]
-    .theme-home-shell[data-search-mode="true"]
-    .theme-home-nav-icon {
-    background:
-      radial-gradient(
-        circle at 30% 18%,
-        oklch(from var(--theme-panel-base) 99% calc(c * 1) h / 0.62),
-        transparent 34%
-      ),
-      linear-gradient(
-        135deg,
-        oklch(from var(--theme-panel-base) 91% calc(c * 2.4) h),
-        oklch(from var(--theme-panel-base) 84% calc(c * 3.5) h)
-      );
-    box-shadow:
-      0 14px 28px -24px
-        oklch(from var(--theme-panel-base) 48% calc(c * 5.4) h / 0.3),
-      inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.4) h / 0.78),
-      inset 0 0 0 1px
-        oklch(from var(--theme-panel-base) 99% calc(c * 0.7) h / 0.22);
-  }
 }
 
 .theme-home-shell[data-search-mode="true"] .theme-home-nav-svg {
@@ -1443,7 +1142,7 @@ html[data-theme="light"]
 }
 
 .theme-home-logo {
-  filter: drop-shadow(0 0 30px var(--theme-logo-shadow));
+  filter: var(--theme-home-logo-filter);
 }
 
 .theme-home-logo-frame {
@@ -1466,21 +1165,8 @@ html[data-theme="light"]
 
 @media (hover: hover) {
   .theme-home-logo-frame:hover .theme-home-logo-main {
-    filter: drop-shadow(0 0 34px var(--theme-logo-shadow-hover))
-      drop-shadow(0 18px 30px rgba(0, 0, 0, 0.16));
+    filter: var(--theme-home-logo-frame-hover-home-logo-main-filter);
     transform: translate3d(0, -0.08rem, 0) rotate(-0.6deg) scale(1.012);
-  }
-}
-
-html[data-theme="light"] .theme-home-logo {
-  filter: drop-shadow(0 18px 28px rgba(84, 46, 112, 0.16))
-    drop-shadow(0 0 20px var(--theme-logo-shadow));
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-home-logo-frame:hover .theme-home-logo-main {
-    filter: drop-shadow(0 20px 30px rgba(84, 46, 112, 0.2))
-      drop-shadow(0 0 24px var(--theme-logo-shadow-hover));
   }
 }
 
@@ -1505,15 +1191,11 @@ html[data-theme="light"] .theme-home-logo {
 }
 
 .theme-home-intro {
-  color: var(--theme-text-muted);
+  color: var(--theme-home-intro-color);
   font-style: italic;
   font-weight: 400;
   letter-spacing: 0.01em;
   line-height: 1.42;
-}
-
-html[data-theme="light"] .theme-home-intro {
-  color: var(--theme-text-faint);
 }
 
 .theme-home-nav-link {
@@ -1534,25 +1216,9 @@ html[data-theme="light"] .theme-home-intro {
 
 .theme-home-nav-icon {
   border-color: var(--theme-home-nav-card-border);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      rgba(255, 255, 255, 0.055),
-      transparent 32%
-    ),
-    linear-gradient(
-      135deg,
-      color-mix(
-        in srgb,
-        rgb(var(--c-plum-pink) / 0.64) 34%,
-        rgb(var(--c-plum-deep) / 0.64)
-      ),
-      rgb(var(--c-plum-deep) / 0.82)
-    );
-  color: var(--theme-accent-strong);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 24px 44px -30px var(--theme-shadow-strong);
+  background: var(--theme-home-nav-icon-background);
+  color: var(--theme-home-nav-icon-color);
+  box-shadow: var(--theme-home-nav-icon-box-shadow);
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
   transition-duration: 300ms;
@@ -1560,143 +1226,12 @@ html[data-theme="light"] .theme-home-intro {
   will-change: transform;
 }
 
-html[data-theme="light"] .theme-home-nav-icon {
-  border-color: var(--theme-home-nav-card-border);
-  /* Literal fallbacks first: a relative-colour value that carries var() is
-     only rejected at computed-value time, which would drop the whole
-     background and paint the tile transparent, so the recipe cannot simply
-     follow in the same rule. It sits in the @supports block below instead,
-     on the grammar the chroma sheet probes (Safari 16.3 and older lack it
-     entirely; 16.4 to 17.x fail the hue sum). These literals are the recipes
-     baked against the authored --theme-panel-base / --theme-accent-strong. */
-  background:
-    radial-gradient(
-      circle at 28% 18%,
-      rgb(255 246 255 / 0.64),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 78% 88%,
-      rgb(207 146 209 / 0.16),
-      transparent 42%
-    ),
-    linear-gradient(135deg, #f8cbf8 0%, #f2b9f2 54%, #e6a5e7 100%);
-  color: #5b0a5f;
-  box-shadow:
-    inset 0 1px 0 rgb(255 249 255 / 0.76),
-    0 18px 34px -28px rgb(132 60 135 / 0.3);
-}
-
-@supports (color: oklch(from red l c calc(h + 1))) {
-  html[data-theme="light"] .theme-home-nav-icon {
-    /* Stops derive from the panel/accent tokens (relative colors, chroma
-       scaled) so palette presets recolor the home cards without extra
-       tokens; the numbers reproduce the previous hand-tuned plum stops. */
-    background:
-      radial-gradient(
-        circle at 28% 18%,
-        oklch(from var(--theme-panel-base) 99% calc(c * 1) h / 0.64),
-        transparent 34%
-      ),
-      radial-gradient(
-        circle at 78% 88%,
-        oklch(from var(--theme-panel-base) 74% calc(c * 4.3) h / 0.16),
-        transparent 42%
-      ),
-      linear-gradient(
-        135deg,
-        oklch(from var(--theme-panel-base) 89.5% calc(c * 3) h) 0%,
-        oklch(from var(--theme-panel-base) 85.5% calc(c * 3.8) h) 54%,
-        oklch(from var(--theme-panel-base) 80.5% calc(c * 4.4) h) 100%
-      );
-    color: oklch(from var(--theme-accent-strong) 34% calc(c * 0.73) h);
-    box-shadow:
-      inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.4) h / 0.76),
-      0 18px 34px -28px
-        oklch(from var(--theme-panel-base) 48% calc(c * 5.4) h / 0.3);
-  }
-}
-
 @media (hover: hover) {
   .theme-home-nav-link:hover .theme-home-nav-icon {
-    border-color: rgb(var(--c-brand) / 0.28);
-    background:
-      radial-gradient(
-        circle at 12% 0%,
-        rgba(255, 255, 255, 0.075),
-        transparent 32%
-      ),
-      linear-gradient(
-        135deg,
-        color-mix(
-          in srgb,
-          var(--theme-accent) 18%,
-          color-mix(
-            in srgb,
-            rgb(var(--c-plum-pink) / 0.68) 34%,
-            rgb(var(--c-plum-deep) / 0.68)
-          )
-        ),
-        color-mix(in srgb, rgb(var(--c-plum-deep)) 88%, var(--theme-body-bg))
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      0 24px 48px -28px var(--theme-shadow-strong);
+    border-color: var(--theme-home-nav-link-hover-home-nav-icon-border-color);
+    background: var(--theme-home-nav-link-hover-home-nav-icon-background);
+    box-shadow: var(--theme-home-nav-link-hover-home-nav-icon-box-shadow);
     transform: translate3d(0, -0.08rem, 0) scale(1.01);
-  }
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-home-nav-link:hover .theme-home-nav-icon {
-    /* Literal fallbacks; recipes in the @supports block below. */
-    border-color: rgb(149 87 151 / 0.18);
-    background:
-      radial-gradient(
-        circle at 28% 18%,
-        rgb(255 245 255 / 0.68),
-        transparent 34%
-      ),
-      radial-gradient(
-        circle at 78% 88%,
-        rgb(206 135 208 / 0.2),
-        transparent 42%
-      ),
-      linear-gradient(135deg, #f9c5fa 0%, #efaff0 54%, #e098e1 100%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 249 255 / 0.82),
-      0 20px 36px -28px rgb(131 45 135 / 0.36);
-  }
-}
-
-@supports (color: oklch(from red l c calc(h + 1))) {
-  @media (hover: hover) {
-    html[data-theme="light"] .theme-home-nav-link:hover .theme-home-nav-icon {
-      border-color: oklch(
-        from var(--theme-accent-strong) 55% calc(c * 0.59) h / 0.18
-      );
-      background:
-        radial-gradient(
-          circle at 28% 18%,
-          oklch(from var(--theme-panel-base) 99% calc(c * 1.15) h / 0.68),
-          transparent 34%
-        ),
-        radial-gradient(
-          circle at 78% 88%,
-          oklch(from var(--theme-panel-base) 72% calc(c * 5) h / 0.2),
-          transparent 42%
-        ),
-        linear-gradient(
-          135deg,
-          oklch(from var(--theme-panel-base) 88.5% calc(c * 3.5) h) 0%,
-          oklch(from var(--theme-panel-base) 83.5% calc(c * 4.3) h) 54%,
-          oklch(from var(--theme-panel-base) 77.5% calc(c * 4.9) h) 100%
-        );
-      box-shadow:
-        inset 0 1px 0
-          oklch(from var(--theme-panel-base) 99% calc(c * 0.45) h / 0.82),
-        0 20px 36px -28px
-          oklch(from var(--theme-panel-base) 46% calc(c * 6.2) h / 0.36);
-    }
   }
 }
 
@@ -1761,15 +1296,11 @@ html[data-theme="light"] .theme-home-nav-icon {
 }
 
 .theme-home-nav-svg {
-  color: var(--theme-accent-strong);
+  color: var(--theme-home-nav-svg-color);
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
   transition-duration: 300ms;
   transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-html[data-theme="light"] .theme-home-nav-svg {
-  color: inherit;
 }
 
 .theme-home-nav-link:focus-visible .theme-home-nav-svg {
@@ -1807,7 +1338,6 @@ html[data-theme="light"] .theme-home-nav-svg {
     }
   }
 }
-
 
 .theme-global-search-input {
   border-color: var(--theme-field-on-chrome-border);
@@ -1853,35 +1383,16 @@ html[data-theme="light"] .theme-home-nav-svg {
 }
 
 .theme-home-search-input {
-  border-color: var(--theme-field-border);
-  background-color: var(--theme-field-surface);
+  border-color: var(--theme-home-search-input-border-color);
+  background-color: var(--theme-home-search-input-background-color);
   color: var(--theme-text-primary);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 0 1px color-mix(in srgb, var(--theme-accent) 16%, transparent),
-    0 24px 58px -34px color-mix(in srgb, var(--theme-accent) 88%, transparent);
+  box-shadow: var(--theme-home-search-input-box-shadow);
 }
 
 /* The light search halo rings pull from the --c-plum-pink seed (exactly the
      old rgba(159, 33, 128) literal) so palette presets reach them; the
      desaturated rgba(84, 46, 112) drop shadow is neutral depth, not accent,
      and stays literal like the other light-mode plum shadows. */
-html[data-theme="light"] .theme-home-search-input {
-  border-color: color-mix(
-    in srgb,
-    var(--theme-accent) 34%,
-    var(--theme-border-strong)
-  );
-  background-color: color-mix(
-    in srgb,
-    rgb(255 251 255) 96%,
-    var(--theme-body-bg)
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 0 0 1px rgb(var(--c-plum-pink) / 0.06),
-    0 24px 52px -34px rgba(84, 46, 112, 0.3);
-}
 
 .theme-home-search-input::placeholder {
   color: var(--theme-text-faint);
@@ -1891,38 +1402,14 @@ html[data-theme="light"] .theme-home-search-input {
 
 @media (hover: hover) {
   .theme-home-search-input:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--theme-accent) 64%,
-      var(--theme-border-strong)
-    );
-    background-color: color-mix(
-      in srgb,
-      var(--theme-field-surface) 72%,
-      var(--theme-surface-muted)
-    );
-  }
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-home-search-input:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--theme-accent) 48%,
-      var(--theme-border-strong)
-    );
-    background-color: #fffaff;
+    border-color: var(--theme-home-search-input-hover-border-color);
+    background-color: var(--theme-home-search-input-hover-background-color);
   }
 }
 
 .theme-home-search-input:focus {
   border-color: var(--theme-text-secondary);
-  background-color: var(--theme-field-surface);
-  box-shadow: var(--theme-elevation-field-inset);
-}
-
-html[data-theme="light"] .theme-home-search-input:focus {
-  background-color: #fffaff;
+  background-color: var(--theme-home-search-input-focus-background-color);
   box-shadow: var(--theme-elevation-field-inset);
 }
 
@@ -1958,39 +1445,25 @@ html[data-theme="light"] .theme-home-search-input:focus {
   }
 }
 
-@media (hover: hover) {
-  html[data-theme="light"] .theme-home-search-button:hover {
-    background-color: transparent;
-    box-shadow: none;
-  }
-}
-
 .theme-home-search-divider {
   background-color: var(--theme-divider);
 }
-
 
 /* Search results page: the group cards drop to the dark chrome/inset tone
      (same family as the header, footer, and TOC). The highlight marks and
      suggestion icons, which normally use that inset tone, flip to the mid
      plum chip so they still read against the darker card. */
-html:not([data-theme="light"]) .theme-search-page-shell .theme-public-card {
-  border-color: var(--theme-border-subtle);
-  background: var(--theme-frosted-control-on-panel-bg);
-  box-shadow:
-    0 18px 42px -26px var(--theme-shadow-strong),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+.theme-search-page-shell .theme-public-card {
+  border-color: var(--theme-search-page-card-border-color);
+  background: var(--theme-search-page-card-background);
+  box-shadow: var(--theme-search-page-card-box-shadow);
 }
 
-html:not([data-theme="light"])
-  .theme-search-page-shell
-  .theme-search-highlight-mark,
-html:not([data-theme="light"])
-  .theme-search-page-shell
-  .theme-search-suggestion-icon {
+.theme-search-page-shell .theme-search-highlight-mark,
+.theme-search-page-shell .theme-search-suggestion-icon {
   border-color: transparent;
-  background: var(--theme-plum-chip-bg);
-  box-shadow: var(--theme-plum-chip-shadow);
+  background: var(--theme-search-page-chip-background);
+  box-shadow: var(--theme-search-page-chip-box-shadow);
 }
 
 .theme-search-result-divider {
@@ -2024,45 +1497,22 @@ html:not([data-theme="light"])
 @media (hover: hover) {
   .theme-search-suggestion:hover {
     color: var(--theme-text-primary);
-    border-color: color-mix(
-      in srgb,
-      var(--theme-accent) 18%,
-      var(--theme-border-subtle)
-    );
-    background-color: color-mix(
-      in srgb,
-      var(--theme-accent) 9%,
-      var(--theme-surface-muted)
-    );
+    border-color: var(--theme-search-suggestion-hover-border-color);
+    background: var(--theme-search-suggestion-hover-background);
+    box-shadow: var(--theme-search-suggestion-hover-box-shadow);
   }
 }
 
 .theme-search-suggestion[data-highlighted="true"] {
-  border-color: var(--theme-card-border-strong);
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent) 14%,
-    var(--theme-surface-muted)
-  );
-  box-shadow: inset 0 1px 0
-    color-mix(in srgb, var(--theme-surface-muted) 60%, transparent);
+  border-color: var(--theme-search-suggestion-highlighted-true-border-color);
+  background: var(--theme-search-suggestion-highlighted-background);
+  box-shadow: var(--theme-search-suggestion-highlighted-true-box-shadow);
 }
 
 .theme-search-suggestion-icon {
-  border: 1px solid
-    color-mix(in srgb, var(--theme-accent) 18%, var(--theme-border-subtle));
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent) 10%,
-    var(--theme-body-bg)
-  );
-  color: var(--theme-accent-strong);
-}
-
-html[data-theme="dark"] .theme-search-suggestion-icon {
-  border-color: transparent;
+  border: 1px solid transparent;
   background: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-accent-strong);
+  color: var(--theme-search-suggestion-icon-color);
   box-shadow: var(--theme-frosted-control-on-panel-shadow);
   --tw-ring-color: var(--theme-frosted-control-on-panel-border);
 }
@@ -2072,92 +1522,24 @@ html[data-theme="dark"] .theme-search-suggestion-icon {
 }
 
 .theme-search-suggestion-aliases {
-  color: color-mix(
-    in srgb,
-    var(--theme-text-faint) 92%,
-    var(--theme-text-secondary)
-  );
+  color: var(--theme-search-suggestion-aliases-color);
 }
 
 .theme-search-suggestion-secondary {
-  color: color-mix(
-    in srgb,
-    var(--theme-text-muted) 88%,
-    var(--theme-text-faint)
-  );
+  color: var(--theme-search-suggestion-secondary-color);
 }
 
 .theme-search-best-match {
-  border: 1px solid
-    color-mix(in srgb, var(--theme-accent) 26%, var(--theme-border-subtle));
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent) 12%,
-    var(--theme-body-bg)
-  );
-  color: var(--theme-accent-strong);
-}
-
-html[data-theme="light"] .theme-search-best-match {
-  border-color: var(--theme-search-best-match-border);
-  background: var(--theme-search-best-match-bg);
-  color: var(--theme-search-best-match-text);
-  box-shadow: var(--theme-search-best-match-shadow);
+  border: 1px solid var(--theme-search-best-match-border-color);
+  background: var(--theme-search-best-match-background);
+  color: var(--theme-search-best-match-color);
+  box-shadow: var(--theme-search-best-match-box-shadow);
 }
 
 .theme-search-highlight-mark {
   border-radius: 0.35em;
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent) 18%,
-    var(--theme-surface-muted)
-  );
-  color: var(--theme-text-primary);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-accent) 16%, transparent);
-}
-
-html[data-theme="dark"] .theme-search-highlight-mark {
   background: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-text-primary);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
-}
-
-html[data-theme="light"] .theme-search-suggestion-icon {
-  border-color: transparent;
-  background: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-search-suggestion-icon-text);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
-}
-
-html[data-theme="light"] .theme-search-suggestion-aliases {
-  color: color-mix(in srgb, var(--theme-text-faint) 90%, var(--theme-accent));
-}
-
-html[data-theme="light"] .theme-search-suggestion-secondary {
-  color: var(--theme-search-suggestion-secondary-text);
-}
-
-html[data-theme="light"] .theme-search-suggestion[data-highlighted="true"] {
-  border-color: var(--theme-search-suggestion-active-border);
-  background: var(--theme-search-suggestion-hover-bg);
-  box-shadow: var(--theme-search-suggestion-active-shadow);
-}
-@media (hover: hover) {
-  html[data-theme="light"] .theme-search-suggestion:hover {
-    border-color: var(--theme-search-suggestion-active-border);
-    background: var(--theme-search-suggestion-hover-bg);
-    box-shadow: var(--theme-search-suggestion-active-shadow);
-  }
-}
-
-html[data-theme="light"] .theme-search-suggestion[data-highlighted="true"] {
-  background: var(--theme-search-suggestion-active-bg);
-}
-
-html[data-theme="light"] .theme-search-highlight-mark {
-  background: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-search-highlight-mark-text);
+  color: var(--theme-search-highlight-mark-color);
   box-shadow: var(--theme-frosted-control-on-panel-shadow);
 }
 
@@ -2400,7 +1782,11 @@ html[data-theme="light"] .theme-search-highlight-mark {
 }
 
 @media (hover: hover) {
-  .theme-external-source-pill:hover {
+  .theme-external-source-pill .theme-text-faint {
+  color: var(--theme-external-source-pill-faint-color);
+}
+
+.theme-external-source-pill:hover {
     background-color: var(--theme-name-chip-bg-hover);
     color: var(--theme-name-chip-text-hover);
     --tw-ring-color: var(--theme-name-chip-ring-hover);
@@ -2734,10 +2120,8 @@ html[data-theme="light"] .theme-search-highlight-mark {
 /* The hairline is a light-mode-only separator: a page-coloured footer needs it,
      a dark chrome island does not, and adding one would be a seam the dark theme
      never shows. `.theme-chrome-dark` footers are excluded for that reason. */
-html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
-  border-top: 1px solid var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: var(--theme-frosted-panel-shadow);
+.theme-footer-surface:not(.theme-chrome-dark) {
+  border-top: var(--theme-footer-hairline-width) solid var(--theme-frosted-panel-border);
 }
 
 .theme-text-primary {
@@ -3060,9 +2444,7 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 .theme-aside-panel {
   border: 1px solid var(--theme-border-subtle);
   background: var(--theme-frosted-control-on-panel-bg);
-  box-shadow:
-    0 14px 30px -26px var(--theme-shadow-strong),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--theme-report-dossier-box-shadow);
 }
 
 /* Theme-invariant media-well text, borders, controls, and elevation. These
@@ -3310,13 +2692,6 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   background: color-mix(in srgb, var(--theme-accent) 9%, var(--theme-body-bg));
   box-shadow: 0 0 0 1px
     color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border-subtle));
-}
-
-html[data-theme="light"] .theme-report-dossier,
-html[data-theme="light"] .theme-aside-panel {
-  box-shadow:
-    0 14px 30px -26px var(--theme-shadow-strong),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.7);
 }
 
 .theme-report-phase-onset-text {
@@ -3573,7 +2948,6 @@ html[data-theme="light"] .theme-aside-panel {
   outline-offset: 3px;
 }
 
-
 .theme-toggle-pill {
   border: 1px solid var(--theme-border-subtle);
   background-color: transparent;
@@ -3758,21 +3132,21 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-interaction-danger {
-  border-color: var(--theme-semantic-danger-card-border);
-  background: var(--theme-semantic-danger-card-bg);
-  box-shadow: var(--theme-semantic-danger-card-shadow);
+  border-color: var(--theme-interaction-danger-border-color);
+  background: var(--theme-interaction-danger-background);
+  box-shadow: var(--theme-interaction-danger-box-shadow);
 }
 
 .theme-interaction-unsafe {
-  border-color: var(--theme-semantic-unsafe-card-border);
-  background: var(--theme-semantic-unsafe-card-bg);
-  box-shadow: var(--theme-semantic-unsafe-card-shadow);
+  border-color: var(--theme-interaction-unsafe-border-color);
+  background: var(--theme-interaction-unsafe-background);
+  box-shadow: var(--theme-interaction-unsafe-box-shadow);
 }
 
 .theme-interaction-caution {
-  border-color: var(--theme-semantic-caution-card-border);
-  background: var(--theme-semantic-caution-card-bg);
-  box-shadow: var(--theme-semantic-caution-card-shadow);
+  border-color: var(--theme-interaction-caution-border-color);
+  background: var(--theme-interaction-caution-background);
+  box-shadow: var(--theme-interaction-caution-box-shadow);
 }
 
 /* The severity chip in a card header is a quiet control sitting on a tinted
@@ -3799,8 +3173,8 @@ html[data-theme="light"] .theme-aside-panel {
 }
 
 .theme-molecule-panel {
-  border-color: rgba(255, 255, 255, 0.06);
-  background-color: color-mix(in srgb, rgb(15 10 31) 80%, var(--theme-body-bg));
+  border-color: var(--theme-molecule-panel-border-color);
+  background-color: var(--theme-molecule-panel-background-color);
 }
 
 .theme-molecule-image {
@@ -3830,7 +3204,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 .theme-accent-icon,
 .theme-accent-icon-scope .iconify,
 .theme-accent-icon-scope svg {
-  filter: brightness(1) saturate(1) contrast(1);
+  filter: var(--theme-accent-icon-filter);
   transition: filter 180ms ease;
 }
 
@@ -3880,14 +3254,34 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-metabolite-status-badge-active {
-  color: var(--theme-evidence-text-strong);
+  color: var(--theme-metabolite-status-badge-active-color);
   background: var(--theme-evidence-bg);
   box-shadow: 0 0 0 1px var(--theme-evidence-border);
+}
+
+.theme-metabolite-status-badge-inactive {
+  color: var(--theme-metabolite-status-badge-inactive-color);
 }
 
 .theme-status-badge,
 .theme-external-link-badge-icon {
   transition: color 180ms ease;
+}
+
+.theme-external-link-badge-icon {
+  color: var(--theme-external-link-badge-icon-color);
+  opacity: var(--theme-external-link-badge-icon-opacity);
+  transition:
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+@media (hover: hover) {
+  .group:hover .theme-external-link-badge-icon,
+  .theme-external-link-badge-icon:hover {
+    color: var(--theme-external-link-badge-icon-hover-color);
+    opacity: var(--theme-external-link-badge-icon-hover-opacity);
+  }
 }
 
 .theme-status-badge {
@@ -3985,6 +3379,10 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   --tw-ring-color: var(--theme-frosted-panel-border);
 }
 
+.theme-public-card-subtle {
+  color: var(--theme-public-card-subtle-color);
+}
+
 .theme-article-toc-panel,
 .theme-dose-duration-panel,
 .theme-effect-neutral-panel {
@@ -3992,6 +3390,14 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   background: var(--theme-article-neutral-panel-bg);
   box-shadow: var(--theme-article-neutral-panel-shadow);
   --tw-ring-color: var(--theme-article-neutral-panel-border);
+}
+
+.theme-article-toc-panel,
+.theme-dose-duration-panel {
+  border-color: var(--theme-article-side-panel-border-color);
+  background: var(--theme-article-side-panel-background);
+  box-shadow: var(--theme-article-side-panel-box-shadow);
+  --tw-ring-color: var(--theme-article-side-panel-border-color);
 }
 
 @media (hover: hover) {
@@ -4017,6 +3423,12 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-text-primary);
   box-shadow: var(--theme-frosted-control-shadow);
   --tw-ring-color: var(--theme-frosted-control-border);
+}
+
+.theme-author-avatar-placeholder {
+  background: var(--theme-author-avatar-placeholder-background);
+  box-shadow: var(--theme-author-avatar-placeholder-box-shadow);
+  --tw-ring-color: var(--theme-author-avatar-placeholder-tw-ring-color);
 }
 
 .theme-name-chip-interactive:focus-visible,
@@ -4047,50 +3459,26 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-html[data-theme="light"] .theme-toggle-pill {
-  background: var(--theme-toggle-pill-bg);
-}
-
-html[data-theme="light"] .theme-toggle-pill:focus-visible {
-  background: var(--theme-toggle-pill-bg);
-}
-@media (hover: hover) {
-  html[data-theme="light"] .theme-toggle-pill:hover {
-    background: var(--theme-toggle-pill-bg);
-  }
-}
-
-html[data-theme="light"] .theme-toggle-thumb {
-  background: var(--theme-frosted-panel-bg);
-}
-
-html:not([data-theme="light"]) .theme-toggle-pill {
+.theme-toggle-pill {
   border-color: transparent;
   background: var(--theme-toggle-pill-bg);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+  box-shadow: var(--theme-toggle-pill-box-shadow);
+  --tw-ring-color: var(--theme-toggle-pill-tw-ring-color);
 }
 
-html:not([data-theme="light"]) .theme-toggle-pill:focus-visible {
+.theme-toggle-pill:focus-visible {
   border-color: transparent;
-  background: var(--theme-frosted-control-on-panel-hover-bg);
-  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
-  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+  background: var(--theme-toggle-pill-focus-visible-background);
+  box-shadow: var(--theme-toggle-pill-active-box-shadow);
+  --tw-ring-color: var(--theme-toggle-pill-active-tw-ring-color);
 }
 @media (hover: hover) {
-  html:not([data-theme="light"]) .theme-toggle-pill:hover {
+  .theme-toggle-pill:hover {
     border-color: transparent;
-    background: var(--theme-frosted-control-on-panel-hover-bg);
-    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
-    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+    background: var(--theme-toggle-pill-hover-background);
+    box-shadow: var(--theme-toggle-pill-active-box-shadow);
+    --tw-ring-color: var(--theme-toggle-pill-active-tw-ring-color);
   }
-}
-
-html:not([data-theme="light"]) .theme-toggle-thumb {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: var(--theme-frosted-panel-shadow);
-  --tw-ring-color: var(--theme-frosted-panel-border);
 }
 
 :is(
@@ -4181,7 +3569,10 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
       .theme-citation-marker:hover,
       .theme-control-pill:hover,
       .theme-control-pill-quiet:hover,
-      .theme-icon-button:hover
+      .theme-icon-button:hover,
+      .theme-interaction-severity-badge-danger:hover,
+      .theme-interaction-severity-badge-unsafe:hover,
+      .theme-interaction-severity-badge-caution:hover
     ) {
     background: var(--theme-frosted-control-on-panel-hover-bg);
     box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
@@ -4206,7 +3597,10 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-selected-control {
+  border-color: transparent;
+  background: transparent;
   color: var(--theme-text-secondary);
+  box-shadow: none;
   --tw-ring-color: transparent;
 }
 
@@ -4216,7 +3610,10 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 @media (hover: hover) {
   .theme-selected-control:hover {
+    border-color: transparent;
+    background: transparent;
     color: var(--theme-text-primary);
+    box-shadow: none;
   }
 }
 
@@ -4231,7 +3628,11 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-selected-control-icon {
-  color: var(--theme-text-secondary);
+  border-color: transparent;
+  background: transparent;
+  color: var(--theme-selected-control-icon-rest-color);
+  box-shadow: none;
+  --tw-ring-color: transparent;
 }
 
 .theme-selected-control:focus-visible .theme-selected-control-icon,
@@ -4625,14 +4026,18 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 .theme-dose-detail-row,
 .theme-plateau-tier-row {
   border-color: transparent;
-  background: color-mix(
-    in srgb,
-    var(--theme-field-on-panel-surface) 88%,
-    var(--theme-text-primary) 2%
-  );
+  background: var(--theme-duration-stage-row-background);
   color: var(--theme-text-primary);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
-  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+  box-shadow: var(--theme-dose-tier-row-box-shadow);
+  --tw-ring-color: var(--theme-dose-tier-row-tw-ring-color);
+}
+
+.theme-dose-tier-row {
+  background: var(--theme-dose-tier-row-background);
+}
+
+.theme-plateau-tier-row {
+  background: var(--theme-plateau-tier-row-background);
 }
 
 /* Dose tier tints: dark-theme values for the tier scale; the light theme
@@ -4646,68 +4051,23 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-dose-tier-row [data-dose-tier="threshold"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-dose-tier-threshold) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-dose-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-dose-tier-row-dose-tier-threshold-background-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="light"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-dose-tier-light) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-dose-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-dose-tier-row-dose-tier-light-background-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="moderate"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-dose-tier-moderate) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-dose-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-dose-tier-row-dose-tier-moderate-background-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="strong"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-dose-tier-strong) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-dose-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-dose-tier-row-dose-tier-strong-background-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="heavy"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-dose-tier-heavy) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-dose-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-dose-tier-row-dose-tier-heavy-background-image);
 }
 
 /* Plateau tier tints mirror the dose tier construction; Sigma carries
@@ -4718,68 +4078,23 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-plateau-tier-row [data-plateau-tier="first_plateau"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-plateau-tier-first) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-plateau-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-plateau-tier-row-plateau-tier-first-plateau-background-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="second_plateau"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-plateau-tier-second) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-plateau-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-plateau-tier-row-plateau-tier-second-plateau-background-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="third_plateau"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-plateau-tier-third) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-plateau-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-plateau-tier-row-plateau-tier-third-plateau-background-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="fourth_plateau"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-plateau-tier-fourth) 55%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-plateau-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-plateau-tier-row-plateau-tier-fourth-plateau-background-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="fifth_plateau"] {
-  background-image: linear-gradient(
-    90deg,
-    color-mix(
-      in srgb,
-      var(--theme-plateau-tier-fifth) 62%,
-      var(--theme-field-on-panel-surface-alt)
-    ),
-    var(--theme-plateau-tier-fade) 70%,
-    transparent 100%
-  );
+  background-image: var(--theme-plateau-tier-row-plateau-tier-fifth-plateau-background-image);
 }
 
 .theme-dosage-mode-tab {
@@ -4806,9 +4121,13 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
   top: var(--public-toc-strip-top, var(--theme-header-height, 4.25rem));
 }
 
+.theme-article-toc-panel h2 {
+  color: var(--theme-article-toc-panel-heading-color);
+}
+
 .theme-toc-strip-bar {
-  background: var(--theme-article-neutral-panel-bg);
-  border-bottom: 1px solid var(--theme-article-neutral-panel-border);
+  background: var(--theme-toc-strip-bar-background);
+  border-bottom: 1px solid var(--theme-toc-strip-bar-border-color);
 }
 
 .theme-article-toc-item:focus-visible {
@@ -4864,6 +4183,10 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
   );
 }
 
+.theme-duration-stage-row:nth-child(even) {
+  background: var(--theme-duration-stage-row-nth-child-even-background);
+}
+
 /* LD50 toxicity table — dress the real <table> in the same frosted
      control-on-panel material as the dose/duration in-card tables: a frosted
      surface with a soft shadow ring instead of a hard border, zebra rows
@@ -4878,7 +4201,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-ld50-table-head {
-  background: var(--theme-field-on-panel-surface-alt);
+  background: var(--theme-ld50-table-head-background);
 }
 
 .theme-ld50-table-head th {
@@ -4894,11 +4217,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 .theme-ld50-table-row:nth-child(even) {
-  background: color-mix(
-    in srgb,
-    var(--theme-field-on-panel-surface-alt) 82%,
-    var(--theme-article-neutral-panel-border)
-  );
+  background: var(--theme-ld50-table-row-nth-child-even-background);
 }
 
 @media (hover: hover) {
@@ -4972,7 +4291,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 
 .theme-dose-detail-expanded,
 .theme-plateau-tier-expanded {
-  background: var(--theme-field-on-panel-surface-alt);
+  background: var(--theme-dose-detail-expanded-background);
 }
 
 /* The expanded rationale is a well cut into the tone panel, dressed like the
@@ -5022,50 +4341,25 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
      plum-grey panel recipe. The featured ("Common") panel keeps the default
      purple index surface for contrast. Light values in theme-light-mode.css. */
 .theme-index-card-dim {
-  border-color: var(--theme-article-neutral-panel-border);
-  background: var(--theme-article-neutral-panel-bg);
+  border-color: var(--theme-index-card-dim-border-color);
+  background: var(--theme-index-card-dim-background);
+  color: var(--theme-index-card-dim-color);
   box-shadow: var(--theme-article-neutral-panel-shadow);
 }
 
-/* Light equivalent: the neutral-panel tokens are nearly white in light
-     mode, so the dim panel needs an explicitly grey (low-chroma plum) recipe
-     to read as distinct from the pink frosted default surface. Doubled class
-     plus !important to outrank the light-mode frosted-card remap, which
-     force-restyles every .theme-public-card-hover-quiet surface. */
-html[data-theme="light"] .theme-index-card-dim.theme-index-card-dim {
-  border-color: oklch(58% 0.012 318 / 0.22) !important;
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(99% 0.002 318 / 0.9),
-      transparent 42%
-    ),
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, oklch(95.5% 0.004 318) 96%, var(--theme-body-bg)),
-      color-mix(in srgb, oklch(91.5% 0.008 318) 96%, var(--theme-body-bg))
-    ) !important;
-  color: var(--theme-text-secondary);
-  box-shadow: var(--theme-article-neutral-panel-shadow) !important;
-}
-
-html:not([data-theme="light"]) .theme-index-card-link:focus-visible {
+.theme-index-card-link:focus-visible {
   background: var(--theme-frosted-control-on-panel-hover-bg) !important;
   color: var(--theme-accent-strong) !important;
   box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
-  --tw-ring-color: var(
-    --theme-frosted-control-on-panel-hover-border
-  ) !important;
+  --tw-ring-color: var(--theme-index-card-link-focus-visible-tw-ring-color);
 }
 
 @media (hover: hover) {
-  html:not([data-theme="light"]) .theme-index-card-link:hover {
+  .theme-index-card-link:hover {
     background: var(--theme-frosted-control-on-panel-hover-bg) !important;
     color: var(--theme-accent-strong) !important;
     box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
-    --tw-ring-color: var(
-      --theme-frosted-control-on-panel-hover-border
-    ) !important;
+    --tw-ring-color: var(--theme-index-card-link-hover-tw-ring-color);
   }
 }
 
@@ -5080,7 +4374,9 @@ html:not([data-theme="light"]) .theme-index-card-link:focus-visible {
 }
 
 .theme-index-card-icon {
-  background: var(--theme-frosted-control-on-panel-bg);
+  border-color: var(--theme-index-card-icon-border-color);
+  color: var(--theme-index-card-icon-color);
+  background: var(--theme-index-card-icon-background);
   box-shadow: var(--theme-frosted-control-on-panel-shadow);
   --tw-ring-color: var(--theme-frosted-control-on-panel-border);
 }
@@ -5115,11 +4411,11 @@ html:not([data-theme="light"]) .theme-index-card-link:focus-visible {
 }
 
 .theme-index-card-title-accent {
-  color: var(--theme-accent-soft);
+  color: var(--theme-index-card-title-accent-color);
 }
 
 .theme-index-card-toggle {
-  color: color-mix(in srgb, var(--theme-text-faint) 78%, var(--theme-body-bg));
+  color: var(--theme-index-card-toggle-color);
 }
 
 .theme-about-json-preview,
@@ -5140,92 +4436,21 @@ html:not([data-theme="light"]) .theme-index-card-link:focus-visible {
 /* Pro is excluded: this is a glass recipe (white sheen over a cool near-black)
      and it is layered `!important`, so the flat Pro sheet cannot out-cascade it
      from outside a layer. pro-theme.css paints the panel instead. */
-html:not([data-theme="light"]):not([data-visual-style="pro"])
-  .theme-reagent-results-panel {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      rgba(255, 255, 255, 0.055),
-      transparent 38%
-    ),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, rgb(24 24 27) 96%, var(--theme-body-bg)),
-      color-mix(in srgb, rgb(14 14 17) 98%, var(--theme-body-bg))
-    ) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 18px 34px -30px rgba(255, 255, 255, 0.12),
-    0 18px 36px -32px rgba(0, 0, 0, 0.86) !important;
+.theme-reagent-results-panel {
+  border: 1px solid var(--theme-reagent-results-panel-border-color);
+  background: var(--theme-reagent-results-panel-background);
+  box-shadow: var(--theme-reagent-results-panel-box-shadow);
 }
 
 .theme-reagent-swatch {
-  --theme-reagent-swatch-label-overlay: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.12) 0%,
-    transparent 40%,
-    rgba(0, 0, 0, 0.2) 100%
-  );
-  --theme-reagent-swatch-spectrum-overlay: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.08) 0%,
-    transparent 40%,
-    rgba(0, 0, 0, 0.15) 100%
-  );
-  --theme-reagent-swatch-label-border-top: rgba(255, 255, 255, 0.15);
-  --theme-reagent-swatch-label-border-bottom: rgba(0, 0, 0, 0.3);
-  --theme-reagent-swatch-spectrum-border-top: rgba(255, 255, 255, 0.2);
-  --theme-reagent-swatch-spectrum-border-bottom: rgba(0, 0, 0, 0.25);
-  --theme-reagent-swatch-spectrum-seam-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.1), inset 2px 0 4px rgba(0, 0, 0, 0.3);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-    0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-html[data-theme="light"] .theme-reagent-swatch {
-  --theme-reagent-swatch-label-overlay: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--theme-surface-strong) 18%, transparent) 0%,
-    transparent 42%,
-    rgba(0, 0, 0, 0.16) 100%
-  );
-  --theme-reagent-swatch-spectrum-overlay: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--theme-surface-strong) 14%, transparent) 0%,
-    transparent 42%,
-    rgba(0, 0, 0, 0.12) 100%
-  );
-  --theme-reagent-swatch-label-border-top: var(
-    --theme-frosted-control-on-panel-border
-  );
-  --theme-reagent-swatch-label-border-bottom: color-mix(
-    in srgb,
-    var(--theme-shadow-soft) 24%,
-    transparent
-  );
-  --theme-reagent-swatch-spectrum-border-top: color-mix(
-    in srgb,
-    var(--theme-frosted-control-on-panel-border) 78%,
-    transparent
-  );
-  --theme-reagent-swatch-spectrum-border-bottom: color-mix(
-    in srgb,
-    var(--theme-shadow-soft) 18%,
-    transparent
-  );
-  --theme-reagent-swatch-spectrum-seam-shadow:
-    inset 1px 0 0
-      color-mix(
-        in srgb,
-        var(--theme-frosted-control-on-panel-border) 85%,
-        transparent
-      ),
-    inset 2px 0 4px
-      color-mix(in srgb, var(--theme-shadow-soft) 22%, transparent);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  
+  
+  
+  
+  
+  
+  
+  box-shadow: var(--theme-reagent-swatch-box-shadow);
 }
 
 /* Seam between the darkened label surface and the bright spectrum bar. The
@@ -5943,17 +5168,11 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-
 /* Alpha-edge glow for transparent artwork (the /china banner). A drop-shadow
    filter traces the painted silhouette rather than the image box; light mode
    drops it because a pale halo on a pale page reads as a smudge. */
 .theme-cutout-glow {
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theme-accent-strong) 22%, transparent))
-    drop-shadow(0 0 1.5px color-mix(in srgb, var(--theme-text-primary) 18%, transparent));
-}
-
-html[data-theme="light"] .theme-cutout-glow {
-  filter: none;
+  filter: var(--theme-cutout-glow-filter);
 }
 
 /* /china delight. Every motion here sits behind the reduced-motion query and
