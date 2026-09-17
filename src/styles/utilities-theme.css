@@ -2513,7 +2513,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-media-settings-item:is(:hover, :focus-visible) {
-  background-color: var(--theme-frosted-control-on-panel-bg);
+  background: var(--theme-frosted-control-on-panel-bg);
 }
 
 /* Accent playback meter: the hairline video progress fill at the bottom of
@@ -3056,15 +3056,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-article-hero-summary {
-  --theme-article-hero-summary-divider: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.05) 4%,
-    rgba(255, 255, 255, 0.12) 16%,
-    rgba(255, 255, 255, 0.12) 84%,
-    rgba(255, 255, 255, 0.05) 96%,
-    transparent 100%
-  );
   position: relative;
 }
 
@@ -3359,6 +3350,13 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   --tw-ring-color: var(--theme-article-neutral-panel-border);
 }
 
+/* The light scheme draws a hairline around these panels; dark keeps them
+   borderless, so the width is a token rather than a call-site utility. */
+.theme-dose-duration-panel,
+.theme-feedback-icon-well {
+  border-width: var(--theme-panel-hairline-width);
+}
+
 .theme-article-toc-panel,
 .theme-dose-duration-panel {
   border-color: var(--theme-article-side-panel-border-color);
@@ -3634,6 +3632,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
     border-radius: 50%;
     pointer-events: none;
     background: var(--theme-body-bg);
+    box-shadow: var(--theme-route-tab-well-shadow, none);
     opacity: 0;
     transform: scale(0.55);
     transition:

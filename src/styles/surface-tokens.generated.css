@@ -223,7 +223,9 @@ html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"]
   --theme-index-card-dim-background: radial-gradient(circle at 14% 0%, #351b3e, transparent 38%),
     linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), #16001e);
   --theme-index-card-dim-color: inherit;
+  --theme-article-hero-summary-divider: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 4%, rgba(255, 255, 255, 0.12) 16%, rgba(255, 255, 255, 0.12) 84%, rgba(255, 255, 255, 0.05) 96%, transparent 100%);
   --theme-footer-hairline-width: 0;
+  --theme-panel-hairline-width: 0;
   --theme-external-source-pill-faint-color: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
   --theme-index-card-title-accent-color: #f5d0fe;
   --theme-index-card-icon-background: radial-gradient(circle at 12% 0%, oklch(17% 0.03 318), oklch(12% 0.022 318) 38%),
@@ -242,8 +244,8 @@ html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"]
   --theme-article-toc-panel-heading-color: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
   --theme-metabolite-status-badge-inactive-color: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
   --theme-reagent-results-panel-border-color: rgba(255, 255, 255, 0.08);
-  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(24 24 27) 96%, #110617), color-mix(in srgb, rgb(14 14 17) 98%, #110617)) !important;
-  --theme-reagent-results-panel-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 18px 34px -30px rgba(255, 255, 255, 0.12), 0 18px 36px -32px rgba(0, 0, 0, 0.86) !important;
+  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(24 24 27) 96%, #110617), color-mix(in srgb, rgb(14 14 17) 98%, #110617));
+  --theme-reagent-results-panel-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 18px 34px -30px rgba(255, 255, 255, 0.12), 0 18px 36px -32px rgba(0, 0, 0, 0.86);
   --theme-molecule-panel-border-color: rgba(255, 255, 255, 0.06);
   --theme-molecule-panel-background-color: color-mix(in srgb, rgb(15 10 31) 80%, #110617);
   --theme-control-pill-background-color: color-mix(in srgb, #070015 78%, #110617);
@@ -564,7 +566,17 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   --theme-index-card-dim-border-color: oklch(58% 0.012 318 / 0.22);
   --theme-index-card-dim-background: radial-gradient(circle at 12% 0%, oklch(99% 0.002 318 / 0.9), transparent 42%), linear-gradient(160deg, color-mix(in srgb, oklch(95.5% 0.004 318) 96%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(91.5% 0.008 318) 96%, oklch(99.4% 0.002 326)));
   --theme-index-card-dim-color: oklch(35% 0.058 316);
+  --theme-article-hero-summary-divider: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(48% 0.085 326 / 0.08) 4%,
+    oklch(48% 0.085 326 / 0.16) 16%,
+    oklch(48% 0.085 326 / 0.16) 84%,
+    oklch(48% 0.085 326 / 0.08) 96%,
+    transparent 100%
+  );
   --theme-footer-hairline-width: 1px;
+  --theme-panel-hairline-width: 1px;
   --theme-external-source-pill-faint-color: oklch(43% 0.045 316);
   --theme-index-card-title-accent-color: oklch(43% 0.205 326);
   --theme-index-card-icon-background: #fff;
@@ -658,15 +670,6 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
     0 10px 20px -14px oklch(38% 0.08 316 / 0.36),
     inset 0 1px 0 oklch(100% 0 0 / 0.58);
   --theme-external-source-pill-faint-text: oklch(43% 0.045 316);
-  --theme-article-hero-summary-divider: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(48% 0.085 326 / 0.08) 4%,
-    oklch(48% 0.085 326 / 0.16) 16%,
-    oklch(48% 0.085 326 / 0.16) 84%,
-    oklch(48% 0.085 326 / 0.08) 96%,
-    transparent 100%
-  );
 }
 
 @supports (color: oklch(from red l c calc(h + 1))) {

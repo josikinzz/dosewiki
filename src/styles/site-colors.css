@@ -792,7 +792,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-index-card-dim-border-color: var(--theme-article-neutral-panel-border);
   --theme-index-card-dim-background: var(--theme-article-neutral-panel-bg);
   --theme-index-card-dim-color: inherit;
+  --theme-article-hero-summary-divider: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 4%, rgba(255, 255, 255, 0.12) 16%, rgba(255, 255, 255, 0.12) 84%, rgba(255, 255, 255, 0.05) 96%, transparent 100%);
   --theme-footer-hairline-width: 0;
+  --theme-panel-hairline-width: 0;
   --theme-external-source-pill-faint-color: var(--theme-text-faint);
   --theme-index-card-title-accent-color: var(--theme-accent-soft);
   --theme-index-card-icon-background: var(--theme-frosted-control-on-panel-bg);
@@ -810,8 +812,8 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-selected-control-icon-rest-color: var(--theme-text-secondary);
   --theme-metabolite-status-badge-inactive-color: var(--theme-text-faint);
   --theme-reagent-results-panel-border-color: rgba(255, 255, 255, 0.08);
-  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(24 24 27) 96%, var(--theme-body-bg)), color-mix(in srgb, rgb(14 14 17) 98%, var(--theme-body-bg))) !important;
-  --theme-reagent-results-panel-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 18px 34px -30px rgba(255, 255, 255, 0.12), 0 18px 36px -32px rgba(0, 0, 0, 0.86) !important;
+  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(24 24 27) 96%, var(--theme-body-bg)), color-mix(in srgb, rgb(14 14 17) 98%, var(--theme-body-bg)));
+  --theme-reagent-results-panel-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 18px 34px -30px rgba(255, 255, 255, 0.12), 0 18px 36px -32px rgba(0, 0, 0, 0.86);
   --theme-molecule-panel-border-color: rgba(255, 255, 255, 0.06);
   --theme-molecule-panel-background-color: color-mix(in srgb, rgb(15 10 31) 80%, var(--theme-body-bg));
   --theme-accent-icon-filter: brightness(1) saturate(1) contrast(1);
@@ -1505,6 +1507,7 @@ html[data-theme="light"] {
   --theme-index-card-dim-background: radial-gradient(circle at 12% 0%, oklch(99% 0.002 318 / 0.9), transparent 42%), linear-gradient(160deg, color-mix(in srgb, oklch(95.5% 0.004 318) 96%, var(--theme-body-bg)), color-mix(in srgb, oklch(91.5% 0.008 318) 96%, var(--theme-body-bg)));
   --theme-index-card-dim-color: var(--theme-text-secondary);
   --theme-footer-hairline-width: 1px;
+  --theme-panel-hairline-width: 1px;
   --theme-article-hero-summary-divider: var(--theme-article-hero-divider);
   --theme-external-source-pill-faint-color: var(--theme-external-source-pill-faint-text);
   --theme-index-card-title-accent-color: var(--theme-accent-strong);

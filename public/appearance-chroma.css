@@ -202,7 +202,7 @@ html[data-chroma]:not([data-surface])[data-theme="dark"]:where(:not([data-visual
   --theme-toc-strip-bar-border-color: oklch(72% calc(0.012 * var(--dw-surface-gain)) calc(318 + var(--dw-surface-hue, 0)) / 0.16);
   --theme-article-toc-panel-heading-color: color-mix(in srgb, rgb(255 255 255) 56%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))));
   --theme-metabolite-status-badge-inactive-color: color-mix(in srgb, rgb(255 255 255) 56%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))));
-  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from rgb(24 24 27) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 96%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)))), color-mix(in srgb, oklch(from rgb(14 14 17) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 98%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))))) !important;
+  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from rgb(24 24 27) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 96%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)))), color-mix(in srgb, oklch(from rgb(14 14 17) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 98%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)))));
   --theme-molecule-panel-background-color: color-mix(in srgb, oklch(from rgb(15 10 31) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 80%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))));
   --theme-control-pill-background-color: color-mix(in srgb, oklch(from #070015 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 78%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))));
   --theme-control-pill-focus-visible-background-color: color-mix(in srgb, color-mix(in srgb, oklch(from rgb(22 15 39) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 96%, oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)))) 82%, oklch(from #f0abfc l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 8%);
@@ -443,6 +443,15 @@ html[data-chroma]:not([data-surface])[data-theme="light"]:where(:not([data-visua
   --theme-index-card-dim-border-color: oklch(58% calc(0.012 * var(--dw-surface-gain)) calc(318 + var(--dw-surface-hue, 0)) / 0.22);
   --theme-index-card-dim-background: radial-gradient(circle at 12% 0%, oklch(99% 0.002 318 / 0.9), transparent 42%), linear-gradient(160deg, color-mix(in srgb, oklch(95.5% 0.004 318) 96%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(91.5% calc(0.008 * var(--dw-surface-gain)) calc(318 + var(--dw-surface-hue, 0))) 96%, oklch(99.4% 0.002 326)));
   --theme-index-card-dim-color: oklch(35% calc(0.058 * var(--dw-surface-gain)) calc(316 + var(--dw-surface-hue, 0)));
+  --theme-article-hero-summary-divider: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.08) 4%,
+    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.16) 16%,
+    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.16) 84%,
+    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.08) 96%,
+    transparent 100%
+  );
   --theme-external-source-pill-faint-color: oklch(43% calc(0.045 * var(--dw-surface-gain)) calc(316 + var(--dw-surface-hue, 0)));
   --theme-index-card-title-accent-color: oklch(43% calc(0.205 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)));
   --theme-external-link-badge-icon-color: oklch(27% calc(0.082 * var(--dw-surface-gain)) calc(316 + var(--dw-surface-hue, 0)));
@@ -528,15 +537,6 @@ html[data-chroma]:not([data-surface])[data-theme="light"]:where(:not([data-visua
     0 10px 20px -14px oklch(38% calc(0.08 * var(--dw-surface-gain)) calc(316 + var(--dw-surface-hue, 0)) / 0.36),
     inset 0 1px 0 oklch(100% 0 0 / 0.58);
   --theme-external-source-pill-faint-text: oklch(43% calc(0.045 * var(--dw-surface-gain)) calc(316 + var(--dw-surface-hue, 0)));
-  --theme-article-hero-summary-divider: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.08) 4%,
-    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.16) 16%,
-    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.16) 84%,
-    oklch(48% calc(0.085 * var(--dw-surface-gain)) calc(326 + var(--dw-surface-hue, 0)) / 0.08) 96%,
-    transparent 100%
-  );
 }
 
 html[data-chroma]:not([data-surface])[data-theme="dark"][data-visual-style="pro"] {

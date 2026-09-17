@@ -40,12 +40,12 @@
   }
 
   .theme-deep-list-row[data-active="true"] {
-    background-color: var(--theme-frosted-control-on-panel-hover-bg);
+    background: var(--theme-frosted-control-on-panel-hover-bg);
   }
 
   @media (hover: hover) {
     .theme-deep-list-row:hover {
-      background-color: var(--theme-frosted-control-on-panel-hover-bg);
+      background: var(--theme-frosted-control-on-panel-hover-bg);
     }
   }
 
@@ -145,7 +145,7 @@
   }
 
   .theme-replication-association-row {
-    background-color: var(--theme-frosted-control-on-panel-bg);
+    background: var(--theme-frosted-control-on-panel-bg);
     box-shadow: var(--theme-frosted-control-on-panel-shadow);
   }
 
@@ -377,7 +377,7 @@
 
   .theme-review-trophy-medallion {
     border-color: var(--theme-border-subtle);
-    background-color: var(--theme-frosted-control-on-panel-bg);
+    background: var(--theme-frosted-control-on-panel-bg);
     color: var(--theme-text-faint);
   }
 

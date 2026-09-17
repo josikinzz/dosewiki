@@ -345,7 +345,7 @@ export function MediaTile({
                 ) : null}
               </div>
               {mediaType === "video" ? (
-                <span className="theme-overlay-surface rounded-full p-2">
+                <span className="theme-overlay-surface theme-feedback-icon-well rounded-full p-2">
                   <Icon
                     icon="lucide:play"
                     className="h-3.5 w-3.5 fill-current"
