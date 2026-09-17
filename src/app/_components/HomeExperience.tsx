@@ -1,7 +1,6 @@
 import { SmartLink } from "@/components/common/SmartLink";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon } from "@/components/common/Icon";
-import { SiteSupporter } from "@/components/common/SiteSupporter";
 import { SiteVersionBadge } from "@/components/common/SiteVersionBadge";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -94,11 +93,6 @@ export function HomeExperience({
             </nav>
           )}
         </section>
-
-        <SiteSupporter
-          markHeightRem={1.75}
-          className="theme-home-corner-widget fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
-        />
 
         <HomeMailingListCorner />
       </main>

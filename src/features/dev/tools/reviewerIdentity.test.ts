@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 
 import { formatReviewerIdentity } from "./reviewerIdentity";
 
+process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS = "LYREA,OLDHANDLE";
+afterAll(() => {
+  delete process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS;
+});
+
 describe("formatReviewerIdentity", () => {
   it("resolves legacy local reviewer handles to the contributor display name", () => {
-    expect(formatReviewerIdentity("witchy@local.dose.wiki")).toBe("Lyrea");
+    expect(formatReviewerIdentity("oldhandle@local.dose.wiki")).toBe("Lyrea");
   });
 
   it("formats unknown local credential handles without exposing the email domain", () => {

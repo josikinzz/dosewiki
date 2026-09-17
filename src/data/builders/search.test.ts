@@ -365,7 +365,7 @@ describe("search index", () => {
 
     const built = buildSearchIndex(input);
     expect(built.query("lyrea")[0]).toMatchObject({ type: "profile", slug: "LYREA" });
-    expect(built.query("witchy")).toEqual([]);
+    expect(built.query("oldhandle")).toEqual([]);
     expect(built.entries.some((entry) => entry.type === "profile" && entry.aliases)).toBe(false);
   });
 

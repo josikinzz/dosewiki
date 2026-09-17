@@ -69,23 +69,38 @@ export function normalizeProfileAliases(value: readonly string[] | null | undefi
   );
 }
 
+const EMPTY_HANDLE_GROUPS: readonly (readonly string[])[] = [];
+let cachedGroupsSource = "";
+let cachedGroups: readonly (readonly string[])[] = EMPTY_HANDLE_GROUPS;
+
 /**
  * Retired login handles that belong to the same person as a live profile key.
  *
  * These used to live as ordinary profile aliases, but unauthenticated profile
  * reads (`contributorProfiles:getAll`) ship stored aliases verbatim, and a
- * retired handle like "witchy" must never leave the deployment — so the alias
- * was scrubbed from the stored row and the identity fact moved here, where
- * attribution code can keep matching against it without ever emitting it.
- * Both the Postgres reviewer-email derivation and the changelog submitter
- * matching expand through these groups.
+ * retired handle must never leave the deployment. The alias was scrubbed from
+ * the stored row and the identity fact moved to the deployment environment:
+ * `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` lists groups separated by `;`, handles
+ * within a group separated by `,` (e.g. `CURRENT,RETIRED`), any casing. Empty
+ * when unset, so browser bundles and unconfigured deployments simply match
+ * nothing extra. Both the Postgres reviewer-email derivation and the changelog
+ * submitter matching expand through these groups without ever emitting them.
  */
-export const LEGACY_CONTRIBUTOR_HANDLE_GROUPS: readonly (readonly string[])[] = [
-  ["LYREA", "WITCHY"],
-];
+export function legacyContributorHandleGroups(): readonly (readonly string[])[] {
+  const raw = typeof process === "undefined" ? undefined : process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS;
+  if (!raw) return EMPTY_HANDLE_GROUPS;
+  if (raw !== cachedGroupsSource) {
+    cachedGroupsSource = raw;
+    cachedGroups = raw
+      .split(";")
+      .map((group) => group.split(",").map(normalizeProfileKey).filter(Boolean))
+      .filter((group) => group.length > 1);
+  }
+  return cachedGroups;
+}
 
 /**
- * Normalize the given handles (profile key, aliases, legacy stamps — any
+ * Normalize the given handles (profile key, aliases, legacy stamps, any
  * casing) and pull in every legacy-group sibling. Returns uppercase keys,
  * ready for stamp comparison or lowercasing into legacy credential emails.
  */
@@ -97,7 +112,7 @@ export function expandLegacyContributorHandles(handles: Iterable<string>): Set<s
       expanded.add(normalized);
     }
   }
-  for (const group of LEGACY_CONTRIBUTOR_HANDLE_GROUPS) {
+  for (const group of legacyContributorHandleGroups()) {
     if (group.some((member) => expanded.has(member))) {
       for (const member of group) {
         expanded.add(member);

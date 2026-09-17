@@ -37,7 +37,7 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   neither tool needs the wedge/hash swap that mirroring does.
 - **Bold bonds:** the **Bold bonds** button arms the same click-to-pick overlay in toggle mode:
   each clicked bond flips between normal and bold and the mode stays armed
-  until Esc or the button. The published look was hand-tuned by Witchy on a slider tool
+  until Esc or the button. The published look was hand-tuned by Lyrea on a slider tool
   (revised 7 Aug 2026): bold body 3.25 px (~3× the brand line), rounded free ends, a joint
   that takes the adjacent solid wedge's own drawn corners (one connected shape), join discs
   at bold-to-bold elbows and free ends, and a 3.3 px see-through crossing gap that breaks

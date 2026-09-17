@@ -3,13 +3,15 @@
  * Dataset pack builder.
  *
  * Turns every corpus artifact into a pair of downloadable files under
- * `public/`: the locale translation and the English source it was translated
- * from, in the same structure and record order, so a reader can hold one
- * beside the other. The manifest names each dataset, its licence, the
- * revision of the source, both item counts, both checksums, and the review
- * verdict, which stays null until a reader of the language records one in
- * the corpus QA packet. The packs exist so that review can happen; the
- * verdict travels with them rather than gating them.
+ * `public/downloads/<locale>/`: the locale translation and the English source
+ * it was translated from, in the same structure and record order, so a reader
+ * can hold one beside the other. The output directory is gitignored; it is
+ * built before each deploy and ships as a deployment artifact, never as a
+ * commit. The manifest names each dataset, its licence, the revision of the
+ * source, both item counts, both checksums, and the review verdict, which
+ * stays null until a reader of the language records one in the corpus QA
+ * packet. The packs exist so that review can happen; the verdict travels with
+ * them rather than gating them.
  *
  * Determinism does the load-bearing work: building twice from unchanged
  * inputs produces identical bytes, so a rebuild that changes a checksum means

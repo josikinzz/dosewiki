@@ -27,6 +27,10 @@ public/rdkit/
 public/images/social/substances/*.jpg
 public/images/social/pages/*.jpg
 public/images/social/entities/**/*.jpg
+# ProtestKit reagent data: used with permission, not redistributable
+/data/third-party/protestkit/
+# Translation packs are built by translate:packs and deployed as artifacts, not committed
+/public/downloads/zh-Hans/
 output/
 outputs/
 

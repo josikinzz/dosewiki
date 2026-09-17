@@ -1,6 +1,7 @@
 import contributorProfiles from "@data/contributors/userProfiles.json";
 import {
   deriveProfileKeyFromEmail,
+  expandLegacyContributorHandles,
   findContributorProfileByKeyOrAlias,
   toContributorDisplayName,
 } from "../../../../lib/contributorProfileIdentity";
@@ -13,7 +14,10 @@ const REVIEWER_PROFILES = contributorProfiles.map((profile) => ({
 
 /**
  * Turns an internal credential address into the contributor identity editors
- * recognize. External addresses are intentionally left untouched.
+ * recognize. External addresses are intentionally left untouched. Retired
+ * handles resolve through `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` where that
+ * variable is available (server and tests); without it the raw handle is
+ * title-cased.
  */
 export function formatReviewerIdentity(value?: string | null): string | null {
   const reviewer = value?.trim();
@@ -26,6 +30,9 @@ export function formatReviewerIdentity(value?: string | null): string | null {
   }
 
   const key = deriveProfileKeyFromEmail(reviewer);
-  const profile = findContributorProfileByKeyOrAlias(REVIEWER_PROFILES, key);
-  return profile?.displayName?.trim() || toContributorDisplayName(reviewer.split("@", 1)[0] ?? key);
+  for (const handle of expandLegacyContributorHandles([key])) {
+    const displayName = findContributorProfileByKeyOrAlias(REVIEWER_PROFILES, handle)?.displayName?.trim();
+    if (displayName) return displayName;
+  }
+  return toContributorDisplayName(reviewer.split("@", 1)[0] ?? key);
 }

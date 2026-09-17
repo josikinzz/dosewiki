@@ -111,8 +111,8 @@ export const ALIAS_ADDITIONS = Object.freeze([
     key: "LYREA",
     aliases: ["lyrea"],
     evidence:
-      "LYREA's aliases are ['witchy'] — her own name is missing, so she matches only through " +
-      "her display name. Recording it makes the two channels agree.",
+      "LYREA's stored aliases hold only a retired handle; her own name is missing, so she matches " +
+      "only through her display name. Recording it makes the two channels agree.",
   },
 ]);
 

@@ -78,7 +78,7 @@ const BRAND_STROKE_WIDTH = 1.1
 /** OCL's own standard line width at our pinned 28 px bond length (AVBL × 0.06). */
 export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06; // 1.68
 
-// Bold-bond ribbon spec, tuned by Witchy on the slider tool (revised 7 Aug 2026):
+// Bold-bond ribbon spec, tuned by Lyrea on the slider tool (revised 7 Aug 2026):
 /** Bold body width in px at the 28 px bond length (~3 × the brand line). */
 export const BOLD_BODY_WIDTH = 3.25;
 /** See-through halo where a bold line crosses another bond; wedges cast none. */

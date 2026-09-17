@@ -222,10 +222,10 @@ const LEGACY_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
  * credential logins derive that email from the login key
  * (`<key>@local.dose.wiki`). A profile therefore claims its `membershipEmail`
  * plus the legacy credential email of its key, of every alias, and of every
- * retired handle in its legacy group (`LEGACY_CONTRIBUTOR_HANDLE_GROUPS`) —
- * so stamps made under a retired login handle (witchy@local.dose.wiki) follow
- * the profile that absorbed it (LYREA) even though the handle was scrubbed
- * from the stored aliases, which unauthenticated profile reads ship verbatim.
+ * retired handle in its legacy group (the `LEGACY_CONTRIBUTOR_HANDLE_GROUPS`
+ * environment variable), so stamps made under a retired login handle follow
+ * the profile that absorbed it even though the handle was scrubbed from the
+ * stored aliases, which unauthenticated profile reads ship verbatim.
  * Alias-derived emails are confined to the internal legacy domain, so an
  * alias can never claim an external address. Callers must keep the returned
  * set server-side.

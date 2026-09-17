@@ -391,11 +391,11 @@ describe("substance read projections", () => {
       editorial_review: {
         status: "completed" as const,
         notes: "Editor-only notes",
-        reviewed_by: "witchy@local.dose.wiki",
+        reviewed_by: "oldhandle@local.dose.wiki",
         reviewed_at: "2026-08-01T00:00:00.000Z",
       },
     };
-    const reviewerEmails = new Set(["witchy@local.dose.wiki"]);
+    const reviewerEmails = new Set(["oldhandle@local.dose.wiki"]);
 
     it("returns only the article identity and timestamp — never the reviewer email", () => {
       const projection = projectReviewedArticleForEmails(reviewed, reviewerEmails);
@@ -408,7 +408,7 @@ describe("substance read projections", () => {
       // The privacy contract, stated as bytes: nothing resembling the stamp's
       // email or the editor notes survives into the projection.
       const serialized = JSON.stringify(projection);
-      expect(serialized).not.toContain("witchy");
+      expect(serialized).not.toContain("oldhandle");
       expect(serialized).not.toContain("@");
       expect(serialized).not.toContain("notes");
     });
@@ -419,7 +419,7 @@ describe("substance read projections", () => {
           ...reviewed,
           editorial_review: {
             ...reviewed.editorial_review,
-            reviewed_by: " Witchy@Local.dose.wiki ",
+            reviewed_by: " Oldhandle@Local.dose.wiki ",
           },
         },
         reviewerEmails,
@@ -460,11 +460,11 @@ describe("substance read projections", () => {
       editorial_review: {
         status: "completed" as const,
         notes: "Editor-only notes",
-        reviewed_by: "witchy@local.dose.wiki",
+        reviewed_by: "oldhandle@local.dose.wiki",
         reviewed_at: "2026-08-01T00:00:00.000Z",
       },
     };
-    const emailToProfileKey = new Map([["witchy@local.dose.wiki", "LYREA"]]);
+    const emailToProfileKey = new Map([["oldhandle@local.dose.wiki", "LYREA"]]);
 
     it("returns only the slug and the claiming profile key — never the reviewer email", () => {
       const credit = projectReviewedArticleCredit(reviewed, emailToProfileKey);
@@ -472,7 +472,7 @@ describe("substance read projections", () => {
       expect(credit).toEqual({ slug: "lsd", profileKey: "LYREA" });
       // The same privacy contract as the per-contributor projection above.
       const serialized = JSON.stringify(credit);
-      expect(serialized).not.toContain("witchy");
+      expect(serialized).not.toContain("oldhandle");
       expect(serialized).not.toContain("@");
       expect(serialized).not.toContain("notes");
     });
@@ -483,7 +483,7 @@ describe("substance read projections", () => {
           ...reviewed,
           editorial_review: {
             ...reviewed.editorial_review,
-            reviewed_by: " Witchy@Local.dose.wiki ",
+            reviewed_by: " Oldhandle@Local.dose.wiki ",
           },
         },
         emailToProfileKey,

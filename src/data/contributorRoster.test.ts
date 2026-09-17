@@ -44,7 +44,7 @@ const NERVEWING = profile("NERVEWING", "Nervewing", { aliases: ["nervewing"] });
 const STINGRAYZ = profile("STINGRAYZ", "StingrayZ", { aliases: ["stingrayz"] });
 const RHO = profile("RHO", "Rho", { aliases: ["rho"] });
 // Her stored role says "Founder" because she founded dose.wiki; Effect Index re-badges it.
-const LYREA = profile("LYREA", "Lyrea", { aliases: ["witchy"], role: "Founder" });
+const LYREA = profile("LYREA", "Lyrea", { aliases: ["oldhandle"], role: "Founder" });
 
 const ALL_PROFILES = [JOSIE, KAYTWO, LYREA, NERVEWING, RHO, STINGRAYZ, VISCID];
 
@@ -114,7 +114,7 @@ describe("countContributorReferences", () => {
       reports: [
         { slug: "keyed", author: "Anonymous", authorProfileKey: "JOSIE" },
         // An alias in the key position resolves the same way.
-        { slug: "aliased", author: "Anonymous", authorProfileKey: "witchy" },
+        { slug: "aliased", author: "Anonymous", authorProfileKey: "oldhandle" },
       ],
     });
 
@@ -128,7 +128,7 @@ describe("countContributorReferences", () => {
         { slug: "2c-b", reviewerProfileKey: "LYREA" },
         { slug: "dmt", reviewerProfileKey: "LYREA" },
         // An alias in the key position resolves like a report's authorProfileKey.
-        { slug: "lsd", reviewerProfileKey: "witchy" },
+        { slug: "lsd", reviewerProfileKey: "oldhandle" },
         // Two reviews stamped on the same article count that page once.
         { slug: "2c-b", reviewerProfileKey: "LYREA" },
       ],

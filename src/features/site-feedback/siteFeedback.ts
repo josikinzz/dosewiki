@@ -34,7 +34,7 @@ export const SITE_FEEDBACK_CATEGORY_LABELS: Record<SiteFeedbackCategory, string>
 };
 
 /**
- * Per-category placeholder copy for the details textarea (Witchy's texts,
+ * Per-category placeholder copy for the details textarea (Lyrea's texts,
  * verbatim from the PRD prototype).
  */
 export const SITE_FEEDBACK_CATEGORY_PLACEHOLDERS: Record<SiteFeedbackCategory, string> = {

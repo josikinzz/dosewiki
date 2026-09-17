@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { bulkImport, renameKey } from "../server/contributorProfiles";
 import {
   buildImportedStoredProfile,
@@ -10,6 +10,11 @@ import {
   type StoredProfile,
 } from "../server/lib/contributorProfiles";
 import { admin, createCtx } from "./changeProposalReviewFixture";
+
+process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS = "LYREA,OLDHANDLE";
+afterAll(() => {
+  delete process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS;
+});
 
 // Postgres registered functions keep the original handler on `_handler`; there is
 // no in-repo Postgres runtime harness, so the handler is exercised directly.
@@ -140,24 +145,24 @@ describe("contributorReviewerEmails", () => {
   it("claims the membership email and the legacy credential emails of key and aliases", () => {
     const emails = contributorReviewerEmails({
       key: "LYREA",
-      aliases: ["witchy", "lyrea"],
+      aliases: ["oldhandle", "lyrea"],
       membershipEmail: "Lyrea@Example.com",
     });
 
-    // The legacy `witchy@local.dose.wiki` review stamps resolve to LYREA
+    // The legacy `oldhandle@local.dose.wiki` review stamps resolve to LYREA
     // through the alias.
     expect([...emails].sort()).toEqual([
       "lyrea@example.com",
       "lyrea@local.dose.wiki",
-      "witchy@local.dose.wiki",
+      "oldhandle@local.dose.wiki",
     ]);
   });
 
   it("claims a scrubbed legacy-group handle without a stored alias", () => {
-    // Prod scrubbed "witchy" from LYREA's stored aliases (unauthenticated
-    // profile reads ship aliases verbatim), so the claim must come from
-    // LEGACY_CONTRIBUTOR_HANDLE_GROUPS — otherwise the 141 completed reviews
-    // stamped witchy@local.dose.wiki credit nobody on the About roster.
+    // Prod scrubbed the retired handle from LYREA's stored aliases
+    // (unauthenticated profile reads ship aliases verbatim), so the claim must
+    // come from LEGACY_CONTRIBUTOR_HANDLE_GROUPS, otherwise the completed
+    // reviews stamped under the retired handle credit nobody on the About roster.
     const emails = contributorReviewerEmails({
       key: "LYREA",
       aliases: ["lyrea"],
@@ -166,7 +171,7 @@ describe("contributorReviewerEmails", () => {
 
     expect([...emails].sort()).toEqual([
       "lyrea@local.dose.wiki",
-      "witchy@local.dose.wiki",
+      "oldhandle@local.dose.wiki",
     ]);
   });
 

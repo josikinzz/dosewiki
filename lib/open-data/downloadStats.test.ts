@@ -13,7 +13,7 @@ const documents = [
     id: 7,
     title: "Zeta",
     slug: "zeta",
-    editorial_review: { reviewed_by: "witchy@local.dose.wiki", status: "reviewed" },
+    editorial_review: { reviewed_by: "oldhandle@local.dose.wiki", status: "reviewed" },
     section_gaps: { dosage: "missing" },
   },
   { _id: "cx1", _creationTime: 1, id: 3, title: "Alpha", slug: "alpha" },

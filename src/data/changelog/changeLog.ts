@@ -115,10 +115,11 @@ const normalizeSubmitterKey = (value: string | null | undefined): string =>
 
 /**
  * Every submitter stamp that should attribute to the given profile: the key
- * itself, its profile aliases, and any legacy handle-group siblings
- * (`LEGACY_CONTRIBUTOR_HANDLE_GROUPS`), so WITCHY-stamped rows resolve to the
- * LYREA profile. Public surfaces render the resolved profile, never the raw
- * stamp, so the legacy handle stays internal.
+ * itself, its profile aliases, and any legacy handle-group siblings (the
+ * `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` environment variable), so rows stamped
+ * under a retired handle resolve to the profile that absorbed it. Public
+ * surfaces render the resolved profile, never the raw stamp, so the legacy
+ * handle stays internal.
  */
 export const buildSubmitterKeySet = (
   profileKey: string,

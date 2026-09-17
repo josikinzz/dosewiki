@@ -132,8 +132,7 @@ describe("dose.wiki holding surface", () => {
     const { container } = renderBlocked();
 
     // Not "no link named X" but no in-site link at all, so a newly added tile cannot
-    // quietly make the blocked surface navigable. The supporter credit's external link is
-    // not a route and is left alone.
+    // quietly make the blocked surface navigable.
     expect(container.querySelectorAll('a[href^="/"]')).toHaveLength(0);
 
     const tiles = screen.getByRole("navigation", { name: "Mock app sections" });

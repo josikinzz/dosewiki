@@ -174,9 +174,9 @@ describe("maintained public read indexes", () => {
 
   it("merges reviewer aliases into complete pages and removes revoked reviews", async () => {
     const { ctx, indexed } = database();
-    await ctx.db.insert("contributorProfiles", { key: "LYREA", aliases: ["witchy"], membershipEmail: "lyrea@example.test" } as never);
+    await ctx.db.insert("contributorProfiles", { key: "LYREA", aliases: ["oldhandle"], membershipEmail: "lyrea@example.test" } as never);
     const article = (slug: string, email: string) => ({ slug, title: slug, editorial_review: { status: "completed", reviewed_by: email, reviewed_at: "2026-01-01" } });
-    const first = await indexed.db.insert("substanceIndex", article("first", " WITCHY@LOCAL.DOSE.WIKI ") as never);
+    const first = await indexed.db.insert("substanceIndex", article("first", " OLDHANDLE@LOCAL.DOSE.WIKI ") as never);
     await indexed.db.insert("substanceIndex", article("second", "lyrea@example.test") as never);
     await ready(ctx, "reviews");
     const page = await getPublicReviewedArticlesPageHandler(ctx, { profileKey: "LYREA", numItems: 1 });

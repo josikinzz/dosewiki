@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
@@ -84,6 +84,11 @@ export function buildReagentTestImportPlan({ snapshot, expectedSlugs, snapshotHa
 function loadPlan(repoRoot) {
   const snapshotPath = resolve(repoRoot, "data/third-party/protestkit/reagentTests.json");
   const substancePath = resolve(repoRoot, "public/SubstanceIndex.json");
+  if (!existsSync(snapshotPath)) {
+    throw new Error(
+      `Reagent snapshot missing at ${snapshotPath}. It is gitignored; run \`node scripts/data/cacheProtestKitReagentTests.mjs\` first (requires ProtestKit permission).`,
+    );
+  }
   const snapshotText = readFileSync(snapshotPath, "utf8");
   const snapshot = JSON.parse(snapshotText);
   const substances = JSON.parse(readFileSync(substancePath, "utf8"));

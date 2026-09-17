@@ -18,7 +18,7 @@ const ENTRIES: ChangeLogEntry[] = [
     articles: [PREGABALIN],
     markdown:
       "# Pregabalin · #1\n\n@@ harm_potential.psychosis.description @@\n- Rare reports of psychosis.\n+ Rare reports of psychosis at high doses.\n+ Risk rises with sleep loss.",
-    submittedBy: "WITCHY",
+    submittedBy: "OLDHANDLE",
   },
   {
     id: "bulk-1",

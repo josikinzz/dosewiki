@@ -34,7 +34,7 @@
         "public/SubstanceIndex.json",
         "ProtestKit API v1 substance responses"
       ],
-      "freshnessRule": "Point-in-time snapshot. Refresh only with ProtestKit permission and an explicit operator run, then import through the guarded Postgres workflow.",
+      "freshnessRule": "Gitignored local point-in-time snapshot, never committed. Fetch it only with ProtestKit permission and an explicit operator run of the producer, then import through the guarded Postgres workflow.",
       "sourceDeployment": "https://protestkit.eu/api/v1",
       "targetDeployment": null,
       "schemaVersion": "ProtestKit API v1 response keyed by DoseWiki slug",

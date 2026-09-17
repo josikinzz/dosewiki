@@ -106,5 +106,5 @@ const RHO = profile("RHO", "Rho", {
   bio: "Instagram - instagram.com/pluralist.visuals",
   role: "Replication Artist",
 });
-const LYREA = profile("LYREA", "Lyrea", { aliases: ["witchy"] });
+const LYREA = profile("LYREA", "Lyrea", { aliases: ["oldhandle"] });
 export const LIVE_PROFILES = [STINGRAYZ, RHO, LYREA];

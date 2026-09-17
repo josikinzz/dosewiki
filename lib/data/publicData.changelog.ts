@@ -109,8 +109,8 @@ const readChangelogBySubmitters = cache(
  * only backfills rows the deployment no longer carries (and keeps the section
  * alive when `changelog:getBySubmitter` is not deployed yet — additive query,
  * same degrade rationale as the replication portfolio read). Matching is
- * alias-aware: profile aliases and legacy stamp groups (WITCHY → LYREA) all
- * attribute to this profile.
+ * alias-aware: profile aliases and legacy stamp groups (a retired handle and
+ * the profile that absorbed it) all attribute to this profile.
  *
  * Every returned entry's `submittedBy` is rewritten to the canonical profile
  * key, so a legacy handle can never reach the public page payload.
@@ -127,7 +127,8 @@ export const getPublicProfileHistory = cache(
     }
 
     // The Postgres index match is exact, and legacy stamps carry both casings
-    // ("WITCHY", "josie kins"), so query upper and lower case variants.
+    // (an uppercase profile key, a lowercase "josie kins"), so query upper and
+    // lower case variants.
     const submitters = [
       ...new Set([...submitterKeys].flatMap((key) => [key, key.toLowerCase()])),
     ].sort();
@@ -201,8 +202,8 @@ function resolveContributors(
     if (!submittedBy) {
       return { ...change, contributor: null };
     }
-    // Legacy stamps (WITCHY) attribute to their current profile (LYREA), the
-    // same grouping the profile page uses in the other direction.
+    // Legacy stamps under a retired handle attribute to their current profile,
+    // the same grouping the profile page uses in the other direction.
     let profile = null;
     for (const handle of expandLegacyContributorHandles([submittedBy])) {
       profile = findContributorProfileByKeyOrAlias(directory, handle);

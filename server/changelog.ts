@@ -71,7 +71,7 @@ export const getByEntryId = query({
  * Query changelog entries stamped by any of the given submitter keys.
  *
  * Powers the public contributor profile history: the caller passes the
- * profile key plus its legacy stamp aliases (e.g. LYREA + WITCHY) and gets
+ * profile key plus its legacy stamp aliases (a retired handle group) and gets
  * one merged, newest-first list back. Keys are matched exactly against the
  * stored `submittedBy` stamp via the `by_submitted_by` index, so callers
  * must pass normalized (uppercase) keys.
@@ -176,22 +176,26 @@ export const getByArticleSlugSummaries = query({
 });
 
 /**
- * One-off idempotent migration normalizing legacy `submittedBy` stamps
- * (DW-21: WITCHY → LYREA). Invoke only through a trusted native maintenance
- * client with an explicitly guarded Postgres target; this is not a public API.
- * The runtime write-freeze guard and transaction controls still apply.
+ * One-off idempotent migration normalizing legacy `submittedBy` stamps from a
+ * retired handle to the profile key that absorbed it (DW-21). Invoke only
+ * through a trusted native maintenance client with an explicitly guarded
+ * Postgres target; this is not a public API. The runtime write-freeze guard
+ * and transaction controls still apply.
  *
  * First inspect the default dry-run result. Apply with `dryRun: false` only
  * after approving the target, matching rows, and submitter alias handling.
  */
 export const normalizeSubmitterStamps = internalMutation({
   args: {
-    from: v.optional(v.string()),
+    from: v.string(),
     to: v.optional(v.string()),
     dryRun: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const from = args.from ?? "WITCHY";
+    const from = args.from.trim().toUpperCase();
+    if (!from) {
+      throw new Error("normalizeSubmitterStamps requires the retired submitter stamp in `from`.");
+    }
     const to = args.to ?? "LYREA";
     const dryRun = args.dryRun ?? true;
 

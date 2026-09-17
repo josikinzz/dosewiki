@@ -61,7 +61,7 @@ describe("public report profile projection", () => {
     const profiles = [
       profile({ key: "JOSIE", displayName: "Josie Kins", aliases: ["josie", "josikinz", "josie kins"] }),
       profile({ key: "KAYTWO", displayName: "Kaytwo", aliases: ["kaytwo", "kaylee"] }),
-      profile({ key: "LYREA", displayName: "Lyrea", aliases: ["witchy"] }),
+      profile({ key: "LYREA", displayName: "Lyrea", aliases: ["oldhandle"] }),
     ];
 
     expect(collapseContributorProfiles(profiles).map((entry) => entry.key)).toEqual([

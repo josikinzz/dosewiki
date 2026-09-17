@@ -124,7 +124,7 @@ describe("public contributor profile adapters", () => {
             displayName: "Kaytwo",
             aliases: ["kaytwo", "kaylee"],
           }),
-          profile({ key: "LYREA", displayName: "Lyrea", aliases: ["witchy"] }),
+          profile({ key: "LYREA", displayName: "Lyrea", aliases: ["oldhandle"] }),
         ]),
     });
 

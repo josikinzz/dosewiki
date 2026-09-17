@@ -281,7 +281,7 @@ describe("AboutPage contributor roster", () => {
   const stingrayz = contributorProfile("STINGRAYZ", "StingrayZ", { aliases: ["stingrayz"] });
   const rho = contributorProfile("RHO", "Rho");
   // Stored role from dose.wiki, which she founded; Effect Index re-badges it in display.
-  const lyrea = contributorProfile("LYREA", "Lyrea", { aliases: ["witchy"], role: "Founder" });
+  const lyrea = contributorProfile("LYREA", "Lyrea", { aliases: ["oldhandle"], role: "Founder" });
 
   const allProfiles = [josie, kaytwo, lyrea, nervewing, rho, stingrayz];
   // Josie is deliberately *not* the most-referenced profile, so her position can only come
@@ -341,7 +341,7 @@ describe("AboutPage contributor roster", () => {
       "/contributors/lyrea",
     );
     // Aliases stay internal even now that the profile is listed.
-    expect(within(panel).queryByText(/witchy/i)).not.toBeInTheDocument();
+    expect(within(panel).queryByText(/oldhandle/i)).not.toBeInTheDocument();
   });
 
   it("puts the founder in her own labelled region ahead of the pinned and ranked grids", () => {

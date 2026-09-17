@@ -31,14 +31,14 @@ export const footerStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Public site footer chrome: harm-reduction disclaimer, license link, supporter credit, optional icon nav, and the reader appearance controls. It carries no brand mark — the header already has one on every page that renders this footer.",
+    "Public site footer chrome: harm-reduction disclaimer, license link, optional icon nav, and the reader appearance controls. It carries no brand mark — the header already has one on every page that renders this footer.",
   source: "src/components/layout/Footer.tsx",
   importLine: 'import { Footer } from "@/components/layout/Footer";',
   exports: ["Footer"],
   examples: [
     {
       label: "Default",
-      note: "No footer nav items — disclaimer, license link, supporter credit, and the appearance cog only. This is the shipped public default.",
+      note: "No footer nav items — disclaimer, license link, and the appearance cog only. This is the shipped public default.",
       background: "plain",
       full: true,
       render: () => <Footer model={mockFooterModel({})} />,

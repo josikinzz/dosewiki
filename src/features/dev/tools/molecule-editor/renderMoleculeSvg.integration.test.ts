@@ -125,7 +125,7 @@ M  END
     expect(svg!).toContain(`fill="${R_LABEL_COLOR}">Rα</text>`);
   });
 
-  it("composes bold bonds as a masked ribbon at Witchy's tuned spec", () => {
+  it("composes bold bonds as a masked ribbon at Lyrea's tuned spec", () => {
     const molblock = molblockFromSmiles(LSD_SMILES);
     const svg = renderMoleculeSvg(OCL, molblock, undefined, [0, 1])!;
     // the crossing-gap mask exists and plain lines render through it

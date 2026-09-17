@@ -47,12 +47,12 @@ vi.mock("@/data/changelog/changeLog", async (importOriginal) => {
         submittedBy: "DEF",
       },
       {
-        id: "static-witchy",
+        id: "static-oldhandle",
         createdAt: "2026-01-02T00:00:00.000Z",
         commit: { sha: "c", url: "", message: "Legacy stamped save" },
         articles: [{ id: 3, title: "2C-B", slug: "2c-b" }],
         markdown: "legacy stamp",
-        submittedBy: "WITCHY",
+        submittedBy: "OLDHANDLE",
       },
     ],
   };
@@ -84,7 +84,7 @@ describe("useDevChangelogFeed", () => {
 
     expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
       "static-duplicate",
-      "static-witchy",
+      "static-oldhandle",
       "static-1",
     ]);
   });
@@ -115,7 +115,7 @@ describe("useDevChangelogFeed", () => {
       expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
         "data-new",
         "static-duplicate",
-        "static-witchy",
+        "static-oldhandle",
         "static-1",
       ]);
     });

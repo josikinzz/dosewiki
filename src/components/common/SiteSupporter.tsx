@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The footer's supporter credit.
+ * The supporter credit, currently rendered on the About page only.
  *
  * "Supported by", not "sponsored by": the named company pays the publication's
  * infrastructure bills and holds no ownership or editorial stake, so the link is an
@@ -27,10 +27,10 @@ import { useT } from "@/i18n/client";
 
 interface SiteSupporterProps {
   /**
-   * Cross-axis alignment of the two stacked rows. The footer's right rail is
-   * end-aligned, the homepage hero is centred. Passing this rather than letting a caller
-   * hand in `items-*` classes keeps the two rows from disagreeing: Tailwind resolves
-   * competing `items-*` by stylesheet order, not by class-list order.
+   * Cross-axis alignment of the two stacked rows. The About page centres it. Passing
+   * this rather than letting a caller hand in `items-*` classes keeps the two rows from
+   * disagreeing: Tailwind resolves competing `items-*` by stylesheet order, not by
+   * class-list order.
    */
   align?: "start" | "center" | "end";
   className?: string;

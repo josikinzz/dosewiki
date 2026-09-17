@@ -225,8 +225,8 @@ export const AboutPage = memo(function AboutPage({
         </div>
       )}
 
-      {/* Infrastructure credit, mirroring the homepage/footer lockup. Renders
-          nothing on a flavor that declares no supporter. */}
+      {/* Infrastructure credit. For now this is the only surface that renders it;
+          it renders nothing on a flavor that declares no supporter. */}
       <div className="flex justify-center pt-2">
         <SiteSupporter align="center" markHeightRem={2.25} />
       </div>

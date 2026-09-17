@@ -48,7 +48,11 @@ of unrelated heavy source documents:
 - `articleHistory`: per-article chronological links, followed by hydration of
   only the requested history entries.
 - `reviewedArticles`: compact completed-review records, indexed by normalized
-  reviewer identity; public results never expose those emails.
+  reviewer identity; public results never expose those emails. Stamps made
+  under a retired login handle attribute to the live profile through the
+  server-only `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` variable (`;`-separated
+  groups of `,`-separated handles), never through stored aliases, which
+  unauthenticated profile reads ship verbatim.
 - `tripReportSubstances`: the existing report-substance relation, now gated by
   verified full-pass completion rather than the presence of any row.
 
@@ -716,6 +720,6 @@ Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select 
 
 ### ProtestKit reagent-test snapshot
 
-ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `data/third-party/protestkit/reagentTests.json`. `npm run reagents:import` validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
+ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `data/third-party/protestkit/reagentTests.json`. That directory is gitignored: the dataset is used with permission and cannot be redistributed, so the snapshot lives only on the operator's workstation and `npm run reagents:import` refuses to run until it has been fetched. The import validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
 
 Public substance route loaders read one record by canonical DoseWiki slug through `lib/data/publicData.reagents.ts`; authored `substanceIndex.reagent_testing` content remains authoritative when present. The legacy-path `src/app/api/reagent-proxy/route.ts` is retained for editor and client-preview compatibility, but it now reads Postgres and performs no ProtestKit egress. It continues to apply rate limiting, CORS origin policy, and cache headers.

@@ -142,8 +142,8 @@ export type SiteLicenceNotice = {
 };
 
 /**
- * A supporter credit rendered in the footer (and, on the homepage, under the hero — that
- * route suppresses the footer).
+ * A supporter credit. For now it is rendered on the About page only, not in the footer
+ * or on the homepage.
  *
  * "Supported by", not "sponsored by" or "backed by": the named company pays for
  * infrastructure and holds no ownership, equity or editorial stake in the publication.

@@ -429,10 +429,10 @@ describe("buildSeedPlan", () => {
     // The public read drops any profile whose key equals another profile's
     // alias, so such a page would exist and never render.
     const collisions = findCollisions({
-      created: [{ key: "WITCHY", aliases: ["witchy"] }],
+      created: [{ key: "OLDHANDLE", aliases: ["oldhandle"] }],
       profiles: LIVE_PROFILES,
     });
 
-    expect(collisions.keyShadowedByAlias).toEqual(["WITCHY"]);
+    expect(collisions.keyShadowedByAlias).toEqual(["OLDHANDLE"]);
   });
 });

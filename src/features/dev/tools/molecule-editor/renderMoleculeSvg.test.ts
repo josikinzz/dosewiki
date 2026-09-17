@@ -49,7 +49,7 @@ describe("rebaseStrokeWidths", () => {
     expect(out).toContain('stroke-width="1.1"');
   });
 
-  it("bold body and crossing gap carry Witchy's revised values", () => {
+  it("bold body and crossing gap carry Lyrea's revised values", () => {
     expect(BOLD_BODY_WIDTH).toBeCloseTo(3.25, 10);
     expect(BOLD_CROSSING_GAP).toBeCloseTo(3.3, 10);
   });

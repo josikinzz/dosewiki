@@ -134,7 +134,7 @@ describe("previewRosterImpact", () => {
   const profiles = [
     profile("JOSIE", "Josie Kins", { aliases: ["josie", "josie kins"] }),
     profile("STINGRAYZ", "StingrayZ", { aliases: ["stingrayz"] }),
-    profile("LYREA", "Lyrea", { aliases: ["witchy"] }),
+    profile("LYREA", "Lyrea", { aliases: ["oldhandle"] }),
   ];
 
   const corpus = {

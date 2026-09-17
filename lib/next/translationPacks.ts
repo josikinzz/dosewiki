@@ -7,7 +7,9 @@ import { z } from "zod";
 /**
  * The one locale the translation programme has shipped. The packs live under
  * `public/downloads/<locale>/`, so the reader's URL and this constant are the
- * same string.
+ * same string. That directory is gitignored: `npm run translate:packs` builds
+ * it before each deploy and the files ship as deployment artifacts, so on a
+ * checkout that has not run the build the manifest is simply absent.
  */
 export const TRANSLATION_PACK_LOCALE = "zh-Hans";
 
