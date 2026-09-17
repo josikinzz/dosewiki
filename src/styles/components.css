@@ -100,7 +100,7 @@
     }
   }
 
-  .prose :where(strong, b):not(:where(.not-prose, .not-prose *)),
+  .prose :where(strong, b):not(:where(.not-prose, .not-prose *)) {
     color: var(--theme-text-primary);
     font-weight: 600;
   }
