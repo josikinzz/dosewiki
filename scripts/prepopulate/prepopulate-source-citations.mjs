@@ -267,7 +267,6 @@ if (!dryRun) {
   if (lineage) {
     console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
   }
-  console.log(`\n⚠️  Remember to run: node scripts/build/buildCompressedArticles.mjs`);
 } else {
   console.log("\n⚠️  Dry run - no changes written. Remove --dry-run to apply.");
 }

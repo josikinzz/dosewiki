@@ -1,6 +1,6 @@
 # DoseWiki Public API handoff
 
-This is the implementation handoff for consuming everything currently exposed by the read-only DoseWiki Public API: substance listings, complete substance articles, normalized reagent-test results, molecule SVGs, and image/video effect and substance replication collections.
+This is the implementation handoff for consuming everything currently exposed by the read-only DoseWiki Public API: substance listings, complete substance articles, normalized reagent-test results, molecule SVGs, and image, video, and audio effect and substance replication collections.
 
 ## Start here
 
@@ -19,7 +19,7 @@ The API is public and read-only:
 - supported methods are `GET`, `HEAD`, and `OPTIONS`;
 - JSON and SVG responses are cached; clients should still cache responsibly;
 - reads are rate-limited, so honor `429` responses and retry with backoff;
-- substance and replication list cursors are opaque—store and return them unchanged;
+- substance and replication list cursors are opaque; store and return them unchanged;
 - content is for harm-reduction education and is not medical advice.
 
 License and reuse terms: <https://dose.wiki/docs/license>. Substance article data and replication media do not necessarily have the same reuse rights. Preserve article source attribution, and inspect each replication's `rights` object before reuse.
@@ -674,7 +674,7 @@ A depiction may come from the canonical Postgres override or a static publicatio
 
 ## Replication collections
 
-Replications are image/video attempts to reproduce subjective effects. They are separate media records, not embedded in substance article responses.
+Replications are image, video, or audio attempts to reproduce subjective effects. They are separate media records, not embedded in substance article responses.
 
 ### Browse all replications
 
@@ -686,9 +686,9 @@ GET /replications?effect=drifting&type=video&limit=25
 Optional filters:
 
 - `effect`: exact owning `effect_slug` (use the effect collection below for owner-or-tag membership);
-- `type`: `image` or `video`.
+- `type`: `image`, `video`, or `audio`.
 
-Filtering happens before pagination. Results are ordered by effect slug, curated within-effect order when available, then replication slug.
+Filtering happens before pagination. Results use media-rank-first ordering, then effect slug (unattached works first), curated within-effect order when available, and replication slug. The media rank is owned by `src/features/replications/mediaRank.ts`.
 
 ### Browse one effect
 
@@ -761,7 +761,7 @@ type Replication = {
   title: string;
   artist: string;
   artist_url?: string;
-  type: "image" | "video";
+  type: "image" | "video" | "audio";
   effect_slug?: string;
   effect_tags: string[];
   url: string;
@@ -847,7 +847,6 @@ The public website contains more database-backed surfaces than API v1 currently 
 - standalone subjective-effect article bodies or an effect index (only effect-linked replications);
 - trip reports or trip-report listings;
 - category, chemical-class, mechanism, contributor, or site-configuration indexes;
-- audio replications;
 - editor metadata, citation evidence, drafts, queues, or moderation data;
 - molecule MOL blocks or molecule editing operations;
 - writes of any kind.

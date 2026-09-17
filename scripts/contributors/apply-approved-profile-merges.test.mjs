@@ -12,7 +12,7 @@ const paths = (set) => [`--ledger=${set.ledger}`, `--plan-out=${set.plan}`, `--r
 const makeAdapters = () => {
   const operations = new Map(); const calls = []; const events = [];
   return {
-    env: { DATA_BACKEND: "postgres" }, calls, events, apiKey: "not-a-real-secret",
+    env: { DATA_BACKEND: "postgres", REPLICATION_MEDIA_BASE_URL: "https://media.example.test" }, calls, events, apiKey: "not-a-real-secret",
     query: async (_reference, args) => {
       if (args.operation_id) { events.push(`receipt:${args.operation_id}`); return operations.get(args.operation_id) ?? null; }
       events.push(`preview:${args.input.target_key}`);

@@ -10,7 +10,7 @@ This repository builds three Next.js application surfaces from one route tree:
 - editor DoseWiki, built as `DOSEWIKI_BUILD_SURFACE=editor` for `dev.dose.wiki` and `dosewiki-admin.vercel.app`;
 - Effect Index, a separate public, read-only flavor selected by `NEXT_PUBLIC_SITE_FLAVOR=effectindex`.
 
-`src/config/siteFlavor.ts` owns publication identity and route availability. `middleware.ts` and `lib/next/flavorGatedRoutes.ts` own host and route enforcement. Public and editor delivery are separate compiled artifacts, not request-time branches of one build. [Deployment](docs/agents/deployment.md) owns the Vercel topology and release procedure.
+`src/config/siteFlavor.ts` owns publication identity and route availability. `src/middleware.ts` and `lib/next/flavorGatedRoutes.ts` own host and route enforcement. Public and editor delivery are separate compiled artifacts, not request-time branches of one build. [Deployment](docs/agents/deployment.md) owns the Vercel topology and release procedure.
 
 ## Runtime data
 
@@ -24,7 +24,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 
 - Public pages use the App Router under `src/app/`, with static generation or ISR where declared.
 - Public data loaders live under `lib/data/` and `lib/next/`; native Postgres executes the registered handlers.
-- Protected editor routes live under `/dev`; `middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
+- Protected editor routes live under `/dev`; `src/middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
 - Auth.js supplies identity, database membership rows supply roles, and server write capabilities enforce actor and intent.
 - The public `/api/v1` surface exposes public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints.
 - Local JSON and Markdown are migration inputs, exports, prompts, backups, or generated artifacts unless active source reads them. `src/data/artifactLineageManifest.json` owns generated-data lineage.

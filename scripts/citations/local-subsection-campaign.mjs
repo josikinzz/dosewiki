@@ -17,6 +17,7 @@ import {
   reconcileSecondPassDerivedState,
   sha256File,
 } from "./second-pass-derived-state.mjs";
+import { SECOND_PASS_RESEARCH_INSTRUCTION } from "./citation-evidence-policy.mjs";
 
 const TERMINAL_SECTION_STATUSES = new Set([
   "checked",
@@ -121,7 +122,7 @@ export function buildStageAwareResumePrompt({ slug, runId, stage, researchPass =
     "Act as the authenticated Oh My Pi coordinator. Use the named project agents citation-section-worker and citation-article-wide-worker directly; do not invoke /opt/homebrew/bin/pi or any standalone Pi subprocess.",
     "Execute synchronously; do not launch functions.workflow or an asynchronous/resumable wrapper.",
     "Treat pi-run-manifest.json as authoritative, preserve every accepted artifact whose recorded SHA-256 still matches, and never repeat completed research.",
-    ...(researchPass === "second" ? ["This is a second-pass task: follow the immutable researchBrief lanes in citation-task.json, log exact query/source outcomes, and accept confirmed_needs_source only after every prescribed lane is exhausted."] : []),
+    ...(researchPass === "second" ? [SECOND_PASS_RESEARCH_INSTRUCTION] : []),
     "Continue only until the manifest is finalized at needs_review or one deterministic blocker is recorded.",
     "Never apply a draft, call a production mutation, deploy, or write Postgres.",
   ];

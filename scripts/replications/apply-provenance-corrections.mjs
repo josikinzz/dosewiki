@@ -2,6 +2,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { homedir } from "node:os";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -13,7 +15,7 @@ import {
 } from "../lib/production-write-command.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const AUDIT_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/audit-latest.json");
+const AUDIT_PATH = path.resolve(getFlagValue(process.argv.slice(2), "--audit-path") ?? path.join(homedir(), ".local/state/dosewiki-housecleaning/replication-provenance/audit-latest.json"));
 const LEDGER_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/application-ledger.json");
 const WRITE = process.argv.includes("--write");
 const CONFIRMED = process.argv.includes("--confirm-provenance-write");

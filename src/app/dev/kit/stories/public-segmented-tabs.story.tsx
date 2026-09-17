@@ -64,7 +64,7 @@ export const publicSegmentedTabsStory: StoryDef = {
     },
     {
       label: "Major prominence",
-      note: "`prominence: 'major'` renders larger, bolder pills for overarching tabs.",
+      note: "`prominence: 'major'` renders bolder labels for overarching tabs at the same height as the rest.",
       background: "card",
       render: () => (
         <PublicSegmentedTabs

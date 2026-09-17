@@ -65,11 +65,11 @@ export async function GET(request: Request) {
         },
       },
       "/replications": {
-        get: { summary: "List public image and video replications", parameters: [
+        get: { summary: "List public image, video, and audio replications", description: "Filters apply before pagination. Order is media rank first, then effect slug (unattached works first), curated within-effect position when available, and replication slug.", parameters: [
           { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 25 } },
           { name: "cursor", in: "query", schema: { type: "string" } },
           { name: "effect", in: "query", schema: { type: "string" } },
-          { name: "type", in: "query", schema: { type: "string", enum: ["image", "video"] } },
+          { name: "type", in: "query", schema: { type: "string", enum: ["image", "video", "audio"] } },
         ], responses: { "200": jsonResponse({ type: "object", properties: { data: { type: "array", items: ref("Replication") }, pagination: ref("Pagination"), meta: ref("Meta") } }, "Public-safe replication media") } },
       },
       "/replications/{slug}": { get: { summary: "Get one replication", parameters: [slugParameter], responses: { "200": jsonResponse({ type: "object", properties: { data: ref("Replication"), meta: ref("Meta") } }, "Replication"), "404": { $ref: "#/components/responses/NotFound" } } } },

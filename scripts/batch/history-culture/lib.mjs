@@ -63,8 +63,6 @@ ${articleYaml}
 
 ## Extracted History & Culture Information
 
-Generate the history_culture section from scratch based on these sources:
-
 ${quotes}
 
 ## Instructions

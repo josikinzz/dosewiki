@@ -28,7 +28,11 @@ export const recordDelivery = internalMutation({
     await ctx.db.patch(args.id, {
       pending: !args.complete,
       nextAttemptAt: args.complete ? 0 : Date.now() + Math.min(300_000, 15_000 * 2 ** Math.min(current.attempts, 5)),
-      receipts: args.receipts,
+      receipts: [
+        ...current.receipts.filter((receipt: { target?: string; generation?: number }) =>
+          receipt.target === "translation-queue" && receipt.generation === args.generation),
+        ...args.receipts,
+      ],
     });
   },
 });

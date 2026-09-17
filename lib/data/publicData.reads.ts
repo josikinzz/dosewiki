@@ -2,6 +2,7 @@ import "server-only";
 
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubstanceEffectMembershipInput } from "../../src/data/projections/substanceReadProjections";
+import type { SubstanceSearchSummaryProjection as SubstanceSearchSummary } from "../../src/data/projections/substanceReadProjections";
 import type { PublicOverviewCounts } from "./publicData.shared";
 import type { PublicChangelogSummary } from "../changelog/publicChangelogSummary";
 import type { CoverageRow } from "../../src/features/coverage/coverageModel";
@@ -132,6 +133,7 @@ export type PublicDataReadAdapter = {
   getPublicSubstanceLookup(): Promise<PublicSubstanceLookupEntry[]>;
   getPublicSubstanceLookupBySlug(slug: string): Promise<Pick<PublicSubstanceLookupEntry, "slug" | "name"> | null>;
   getPublicSubstancePreviews(): Promise<PublicSubstancePreview[]>;
+  getPublicSubstanceSearchSummaries(): Promise<SubstanceSearchSummary[]>;
   getPublicSubstanceSlugs(): Promise<string[]>;
   getPublicSubstanceSlugsByCandidates(slugs: string[]): Promise<string[]>;
   getPublicEffectSlugs(): Promise<string[]>;
@@ -166,6 +168,7 @@ export type PublicDataReadAdapter = {
   /** The merged showcase, or null while the query or its complete index is unavailable. */
   getPublicSubstanceGallery(substanceSlug: string): Promise<PublicSubstanceGallery | null>;
   getPublicTripReportPreviews(): Promise<TripReportRecord[]>;
+  getPublicReportSearchSummaries(): Promise<Array<{ slug: string; title: string; introduction?: string }>>;
   getPublicTripReportRecords(): Promise<TripReportDetailRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
   getPublicTripReportsByAuthor(authorName: string): Promise<TripReportDetailRecord[]>;
@@ -488,6 +491,12 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
               : left.title.localeCompare(right.title);
           }),
       ),
+    getPublicSubstanceSearchSummaries: () =>
+      queryPaginatedPublicProjectionRead(
+        query,
+        publicDataReadCatalog.publicSubstanceSearchSummaries,
+        (entries: SubstanceSearchSummary[]) => entries,
+      ),
     getPublicSubstanceSlugsByCandidates: (slugs) =>
       query<string[], { candidates: string[] }>(
         publicDataReadCatalog.publicSubstanceSlugsByCandidates.functionName,
@@ -805,6 +814,11 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
       query<TripReportRecord[]>(
         publicDataReadCatalog.publicTripReportPreviews.functionName,
         publicDataReadCatalog.publicTripReportPreviews.args(),
+      ),
+    getPublicReportSearchSummaries: () =>
+      drainPublicCorpusPages<{ slug: string; title: string; introduction?: string }>(
+        query,
+        publicDataReadCatalog.publicReportSearchSummaries,
       ),
     getPublicTripReportRecords: () =>
       drainPublicCorpusPages<TripReportDetailRecord>(

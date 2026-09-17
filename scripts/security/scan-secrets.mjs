@@ -41,7 +41,7 @@ const rules = [
   ],
   [
     "GENERIC_SECRET_ASSIGNMENT",
-    /(?:^|[\r\n])\s*(?:export\s+)?[A-Z0-9_]*(?:PASSWORD|API_KEY|SECRET_KEY|AUTH_TOKEN|ADMIN_KEY|ACCESS_TOKEN)[A-Z0-9_]*\s*=\s*(?:["']([A-Za-z0-9+/_=:.|-]{20,})["']|([A-Za-z0-9+/_=:.|-]{20,}))(?:\s|$)/,
+    /(?:^|[\r\n])\s*(?:export\s+)?[A-Z0-9_]*(?:PASSWORD|API_KEY|SECRET_KEY|SECRET|AUTH_TOKEN|ADMIN_KEY|ACCESS_TOKEN|DATA_ADMIN_TOKEN)[A-Z0-9_]*\s*=\s*(?:["']([A-Za-z0-9+/_=:.|-]{20,})["']|([A-Za-z0-9+/_=:.|-]{20,}))(?:\s|$)/,
     (match) => isRealCredentialCandidate(match[1] ?? match[2] ?? ""),
   ],
 ];

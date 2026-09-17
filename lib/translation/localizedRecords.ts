@@ -63,6 +63,16 @@ export async function getLocalizedLeaves(
   );
 }
 
+/** Content identity for process-local projections of these exact source leaves. */
+export async function getLocalizedLeavesRevision(locale: string, hashes: readonly string[]): Promise<string> {
+  if (hashes.length === 0 || locale === "en") return "empty";
+  const rows = await getPostgresClient().sql<{ revision: string | null }>(
+    'SELECT md5(jsonb_agg(jsonb_build_array("hash", "target") ORDER BY "hash")::text) AS revision FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
+    [locale, hashes],
+  );
+  return rows[0]?.revision ?? "empty";
+}
+
 export const getLocalizedPublicSubstanceBySlug = cache(async (
   slug: string,
   locale: string,

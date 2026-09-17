@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import { assertCitationSourceIdentity } from "./citation-target-policy.mjs";
+import {
+  SECOND_PASS_COMPLETION_CRITERIA,
+  SECOND_PASS_RESEARCH_RULES,
+} from "./citation-evidence-policy.mjs";
 
 export const SECOND_PASS_SCHEMA_VERSION = "dosewiki_citation_second_pass_plan_v1";
 const SECOND_PASS_EXCLUDED_SECTIONS = Object.freeze(["tolerance"])
@@ -115,11 +119,7 @@ function candidateFromAuditArticle(article, section, sectionAudit) {
     existingArticleMarkerCount: articleMarkerCount,
     signals: signalsForCandidate({ referenceCount, articleMarkerCount, section, chars }),
     researchLanes: SECTION_LANES[section] ?? [],
-    completionCriteria: [
-      "Inspect every research lane and record the exact queries and source outcomes.",
-      "Add a marker only when an eligible inspected source directly supports the exact public claim and quote fidelity passes.",
-      "If no source closes the claim after all lanes, preserve the prose and record confirmed_needs_source with a concise negative research log.",
-    ],
+    completionCriteria: [...SECOND_PASS_COMPLETION_CRITERIA],
   };
 }
 
@@ -196,8 +196,7 @@ export function buildSecondPassResearchPlan(audit, { generatedAt = new Date().to
         "No production writes occur during second-pass planning or research.",
         "Tolerance remains excluded by product decision.",
         "Deschloroketamine remains excluded pending article-completeness investigation.",
-        "Analogues, parent compounds, metabolites, or plant constituents may support only claims that explicitly concern them; never transfer compound-specific evidence by analogy.",
-        "A second pass may end in confirmed_needs_source; coverage is not a success metric.",
+        ...SECOND_PASS_RESEARCH_RULES,
       ],
     },
     summary: summarize(substances),

@@ -256,7 +256,12 @@ describe("copyBlocks write authorization", () => {
   });
 
   it("serves the whole table to an unauthenticated reader", async () => {
-    await expect(getAllHandler(createCtx({ identity: null }), {})).resolves.toEqual([]);
-    expect(collect).toHaveBeenCalledTimes(1);
+    const blocks = [
+      { _id: "copy-hero", key: "home-hero", kind: "plain", body: "Public hero" },
+      { _id: "copy-points", key: "home-points", kind: "list", items: ["First", "Second"] },
+    ];
+    collect.mockResolvedValueOnce(blocks);
+
+    await expect(getAllHandler(createCtx({ identity: null }), {})).resolves.toEqual(blocks);
   });
 });

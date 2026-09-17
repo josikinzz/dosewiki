@@ -50,12 +50,13 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) {
     inset 0 1px 0 var(--theme-status-badge-inset);
 }
 
-/* Route pills share the soft, borderless treatment in both color schemes.
-   The icon recess follows the canvas, not the selected pill's accent wash.
+/* Route pills keep glass edges in both color schemes: top light, bottom
+   shade, contact shadow, no accent bloom and no drawn ring. The icon recess
+   follows the canvas and sits under that glass as a dimple, not a cutout.
    Important declarations supersede the legacy light-mode control remaps. */
 html:not([data-visual-style="pro"]) .theme-route-tabs-list .theme-selected-control[data-state="active"] {
   border-color: transparent !important;
-  box-shadow: inset 0 3px 10px -5px var(--theme-status-badge-inset) !important;
+  box-shadow: var(--theme-route-tab-shadow) !important;
   --tw-ring-color: transparent !important;
 }
 
@@ -90,14 +91,12 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-glo
 }
 
 
-/* Mobile index tab: ring and inset only. */
+/* Mobile index tile: the same glass edges as the desktop pill. */
 html:not([data-visual-style="pro"])
   body:not(:has(.theme-home-shell))
   .theme-index-mobile-tab[data-state="active"]
   .theme-index-mobile-tab-icon {
-  box-shadow:
-    0 0 0 1px var(--theme-selected-control-border),
-    inset 0 1px 0 var(--theme-status-badge-inset);
+  box-shadow: var(--theme-route-tab-shadow);
 }
 
 /* Section-group divider cap: the hairline stays, the halo around it does not. */

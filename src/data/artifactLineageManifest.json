@@ -45,18 +45,18 @@
       "id": "public-substance-index-archive",
       "path": "public/SubstanceIndex.json",
       "role": "archival-public-snapshot",
-      "producer": "manual compatibility snapshot copied from a historical substance export",
+      "producer": "scripts/data/sanitize-public-substance-archive.mjs",
       "consumers": [
         "external consumers with legacy /SubstanceIndex.json links",
         "About page archival download"
       ],
-      "inputs": ["historical local substance export"],
-      "freshnessRule": "Do not treat as live runtime data. Postgres is authoritative for public pages; refresh or remove only through an explicit compatibility decision.",
+      "inputs": ["historical local substance export retained in private recovery storage"],
+      "freshnessRule": "Do not treat as live runtime data. Preserve historical values and ordering, removing only editorial_review through the owned sanitizer after an explicit compatibility decision. Never restore an unsanitized public snapshot.",
       "sourceDeployment": "archival local working tree snapshot",
       "targetDeployment": null,
       "schemaVersion": "historical SubstanceIndex.json shape",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "manual compatibility decision; no routine refresh"
+      "refreshCommand": "node scripts/data/sanitize-public-substance-archive.mjs --recovery-copy <private-recovery-path>"
     },
     {
       "id": "substance-index-backups",
@@ -688,7 +688,7 @@
         "npm run postgres:migrate",
         "PlanetScale Postgres release steps (dossier W2)"
       ],
-      "inputs": ["lib/postgres/schema.generated.ts"],
+      "inputs": ["lib/postgres/schema.generated.ts", "lib/postgres/schema.runtime.ts"],
       "freshnessRule": "Append-only. Never rewrite an applied migration; schema changes add a new file via npm run postgres:migrate:generate.",
       "sourceDeployment": "local working tree",
       "targetDeployment": "POSTGRES_DIRECT_URL",
@@ -804,6 +804,246 @@
       "schemaVersion": "scripts/postgres/generateFunctionRegistry.ts",
       "editPolicy": "editable-by-data-workflow-maintainers",
       "refreshCommand": "edit ownership input, then npm run generate:postgres-functions"
+    },
+    {
+      "id": "public-route-availability",
+      "path": "src/data/publicRouteAvailability.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generatePublicRouteAvailability.ts",
+      "consumers": [
+        "lib/next/publicRouteAvailability.ts",
+        "src/middleware.ts"
+      ],
+      "inputs": [
+        "Postgres substance public lookup pages",
+        "Postgres replication public gallery pages",
+        "src/types/replications.ts"
+      ],
+      "freshnessRule": "Refresh only after explicit source-read approval with a matching --expected-deployment fingerprint. Ordinary builds consume the committed manifest without a database refresh; review the complete route denominator before release.",
+      "sourceDeployment": "explicitly selected Postgres source matched by --expected-deployment",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generatePublicRouteAvailability.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generatePublicRouteAvailability.ts --expected-deployment <approved-source-fingerprint>"
+    },
+    {
+      "id": "surface-fun-tokens",
+      "path": "src/theme/surfaceFunTokens.generated.json",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearancePaletteData.ts",
+      "consumers": [
+        "src/theme/surfaceStylesheet.ts",
+        "src/theme/chromaStylesheet.ts"
+      ],
+      "inputs": [
+        "src/styles/site-colors.css",
+        "src/styles/pro-theme.css",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/paletteOwnership.ts",
+        "src/test/fixtures/accentAppearanceGrid.ts"
+      ],
+      "freshnessRule": "Regenerate all three palette token maps together after authored palette changes, then regenerate their surface, accent and chroma stylesheet consumers. Review paired chroma hashes and theme bootstrap/CSP changes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "surface-fun-token-fallbacks",
+      "path": "src/theme/surfaceFunTokenFallbacks.generated.json",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearancePaletteData.ts",
+      "consumers": [
+        "src/theme/surfaceStylesheet.ts"
+      ],
+      "inputs": [
+        "src/styles/site-colors.css",
+        "src/styles/pro-theme.css",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/paletteOwnership.ts",
+        "src/test/fixtures/accentAppearanceGrid.ts"
+      ],
+      "freshnessRule": "Regenerate all three palette token maps together after authored palette changes, then regenerate their surface, accent and chroma stylesheet consumers. Review paired chroma hashes and theme bootstrap/CSP changes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "accent-fun-tokens",
+      "path": "src/theme/accentFunTokens.generated.json",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearancePaletteData.ts",
+      "consumers": [
+        "src/theme/chromaStylesheet.ts"
+      ],
+      "inputs": [
+        "src/styles/site-colors.css",
+        "src/styles/pro-theme.css",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/paletteOwnership.ts",
+        "src/test/fixtures/accentAppearanceGrid.ts"
+      ],
+      "freshnessRule": "Regenerate all three palette token maps together after authored palette changes, then regenerate their surface, accent and chroma stylesheet consumers. Review paired chroma hashes and theme bootstrap/CSP changes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "surface-token-stylesheet",
+      "path": "src/styles/surface-tokens.generated.css",
+      "role": "derived",
+      "producer": "scripts/build/generateSurfaceCss.ts",
+      "consumers": [
+        "src/app/_styles/dosewiki.ts"
+      ],
+      "inputs": [
+        "src/theme/surfaceStylesheet.ts",
+        "src/theme/appearanceChroma.ts",
+        "src/theme/surfaceFunTokens.generated.json",
+        "src/theme/surfaceFunTokenFallbacks.generated.json"
+      ],
+      "freshnessRule": "Refresh after palette or stylesheet changes through the ordered appearance pipeline, preserving literal fallbacks and their guarded recipes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateSurfaceCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "accent-token-stylesheet",
+      "path": "src/styles/accent-tokens.generated.css",
+      "role": "derived",
+      "producer": "scripts/build/generateAccentCss.ts",
+      "consumers": [
+        "src/app/_styles/dosewiki.ts"
+      ],
+      "inputs": [
+        "src/theme/accentStylesheet.ts",
+        "src/theme/accents.ts"
+      ],
+      "freshnessRule": "Refresh after authored accent seeds or stylesheet changes through the ordered appearance pipeline.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAccentCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "appearance-chroma-stylesheet",
+      "path": "public/appearance-chroma.css",
+      "role": "derived",
+      "producer": "scripts/build/generateChromaCss.ts",
+      "consumers": [
+        "src/theme/appearanceChroma.ts",
+        "src/theme/index.ts"
+      ],
+      "inputs": [
+        "src/theme/chromaStylesheet.ts",
+        "src/theme/chromaMath.ts",
+        "src/theme/appearanceChroma.ts",
+        "src/theme/chromeDark.ts",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/accentFunTokens.generated.json",
+        "src/theme/surfaceFunTokens.generated.json"
+      ],
+      "freshnessRule": "Regenerate CSS and content-hash manifest together after palette/chroma changes via the ordered appearance pipeline. Refresh theme bootstrap and review its paired CSP hashes before release; ordinary builds do not regenerate appearance styles.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateChromaCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "appearance-chroma-manifest",
+      "path": "src/theme/appearanceChroma.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateChromaCss.ts",
+      "consumers": [
+        "src/theme/appearanceChroma.ts"
+      ],
+      "inputs": [
+        "src/theme/chromaStylesheet.ts",
+        "src/theme/chromaMath.ts",
+        "src/theme/appearanceChroma.ts",
+        "src/theme/chromeDark.ts",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/accentFunTokens.generated.json",
+        "src/theme/surfaceFunTokens.generated.json"
+      ],
+      "freshnessRule": "Regenerate CSS and content-hash manifest together after palette/chroma changes via the ordered appearance pipeline. Refresh theme bootstrap and review its paired CSP hashes before release; ordinary builds do not regenerate appearance styles.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateChromaCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "appearance-pro-stylesheet",
+      "path": "public/pro-theme.css",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearanceSheets.ts",
+      "consumers": [
+        "src/theme/appearanceSheets.ts"
+      ],
+      "inputs": [
+        "src/styles/pro-theme.css",
+        "src/styles/theme-light-mode.css"
+      ],
+      "freshnessRule": "Regenerate both byte-for-byte public stylesheet copies and their content-hash manifest together after either authored sheet changes. Refresh theme bootstrap and review its paired CSP hashes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-sheets"
+    },
+    {
+      "id": "appearance-light-stylesheet",
+      "path": "public/theme-light-mode.css",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearanceSheets.ts",
+      "consumers": [
+        "src/theme/appearanceSheets.ts"
+      ],
+      "inputs": [
+        "src/styles/pro-theme.css",
+        "src/styles/theme-light-mode.css"
+      ],
+      "freshnessRule": "Regenerate both byte-for-byte public stylesheet copies and their content-hash manifest together after either authored sheet changes. Refresh theme bootstrap and review its paired CSP hashes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-sheets"
+    },
+    {
+      "id": "appearance-sheets-manifest",
+      "path": "src/theme/appearanceSheets.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateAppearanceSheets.ts",
+      "consumers": [
+        "src/theme/appearanceSheets.ts",
+        "src/theme/index.ts"
+      ],
+      "inputs": [
+        "src/styles/pro-theme.css",
+        "src/styles/theme-light-mode.css"
+      ],
+      "freshnessRule": "Regenerate both byte-for-byte public stylesheet copies and their content-hash manifest together after either authored sheet changes. Refresh theme bootstrap and review its paired CSP hashes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-sheets"
     },
     {
       "id": "effect-category-definitions",

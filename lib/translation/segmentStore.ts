@@ -11,6 +11,7 @@ import { getPostgresClient } from "@server/postgres/runtime/backend";
 import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 import { refreshLocalizedPublicationIndexes } from "./publicationIndexStore";
+import { patchDocument, selectDocumentById, type SqlClient } from "../postgres/documentStore";
 
 export type TranslationSegmentRow = {
   locale: string;
@@ -25,6 +26,8 @@ export type TranslationJobRow = {
   locale: string;
   slug: string;
   attempts: number;
+  requested_at: string;
+  claimed_at: string;
 };
 
 /** A stale lease is retaken after this long; the cron's own budget is shorter. */
@@ -198,20 +201,41 @@ export async function scopeStaleTranslations(
 }
 
 /**
- * Mark articles as needing a locale refresh. A row already pending keeps its
- * place; a completed row is reopened with a fresh request time.
+ * Mark records as needing a locale refresh. The request timestamp is also a
+ * strictly increasing generation, even for repeated requests in one millisecond.
  */
-export async function enqueueTranslationJobs(locales: readonly string[], slugs: readonly string[]): Promise<void> {
+export async function enqueueTranslationJobs(
+  locales: readonly string[],
+  slugs: readonly string[],
+  publication?: { id: string; generation: number },
+): Promise<void> {
   if (locales.length === 0 || slugs.length === 0) return;
   assertDataWritesNotFrozen("enqueueTranslationJobs");
-  const pairs = locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })));
-  await getPostgresClient().sql(
-    `INSERT INTO "translationJobs" ("locale", "slug", "requested_at", "claimed_at", "completed_at", "attempts", "last_error")
-     SELECT l, s, $3::bigint, NULL, NULL, 0, NULL FROM UNNEST($1::text[], $2::text[]) AS pending(l, s)
-     ON CONFLICT ("locale", "slug") DO UPDATE SET
-       "requested_at" = EXCLUDED."requested_at", "completed_at" = NULL, "attempts" = 0, "last_error" = NULL`,
-    [pairs.map((pair) => pair.locale), pairs.map((pair) => pair.slug), Date.now()],
-  );
+  const pairs = [...new Set(locales)].flatMap((locale) => [...new Set(slugs)].map((slug) => ({ locale, slug })));
+  const enqueue = async (client: SqlClient) => {
+    await client.query(
+      `INSERT INTO "translationJobs" ("locale", "slug", "requested_at", "claimed_at", "completed_at", "attempts", "last_error")
+       SELECT l, s, $3::bigint, NULL, NULL, 0, NULL FROM UNNEST($1::text[], $2::text[]) AS pending(l, s)
+       ON CONFLICT ("locale", "slug") DO UPDATE SET
+         "requested_at" = GREATEST(EXCLUDED."requested_at", "translationJobs"."requested_at" + 1),
+         "claimed_at" = NULL, "completed_at" = NULL, "attempts" = 0, "last_error" = NULL`,
+      [pairs.map((pair) => pair.locale), pairs.map((pair) => pair.slug), Date.now()],
+    );
+  };
+  await getPostgresClient().sqlTransaction(async (client) => {
+    if (!publication) return enqueue(client);
+    // Lock the outbox generation and commit its receipt with the queue writes.
+    // A crash or dispatch retry cannot reset active jobs for this generation.
+    const row = await selectDocumentById(client, "publicCachePublications", publication.id, true);
+    if (!row || row.generation !== publication.generation || !row.pending) return;
+    const receipts = (row.receipts ?? []) as Array<{ target?: string; generation?: number }>;
+    if (receipts.some((receipt) => receipt.target === "translation-queue" && receipt.generation === publication.generation)) return;
+    await enqueue(client);
+    await patchDocument(client, "publicCachePublications", publication.id, {
+      receipts: [...receipts, { target: "translation-queue", generation: publication.generation,
+        status: "accepted", attempts: 1, jobs: pairs.map(({ locale, slug }) => `${locale}/${slug}`) }],
+    });
+  });
 }
 
 /** Lease up to `limit` due rows to this worker. Atomic: concurrent crons never take the same row. */
@@ -225,24 +249,37 @@ export async function claimTranslationJobs(limit: number): Promise<TranslationJo
        WHERE "completed_at" IS NULL AND "attempts" < $3::int AND ("claimed_at" IS NULL OR "claimed_at" < $1::bigint - $4::bigint)
        ORDER BY "requested_at" ASC LIMIT $2::int FOR UPDATE SKIP LOCKED
      )
-     RETURNING "locale", "slug", "attempts"`,
+     RETURNING "locale", "slug", "attempts", "requested_at"::text, "claimed_at"::text`,
     [now, limit, MAX_JOB_ATTEMPTS, JOB_LEASE_MS],
   );
 }
 
-export async function completeTranslationJob(job: TranslationJobRow): Promise<void> {
-  assertDataWritesNotFrozen("completeTranslationJob");
-  await getPostgresClient().sql(
-    'UPDATE "translationJobs" SET "completed_at" = $3, "claimed_at" = NULL, "last_error" = NULL WHERE "locale" = $1 AND "slug" = $2',
-    [job.locale, job.slug, Date.now()],
-  );
+async function finishTranslationJob(job: TranslationJobRow, error: string | null): Promise<boolean> {
+  return getPostgresClient().sqlTransaction(async (client) => {
+    const current = await client.query<TranslationJobRow & { completed_at: string | null }>(
+      `SELECT "locale", "slug", "requested_at"::text, "claimed_at"::text, "attempts", "completed_at"::text
+       FROM "translationJobs" WHERE "locale" = $1 AND "slug" = $2 FOR UPDATE`,
+      [job.locale, job.slug],
+    );
+    const row = current.rows[0];
+    if (!row || row.completed_at !== null || row.requested_at !== job.requested_at ||
+        row.claimed_at !== job.claimed_at || row.attempts !== job.attempts) return false;
+    await client.query(
+      `UPDATE "translationJobs" SET "completed_at" = $3::bigint, "claimed_at" = NULL, "last_error" = $4
+       WHERE "locale" = $1 AND "slug" = $2`,
+      [job.locale, job.slug, error === null ? Date.now() : null, error],
+    );
+    return true;
+  });
 }
 
-/** Release the lease so the next run retries, keeping the error for the operator. */
-export async function failTranslationJob(job: TranslationJobRow, error: string): Promise<void> {
+export async function completeTranslationJob(job: TranslationJobRow): Promise<boolean> {
+  assertDataWritesNotFrozen("completeTranslationJob");
+  return finishTranslationJob(job, null);
+}
+
+/** Release only this lease; the five-attempt cap leaves exhausted errors inspectable. */
+export async function failTranslationJob(job: TranslationJobRow, error: string): Promise<boolean> {
   assertDataWritesNotFrozen("failTranslationJob");
-  await getPostgresClient().sql(
-    'UPDATE "translationJobs" SET "claimed_at" = NULL, "last_error" = $3 WHERE "locale" = $1 AND "slug" = $2',
-    [job.locale, job.slug, error.slice(0, 2000)],
-  );
+  return finishTranslationJob(job, error.slice(0, 2000));
 }

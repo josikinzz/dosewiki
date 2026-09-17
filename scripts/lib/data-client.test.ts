@@ -1,10 +1,24 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api";
+import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { createDataClient, resolvePostgresSource, resolvePostgresTarget } from "./data-client";
 
-const env = { NODE_ENV: "test" as const, DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://localhost/dosewiki" };
+vi.mock("server-only", () => ({}));
+
+const env = { NODE_ENV: "test" as const, DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://localhost/dosewiki", REPLICATION_MEDIA_BASE_URL: " https://media.example.test/// " };
 
 describe("Postgres-only operator client", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it.each([undefined, "", " \t\n", "http://media.example.test", "https:// spaced.test", "https://"])("rejects unusable media configuration %j in both factories", (baseUrl) => {
+    vi.stubEnv("REPLICATION_MEDIA_BASE_URL", baseUrl);
+    expect(() => createDataClient({ env: { ...env, REPLICATION_MEDIA_BASE_URL: baseUrl }, argv: [] })).toThrow(/REPLICATION_MEDIA_BASE_URL/);
+    expect(() => PostgresClient.fromUrl(env.POSTGRES_POOLED_URL)).toThrow(/REPLICATION_MEDIA_BASE_URL/);
+  });
+
+
   it.each([undefined, "", "convex", "postgresql"])("refuses backend %s even with a legacy target", (backend) => {
     expect(() => createDataClient({ env: { ...env, DATA_BACKEND: backend }, target: "https://legacy.convex.cloud", argv: [] })).toThrow(/DATA_BACKEND=postgres/);
   });

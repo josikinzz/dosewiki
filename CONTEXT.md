@@ -147,15 +147,15 @@ The preserved local record of a citation run: drafts, failed section artifacts, 
 _Avoid_: one-off live write, disposable run output
 
 **Production Rollout Batch**:
-A deliberate group of locally archived citation results promoted to production together, ordered as homepage `common` substances, other homepage-visible substances, then remaining SubstanceIndex entries.
+A deliberately authorized group of locally archived citation results promoted together under the [production rollout contract](docs/citation-production-rollout.md).
 _Avoid_: per-drug automatic publish, immediate production write
 
 **Citation Rollout Stage Gate**:
-A deliberate pause between rollout tiers. Calibration on `2c-b` is complete. Publish and review the homepage `common` substances. Then stop before expansion to other homepage-visible substances.
+A required review and authorization boundary between rollout tiers. The [production rollout contract](docs/citation-production-rollout.md) owns current tier selection and progression.
 _Avoid_: continuous production rollout, jumping tiers
 
 **Citation Canary**:
-A Citation Canary is a substance used for repeated runs that prove and refine workflow changes before scaling. `2c-b` is the completed historical canary. Select the next canary explicitly.
+A substance selected explicitly for repeated runs that prove and refine workflow changes before scaling. Historical canary results do not authorize another run or production rollout.
 _Avoid_: one-and-done pilot
 
 ## Legality Research Language
@@ -207,19 +207,19 @@ An adversarial verification run in a fresh blank context on the session model. I
 _Avoid_: rubber-stamp check, producer reviewing its own finding, unbounded recovery
 
 **Legality Draft**:
-The run-local artifact containing verified entries, corrections, International Convention Status, evidence, and gaps for one substance. It reaches production only through a dry-run followed by a confirmed write.
+The run-local artifact containing verified entries, corrections, International Convention Status, evidence, and gaps for one substance. Local review does not grant publication authority; the [legality-pi skill](.agents/skills/legality-pi/SKILL.md) owns the closed production gate.
 _Avoid_: direct production write, hand-edited local JSON fix
 
 **Per-Substance Autopilot**:
-The post-pilot mode in which each validated draft is dry-run and then applied to production one substance at a time without another human pause. Before the user approves the pilot canaries, every apply stops after dry-run for explicit confirmation.
-_Avoid_: unvalidated auto-write, batch bulk apply, pre-pilot autopilot
+Sequential preparation and review of one substance's local legality draft at a time. The [legality-pi skill](.agents/skills/legality-pi/SKILL.md) keeps publication closed; the term grants no production authority or exemption from separately approved writer and confirmation gates.
+_Avoid_: automatic production write, bulk apply
 
 **International Convention Status**:
 A substance's primary-sourced scheduling under the 1961, 1971, and 1988 UN drug conventions, or an explicit “not internationally scheduled” finding.
 _Avoid_: empty international section, uncited UN claim
 
 **Common-First Legality Rollout**:
-The rollout of publicly listed substances in common-first order: substances marked `common` in each psychoactive category, then every remaining unprocessed substance. Completed runs are skipped. Each substance is published once to the production database (PlanetScale Postgres since 2026-09-10; earlier runs wrote Convex `glad-minnow-656`). Completion requires `applied.json` and `citations-applied.json` to record successful writes before the next substance begins.
+The common-first ordering of publicly listed substances for legality work, followed by remaining unprocessed substances. The [legality-pi skill](.agents/skills/legality-pi/SKILL.md) owns current selection, local completion, resume evidence, and the separately gated publication phase; historical successful-write receipts remain preserved.
 _Avoid_: source-material-priority rollout, rerunning completed substances, bulk publish
 
 ## Article Review Language

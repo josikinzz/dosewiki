@@ -5,11 +5,11 @@
  *
  * The failure that motivated this check: without `REPLICATION_MEDIA_BASE_URL`,
  * `server/lib/replicationUrls.ts` resolves no R2 URL, `projectGalleryRow`
- * drops every row whose URL is null, and the public gallery loses about 96
- * percent of its items with no error anywhere.
+ * drops every row whose URL is null, silently omitting R2-only media.
  */
 
-import { ADMIN_INTENTS, getAdminIntentEnvVar } from "../../../server/lib/adminIntentTokens";
+import { ADMIN_INTENTS, getAdminIntentEnvVar } from "../../../server/lib/adminIntentTokens.ts";
+import { replicationMediaBaseUrl } from "../../../server/lib/replicationUrls.ts";
 
 /**
  * Variables whose absence silently changes what a READ returns. These are
@@ -66,15 +66,22 @@ export function inspectDeploymentEnv(env: Record<string, string | undefined> = p
 }
 
 /**
- * Throws when a required variable is absent. Called once per client, so a
- * misconfigured deployment fails on its first query instead of serving
- * truncated content.
+ * Throws when required delivery configuration is absent or unusable by readers.
+ * Both application and operator factories call this before creating their pool,
+ * so misconfiguration cannot silently truncate content.
  */
 export function assertDeploymentEnv(env: Record<string, string | undefined> = process.env): void {
   const { missingRequired } = inspectDeploymentEnv(env);
-  if (missingRequired.length === 0) return;
-  throw new Error(
-    `Postgres runtime configuration is missing: ${missingRequired.join(", ")}. ` +
-      "Configure the approved media delivery origin for this environment.",
-  );
+  if (missingRequired.length > 0) {
+    throw new Error(
+      `Postgres runtime configuration is missing: ${missingRequired.join(", ")}. ` +
+        "Configure the approved media delivery origin for this environment.",
+    );
+  }
+  if (replicationMediaBaseUrl(env) === null) {
+    throw new Error(
+      "Postgres runtime configuration has an invalid REPLICATION_MEDIA_BASE_URL. " +
+        "Configure the approved HTTPS media delivery origin for this environment.",
+    );
+  }
 }

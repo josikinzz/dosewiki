@@ -84,9 +84,6 @@ scripts/data/backups/
 # Quote files (database-owned, not bundled)
 quotes/
 
-# Prompt files (database-owned, not bundled)
-src/data/config/sectionPrompts/*.md
-src/data/config/generatorPrompt.md
 .vercel
 .lakebed/
 **/.lakebed/

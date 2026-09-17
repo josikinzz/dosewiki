@@ -43,6 +43,7 @@ export {
   getPublicSubstanceLookup,
   getPublicSubstanceSlugs,
   getPublicSubstances,
+  getPublicSubstanceSearchSummaries,
   getRawSubstances,
   getReviewedArticlesByContributor,
 } from "./publicData.substances";
@@ -87,6 +88,7 @@ export {
 
 export {
   getPublicReportBySlug,
+  getPublicReportSearchSummaries,
   getPublicReportDetails,
   getPublicReportDetailsByContributor,
   getPublicReports,

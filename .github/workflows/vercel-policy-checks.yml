@@ -5,6 +5,13 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Approved release environment with read-only build configuration
+        type: environment
+        required: true
+
 
 permissions:
   contents: read
@@ -34,8 +41,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Run canonical verification graph
-        run: bun run verify:all
+      - name: Run checkout-safe verification graph
+        run: |
+          bun run openchemlib:verify
+          bun run test
+          bun run test:workflow
+          bun run typecheck
+          bun run lint:all
+          bun run lint:api
+          bun run typecheck:scripts
+          bun run typecheck:handlers
+          bun run provenance:check
+          bun run cleanup:metrics --check
 
       - name: Check owned Postgres function references
         run: node scripts/build/check-function-references.mjs
@@ -115,6 +132,56 @@ jobs:
           fi
 
           echo "App Router API routes look safe"
+
+  release-build:
+    name: Authorized release artifact (${{ matrix.artifact }})
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: verification
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        include:
+          - artifact: public
+            surface: public
+            flavor: dosewiki
+          - artifact: editor
+            surface: editor
+            flavor: dosewiki
+          - artifact: effectindex
+            surface: public
+            flavor: effectindex
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Configure required reviewers and these values in the selected environment.
+      # No build credential is available to checkout verification or PR jobs.
+      - name: Build with explicitly approved read-only configuration
+        env:
+          RELEASE_BUILD_ENABLED: ${{ vars.RELEASE_BUILD_ENABLED }}
+          DATA_BACKEND: postgres
+          DATA_WRITES_FROZEN: "1"
+          POSTGRES_POOLED_URL: ${{ secrets.POSTGRES_POOLED_READONLY_URL }}
+          REPLICATION_MEDIA_BASE_URL: ${{ vars.REPLICATION_MEDIA_BASE_URL }}
+          DOSEWIKI_BUILD_SURFACE: ${{ matrix.surface }}
+          NEXT_PUBLIC_SITE_FLAVOR: ${{ matrix.flavor }}
+          DOSEWIKI_BUILD_DIR: .next-release-${{ matrix.artifact }}
+        run: |
+          test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
+          test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
+          test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL is required"; exit 1; }
+          bun run build
 
   security-reporting:
     name: Dependency Security Reports (non-blocking)

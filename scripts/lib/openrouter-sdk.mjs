@@ -174,9 +174,13 @@ export async function callOpenRouterChat({
   reasoningEffort,
   disableReasoning = false,
   excludeReasoning = false,
+  signal,
 }) {
   try {
+    signal?.throwIfAborted();
     const client = createOpenRouterClient(apiKey, appTitle);
+    // The SDK's backoff sleep cannot be aborted. Signal-bearing callers own
+    // retries so cancellation cannot leave an SDK retry waiting in the background.
     const response = await client.chat.send({
       chatRequest: buildChatRequest({
         model,
@@ -188,7 +192,8 @@ export async function callOpenRouterChat({
         disableReasoning,
         excludeReasoning,
       }),
-    });
+    }, signal ? { signal, retries: { strategy: "none" } } : undefined);
+    signal?.throwIfAborted();
 
     const choice = response?.choices?.[0];
     const message = choice?.message;
@@ -203,6 +208,7 @@ export async function callOpenRouterChat({
       response,
     };
   } catch (error) {
+    signal?.throwIfAborted();
     throw normalizeError(error);
   }
 }

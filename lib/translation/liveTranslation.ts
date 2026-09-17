@@ -385,6 +385,7 @@ export async function translateUnits(
   units: readonly WorkUnit[],
   context: TranslationContext,
   apiKey: string,
+  signal?: AbortSignal,
 ): Promise<Pick<RefreshOutcome, "stored" | "rejected" | "usage">> {
   const { locale, glossary, kinds, glosses, promptVersion } = context;
   const localeCode = locale.code;
@@ -394,9 +395,10 @@ export async function translateUnits(
 
   const batches = planBatches(units);
   let cursor = 0;
-  await Promise.all(
+  const results = await Promise.allSettled(
     Array.from({ length: Math.min(REFRESH_CONCURRENCY, batches.length) }, async () => {
       while (cursor < batches.length) {
+        signal?.throwIfAborted();
         const batch = batches[cursor];
         cursor += 1;
         const verdicts = await translateBatchWithRetries({
@@ -407,6 +409,7 @@ export async function translateUnits(
           glosses,
           model: TRANSLATION_MODEL,
           apiKey,
+          signal,
           onUsage: (used) => {
             usage.prompt += used.prompt;
             usage.completion += used.completion;
@@ -441,6 +444,9 @@ export async function translateUnits(
       defects: entry.defects,
     }))),
   ]);
+  const failure = results.find((result) => result.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
+  signal?.throwIfAborted();
   return { stored: rows.length, rejected, usage };
 }
 
@@ -450,7 +456,9 @@ export async function refreshRecordTranslations(
   context: TranslationContext,
   kind: TranslationRecordKind,
   apiKey: string,
+  signal?: AbortSignal,
 ): Promise<RefreshOutcome> {
+  signal?.throwIfAborted();
   const localeCode = context.locale.code;
   const segments = segmentsOf(record, kind);
   const units = workUnitsOf(segments, kind);
@@ -460,7 +468,7 @@ export async function refreshRecordTranslations(
   const pending = new Set(await pendingTranslationHashes(localeCode, units.map((unit) => unit.hash), context.promptVersion));
   const due = units.filter((unit) => pending.has(unit.hash));
   const result = due.length > 0
-    ? await translateUnits(due, context, apiKey)
+    ? await translateUnits(due, context, apiKey, signal)
     : { stored: 0, rejected: [], usage: { prompt: 0, completion: 0, requests: 0 } };
   return { slug: record.slug, locale: localeCode, segments: segments.length, requested: due.length, ...result };
 }

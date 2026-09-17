@@ -15,7 +15,12 @@ const MAX_SUGGESTIONS = 8;
  */
 const SERVER_REFINE_DELAY_MS = 400;
 
-const searchSuggestionsCache = new Map<string, SearchSuggestion[]>();
+const SEARCH_SUGGESTIONS_MAX_ENTRIES = 100;
+const SEARCH_SUGGESTIONS_TTL_MS = 5 * 60 * 1000;
+const searchSuggestionsCache = new Map<string, {
+  results: SearchSuggestion[];
+  expiresAt: number;
+}>();
 const searchSuggestionsInflight = new Map<string, Promise<SearchSuggestion[]>>();
 
 const buildCacheKey = (trimmed: string, limit: number, locale: string) =>
@@ -43,7 +48,7 @@ const findPrefixSuggestions = (
       buildCacheKey(trimmed.slice(0, length), limit, locale),
     );
     if (cached) {
-      return cached;
+      return cached.results;
     }
   }
   return undefined;
@@ -112,9 +117,11 @@ export function useGlobalSearchSuggestions({
 
     const cached = searchSuggestionsCache.get(cacheKey);
     if (cached) {
-      setServerResults({ key: cacheKey, results: cached });
-      setRequestState({ key: cacheKey, pending: false });
-      return;
+      setServerResults({ key: cacheKey, results: cached.results });
+      if (cached.expiresAt > Date.now()) {
+        setRequestState({ key: cacheKey, pending: false });
+        return;
+      }
     }
 
     let disposed = false;
@@ -134,7 +141,16 @@ export function useGlobalSearchSuggestions({
               }
 
               const data = (await response.json()) as { results?: SearchSuggestion[] };
-              return data.results ?? [];
+              const results = data.results ?? [];
+              searchSuggestionsCache.delete(cacheKey);
+              searchSuggestionsCache.set(cacheKey, {
+                results,
+                expiresAt: Date.now() + SEARCH_SUGGESTIONS_TTL_MS,
+              });
+              while (searchSuggestionsCache.size > SEARCH_SUGGESTIONS_MAX_ENTRIES) {
+                searchSuggestionsCache.delete(searchSuggestionsCache.keys().next().value!);
+              }
+              return results;
             })
             .finally(() => {
               searchSuggestionsInflight.delete(cacheKey);
@@ -144,7 +160,6 @@ export function useGlobalSearchSuggestions({
         }
 
         const nextResults = await request;
-        searchSuggestionsCache.set(cacheKey, nextResults);
 
         if (!disposed) {
           setServerResults({ key: cacheKey, results: nextResults });
@@ -187,7 +202,7 @@ export function useGlobalSearchSuggestions({
     if (serverResults?.key === cacheKey) {
       return serverResults.results;
     }
-    return searchSuggestionsCache.get(cacheKey) ?? localResults ?? seededResults ?? findPrefixSuggestions(trimmed, resolvedLimit, locale) ?? [];
+    return searchSuggestionsCache.get(cacheKey)?.results ?? localResults ?? seededResults ?? findPrefixSuggestions(trimmed, resolvedLimit, locale) ?? [];
   }, [
     cacheKey,
     isCleared,
@@ -204,7 +219,7 @@ export function useGlobalSearchSuggestions({
   const isUpdatingSuggestions =
     isSearching &&
     !isCleared &&
-    !searchSuggestionsCache.has(cacheKey) &&
+    (searchSuggestionsCache.get(cacheKey)?.expiresAt ?? 0) <= Date.now() &&
     (requestState?.key !== cacheKey || requestState.pending);
 
   return {

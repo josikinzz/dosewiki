@@ -108,10 +108,11 @@ export const BASE_ACCENT_SWATCH = "#f0abfc";
  *
  * - **Light: 4.5034:1 on paper `#f6f5f1`, against the 4.5 floor.** A pure rotation of the
  *   authored light ramp to 326 measures 3.4016:1, and the authored teal it starts from measures
- *   3.12:1 — a breach that predated this axis. The ramp takes a uniform ΔL of −0.068 across
- *   `accent`, `strong`, `soft` and `muted`, the least that lifts the base seed over the floor,
- *   applied uniformly so every authored gap survives rather than the base sliding past
- *   `muted`. `strong` then measures 9.05:1 and ink-on-fill 9.87:1.
+ *   3.12:1 — a breach that predated this axis. `accent`, `soft` and `muted` take a uniform ΔL
+ *   of −0.068, the least that lifts the base seed over the floor. `strong` is exempt: carried
+ *   along it landed at 9.05:1 and read as near-black on section heads, the H1 and the wordmark,
+ *   so it sits at ΔL +0.06 from that value instead, `#684968` at 7.01:1 (AAA) with the hue
+ *   still visible. Ink-on-fill measures 7.54:1.
  * - **Dark: 7.41:1 base and 9.2160:1 strong on `--ei-surface-raised` `#212121`, against Pro's
  *   own stated 7.4 / 9.2 budgets.** A pure rotation lands the base at 7.3475:1 — under budget —
  *   so the dark ramp takes ΔL of +0.002, about one 8-bit step, exactly as far as the budget
@@ -128,7 +129,7 @@ export const BASE_ACCENT_SWATCH = "#f0abfc";
 export const BASE_ACCENT_PRO_SEEDS: { readonly light: ProAccentSeeds; readonly dark: ProAccentSeeds } = {
   light: {
     "--ei-accent": "#8f618f",
-    "--ei-accent-strong": "#573957",
+    "--ei-accent-strong": "#684968",
     "--ei-accent-soft": "#a87ba9",
     "--ei-accent-muted": "#785178",
     "--ei-accent-on-dark": "#cfa0cf",

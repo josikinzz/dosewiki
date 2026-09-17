@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { projectLibraryInput } from "../../src/data/projections/substanceReadProjections";
+import { projectLibraryInput, projectSubstanceSearchSummary } from "../../src/data/projections/substanceReadProjections";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 
 vi.mock("server-only", () => ({}));
@@ -18,6 +18,10 @@ const mocks = vi.hoisted(() => ({
   buildLibrary: vi.fn(),
   buildSearchIndex: vi.fn(),
   derivedRevision: { library: "library-revision-1", search: "search-revision-1" },
+  getPublicSubstanceSearchSummaries: vi.fn(),
+  getPublicEffectSummariesBySlugs: vi.fn(),
+  getPublicReportSearchSummaries: vi.fn(),
+  getLocalizedLeaves: vi.fn(),
 }));
 
 vi.mock("./publicData", () => ({
@@ -36,6 +40,13 @@ vi.mock("./publicData", () => ({
   getPublicEffectArticles: mocks.getPublicEffectArticles,
   getPublicReports: mocks.getPublicReports,
   getPublicContributorProfiles: mocks.getPublicContributorProfiles,
+  getPublicSubstanceSearchSummaries: mocks.getPublicSubstanceSearchSummaries,
+  getPublicEffectSummariesBySlugs: mocks.getPublicEffectSummariesBySlugs,
+  getPublicReportSearchSummaries: mocks.getPublicReportSearchSummaries,
+}));
+
+vi.mock("../translation/localizedRecords", () => ({
+  getLocalizedLeaves: mocks.getLocalizedLeaves,
 }));
 
 vi.mock("./publicData.cache", async (importOriginal) => ({
@@ -179,6 +190,26 @@ describe("publicLibrary search index cache", () => {
     mocks.getPublicReports.mockResolvedValue([]);
     mocks.getPublicEffectArticles.mockResolvedValue([]);
     mocks.getPublicContributorProfiles.mockResolvedValue([]);
+  });
+
+  // Dynamic import: this suite reloads modules after vi.resetModules so
+  // process-resident caches cannot leak between cases (existing convention here).
+  it("localizes long raw summaries without changing canonical substance identity", async () => {
+    const rawSummary = `  First line.\n\n${"Full source text with spacing.  ".repeat(20)}`;
+    const translated = "Translated full summary";
+    mocks.buildLibrary.mockReturnValue(createLibrary([createRecord("LSD", "lsd", ["Acid"])]));
+    mocks.getPublicSubstanceSearchSummaries.mockResolvedValue([
+      projectSubstanceSearchSummary({ ...structuredClone(fullArticleWithDosage), title: "LSD", slug: "lsd", summary: rawSummary }),
+    ]);
+    mocks.getPublicEffectSummariesBySlugs.mockResolvedValue([]);
+    mocks.getPublicReportSearchSummaries.mockResolvedValue([]);
+    mocks.getLocalizedLeaves.mockImplementation(async (leaves: string[]) =>
+      new Map(leaves.filter((leaf) => leaf === rawSummary).map((leaf) => [leaf, translated])),
+    );
+    const { getPublicSearchSuggestions } = await import("./publicLibrary");
+    await expect(getPublicSearchSuggestions("acid", 5, "zh")).resolves.toMatchObject([
+      { label: "LSD", type: "substance", secondary: translated },
+    ]);
   });
 
   it("renders a selected category without unrelated manual layouts", async () => {

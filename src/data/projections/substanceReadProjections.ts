@@ -219,6 +219,27 @@ export function projectPublicPreview(article: SubstanceArticleRecord): Substance
   };
 }
 
+/**
+ * Search-summary projection. Localized search hashes the exact leaf the full
+ * article projection serves (`projectPublicArticle` passes `summary` through
+ * untouched), so this keeps the raw stored bytes instead of the preview
+ * excerpt; otherwise a long summary hashes differently and localized
+ * secondary lines silently fall back to English.
+ */
+export type SubstanceSearchSummaryProjection = {
+  title: string;
+  slug: string;
+  summary: string;
+};
+
+export function projectSubstanceSearchSummary(article: SubstanceArticleRecord): SubstanceSearchSummaryProjection {
+  return {
+    title: article.title,
+    slug: resolveSubstanceSlug(article),
+    summary: article.summary,
+  };
+}
+
 const LIBRARY_REFERENCE_IDENTIFIERS = [
   "url",
   "doi",

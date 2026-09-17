@@ -10,6 +10,8 @@ import { getFunctionName } from "../../lib/postgres/runtime/api.ts";
 import type { ArgsAndOptions, FunctionReference, FunctionReturnType, OptionalRestArgs, HttpMutationOptions } from "../../lib/postgres/runtime/api.ts";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 import type { PostgresClient } from "../../lib/postgres/runtime/client.ts";
+import { assertDeploymentEnv } from "../../lib/postgres/runtime/deploymentEnv.ts";
+import { POOL_ACQUISITION_TIMEOUT_MS } from "../../lib/postgres/transactionTimeouts.ts";
 import { guardTarget } from "../postgres/targetGuard.ts";
 
 import { parsePostgresTarget, requirePostgresBackend } from "../../lib/postgres/runtime/target.ts";
@@ -161,7 +163,7 @@ class LazyPostgresDataClient implements DataClient {
           import("pg"),
         ]);
         // allowExitOnIdle: scripts that fall off the end must not wait for the pool.
-        return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true }));
+        return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
       })();
     }
     return this.#loading;
@@ -257,6 +259,7 @@ export function createDataClient({
   }
   const fingerprint = postgresFingerprintFromUrl(resolved.url);
   guardTarget(resolved.url, allowRemote ?? argv.includes("--allow-remote"), env);
+  assertDeploymentEnv(env);
   return {
     backend,
     client: new FreezeGuardedDataClient(new LazyPostgresDataClient(resolved.url), env),

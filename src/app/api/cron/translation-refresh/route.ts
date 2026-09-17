@@ -35,11 +35,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-/** Articles per invocation: one large legality-heavy article is a few hundred segments, about a minute. */
-const JOBS_PER_RUN = 3;
+/** Claim one job at a time so unstarted work does not consume a lease attempt. */
+const JOBS_PER_RUN = 1;
 
-/** Stop claiming once this much of the function budget has been spent. */
+/** Reserve the rest of the platform budget for persistence and failure receipts. */
 const RUN_BUDGET_MS = 200_000;
+const MIN_JOB_BUDGET_MS = 10_000;
 
 export type TranslationRefreshRun = {
   claimed: number;
@@ -79,6 +80,7 @@ async function refreshDueArticles(
   apiKey: string,
 ): Promise<TranslationRefreshRun> {
   const started = Date.now();
+  const signal = AbortSignal.timeout(RUN_BUDGET_MS);
   const run: TranslationRefreshRun = {
     claimed: 0,
     completed: 0,
@@ -91,19 +93,19 @@ async function refreshDueArticles(
   const contextFor = (locale: string) =>
     (contexts[locale] ??= loadTranslationContext(locale));
 
-  while (Date.now() - started < RUN_BUDGET_MS) {
+  while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
     const jobs = await claimTranslationJobs(JOBS_PER_RUN);
     if (jobs.length === 0) break;
     run.claimed += jobs.length;
 
     for (const job of jobs) {
       try {
+        signal.throwIfAborted();
         const { kind, slug } = parseTranslationJobSlug(job.slug);
         const record = await readTranslationRecord(reads, kind, slug);
         if (!record) {
           // Unpublished or renamed since the write; nothing to mirror.
-          await completeTranslationJob(job);
-          run.completed += 1;
+          if (await completeTranslationJob(job)) run.completed += 1;
           continue;
         }
         const outcome = await refreshRecordTranslations(
@@ -111,8 +113,12 @@ async function refreshDueArticles(
           await contextFor(job.locale),
           kind,
           apiKey,
+          signal,
         );
-        if (outcome.stored > 0) {
+        signal.throwIfAborted();
+        // The pending job owns cache delivery until completion, including a
+        // retry whose accepted segments were already persisted by an earlier run.
+        {
           const targets =
             kind === "profile"
               ? [
@@ -131,11 +137,16 @@ async function refreshDueArticles(
                   : []
                 : [{ kind, slug }];
           if (targets.length > 0) {
-            await publishPublicCache({ targets, source: "manual" });
+            const receipts = await publishPublicCache({ targets, source: "manual" });
+            if (receipts.length === 0 || receipts.some((receipt) => receipt.status !== "accepted")) {
+              throw new Error("Translation cache delivery remains pending");
+            }
           }
         }
-        await completeTranslationJob(job);
-        run.completed += 1;
+        if (outcome.rejected.length > 0) {
+          throw new Error(`Translation refresh rejected ${outcome.rejected.length} segments`);
+        }
+        if (await completeTranslationJob(job)) run.completed += 1;
         run.outcomes.push(outcome);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

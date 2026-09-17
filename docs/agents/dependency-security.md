@@ -1,16 +1,16 @@
 # Dependency Security Record
 
-Last verified: 2026-07-11
+Historical audit: 2026-07-11. Exception review dates and expiries are retained below.
 
-This document records the dependency remediation completed for GitHub issue
-[#50](https://github.com/josikinzz/dosewiki-admin/issues/50), the current Bun
-audit baseline, and the temporary exceptions that remain. It supplements the
-automation policy in [Security CI](security-ci.md).
+This document preserves the dependency remediation evidence for GitHub issue
+[#50](https://github.com/josikinzz/dosewiki-admin/issues/50) and dated exception
+decisions. It is not a current dependency graph or advisory count. See
+[Security CI](security-ci.md) for reporting policy.
 
 ## Current baseline
 
-The repository uses Bun `1.3.5`, the tracked `bun.lock`, and frozen-lockfile
-installs in CI. The audit was rerun from the checked-in dependency graph with:
+This heading retains its incoming anchor; the following baseline is historical.
+The July audit used Bun `1.3.5` and the then-current frozen `bun.lock` with:
 
 ```bash
 bun audit --production --json
@@ -22,8 +22,9 @@ bun audit --json
 | Production | 4 advisories: 1 High, 3 Moderate | 1 Moderate | 75% fewer advisories; no High |
 | Full, including build/test tooling | 27 advisories: 15 High, 10 Moderate, 2 Low | 6 advisories: 3 High, 3 Moderate | 78% fewer advisories; 80% fewer High |
 
-The remaining six audit entries reduce to three reviewed dependency chains.
-They are recorded below rather than hidden or suppressed.
+Those six historical entries reduced to three reviewed chains. Current declarations
+and lockfile reachability may differ; notably, Convex is no longer a declared
+runtime dependency. No exception is resolved merely because a declaration changed.
 
 ## Remediated chains
 
@@ -44,6 +45,11 @@ lifecycle script was introduced; Bun also does not execute dependency lifecycle
 scripts unless a package is explicitly trusted.
 
 ## Temporary exceptions
+
+These are dated reachability decisions, not fresh assertions about the checkout.
+Preserve each owner, rationale, review date, expiry and exit condition until a
+new authorized audit supplies current graph and call-site evidence.
+
 
 ### DEP-EXC-001: `uuid@8.3.2` through NextAuth
 
@@ -120,7 +126,7 @@ scripts unless a package is explicitly trusted.
 
 ## Review procedure
 
-On each review date:
+Before claiming current advisory counts, resolving an exception, or extending it:
 
 1. rerun both Bun audit commands from a frozen install;
 2. run `bun why` for each remaining package;

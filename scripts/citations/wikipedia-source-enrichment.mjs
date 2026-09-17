@@ -1,3 +1,5 @@
+import { WIKIPEDIA_DISCOVERY_INSTRUCTION } from "./citation-evidence-policy.mjs";
+
 const WIKIPEDIA_USER_AGENT = "DoseWikiFormalCitations/1.0 (https://dose.wiki)";
 const MAX_WIKIPEDIA_REFERENCE_CANDIDATES = 12;
 const MAX_WIKIPEDIA_EXCERPTS_PER_SECTION = 18;
@@ -408,7 +410,7 @@ export function buildWikipediaCitationExcerpts({ source, sectionKey, sectionConf
       excerptId: `wikipedia:${sectionKey}:${index + 1}`,
       heading: section.heading,
       excerpt: clipText(section.content, MAX_WIKIPEDIA_EXCERPT_CHARS).trim(),
-      note: "Use this bounded Wikipedia excerpt for supportingQuote text. Use the matching underlying Wikipedia reference ID for referenceId when the claim is study-backed.",
+      note: WIKIPEDIA_DISCOVERY_INSTRUCTION,
     }))
     .filter((entry) => entry.excerpt);
 }
@@ -562,7 +564,7 @@ export function buildWikipediaCitationPacket({
           sourceId: "wikipedia",
           sourceName: "Wikipedia",
           excerpt: String(excerpt ?? "").trim(),
-          note: "Use this bounded Wikipedia excerpt for supportingQuote text. Use the matching underlying Wikipedia reference ID for referenceId when the claim is study-backed.",
+          note: WIKIPEDIA_DISCOVERY_INSTRUCTION,
         }].filter((entry) => entry.excerpt),
     references: references ?? [],
   };

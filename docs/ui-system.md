@@ -7,18 +7,9 @@ the live catalog and component how-to.
 
 ## Shared UI Inventory
 
-| Component or layer | Owner | Intended consumers | Exposed API | Promotion criteria | Migration notes |
-| --- | --- | --- | --- | --- | --- |
-| [`Surface`](../src/components/ui/surface.tsx), `ContentCard`, `InteractiveContentCard`, `NestedContentCard`, `StatusState`, `DangerCallout` | `src/components/ui/` | Shared/common, public pages, article sections, dev wrappers | Semantic surface variants, padding, radius, interactive state | Reused visual shell, tokenized styling, no route or feature data | Prefer these recipes before adding raw card shells. |
-| [`Button`](../src/components/ui/button.tsx) | `src/components/ui/` | All UI layers | Primitive tone, size, shape, and icon affordances | Variant names describe primitive behavior, not a route, feature, or composed recipe | Existing recipe variants are temporary and tracked below. |
-| [`Badge`](../src/components/ui/badge.tsx) | `src/components/ui/` | Public, article, dev status chips | Tone/status variants only | Shared semantic tone with stable text and focus behavior | Feature-specific labels wrap `Badge` instead of adding variants. |
-| `Icon`, `IconBadge`, `PublicOverline`, `PublicPill`, `PublicNameChip`, `PublicChipNav` | `src/components/common/` | Public/common, article, dev adapters | Icon names, compact public tokens, named-entity chips, chip navigation | Second runtime consumer, no feature-domain import, tokenized styling | `Icon` is the canonical shared icon abstraction. |
-| [`ExpandButton`](../src/components/common/ExpandButton.tsx), `ExpandIndicator` | `src/components/common/` | Public/common, article, effects, reports | Intent variants for inline, floating, count, chip, and card expansion affordances | Reused content-reveal behavior with accessible names and consistent icon language | Use semantic variants by container intent; do not hand-roll `...` plus chevron pairs. |
-| [`ArticleSection`](../src/components/common/ArticleSection.tsx), article subsection cards, article info/key-value/source helpers | `src/components/common/` | Substance articles, effects, reports, public-route bridges | Article section spacing, subsection card/header/group, info cards, source footer | Reused by more than one public content lane and accepts projected props instead of article schema imports | Keep evidence/data projection in features; shared article primitives render only. |
-| [`SectionCard`](../src/components/common/SectionCard.tsx) | `src/components/common/` | Public page sections and legacy dev panels | Public card shell and enter delay | Public/common consumer count plus tokenized surface recipe | New dev panels should move to protected editor primitives. |
-| [`StateCard`](../src/components/common/StateCard.tsx) | `src/components/common/` | Empty, loading, and status states across public and dev UI | Tone, icon/status, badge, actions, footer, alignment, compact/loading | Shared state layout with no route or domain dependency | Use before introducing one-off empty panels. |
-| Public layout/content primitives | `src/components/layout/` | Public pages, effects, reports, app route bridges | Page shell, section heading, contributor cards, taxonomy/search cards, detail hero, metadata/fact tiles, skeleton/media/status helpers, segmented tabs | Second public-page family consumer, route-neutral props, no direct app route policy | These are public composition primitives, not low-level `ui` variants. |
-| Protected editor primitives | `src/features/dev/components/` | `/dev` and editor workflows | Editor panels, fields, toolbars, notices, navigation, tag tokens, `JsonEditor`, `DiffPreview` | Repeated protected-editor use, dense workflow semantics, editor-only dependency allowed | Do not promote to `src/components/common` until public-safe and dependency-free. |
+For the component inventory and tier barrels, use [Where the kit lives](ui-kit.md#where-the-kit-lives)
+and the live catalog. This document owns promotion criteria and the policies below,
+not a second component catalog.
 
 ## Promotion Criteria
 
@@ -58,7 +49,7 @@ shape. `src/components/ui/ownership.test.ts` rejects any other axis name.
 
 `Button` variants should describe primitive visual behavior: tone, emphasis, shape, icon-only affordances, and broad interaction state. Feature names and composed UI recipes belong in the owning component.
 
-Forbidden new variant names include route or feature terms such as `searchOption`, `substanceListItem`, `categoryHeader`, `pickerListItem`, `generatePrimary`, and similar domain recipes.
+Keep route-specific and composed recipes in their owning components; name primitive variants only by the visual or interaction behavior they expose.
 
 Composed-recipe variants still on the primitive, with a decision per row.
 `tabPrimary`, `tabPrimaryDisabled`, and `tabSecondary` were removed once
@@ -80,7 +71,7 @@ Use `PublicNameChip` for compact badges that contain names of public entities or
 
 `PublicNameChip` may render as a link, button, or span. When the chip itself expands content, render it as a button and place `ExpandIndicator` inside the chip. When a linked name has a separate expansion affordance, keep the linked text and use `ExpandButton` variant `inline` inside the same chip; do not add a nested control capsule.
 
-Do not use `PublicNameChip` for status or severity labels, quantitative hidden-list controls such as `+3`, standalone section expanders, navigation/filter chips, dates, featured labels, search metadata, or other metadata pills. Those remain owned by `Badge`, `ExpandButton`, `PublicPill`, `PublicChipNav`, or the feature-specific status component.
+Use `Badge` or a feature status component for status/severity, `ExpandButton` for hidden-list counts and standalone expanders, `PublicChipNav` for navigation/filter chips, and `PublicPill` for metadata. Reserve `PublicNameChip` for entity and concept names.
 
 ## Expand Affordance Policy
 
@@ -106,7 +97,7 @@ Use `theme-horizontal-divider-block` when a content block needs matching top and
 
 Use plain token borders or `divide-y` only for table-like rows, dense lists, card internals, and vertical separators where the separator should be quiet structure rather than a content transition.
 
-Do not hand-roll new `from-fuchsia` divider gradients for article hierarchy. Add or adjust a theme utility instead so dark and light themes stay coordinated.
+Add or adjust a theme utility for article hierarchy dividers so dark and light themes remain coordinated.
 
 ## Dependency Ownership
 
@@ -118,9 +109,8 @@ Editor code and diff: `react-simple-code-editor` and `prismjs` are protected dev
 
 ## Guardrails
 
-`src/components/ui/ownership.test.ts` enforces the common import boundary, keeps
-dev editor widgets out of the common barrel, blocks feature-named `Button`
-variants, and checks that temporary recipe variants remain documented here. It
-runs in Vitest as a verification check, not as part of the build itself.
+`src/components/ui/ownership.test.ts` guards the common import/export boundary
+and primitive variant behavior. Editorial ownership review maintains the
+temporary recipe migration table above; test assertions do not certify prose.
 
 Current common-boundary allowlist: `src/components/common/GlobalSearch.tsx` and `src/components/common/useGlobalSearchSuggestions.ts` may import the `SearchMatch` type from `src/data/builders/search` until a route-neutral search result type is extracted.

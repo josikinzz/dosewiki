@@ -7,7 +7,9 @@
  * returns it should come back as editable copy blocks like the rest of the
  * About page, not as literals here.
  *
- * Logo provenance: anodyne from anodyne.wiki/assets/logo.png,
+ * Logo provenance: anodyne from anodyne.wiki/assets/logo.png, erowid from
+ * erowid.org's favicon, bluelight from bluelight.org's touch icon,
+ * psychonautwiki from psychonautwiki.rip's favicon,
  * consciousness-library and effectindex from
  * josiekins.xyz/images/shared/, tripsit from tripsit.me, protestkit from
  * protestkit.eu, drug-users-bible from the drugusersbible.org cover art;
@@ -49,6 +51,12 @@ export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
     logo: { src: `${LOGO_BASE}/anodyne.webp`, fit: "cover" },
   },
   {
+    key: "bluelight",
+    name: "Bluelight",
+    href: "https://bluelight.org",
+    logo: { src: `${LOGO_BASE}/bluelight.webp` },
+  },
+  {
     key: "consciousness-library",
     name: "Consciousness Library",
     href: "https://consciousnesslibrary.org",
@@ -61,6 +69,12 @@ export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
     logo: { src: `${LOGO_BASE}/effectindex.webp`, fit: "cover" },
   },
   {
+    key: "erowid",
+    name: "Erowid",
+    href: "https://www.erowid.org",
+    logo: { src: `${LOGO_BASE}/erowid.webp` },
+  },
+  {
     key: "nervewing",
     name: "Nervewing",
     href: "https://nervewing.blogspot.com",
@@ -71,6 +85,12 @@ export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
     name: "PRO Test Kit",
     href: "https://protestkit.eu",
     logo: { src: `${LOGO_BASE}/protestkit.webp` },
+  },
+  {
+    key: "psychonautwiki",
+    name: "PsychonautWiki",
+    href: "https://psychonautwiki.rip",
+    logo: { src: `${LOGO_BASE}/psychonautwiki.webp` },
   },
   {
     key: "r-drugs",

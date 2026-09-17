@@ -31,7 +31,7 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 
 1. Write `scripts/reports/timeline-plans/<slug>.json`. Done when every phase would hold at least one entry and you can point at the author's own words behind each boundary.
 
-2. Dry-run against production:
+2. Before any remote dry-run, follow [data credentials](data-credentials.md): authorize the exact read target, load the scoped credential without printing it, and satisfy target and remote guards. Then dry-run against that target:
 
    ```bash
    DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
@@ -40,9 +40,9 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 
    Done when it prints `reproduces the original exactly` and the previewed phases read the way the plan intended. A refusal instead is the next section.
 
-3. Run `npm run postgres:check-env-isolation` and confirm the dry run printed backend `postgres` and target `aws-us-east-1-2.pg.psdb.cloud/postgres`. Use the scoped `DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` credential. On a rejected credential, read [data credentials](data-credentials.md).
+3. Before a write, confirm the command is production-allowlisted, obtain approval for the exact report and plan, run `npm run postgres:check-env-isolation`, and verify the dry-run target fingerprint. Use the scoped `DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` credential; preserve freeze and confirmation gates. A refusal is a stop condition, not permission to bypass a guard.
 
-4. Apply:
+4. Apply only the separately approved plan:
 
    ```bash
    DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
@@ -52,7 +52,7 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 
    Done when it prints `stored text reproduces the original body exactly`. That line is a re-read of the database compared against the pre-write body, so it is the evidence to quote.
 
-5. Run `node --test scripts/reports/flatTripReportTimeline.test.mjs` when you changed the formatter, and `npm run verify:workflow` before handing back.
+5. If formatter or workflow code changed, run the focused formatter test and applicable package-owned workflow verification. Content-only reshaping is proved by the lossless preview and database reread, not an unrelated suite.
 
 ## When the formatter refuses
 
@@ -69,6 +69,6 @@ Every refusal below means the lossless claim cannot be made yet. Each is repaire
 
 ## After the write
 
-`/reports/<slug>` retains its historical endpoint and route name. The Postgres write path used by `/api/dev/trip-reports/record` performs the matching invalidation; an operator script may not. Inspect the route's current `revalidate` value, then confirm the rendered rail through the approved host after the cache window. Do not claim public freshness from the database readback alone.
+`/reports/<slug>` retains its historical endpoint and route name. The Postgres write path used by `/api/dev/trip-reports/record` performs matching invalidation; an operator script may not. Follow [deployment freshness](deployment.md#build-and-release-sequence): use an authorized targeted invalidation or redeployment and request the canonical public route. Confirm rendered rail/text equality against the accepted record and its current revision. Revalidation is demand-driven: elapsed cache time or a database/editor-host readback alone is not public freshness proof.
 
 The pre-write row is saved under `outputs/trip-report-reshape/`. It is the restore path if a later edit breaks the text.

@@ -1,4 +1,5 @@
-# Replication Media Delivery — Transcode, Archive, and Repoint
+<a id="replication-media-delivery--transcode-archive-and-repoint"></a>
+# Replication Media Delivery: Transcode, Archive, and Repoint
 
 Last verified: 2026-08-30
 
@@ -44,7 +45,7 @@ acceptance record is
 `docs/agents/convex-to-cloudflare-r2-media-handoff.md`. The dual-read seam is
 live in code:
 
-- Schema: five optional keys — `r2_key`, `thumbnail_r2_key`, `preview_r2_key`,
+- Schema: five optional keys: `r2_key`, `thumbnail_r2_key`, `preview_r2_key`,
   `motion_r2_key`, `motion_poster_r2_key`
   (`server/lib/effectMediaSchemaValidators.ts`). Storage IDs, `url`, and
   `thumbnail_url` stay populated as the rollback source.
@@ -53,7 +54,7 @@ live in code:
   `REPLICATION_MEDIA_BASE_URL`; retained storage identities resolve through
   Postgres `storageObjects`, followed by permitted direct URLs. The media base
   is required at runtime; do not unset it as a recovery shortcut.
-- Writes: `replications.updateR2Keys`, compare-and-swap per variant — every
+- Writes: `replications.updateR2Keys`, compare-and-swap per variant: every
   key travels with the storage ID it was derived from and the batch fails if
   the row was repointed since the plan.
 - Tooling: the reviewed historical SHA-256 reconciliation ledger retains digest
@@ -76,13 +77,9 @@ longer changes what the browser sees (`fieldThatWins()` in
 unset the required runtime media base or invoke a hosted recovery target.
 
 Urgent URL withdrawal is separate from gallery hiding and ordinary outage
-rollback. The existing R2 Worker now checks a private per-object withdrawal
-marker before serving any GET, HEAD, conditional or range response. Provider
-deployment, exact marker-write approval, managed CDN containment and fresh
-delivery verification remain required. Follow the
-[urgent withdrawal procedure](agents/convex-to-cloudflare-r2-media-handoff.md#urgent-media-withdrawal);
-never unset the R2-first switch during an active withdrawal if a native fallback
-could re-expose the bytes. Originals and rollback locators remain intact.
+rollback. Follow [Urgent media withdrawal](#urgent-media-withdrawal) below.
+Originals and rollback locators remain intact; mandatory runtime media
+configuration and current canonical suppression survive application rollback.
 
 Responsive managed raster images use `AppImage` to request the media Worker
 directly with `?width=<allowed-width>`. The Worker checks the original object's
@@ -107,6 +104,10 @@ contract in production. The bounded release canary verified 14 new unreferenced
 objects, all 13 public responsive widths, both receipt paths, and create-only
 replay refusal without creating library or profile records. Evidence:
 `runs/postgres-import/2026-09-15T02-25-03Z-integrated-production-release/r2-backend-canary-proof.json`.
+
+The preceding deployment/canary claims are dated release evidence, not a new
+verification. The retained locator is absent from this checkout; ask its custodian
+for the exact artifact before relying on it. Do not invent a replacement location.
 
 For bulk preparation of existing managed raster keys, use
 `bun run replications:prepare-image-renditions --keys <keys.json> --out <directory>`.
@@ -145,6 +146,133 @@ URLs, source-query variants, conditional requests, local-image behavior, and
 direct Worker delivery after release. Editor local-image checks must preserve
 the existing unauthenticated sign-in redirect rather than require HTTP 200.
 No server-side mechanism can retract already downloaded or displayed bytes.
+### Incident inventory and recovery locators
+
+Inventory replication variants, contributor avatars, literal article-body media
+and generated social cards, including cropped/composite objects. The dated
+[asset coverage record](agents/convex-to-cloudflare-r2-media-handoff.md#cached-publishing-asset-coverage-2026-09-07)
+retains original evidence locators, not a current exhaustive inventory.
+
+For each incident, preserve a non-public manifest with asset kind, referencing
+record IDs, all variant keys/URLs and serving origins, byte size, content type,
+hash where available, prior reference fields, and an actually reachable
+recovery locator. Record unknown values explicitly and leave that asset's
+delivery/rollback check incomplete. An R2-only row may recover from the retained
+R2 object or verified local archive; do not claim that unsetting
+`REPLICATION_MEDIA_BASE_URL` will restore a URL that never had a native fallback.
+The resolver checks syntax and configuration, not HTTP reachability. A valid
+but inaccessible R2 URL is a failed delivery check, not a runtime fallback.
+
+## Urgent media withdrawal
+
+Ordinary gallery exclusion, duplicate suppression and removing an article
+reference do not revoke an immutable media URL. Urgent removal uses the
+existing delivery Worker, independently of application publication state.
+
+### Delivery contract
+
+`scripts/replications/r2-delivery-worker.js` checks
+`BUCKET.head("_withdrawals/" + mediaKey)` for each canonical public media
+request before reading the media object. Any marker, including an empty one,
+returns an empty `410` with browser and CDN `no-store`. A failed marker lookup
+returns empty `503` with `no-store`, never media bytes or a conditional `304`.
+GET, HEAD, ranges and conditional requests all pass through this check; query
+strings do not change the suppression identity. The private marker namespace
+is not accepted by the public route. No public mutation endpoint exists.
+
+Responsive raster requests use `?width=<allowed-width>` and private
+`_renditions/v1/<original-key>/<width>.webp` objects, governed by the original's
+marker. Requests without a width selector retain original delivery, including
+existing integrity-check query strings. Rendition selectors are bounded and
+canonical; missing renditions return 404 without a fallback or redirect.
+All successful responses are also no-store. Prepare and verify new renditions
+before publishing image references, following `docs/replication-media-delivery.md`.
+
+Markers use the already-bound private `replications` bucket. They are not
+copied into application manifests, cached in Worker memory, or read from
+Convex. This adds one R2 HEAD per valid network request; it does not add a
+Convex read. R2's [strong consistency](https://developers.cloudflare.com/r2/reference/consistency/)
+applies to direct Worker-binding reads, unlike a cached custom-domain response.
+The media bytes and all originals remain unchanged.
+
+### Provider prerequisites before claiming coverage
+
+1. Deploy the updated existing `dosewiki-media` Worker. The checked-in social
+   manifests name `https://dosewiki-media.gremblinzuwu.workers.dev`; confirm the
+   actual deployed `REPLICATION_MEDIA_BASE_URL` and every alias rather than
+   assuming those manifests enumerate all hosts. Retain the existing `BUCKET`
+   binding to private bucket `replications`. No new KV, Durable Object,
+   database, public write endpoint or permission grant is required.
+2. Confirm an already-authorized operator can write and read an exact marker
+   key through the bucket dashboard or existing bucket-scoped S3 credential.
+   Do not put that credential in Vercel public builds or browser code. Deploy
+   authorization alone does not authorize an actual withdrawal marker.
+3. Inventory every managed media hostname and any CDN in front of it. Direct
+   public R2 bucket domains, `r2.dev`, old Workers without this check and native
+   Convex URLs bypass this control. If any such URL is in the approved
+   withdrawal scope, record incomplete containment until the operator supplies
+   an approved non-destructive block on that exact surface. Changing bucket
+   permissions or account security settings requires separate approval.
+4. Identify the zone IDs, cache-key rules and already-authorized purge
+   capability for managed cached URLs. This Worker does not use the Cache API;
+   do not invent a cache to purge or claim absence of upstream caches from
+   source inspection. Record a provider-confirmed no-cache disposition where
+   applicable. Follow Cloudflare's [single-file purge limitations](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-by-single-file/):
+   query/header/custom-key variants may require a different explicitly approved
+   purge scope. One successful bare-URL purge is not proof all variants cleared.
+
+### Authorized incident procedure
+
+1. Preserve the exact incident manifest described above, including all five
+   rendition roles, avatars, article-body references, social composites,
+   aliases, native/direct fallbacks, incident identity, approval and expected
+   deadline. Inspect shared hashes: a marker withdraws those bytes for every
+   record using that object, not just the selected gallery item.
+2. After explicit approval of the exact bucket, keys and withdrawal scope,
+   upload a small incident record to `_withdrawals/<complete-media-key>` for
+   each affected managed object. Read back every marker through the storage
+   API. Record each acknowledged write time; partial writes are incomplete
+   removal. Keep prior marker contents if already present. Never overwrite or
+   delete the media object. Do not synchronize this control prefix away during
+   archive maintenance.
+3. Publish the canonical correction/removal through the normal editorial
+   workflow and cross-project publication seam. This must cover HTML, RSC,
+   metadata, APIs, exports, search, lists and embed collections on both public
+   flavors. Markers enforce media delivery while that separate work completes.
+   Record the canonical commit time independently from marker acknowledgment.
+4. After marker acknowledgment, perform only the explicitly approved managed
+   CDN purges for every affected URL/cache-key variant. Preserve provider
+   receipts. A failed receiver, purge or marker write leaves the incident
+   incomplete; do not extend its deadline silently. Keep installed markers
+   while retrying. If another managed surface still serves content, use its
+   separately approved provider-side URL block; do not claim full containment
+   from the R2 `410` alone.
+5. Verify fresh network GET, HEAD, range and conditional requests to every
+   managed media URL and alias, including the exact previously cached URL
+   without a cache-busting query. Each withdrawn asset must return `410` and
+   no bytes; `503` means safe failure but not healthy verified withdrawal.
+   Record request time, status, cache headers, elapsed time from canonical
+   commit and marker acknowledgment, and provider request IDs where supplied.
+   Probe both public publication targets separately. Invalidation acceptance
+   and stale-while-revalidate eligibility are not removal evidence.
+6. Keep markers across application rollback, delayed publication messages,
+   regenerated manifests and R2 media reuploads. Do not roll the Worker back
+   to a version without this check. Do not disable R2-first resolution while
+   any withdrawn object could reappear through its unblocked native fallback.
+   An application rollback must preserve the current canonical suppression.
+   Restoration is a separate explicit approval: archive the incident record,
+   remove only the approved marker, restore approved references and verify
+   the same retained bytes and URL. No original or destination deletion is
+   part of restoration.
+
+Already downloaded bytes, browser immutable caches, an open tab's buffered
+playback and third-party copies cannot be recalled. Requests that passed the
+check before the marker commit may finish. The guarantee concerns subsequent
+network requests through inventoried managed surfaces, after required cache
+purges. Rehearse marker installation, receiver/lookup failure and restoration
+on synthetic assets only with the necessary provider-write approval. This
+change supplies the delivery guard and procedure; it does not claim a live
+withdrawal rehearsal, purge, provider deployment or measured removal deadline.
 
 ## Corrections to earlier readings of this corpus
 
@@ -267,11 +395,11 @@ behavior, not a supported current backend switch.
   static parameters. With `dynamicParams = false`, a row that fails to resolve
   at build time has no page. The blast radius of a bad repoint is page removal,
   not a broken video.
-- **Resolved URLs are cached twice** — 900 s in
+- **Resolved URLs are cached twice**: 900 s in
   `lib/data/publicData.effects.ts`, then ISR HTML at 3600 s.
   `revalidateTag("data-public:replications")`, whose tag is defined in
   `lib/data/publicData.cache.ts:3-10`, forces refresh.
-- **CSP already permits any HTTPS media host** —
+- **CSP already permits any HTTPS media host**:
   `lib/next/cspObservationPolicy.ts:165-168`. No CSP change is needed.
 - **`next/image` is not in the path.** `src/components/common/AppImage.tsx:20-22`
   treats only local paths as optimizable, so remote posters render through a
@@ -304,8 +432,8 @@ procedure for any historical service restoration.
 
 - **No shared cache.** Convex storage returns
   `cache-control: private, max-age=2592000` (measured on production
-  2026-08-11). `private` bars every *shared* cache — CDN edges, proxies,
-  anything between the origin and one particular browser — so **each new
+  2026-08-11). `private` bars every *shared* cache (CDN edges, proxies,
+  anything between the origin and one particular browser), so **each new
   viewer pulls the full rendition from origin**. Ten simultaneous first-time
   viewers are ten origin fetches.
 - **Per-browser caching does work**, and it is worth being precise about this
@@ -319,12 +447,12 @@ procedure for any historical service restoration.
 Historically, transcoding removed roughly 90% of the bytes and nearly all of the
 startup stall, but each visitor's first view still came from Convex Storage at
 full rendition size. R2 delivery replaced that operating model; these details
-remain relevant only when the rollback switch is used.
+remain historical evidence, not permission to switch the runtime backend.
 
 ### Historical requirements carried into R2 delivery
 
-Kept deliberately, so a future reader does not have to re-derive it. A CDN would
-need the origin to return:
+The following table records the superseded CDN design assumptions, not current
+delivery requirements. Current delivery requires no-store and withdrawal checks:
 
 | Header | Value | Why |
 | --- | --- | --- |
@@ -339,7 +467,8 @@ and the cached target expires. Moving to a CDN means moving the bytes.
 
 ## 3. Where the media actually lived
 
-### Video — measured 2026-08-10, over the 125 video rows
+<a id="video--measured-2026-08-10-over-the-125-video-rows"></a>
+### Video: measured 2026-08-10, over the 125 video rows
 
 | Asset | Host | Count |
 | --- | --- | ---: |
@@ -351,13 +480,13 @@ and the cached target expires. Moving to a CDN means moving the bytes.
 
 The 59 + 6 = 65 orphan-hosted videos line up exactly with the 65 rows whose
 `storage_id` starts with `placeholder-`. For those rows `resolveReplicationUrls`
-can never take the storage branch, so the literal `url` string — an absolute URL
-on a deployment this project does not own — is what every visitor fetches.
+can never take the storage branch, so the literal `url` string (an absolute URL
+on a deployment this project does not own) is what every visitor fetches.
 
 **By bytes the split is far worse than by count: 44.19 GB sits on the two orphan
-deployments and only 431 MB on production.** The two largest single files —
+deployments and only 431 MB on production.** The two largest single files,
 4.80 GB `dmt-breakthrough-symmetric-vision` and 4.79 GB
-`deliriant-replication-compilation-various-artists` — each exceed everything
+`deliriant-replication-compilation-various-artists`, each exceed everything
 production holds.
 
 `warmhearted-mosquito-204` appears nowhere in `convex/`, `src/`, `lib/`,
@@ -370,7 +499,8 @@ the development deployment at the time; it is now retired. Development
 deployments were reset as a matter of routine. HTTP GET was the only way to
 obtain those bytes. A reset or deletion would have made the files irrecoverable.
 
-### Images — measured 2026-08-11, over the 122 image rows
+<a id="images--measured-2026-08-11-over-the-122-image-rows"></a>
+### Images: measured 2026-08-11, over the 122 image rows
 
 The video rescue left this half untouched, and it was in the same danger.
 
@@ -406,11 +536,12 @@ it references is already on production.
 - **A row's `format` can be wrong.** `shadow-people-figure-in-a-doorway` carries
   `format: "jpg"` on a thumbnail whose stored object is a WebP. Convex serves
   back whatever `Content-Type` an upload declares, so trusting the row would have
-  published a WebP as `image/jpeg` — which makes browsers download the file
+  published a WebP as `image/jpeg`, which makes browsers download the file
   instead of rendering it. The upload type is resolved from the file's own
   container signature first, the source response header second, the name third.
 
-## 4. Step 1 — archive the masters and encode renditions
+<a id="4-step-1--archive-the-masters-and-encode-renditions"></a>
+## 4. Step 1: archive the masters and encode renditions
 
 `scripts/replications/archive-replication-masters.mjs`. Local only; no Convex
 write. `--media-type` selects the half of the corpus; video is the default.
@@ -422,7 +553,7 @@ near the largest single file (~4.8 GB) rather than the 44.6 GB corpus.
 ### Why images skip the transcode
 
 Videos were re-encoded because the masters were undecodable in some browsers,
-multi-gigabyte, and non-faststart — a rendition fixed a measurable delivery
+multi-gigabyte, and non-faststart; a rendition fixed a measurable delivery
 problem. Images have none of those problems: 235 MB in total, and several rows
 are third-party artworks where a re-encode, a resize, or a metadata strip is an
 attribution problem as much as a quality one. **Image masters are archived and
@@ -434,7 +565,7 @@ with a video master or poster sharing the same name.
 
 ### Destination
 
-`/Volumes/DeepSeek` — external drive, exFAT, 931 GB total, ~639 GB free measured
+`/Volumes/DeepSeek`: external drive, exFAT, 931 GB total, ~639 GB free measured
 by `statfs` against 44.62 GB of masters. There is no space pressure and
 therefore no prioritisation scheme: **archive order is plain slug order**, which
 keeps each row's video and poster adjacent and makes an interrupted run resume
@@ -445,7 +576,7 @@ which volume is attached:
 
 - Whole-job budget check before the first fetch, holding a 1 GB reserve back so
   a write never fails with no room to clean up after itself.
-- Real `statfs` re-measured immediately before every individual archive write —
+- Real `statfs` re-measured immediately before every individual archive write;
   the plan uses `file_size`, which is optional in the schema and unreliable.
 - Running out of room is an **orderly, resumable stop**: the fetched master is
   left in scratch so the next run archives it without re-downloading gigabytes,
@@ -466,7 +597,7 @@ copy, **593.4 GB headroom, shortfall 0.**
 - **No POSIX permissions, ownership, symlinks, or hard links** (`noowners`).
   Nothing relies on any of them; integrity is proven by sha256 digest, not by
   filesystem metadata.
-- **No 4 GB file-size limit** — that is FAT32, not exFAT. The 4.80 GB and 4.79 GB
+- **No 4 GB file-size limit**: that is FAT32, not exFAT. The 4.80 GB and 4.79 GB
   masters write fine. This was worth confirming rather than assuming; on FAT32
   those two files would have been unstorable.
 
@@ -483,7 +614,7 @@ whole one is expected.
 From `transcode-videos.mjs`, unchanged: H.264 High, `-crf 21`, `-preset medium`,
 long edge capped at 1920 with no upscaling, `-pix_fmt yuv420p`, AAC-LC 128 kbps
 stereo or `-an` when the master is silent, frame rate untouched,
-`-movflags +faststart`. Three actions per file — `transcode`, lossless `remux`
+`-movflags +faststart`. Three actions per file: `transcode`, lossless `remux`
 (right codec, wrong container or trailing `moov`), or verbatim `copy` (already a
 faststart web MP4). Rationale for each setting is in the script header.
 
@@ -494,7 +625,8 @@ unknown is total corpus duration, which the dry run computes exactly from
 `ffprobe`. The script reports a band rather than a single figure and replaces
 estimates with measured bytes as files land.
 
-## 5. Step 2 — upload to production and repoint
+<a id="5-step-2--upload-to-production-and-repoint"></a>
+## 5. Step 2: upload to production and repoint
 
 `scripts/replications/repoint-renditions.mjs`. **This is a production Convex
 write.** Run against video on 2026-08-10 and against images on 2026-08-11.
@@ -504,10 +636,11 @@ both orphan sources and the thumbnails on now-retired development deployment
 `enchanted-echidna-791`. For the 2026-08-11 image run, it performed the rescue
 without transcoding. After both runs, every served byte came from production.
 
-### Trap 1 — writing `url` is a silent no-op on 60 rows
+<a id="trap-1--writing-url-is-a-silent-no-op-on-60-rows"></a>
+### Trap 1: writing `url` is a silent no-op on 60 rows
 
-Because `storage_id` outranks `url`, the obvious move — set `url` to the new
-location, since `url` is what currently points at the orphan hosts — works for
+Because `storage_id` outranks `url`, the obvious move (set `url` to the new
+location, since `url` is what currently points at the orphan hosts) works for
 the 65 placeholder rows and **does nothing at all** for the 60 rows that hold a
 live `storage_id`. Those rows keep resolving through storage and keep serving the
 old file. A migration that did this and reported success would leave 60 videos
@@ -520,21 +653,22 @@ by `convex/lib/replicationWrites.ts:292-305`). The tested
 `scripts/replications/repoint-renditions.mjs:107-109`; a precedence change makes
 that test fail and forces the migration to be reconsidered.
 
-### Trap 2 — the blast radius is page removal
+<a id="trap-2--the-blast-radius-is-page-removal"></a>
+### Trap 2: the blast radius is page removal
 
 Verification therefore treats a null resolved URL as a **hard stop for the whole
 run**, not a per-row warning.
 
 ### Per-row self-verification
 
-Every row is checked against the resolver's own output — the same query the
-website uses — immediately after its write:
+Every row is checked against the resolver's own output (the same query the
+website uses) immediately after its write:
 
 1. Re-query `api.replications.getPublicReplications`.
 2. **Resolved `url` must be non-null.** Null means the page would be removed.
 3. **Resolved `url` must differ from the pre-write value.** This is the clause
    that catches trap 1: a write that landed but changed nothing the browser sees.
-4. **Resolved host must be `glad-minnow-656.convex.cloud`** — not an orphan, not
+4. **Resolved host must be `glad-minnow-656.convex.cloud`**: not an orphan, not
    dev.
 5. **Thumbnail must not regress from present to null.**
 6. **Resolved thumbnail host must be production**, on every row where this run
@@ -563,14 +697,14 @@ an open decision before another large run.
   storage id, after which the row falls back to `url` exactly as before. Clearing
   `url` during the migration would turn a reversible change into a one-way door.
   A later cleanup pass can null it once the new storage has been trusted.
-- Rows without a usable upload source are skipped, never partially written —
+- Rows without a usable upload source are skipped, never partially written;
   repointing a row at nothing is exactly how a page gets deleted.
 - Uploads retry the **transport** only, eight times with backoff capped at 30 s,
   each attempt on a fresh non-pooled HTTP/1.1 `undici` agent that is disposed
   afterwards. The failure this defends against poisons the connection rather than
   the request: a TLS `bad record mac` was followed by `ERR_HTTP2_INVALID_SESSION`
   on every retry that reused the broken session. The image run hit one `EPIPE`
-  and recovered on the next attempt. A non-2xx response is *not* retried — that
+  and recovered on the next attempt. A non-2xx response is *not* retried; that
   is the server refusing, and hammering it would be wrong.
 
 ### Ceremony
@@ -680,7 +814,7 @@ reduced-motion readers get fully static tiles.)
 3. **Whether to null the legacy `url` values** in a later cleanup pass, and when.
 4. **`shadow-people-figure-in-a-doorway` has the wrong thumbnail.** Its
    `thumbnail_storage_id` now points at a production copy of
-   `b877b211-…` — which is the *`shadow-people-figures-by-a-wall` picture*, not
+   `b877b211-…`, which is the *`shadow-people-figures-by-a-wall` picture*, not
    its own. The rescue preserved existing behaviour exactly and moved it to a
    host we control; it did not invent a correction, because which thumbnail that
    row should have is a content decision. Likely fixes: clear it so the resolver

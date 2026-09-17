@@ -4,15 +4,13 @@ This is the shared current contract for the seven `.cursor/commands/*.md` quote-
 
 ## Inputs and source access
 
-Work on one named substance slug and one adapter at a time. Article-source documents live in the production PlanetScale Postgres database and require the scoped `articleSourceMigration` credential. Read them through `createDataClient()` from `scripts/lib/data-client.ts` under the shared Postgres ceremony in [data credentials](data-credentials.md).
-
-The adapter command must set `DATA_BACKEND=postgres`, bind `TARGET_POSTGRES_URL` explicitly, pass `--allow-remote`, and complete a read-only dry run before producing output. `POSTGRES_IMPORT_CONFIRM` must name `aws-us-east-1-2.pg.psdb.cloud`. The scoped credential is `DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION`; no historical token-name alias is accepted.
+Work on one named substance slug and one adapter at a time. Before any remote read, follow [data credentials](data-credentials.md). Read production article-source documents through `createDataClient()` from `scripts/lib/data-client.ts` using the scoped `articleSourceMigration` intent (`DATA_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION`). The central ceremony owns target selection, remote guards, credential loading and read authorization; this adapter grants no mutation capability.
 
 The query result is the source of truth for this run. It contains a `sources` array and a `contents` object keyed by source `id`. A `null` result means that the slug has no article-source document; report that condition instead of inventing source content.
 
 ## Exhaustive-read criterion
 
-Inventory the `sources` array in its returned order. For every source entry, account for its `id` exactly once. Read the complete `contents[id]` value from first character to last before deciding whether it matches the adapter. An adapter exclusion is accounted for once as `excluded` and its content is not evaluated. Completion requires a one-to-one match between the source inventory and the output sections: no missing IDs, duplicate IDs, or unclassified sources.
+Inventory the `sources` array in its returned order. Account for every `id` exactly once. Apply the adapter's explicit exclusions first and record each as `excluded` without evaluating its content. For every eligible source, read the complete `contents[id]` value from first character to last before deciding whether it contains matching material. Completion requires a one-to-one match between inventory and output sections: no missing IDs, duplicate IDs, or unclassified sources.
 
 ## Extraction and output
 
@@ -33,7 +31,7 @@ Search may help navigate a value, but the completed full-value read and one-sour
 
 ## Completion check
 
-- The read ran under `DATA_BACKEND=postgres` against `aws-us-east-1-2.pg.psdb.cloud/postgres`.
+- The read used the explicitly authorized Postgres target and scoped intent under the credential contract.
 - Output section count equals `sources.length`, and each returned source `id` occurs once.
 - Every eligible source was read completely; every exclusion is named by the adapter.
 - Matches are verbatim, and every eligible zero-match source has the explicit empty-result sentence.

@@ -97,6 +97,13 @@ export const getPublicSubstances = cache(publicDataCache(async (): Promise<Publi
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.substances, PUBLIC_SUBSTANCE_CONTENT_TAG],
 }));
 
+export const getPublicSubstanceSearchSummaries = cache(publicDataCache(async () => {
+  return await getPublicDataReadAdapter().getPublicSubstanceSearchSummaries();
+}, ["data-public-substance-search-summaries"], {
+  revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.substances, PUBLIC_SUBSTANCE_CONTENT_TAG],
+}));
+
 /**
  * Every public substance slug, sorted, for deciding which wiki links resolve.
  * Deliberately separate from `getPublicSubstances`: article routes need only

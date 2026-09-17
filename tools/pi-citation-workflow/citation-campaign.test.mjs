@@ -89,7 +89,6 @@ test("campaign status derives immutable attempt state, supersession, and coverag
     assert.equal(report.targets[0].state, "running");
     assert.equal(report.targets[0].attempts[0].state, "superseded");
     assert.equal(report.targets[0].attempts[1].state, "running");
-    assert.match(report.targets[0].guidance, /do not recreate completed work/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

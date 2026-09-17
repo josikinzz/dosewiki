@@ -19,7 +19,7 @@ export default defineConfig({
         'src/utils/**',
         'src/schema/**',
         'src/hooks/**',
-        'src/components/dev/forms/rhf/**',
+        'src/features/dev/forms/rhf/**',
       ],
       exclude: [
         '**/*.d.ts',

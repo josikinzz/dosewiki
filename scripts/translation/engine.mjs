@@ -20,31 +20,49 @@ const TRANSPORT_ATTEMPTS = 4;
 /**
  * A request that never answers is worse than one that fails: the worker holds
  * a slot forever and the pool drains to nothing. The deadline lives here so
- * Node and Bun both honour it. An abandoned attempt is a retryable one.
+ * Node and Bun both honour it. Each timed-out attempt is aborted before retry.
  */
 const ATTEMPT_TIMEOUT_MS = 180_000;
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms, signal) {
+  signal?.throwIfAborted();
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
-function withDeadline(promise, ms) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(Object.assign(new Error(`request exceeded ${ms}ms`), { retryable: true })),
-      ms,
-    );
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
+async function withDeadline(request, ms, signal) {
+  signal?.throwIfAborted();
+  const controller = new AbortController();
+  const onAbort = () => controller.abort(signal.reason);
+  signal?.addEventListener("abort", onAbort, { once: true });
+  const timer = setTimeout(
+    () => controller.abort(Object.assign(new Error(`request exceeded ${ms}ms`), { retryable: true })),
+    ms,
+  );
+  let rejectOnAbort;
+  try {
+    return await new Promise((resolve, reject) => {
+      rejectOnAbort = () => reject(controller.signal.reason);
+      controller.signal.addEventListener("abort", rejectOnAbort, { once: true });
+      Promise.resolve().then(() => {
+        controller.signal.throwIfAborted();
+        return request(controller.signal);
+      }).then(resolve, reject);
+    });
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+    controller.signal.removeEventListener("abort", rejectOnAbort);
+  }
 }
 
 /**
@@ -86,12 +104,13 @@ export function planBatches(units, batchChars = DEFAULT_BATCH_CHARS) {
  * normal weather at this concurrency, so a retryable failure waits and repeats
  * the same request rather than degrading into per-segment retries.
  */
-export async function sendBatch({ locale, model, apiKey, userMessage }) {
+export async function sendBatch({ locale, model, apiKey, userMessage, signal }) {
   let lastError;
   for (let attempt = 1; attempt <= TRANSPORT_ATTEMPTS; attempt += 1) {
+    signal?.throwIfAborted();
     try {
       return await withDeadline(
-        callOpenRouterChat({
+        (attemptSignal) => callOpenRouterChat({
           apiKey,
           appTitle: APP_TITLE,
           model,
@@ -103,24 +122,27 @@ export async function sendBatch({ locale, model, apiKey, userMessage }) {
           // excluded keeps a 6k-character batch near two seconds instead of fifty.
           reasoningEffort: "low",
           excludeReasoning: true,
+          signal: attemptSignal,
         }),
         ATTEMPT_TIMEOUT_MS,
+        signal,
       );
     } catch (error) {
+      signal?.throwIfAborted();
       lastError = error;
       if (!error?.retryable || attempt === TRANSPORT_ATTEMPTS) throw error;
-      await sleep(1000 * 2 ** (attempt - 1) + Math.random() * 500);
+      await sleep(1000 * 2 ** (attempt - 1) + Math.random() * 500, signal);
     }
   }
   throw lastError;
 }
 
-export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote }) {
+export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, signal }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
   const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
   const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds });
 
-  const response = await sendBatch({ locale, model, apiKey, userMessage });
+  const response = await sendBatch({ locale, model, apiKey, userMessage, signal });
 
   const usage = {
     prompt: response.usage.promptTokens,
@@ -179,9 +201,11 @@ export function retryNoteFor(defects) {
  * `term -> gloss` map, and `kinds` the approved `term -> kind` map, all
  * loaded by the caller; the engine never reads them from anywhere itself.
  */
-export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage }) {
+export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage, signal }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
-    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, glosses, kinds, model, apiKey, retryNote });
+    signal?.throwIfAborted();
+    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, glosses, kinds, model, apiKey, retryNote, signal });
+    signal?.throwIfAborted();
     onUsage?.(usage, attempt);
     return results;
   };
@@ -190,11 +214,13 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
   try {
     results = await attemptUnits(units, 1);
   } catch (error) {
+    signal?.throwIfAborted();
     results = units.map((unit) => ({ unit, target: null, parseCode: DEFECT_CODES.UNPARSABLE_OUTPUT, error }));
   }
 
   const verdicts = [];
   for (const result of results) {
+    signal?.throwIfAborted();
     const unit = result.unit;
     let target = result.target;
     let evaluation = typeof target === "string"
@@ -211,6 +237,7 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
           ? validateSegment({ source: unit.source, target, locale, glossary, markup: unit.markup })
           : { defects: [retry[0]?.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
       } catch {
+        signal?.throwIfAborted();
         evaluation = { defects: [DEFECT_CODES.UNPARSABLE_OUTPUT], details: {} };
       }
     }

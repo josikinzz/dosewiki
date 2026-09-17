@@ -5,6 +5,7 @@ import { claimDue, recordDelivery } from "../../../../../server/publicationRecov
 const seams = vi.hoisted(() => ({
   client: null as { mutationAsService: (reference: unknown, args: Record<string, unknown>) => Promise<unknown> } | null,
   dispatch: vi.fn(),
+  enqueue: vi.fn(),
 }));
 
 vi.mock("@server/data/serverWriteCapability", () => ({
@@ -14,6 +15,7 @@ vi.mock("@server/data/serverWriteCapability", () => ({
 }));
 vi.mock("@server/postgres/runtime/backend", () => ({ getDataBackend: () => "postgres" }));
 vi.mock("@server/next/publicationDispatch", () => ({ dispatchPublicationSignal: seams.dispatch }));
+vi.mock("@server/translation/segmentStore", () => ({ enqueueTranslationJobs: seams.enqueue }));
 
 import { GET, maxDuration } from "./route";
 
@@ -21,7 +23,7 @@ type PublicationRow = {
   _id: string;
   _creationTime: number;
   key: string;
-  target: { kind: "article"; slug: string };
+  target: { kind: "article"; slug: string; dependency?: "detail" | "content" | "membership" };
   revision: string;
   generation: number;
   pending: boolean;
@@ -89,6 +91,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   seams.client = null;
   seams.dispatch.mockReset();
+  seams.enqueue.mockReset();
   delete process.env.CRON_SECRET;
 });
 
@@ -121,6 +124,7 @@ describe("publication delivery receiver-path budget", () => {
       },
     };
     const dispatchStarts: number[] = [];
+    seams.enqueue.mockResolvedValue(undefined);
     seams.dispatch.mockImplementation(async () => {
       dispatchStarts.push(Date.now() - now);
       await new Promise<void>((resolve) => {
@@ -170,4 +174,38 @@ describe("publication delivery receiver-path budget", () => {
     expect(newer).toEqual(beforeStaleReceipt);
   });
 
+});
+
+describe("durable locale intent before public delivery", () => {
+  it("keeps enqueue failures retryable and cannot dispatch or acknowledge before enqueue settles", async () => {
+    process.env.CRON_SECRET = "enqueue-fixture";
+    const row: PublicationRow = {
+      _id: "publication-fixture", _creationTime: 1, key: "article-fixture",
+      target: { kind: "article", slug: "fixture", dependency: "detail" }, revision: "revision", generation: 1,
+      pending: true, nextAttemptAt: 0, attempts: 0, receipts: [], committedAt: 1,
+    };
+    const { ctx } = publicationDatabase([row]);
+    seams.client = { mutationAsService: async (_reference, args) =>
+      invoke("id" in args ? recordDelivery : claimDue, ctx, args) };
+    const request = () => new Request("https://editor.dose.wiki/api/cron/publication-delivery", {
+      headers: { authorization: "Bearer enqueue-fixture" },
+    });
+    seams.enqueue.mockRejectedValueOnce(new Error("queue unavailable"));
+    expect(await (await GET(request())).json()).toMatchObject({ completed: 0, retried: 1 });
+    expect(row.pending).toBe(true);
+    expect(seams.dispatch).not.toHaveBeenCalled();
+
+    row.nextAttemptAt = 0;
+    let release!: () => void;
+    const enqueued = new Promise<void>((resolve) => { release = resolve; });
+    seams.enqueue.mockImplementationOnce(() => enqueued);
+    seams.dispatch.mockResolvedValue([{ target: "public", status: "accepted", attempts: 1, verification: "verified" }]);
+    const delivery = GET(request());
+    await vi.waitFor(() => expect(seams.enqueue).toHaveBeenCalledTimes(2));
+    expect(row.pending).toBe(true);
+    expect(seams.dispatch).not.toHaveBeenCalled();
+    release();
+    expect(await (await delivery).json()).toMatchObject({ completed: 1, retried: 0 });
+    expect(row.pending).toBe(false);
+  });
 });

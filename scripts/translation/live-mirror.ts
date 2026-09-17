@@ -209,12 +209,13 @@ async function runQueue() {
         const { kind, slug } = live.parseTranslationJobSlug(job.slug);
         const record = await live.readTranslationRecord(reads, kind, slug);
         if (!record) {
-          await store.completeTranslationJob(job);
-          console.log(`  ${job.slug}: not public, cleared`);
+          const completed = await store.completeTranslationJob(job);
+          console.log(`  ${job.slug}: ${completed ? "not public, cleared" : "superseded lease, left pending"}`);
           continue;
         }
         const outcome = await live.refreshRecordTranslations({ ...record, slug }, context, kind, apiKey);
-        await store.completeTranslationJob(job);
+        if (outcome.rejected.length > 0) throw new Error(`Translation refresh rejected ${outcome.rejected.length} segments`);
+        if (!await store.completeTranslationJob(job)) throw new Error("Translation lease was superseded");
         console.log(
           `  ${job.slug}: ${outcome.segments} segments, ${outcome.requested} requested, ${outcome.stored} stored, ${outcome.rejected.length} rejected, ${outcome.usage.requests} requests`,
         );

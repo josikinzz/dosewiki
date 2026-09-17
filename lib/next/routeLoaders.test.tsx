@@ -18,6 +18,18 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubjectiveEffectDetailRecord } from "../data/publicData";
 import type { PublicEffectArticle } from "../data/publicData";
 import type { PublicSubstanceRecord } from "../data/publicData.shared";
+import type * as PublicDataCache from "@server/data/publicData.cache";
+
+const reportSourceRevision = vi.hoisted(() => vi.fn<() => Promise<string>>());
+vi.mock("@server/data/publicData.cache", async (importOriginal) => {
+  const actual = await importOriginal<typeof PublicDataCache>();
+  return {
+    ...actual,
+    publicDataCache: ((callback, keys, options) => keys[0] === "public-report-index-revision-v1"
+      ? reportSourceRevision
+      : actual.publicDataCache(callback, keys, options)) as typeof actual.publicDataCache,
+  };
+});
 
 const localizedRecords = vi.hoisted(() => ({
   getLocalizedPublicEffectBySlug: vi.fn(),
@@ -497,6 +509,7 @@ describe("substance, effect, publication, and report route loaders", () => {
   });
 
   it("returns reports index results with an empty state only when empty", async () => {
+    reportSourceRevision.mockResolvedValueOnce("reports-published").mockResolvedValueOnce("reports-removed");
     publicData.getPublicReports.mockResolvedValueOnce([
       {
         slug: "first-trip",

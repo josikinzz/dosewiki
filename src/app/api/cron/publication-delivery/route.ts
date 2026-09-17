@@ -13,6 +13,8 @@ import { authorizeCronRequest } from "@server/http/cronAuthorization";
 import { dispatchPublicationSignal, type PublicationReceipt } from "@server/next/publicationDispatch";
 import { isPublicationTarget } from "@server/next/publicationWire";
 import { getDataBackend } from "@server/postgres/runtime/backend";
+import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
+import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 
 /** The same by-name references `server/publicationDelivery.ts` uses for its internal mutations. */
 const claimDue = makeFunctionReference<"mutation", Record<string, never>, Doc<"publicCachePublications">[]>("publicationRecovery:claimDue");
@@ -62,6 +64,25 @@ async function reconcilePublications(client: ServerDataWriteClient): Promise<Pub
       if (!isPublicationTarget(row.target)) {
         run.skipped += 1;
         return;
+      }
+      const target = row.target;
+      const jobSlug = target.kind === "article"
+        ? target.slug
+        : target.kind === "contributor" ? `profile/${target.slug}`
+        : target.kind === "effect" || target.kind === "report" || target.kind === "library" || target.kind === "replication"
+          ? `${target.kind}/${target.slug}` : null;
+      if (jobSlug) {
+        try {
+          await enqueueTranslationJobs(LIVE_LOCALE_CODES, [jobSlug], { id: row._id, generation: row.generation });
+        } catch (error) {
+          await client.mutationAsService(recordDelivery, {
+            id: row._id, generation: row.generation, complete: false,
+            receipts: [{ target: "translation-queue-failure", status: "unreachable", attempts: 1,
+              detail: error instanceof Error ? error.message : "Translation enqueue failed" }],
+          });
+          run.retried += 1;
+          return;
+        }
       }
       const revisions = row.target.kind === "article" && row.revision !== undefined
         ? [{ slug: row.target.slug, revision: row.revision }] : [];

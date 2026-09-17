@@ -1,4 +1,5 @@
 import type { PromptContextKind, TranslationLocale } from "./locales";
+import type { OpenRouterChatResult } from "../lib/openrouter-sdk.mjs";
 
 export const DEFAULT_MODEL: string;
 export const APP_TITLE: string;
@@ -29,6 +30,14 @@ export type SegmentVerdict = {
 
 export function planBatches(units: readonly WorkUnit[], batchChars?: number): WorkUnit[][];
 
+export function sendBatch(input: {
+  locale: TranslationLocale;
+  model: string;
+  apiKey: string;
+  userMessage: string;
+  signal?: AbortSignal;
+}): Promise<OpenRouterChatResult>;
+
 export function translateBatchWithRetries(input: {
   units: readonly WorkUnit[];
   locale: TranslationLocale;
@@ -40,6 +49,8 @@ export function translateBatchWithRetries(input: {
   kinds: Readonly<Record<string, string>>;
   model: string;
   apiKey: string;
+  /** Cancels in-flight requests and stops transport and validation retries. */
+  signal?: AbortSignal;
   onUsage?: (usage: BatchUsage, attempt: number) => void;
 }): Promise<SegmentVerdict[]>;
 

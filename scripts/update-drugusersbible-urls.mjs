@@ -64,4 +64,3 @@ console.log(`With Archive.org URL: ${updatedCount - samplePageCount}`);
 
 fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
 console.log(`\n✅ Changes written to ${articlesPath}`);
-console.log(`\n⚠️  Remember to run: node scripts/build/buildCompressedArticles.mjs`);

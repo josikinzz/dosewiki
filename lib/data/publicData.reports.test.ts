@@ -310,4 +310,30 @@ describe("public report preview and detail pagination", () => {
       { name: "tripReports:getPublicDetailsPage", args: { cursor: "page-2", limit: 32 } },
     ]);
   });
+
+  it("drains bounded search summaries without full detail or contributor reads", async () => {
+    vi.resetModules();
+    mocks.queryData.mockReset();
+    const introduction = `  Raw introduction.\n\n${"Not a preview excerpt. ".repeat(30)}\n`;
+    const summaries = [
+      { slug: "first", title: "First", introduction },
+      { slug: "second", title: "Second" },
+    ];
+    mocks.queryData.mockImplementation(async (name: string, args: Record<string, unknown>) => {
+      if (name !== "tripReports:getPublicPreviewsPage" || args.includeSearchSummary !== true || args.limit !== 32) {
+        throw new Error("Search summaries must use the bounded summary projection");
+      }
+      if (args.cursor === undefined) {
+        return { items: summaries.slice(0, 1), cursor: "next", isDone: false };
+      }
+      if (args.cursor === "next") {
+        return { items: summaries.slice(1), cursor: "done", isDone: true };
+      }
+      throw new Error("Unexpected search summary cursor");
+    });
+
+    // Reload after resetting modules so the leaf binds this test's transport and cache mocks.
+    const { getPublicReportSearchSummaries } = await import("./publicData.reports");
+    expect(await getPublicReportSearchSummaries()).toEqual(summaries);
+  });
 });

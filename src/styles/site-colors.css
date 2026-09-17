@@ -376,11 +376,11 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      Accent owns hue; the Surface only supplies material and depth. */
   --theme-selected-control-base: color-mix(in srgb, var(--theme-accent) 16%, var(--theme-control-base));
   --theme-selected-control-border: transparent;
-  --theme-selected-control-highlight: color-mix(in srgb, rgb(var(--c-white)) 16%, var(--theme-selected-control-base));
+  --theme-selected-control-highlight: rgb(var(--c-white) / 0.1);
   --theme-selected-control-primary: var(--theme-selected-control-base);
   --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 7%, var(--theme-body-bg));
   --theme-selected-control-bg:
-    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 62%),
+    radial-gradient(circle at 12% 0%, var(--theme-selected-control-highlight), transparent 48%),
     linear-gradient(135deg, var(--theme-selected-control-primary), var(--theme-selected-control-secondary));
   --theme-selected-control-text: var(--theme-accent);
   --theme-selected-control-shadow:
@@ -391,6 +391,20 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-selected-control-focus: var(--theme-accent);
   --theme-selected-control-glow:
     linear-gradient(90deg, color-mix(in srgb, var(--theme-accent) 10%, transparent), color-mix(in srgb, var(--theme-accent-soft) 12%, transparent), color-mix(in srgb, var(--theme-accent) 10%, transparent));
+  /* Route pills off the homepage: glass edges without bloom. No drawn ring;
+     the rim is a top-only blurred highlight, a wide soft bottom shade, and a
+     tight contact shadow, so the edge reads as light on glass rather than an
+     outline. The icon well is a recess under that glass: shaded above its
+     lip, lit below it, dark inside. */
+  --theme-route-tab-shadow:
+    0 1px 3px rgb(var(--c-black) / 0.45),
+    inset 0 1px 1px -1px rgb(var(--c-white) / 0.16),
+    inset 0 -2px 4px -2px rgb(var(--c-black) / 0.4);
+  --theme-route-tab-well-shadow:
+    0 -1px 2px rgb(var(--c-black) / 0.3),
+    0 1px 2px rgb(var(--c-white) / 0.08),
+    inset 0 1px 3px rgb(var(--c-black) / 0.55),
+    inset 0 -1px 1px rgb(var(--c-white) / 0.05);
 
   /* Inline references share Accent identity but remain quieter than a selected
      control. Their fill mixes into whichever Surface contains them. */
@@ -935,7 +949,7 @@ html[data-theme="light"] {
   --theme-text-ghost: oklch(57% 0.03 var(--h-text));
 
   /* Light mode accent text, icon, and ring colors */
-  --theme-accent-strong: oklch(43% 0.205 var(--h-brand));
+  --theme-accent-strong: oklch(49% 0.205 var(--h-brand)); /* 6.94:1 on #fefdfe; 43% ran 8.88:1 and read as black */
   --theme-accent: oklch(49% 0.19 var(--h-brand));
   --theme-accent-soft: oklch(58% 0.155 var(--h-brand));
   --theme-accent-muted: oklch(46% 0.135 var(--h-brand));
@@ -1042,7 +1056,7 @@ html[data-theme="light"] {
   --theme-selected-control-primary: var(--theme-selected-control-base);
   --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 8%, var(--theme-body-bg));
   --theme-selected-control-bg:
-    radial-gradient(circle at 18% 0%, var(--theme-selected-control-highlight), transparent 60%),
+    radial-gradient(circle at 12% 0%, var(--theme-selected-control-highlight), transparent 60%),
     linear-gradient(135deg, var(--theme-selected-control-primary), var(--theme-selected-control-secondary));
   --theme-selected-control-text: var(--theme-accent-strong);
   --theme-selected-control-shadow:
@@ -1052,6 +1066,15 @@ html[data-theme="light"] {
   --theme-selected-control-focus: var(--theme-accent-strong);
   --theme-selected-control-glow:
     linear-gradient(90deg, color-mix(in srgb, var(--theme-accent) 8%, transparent), color-mix(in srgb, var(--theme-accent-soft) 11%, transparent), color-mix(in srgb, var(--theme-accent) 8%, transparent));
+  --theme-route-tab-shadow:
+    0 1px 3px var(--theme-shadow-soft),
+    inset 0 1px 1px -1px oklch(100% 0 0 / 0.8),
+    inset 0 -2px 4px -2px oklch(40% 0.08 var(--h-brand) / 0.1);
+  --theme-route-tab-well-shadow:
+    0 -1px 2px oklch(40% 0.08 var(--h-brand) / 0.12),
+    0 1px 2px oklch(100% 0 0 / 0.8),
+    inset 0 1px 3px var(--theme-shadow-strong),
+    inset 0 -1px 1px oklch(100% 0 0 / 0.6);
 
   --theme-inline-reference-border: color-mix(in srgb, var(--theme-accent-strong) 28%, transparent);
   --theme-inline-reference-bg: color-mix(in srgb, var(--theme-accent-soft) 14%, var(--theme-body-bg));
@@ -1579,7 +1602,7 @@ html[data-theme="light"] {
   --theme-home-logo-frame-hover-home-logo-main-filter: drop-shadow(0 20px 30px rgba(84, 46, 112, 0.2)) drop-shadow(0 0 24px var(--theme-logo-shadow-hover));
   --theme-home-intro-color: var(--theme-text-faint);
   --theme-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 246 255 / 0.64), transparent 34%), radial-gradient(circle at 78% 88%, rgb(207 146 209 / 0.16), transparent 42%), linear-gradient(135deg, #f8cbf8 0%, #f2b9f2 54%, #e6a5e7 100%);
-  --theme-home-nav-icon-color: #5b0a5f;
+  --theme-home-nav-icon-color: #5c0860;
   --theme-home-nav-icon-box-shadow: inset 0 1px 0 rgb(255 249 255 / 0.76), 0 18px 34px -28px rgb(132 60 135 / 0.3);
   --theme-home-nav-link-hover-home-nav-icon-border-color: rgb(149 87 151 / 0.18);
   --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 245 255 / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, rgb(206 135 208 / 0.2), transparent 42%), linear-gradient(135deg, #f9c5fa 0%, #efaff0 54%, #e098e1 100%);
@@ -1644,20 +1667,15 @@ html[data-theme="light"] {
   }
 
   html[data-theme="light"] {
+    --theme-home-nav-icon-background: radial-gradient( circle at 28% 18%, oklch(from var(--theme-panel-base) 99% calc(c * 1) h / 0.64), transparent 34% ), radial-gradient( circle at 78% 88%, oklch(from var(--theme-panel-base) 74% calc(c * 4.3) h / 0.16), transparent 42% ), linear-gradient( 135deg, oklch(from var(--theme-panel-base) 89.5% calc(c * 3) h) 0%, oklch(from var(--theme-panel-base) 85.5% calc(c * 3.8) h) 54%, oklch(from var(--theme-panel-base) 80.5% calc(c * 4.4) h) 100% );
+    --theme-home-nav-icon-box-shadow: inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.4) h / 0.76), 0 18px 34px -28px oklch(from var(--theme-panel-base) 48% calc(c * 5.4) h / 0.3);
+    --theme-home-nav-icon-color: oklch(from var(--theme-accent-strong) 34% calc(c * 0.73) h);
     /* Home navigation icon recipes; literal fallbacks sit in the light block above. */
     --theme-home-nav-icon-search-background: radial-gradient(circle at 30% 18%, oklch(from var(--theme-panel-base) 99% calc(c * 1) h / 0.62), transparent 34%), linear-gradient(135deg, oklch(from var(--theme-panel-base) 91% calc(c * 2.4) h), oklch(from var(--theme-panel-base) 84% calc(c * 3.5) h));
     --theme-home-nav-icon-search-box-shadow: 0 14px 28px -24px oklch(from var(--theme-panel-base) 48% calc(c * 5.4) h / 0.3), inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.4) h / 0.78), inset 0 0 0 1px oklch(from var(--theme-panel-base) 99% calc(c * 0.7) h / 0.22);
     --theme-home-nav-link-hover-home-nav-icon-border-color: oklch(from var(--theme-accent-strong) 55% calc(c * 0.59) h / 0.18);
     --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, oklch(from var(--theme-panel-base) 99% calc(c * 1.15) h / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, oklch(from var(--theme-panel-base) 72% calc(c * 5) h / 0.2), transparent 42%), linear-gradient(135deg, oklch(from var(--theme-panel-base) 88.5% calc(c * 3.5) h) 0%, oklch(from var(--theme-panel-base) 83.5% calc(c * 4.3) h) 54%, oklch(from var(--theme-panel-base) 77.5% calc(c * 4.9) h) 100%);
     --theme-home-nav-link-hover-home-nav-icon-box-shadow: inset 0 1px 0 oklch(from var(--theme-panel-base) 99% calc(c * 0.45) h / 0.82), 0 20px 36px -28px oklch(from var(--theme-panel-base) 46% calc(c * 6.2) h / 0.36);
-    --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.1) calc(c - 0.032) h);
-    --theme-chrome-rail-primary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.06) calc(c - 0.024) h);
-    --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg)));
-    --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.04) calc(c + 0.006) h) 92%, var(--theme-body-bg));
-    --theme-frosted-panel-highlight: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 58%, var(--theme-panel-base));
-    --theme-frosted-panel-primary: color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg));
-    --theme-frosted-panel-secondary: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg));
-    --theme-frosted-panel-hover-bg:
     --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.1) calc(c - 0.032) h);
     --theme-chrome-rail-primary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.06) calc(c - 0.024) h);
     --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg)));

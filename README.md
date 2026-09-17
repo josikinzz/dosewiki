@@ -74,7 +74,7 @@ Public pages live under `src/app/`. Representative route groups are:
 - discovery: `/category/[categoryKey]`, `/chemical-classes/[classKey]`, `/mechanism/[mechanismSlug]`, `/psychoactive/[...summaryPath]`, and `/search`;
 - project pages: `/about`, `/contributors/[profileKey]`, `/docs/how`, `/docs/code`, and `/docs/license`.
 
-Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. Treat `src/app/**/page.tsx` as the current route map; compatibility redirects and aliases live in `middleware.ts` and `lib/next/publicRouteAliases.ts`.
+Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. Treat `src/app/**/page.tsx` as the current route map; compatibility redirects and aliases live in `src/middleware.ts` and `lib/next/publicRouteAliases.ts`.
 
 The routes above are live at <https://dose.wiki/> and <https://www.dose.wiki/>. Pre-launch `/preview` addresses permanently redirect to the matching unprefixed route.
 
@@ -136,7 +136,7 @@ The current tab registry is `TOOL_TAB_ITEMS` in `src/features/dev/pages/DevModeP
 
 - Auth.js configuration: `auth.ts`
 - Runtime auth policy: `lib/auth/runtimePolicy.ts`
-- Route gate: `middleware.ts`
+- Route gate: `src/middleware.ts`
 - Role source: Postgres `memberships`
 
 Editors and admins can use the full surface. Any authenticated user can edit their own profile. Editor tool handlers live under `src/app/api/dev/`; shared save routes live under `src/app/api/`. The preferred article write path is `save-article`, while contributor profiles use `save-user-profile`.
@@ -232,11 +232,10 @@ excluded; publishing replacements remains a separately approved operation.
 | [CONTEXT.md](CONTEXT.md) | Domain language for the citation workflow |
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
 | [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md) | Local OpenChemLib ownership, provenance, rebuild, and update contract |
-| [docs/citation-workbench-tracker.md](docs/citation-workbench-tracker.md) | Current citation workbench integration tracker |
+| [docs/agents/citation-workbench.md](docs/agents/citation-workbench.md) | Maintained citation workflow router; OMP by default, external Claude workbench only on explicit request |
 | [docs/next-auth-contributor-guide.md](docs/next-auth-contributor-guide.md) | Next/Auth.js/Postgres contributor guide |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |
 | [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |
-| [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Retired Vite/static app guide; not current architecture |
 | [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md) | UI styling guidance |
 
 ---

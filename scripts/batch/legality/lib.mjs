@@ -26,8 +26,6 @@ ${articleYaml}
 
 ## Extracted Legality Information
 
-Generate the Legality section from scratch based on these sources:
-
 ${quotes}
 
 ## Instructions

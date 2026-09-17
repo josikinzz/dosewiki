@@ -6,6 +6,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import {
@@ -16,7 +17,7 @@ import {
 } from "../lib/production-write-command.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const AUDIT_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/audit-latest.json");
+const AUDIT_PATH = path.resolve(getFlagValue(process.argv.slice(2), "--audit-path") ?? path.join(os.homedir(), ".local/state/dosewiki-housecleaning/replication-provenance/audit-latest.json"));
 const LEDGER_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/thumbnail-ledger.json");
 const WRITE = process.argv.includes("--write");
 const CONFIRMED = process.argv.includes("--confirm-thumbnail-write");

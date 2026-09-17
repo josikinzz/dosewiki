@@ -4,8 +4,8 @@ Issues, implementation tickets, and specifications for this repository live in G
 
 ## Conventions
 
-- Create one GitHub issue per specification or independently assignable implementation ticket.
-- Read an issue and its comments before acting on it.
+- For issue publication, follow [the tracker publication branch](#when-a-skill-says-publish-to-the-issue-tracker).
+- Before acting on a ticket, follow [the ticket-read branch](#when-a-skill-says-fetch-the-relevant-ticket).
 - Apply the labels mapped in `docs/agents/triage-labels.md`.
 - Do not close or rewrite a parent specification when publishing child tickets.
 - Publish dependency edges using GitHub's native issue dependencies when available; otherwise add a `Blocked by: #<number>` section to the issue body.
@@ -13,13 +13,11 @@ Issues, implementation tickets, and specifications for this repository live in G
 
 ## Pull requests as a triage surface
 
-**PRs as a request surface: no.**
-
-External and collaborator pull requests are not automatically treated as feature requests by the engineering-skill triage workflow. This prevents the workflow from interfering with in-progress collaborator work.
+The engineering-skill triage workflow accepts issues, not external or collaborator pull requests, as its request surface. This preserves in-progress collaborator work.
 
 ## When a skill says “publish to the issue tracker”
 
-Create a GitHub issue in `josikinzz/dosewiki-admin`.
+Create one GitHub issue in `josikinzz/dosewiki-admin` per specification or independently assignable implementation ticket.
 
 ## When a skill says “fetch the relevant ticket”
 

@@ -63,7 +63,6 @@ describe("dose.wiki homepage", () => {
     const heading = screen.getByRole("heading", { level: 1 });
 
     expect(heading).toHaveTextContent("dose.wiki");
-    expect(heading.className).toMatch(/theme-home-wordmark/);
     expect(
       screen.getByText(SITE_FLAVOR_CONFIGS.dosewiki.description),
     ).toBeInTheDocument();
@@ -91,20 +90,6 @@ describe("dose.wiki homepage", () => {
     ]);
   });
 
-  it("splits the five tiles into centred 3 + 2 rows with row-scoped spacing", () => {
-    renderHome();
-
-    const tiles = screen.getByRole("navigation", { name: "App sections" });
-    const rows = Array.from(tiles.children);
-
-    // Each direct child is one centred row (`theme-home-nav-row`) that owns its
-    // own column-gap, so a short last row reads as a tight centred pair instead
-    // of echoing the top row's spread. At lg it flattens via `display: contents`.
-    expect(rows.map((row) => row.querySelectorAll("a").length)).toEqual([3, 2]);
-    for (const row of rows) {
-      expect(row.className).toMatch(/theme-home-nav-row/);
-    }
-  });
 
   it("does not render any Effect Index homepage panel", () => {
     renderHome();

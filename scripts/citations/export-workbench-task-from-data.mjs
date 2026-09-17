@@ -23,6 +23,10 @@ import {
   selectedSectionsFromTracker,
 } from "./subsection-rollout-lib.mjs";
 import { secondPassScopeForSlug } from "./second-pass-research-lib.mjs";
+import {
+  CITATION_EVIDENCE_RULES,
+  SECOND_PASS_RESEARCH_INSTRUCTION,
+} from "./citation-evidence-policy.mjs";
 
 const DEFAULT_SUBSECTION_TRACKER =
   "/Users/josie/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json";
@@ -275,19 +279,14 @@ function buildTask(article, slug, options) {
       notes: [
         "Task scaffold generated from the live Postgres article surface.",
         "Citable sections were stripped of existing [cite:*] markers before citation work.",
-        "Only insert [cite:reference-id] markers. Do not rewrite article text outside markers.",
-        "Wikipedia and other wiki pages are discovery context only. Public markers need inspected Wikipedia-grade sources.",
-        "PsychonautWiki reference caches, when present, are local discovery packets only. Inspect the underlying source before using a candidate as public support.",
+        ...CITATION_EVIDENCE_RULES,
         ...(sectionScope
           ? [
               `Scoped run: only add markers inside selectedSections (${sectionScope.selectedSections.join(", ")}). Every other citable section must remain byte-for-byte unchanged.`,
             ]
           : []),
         ...(sectionScope?.researchBrief
-          ? [
-              "Second-pass run: follow researchBrief research lanes in order, inspect synonyms and explicitly named metabolites or constituents, and record a negative search log before confirming needs_source.",
-              "Do not transfer evidence from an analogue, parent, metabolite, or plant constituent unless the public claim explicitly concerns that entity and the source directly supports it.",
-            ]
+          ? [SECOND_PASS_RESEARCH_INSTRUCTION]
           : []),
       ],
     },

@@ -99,7 +99,7 @@ Every test needs a stable placement and an explicit reason to exist. Reviewers s
 
 `npm run test:evidence` writes `.test-evidence/report.md` (and `report.json`) with per-file runtime for every lane, the skipped suites and cases, `setup:rdkit-or-wasm` tags for files that load RDKit, OpenChemLib, or wasm, and, with `--runs N`, a flake classification that separates files whose outcome differed across runs from files that failed every run. It exits 2 when a safety-listed fixture-backed test skips. Slow files are ranked so their setup cost can be shared or reduced; no test is deleted only because it is slow.
 
-The rationale and the file-level audit behind this policy are in [docs/audits/test-suite-rationalization-plan.html](../audits/test-suite-rationalization-plan.html).
+The rationale and the file-level audit behind this policy are preserved in the private housecleaning archive (`docs/audits/test-suite-rationalization-plan.html`, retained 2026-09-16 with the archive receipt); ask the archive custodian for access.
 
 ## Current Direction
 

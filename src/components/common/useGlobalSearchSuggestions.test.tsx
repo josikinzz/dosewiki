@@ -75,6 +75,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 const renderSuggestions = (query: string) =>
@@ -183,6 +184,55 @@ describe("useGlobalSearchSuggestions", () => {
     rerender();
     expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS));
     expect(suggestionRequests).toHaveLength(2);
+  });
+
+  it("revalidates expired repeat queries without blanking cached results and deduplicates overlap", async () => {
+    vi.useFakeTimers();
+    const first = renderSuggestions("mdma");
+    await act(() => vi.advanceTimersByTimeAsync(400));
+    expect(ids(first.result.current.suggestions)).toEqual(ids(SERVER_RESULTS));
+    first.unmount();
+
+    await act(() => vi.advanceTimersByTimeAsync(5 * 60 * 1000));
+    let resolveRefinement!: (response: Response) => void;
+    suggestionsResponder = () => new Promise<Response>((resolve) => {
+      resolveRefinement = resolve;
+    });
+    const repeated = renderSuggestions("mdma");
+    const overlapping = renderSuggestions("mdma");
+    expect(ids(repeated.result.current.suggestions)).toEqual(ids(SERVER_RESULTS));
+    await act(() => vi.advanceTimersByTimeAsync(400));
+    expect(suggestionRequests).toHaveLength(2);
+    expect(ids(repeated.result.current.suggestions)).toEqual(ids(SERVER_RESULTS));
+
+    await act(async () => {
+      resolveRefinement(jsonResponse({ results: [KEYWORD_ONLY_RESULT] }));
+    });
+    expect(ids(repeated.result.current.suggestions)).toEqual([KEYWORD_ONLY_RESULT.id]);
+    expect(ids(overlapping.result.current.suggestions)).toEqual([KEYWORD_ONLY_RESULT.id]);
+    repeated.unmount();
+    overlapping.unmount();
+  });
+
+  it("evicts the oldest query while retaining recent fresh responses", async () => {
+    vi.useFakeTimers();
+    const { rerender, unmount } = renderHook(
+      ({ query }) => useGlobalSearchSuggestions({ isActiveSearch: true, query }),
+      { initialProps: { query: "query-0" } },
+    );
+    await act(() => vi.advanceTimersByTimeAsync(400));
+    for (let index = 1; index <= 100; index += 1) {
+      rerender({ query: `query-${index}` });
+      await act(() => vi.advanceTimersByTimeAsync(400));
+    }
+    expect(suggestionRequests).toHaveLength(101);
+    rerender({ query: "query-99" });
+    await act(() => vi.advanceTimersByTimeAsync(400));
+    expect(suggestionRequests).toHaveLength(101);
+    rerender({ query: "query-0" });
+    await act(() => vi.advanceTimersByTimeAsync(400));
+    expect(suggestionRequests).toHaveLength(102);
+    unmount();
   });
 
   it("returns nothing when search is not active", () => {

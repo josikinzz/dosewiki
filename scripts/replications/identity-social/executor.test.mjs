@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -58,10 +58,15 @@ test("batches stay bounded and canaries cover every class", () => {
   assert.ok(batchesAfterCanaries(plan.batches).flatMap((x) => x.entries).every((x) => !canaryIds.has(x.item_operation_id)));
 });
 test("resume requires verified readback", () => {
-  const file = path.join(mkdtempSync(path.join(tmpdir(), "identity-ledger-")), "ledger.jsonl");
-  const batches = makeBatches([transformOperation(operations[0], context()).entry]);
-  appendLedger(file, { event: "batch-applied", operation_id: batches[0].operation_id }); assert.equal(pendingBatches(batches, loadLedger(file)).length, 1);
-  appendLedger(file, { event: "batch-readback-verified", operation_id: batches[0].operation_id }); assert.equal(pendingBatches(batches, loadLedger(file)).length, 0);
+  const directory = mkdtempSync(path.join(tmpdir(), "identity-ledger-"));
+  try {
+    const file = path.join(directory, "ledger.jsonl");
+    const batches = makeBatches([transformOperation(operations[0], context()).entry]);
+    appendLedger(file, { event: "batch-applied", operation_id: batches[0].operation_id }); assert.equal(pendingBatches(batches, loadLedger(file)).length, 1);
+    appendLedger(file, { event: "batch-readback-verified", operation_id: batches[0].operation_id }); assert.equal(pendingBatches(batches, loadLedger(file)).length, 0);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 test("CAS mismatch aborts", () => {
   const entry = transformOperation(operations[0], context()).entry;

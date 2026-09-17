@@ -428,17 +428,26 @@ describe("memberships account functions", () => {
   });
 
   describe("issuePasswordReset", () => {
+    const now = new Date("2026-09-01T12:00:00.000Z");
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("stores the hash with a one-hour expiry", async () => {
       const { ctx, rows } = createCtx([josie, ada]);
-      const before = Date.now();
 
       await expect(issueResetHandler(ctx, { ...asJosie, email: "ada@example.com", tokenHash: "deadbeef" })).resolves.toBeNull();
 
       const row = rows.get("m2")!;
       expect(row.resetTokenHash).toBe("deadbeef");
       const expires = Date.parse(row.resetTokenExpiresAt!);
-      expect(expires - before).toBeGreaterThanOrEqual(60 * 60 * 1000 - 50);
-      expect(expires - before).toBeLessThan(60 * 60 * 1000 + 5_000);
+      expect(expires).toBe(now.getTime() + 60 * 60 * 1000);
     });
 
     it("refuses self, admin targets, and an empty hash", async () => {
@@ -459,13 +468,26 @@ describe("memberships account functions", () => {
   });
 
   describe("consumePasswordReset", () => {
+    const now = new Date("2026-09-01T12:00:00.000Z");
+    const expiresAt = now.getTime() + 30 * 60 * 1000;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     const pending = {
       ...ada,
       resetTokenHash: "deadbeef",
-      resetTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+      resetTokenExpiresAt: new Date(expiresAt).toISOString(),
     };
 
-    it("rotates the password and clears the token for a live hash", async () => {
+    it("rotates the password just before expiry and prevents reuse", async () => {
+      vi.setSystemTime(expiresAt - 1);
       const { ctx, rows } = createCtx([pending]);
 
       await expect(
@@ -474,7 +496,7 @@ describe("memberships account functions", () => {
 
       const row = rows.get("m2")!;
       expect(row.passwordHash).toBe("scrypt$new");
-      expect(row.passwordUpdatedAt).toMatch(/^\d{4}-/);
+      expect(row.passwordUpdatedAt).toBe(new Date(expiresAt - 1).toISOString());
       expect(row).not.toHaveProperty("resetTokenHash");
       expect(row).not.toHaveProperty("resetTokenExpiresAt");
 
@@ -484,10 +506,9 @@ describe("memberships account functions", () => {
       ).rejects.toThrow(/invalid or has expired/);
     });
 
-    it("refuses an expired token and leaves the password alone", async () => {
-      const { ctx, rows } = createCtx([
-        { ...pending, resetTokenExpiresAt: new Date(Date.now() - 1000).toISOString() },
-      ]);
+    it.each([0, 1])("refuses the token %i ms after its expiry boundary without changing the password", async (offset) => {
+      vi.setSystemTime(expiresAt + offset);
+      const { ctx, rows } = createCtx([pending]);
       await expect(
         consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
       ).rejects.toThrow(/invalid or has expired/);

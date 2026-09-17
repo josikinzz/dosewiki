@@ -163,7 +163,6 @@ function main() {
     // Write back
     writeFileSync(ARTICLES_PATH, JSON.stringify(articles, null, 2) + "\n");
     console.log(`\n✅ Wrote changes to SubstanceIndex.json`);
-    console.log(`\n⚠️  Don't forget to run: node scripts/build/buildCompressedArticles.mjs`);
   } else if (DRY_RUN && totalChanges > 0) {
     console.log(`\n🔍 Dry run complete. Run without --dry-run to apply changes.`);
   } else {

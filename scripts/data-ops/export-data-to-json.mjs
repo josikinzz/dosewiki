@@ -7,10 +7,9 @@
  * the static file has the latest data from Postgres.
  *
  * Usage:
- *   node scripts/export-data-to-json.mjs
+ *   npm run data:export
  *
  * After running:
- *   node scripts/build/buildCompressedArticles.mjs
  *   git add . && git commit -m "Sync articles from Postgres" && git push
  */
 
@@ -91,9 +90,8 @@ async function main() {
     console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
   }
   console.log("\nNext steps:");
-  console.log("  1. node scripts/build/buildCompressedArticles.mjs");
-  console.log("  2. git add . && git commit -m 'Sync articles from Postgres'");
-  console.log("  3. git push");
+  console.log("  1. git add . && git commit -m 'Sync articles from Postgres'");
+  console.log("  2. git push");
 }
 
 main().catch((error) => {

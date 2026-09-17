@@ -150,6 +150,37 @@ test("documentation labels and user-facing password guidance are not credentials
   }
 });
 
+test("repository-native admin token and secret variable names are detected and redacted", async () => {
+  const root = await createRepo();
+  const editorToken = ["Q7wR9tY2uI4oP6aS8dF1gH"].join("");
+  const authSecret = ["Zx3Cv5Bn7M9kL1jH4gF2dSa"].join("");
+  const cronSecret = ["Lq0wE9rT8yU7iO6pL5kJ4hGf"].join("");
+
+  try {
+    await writeFile(
+      path.join(root, "native.env"),
+      [
+        `DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE=${editorToken}`,
+        `AUTH_SECRET=${authSecret}`,
+        `CRON_SECRET="${cronSecret}"`,
+        "",
+      ].join("\n"),
+    );
+    git(root, "add", "native.env");
+
+    const result = runScanner(root);
+
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /GENERIC_SECRET_ASSIGNMENT\s+native\.env/);
+    for (const secret of [editorToken, authSecret, cronSecret]) {
+      assert.doesNotMatch(result.stdout, new RegExp(secret));
+      assert.doesNotMatch(result.stderr, new RegExp(secret));
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("credential-shaped text in a filename is redacted from findings", async () => {
   const root = await createRepo();
   const syntheticValue = ["sk", "proj", "C".repeat(24)].join("-");

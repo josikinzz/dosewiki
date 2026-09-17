@@ -75,7 +75,7 @@ A task exported with `--sections`/`--tracker-scope` carries `selectedSections` p
 
 The manifest also records `allowLiveWebResearch`. When it is `false`, section and article-wide workers must use only the task packet and approved local discovery material. They must not browse for new sources; unsupported claims become internal gaps.
 
-A task exported with `--second-pass-plan` additionally carries `researchPass: "second"` and an immutable `researchBrief` for the selected rows. The brief, not an ad-hoc coordinator prompt, owns the ordered research lanes, feasibility signals, hard rules, and completion criteria. Second-pass workers must record each lane's queries and outcomes; a negative result is terminal only after all prescribed lanes have auditable outcomes. Analogue, parent, metabolite, or plant-constituent sources may support only public claims that explicitly concern that entity.
+A task exported with `--second-pass-plan` carries `researchPass: "second"` and an immutable `researchBrief` for its selected rows. The brief owns ordered lanes, feasibility signals and completion criteria; its generic policy is rendered from `scripts/citations/citation-evidence-policy.mjs`. Follow that brief rather than an ad-hoc coordinator plan. Every prescribed lane needs auditable queries and outcomes before a terminal negative result.
 
 ### 2. Section workers
 
@@ -170,11 +170,20 @@ For a report-only or article-wide correction, add `--reuse-sections`. The succes
 
 ## Evidence requirements
 
+Generic marker-only evidence and second-pass research policy is owned by
+[`scripts/citations/citation-evidence-policy.mjs`](../../scripts/citations/citation-evidence-policy.mjs)
+and rendered into new task notes and research briefs. For an immutable older
+task lacking those rendered rules, the coordinator supplies the repository
+policy location to each worker; do not rewrite task snapshots to resume a run.
+If neither rendered policy nor its source is available, stop. The executable
+artifact contract and exact acceptance fields below remain authoritative.
+
+
 - A marker must use `[cite:reference-id]` syntax and only alter the original text by adding markers.
 - Stripping markers must exactly restore the original nested section value, including shape and whitespace.
 - Every public marker requires `supported` evidence at the same field path, a stable unique `claimKey`, matching canonical reference id, an inspected source body that binds that same reference id, a contiguous verbatim supporting quote, and rationale.
 - `needs_source` or `needs_review` is internal metadata, not public support.
-- Wikipedia, PsychonautWiki, and their local caches are discovery-only. They cannot be public claim-level support.
+- Apply the shared policy's discovery-only source rules; a discovery packet never supplies public claim-level support.
 - Reference/source identities must be stable and page-specific. Deduplicate/remap before article-wide packet construction.
 
 ## Human boundary

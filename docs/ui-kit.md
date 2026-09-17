@@ -7,9 +7,9 @@ exists.**
 
 Use these companion references for decisions outside the catalog:
 
-- [`docs/ui-system.md`](ui-system.md) — ownership boundaries, promotion criteria,
+- [`docs/ui-system.md`](ui-system.md): ownership boundaries, promotion criteria,
   and dependency policy.
-- [`notes-and-plans/guides/dosewiki-visual-style-guide.md`](../notes-and-plans/guides/dosewiki-visual-style-guide.md) — brand and visual language.
+- [`notes-and-plans/guides/dosewiki-visual-style-guide.md`](../notes-and-plans/guides/dosewiki-visual-style-guide.md): brand and visual language.
 
 ## Browse it live: `/dev/kit`
 
@@ -18,7 +18,7 @@ It also provides an import line and use guidance.
 
 The appearance cog contains four independent controls: color scheme, visual style,
 surfaces, and accent. The catalog sweep covers color scheme and visual style.
-The appearance matrix tests cover all 196 supported combinations.
+The appearance matrix tests own the supported combination coverage.
 
 Two vocabularies name the same axes. Readers see **Vivid** and **Clinical** in
 the cog's Style picker; code and stylesheets call them `fun` and `pro`
@@ -41,7 +41,7 @@ Three tiers, each with its own barrel and ownership boundary:
 | **Common** | `src/components/common/` | Shared recipes on top of primitives: `Icon`, `IconBadge`, `SectionCard`, `StateCard`, `ExpandButton`, `DisclosureCard`, `ArticleSection`, public tokens. |
 | **Layout** | `src/components/layout/` | Public page shells and chrome: `Header`, `Footer`, `PageHeader`, public content/feedback/page primitives, segmented tabs. |
 
-`Surface` is the meta-primitive — most card/panel shells should compose a `Surface`
+`Surface` is the meta-primitive: most card/panel shells should compose a `Surface`
 variant before reaching for a raw `<div>` with border + background classes.
 
 Import from the barrels:
@@ -117,7 +117,7 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
 Accent color always resolves through theme tokens so the appearance cog's hue
 slider repaints every accented pixel. In shared and feature UI:
 
-- **Section headings** color from `--theme-section-heading` — either
+- **Section headings** color from `--theme-section-heading`: either
   `text-[var(--theme-section-heading)]` or the `.theme-accent-heading` utility.
 - **Prose emphasis** (accented `<strong>`) uses `.theme-accent-emphasis`, or
   `.theme-accent-emphasis-scope` on a containing element.
@@ -134,38 +134,10 @@ and `raw-accent-hex`) enforces the last rule.
 
 ## Public page loading
 
-- Keep substance narrative and safety warnings, and effect article prose, in
-  server-rendered components. `SubstanceSecondarySections` and
-  `EffectArticleServer` compose secondary data behind separate Suspense boundaries;
-  editor builds retain resolved enrichment for mutable draft previews. ISR routes
-  still await the complete render on a cold miss, so these boundaries alone do
-  not guarantee early HTTP streaming.
-- Use `SmartLink` for secondary navigation and documentation links. Its default
-  prefetch is driven by hover or focus, not viewport visibility. Reserve eager
-  prefetch for deliberate high-intent destinations.
-- Keep `AppearancePanel` behind the settings popover's dynamic import and Theme
-  Lab styles with the lazy lab component. Opening controls must remain usable
-  after their code arrives.
-- Replication showcases keep a responsive poster until video data is ready.
-  Muted autoplay uses an existing preview rendition where available; explicit
-  playback or sound intent selects the full work. Preserve viewport,
-  reduced-motion, data-saver, and `preload="none"` behavior.
-  While the poster or initial motion frame loads, use the index thumbnail's
-  shared shimmer treatment, not an unavailable-media card. Reserve error
-  placeholders for confirmed failures, stop shimmer when media is ready, and
-  respect reduced motion without adding an artificial loading delay.
-- Gallery SSR and API pagination share `getGalleryBrowsePage`. The default artist
-  view opens with 16 rails and at most 14 previews per rail; focused and filtered
-  grids retain 64-work pages. Hydration must reuse a matching bootstrap rather
-  than replace it. Cursor identity includes query, locale, and corpus revision;
-  stale or mismatched cursors recover through a fresh first page.
-- Effect membership uses the compact native SQL projection and revision-aware
-  cache, not complete substance documents. Effect media reads are scoped to the
-  requested effect; replication details and effect order metadata use batched
-  native lookups. Preserve the complete viewer collection and publication guards.
-- Documentation Mermaid code loads only when a diagram approaches within 400px
-  of the viewport. Retain reserved space, theme updates after activation, stale
-  render guards, and immediate rendering when IntersectionObserver is unavailable.
+For article/server rendering, gallery pagination, media readiness or lazy runtime
+loading changes, follow [Public page loading](architecture/runtime-and-data.md#public-page-loading).
+
+
 
 ## Adding or changing a shared component
 
@@ -189,20 +161,8 @@ To add or change a shared component:
 3. Register the story in `src/app/dev/kit/registry/index.ts`.
 4. Run `npm run test -- src/app/dev/kit/registry/completeness.test.ts src/app/dev/kit/registry/render.test.tsx`.
 
-Catalog source layout:
-
-```
-src/app/dev/kit/
-  page.tsx                      # gated route entry
-  KitCatalog.tsx                # catalog shell + token showcase + appearance controls
-  components/CatalogPrimitives.tsx  # StoryCard / PropsTable / copyable import
-  registry/
-    types.ts                    # StoryDef contract
-    index.ts                    # the registered story list
-    completeness.test.ts        # shared-barrel drift check
-    render.test.tsx             # story render check
-  stories/*.story.tsx           # catalog story modules
-```
+The registry and `src/app/dev/kit/` own the current catalog layout; inspect them
+when adding a story rather than maintaining a parallel directory inventory.
 
 ## Scope
 

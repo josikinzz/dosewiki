@@ -100,9 +100,8 @@ function main() {
 
   console.log('\n✓ Reordering complete');
   console.log('\nNext steps:');
-  console.log('  1. Run: node scripts/build/buildCompressedArticles.mjs');
-  console.log('  2. Run: npm run dev');
-  console.log('  3. Verify articles render correctly');
+  console.log('  1. Run: npm run dev');
+  console.log('  2. Verify articles render correctly');
 }
 
 try {

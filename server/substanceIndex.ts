@@ -14,6 +14,7 @@ import {
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
+  projectSubstanceSearchSummary,
 } from "../src/data/projections/substanceReadProjections";
 import { normalizeSubstancePriority, resolveSubstanceSlug, type SubstanceArticleRecord } from "../src/data/projections/substanceProjectionCore";
 import {
@@ -391,6 +392,23 @@ export const getPublicPreviewsPage = query({
       clampPublicCorpusPageSize(args.limit),
     );
     return { ...page, items: rows.map(projectPublicPreview) };
+  },
+});
+
+/**
+ * The same bounded preview page with the raw stored summary preserved, the
+ * exact leaf localized search hashes. Full article bodies never cross the
+ * read edge here either.
+ */
+export const getPublicSearchSummariesPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
+    const { rows, ...page } = await reader.getPublicSubstancePreviewsPage(
+      args.cursor,
+      clampPublicCorpusPageSize(args.limit),
+    );
+    return { ...page, items: rows.map(projectSubstanceSearchSummary) };
   },
 });
 

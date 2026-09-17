@@ -72,6 +72,10 @@ export const publicDataReadCatalog = {
     functionName: "substanceIndex:getPublicPreviewsPage",
     args: publicSubstancePageArgs,
   },
+  publicSubstanceSearchSummaries: {
+    functionName: "substanceIndex:getPublicSearchSummariesPage",
+    args: publicSubstancePageArgs,
+  },
   publicSubstanceSlugs: {
     functionName: "substanceIndex:getPublicSlugsPage",
     args: (cursor?: string) => ({
@@ -184,6 +188,14 @@ export const publicDataReadCatalog = {
   publicTripReportPreviews: {
     functionName: "tripReports:getPublicBrowseIndex",
     args: () => ({}),
+  },
+  publicReportSearchSummaries: {
+    functionName: "tripReports:getPublicPreviewsPage",
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_TRIP_REPORT_PAGE_SIZE,
+      includeSearchSummary: true,
+    }),
   },
   publicTripReportRecords: {
     functionName: "tripReports:getPublicDetailsPage",

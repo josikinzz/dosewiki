@@ -94,23 +94,15 @@ describe("prompt drift policy", () => {
     expect(result.policy).toBe("meta-commentary-rule-missing-locally");
   });
 
-  it("collects local generator and section prompts through the same inventory adapter", () => {
-    const files = {
-      "/repo/src/data/config/generatorPrompt.md": "generator content",
-      "/repo/src/data/config/sectionPrompts/base.md": "base content",
-      "/repo/src/data/config/sectionPrompts/harmPotential.md": "harm content",
-    };
-
-    const inventory = collectLocalPromptInventory({
+  it("refuses generator migration when a required section contract is missing", () => {
+    expect(() => collectLocalPromptInventory({
       rootDir: "/repo",
-      readFile: (filePath) => files[filePath],
+      readFile: (filePath) => {
+        if (filePath.endsWith("/generatorPrompt.md")) return "## Core Principles\nEvidence only.";
+        throw new Error("Missing section contract");
+      },
       onError: () => {},
-    });
-
-    expect(inventory.get("generator").content).toBe("generator content");
-    expect(inventory.get("section_base").content).toBe("base content");
-    expect(inventory.get("section_harm_potential").content).toBe("harm content");
-    expect(inventory.get("generator").filePath).toBe("src/data/config/generatorPrompt.md");
+    })).toThrow(/Generator composition requires/);
   });
 
   it("includes generator prompt drift in compare results", () => {

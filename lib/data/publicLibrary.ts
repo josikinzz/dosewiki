@@ -38,7 +38,11 @@ import type { PublicEffectArticle, PublicReportPreview } from "./publicData.shar
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import { stripCitationTokens } from "../../src/lib/citations/citationTokens";
 import { getLocalizedLeaves } from "../translation/localizedRecords";
-import { getPublicSubstanceBySlug } from "./publicData.substances";
+import {
+  getPublicEffectSummariesBySlugs,
+  getPublicReportSearchSummaries,
+  getPublicSubstanceSearchSummaries,
+} from "./publicData";
 import type { PublicationSource, PublicationTarget } from "../next/publicationWire";
 import { getPublicDerivedCacheIdentity } from "./publicData.cache";
 import { projectArticleNormalization } from "../../src/data/builders/articleNormalization";
@@ -371,13 +375,22 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
   const canonicalIndex = await getPublicSearchIndex();
   if (locale === "en") return canonicalIndex;
   const entries = canonicalIndex.entries;
-  const substances = await Promise.all(entries
-    .filter(({ type }) => type === "substance")
-    .map(async ({ slug }) => [slug, await getPublicSubstanceBySlug(slug)] as const));
-  const substancesBySlug = new Map(substances);
+  const previews = await getPublicSubstanceSearchSummaries();
+  const substanceSummaries = new Map(previews.map((preview) => [preview.slug, preview.summary]));
+  const [effectSummaries, reportSummaries] = await Promise.all([
+    getPublicEffectSummariesBySlugs(entries.filter(({ type }) => type === "effect").map(({ slug }) => slug)),
+    getPublicReportSearchSummaries(),
+  ]);
+  const effectSummariesBySlug = new Map(effectSummaries.map((effect) => [effect.slug, effect.summary]));
+  const reportSummariesBySlug = new Map(reportSummaries.map((report) => [report.slug, report]));
+  const substancesBySlug = substanceSummaries;
   const localizedLeaves = await getLocalizedLeaves(
     entries.flatMap(({ type, slug, label, aliases, secondary, description }) => {
-      const sourceSummary = type === "substance" ? substancesBySlug.get(slug)?.summary : undefined;
+      const sourceSummary = type === "substance"
+        ? substancesBySlug.get(slug)
+        : type === "effect"
+          ? effectSummariesBySlug.get(slug)
+          : reportSummariesBySlug.get(slug)?.introduction;
       const displayLeaves = [sourceSummary ?? secondary, description];
       // Substance names and aliases are canonical Latin-script identity, not
       // translatable display copy. Other result kinds retain their existing
@@ -395,11 +408,8 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
     aliases: entry.type === "substance"
       ? entry.aliases
       : entry.aliases?.map((alias) => localizedLeaves.get(alias) ?? alias),
-    secondary: entry.type === "substance" && substancesBySlug.get(entry.slug)?.summary
-      ? stripCitationTokens(
-        localizedLeaves.get(substancesBySlug.get(entry.slug)!.summary!) ??
-        substancesBySlug.get(entry.slug)!.summary!,
-      ).trim()
+    secondary: entry.type === "substance" && substancesBySlug.get(entry.slug)
+      ? localizedLeaves.get(substancesBySlug.get(entry.slug)!) ?? substancesBySlug.get(entry.slug)!
       : entry.secondary
         ? (localizedLeaves.get(entry.secondary) ?? entry.secondary)
         : undefined,
@@ -439,24 +449,18 @@ export const getPublicSearchSuggestions = cache(
     const suggestions = await getCachedSearchSuggestions(trimmed, limit);
     if (locale === "en") return suggestions;
 
-    const [substances, effects, reports] = await Promise.all([
-      Promise.all(suggestions
-        .filter(({ type }) => type === "substance")
-        .map(async ({ slug }) => [slug, await getPublicSubstanceBySlug(slug)] as const)),
-      Promise.all(suggestions
-        .filter(({ type }) => type === "effect")
-        .map(async ({ slug }) => [slug, await getPublicEffectBySlug(slug)] as const)),
-      Promise.all(suggestions
-        .filter(({ type }) => type === "report")
-        .map(async ({ slug }) => [slug, await getPublicReportBySlug(slug)] as const)),
+    const [effectSummaries, previews, reportSummaries] = await Promise.all([
+      getPublicEffectSummariesBySlugs(suggestions.filter(({ type }) => type === "effect").map(({ slug }) => slug)),
+      getPublicSubstanceSearchSummaries(),
+      getPublicReportSearchSummaries(),
     ]);
-    const substancesBySlug = new Map(substances);
-    const effectsBySlug = new Map(effects);
-    const reportsBySlug = new Map(reports);
+    const effectsBySlug = new Map(effectSummaries.map((effect) => [effect.slug, effect]));
+    const reportsBySlug = new Map(reportSummaries.map((report) => [report.slug, report]));
+    const substancesBySlug = new Map(previews.map((preview) => [preview.slug, preview]));
     const leaves = suggestions.flatMap((suggestion) => {
       if (suggestion.type === "substance") {
-        const substance = substancesBySlug.get(suggestion.slug);
-        return substance?.summary ? [substance.summary] : [];
+        const summary = substancesBySlug.get(suggestion.slug)?.summary;
+        return summary ? [summary] : [];
       }
       if (suggestion.type === "effect") {
         const effect = effectsBySlug.get(suggestion.slug);
@@ -464,7 +468,7 @@ export const getPublicSearchSuggestions = cache(
       }
       if (suggestion.type === "report") {
         const report = reportsBySlug.get(suggestion.slug);
-        return report ? [report.title, report.introduction].filter((value): value is string => Boolean(value)) : [];
+        return report?.introduction ? [report.introduction] : [];
       }
       return [suggestion.label, suggestion.secondary, suggestion.description]
         .filter((value): value is string => Boolean(value));

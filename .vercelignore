@@ -3,6 +3,12 @@ node_modules/
 .next/
 .next-*/
 dist/
+# The project-local Postgres cluster (scripts/postgres/local-db.mjs) and raw
+# database snapshots. `.gitignore` keeps them out of Git for the same reason:
+# they carry private tables. Anchored, matching the `/.postgres/` there.
+# Without this the cluster's heap files were 1.4 GB of a 2.0 GB deployment
+# upload and landed inside a production artifact.
+/.postgres/
 # The repository-owned OpenChemLib package resolves from committed browser
 # artifacts during Vercel's no-Java/GWT install and build.
 !vendor/openchemlib/dist/
@@ -73,3 +79,19 @@ tmp/
 .pi/
 .pi-subagents/
 package-lock.json
+
+# Repository hygiene: root OCR/scan scratch inputs and process state, not site content.
+# Keep these rules narrow so real src/ and public/ assets remain eligible.
+/z[0-9]*.jpg
+/z[0-9]*.pdf
+/z[0-9]*.txt
+/p-[0-9]*.jpg
+/ocr*.txt
+/ignore.*
+/tmp-page.png
+/[0-9][0-9][0-9]
+/[0-9][0-9][0-9][0-9]
+/E
+/.pi-loop.json.lock
+# OS metadata is never a deployment input.
+.DS_Store

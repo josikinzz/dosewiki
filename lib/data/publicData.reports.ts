@@ -50,6 +50,17 @@ const getPublicTripReportPreviewRecords = cache(publicDataCache(async (): Promis
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.reports],
 }));
 
+export const getPublicReportSearchSummaries = cache(publicDataCache(async (): Promise<Array<{
+  slug: string;
+  title: string;
+  introduction?: string;
+}>> => {
+  return await getPublicDataReadAdapter().getPublicReportSearchSummaries();
+}, ["data-public-report-search-summaries-v1"], {
+  revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.reports],
+}));
+
 const getPublicTripReportDetailRecords = cache(publicDataCache(async (): Promise<TripReportDetailRecord[]> => {
   return await getPublicDataReadAdapter().getPublicTripReportRecords();
 }, ["data-public-trip-report-detail-records-v1"], {

@@ -40,59 +40,29 @@ node tools/pi-citation-workflow/prepare-local-proposal-run.mjs \
   --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<artifact>/proposal.json
 ```
 
-Preparation validates and recomputes the proposal, manifest, raw-response, section, article, and owned-field bindings; rejects pre-existing citation markers and path/symlink escapes; and atomically reserves a fresh attempt directory. It copies the proposal inputs byte-for-byte into read-only `proposal-input/` files and builds `runs/<slug>--proposal-<section>--<artifact-digest-prefix>--<bridge-digest-prefix>--attempt-<uuid>/citation-task.json` without calling `fresh-run`, the database, OpenRouter, or tracker scripts. Concurrent invocations and retries get distinct attempt directories while retaining the same immutable proposal binding.
-
-Only `proposal.after.value` becomes citable prose. All other citable sections are `null`; title, source/discovery packets, instructions, and research permission come from `inputs/<slug>-full.json`, but its article prose and targets do not. The run and assembled draft are permanently non-promotable (`applyBound: false`, `promotion.allowed: false`, `articlePatches: []`). The main-repo adapter rejects them before resolving a the database target or constructing a client.
+Preparation creates an immutable, attempt-unique local proposal binding without
+database or model calls. Follow [Permanently local proposal mode](pi-citation-run-contract.md#permanently-local-proposal-mode)
+for exact source/hash bindings and unconditional non-promotion.
 
 ## Contract retained from the previous workflow
 
-The migration changes the orchestrator, not the citation-data contract:
-
-- Existing `citation-task.json`, section artifacts, article-wide artifacts, and `citation-draft.json` stay compatible.
-- The citable surface remains `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`.
-- All edits are marker-only: stripping `[cite:reference-id]` restores original text exactly.
-- Wikipedia/PsychonautWiki caches are discovery-only, never public claim evidence.
-- Every public marker needs inspected, path-matched supported evidence.
-- Existing deterministic workbench checks remain authoritative.
-- A human may separately promote an apply-bound live-task draft through the normal main-repo dry-run/write procedure; local-proposal drafts are never eligible.
+The orchestrator changes, not the marker-only data contract. Follow the canonical
+[citable surface](pi-citation-run-contract.md#citable-surface),
+[evidence requirements](pi-citation-run-contract.md#evidence-requirements), and
+[human boundary](pi-citation-run-contract.md#human-boundary).
 
 ## OMP coordination audit trail
 
-The OMP coordinator creates the compatibility-named `runs/<run-id>/pi-run-manifest.json`. It records:
+The compatibility-named `pi-run-manifest.json` records the coordinator's actual
+checks, not model claims. For execution, use the [coordinator sequence](pi-citation-run-contract.md#coordinator-sequence)
+and its gate transcripts, hash snapshots, research permissions and artifact isolation.
+The [assemble and validate gate](pi-citation-run-contract.md#5-assemble-and-validate)
+owns final-surface scanning, including the exact designated discovery-provenance
+exemption. It is not an exemption for public evidence or nested metadata.
 
-- separate run ID and article slug, task digest, and task provenance;
-- local proposal binding and proposal-input hashes at every gate when applicable;
-- expected nonempty citable sections;
-- all six terminal section statuses;
-- worker/model/artifact metadata;
-- deterministic gate outcomes; and
-- the final local `needs_review` outcome.
-
-The manifest does not contain article content and does not replace workbench artifacts. It replaces the old requirement to inspect Claude Code UI worker labels with a reviewable file-level audit trail. Its `check-section` and `run-gate` commands execute the existing workbench checks, store their run-local transcripts, and invalidate downstream gates when their scoped artifacts change; they do not accept a model's claimed pass result.
-
-`allowLiveWebResearch` comes from the task packet and is recorded in the manifest. When false, OMP-launched workers must not browse for sources and must preserve unsupported claims as internal gaps. Article-wide sanitization strips structured discovery-only/wiki metadata (including prior-work records). The helper then fails closed if any final local review surface, `article-wide.json`, assembled `citation-draft.json`, or human-facing `citation-report.md`, contains Wikipedia, PsychonautWiki, TripSit, or other forbidden discovery/wiki residue in metadata, audit/research notes, or report prose. Corrective diagnostics remain in run-local `pi-gates` logs rather than final artifacts. Once finalized, the helper's mutation commands reject the run.
-
-Run its helper directly only when coordinating a citation run:
-
-```bash
-REPO_ROOT="$PWD" # Invoke from the DoseWiki repository root.
-MANIFEST="$REPO_ROOT/tools/pi-citation-workflow/pi-run-manifest.mjs"
-node "$MANIFEST" init --run "$WORKBENCH/runs/2c-b" --slug 2c-b
-node "$MANIFEST" show --run "$WORKBENCH/runs/2c-b"
-```
-
-For proposal mode, use the `runPath` printed by `prepare-local-proposal-run.mjs`. Finalization still returns `needs_review` and records `promotionAllowed: false`.
-
-A finalized run is immutable. To correct one, create a new linked attempt instead of changing it:
-
-```bash
-node "$MANIFEST" rerun --run "$RUN" --workbench "$WORKBENCH" \
-  --reason "Describe the corrective rerun"
-```
-
-The new atomically reserved `--correction-<uuid>` run records the superseded run, immutable parent task/manifest digests, finalization time, and reason in its own manifest; the original run is preserved unchanged.
-
-See [the OMP-coordinated citation run contract](pi-citation-run-contract.md) for the required execution order and all gates.
+For an interrupted attempt, use the contract's manifest-led resume sequence.
+For a finalized attempt, create a linked rerun; never mutate its artifacts.
+Proposal mode uses the `runPath` returned by preparation and remains non-promotable.
 
 ## Read-only campaign manifest
 

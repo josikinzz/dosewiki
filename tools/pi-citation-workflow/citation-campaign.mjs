@@ -248,7 +248,7 @@ function attemptState(run, campaign, integrity) {
 
 function guidance(state, runId) {
   if (state === "pending") return "No approved attempt found. Prepare or start one manually; this CLI never launches workers.";
-  if (state === "running") return `Inspect ${runId}/pi-run-manifest.json. If Pi was interrupted, use /workflows resume <workflow-id>; do not recreate completed work.`;
+  if (state === "running") return `Resume run ${runId} from ${runId}/pi-run-manifest.json using docs/agents/pi-citation-run-contract.md#failure-handling and its coordinator sequence. Preserve accepted hash-matching artifacts; resume only the first incomplete manifest stage, not completed research.`;
   if (state === "needs_review") return `Review ${runId}/citation-draft.json and report. Keep local-only; no apply or publication action is available here.`;
   if (state === "blocked") return `Inspect deterministic gate logs for ${runId}. Create a linked corrective rerun with pi-run-manifest.mjs rerun; do not mutate the attempt.`;
   return `Use the latest linked successor instead of ${runId}; the superseded attempt remains immutable evidence.`;

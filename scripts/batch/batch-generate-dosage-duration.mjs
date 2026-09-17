@@ -131,8 +131,6 @@ async function main(options) {
 
   if (results.successfulUpdates.length > 0) {
     console.log("\n" + "=".repeat(55));
-    console.log("IMPORTANT: Run the following to rebuild compressed articles:");
-    console.log("  node scripts/build/buildCompressedArticles.mjs");
     console.log("(Postgres sync already complete)");
     console.log("=".repeat(55));
   }

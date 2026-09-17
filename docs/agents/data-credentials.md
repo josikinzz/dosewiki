@@ -13,11 +13,11 @@ Application writes remain role- and intent-scoped. Public service writes are lim
 Preconditions for any remote Postgres command:
 
 1. Read the command entry in `package.json` and its implementation.
-2. Confirm the operation is allowlisted and obtain authorization for the exact target and changes.
+2. Obtain authorization for the exact remote read scope. For a production write, additionally confirm the command is already allowlisted and obtain approval for the exact target and changes; a read authorization never grants a write.
 3. Load credentials without printing or committing them.
 4. Select Postgres explicitly and set an explicit target. Application fallback variables never select a privileged target.
 5. Run the command's no-write or dry-run form and review its target, plan, counts, rejects, and recovery output.
-6. Repeat only the reviewed operation with every required confirmation flag.
+6. For a separately approved write only, repeat the reviewed operation with every required confirmation flag. Read-only completion stops without mutation.
 
 Use this shape, substituting the actual package command and the confirmation phrase printed by that command:
 
@@ -48,7 +48,7 @@ Expected result: the plan names the intended host/database, reports no unexplain
 
 ## Credentials and freeze
 
-The local native source reads `DATA_ADMIN_KEY` and the twelve `DATA_ADMIN_TOKEN_*` intent names declared in `server/lib/adminIntentTokens.ts`. The rename is exact: `CONVEX_ADMIN_KEY` becomes `DATA_ADMIN_KEY`; each `CONVEX_ADMIN_TOKEN_<SUFFIX>` becomes `DATA_ADMIN_TOKEN_<SUFFIX>` with the same suffix. No old-name fallback aliases remain. The suffixes are `EDITOR_ARTICLE_WRITE`, `PUBLIC_INTAKE_CREATE`, `PROMPT_MIGRATION_WRITE`, `QUOTE_MIGRATION_WRITE`, `PROFILE_MEDIA_WRITE`, `REPLICATION_MAINTENANCE`, `ARTICLE_SOURCE_MIGRATION`, `PRODUCTION_SYNC`, `CITATION_EVIDENCE_WRITE`, `CITATION_EVIDENCE_REVIEW`, `GENERATED_PUBLICATION_WRITE`, and `REAGENT_TEST_IMPORT`.
+The native source reads `DATA_ADMIN_KEY` and the scoped `DATA_ADMIN_TOKEN_*` names declared in `server/lib/adminIntentTokens.ts`. That module owns the intent vocabulary. The rename from `CONVEX_ADMIN_KEY` and `CONVEX_ADMIN_TOKEN_<SUFFIX>` preserves each suffix; no old-name fallback aliases remain.
 
 Use the operation's scoped token when defined. The existing general-key fallback, where permitted by the intent policy, now reads only `DATA_ADMIN_KEY`; this is not an alias for a `CONVEX_*` variable. Never copy credential values into docs, argv, logs, or committed files. Source edits do not change local secret files, provider environments, token values, or revocations.
 
@@ -64,22 +64,31 @@ The Postgres runtime needs `REPLICATION_MEDIA_BASE_URL` for correct replication 
 
 Preconditions: inspect generated migrations and `lib/postgres/migrations/meta/_journal.json`, run the migration's plan mode against the exact target, review pending migrations, and obtain production authorization. Expected result: only the reviewed pending migrations apply, followed by a clean schema verification. Recovery is the migration-specific forward repair or the owner-approved database recovery plan, never an ad hoc down migration.
 
-Migration `0015_shared_signup_rate_limits.sql` adds the shared `subscribeRateLimitBuckets` table and expiry index. It was applied to `disregardeverythingisay/dosewiki/main` on 2026-09-15 through `postgres:migrate` after all 15 existing migration hashes matched. Read-back verified migration row 16, the table, its primary-key index, and expiry index. The public and editor receivers use the same verified pooled target and role, `pscale_api_7jp8ox6611m2`. A read-only transaction through that connection verified public-schema usage and SELECT, INSERT, UPDATE, and DELETE privileges on `subscribeRateLimitBuckets`, `mailingListSubscribers`, and `documentIds`; no grants were changed. Evidence: `runs/postgres-import/2026-09-15T02-25-03Z-integrated-production-release/receiver-role-proof.json`. Retain additive schema on application rollback; do not drop shared limiter state as an improvised rollback.
+For the dated migration 0015 application and receiver privilege evidence, read the
+[production execution record](../../notes-and-plans/plans/convex-to-planetscale/release-manifest.md#production-execution-2026-09-15)
+and its retained `runs/postgres-import/2026-09-15T02-25-03Z-integrated-production-release/receiver-role-proof.json`.
+The retained locator is not present in this checkout. Obtain the exact evidence
+from its custodian before relying on it; do not guess a private replacement path.
+This receipt does not prove another environment or authorize grants. Retain additive
+schema on application rollback; never drop shared limiter state as an improvised rollback.
+
+Historical receipt summary (2026-09-15, not a current environment catalog):
+migration `0015_shared_signup_rate_limits.sql` was applied to
+`disregardeverythingisay/dosewiki/main` through `postgres:migrate` after all 15
+existing hashes matched. Readback verified migration row 16, the table, primary
+key and expiry index. The pooled receiver role was `pscale_api_7jp8ox6611m2`;
+read-only inspection verified public-schema usage and SELECT, INSERT, UPDATE,
+DELETE on `subscribeRateLimitBuckets`, `mailingListSubscribers` and `documentIds`.
+No grants changed. Use the receipt above only after custodian recovery, never as
+proof that another deployment has these privileges.
 
 ## Nightly molecule reads
 
-The nightly molecule source is read-only Postgres:
-
-- `DATA_BACKEND=postgres`
-- `DATA_WRITES_FROZEN=1`
-- `POSTGRES_POOLED_URL` supplied from GitHub secret `POSTGRES_POOLED_READONLY_URL`
-- `REPLICATION_MEDIA_BASE_URL` supplied from repository variable `REPLICATION_MEDIA_BASE_URL`
-
-The workflow is registered on `main`, checks out `no-corpus-drain`, and runs
-daily at 09:30 UTC. Its only Git write targets are
-`public/dosewiki-molecules.json` and `public/dosewiki-molecules.zip` on
-`no-corpus-drain`. The repository's Git deployment guard keeps these pushes
-separate from explicit site releases.
+`.github/workflows/molecule-pack-nightly.yml` owns the source branch, schedule,
+read-only secret/variable bindings and exact generated-pack Git write targets.
+Do not infer live activation from this document or from configuration alone.
+The database run must remain read-only with `DATA_WRITES_FROZEN=1`, while pack
+publication is a separate Git mutation behind the repository deployment guard.
 
 Before initial activation or any configuration or source-revision change, verify both GitHub values and prove that the dedicated reader authenticates without write or admin privileges. Configuration alone does not publish the Postgres-capable producer and its dependencies: review the exact source revision present on the workflow branch before authorizing a run. Workflow publication and dispatch require owner approval because the job can commit and push public pack outputs. Expected result is a read-only database run with the freeze engaged. Recovery is to disable the schedule and inspect its report; it has no database-write rollback.
 

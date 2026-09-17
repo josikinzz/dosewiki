@@ -15,21 +15,21 @@ operational diary into this runbook.
 - Preserve existing Convex Storage IDs and direct URLs as rollback sources.
 - SSD originals and archive blobs are immutable. Never rename, move, overwrite,
   transcode in place, or delete them.
-- Keep the Reddit submitter, creator evidence, public profile, and rights
-  evidence as separate structured facts. For the owner-directed 2026-08-31
-  remediation, use a named poster as the public artist by default, except where
-  item-specific evidence establishes another creator, collaboration,
-  collective, traditional attribution, or process/system credit. This public
-  artist default does not assert that the poster is the legal rightsholder.
+- Keep the Reddit submitter, creator evidence, public profile and rights evidence
+  as separate structured facts. Public-artist defaults require the selected
+  campaign's pinned policy; a named poster is not automatically the rightsholder.
+  For the owner-directed 2026-08-31 remediation only, the pinned default is the
+  named poster, except where item-specific evidence establishes another creator,
+  collaboration, collective, traditional attribution, or process/system credit.
 - Rights default to `unknown`. Public availability, attribution, or a working
   URL is not publication permission; never promote uncertainty to a permission,
   license, ownership, or public-domain claim.
-- For the 2026-08-30 campaign, the owner's pinned 2026-08-31 decision makes
-  rights attribution metadata rather than a publication gate. Dose Wiki may
-  host the archive for educational and archival purposes under its fair-use
-  position, does not claim ownership, and recognizes that the original creator,
-  owner, or rightsholder retains their rights. Fair use is use-specific and is not
-  guaranteed legal clearance.
+- Only when continuing the original 2026-08-30 campaign under its pinned
+  2026-08-31 owner decision: rights are attribution metadata rather than a
+  publication gate, under Dose Wiki's educational/archival fair-use position.
+  Dose Wiki does not claim ownership; original rightsholders retain their rights.
+  This use-specific position is not guaranteed legal clearance or authority for
+  later discoveries. Load their own approved campaign policy before publication.
 - Preserve the best-known creator, rightsholder, source, and attribution; label
   unresolved ownership `unknown`. Route correction, reattribution, and removal
   requests to `contact@dose.wiki`.
@@ -200,11 +200,13 @@ completion diary is not part of the active intake contract.
 
 ## Rollback
 
-Stop new batches first. Use the ledger to restore prior Postgres values or
-remove only newly created metadata rows through a separately reviewed rollback
-plan. Disable R2-first resolution only when the delivery tier itself is failing;
-old storage IDs and direct URLs remain recovery inputs through the current
-recovery window.
+Stop new batches first. Use the ledger and a separately reviewed exact rollback
+plan for prior Postgres values or newly created metadata rows, preserving later
+edits through expected-value checks. For application failure follow
+[deployment recovery](deployment.md#data-publication-and-recovery); for media
+incidents follow [current media delivery](../replication-media-delivery.md#urgent-media-withdrawal).
+Keep the required media base, delivery guard and withdrawal markers. Never
+enable an unblocked fallback or assume an R2-only row has a native recovery URL.
 
 Rollback does not authorize deletion of R2 objects, legacy storage objects,
 archive blobs, originals, profiles, or review evidence. Storage deletion is a

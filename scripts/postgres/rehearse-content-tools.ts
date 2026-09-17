@@ -203,7 +203,7 @@ async function main() {
       const bannerRowExists = (await count(pool, '"siteConfig" WHERE "key" = $1', ["safety-banner-display"])) > 0;
       expect(S, "getBannerDisplay answers the default size while no row exists", bannerRowExists || bannerBefore.iconSize === SAFETY_BANNER_ICON_SIZE_DEFAULT, { bannerBefore, bannerRowExists });
 
-      const r0 = (await client.query(api.siteConfig.getAboutForEditor, adminActor))?.revision ?? 0;
+      const r0 = (await client.query(api.siteConfig.getAboutForEditor, adminActor)).about?.revision ?? 0;
       const op1 = `${T14}-about-1`;
       const first = await client.mutation(api.siteConfig.saveAbout, { ...adminActor, aboutMarkdown: `# ${T14} first`, aboutSubtitle: "first", founderProfileKeys: ["f1"], expectedRevision: r0, operationId: op1 });
       expect(S, "saveAbout commits with a new revision", first.revision === r0 + 1 && !first.replayed && !first.unchanged, first);

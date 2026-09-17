@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Doc } from "@server/postgres/runtime/dataModel";
 import { publicTripReport, publicTripReportPreview } from "../server/lib/tripReportPublicProjection";
+import { getPublicPreviewsPage } from "../server/tripReports";
+
+vi.mock("server-only", () => ({}));
 
 function publishedReport(): Doc<"tripReports"> {
   return {
@@ -47,6 +50,49 @@ describe("public trip report privacy", () => {
     expect(visible).not.toHaveProperty("conclusion");
     expect(visible.subject).toEqual(publishedReport().subject);
     expect(visible.substances).toEqual(publishedReport().substances);
+  });
+
+  it("returns raw introductions only when search summaries are requested", async () => {
+    const stored = {
+      ...publishedReport(),
+      introduction: `  Original paragraph.\n\n${"Untranslated introduction. ".repeat(30)}\n`,
+      peak: [{ description: "Peak body must stay private to detail reads." }],
+      offset: [{ description: "Offset body must stay private to detail reads." }],
+      conclusion: "Conclusion body must stay private to detail reads.",
+    };
+    const withoutIntroduction = { ...publishedReport(), slug: "no-introduction", introduction: undefined };
+    const ctx = {
+      db: {
+        query: () => ({
+          paginate: async () => ({
+            page: [stored, withoutIntroduction],
+            continueCursor: "next",
+            isDone: false,
+          }),
+        }),
+      },
+    } as never;
+    // Registered queries retain their handler for direct in-process tests.
+    const registeredQuery = getPublicPreviewsPage as unknown as {
+      _handler: (ctx: never, args: { includeSearchSummary?: boolean }) => Promise<unknown>;
+    };
+    const handler = registeredQuery._handler;
+
+    expect(await handler(ctx, { includeSearchSummary: true })).toEqual({
+      items: [
+        { slug: stored.slug, title: stored.title, introduction: stored.introduction },
+        { slug: withoutIntroduction.slug, title: withoutIntroduction.title, introduction: undefined },
+      ],
+      cursor: "next",
+      isDone: false,
+    });
+    const expectedPreviews = {
+      items: [publicTripReportPreview(stored), publicTripReportPreview(withoutIntroduction)],
+      cursor: "next",
+      isDone: false,
+    };
+    expect(await handler(ctx, {})).toEqual(expectedPreviews);
+    expect(await handler(ctx, { includeSearchSummary: false })).toEqual(expectedPreviews);
   });
 
   it("dates the publication from the row's creation, never from the moderation decision", () => {

@@ -27,7 +27,6 @@ const config = {
         "tools/pi-citation-workflow/citation-campaign.mjs",
         "docs/perf/*.workflow.mjs",
         "tests/perf/*.mjs",
-        "tools/local-public-fixture/{run-build,run-start}.mjs",
       ],
       project: [
         "auth.ts",

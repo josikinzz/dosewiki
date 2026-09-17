@@ -52,14 +52,23 @@ function clampPublicReportPageSize(requested: number | undefined): number {
 
 /** Bounded compact corpus page for public lists and contributor references. */
 export const getPublicPreviewsPage = query({
-  args: publicReportPageArgs,
+  args: {
+    ...publicReportPageArgs,
+    includeSearchSummary: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const result = await ctx.db.query("tripReports").paginate({
       cursor: args.cursor ?? null,
       numItems: clampPublicReportPageSize(args.limit),
     });
     return {
-      items: result.page.map(publicTripReportPreview),
+      items: args.includeSearchSummary
+        ? result.page.map((report) => ({
+          slug: report.slug,
+          title: report.title,
+          introduction: report.introduction,
+        }))
+        : result.page.map(publicTripReportPreview),
       cursor: result.continueCursor,
       isDone: result.isDone,
     };

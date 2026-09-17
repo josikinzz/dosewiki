@@ -8,6 +8,9 @@ import {
 } from "../lib/source-material-resolver.mjs";
 import { normalizeArticleSourceDocument } from "../../article-source-documents/contract.mjs";
 
+const SUMMARY_OUTPUT_INSTRUCTIONS =
+  "Generate ONLY valid YAML for the top-level summary field. Do not include aliases, dosage detail, duration detail, detailed pharmacology, or legal detail.";
+
 export async function loadPromptFromSource(sourceClient, api) {
   const promptKey = sectionKeyToPromptKey("summary");
   const prompt = await sourceClient.query(api.prompts.getByKey, { key: promptKey });
@@ -85,7 +88,7 @@ ${quoteContent}
 
 ## Instructions
 
-Generate ONLY valid YAML for the top-level summary field. Do not include aliases, dosage detail, duration detail, detailed pharmacology, or legal detail.`;
+${SUMMARY_OUTPUT_INSTRUCTIONS}`;
 }
 
 export function truncateContent(content, maxChars) {
@@ -116,7 +119,7 @@ ${sections.join("\n\n---\n\n")}
 
 ## Instructions
 
-Generate ONLY valid YAML for the top-level summary field. Do not include aliases, dosage detail, duration detail, detailed pharmacology, or legal detail.`;
+${SUMMARY_OUTPUT_INSTRUCTIONS}`;
 }
 
 export async function resolveSourceMaterial({

@@ -199,6 +199,7 @@ function pathSegments(pathname) {
 
 export function isProtectedLocalArtifactPath(pathname) {
   const segments = pathSegments(pathname);
+  if (segments[0] === ".postgres" || segments[0]?.startsWith(".next-")) return true;
   return PROTECTED_LOCAL_ARTIFACT_PATHS.some((protectedPath) => {
     const protectedSegments = pathSegments(protectedPath);
     if (segments.length < protectedSegments.length) {

@@ -21,7 +21,7 @@ The scanner is a deterministic pattern check, not a complete secret-management s
 
 ### Reproducible CI execution
 
-GitHub Actions are pinned to reviewed commit SHAs, with the corresponding release tag left in a comment for update review. Bun is pinned to `1.3.5`, matching `package.json`'s `packageManager` declaration. Workflow permissions are explicitly read-only (`contents: read`).
+For exact action pins, runtime versions, jobs and artifact retention, inspect `.github/workflows/vercel-policy-checks.yml` and `package.json`. The policy-check workflow uses `contents: read`; this is not a repository-wide permission invariant. `.github/workflows/molecule-pack-nightly.yml` intentionally uses `contents: write` for its separately approved generated-pack publication, governed by [nightly molecule reads](data-credentials.md#nightly-molecule-reads).
 
 Action or Bun updates should be a deliberate pull request that:
 
@@ -32,16 +32,14 @@ Action or Bun updates should be a deliberate pull request that:
 
 ### Dependency audit reporting
 
-The `Dependency Security Reports (non-blocking)` job runs two Bun audits:
-
-- production dependency graph: `bun audit --production --json`;
-- full dependency graph, including development and build tooling: `bun audit --json`.
-
-Both JSON reports are uploaded for 30 days in the `dependency-security-reports` artifact. The job summary shows whether each audit was clean or found advisories. During the observation period, audit steps use `continue-on-error: true`; findings are visible but do not block a review or deployment.
+The policy-check workflow reports production and full dependency graphs separately.
+Its job definition owns the exact audit commands, artifact names and retention.
+During the observation phase, dependency findings remain visible but non-blocking;
+this does not weaken secret scanning or authorize automatic dependency changes.
 
 Dependency upgrades and advisory remediation are tracked separately from this reporting control. Do not use `bun audit fix` automatically in CI.
-The current remediation map and time-limited exceptions are recorded in
-[Dependency Security](dependency-security.md).
+Dated remediation evidence and time-limited exceptions are recorded in
+[Dependency Security](dependency-security.md); current status requires fresh evidence.
 
 ## Promotion to required checks
 
@@ -60,17 +58,6 @@ If registry downtime or a Bun regression causes false failures after promotion, 
 
 ## Verification
 
-Focused checks:
-
-```bash
-node --test scripts/security/scan-secrets.test.mjs scripts/security/ci-security-policy.test.mjs
-node scripts/security/scan-secrets.mjs --tracked
-```
-
-Repository checks for changes to this surface:
-
-```bash
-npm run test:workflow
-npm run lint:scripts
-npm run typecheck:scripts
-```
+When changing this surface, use the focused scanner and CI-policy checks and the
+applicable verification commands declared in `package.json`. Inspect the workflow
+itself for its current execution graph rather than copying that graph here.

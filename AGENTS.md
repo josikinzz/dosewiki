@@ -10,6 +10,7 @@
 - For UI work, reuse the portable [UI kit](docs/ui-kit.md) and [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
 - For environment or deployment work, use [README build, run, and deploy guidance](README.md#build-run-and-deploy) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
 - For generated data, inspect `src/data/artifactLineageManifest.json`, change the producer input, and run its recorded command. Never hand-edit `lib/postgres/schema.generated.ts`, `lib/postgres/runtime/{dataModel.ts,api.generated.ts,functions.generated.ts}`, `src/data/schema/*.generated.ts`, or generated migration metadata. Native callable ownership lives in `lib/postgres/runtime/functionOwnership.json`; `server/` contains authored Postgres handlers, not generated functions. Obsolete Convex bindings are retained only under `scripts/recovery/convex/_generated/*.reference`.
+- Accounts: run `account-scope why` before `gh`, `vercel`, or `git push` — it names this repo's GitHub/Vercel account.
 
 ## Hard Invariants
 

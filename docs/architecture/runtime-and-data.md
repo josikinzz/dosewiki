@@ -69,9 +69,41 @@ requires a `PUBLIC_READ_INDEX_VERSION` increment and new complete passes.
 Direct SQL or snapshot imports bypass these mutation builders and are not
 valid source-table maintenance paths without the approved index rebuild.
 
-See [public read-index rollout](../agents/deployment.md#public-read-index-rollout)
-for guarded staging and backfills. Readiness, production activation, and measured
-savings are separate checks.
+#### Public read-index rollout
+
+The indexed readers and atomic maintenance are implemented in the checkout;
+their release and data backfills are separate production operations. Follow
+[data credentials](../agents/data-credentials.md) and obtain explicit authorization for
+the exact deployment and write batch.
+
+1. Confirm that the public frontend supports the complete shared
+   gallery-corpus fallback before activating the new backend readiness
+   condition. If not, stage the fallback-aware frontend first.
+2. Use `scripts/data-ops/backfill-trip-report-substance-index.mjs` with
+   `--index=history`, then `--index=gallery`, `--index=reviews`, and
+   `--index=tripReports`, against an explicit `TARGET_POSTGRES_URL`. Run each
+   with `--dry-run` first. It prints the exact operation confirmation and
+   deployment fingerprint required for `--write`. Gallery/history/reviews
+   additionally require `--confirm-public-read-index-backfill`; tripReports
+   retains `--confirm-trip-report-substance-index-backfill`.
+3. Use bounded batches, such as `--batch-size=25 --max-pages=100`, and resume
+   from the server-owned checkpoint until every status reports
+   `indexActive: true` for the current version. A nonempty relation or a
+   successfully completed partial batch is not readiness. Never invent or
+   advance a cursor manually.
+4. Complete the authorized Next rollout for both projects, then verify public
+   gallery membership/order, history, contributor credits, report matching,
+   and edit/removal freshness on their canonical hosts. Backend readiness and
+   cache key changes do not certify cross-host or cross-project invalidation.
+5. Compare at least one complete UTC day of per-function calls, database bytes,
+   cache behavior, and warmer activity against the dated baseline. Source
+   improvements are not measured savings.
+
+Before readiness, gallery reads use the existing shared paged corpus;
+history, review, and report reads retain complete source fallbacks. Those
+fallbacks are not service-limit-proof, so backfill history promptly and keep
+the rollout window short. Direct SQL or snapshot imports bypass application
+index maintenance and must not modify the indexed source tables.
 
 ### Article schema ownership
 
@@ -295,6 +327,73 @@ one shared manifest load per locale; ordinary reading does not warm it.
 Public links and programmatic search transitions share pending-navigation
 feedback, with independent ownership for overlapping transitions.
 
+### Public page loading
+
+- Keep substance narrative and safety warnings, and effect article prose, in
+  server-rendered components. `SubstanceSecondarySections` and
+  `EffectArticleServer` compose secondary data behind separate Suspense boundaries;
+  editor builds retain resolved enrichment for mutable draft previews. ISR routes
+  still await the complete render on a cold miss, so these boundaries alone do
+  not guarantee early HTTP streaming.
+- Use `SmartLink` for secondary navigation and documentation links. Its default
+  prefetch is driven by hover or focus, not viewport visibility. Reserve eager
+  prefetch for deliberate high-intent destinations.
+- Keep `AppearancePanel` behind the settings popover's dynamic import and Theme
+  Lab styles with the lazy lab component. Opening controls must remain usable
+  after their code arrives.
+- Replication showcases keep a responsive poster until video data is ready.
+  Muted autoplay uses an existing preview rendition where available; explicit
+  playback or sound intent selects the full work. Preserve viewport,
+  reduced-motion, data-saver, and `preload="none"` behavior.
+  While the poster or initial motion frame loads, use the index thumbnail's
+  shared shimmer treatment, not an unavailable-media card. Reserve error
+  placeholders for confirmed failures, stop shimmer when media is ready, and
+  respect reduced motion without adding an artificial loading delay.
+- Gallery SSR and API pagination share `getGalleryBrowsePage`. The default artist
+  view opens with 16 rails and at most 14 previews per rail; focused and filtered
+  grids retain 64-work pages. Hydration must reuse a matching bootstrap rather
+  than replace it. Cursor identity includes query, locale, and corpus revision;
+  stale or mismatched cursors recover through a fresh first page.
+- Effect membership uses the compact native SQL projection and revision-aware
+  cache, not complete substance documents. Effect media reads are scoped to the
+  requested effect; replication details and effect order metadata use batched
+  native lookups. Preserve the complete viewer collection and publication guards.
+- Documentation Mermaid code loads only when a diagram approaches within 400px
+  of the viewport. Retain reserved space, theme updates after activation, stale
+  render guards, and immediate rendering when IntersectionObserver is unavailable.
+
+### Reading-page editor launcher
+
+The bottom-right wrench appears only for contributor-or-higher sessions on the
+two approved editor hosts. On the homepage it replaces the mailing-list entry
+point; pending, failed, anonymous, and viewer sessions retain the mailing list.
+The launcher is absent within editor, review, and authentication flows. Public
+DoseWiki hosts and Effect Index do not load its session subtree or issue its auth
+requests. The browser editor hint is not a prerequisite.
+
+All actions are native links to existing editors, filtered by the dev registry's
+role floors. This is a navigation convenience, not a new authorization boundary
+or write API. Pages declare loaded record identity through
+`src/features/editor-launcher/EditorLauncherTarget.tsx`; no arbitrary pathname
+is interpreted as a substance.
+
+| Reading surface | Contextual destination |
+| --- | --- |
+| Substance article | Substances for editor/admin; Molecules and Citations for admin |
+| About | Pinned About record in Writing for editor/admin |
+| Markdown `/articles/[slug]` and DoseWiki `/blog/[slug]` | Matching Writing record and kind for editor/admin |
+| Open substance-scoped replication viewer | Matching substance in Replications for admin |
+| VCode/unspecified writing formats, artist/effect/unscoped galleries | All dev tools only; no writable exact handoff |
+| Reports, effects, chemical classes, taxonomy, indexes, search, contributors, static/form/multi-copy pages | All dev tools only |
+| Redirect-only addresses | Destination owns context |
+| Effect Index | No launcher |
+
+The replication viewer hosts the same launcher inside its modal focus boundary.
+Its menu portal remains inside that outlet for native fullscreen, and launcher
+keyboard events do not drive viewer navigation. The existing inline gallery
+editor and its desktop restriction are unchanged. Dev edits still target
+production data; following a shortcut does not save anything.
+
 ### Editor read flow
 
 Editor pages hold no data-backend client in the browser. Every read is a
@@ -349,6 +448,16 @@ The preferred live-content save path, for an admin session, is:
 11. client receives verification/revalidation metadata
 
 This path preserves the native Postgres write, authorization, and publication boundaries.
+
+Cross-project publication is owned by the durable outbox, not a direct editor
+cache expiry. `src/app/api/cron/publication-delivery/route.ts` awaits
+`enqueueTranslationJobs` in `lib/translation/segmentStore.ts` before dispatch.
+The enqueue and publication-generation receipt commit atomically; replay neither
+resets newer locale work nor loses the receipt when `server/publicationRecovery.ts`
+records delivery. Enqueue failure keeps the outbox pending. Cache-only refresh
+retains its existing behavior without translation enqueueing. Locale lease,
+bounded failure and old-worker drain requirements are owned by
+[Durable refresh and rollout](../agents/locale-mirrors.md#durable-refresh-and-rollout).
 
 ### Editor proposal flow
 
@@ -518,7 +627,7 @@ Role resolution:
 
 Public route protection layers:
 
-- `middleware.ts` protects `/dev`
+- `src/middleware.ts` protects `/dev`
 - `src/lib/auth/requireEditorSession.ts` protects sensitive route handlers
 
 This creates a consistent server-side authorization boundary for protected write actions.
@@ -531,14 +640,11 @@ The self-hosted analytics script is a public-host-only integration. A client-sid
 host policy attaches it only on the exact `dose.wiki` and `www.dose.wiki`
 hostnames, so it is absent from admin, Vercel preview, and local sessions.
 
-Middleware applies a path- and host-aware policy. Public documents use
-`script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'` so Next.js can serve
-statically generated and ISR documents without a request-bound nonce; the policy
-adds the analytics origin only on the exact public hosts. Protected
-`/dev` documents remain request-rendered and receive a fresh nonce plus hashes for
-the deterministic Zod and theme bootstrap scripts. Middleware forwards that
-nonce-bearing CSP to Next.js so its framework and hydration scripts receive the
-same nonce. Admin, preview, and local policies do not allow the analytics origin.
+For browser-header changes, follow [Browser Security Policy](../agents/browser-security-policy.md).
+It owns public inline-compatible static/ISR rendering, editor nonces and
+flavor-dependent bootstrap hashes, Turnstile, editor-only upload origins, and
+the replication embed's exact framing exception. Source lists are owned by
+`lib/next/cspObservationPolicy.ts`, not a second architecture inventory.
 
 Reports are accepted at `/api/csp-report` with request-size and rate limits and
 recorded as directives plus redacted origins. The separate report-only header was

@@ -44,15 +44,15 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
 <header class="hero">
   <div class="eyebrow">Editorial research plan · planning only</div>
   <h1>Replication provenance &amp; media recovery</h1>
-  <p class="lead">A case-by-case audit of DoseWiki’s unknown, glitchy, misleading, missing, and thumbnail-less replication media—traced through Effect Index, PsychonautWiki, the Internet Archive, and creator sources before any canonical correction is staged.</p>
+  <p class="lead">A case-by-case audit of DoseWiki’s unknown, glitchy, misleading, missing, and thumbnail-less replication media; traced through Effect Index, PsychonautWiki, the Internet Archive, and creator sources before any canonical correction is staged.</p>
   <div class="scope-strip">
     <div class="metric"><strong>Unknown first</strong><span>Prioritize suspect titles, creators, media, and thumbnails.</span></div>
     <div class="metric"><strong>Archive sufficient</strong><span>A clear archived caption may support a correction.</span></div>
     <div class="metric"><strong>Case by case</strong><span>Formal artwork title versus experiential caption.</span></div>
     <div class="metric"><strong>One source of truth</strong><span>Canonical record drives gallery and article embeds.</span></div>
   </div>
-  <div class="snapshot">Execution baseline verified: Convex credential doctor passed for replication maintenance; read source and write target are intentionally different deployments. Live inventory is being regenerated from Convex and 205 archived Effect Index entries.</div>
-  <div class="callout" style="margin-bottom:0"><strong>Live task tracker · in progress</strong><ul class="checks"><li>Baseline conventions, worktree boundaries, and Convex credentials inspected.</li><li>Live reconciliation snapshot regenerated from Convex.</li><li>Focused provenance audit test went red and is now green.</li></ul><ul><li>In progress: deterministic media-health and archive-join audit.</li><li>Pending: per-item research, correction seam, recovery, staged writes, and consumer verification.</li></ul></div>
+  <div class="snapshot">Historical execution baseline: the former Convex credential check and split-deployment inventory describe the original research run, not the current runtime. New work uses Postgres and the <a href="../docs/agents/data-credentials.md">data credentials contract</a>.</div>
+  <div class="callout" style="margin-bottom:0"><strong>Historical task tracker · not current execution status</strong><ul class="checks"><li>Baseline conventions, worktree boundaries, and Convex credentials inspected.</li><li>Live reconciliation snapshot regenerated from Convex.</li><li>Focused provenance audit test went red and is now green.</li></ul><ul><li>In progress: deterministic media-health and archive-join audit.</li><li>Pending: per-item research, correction seam, recovery, staged writes, and consumer verification.</li></ul></div>
 </header>
 
 <section id="brief"><div class="sec-head"><span class="sec-no">01</span><h2>The brief</h2></div>
@@ -124,11 +124,11 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
   <div class="step"><span class="num">05</span><b>Verify</b><small>Review screenshots and tests across gallery, lightbox, effect article, and category article surfaces.</small></div>
 </div>
 <div class="grid2">
-<article class="card elevated"><div class="kicker">Automated legwork</div><h3>Inventory before browsing</h3><ul class="checks"><li>Run <code>npm run convex:doctor</code> before any future Convex write—not during planning.</li><li>Read live records through the public/query surface.</li><li>Resolve every original and thumbnail URL.</li><li>Compute byte hash and perceptual hash.</li><li>Normalize filename, title, and creator tokens for candidate generation.</li><li>Join Effect Index IDs and effect associations from local dumps.</li><li>Produce a browser-ready contact sheet grouped by symptom.</li></ul></article>
+<article class="card elevated"><div class="kicker">Automated legwork</div><h3>Inventory before browsing</h3><ul class="checks"><li>Read the <a href="../docs/agents/data-credentials.md">Postgres target and authorization contract</a> before remote access; publication requires a separately approved writer and reviewed dry-run.</li><li>Read live records through the public/query surface.</li><li>Resolve every original and thumbnail URL.</li><li>Compute byte hash and perceptual hash.</li><li>Normalize filename, title, and creator tokens for candidate generation.</li><li>Join Effect Index IDs and effect associations from local dumps.</li><li>Produce a browser-ready contact sheet grouped by symptom.</li></ul></article>
 <article class="card elevated"><div class="kicker">Computer-use legwork</div><h3>Inspect what text cannot prove</h3><ul class="checks"><li>Open the live gallery and exact article embedding surfaces.</li><li>Compare candidate media side by side at full resolution.</li><li>Navigate Wayback captures where static fetching cannot expose interactive pages.</li><li>Capture captions, bylines, surrounding context, and archive timestamps.</li><li>Verify broken-image and missing-thumbnail behavior visually.</li><li>Record screenshot identifiers in the audit row.</li></ul></article>
 </div>
 <div class="callout"><strong>Computer Use protocol:</strong> inspect app state before each interaction sequence, use accessibility elements where possible, and re-inspect after actions. Screenshots support visual identity; archived text supports attribution.</div>
-<div class="completion"><b>Completion criterion</b><br>An item leaves research only when its media has been visually identified, its best historical source has been captured, and the proposed action is explicit—even when that action is “hold unresolved.”</div>
+<div class="completion"><b>Completion criterion</b><br>An item leaves research only when its media has been visually identified, its best historical source has been captured, and the proposed action is explicit; even when that action is “hold unresolved.”</div>
 </section>
 
 <section id="branches"><div class="sec-head"><span class="sec-no">05</span><h2>Decision branches</h2></div>
@@ -147,7 +147,7 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
 
 <section id="recovery"><div class="sec-head"><span class="sec-no">06</span><h2>Missing media &amp; thumbnail recovery</h2></div>
 <div class="grid4">
-  <article class="card blue"><div class="kicker">A. Locate</div><h3>Find candidate bytes</h3><p>Check Convex storage fallback fields, R2 URLs, local source folders, Wayback captures, archived page resources, and original hosting IDs.</p></article>
+  <article class="card blue"><div class="kicker">A. Locate</div><h3>Find candidate bytes</h3><p>Inspect retained original storage locators as historical evidence, current R2 URLs, local source folders, Wayback captures, archived page resources, and original hosting IDs.</p></article>
   <article class="card gold"><div class="kicker">B. Authenticate</div><h3>Match identity</h3><p>Compare filename, dimensions, duration, first/last frames, perceptual hash, and surrounding archived caption.</p></article>
   <article class="card sage"><div class="kicker">C. Normalize</div><h3>Prepare safe asset</h3><p>Preserve an archival original; create a web-safe derivative only when required. Record every transformation and checksum.</p></article>
   <article class="card rust"><div class="kicker">D. Restore</div><h3>Stage storage change</h3><p>Upload only after review, patch the exact record, regenerate thumbnails deterministically, then verify public rendering.</p></article>
@@ -163,17 +163,17 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
 <section id="implementation"><div class="sec-head"><span class="sec-no">07</span><h2>Implementation seams</h2></div>
 <div class="callout"><strong>Tracer bullet first:</strong> choose one known-bad image that appears in the gallery and an effect article. Make a focused test red on its current credit, stage one canonical correction, and prove both surfaces turn green before scaling.</div>
 <div class="table-wrap"><table><thead><tr><th>Area</th><th>Likely file / owner</th><th>Planned change</th><th>When earned</th></tr></thead><tbody>
-<tr><td>Research tracker</td><td><code>notes-and-plans/</code> research artifacts</td><td>Add append-only audit JSON plus human review report; keep evidence out of runtime records except durable source/rights fields.</td><td>Immediately, before item research</td></tr>
+<tr><td>Research tracker</td><td>Verified private research-artifact destination</td><td>Add append-only audit JSON plus human review report; keep evidence out of runtime records except durable source/rights fields.</td><td>Immediately, before item research</td></tr>
 <tr><td>Inventory tooling</td><td><code>scripts/replications/</code></td><td>Read live records, check URLs, hash media, identify duplicates, and generate contact sheets/proposals.</td><td>Immediately</td></tr>
-<tr><td>Canonical schema</td><td><code>convex/schema.ts</code>, <code>src/types/replications.ts</code></td><td>Keep current fields for first tracer. Add role-aware fields only if reviewed examples cannot be represented honestly through <code>artist</code> + <code>credit_line</code>.</td><td>After concrete role-split examples</td></tr>
-<tr><td>Write seam</td><td><code>convex/replications.ts</code></td><td>Add or reuse an authenticated, narrow metadata patch mutation with exact expected-current values and audit logging.</td><td>Before first reviewed publish batch</td></tr>
+<tr><td>Canonical schema</td><td><code>server/schema.ts</code>, <code>src/types/replications.ts</code></td><td>Keep current fields for first tracer. Add role-aware fields only if reviewed examples cannot be represented honestly through <code>artist</code> + <code>credit_line</code>.</td><td>After concrete role-split examples</td></tr>
+<tr><td>Write seam</td><td><code>server/replications.ts</code></td><td>Add or reuse an authenticated, narrow metadata patch mutation with exact expected-current values and audit logging.</td><td>Before first reviewed publish batch</td></tr>
 <tr><td>Public credits</td><td><code>src/features/effects/components/replicationCredit.ts</code></td><td>Render canonical <code>credit_line</code> consistently; support role-aware wording only if schema branch is approved.</td><td>Only if current helper cannot express reviewed labels</td></tr>
 <tr><td>Gallery and theater</td><td><code>src/features/effects/gallery/</code> and effect components</td><td>Consume the same canonical credit/title; surface unavailable media gracefully.</td><td>Tracer bullet</td></tr>
 <tr><td>Article/category embeds</td><td>Effect and psychedelic visual article renderers</td><td>Verify embedded media resolves by canonical replication identity instead of duplicating captions.</td><td>During consumer mapping</td></tr>
 <tr><td>Thumbnail generation</td><td><code>scripts/replications/</code></td><td>Deterministic frame extraction and upload manifest with checksums.</td><td>When first missing thumbnail is selected</td></tr>
 </tbody></table></div>
 <div class="grid2">
-<article class="card blue"><div class="kicker">Preferred deep module</div><h3>One audit command</h3><p>A narrow CLI interface hides URL resolution, hashing, archive joins, duplicate grouping, and report generation. Its outputs—not internal helper layers—are the durable contract.</p></article>
+<article class="card blue"><div class="kicker">Preferred deep module</div><h3>One audit command</h3><p>A narrow CLI interface hides URL resolution, hashing, archive joins, duplicate grouping, and report generation. Its outputs are the durable contract; internal helper layers are implementation details.</p></article>
 <article class="card rust"><div class="kicker">Deletion test</div><h3>No pass-through “provenance service”</h3><p>Keep research tooling beside replication operations. Create a runtime abstraction only when it hides genuine role-aware credit behavior used by multiple consumers.</p></article>
 </div>
 <div class="completion"><b>Completion criterion</b><br>The final implementation file list is derived from the tracer bullet. Every modified runtime file has a specific behavior change and test; speculative abstractions remain out of scope.</div>
@@ -189,7 +189,7 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
 <tr><td>1</td><td><code>npx vitest run &lt;focused replication credit/gallery test&gt;</code></td><td>Red/green loop for the tracer record and shared credit behavior.</td></tr>
 <tr><td>2</td><td><code>node scripts/replications/&lt;audit-command&gt; --check</code></td><td>Confirm evidence completeness, media health, duplicate safety, and proposal/current-value match.</td></tr>
 <tr><td>3</td><td><code>npm run lint</code> and <code>npm run typecheck</code></td><td>Repository-wide static validation for meaningful app/tooling changes.</td></tr>
-<tr><td>4</td><td><code>npm run typecheck:convex</code></td><td>Required when Convex types, schema, or functions change.</td></tr>
+<tr><td>4</td><td><code>npm run typecheck:handlers</code></td><td>Required when authored Postgres handlers or schema change.</td></tr>
 <tr><td>5</td><td><code>npm run build</code></td><td>Validate public server rendering and route integration.</td></tr>
 <tr><td>6</td><td>Computer-use screenshot matrix</td><td>Prove correct media, title, and credit on every consumer surface.</td></tr>
 </tbody></table></div>
@@ -206,7 +206,7 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
 </div>
 <div class="grid2">
 <article class="card sage"><h3>Reviewer packet</h3><ul class="checks"><li>Side-by-side current and proposed display.</li><li>Current media plus archive/creator screenshots.</li><li>Brief evidence quote and clickable source URLs.</li><li>Role and naming-branch explanation.</li><li>Exact metadata and storage operations.</li><li>Uncertainty and rights notes.</li></ul></article>
-<article class="card gold"><h3>Batch stop rule</h3><p>Stop after each batch and inspect public previews. Continue only when the reviewed proposal count equals the applied count, no unrelated records changed, and every consumer surface matches the approved packet.</p><p class="out">Publishing to Convex remains a separate, explicit action after <code>npm run convex:doctor</code> and human approval.</p></article>
+<article class="card gold"><h3>Batch stop rule</h3><p>Stop after each batch and inspect public previews. Continue only when the reviewed proposal count equals the applied count, no unrelated records changed, and every consumer surface matches the approved packet.</p><p class="out">Publishing to Postgres remains separately gated by the <a href="../docs/agents/data-credentials.md">approved-writer, explicit-target, freeze, dry-run, and human approval contract</a>.</p></article>
 </div>
 <div class="completion"><b>Completion criterion</b><br>Every applied record is traceable to one approved proposal digest, and every proposal is classified as applied, rejected, superseded, or still pending.</div>
 </section>
@@ -225,7 +225,7 @@ section{scroll-margin-top:24px;margin-top:58px}.sec-head{display:flex;align-item
 <article class="card rust"><div class="kicker">Deliberately left out</div><h3>Not part of the first execution</h3><ul><li>Public user-submission or correction UI.</li><li>Automated facial/style recognition of artists.</li><li>Broad redesign of the replication gallery.</li><li>Re-licensing media without documented permission.</li><li>Auditing every apparently known video/audio record.</li></ul></article>
 <article class="card sage"><div class="kicker">Definition of done</div><h3>The unknown-first pass closes when…</h3><ul class="checks"><li>Every suspect record has an audit disposition.</li><li>Every accepted credit is backed by archived evidence.</li><li>Every title is classified by provenance.</li><li>Every missing asset/thumbnail is recovered or explicitly unavailable.</li><li>Every approved correction renders consistently everywhere.</li><li>Every unresolved record includes a search log and honest public wording.</li></ul></article>
 </div>
-<div class="quote">The project succeeds by making uncertainty legible—not by forcing every image to have a confident answer.<small>Accuracy is the deliverable; lower “Unknown” counts are a consequence, not the target.</small></div>
+<div class="quote">The project succeeds by making uncertainty legible; not by forcing every image to have a confident answer.<small>Accuracy is the deliverable; lower “Unknown” counts are a consequence, not the target.</small></div>
 </section>
 <footer class="footer">Planning artifact · DoseWiki replication provenance research · No Convex or site content was modified by creating this document.</footer>
 </main></div>
