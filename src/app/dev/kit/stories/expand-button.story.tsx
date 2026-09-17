@@ -14,6 +14,9 @@ export const expandButtonStory: StoryDef = {
   source: "src/components/common/ExpandButton.tsx",
   importLine: 'import { ExpandButton, ExpandIndicator } from "@/components/common/ExpandButton";',
   exports: ["ExpandButton", "ExpandIndicator"],
+  intents: [
+    { family: "expand", need: "A standalone or inline reveal control: hidden-list counts, section previews", policy: "#expand-affordance-policy" },
+  ],
   examples: [
     {
       label: "Active variants",

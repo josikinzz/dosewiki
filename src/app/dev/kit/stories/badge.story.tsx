@@ -12,6 +12,9 @@ export const badgeStory: StoryDef = {
   source: "src/components/ui/badge.tsx",
   importLine: 'import { Badge } from "@/components/ui/badge";',
   exports: ["Badge", "badgeVariants"],
+  intents: [
+    { family: "badges", need: "Status, severity, or a count on a control or data row", policy: "#name-chip-policy" },
+  ],
   examples: [
     {
       label: "Tones",

@@ -31,6 +31,9 @@ export const articleSectionStory: StoryDef = {
     "ArticleSectionState",
     "ArticleSourceFooter",
   ],
+  intents: [
+    { family: "dividers", need: "A divider that marks a group transition in reading hierarchy", policy: "#divider-policy" },
+  ],
   examples: [
     {
       label: "ArticleSection shell",

@@ -21,6 +21,9 @@ export const sectionCardStory: StoryDef = {
   source: "src/components/common/SectionCard.tsx",
   importLine: 'import { SectionCard } from "@/components/common/SectionCard";',
   exports: ["SectionCard"],
+  intents: [
+    { family: "cards", need: "A titled content block inside an article or index page" },
+  ],
   examples: [
     {
       label: "Default section",

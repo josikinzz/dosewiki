@@ -19,6 +19,30 @@ export type KitTier = "primitive" | "common" | "layout";
  */
 export type StoryStatus = "stable" | "legacy" | "wip";
 
+/**
+ * The families a builder starts from. The catalog's "Which one?" guide groups
+ * intents by family, so look-alikes (chip vs badge vs pill) sit side by side
+ * with the policy that separates them.
+ */
+export type IntentFamily =
+  | "chips"
+  | "badges"
+  | "pills"
+  | "expand"
+  | "dividers"
+  | "cards"
+  | "surfaces";
+
+export interface StoryIntent {
+  family: IntentFamily;
+  /** The need, phrased the way a builder thinks: "a chip carrying an entity name". */
+  need: string;
+  /** Index into `examples` to render beside the entry; defaults to the first. */
+  example?: number;
+  /** Anchor in docs/ui-system.md that justifies the recommendation, e.g. "#name-chip-policy". */
+  policy?: string;
+}
+
 export interface StoryExample {
   /** Short label for the variant/state being shown. */
   label: string;
@@ -63,6 +87,8 @@ export interface StoryDef {
   whenToUse?: string[];
   whenNotToUse?: string[];
   notes?: string[];
+  /** Builder intents this component answers; drives the catalog's "Which one?" guide. */
+  intents?: StoryIntent[];
 }
 
 export const KIT_TIERS: { id: KitTier; label: string; blurb: string }[] = [

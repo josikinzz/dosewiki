@@ -18,6 +18,11 @@ export const publicTokensStory: StoryDef = {
   importLine:
     'import { PublicOverline, PublicPill, PublicNameChip, PublicChipNav } from "@/components/common/PublicTokens";',
   exports: ["PublicChipNav", "PublicNameChip", "PublicOverline", "PublicPill"],
+  intents: [
+    { family: "chips", need: "The name of a public entity or concept: an effect, a substance, a category, a contributor", example: 3, policy: "#name-chip-policy" },
+    { family: "chips", need: "Navigation or filter chips with counts", example: 4, policy: "#name-chip-policy" },
+    { family: "pills", need: "Metadata such as dates, dose ranges, or reading time", example: 1, policy: "#name-chip-policy" },
+  ],
   examples: [
     {
       label: "PublicOverline",

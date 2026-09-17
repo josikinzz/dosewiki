@@ -31,6 +31,9 @@ export const articleExpandableStory: StoryDef = {
   importLine:
     'import { ExpandableList, ExpandableText } from "@/components/common/ArticleExpandable";',
   exports: ["ExpandableList", "ExpandableText"],
+  intents: [
+    { family: "expand", need: "A whole section's text or list that opens in place", policy: "#expand-affordance-policy" },
+  ],
   examples: [
     {
       label: "ExpandableList — renderItem",

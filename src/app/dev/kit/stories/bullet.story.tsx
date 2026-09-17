@@ -12,6 +12,9 @@ export const bulletStory: StoryDef = {
   source: "src/components/common/Bullet.tsx",
   importLine: 'import { Bullet } from "@/components/common/Bullet";',
   exports: ["Bullet"],
+  intents: [
+    { family: "dividers", need: "A quiet separator between inline metadata items", policy: "#divider-policy" },
+  ],
   examples: [
     {
       label: "Colors",

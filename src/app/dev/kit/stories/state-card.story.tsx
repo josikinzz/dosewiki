@@ -13,6 +13,9 @@ export const stateCardStory: StoryDef = {
   source: "src/components/common/StateCard.tsx",
   importLine: 'import { StateCard } from "@/components/common/StateCard";',
   exports: ["StateCard"],
+  intents: [
+    { family: "surfaces", need: "An empty, loading, or error state inside a page region" },
+  ],
   examples: [
     {
       label: "Default (centered, accent)",

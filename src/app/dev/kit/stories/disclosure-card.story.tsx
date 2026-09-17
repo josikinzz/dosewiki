@@ -14,6 +14,9 @@ export const disclosureCardStory: StoryDef = {
   source: "src/components/common/DisclosureCard.tsx",
   importLine: 'import { DisclosureCard } from "@/components/common/DisclosureCard";',
   exports: ["DisclosureCard"],
+  intents: [
+    { family: "expand", need: "A card whose header opens more detail", policy: "#expand-affordance-policy" },
+  ],
   examples: [
     {
       label: "Default (card variant)",

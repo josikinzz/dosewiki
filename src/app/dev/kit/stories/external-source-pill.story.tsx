@@ -13,6 +13,9 @@ export const externalSourcePillStory: StoryDef = {
   importLine:
     'import { ExternalSourcePill } from "@/components/common/ExternalSourcePill";',
   exports: ["ExternalSourcePill"],
+  intents: [
+    { family: "pills", need: "Attribution to an external source, with its favicon", policy: "#name-chip-policy" },
+  ],
   examples: [
     {
       label: "Inline (default)",

@@ -7,6 +7,7 @@ import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
 import { StoryCard } from "./components/CatalogPrimitives";
+import { IntentGuide } from "./components/IntentGuide";
 import { stories } from "./registry";
 import { KIT_TIERS } from "./registry/types";
 
@@ -27,10 +28,11 @@ const COLOR_TOKENS: { token: string; label: string }[] = [
 ];
 
 const RADIUS_SCALE: { label: string; cls: string }[] = [
-  { label: "md", cls: "rounded-md" },
-  { label: "lg", cls: "rounded-lg" },
-  { label: "xl", cls: "rounded-xl" },
-  { label: "2xl", cls: "rounded-2xl" },
+  { label: "chip", cls: "rounded-chip" },
+  { label: "control", cls: "rounded-control" },
+  { label: "card", cls: "rounded-card" },
+  { label: "panel", cls: "rounded-panel" },
+  { label: "pill", cls: "rounded-pill" },
 ];
 const PADDING_SCALE = ["xs · p-3", "sm · p-4", "md · p-5", "lg · p-6", "xl · p-8"];
 
@@ -139,6 +141,9 @@ export function KitCatalog() {
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-8 lg:flex-row lg:gap-10 lg:px-8">
         <aside className="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-64 lg:shrink-0 lg:overflow-y-auto">
           <nav className="flex flex-col gap-5 text-sm">
+            <a href="#which-one" className="font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-accent-strong)]">
+              Which one?
+            </a>
             <a href="#tokens" className="font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-accent-strong)]">
               Tokens
             </a>
@@ -191,6 +196,7 @@ export function KitCatalog() {
             />
           </header>
 
+          {!query ? <IntentGuide /> : null}
           {!query ? <TokenShowcase /> : null}
 
           {KIT_TIERS.map((tier) => {

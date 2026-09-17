@@ -43,6 +43,9 @@ export const surfaceStory: StoryDef = {
     "interactiveSurfaceVariants",
     "focusRingClassName",
   ],
+  intents: [
+    { family: "surfaces", need: "Any panel, well, or shell that needs a themed background and border before you reach for a raw div" },
+  ],
   examples: [
     {
       label: "ContentCard",

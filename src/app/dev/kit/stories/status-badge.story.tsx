@@ -24,6 +24,9 @@ export const statusBadgeStory: StoryDef = {
   source: "src/components/common/StatusBadge.tsx",
   importLine: 'import { StatusBadge } from "@/components/common/StatusBadge";',
   exports: ["StatusBadge"],
+  intents: [
+    { family: "badges", need: "Editorial or review status with a semantic tone", policy: "#name-chip-policy" },
+  ],
   examples: [
     {
       label: "Tones",

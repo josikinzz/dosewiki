@@ -28,6 +28,9 @@ export const cardStory: StoryDef = {
     "CardDescription",
     "CardContent",
   ],
+  intents: [
+    { family: "cards", need: "A generic bordered content card" },
+  ],
   examples: [
     {
       label: "Full composition",
