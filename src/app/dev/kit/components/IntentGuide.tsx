@@ -56,7 +56,10 @@ export function IntentGuide() {
               </div>
               <ul className="flex flex-col gap-2">
                 {rows.map(({ story, intent }) => {
-                  const example = story.examples[intent.example ?? 0];
+                  // Full-stage examples (sections, headers, rows) carry fixed ids and
+                  // need the stage width; the story card below owns them.
+                  const picked = story.examples[intent.example ?? 0];
+                  const example = picked?.full ? undefined : picked;
                   return (
                     <li
                       key={`${story.id}-${intent.need}`}

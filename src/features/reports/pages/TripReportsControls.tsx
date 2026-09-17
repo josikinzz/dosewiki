@@ -115,7 +115,7 @@ export function SubstanceFilterControl({
             type="button"
             variant={active !== null ? "pillActive" : "pill"}
             size="auto"
-            className={cn(CONTROL_TRIGGER_CLASS, "group/report-control transition-colors duration-160 data-[state=open]:bg-dose-surface-muted motion-reduce:transition-none md:w-[10.5rem] md:[@media(pointer:coarse)]:w-[10.5rem]")}
+            className={cn(CONTROL_TRIGGER_CLASS, "group/report-control transition-colors duration-160 data-[state=open]:[background:var(--theme-surface-muted)] motion-reduce:transition-none md:w-[10.5rem] md:[@media(pointer:coarse)]:w-[10.5rem]")}
             aria-label={active !== null ? t("Substance filter, {{substance}} active", { substance: active }) : t("Filter by substance")}
             title={active !== null ? t("Substance filter, {{substance}} active", { substance: active }) : t("Filter by substance")}
           >
