@@ -698,10 +698,6 @@ html[data-theme="light"]
   box-shadow: var(--theme-frosted-control-shadow);
 }
 
-.theme-evidence-accent {
-  color: var(--theme-evidence-text-strong);
-}
-
 .theme-evidence-surface {
   border-color: var(--theme-evidence-border);
   background-color: var(--theme-evidence-bg);
@@ -709,66 +705,6 @@ html[data-theme="light"]
   --tw-ring-color: var(--theme-evidence-ring);
 }
 
-.theme-evidence-badge {
-  border-color: color-mix(
-    in srgb,
-    var(--theme-evidence-border) 82%,
-    var(--theme-border-subtle)
-  );
-  background-color: color-mix(
-    in srgb,
-    var(--theme-evidence-bg) 82%,
-    var(--theme-surface-muted)
-  );
-  color: var(--theme-evidence-text-strong);
-  --tw-ring-color: var(--theme-evidence-ring);
-}
-
-.theme-evidence-link {
-  color: var(--theme-evidence-text-strong);
-  background-color: color-mix(
-    in srgb,
-    var(--theme-evidence-bg) 42%,
-    var(--theme-body-bg)
-  );
-  box-shadow: 0 0 0 1px
-    color-mix(in srgb, var(--theme-evidence-border) 72%, transparent);
-  text-decoration-color: color-mix(
-    in srgb,
-    var(--theme-evidence-text-strong) 46%,
-    var(--theme-body-bg)
-  );
-  text-underline-offset: 0.18em;
-  transition:
-    color 160ms ease,
-    text-decoration-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-@media (hover: hover) {
-  .theme-evidence-link:hover {
-    background-color: color-mix(
-      in srgb,
-      var(--theme-evidence-bg) 68%,
-      var(--theme-body-bg)
-    );
-    box-shadow: 0 0 0 1px
-      color-mix(in srgb, var(--theme-evidence-border) 92%, transparent);
-    color: var(--theme-evidence-text);
-    text-decoration-color: color-mix(
-      in srgb,
-      var(--theme-evidence-text) 72%,
-      var(--theme-body-bg)
-    );
-  }
-}
-
-.theme-evidence-link:focus-visible {
-  border-radius: 0.35rem;
-  outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
-}
 
 .theme-citation-marker,
 .theme-reference-number {
@@ -1797,24 +1733,6 @@ html[data-theme="light"] .theme-home-nav-icon {
   white-space: nowrap;
 }
 
-/* Free-floating: the line is amber text alone, no pill chrome. The theme-aware
-     text color is the class's whole job now. */
-.theme-home-construction-banner {
-  color: var(--theme-construction-banner-text);
-}
-
-/* The clock reads as the banner's quiet second voice: the amber banner text at reduced
-     emphasis, so it trails the "coming soon" line on the same row rather than competing
-     with it. */
-.theme-home-construction-countdown {
-  color: color-mix(
-    in srgb,
-    var(--theme-construction-banner-text) 78%,
-    transparent
-  );
-  font-variant-numeric: tabular-nums;
-}
-
 @keyframes theme-home-mock-nudge {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
@@ -2051,61 +1969,6 @@ html[data-theme="light"] .theme-home-search-input:focus {
   background-color: var(--theme-divider);
 }
 
-.theme-search-overlay {
-  border-color: var(--theme-border-subtle);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      color-mix(in srgb, var(--theme-accent) 8%, transparent),
-      transparent 38%
-    ),
-    var(--theme-search-overlay-bg);
-  --tw-ring-color: var(--theme-border-subtle);
-  box-shadow:
-    0 24px 60px -34px var(--theme-shadow-strong),
-    inset 0 1px 0
-      color-mix(in srgb, var(--theme-surface-muted) 62%, transparent);
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--theme-accent) 46%, transparent)
-    transparent;
-}
-
-.theme-search-overlay::-webkit-scrollbar {
-  width: 9px;
-}
-
-.theme-search-overlay::-webkit-scrollbar-track {
-  background: transparent;
-  margin-block: 0.875rem;
-}
-
-.theme-search-overlay::-webkit-scrollbar-thumb {
-  border: 2px solid transparent;
-  border-radius: 9999px;
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent) 44%,
-    var(--theme-body-bg)
-  );
-  background-clip: content-box;
-}
-
-@media (hover: hover) {
-  .theme-search-overlay::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(
-      in srgb,
-      var(--theme-accent) 62%,
-      var(--theme-body-bg)
-    );
-  }
-}
-
-html[data-theme="light"] .theme-search-overlay {
-  border-color: var(--theme-search-overlay-panel-border);
-  background: var(--theme-search-overlay-panel-bg);
-  --tw-ring-color: var(--theme-search-overlay-panel-ring);
-  box-shadow: var(--theme-search-overlay-panel-shadow);
-}
 
 /* Search results page: the group cards drop to the dark chrome/inset tone
      (same family as the header, footer, and TOC). The highlight marks and
@@ -2551,19 +2414,6 @@ html[data-theme="light"] .theme-search-highlight-mark {
   line-height: 1.35;
   letter-spacing: var(--type-tracking-label);
   text-transform: uppercase;
-}
-
-.theme-public-section-rule {
-  background-image: var(--theme-horizontal-divider-image);
-}
-
-.theme-public-skeleton-surface {
-  border-color: var(--theme-border-subtle);
-  background-color: color-mix(
-    in srgb,
-    var(--theme-surface-muted) 66%,
-    var(--theme-body-bg)
-  );
 }
 
 .theme-loading-surface {
@@ -3270,20 +3120,6 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
     color-mix(in srgb, var(--theme-text-on-media) 12%, transparent);
 }
 
-/* Pressed media control: a sticky toggle held "on" (the viewer's rotate
-   mode). A translucent on-media wash layered over the control's dark pill,
-   plus an inset ring of the same ink, reads as held-down on the black media
-   chrome in both visual styles. background-image keeps the pill's own
-   background-color underneath, mirroring the raised control's approach. */
-.theme-media-control-pressed {
-  background-image: linear-gradient(
-    color-mix(in srgb, var(--theme-text-on-media) 30%, transparent),
-    color-mix(in srgb, var(--theme-text-on-media) 30%, transparent)
-  );
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--theme-text-on-media) 70%, transparent);
-}
-
 /* The immersive viewer keeps its settings menu in the header's compositor
    layer. A fully opaque surface and no transform animation prevent iOS Safari
    from flashing the menu against a playing <video> layer. */
@@ -3483,21 +3319,6 @@ html[data-theme="light"] .theme-aside-panel {
     inset 0 1px 0 oklch(99% 0.01 333 / 0.7);
 }
 
-.theme-report-phase-onset {
-  border-color: var(--theme-report-phase-onset-border);
-  background-color: var(--theme-report-phase-onset-bg);
-}
-
-.theme-report-phase-peak {
-  border-color: var(--theme-report-phase-peak-border);
-  background-color: var(--theme-report-phase-peak-bg);
-}
-
-.theme-report-phase-offset {
-  border-color: var(--theme-report-phase-offset-border);
-  background-color: var(--theme-report-phase-offset-bg);
-}
-
 .theme-report-phase-onset-text {
   color: var(--theme-report-phase-onset-text);
 }
@@ -3572,13 +3393,6 @@ html[data-theme="light"] .theme-aside-panel {
   background-image: var(--theme-horizontal-divider-image);
 }
 
-/* Pseudo-element flavors of the gradient hairline for callsites that draw
-     the divider with Tailwind before:/after: positioning utilities. */
-.theme-gradient-divider-before::before,
-.theme-gradient-divider-after::after {
-  background-image: var(--theme-horizontal-divider-image);
-}
-
 .theme-horizontal-divider {
   height: 1px;
   width: 100%;
@@ -3609,15 +3423,6 @@ html[data-theme="light"] .theme-aside-panel {
 /* Text-styled inline label inputs (index-layout taxonomy editors): border
      is transparent at rest, surfaces on hover, and takes the accent on focus
      (kept here after the hover rule so focus wins while hovered). */
-@media (hover: hover) {
-  .theme-inline-label-input:hover {
-    border-color: var(--theme-border-subtle);
-  }
-}
-
-.theme-inline-label-input:focus {
-  border-color: var(--theme-text-secondary);
-}
 
 /* Repeat-entry card wrapper in the dev form editors. */
 .theme-entry-card {
@@ -4541,11 +4346,6 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
    */
 .theme-replication-field {
   background: var(--theme-field-surface);
-}
-
-.theme-editor-field:focus {
-  border-color: var(--theme-text-secondary);
-  outline: none;
 }
 
 .theme-replication-suggestions {
@@ -6175,11 +5975,6 @@ html[data-theme="light"] .theme-cutout-glow {
   }
   .theme-china-reveal-right {
     animation: theme-china-reveal-right 320ms cubic-bezier(0.25, 1, 0.5, 1) 60ms both;
-  }
-
-  /* Numbers that count up once scrolled into view. */
-  .theme-china-countup {
-    transition: opacity 200ms;
   }
 
   /* The signature fades and settles once the reader reaches the end. */

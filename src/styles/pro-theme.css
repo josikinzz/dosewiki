@@ -840,15 +840,6 @@ html[data-visual-style="pro"] .theme-interaction-caution .theme-interaction-expa
    All of these live in utilities-theme.css / theme-light-mode.css.
    --------------------------------------------------------------------- */
 
-/* Public-card icon treatment (utilities-theme.css light variant paints a
-   two-layer pink gradient plus three inset shadows). */
-html[data-visual-style="pro"] .theme-public-card-icon {
-  border: 1px solid var(--ei-border);
-  background: var(--ei-surface-sunk);
-  color: var(--ei-accent-strong);
-  box-shadow: none;
-}
-
 /* Home navigation icon, both the resting and the search-mode variants.
    The stock light rules derive their fill from chroma-multiplied relative
    colours off --theme-panel-base, which would collapse to grey anyway;
@@ -878,12 +869,6 @@ html[data-visual-style="pro"]
   background: var(--ei-surface-raised);
   box-shadow: none;
   transform: none;
-}
-
-/* Search overlay scrim, homepage ambient wash and the search focus glow
-   (the last hardcodes a pink radial in BOTH themes). */
-html[data-visual-style="pro"] .theme-site-search-layer {
-  background: var(--ei-paper);
 }
 
 html[data-visual-style="pro"] .theme-home-ambient {
@@ -987,15 +972,6 @@ html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.22\)\] {
    This is the cluster behind the "search page is still pink" report.
    --------------------------------------------------------------------- */
 
-/* The dropdown / results panel itself: a three-layer pink gradient with a
-   magenta ring and a plum ambient shadow. */
-html[data-visual-style="pro"] .theme-search-overlay {
-  border-color: var(--ei-border);
-  background: var(--ei-surface-raised);
-  box-shadow: 0 0 0 1px var(--ei-border);
-  --tw-ring-color: var(--ei-border);
-}
-
 /* Suggestion rows: keyboard-highlighted and hovered both paint the same
    two-radial pink wash. Declared twice upstream (once plain, once deeper);
    one override covers both because it is the same selector. */
@@ -1011,11 +987,6 @@ html[data-visual-style="pro"] .theme-search-suggestion[data-highlighted="true"] 
     background: var(--ei-surface-sunk);
     box-shadow: none;
   }
-}
-
-/* Suggestion text runs and the leading icon tile. */
-html[data-visual-style="pro"] .theme-search-suggestion-kind {
-  color: var(--ei-ink-4);
 }
 
 html[data-visual-style="pro"] .theme-search-suggestion-secondary {
@@ -1146,16 +1117,6 @@ html[data-visual-style="pro"] .theme-mobile-nav-panel {
   --tw-ring-color: var(--ei-border) !important;
 }
 
-html[data-visual-style="pro"] .theme-country-flag-icon {
-  box-shadow: 0 0 0 1px var(--ei-border) !important;
-}
-
-/* theme-light-mode.css:596 tints every table-of-contents icon with a mauve
-   (rgb 93 56 123) mixed into the page background. */
-html[data-visual-style="pro"] .theme-toc-icon {
-  color: var(--ei-accent-strong) !important;
-}
-
 /* theme-light-mode.css:1129 fills the expanded dose-detail and plateau-tier
    rows with a lilac two-stop gradient — oklch(95% 0.032 319) — on every
    substance page. Same (0,2,1) as the source rule, but later in source order:
@@ -1172,18 +1133,14 @@ html[data-visual-style="pro"] .theme-external-source-pill .theme-text-faint {
 }
 
 /* Plum-tinted decorations without !important — beaten on source order. */
-html[data-visual-style="pro"] .theme-molecule-shell,
-html[data-visual-style="pro"] .theme-molecule-panel,
-html[data-visual-style="pro"] .theme-molecule-fallback,
-html[data-visual-style="pro"] .theme-article-priority-section {
+html[data-visual-style="pro"] .theme-molecule-panel {
   border-color: var(--ei-border);
   background: var(--ei-surface);
   box-shadow: none;
 }
 
 html[data-visual-style="pro"] .theme-control-pill,
-html[data-visual-style="pro"] .theme-control-pill-quiet,
-html[data-visual-style="pro"] .theme-article-hero-priority .theme-control-pill-quiet {
+html[data-visual-style="pro"] .theme-control-pill-quiet {
   box-shadow: none;
 }
 

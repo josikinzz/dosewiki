@@ -11,29 +11,14 @@ html[data-theme="light"] .theme-article-hero-summary {
   --theme-article-hero-summary-divider: var(--theme-article-hero-divider);
 }
 
-html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet {
-  background-color: color-mix(in srgb, rgb(255 255 255) 70%, var(--theme-body-bg)) !important;
-  color: var(--theme-text-primary) !important;
-  box-shadow: 0 10px 22px -20px rgba(84, 46, 112, 0.28);
-}
-
-html[data-theme="light"] .theme-molecule-shell {
-  border-color: var(--theme-molecule-shell-border);
-  background: var(--theme-molecule-shell-bg);
-}
-
-html[data-theme="light"] .theme-molecule-panel,
-html[data-theme="light"] .theme-molecule-fallback {
+html[data-theme="light"] .theme-molecule-panel {
   border-color: var(--theme-molecule-panel-border);
   background-color: color-mix(in srgb, rgb(255 255 255) 94%, var(--theme-body-bg));
 }
 
 html[data-theme="light"] .theme-accent-icon,
 html[data-theme="light"] .theme-accent-icon-scope .iconify,
-html[data-theme="light"] .theme-accent-icon-scope svg,
-html[data-theme="light"] .theme-interaction-icon,
-html[data-theme="light"] .theme-interaction-header .iconify,
-html[data-theme="light"] .theme-interaction-header svg {
+html[data-theme="light"] .theme-accent-icon-scope svg {
   filter: brightness(0.72) saturate(1.45) contrast(1.08);
 }
 
@@ -42,22 +27,6 @@ html[data-theme="light"] .theme-inline-expanded-card {
   background: var(--theme-frosted-panel-bg);
   box-shadow: var(--theme-frosted-panel-shadow);
   --tw-ring-color: var(--theme-frosted-panel-border);
-}
-
-html[data-theme="light"] .theme-article-priority-section {
-  border-color: var(--theme-article-priority-border);
-  background: var(--theme-article-priority-bg);
-  box-shadow: 0 18px 42px -34px rgba(84, 46, 112, 0.26);
-}
-
-html[data-theme="light"] .theme-safety-priority-heading .iconify,
-html[data-theme="light"] .theme-safety-priority-heading svg {
-  color: #9f1239;
-}
-
-html[data-theme="light"] .theme-evidence-priority-heading .iconify,
-html[data-theme="light"] .theme-evidence-priority-heading svg {
-  color: var(--theme-evidence-text-strong);
 }
 
 html[data-theme="light"] .theme-interaction-danger {
@@ -179,31 +148,10 @@ html[data-theme="light"] :is(.theme-control-pill:focus-visible, .theme-control-p
   }
 }
 
-html[data-theme="light"] :is(.theme-evidence-accent, .theme-evidence-badge, .theme-evidence-link) {
-  color: var(--theme-evidence-text-strong) !important;
-}
-
 html[data-theme="light"] .theme-evidence-surface {
   border-color: var(--theme-evidence-border) !important;
   background-color: color-mix(in srgb, var(--theme-evidence-bg) 78%, var(--theme-surface-strong)) !important;
   color: var(--theme-evidence-text) !important;
-}
-
-html[data-theme="light"] .theme-evidence-badge {
-  border-color: var(--theme-evidence-border) !important;
-  background-color: color-mix(in srgb, var(--theme-evidence-bg) 76%, var(--theme-surface-muted)) !important;
-}
-
-@media (hover: hover) {
-  html[data-theme="light"] .theme-evidence-link:hover {
-    background-color: color-mix(in srgb, var(--theme-evidence-bg) 72%, rgba(255, 255, 255, 0.86)) !important;
-    box-shadow: 0 0 0 1px var(--theme-evidence-border) !important;
-    color: var(--theme-evidence-text) !important;
-  }
-}
-
-html[data-theme="light"] .theme-toc-icon {
-  color: color-mix(in srgb, rgb(93 56 123) 42%, var(--theme-body-bg)) !important;
 }
 
 html[data-theme="light"] .theme-index-card-bullet {
@@ -297,7 +245,6 @@ html[data-theme="light"] .theme-toc-strip-bar {
     box-shadow: var(--theme-frosted-panel-hover-shadow);
   }
 }
-
 
 html[data-theme="light"] :is(
   .theme-badge-surface,
@@ -663,11 +610,6 @@ html[data-theme="light"] .theme-ld50-table-row:nth-child(even) {
   html[data-theme="light"] .theme-ld50-table-row:hover {
     background: var(--theme-frosted-control-on-panel-hover-bg) !important;
   }
-}
-
-html[data-theme="light"] .theme-country-flag-icon {
-  box-shadow: var(--theme-country-flag-shadow) !important;
-  --tw-ring-color: transparent !important;
 }
 
 html[data-theme="light"] .theme-reagent-results-panel {
