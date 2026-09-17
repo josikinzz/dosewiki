@@ -20,6 +20,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@data/*": ["./data/*"],
+      "@content/*": ["./content/*"],
       "@site-font": ["./src/app/_fonts/dosewiki"],
       "@site-styles": ["./src/app/_styles/dosewiki"],
       "@lib/*": ["./lib/*"],

@@ -20,7 +20,7 @@ Next.js application for the dose.wiki harm-reduction knowledge base and its Effe
 ## Platform Overview
 
 - **Framework**: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS
-- **Runtime data**: PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch `main`) selected by `DATA_BACKEND=postgres`; the archived recovery service is not an application backend
+- **Runtime data**: the PlanetScale Postgres database, selected by `DATA_BACKEND=postgres`
 - **Authentication**: Auth.js (`next-auth`) with database-backed membership roles
 - **Package manager**: Bun 1.3.5 with `bun.lock`; package scripts remain available through `npm run`
 - **Public rendering**: static generation or ISR where declared
@@ -39,7 +39,7 @@ PlanetScale Postgres is the source of truth for public runtime data and the acti
 
 Use `server/schema.ts` for the current table inventory and indexes. Use the matching module under `server/` for each query and mutation contract.
 
-Local JSON and Markdown remain useful for migration, backup, export, prompt, and generation workflows. They are not public runtime truth unless active code explicitly reads them. Before changing generated data, consult `src/data/artifactLineageManifest.json`.
+Local JSON and Markdown remain useful for migration, backup, export, prompt, and generation workflows. They are not public runtime truth unless active code explicitly reads them. Before changing generated data, consult `data/lineage.json`.
 
 Article shape ownership is split deliberately:
 
@@ -60,7 +60,10 @@ Article ingestion runs through the shared article adapter so invalid article sha
 | `lib/` | Server-side auth, data, HTTP, runtime, and Next.js adapters |
 | `server/` | Runtime schema, queries, mutations, and actions |
 | `scripts/` | Operator workflows for analysis, generation, migration, deployment, and sync |
-| `src/data/` | Local inputs, exports, migration artifacts, and generated helpers |
+| `src/data/` | Content loaders, static config, and generated schema helpers |
+| `content/` | Authored prose and prompts loaded by code, indexed in [content/README.md](content/README.md) |
+| `data/` | Tracked datasets, third-party inputs, and the generated-data lineage manifest |
+| `docs/` | Contributor documentation, indexed in [docs/README.md](docs/README.md) |
 
 See [project layout](docs/architecture/project-layout.md) for ownership details and local artifact policy. Use `npm run hygiene:check` to inspect removable ignored/generated artifacts; `npm run hygiene:clean` removes only artifacts approved by that policy.
 
@@ -80,43 +83,15 @@ The routes above are live at <https://dose.wiki/> and <https://www.dose.wiki/>. 
 
 ### Public read-only API
 
-Use these as the stable entry points:
-
-- base URL: <https://dose.wiki/api/v1>;
-- OpenAPI 3.1: <https://dose.wiki/api/v1/openapi.json>;
-- integration handoff: [HANDOFF.md](HANDOFF.md).
-
-The API currently covers public substance records, normalized reagent tests, molecule SVGs, and effect replications. Representative endpoints include `GET /substances`, `GET /substances/{slug}`, `GET /replications`, and `GET /molecules/{slug}.svg`. Use OpenAPI rather than this README for the complete path and response contract.
-
-Collection cursors are opaque. Browser clients may use `GET`, `HEAD`, and `OPTIONS`; responses are cached and rate-limited.
-
-```js
-const response = await fetch("https://dose.wiki/api/v1/substances/mdma");
-if (!response.ok) throw new Error(`DoseWiki API error: ${response.status}`);
-const { data } = await response.json();
-```
+The read-only API at <https://dose.wiki/api/v1> (OpenAPI 3.1 at
+<https://dose.wiki/api/v1/openapi.json>) exposes substance records, normalized
+reagent tests, molecule SVGs, and replication collections. The complete
+consumer contract, including the canonical replication embed at
+`/embed/replications` and its versioned message protocol, is
+[docs/api.md](docs/api.md). Use OpenAPI rather than this README for paths and
+response shapes.
 
 DoseWiki content is for harm-reduction education and is not medical advice. Review the [license and reuse terms](https://dose.wiki/docs/license) and preserve source attribution.
-
-### Canonical replication UI integration
-
-DoseWiki owns the public replication carousel and immersive viewer used by
-Osmanthus. `/embed/replications` renders the same `ReplicationShowcase` and
-`ReplicationViewerOverlay` components as this site, backed by the same public
-collection services, without public-page chrome, analytics, or editorial tools.
-Osmanthus embeds this document rather than copying player code, so UI updates
-follow DoseWiki releases. The public build's artifact audit must continue to
-exclude editorial browser modules.
-The canonical loaders retain complete playlist membership while preferring
-reviewed welcoming openings and open-eye motion, with known unsettling content
-later. Effect editorial pins remain authoritative within that boundary. Explicit
-effect-tag collections can play before their editorial article exists; see the
-ordering and limitations in [HANDOFF.md](HANDOFF.md).
-
-The versioned message protocol, collection parameters, origin allowlist, and
-publisher-first release sequence are documented in [HANDOFF.md](HANDOFF.md).
-Only this exact route is frameable; other pages retain their existing policy.
-The endpoint is implemented locally; this change does not itself deploy it.
 
 ## Editor Surface
 
@@ -172,25 +147,25 @@ npm run dev
 Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit credential values.
 
 - `lib/runtime/envContract.ts` owns runtime environment diagnostics.
-- [Data credentials](docs/agents/data-credentials.md) owns production targets, credentials, write gates, and recovery.
-- [Deployment routing](docs/agents/deployment.md) owns Vercel projects, domains, build separation, and release safety.
+- [Data credentials](docs/operations/data-credentials.md) owns production targets, credentials, write gates, and recovery.
+- [Deployment routing](docs/operations/deployment.md) owns Vercel projects, domains, build separation, and release safety.
 
 Every production deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`. Only `dosewiki-admin` carries the write and intent-token tier. Public DoseWiki and Effect Index remain read-only and carry no admin credential. The application and ordinary operators have no alternate backend.
 
-Production writes require an allowlisted command, explicit Postgres target, reviewed dry run, remote-target gates, and the command's confirmations. Implementing a guard does not authorize production use. Follow [data credentials](docs/agents/data-credentials.md) rather than copying credential values or precedence rules here.
+Production writes require an allowlisted command, explicit Postgres target, reviewed dry run, remote-target gates, and the command's confirmations. Implementing a guard does not authorize production use. Follow [data credentials](docs/operations/data-credentials.md) rather than copying credential values or precedence rules here.
 
 `NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
 
 `dose.wiki` and `www.dose.wiki` use the public-only `dosewiki-public` build. `dev.dose.wiki` and `dosewiki-admin.vercel.app` use the separate, application-authenticated `dosewiki-admin` editor build and remain closed to crawlers. Public-host `/dev`, `/review`, and sign-in links hand off to `dev.dose.wiki`. Retired `/preview` addresses permanently redirect to ordinary App Paths.
 
-`PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the separate public projects. The signed receiver derives its own paths and tags, grants cache expiry only, and accepts only allowlisted public targets. The editor's durable outbox owns retry and revision receipts. Current variable placement and recovery steps live in [deployment routing](docs/agents/deployment.md); this source change does not deploy them.
+`PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the separate public projects. The signed receiver derives its own paths and tags, grants cache expiry only, and accepts only allowlisted public targets. The editor's durable outbox owns retry and revision receipts. Current variable placement and recovery steps live in [deployment routing](docs/operations/deployment.md).
 
-Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/deployment.md) before changing build keys, aliases, domains, or flavor settings.
+Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/operations/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 
 ## Development Workflow
 
 1. Install with `bun install --frozen-lockfile`.
-2. Read `CONTEXT.md` and the ownership document for the feature you are changing.
+2. Read [CONTRIBUTING.md](CONTRIBUTING.md), the [glossary](docs/glossary.md), and the ownership document for the feature you are changing.
 3. Treat PlanetScale Postgres as runtime truth; use `src/schema/substance.schema.ts` before changing article shape.
 4. Keep public App Router reads server-side unless the interaction requires a client subscription.
 5. Run the narrow verification command that covers the change. Use `npm run verify:all` only when both app and workflow surfaces changed.
@@ -210,34 +185,27 @@ npm run postgres:check-env-isolation
 
 Batch generation uses OpenRouter and requires `OPENROUTER_API_KEY`. Scry access uses `SCRY_API_KEY`. Keep both in `.env.local` or the shell.
 
-Data-changing commands run with `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`, `POSTGRES_IMPORT_CONFIRM` plus `--allow-remote`, `--expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres` where supported, and the command's write confirmation. Read [Data credentials](docs/agents/data-credentials.md) before running them.
+Data-changing commands run with `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`, `POSTGRES_IMPORT_CONFIRM` plus `--allow-remote`, `--expected-deployment=<region>.pg.psdb.cloud/postgres` where supported, and the command's write confirmation. Read [Data credentials](docs/operations/data-credentials.md) before running them.
 
-For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow [citation workbench guidance](docs/agents/citation-workbench.md) and [production rollout](docs/citation-production-rollout.md).
-
-For isolated Sol-low regeneration of existing URL-only and hidden article
-sections, use `/sectionmaxxing` or `/goal continue the sectionmaxxing process till completion` and the
-[sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). `npm run sectionmaxxing -- --help`
-lists its resumable, production-read-only campaign commands. Legality is
-excluded; publishing replacements remains a separately approved operation.
+For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow the [citation workflow](docs/workflows/citations.md).
 
 ## Further Reading
 
 | Document | Description |
 |----------|-------------|
-| [AGENTS.md](AGENTS.md) | Current repo-specific agent guidance |
-| [CLAUDE.md](CLAUDE.md) | Claude-specific skill routing and model notes |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Install, run, verify, and pull request expectations |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture entrypoint and links to runtime appendices |
-| [`/docs/code`](/docs/code) | Visual codebase overview, served at `/docs/code` |
-| [`/docs/how`](/docs/how) | Visual walkthrough of how articles are made, served at `/docs/how` |
-| [CONTEXT.md](CONTEXT.md) | Domain language for the citation workflow |
+| [AGENTS.md](AGENTS.md) | Repo-specific guidance for automated contributors |
+| [docs/README.md](docs/README.md) | Index of every contributor document |
+| [docs/api.md](docs/api.md) | Public API and replication embed contract |
+| [docs/glossary.md](docs/glossary.md) | Domain language for citations, legality, review, replications, and hosts |
 | [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
-| [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md) | Local OpenChemLib ownership, provenance, rebuild, and update contract |
-| [docs/agents/citation-workbench.md](docs/agents/citation-workbench.md) | Maintained citation workflow router; OMP by default, external Claude workbench only on explicit request |
-| [docs/next-auth-contributor-guide.md](docs/next-auth-contributor-guide.md) | Next/Auth.js/Postgres contributor guide |
+| [docs/design/ui-kit.md](docs/design/ui-kit.md) | Shared UI catalog, rules, and ownership |
+| [docs/design/visual-style-guide.md](docs/design/visual-style-guide.md) | Brand and visual language |
 | [scripts/README.md](scripts/README.md) | Script catalog and examples |
-| [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |
-| [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md) | UI styling guidance |
+| [`/docs/code`](https://dose.wiki/docs/code) | Visual codebase overview on the live site |
+| [`/docs/how`](https://dose.wiki/docs/how) | Visual walkthrough of how articles are made |
 
 ---
 
-If project workflows, schema ownership, or editor/save paths change, update this file together with `AGENTS.md`, `CLAUDE.md`, and any affected script docs.
+If project workflows, schema ownership, or editor/save paths change, update this file together with `AGENTS.md`, `docs/README.md`, and any affected script docs.

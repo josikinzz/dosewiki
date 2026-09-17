@@ -1,0 +1,84 @@
+{
+  "slug": "dipt",
+  "title": "DiPT",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/dipt.md",
+  "archive_timestamp": "20160805080348",
+  "archive_date_utc": "2016-08-05T08:03:48Z",
+  "archive_url": "https://web.archive.org/web/20160805080348/https://psychonautwiki.org/wiki/DiPT",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160805080348/https://psychonautwiki.org/wiki/DiPT"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "There is much speculation as to the nature of DiPT's aural distortion. At lower dosages, it has been reported to have an effect similar to a flanging, or a phase shift. At medium and higher dosages, the effect of DiPT is typically a radical shift downward in perceived pitch. This shift tends to be nonlinear in that the shift downwards varies in relation to the initial pitch. This can produce bizarre sounds and render music disharmonious.\n\nThere has been an experiment involving subjects with perfect pitch where the goal was to determine whether the pitch difference is truly distortive or linear. The results indicated that there is no clear relationship between perceived pitch and actual pitch.\n\nAlthough recent unpublished research has examined the role of DiPT in hearing perception in rodents, it is not clear that the auditory effect is preserved in nonhuman species; this research indicates that DiPT does not produce effects similar to other tryptamine psychedelics such as DPT and 5-MeO-DMT in acoustic startle reflex paradigms. DiPT still remains widely unexplored.\n\nThese auditory effects of DiPT are common in their occurrence and exhibit a full range of effects which commonly includes:",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {},
+    "physical": {},
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160805080348/https://psychonautwiki.org/wiki/DiPT"
+    },
+    "is_stub": false,
+    "source_overview": "General effects: Although DiPT's effects are primarily auditory, some users have reported that at higher doses they noticed a lack of coordination or balance, stomach bloating, confusion, depersonalization and minor visual distortions. Aside from these, the most prevalent non-auditory effect is inner ear pressure (which has been painful in some instances such as when combined with MDMA. Unlike other psychedelics, the users' set and setting doesn't seem to influence what is experienced."
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Unmapped General effects heading prose preserved in subjective_effects.notes.overview with a label; inline effect names remain in that original sentence.",
+    "Auditory effects prose preserved in subjective_effects.sensory.auditory.note in source paragraph order.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order; Markdown bold formatting removed only as structural formatting.",
+    "No source Physical effects or Cognitive effects heading exists, so subjective_effects.physical and subjective_effects.cognitive are empty.",
+    "No source stub warning was present.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

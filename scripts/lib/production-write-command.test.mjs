@@ -39,7 +39,7 @@ describe("production Postgres write boundary", () => {
   });
 
   it("rejects an invalid explicit CLI target rather than using the valid environment", () => {
-    expect(() => command(["--target=https://legacy.convex.cloud"])).toThrow(/Postgres/);
+    expect(() => command(["--target=https://legacy.example.invalid"])).toThrow(/Postgres/);
     expect(() => command(["--target"])).toThrow(/--target/);
   });
 });

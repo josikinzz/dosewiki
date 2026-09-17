@@ -1,6 +1,6 @@
 /**
- * Ticket 16 (plus the cron half of 19) rehearsal: drive the Next route
- * handlers and publication cron against Postgres.
+ * Rehearsal: drive the Next route handlers and the publication cron
+ * against Postgres.
  *
  *   bun scripts/postgres/rehearse-http-surface.ts --target <isolated-local-url>
  *
@@ -42,7 +42,7 @@ import { guardTarget, resolveTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ORIGIN = "https://dose.wiki";
-const USER_AGENT = "dosewiki-rehearsal/ticket-16";
+const USER_AGENT = "dosewiki-rehearsal/http-surface";
 const LISTS = ["josiekins", "dosewiki", "effectindex", "mindstate"] as const;
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
@@ -107,9 +107,6 @@ async function main() {
   // Isolated credentials exercise the same intent checks as a configured deployment.
   process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "t16-intake-token";
   process.env.DATA_ADMIN_KEY = "t16-admin-key";
-  delete process.env.CONVEX_URL;
-  delete process.env.VITE_CONVEX_URL;
-  delete process.env.NEXT_PUBLIC_CONVEX_URL;
   const cronSecret = `t16-cron-${mintDocumentId()}`;
   process.env.CRON_SECRET = cronSecret;
   delete process.env.PUBLIC_CACHE_PUBLISH_TARGETS;
@@ -200,7 +197,7 @@ async function main() {
     const unconfigured = await cron(`Bearer ${cronSecret}`);
     expect("cron", "unset CRON_SECRET answers 503", unconfigured.status === 503);
     process.env.CRON_SECRET = cronSecret;
-    process.env.DATA_BACKEND = "convex";
+    process.env.DATA_BACKEND = "retired-backend";
     let retiredBackendRefused = false;
     try {
       await cron(`Bearer ${cronSecret}`);

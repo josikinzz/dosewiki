@@ -1,4 +1,4 @@
-import registry from "./localeRegistry.json" with { type: "json" };
+import registry from "../../content/i18n/localeRegistry.json" with { type: "json" };
 
 /**
  * Shared locale identity and presentation policy.

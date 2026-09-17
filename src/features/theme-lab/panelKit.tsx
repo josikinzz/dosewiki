@@ -22,7 +22,7 @@ import styles from "./ThemeLab.module.css";
  *
  * They live beside the panel rather than in the shared kit because they are one
  * feature's density recipes, not primitives with multiple consumers (see the
- * promotion criteria in docs/ui-system.md).
+ * promotion criteria in docs/design/ui-kit.md).
  */
 
 /**

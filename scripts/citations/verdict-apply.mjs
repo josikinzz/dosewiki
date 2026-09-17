@@ -3,7 +3,7 @@
  * Apply one validated citation-pi verdict draft to a single article, modeled
  * on scripts/legality/apply-draft.mjs and the workbench citation write path.
  *
- * Semantics (see .agents/skills/citation-pi/reference/verdict-contract.md):
+ * Semantics (see docs/workflows/citations.md, verdict contract):
  *   keep  → citation evidence row set `supported` with the verdict's quote
  *           and rationale; the marker is untouched.
  *   strip → the exact `[cite:<id>]` token is replaced with `[citation-needed]`

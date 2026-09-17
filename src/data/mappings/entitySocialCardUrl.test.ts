@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 
 const manifest = vi.hoisted(() => ({
   version: 1,
-  sourceDeployment: "glad-minnow-656",
   rendererVersions: {
     effects: "test",
     replications: "test",

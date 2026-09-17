@@ -6,9 +6,12 @@
  * adds them to source_citations, and deduplicates existing citations.
  *
  * Usage:
- *   node scripts/prepopulate-source-citations.mjs --dry-run     # Preview changes
- *   node scripts/prepopulate-source-citations.mjs               # Apply changes
- *   node scripts/prepopulate-source-citations.mjs --verbose     # Show details
+ *   node scripts/prepopulate/prepopulate-source-citations.mjs --input <local-substance-export.json> --dry-run
+ *   node scripts/prepopulate/prepopulate-source-citations.mjs --input <local-substance-export.json>
+ *   node scripts/prepopulate/prepopulate-source-citations.mjs --input <local-substance-export.json> --verbose
+ *
+ * The input is a local Postgres export (scripts/data-ops/export-data-to-json.mjs);
+ * it is never the tracked public/SubstanceIndex.json archive.
  */
 
 import fs from "fs";
@@ -25,8 +28,17 @@ import { formatStructuredCitationCompatibilityError } from "./source-citations-c
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
 
+// Parse CLI args
+const args = process.argv.slice(2);
+const dryRun = args.includes("--dry-run");
+const verbose = args.includes("--verbose");
+const inputIndex = args.indexOf("--input");
+if (inputIndex < 0 || !args[inputIndex + 1]) {
+  throw new Error("Pass --input <path> naming the local substance export to prepopulate.");
+}
+
 // Paths
-const articlesPath = path.join(repoRoot, "src/data/SubstanceIndex.json");
+const articlesPath = path.resolve(args[inputIndex + 1]);
 const articleSourcesDir = path.join(repoRoot, "src/data/article-sources");
 
 // Load articles
@@ -37,16 +49,12 @@ if (structuredCitationCompatibilityError) {
   process.exit(1);
 }
 
-// Parse CLI args
-const args = process.argv.slice(2);
-const dryRun = args.includes("--dry-run");
-const verbose = args.includes("--verbose");
 const runContext = createDataOpsRunContext({
   operation: "prepopulate source citations",
   intent: "local-prepopulate",
   sourceUrlKeys: [],
   targetUrlKeys: [],
-  localArtifacts: ["src/data/SubstanceIndex.json", "src/data/article-sources"],
+  localArtifacts: [path.relative(repoRoot, articlesPath), "src/data/article-sources"],
 });
 
 // Slugify function matching article-sources file naming
@@ -251,7 +259,7 @@ if (!dryRun) {
   assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
   const lineage = tryWriteArtifactLineageSidecar({
-    artifactPath: "src/data/SubstanceIndex.json",
+    artifactPath: articlesPath,
     rootDir: repoRoot,
     producer: "scripts/prepopulate/prepopulate-source-citations.mjs",
     sourceDeployment: "src/data/article-sources",

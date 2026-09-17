@@ -1,0 +1,239 @@
+{
+  "slug": "methallylescaline",
+  "title": "Methallylescaline",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/methallylescaline.md",
+  "archive_timestamp": "20160804041639",
+  "archive_date_utc": "2016-08-04T04:16:39Z",
+  "archive_url": "https://web.archive.org/web/20160804041639/https://psychonautwiki.org/wiki/Methallylescaline",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160804041639/https://psychonautwiki.org/wiki/Methallylescaline"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Acuity enhancement",
+                "description": ""
+              },
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, flowing, breathing and morphing)"
+              },
+              {
+                "name": "Tracers",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              },
+              {
+                "name": "Symmetrical texture repetition",
+                "description": ""
+              },
+              {
+                "name": "Colour shifting",
+                "description": ""
+              },
+              {
+                "name": "Scenery slicing",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Transformations",
+                "description": ""
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots)"
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Emotion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Novelty enhancement",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Analysis enhancement",
+            "description": ""
+          },
+          {
+            "name": "Personal bias suppression",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Ego death",
+            "description": ""
+          },
+          {
+            "name": "Thought loops",
+            "description": ""
+          },
+          {
+            "name": "Delusions",
+            "description": ""
+          },
+          {
+            "name": "Thought disorganization",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Stimulation",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": ""
+          },
+          {
+            "name": "Bodily control enhancement",
+            "description": ""
+          },
+          {
+            "name": "Pupil dilation",
+            "description": ""
+          },
+          {
+            "name": "Wakefulness",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160804041639/https://psychonautwiki.org/wiki/Methallylescaline"
+    },
+    "is_stub": true
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Generic source overview replaced with default public overview.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order, including Wakefulness because it appears under the source Physical effects heading.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order; nested Ego death is represented as the next effect after Memory suppression because the schema has no child effect field.",
+    "Visual Enhancements, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; empty Geometry heading retained with no effects.",
+    "Parenthetical details for Drifting and Internal hallucinations preserved as descriptions with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order."
+  ]
+}

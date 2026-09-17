@@ -3,7 +3,7 @@
  * canonical keys, display labels, icons, and alias resolution. Consumed by
  * the public article renderer (subjectiveEffectsShared.tsx) and the /dev
  * editor; the generation prompt's "Effect Vocabulary" section
- * (src/data/config/sectionPrompts/subjectiveEffects.md) mirrors the
+ * (content/prompts/sections/subjectiveEffects.md) mirrors the
  * canonical keys and should be updated alongside this file.
  *
  * Deliberately separate from src/data/effectCategoryDefinitions.ts, which

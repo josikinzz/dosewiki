@@ -16,10 +16,6 @@ import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
 
 // Files that must never skip: TEST-003 fixture-backed workflow tests plus the local fixture stub.
 export const SAFETY_LIST = [
-  "scripts/contributors/upload-replication-index-profile-avatars.test.ts",
-  "scripts/contributors/run-replication-index-profile-rollout.test.ts",
-  "scripts/replications/run-attribution-repair-rollout.test.mjs",
-  "scripts/replications/identity-social/projection.test.mjs",
   "scripts/citations/build-citation-author-repair-evidence-bundle.test.mjs",
 ];
 

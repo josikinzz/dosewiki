@@ -21,13 +21,13 @@
 // whole-field/section was dropped) and restores the evidence/reference/source
 // rows those markers need — nothing else in the draft is touched.
 
-import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { parsePath, normalizeFieldPath, sanitizeReference } from "./rebase-workbench-draft.mjs";
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 
 const MIN_HOST_LENGTH = 25;
 const SENTENCE_WITH_MARKERS = /([^.!?]*[.!?])((?:\s*\[cite:[^\]]+\])+)/g;
@@ -120,7 +120,7 @@ async function main() {
     process.exit(1);
   }
   const write = argv.includes("--write");
-  const workbenchRunDir = join(homedir(), ".codex", "dosewiki-citation-workbench", "runs", slug);
+  const workbenchRunDir = join(resolveCitationWorkbenchRoot(), "runs", slug);
   const originalPath = resolve(getFlagValue(argv, "--draft") ?? join(workbenchRunDir, "citation-draft.json"));
   const rebasedPath = resolve(getFlagValue(argv, "--rebased") ?? join(workbenchRunDir, "citation-draft.rebased.json"));
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { DosageCategoryGroup } from "@/data/builders/library";
-import manualIndex from "@/data/indexes/psychoactiveIndexManual.json";
+import manualIndex from "@data/substances/psychoactiveIndexManual.json";
 import { arrangeGroupsByLayout } from "@/features/article/components/sections/CategoryGrid";
 
 import { SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT } from "./substanceIndexAllLayout";

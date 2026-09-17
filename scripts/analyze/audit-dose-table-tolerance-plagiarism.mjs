@@ -176,7 +176,7 @@ function createPostgresClient(sourceUrl) {
 
 async function loadArticles({ dataSource, client, args }) {
   if (dataSource === "local") {
-    const filePath = path.resolve(repoRoot, args.articlesFile ?? "src/data/SubstanceIndex.json");
+    const filePath = path.resolve(repoRoot, args.articlesFile ?? "public/SubstanceIndex.json");
     return JSON.parse(readFileSync(filePath, "utf8"));
   }
 

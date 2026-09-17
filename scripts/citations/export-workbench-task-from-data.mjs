@@ -27,23 +27,23 @@ import {
   CITATION_EVIDENCE_RULES,
   SECOND_PASS_RESEARCH_INSTRUCTION,
 } from "./citation-evidence-policy.mjs";
-
-const DEFAULT_SUBSECTION_TRACKER =
-  "/Users/josie/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json";
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 
 function parseOptions(argv) {
+  const help = argv.includes("--help") || argv.includes("-h");
+  const workbenchDir = help ? null : resolveCitationWorkbenchRoot(getFlagValue(argv, "--workbench"));
   return {
     slug: getFlagValue(argv, "--slug") ?? "2c-b",
-    workbenchDir: getFlagValue(argv, "--workbench") ?? "/Users/josie/.codex/dosewiki-citation-workbench",
+    workbenchDir,
     psychonautWikiCacheDir: getFlagValue(argv, "--psychonautwiki-cache"),
     sections: getFlagValue(argv, "--sections"),
     trackerScope: argv.includes("--tracker-scope"),
-    trackerPath: getFlagValue(argv, "--tracker") ?? DEFAULT_SUBSECTION_TRACKER,
+    trackerPath: getFlagValue(argv, "--tracker") ?? (help ? null : resolve(workbenchDir, "trackers", "subsection-rollout.json")),
     secondPassPlan: getFlagValue(argv, "--second-pass-plan"),
     secondPassMaxWave: Number(getFlagValue(argv, "--second-pass-max-wave") ?? 3),
     overwrite: argv.includes("--overwrite"),
     dryRun: argv.includes("--dry-run"),
-    help: argv.includes("--help") || argv.includes("-h"),
+    help,
   };
 }
 
@@ -57,7 +57,7 @@ Usage:
 
 Options:
   --slug=<slug>          Article slug (default: 2c-b)
-  --workbench=<path>     External workbench path
+  --workbench=<path>     External workbench path (default: DOSEWIKI_CITATION_WORKBENCH, required)
   --psychonautwiki-cache=<path>
                          Optional PsychonautWiki reference cache directory
   --overwrite            Replace an existing inputs/<slug>-full.json

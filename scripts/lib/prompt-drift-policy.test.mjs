@@ -98,7 +98,7 @@ describe("prompt drift policy", () => {
     expect(() => collectLocalPromptInventory({
       rootDir: "/repo",
       readFile: (filePath) => {
-        if (filePath.endsWith("/generatorPrompt.md")) return "## Core Principles\nEvidence only.";
+        if (filePath.endsWith("/generator.md")) return "## Core Principles\nEvidence only.";
         throw new Error("Missing section contract");
       },
       onError: () => {},

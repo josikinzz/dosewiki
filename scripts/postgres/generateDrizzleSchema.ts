@@ -5,8 +5,7 @@
  * SQL columns, indexes, and document types are generated from the same validators.
  * Run `npm run generate:postgres-schema` after a document schema change.
  *
- * Mapping (recorded as migration decision D1 in
- * notes-and-plans/plans/convex-to-planetscale/decisions.md):
+ * Mapping (migration decision D1):
  * - Table and column identifiers are kept verbatim so import needs no renames.
  * - `_id` text primary key; `_creation_time` double precision (float64 ms).
  * - Top-level scalars become typed columns; string-literal unions become text.
@@ -14,8 +13,8 @@
  * - A field that is both optional and nullable becomes jsonb so an absent
  *   field (SQL NULL) stays distinct from an explicit null (JSON null).
  * - `v.id("x")` becomes text. Reference edges are exported as data instead of
- *   foreign keys; ticket 02 reconciliation verifies them before constraints
- *   are added.
+ *   foreign keys; the snapshot import reconciliation verifies them before
+ *   constraints are added.
  * - Every document index becomes a btree index with `_creation_time` appended,
  *   matching the runtime's trailing sort key. Dotted index fields index
  *   the jsonb path expression.

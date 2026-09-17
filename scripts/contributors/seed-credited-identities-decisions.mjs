@@ -1,9 +1,5 @@
 // Reviewed identity and link decisions used by the credited-identity import.
 import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
  * The reviewed corrections dataset.
@@ -11,22 +7,35 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
  * Deriving a display name from `replications.artist` and a link from
  * `replications.artist_url` is how this import started, and for most of the
  * corpus it is right. For a handful of names it is wrong in a way that would be
- * published: five stored spellings are corruptions of a real artist's real name,
+ * published: some stored spellings are corruptions of a real artist's real name,
  * and a long tail of stored URLs are dead, are traps that answer 200 while
  * belonging to someone else, or point at one artwork rather than at a person.
  *
- * Those decisions live in JSON rather than in this file so the reviewable
- * artifact is a list of claims with evidence attached, not a diff of code. The
- * script applies the ones marked `strong` and prints everything else.
+ * Those decisions are a JSON file of claims with evidence attached. It describes
+ * real people, so it is not committed to the repository: the run supplies it
+ * with `--corrections=<path>`. The script applies the entries marked `strong`
+ * and prints everything else.
+ *
+ * Shape: `{ nameCorrections, linkCorrections, blockedUrls, blockedHosts,
+ * ownerDecisions, checkedAndFoundWrong }`; see `buildCorrectionIndex` for what
+ * each list carries.
  */
-export const CORRECTIONS_PATH = path.join(
-  ROOT,
-  "src/data/config/contributorIdentityCorrections.json",
-);
-
-export function loadIdentityCorrections(filePath = CORRECTIONS_PATH) {
+export function loadIdentityCorrections(filePath) {
+  if (!filePath) {
+    throw new Error("Pass --corrections=<path> pointing at the reviewed identity corrections JSON.");
+  }
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
+
+/** No reviewed corrections: every name and link derives straight from the stored rows. */
+export const NO_CORRECTIONS = Object.freeze({
+  nameCorrections: [],
+  linkCorrections: [],
+  blockedUrls: [],
+  blockedHosts: [],
+  ownerDecisions: [],
+  checkedAndFoundWrong: [],
+});
 
 /** `sanitizeContributorLinks` keeps three; planning to more would silently drop the tail. */
 export const MAX_PROFILE_LINKS = 3;

@@ -200,9 +200,9 @@ export function extractClaimPairs(text) {
 }
 
 /**
- * Safety-sensitive claim classes per the campaign contract
- * (.agents/skills/citation-pi/reference/safety-claims.md): case-insensitive
- * stems; any harm_potential claim is sensitive by default.
+ * Safety-sensitive claim classes per the citation verdict contract in
+ * docs/workflows/citations.md: case-insensitive stems; any harm_potential
+ * claim is sensitive by default.
  */
 const SAFETY_SENSITIVE_PATTERNS = Object.freeze([
   /overdose/i,

@@ -3,8 +3,7 @@
   "buildCommand": "bun run build:vercel",
   "git": {
     "deploymentEnabled": {
-      "main": false,
-      "no-corpus-drain": false
+      "main": false
     }
   },
   "crons": [

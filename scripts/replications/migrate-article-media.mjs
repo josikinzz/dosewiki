@@ -5,16 +5,20 @@
  * 98 media assets were embedded in `subjectiveEffects` prose and
  * `effectIndexArticles` rather than stored as rows, so nothing credited them,
  * nothing tracked their rights, and nothing could withhold them. The curation
- * pass that reviewed them is `src/data/config/articleMediaCuration.json`, one
- * entry per asset with a role, an artist, an effect and a confidence.
+ * pass that reviewed them is a JSON dossier passed in with `--curation=<path>`,
+ * one entry per asset with a role, an artist, an effect and a confidence.
  *
  * ## What it will and will not migrate
  *
  * Only `confidence: "strong"` entries whose `role` is `replication` or
- * `figure`, plus the entries the owner has explicitly ruled on in
- * `src/data/config/articleMediaMigrationDecisions.json`. Everything `weak`,
- * `needs-owner` or `role: "unclear"` that the owner has not ruled on stays out
- * and is reported, never guessed at.
+ * `figure`, plus the entries the owner has explicitly ruled on in the decisions
+ * file passed in with `--decisions=<path>`. Everything `weak`, `needs-owner` or
+ * `role: "unclear"` that the owner has not ruled on stays out and is reported,
+ * never guessed at.
+ *
+ * Both files are editor review records about creator-retained media (owner
+ * rulings, per-asset evidence, and the storage ids they resolved to), so they
+ * are kept outside the repository and never defaulted here.
  *
  * ## The duplicate problem this exists to avoid
  *
@@ -59,11 +63,15 @@
  *
  * Dry run (default, needs no credential):
  *   node scripts/replications/migrate-article-media.mjs \
+ *     --curation=/path/to/article-media-curation.json \
+ *     --decisions=/path/to/article-media-migration-decisions.json \
  *     --inventory=/path/to/article-embedded-media-inventory.json \
  *     --uploads-dir=/path/to/recovered-media
  *
  * Apply:
  *   node scripts/replications/migrate-article-media.mjs \
+ *     --curation=/path/to/article-media-curation.json \
+ *     --decisions=/path/to/article-media-migration-decisions.json \
  *     --inventory=/path/to/article-embedded-media-inventory.json \
  *     --uploads-dir=/path/to/recovered-media \
  *     --write --confirm-write=migrate-article-embedded-media \
@@ -74,7 +82,6 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { uploadReplicationFile, replicationImportReceipts } from "./lib/r2-upload.mjs";
 import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -127,10 +134,14 @@ export {
 const OPERATION = "migrate-article-embedded-media";
 const CONFIRM_FLAG = "--confirm-media-migration";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const CURATION_PATH = path.join(ROOT, "src/data/config/articleMediaCuration.json");
-const DECISIONS_PATH = path.join(ROOT, "src/data/config/articleMediaMigrationDecisions.json");
-
+/** Read a reviewed JSON input named by a required flag. */
+function readRequiredJson(argv, flag, description) {
+  const filePath = getFlagValue(argv, flag);
+  if (!filePath) {
+    throw new Error(`Pass ${flag}=<path to ${description}>.`);
+  }
+  return JSON.parse(fs.readFileSync(path.resolve(filePath), "utf8"));
+}
 
 async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, client, decisions, uploadsDir }) {
   const facts = new Map();
@@ -143,7 +154,7 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
   const uuids = [
     ...new Set(
       assets
-        .map((asset) => inventoryById.get(asset.id)?.convex_storage_id)
+        .map((asset) => inventoryById.get(asset.id)?.storage_uuid)
         .filter(Boolean),
     ),
   ];
@@ -186,7 +197,7 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
       continue;
     }
 
-    const uuid = inventoryById.get(asset.id)?.convex_storage_id;
+    const uuid = inventoryById.get(asset.id)?.storage_uuid;
     if (!uuid) {
       facts.set(asset.id, { storageId: null, reachable: false, status: 0 });
       continue;
@@ -266,7 +277,7 @@ async function main() {
   const inventoryPath = getFlagValue(argv, "--inventory");
   if (!inventoryPath) {
     throw new Error(
-      "Pass --inventory=<path to article-embedded-media-inventory.json>; it carries each asset's storage id and host.",
+      "Pass --inventory=<path to article-embedded-media-inventory.json>; each asset row carries its `storage_uuid` and host.",
     );
   }
   const uploadsDir = getFlagValue(argv, "--uploads-dir");
@@ -278,8 +289,8 @@ async function main() {
     );
   }
 
-  const curation = JSON.parse(fs.readFileSync(CURATION_PATH, "utf8"));
-  const decisions = JSON.parse(fs.readFileSync(DECISIONS_PATH, "utf8"));
+  const curation = readRequiredJson(argv, "--curation", "the article media curation dossier");
+  const decisions = readRequiredJson(argv, "--decisions", "the article media migration decisions file");
   const inventory = JSON.parse(fs.readFileSync(path.resolve(inventoryPath), "utf8"));
   const inventoryById = new Map(inventory.assets.map((row) => [row.id, row]));
   const assetsById = new Map(curation.assets.map((asset) => [asset.id, asset]));

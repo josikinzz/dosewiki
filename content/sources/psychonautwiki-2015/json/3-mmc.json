@@ -1,0 +1,122 @@
+{
+  "slug": "3-mmc",
+  "title": "3-MMC",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/3-mmc.md",
+  "archive_timestamp": "20160804042911",
+  "archive_date_utc": "2016-08-04T04:29:11Z",
+  "archive_url": "https://web.archive.org/web/20160804042911/https://psychonautwiki.org/wiki/3-MMC",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160804042911/https://psychonautwiki.org/wiki/3-MMC"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Auditory enhancement",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Euphoria",
+            "description": ""
+          },
+          {
+            "name": "Empathy, love and sociability enhancement",
+            "description": ""
+          },
+          {
+            "name": "Motivation enhancement",
+            "description": ""
+          },
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Pupil dilation",
+            "description": ""
+          },
+          {
+            "name": "Perception of decreased weight",
+            "description": ""
+          },
+          {
+            "name": "Increased perspiration",
+            "description": ""
+          },
+          {
+            "name": "Teeth grinding",
+            "description": "This component can be considered to be less intense when compared with that of MDMA."
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160804042911/https://psychonautwiki.org/wiki/3-MMC"
+    },
+    "is_stub": true
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Generic source overview replaced with default public overview.",
+    "Physical effects mapped to physical.General in source order.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "Auditory effects mapped to sensory.auditory.General in source order.",
+    "Markdown bold and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

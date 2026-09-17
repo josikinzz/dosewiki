@@ -177,7 +177,7 @@ export function KitCatalog() {
                 <h1 className="text-2xl font-semibold text-[var(--theme-text-primary)]">UI Kit</h1>
                 <p className="max-w-[70ch] text-sm text-[var(--theme-text-secondary)]">
                   The shared component catalog. Every primitive renders live here — use these before building new
-                  UI. Ownership rules live in <code>docs/ui-kit.md</code>.
+                  UI. Ownership rules live in <code>docs/design/ui-kit.md</code>.
                 </p>
                 <p className="max-w-[70ch] text-sm text-[var(--theme-text-muted)]">
                   The appearance controls dress the whole document, so every story below is the parity harness for

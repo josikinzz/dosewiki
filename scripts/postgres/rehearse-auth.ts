@@ -1,5 +1,5 @@
 /**
- * Ticket 05 rehearsal: sign-in and account controls on Postgres.
+ * Rehearsal: sign-in and account controls on Postgres.
  *
  * Runs the real `auth.ts` credentials provider and JWT callback, the real
  * `lib/auth/memberships.ts` adapter, and the real route write client
@@ -132,7 +132,7 @@ async function main() {
       apiKey: adminKey,
       username: admin.username,
       email: admin.email,
-      name: "Ticket 05 admin",
+      name: "Rehearsal admin",
       passwordHash: adminHash,
     });
     expect("sign-in", "scratch admin created through memberships:setAdminAccount", seeded.created === true, seeded);
@@ -196,7 +196,7 @@ async function main() {
     const now = new Date().toISOString();
     await insertDocument(pool, "memberships", { email: viewerEmail, role: "viewer", createdAt: now, updatedAt: now });
     const entry = (actorEmail: string, suffix: string) => write.mutation(api.changelog.addEntry, {
-      apiKey: editorToken, actorEmail, entryId: `${run}-${suffix}`, createdAt: now, message: "ticket 05 floor probe", markdown: "probe", submittedBy: null, articles: [],
+      apiKey: editorToken, actorEmail, entryId: `${run}-${suffix}`, createdAt: now, message: "rehearsal floor probe", markdown: "probe", submittedBy: null, articles: [],
     });
     const asViewer = await attempt(() => entry(viewerEmail, "viewer"));
     const asEditor = await attempt(() => entry(editor.email, "editor"));

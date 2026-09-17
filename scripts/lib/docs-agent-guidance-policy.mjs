@@ -1,24 +1,20 @@
-import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const currentGuidanceDocs = [
   "README.md",
   "ARCHITECTURE.md",
   "AGENTS.md",
-  "CLAUDE.md",
+  "CONTRIBUTING.md",
+  "docs/README.md",
   "docs/architecture/project-layout.md",
   "docs/architecture/runtime-and-data.md",
   "docs/architecture/operations-and-direction.md",
-  "notes-and-plans/index.md",
-  "notes-and-plans/guides/dosewiki-visual-style-guide.md",
-  "notes-and-plans/guides/font-swap-howto.md",
+  "docs/design/visual-style-guide.md",
+  "docs/design/font-swap-howto.md",
 ];
 
-const retiredRuntimeGuidanceFiles = [
-  "notes-and-plans/guides/dosewiki-site-readme.md",
-];
-
-const markdownExtensions = new Set([".md", ".mdx"]);
+const agentGuidanceDocs = ["AGENTS.md", "CLAUDE.md"];
 
 const retiredRuntimeCurrentDocPatterns = [
   { label: "retired Vite runtime", pattern: /\b(?:Vite dev server|React \+ Vite|Client-side React application delivered by Vite)\b/i },
@@ -38,30 +34,6 @@ const liveLocalJsonEditPatterns = [
 function readIfExists(repoRoot, relativePath) {
   const absolutePath = resolve(repoRoot, relativePath);
   return existsSync(absolutePath) ? readFileSync(absolutePath, "utf8") : null;
-}
-
-function walkMarkdown(repoRoot, relativeDir, files = []) {
-  const absoluteDir = resolve(repoRoot, relativeDir);
-  if (!existsSync(absoluteDir)) {
-    return files;
-  }
-
-  for (const entry of readdirSync(absoluteDir)) {
-    const relativePath = join(relativeDir, entry);
-    const absolutePath = resolve(repoRoot, relativePath);
-    const stats = lstatSync(absolutePath);
-
-    if (stats.isDirectory()) {
-      walkMarkdown(repoRoot, relativePath, files);
-      continue;
-    }
-
-    if (markdownExtensions.has(extname(entry))) {
-      files.push(relativePath);
-    }
-  }
-
-  return files.sort();
 }
 
 function lineNumberFor(content, index) {
@@ -119,39 +91,16 @@ export function validateCurrentGuidanceAvoidsRetiredRuntime(repoRoot, docPaths =
   return failures;
 }
 
-export function validateRetiredRuntimeGuidanceIsTombstoned(repoRoot, docPaths = retiredRuntimeGuidanceFiles) {
-  const failures = [];
-
-  for (const docPath of docPaths) {
-    const content = readIfExists(repoRoot, docPath);
-    if (content === null) {
-      continue;
-    }
-
-    const firstLines = content.split("\n").slice(0, 12).join("\n");
-    if (!/retired|tombstone|not current app/i.test(firstLines)) {
-      failures.push(`${docPath}: retained retired runtime guidance needs a top-of-file tombstone`);
-    }
-  }
-
-  return failures;
-}
-
 export function validateRootHasNoLooseSkillFiles(repoRoot) {
   return readdirSync(repoRoot)
     .filter((entry) => /^SKILL\b.*\.md$/i.test(entry))
-    .map((entry) => `${entry}: root skill files are ambiguous; move active skills under .claude/skills or retire them`);
+    .map((entry) => `${entry}: root skill files are ambiguous; agent skills stay in private tooling directories outside the tree`);
 }
 
 export function validateAgentGuidanceAvoidsLiveLocalJsonEdits(repoRoot) {
   const failures = [];
-  const agentFiles = [
-    ...walkMarkdown(repoRoot, ".agents/skills"),
-    ...walkMarkdown(repoRoot, ".claude"),
-    ...walkMarkdown(repoRoot, ".cursor"),
-  ];
 
-  for (const docPath of agentFiles) {
+  for (const docPath of agentGuidanceDocs) {
     const content = readIfExists(repoRoot, docPath);
     if (content === null) {
       continue;
@@ -170,20 +119,4 @@ export function validateAgentGuidanceAvoidsLiveLocalJsonEdits(repoRoot) {
   }
 
   return failures.sort();
-}
-
-export function validateAgentSkillInventory(repoRoot) {
-  const inventoryPath = "docs/agents/skill-packs.md";
-  const content = readIfExists(repoRoot, inventoryPath);
-  if (content === null) {
-    return [`${inventoryPath}: missing repository skill inventory`];
-  }
-
-  const skillFiles = walkMarkdown(repoRoot, ".agents/skills")
-    .filter((docPath) => basename(docPath) === "SKILL.md");
-
-  return skillFiles
-    .filter((docPath) => !content.includes(dirname(docPath)))
-    .map((docPath) => `${inventoryPath}: missing classification for ${dirname(docPath)}`)
-    .sort();
 }

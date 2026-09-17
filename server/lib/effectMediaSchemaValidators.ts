@@ -199,7 +199,7 @@ export const replication = v.object({
   preview_r2_key: v.optional(v.string()),
   motion_r2_key: v.optional(v.string()),
   motion_poster_r2_key: v.optional(v.string()),
-  url: v.optional(v.string()),         // Direct URL (including historical Convex storage or CDN)
+  url: v.optional(v.string()),         // Direct URL (including historical storage or CDN)
   thumbnail_url: v.optional(v.string()), // Direct thumbnail URL (for videos)
   width: v.optional(v.number()),       // For responsive display
   height: v.optional(v.number()),

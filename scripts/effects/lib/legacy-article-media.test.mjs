@@ -25,7 +25,7 @@ describe("legacy article media", () => {
       },
       `before [captioned-image src="${r2}missing.jpg" title="Missing" /] after`,
     ];
-    const replacements = new Map([["alicepng", "https://prod.convex.cloud/api/storage/alice"]]);
+    const replacements = new Map([["alicepng", "https://media.example.invalid/api/storage/alice"]]);
 
     expect([...collectLegacyArticleMediaKeys(value)].sort()).toEqual([
       "alicepng",
@@ -35,7 +35,7 @@ describe("legacy article media", () => {
       {
         name: "captioned-image",
         properties: {
-          src: "https://prod.convex.cloud/api/storage/alice",
+          src: "https://media.example.invalid/api/storage/alice",
           title: "Alice",
         },
       },

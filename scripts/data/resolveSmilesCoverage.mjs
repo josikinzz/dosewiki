@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Resolve a SMILES string for every substance in SubstanceIndex.json using all
+ * Resolve a SMILES string for every substance in public/SubstanceIndex.json using all
  * available local sources, in priority order:
  *   1. identification.smiles (inline, authored)
  *   2. titleIupacSmiles.json  (matched by title / common_name / alternative names)
  *   3. iupacSmilesMap.json     (matched by identification.iupac_name)
  *
  * Emits:
- *   notes-and-plans/reports/smiles-coverage.json   (full resolution per substance)
- *   notes-and-plans/reports/smiles-gaps.json        (substances still missing SMILES)
+ *   data/chemistry/smiles-coverage.json   (full resolution per substance)
+ *   data/chemistry/smiles-gaps.json        (substances still missing SMILES)
  */
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
@@ -21,14 +21,14 @@ const read = async (p) => JSON.parse(await readFile(path.join(ROOT, p), 'utf8'))
 
 const norm = (s) => (typeof s === 'string' ? s.toLowerCase().trim() : '');
 
-const substances = await read('src/data/SubstanceIndex.json');
-const titleMapRaw = await read('src/data/mappings/titleIupacSmiles.json');
-const iupacMap = await read('src/data/mappings/iupacSmilesMap.json');
+const substances = await read('public/SubstanceIndex.json');
+const titleMapRaw = await read('data/chemistry/titleIupacSmiles.json');
+const iupacMap = await read('data/chemistry/iupacSmilesMap.json');
 let generated = { entries: {} };
 try {
-  generated = await read('src/data/mappings/generatedSmiles.json');
+  generated = await read('data/chemistry/generatedSmiles.json');
 } catch {
-  // generatedSmiles.json is optional (produced by the gap-fill subagents)
+  // generatedSmiles.json is optional (produced by the gap-fill batches)
 }
 
 // Build title -> smiles index from titleIupacSmiles.json
@@ -103,11 +103,11 @@ const bySource = resolution.reduce((acc, r) => {
 }, {});
 
 await writeFile(
-  path.join(ROOT, 'notes-and-plans/reports/smiles-coverage.json'),
+  path.join(ROOT, 'data/chemistry/smiles-coverage.json'),
   JSON.stringify(resolution, null, 2),
 );
 await writeFile(
-  path.join(ROOT, 'notes-and-plans/reports/smiles-gaps.json'),
+  path.join(ROOT, 'data/chemistry/smiles-gaps.json'),
   JSON.stringify(gaps, null, 2),
 );
 
@@ -115,4 +115,4 @@ console.log(`Total substances:   ${substances.length}`);
 console.log(`With SMILES:        ${withSmiles}`);
 console.log(`Missing SMILES:     ${gaps.length}`);
 console.log('By source:', JSON.stringify(bySource));
-console.log('Wrote notes-and-plans/reports/smiles-coverage.json and smiles-gaps.json');
+console.log('Wrote data/chemistry/smiles-coverage.json and smiles-gaps.json');

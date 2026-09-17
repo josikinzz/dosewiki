@@ -58,7 +58,7 @@ Book text.<ref>{{cite book|title=Reference Book|isbn=9780140328721|publisher=Exa
     ]);
   });
 
-  it("builds a deliberate pharmacology packet with quote corpus, matcher output, and allowed references", async () => {
+  it("builds a deliberate pharmacology packet with quote corpus and allowed references", async () => {
     const article = {
       slug: "2c-b",
       title: "2C-B",
@@ -97,34 +97,6 @@ Book text.<ref>{{cite book|title=Reference Book|isbn=9780140328721|publisher=Exa
         },
       },
       fetchImpl: null,
-      parsedSourceSubstance: {
-        dosage: [
-          {
-            route: "Oral",
-            source: "erowid",
-            ranges: {
-              threshold: { min: 2, max: 5, unit: "mg" },
-              light: { min: 5, max: 15, unit: "mg" },
-              common: { min: 15, max: 25, unit: "mg" },
-              strong: { min: 25, max: 50, unit: "mg" },
-            },
-          },
-        ],
-        duration: [
-          {
-            route: "Oral",
-            source: "erowid",
-            stages: {
-              total: { min: 4, max: 8, unit: "hours" },
-              onset: { min: 45, max: 75, unit: "minutes" },
-              comeUp: { min: 15, max: 30, unit: "minutes" },
-              peak: { min: 2, max: 4, unit: "hours" },
-              offset: { min: 1, max: 2, unit: "hours" },
-              afterEffects: { min: 2, max: 4, unit: "hours" },
-            },
-          },
-        ],
-      },
     });
 
     expect(sourcePacket.quoteCorpus).toEqual([

@@ -1,5 +1,5 @@
 /**
- * Build `src/i18n/messages/<locale>.json` from the English literals in the app.
+ * Build `content/i18n/messages/<locale>.json` from the English literals in the app.
  *
  * Scans `src/` for `t("...")`, `t('...')`, `t(\`...\`)` (no `${}`) and
  * `msg("...")` calls, keeps every catalog entry whose key is still in the
@@ -32,6 +32,7 @@ import { Glob } from "bun";
 
 import { splitAboutMarkdown } from "../../src/data/content/aboutSections";
 import { DRUG_CLASS_CONTENT } from "../../src/data/drugClassContent";
+import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import { readGlossaryRows } from "../../lib/translation/glossary";
 import * as live from "../../lib/translation/liveTranslation";
 import { planBatches, translateBatchWithRetries, type WorkUnit } from "./engine.mjs";
@@ -71,7 +72,7 @@ const { values } = parseArgs({
 });
 
 const localeCode = values.locale as string;
-const catalogPath = path.join(repoRoot, "src/i18n/messages", `${localeCode}.json`);
+const catalogPath = path.join(repoRoot, "content/i18n/messages", `${localeCode}.json`);
 
 /** `t("..")`, `t('..')`, `` t(`..`) `` without interpolation, and the `msg()` marker. Handles `\"` escapes. */
 const CALL = /\b(?:t|msg)\(\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|`((?:[^`\\$]|\\.)*)`)/g;
@@ -103,7 +104,7 @@ async function collectKeys(): Promise<Map<string, Set<string>>> {
  */
 async function loadIndexLabelKeys(): Promise<Set<string>> {
   const out = new Set<string>();
-  const file = path.join(repoRoot, "src/data/indexes/psychoactiveIndexManual.json");
+  const file = path.join(repoRoot, "data/substances/psychoactiveIndexManual.json");
   if (!existsSync(file)) return out;
   const document = JSON.parse(await readFile(file, "utf8")) as {
     categories?: Array<{
@@ -127,7 +128,7 @@ async function loadIndexLabelKeys(): Promise<Set<string>> {
 /** Chemical-class labels, aliases, and descriptive prose rendered through `t()`. */
 async function loadChemicalClassKeys(): Promise<Set<string>> {
   const out = new Set<string>();
-  const file = path.join(repoRoot, "src/data/indexes/chemicalIndexManual.json");
+  const file = path.join(repoRoot, "data/substances/chemicalIndexManual.json");
   if (!existsSync(file)) return out;
   const document = JSON.parse(await readFile(file, "utf8")) as {
     classes?: Array<{ label?: string; aliases?: string[]; description?: string }>;
@@ -160,6 +161,30 @@ function loadDrugClassContentKeys(): Set<string> {
         if (text.trim()) out.add(text.trim());
       }
     }
+  }
+  return out;
+}
+
+/**
+ * Summary-page prose rendered through `t()`. The definitions used to carry
+ * `msg()` markers in source; now they are JSON, so the same fields are walked
+ * here. Mirror `PsychoactiveSummaryPage`'s `t()` calls when adding a field.
+ */
+function loadPsychoactiveSummaryKeys(): Set<string> {
+  const out = new Set<string>();
+  const add = (text: string) => {
+    if (text.trim()) out.add(text);
+  };
+  for (const definition of PSYCHOACTIVE_SUMMARY_DEFINITIONS) {
+    add(definition.title);
+    add(definition.metadataTitle);
+    add(definition.metadataDescription);
+    for (const paragraph of definition.intro) add(paragraph.html);
+    for (const section of definition.sections) {
+      add(section.title);
+      add(section.definitionHtml);
+    }
+    for (const link of definition.seeAlso) add(link.label);
   }
   return out;
 }
@@ -211,7 +236,7 @@ async function loadWarningBannerKeys(): Promise<Set<string>> {
 /** Canonical English values rendered by substance classification badges. */
 async function loadSubstanceClassificationKeys(): Promise<Set<string>> {
   const out = new Set<string>();
-  const file = path.join(repoRoot, "src/data/SubstanceIndex.json");
+  const file = path.join(repoRoot, "public/SubstanceIndex.json");
   if (!existsSync(file)) return out;
   const documents = JSON.parse(await readFile(file, "utf8")) as Array<{
     classification?: {
@@ -268,8 +293,8 @@ async function loadAboutSectionKeys(): Promise<Set<string>> {
     return existsSync(full) ? readFile(full, "utf8") : "";
   };
   addDocument(
-    await readSeed("src/data/content/aboutContent.md"),
-    await readSeed("src/data/content/aboutSubtitle.md"),
+    await readSeed("content/about/about.md"),
+    await readSeed("content/about/subtitle.md"),
   );
   // The editor-managed About document drifts from the checked-in seed, and
   // the locale route looks each live section up verbatim, so the live text
@@ -329,7 +354,7 @@ async function loadCopyKeys(): Promise<Set<string>> {
       if (Array.isArray(items)) for (const item of items) if (typeof item === "string" && item.trim()) out.add(item);
     }
   };
-  add(JSON.parse(await readFile(path.join(repoRoot, "src/data/content/copyBlocks.json"), "utf8")));
+  add(JSON.parse(await readFile(path.join(repoRoot, "content/copy-blocks/copyBlocks.json"), "utf8")));
   if (values["live-copy"]) {
     const { getPublicDataReadAdapter } = await import("../../lib/data/publicData.reads");
     add(await getPublicDataReadAdapter().getPublicCopyBlocks());
@@ -350,6 +375,9 @@ async function main() {
   }
   for (const text of loadDrugClassContentKeys()) {
     if (!keys.has(text)) keys.set(text, new Set(["drugClassContent"]));
+  }
+  for (const text of loadPsychoactiveSummaryKeys()) {
+    if (!keys.has(text)) keys.set(text, new Set(["psychoactiveSummaries"]));
   }
   for (const text of await loadWarningBannerKeys()) {
     if (!keys.has(text)) keys.set(text, new Set(["warningBanners"]));

@@ -3,16 +3,17 @@
  * Update Drug Users Bible citations with proper URLs
  * - 7 substances get their specific sample page URLs
  * - All others get the Internet Archive link
+ *
+ * Usage: node scripts/update-drugusersbible-urls.mjs --input <local-substance-export.json>
  */
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
-
-const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
+const inputIndex = process.argv.indexOf("--input");
+if (inputIndex < 0 || !process.argv[inputIndex + 1]) {
+  throw new Error("Pass --input <path> naming the local substance export to update.");
+}
+const articlesPath = path.resolve(process.argv[inputIndex + 1]);
 const articles = JSON.parse(fs.readFileSync(articlesPath, "utf-8"));
 
 // Specific sample page URLs

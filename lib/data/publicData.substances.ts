@@ -53,7 +53,7 @@ export const getPublicCoverageSubstances = cache(async (): Promise<CoverageRow[]
 });
 
 /**
- * The complete substance corpus in the committed `SubstanceIndex.json` record
+ * The complete substance corpus in the archival `SubstanceIndex.json` record
  * shape, for the public open-data download. The composition is request-deduped;
  * its bounded adapter pages persist across requests and process restarts.
  */

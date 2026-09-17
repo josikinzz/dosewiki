@@ -9,7 +9,7 @@
  * the contrast that matters when rendering it. It is part of the prompt, so
  * it is part of the prompt digest (`promptVersionFor` in liveTranslation.ts):
  * changing one marks the segments that mention its term stale, exactly as a
- * rendering edit does. Seeded from `scripts/translation/glossary/glosses/`
+ * rendering edit does. Seeded from `data/i18n/glossary/glosses/`
  * by `load-glosses.ts`; published on the public /glossary page.
  */
 import "server-only";

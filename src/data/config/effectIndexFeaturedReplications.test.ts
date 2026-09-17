@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import featuredReplications from "./effectIndexFeaturedReplications.json";
-import replicationSlugAliases from "./replicationSlugAliases.json";
+import featuredReplications from "@data/effects/effectIndexFeaturedReplications.json";
+import replicationSlugAliases from "@data/effects/replicationSlugAliases.json";
 
 /**
  * The featured list names replication slugs, and slugs move.

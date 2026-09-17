@@ -1,6 +1,6 @@
 import "server-only";
 
-import zhHans from "./messages/zh-Hans.json";
+import zhHans from "@content/i18n/messages/zh-Hans.json";
 import { formatMessage, type MessageValues, type UiLocale } from "./messages";
 
 /** Server callers keep the complete catalog outside the shared client helpers. */

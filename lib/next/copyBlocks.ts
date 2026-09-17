@@ -25,7 +25,7 @@ import {
  * edit public immediately by revalidating that one tag.
  *
  * Resolution is always defaulted: `copy.get(key)` falls back to the checked-in
- * definition in `src/data/content/copyBlocks.json` whenever Postgres holds no row
+ * definition in `content/copy-blocks/copyBlocks.json` whenever Postgres holds no row
  * for the key. That makes an un-seeded (or un-deployed) environment render
  * exactly the prose the pages hardcoded, and makes deleting a block a revert
  * rather than a blank space.

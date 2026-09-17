@@ -186,7 +186,7 @@ export const ARTICLE_SECTION_CATALOG = [
       sectionKey: "identification",
       label: "Identification & Classification",
       description: "Chemical names, SMILES, CAS numbers, and classification tags",
-      seedPath: "src/data/config/sectionPrompts/identification.md",
+      seedPath: "content/prompts/sections/identification.md",
       sourceMaterial: "none",
       editorVisible: true,
     },
@@ -237,7 +237,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "summary",
       description: "Brief overview paragraph introducing the substance",
-      seedPath: "src/data/config/sectionPrompts/summary.md",
+      seedPath: "content/prompts/sections/summary.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -263,7 +263,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "dosage_duration",
       description: "Dose ranges by route and duration timelines",
-      seedPath: "src/data/config/sectionPrompts/dosageDuration.md",
+      seedPath: "content/prompts/sections/dosageDuration.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -330,7 +330,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "subjective_effects",
       description: "Sensory, cognitive, and physical effects",
-      seedPath: "src/data/config/sectionPrompts/subjectiveEffects.md",
+      seedPath: "content/prompts/sections/subjectiveEffects.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -396,7 +396,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "pharmacology",
       description: "Mechanism of action, receptor binding, metabolism",
-      seedPath: "src/data/config/sectionPrompts/pharmacology.md",
+      seedPath: "content/prompts/sections/pharmacology.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -445,7 +445,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "interactions",
       description: "Dangerous, unsafe, and caution drug combinations",
-      seedPath: "src/data/config/sectionPrompts/interactions.md",
+      seedPath: "content/prompts/sections/interactions.md",
       sourceMaterial: "none",
       editorVisible: true,
     },
@@ -490,7 +490,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "tolerance",
       description: "Tolerance development and cross-tolerance",
-      seedPath: "src/data/config/sectionPrompts/tolerance.md",
+      seedPath: "content/prompts/sections/tolerance.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -533,7 +533,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "harm_potential",
       description: "Addiction, toxicity, and health risks",
-      seedPath: "src/data/config/sectionPrompts/harmPotential.md",
+      seedPath: "content/prompts/sections/harmPotential.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -591,7 +591,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "history_culture",
       description: "Discovery, medical history, cultural significance, notable figures",
-      seedPath: "src/data/config/sectionPrompts/historyCulture.md",
+      seedPath: "content/prompts/sections/historyCulture.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },
@@ -640,7 +640,7 @@ export const ARTICLE_SECTION_CATALOG = [
     prompt: {
       sectionKey: "legality",
       description: "International and country-specific legal status",
-      seedPath: "src/data/config/sectionPrompts/legality.md",
+      seedPath: "content/prompts/sections/legality.md",
       sourceMaterial: "extracted",
       editorVisible: true,
     },

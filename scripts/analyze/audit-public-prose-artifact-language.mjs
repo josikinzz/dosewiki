@@ -102,7 +102,7 @@ function parseArgs(argv) {
   }
 
   if (options.files.length === 0 && !options.sourceUrl && !options.postgres) {
-    options.files.push("src/data/SubstanceIndex.json");
+    options.files.push("public/SubstanceIndex.json");
   }
 
   if (!["text", "json"].includes(options.format)) {

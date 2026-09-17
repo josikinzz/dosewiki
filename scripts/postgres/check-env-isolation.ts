@@ -1,5 +1,5 @@
 /**
- * Ticket 19: a preview-shaped environment (VERCEL_ENV=preview) must never
+ * A preview-shaped environment (VERCEL_ENV=preview) must never
  * resolve a production writer through an implicit target or a retired backend.
  *
  *   bun scripts/postgres/check-env-isolation.ts
@@ -13,8 +13,8 @@
  *
  * Privileged writes require --target or TARGET_POSTGRES_URL. App read URLs never
  * select a write target. Remote access additionally requires --allow-remote and
- * POSTGRES_IMPORT_CONFIRM for the exact hostname. Legacy Convex selectors never
- * select a normal backend, even when paired with a valid write ceremony.
+ * POSTGRES_IMPORT_CONFIRM for the exact hostname. Retired backend selectors
+ * never select a normal backend, even when paired with a valid write ceremony.
  */
 
 import fs from "node:fs";
@@ -63,9 +63,9 @@ function allows(backend: Check["backend"], check: string, run: () => unknown): v
 const legacyOnlyEnv: NodeJS.ProcessEnv = {
   VERCEL_ENV: "preview",
   NODE_ENV: "production",
-  CONVEX_URL: RETIRED_SOURCE,
-  VITE_CONVEX_URL: RETIRED_SOURCE,
-  NEXT_PUBLIC_CONVEX_URL: RETIRED_SOURCE,
+  RETIRED_BACKEND_URL: RETIRED_SOURCE,
+  VITE_RETIRED_BACKEND_URL: RETIRED_SOURCE,
+  NEXT_PUBLIC_RETIRED_BACKEND_URL: RETIRED_SOURCE,
   DATA_ADMIN_KEY: "fixture-admin-key",
 };
 
@@ -88,9 +88,9 @@ refuses("postgres", "data operations refuse missing backend even with legacy sel
   assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: postgresCeremony, env: legacyOnlyEnv, loadsEnvLocal: false, requiresExecute: true }));
 }, /DATA_BACKEND/);
 
-for (const backend of [undefined, "convex", "postgress"]) {
+for (const backend of [undefined, "retired-backend", "postgress"]) {
   refuses("postgres", `client refuses backend ${String(backend)} without opening a connection`, () => {
-    createDataClient({ argv: [], env: { ...legacyOnlyEnv, DATA_BACKEND: backend, TARGET_CONVEX_URL: RETIRED_SOURCE } });
+    createDataClient({ argv: [], env: { ...legacyOnlyEnv, DATA_BACKEND: backend, TARGET_RETIRED_BACKEND_URL: RETIRED_SOURCE } });
   }, /DATA_BACKEND/);
 }
 

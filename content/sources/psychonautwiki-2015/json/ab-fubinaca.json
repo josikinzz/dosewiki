@@ -1,0 +1,154 @@
+{
+  "slug": "ab-fubinaca",
+  "title": "AB-FUBINACA",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/ab-fubinaca.md",
+  "archive_timestamp": "20150921134800",
+  "archive_date_utc": "2015-09-21T13:48:00Z",
+  "archive_url": "https://web.archive.org/web/20150921134800/https://psychonautwiki.org/wiki/AB-FUBINACA",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+    "url": "https://web.archive.org/web/20150921134800/https://psychonautwiki.org/wiki/AB-FUBINACA"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Current mind state enhancement",
+            "description": "The most prominent cognitive component of cannabinoids is the way in which they enhance the emotions one is already feeling proportional to dose. This can result in euphoria, extreme laughter, and increased immersion within tasks and activities, or it can result in anxiety and paranoia depending on the user's current mind state."
+          },
+          {
+            "name": "Anxiety",
+            "description": ""
+          },
+          {
+            "name": "Paranoia",
+            "description": "All cannabinoids are capable of inducing paranoia at high doses or with chronic administration."
+          },
+          {
+            "name": "Thought connectivity",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Dream suppression",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "The body high of AB-FUBINACA may be described as a warm, soft, pleasurable, all-encompassing tingling sensation that spreads over the body after initial ingestion. It maintains a consistent presence that quickly rises with the onset and hits its limit once the peak has been reached before immediately dissipating. At high doses, this can become uncomfortably intense."
+          },
+          {
+            "name": "Sedation",
+            "description": "Generally, the effects on the user's energy levels are primarily sedating. This encourages one to relax, and (at higher doses) fall asleep. This can be suppressed by simply forcing oneself to engage in physical activities."
+          },
+          {
+            "name": "Motor control loss",
+            "description": "This substance causes a partial to moderate suppression of motor control which intensifies proportional to dose but rarely results in a complete inability to walk and perform basic movements."
+          },
+          {
+            "name": "Appetite enhancement",
+            "description": "As with many other cannabinoids, AB-FUBINACA causes an increase in appetite, known colloquially as \"the munchies\" in popular American and United Kingdom culture. Clinical studies and survey data have found that cannabis increases food enjoyment and interest in food. This is thought to be due to the way in which endocannabinoids in the hypothalamus activate cannabinoid receptors that are responsible for maintaining food intake."
+          },
+          {
+            "name": "Changes in gravity",
+            "description": "AB-FUBINACA can cause vertigo with which the environment appears to be spinning or oscillating. At moderate doses, it can spontaneously induce the sensation of falling, which can be overwhelming and uncomfortable."
+          },
+          {
+            "name": "Perception of increased weight",
+            "description": ""
+          },
+          {
+            "name": "Perception of decreased weight",
+            "description": ""
+          },
+          {
+            "name": "Dehydration",
+            "description": "This is known colloquially as \"cotton mouth\" in popular American and United Kingdom culture."
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+      "url": "https://web.archive.org/web/20150921134800/https://psychonautwiki.org/wiki/AB-FUBINACA"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order.",
+    "The source bullet 'Perception of increased weight or Perception of decreased weight' is represented as two blank-description effect entries to preserve both effect names.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Auditory effects bullet preserved in subjective_effects.sensory.auditory.General.",
+    "No source stub warning was present."
+  ]
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Project-local Postgres cluster for migration rehearsal (ticket 02).
+ * Project-local Postgres cluster for migration rehearsal.
  *
  *   node scripts/postgres/local-db.mjs init     # initdb into .postgres/ and create the dosewiki database
  *   node scripts/postgres/local-db.mjs start    # pg_ctl start on POSTGRES_LOCAL_PORT (default 5432)

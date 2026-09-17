@@ -2,8 +2,8 @@
 import {
   ALIAS_ADDITIONS,
   NOTABLE_THIRD_PARTY_NAMES,
+  NO_CORRECTIONS,
   POSSIBLE_MERGES,
-  loadIdentityCorrections,
 } from "./seed-credited-identities-decisions.mjs";
 import {
   blockedReason,
@@ -36,7 +36,7 @@ export function buildSeedPlan({
   replications = [],
   reports = [],
   profiles = [],
-  corrections = loadIdentityCorrections(),
+  corrections = NO_CORRECTIONS,
 } = {}) {
   const index = buildCorrectionIndex(corrections);
   const identities = collectCreditedIdentities({ replications, reports });

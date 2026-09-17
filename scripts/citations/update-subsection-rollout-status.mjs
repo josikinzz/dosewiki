@@ -14,7 +14,6 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { resolve } from "node:path";
 import {
   createDataOpsRunContext,
@@ -22,15 +21,15 @@ import {
   printDataOpsRunContext,
 } from "../lib/data-ops-run-context.mjs";
 import { TRACKER_STATUSES } from "./subsection-rollout-lib.mjs";
-
-const DEFAULT_TRACKER = `${homedir()}/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json`;
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 
 const argv = process.argv.slice(2);
+const help = argv.includes("--help") || argv.includes("-h");
 const options = {
-  help: argv.includes("--help") || argv.includes("-h"),
+  help,
   dryRun: argv.includes("--dry-run"),
   allSlugs: argv.includes("--all-slugs"),
-  tracker: getFlagValue(argv, "--tracker") ?? DEFAULT_TRACKER,
+  tracker: getFlagValue(argv, "--tracker") ?? (help ? null : resolve(resolveCitationWorkbenchRoot(), "trackers", "subsection-rollout.json")),
   slug: getFlagValue(argv, "--slug"),
   section: getFlagValue(argv, "--section"),
   status: getFlagValue(argv, "--status"),

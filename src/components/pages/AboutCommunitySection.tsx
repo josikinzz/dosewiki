@@ -44,8 +44,9 @@ function LogoTile({ logo }: { logo: CommunityLogo }) {
 /**
  * Partners & Community section body (dose.wiki only): one flat, compact
  * two-column roster — logo tile plus name, the whole row an external link.
- * Structure lives in `src/data/content/aboutCommunity.ts`; the roster
- * currently carries no descriptive copy by design.
+ * The roster is `content/about/community.json`, typed by
+ * `src/data/content/aboutCommunity.ts`; it currently carries no descriptive
+ * copy by design.
  */
 export function AboutCommunitySection() {
   return (

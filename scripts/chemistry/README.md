@@ -20,10 +20,10 @@ production-write flags.
 
 Used by `molecules:smiles-coverage` and the historically named seeder:
 
-1. `identification.smiles` inline in `src/data/SubstanceIndex.json` (including
+1. `identification.smiles` inline in `public/SubstanceIndex.json` (including
    multi-component `{components:{...}}` preparations; the principal or first
    component is drawn).
-2. `src/data/mappings/generatedSmiles.json`, gap-fill SMILES found via
+2. `data/chemistry/generatedSmiles.json`, gap-fill SMILES found via
    PubChem/Wikipedia for substances missing inline data.
    For plants, preparations, and brands, `represents` names the active molecule
    drawn (for example, Salvia uses Salvinorin A).
@@ -83,12 +83,12 @@ The deliberate production sequence is:
 ```bash
 export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
-export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+export POSTGRES_IMPORT_CONFIRM=<postgres-host>
 npm run postgres:check-env-isolation
 npm run molecules:seed-data -- --dry-run --limit 5 --allow-remote
 npm run molecules:seed-data -- --write --confirm-molecule-seed \
   --confirm-write=seed-canonical-molecule-depictions \
-  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
+  --expected-deployment=<postgres-host>/<database> --allow-remote
 ```
 
 The command name and `editorArticleWrite` intent-token name are unchanged.
@@ -101,7 +101,7 @@ the initial read.
 ## Seed the class structures
 
 Chemical-class taxonomy and canonical structures are authored in
-`src/data/indexes/chemicalIndexManual.json` (`classes[].structure.smiles` plus the
+`data/substances/chemicalIndexManual.json` (`classes[].structure.smiles` plus the
 `rLabels` map naming each R position). The drawing itself lives in Postgres: seeding
 generates each class MOL block from that SMILES (the same auto-layout the editor's
 class-creation flow uses, with the R positions kept as plain dummy atoms carrying atom
@@ -120,12 +120,12 @@ The deliberate production sequence is:
 ```bash
 export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
-export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+export POSTGRES_IMPORT_CONFIRM=<postgres-host>
 npm run postgres:check-env-isolation
 npm run molecules:seed-classes-data -- --dry-run --allow-remote
 npm run molecules:seed-classes-data -- --apply --confirm-class-seed \
   --confirm-write=seed-class-molecule-depictions \
-  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
+  --expected-deployment=<postgres-host>/<database> --allow-remote
 ```
 
 Existing `class:` rows are never overwritten unless `--force` is passed; forced
@@ -139,10 +139,10 @@ depiction set, with no Python environment and no static SVG source:
 
 ```bash
 DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" \
-  POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+  POSTGRES_IMPORT_CONFIRM=<postgres-host> \
   npm run molecules:pack -- --allow-remote
 DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" \
-  POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+  POSTGRES_IMPORT_CONFIRM=<postgres-host> \
   npm run molecules:pack -- --check --allow-remote
 ```
 

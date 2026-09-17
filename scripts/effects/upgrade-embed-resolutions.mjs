@@ -4,7 +4,7 @@
  * on-site replication masters.
  *
  * Substance/effect article VCode `[captioned-image src="..."]` embeds hardcode
- * Convex storage URLs. Some of those point at tiny thumbnails while the same
+ * storage URLs. Some of those point at tiny thumbnails while the same
  * work exists as a full-resolution replication master on the same deployment
  * (e.g. prod After Images: 142×80 embed vs 2048×1151 replication master).
  * Canonical decision: each deployment's embed should serve the replication
@@ -14,16 +14,20 @@
  *   1. normalized title + artist equality between embed and replication row,
  *      and the match must be unique;
  *   2. ≥1.5× dimension gain on BOTH axes (probed with sharp, never assumed);
- *   3. pixel confirmation — RMSE between downsampled embed and master, with
- *      an aspect-ratio guard; a `strong` articleMediaCuration.json entry for
- *      the same work counts as an independent attestation and is recorded.
+ *   3. pixel confirmation: RMSE between downsampled embed and master, with
+ *      an aspect-ratio guard; a `strong` entry in the article media curation
+ *      dossier (`--curation=<path>`, optional) for the same work counts as an
+ *      independent attestation and is recorded. The dossier is an editor
+ *      review record kept outside the repository; without it, only the pixel
+ *      check confirms a match.
  * Anything ambiguous (multiple candidates, failed pixel match) goes to the
  * review report and is NEVER auto-swapped. Low-res embeds with no on-site
  * counterpart are flagged for the deferred external re-sourcing ticket.
  *
  * Dry run (default; read-only — queries only, zero writes):
  *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target postgresql://<host>/<database>
+ *     --target postgresql://<host>/<database> \
+ *     [--curation=/path/to/article-media-curation.json]
  *
  * Prod dry run (read-only):
  *   node scripts/effects/upgrade-embed-resolutions.mjs \
@@ -45,7 +49,7 @@
  * and AST fields atomically behind exact-expected-value preconditions. After
  * writing, every swapped URL is re-fetched and its dimensions re-asserted.
  *
- * Report: notes-and-plans/reports/upgrade-embed-resolutions-<deployment>.json
+ * Report: tmp/upgrade-embed-resolutions-<deployment>.json (override with --report-dir)
  * (override with --report-dir).
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -68,12 +72,12 @@ printProductionWriteCommand(command);
 
 const args = process.argv.slice(2);
 const reportDir = getFlagValue(args, "--report-dir") ??
-  join(command.repoRoot, "notes-and-plans", "reports");
+  join(command.repoRoot, "tmp");
 const deployment = command.deploymentFingerprint;
 
 // Guards. MIN_GAIN per PRD W10a; RMSE threshold sits well above the attested
-// true matches (0.007–0.023 in articleMediaCuration.json) and well below what
-// unrelated images produce on a 32×32 grayscale grid (>0.2).
+// true matches (0.007–0.023 in the 2026-08-11 curation dossier) and well below
+// what unrelated images produce on a 32×32 grayscale grid (>0.2).
 const MIN_GAIN = 1.5;
 const MAX_RMSE = 0.1;
 const MAX_ASPECT_DELTA = 0.05;
@@ -190,23 +194,23 @@ function rmse(a, b) {
 // Scan
 // ---------------------------------------------------------------------------
 
-const curation = JSON.parse(readFileSync(
-  join(command.repoRoot, "src", "data", "config", "articleMediaCuration.json"),
-  "utf8",
-));
+const curationPath = getFlagValue(args, "--curation");
+const curation = curationPath
+  ? JSON.parse(readFileSync(curationPath, "utf8"))
+  : { assets: [] };
 
 const client = createDataClient({ target: command.targetUrl }).client;
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 const replications = await client.query(api.replications.getAll, {});
 const imageReplications = replications.filter((row) => row.type === "image");
 // Resolved URLs come from the same public read the site renders from: since the
-// R2 migration a row's primary locator may be `r2_key` with no Convex Storage
+// R2 migration a row's primary locator may be `r2_key` with no legacy storage
 // object at all, so `storage_id` alone no longer identifies the master.
 const galleryRows = await client.query(api.replications.getPublicReplications, {});
 const urlBySlug = new Map(
   galleryRows.flatMap((row) => (row.url ? [[row.slug, row.url]] : [])),
 );
-// Rows outside the public gallery keep resolving through Convex Storage.
+// Rows outside the public gallery keep resolving through legacy storage.
 // `placeholder-*` ids mark externally hosted media and never resolve.
 const legacy = imageReplications.filter((row) =>
   !urlBySlug.has(row.slug)

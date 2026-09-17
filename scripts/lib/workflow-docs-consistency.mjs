@@ -11,7 +11,7 @@ import {
 
 const workflowDocsToCheck = [
   'README.md',
-  'CLAUDE.md',
+  'CONTRIBUTING.md',
   'AGENTS.md',
   'scripts/README.md',
   'docs/architecture/project-layout.md',
@@ -30,7 +30,7 @@ const deprecatedScriptForbiddenPatterns = [
   },
   {
     label: 'database clients',
-    pattern: /\b(?:ConvexHttpClient|PostgresClient|createDataClient|BackendClient)\b|\bconvex\/browser\b/,
+    pattern: /\b(?:PostgresClient|createDataClient|BackendClient)\b/,
   },
   {
     label: 'network writes',
@@ -238,7 +238,7 @@ export function validateStableWorkflowCommandPolicies(packageScripts) {
 }
 
 const rawDataFallbackPattern =
-  /process\.env\.(?:TARGET_CONVEX_URL|CONVEX_URL|VITE_CONVEX_URL|NEXT_PUBLIC_CONVEX_URL)\s*\|\|\s*process\.env\.(?:TARGET_CONVEX_URL|CONVEX_URL|VITE_CONVEX_URL|NEXT_PUBLIC_CONVEX_URL)/;
+  /process\.env\.(?:TARGET_POSTGRES_URL|SOURCE_POSTGRES_URL|POSTGRES_POOLED_URL|POSTGRES_DIRECT_URL)\s*\|\|\s*process\.env\.(?:TARGET_POSTGRES_URL|SOURCE_POSTGRES_URL|POSTGRES_POOLED_URL|POSTGRES_DIRECT_URL)/;
 
 export function validateStableWorkflowCommandImplementationPolicies(repoRoot, packageScripts) {
   const failures = [];

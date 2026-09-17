@@ -49,7 +49,7 @@ function collectImports(entryPath: string): ImportRecord[] {
 
 /**
  * Axis names each shared component's `cva` variants object may declare. The
- * vocabulary lives in docs/ui-system.md ("Variant Axis Vocabulary"); this is the
+ * vocabulary lives in docs/design/ui-kit.md ("Variant Axis Vocabulary"); this is the
  * enforcement. `size` collides with the native attribute on <input> and <select>,
  * so the three field primitives carry a prefixed size axis as recorded exceptions.
  */

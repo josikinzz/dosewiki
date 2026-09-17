@@ -1,5 +1,5 @@
 /**
- * Tickets 17 and 18: the operator command families run unchanged against
+ * The operator command families run unchanged against
  * Postgres through scripts/lib/data-client.ts, and their guards hold.
  *
  *   bun scripts/postgres/rehearse-commands.ts --target postgres://localhost:5432/dosewiki [--allow-remote] [--keep]
@@ -15,14 +15,13 @@
  * the receipt / ledger / audit the command writes carries enough to reconcile.
  *
  * Families:
- *   citations   scripts/citations/verdict-apply.mjs           (ticket 17)
- *   legality    scripts/legality/apply-draft.mjs              (ticket 17)
- *   media-dates scripts/replications/apply-date-research.mjs  (ticket 18, intake/taxonomy ledger)
- *   media-rights scripts/replications/apply-artist-license.mjs (ticket 18, attribution)
- *   identity    scripts/contributors/apply-profile-patches.mjs (ticket 18, contributor identity)
- *   merge       scripts/contributors/apply-approved-profile-merges.mjs (ticket 18): pinned to
- *               glad-minnow-656 by design, so on Postgres it can only prove the wrong-target
- *               refusal; the merge mutation's approved-pair gate is exercised directly.
+ *   citations   scripts/citations/verdict-apply.mjs
+ *   legality    scripts/legality/apply-draft.mjs
+ *   media-dates scripts/replications/apply-date-research.mjs  (intake/taxonomy ledger)
+ *   media-rights scripts/replications/apply-artist-license.mjs (attribution)
+ *   identity    scripts/contributors/apply-profile-patches.mjs (contributor identity)
+ *   merge       the contributorProfileMerges approved-pair gate, exercised directly
+ *               (the pinned one-off executor script has been retired).
  *
  * Report: runs/postgres-import/<timestamp>-commands/report.json. Scratch
  * artifacts (drafts, plans, ledgers) live under the same directory.
@@ -84,8 +83,8 @@ class Rehearsal {
     this.runDirectory = runDirectory;
     const env: NodeJS.ProcessEnv = { ...process.env, DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: target, DOSEWIKI_REVALIDATE_URL: UNREACHABLE };
     for (const key of Object.keys(env)) {
-      // No Convex deployment may be reachable from a Postgres rehearsal.
-      if (/CONVEX_URL$/.test(key) || key === "POSTGRES_POOLED_URL" || key === "POSTGRES_DIRECT_URL") delete env[key];
+      // Only the explicit rehearsal target may be reachable from a Postgres rehearsal.
+      if (key === "POSTGRES_POOLED_URL" || key === "POSTGRES_DIRECT_URL") delete env[key];
     }
     this.env = env;
   }
@@ -160,7 +159,7 @@ class Rehearsal {
  * carrying it cannot be written back through `saveSubstance` or
  * `citationEvidence.applyDraft` on either backend. Articles that round-trip
  * through the editor never carry it; the shared fixture does, so the seed
- * drops it (the same trim the ticket 06 and 07 rehearsals make).
+ * drops it (the same trim the article lifecycle and citation rehearsals make).
  */
 function scratchArticle(overrides: Record<string, unknown>): Record<string, unknown> {
   const article = { ...structuredClone(minimalArticle), ...overrides } as Record<string, unknown>;
@@ -183,7 +182,7 @@ async function citations(r: Rehearsal): Promise<void> {
   const article = scratchArticle({
     id: 917001,
     slug,
-    title: `Ticket 17 citations ${slug}`,
+    title: `Rehearsal citations ${slug}`,
     summary,
     references: [
       { id: "ref-a", title: "Reference A", url: "https://example.org/a" },
@@ -271,7 +270,7 @@ async function legality(r: Rehearsal): Promise<void> {
   const article = scratchArticle({
     id: 917002,
     slug,
-    title: `Ticket 17 legality ${slug}`,
+    title: `Rehearsal legality ${slug}`,
     legality: { international: [], countries: { Germany: germanyBefore }, usStates: {} },
   });
   const id = await r.insert("substanceIndex", article);
@@ -371,7 +370,7 @@ async function mediaDates(r: Rehearsal): Promise<void> {
   const script = "scripts/replications/apply-date-research.mjs";
   const tag = mintDocumentId().slice(0, 8);
   const slug = `t18-dates-${tag}`;
-  const title = `Ticket 18 date research ${tag}`;
+  const title = `Rehearsal date research ${tag}`;
   const artist = `T18 Dates Artist ${tag}`;
   const { id } = await scratchReplication(r, { slug, title, artist });
   const now = new Date().toISOString();
@@ -436,7 +435,7 @@ async function mediaRights(r: Rehearsal): Promise<void> {
   const tag = mintDocumentId().slice(0, 8);
   const artist = `T18 Rights Artist ${tag}`;
   const { id } = await scratchReplication(r, {
-    slug: `t18-rights-${tag}`, title: `Ticket 18 rights ${tag}`, artist,
+    slug: `t18-rights-${tag}`, title: `Rehearsal rights ${tag}`, artist,
     rights_status: "unknown", license_name: undefined, license_url: undefined, credit_line: undefined, rightsholder: undefined,
   });
   const base = [`--artist=${artist}`, "--license=cc-by-4.0"];
@@ -467,7 +466,7 @@ async function identity(r: Rehearsal): Promise<void> {
   const key = `T18-PROFILE-${mintDocumentId().slice(0, 6).toUpperCase()}`;
   const now = new Date().toISOString();
   const id = await r.insert("contributorProfiles", { key, displayName: "Before Rehearsal", aliases: [], bio: "", links: [], createdAt: now, updatedAt: now });
-  const plan = { patches: [{ key, why: "Ticket 18 rehearsal", expected: { displayName: "Before Rehearsal", approved_replicator: false }, patch: { displayName: "After Rehearsal", aliases: ["rehearsal alias"], approved_replicator: true } }] };
+  const plan = { patches: [{ key, why: "Rehearsal", expected: { displayName: "Before Rehearsal", approved_replicator: false }, patch: { displayName: "After Rehearsal", aliases: ["rehearsal alias"], approved_replicator: true } }] };
   const planFile = r.file(`identity/${key}/plan.json`, plan);
   const base = [`--plan=${planFile}`];
   const before = await r.hash("contributorProfiles", id);
@@ -499,12 +498,11 @@ async function identity(r: Rehearsal): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// merge: pinned executor and the approved-pair gate
+// merge: the approved-pair gate
 // ---------------------------------------------------------------------------
 
 async function merge(r: Rehearsal, client: ReturnType<typeof createDataClient>["client"]): Promise<void> {
   const family = "merge";
-  r.refused(family, "apply-approved-profile-merges refuses the Postgres target (pinned to glad-minnow-656) before any read", r.run("scripts/contributors/apply-approved-profile-merges.mjs", ["--actor-email=rehearsal@example.invalid", `--expected-deployment=${r.fingerprint}`, `--ledger=${path.join(r.runDirectory, "merge", "ledger.jsonl")}`, `--plan-out=${path.join(r.runDirectory, "merge", "plan.json")}`, `--rollback-out=${path.join(r.runDirectory, "merge", "rollback.json")}`]), /pinned to glad-minnow-656/);
   const [admin] = await selectDocuments(r.pool, "memberships", { where: `"role" = 'admin' AND "bannedAt" IS NULL`, limit: 1 });
   const now = new Date().toISOString();
   const sourceId = await r.insert("contributorProfiles", { key: `T18-MERGE-SRC-${mintDocumentId().slice(0, 6).toUpperCase()}`, displayName: "Merge Source", aliases: [], bio: "", links: [], createdAt: now, updatedAt: now });

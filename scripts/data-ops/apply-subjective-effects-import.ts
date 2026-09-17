@@ -22,9 +22,9 @@ printDataOpsRunContext,
 requireAdminIntentToken,
 requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
-const DEFAULT_JSON_DIR = "docs/psychonautwiki-2015-subjective-effects/json";
+const DEFAULT_JSON_DIR = "content/sources/psychonautwiki-2015/json";
 const DEFAULT_TRACKER_PATH =
-  "docs/psychonautwiki-2015-subjective-effects/subjective-effects-integration-tracker.md";
+  "content/sources/psychonautwiki-2015/subjective-effects-integration-tracker.md";
 const ARCHIVE_CUTOFF = Date.parse("2016-08-31T23:59:59.999Z");
 const BATCH_SIZE = 10;
 

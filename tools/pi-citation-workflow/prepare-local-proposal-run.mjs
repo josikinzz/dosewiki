@@ -35,8 +35,15 @@ import {
 } from "../../scripts/batch/proposal/core.mjs";
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const DEFAULT_WORKBENCH = process.env.DOSEWIKI_CITATION_WORKBENCH ??
-  "/Users/josie/.codex/dosewiki-citation-workbench";
+const WORKBENCH_ENV = "DOSEWIKI_CITATION_WORKBENCH";
+
+function requireWorkbench(explicit) {
+  const value = explicit ?? process.env[WORKBENCH_ENV];
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`${WORKBENCH_ENV} is not set. Point it at the citation workbench directory or pass --workbench.`);
+  }
+  return value;
+}
 const PROPOSAL_ROOT_RELATIVE = "notes-and-plans/exports/batch-proposals";
 const CITABLE_SECTIONS = Object.freeze([
   "summary",
@@ -360,7 +367,7 @@ function reserveAttemptDirectory({ runsRoot, runIdPrefix }) {
 export function prepareLocalProposalRun({
   proposalPath: requestedProposalPath,
   repoRoot: requestedRepoRoot = PROJECT_ROOT,
-  workbench: requestedWorkbench = DEFAULT_WORKBENCH,
+  workbench: requestedWorkbench = null,
 } = {}) {
   const repoRoot = realpathSync(resolve(requestedRepoRoot));
   const exportRoot = resolve(repoRoot, PROPOSAL_ROOT_RELATIVE);
@@ -374,7 +381,7 @@ export function prepareLocalProposalRun({
   const { bytes: proposalBytes, value: proposal } = readJsonBytes(proposalPath, "Proposal");
   const verified = assertProposalIntegrity({ proposal, proposalPath, repoRoot, exportRoot });
 
-  const workbench = realpathSync(resolve(requestedWorkbench));
+  const workbench = realpathSync(resolve(requireWorkbench(requestedWorkbench)));
   const packagePath = resolve(workbench, "package.json");
   if (!existsSync(packagePath)) throw new Error(`Workbench package.json does not exist: ${packagePath}`);
   const templatePath = resolve(workbench, "inputs", `${proposal.slug}-full.json`);
@@ -492,7 +499,7 @@ async function main() {
   }
   const result = prepareLocalProposalRun({
     proposalPath: options.proposal,
-    workbench: options.workbench ?? DEFAULT_WORKBENCH,
+    workbench: options.workbench,
   });
   console.log(JSON.stringify({
     runId: result.runId,

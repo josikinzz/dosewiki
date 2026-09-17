@@ -1,5 +1,5 @@
 /**
- * Ticket 20 rehearsal: the editor surfaces read through `/api/editor/*` route
+ * Rehearsal: the editor surfaces read through `/api/editor/*` route
  * handlers backed by the server read client, on Postgres, with no browser
  * database client. Every route handler is imported and invoked in-process with
  * `DATA_BACKEND=postgres`.
@@ -33,7 +33,7 @@ import { guardTarget, resolveTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ORIGIN = "https://editor.rehearsal.invalid";
-const ADMIN = "ticket-20@rehearsal.invalid";
+const ADMIN = "actor@rehearsal.invalid";
 
 type ForgedRole = "admin" | "editor" | "contributor" | null;
 type ForgedSessionState = { role: ForgedRole };
@@ -54,7 +54,7 @@ if (!bun) throw new Error("rehearse-editor-reads.ts runs under Bun only");
 // Registered before any route module resolves `@/lib/auth/requireEditorSession`,
 // so `getServerSession` (which needs Next's request scope) is never reached.
 bun.plugin({
-  name: "ticket-20-forged-session",
+  name: "rehearsal-forged-session",
   setup(build) {
     build.onLoad({ filter: /src\/lib\/auth\/requireEditorSession\.ts$/ }, () => ({
       loader: "ts",

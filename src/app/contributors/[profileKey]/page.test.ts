@@ -24,7 +24,6 @@ vi.mock("@/components/pages/ContributorRoutePage", () => ({
 vi.mock("@/data/entitySocialCardManifest.generated.json", () => ({
   default: {
     version: 1,
-    sourceDeployment: "test",
     rendererVersions: {
       effects: "test",
       replications: "test",

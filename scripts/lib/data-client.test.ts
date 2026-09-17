@@ -19,12 +19,12 @@ describe("Postgres-only operator client", () => {
   });
 
 
-  it.each([undefined, "", "convex", "postgresql"])("refuses backend %s even with a legacy target", (backend) => {
-    expect(() => createDataClient({ env: { ...env, DATA_BACKEND: backend }, target: "https://legacy.convex.cloud", argv: [] })).toThrow(/DATA_BACKEND=postgres/);
+  it.each([undefined, "", "retired-backend", "postgresql"])("refuses backend %s even with a legacy target", (backend) => {
+    expect(() => createDataClient({ env: { ...env, DATA_BACKEND: backend }, target: "https://legacy.example.invalid", argv: [] })).toThrow(/DATA_BACKEND=postgres/);
   });
 
   it("never discards an explicit invalid target in favor of the environment", () => {
-    expect(() => createDataClient({ env, target: "https://legacy.convex.cloud", argv: [] })).toThrow(/Postgres/);
+    expect(() => createDataClient({ env, target: "https://legacy.example.invalid", argv: [] })).toThrow(/Postgres/);
     expect(() => resolvePostgresTarget({ env, argv: ["--target"] })).toThrow(/--target/);
     expect(() => resolvePostgresTarget({ env: { ...env, TARGET_POSTGRES_URL: "" }, argv: [] })).toThrow(/Postgres/);
     expect(() => createDataClient({ env, argv: ["--target-url=postgres://localhost/other"] })).toThrow(/retired/);

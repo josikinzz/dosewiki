@@ -11,8 +11,8 @@ import {
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { evaluateGeneratedExportRetention } from "./local-artifact-hygiene-policy.mjs";
 
-export const ARTIFACT_LINEAGE_MANIFEST_PATH = "src/data/artifactLineageManifest.json";
-export const ARTIFACT_LINEAGE_RUN_DIR = "src/data/.lineage";
+export const ARTIFACT_LINEAGE_MANIFEST_PATH = "data/lineage.json";
+export const ARTIFACT_LINEAGE_RUN_DIR = "data/.lineage";
 const ARTIFACT_LINEAGE_DOC_PATHS = ["README.md", "AGENTS.md", "scripts/README.md"]
 const REFERENCES_ERA_SUBSTANCE_SCHEMA_PATH = "src/schema/substance.schema.ts";
 const REFERENCES_ERA_BACKUP_ARTIFACT_IDS = new Set(["substance-index-export", "substance-index-backups"]);
@@ -252,7 +252,7 @@ export function validateArtifactLineageManifest({ rootDir = process.cwd(), manif
 function collectDocumentedDataArtifactPaths({
   rootDir = process.cwd(),
   docsPaths = ARTIFACT_LINEAGE_DOC_PATHS,
-} = {}) { const dataArtifactPattern = /src\/data\/[A-Za-z0-9_.*/-]+\.(?:json|md|ts)/g;
+} = {}) { const dataArtifactPattern = /(?<![\w/])(?:src\/)?data\/[A-Za-z0-9_.*/-]+\.(?:json|md|ts)/g;
 const paths = new Set();
 
 for (const docsPath of docsPaths) {

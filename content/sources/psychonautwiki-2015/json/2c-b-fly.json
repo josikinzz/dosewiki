@@ -1,0 +1,277 @@
+{
+  "slug": "2c-b-fly",
+  "title": "2C-B-FLY",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/2c-b-fly.md",
+  "archive_timestamp": "20160805080503",
+  "archive_date_utc": "2016-08-05T08:05:03Z",
+  "archive_url": "https://web.archive.org/web/20160805080503/https://psychonautwiki.org/wiki/2C-B-FLY",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160805080503/https://psychonautwiki.org/wiki/2C-B-FLY"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition enhancement",
+                "description": ""
+              },
+              {
+                "name": "Visual acuity enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, breathing, morphing and flowing)"
+              },
+              {
+                "name": "Colour shifting",
+                "description": ""
+              },
+              {
+                "name": "Depth perception distortions",
+                "description": ""
+              },
+              {
+                "name": "Perspective distortions",
+                "description": ""
+              },
+              {
+                "name": "Symmetrical texture repetition",
+                "description": ""
+              },
+              {
+                "name": "Tracers",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Transformations",
+                "description": ""
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots)"
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Analysis enhancement",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Creativity enhancement",
+            "description": ""
+          },
+          {
+            "name": "Delusions",
+            "description": ""
+          },
+          {
+            "name": "Emotion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Empathy, love, and sociability enhancement",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Increased music appreciation",
+            "description": ""
+          },
+          {
+            "name": "Increased libido",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Mindfulness",
+            "description": ""
+          },
+          {
+            "name": "Ego death",
+            "description": ""
+          },
+          {
+            "name": "Novelty enhancement",
+            "description": ""
+          },
+          {
+            "name": "Personal bias suppression",
+            "description": ""
+          },
+          {
+            "name": "Spirituality enhancement",
+            "description": ""
+          },
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Thought disorganization",
+            "description": ""
+          },
+          {
+            "name": "Thought loops",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Unity and interconnectedness",
+            "description": ""
+          },
+          {
+            "name": "Wakefulness",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Bodily control enhancement",
+            "description": ""
+          },
+          {
+            "name": "Diarrhea",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Pupil dilation",
+            "description": ""
+          },
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Stimulation",
+            "description": ""
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": ""
+          },
+          {
+            "name": "Visual sliding",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160805080503/https://psychonautwiki.org/wiki/2C-B-FLY"
+    },
+    "is_stub": true,
+    "source_overview": "In comparison to 2C-B, this compound presents a significantly more pronounced body high, stronger visual effects and more complex geometry. For certain people, comparatively greater stomach discomfort including mild diarrhoea, gas and nausea is also present."
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Generic source overview replaced with default public overview; article-specific prose moved to subjective_effects.source_overview when present.s.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order; nested Ego death is represented as the next effect after Mindfulness because the schema has no child effect field.",
+    "Visual Enhancements, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; empty Geometry heading retained with no effects.",
+    "Parenthetical details for Drifting and Internal hallucinations preserved as descriptions with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

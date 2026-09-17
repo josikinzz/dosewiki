@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "5-meo-malt",
+    "title": "5-MeO-MaLT",
+    "smiles": "CN(CCC1=CNC2=C1C=C(C=C2)OC)CC=C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5-methoxy-N-allyl-N-methyltryptamine; PubChem CID 129846174."
+  },
+  {
+    "slug": "5-meo-met",
+    "title": "5-MeO-MET",
+    "smiles": "CCN(C)CCC1=CNC2=C1C=C(C=C2)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5-methoxy-N-ethyl-N-methyltryptamine; PubChem CID 6619012."
+  },
+  {
+    "slug": "5-meo-mt",
+    "title": "5-MeO-MT",
+    "smiles": "CNCCC1=CNC2=C1C=C(C=C2)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5-methoxy-N-methyltryptamine (5-MeO-NMT); name 5-MeO-MT 404'd, resolved via synonym, PubChem CID 16184."
+  },
+  {
+    "slug": "5-meo-nipt",
+    "title": "5-MeO-NiPT",
+    "smiles": "CC(C)N(C)CCC1=CNC2=C1C=C(C=C2)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5-methoxy-N-isopropyl-N-methyltryptamine; resolved via full IUPAC-style synonym, PubChem CID 2763156. (Bare 'NiPT' name returns a wrong N-isopropyl-only structure.)"
+  },
+  {
+    "slug": "5-meo-pyr-t",
+    "title": "5-MeO-Pyr-T",
+    "smiles": "COC1=CC2=C(C=C1)NC=C2CCN3CCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5-methoxy-N,N-tetramethylene-tryptamine (pyrrolidyl); PubChem CID 17053."
+  },
+  {
+    "slug": "5-methylethylone",
+    "title": "5-Methylethylone",
+    "smiles": "CCNC(C)C(=O)C1=CC2=C(C(=C1)C)OCO2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Ethylone (bk-MDEA) bearing a 5-methyl on the methylenedioxyphenyl ring; PubChem CID 112500536."
+  },
+  {
+    "slug": "5-ppdi",
+    "title": "5-PPDI",
+    "smiles": "CCC(C(=O)C1=CC2=C(CCC2)C=C1)N3CCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Indane analog of alpha-PBP (2-pyrrolidin-1-yl-butanoyl-indane); PubChem CID 132989234."
+  },
+  {
+    "slug": "5f-akb48",
+    "title": "5f-Akb48",
+    "smiles": "C1C2CC3CC1CC(C2)(C3)NC(=O)C4=NN(C5=CC=CC=C54)CCCCCF",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5F-AKB48 / 5F-APINACA synthetic cannabinoid; PubChem CID 71711119."
+  },
+  {
+    "slug": "5f-pb-22",
+    "title": "5f-PB-22",
+    "smiles": "C1=CC=C2C(=C1)C(=CN2CCCCCF)C(=O)OC3=CC=CC4=C3N=CC=C4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5F-PB-22 synthetic cannabinoid (quinolin-8-yl indole-3-carboxylate); PubChem CID 72710774."
+  },
+  {
+    "slug": "6-eapb",
+    "title": "6-EAPB",
+    "smiles": "CCNC(C)CC1=CC2=C(C=C1)C=CO2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "1-(benzofuran-6-yl)-N-ethylpropan-2-amine; PubChem CID 102336591."
+  },
+  {
+    "slug": "6-mapb",
+    "title": "6-MAPB",
+    "smiles": "CC(CC1=CC2=C(C=C1)C=CO2)NC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "1-(benzofuran-6-yl)-N-methylpropan-2-amine; PubChem CID 122202866."
+  },
+  {
+    "slug": "6-mddm",
+    "title": "6-Mddm",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3C(=C)CC4",
+    "represents": "6-methylenedihydrodesoxymorphine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "dose.wiki article confirms 6-MDDM is the semisynthetic morphinan opioid 6-methylenedihydrodesoxymorphine (not an MDMA-class compound); PubChem CID 5492874."
+  },
+  {
+    "slug": "a-pihp",
+    "title": "A-PIHP",
+    "smiles": "CC(C)CC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "alpha-pyrrolidinoisohexanophenone; resolved via synonym alpha-PiHP, PubChem CID 59809191."
+  },
+  {
+    "slug": "a-pvp",
+    "title": "A-PVP",
+    "smiles": "CCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "alpha-pyrrolidinopentiophenone (flakka); PubChem CID 11148955."
+  },
+  {
+    "slug": "ab-chminaca",
+    "title": "AB-CHMINACA",
+    "smiles": "CC(C)[C@@H](C(=O)N)NC(=O)C1=NN(C2=CC=CC=C21)CC3CCCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Synthetic cannabinoid, (S)-isomer; PubChem CID 44206133."
+  },
+  {
+    "slug": "ah-7921",
+    "title": "AH-7921",
+    "smiles": "CN(C)C1(CCCCC1)CNC(=O)C2=CC(=C(C=C2)Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "3,4-dichloro-N-[(1-dimethylamino)cyclohexylmethyl]benzamide opioid; PubChem CID 187760."
+  },
+  {
+    "slug": "alcohol",
+    "title": "Alcohol",
+    "smiles": "CCO",
+    "represents": "ethanol",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Active psychoactive constituent is ethanol; PubChem CID 702."
+  },
+  {
+    "slug": "allobarbital",
+    "title": "Allobarbital",
+    "smiles": "C=CCC1(C(=O)NC(=O)NC1=O)CC=C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5,5-diallylbarbituric acid; PubChem CID 5842."
+  },
+  {
+    "slug": "alpha-gpc",
+    "title": "Alpha-GPC",
+    "smiles": "C[N+](C)(C)CCOP(=O)([O-])OC[C@@H](CO)O",
+    "represents": "L-alpha-glycerylphosphorylcholine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "L-alpha-glycerylphosphorylcholine (choline alfoscerate), zwitterionic form; resolved via synonym, PubChem CID 657272."
+  },
+  {
+    "slug": "am-2201",
+    "title": "AM-2201",
+    "smiles": "C1=CC=C2C(=C1)C=CC=C2C(=O)C3=CN(C4=CC=CC=C43)CCCCCF",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "(1-(5-fluoropentyl)-1H-indol-3-yl)(naphthalen-1-yl)methanone synthetic cannabinoid; PubChem CID 53393997."
+  },
+  {
+    "slug": "amfonelic-acid",
+    "title": "Amfonelic-Acid",
+    "smiles": "CCN1C=C(C(=O)C2=C1N=C(C=C2)CC3=CC=CC=C3)C(=O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Dopaminergic stimulant naphthyridine carboxylic acid; PubChem CID 2137."
+  },
+  {
+    "slug": "aminotadalafil",
+    "title": "Aminotadalafil",
+    "smiles": "C1[C@@H]2C(=O)N(CC(=O)N2[C@@H](C3=C1C4=CC=CC=C4N3)C5=CC6=C(C=C5)OCO6)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "N-amino analog of tadalafil (PDE5 inhibitor); PubChem CID 10178467."
+  },
+  {
+    "slug": "ashwagandha",
+    "title": "Ashwagandha",
+    "smiles": "CC1=C(C(=O)O[C@H](C1)[C@@H](C)[C@H]2CC[C@@H]3[C@@]2(CC[C@H]4[C@H]3C[C@@H]5[C@]6([C@@]4(C(=O)C=C[C@@H]6O)C)O5)C)CO",
+    "represents": "withaferin A",
+    "source": "pubchem",
+    "confidence": "medium",
+    "note": "Ashwagandha (Withania somnifera) is a plant; principal/marker active withanolide is withaferin A; PubChem CID 265237. (The herb's effects are attributed to a mix of withanolides; withaferin A chosen as the representative molecule per task guidance.)"
+  },
+  {
+    "slug": "aspirin",
+    "title": "Aspirin",
+    "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Acetylsalicylic acid; PubChem CID 2244."
+  },
+  {
+    "slug": "atomoxetine",
+    "title": "Atomoxetine",
+    "smiles": "CC1=CC=CC=C1O[C@H](CCNC)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "(R)-atomoxetine (the marketed eutomer); PubChem CID 54841."
+  },
+  {
+    "slug": "barbital",
+    "title": "Barbital",
+    "smiles": "CCC1(C(=O)NC(=O)NC1=O)CC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5,5-diethylbarbituric acid; PubChem CID 2294."
+  },
+  {
+    "slug": "bentazepam",
+    "title": "Bentazepam",
+    "smiles": "C1CCC2=C(C1)C3=C(S2)NC(=O)CN=C3C4=CC=CC=C4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Thienodiazepine; PubChem CID 135412795."
+  },
+  {
+    "slug": "bk-2c-b",
+    "title": "bk-2c-B",
+    "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)Br",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "beta-keto-2C-B: 2-amino-1-(4-bromo-2,5-dimethoxyphenyl)ethan-1-one; PubChem CID 11288812."
+  },
+  {
+    "slug": "bod",
+    "title": "BOD",
+    "smiles": "CC1=CC(=C(C=C1OC)C(CN)OC)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "BOD = 4-methyl-2,5,beta-trimethoxyphenethylamine (beta-methoxy-2C-D), PiHKAL entry #14 confirmed via dose.wiki source; PubChem CID 44719486. (Note: bundled WIKIPEDIA source file is mislabeled with DOB content; ISOMERDESIGN/PiHKAL source is authoritative.)"
+  },
+  {
+    "slug": "buphedrone",
+    "title": "Buphedrone",
+    "smiles": "CCC(C(=O)C1=CC=CC=C1)NC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "alpha-methylamino-butyrophenone cathinone; PubChem CID 53249194."
+  }
+]

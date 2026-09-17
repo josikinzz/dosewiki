@@ -55,7 +55,7 @@ export type OpenDataDataset = {
   readonly name: OpenDataDatasetName;
   /** SPDX id or descriptive terms; {@link OPEN_DATA_LICENSE_URL} has the full matrix. */
   readonly license: string;
-  /** "id" mirrors the committed SubstanceIndex.json export; "slug" elsewhere. */
+  /** "id" mirrors the SubstanceIndex.json export order; "slug" elsewhere. */
   readonly sortBy: "id" | "slug";
   /** Internal-only fields to strip beyond the Postgres bookkeeping pair. */
   readonly stripFields: readonly string[];
@@ -66,7 +66,7 @@ export type OpenDataDataset = {
 export const OPEN_DATA_DATASETS: Readonly<Record<OpenDataDatasetName, OpenDataDataset>> = {
   /**
    * Every published substance article as a full document, the same record
-   * shape as the committed `src/data/SubstanceIndex.json` export minus internal
+   * shape as the local `src/data/SubstanceIndex.json` export minus internal
    * editorial metadata. Substances still being written or deliberately unlisted
    * (`priority` of `low` or `hide_for_now`) are excluded: they are not finished
    * or reviewed. `editorial_review` names the reviewing editor and

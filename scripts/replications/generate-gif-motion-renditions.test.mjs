@@ -73,7 +73,7 @@ describe("planGifMotionGeneration", () => {
     const plan = planGifMotionGeneration([
       row({ slug: "missing", url: null }),
       row({ slug: "foreign", url: "https://example.test/work.gif" }),
-      row({ slug: "legacy", url: "https://glad-minnow-656.convex.cloud/api/storage/original" }),
+      row({ slug: "legacy", url: "https://retired.example.invalid/api/storage/original" }),
     ]);
     expect(plan.actions).toHaveLength(0);
     expect(plan.skipped).toHaveLength(3);
@@ -186,7 +186,7 @@ describe("verifyGifMotionGeneration", () => {
   it("rejects derived URLs on unknown or retired storage hosts", () => {
     for (const motionUrl of [
       "https://unknown.example.test/motion.mp4",
-      "https://glad-minnow-656.convex.cloud/api/storage/motion",
+      "https://retired.example.invalid/api/storage/motion",
     ]) {
       expect(verifyGifMotionGeneration({
         before,

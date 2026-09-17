@@ -1,0 +1,317 @@
+{
+  "slug": "3-meo-pcp",
+  "title": "3-MeO-PCP",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/3-meo-pcp.md",
+  "archive_timestamp": "20160803222947",
+  "archive_date_utc": "2016-08-03T22:29:47Z",
+  "archive_url": "https://web.archive.org/web/20160803222947/https://psychonautwiki.org/wiki/3-MeO-PCP",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160803222947/https://psychonautwiki.org/wiki/3-MeO-PCP"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Acuity enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Suppressions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Visual disconnection",
+                "description": "This eventually results in 3-MeO-PCP's equivalent of the famous \"k-hole\" or more specifically, holes, spaces and voids alongside of structures."
+              },
+              {
+                "name": "Visual acuity suppression",
+                "description": ""
+              },
+              {
+                "name": "Double vision",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition suppression",
+                "description": ""
+              },
+              {
+                "name": "Frame rate suppression",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Perspective distortions",
+                "description": ""
+              },
+              {
+                "name": "Environmental cubism",
+                "description": ""
+              },
+              {
+                "name": "Environmental orbism",
+                "description": ""
+              },
+              {
+                "name": "Scenery slicing",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots)"
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Suppression",
+                "description": ""
+              },
+              {
+                "name": "enhancement",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Psychosis",
+            "description": "This effect is more common on 3-MeO-PCP than other dissociatives (such as ketamine or MXE). It commonly occurs during the offset of the trip."
+          },
+          {
+            "name": "Mania",
+            "description": "This effect is more common on 3-MeO-PCP than other dissociatives. It commonly occurs during the offset of the trip."
+          },
+          {
+            "name": "Mindfulness",
+            "description": ""
+          },
+          {
+            "name": "Depersonalization",
+            "description": ""
+          },
+          {
+            "name": "Derealization",
+            "description": ""
+          },
+          {
+            "name": "Consciousness disconnection",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Ego death",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Euphoria",
+            "description": ""
+          },
+          {
+            "name": "Introspection",
+            "description": ""
+          },
+          {
+            "name": "Déjà vu",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Compulsive redosing",
+            "description": ""
+          },
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          },
+          {
+            "name": "Disinhibition",
+            "description": ""
+          },
+          {
+            "name": "Amnesia",
+            "description": ""
+          },
+          {
+            "name": "Feelings of impending doom",
+            "description": ""
+          },
+          {
+            "name": "Creativity enhancement",
+            "description": ""
+          },
+          {
+            "name": "Existential self-realization",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Increased heart rate",
+            "description": ""
+          },
+          {
+            "name": "Tactile disconnection",
+            "description": ""
+          },
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": ""
+          },
+          {
+            "name": "Tactile suppression",
+            "description": ""
+          },
+          {
+            "name": "Bodily control enhancement",
+            "description": ""
+          },
+          {
+            "name": "Motor control loss",
+            "description": ""
+          },
+          {
+            "name": "Stimulation",
+            "description": "This drug is extremely stimulating in comparison to other dissociatives such as ketamine, MXE, or DCK."
+          },
+          {
+            "name": "Physical autonomy",
+            "description": ""
+          },
+          {
+            "name": "Physical euphoria",
+            "description": ""
+          },
+          {
+            "name": "Perception of decreased weight",
+            "description": ""
+          },
+          {
+            "name": "Dizziness",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160803222947/https://psychonautwiki.org/wiki/3-MeO-PCP"
+    },
+    "is_stub": false,
+    "source_overview": "3-MeO-PCP can be said to feel considerably more stimulating and less sedating than other dissociatives such as ketamine or MXE. At lower doses, it presents sensory enhancements such as colour enhancement, acuity enhancement, tactile enhancement, auditory enhancement and bodily control enhancement. However, at higher doses, it presents sensory suppressions such as tactile suppression, motor control loss, auditory suppression and acuity suppression. It is also considerably more likely to induce psychosis than other dissociatives and is therefore potentially dangerous regardless of setting."
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview; article-specific prose moved to subjective_effects.source_overview when present.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order; combined Tactile enhancement/Tactile suppression and Bodily control enhancement/Motor control loss bullets split into adjacent effect entries to preserve each bold effect name.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order, with Psychosis and Mania descriptions preserved.",
+    "Visual Enhancements, Suppressions, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; empty Geometry heading retained with no effects.",
+    "Visual disconnection and Internal hallucinations descriptions preserve source wording with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order; combined Suppression/enhancement bullet split into adjacent effect entries preserving source capitalization.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

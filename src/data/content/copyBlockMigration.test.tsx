@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 
 import { COPY_BLOCK_DEFAULTS, getCopyBlockDefault } from "./copyBlocks";
 import { EFFECT_CATEGORY_DEFINITIONS } from "../effectCategoryDefinitions";
-import psychoactiveIndexManual from "../indexes/psychoactiveIndexManual.json";
+import psychoactiveIndexManual from "@data/substances/psychoactiveIndexManual.json";
 import { TABS } from "@/features/effects/pages/effectsIndexConfig";
 import {
   SEIIntroSection,

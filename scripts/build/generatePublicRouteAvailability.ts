@@ -83,7 +83,6 @@ async function main(): Promise<void> {
 
   const manifest = {
     version: 1,
-    sourceDeployment: deploymentName,
     substances: [
       ...new Set(
         substances

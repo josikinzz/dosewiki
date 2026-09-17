@@ -9,7 +9,7 @@ import { tryWriteArtifactLineageSidecar } from '../lib/data-artifact-lineage.mjs
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../..');
-const ARTICLES_PATH = path.join(ROOT_DIR, 'src/data/SubstanceIndex.json');
+const ARTICLES_PATH = path.join(ROOT_DIR, 'public/SubstanceIndex.json');
 const smilesMapAdapter = createOpsinSmilesMapAdapter({ rootDir: ROOT_DIR });
 const WAIT_BETWEEN_REQUESTS_MS = Number(process.env.SMILES_REQUEST_DELAY_MS ?? 250);
 const OPSIN_BASE_URL = 'https://www.ebi.ac.uk/opsin/ws';
@@ -121,7 +121,7 @@ async function buildSmilesMap() {
     const lineage = tryWriteArtifactLineageSidecar({
       artifactPath: smilesMapAdapter.artifactPath,
       rootDir: ROOT_DIR,
-      sourceDeployment: 'src/data/SubstanceIndex.json and OPSIN',
+      sourceDeployment: 'public/SubstanceIndex.json and OPSIN',
       schemaVersion: 'scripts/chemistry/identifier-provenance.mjs',
       extra: {
         totalUniqueIupacNames: totalToFetch,

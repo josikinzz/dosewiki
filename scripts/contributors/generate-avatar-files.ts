@@ -8,7 +8,7 @@ import type { Dimensions, PlanEntry } from "./generate-avatar-candidates";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const AVATAR_ROOT = path.join(ROOT, "public/profile-avatars");
-export const MANIFEST_PATH = path.join(ROOT, "src/data/config/contributorAvatarSources.json");
+export const MANIFEST_PATH = path.join(ROOT, "data/contributors/contributorAvatarSources.json");
 /* ---------------------------------------------------------------------- plan */
 
 export function avatarUrlForKey(key: string): string {
@@ -140,7 +140,7 @@ export function buildAvatarManifest(
       "side when that is smaller — nothing is upscaled). The artwork remains the artist's; " +
       "this file is the record of which work each avatar came from.",
     selectionRule: [
-      "1. a curated work beats an uncurated one (src/data/config/effectIndexFeaturedReplications.json)",
+      "1. a curated work beats an uncurated one (data/effects/effectIndexFeaturedReplications.json)",
       "2. a still image beats a video (a still is a frame its author chose)",
       "3. the larger square wins, measured as min(width, height) of the source",
       "4. slug ascending, so the ordering is total",

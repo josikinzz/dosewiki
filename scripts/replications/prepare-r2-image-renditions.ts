@@ -107,11 +107,12 @@ if (!argv.includes("--write")) {
   const plan = JSON.parse(planBytes.toString()) as { version: number; bucket: string; sourceHost: string; widths: number[]; quality: number; sources: Source[] };
   if (plan.version !== 1 || plan.bucket !== "replications" || plan.sourceHost !== HOST || plan.quality !== 75 || JSON.stringify(plan.widths) !== JSON.stringify(WIDTHS)) throw new Error("Plan contract mismatch");
   const endpoint = process.env.CLOUDFLARE_R2_S3_ENDPOINT;
+  const accountId = process.env.CLOUDFLARE_R2_ACCOUNT_ID;
   const accessKeyId = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
-  if (!endpoint || !accessKeyId || !secretAccessKey || process.env.CLOUDFLARE_R2_BUCKET !== plan.bucket) throw new Error("Missing or mismatched R2 credentials");
+  if (!endpoint || !accountId || !accessKeyId || !secretAccessKey || process.env.CLOUDFLARE_R2_BUCKET !== plan.bucket) throw new Error("Missing or mismatched R2 credentials");
   const target = new URL(endpoint);
-  if (target.protocol !== "https:" || target.hostname !== "bdfc442ef9d75c18e278f4f827f6241d.r2.cloudflarestorage.com" || target.pathname !== "/" || target.search || target.username || target.password) throw new Error("Unapproved R2 endpoint");
+  if (target.protocol !== "https:" || target.hostname !== `${accountId}.r2.cloudflarestorage.com` || target.pathname !== "/" || target.search || target.username || target.password) throw new Error("Unapproved R2 endpoint");
   const signed = async (method: string, key: string, body?: Buffer, headers: Record<string, string> = {}) => {
     const url = `${target.origin}/${plan.bucket}/${key}`;
     const backing = body?.buffer;

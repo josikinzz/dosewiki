@@ -12,7 +12,7 @@ import {
   type CanonicalLegalStatus,
 } from "@/schema/substance/legalStatuses";
 import { getCountryCode } from "@/utils/data/countryCodes";
-import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
+import usStateFlagMappings from "@data/substances/usStateFlagMappings.json";
 import { buildFieldPath, EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";

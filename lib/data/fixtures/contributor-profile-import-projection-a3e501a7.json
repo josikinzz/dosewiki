@@ -7,28 +7,27 @@
     "sourceFilesReadOnly": true,
     "profileWrites": 0,
     "productionWrites": 0,
-    "convexWrites": 0,
     "r2Writes": 0,
     "uploads": 0,
     "sources": {
       "profileMatchPlan": {
-        "path": "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/reviewed-profile-match-plan.json",
+        "path": "campaign-inputs/replication-index-2026-08-30/reviewed-profile-match-plan.json",
         "sha256": "f570c44efcebfd1be95584d01f4461041fe77510dd4ba250950e72e9c108a5f9"
       },
       "identitySummary": {
-        "path": "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/creator-identity-review-summary.json",
+        "path": "campaign-inputs/replication-index-2026-08-30/creator-identity-review-summary.json",
         "sha256": "6acbdd9c5185676756d67dde69054ff9ede77e269a3826c14b29103bf899cbc6"
       },
       "liveProfiles": {
-        "path": "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/live-profiles.json",
+        "path": "campaign-inputs/replication-index-2026-08-30/live-profiles.json",
         "sha256": "2c6f956f00b96d24d3c3cd010a7df6ba36415037e3504d80032b33da341482e6"
       },
       "reviewedAvatarEvidence": {
-        "path": "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/reviewed-avatar-source-evidence.json",
+        "path": "campaign-inputs/replication-index-2026-08-30/reviewed-avatar-source-evidence.json",
         "sha256": "45ba417b9bbd42365f37b26c7c6f9f86981de59fee439ee13f5283b80fbc8f80"
       },
       "avatarPlan": {
-        "path": "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/reviewed-avatar-acquisition-plan.json",
+        "path": "campaign-inputs/replication-index-2026-08-30/reviewed-avatar-acquisition-plan.json",
         "sha256": "65aa0afb7dcc0950e32c7042a0ef224bbe4ab8e2b4340bc741864039e2aa074d"
       }
     }

@@ -13,7 +13,7 @@ const PROD_OLD = `${MEDIA_BASE}/media/sha256/${"b".repeat(64)}.mp4`;
 
 beforeEach(() => vi.stubEnv("REPLICATION_MEDIA_BASE_URL", MEDIA_BASE));
 afterEach(() => vi.unstubAllEnvs());
-const ORPHAN = "https://warmhearted-mosquito-204.convex.cloud/api/storage/x";
+const ORPHAN = "https://orphan.example.invalid/api/storage/x";
 
 describe("sniffImageContentType", () => {
   const withHeader = (bytes) => Buffer.concat([Buffer.from(bytes), Buffer.alloc(12)]);
@@ -45,7 +45,7 @@ describe("imageContentTypeFor", () => {
     ).toBe("image/webp");
   });
 
-  // Convex hands back whatever the upload declared, so a wrong type makes the
+  // Legacy storage hands back whatever the upload declared, so a wrong type makes the
   // browser download the file instead of showing it — a page that looks broken.
   it("prefers the type the source deployment itself served", () => {
     expect(imageContentTypeFor({ declared: "image/webp", format: "jpg" })).toBe("image/webp");
@@ -274,7 +274,7 @@ describe("verifyRepoint", () => {
   it("rejects unknown and retired production delivery after repointing", () => {
     for (const url of [
       "https://unknown.example.test/media.mp4",
-      "https://glad-minnow-656.convex.cloud/api/storage/new",
+      "https://retired.example.invalid/api/storage/new",
     ]) {
       expect(verifyRepoint({ before: { url: ORPHAN }, after: { url } }).ok).toBe(false);
     }
@@ -283,11 +283,11 @@ describe("verifyRepoint", () => {
   it("catches a row that changed but still is not on production", () => {
     const verdict = verifyRepoint({
       before: { url: ORPHAN },
-      after: { url: "https://enchanted-echidna-791.convex.cloud/api/storage/y" },
+      after: { url: "https://dev.example.invalid/api/storage/y" },
     });
 
     expect(verdict.ok).toBe(false);
-    expect(verdict.reasons.join(" ")).toContain("enchanted-echidna-791");
+    expect(verdict.reasons.join(" ")).toContain("dev.example.invalid");
   });
 
   it("catches a poster regressing to null", () => {

@@ -17,6 +17,7 @@ import { notFound } from "next/navigation";
 import type { AppearancePolicy } from "@/theme";
 import { effectIndexViewPath } from "@/utils/indexViewRoutes";
 import { msg } from "@/i18n/messages";
+import effectIndexMissionMarkdown from "@content/about/effect-index-mission.md?raw";
 
 export const SITE_FLAVORS = ["dosewiki", "effectindex"] as const;
 
@@ -507,18 +508,13 @@ const EFFECT_INDEX_DESCRIPTION =
   "A resource dedicated to establishing the field of formalised subjective effect documentation.";
 
 /**
- * Effect Index's About prose, ported from the old site's `pages/about.vue`. Held here
- * rather than read from Postgres because the CMS About document is dose.wiki's and states
- * dose.wiki's CC0 terms; see {@link SiteAboutConfig.missionMarkdown}. Internal links are
- * remapped to this codebase's routes (`/profiles/Josie` → `/contributors/josie`).
+ * Effect Index's About prose, ported from the old site's `pages/about.vue` and kept in
+ * `content/about/effect-index-mission.md`. Held there rather than read from Postgres
+ * because the CMS About document is dose.wiki's and states dose.wiki's CC0 terms; see
+ * {@link SiteAboutConfig.missionMarkdown}. Internal links are remapped to this codebase's
+ * routes (`/profiles/Josie` becomes `/contributors/josie`).
  */
-const EFFECT_INDEX_MISSION_MARKDOWN = `Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.
-
-We believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.
-
-Effect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.
-
-If you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord).`;
+const EFFECT_INDEX_MISSION_MARKDOWN = effectIndexMissionMarkdown.trim();
 
 const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   flavor: "effectindex",

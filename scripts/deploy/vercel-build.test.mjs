@@ -10,7 +10,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 const scriptPath = path.join(repoRoot, "scripts/deploy/vercel-build.mjs");
 
 const DEPLOY_KEYS = [
-  "prod:glad-minnow-656|synthetic-production-secret",
+  "prod:example-target|synthetic-production-secret",
   "dev:local-team|synthetic-development-secret",
   "unrecognized:target|synthetic-unknown-secret",
 ];
@@ -43,7 +43,7 @@ test("the executable wrapper cannot invoke a deploy child for any deploy-key cla
         DATA_BACKEND: "postgres",
         VERCEL: "1",
         VERCEL_ENV: "production",
-        CONVEX_DEPLOY_KEY: deployKey,
+        PROVIDER_DEPLOY_KEY: deployKey,
       };
 
       await writeFile(callsPath, "");
@@ -56,7 +56,7 @@ test("the executable wrapper cannot invoke a deploy child for any deploy-key cla
       assert.equal(result.status, 0, result.stderr);
       const calls = await readFile(callsPath, "utf8");
       assert.match(calls, /bun run build/);
-      assert.doesNotMatch(calls, /bunx|convex deploy/);
+      assert.doesNotMatch(calls, /bunx|deploy/);
 
       await writeFile(callsPath, "");
       const planResult = spawnSync(process.execPath, [wrapperPath, "--plan"], {
@@ -75,7 +75,7 @@ test("the executable wrapper cannot invoke a deploy child for any deploy-key cla
       });
       assert.equal(failedVerification.status, 1);
       const failedCalls = await readFile(callsPath, "utf8");
-      assert.doesNotMatch(failedCalls, /bun run build|bunx|convex deploy/);
+      assert.doesNotMatch(failedCalls, /bun run build|bunx|deploy/);
 
       const escapedKey = new RegExp(deployKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
       for (const output of [

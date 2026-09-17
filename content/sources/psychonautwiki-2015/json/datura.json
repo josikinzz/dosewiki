@@ -1,0 +1,253 @@
+{
+  "slug": "datura",
+  "title": "Datura",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/datura.md",
+  "archive_timestamp": "20150921132624",
+  "archive_date_utc": "2015-09-21T13:26:24Z",
+  "archive_url": "https://web.archive.org/web/20150921132624/https://psychonautwiki.org/wiki/Datura",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+    "url": "https://web.archive.org/web/20150921132624/https://psychonautwiki.org/wiki/Datura"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "The cognitive effects of datura are described by many as generally negative and dysphoric throughout the trip, primarily consisting of extreme paranoia and feelings of impending doom. It is largely confusing and disorienting, often leading to a complete inability to communicate or understand normal language. Datura contains unique cognitive effects found almost exclusively in the deliriant class.\n\nThe most prominent of these effects include:",
+      "physical": "The physical effects of datura are usually described as extremely uncomfortable. They can be broken down into several components which progressively intensify proportional to dosage. These are described below and generally include:"
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Suppression": {
+            "note": "Datura does not enhance visual stimuli in the way that psychedelics do; instead, it tends to degrade and decrease visual aptitude while increasing hallucinations. These components are detailed below:",
+            "effects": [
+              {
+                "name": "Visual acuity suppression",
+                "description": "This effect can result in blurry vision to the point of blindness. It sometimes can last for days after the trip itself."
+              },
+              {
+                "name": "Pattern recognition suppression",
+                "description": ""
+              },
+              {
+                "name": "Vibrating vision",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "As for visual distortions and alterations, effects experienced are detailed below:",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, breathing, morphing and flowing) - In comparison to other hallucinogens, this effect can be described as intricate in complexity; jittery, slow and rigid in motion; static in permanence; realistic in believability and interactive in plasticity"
+              },
+              {
+                "name": "Visual haze",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              }
+            ]
+          },
+          "Hallucinatory states": {
+            "note": "Datura is extremely efficient at inducing delirious hallucinations which can be broken into the categories described below:",
+            "effects": [
+              {
+                "name": "External hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots) - In comparison to other classes of hallucinogen, this effect occurs more frequently than that of any other at moderate to heavy doses and is the defining feature of the experience. It can be comprehensively described through its variations as delirious in believability, autonomous in controllability and solid in style. The most common themes for these hallucinations include those of everyday occurrences such as smoking phantom cigarettes, talking to people who are not there, insects and sinister, nightmarish experiences."
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots) - In comparison to other classes of hallucinogen, this effect occurs briefly and spontaneously at moderate doses but becomes progressively extended in its occurrence and duration proportional to dosage before eventually becoming all-encompassing. It can be comprehensively described through its variations as delirious in believability, interactive in style, equal in new experiences and memory replays in content, autonomous in controllability and solid in style."
+              },
+              {
+                "name": "Peripheral information misinterpretation",
+                "description": ""
+              },
+              {
+                "name": "Shadow people",
+                "description": ""
+              },
+              {
+                "name": "Unspeakable horrors",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "The auditory effects of datura are common in their occurrence and exhibit a range of effects which commonly includes:",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Suppression",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Depression",
+            "description": ""
+          },
+          {
+            "name": "Anxiety",
+            "description": ""
+          },
+          {
+            "name": "Cognitive dysphoria",
+            "description": ""
+          },
+          {
+            "name": "Paranoia",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Emotion suppression",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Amnesia",
+            "description": ""
+          },
+          {
+            "name": "Language suppression",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Paranoia",
+            "description": ""
+          },
+          {
+            "name": "Dream potentiation",
+            "description": ""
+          },
+          {
+            "name": "Thought disorganization",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Perception of increased weight",
+            "description": "The first noticeable sensation is having an extremely heavy body as if the gravity has been multiplied by a thousand. This makes it extremely difficult and uncomfortable to move."
+          },
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "Users commonly report all-encompassing, sharp and extremely painful jolts of electricity that spontaneously manifest themselves in a similar rhythm to hiccups."
+          },
+          {
+            "name": "Difficulty urinating and Frequent urination",
+            "description": "This can be described as a feeling of concrete blocking the urethra, painfully conflicting with a frequent need to urinate."
+          },
+          {
+            "name": "Pupil dilation",
+            "description": "Datura blocks receptors in the muscles of the eye that constrict pupil size. This can result in an extreme sensitivity to light which can last for weeks after the experience in certain cases. Prolonged usage is reputed to cause blindness."
+          },
+          {
+            "name": "Muscle cramps",
+            "description": ""
+          },
+          {
+            "name": "Muscle spasms",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Dizziness",
+            "description": ""
+          },
+          {
+            "name": "Restless leg syndrome",
+            "description": ""
+          },
+          {
+            "name": "Abnormal heartbeat",
+            "description": ""
+          },
+          {
+            "name": "Increased heart rate",
+            "description": ""
+          },
+          {
+            "name": "Photophobia",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+      "url": "https://web.archive.org/web/20150921132624/https://psychonautwiki.org/wiki/Datura"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects prose preserved in subjective_effects.notes.physical; bullets mapped to physical.General in source order.",
+    "The source bullet `Difficulty urinating and Frequent urination` is represented as one effect name preserving the source `and` relationship.",
+    "Cognitive effects prose preserved in subjective_effects.notes.cognitive; bullets mapped to cognitive.General in source order, including the repeated `Paranoia` entry.",
+    "Visual effects mapped to sensory.visual subcategories using source headings: Suppression, Distortions, and Hallucinatory states.",
+    "Visual subheading prose preserved in each visual subcategory note.",
+    "Auditory effects prose preserved in subjective_effects.sensory.auditory.note; bullets mapped to auditory.General in source order.",
+    "No stub warning was present in the source article.",
+    "Markdown bold, italics, and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

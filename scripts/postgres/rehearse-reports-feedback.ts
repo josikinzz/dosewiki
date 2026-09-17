@@ -1,5 +1,5 @@
 /**
- * Tickets 08 and 09 rehearsal: private report intake, report publication, and
+ * Rehearsal: private report intake, report publication, and
  * feedback review on Postgres, driven through the same native functions the
  * app calls (`PostgresClient` with `api.*` references) and, for intake,
  * through the real Next route handler with `DATA_BACKEND=postgres`.
@@ -134,7 +134,7 @@ function offendingFields(value: unknown, into: Set<string>): void {
 function intakeRequest(ip: string, body: unknown, raw?: string): Request {
   return new Request(INTAKE_URL, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-forwarded-for": ip, "user-agent": "ticket-08-rehearsal" },
+    headers: { "content-type": "application/json", "x-forwarded-for": ip, "user-agent": "rehearsal" },
     body: raw ?? JSON.stringify(body),
   });
 }
@@ -268,7 +268,7 @@ async function main() {
     expect("intake", "exactly one tripReportSubmissions row persisted", (await count("tripReportSubmissions", '"id" = $1', [submissionId])) === 1 && (await count("tripReportSubmissions", '"title" = $1', [title])) === 1);
     const storedReport = stored?.report as { subject?: Record<string, unknown> } | undefined;
     expect("intake", "stored row is submitted, keeps contact email, and carries no submitter attribution",
-      stored?.status === "submitted" && stored.contact_email === members.admin && stored.user_agent === "ticket-08-rehearsal"
+      stored?.status === "submitted" && stored.contact_email === members.admin && stored.user_agent === "rehearsal"
         && storedReport?.subject !== undefined && !("profile_key" in storedReport.subject) && !("avatar_url" in storedReport.subject) && !("pdf_url" in storedReport.subject),
       stored && { status: stored.status, subject: storedReport?.subject });
     const viaQueue = await client.query(api.tripReportSubmissions.get, { ...adminArgs, id: submissionId });

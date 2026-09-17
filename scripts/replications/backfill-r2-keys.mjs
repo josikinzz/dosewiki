@@ -26,7 +26,7 @@
  * bound a batch-sized expansion wave).
  *
  * Requires TARGET_POSTGRES_URL and the replicationMaintenance credential; run
- * `npm run postgres:check-env-isolation` first, per docs/agents/data-credentials.md.
+ * `npm run postgres:check-env-isolation` first, per docs/operations/data-credentials.md.
  */
 
 import fs from "node:fs";

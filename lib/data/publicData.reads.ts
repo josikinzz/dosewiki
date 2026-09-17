@@ -91,7 +91,7 @@ const ABOUT_PREVIEW_MAX_ROWS = 8_192;
 
 /**
  * A full substance article document as stored in Postgres, minus nothing: the
- * open-data export publishes the same record shape as the committed
+ * open-data export publishes the same record shape as the archival
  * `SubstanceIndex.json`, so no projection narrows it here. Postgres internals
  * (`_id`, `_creationTime`) are stripped at the serving edge.
  */

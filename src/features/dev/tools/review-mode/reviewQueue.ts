@@ -26,10 +26,10 @@ export interface ReviewFlagSummary {
 }
 
 /**
- * Master switch for the advisory Review Flags surface in the workbench —
+ * Master switch for the advisory Review Flags surface in the workbench:
  * picker badges, the flag filters, and flag-based grouping. Off by editorial
- * decision: the flag ledger lives in the html-docs review-flag document, and
- * in the workbench the badges pulled the reviewer's eye mid-read. The flags
+ * decision: the flag ledger is kept outside the workbench, and in the
+ * workbench the badges pulled the reviewer's eye mid-read. The flags
  * stay in the queue data and the URL contract either way, so flipping this
  * back on restores the whole surface; while off, the consumers neutralize
  * any stored or URL-carried flag filter so a leftover setting cannot

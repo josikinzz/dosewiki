@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "metaclazepam",
+    "title": "Metaclazepam",
+    "smiles": "CN1C(CN=C(C2=C1C=CC(=C2)Br)C3=CC=CC=C3Cl)COC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "metaxalone",
+    "title": "Metaxalone",
+    "smiles": "CC1=CC(=CC(=C1)OCC2CNC(=O)O2)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "methallylescaline",
+    "title": "Methallylescaline",
+    "smiles": "CC(=C)COC1=C(C=C(C=C1OC)CCN)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "methamnetamine",
+    "title": "Methamnetamine",
+    "smiles": "CC(CC1=CC2=CC=CC=C2C=C1)NC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "methoxphenidine",
+    "title": "Methoxphenidine",
+    "smiles": "COC1=CC=CC=C1C(CC2=CC=CC=C2)N3CCCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Also known as MXP / 2-MeO-Diphenidine."
+  },
+  {
+    "slug": "methoxyacetyl-fentanyl",
+    "title": "Methoxyacetyl-Fentanyl",
+    "smiles": "COCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Matched via cleaned name 'Methoxyacetylfentanyl' (CID 968688)."
+  },
+  {
+    "slug": "methoxyketamine",
+    "title": "Methoxyketamine",
+    "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolves to 2-methoxyketamine (2-MeO-ketamine), the commonly referenced isomer."
+  },
+  {
+    "slug": "methoxypiperamide",
+    "title": "Methoxypiperamide",
+    "smiles": "CN1CCN(CC1)C(=O)C2=CC=C(C=C2)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Also known as MeOP / MEXP; PubChem CID 805654 lists 'Methoxypiperamide' as the primary name."
+  },
+  {
+    "slug": "methylmethaqualone",
+    "title": "Methylmethaqualone",
+    "smiles": "CC1=CC(=C(C=C1)N2C(=NC3=CC=CC=C3C2=O)C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "methyprylon",
+    "title": "Methyprylon",
+    "smiles": "CCC1(C(=O)C(CNC1=O)C)CC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "mexazolam",
+    "title": "Mexazolam",
+    "smiles": "CC1COC2(N1CC(=O)NC3=C2C=C(C=C3)Cl)C4=CC=CC=C4Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "mipt",
+    "title": "MiPT",
+    "smiles": "CC(C)N(C)CCC1=CNC2=CC=CC=C21",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "N-methyl-N-isopropyltryptamine."
+  },
+  {
+    "slug": "morpheridine",
+    "title": "Morpheridine",
+    "smiles": "CCOC(=O)C1(CCN(CC1)CCN2CCOCC2)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "mt-45",
+    "title": "MT-45",
+    "smiles": "C1CCC(CC1)N2CCN(CC2)C(CC3=CC=CC=C3)C4=CC=CC=C4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "n-ethylhexedrone",
+    "title": "N-Ethylhexedrone",
+    "smiles": "CCCCC(C(=O)C1=CC=CC=C1)NCC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "n-methylbisfluoromodafinil",
+    "title": "N-Methylbisfluoromodafinil",
+    "smiles": "O=S(CC(NC)=O)C(C1=CC=C(F)C=C1)C2=CC=C(F)C=C2",
+    "represents": "",
+    "source": "wikipedia",
+    "confidence": "high",
+    "note": "Not found directly in PubChem under this name; SMILES is the N-methyl-4,4-difluoro modafinil structure (CAS 1613222-54-0) from PsychonautWiki/vendor reference standards."
+  },
+  {
+    "slug": "naloxone",
+    "title": "Naloxone",
+    "smiles": "C=CCN1CC[C@]23[C@@H]4C(=O)CC[C@]2([C@H]1CC5=C3C(=C(C=C5)O)O4)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "naproxen",
+    "title": "Naproxen",
+    "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "neb",
+    "title": "NEB",
+    "smiles": "CCC(C(=O)C1=CC=CC=C1)NCC",
+    "represents": "N-Ethylbuphedrone",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "NEB is the common abbreviation for N-ethylbuphedrone (CID 20326296)."
+  },
+  {
+    "slug": "nefiracetam",
+    "title": "Nefiracetam",
+    "smiles": "CC1=C(C(=CC=C1)C)NC(=O)CN2CCCC2=O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "nicomorphine",
+    "title": "Nicomorphine",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC(=O)C6=CN=CC=C6)O[C@H]3[C@H](C=C4)OC(=O)C7=CN=CC=C7",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "nitemazepam",
+    "title": "Nitemazepam",
+    "smiles": "CN1C2=C(C=C(C=C2)[N+](=O)[O-])C(=NC(C1=O)O)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "nitracaine",
+    "title": "Nitracaine",
+    "smiles": "CCN(CC)CC(C)(C)COC(=O)C1=CC=C(C=C1)[N+](=O)[O-]",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "nitrazolam",
+    "title": "Nitrazolam",
+    "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "nitrous",
+    "title": "Nitrous",
+    "smiles": "[N-]=[N+]=O",
+    "represents": "Nitrous oxide",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "'Nitrous' refers to nitrous oxide (N2O), CID 948."
+  },
+  {
+    "slug": "nordazepam",
+    "title": "Nordazepam",
+    "smiles": "C1C(=O)NC2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "o-desmethyltramadol",
+    "title": "O-Desmethyltramadol",
+    "smiles": "CN(C)C[C@H]1CCCC[C@@]1(C2=CC(=CC=C2)O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "opium",
+    "title": "Opium",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+    "represents": "Morphine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Opium is a plant preparation (Papaver somniferum latex); SMILES is its principal psychoactive alkaloid, morphine (CID 5288826)."
+  },
+  {
+    "slug": "oxazolam",
+    "title": "Oxazolam",
+    "smiles": "CC1CN2CC(=O)NC3=C(C2(O1)C4=CC=CC=C4)C=C(C=C3)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "pagoclone",
+    "title": "Pagoclone",
+    "smiles": "CC(C)CCC(=O)CC1C2=CC=CC=C2C(=O)N1C3=NC4=C(C=C3)C=CC(=N4)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  }
+]

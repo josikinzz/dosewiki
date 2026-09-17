@@ -82,8 +82,8 @@ export function buildReagentTestImportPlan({ snapshot, expectedSlugs, snapshotHa
 }
 
 function loadPlan(repoRoot) {
-  const snapshotPath = resolve(repoRoot, "src/data/reagentTests.json");
-  const substancePath = resolve(repoRoot, "src/data/SubstanceIndex.json");
+  const snapshotPath = resolve(repoRoot, "data/third-party/protestkit/reagentTests.json");
+  const substancePath = resolve(repoRoot, "public/SubstanceIndex.json");
   const snapshotText = readFileSync(snapshotPath, "utf8");
   const snapshot = JSON.parse(snapshotText);
   const substances = JSON.parse(readFileSync(substancePath, "utf8"));
@@ -115,7 +115,7 @@ export async function main(argv = process.argv.slice(2)) {
     targetUrlKeys: targetUrlArg ? ["TARGET_POSTGRES_URL"] : undefined,
     confirmationFlag: CONFIRMATION_FLAG,
     selectedTables: ["reagentTests"],
-    localArtifacts: ["src/data/reagentTests.json", "src/data/SubstanceIndex.json"],
+    localArtifacts: ["data/third-party/protestkit/reagentTests.json", "public/SubstanceIndex.json"],
   });
   if (targetUrlArg) runContext.targetUrlKey = "--target";
 

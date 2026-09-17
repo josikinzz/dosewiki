@@ -1,4 +1,4 @@
-import contributorProfiles from "@/data/config/userProfiles.json";
+import contributorProfiles from "@data/contributors/userProfiles.json";
 import {
   deriveProfileKeyFromEmail,
   findContributorProfileByKeyOrAlias,

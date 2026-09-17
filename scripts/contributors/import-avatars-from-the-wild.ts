@@ -45,9 +45,12 @@
  * A profile picture is the artist's own image, published by them as the face of
  * the account we link. It is used here to credit them at the size of a credit
  * line. Every install records where the image came from, the evidence that the
- * account is theirs, and any license the source demanded, in
- * `src/data/config/contributorAvatarWildSources.json`. An artist who wants it
- * gone is one line in that file away from being found.
+ * account is theirs, and any license the source demanded, in the provenance
+ * manifest named by `--manifest=<path>`. That manifest is identity research
+ * about real people, so it is kept outside the repository alongside the
+ * findings; an artist who wants their picture gone is one line in that file
+ * away from being found. A run reads the manifest first (avatars it installed
+ * earlier are its own to refresh) and rewrites it in full.
  *
  * A replaced artwork crop is dropped from `contributorAvatarSources.json` in the
  * same run. Two manifests describing the same bytes, one of them wrong, is worse
@@ -56,10 +59,12 @@
  * ## Usage
  *
  * Dry run (default; reads production, writes nothing):
- *   bun scripts/contributors/import-avatars-from-the-wild.ts --findings=/tmp/findings.json
+ *   bun scripts/contributors/import-avatars-from-the-wild.ts \
+ *     --findings=/tmp/findings.json --manifest=/tmp/wild-avatar-sources.json
  *
  * Render the avatars somewhere disposable to look at them first:
- *   bun scripts/contributors/import-avatars-from-the-wild.ts --findings=/tmp/findings.json \
+ *   bun scripts/contributors/import-avatars-from-the-wild.ts \
+ *     --findings=/tmp/findings.json --manifest=/tmp/wild-avatar-sources.json \
  *     --preview-dir=/tmp/wild-avatars
  *
  * A profile whose avatar was chosen deliberately (neither an artwork crop nor
@@ -68,7 +73,8 @@
  *
  * Apply (repo files, manifests, and the production profile rows):
  *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   bun scripts/contributors/import-avatars-from-the-wild.ts --findings=/tmp/findings.json \
+ *   bun scripts/contributors/import-avatars-from-the-wild.ts \
+ *     --findings=/tmp/findings.json --manifest=/tmp/wild-avatar-sources.json \
  *     --write --confirm-write=import-wild-avatars \
  *     --expected-deployment=localhost/dosewiki
  */
@@ -86,7 +92,6 @@ import {
 } from "../../lib/contributorProfileIdentity";
 import {
   MANIFEST_PATH as ARTWORK_MANIFEST_PATH,
-  ROOT,
   avatarFilePathForKey,
   previewAvatarFilePath,
   writeAvatarFile,
@@ -120,10 +125,6 @@ import {
 } from "../lib/production-write-command.mjs";
 
 const OPERATION = "import-wild-avatars";
-const WILD_MANIFEST_PATH = path.join(
-  ROOT,
-  "src/data/config/contributorAvatarWildSources.json",
-);
 
 /** The title the fifty-eight existing replication-artist profiles carry. */
 const REPLICATION_ARTIST_ROLE = "Replication Artist";
@@ -150,6 +151,13 @@ async function main() {
   if (!findingsPath) {
     throw new Error(
       "Pass --findings=<path> pointing at the research findings JSON.",
+    );
+  }
+  const wildManifestPath = flag("manifest");
+  if (!wildManifestPath) {
+    throw new Error(
+      "Pass --manifest=<path> pointing at the wild avatar provenance manifest " +
+        "(created on the first write run; read back on every later one).",
     );
   }
   const previewDir = flag("preview-dir");
@@ -222,9 +230,9 @@ async function main() {
   // Avatars this producer installed on an earlier run are ours to refresh; the
   // guard below is about pictures somebody else picked.
   const wildKeys = new Set<string>(
-    fs.existsSync(WILD_MANIFEST_PATH)
+    fs.existsSync(wildManifestPath)
       ? (
-          JSON.parse(fs.readFileSync(WILD_MANIFEST_PATH, "utf8")).avatars ?? []
+          JSON.parse(fs.readFileSync(wildManifestPath, "utf8")).avatars ?? []
         ).map((entry: { profileKey: string }) =>
           normalizeProfileKey(entry.profileKey),
         )
@@ -459,7 +467,7 @@ async function main() {
   });
 
   fs.writeFileSync(
-    WILD_MANIFEST_PATH,
+    wildManifestPath,
     `${JSON.stringify(
       {
         note:

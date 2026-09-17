@@ -114,9 +114,9 @@ export async function runComparePrompts({ dataPrompts, dataUrl, log = console.lo
     sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
     targetUrlKeys: [],
     localArtifacts: [
-      "src/data/config/generatorPrompt.md",
-      "src/data/config/sectionPrompts/*.md",
-      "src/data/config/formalCitationsPrompts/*.md",
+      "content/prompts/generator.md",
+      "content/prompts/sections/*.md",
+      "content/prompts/formal-citations/*.md",
     ],
   });
 

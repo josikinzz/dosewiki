@@ -56,7 +56,7 @@ describe("UI Kit catalog render safety", () => {
             `Story "${story.id}" example #${index} ("${example.label}") threw in ` +
               `${appearance.visualStyle} ${appearance.colorScheme}. If it needs provider data ` +
               `that an isolated dev page cannot supply, render a reference example instead ` +
-              `(see docs/ui-kit.md).`,
+              `(see docs/design/ui-kit.md).`,
           ).not.toThrow();
         }
       }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Validate a citation-pi verdict draft (`verdict-draft.json`) against the
- * shared draft shape and .agents/skills/citation-pi/reference/verdict-contract.md.
+ * Validate a citation verdict draft (`verdict-draft.json`) against the
+ * shared draft shape and the verdict contract in docs/workflows/citations.md.
  *
  * Read-only and offline: checks vocabulary, legal verdict/disposition
  * combinations, quote presence rules, suggestedRepair entailment-record rules,

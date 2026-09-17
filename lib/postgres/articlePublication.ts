@@ -1,6 +1,6 @@
 /**
- * Ticket 04: one substance article read, edited, published, and observed
- * through Postgres.
+ * One substance article read, edited, published, and observed through
+ * Postgres.
  *
  * The publication rules are the shared `publishReviewedSectionTransaction`
  * (section CAS, replay receipts, patch boundary). This module supplies its

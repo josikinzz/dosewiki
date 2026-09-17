@@ -130,11 +130,6 @@ export const sourceConfigs: SourceConfig[] = [
     favicon: "/favicons/timesofindia-indiatimes-com.png",
   },
   {
-    id: "c0c59da34f7608d6-ngrok-app",
-    patterns: ["c0c59da34f7608d6.ngrok.app"],
-    favicon: "/favicons/c0c59da34f7608d6-ngrok-app.png",
-  },
-  {
     id: "molpharm-aspetjournals-org",
     patterns: ["molpharm.aspetjournals.org"],
     favicon: "/favicons/molpharm-aspetjournals-org.png",

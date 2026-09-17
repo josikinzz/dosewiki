@@ -8,7 +8,7 @@ import {
   countryLegalitySchema,
 } from "../../src/schema/substance/shared";
 import { CANONICAL_STATUS_LABELS } from "../../src/schema/substance/legalStatuses";
-import usStateFlagMappings from "../../src/data/mappings/usStateFlagMappings.json";
+import usStateFlagMappings from "@data/substances/usStateFlagMappings.json";
 import { getCountryCode } from "../../src/utils/data/countryCodes";
 import { voiceMatch } from "./voice.mjs";
 

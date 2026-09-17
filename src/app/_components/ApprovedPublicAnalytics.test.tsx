@@ -66,7 +66,7 @@ describe("ApprovedPublicAnalytics", () => {
 
     it.each([
       "dosewiki-admin.vercel.app",
-      "dosewiki-admin-git-review-josikinzz.vercel.app",
+      "dosewiki-admin-git-review-example.vercel.app",
       "localhost",
     ])("never initialises PostHog on %s", async (host) => {
       const { init, moduleLoaded } = await preparePostHog(host);

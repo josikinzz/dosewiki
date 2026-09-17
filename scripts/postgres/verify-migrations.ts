@@ -1,5 +1,5 @@
 /**
- * Ticket 19: `npm run postgres:migrate` (drizzle-kit migrate over
+ * `npm run postgres:migrate` (drizzle-kit migrate over
  * lib/postgres/migrations) is the only schema path. This check fails when the
  * Drizzle schema (`lib/postgres/schema.generated.ts` + `schema.runtime.ts`)
  * has drifted from the latest migration snapshot, which would mean a change

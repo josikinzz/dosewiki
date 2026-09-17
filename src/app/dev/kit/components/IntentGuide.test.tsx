@@ -29,9 +29,9 @@ describe("catalog intent guide", () => {
       </ThemeProvider>,
     );
     expect(markup).toContain('href="#public-tokens"');
-    expect(markup).toContain("docs/ui-system.md#name-chip-policy");
-    expect(markup).toContain("docs/ui-system.md#expand-affordance-policy");
-    expect(markup).toContain("docs/ui-system.md#divider-policy");
+    expect(markup).toContain("docs/design/ui-kit.md#name-chip-policy");
+    expect(markup).toContain("docs/design/ui-kit.md#expand-affordance-policy");
+    expect(markup).toContain("docs/design/ui-kit.md#divider-policy");
     // The chip entry renders the PublicNameChip example, not just a label.
     expect(markup).toContain("theme-name-chip");
   });

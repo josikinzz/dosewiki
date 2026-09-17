@@ -54,9 +54,9 @@ describe("local artifact hygiene policy", () => {
       classification: "generated-output-boundary",
       cleanupBehavior: "manual-review-only",
     });
-    expect(classifyLocalArtifactPath(".codex-dev.pid")).toMatchObject({
-      classification: "local-process-file",
-      cleanupBehavior: "delete-file-when-present",
+    expect(classifyLocalArtifactPath("coverage")).toMatchObject({
+      classification: "generated-output",
+      cleanupBehavior: "delete-recursively-when-present",
     });
     expect(classifyLocalArtifactPath("nested/.DS_Store")).toMatchObject({
       classification: "macos-metadata",
@@ -129,17 +129,18 @@ describe("local artifact hygiene policy", () => {
   it("reports only automatically approved artifacts in check mode without deleting them", async () => {
     const root = await makeTmpRepo();
     await mkdir(path.join(root, ".next"), { recursive: true });
-    await touch(path.join(root, ".codex-dev.log"));
+    await mkdir(path.join(root, "coverage"), { recursive: true });
+    await touch(path.join(root, "coverage", "lcov.info"));
     const { logger, lines } = captureLogger();
 
     runHygiene({ rootDir: root, logger, validateLineage: false });
 
     expect(lines.join("\n")).toContain("1 approved local artifact path(s) found");
-    expect(lines.join("\n")).toContain(".codex-dev.log");
+    expect(lines.join("\n")).toContain("coverage");
     expect(lines.join("\n")).not.toContain(".next (");
     expect(lines.join("\n")).toContain("Run `npm run hygiene:clean`");
     expect(existsSync(path.join(root, ".next"))).toBe(true);
-    expect(existsSync(path.join(root, ".codex-dev.log"))).toBe(true);
+    expect(existsSync(path.join(root, "coverage", "lcov.info"))).toBe(true);
   });
 
   it("removes approved artifacts while preserving the entire .next and tmp roots", async () => {

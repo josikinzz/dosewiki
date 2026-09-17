@@ -1,6 +1,6 @@
 import "server-only";
 
-import psychoactiveIndexManual from "../../src/data/indexes/psychoactiveIndexManual.json";
+import psychoactiveIndexManual from "@data/substances/psychoactiveIndexManual.json";
 import type { CategoryTabContent } from "../../src/data/categoryTabContent";
 import type { CopyResolver } from "./copyBlocks";
 

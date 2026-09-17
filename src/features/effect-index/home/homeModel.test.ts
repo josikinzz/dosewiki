@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import featuredReplicationsConfig from "@/data/config/effectIndexFeaturedReplications.json";
+import featuredReplicationsConfig from "@data/effects/effectIndexFeaturedReplications.json";
 import type { GalleryReplication } from "@/types/replications";
 import {
   buildReplicationIntroduction,

@@ -92,7 +92,7 @@ describe("data ops run context", () => {
   it("does not authorize application fallback URLs or absent targets", () => {
     for (const env of [
       { DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: "postgres://prod.example/db" },
-      { DATA_BACKEND: "postgres", CONVEX_URL: "https://legacy.convex.cloud" },
+      { DATA_BACKEND: "postgres", LEGACY_BACKEND_URL: "https://legacy.example.invalid" },
     ]) {
       const context = createDataOpsRunContext({ operation: "copy", argv: ["--write"], loadsEnvLocal: false, env });
       expect(() => assertDataOpsWriteAllowed(context)).toThrow(/explicit|TARGET_POSTGRES_URL/);
@@ -110,7 +110,7 @@ describe("data ops run context", () => {
 
   it("rejects invalid explicit source and target selections without fallback", () => {
     for (const env of [
-      { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "https://legacy.convex.cloud" },
+      { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "https://legacy.example.invalid" },
       { DATA_BACKEND: "postgres", SOURCE_POSTGRES_URL: "", POSTGRES_POOLED_URL: "postgres://localhost/db" },
     ]) expect(() => createDataOpsRunContext({ operation: "copy", argv: [], loadsEnvLocal: false, env })).toThrow(/Postgres/);
   });

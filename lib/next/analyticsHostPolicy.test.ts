@@ -54,7 +54,7 @@ describe("PostHog host and key gate", () => {
 
   it.each([
     "dosewiki-admin.vercel.app",
-    "dosewiki-admin-git-security-josikinzz.vercel.app",
+    "dosewiki-admin-git-security-example.vercel.app",
     "localhost",
     "127.0.0.1",
     "dose.wiki.example.com",

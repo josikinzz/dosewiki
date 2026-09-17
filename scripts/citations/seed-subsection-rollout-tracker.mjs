@@ -14,7 +14,6 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
 import {
@@ -23,16 +22,18 @@ import {
   printDataOpsRunContext,
 } from "../lib/data-ops-run-context.mjs";
 import { seedSubsectionTracker } from "./subsection-rollout-lib.mjs";
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 
 const DEFAULT_AUDIT = "tmp/subsection-citation-audit.json";
-const DEFAULT_TRACKER = `${homedir()}/.codex/dosewiki-citation-workbench/trackers/subsection-rollout.json`;
+const DEFAULT_TRACKER = "<DOSEWIKI_CITATION_WORKBENCH>/trackers/subsection-rollout.json";
 
 function parseOptions(argv) {
+  const help = argv.includes("--help") || argv.includes("-h");
   return {
-    help: argv.includes("--help") || argv.includes("-h"),
+    help,
     dryRun: argv.includes("--dry-run"),
     audit: getFlagValue(argv, "--audit") ?? DEFAULT_AUDIT,
-    tracker: getFlagValue(argv, "--tracker") ?? DEFAULT_TRACKER,
+    tracker: getFlagValue(argv, "--tracker") ?? (help ? DEFAULT_TRACKER : resolve(resolveCitationWorkbenchRoot(), "trackers", "subsection-rollout.json")),
     scope: getFlagValue(argv, "--scope") ?? "cohort",
   };
 }

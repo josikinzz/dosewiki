@@ -2,7 +2,7 @@
 /**
  * Seed index layouts to Postgres.
  *
- * Reads the JSON files from src/data/indexes/ and uploads them to the
+ * Reads the JSON files from data/substances/ and uploads them to the
  * indexLayouts table in Postgres.
  *
  * Usage:
@@ -44,7 +44,7 @@ async function seedIndexLayouts() {
   const layouts = [];
 
   for (const { type, file } of INDEX_FILES) {
-    const filePath = path.join(__dirname, "../../src/data/indexes", file);
+    const filePath = path.join(__dirname, "../../data/substances", file);
 
     if (!fs.existsSync(filePath)) {
       console.error(`  ✗ ${file} not found`);

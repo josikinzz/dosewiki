@@ -1,37 +1,53 @@
 # AGENTS.md
 
-## Start Here
+## About dose.wiki
 
-- Read [CONTEXT.md](CONTEXT.md) for the canonical vocabulary before non-trivial changes.
-- For replication classification, taxonomy, promotion, or gallery intake, follow the [replication classification field guide](docs/agents/replication-classification-guide.html). For reviewed Reddit archive media moving through R2, Postgres, and public sites, follow the [Reddit replication intake runbook](docs/agents/reddit-replication-intake.md).
-- For flat-body trip reports, follow the [timeline runbook](docs/agents/trip-report-timeline.md) so the reshape stays lossless. For `zh.dose.wiki` translation storage, cron, or operator work, follow the [locale mirrors runbook](docs/agents/locale-mirrors.md).
-- For `/sectionmaxxing`, follow the [sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). It regenerates five non-legality narrative sections on URL-only and hidden articles with isolated Sol-low workers; publishing stays separately approved. It is not the `citation-pi` entailment audit.
-- For molecule editing or rendering, follow [molecule editor notes](src/features/dev/tools/molecule-editor/NOTES.md) and [OpenChemLib fork ownership](docs/architecture/openchemlib-fork.md).
-- For UI work, reuse the portable [UI kit](docs/ui-kit.md) and [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
-- For environment or deployment work, use [README build, run, and deploy guidance](README.md#build-run-and-deploy) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
-- For generated data, inspect `src/data/artifactLineageManifest.json`, change the producer input, and run its recorded command. Never hand-edit `lib/postgres/schema.generated.ts`, `lib/postgres/runtime/{dataModel.ts,api.generated.ts,functions.generated.ts}`, `src/data/schema/*.generated.ts`, or generated migration metadata. Native callable ownership lives in `lib/postgres/runtime/functionOwnership.json`; `server/` contains authored Postgres handlers, not generated functions. Obsolete Convex bindings are retained only under `scripts/recovery/convex/_generated/*.reference`.
-- Accounts: run `account-scope why` before `gh`, `vercel`, or `git push` — it names this repo's GitHub/Vercel account.
+**dose.wiki** synthesizes factual knowledge about psychoactive substances from harm-reduction and reference sources into a single open dataset. It aims to establish an open standard for psychopharmacology datasets, supporting research and education.
 
-## Hard Invariants
+- **Substance articles:** dose, duration, effects, interactions, chemistry, and legality by country.
+- **Subjective effect articles:** individual components of altered states, from visual drifting to ego death.
+- **Replications:** images, videos, and audio that recreate subjective effects.
+- **Trip reports:** first-person accounts of individual experiences.
 
-- PlanetScale Postgres is production runtime truth. The archived Convex service `glad-minnow-656` is a frozen, non-runtime recovery source during the ticket 24 observation window, never a routine operator target. Never write Convex in normal operation. Any rollback write is owner-gated and follows [the recovery procedure](notes-and-plans/plans/convex-to-planetscale/release-manifest.md#10-post-write-rollback-postgres-to-convex).
-- Production data commands use `DATA_BACKEND=postgres`, an explicit `--target` or `TARGET_POSTGRES_URL`, and every guard named by the command. A dry run is not authorization. Implementing a guarded command does not add it to the operator-write allowlist. See [data credentials](docs/agents/data-credentials.md).
-- `DATA_WRITES_FROZEN=1` must fail closed at every write boundary. Never weaken the freeze, explicit-target checks, confirmation phrases, role checks, or intent-scoped credential selection.
-- Public DoseWiki, editor DoseWiki, and Effect Index are separate build artifacts and Vercel projects. `dosewiki-public` serves `dose.wiki` and `www.dose.wiki`; `dosewiki-admin` serves `dev.dose.wiki` and `dosewiki-admin.vercel.app`; Effect Index uses its own read-only flavor. See [deployment routing](docs/agents/deployment.md).
-- DoseWiki owns the replication embed used by Osmanthus. `/embed/replications` reuses `ReplicationShowcase` and `ReplicationViewerOverlay`; keep the versioned contract in `HANDOFF.md`, framing policy in `lib/next/replicationEmbedPolicy.ts`, public-build editorial isolation, and publisher-first release order.
-- Public and Effect Index artifacts carry no admin key or editorial browser modules. Only the editor deployment may carry the write credential tier. `REPLICATION_MEDIA_BASE_URL` is required for Postgres runtime reads.
-- Write links as App Paths. `/preview` exists only for permanent compatibility redirects. Public editor, review, and sign-in links hand off to `dev.dose.wiki`.
-- Preserve Auth.js identity, database-backed roles, service-write allowlists, content ownership, revision checks, human editorial authority, and recovery history. Never infer authorization from a credential alone.
-- Local source changes are not deployed changes. Never claim production state without deployment evidence.
-- The local native source contract uses `DATA_ADMIN_KEY` and `DATA_ADMIN_TOKEN_*` without `CONVEX_ADMIN_*` aliases. Source cutover does not rename provider configuration or authorize release, migration, storage CORS changes, or retirement. Follow the completion follow-up gates in the [release manifest](notes-and-plans/plans/convex-to-planetscale/release-manifest.md#completion-dossier-follow-up-local-source-only).
+### Sources and review
 
-## Commands and Verification
+The factual knowledge within substance articles draws on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from ten harm-reduction and reference resources. Each article links to the source pages that informed it.
 
-- Install with `bun install --frozen-lockfile`; Bun 1.3.5 owns `bun.lock`.
-- `package.json` is the executable command catalog. Use the narrow verification command for the changed surface.
-- Never delete `.next` as a build-fix reflex; `.next/cache` contains the persistent data cache.
-- Routing, middleware, and build-config work must be checked with a production-shaped build or deployment because middleware does not run under `next dev`.
+Substance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](https://dose.wiki/docs/how) page explains the process in depth.
 
-## Style
+So, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of PsychonautWiki took an entire community of people from 2011-2016, with incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday.
 
-- Em dashes are banned in all text.
+This is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.
+
+**dose.wiki is in beta.** Each article's **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article.
+
+The other collections are entirely human-created:
+
+- **Effect articles** form the Subjective Effect Index, written over more than a decade across several websites.
+- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit's r/replications community.
+- **Trip reports** are written by their authors and reviewed by an editor before publication.
+
+The site and dataset continue to evolve toward 1.0.
+
+## Rules
+
+1. PlanetScale Postgres is the only runtime and the source of truth; files under `data/` and `content/` are seeds and exports, never the live record.
+2. Production writes need `DATA_BACKEND=postgres`, an explicit `--target` or `TARGET_POSTGRES_URL`, and every guard the command names; a dry run is not authorization.
+3. `DATA_WRITES_FROZEN=1` fails closed at every write boundary; never weaken the freeze, target checks, confirmation phrases, or role checks.
+4. Public, editor, and Effect Index builds are separate artifacts; only the editor build carries write credentials or editorial browser modules.
+5. Never commit credentials; `.env.example` documents every variable and `.env.local` stays untracked.
+6. Never hand-edit a file that `data/lineage.json` names as generated; change the producer input and run its recorded command.
+7. Article shape is owned by `src/schema/substance.schema.ts`; runtime types and schema files under `lib/postgres/` derive from it.
+8. Preserve Auth.js identity, database-backed roles, human editorial authority, and revision checks; never infer authorization from a credential alone.
+9. Write links as App Paths; a local source change is not a deployed change, so never claim production state without deployment evidence.
+10. Em dashes are banned in all text.
+
+## Where to read next
+
+- Before any non-trivial change, read [docs/glossary.md](docs/glossary.md) for the vocabulary and [ARCHITECTURE.md](ARCHITECTURE.md) for the layout.
+- For install, dev, and verification commands, read [CONTRIBUTING.md](CONTRIBUTING.md); `package.json` is the command catalog.
+- For deployment, credentials, or the write ceremony, read [docs/operations/deployment.md](docs/operations/deployment.md) and [docs/operations/data-credentials.md](docs/operations/data-credentials.md).
+- For citations, legality drafts, replication intake, or trip-report timelines, read the matching runbook in [docs/workflows/](docs/README.md#workflows).
+- For UI work, read [docs/design/ui-kit.md](docs/design/ui-kit.md) and [docs/design/visual-style-guide.md](docs/design/visual-style-guide.md).
+- For molecule editing or rendering, read [docs/design/molecule-editor.md](docs/design/molecule-editor.md) and [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md).
+- For datasets and prose, read [data/README.md](data/README.md) and [content/README.md](content/README.md).

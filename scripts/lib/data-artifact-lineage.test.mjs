@@ -25,23 +25,16 @@ async function makeTmpRoot() {
 }
 
 function trackedArtifacts() {
-  const sectionPromptDir = path.join(repoRoot, "src/data/config/sectionPrompts");
-  const backupDir = path.join(repoRoot, "src/data/backups");
+  const sectionPromptDir = path.join(repoRoot, "content/prompts/sections");
 
   return [
-    "src/data/SubstanceIndex.json",
-    "src/data/parsed-sources.json",
-    "src/data/articleSourceManifest.json",
-    "src/data/artifactLineageManifest.json",
-    "src/data/config/generatorPrompt.md",
-    "src/data/config/userProfiles.json",
-    "src/data/mappings/iupacSmilesMap.json",
+    "data/lineage.json",
+    "content/prompts/generator.md",
+    "data/contributors/userProfiles.json",
+    "data/chemistry/iupacSmilesMap.json",
     ...readdirSync(sectionPromptDir)
       .filter((file) => file.endsWith(".md"))
-      .map((file) => `src/data/config/sectionPrompts/${file}`),
-    ...readdirSync(backupDir)
-      .filter((file) => file.endsWith(".json"))
-      .map((file) => `src/data/backups/${file}`),
+      .map((file) => `content/prompts/sections/${file}`),
   ].filter((artifactPath) => existsSync(path.join(repoRoot, artifactPath)));
 }
 

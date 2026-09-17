@@ -19,7 +19,6 @@ const CITABLE_SECTIONS = new Set([
   "legality",
 ]);
 const STATES = new Set(["pending", "running", "needs_review", "blocked", "superseded"]);
-const DEFAULT_WORKBENCH = "/Users/josie/.codex/dosewiki-citation-workbench";
 
 function fail(message) {
   throw new Error(message);
@@ -28,7 +27,7 @@ function fail(message) {
 function usage(message) {
   if (message) console.error(`error: ${message}`);
   console.error(`Usage:
-  citation-campaign.mjs init --campaign <path> --target <slug>:<section[,section]> [--target ...] --model <provider/model> --tier <tier> [--workbench <path>]
+  citation-campaign.mjs init --campaign <path> --target <slug>:<section[,section]> [--target ...] --model <provider/model> --tier <tier> [--workbench <path>] (default: $DOSEWIKI_CITATION_WORKBENCH, required)
   citation-campaign.mjs status --campaign <path> [--format text|json]
 
 The campaign file locks its approved slug/section scope plus model+tier. Status only reads existing run manifests and drafts; it never launches, retries, publishes, or applies anything.`);
@@ -98,7 +97,9 @@ function createCampaign(values) {
   const model = one(values, "model", { required: true });
   const tier = one(values, "tier", { required: true });
   if (!model.includes("/")) fail("--model must be an explicit provider/model identifier");
-  const workbench = resolve(one(values, "workbench") ?? process.env.DOSEWIKI_CITATION_WORKBENCH ?? DEFAULT_WORKBENCH);
+  const requestedWorkbench = one(values, "workbench") ?? process.env.DOSEWIKI_CITATION_WORKBENCH;
+  if (!requestedWorkbench) fail("Set DOSEWIKI_CITATION_WORKBENCH or pass --workbench <path>");
+  const workbench = resolve(requestedWorkbench);
   if (existsSync(campaignPath)) fail(`Campaign already exists and is locked: ${campaignPath}`);
   if (!existsSync(resolve(workbench, "runs"))) fail(`Workbench runs directory does not exist: ${resolve(workbench, "runs")}`);
 
@@ -248,7 +249,7 @@ function attemptState(run, campaign, integrity) {
 
 function guidance(state, runId) {
   if (state === "pending") return "No approved attempt found. Prepare or start one manually; this CLI never launches workers.";
-  if (state === "running") return `Resume run ${runId} from ${runId}/pi-run-manifest.json using docs/agents/pi-citation-run-contract.md#failure-handling and its coordinator sequence. Preserve accepted hash-matching artifacts; resume only the first incomplete manifest stage, not completed research.`;
+  if (state === "running") return `Resume run ${runId} from ${runId}/pi-run-manifest.json using docs/workflows/citations.md#failure-handling and its coordinator sequence. Preserve accepted hash-matching artifacts; resume only the first incomplete manifest stage, not completed research.`;
   if (state === "needs_review") return `Review ${runId}/citation-draft.json and report. Keep local-only; no apply or publication action is available here.`;
   if (state === "blocked") return `Inspect deterministic gate logs for ${runId}. Create a linked corrective rerun with pi-run-manifest.mjs rerun; do not mutate the attempt.`;
   return `Use the latest linked successor instead of ${runId}; the superseded attempt remains immutable evidence.`;

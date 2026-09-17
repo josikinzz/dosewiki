@@ -1,4 +1,4 @@
-import chemicalIndexManual from "@/data/indexes/chemicalIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
 import { buildChemicalClassTree } from "@/data/builders/chemicalClassTree";
 import { resolveChemicalClassKey } from "@/data/indexes/chemicalClassLookup";
 import {

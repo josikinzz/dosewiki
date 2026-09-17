@@ -6,7 +6,7 @@
  * articles by hand, working the queue locally, and replaying rows whose prompt
  * digest is no longer the current one.
  *
- * Usage (Postgres write ceremony from docs/agents/data-credentials.md):
+ * Usage (Postgres write ceremony from docs/operations/data-credentials.md):
  *   export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<host>
  *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/substances --allow-remote --write
  *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/articles --corpus=articles --allow-remote --write

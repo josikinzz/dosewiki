@@ -9,7 +9,7 @@
  * names outside this bundle (editor-authored Postgres strings, /dev pickers).
  *
  * Scanned sources: `{src,lib}/**\/*.{ts,tsx}` minus generated files and
- * `*.test.*`, plus the manual index layouts (`src/data/indexes/*.json`), which
+ * `*.test.*`, plus the manual index layouts (`data/substances/*IndexManual.json`), which
  * carry `iconKey` values that `getCategoryIcon` passes through verbatim when
  * they contain a `:`. The non-runtime component kit under `src/dev` is assigned
  * to the editor catalog, so story/demo glyphs never inflate a public build.
@@ -40,8 +40,8 @@ export const ICON_DATA_PATH = "src/components/common/iconData.generated.json";
 
 /** Extra non-TS sources whose icon strings reach public pages verbatim. */
 const EXTRA_SOURCES = [
-  "src/data/indexes/chemicalIndexManual.json",
-  "src/data/indexes/psychoactiveIndexManual.json",
+  "data/substances/chemicalIndexManual.json",
+  "data/substances/psychoactiveIndexManual.json",
 ];
 
 /**

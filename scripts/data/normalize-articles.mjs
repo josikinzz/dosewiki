@@ -11,20 +11,22 @@
  * - Ensures source_citations is array or undefined (not null)
  * 
  * Usage:
- *   node scripts/data/normalize-articles.mjs [--dry-run]
+ *   node scripts/data/normalize-articles.mjs --input <local-substance-export.json> [--dry-run]
+ *
+ * The input is a local Postgres export (scripts/data-ops/export-data-to-json.mjs);
+ * it is never the tracked public/SubstanceIndex.json archive.
  */
 
 import { readFileSync, writeFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const ARTICLES_PATH = join(__dirname, "../../src/data/SubstanceIndex.json");
+import { resolve } from "path";
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
+const inputIndex = args.indexOf("--input");
+if (inputIndex < 0 || !args[inputIndex + 1]) {
+  throw new Error("Pass --input <path> naming the local substance export to normalize.");
+}
+const ARTICLES_PATH = resolve(args[inputIndex + 1]);
 
 // Default structures for missing/null fields
 const DEFAULT_TOXICITY = {
@@ -131,7 +133,7 @@ function normalizeArticle(article) {
 }
 
 function main() {
-  console.log(`\n📋 Normalizing SubstanceIndex.json${DRY_RUN ? " (DRY RUN)" : ""}\n`);
+  console.log(`\n📋 Normalizing ${ARTICLES_PATH}${DRY_RUN ? " (DRY RUN)" : ""}\n`);
 
   // Read articles
   const articlesRaw = readFileSync(ARTICLES_PATH, "utf-8");
@@ -162,11 +164,11 @@ function main() {
   if (!DRY_RUN && totalChanges > 0) {
     // Write back
     writeFileSync(ARTICLES_PATH, JSON.stringify(articles, null, 2) + "\n");
-    console.log(`\n✅ Wrote changes to SubstanceIndex.json`);
+    console.log(`\n✅ Wrote changes to ${ARTICLES_PATH}`);
   } else if (DRY_RUN && totalChanges > 0) {
     console.log(`\n🔍 Dry run complete. Run without --dry-run to apply changes.`);
   } else {
-    console.log(`\n✅ No changes needed. SubstanceIndex.json is already normalized.`);
+    console.log(`\n✅ No changes needed. ${ARTICLES_PATH} is already normalized.`);
   }
 }
 

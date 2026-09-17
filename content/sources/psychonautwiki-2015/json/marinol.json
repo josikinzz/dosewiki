@@ -1,0 +1,193 @@
+{
+  "slug": "marinol",
+  "title": "Marinol",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/marinol.md",
+  "archive_timestamp": "20150423153214",
+  "archive_date_utc": "2015-04-23T15:32:14Z",
+  "archive_url": "https://web.archive.org/web/20150423153214/http://psychonautwiki.org/wiki/%CE%949-THC",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, April 2015.",
+    "url": "https://web.archive.org/web/20150423153214/http://psychonautwiki.org/wiki/%CE%949-THC"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Acuity suppression",
+                "description": ""
+              },
+              {
+                "name": "Geometry",
+                "description": "Cannabis is capable of inconsistently inducing mild psychedelic geometry at extremely high dosages within many users. Within many users who also regularly use psychedelics, however, it is capable of inducing these consistently in a visual style which seems to be an averaged out depiction of all the psychedelics one has used within the past. These rarely extend beyond level 4 and are considered to be mild, fine, small and zoomed out but often well-defined."
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Current mind state enhancement",
+            "description": "The most prominent cognitive component of the cannabis experience is the way in which it enhances the emotions one is already feeling proportional to dosage. This can result in euphoria, extreme laughter, increased immersion within tasks and activities or it can result in anxiety or paranoia depending on the user's current mind state."
+          },
+          {
+            "name": "Paranoia",
+            "description": "All cannabinoids are capable of inducing paranoia at high doses, or with chronic administration."
+          },
+          {
+            "name": "Dream suppression",
+            "description": "It is commonly reported that regular cannabis use before sleep results in a complete absence of dreams but a day or two of abstaining from cannabis results in an intensification of dreams for a short period of time. This claim is supported through studies that demonstrate that measurably reduced eye movement activity and REM states occur when one falls asleep in the THC condition. This state is strongly associated with dreaming. The same study also reported a REM rebound effect, that is more REM activity, on withdrawal from THC."
+          },
+          {
+            "name": "Laughter",
+            "description": ""
+          },
+          {
+            "name": "Thought connectivity",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Mindfulness",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Anxiety",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "The body high of cannabis is extremely variable in both its style and intensity. It depends entirely on the individual strain of plant and does not manifest itself consistently. In general, however, it can be described as a pleasurable, warm, soft, and all-encompassing glowing tingling sensation. It maintains a consistent presence that quickly rises with the onset and hits its limit once the peak has been reached before immediately dissipating."
+          },
+          {
+            "name": "Sedation",
+            "description": "Although certain strains of cannabis present mild encouraged stimulation at low to moderate dosages, for the most part, the effects on the user's energy levels are primarily sedating. This encourages one to relax but can, however, be suppressed by simply forcing oneself to engage in physical activities."
+          },
+          {
+            "name": "Motor control loss",
+            "description": "This substance causes a partial to moderate suppression of motor control which intensifies proportional to dosage but rarely results in a complete inability to walk and perform basic movements."
+          },
+          {
+            "name": "Appetite stimulation",
+            "description": "The feeling of increased appetite following the use of cannabis has been documented for hundreds of years and is known colloquially as \"the munchies\" in popular American and United Kingdom culture. Clinical studies and survey data have found that cannabis increases food enjoyment and interest in food. This is thought to be due to the way in which endocannabinoids in the hypothalamus activate cannabinoid receptors that are responsible for maintaining food intake."
+          },
+          {
+            "name": "Nausea suppression",
+            "description": "Cannabis is effective for suppressing nausea induced by both general illness and substance-induced nausea. It is considered an effective treatment for chemotherapy induced nausea and vomiting (CINV) and is a reasonable option in those who do not improve following preferential treatment."
+          },
+          {
+            "name": "Vasodilation",
+            "description": "THC decreases blood pressure which dilates the blood vessels and increases blood flow throughout the body. The arteries in the eyeball expand from the decreased blood pressure. Studies in the 1970s showed marijuana, when smoked or eaten, effectively lowers intraocular pressure by about 25%, as much as standard medications. These enlarged arteries often produce a bloodshot red eye effect. It is precisely this effect on the human eye that makes cannabis an effective medicine for glaucoma."
+          },
+          {
+            "name": "Pain relief",
+            "description": "This substance has been reported as useful for treating certain headaches, chronic pain, including pain caused by neuropathy and possibly fibromyalgia and rheumatoid arthritis."
+          },
+          {
+            "name": "Increased bodily weight or Decreased bodily weight",
+            "description": "Depending on the specific strain of cannabis, one can find themselves with a body which can feel either physically heavier or lighter than it usually would in a style that is entirely dependent upon dosage."
+          },
+          {
+            "name": "Changes in gravity",
+            "description": "At extremely high dosages many users report a feeling of being pulled backwards across vast distances at powerful speeds. This sensation progressively increases in intensity and eventually becomes unbearable if one leans backwards or lies down but disappears altogether once the user sits up or leans forward."
+          },
+          {
+            "name": "Dehydration",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, April 2015.",
+      "url": "https://web.archive.org/web/20150423153214/http://psychonautwiki.org/wiki/%CE%949-THC"
+    },
+    "is_stub": false,
+    "source_overview": "Combinational effects:\nPsychedelics - When used in combination with psychedelics, cannabis is capable of intensifying and extending the duration of both the visual and cognitive effects with extreme efficiency. This should be used with caution if one is not experienced with psychedelics.\nDissociatives - When used in combination with dissociatives the geometry, euphoria, dissociation and hallucinatory effects are often greatly enhanced.\nAlcohol - When used in combination with alcohol, cannabis often creates feelings of extreme nausea, dizziness and changes in gravity. It is recommended that one smokes before drinking and not the other way around unless they are extremely cautious."
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Unmapped Combinational effects heading and bullets preserved in subjective_effects.notes.overview with a label, source order, and Markdown list/bold formatting removed.",
+    "Physical effects mapped to physical.General in source order.",
+    "The source bullet `Increased bodily weight *or* Decreased bodily weight` is represented as one effect name preserving the source `or` relationship.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "Visual effects mapped to sensory.visual.General in source order.",
+    "Auditory effects mapped to sensory.auditory.General in source order.",
+    "Markdown bold, italics, and list markers removed only as structural formatting; effect names and description text preserved exactly.",
+    "No source stub warning was present.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

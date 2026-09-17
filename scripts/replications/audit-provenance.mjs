@@ -11,16 +11,18 @@ import { buildProvenanceAudit } from "./lib/provenance-audit.mjs";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, "../..");
 const args = normalizeArgv(process.argv.slice(2));
-const DUMP_DIR = path.resolve(getFlagValue(args, "--dump-dir") ?? "/Users/josie/Documents/Utilities/EffectIndex-master/effectindex_dump");
+const DUMP_DIR_FLAG = getFlagValue(args, "--dump-dir");
 const OUTPUT_DIR = path.resolve(getFlagValue(args, "--output-dir") ?? path.join(homedir(), ".local/state/dosewiki-housecleaning/replication-provenance"));
 const NO_WRITE = args.includes("--no-write");
 const WRITE_REPORTS = args.includes("--reports");
 const INPUT_PATH = getFlagValue(args, "--input");
 if (args.includes("--help")) {
-  console.log("Usage: bun scripts/replications/audit-provenance.mjs [--output-dir <private-directory>] [--no-write] [--reports] [--skip-health] [--dump-dir <archive-directory>] [--input <local-fixture.json>]");
+  console.log("Usage: bun scripts/replications/audit-provenance.mjs [--output-dir <private-directory>] [--no-write] [--reports] [--skip-health] --dump-dir <effectindex-dump-directory> [--input <local-fixture.json>]");
   console.log("Defaults to private JSON output under ~/.local/state/dosewiki-housecleaning/replication-provenance. --reports also writes Markdown and HTML. --no-write emits summary only. --skip-health does not fetch or reuse cached health. --input reads {liveReplications, effects} locally instead of Postgres; combine with --skip-health for offline use.");
   process.exit(0);
 }
+if (!DUMP_DIR_FLAG) throw new Error("--dump-dir <directory> is required: the Effect Index archive dump (replications.json, effects.json) is not stored in this repository.");
+const DUMP_DIR = path.resolve(DUMP_DIR_FLAG);
 const JSON_PATH = path.join(OUTPUT_DIR, "audit-latest.json");
 const MARKDOWN_PATH = path.join(OUTPUT_DIR, "audit-latest.md");
 const CONTACT_SHEET_PATH = path.join(OUTPUT_DIR, "contact-sheet.html");

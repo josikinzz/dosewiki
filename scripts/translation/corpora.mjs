@@ -410,7 +410,7 @@ const COPY_CORPUS = {
       const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
-    const defaults = JSON.parse(await readFile(path.join(repoRoot(), "src/data/content/copyBlocks.json"), "utf8"));
+    const defaults = JSON.parse(await readFile(path.join(repoRoot(), "content/copy-blocks/copyBlocks.json"), "utf8"));
     const rows = await postgresQuery("copyBlocks:getAll");
     const byKey = new Map();
     for (const definition of defaults) byKey.set(definition.key, { ...definition, source: "default" });
@@ -419,7 +419,7 @@ const COPY_CORPUS = {
       byKey.set(row.key, { ...rest, source: "server" });
     }
     const items = [...byKey.values()].sort((a, b) => a.key.localeCompare(b.key));
-    return { dataset: envelope("CopyBlocks", items, `Postgres copyBlocks:getAll over src/data/content/copyBlocks.json`), origin };
+    return { dataset: envelope("CopyBlocks", items, `Postgres copyBlocks:getAll over content/copy-blocks/copyBlocks.json`), origin };
   },
   excludedGroups: Object.freeze([]),
   excludedKeys: Object.freeze(["key", "kind", "flavor", "group", "label", "source"]),
@@ -556,7 +556,7 @@ const EFFECT_CATEGORY_CORPUS = {
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     const { EFFECT_CATEGORY_DEFINITIONS, effectMatchesCategorySlug } = await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ absolute);
-    const copyBlocks = JSON.parse(await readFile(path.resolve(repoRoot(), "src/data/content/copyBlocks.json"), "utf8"));
+    const copyBlocks = JSON.parse(await readFile(path.resolve(repoRoot(), "content/copy-blocks/copyBlocks.json"), "utf8"));
     const copyByKey = new Map(copyBlocks.map((block) => [block.key, block.body]));
     const { dataset: effectIndex } = await openDataLoader("EffectIndex")();
     const effects = Array.isArray(effectIndex.items) ? effectIndex.items : [];

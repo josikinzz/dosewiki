@@ -78,7 +78,7 @@ describe("public persistent cache boundaries", () => {
   it("refuses an invalid backend even when a cached answer exists", async () => {
     const read = publicDataCache(async () => "postgres answer", ["backend-identity"], {});
     expect(await read()).toBe("postgres answer");
-    vi.stubEnv("DATA_BACKEND", "convex");
+    vi.stubEnv("DATA_BACKEND", "retired-backend");
     await expect(read()).rejects.toThrow(/DATA_BACKEND=postgres/);
   });
 

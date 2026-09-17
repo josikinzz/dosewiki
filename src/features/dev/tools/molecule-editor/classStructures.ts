@@ -1,4 +1,4 @@
-import chemicalIndexManual from "@/data/indexes/chemicalIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
 
 export interface ClassStructureItem {
   key: string;

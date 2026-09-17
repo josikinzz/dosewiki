@@ -213,15 +213,6 @@ export function buildFormalCitationUserMessage({
       references: [],
     }, null, 2),
     "```",
-    ...(sourcePacket.matcherResults
-      ? [
-          "",
-          "DOSAGE_DURATION_MATCHER",
-          "```json",
-          JSON.stringify(sourcePacket.matcherResults, null, 2),
-          "```",
-        ]
-      : []),
   ].join("\n");
 }
 

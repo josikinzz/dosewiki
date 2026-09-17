@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import messages from "./messages/zh-Hans.json";
+import messages from "@content/i18n/messages/zh-Hans.json";
 import { UiMessagesProvider } from "./client";
 
 /** SSR and hydration share this catalog; English never mounts its dynamic chunk. */

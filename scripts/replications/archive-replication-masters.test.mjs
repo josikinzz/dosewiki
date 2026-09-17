@@ -14,9 +14,9 @@ import { assertMediaType, DEFAULT_MEDIA_TYPE, MEDIA_TYPES } from "./lib/media-ty
 
 const MEDIA_BASE = "https://media.example.test/assets";
 const PROD = `${MEDIA_BASE}/media/sha256/${"a".repeat(64)}`;
-const ORPHAN = "https://warmhearted-mosquito-204.convex.cloud/api/storage/x";
-const ORPHAN2 = "https://adept-goldfish-624.convex.cloud/api/storage/x";
-const DEV = "https://enchanted-echidna-791.convex.cloud/api/storage/x";
+const ORPHAN = "https://orphan-one.example.invalid/api/storage/x";
+const ORPHAN2 = "https://orphan-two.example.invalid/api/storage/x";
+const DEV = "https://dev.example.invalid/api/storage/x";
 
 beforeEach(() => vi.stubEnv("REPLICATION_MEDIA_BASE_URL", MEDIA_BASE));
 afterEach(() => vi.unstubAllEnvs());
@@ -37,13 +37,10 @@ describe("classifyHostRisk", () => {
     expect(isProductionUrl(PROD)).toBe(true);
   });
 
-  it("treats both orphan deployments as at risk", () => {
-    expect(classifyHostRisk(ORPHAN)).toMatchObject({ risk: RISK.ORPHAN, atRisk: true });
-    expect(classifyHostRisk(ORPHAN2)).toMatchObject({ risk: RISK.ORPHAN, atRisk: true });
-  });
-
-  it("treats the dev deployment as at risk, because dev deployments get reset", () => {
-    expect(classifyHostRisk(DEV)).toMatchObject({ risk: RISK.DEV, atRisk: true });
+  it("treats every host outside the configured namespace as at risk", () => {
+    expect(classifyHostRisk(ORPHAN)).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
+    expect(classifyHostRisk(ORPHAN2)).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
+    expect(classifyHostRisk(DEV)).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
   });
 
   it("treats an unrecognised host as at risk rather than assuming it is fine", () => {
@@ -54,7 +51,7 @@ describe("classifyHostRisk", () => {
   });
 
   it("does not trust the retired production endpoint or a renamed lookalike", () => {
-    for (const host of ["glad-minnow-656.convex.cloud", "glad-minnow-656.data.cloud"]) {
+    for (const host of ["retired.example.invalid", "retired.data.example.invalid"]) {
       const url = `https://${host}/api/storage/x`;
       expect(isProductionUrl(url)).toBe(false);
       expect(classifyHostRisk(url)).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
@@ -93,8 +90,8 @@ describe("describeRowAssets", () => {
     const assets = describeRowAssets(row("mixed", { url: ORPHAN, thumbnail_url: DEV }));
 
     expect(assets).toHaveLength(2);
-    expect(assets.find((a) => a.kind === "video")).toMatchObject({ risk: RISK.ORPHAN, atRisk: true });
-    expect(assets.find((a) => a.kind === "thumbnail")).toMatchObject({ risk: RISK.DEV, atRisk: true });
+    expect(assets.find((a) => a.kind === "video")).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
+    expect(assets.find((a) => a.kind === "thumbnail")).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
   });
 
   it("omits an asset the row does not have", () => {
@@ -145,7 +142,7 @@ describe("describeRowAssets for images", () => {
     ...extra,
   });
 
-  // Convex storage URLs carry no extension, so the row's own `format` is the
+  // Legacy storage URLs carry no extension, so the row's own `format` is the
   // only thing that names what the bytes are.
   it("names the archive file from the row format when the url has no extension", () => {
     const [image] = describeRowAssets(imageRow("beksinski-tower", { format: "webp" }), "image");
@@ -190,7 +187,7 @@ describe("describeRowAssets for images", () => {
   it("records the endangered host, so the plan can report what is at risk", () => {
     const [image] = describeRowAssets(imageRow("at-risk"), "image");
 
-    expect(image).toMatchObject({ risk: RISK.ORPHAN, atRisk: true });
+    expect(image).toMatchObject({ risk: RISK.UNKNOWN, atRisk: true });
   });
 });
 
@@ -359,8 +356,8 @@ describe("summarizeRisk", () => {
     expect(summary.total).toBe(4);
     expect(summary.atRisk).toBe(2);
     expect(summary.safe).toBe(2);
-    expect(summary.byHost["warmhearted-mosquito-204.convex.cloud"]).toBe(1);
-    expect(summary.byHost["enchanted-echidna-791.convex.cloud"]).toBe(1);
+    expect(summary.byHost["orphan-one.example.invalid"]).toBe(1);
+    expect(summary.byHost["dev.example.invalid"]).toBe(1);
   });
 });
 

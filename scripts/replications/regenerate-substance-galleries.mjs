@@ -38,7 +38,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const OPERATION = "regenerate-substance-galleries";
 const REPORT_PATH = path.join(
   ROOT,
-  "notes-and-plans/reports/replication-galleries/regeneration-latest.json",
+  "tmp/replication-galleries/regeneration-latest.json",
 );
 const READ_CONCURRENCY = 12;
 const AUDITED_DIRECT_ASSOCIATIONS = new Map([

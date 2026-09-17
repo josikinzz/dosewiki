@@ -7,7 +7,7 @@ import { sniffImageContentType } from "./repoint-renditions.mjs";
 /**
  * What a local file's first bytes say it is, which outranks its extension.
  *
- * Convex serves back whatever `Content-Type` the upload declared, so this is the
+ * Storage serves back whatever `Content-Type` the upload declared, so this is the
  * difference between an asset that renders and one the browser downloads. The
  * image signatures are `repoint-renditions.mjs`'s, unchanged; the two container
  * formats below are what the recovered animations arrive as and it has none.
@@ -113,7 +113,7 @@ export function readUploadFacts(upload, uploadsDir) {
     reachable: true,
     status: 200,
     contentType,
-    // Convex reports a stored object's digest as base64 sha-256, so computing it
+    // Storage reports a stored object's digest as base64 sha-256, so computing it
     // the same way here is what lets a recovered file be compared against the
     // bytes production already holds.
     digest,

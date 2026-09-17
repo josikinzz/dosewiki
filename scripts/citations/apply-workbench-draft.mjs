@@ -12,22 +12,22 @@ printDataOpsRunContext,
 requireAdminIntentToken,
 requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 import {
-  DEFAULT_DRAFT_PATH,
   assertWorkbenchDraftPromotionAllowed,
   buildWorkbenchPromotionPlan,
   loadWorkbenchDraft,
+  workbenchDraftPath,
 } from "./workbench-draft-adapter.mjs";
 import { applyCitationPromotionPlan } from "./citation-promotion-applicator.mjs";
 import { assertExplicitCitationPromotionTarget } from "./citation-target-policy.mjs";
 
 function parseOptions(argv) {
   const slug = getFlagValue(argv, "--slug");
+  const help = argv.includes("--help") || argv.includes("-h");
   return {
     slug,
-    draftPath: getFlagValue(argv, "--draft")
-      ?? (slug ? DEFAULT_DRAFT_PATH.replace("/runs/2c-b/", `/runs/${slug}/`) : DEFAULT_DRAFT_PATH),
+    draftPath: getFlagValue(argv, "--draft") ?? (slug && !help ? workbenchDraftPath(slug) : null),
     write: argv.includes("--write"),
-    help: argv.includes("--help") || argv.includes("-h"),
+    help,
   };
 }
 

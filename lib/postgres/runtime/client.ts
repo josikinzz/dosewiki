@@ -54,7 +54,7 @@ function isSerializationFailure(error: unknown): boolean {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** `POSTGRES_RUNTIME_TRACE=1` logs one line per function call: name, statements, elapsed. Feeds ticket 22 measurements. */
+/** `POSTGRES_RUNTIME_TRACE=1` logs one line per function call: name, statements, elapsed. Feeds the release rehearsal's latency measurements. */
 const TRACE = process.env.POSTGRES_RUNTIME_TRACE === "1";
 function trace(kind: string, name: string, executor: SqlExecutor, startedAt: number, attempt = 1): void {
   if (!TRACE) return;

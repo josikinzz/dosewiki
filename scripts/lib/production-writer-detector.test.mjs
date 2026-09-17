@@ -32,16 +32,6 @@ describe("production writer detector", () => {
     );
   });
 
-  it("detects retired provider CLI writes in constructed commands", () => {
-    const source = `
-      const command = "convex" + " run";
-      execSync(\`npx \${command} subjectiveEffects:update\`);
-    `;
-    expect(detectProductionWriteSignals(source, "fixture.mjs").kinds).toContain(
-      "legacy-cli-write",
-    );
-  });
-
   it("does not classify read-only HTTP requests", () => {
     const source = `await fetch(url, { method: "GET" })`;
     expect(detectProductionWriteSignals(source, "fixture.mjs").kinds).toEqual([]);

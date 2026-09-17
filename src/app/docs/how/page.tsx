@@ -5,20 +5,20 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
 // Committed copies of the prompts shown on this page. Generation uses editable
 // live copies of section prompts, which can differ from these files.
-import exDosageDuration from "../../../../scripts/prompts/dosage-duration-extraction.md?raw";
-import exHarmPotential from "../../../../scripts/prompts/harm-potential-extraction.md?raw";
-import exHistoryCulture from "../../../../scripts/prompts/history-culture-extraction.md?raw";
-import exIntro from "../../../../scripts/prompts/intro-text-extraction.md?raw";
-import exLegality from "../../../../scripts/prompts/legality-extraction.md?raw";
-import exPharmacology from "../../../../scripts/prompts/pharmacology-extraction.md?raw";
-import exSubjectiveEffects from "../../../../scripts/prompts/subjective-effects-extraction.md?raw";
-import exTolerance from "../../../../scripts/prompts/tolerance-extraction.md?raw";
-import secHarmPotential from "../../../data/config/sectionPrompts/harmPotential.md?raw";
-import secHistoryCulture from "../../../data/config/sectionPrompts/historyCulture.md?raw";
-import secLegality from "../../../data/config/sectionPrompts/legality.md?raw";
-import secPharmacology from "../../../data/config/sectionPrompts/pharmacology.md?raw";
-import secSummary from "../../../data/config/sectionPrompts/summary.md?raw";
-import secTolerance from "../../../data/config/sectionPrompts/tolerance.md?raw";
+import exDosageDuration from "@content/prompts/extraction/dosage-duration-extraction.md?raw";
+import exHarmPotential from "@content/prompts/extraction/harm-potential-extraction.md?raw";
+import exHistoryCulture from "@content/prompts/extraction/history-culture-extraction.md?raw";
+import exIntro from "@content/prompts/extraction/intro-text-extraction.md?raw";
+import exLegality from "@content/prompts/extraction/legality-extraction.md?raw";
+import exPharmacology from "@content/prompts/extraction/pharmacology-extraction.md?raw";
+import exSubjectiveEffects from "@content/prompts/extraction/subjective-effects-extraction.md?raw";
+import exTolerance from "@content/prompts/extraction/tolerance-extraction.md?raw";
+import secHarmPotential from "@content/prompts/sections/harmPotential.md?raw";
+import secHistoryCulture from "@content/prompts/sections/historyCulture.md?raw";
+import secLegality from "@content/prompts/sections/legality.md?raw";
+import secPharmacology from "@content/prompts/sections/pharmacology.md?raw";
+import secSummary from "@content/prompts/sections/summary.md?raw";
+import secTolerance from "@content/prompts/sections/tolerance.md?raw";
 import { DisclosureCard } from "@/components/common/DisclosureCard";
 import {
   DOC_LIST_CLASS,
@@ -1180,7 +1180,7 @@ export default async function DocsHowPage() {
         <h3 className={`${DOC_SUBHEAD_CLASS} mt-8`}>The extraction prompts</h3>
         <p className={`${DOC_PROSE_CLASS} mb-3 mt-2`}>
           All eight extraction prompts appear below. This page reads them
-          straight from <code>scripts/prompts/</code> when it builds, so they are the same
+          straight from <code>content/prompts/extraction/</code> when it builds, so they are the same
           files the pipeline runs.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
@@ -1283,7 +1283,7 @@ export default async function DocsHowPage() {
 
         <p className={`${DOC_PROSE_CLASS} mt-7`}>
           The prompts for all six AI-drafted sections appear below, largest
-          first. This page reads them from <code>src/data/config/sectionPrompts/</code>{" "}
+          first. This page reads them from <code>content/prompts/sections/</code>{" "}
           when it builds. Two copies of each prompt exist: the committed file shown here,
           and a live copy the editorial team can edit, which generation runs use. The live
           copies were seeded from these files, and a comparison script reports any drift

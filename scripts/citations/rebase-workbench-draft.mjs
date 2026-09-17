@@ -10,7 +10,6 @@
 // The strict byte-equality apply validation is unchanged; a rebased draft
 // matches live text by construction for every field it still marks.
 
-import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createDataClient } from "../lib/data-client.ts";
@@ -18,6 +17,7 @@ import { api } from "../../lib/postgres/runtime/api.ts"
 import { stripCitationMarkers } from "./citation-only-validator.mjs";
 import { hasUnsafeReferenceMarkup } from "../../lib/citations/referenceIdentity.mjs";
 import { mergeReferences, normalizeSelectedSections } from "./workbench-draft-adapter.mjs";
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 import {
   createDataOpsRunContext,
   getFlagValue,
@@ -334,7 +334,7 @@ async function main() {
     console.error("Usage: node scripts/citations/rebase-workbench-draft.mjs --slug=<slug> [--draft=<path>] [--out=<path>]");
     process.exit(1);
   }
-  const workbenchRunDir = join(homedir(), ".codex", "dosewiki-citation-workbench", "runs", slug);
+  const workbenchRunDir = join(resolveCitationWorkbenchRoot(), "runs", slug);
   const draftPath = resolve(getFlagValue(argv, "--draft") ?? join(workbenchRunDir, "citation-draft.json"));
   const outPath = resolve(getFlagValue(argv, "--out") ?? join(dirname(draftPath), "citation-draft.rebased.json"));
   const runContext = createDataOpsRunContext({

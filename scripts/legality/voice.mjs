@@ -3,7 +3,7 @@
 // display label) must read as encyclopedic register, the law stated to a reader
 // who never saw the research. Process language leaked into production during the
 // 2026-08 campaign; this pattern is built from the phrases that actually leaked
-// (`docs/agents/legality-voice.md` records the taxonomy). `validate-draft.ts`
+// (`docs/workflows/legality.md` records the taxonomy). `validate-draft.ts`
 // blocks drafts on it and `audit-voice.mjs` scans the live corpus with it.
 
 export const READER_FIELDS = ["notes", "designation", "instrument", "status"];

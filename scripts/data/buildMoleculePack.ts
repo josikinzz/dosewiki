@@ -34,7 +34,7 @@ const STAGE_DIR = join(ROOT, "tmp/molecule-pack");
 const MANIFEST_NAME = "dosewiki-molecules.json";
 const MANIFEST_PATH = join(ROOT, "public", MANIFEST_NAME);
 const ZIP_PATH = join(ROOT, "public/dosewiki-molecules.zip");
-const GENERATED_SMILES_PATH = join(ROOT, "src/data/mappings/generatedSmiles.json");
+const GENERATED_SMILES_PATH = join(ROOT, "data/chemistry/generatedSmiles.json");
 const CONCURRENCY = 8;
 /** Fixed mtime for staged files so the zip is byte-deterministic per content. */
 const ZIP_EPOCH = new Date("2001-01-01T00:00:00Z");

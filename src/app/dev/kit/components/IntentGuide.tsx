@@ -22,7 +22,7 @@ const FAMILIES: { id: IntentFamily; label: string; question: string }[] = [
   { id: "surfaces", label: "Surfaces", question: "It needs a themed background before anything else" },
 ];
 
-const POLICY_DOC = "https://github.com/josikinzz/dosewiki/blob/main/docs/ui-system.md";
+const POLICY_DOC = "https://github.com/josikinzz/dosewiki/blob/main/docs/design/ui-kit.md";
 
 type GuideRow = { story: StoryDef; intent: StoryIntent };
 

@@ -2,7 +2,7 @@
 /**
  * Seed the Effect Index featured carousel from the checked-in JSON list.
  *
- * The carousel used to read `src/data/config/effectIndexFeaturedReplications.json`
+ * The carousel used to read `data/effects/effectIndexFeaturedReplications.json`
  * directly, so re-curating it was a code change. It is now a `siteConfig`
  * document the Replication Studio edits, and the JSON survives as the fallback
  * for a deployment that has never been curated. This writes the JSON's contents
@@ -36,7 +36,7 @@ import {
 } from "../lib/production-write-command.mjs";
 
 const OPERATION = "seed-featured-replications";
-const CONFIG_PATH = "src/data/config/effectIndexFeaturedReplications.json";
+const CONFIG_PATH = "data/effects/effectIndexFeaturedReplications.json";
 
 async function seedFeaturedReplications() {
   const command = createProductionWriteCommand({ operation: OPERATION });

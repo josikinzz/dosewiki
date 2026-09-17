@@ -1,6 +1,6 @@
 /**
  * Cloudflare Worker serving the private `replications` R2 bucket as the public
- * replication-media delivery surface (docs/agents/convex-to-cloudflare-r2-media-handoff.md).
+ * replication-media delivery surface (docs/operations/replication-media-delivery.md#urgent-media-withdrawal).
  *
  * This file is the deployed artifact, kept in-repo as the source of truth.
  * Deploy via dashboard: Workers & Pages -> Create Worker -> paste this file,

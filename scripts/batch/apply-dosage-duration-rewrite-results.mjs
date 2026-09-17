@@ -371,6 +371,7 @@ async function main() {
       `SubstanceIndex.backup.${timestamp}.json`
     );
     if (!existsSync(backupPath)) {
+      mkdirSync(dirname(backupPath), { recursive: true });
       copyFileSync(options.articles, backupPath);
     }
 

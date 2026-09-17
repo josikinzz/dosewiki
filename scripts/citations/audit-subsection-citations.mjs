@@ -21,7 +21,6 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
-import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -32,9 +31,10 @@ import {
   requireSourceUrl,
 } from "../lib/data-ops-run-context.mjs";
 import { buildSubsectionAudit } from "./subsection-rollout-lib.mjs";
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 
 const DEFAULT_COHORT_AUDIT = "tmp/pharmacology-regeneration-43-final-audit.json";
-const DEFAULT_QUEUE_PATH = `${homedir()}/.codex/dosewiki-citation-workbench/trackers/citation-queue.json`;
+const DEFAULT_QUEUE_PATH = "<DOSEWIKI_CITATION_WORKBENCH>/trackers/citation-queue.json";
 const DEFAULT_OUT = "tmp/subsection-citation-audit.json";
 
 function parseOptions(argv) {
@@ -42,7 +42,7 @@ function parseOptions(argv) {
     help: argv.includes("--help") || argv.includes("-h"),
     out: getFlagValue(argv, "--out") ?? DEFAULT_OUT,
     cohortAudit: getFlagValue(argv, "--cohort-audit") ?? DEFAULT_COHORT_AUDIT,
-    queuePath: getFlagValue(argv, "--queue-path") ?? DEFAULT_QUEUE_PATH,
+    queuePath: getFlagValue(argv, "--queue-path") ?? (argv.includes("--help") || argv.includes("-h") ? DEFAULT_QUEUE_PATH : resolve(resolveCitationWorkbenchRoot(), "trackers", "citation-queue.json")),
     skipEvidence: argv.includes("--skip-evidence"),
   };
 }

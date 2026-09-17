@@ -135,8 +135,8 @@ function assetFrom(row, { kind, url, relativePath, bytes }) {
  * Split a video row into the individual assets that have to be rescued.
  *
  * A row is not the unit of work: its video and its poster can live on different
- * deployments in different amounts of danger, and 65 rows were in exactly that
- * state — video on an orphan host, thumbnail on dev.
+ * hosts in different amounts of danger, and 65 rows were in exactly that
+ * state: video on one uncontrolled host, thumbnail on another.
  */
 function describeVideoRowAssets(row) {
   const assets = [];

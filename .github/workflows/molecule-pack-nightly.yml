@@ -17,14 +17,14 @@ jobs:
       DATA_BACKEND: postgres
       DATA_WRITES_FROZEN: "1"
       POSTGRES_POOLED_URL: ${{ secrets.POSTGRES_POOLED_READONLY_URL }}
-      POSTGRES_IMPORT_CONFIRM: aws-us-east-1-2.pg.psdb.cloud
+      POSTGRES_IMPORT_CONFIRM: ${{ vars.POSTGRES_IMPORT_CONFIRM }}
       REPLICATION_MEDIA_BASE_URL: ${{ vars.REPLICATION_MEDIA_BASE_URL }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: no-corpus-drain
+          ref: main
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
@@ -37,6 +37,7 @@ jobs:
       - name: Require the read-only current-source configuration
         run: |
           test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL secret is required"; exit 1; }
+          test -n "$POSTGRES_IMPORT_CONFIRM" || { echo "::error::POSTGRES_IMPORT_CONFIRM repository variable is required"; exit 1; }
           test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL repository variable is required"; exit 1; }
 
       - name: Build the molecule pack from Postgres
@@ -52,4 +53,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/dosewiki-molecules.zip public/dosewiki-molecules.json
           git commit -m "chore: nightly molecule pack refresh"
-          git push origin HEAD:no-corpus-drain
+          git push origin HEAD:main

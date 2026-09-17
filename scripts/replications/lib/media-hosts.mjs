@@ -1,46 +1,24 @@
 /**
- * Where replication media actually lives, and how much danger each host is in.
+ * Where replication media actually lives, and whether each host is in danger.
  *
- * Measured against production (`glad-minnow-656`) on 2026-08-10, across the 125
- * video rows:
+ * The only host this project controls is the configured R2 media namespace
+ * (`REPLICATION_MEDIA_BASE_URL`). Every other host is a literal URL string in
+ * a production row: this repository has no admin credential for it, no way to
+ * enumerate it, and no way to recover a file once it is gone. Such rows are
+ * referenced by data alone and must be treated as at risk and reported.
  *
- *   videos      60 glad-minnow-656 · 59 warmhearted-mosquito-204 · 6 adept-goldfish-624
- *   thumbnails  60 glad-minnow-656 · 65 enchanted-echidna-791
- *
- * 99% of the corpus by bytes (44.19 GB of 44.62 GB) sits on the two orphan
- * deployments. Production holds 431 MB. The two largest single files each exceed
- * everything production holds.
- *
- * This module is the one place those hostnames are written down, so a future
- * migration cannot disagree with an audit about which rows are at risk.
+ * This module is the one place that trust decision is written down, so a
+ * future migration cannot disagree with an audit about which rows are at risk.
  */
 
 /**
- * The development deployment. Media here is NOT safe: a dev deployment can be
- * reset at any time, and 65 replication thumbnails are currently served from it.
- */
-const DEV_HOST = "enchanted-echidna-791.convex.cloud";
-
-/**
- * Deployments that appear only as literal URL strings in production rows. This
- * repository has no admin credential for either, no way to enumerate them, and
- * no way to recover a file once it is gone. They are referenced by data alone.
- */
-const ORPHAN_HOSTS = Object.freeze([
-  "warmhearted-mosquito-204.convex.cloud",
-  "adept-goldfish-624.convex.cloud",
-]);
-
-/**
- * Risk tiers, ordered most urgent first. The number is the archive tier: a lower
- * tier is fetched before a higher one, because the ordering question here is
- * "what is most likely to disappear before we get to it", not "what is biggest".
+ * Risk tiers, most urgent first. A lower tier is fetched before a higher one,
+ * because the ordering question here is "what is most likely to disappear
+ * before we get to it", not "what is biggest".
  */
 export const RISK = Object.freeze({
-  ORPHAN: "orphan",
-  DEV: "dev",
-  PRODUCTION: "production",
   UNKNOWN: "unknown",
+  PRODUCTION: "production",
 });
 
 export function hostOf(url) {
@@ -68,16 +46,14 @@ function isConfiguredR2Url(value) {
 /**
  * Classify a media URL by how recoverable it is if the host goes away.
  *
- * An unrecognised host is `unknown` rather than safe — a host nobody has
- * accounted for is exactly the situation that produced the orphan deployments in
- * the first place, so it must be treated as at risk and reported.
+ * Any host other than the configured media namespace is `unknown` rather than
+ * safe. A host nobody has accounted for is exactly the situation that once left
+ * most of the corpus on deployments this project could not enumerate.
  */
 export function classifyHostRisk(url) {
   const host = hostOf(url);
   if (!host) return { host: null, risk: RISK.UNKNOWN, atRisk: true };
   if (isProductionUrl(url)) return { host, risk: RISK.PRODUCTION, atRisk: false };
-  if (host === DEV_HOST) return { host, risk: RISK.DEV, atRisk: true };
-  if (ORPHAN_HOSTS.includes(host)) return { host, risk: RISK.ORPHAN, atRisk: true };
   return { host, risk: RISK.UNKNOWN, atRisk: true };
 }
 

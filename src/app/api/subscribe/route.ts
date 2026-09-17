@@ -1,6 +1,6 @@
 /**
  * `POST /api/subscribe`: the Next replacement for the `POST /subscribe` Postgres
- * HTTP action in `server/http.ts` (ticket 16). Same body contract, same
+ * HTTP action in `server/http.ts`. Same body contract, same
  * allowed-origin policy, same two rate limits, same HMAC IP hashing, and the
  * same generic `{ ok: true }` for subscribed, duplicate, and spam so the
  * endpoint never enumerates addresses or reveals the honeypot.

@@ -1,6 +1,6 @@
 import { EFFECT_CATEGORY_DEFINITIONS } from "../../src/data/effectCategoryDefinitions";
-import psychoactiveIndexManual from "../../src/data/indexes/psychoactiveIndexManual.json";
-import replicationSlugAliases from "../../src/data/config/replicationSlugAliases.json";
+import psychoactiveIndexManual from "@data/substances/psychoactiveIndexManual.json";
+import replicationSlugAliases from "@data/effects/replicationSlugAliases.json";
 
 type ManualCategory = {
   key: string;

@@ -9,8 +9,8 @@ function isRealCredentialCandidate(candidate) {
 
 const rules = [
   [
-    "CONVEX_DEPLOY_KEY",
-    /(?:^|[\r\n])\s*(?:export\s+)?CONVEX_DEPLOY_KEY\s*=\s*(?:["']((?:prod|preview|dev):[A-Za-z0-9:_-]{3,}\|[A-Za-z0-9+/_=-]{20,})["']|((?:prod|preview|dev):[A-Za-z0-9:_-]{3,}\|[A-Za-z0-9+/_=-]{20,}))(?:\s|$)/,
+    "HOSTED_DEPLOY_KEY",
+    /(?:^|[\r\n])\s*(?:export\s+)?[A-Z0-9_]*DEPLOY_KEY\s*=\s*(?:["']((?:prod|preview|dev):[A-Za-z0-9:_-]{3,}\|[A-Za-z0-9+/_=-]{20,})["']|((?:prod|preview|dev):[A-Za-z0-9:_-]{3,}\|[A-Za-z0-9+/_=-]{20,}))(?:\s|$)/,
     (match) => isRealCredentialCandidate(match[1] ?? match[2] ?? ""),
   ],
   [

@@ -27,7 +27,7 @@ const runContext = createDataOpsRunContext({
   operation: "migrate contributor profiles to Postgres",
   intent: "dev-data-import",
   sourceUrlKeys: [],
-  localArtifacts: ["src/data/config/userProfiles.json"],
+  localArtifacts: ["data/contributors/userProfiles.json"],
 });
 
 let dataUrl;
@@ -38,7 +38,7 @@ try {
   process.exit(1);
 }
 
-const sourcePath = resolve(process.cwd(), "src/data/config/userProfiles.json");
+const sourcePath = resolve(process.cwd(), "data/contributors/userProfiles.json");
 const sourceProfiles = readJsonFile(sourcePath);
 const emailMap = emailMapPath ? readJsonFile(emailMapPath) : {};
 

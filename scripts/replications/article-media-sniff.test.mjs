@@ -35,7 +35,7 @@ describe("readUploadFacts", () => {
     }
   };
   const gifBytes = Buffer.concat([Buffer.from("GIF89a", "latin1"), Buffer.alloc(64)]);
-  // base64 sha-256 — the shape Convex reports a stored object's digest in, so a
+  // base64 sha-256, the shape storage reports a stored object's digest in, so a
   // recovered file can be compared against bytes production already holds.
   const gifDigest = "hcZyK+UUict5+eKb0kBAeFijMThy/6gw/nNKhkq9VWU=";
 

@@ -1,5 +1,5 @@
 /**
- * Ticket 22 rehearsal: the complete release, its duration, and its rollback
+ * Rehearsal: the complete release, its duration, and its rollback
  * boundary, in isolation.
  *
  *   bun scripts/postgres/rehearse-release.ts --target postgres://localhost:5432/dosewiki
@@ -95,9 +95,8 @@ function percentile(values: number[], fraction: number): number | null {
 }
 
 /**
- * One representative mutation per transactional group in
- * `notes-and-plans/plans/convex-to-planetscale/inventory/tables.md`. The freeze
- * has to hold for all of them, not only for the article path.
+ * One representative mutation per transactional group. The freeze has to hold
+ * for all of them, not only for the article path.
  */
 const TRANSACTIONAL_GROUPS: ReadonlyArray<{ group: string; fn: string; what: string }> = [
   { group: "G0", fn: "changelog:addEntry", what: "universal indexedMutation wrapper (index sync, journal, outbox)" },
@@ -185,7 +184,7 @@ async function latencyChild(): Promise<void> {
         key,
         kind: "markdown",
         body: `latency body ${round}`,
-        label: "Ticket 22 latency",
+        label: "Rehearsal latency",
         group: "rehearsal",
         operationId: `${prefix}-${round}`,
       });
@@ -338,7 +337,7 @@ async function main(): Promise<void> {
       key: copyKey,
       kind: "markdown",
       body: "released body",
-      label: "Ticket 22",
+      label: "Rehearsal",
       group: "rehearsal",
       operationId: `${run}-copy-1`,
     });
@@ -415,7 +414,7 @@ async function main(): Promise<void> {
     expect("freeze", "the frozen sweep wrote no row in any of the 61 tables", changed.length === 0, changed.map((name) => ({ name, before: countsBefore[name], after: countsDuring[name] })));
 
     const frozenWrite = await attempt(() =>
-      operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "frozen body", label: "Ticket 22", group: "rehearsal", operationId: `${run}-copy-frozen` }),
+      operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "frozen body", label: "Rehearsal", group: "rehearsal", operationId: `${run}-copy-frozen` }),
     );
     const blockDuringFreeze = await runtime.query(api.copyBlocks.getByKey, { key: copyKey });
     expect("liveness", "the proven writer refuses while frozen and its row is untouched", refusedByFreeze(frozenWrite) && blockDuringFreeze?.body === "released body", {
@@ -453,7 +452,7 @@ async function main(): Promise<void> {
         key: copyKey,
         kind: "markdown",
         body: "mid-flight body",
-        label: "Ticket 22",
+        label: "Rehearsal",
         group: "rehearsal",
         operationId: `${run}-copy-inflight`,
       });
@@ -470,7 +469,7 @@ async function main(): Promise<void> {
       const freezeAt = performance.now();
       process.env.DATA_WRITES_FROZEN = "1";
       const afterFreeze = await attempt(() =>
-        operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "post-freeze body", label: "Ticket 22", group: "rehearsal", operationId: `${run}-copy-after` }),
+        operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "post-freeze body", label: "Rehearsal", group: "rehearsal", operationId: `${run}-copy-after` }),
       );
       expect("drain", "a mutation started after the freeze refuses immediately", refusedByFreeze(afterFreeze), errorMessage(afterFreeze.error));
 
@@ -492,21 +491,21 @@ async function main(): Promise<void> {
 
     // ------------------------------------------------------------------ retired backend cannot become a rollback path
     expect("rollback", "the freeze remains on while checking the retirement boundary", process.env.DATA_WRITES_FROZEN === "1");
-    process.env.DATA_BACKEND = "convex";
-    process.env.TARGET_CONVEX_URL = "https://retired.example.invalid";
+    process.env.DATA_BACKEND = "retired-backend";
+    process.env.TARGET_RETIRED_BACKEND_URL = "https://retired.example.invalid";
     resetServerDataWriteCapabilityCacheForTests();
     const retiredRuntime = await attempt(async () => getDataBackend());
     expect("rollback", "the application refuses a retired backend rather than serving stale data", !retiredRuntime.ok && errorMessage(retiredRuntime.error).includes("DATA_BACKEND"));
     const retiredOperator = await attempt(async () => createDataClient({ argv: [], env: process.env }));
     expect("rollback", "ordinary operators refuse the retired backend", !retiredOperator.ok && errorMessage(retiredOperator.error).includes("DATA_BACKEND"));
-    delete process.env.TARGET_CONVEX_URL;
+    delete process.env.TARGET_RETIRED_BACKEND_URL;
     process.env.DATA_BACKEND = "postgres";
     resetServerDataWriteCapabilityCacheForTests();
 
     // ------------------------------------------------------------------ the freeze is liftable
     process.env.DATA_WRITES_FROZEN = "0";
     const reopened = await attempt(() =>
-      operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "reopened body", label: "Ticket 22", group: "rehearsal", operationId: `${run}-copy-reopened` }),
+      operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "reopened body", label: "Rehearsal", group: "rehearsal", operationId: `${run}-copy-reopened` }),
     );
     expect("liveness", "lifting the freeze by value reopens writes", reopened.ok && (await runtime.query(api.copyBlocks.getByKey, { key: copyKey }))?.body === "reopened body", reopened.ok ? reopened.value : errorMessage(reopened.error));
     delete process.env.DATA_WRITES_FROZEN;
@@ -572,7 +571,7 @@ async function main(): Promise<void> {
       // transaction: a refused write leaves no partial row behind, on either flavor's data path.
       const journalBefore = (await selectDocuments(pool, "contentRevisions", { where: '"key" = $1', params: [copyKey] })).length;
       const stale = await attempt(() =>
-        operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "plain", body: "never", label: "Ticket 22", group: "rehearsal", expectedRevision: 1 }),
+        operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "plain", body: "never", label: "Rehearsal", group: "rehearsal", expectedRevision: 1 }),
       );
       const journalAfter = (await selectDocuments(pool, "contentRevisions", { where: '"key" = $1', params: [copyKey] })).length;
       expect(S, "a refused write rolls back its whole transaction (no journal row, row unchanged)", !stale.ok && journalAfter === journalBefore && (await runtime.query(api.copyBlocks.getByKey, { key: copyKey }))?.body === "reopened body", {
@@ -641,13 +640,13 @@ async function main(): Promise<void> {
       indexes: 305,
       uniqueIndexesExcludingPrimaryKeys: 39,
       method: "createdb dosewiki_t22_migrations, then POSTGRES_DIRECT_URL=<scratch> /usr/bin/time -p bunx drizzle-kit migrate; scratch database dropped afterwards",
-      measuredBy: "ticket 22 (this rehearsal's author), local Postgres 17.10",
+      measuredBy: "this rehearsal's author, local Postgres 17.10",
     };
     measurements.builds = {
       command: "DOSEWIKI_BUILD_SURFACE=<surface> NEXT_PUBLIC_SITE_FLAVOR=<flavor> DOSEWIKI_BUILD_DIR=<dir> DATA_BACKEND=postgres bunx next build --webpack",
       rows: [
-        { surface: "public", flavor: "effectindex", backend: "PlanetScale snapshot", cold: true, seconds: 650, staticPages: 605, distDir: ".next-effectindex", measuredBy: "ticket 22" },
-        { surface: "public", flavor: "effectindex", backend: "PlanetScale snapshot", cold: false, seconds: 128, staticPages: 605, distDir: ".next-effectindex", measuredBy: "ticket 22" },
+        { surface: "public", flavor: "effectindex", backend: "PlanetScale snapshot", cold: true, seconds: 650, staticPages: 605, distDir: ".next-effectindex", measuredBy: "release rehearsal" },
+        { surface: "public", flavor: "effectindex", backend: "PlanetScale snapshot", cold: false, seconds: 128, staticPages: 605, distDir: ".next-effectindex", measuredBy: "release rehearsal" },
         { surface: "public", flavor: "dosewiki", backend: "local Postgres", cold: true, seconds: "94 to 108", staticPages: 526, distDir: ".next", measuredBy: "parent agent, this session" },
         { surface: "public", flavor: "dosewiki", backend: "PlanetScale snapshot", cold: true, seconds: 399, staticPages: 605, distDir: ".next", measuredBy: "parent agent, this session" },
         { surface: "editor", flavor: "dosewiki", backend: "local Postgres", cold: true, seconds: 114, staticPages: 524, distDir: ".next-editor", measuredBy: "parent agent, this session" },
@@ -708,11 +707,6 @@ async function main(): Promise<void> {
       measurements.sweep = { skipped: "--no-sweep" };
     }
 
-    // ------------------------------------------------------------------ every reported blocker is in the manifest
-    const manifestPath = path.join(ROOT, "notes-and-plans", "plans", "convex-to-planetscale", "release-manifest.md");
-    const manifest = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, "utf8") : "";
-    const missingFromManifest = blockers.filter((blocker) => !manifest.includes(blocker.id)).map((blocker) => blocker.id);
-    expect("manifest", "release-manifest.md records every blocker this rehearsal reports", manifest.length > 0 && missingFromManifest.length === 0, missingFromManifest);
   } finally {
     delete process.env.DATA_WRITES_FROZEN;
     process.env.DATA_BACKEND = "postgres";

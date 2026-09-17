@@ -115,7 +115,7 @@ export function buildCitationAuthorReviewQueue(proposal, { generatedAt = new Dat
     const guideKeys = guideKeysForReasons(reasonCodes);
     return {
       batchId: batchId(proposal.artifactSha256, index, rows),
-      assignment: "Assign this entire batch to one reviewer or subagent; return row-level decisions with inspected-source evidence and do not write to Postgres.",
+      assignment: "Assign this entire batch to one reviewer; return row-level decisions with inspected-source evidence and do not write to Postgres.",
       articleSlugs: [...new Set(rows.map((row) => row.slug))],
       reasonCodes,
       reviewInstructions: guideKeys.map((key) => ({ category: key, instruction: RESIDUAL_REVIEW_GUIDE[key] })),

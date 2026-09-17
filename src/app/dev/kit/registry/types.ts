@@ -39,7 +39,7 @@ export interface StoryIntent {
   need: string;
   /** Index into `examples` to render beside the entry; defaults to the first. */
   example?: number;
-  /** Anchor in docs/ui-system.md that justifies the recommendation, e.g. "#name-chip-policy". */
+  /** Anchor in docs/design/ui-kit.md that justifies the recommendation, e.g. "#name-chip-policy". */
   policy?: string;
 }
 

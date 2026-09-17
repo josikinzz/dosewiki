@@ -17,7 +17,7 @@
  * an edit show up on the public pages immediately instead of at the end of the
  * 15-minute public-data window.
  * Deleting is not destructive: the server read helper falls back to the
- * checked-in default in `src/data/content/copyBlocks.json`, so a removed row
+ * checked-in default in `content/copy-blocks/copyBlocks.json`, so a removed row
  * renders the original hardcoded prose.
  */
 import { NextResponse } from "next/server";

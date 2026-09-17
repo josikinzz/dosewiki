@@ -34,7 +34,7 @@ function row() {
     effect_slug: "immersive-hallucinations",
     effect_tags: [],
     replication_status: "replication" as const,
-    taxonomy_record_key: "convex:k575hx9hey1ra998vhy6xx98ds8465d7",
+    taxonomy_record_key: "legacy:k575hx9hey1ra998vhy6xx98ds8465d7",
     taxonomy_source_digest: "a".repeat(64),
     taxonomy_version: 2,
     taxonomy_updated_at: 123,

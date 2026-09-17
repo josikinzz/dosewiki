@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import chemicalIndexManual from "../indexes/chemicalIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
 import { buildChemicalClassTree, type ChemicalClassNodeInput } from "./chemicalClassTree";
 
 const fixture: ChemicalClassNodeInput[] = [

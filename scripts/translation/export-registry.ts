@@ -29,8 +29,8 @@ import { fileURLToPath } from "node:url";
 
 import { CANONICAL_ROUTES } from "@/data/builders/taxonomy";
 import { effectNameAliasTables, resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
-import chemicalIndexManual from "@/data/indexes/chemicalIndexManual.json";
-import psychoactiveIndexManual from "@/data/indexes/psychoactiveIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
+import psychoactiveIndexManual from "@data/substances/psychoactiveIndexManual.json";
 import { FIELD_REGISTRY } from "@/data/schema/fieldRegistry";
 import {
   CARCINOGENICITY_LEVEL_CONFIG,

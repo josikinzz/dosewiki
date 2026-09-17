@@ -3,7 +3,7 @@
  * Generate a report of all history_culture section headings.
  */
 
-import { readFileSync, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { createDataClient } from "./lib/data-client.ts";
 import { api } from "../lib/postgres/runtime/api.ts";
 import { getAllSubstanceDocuments } from "./lib/data-pagination.mjs";
@@ -63,7 +63,8 @@ async function main() {
   md += `**Total unique headings:** ${sorted.length}\n\n`;
   md += `**Total usages:** ${sorted.reduce((acc, [, c]) => acc + c, 0)}\n\n`;
 
-  writeFileSync("notes-and-plans/reports/history-culture-headings.md", md);
+  mkdirSync("tmp", { recursive: true });
+  writeFileSync("tmp/history-culture-headings.md", md);
   console.log(`Generated report with ${sorted.length} unique headings`);
 }
 

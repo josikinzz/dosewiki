@@ -151,7 +151,7 @@ async function main() {
   }
 
   if (command.dryRun) {
-    console.log("\nDry run — no Convex writes performed.");
+    console.log("\nDry run: no writes performed.");
     console.log(
       "Confirm the artist has agreed to this licence before applying: it grants public reuse rights that cannot be revoked retroactively.",
     );

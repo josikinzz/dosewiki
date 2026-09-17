@@ -1,5 +1,5 @@
 /**
- * Ticket 19: the public exports are backend-independent.
+ * The public exports are backend-independent.
  *
  *   bun scripts/postgres/rehearse-exports.ts --target postgres://localhost:5432/dosewiki [--allow-remote]
  *
@@ -17,8 +17,7 @@
  *      by the real `buildOpenDataDocument` from an uncached adapter
  *      (`createDataPublicDataReadAdapter(queryData)`; the cached adapter
  *      needs Next's `unstable_cache`), the items carry the license envelope,
- *      no document bookkeeping, none of the private fields catalogued in
- *      notes-and-plans/plans/convex-to-planetscale/inventory/tables.md, and two
+ *      no document bookkeeping, none of the private table fields, and two
  *      builds order the shared rows identically.
  *
  * Reads only; nothing is written to the database. Sibling rehearsals may add
@@ -84,7 +83,7 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 const PUBLIC_READ_LAYER = /@server\/data\/publicData|@server\/open-data\/datasets|@server\/reagentData/;
-const DIRECT_BACKEND_ACCESS = /convex\/browser|ConvexHttpClient|process\.env\.[A-Z_]*(?:CONVEX|POSTGRES)[A-Z_]*|from "convex\/_generated|DATA_BACKEND/;
+const DIRECT_BACKEND_ACCESS = /process\.env\.[A-Z_]*POSTGRES[A-Z_]*|DATA_BACKEND/;
 /** Routes that serve static API metadata and read no data at all. */
 const METADATA_ROUTES = ["src/app/api/v1/meta/route.ts", "src/app/api/v1/openapi.json/route.ts"];
 

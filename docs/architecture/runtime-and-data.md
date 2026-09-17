@@ -1,7 +1,5 @@
 # Runtime and Data Architecture
 
-Last verified: 2026-03-30
-
 This appendix holds the runtime, data-flow, auth, and integration details that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 Update this file when route ownership, Postgres read/write paths, role enforcement, or third-party integration boundaries change.
@@ -73,7 +71,7 @@ valid source-table maintenance paths without the approved index rebuild.
 
 The indexed readers and atomic maintenance are implemented in the checkout;
 their release and data backfills are separate production operations. Follow
-[data credentials](../agents/data-credentials.md) and obtain explicit authorization for
+[data credentials](../operations/data-credentials.md) and obtain explicit authorization for
 the exact deployment and write batch.
 
 1. Confirm that the public frontend supports the complete shared
@@ -221,6 +219,25 @@ contributor works rail, the Effect Index homepage carousel) narrows further
 with `isVisualReplication` from the same module, so an audio row is never
 handed to an `<AppImage>`. A new frame surface must filter with that helper
 rather than restate the kinds.
+
+### Safety banner rendering
+
+Substance safety banners are opt-in per preset and resolve by slug, never by
+classification. `presetAppliesToSlug` in `src/data/substanceWarningBanners.ts`
+is the render rule: a preset applies when it is enabled and either
+`allSubstances` is set or the slug is in its `enabledSlugs` list (capped at
+`MAX_ENABLED_SLUGS`, 250). Classification strings are Banner Studio search
+aids and never reach the render path. An article shows at most
+`MAX_BANNERS_PER_ARTICLE` (2) banners, ordered by tone (danger, then unsafe,
+then caution) and then key; there is no priority field, and two same-tone
+banners on one substance are resolved by an editor disabling one.
+
+`lib/next/warningBanners.ts` reads presets under
+`PUBLIC_DATA_CACHE_TAGS.banners` and deliberately degrades to an empty list
+with a logged warning when the read fails; there is no checked-in fallback.
+The Banner Studio save route revalidates that tag plus every affected slug.
+Glyph size is one sitewide `safety-banner-display` siteConfig value shared by
+every banner, never a per-preset setting. `/dev/banners` is admin-gated.
 
 ### Public read-only API flow
 
@@ -457,7 +474,7 @@ resets newer locale work nor loses the receipt when `server/publicationRecovery.
 records delivery. Enqueue failure keeps the outbox pending. Cache-only refresh
 retains its existing behavior without translation enqueueing. Locale lease,
 bounded failure and old-worker drain requirements are owned by
-[Durable refresh and rollout](../agents/locale-mirrors.md#durable-refresh-and-rollout).
+[Durable refresh and rollout](../operations/locale-mirrors.md#durable-refresh-and-rollout).
 
 ### Editor proposal flow
 
@@ -640,7 +657,7 @@ The self-hosted analytics script is a public-host-only integration. A client-sid
 host policy attaches it only on the exact `dose.wiki` and `www.dose.wiki`
 hostnames, so it is absent from admin, Vercel preview, and local sessions.
 
-For browser-header changes, follow [Browser Security Policy](../agents/browser-security-policy.md).
+For browser-header changes, follow [Browser Security Policy](../operations/browser-security-policy.md).
 It owns public inline-compatible static/ISR rendering, editor nonces and
 flavor-dependent bootstrap hashes, Turnstile, editor-only upload origins, and
 the replication embed's exact framing exception. Source lists are owned by
@@ -652,27 +669,24 @@ retired when enforcement began; the enforced policy retains `report-uri`, so the
 collector continues to receive violations without duplicate reports. API handlers
 retain ownership of content-specific CSP, including `sandbox`
 for database-backed SVGs. See
-[Browser Security Policy](../agents/browser-security-policy.md) for the source
+[Browser Security Policy](../operations/browser-security-policy.md) for the source
 inventory, rationale, and validation contract.
 
 ### Runtime store: PlanetScale Postgres
 
 Since 2026-09-10 every deployment sets `DATA_BACKEND=postgres` and reads and
-writes PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch
-`main`) through `lib/postgres/runtime/`: the `server/` query and mutation
+writes the PlanetScale database through `lib/postgres/runtime/`: the `server/` query and mutation
 handlers run in-process against Drizzle-generated tables
 (`lib/postgres/schema.generated.ts`) with a lossless document codec, the
 pre-cutover `_id` values preserved, and `ctx.storage.getUrl` answered from
 `storageObjects` identity rows that point at R2. `lib/postgres/runtime/backend.ts`
 selects the backend; `deploymentEnv.ts` asserts the per-tier variables. The
 production write ceremony for scripts is in
-[data credentials](../agents/data-credentials.md).
+[data credentials](../operations/data-credentials.md).
 
-The archived Convex service is a frozen recovery source, not a runtime mode
-or a routine operator target. Non-executable recovery references live under
-`scripts/recovery/convex/` and require the separately authorized isolated
-historical procedure. Local source retirement neither deletes the hosted
-service nor revokes credentials; the owner retains the observation decision.
+There is no alternate database backend or runtime mode. Application rollback
+restores a previous compatible Postgres artifact and configuration; any
+exceptional database recovery requires separate owner authorization.
 
 Used for:
 
@@ -682,8 +696,8 @@ Used for:
 - role/membership data
 - prompts, quotes, and site config
 
-Prompt seed markdown under `src/data/config/generatorPrompt.md` and
-`src/data/config/sectionPrompts/*.md` is compared and migrated through the shared
+Prompt seed markdown under `content/prompts/generator.md` and
+`content/prompts/sections/*.md` is compared and migrated through the shared
 prompt drift Module in `scripts/lib/prompt-drift-policy.mjs`. The compare and
 migration scripts use the same local inventory, so `generator` and `section_*`
 prompt keys are included in drift reports before production writes.
@@ -702,6 +716,6 @@ Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select 
 
 ### ProtestKit reagent-test snapshot
 
-ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `src/data/reagentTests.json`. `npm run reagents:import` validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
+ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `data/third-party/protestkit/reagentTests.json`. `npm run reagents:import` validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
 
 Public substance route loaders read one record by canonical DoseWiki slug through `lib/data/publicData.reagents.ts`; authored `substanceIndex.reagent_testing` content remains authoritative when present. The legacy-path `src/app/api/reagent-proxy/route.ts` is retained for editor and client-preview compatibility, but it now reads Postgres and performs no ProtestKit egress. It continues to apply rate limiting, CORS origin policy, and cache headers.

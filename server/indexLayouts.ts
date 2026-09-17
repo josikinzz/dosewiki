@@ -15,7 +15,7 @@ import { copyIndexRevision, prepareCopyIndexPublication, copyIndexContentEqual, 
  * - "chemical": Chemical class index (Phenethylamine, Tryptamine, etc.)
  * - "mechanism": Mechanism of action index (5-HT2A agonist, etc.)
  *
- * Each layout has the same structure as the JSON files in src/data/indexes/.
+ * Each layout has the same structure as the JSON files in data/substances/.
  */
 
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";

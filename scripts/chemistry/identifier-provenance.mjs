@@ -18,7 +18,7 @@ const PROVENANCE_RANK = {
   editor: 4,
 }
 
-export const OPSIN_MAP_RELATIVE_PATH = "src/data/mappings/iupacSmilesMap.json";
+export const OPSIN_MAP_RELATIVE_PATH = "data/chemistry/iupacSmilesMap.json";
 const OPSIN_MAP_COMMENT_KEY = "//"
 const OPSIN_MAP_COMMENT_VALUE = "Mapping of IUPAC names to SMILES strings resolved via OPSIN (https://www.ebi.ac.uk/opsin/). Null values indicate no SMILES was returned; mixture entries expose a components object keyed by compound name."
 

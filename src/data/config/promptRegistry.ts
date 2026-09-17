@@ -1,4 +1,4 @@
-import promptRegistryJson from "./promptRegistry.json";
+import promptRegistryJson from "@content/prompts/registry.json";
 import {
   getCatalogSectionPromptDescriptors,
   type CatalogSectionPromptDescriptor,

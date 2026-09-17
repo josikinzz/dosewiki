@@ -2,10 +2,6 @@ import {
   normalizeIdentifier,
 } from "../../lib/citations/referenceIdentity.mjs";
 import {
-  buildDosageDurationMatcherResults,
-  resolveParsedSourceSubstance,
-} from "./formal-citations-dosage-duration-matcher.mjs";
-import {
   dedupeAllowedReferences,
   enrichKnownReferenceCandidates,
   selectExistingReferenceCandidates,
@@ -89,11 +85,10 @@ function scoreSourceForSection({ source, content, sectionConfig, quoteEntries })
   };
 }
 
-function resolveCompiledSourcesForSection({ articleSources, sectionKey, quoteEntries, matcherSourceIds = [] }) {
+function resolveCompiledSourcesForSection({ articleSources, sectionKey, quoteEntries }) {
   const sectionConfig = getFormalCitationSectionConfig(sectionKey);
   const contents = articleSources?.contents ?? {};
   const sources = Array.isArray(articleSources?.sources) ? articleSources.sources : [];
-  const preferredSourceIds = new Set(matcherSourceIds);
 
   const scoredSources = sources
     .map((source) => {
@@ -106,10 +101,7 @@ function resolveCompiledSourcesForSection({ articleSources, sectionKey, quoteEnt
         sectionConfig,
         quoteEntries,
       });
-      const canonicalId = canonicalizeSourceId(source.id) ?? normalizeIdentifier(source.id);
-      const preferred = preferredSourceIds.has(source.id) || preferredSourceIds.has(canonicalId);
-
-      if (!preferred && scoring.score <= 0) {
+      if (scoring.score <= 0) {
         return null;
       }
 
@@ -126,7 +118,7 @@ function resolveCompiledSourcesForSection({ articleSources, sectionKey, quoteEnt
           ].filter(Boolean).map((term) => term.toLowerCase()),
         ),
         matchedNeedles: scoring.matchedNeedles,
-        sectionScore: scoring.score + (preferred ? 20 : 0),
+        sectionScore: scoring.score,
         provenance: scoring.quoteEntry
           ? [scoring.quoteEntry.provenance]
           : [],
@@ -145,16 +137,9 @@ export async function buildFormalCitationSourcePacket({
   quoteDocument,
   sectionKey,
   fetchImpl = globalThis.fetch,
-  parsedSourceSubstance = null,
   wikipediaEnrichment = true,
 }) {
   const quoteCorpus = extractQuoteCorpusEntries(quoteDocument);
-  const matcherResults = normalizeIdentifier(sectionKey) === "dosage-duration" || sectionKey === "dosage_duration"
-    ? buildDosageDurationMatcherResults({
-        article,
-        parsedSubstance: parsedSourceSubstance ?? resolveParsedSourceSubstance(article?.slug),
-      })
-    : null;
 
   const wikipediaSource = (articleSources?.sources ?? []).find((source) => (
     canonicalizeSourceId(source.id) === "wikipedia" ||
@@ -187,7 +172,6 @@ export async function buildFormalCitationSourcePacket({
     articleSources: enrichedArticleSources,
     sectionKey,
     quoteEntries: quoteCorpus,
-    matcherSourceIds: matcherResults?.selectedSourceIds ?? [],
   });
 
   const wikipediaReferences = compiledSources
@@ -254,6 +238,5 @@ export async function buildFormalCitationSourcePacket({
       : null,
     wikipediaCitationPacket,
     allowedReferences,
-    matcherResults,
   };
 }

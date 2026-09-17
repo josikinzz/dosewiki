@@ -5,7 +5,7 @@ import path from "node:path";
 import { JSDOM } from "jsdom";
 
 const ROOT = process.cwd();
-const OUT_DIR = path.join(ROOT, process.env.PW_SUBJECTIVE_EFFECTS_OUT_DIR || "docs/psychonautwiki-2015-subjective-effects");
+const OUT_DIR = path.join(ROOT, process.env.PW_SUBJECTIVE_EFFECTS_OUT_DIR || "content/sources/psychonautwiki-2015");
 const ARTICLE_DIR = path.join(OUT_DIR, "articles");
 const CACHE_DIR = path.join(OUT_DIR, ".cache");
 const LIVE_MISSING_PATH = path.join(CACHE_DIR, "live-missing-subjective-effects.json");

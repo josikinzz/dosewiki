@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["scripts/**/*.{test,spec}.{mjs,js,ts,tsx}", "tools/section-generation/**/*.{test,spec}.{mjs,js,ts,tsx}"],
+    include: ["scripts/**/*.{test,spec}.{mjs,js,ts,tsx}"],
     exclude: [
       "node_modules/**",
       "**/node_modules/**",
@@ -18,6 +18,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "../../src"),
+      "@data": path.resolve(__dirname, "../../data"),
+      "@content": path.resolve(__dirname, "../../content"),
       "@auth": path.resolve(__dirname, "../../auth.ts"),
       "@server": path.resolve(__dirname, "../../lib"),
       "server-only": path.resolve(__dirname, "../../src/test/server-only.ts"),

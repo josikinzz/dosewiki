@@ -7,7 +7,7 @@
  * The glossary is not here. It lives in Postgres (`translationGlossary`,
  * loaded by `lib/translation/glossary.ts`) so a reviewer can approve or edit
  * one term at a time; every caller passes the loaded `term -> target` map to
- * the engine beside the locale. `scripts/translation/glossary/<code>.json` is
+ * the engine beside the locale. `data/i18n/glossary/<code>.json` is
  * an export of that table for review and diffing, never read at runtime.
  */
 
@@ -17,7 +17,7 @@ import translationLocaleNames from "../../src/i18n/translationLocaleNames.json" 
 
 /** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code) {
-  return path.join(path.dirname(fileURLToPath(import.meta.url)), "glossary", `${code}.json`);
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data/i18n/glossary", `${code}.json`);
 }
 
 /**

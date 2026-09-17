@@ -1,6 +1,6 @@
 import { slugify } from "@/utils/slug";
 
-import chemicalIndexManual from "./chemicalIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
 
 interface ManualChemicalClass {
   key: string;

@@ -23,8 +23,8 @@ import { fileURLToPath } from "node:url";
 import { unzipSync } from "fflate";
 
 import { getCategoryIcon } from "../../src/data/config/categoryIcons.ts";
-import psychoactiveManual from "../../src/data/indexes/psychoactiveIndexManual.json";
-import chemicalManual from "../../src/data/indexes/chemicalIndexManual.json";
+import psychoactiveManual from "../../data/substances/psychoactiveIndexManual.json";
+import chemicalManual from "../../data/substances/chemicalIndexManual.json";
 import iconData from "../../src/components/common/iconData.generated.json";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");

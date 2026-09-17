@@ -16,6 +16,6 @@
     }
   },
   "provenance": {
-    "deschloroketamine": "PubChem CID 437168 (properties + synonyms, fetched 2026-07-23); SMILES matches src/data/mappings/generatedSmiles.json; psychoactive_class mirrors ketamine and o-pce."
+    "deschloroketamine": "PubChem CID 437168 (properties + synonyms, fetched 2026-07-23); SMILES matches data/chemistry/generatedSmiles.json; psychoactive_class mirrors ketamine and o-pce."
   }
 }

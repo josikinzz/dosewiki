@@ -33,9 +33,9 @@ describe("areCategoriesEqual", () => {
     expect(areManualsEqual({ version: 1, categories: [base] }, { version: 1, categories: [] })).toBe(false);
   });
 
-  // Defect 3 of josikinzz/dosewiki-admin#111: the comparison covers `key`,
-  // `label`, `iconKey`, `notes`, `drugs` and `sections` and ignores `columns`,
-  // so a column-only reassignment reads as "no change".
+  // Known gap: the comparison covers `key`, `label`, `iconKey`, `notes`,
+  // `drugs` and `sections` and ignores `columns`, so a column-only
+  // reassignment reads as "no change".
   it.fails("detects a column assignment change", () => {
     expect(areCategoriesEqual([base], [{ ...base, columns: { "3": 2 } }])).toBe(false);
   });

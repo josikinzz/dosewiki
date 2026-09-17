@@ -16,7 +16,7 @@ export const CONFIG = {
   reasoningEffort: "high",
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
-  promptFallbackFile: join(PROJECT_ROOT, "src/data/config/sectionPrompts/tolerance.md"),
+  promptFallbackFile: join(PROJECT_ROOT, "content/prompts/sections/tolerance.md"),
 };
 
 const INPUT_BOUNDS = {

@@ -525,17 +525,17 @@ export default async function DocsCodePage() {
               · molecule images, flags, favicons
             </span>
             {`
-├── docs/  notes-and-plans/   `}
+├── docs/                     `}
             <span className="theme-text-faint">
-              · architecture docs, ADRs, agent runbooks
+              · architecture docs, ADRs, operations and workflow guides
             </span>
             {`
-├── .agents/skills/           `}
+├── data/  content/           `}
             <span className="theme-text-faint">
-              · workflows, including citation-pi and legality-pi
+              · datasets with licenses, and every authored prose file
             </span>
             {`
-└── README.md  ARCHITECTURE.md  CLAUDE.md  CONTEXT.md`}
+└── README.md  ARCHITECTURE.md  CONTRIBUTING.md  AGENTS.md`}
           </pre>
 
           {/* Demoted from a status-less role=alert callout to emphasized prose. */}

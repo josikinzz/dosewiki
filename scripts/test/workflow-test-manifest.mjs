@@ -4,7 +4,6 @@ import path from "node:path";
 export const workflowTestRoots = Object.freeze([
   "scripts",
   path.join("tools", "pi-citation-workflow"),
-  path.join("tools", "section-generation"),
 ]);
 
 function walkTestFiles(repoRoot, relativeDir, files) {

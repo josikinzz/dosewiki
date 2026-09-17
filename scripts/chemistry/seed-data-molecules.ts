@@ -20,7 +20,7 @@ import { buildMoleculeSeedPlan } from "./moleculeSeedPlan";
 
 const DEFAULT_REPORT = "tmp/molecule-seed/report.json";
 const UPDATED_BY = "seed-data-molecules";
-const GAP_FILL_COVERAGE_REPORT = "notes-and-plans/reports/smiles-coverage.json";
+const GAP_FILL_COVERAGE_REPORT = "data/chemistry/smiles-coverage.json";
 
 /**
  * slug → SMILES for articles without inline `identification.smiles`, from the

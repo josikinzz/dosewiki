@@ -1,10 +1,10 @@
 /**
- * Ticket 04 rehearsal: publish one article through Postgres and prove the
+ * Rehearsal: publish one article through Postgres and prove the
  * acceptance criteria against a live engine.
  *
  *   bun scripts/postgres/rehearse-article-publication.ts [--target <url>] [--allow-remote] [--keep]
  *
- * Creates one scratch article (slug `ticket-04-rehearsal-<random>`), runs
+ * Creates one scratch article (slug `rehearsal-<random>`), runs
  * every scenario against it, and deletes the scratch rows unless `--keep`.
  * Nothing outside the scratch slug is read for update or written. The report
  * lands in runs/postgres-import/<timestamp>-publication/report.json.
@@ -44,7 +44,7 @@ import { guardTarget, resolveTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const FINGERPRINT = "postgres-rehearsal";
-const ACTOR = "ticket-04@rehearsal.invalid";
+const ACTOR = "actor@rehearsal.invalid";
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
 
@@ -106,12 +106,12 @@ async function main() {
   guardTarget(target, argv.includes("--allow-remote"));
   const keep = argv.includes("--keep");
   const pool = new Pool({ connectionString: target, max: 4 });
-  const slug = `ticket-04-rehearsal-${mintDocumentId().slice(0, 8)}`;
+  const slug = `rehearsal-${mintDocumentId().slice(0, 8)}`;
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-publication`);
   const started = performance.now();
   try {
     // Scratch article. `id` is the fixture's canonical id; slug is unique to this run.
-    const seed = { ...structuredClone(minimalArticle), slug, title: `Ticket 04 rehearsal ${slug}`, summary: "before summary" } as Record<string, unknown>;
+    const seed = { ...structuredClone(minimalArticle), slug, title: `Rehearsal ${slug}`, summary: "before summary" } as Record<string, unknown>;
     await insertDocument(pool, "substanceIndex", seed);
 
     // 1. read

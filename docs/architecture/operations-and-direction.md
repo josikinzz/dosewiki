@@ -1,7 +1,5 @@
 # Operations and Direction
 
-Last verified: 2026-09-12
-
 This appendix holds the operational guidance, quality gates, known debt, and recommended direction that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 Update this file when build strategy, script ownership, quality gates, roadmap priorities, or contributor maintenance rules change.
@@ -53,9 +51,8 @@ Operational tools live under `scripts/`, grouped by their actual directory:
 - `batch/`: AI generation and quote extraction
 - `migrate/`: bounded content transforms
 - `data-ops/`: guarded native data maintenance utilities
-- `recovery/convex/`: non-executable historical recovery references, never a routine operator target
-- `prepopulate/`: derive article content from parsed sources
-- `analyze/`: audits and coverage inspection
+- `prepopulate/`: fill article identification and source citations from local inputs
+- `analyze/`: audits and reachability checks
 - `replications/`: effect gallery asset ingestion and maintenance
 - `data/`: normalization and maintenance transforms
 - `parsers/`: raw source extraction
@@ -82,7 +79,7 @@ CI also includes:
 - non-blocking production and full dependency-audit artifacts
 
 The rollout and promotion criteria for these controls live in
-[Security CI](../agents/security-ci.md).
+[Security CI](../operations/security-ci.md).
 
 ### Test ownership policy
 
@@ -94,12 +91,10 @@ Every test needs a stable placement and an explicit reason to exist. Reviewers s
 - Static catalogs and generated data are checked with structural invariants (uniqueness, referential integrity, required fields), not verbatim snapshots of editorial content.
 - Tests that need external artifacts ship a small committed or temp-generated synthetic fixture that preserves the real digest and precondition logic. A test may not silently skip because a workstation path, campaign directory, or private artifact is absent.
 - Retire completed one-time workflows and their tests only after checking active consumers and verifying private recovery copies. Keep a fail-closed command boundary only while a concrete consumer still requires it.
-- UI tests query by role, accessible name, state, focus, visibility, and rendered output. A class assertion is allowed only when that class is a documented public style contract in `docs/ui-kit.md`.
+- UI tests query by role, accessible name, state, focus, visibility, and rendered output. A class assertion is allowed only when that class is a documented public style contract in [the UI kit](../design/ui-kit.md).
 - Runners stay as they are: root Vitest for `src/**` and `lib/**`, `npm run test:workflow` for `scripts/**` and `tools/**`, `npm run openchemlib:test` for the vendored fork. No new runner or convention is introduced for a single test.
 
 `npm run test:evidence` writes `.test-evidence/report.md` (and `report.json`) with per-file runtime for every lane, the skipped suites and cases, `setup:rdkit-or-wasm` tags for files that load RDKit, OpenChemLib, or wasm, and, with `--runs N`, a flake classification that separates files whose outcome differed across runs from files that failed every run. It exits 2 when a safety-listed fixture-backed test skips. Slow files are ranked so their setup cost can be shared or reduced; no test is deleted only because it is slow.
-
-The rationale and the file-level audit behind this policy are preserved in the private housecleaning archive (`docs/audits/test-suite-rationalization-plan.html`, retained 2026-09-16 with the archive receipt); ask the archive custodian for access.
 
 ## Current Direction
 
@@ -111,11 +106,9 @@ an explicit `TARGET_POSTGRES_URL`, `DATA_BACKEND=postgres`, `--allow-remote`,
 confirmation. Never forward arbitrary migration arguments or infer a production
 writer from application fallback variables.
 
-The archived Convex recovery service is non-runtime and is not a routine
-operator target. Any recovery operation requires separate owner approval and
-the isolated historical recovery procedure. Local source retirement does not
-assert hosted deletion, credential revocation, or completion of the observation
-window.
+There is no alternate database backend. Application rollback restores a previous
+compatible Postgres artifact and configuration; any exceptional database recovery
+requires separate owner approval.
 
 Current maintenance priorities are:
 
@@ -141,7 +134,6 @@ Start from the current tree rather than audit-era file counts:
 - Protected route wrapper: `src/lib/http/protectedRouteOperation.ts`
 - Article schema: `src/schema/substance.schema.ts`
 - Authored Postgres handlers: `server/`
-- Isolated historical recovery evidence: `scripts/recovery/convex/`
 - Operational tools: `scripts/`
 
 ## Maintenance Rules

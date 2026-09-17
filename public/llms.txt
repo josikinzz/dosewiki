@@ -8,8 +8,7 @@ accurate, evidence-based information to help people make informed decisions.
 ## Site Structure
 
 ### Main Pages
-- / - Construction gate on dose.wiki and www.dose.wiki until authorized launch;
-  the full application is at https://dosewiki-admin.vercel.app/
+- / - Home page with search and featured content
 - /substances - Index of publicly listed substances
 - /effects - Index of subjective effects
 - /interactions - Redirects to /substances

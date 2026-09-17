@@ -27,18 +27,18 @@ printProductionWriteCommand(command);
 
 // Read the static content files
 const aboutMarkdown = fs.readFileSync(
-  path.join(__dirname, "../../src/data/content/aboutContent.md"),
+  path.join(__dirname, "../../content/about/about.md"),
   "utf-8"
 ).trim();
 
 const aboutSubtitle = fs.readFileSync(
-  path.join(__dirname, "../../src/data/content/aboutSubtitle.md"),
+  path.join(__dirname, "../../content/about/subtitle.md"),
   "utf-8"
 ).trim();
 
 const aboutConfig = JSON.parse(
   fs.readFileSync(
-    path.join(__dirname, "../../src/data/content/aboutConfig.json"),
+    path.join(__dirname, "../../content/about/config.json"),
     "utf-8"
   )
 );

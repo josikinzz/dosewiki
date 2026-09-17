@@ -39,7 +39,7 @@ const reviewedSuspiciousTargetKeys = new Set([
 const suspiciousTargetDisposition =
   "preserve exact legacy value; target inference or row splitting requires separate editorial evidence review";
 const pharmacologyPromptContent = readFileSync(
-  resolve("src/data/config/sectionPrompts/pharmacology.md"),
+  resolve("content/prompts/sections/pharmacology.md"),
   "utf8",
 );
 

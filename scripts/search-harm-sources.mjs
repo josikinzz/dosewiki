@@ -16,7 +16,7 @@ if (usePostgres) {
   console.log(`Fetching from Postgres: ${fingerprint}\n`);
   articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 } else {
-  articles = JSON.parse(fs.readFileSync('src/data/SubstanceIndex.json', 'utf-8'));
+  articles = JSON.parse(fs.readFileSync('public/SubstanceIndex.json', 'utf-8'));
 }
 
 // Source name patterns (case insensitive)

@@ -17,7 +17,7 @@ import {
 } from "./generate-avatars-from-replications";
 
 const ROOT = process.cwd();
-const MANIFEST_PATH = path.join(ROOT, "src/data/config/contributorAvatarSources.json");
+const MANIFEST_PATH = path.join(ROOT, "data/contributors/contributorAvatarSources.json");
 
 /**
  * Read rather than `import`, so this file typechecks in a checkout where the

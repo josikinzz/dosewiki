@@ -1,0 +1,142 @@
+{
+  "slug": "morphine",
+  "title": "Morphine",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/morphine.md",
+  "archive_timestamp": "20160804042738",
+  "archive_date_utc": "2016-08-04T04:27:38Z",
+  "archive_url": "https://web.archive.org/web/20160804042738/https://psychonautwiki.org/wiki/Morphine",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160804042738/https://psychonautwiki.org/wiki/Morphine"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Internal hallucinations",
+                "description": "One may experience a state of semi-consciousness and hypnagogia during heavy dosage nodding which results in dream-like states and up to level 3 imagery. This is often accompanied by ill-defined geometry."
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Euphoria",
+            "description": "The cognitive euphoria experienced on this substance is extremely intense when compared to other opioids such as codeine or tramadol. The sensation itself can be described as powerful and overwhelming feelings of emotional bliss, contentment, and happiness."
+          },
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          },
+          {
+            "name": "Compulsive redosing",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Euphoria",
+            "description": "The physical euphoria experienced on this substance is extremely intense when compared to other opioids such as codeine or tramadol. The sensation itself can be described as feelings of intense physical comfort, warmth, love and blissful euphoria."
+          },
+          {
+            "name": "Pain relief",
+            "description": ""
+          },
+          {
+            "name": "Respiratory depression",
+            "description": ""
+          },
+          {
+            "name": "Itchiness",
+            "description": ""
+          },
+          {
+            "name": "Constipation",
+            "description": ""
+          },
+          {
+            "name": "Cough suppression",
+            "description": ""
+          },
+          {
+            "name": "Difficulty urinating",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Sedation",
+            "description": ""
+          },
+          {
+            "name": "Pupil constriction",
+            "description": ""
+          },
+          {
+            "name": "Decreased libido",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160804042738/https://psychonautwiki.org/wiki/Morphine"
+    },
+    "is_stub": true
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Generic source overview replaced with default public overview.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Visual effects has no subheading in the source, so Internal hallucinations is preserved in subjective_effects.sensory.visual.General.",
+    "Markdown bold and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

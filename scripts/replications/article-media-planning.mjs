@@ -54,7 +54,7 @@ export function selectCandidates(assets, decisions) {
       continue;
     }
 
-    // Two Convex objects of one work, which the batch collapse cannot settle
+    // Two storage objects of one work, which the batch collapse cannot settle
     // because the bytes genuinely differ. The owner picks the copy to publish.
     const variant = variantById.get(asset.id);
     if (variant && variant.chosen !== asset.id) {
@@ -129,7 +129,7 @@ export function planRow({ asset, promotion, facts, decisions }) {
   );
 
   if (!facts || (!facts.storageId && !facts.upload)) {
-    return { blocked: { reason: "no-storage", detail: "No usable Convex storage object." } };
+    return { blocked: { reason: "no-storage", detail: "No usable storage object." } };
   }
   if (!facts.reachable) {
     return {
@@ -367,7 +367,7 @@ export function planMigration({
       const match = byStorage ?? byDigest;
       if (match) {
         const how = byStorage
-          ? `the same Convex storage object (${assetFacts.storageId})`
+          ? `the same storage object (${assetFacts.storageId})`
           : "identical sha-256 of the stored bytes";
         push(
           match.sibling ? "already-migrated" : "duplicate-of-existing",

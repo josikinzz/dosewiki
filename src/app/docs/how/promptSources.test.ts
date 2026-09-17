@@ -11,8 +11,8 @@ import { describe, expect, it } from "vitest";
 const REPO_ROOT = path.resolve(__dirname, "..", "..", "..", "..");
 const PAGE = readFileSync(path.join(REPO_ROOT, "src/app/docs/how/page.tsx"), "utf8");
 
-const EXTRACTION_DIR = "scripts/prompts";
-const SECTION_DIR = "src/data/config/sectionPrompts";
+const EXTRACTION_DIR = "content/prompts/extraction";
+const SECTION_DIR = "content/prompts/sections";
 
 /** Slugs the page lists, taken from the literal arrays it builds its <details> from. */
 function slugsFrom(arrayName: string): string[] {

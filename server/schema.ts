@@ -809,7 +809,7 @@ export default defineSchema({
   }).index("by_class_key", ["classKey"]),
 
   // Index layouts - stores all category/classification index definitions
-  // Replaces the bundled JSON files in src/data/indexes/
+  // Replaces the bundled JSON files in data/substances/
   indexLayouts: defineTable({
     type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
     version: v.number(),

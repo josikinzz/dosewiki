@@ -8,9 +8,6 @@ const repoRoot = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const roots = ["src", "lib", "server", "scripts"];
 const sourceExtensions = new Set([".ts", ".tsx", ".js", ".mjs", ".mts", ".md"]);
 const excludedPrefixes = [
-  "src/data/SubstanceIndex.json",
-  "src/data/backups/",
-  "src/data/parsed-sources.json",
   "scripts/deprecated/",
 ];
 const legacyIdentifierAllowedFiles = new Set([

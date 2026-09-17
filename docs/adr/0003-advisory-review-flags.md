@@ -12,4 +12,4 @@ We chose advisory semantics over a hard or soft approval gate because the editor
 - An `expert_reviewed` article can carry open flags; the workbench should surface this as visible context, never as enforcement.
 - Disagreement with a recurring agent flag is fixed by amending the article-review skill's instructions, not by dismissing the flag (it would return next run).
 - "Keep hidden" is a flag label (`consider hiding`) recommending a human visibility decision; it is not a severity and is never acted on automatically.
-- Review terminology lives in the root `CONTEXT.md` Article Review Language section. The runtime canonical label list and validation live in `src/schema/substance/editorial.ts`; the article-review skill mirrors that list for agents.
+- Review terminology lives in the [glossary](../glossary.md#article-review-language) Article Review Language section. The runtime canonical label list and validation live in `src/schema/substance/editorial.ts`; the article-review skill mirrors that list for agents.

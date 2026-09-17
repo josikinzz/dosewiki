@@ -28,27 +28,27 @@
  * spelling that is not literally recorded does not match, and the aliases below
  * are the whole of the join.
  *
- * **The stored spelling is not always the artist's name.** Five of them are
- * corruptions — Ben Ridgeway is Ben Ridgway, Simon Haid is Simon Haiduk — and a
- * long tail of stored `artist_url`s are dead, or answer 200 while belonging to
- * somebody else entirely. Those decisions live in
- * `src/data/config/contributorIdentityCorrections.json`, each with its evidence
- * and a strong/weak/needs-owner marker; only `strong` is applied, and the run
- * prints everything else for the owner. Correcting the name here does not
- * correct `replications.artist` — see
+ * **The stored spelling is not always the artist's name.** Some of them are
+ * corruptions of a real name, and a long tail of stored `artist_url`s are dead,
+ * or answer 200 while belonging to somebody else entirely. Those decisions live
+ * in a reviewed identity corrections JSON kept outside the repository (it
+ * describes real people) and passed in with `--corrections=<path>`, each with
+ * its evidence and a strong/weak/needs-owner marker; only `strong` is applied,
+ * and the run prints everything else for the owner. Correcting the name here
+ * does not correct `replications.artist`; see
  * `scripts/replications/plan-artist-name-corrections.mjs` for that half.
  *
  * **The largest artist in the corpus is already here under another name.**
  * "Symmetric Vision" credits sixty works, 24% of the gallery, and it is
- * StingrayZ — whose profile currently matches zero works. That is an alias
+ * StingrayZ, whose profile currently matches zero works. That is an alias
  * addition, never a new profile: a new one would split the biggest artist in
  * the archive in half and leave both halves looking minor.
  *
  * Dry run (default):
- *   node scripts/contributors/seed-credited-identities.mjs
+ *   node scripts/contributors/seed-credited-identities.mjs --corrections=<path>
  *
  * Apply:
- *   node scripts/contributors/seed-credited-identities.mjs --write \
+ *   node scripts/contributors/seed-credited-identities.mjs --corrections=<path> --write \
  *     --confirm-write=seed-credited-contributor-profiles \
  *     --expected-deployment=<fingerprint>
  */
@@ -61,7 +61,11 @@ import {
   printProductionWriteCommand,
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
-import { MAX_PROFILE_LINKS } from "./seed-credited-identities-decisions.mjs";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
+import {
+  MAX_PROFILE_LINKS,
+  loadIdentityCorrections,
+} from "./seed-credited-identities-decisions.mjs";
 import {
   buildImportEntries,
   buildSeedPlan,
@@ -316,6 +320,9 @@ function printPlan(plan, entries, roster) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  const corrections = loadIdentityCorrections(
+    getFlagValue(process.argv.slice(2), "--corrections"),
+  );
 
   // Deliberately not falling back to POSTGRES_POOLED_URL: that variable points at
   // the dev deployment, and a plan built from dev data would describe writes to
@@ -344,7 +351,7 @@ async function main() {
       `${profiles.length} profiles, ${effects.length} effects.`,
   );
 
-  const plan = buildSeedPlan({ replications, reports, profiles });
+  const plan = buildSeedPlan({ replications, reports, profiles, corrections });
   const storedByKey = new Map(profiles.map((profile) => [normalizeKey(profile.key), profile]));
   const entries = buildImportEntries(plan, storedByKey);
   const roster = previewRosterImpact({ profiles, plan, effects, replications, reports });

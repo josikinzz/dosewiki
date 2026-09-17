@@ -4,10 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   validateAgentGuidanceAvoidsLiveLocalJsonEdits,
-  validateAgentSkillInventory,
   validateCurrentGuidanceAvoidsRetiredRuntime,
   validateReadmeReactMajor,
-  validateRetiredRuntimeGuidanceIsTombstoned,
   validateRootHasNoLooseSkillFiles,
 } from "./docs-agent-guidance-policy.mjs";
 
@@ -23,19 +21,11 @@ describe("docs and agent guidance policy", () => {
     expect(validateCurrentGuidanceAvoidsRetiredRuntime(repoRoot)).toEqual([]);
   });
 
-  it("tombstones retained retired-runtime guides", () => {
-    expect(validateRetiredRuntimeGuidanceIsTombstoned(repoRoot)).toEqual([]);
-  });
-
   it("keeps ambiguous root skill files out of the active repository root", () => {
     expect(validateRootHasNoLooseSkillFiles(repoRoot)).toEqual([]);
   });
 
   it("keeps active agent guidance from directing live article fixes through local JSON edits", () => {
     expect(validateAgentGuidanceAvoidsLiveLocalJsonEdits(repoRoot)).toEqual([]);
-  });
-
-  it("classifies the remaining repository skill", () => {
-    expect(validateAgentSkillInventory(repoRoot)).toEqual([]);
   });
 });

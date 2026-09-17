@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 
-const articles = JSON.parse(readFileSync("src/data/SubstanceIndex.json", "utf-8"));
+const articles = JSON.parse(readFileSync("public/SubstanceIndex.json", "utf-8"));
 
 // Check specific articles if passed as args, otherwise first 26
 const args = process.argv.slice(2);

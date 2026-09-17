@@ -13,7 +13,7 @@ const MEDIA_KEY = `media/sha256/${"a".repeat(64)}.mp4`;
 const PREVIEW_KEY = `media/sha256/${"b".repeat(64)}.mp4`;
 const PROD = `${MEDIA_BASE}/${MEDIA_KEY}`;
 const PROD_PREVIEW = `${MEDIA_BASE}/${PREVIEW_KEY}`;
-const ORPHAN = "https://warmhearted-mosquito-204.convex.cloud/api/storage/media";
+const ORPHAN = "https://orphan.example.invalid/api/storage/media";
 
 beforeEach(() => vi.stubEnv("REPLICATION_MEDIA_BASE_URL", MEDIA_BASE));
 afterEach(() => vi.unstubAllEnvs());
@@ -88,7 +88,7 @@ describe("planPreviewGeneration", () => {
   it("skips unknown and legacy storage sources", () => {
     const sources = [
       ORPHAN,
-      "https://glad-minnow-656.convex.cloud/api/storage/media",
+      "https://retired.example.invalid/api/storage/media",
       "https://unknown.example.test/video.mp4",
     ];
     const { actions, skipped } = planPreviewGeneration(sources.map((url) => row({ url })));

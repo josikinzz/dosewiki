@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Apply the committed replication slug-alias plan to a Convex deployment.
+ * Apply the committed replication slug-alias plan to a Postgres deployment.
  *
- * `src/data/config/replicationSlugAliases.json` records slug renames as
+ * `data/effects/replicationSlugAliases.json` records slug renames as
  * old -> new. The middleware 308s the old slug to the new one, and the
- * permalink route only prerenders slugs that exist in Convex — so an alias
+ * permalink route only prerenders slugs that exist in the database, so an alias
  * whose rename never landed turns a live permalink into a hard 404 (the row
  * still holds the old slug; the redirect target does not exist).
  *
@@ -40,7 +40,7 @@ const OPERATION = "apply-replication-slug-aliases";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ALIAS_FILE = path.join(
   __dirname,
-  "../../src/data/config/replicationSlugAliases.json",
+  "../../data/effects/replicationSlugAliases.json",
 );
 
 /** Follow old -> new hops to the final target; a cycle returns null. */
@@ -148,7 +148,7 @@ async function main() {
   }
 
   if (command.dryRun) {
-    console.log("\nDry run — no Convex writes performed.");
+    console.log("\nDry run: no writes performed.");
     return;
   }
 

@@ -1,5 +1,4 @@
 import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { resolve } from "node:path";
 import {
   applyWorkbenchCitationPlacement,
@@ -16,8 +15,7 @@ import {
   CITE_MARKER_PATTERN,
   validateSectionMarkerCandidate,
 } from "./citation-marker-workflow.mjs";
-
-const DEFAULT_DRAFT_PATH = `${homedir()}/.codex/dosewiki-citation-workbench/runs/2c-b/citation-draft.json`;
+import { resolveCitationWorkbenchRoot } from "./citation-workbench-root.mjs";
 
 const REFERENCE_SOURCE_TYPE_MAP = new Map([
   ["observational_study", "primary_literature"],
@@ -617,8 +615,11 @@ export function buildWorkbenchPromotionPlan({
   });
 }
 
-export function loadWorkbenchDraft(path = DEFAULT_DRAFT_PATH) {
-  return JSON.parse(readFileSync(resolve(path), "utf8"));
+/** The draft a workbench run directory holds for one slug, under DOSEWIKI_CITATION_WORKBENCH. */
+export function workbenchDraftPath(slug) {
+  return resolve(resolveCitationWorkbenchRoot(), "runs", slug, "citation-draft.json");
 }
 
-export { DEFAULT_DRAFT_PATH };
+export function loadWorkbenchDraft(path) {
+  return JSON.parse(readFileSync(resolve(path), "utf8"));
+}

@@ -10,9 +10,12 @@
  * - botanical_name → identification.botanical_name
  *
  * Usage:
- *   node scripts/prepopulate-from-old-articles.mjs --dry-run     # Preview changes
- *   node scripts/prepopulate-from-old-articles.mjs               # Apply changes
- *   node scripts/prepopulate-from-old-articles.mjs --verbose     # Show all changes
+ *   node scripts/prepopulate/prepopulate-from-old-articles.mjs --input <local-substance-export.json> --dry-run
+ *   node scripts/prepopulate/prepopulate-from-old-articles.mjs --input <local-substance-export.json>
+ *   node scripts/prepopulate/prepopulate-from-old-articles.mjs --input <local-substance-export.json> --verbose
+ *
+ * The input is a local Postgres export (scripts/data-ops/export-data-to-json.mjs);
+ * it is never the tracked public/SubstanceIndex.json archive.
  */
 
 import fs from "fs";
@@ -29,23 +32,28 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(__dirname, "..", "..");
 
+// Parse CLI args
+const args = process.argv.slice(2);
+const dryRun = args.includes("--dry-run");
+const verbose = args.includes("--verbose");
+const inputIndex = args.indexOf("--input");
+if (inputIndex < 0 || !args[inputIndex + 1]) {
+  throw new Error("Pass --input <path> naming the local substance export to prepopulate.");
+}
+
 // Load data files
-const articlesPath = path.join(ROOT, "src/data/SubstanceIndex.json");
+const articlesPath = path.resolve(args[inputIndex + 1]);
 const oldArticlesPath = path.join(ROOT, "oldosewiki-article.json");
 
 const articles = JSON.parse(fs.readFileSync(articlesPath, "utf-8"));
 const oldArticles = JSON.parse(fs.readFileSync(oldArticlesPath, "utf-8"));
 
-// Parse CLI args
-const args = process.argv.slice(2);
-const dryRun = args.includes("--dry-run");
-const verbose = args.includes("--verbose");
 const runContext = createDataOpsRunContext({
   operation: "prepopulate identification from old articles",
   intent: "local-prepopulate",
   sourceUrlKeys: [],
   targetUrlKeys: [],
-  localArtifacts: ["src/data/SubstanceIndex.json", "oldosewiki-article.json"],
+  localArtifacts: [path.relative(repoRoot, articlesPath), "oldosewiki-article.json"],
 });
 
 // Build lookup map from old articles by title (case-insensitive)
@@ -218,7 +226,7 @@ if (!dryRun) {
   assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");
   const lineage = tryWriteArtifactLineageSidecar({
-    artifactPath: "src/data/SubstanceIndex.json",
+    artifactPath: articlesPath,
     rootDir: repoRoot,
     producer: "scripts/prepopulate/prepopulate-from-old-articles.mjs",
     sourceDeployment: "oldosewiki-article.json",

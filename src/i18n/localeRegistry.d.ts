@@ -1,4 +1,4 @@
-import registry from "./localeRegistry.json";
+import registry from "@content/i18n/localeRegistry.json";
 
 export type LocaleCode = keyof typeof registry;
 export type TranslationLocaleCode = Exclude<LocaleCode, "en">;

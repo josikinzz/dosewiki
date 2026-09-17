@@ -4,8 +4,8 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const INDEX_PATH = `${ROOT}/src/data/indexes/psychoactiveIndexManual.json`;
-const ARTICLES_PATH = `${ROOT}/src/data/SubstanceIndex.json`;
+const INDEX_PATH = `${ROOT}/data/substances/psychoactiveIndexManual.json`;
+const ARTICLES_PATH = `${ROOT}/public/SubstanceIndex.json`;
 
 const CLASS_MATCHERS = {
   "2c-x": [/^2c-x$/],

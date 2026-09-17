@@ -1,6 +1,6 @@
 /**
  * Seed the glossary glosses (`translationGlossaryTerms`, lib/translation/
- * glossaryGloss.ts) from the JSON files under `glossary/glosses/`. Each file
+ * glossaryGloss.ts) from the JSON files under `data/i18n/glossary/glosses/`. Each file
  * is a flat `{ "<term>": "<gloss>" }` map, split by topic so a writer owns
  * one file; every file is merged before loading.
  *
@@ -27,7 +27,7 @@ import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
 import { GLOSS_MAX_LENGTH, GlossaryGlossError, knownGlossaryTerms, loadGlosses, upsertGlosses } from "../../lib/translation/glossaryGloss";
 import { guardTarget } from "../postgres/targetGuard";
 
-const GLOSSES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "glossary", "glosses");
+const GLOSSES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data/i18n/glossary/glosses");
 const SEEDED_BY = "seed:load-glosses";
 
 const { values } = parseArgs({

@@ -9,7 +9,7 @@ import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ContentCard, Surface } from "@/components/ui/surface";
 import { DocsInline } from "../_components/DocsProse";
-import subjectiveEffectsProvenance from "@/data/generated/subjectiveEffectsProvenance.json";
+import subjectiveEffectsProvenance from "@data/effects/subjectiveEffectsProvenance.json";
 
 import { t } from "@/i18n/server";
 
@@ -448,6 +448,98 @@ export default async function DocsLicensePage() {
                       <DocsInline>{copy.text("docs-license-s2-reagent-notes")}</DocsInline>
                     </td>
                   </tr>
+                  <tr className="align-top">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      {copy.text("docs-license-s2-fonts-material")}
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
+                        OFL&nbsp;1.1
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
+                        Keep notice
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
+                        Allowed
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <DocsInline>{copy.text("docs-license-s2-fonts-notes")}</DocsInline>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      {copy.text("docs-license-s2-openchemlib-material")}
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
+                        BSD&nbsp;3-Clause
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
+                        Keep notice
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="green" className={MATRIX_BADGE_CLASS}>
+                        Allowed
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <DocsInline>{copy.text("docs-license-s2-openchemlib-notes")}</DocsInline>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      {copy.text("docs-license-s2-pw-captures-material")}
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
+                        CC&nbsp;BY-SA&nbsp;4.0
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Required
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Share-alike
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <DocsInline>{copy.text("docs-license-s2-pw-captures-notes")}</DocsInline>
+                    </td>
+                  </tr>
+                  <tr className="align-top">
+                    <td className={`${TABLE_STICKY_CELL_CLASS} p-3`}>
+                      {copy.text("docs-license-s2-avatars-material")}
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="gray" className={MATRIX_BADGE_CLASS}>
+                        Artist retained
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Always credit
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge tone="orange" className={MATRIX_BADGE_CLASS}>
+                        Ask artist
+                      </StatusBadge>
+                    </td>
+                    <td className="p-3">
+                      <DocsInline>{copy.text("docs-license-s2-avatars-notes")}</DocsInline>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -782,6 +874,9 @@ export default async function DocsLicensePage() {
             <div className={CARD_LABEL_CLASS}>{copy.text("docs-license-s6-boundary-label")}</div>
             <p className={PANEL_PROSE_CLASS}>
               <DocsInline>{copy.text("docs-license-s6-boundary-body")}</DocsInline>
+            </p>
+            <p className={`${PANEL_PROSE_CLASS} mt-3`}>
+              <DocsInline>{copy.text("docs-license-s6-third-party-body")}</DocsInline>
             </p>
           </ContentCard>
         </section>

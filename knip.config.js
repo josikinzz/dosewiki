@@ -23,18 +23,14 @@ const config = {
     ".": {
       entry: [
         ...executableScripts,
-        ".claude/workflows/*.mjs",
         "tools/pi-citation-workflow/citation-campaign.mjs",
-        "docs/perf/*.workflow.mjs",
         "tests/perf/*.mjs",
       ],
       project: [
         "auth.ts",
         "src/middleware.ts",
         "*.config.{js,mjs,cjs,ts,mts,cts}",
-        ".claude/workflows/**/*.mjs",
         "server/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
-        "docs/perf/**/*.mjs",
         "eslint-plugins/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "lib/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "notes-and-plans/prototypes/**/*.{js,mjs,cjs,ts,mts,cts,tsx,css}",
@@ -66,14 +62,6 @@ const config = {
           "tools/**/*.{test,spec}.{js,mjs,cjs,ts,tsx}",
         ],
       },
-    },
-    "tools/section-generation/runtime": {
-      entry: ["sdk.mjs"],
-      project: ["*.mjs"],
-    },
-    "lakebed/mantra-vision": {
-      entry: ["client/index.tsx", "server/index.ts"],
-      project: ["client/**/*.tsx", "server/**/*.ts", "shared/**/*.ts"],
     },
     "vendor/openchemlib": {
       entry: [

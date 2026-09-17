@@ -32,7 +32,7 @@ async function main() {
   console.log("🌱 Seeding category layout to Postgres...\n");
 
   // Read the existing psychoactiveIndexManual.json
-  const indexPath = join(__dirname, "../../src/data/indexes/psychoactiveIndexManual.json");
+  const indexPath = join(__dirname, "../../data/substances/psychoactiveIndexManual.json");
   const indexData = JSON.parse(readFileSync(indexPath, "utf-8"));
 
   console.log(`📄 Read ${indexData.categories.length} categories from psychoactiveIndexManual.json`);

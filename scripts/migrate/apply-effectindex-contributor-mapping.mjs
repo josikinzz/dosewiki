@@ -24,7 +24,7 @@ import {
 } from "../lib/data-ops-run-context.mjs";
 
 const SCRIPT_UPDATED_BY = "apply-effectindex-contributor-mapping";
-const SEED_PATH = "src/data/config/userProfiles.json";
+const SEED_PATH = "data/contributors/userProfiles.json";
 
 const mappingDefinitions = [
   {
@@ -53,7 +53,7 @@ const runContext = createDataOpsRunContext({
   intent: "dev-data-import",
   argv: writeRequested ? argv : [...argv, "--dry-run"],
   sourceUrlKeys: [],
-  localArtifacts: ["src/data/config/userProfiles.json"],
+  localArtifacts: ["data/contributors/userProfiles.json"],
   confirmationFlag: "--confirm-contributor-mapping",
   destructive: true,
 });
@@ -148,7 +148,7 @@ try {
       "",
       "Tell the two apart with:",
       "  npm run postgres:check-env-isolation",
-      "See docs/agents/data-credentials.md.",
+      "See docs/operations/data-credentials.md.",
     ].join("\n"),
   );
   process.exit(1);

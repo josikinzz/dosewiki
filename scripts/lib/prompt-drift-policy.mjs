@@ -7,7 +7,7 @@ import {
   getPromptDescriptorByKey,
 } from "./prompt-registry.mjs";
 
-const SECTION_PROMPTS_DIR = "src/data/config/sectionPrompts"
+const SECTION_PROMPTS_DIR = "content/prompts/sections"
 
 export const PROMPT_DRIFT_STATUS = Object.freeze({
   IDENTICAL: "identical",

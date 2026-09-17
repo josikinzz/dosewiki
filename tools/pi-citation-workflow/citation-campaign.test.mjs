@@ -43,7 +43,7 @@ function manifest(runId, extra = {}) {
     outcome: "needs_review",
     nonEmptySections: ["summary"],
     sections: {
-      summary: { chars: 100, status: "checked", model: "openai-codex/gpt-5.6-terra" },
+      summary: { chars: 100, status: "checked", model: "example/worker-model" },
     },
     gates: {},
     ...extra,
@@ -61,7 +61,7 @@ test("campaign status derives immutable attempt state, supersession, and coverag
       "init",
       "--campaign", campaign,
       "--target", "example-drug:summary",
-      "--model", "openai-codex/gpt-5.6-terra",
+      "--model", "example/worker-model",
       "--tier", "terra-medium",
       "--workbench", workbench,
     );
@@ -105,7 +105,7 @@ test("campaign blocks missing or tampered finalized drafts and excludes their co
       "init",
       "--campaign", campaign,
       "--target", "example-drug:summary",
-      "--model", "openai-codex/gpt-5.6-terra",
+      "--model", "example/worker-model",
       "--tier", "terra-medium",
       "--workbench", workbench,
     );
@@ -149,7 +149,7 @@ test("campaign scope and model pin are locked and mismatched attempts are blocke
       "init",
       "--campaign", campaign,
       "--target", "example-drug:summary",
-      "--model", "openai-codex/gpt-5.6-terra",
+      "--model", "example/worker-model",
       "--tier", "terra-medium",
       "--workbench", workbench,
     );
@@ -159,7 +159,7 @@ test("campaign scope and model pin are locked and mismatched attempts are blocke
     );
 
     const mismatched = manifest("wrong-model", {
-      sections: { summary: { chars: 100, status: "checked", model: "anthropic/claude-sonnet-5" } },
+      sections: { summary: { chars: 100, status: "checked", model: "example/other-model" } },
     });
     writeRun(workbench, mismatched.runId, mismatched);
     const report = JSON.parse(run("status", "--campaign", campaign, "--format", "json"));

@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const REGISTRY_PATH = "src/data/config/promptRegistry.json";
+const REGISTRY_PATH = "content/prompts/registry.json";
 
 export const promptRegistry = Object.freeze(
   JSON.parse(readFileSync(path.join(PROJECT_ROOT, REGISTRY_PATH), "utf-8")),

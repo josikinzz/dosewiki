@@ -121,6 +121,16 @@ for (const [id, fold] of Object.entries(FOLDS)) {
 }
 
 const LICENSE_URL = "https://dose.wiki/docs/license";
+const SITE_URL = "https://dose.wiki";
+
+/**
+ * The manifest is public. A corpus loaded from the database or a repository
+ * export records a local origin (a handler name or a checkout path) in its QA
+ * packet; the reader-facing source for those is the site itself.
+ */
+function publicSourceUrl(origin) {
+  return typeof origin === "string" && /^https?:\/\//.test(origin) ? origin : SITE_URL;
+}
 
 /** Sample pairs per dataset shown on the downloads page. Each pair is one whole record, fetched on demand. */
 const SAMPLE_PAIRS = 6;
@@ -387,7 +397,7 @@ async function main() {
       ...(PACKS.find((pack) => pack.id === id) ?? { title: datasetName, titleZh: datasetName, summary: "", summaryZh: "", noun: "items", nounZh: "项" }),
       license: artifact.license ?? null,
       licenseUrl: artifact.licenseUrl ?? LICENSE_URL,
-      sourceUrl: packet.source ?? artifact.source ?? null,
+      sourceUrl: publicSourceUrl(packet.source ?? artifact.source),
       sourceGeneratedAt: packet.sourceGeneratedAt ?? artifact.translationOf ?? null,
       verdict: verdict.length > 0 ? verdict : null,
       coverage: {

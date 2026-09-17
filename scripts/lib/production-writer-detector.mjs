@@ -116,13 +116,6 @@ export function detectProductionWriteSignals(source, fileName = "script.mjs") {
         add("data-mutation", node);
       }
 
-      const staticArguments = node.arguments
-        .map((argument) => evaluateStaticString(argument, constants))
-        .filter((value) => value !== null);
-      if (staticArguments.some((value) => /\b(?:npx|bunx)\s+convex\s+run\b/.test(value))) {
-        add("legacy-cli-write", node);
-      }
-
       for (const argument of node.arguments) {
         if (!ts.isObjectLiteralExpression(argument)) continue;
         for (const property of argument.properties) {

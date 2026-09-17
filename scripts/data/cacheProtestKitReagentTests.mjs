@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const ARTICLES_PATH = path.join(ROOT_DIR, "src/data/SubstanceIndex.json");
-const OUTPUT_PATH = path.join(ROOT_DIR, "src/data/reagentTests.json");
+const ARTICLES_PATH = path.join(ROOT_DIR, "public/SubstanceIndex.json");
+const OUTPUT_PATH = path.join(ROOT_DIR, "data/third-party/protestkit/reagentTests.json");
 const PARTIAL_PATH = path.join(ROOT_DIR, "tmp/reagentTests.partial.json");
 const API_BASE_URL = "https://protestkit.eu/api/v1";
 const REQUEST_DELAY_MS = Number(process.env.REAGENT_TEST_REQUEST_DELAY_MS ?? 250);
@@ -121,7 +121,7 @@ function validateSnapshot(articles, cache) {
 async function main() {
   const articles = await readJson(ARTICLES_PATH, null);
   if (!Array.isArray(articles)) {
-    throw new Error("Expected src/data/SubstanceIndex.json to contain an array");
+    throw new Error("Expected public/SubstanceIndex.json to contain an array");
   }
 
   if (process.argv.includes("--check")) {

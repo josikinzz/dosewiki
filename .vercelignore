@@ -28,7 +28,7 @@ dist-inline/
 # the Vercel build — the route silently did not exist. Same fix as .gitignore.
 /coverage/
 .generated/
-src/data/.lineage/
+data/.lineage/
 
 # Local deployment and editor state
 .git/
@@ -45,7 +45,6 @@ src/data/.lineage/
 .unslop/
 .agents/
 .pi/task-graph.json
-.impeccable/critique/
 **/settings.local.json
 **/.lakebed/
 
@@ -60,8 +59,6 @@ npm-dev.err.log
 
 # Operational workspaces not needed for the Next.js production build
 archive/
-docs/audits/
-docs/archive/
 learning/
 notes-and-plans/
 output/

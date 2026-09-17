@@ -1,5 +1,5 @@
 /**
- * Ticket 10 rehearsal: effects and Effect Index writing on Postgres.
+ * Rehearsal: effects and Effect Index writing on Postgres.
  *
  * Every call goes through `PostgresClient` with the owned `api.*`
  * references the app uses. Criteria:
@@ -141,7 +141,7 @@ async function main() {
     // ---------------------------------------------------------------- a. round-trip
     const written = {
       slug,
-      title: `Ticket 10 rehearsal ${prefix}`,
+      title: `Rehearsal ${prefix}`,
       tags: [tag, "intensity scale", "rehearsal"],
       kind: "article" as const,
       status: "published" as const,
@@ -230,7 +230,7 @@ async function main() {
       expectedRevision: narrativeRevision(null),
       operationId: draftOperation,
       slug: draftSlug,
-      title: `Ticket 10 draft ${prefix}`,
+      title: `Rehearsal draft ${prefix}`,
       tags: [tag],
       kind: "article",
       status: "draft",
@@ -270,7 +270,7 @@ async function main() {
 
     // ---------------------------------------------------------------- c. authorization
     const update = {
-      title: `Ticket 10 rehearsal ${prefix} (revised)`,
+      title: `Rehearsal ${prefix} (revised)`,
       publicationDate: "2026-09-10",
       authors: ["Author C"],
       authorProfileKeys: ["profile-c"],
@@ -317,7 +317,7 @@ async function main() {
     // Rights metadata on subjective effects. The scratch effect is inserted
     // through the document store (which registers `documentIds`, so `db.get`
     // resolves it), then updated through the real mutation.
-    const effectId = await insertDocument(pool, "subjectiveEffects", { slug: effectSlug, name: `Ticket 10 effect ${prefix}`, tags: ["visual", tag], summary: "before", description_raw: "[p]Before.[/p]", featured: true });
+    const effectId = await insertDocument(pool, "subjectiveEffects", { slug: effectSlug, name: `Rehearsal effect ${prefix}`, tags: ["visual", tag], summary: "before", description_raw: "[p]Before.[/p]", featured: true });
     scratch.push({ table: "subjectiveEffects", id: effectId });
     const audio = [
       {
@@ -341,7 +341,7 @@ async function main() {
 
     // Scoped-token effect publication through the editor mutation.
     const editorEffect = await client.query(api.subjectiveEffects.getForEditor, { apiKey: scopedToken, actorEmail: adminEmail, slug: effectSlug });
-    const effectDraft = { name: `Ticket 10 effect ${prefix}`, summary: "after", description_raw: "[p]After[ref url=\"https://c.example/effect\" text=\"Effect source\"].[/p]", tags: ["visual", tag], citations: effectCitations };
+    const effectDraft = { name: `Rehearsal effect ${prefix}`, summary: "after", description_raw: "[p]After[ref url=\"https://c.example/effect\" text=\"Effect source\"].[/p]", tags: ["visual", tag], citations: effectCitations };
     const effectOperation = randomUUID();
     const published = await client.mutation(api.subjectiveEffects.publishFromEditor, { apiKey: scopedToken, actorEmail: adminEmail, slug: effectSlug, expectedRevision: editorEffect!.baseRevision, operationId: effectOperation, draft: effectDraft });
     const afterPublish = await client.query(api.subjectiveEffects.getPublicBySlug, { slug: effectSlug });

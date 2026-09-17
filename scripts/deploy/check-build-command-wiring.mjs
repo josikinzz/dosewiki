@@ -80,7 +80,7 @@ try {
 if (problems.length > 0) {
   console.error("Data-aware build wiring is broken:\n");
   for (const problem of problems) console.error(`  - ${problem}`);
-  console.error("\nSee docs/agents/deployment.md for native function-reference verification.");
+  console.error("\nSee docs/operations/deployment.md for native function-reference verification.");
   process.exit(1);
 }
 

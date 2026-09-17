@@ -125,7 +125,7 @@ describe("production writer command surface", () => {
       expect(source).toContain("production-write-command.mjs");
       expect(source).toMatch(/assertProductionWriteAllowed|executeProductionWrite/);
       expect(sourceWithoutGuardedDryRunReadFallbacks(source)).not.toMatch(
-        /process\.env\.(?:VITE_CONVEX_URL|NEXT_PUBLIC_CONVEX_URL)/,
+        /process\.env\.(?:POSTGRES_POOLED_URL|POSTGRES_DIRECT_URL)/,
       );
     },
   );

@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterAll, describe, expect, it } from "vitest";
 
 import {
   loadArtistNameCorrections,
@@ -60,46 +64,45 @@ const STINGRAYZ = {
 };
 
 const STINGRAYZ_CORRECTION = { stored: "StingrayZ", correct: "Symmetric Vision" };
-
-const CORRECTIONS = loadArtistNameCorrections();
 const BEN_CORRECTION = { stored: "Ben Ridgeway", correct: "Ben Ridgway" };
+
+/**
+ * A reviewed corrections file in miniature. The real one lives outside the
+ * repository and is handed to the script with `--corrections=<path>`; this one
+ * carries each kind of entry the loader must include or leave alone.
+ */
+const CORRECTIONS_FILE = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), "artist-name-corrections-")),
+  "corrections.json",
+);
+fs.writeFileSync(
+  CORRECTIONS_FILE,
+  JSON.stringify({
+    nameCorrections: [
+      { ...BEN_CORRECTION, strength: "strong", correctsReplicationArtistField: true },
+      { stored: "Simon Haid", correct: "Simon Haiduk", strength: "strong", correctsReplicationArtistField: true },
+      { stored: "MOracs", correct: "MOracz", strength: "strong", correctsReplicationArtistField: true },
+      { stored: "Sam perkins", correct: "Sam Perkins", strength: "strong", correctsReplicationArtistField: true },
+      { ...STINGRAYZ_CORRECTION, strength: "strong", correctsReplicationArtistField: true },
+      // Right about the display name, not something to push onto the rows.
+      { stored: "Chelsea Morgen", correct: "Chelsea Morgan", strength: "strong", correctsReplicationArtistField: false },
+      // Not reviewed to the point of acting on it.
+      { stored: "Insedigris", correct: "Insidigris", strength: "weak", correctsReplicationArtistField: true },
+    ],
+  }),
+);
+afterAll(() => fs.rmSync(path.dirname(CORRECTIONS_FILE), { recursive: true, force: true }));
+
+const CORRECTIONS = loadArtistNameCorrections(CORRECTIONS_FILE);
 
 describe("loadArtistNameCorrections", () => {
   it("takes only the strong corrections that say they apply to the rows", () => {
     expect(CORRECTIONS.map((entry) => entry.stored)).toEqual([
-      "wheressuede",
-      "loka",
-      "phosphorm",
-      "phosform",
-      "Josie",
-      "sunterry visuals",
-      "sunterry art",
-      "Salviadroid",
-      "salvia droid",
-      "coldwasabi",
-      "cold wasabi",
-      "hypnagogist",
-      "bear from void",
-      "Xanny",
-      "HyperactiveFilly",
-      "codedinblood",
-      "alex grey",
-      "Anomymous",
-      "unknown",
-      "symmetric vision",
-      "StingrayZ",
       "Ben Ridgeway",
       "Simon Haid",
-      "Insedigris",
       "MOracs",
       "Sam perkins",
-      "LokaVision",
-      "Wooodfield",
-      "oracle-emissary",
-      "cold-wasabi",
-      "Hyperactive_Filly",
-      "StasConstantine",
-      "feetman100",
+      "StingrayZ",
     ]);
     for (const entry of CORRECTIONS) {
       expect(entry.strength).toBe("strong");
@@ -109,14 +112,18 @@ describe("loadArtistNameCorrections", () => {
 
   it("narrows to the stored names asked for, matched without regard to case", () => {
     expect(
-      loadArtistNameCorrections(undefined, { only: ["stingrayz", "Ben Ridgeway"] }).map((entry) => entry.stored),
-    ).toEqual(["StingrayZ", "Ben Ridgeway"]);
+      loadArtistNameCorrections(CORRECTIONS_FILE, { only: ["stingrayz", "Ben Ridgeway"] }).map((entry) => entry.stored),
+    ).toEqual(["Ben Ridgeway", "StingrayZ"]);
   });
 
   it("refuses a name with no correction on file instead of planning nothing", () => {
-    expect(() => loadArtistNameCorrections(undefined, { only: ["StingrayZ", "Stingray"] })).toThrow(
+    expect(() => loadArtistNameCorrections(CORRECTIONS_FILE, { only: ["StingrayZ", "Stingray"] })).toThrow(
       /No strong artist-name correction on file for: "Stingray"/,
     );
+  });
+
+  it("refuses to run without a corrections file rather than planning from none", () => {
+    expect(() => loadArtistNameCorrections(undefined)).toThrow(/--corrections=<path>/);
   });
 });
 
@@ -270,41 +277,10 @@ describe("planArtistNameCorrections", () => {
       "hatheg-kla-moracs",
       "switch-sam-perkins",
     ]);
-    // Simon Haid and Insedigris are real corrections with no row in this
-    // fixture; a correction that silently matches nothing is a typo waiting to
-    // be discovered after the write.
-    expect(plan.unmatched.map((entry) => entry.stored)).toEqual([
-      "wheressuede",
-      "loka",
-      "phosphorm",
-      "phosform",
-      "Josie",
-      "sunterry visuals",
-      "sunterry art",
-      "Salviadroid",
-      "salvia droid",
-      "coldwasabi",
-      "cold wasabi",
-      "hypnagogist",
-      "bear from void",
-      "Xanny",
-      "HyperactiveFilly",
-      "codedinblood",
-      "alex grey",
-      "Anomymous",
-      "unknown",
-      "symmetric vision",
-      "StingrayZ",
-      "Simon Haid",
-      "Insedigris",
-      "LokaVision",
-      "Wooodfield",
-      "oracle-emissary",
-      "cold-wasabi",
-      "Hyperactive_Filly",
-      "StasConstantine",
-      "feetman100",
-    ]);
+    // Simon Haid and StingrayZ are corrections with no row in this fixture; a
+    // correction that silently matches nothing is a typo waiting to be
+    // discovered after the write.
+    expect(plan.unmatched.map((entry) => entry.stored)).toEqual(["Simon Haid", "StingrayZ"]);
   });
 
   it("reports a row that already carries the corrected credit as settled, not as a write", () => {

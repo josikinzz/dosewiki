@@ -1,10 +1,10 @@
 import { expandLegacyContributorHandles } from "../../../lib/contributorProfileIdentity";
-import activeEntries from "./devChangeLog.json";
-import archivedEntries from "./devChangeLog.archive.json";
+import activeEntries from "@data/changelog/devChangeLog.json";
+import archivedEntries from "@data/changelog/devChangeLog.archive.json";
 
 /**
  * Change log entry captured from the Dev Tools GitHub workflow.
- * Persisted in src/data/devChangeLog.json (recent entries) and src/data/devChangeLog.archive.json (older entries).
+ * Persisted in data/changelog/devChangeLog.json (recent entries) and data/changelog/devChangeLog.archive.json (older entries).
  * Both files are merged client-side so the Change log tab shows the complete history without hitting GitHub's
  * 1 MB contents API limit for the writable file.
  */

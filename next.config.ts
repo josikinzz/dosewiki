@@ -102,11 +102,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   distDir: buildDirectory,
   productionBrowserSourceMaps: false,
-  // The editor-only /html-docs/[doc] route reads repo-root html-docs/ at
-  // request time. The translation cron likewise reads the frozen glossary and
-  // Traditional charset beside scripts/translation at request time.
+  // The translation cron reads the Traditional charset beside
+  // scripts/translation at request time; the glossary snapshots under
+  // data/i18n/glossary are review exports and are never read at runtime.
   outputFileTracingIncludes: {
-    ...(editorBuild ? { "/html-docs/[doc]": ["./html-docs/**/*"] } : {}),
     "/api/cron/translation-refresh": ["./scripts/translation/**/*.json"],
   },
   experimental: {

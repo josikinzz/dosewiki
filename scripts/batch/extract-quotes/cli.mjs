@@ -16,7 +16,7 @@ export const CONFIG = {
   retryDelayMs: 2000,
   largeFileThreshold: 100000,
   sourcesDir: join(PROJECT_ROOT, "src/data/article-sources"),
-  promptsDir: join(PROJECT_ROOT, "scripts/prompts"),
+  promptsDir: join(PROJECT_ROOT, "content/prompts/extraction"),
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   projectRoot: PROJECT_ROOT,
 };

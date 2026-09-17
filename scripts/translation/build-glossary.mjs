@@ -9,7 +9,7 @@
  * gaps. A reviewer then approves or edits each draft in the Glossary tab
  * (`/dev/glossary`), and only approved rows reach a prompt.
  *
- * `--export` writes `scripts/translation/glossary/<locale>.json`, a snapshot
+ * `--export` writes `data/i18n/glossary/<locale>.json`, a snapshot
  * of the table for diffing and review. Nothing reads that file at runtime.
  *
  * Usage (reads go through Postgres, so the app's connection variables apply):

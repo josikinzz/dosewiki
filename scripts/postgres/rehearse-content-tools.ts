@@ -1,5 +1,5 @@
 /**
- * Tickets 14 and 15 rehearsal: the layout, copy, warning, quote, site config,
+ * Rehearsal: the layout, copy, warning, quote, site config,
  * molecule and reagent tools run unchanged on Postgres.
  *
  * Every call goes through `PostgresClient` with the same `api.*`

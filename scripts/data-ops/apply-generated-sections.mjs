@@ -3,7 +3,7 @@
 /**
  * Publish generated article sections from a reviewed run directory.
  *
- * The generation side of this workflow (prompt assembly, subagent fan-out,
+ * The generation side of this workflow (prompt assembly, batched generation,
  * schema validation) happens elsewhere; this script only takes drafts that have
  * already been validated and writes them to a deployment. It exists so that
  * publishing is a guarded, audited, reversible operation rather than an ad-hoc

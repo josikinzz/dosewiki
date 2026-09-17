@@ -9,7 +9,7 @@ import {
   getPublicReports,
   getPublishedPublicationIndex,
 } from "@server/data/publicData";
-import featuredReplicationsConfig from "../../src/data/config/effectIndexFeaturedReplications.json";
+import featuredReplicationsConfig from "@data/effects/effectIndexFeaturedReplications.json";
 import { articleReadMinutes } from "../../src/features/articles/domain/articlesIndex";
 import {
   resolveFeaturedReplications,
@@ -36,7 +36,7 @@ import {
  *                        property of a row, so it is stored as one `siteConfig` document the
  *                        Replication Studio edits, and resolved against the existing gallery
  *                        read. The checked-in
- *                        `src/data/config/effectIndexFeaturedReplications.json` remains the
+ *                        `data/effects/effectIndexFeaturedReplications.json` remains the
  *                        fallback for a deployment that has never been curated (or that
  *                        predates the Postgres functions), so the carousel is never blank
  *                        merely because a database is fresh.

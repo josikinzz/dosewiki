@@ -26,7 +26,7 @@ export async function diagnoseDataAdminCredential({
     return (
       `The server could not verify this app's credential for the "${intent}" intent. ` +
       `Check the scoped DATA_ADMIN_TOKEN value and Postgres connection configuration — ` +
-      `see docs/agents/data-credentials.md.`
+      `see docs/operations/data-credentials.md.`
     );
   }
 }

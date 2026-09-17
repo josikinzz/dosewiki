@@ -1,0 +1,136 @@
+{
+  "slug": "metizolam",
+  "title": "Metizolam",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/metizolam.md",
+  "archive_timestamp": "20160803221735",
+  "archive_date_utc": "2016-08-03T22:17:35Z",
+  "archive_url": "https://web.archive.org/web/20160803221735/https://psychonautwiki.org/wiki/Metizolam",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160803221735/https://psychonautwiki.org/wiki/Metizolam"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Analysis suppression",
+            "description": ""
+          },
+          {
+            "name": "Disinhibition",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Euphoria",
+            "description": ""
+          },
+          {
+            "name": "Compulsive redosing",
+            "description": ""
+          },
+          {
+            "name": "Amnesia",
+            "description": ""
+          },
+          {
+            "name": "Emotion suppression",
+            "description": "Although this compound primarily suppresses anxiety, it also dulls other emotions in a manner which is distinct but less intensive than that of antipsychotics."
+          },
+          {
+            "name": "Delusions of sobriety",
+            "description": "This is the false belief that one is perfectly sober despite obvious evidence to the contrary such as severe cognitive impairment and an inability to fully communicate with others. It most commonly occurs at heavy dosages."
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Sedation",
+            "description": ""
+          },
+          {
+            "name": "Motor control loss",
+            "description": ""
+          },
+          {
+            "name": "Respiratory depression",
+            "description": ""
+          },
+          {
+            "name": "Muscle relaxation",
+            "description": ""
+          },
+          {
+            "name": "Dizziness",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160803221735/https://psychonautwiki.org/wiki/Metizolam"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects mapped to physical.General in source order.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "No sensory effects headings were present in the source; sensory categories are empty schema shells.",
+    "No subjective effects stub warning was present in the source article.",
+    "Markdown bold and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

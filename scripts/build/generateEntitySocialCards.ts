@@ -141,7 +141,6 @@ type ProfileRow = MaterializedContributorProfile & {
 
 type EntitySocialCardManifest = {
   version: 1;
-  sourceDeployment: string;
   rendererVersions: Record<EntityKind, string>;
   cards: Record<EntityKind, Record<string, string>>;
 };
@@ -970,7 +969,6 @@ async function main(): Promise<void> {
     }
     const manifest: EntitySocialCardManifest = {
       version: 1,
-      sourceDeployment: deploymentName,
       rendererVersions,
       cards,
     };

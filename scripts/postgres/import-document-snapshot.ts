@@ -1,5 +1,5 @@
 /**
- * Ticket 02: rehearse a protected snapshot import.
+ * Rehearse a protected snapshot import.
  *
  * Loads a document snapshot ZIP (or its extracted directory) into Postgres through
  * the generated Drizzle schema, then reconciles counts, content hashes,

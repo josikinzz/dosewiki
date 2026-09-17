@@ -6,12 +6,11 @@
  * captures dose.wiki treats as Josie Kins' own archived PsychonautWiki
  * authorship (mirrors `isArchivedSubjectiveEffectsAttribution` in
  * src/features/article/components/sections/SubjectiveEffectsSection.tsx),
- * buckets them by Archive.org capture date, and writes:
- *
- *   - src/data/generated/subjectiveEffectsProvenance.json (imported by the
- *     /docs/license page for its date-badge counts)
- *   - public/subjective-effects-provenance.json (same content, served as a
- *     downloadable manifest with clickable Archive.org capture links)
+ * buckets them by Archive.org capture date, and writes
+ * data/effects/subjectiveEffectsProvenance.json. The /docs/license page imports it
+ * for its date-badge counts, and src/app/subjective-effects-provenance.json/route.ts
+ * serves the same file as a downloadable manifest with clickable Archive.org
+ * capture links.
  *
  * Usage:
  *   npm run generate:subjective-effects-provenance
@@ -45,10 +44,7 @@ const runContext = createDataOpsRunContext({
     "POSTGRES_POOLED_URL",
   ],
   targetUrlKeys: [],
-  localArtifacts: [
-    "src/data/generated/subjectiveEffectsProvenance.json",
-    "public/subjective-effects-provenance.json",
-  ],
+  localArtifacts: ["data/effects/subjectiveEffectsProvenance.json"],
 });
 
 let dataUrl;
@@ -179,13 +175,11 @@ async function main() {
   };
 
   const repoRoot = runContext.repoRoot;
-  const generatedPath = resolve(repoRoot, "src/data/generated/subjectiveEffectsProvenance.json");
-  const publicPath = resolve(repoRoot, "public/subjective-effects-provenance.json");
+  const generatedPath = resolve(repoRoot, "data/effects/subjectiveEffectsProvenance.json");
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
 
   mkdirSync(dirname(generatedPath), { recursive: true });
   writeFileSync(generatedPath, serialized);
-  writeFileSync(publicPath, serialized);
 
   const lineage = tryWriteArtifactLineageSidecar({
     artifactPath: generatedPath,
@@ -199,7 +193,6 @@ async function main() {
   });
 
   console.log(`✅ Wrote ${generatedPath}`);
-  console.log(`✅ Wrote ${publicPath}`);
   if (lineage) {
     console.log(`🧾 Lineage metadata written to ${lineage.outputPath}`);
   }

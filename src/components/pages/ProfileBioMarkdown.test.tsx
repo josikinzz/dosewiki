@@ -22,7 +22,7 @@ describe("ProfileBioMarkdown", () => {
     const emphasis = screen.getByText("strong context");
     expect(emphasis.tagName).toBe("STRONG");
     // `.theme-accent-emphasis` is the documented prose-emphasis contract
-    // (docs/ui-kit.md, "Prose emphasis").
+    // (docs/design/ui-kit.md, "Prose emphasis").
     expect(emphasis).toHaveClass("theme-accent-emphasis");
 
     const link = screen.getByRole("link", { name: "a source" });

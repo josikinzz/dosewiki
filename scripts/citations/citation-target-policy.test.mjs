@@ -31,8 +31,8 @@ describe("citation promotion target policy", () => {
       .toThrow(Error);
   });
 
-  it("rejects frozen Convex and invalid or misidentified targets", () => {
-    expect(() => assertExplicitCitationPromotionTarget(context({ backend: "convex" }))).toThrow(Error);
+  it("rejects other backends and invalid or misidentified targets", () => {
+    expect(() => assertExplicitCitationPromotionTarget(context({ backend: "retired-backend" }))).toThrow(Error);
     expect(() => assertExplicitCitationPromotionTarget(context({ targetUrl: "https://example.invalid" }))).toThrow(Error);
     expect(() => assertExplicitCitationPromotionTarget(context({ deploymentFingerprint: "other/postgres" }))).toThrow(Error);
   });
@@ -45,7 +45,7 @@ describe("citation artifact source identity", () => {
   });
 
   it.each([
-    "https://example.convex.cloud",
+    "https://example.invalid",
     "postgres://reader:secret@example/dosewiki",
     "reader:secret@example/dosewiki",
     "example/",

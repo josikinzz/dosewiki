@@ -1,26 +1,29 @@
 #!/usr/bin/env node
 /**
- * Reorder fields in SubstanceIndex.json to match the canonical order defined in the Zod schema.
+ * Reorder fields in a local substance export to match the canonical order defined in the Zod schema.
  *
  * Usage:
- *   node scripts/data/reorder-fields.mjs
- *   node scripts/data/reorder-fields.mjs --dry-run
- *   node scripts/data/reorder-fields.mjs --verbose
+ *   node scripts/data/reorder-fields.mjs --input <local-substance-export.json>
+ *   node scripts/data/reorder-fields.mjs --input <local-substance-export.json> --dry-run
+ *   node scripts/data/reorder-fields.mjs --input <local-substance-export.json> --verbose
+ *
+ * The input is a local Postgres export (scripts/data-ops/export-data-to-json.mjs);
+ * it is never the tracked public/SubstanceIndex.json archive.
  */
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { reorderArticles, validateReordering } from './reorder-fields/index.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const articlesPath = path.resolve(__dirname, '../../src/data/SubstanceIndex.json');
-
 function parseArgs(argv) {
   const args = argv.slice(2);
+  const inputIndex = args.indexOf('--input');
+  if (inputIndex < 0 || !args[inputIndex + 1]) {
+    throw new Error('Pass --input <path> naming the local substance export to reorder.');
+  }
   return {
+    articlesPath: path.resolve(args[inputIndex + 1]),
     dryRun: args.includes('--dry-run'),
     verbose: args.includes('--verbose'),
   };
@@ -28,14 +31,14 @@ function parseArgs(argv) {
 
 function readArticles(filePath) {
   if (!fs.existsSync(filePath)) {
-    throw new Error(`SubstanceIndex.json not found at ${filePath}`);
+    throw new Error(`Substance export not found at ${filePath}`);
   }
 
   const raw = fs.readFileSync(filePath, 'utf8');
   const articles = JSON.parse(raw);
 
   if (!Array.isArray(articles)) {
-    throw new Error('SubstanceIndex.json must be an array');
+    throw new Error('Substance export must be an array');
   }
 
   return articles;
@@ -70,9 +73,9 @@ function printValidation(validation, verbose) {
 }
 
 function main() {
-  const { dryRun, verbose } = parseArgs(process.argv);
+  const { articlesPath, dryRun, verbose } = parseArgs(process.argv);
 
-  console.log('Reordering SubstanceIndex.json fields to canonical order...\n');
+  console.log(`Reordering ${articlesPath} fields to canonical order...\n`);
 
   const articles = readArticles(articlesPath);
   console.log(`Found ${articles.length} articles`);

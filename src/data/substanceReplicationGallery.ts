@@ -1,6 +1,6 @@
 /**
  * Drug-association policy and editorial ordering for the per-substance
- * Replication Showcase (see CONTEXT.md → Replications Surface Language).
+ * Replication Showcase (see docs/glossary.md → Replications Surface Language).
  *
  * Automatic placement is deliberately narrower than general visual-effect
  * matching: a standalone drug mention belongs only to that drug, while a

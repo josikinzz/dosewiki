@@ -1,7 +1,5 @@
 # DoseWiki-owned OpenChemLib fork
 
-Last verified: 2026-09-03
-
 DoseWiki owns a self-contained OpenChemLib package for the protected molecule depiction editor. The application resolves `openchemlib` from `vendor/openchemlib`; it does not clone an upstream repository, follow a Git submodule, or compile Java/GWT during a normal install, Next.js build, or deployment.
 
 ## Provenance and license

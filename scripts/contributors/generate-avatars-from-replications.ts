@@ -75,7 +75,7 @@
  * An avatar cut from someone's artwork is still their artwork. Every selection —
  * the work, its title, its credit line, its rights status, and for a video the
  * exact timestamp of the frame — is recorded in
- * `src/data/config/contributorAvatarSources.json`, which is checked in.
+ * `data/contributors/contributorAvatarSources.json`, which is checked in.
  *
  * ## Running it
  *

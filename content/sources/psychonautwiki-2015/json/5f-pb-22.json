@@ -1,0 +1,192 @@
+{
+  "slug": "5f-pb-22",
+  "title": "5f-PB-22",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/5f-pb-22.md",
+  "archive_timestamp": "20150921140159",
+  "archive_date_utc": "2015-09-21T14:01:59Z",
+  "archive_url": "https://web.archive.org/web/20150921140159/https://psychonautwiki.org/wiki/5F-PB-22",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+    "url": "https://web.archive.org/web/20150921140159/https://psychonautwiki.org/wiki/5F-PB-22"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Acuity suppression",
+                "description": ""
+              },
+              {
+                "name": "Geometry",
+                "description": "As reported with other cannabinoids, 5F-PB-22 can produce closed eye visuals at moderate doses, which can escalate into visual distortions such as a ripples in the field of vision upon continuous administration. Within users who also regularly use psychedelics, it is capable of inducing these consistently in a visual style which seems to be an averaged out depiction of all the psychedelics one has used within the past. These rarely extend beyond level 4 geometry and are considered to be mild, fine, small and zoomed out but brighter and better defined than the geometry experienced with cannabis. They are not as defined as other synthetic cannabinoids such as JWH-018 or JWH-073."
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Current mind state enhancement",
+            "description": "The most prominent cognitive component of cannabinoids is the way in which they enhance the emotions one is already feeling proportional to dose. This can result in euphoria, extreme laughter, and increased immersion within tasks and activities, or it can result in anxiety and paranoia depending on the user's current mind state."
+          },
+          {
+            "name": "Euphoria",
+            "description": "This can be considered very prominent in comparison to THJ-018, AM-2201, and 5F-UR-144 but less intense in comparison to JWH-073."
+          },
+          {
+            "name": "Thought connectivity",
+            "description": "This can attribute to fluid, more abstract thinking in comparison to linear thought."
+          },
+          {
+            "name": "Anxiety",
+            "description": "Subjectively, 5F-PB-22 is less anxiogenic and stimulating than Δ9-THC, THJ-018, AM-2201, or 5F-UR-144 but more so than JWH-073 or JWH-018."
+          },
+          {
+            "name": "Paranoia",
+            "description": "All cannabinoids are capable of inducing paranoia at high doses or with chronic administration."
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Mindfulness",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Dream suppression",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "The body high of 5F-PB-22 can be described as a warm and soft pleasurable, all-encompassing tingling sensation that spreads over the body. It maintains a consistent presence that quickly rises with the onset and hits its limit once the peak has been reached before immediately dissipating."
+          },
+          {
+            "name": "Sedation",
+            "description": "Generally, the effects on the user's energy levels are very sedating. This encourages one to relax, lie down, and (at higher doses) fall asleep. It produces strong sedative effects that can be described as on par with JWH-018 and more sedating when compared to THC, JWH-073, THJ-018, AM-2201, or 5F-UR-144 but less than that of 5F-AKB-48."
+          },
+          {
+            "name": "Motor control loss",
+            "description": "This substance causes a partial to moderate suppression of motor control which intensifies proportional to dose, but rarely results in a complete inability to walk and perform basic movements."
+          },
+          {
+            "name": "Appetite enhancement",
+            "description": "As with many other cannabinoids, 5F-PB-22 causes an increase in appetite, known colloquially as \"the munchies\" in popular American and United Kingdom culture. Clinical studies and survey data have found that cannabis increases food enjoyment and interest in food. This is thought to be due to the way in which endocannabinoids in the hypothalamus activate cannabinoid receptors that are responsible for maintaining food intake."
+          },
+          {
+            "name": "Dehydration",
+            "description": "This is known colloquially as \"cotton mouth\" in popular American and United Kingdom culture."
+          },
+          {
+            "name": "Vasodilation",
+            "description": "Cannabinoids appear to decrease blood pressure by dilating the blood vessels and increasing blood flow throughout the body. The arteries in the eyeball expand from the decreased blood pressure and the heart rate increases to compensate for the reduction in pressure."
+          },
+          {
+            "name": "Pain relief",
+            "description": "Cannabinoids have been clinically demonstrated to provide pain relief via agonism of cannabinoid receptors CB1 and CB2, which extends to synthetic cannabinoid receptor agonists."
+          },
+          {
+            "name": "Perception of increased weight or Perception of decreased weight",
+            "description": ""
+          },
+          {
+            "name": "Changes in gravity",
+            "description": "5F-PB-22, like other cannabinoids, is capable of causing vertigo with which the environment appears to be spinning or oscillating. At moderate doses, it can spontaneously induce the sensation of falling, which can be overwhelming and uncomfortable. The propensity of this is greatly reduced and eliminated in proportion to tolerance."
+          },
+          {
+            "name": "Increased heart rate",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+      "url": "https://web.archive.org/web/20150921140159/https://psychonautwiki.org/wiki/5F-PB-22"
+    },
+    "is_stub": false,
+    "source_overview": "Combinational effects:\nPsychedelics - When used in combination with psychedelics, cannabinoids are capable of intensifying and extending the duration of both the visual and cognitive effects with extreme efficiency. This should be used with caution if one is not experienced with psychedelics.\nDissociatives - When used in combination with dissociatives, the geometry, euphoria, dissociation and hallucinatory effects are often greatly enhanced.\nAlcohol - When used in combination with alcohol, cannabinoids can cause feelings of extreme nausea, dizziness and changes in gravity. It is recommended that people smoke before drinking and not the other way around unless they are extremely cautious."
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Unmapped Combinational effects heading and bullets preserved in subjective_effects.notes.overview with a label, source order, and Markdown list/bold formatting removed.",
+    "Physical effects mapped to physical.General in source order.",
+    "The source bullet `Perception of increased weight *or* Perception of decreased weight` is represented as one effect name preserving the source `or` relationship.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "Visual effects mapped to sensory.visual.General in source order.",
+    "Auditory effects mapped to sensory.auditory.General in source order.",
+    "Markdown bold, italics, and list markers removed only as structural formatting; effect names and description text preserved exactly.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

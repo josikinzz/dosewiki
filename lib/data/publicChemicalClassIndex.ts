@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
 import { buildChemicalClassTree } from "../../src/data/builders/chemicalClassTree";
 import { getCategoryIcon } from "../../src/data/config/categoryIcons";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "../../src/data/builders/taxonomy";

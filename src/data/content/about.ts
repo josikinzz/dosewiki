@@ -1,9 +1,9 @@
-import aboutContentSource from "./aboutContent.md?raw";
-import aboutSubtitleSource from "./aboutSubtitle.md?raw";
-import aboutConfigSource from "./aboutConfig.json";
+import aboutContentSource from "@content/about/about.md?raw";
+import aboutSubtitleSource from "@content/about/subtitle.md?raw";
+import aboutConfigSource from "@content/about/config.json";
 
 /**
- * Shape persisted in src/data/content/aboutConfig.json.
+ * Shape persisted in content/about/config.json.
  *  - founderProfileKeys: array of profile keys (uppercase strings) to surface as founders.
  */
 type AboutConfig = {

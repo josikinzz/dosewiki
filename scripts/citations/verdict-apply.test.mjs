@@ -338,7 +338,7 @@ function cliEnv() {
   // Strip database selectors so fixture runs cannot inherit a live target.
   const env = { ...process.env, DATA_BACKEND: "postgres" };
   for (const key of Object.keys(env)) {
-    if (/CONVEX|POSTGRES/i.test(key)) delete env[key];
+    if (/POSTGRES/i.test(key)) delete env[key];
   }
   return env;
 }

@@ -33,8 +33,8 @@ async function main() {
     intent: "dev-data-import",
     sourceUrlKeys: [],
     localArtifacts: [
-      "src/data/config/generatorPrompt.md",
-      "src/data/config/sectionPrompts/*.md",
+      "content/prompts/generator.md",
+      "content/prompts/sections/*.md",
     ],
   });
   

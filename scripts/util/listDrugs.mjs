@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
 
-const articlesPath = resolve(process.cwd(), 'src/data/SubstanceIndex.json');
+const articlesPath = resolve(process.cwd(), 'public/SubstanceIndex.json');
 const outputPath = resolve(process.cwd(), 'notes and plans', 'drug-list.txt');
 
 async function main() {

@@ -8,11 +8,10 @@
  * spelling fix and the wrong shape for both jobs here.
  *
  *  - **A handle rename with stragglers.** "StingrayZ" is Symmetric Vision's
- *    reddit-era handle (recorded in
- *    `src/data/config/contributorIdentityCorrections.json`, and the profile
- *    SYMMETRICVISION already answers to the alias). Most of the corpus moved
- *    long ago; six rows were left behind and the gallery groups on the raw
- *    `artist` string, so they surface as a second six-work artist.
+ *    reddit-era handle (the profile SYMMETRICVISION already answers to the
+ *    alias). Most of the corpus moved long ago; six rows were left behind and
+ *    the gallery groups on the raw `artist` string, so they surface as a second
+ *    six-work artist.
  *  - **A misattribution.** `embedded-geometry-test-pole-loka` is credited Loka
  *    but is Symmetric Vision's work. No name-keyed rule can express that: the
  *    other 42 Loka rows are correctly Loka's.
@@ -34,7 +33,7 @@
  * "StingrayZ" there. Moving it here would make this run disagree with them.
  *
  * Slugs are never touched: they are public URLs, and renaming one needs a
- * redirect entry in `src/data/config/replicationSlugAliases.json` written by
+ * redirect entry in `data/effects/replicationSlugAliases.json` written by
  * `scripts/replications/normalize-slugs.mjs`.
  *
  * Writes go through `replications.applyProvenanceCorrection`, the compare-and-

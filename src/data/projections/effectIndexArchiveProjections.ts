@@ -3,7 +3,7 @@
  *
  * The archive preserves imported Mongo documents as JSON strings, including
  * extended-JSON wrappers (`{"$oid": …}`, `{"$date": …}`). This representation
- * originated with the Convex import and remains unchanged in Postgres.
+ * originated with the original import and remains unchanged in Postgres.
  * Decoding means `JSON.parse` plus unwrapping. The row content is not
  * schema-checked, so malformed rows must not take down the blog index.
  *

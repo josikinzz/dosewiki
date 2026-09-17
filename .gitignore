@@ -19,7 +19,7 @@ public/share/
 /coverage/
 # Per-file runtime and flake evidence written by `npm run test:evidence`.
 .test-evidence/
-src/data/.lineage/
+data/.lineage/
 # Vendored RDKit.js runtime, copied from node_modules by scripts/build/copyRdkitAssets.mjs
 # on predev/prebuild — reproducible, so not committed.
 public/rdkit/
@@ -44,8 +44,6 @@ npm-debug.log*
 npm-dev.log
 npm-dev.err.log
 .DS_Store
-.codex-dev.log
-.codex-dev.pid
 .pi-subagents/
 .codex/*.log
 .codex/*.pid
@@ -78,8 +76,6 @@ notes-and-plans/exports/
 # Data ops audit logs and backups (contain sensitive operation data)
 scripts/data/audit-logs/
 scripts/data/backups/
-# Regenerable R2 bucket inventory; retain migration ledgers, not the object manifest.
-/scripts/replications/data/r2-ledger/r2-manifest-after-copy.jsonl
 
 # Quote files (database-owned, not bundled)
 quotes/
@@ -118,18 +114,41 @@ __pycache__/
 /[0-9][0-9][0-9][0-9]
 /E
 
-# Transient scheduler lock; local run state, not shared configuration.
-/.claude/scheduled_tasks.lock
+# Agent tooling stays local: skills, agent definitions, command adapters, run state.
+/.claude/
+/.agents/
+/.omp/
+/.pi/
+/.cursor/
 
-# Local agent settings, completed task state, and private critique output
+# Local agent settings
 **/settings.local.json
 !**/settings.local.example.json
-/.pi/task-graph.json
-/.impeccable/critique/*
-!/.impeccable/critique/*.example.*
+# Impeccable design-critique screenshots and live-server state; private review output.
+/.impeccable/
 
 # Generated GT translation bundles (npx gt translate output)
 public/_gt/
 
 # Private authoring aid; not part of the project.
 /.unslop/
+
+# Local data snapshots and one-off run residue; regenerate or keep outside the tree.
+# Prepopulate/batch backups of the local substance export.
+/src/data/backups/
+# Local Postgres export produced by the data export script; public/SubstanceIndex.json is the tracked archival snapshot.
+/src/data/SubstanceIndex.json
+# Recovered legacy media bytes staged for R2 upload.
+/recovery/
+# Cutover assignment receipts written by agent runs.
+/final-*.json
+# Scratch legality country dumps.
+/node/
+# Legality gap-hunt scratch output.
+/gap-hunt/
+# Retired Lakebed capsule experiment.
+/lakebed/
+# Timestamped data-ops run reports.
+/scripts/data/*-reports/
+# Plagiarism audit worklists and proposal bundles.
+/docs/audits/

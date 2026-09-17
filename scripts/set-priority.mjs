@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 /**
- * Check and fix normal priority substances
+ * Check and fix normal priority substances in a local substance export.
+ *
+ * Usage: node scripts/set-priority.mjs --input <local-substance-export.json>
  */
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const articlesPath = path.join(__dirname, '../src/data/SubstanceIndex.json');
+const inputIndex = process.argv.indexOf('--input');
+if (inputIndex < 0 || !process.argv[inputIndex + 1]) {
+  throw new Error('Pass --input <path> naming the local substance export to update.');
+}
+const articlesPath = path.resolve(process.argv[inputIndex + 1]);
 
 // TRUE uncommon substances - only these should be normal
 const trueUncommon = new Set([

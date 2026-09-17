@@ -3,7 +3,7 @@
 /**
  * Seed/refresh the Postgres `moleculeOverrides` rows for chemical classes
  * (`class:<key>`) from the canonical SMILES in
- * src/data/indexes/chemicalIndexManual.json (via CLASS_STRUCTURES).
+ * data/substances/chemicalIndexManual.json (via CLASS_STRUCTURES).
  *
  * MOL blocks are generated exactly like the editor's class creation flow:
  * RDKit-JS automatic layout, which keeps every R position as a plain `*`

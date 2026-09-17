@@ -40,7 +40,7 @@ const RESERVED = new Set(["audio", "tutorials"]);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ALIAS_FILE = path.join(
   __dirname,
-  "../../src/data/config/replicationSlugAliases.json",
+  "../../data/effects/replicationSlugAliases.json",
 );
 
 /**

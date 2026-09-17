@@ -26,8 +26,8 @@ import { DEFAULT_MODEL } from "../../scripts/translation/engine.mjs";
 import { resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { isBlocking, parseModelJson, validateSegment } from "../../scripts/translation/validate.mjs";
 import { EFFECT_CATEGORY_DEFINITIONS } from "../../src/data/effectCategoryDefinitions";
-import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
-import psychoactiveIndexManual from "../../src/data/indexes/psychoactiveIndexManual.json";
+import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
+import psychoactiveIndexManual from "@data/substances/psychoactiveIndexManual.json";
 import { SUBCATEGORY_LABELS } from "../../src/data/subjectiveEffectSubcategories";
 import { DOSE_TIERS, DURATION_STAGES } from "../../src/features/article/components/sections/dosageDurationLabels";
 import {

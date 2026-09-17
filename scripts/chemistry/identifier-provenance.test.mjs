@@ -113,7 +113,7 @@ describe("chemistry identifier provenance", () => {
     });
 
     expect(adapter.relativePath).toBe(OPSIN_MAP_RELATIVE_PATH);
-    expect(adapter.artifactPath).toBe(path.join(rootDir, "src/data/mappings/iupacSmilesMap.json"));
+    expect(adapter.artifactPath).toBe(path.join(rootDir, "data/chemistry/iupacSmilesMap.json"));
     expect(await adapter.readEntries()).toEqual({
       alpha: "CCO",
       beta: null,

@@ -1,0 +1,506 @@
+# PsychonautWiki 2015-August 2016 subjective effects recovery
+
+Scope: local staging only. Source fetches use `web.archive.org` mementos of PsychonautWiki pages and reject any capture after 2016-08-31T23:59:59Z.
+
+## August 2016 final pass
+
+- [x] Visually opened the archived substance index in Chrome through Computer Use: `https://web.archive.org/web/20160805080832/https://psychonautwiki.org/wiki/Psychoactive_substance_index`.
+- [x] Parsed the August 5, 2016 index into `.cache/august-2016-index-audit.json`.
+- [x] Collected eligible archived subjective effects sections through August 31, 2016 only.
+- [x] Verified every collected markdown file has a `## Subjective effects` section and no capture timestamp after `20160831235959`.
+
+## Recovery run state
+
+The checklist below records the recovery run's state before the completed import documented in [the integration tracker](subjective-effects-integration-tracker.md#final-import-state). It is provenance, not a current instruction to write article data.
+
+- [x] Query live dose.wiki public data for missing subjective effects (479 missing).
+- [x] Collect archived 2015 subjective effects sections found so far (34).
+- [x] Finish probing missing dose.wiki substances (0 pending).
+- [ ] At that point, review collected files and adapt them into the dose.wiki schema in a separate write task.
+
+## Collected article queue at recovery time
+
+- [ ] [2C-B-FLY](articles/2c-b-fly.md) - 20160805080503 UTC
+- [ ] [3-MeO-PCP](articles/3-meo-pcp.md) - 20160803222947 UTC
+- [ ] [3-MMC](articles/3-mmc.md) - 20160804042911 UTC
+- [ ] [4-AcO-DiPT](articles/4-aco-dipt.md) - 20160804042638 UTC
+- [ ] [4-HO-DET](articles/4-ho-det.md) - 20160803224714 UTC
+- [ ] [4-HO-MET](articles/4-ho-met.md) - 20150921124505 UTC
+- [ ] [4-MeO-PCP](articles/4-meo-pcp.md) - 20160803232118 UTC
+- [ ] [5-MeO-DiBF](articles/5-meo-dibf.md) - 20160805080514 UTC
+- [ ] [5f-Akb48](articles/5f-akb48.md) - 20150921134159 UTC
+- [ ] [5f-PB-22](articles/5f-pb-22.md) - 20150921140159 UTC
+- [ ] [AB-FUBINACA](articles/ab-fubinaca.md) - 20150921134800 UTC
+- [ ] [ALD-52](articles/ald-52.md) - 20160805204337 UTC
+- [ ] [Allylescaline](articles/allylescaline.md) - 20160804042719 UTC
+- [ ] [bk-2c-B](articles/bk-2c-b.md) - 20160804011210 UTC
+- [ ] [Datura](articles/datura.md) - 20150921132624 UTC
+- [ ] [Deschloroketamine](articles/deschloroketamine.md) - 20160804042835 UTC
+- [ ] [Diphenhydramine](articles/diphenhydramine.md) - 20150921130816 UTC
+- [ ] [DiPT](articles/dipt.md) - 20160805080348 UTC
+- [ ] [DOC](articles/doc.md) - 20150921134509 UTC
+- [ ] [DOI](articles/doi.md) - 20160804042743 UTC
+- [ ] [ETH-LAD](articles/eth-lad.md) - 20160804042757 UTC
+- [ ] [Fentanyl](articles/fentanyl.md) - 20160803235227 UTC
+- [ ] [JWH-018](articles/jwh-018.md) - 20150921133445 UTC
+- [ ] [LSZ](articles/lsz.md) - 20160805204732 UTC
+- [ ] [Marinol](articles/marinol.md) - 20150423153214 UTC
+- [ ] [MDA](articles/mda.md) - 20160804042728 UTC
+- [ ] [Methallylescaline](articles/methallylescaline.md) - 20160804041639 UTC
+- [ ] [Metizolam](articles/metizolam.md) - 20160803221735 UTC
+- [ ] [Mexedrone](articles/mexedrone.md) - 20160804042744 UTC
+- [ ] [Morphine](articles/morphine.md) - 20160804042738 UTC
+- [ ] [PRO-LAD](articles/pro-lad.md) - 20160804010453 UTC
+- [ ] [Psilocin](articles/psilocin.md) - 20150424040116 UTC
+- [ ] [Scopolamine](articles/scopolamine.md) - 20150423101342 UTC
+- [ ] [Tobacco](articles/tobacco.md) - 20150426005439 UTC
+
+## No 2015 subjective effects section found
+
+- [x] 1B-LSD (1b-lsd) - no_2015_archive_found
+- [x] 1cP-AL-LAD (1cp-al-lad) - no_2015_archive_found
+- [x] 1cP-LSD (1cp-lsd) - no_2015_archive_found
+- [x] 1cP-MiPLA (1cp-mipla) - no_2015_archive_found
+- [x] 1D-LSD (1d-lsd) - no_2015_archive_found
+- [x] 1P-ETH-LAD (1p-eth-lad) - no_2015_archive_found
+- [x] 1V-LSD (1v-lsd) - no_2015_archive_found
+- [x] 2-Chloroephenidine (2-chloroephenidine) - no_2015_archive_found
+- [x] 2-FA (2-fa) - no_2015_subjective_effects_section
+- [x] 2-FEA (2-fea) - no_2015_archive_found
+- [x] 2-Fluorodeschloroketamine (2-fluorodeschloroketamine) - no_2015_archive_found
+- [x] 2-MA (2-ma) - no_2015_archive_found
+- [x] 2-Me-DMT (2-me-dmt) - no_2015_archive_found
+- [x] 2-MEC (2-mec) - no_2015_archive_found
+- [x] 2-MeO-Ketamine (2-meo-ketamine) - no_2015_archive_found
+- [x] 2-MMC (2-mmc) - no_2015_archive_found
+- [x] 2-MPPP (2-mppp) - no_2015_archive_found
+- [x] 2-NMC (2-nmc) - no_2015_archive_found
+- [x] 2-PA (2-pa) - no_2015_archive_found
+- [x] 2-PTA (2-pta) - no_2015_archive_found
+- [x] 25-DMA (25-dma) - no_2015_subjective_effects_section
+- [x] 25B-NBOH (25b-nboh) - no_2015_archive_found
+- [x] 25C-NBOH (25c-nboh) - no_2015_archive_found
+- [x] 25E-NBOH (25e-nboh) - no_2015_archive_found
+- [x] 25e-NBOMe (25e-nbome) - no_2015_archive_found
+- [x] 25g-NBOMe (25g-nbome) - no_2015_archive_found
+- [x] 25H-NBOMe (25h-nbome) - no_2015_archive_found
+- [x] 25I-NBF (25i-nbf) - no_2015_archive_found
+- [x] 25I-NBMD (25i-nbmd) - no_2015_archive_found
+- [x] 25I-NBOH (25i-nboh) - no_2015_archive_found
+- [x] 25iP-NBOMe (25ip-nbome) - no_2015_archive_found
+- [x] 25P-NBOMe (25p-nbome) - no_2015_archive_found
+- [x] 25T-2-NBOMe (25t-2-nbome) - no_2015_archive_found
+- [x] 25t-4-NBOMe (25t-4-nbome) - no_2015_archive_found
+- [x] 2C-B-AN (2c-b-an) - no_2015_archive_found
+- [x] 2C-B-FLY-NBOMe (2c-b-fly-nbome) - no_2015_archive_found
+- [x] 2C-G (2c-g) - no_2015_archive_found
+- [x] 2C-iP (2c-ip) - no_2015_archive_found
+- [x] 2C-N (2c-n) - no_2015_archive_found
+- [x] 2C-T (2c-t) - no_2015_archive_found
+- [x] 2C-T-21 (2c-t-21) - no_2015_archive_found
+- [x] 2C-T-4 (2c-t-4) - no_2015_archive_found
+- [x] 3-4-CTMP (3-4-ctmp) - no_2015_subjective_effects_section
+- [x] 3,4-Dichloromethylphenidate (3-4-dichloromethylphenidate) - no_2015_archive_found
+- [x] 3-Cl-PCP (3-cl-pcp) - no_2015_archive_found
+- [x] 3-CMC (3-cmc) - no_2015_archive_found
+- [x] 3-FA (3-fa) - no_2015_archive_found
+- [x] 3-FEA (3-fea) - no_2015_archive_found
+- [x] 3-FMA (3-fma) - no_2015_archive_found
+- [x] 3-FMC (3-fmc) - no_2015_archive_found
+- [x] 3-HO-PCE (3-ho-pce) - no_2015_archive_found
+- [x] 3-HO-PCP (3-ho-pcp) - no_2015_archive_found
+- [x] 3-Me-PCPy (3-me-pcpy) - no_2015_archive_found
+- [x] 3-MEC (3-mec) - no_2015_archive_found
+- [x] 3-MeO-PCE (3-meo-pce) - no_2015_archive_found
+- [x] 3-MeO-PCPr (3-meo-pcpr) - no_2015_archive_found
+- [x] 3-MeO-PCPy (3-meo-pcpy) - no_2015_archive_found
+- [x] 3-Meomc (3-meomc) - no_2015_archive_found
+- [x] 3-OH-Phenazepam (3-oh-phenazepam) - no_2015_archive_found
+- [x] 3C-E (3c-e) - no_2015_archive_found
+- [x] 3C-P (3c-p) - no_2015_archive_found
+- [x] 3F-PCP (3f-pcp) - no_2015_archive_found
+- [x] 4,4'-DMAR (4-4-dmar) - no_2015_archive_found
+- [x] 4-AcO-DALT (4-aco-dalt) - no_2015_archive_found
+- [x] 4-AcO-DET (4-aco-det) - no_2015_archive_found
+- [x] 4-AcO-DPT (4-aco-dpt) - no_2015_archive_found
+- [x] 4-AcO-MiPT (4-aco-mipt) - no_2015_archive_found
+- [x] 4-Benzylpiperidine (4-benzylpiperidine) - no_2015_archive_found
+- [x] 4-CBC (4-cbc) - no_2015_archive_found
+- [x] 4-CMC (4-cmc) - no_2015_archive_found
+- [x] 4-EMC (4-emc) - no_2015_archive_found
+- [x] 4-EPD (4-epd) - no_2015_archive_found
+- [x] 4-FEA (4-fea) - no_2015_archive_found
+- [x] 4-Fluorobutyrfentanyl (4-fluorobutyrfentanyl) - no_2015_archive_found
+- [x] 4-Fluoropentedrone (4-fluoropentedrone) - no_2015_archive_found
+- [x] 4-FMA (4-fma) - no_2015_archive_found
+- [x] 4-FMC (4-fmc) - no_2015_archive_found
+- [x] 4-FPP (4-fpp) - no_2015_archive_found
+- [x] 4-HO-DiPT (4-ho-dipt) - no_2015_archive_found
+- [x] 4-HO-DPT (4-ho-dpt) - no_2015_archive_found
+- [x] 4-HO-EPT (4-ho-ept) - no_2015_archive_found
+- [x] 4-HO-McPT (4-ho-mcpt) - no_2015_archive_found
+- [x] 4-HO-MPMI (4-ho-mpmi) - no_2015_archive_found
+- [x] 4-HO-MPT (4-ho-mpt) - no_2015_archive_found
+- [x] 4-HO-PiPT (4-ho-pipt) - no_2015_archive_found
+- [x] 4-MEC (4-mec) - no_2015_archive_found
+- [x] 4-MeO-Butyrfentanyl (4-meo-butyrfentanyl) - no_2015_archive_found
+- [x] 4-MeO-MiPT (4-meo-mipt) - no_2015_archive_found
+- [x] 4-Methylaminorex (4-methylaminorex) - no_2015_archive_found
+- [x] 4-Methylmethylphenidate (4-methylmethylphenidate) - no_2015_archive_found
+- [x] 4-MPD (4-mpd) - no_2015_archive_found
+- [x] 4-MPM (4-mpm) - no_2015_archive_found
+- [x] 4-PrO-DMT (4-pro-dmt) - no_2015_archive_found
+- [x] 4F-EPH (4f-eph) - no_2015_archive_found
+- [x] 4f-MPH (4f-mph) - no_2015_archive_found
+- [x] 4f-NEB (4f-neb) - no_2015_archive_found
+- [x] 4F-PHP (4f-php) - no_2015_archive_found
+- [x] 4f-PVP (4f-pvp) - no_2015_archive_found
+- [x] 5-APB (5-apb) - no_2015_subjective_effects_section
+- [x] 5-APDB (5-apdb) - no_2015_archive_found
+- [x] 5-APDI (5-apdi) - no_2015_archive_found
+- [x] 5-BPDi (5-bpdi) - no_2015_archive_found
+- [x] 5-Bromo-DMT (5-bromo-dmt) - no_2015_archive_found
+- [x] 5-DBFPV (5-dbfpv) - no_2015_archive_found
+- [x] 5-EAPB (5-eapb) - no_2015_archive_found
+- [x] 5-Hydroxytryptophan (5-hydroxytryptophan) - no_2015_archive_found
+- [x] 5-IAI (5-iai) - no_2015_archive_found
+- [x] 5-IT (5-it) - no_2015_archive_found
+- [x] 5-MAPB (5-mapb) - no_2015_archive_found
+- [x] 5-MAPDB (5-mapdb) - no_2015_archive_found
+- [x] 5-MeO-DiPT (5-meo-dipt) - no_2015_subjective_effects_section
+- [x] 5-MeO-DPT (5-meo-dpt) - no_2015_archive_found
+- [x] 5-MeO-EiPT (5-meo-eipt) - no_2015_archive_found
+- [x] 5-MeO-MaLT (5-meo-malt) - no_2015_archive_found
+- [x] 5-MeO-MET (5-meo-met) - no_2015_archive_found
+- [x] 5-MeO-MT (5-meo-mt) - no_2015_archive_found
+- [x] 5-MeO-NiPT (5-meo-nipt) - no_2015_archive_found
+- [x] 5-MeO-Pyr-T (5-meo-pyr-t) - no_2015_archive_found
+- [x] 5-Methylethylone (5-methylethylone) - no_2015_archive_found
+- [x] 5-PPDI (5-ppdi) - no_2015_archive_found
+- [x] 6-APB (6-apb) - no_2015_archive_found
+- [x] 6-APDB (6-apdb) - no_2015_archive_found
+- [x] 6-EAPB (6-eapb) - no_2015_archive_found
+- [x] 6-MAPB (6-mapb) - no_2015_archive_found
+- [x] 6-Mddm (6-mddm) - no_2015_archive_found
+- [x] A-PHP (a-php) - no_2015_archive_found
+- [x] A-PIHP (a-pihp) - no_2015_archive_found
+- [x] AB-CHMINACA (ab-chminaca) - no_2015_archive_found
+- [x] Acetildenafil (acetildenafil) - no_2015_archive_found
+- [x] Acetylfentanyl (acetylfentanyl) - no_2015_archive_found
+- [x] Acrylfentanyl (acrylfentanyl) - no_2015_archive_found
+- [x] Adinazolam (adinazolam) - no_2015_archive_found
+- [x] Adrafinil (adrafinil) - no_2015_archive_found
+- [x] Afloqualone (afloqualone) - no_2015_archive_found
+- [x] AH-7921 (ah-7921) - no_2015_archive_found
+- [x] ALEPH (aleph) - no_2015_archive_found
+- [x] ALEPH-2 (aleph-2) - no_2015_archive_found
+- [x] Allobarbital (allobarbital) - no_2015_archive_found
+- [x] Alpha-GPC (alpha-gpc) - no_2015_archive_found
+- [x] alpha-PCYP (alpha-pcyp) - no_2015_archive_found
+- [x] AM-2201 (am-2201) - no_2015_archive_found
+- [x] AM-694 (am-694) - no_2015_archive_found
+- [x] Amfecloral (amfecloral) - no_2015_archive_found
+- [x] Amfonelic-Acid (amfonelic-acid) - no_2015_archive_found
+- [x] Aminorex (aminorex) - no_2015_archive_found
+- [x] Aminotadalafil (aminotadalafil) - no_2015_archive_found
+- [x] Amobarbital (amobarbital) - no_2015_archive_found
+- [x] Aniracetam (aniracetam) - no_2015_archive_found
+- [x] Armodafinil (armodafinil) - no_2015_archive_found
+- [x] Ashwagandha (ashwagandha) - no_2015_archive_found
+- [x] Aspirin (aspirin) - no_2015_archive_found
+- [x] Atomoxetine (atomoxetine) - no_2015_archive_found
+- [x] Baclofen (baclofen) - no_2015_archive_found
+- [x] Barbital (barbital) - no_2015_archive_found
+- [x] Bentazepam (bentazepam) - no_2015_archive_found
+- [x] BOD (bod) - no_2015_archive_found
+- [x] Bromantane (bromantane) - no_2015_subjective_effects_section
+- [x] Bromazepam (bromazepam) - no_2015_archive_found
+- [x] Bromazolam (bromazolam) - no_2015_archive_found
+- [x] Bromo-DragonFLY (bromo-dragonfly) - no_2015_archive_found
+- [x] Brotizolam (brotizolam) - no_2015_archive_found
+- [x] Buphedrone (buphedrone) - no_2015_archive_found
+- [x] Buprenorphine (buprenorphine) - no_2015_archive_found
+- [x] Bupropion (bupropion) - no_2015_archive_found
+- [x] Buspirone (buspirone) - no_2015_archive_found
+- [x] Butylone (butylone) - no_2015_archive_found
+- [x] Butyrfentanyl (butyrfentanyl) - no_2015_archive_found
+- [x] BZP (bzp) - no_2015_archive_found
+- [x] Cake (cake) - no_2015_archive_found
+- [x] Camazepam (camazepam) - no_2015_archive_found
+- [x] Canket (canket) - no_2015_archive_found
+- [x] Carisoprodol (carisoprodol) - no_2015_archive_found
+- [x] Cathinone (cathinone) - no_2015_subjective_effects_section
+- [x] Changa (changa) - no_2015_archive_found
+- [x] Chloral-Betaine (chloral-betaine) - no_2015_archive_found
+- [x] Chloral Hydrate (chloral-hydrate) - no_2015_archive_found
+- [x] Chloroform (chloroform) - no_2015_archive_found
+- [x] Choline Bitartrate (choline-bitartrate) - no_2015_subjective_effects_section
+- [x] Cinolazepam (cinolazepam) - no_2015_archive_found
+- [x] Citalopram (citalopram) - no_2015_archive_found
+- [x] Citicoline (citicoline) - no_2015_archive_found
+- [x] Clobazam (clobazam) - no_2015_archive_found
+- [x] Clomethiazole (clomethiazole) - no_2015_archive_found
+- [x] Clonidine (clonidine) - no_2015_archive_found
+- [x] Cloniprazepam (cloniprazepam) - no_2015_archive_found
+- [x] Clonitazene (clonitazene) - no_2015_archive_found
+- [x] Clorazepate (clorazepate) - no_2015_archive_found
+- [x] Clotiazepam (clotiazepam) - no_2015_archive_found
+- [x] Cloxazolam (cloxazolam) - no_2015_archive_found
+- [x] Coluracetam (coluracetam) - no_2015_archive_found
+- [x] Creatine (creatine) - no_2015_archive_found
+- [x] CRL-40-940 (crl-40-940) - no_2015_archive_found
+- [x] CRL-40-941 (crl-40-941) - no_2015_archive_found
+- [x] Cyclazodone (cyclazodone) - no_2015_archive_found
+- [x] Cyclizine (cyclizine) - no_2015_archive_found
+- [x] Cyclo-Methiodrone (cyclo-methiodrone) - no_2015_archive_found
+- [x] Cyclobenzaprine (cyclobenzaprine) - no_2015_archive_found
+- [x] Cyclopropylmescaline (cyclopropylmescaline) - no_2015_archive_found
+- [x] D2PM (d2pm) - no_2015_archive_found
+- [x] DALT (dalt) - no_2015_archive_found
+- [x] Delorazepam (delorazepam) - no_2015_archive_found
+- [x] Desmethylflunitrazepam (desmethylflunitrazepam) - no_2015_archive_found
+- [x] Desomorphine (desomorphine) - no_2015_archive_found
+- [x] Desoxypipradrol (desoxypipradrol) - no_2015_archive_found
+- [x] DET (det) - no_2015_archive_found
+- [x] Dexmethylphenidate (dexmethylphenidate) - no_2015_archive_found
+- [x] Dextroamphetamine (dextroamphetamine) - no_2015_subjective_effects_section
+- [x] Dextromoramide (dextromoramide) - no_2015_archive_found
+- [x] Dextropropoxyphene (dextropropoxyphene) - no_2015_archive_found
+- [x] Dichloropane (dichloropane) - no_2015_archive_found
+- [x] Diclofensine (diclofensine) - no_2015_archive_found
+- [x] Diethyl-Ether (diethyl-ether) - no_2015_archive_found
+- [x] Dimemebfe (dimemebfe) - no_2015_archive_found
+- [x] Dimenhydrinate (dimenhydrinate) - no_2015_archive_found
+- [x] Dipipanone (dipipanone) - no_2015_archive_found
+- [x] DMAA (dmaa) - no_2015_archive_found
+- [x] DMXE (dmxe) - no_2015_archive_found
+- [x] DOET (doet) - no_2015_archive_found
+- [x] Doip (doip) - no_2015_archive_found
+- [x] DON (don) - no_2015_archive_found
+- [x] Dopr (dopr) - no_2015_archive_found
+- [x] Doxylamine (doxylamine) - no_2015_archive_found
+- [x] Ephedrine (ephedrine) - no_2015_archive_found
+- [x] Ephylone (ephylone) - no_2015_archive_found
+- [x] EPT (ept) - no_2015_archive_found
+- [x] Estazolam (estazolam) - no_2015_archive_found
+- [x] Eszopiclone (eszopiclone) - no_2015_archive_found
+- [x] ET (et) - no_2015_archive_found
+- [x] ETH-CAT (eth-cat) - no_2015_archive_found
+- [x] Ethaqualone (ethaqualone) - no_2015_archive_found
+- [x] Ethchlorvynol (ethchlorvynol) - no_2015_archive_found
+- [x] Ethketamine (ethketamine) - no_2015_archive_found
+- [x] Ethylone (ethylone) - no_2015_archive_found
+- [x] Eutylone (eutylone) - no_2015_archive_found
+- [x] F-Phenibut (f-phenibut) - no_2015_archive_found
+- [x] Fasoracetam (fasoracetam) - no_2015_archive_found
+- [x] Fenethylline (fenethylline) - no_2015_archive_found
+- [x] Flmodafinil (flmodafinil) - no_2015_archive_found
+- [x] Flualprazolam (flualprazolam) - no_2015_archive_found
+- [x] Fluclotizolam (fluclotizolam) - no_2015_archive_found
+- [x] Flunitrazepam (flunitrazepam) - no_2015_archive_found
+- [x] Flunitrazolam (flunitrazolam) - no_2015_archive_found
+- [x] Fluorolintane (fluorolintane) - no_2015_archive_found
+- [x] Fluorophenibut (fluorophenibut) - no_2015_archive_found
+- [x] Flurazepam (flurazepam) - no_2015_archive_found
+- [x] Flutazolam (flutazolam) - no_2015_archive_found
+- [x] Flutoprazepam (flutoprazepam) - no_2015_archive_found
+- [x] Furanylfentanyl (furanylfentanyl) - no_2015_archive_found
+- [x] GABA (gaba) - no_2015_archive_found
+- [x] Glaucine (glaucine) - no_2015_archive_found
+- [x] Glutethimide (glutethimide) - no_2015_archive_found
+- [x] H-2c-B (h-2c-b) - no_2015_archive_found
+- [x] Halazepam (halazepam) - no_2015_archive_found
+- [x] Haloperidol (haloperidol) - no_2015_archive_found
+- [x] HDEP-28 (hdep-28) - no_2015_archive_found
+- [x] Hexedrone (hexedrone) - no_2015_archive_found
+- [x] Hexobarbital (hexobarbital) - no_2015_archive_found
+- [x] Homosildenafil (homosildenafil) - no_2015_archive_found
+- [x] HOT-2 (hot-2) - no_2015_archive_found
+- [x] HOT-7 (hot-7) - no_2015_archive_found
+- [x] Huperzine-A (huperzine-a) - no_2015_archive_found
+- [x] HXE (hxe) - no_2015_archive_found
+- [x] Hydrocodone (hydrocodone) - no_2015_subjective_effects_section
+- [x] Hydromorphone (hydromorphone) - no_2015_subjective_effects_section
+- [x] Hydroxyzine (hydroxyzine) - no_2015_archive_found
+- [x] Ibogaine (ibogaine) - no_2015_archive_found
+- [x] Ibuprofen (ibuprofen) - no_2015_archive_found
+- [x] Indapex (indapex) - no_2015_archive_found
+- [x] Indapyrophenidone (indapyrophenidone) - no_2015_archive_found
+- [x] Isomethadone (isomethadone) - no_2015_archive_found
+- [x] Isophenmetrazine (isophenmetrazine) - no_2015_archive_found
+- [x] Isoproscaline (isoproscaline) - no_2015_archive_found
+- [x] JWH-073 (jwh-073) - no_2015_archive_found
+- [x] K-2c-B (k-2c-b) - no_2015_archive_found
+- [x] K-2c-I (k-2c-i) - no_2015_archive_found
+- [x] K-IVP (k-ivp) - no_2015_archive_found
+- [x] Kanna (kanna) - no_2015_archive_found
+- [x] Kava (kava) - no_2015_archive_found
+- [x] Ketazolam (ketazolam) - no_2015_archive_found
+- [x] Ketobemidone (ketobemidone) - no_2015_archive_found
+- [x] Khat (khat) - no_2015_archive_found
+- [x] LAE-32 (lae-32) - no_2015_archive_found
+- [x] Lagochilus-Inebrians (lagochilus-inebrians) - no_2015_archive_found
+- [x] Lean (lean) - no_2015_archive_found
+- [x] Librium (librium) - no_2015_archive_found
+- [x] Lisdexamfetamine (lisdexamfetamine) - no_2015_archive_found
+- [x] Lithium (lithium) - no_2015_archive_found
+- [x] Loprazolam (loprazolam) - no_2015_archive_found
+- [x] Lormetazepam (lormetazepam) - no_2015_archive_found
+- [x] LSM-775 (lsm-775) - no_2015_archive_found
+- [x] MAL (mal) - no_2015_archive_found
+- [x] MBDB (mbdb) - no_2015_archive_found
+- [x] Mbzp (mbzp) - no_2015_archive_found
+- [x] mCPP (mcpp) - no_2015_archive_found
+- [x] MDEA (mdea) - no_2015_archive_found
+- [x] Mdoh (mdoh) - no_2015_archive_found
+- [x] Mdpa (mdpa) - no_2015_archive_found
+- [x] Mdphp (mdphp) - no_2015_archive_found
+- [x] MDPV (mdpv) - no_2015_archive_found
+- [x] Meai (meai) - no_2015_archive_found
+- [x] Mebroqualone (mebroqualone) - no_2015_archive_found
+- [x] Meclofenoxate (meclofenoxate) - no_2015_archive_found
+- [x] Meclonazepam (meclonazepam) - no_2015_archive_found
+- [x] Medazepam (medazepam) - no_2015_archive_found
+- [x] Mefloquine (mefloquine) - no_2015_archive_found
+- [x] Melatonin (melatonin) - no_2015_archive_found
+- [x] MEM (mem) - no_2015_archive_found
+- [x] Memantine (memantine) - no_2015_archive_found
+- [x] Mephenaqualone (mephenaqualone) - no_2015_archive_found
+- [x] MET (met) - no_2015_archive_found
+- [x] Metaclazepam (metaclazepam) - no_2015_archive_found
+- [x] Metaxalone (metaxalone) - no_2015_archive_found
+- [x] Methadone (methadone) - no_2015_archive_found
+- [x] Methamnetamine (methamnetamine) - no_2015_archive_found
+- [x] Methcathinone (methcathinone) - no_2015_archive_found
+- [x] Methoxyacetyl-Fentanyl (methoxyacetyl-fentanyl) - no_2015_archive_found
+- [x] Methoxyketamine (methoxyketamine) - no_2015_archive_found
+- [x] Methoxypiperamide (methoxypiperamide) - no_2015_archive_found
+- [x] Methylmethaqualone (methylmethaqualone) - no_2015_archive_found
+- [x] Methylnaphthidate (methylnaphthidate) - no_2015_archive_found
+- [x] Methyprylon (methyprylon) - no_2015_archive_found
+- [x] Mexazolam (mexazolam) - no_2015_archive_found
+- [x] Midazolam (midazolam) - no_2015_archive_found
+- [x] MiPLA (mipla) - no_2015_archive_found
+- [x] MiPT (mipt) - no_2015_subjective_effects_section
+- [x] MK-801 (mk-801) - no_2015_archive_found
+- [x] Moclobemide (moclobemide) - no_2015_archive_found
+- [x] Morpheridine (morpheridine) - no_2015_archive_found
+- [x] MT-45 (mt-45) - no_2015_archive_found
+- [x] MXM (mxm) - no_2015_archive_found
+- [x] N-Acetylcysteine (n-acetylcysteine) - no_2015_archive_found
+- [x] N-Ethylhexedrone (n-ethylhexedrone) - no_2015_archive_found
+- [x] N-Methylbisfluoromodafinil (n-methylbisfluoromodafinil) - no_2015_archive_found
+- [x] Naloxone (naloxone) - no_2015_archive_found
+- [x] Naphyrone (naphyrone) - no_2015_archive_found
+- [x] Naproxen (naproxen) - no_2015_archive_found
+- [x] NEB (neb) - no_2015_archive_found
+- [x] Nefiracetam (nefiracetam) - no_2015_archive_found
+- [x] NEP (nep) - no_2015_archive_found
+- [x] Nicomorphine (nicomorphine) - no_2015_archive_found
+- [x] Nimetazepam (nimetazepam) - no_2015_archive_found
+- [x] Nitemazepam (nitemazepam) - no_2015_archive_found
+- [x] Nitracaine (nitracaine) - no_2015_archive_found
+- [x] Nitrazepam (nitrazepam) - no_2015_archive_found
+- [x] Nitrazolam (nitrazolam) - no_2015_archive_found
+- [x] Nordazepam (nordazepam) - no_2015_archive_found
+- [x] Norflurazepam (norflurazepam) - no_2015_archive_found
+- [x] Nutmeg (nutmeg) - no_2015_archive_found
+- [x] O-PCE (o-pce) - no_2015_archive_found
+- [x] Opium (opium) - no_2015_archive_found
+- [x] Oxazepam (oxazepam) - no_2015_archive_found
+- [x] Oxazolam (oxazolam) - no_2015_archive_found
+- [x] Oxiracetam (oxiracetam) - no_2015_archive_found
+- [x] Oxymorphone (oxymorphone) - no_2015_archive_found
+- [x] Pagoclone (pagoclone) - no_2015_archive_found
+- [x] Paracetamol (paracetamol) - no_2015_archive_found
+- [x] Parafluorofentanyl (parafluorofentanyl) - no_2015_archive_found
+- [x] Pargy-LAD (pargy-lad) - no_2015_archive_found
+- [x] PBP (pbp) - no_2015_archive_found
+- [x] PCE (pce) - no_2015_archive_found
+- [x] PCP (pcp) - no_2015_archive_found
+- [x] Pemoline (pemoline) - no_2015_archive_found
+- [x] Pentazocine (pentazocine) - no_2015_archive_found
+- [x] Pentedrone (pentedrone) - no_2015_archive_found
+- [x] Pentobarbital (pentobarbital) - no_2015_archive_found
+- [x] Pentylone (pentylone) - no_2015_archive_found
+- [x] Pethidine (pethidine) - no_2015_archive_found
+- [x] Pfbt (pfbt) - no_2015_archive_found
+- [x] Phenazepam (phenazepam) - no_2015_archive_found
+- [x] Phenethylamine (phenethylamine) - no_2015_archive_found
+- [x] Phenetrazine (phenetrazine) - no_2015_archive_found
+- [x] Phenmetrazine (phenmetrazine) - no_2015_archive_found
+- [x] Phenobarbital (phenobarbital) - no_2015_archive_found
+- [x] Phentermine (phentermine) - no_2015_archive_found
+- [x] Phenylpiracetam (phenylpiracetam) - no_2015_archive_found
+- [x] Picamilon (picamilon) - no_2015_archive_found
+- [x] Pinazepam (pinazepam) - no_2015_archive_found
+- [x] Pipradrol (pipradrol) - no_2015_archive_found
+- [x] Pipt (pipt) - no_2015_archive_found
+- [x] Piracetam (piracetam) - no_2015_archive_found
+- [x] PMA (pma) - no_2015_archive_found
+- [x] PMMA (pmma) - no_2015_archive_found
+- [x] Pramiracetam (pramiracetam) - no_2015_archive_found
+- [x] Prazepam (prazepam) - no_2015_archive_found
+- [x] PRE-084 (pre-084) - no_2015_archive_found
+- [x] PRL-8-53 (prl-8-53) - no_2015_archive_found
+- [x] Progesterone (progesterone) - no_2015_archive_found
+- [x] Prolintane (prolintane) - no_2015_archive_found
+- [x] Promethazine (promethazine) - no_2015_archive_found
+- [x] Propofol (propofol) - no_2015_archive_found
+- [x] Propoxyphene (propoxyphene) - no_2015_archive_found
+- [x] Propranolol (propranolol) - no_2015_archive_found
+- [x] Propylhexedrine (propylhexedrine) - no_2015_archive_found
+- [x] Propylphenidate (propylphenidate) - no_2015_archive_found
+- [x] Proscaline (proscaline) - no_2015_archive_found
+- [x] Pseudoephrine (pseudoephrine) - no_2015_archive_found
+- [x] PST (pst) - no_2015_archive_found
+- [x] PV-8 (pv-8) - no_2015_archive_found
+- [x] PVT (pvt) - no_2015_archive_found
+- [x] Pyrophenidone (pyrophenidone) - no_2015_archive_found
+- [x] Quazepam (quazepam) - no_2015_archive_found
+- [x] Rilmazafone (rilmazafone) - no_2015_archive_found
+- [x] Risperidone (risperidone) - no_2015_archive_found
+- [x] Rolicyclidine (rolicyclidine) - no_2015_archive_found
+- [x] Ronlax (ronlax) - no_2015_archive_found
+- [x] Salvinorin-B-Methoxymethyl-Ether (salvinorin-b-methoxymethyl-ether) - no_2015_subjective_effects_section
+- [x] SAM-e (sam-e) - no_2015_archive_found
+- [x] Secobarbital (secobarbital) - no_2015_archive_found
+- [x] Sentia (sentia) - no_2015_archive_found
+- [x] Sertraline (sertraline) - no_2015_archive_found
+- [x] Sildenafil (sildenafil) - no_2015_archive_found
+- [x] Sinicuichi (sinicuichi) - no_2015_archive_found
+- [x] Sonata (sonata) - no_2015_archive_found
+- [x] Sufentanil (sufentanil) - no_2015_archive_found
+- [x] Sulbutiamine (sulbutiamine) - no_2015_archive_found
+- [x] Tadalafil (tadalafil) - no_2015_archive_found
+- [x] Tapentadol (tapentadol) - no_2015_archive_found
+- [x] Temazepam (temazepam) - no_2015_archive_found
+- [x] Tetrazepam (tetrazepam) - no_2015_archive_found
+- [x] TH-PVP (th-pvp) - no_2015_archive_found
+- [x] Theacrine (theacrine) - no_2015_archive_found
+- [x] Theanine (theanine) - no_2015_archive_found
+- [x] Theobromine (theobromine) - no_2015_archive_found
+- [x] Thiopental (thiopental) - no_2015_archive_found
+- [x] Thiopropamine (thiopropamine) - no_2015_archive_found
+- [x] Tiletamine (tiletamine) - no_2015_archive_found
+- [x] Tilidine (tilidine) - no_2015_archive_found
+- [x] Tizanidine (tizanidine) - no_2015_archive_found
+- [x] TMA (tma) - no_2015_archive_found
+- [x] TMA-2 (tma-2) - no_2015_archive_found
+- [x] TMA-6 (tma-6) - no_2015_archive_found
+- [x] Trazodone (trazodone) - no_2015_archive_found
+- [x] Triazolam (triazolam) - no_2015_archive_found
+- [x] Troparil (troparil) - no_2015_archive_found
+- [x] U-47700 (u-47700) - no_2015_archive_found
+- [x] U-51754 (u-51754) - no_2015_archive_found
+- [x] UR-144 (ur-144) - no_2015_archive_found
+- [x] Valerylfentanyl (valerylfentanyl) - no_2015_archive_found
+- [x] Viloxazine (viloxazine) - no_2015_archive_found
+- [x] W-15 (w-15) - no_2015_archive_found
+- [x] Yerba-Mate (yerba-mate) - no_2015_archive_found
+- [x] Yopo (yopo) - no_2015_archive_found
+- [x] Zaleplon (zaleplon) - no_2015_archive_found
+- [x] Zolazepam (zolazepam) - no_2015_archive_found
+- [x] Zolpidem (zolpidem) - no_2015_archive_found
+
+## Pending probe

@@ -64,22 +64,6 @@ export const LOCAL_ARTIFACT_HYGIENE_POLICIES = [
     rationale: "Temporary work may include unrelated recovery assets and is never removed by hygiene:clean.",
   },
   {
-    path: ".codex-dev.log",
-    classification: "local-process-file",
-    cleanupBehavior: "delete-file-when-present",
-    protectionRule: "approved-direct-target",
-    reason: "local process file",
-    rationale: "Local development process log.",
-  },
-  {
-    path: ".codex-dev.pid",
-    classification: "local-process-file",
-    cleanupBehavior: "delete-file-when-present",
-    protectionRule: "approved-direct-target",
-    reason: "local process file",
-    rationale: "Local development process pid file.",
-  },
-  {
     path: "**/.DS_Store",
     classification: "macos-metadata",
     cleanupBehavior: "delete-discovered-files-outside-protected-directories",

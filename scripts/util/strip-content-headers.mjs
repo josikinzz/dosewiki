@@ -3,15 +3,16 @@
  * Removes markdown heading wrappers from article `content` fields when
  * the body copy matches `drug_info.notes` (or the heading is otherwise empty).
  *
- * Usage: node scripts/util/strip-content-headers.mjs
+ * Usage: node scripts/util/strip-content-headers.mjs --input <local-substance-export.json>
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { resolve } from "node:path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const articlesPath = join(__dirname, "../../src/data/SubstanceIndex.json");
+const inputIndex = process.argv.indexOf("--input");
+if (inputIndex < 0 || !process.argv[inputIndex + 1]) {
+  throw new Error("Pass --input <path> naming the local substance export to rewrite.");
+}
+const articlesPath = resolve(process.argv[inputIndex + 1]);
 
 const raw = readFileSync(articlesPath, "utf8");
 const articles = JSON.parse(raw);

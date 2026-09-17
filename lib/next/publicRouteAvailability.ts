@@ -33,7 +33,6 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "effect",
   "effects",
   "glossary",
-  "html-docs",
   "interactions",
   "invite",
   "mantras",

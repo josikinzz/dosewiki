@@ -1,0 +1,280 @@
+[
+  {
+    "categoryKey": "psychedelic",
+    "title": "Subjective Effects of Psychedelics",
+    "introHtml": "\n      <p>This article breaks down the subjective effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphors, analogies, or personal trip reports.</p>\n      <p>These descriptions are not specific to any particular substance but are applicable to the effects which commonly occur in various forms under the influence of almost any psychedelic compound. This includes, but is not limited to, both classical and research chemical psychedelics, such as:</p>\n    ",
+    "applicableSubstances": "LSD, Psilocybin mushrooms, DMT, Ayahuasca, Mescaline, 5-MeO-MiPT, 2C-B, LSA, AL-LAD, ALD-52, 1P-LSD, 2C-B-Fly, 2C-C, 2C-D, 2C-E, 2C-P, 4-AcO-DMT, 4-HO-MET, 4-HO-MiPT, 5-MeO-DMT, DPT, and DOC.",
+    "sections": [
+      {
+        "title": "Visual Amplifications",
+        "icon": "lucide:arrow-up",
+        "description": "Visual amplifications are defined as any subjective effect that increases, enhances, or intensifies a facet of a person's sense of sight.",
+        "effectTags": [
+          "psychedelic",
+          "visual",
+          "enhancement"
+        ]
+      },
+      {
+        "title": "Visual Distortions",
+        "icon": "lucide:move",
+        "description": "Visual distortions are any subjective effect which alters and changes the perception or appearance of pre-existing visual data without adding any entirely new content.",
+        "effectTags": [
+          "psychedelic",
+          "visual",
+          "distortion"
+        ]
+      },
+      {
+        "title": "Geometric Patterns",
+        "icon": "lucide:shapes",
+        "description": "Geometric patterns are defined as any subjective effect that introduces complex arrays of shapes, colours, symbols, patterns, geometry, form constants, and fractals to one's field of vision.",
+        "effectTags": [
+          "psychedelic",
+          "visual",
+          "geometric"
+        ]
+      },
+      {
+        "title": "Hallucinatory States",
+        "icon": "custom:elf",
+        "description": "Hallucinatory states are any subjective effect which changes the perception or appearance of pre-existing visual data by adding entirely new content in a manner which is similar to that of dreams.",
+        "effectTags": [
+          "psychedelic",
+          "visual",
+          "hallucinatory state"
+        ]
+      },
+      {
+        "title": "Cognitive Amplifications",
+        "icon": "lucide:arrow-up",
+        "description": "Cognitive amplifications are defined as any subjective effect that increases, enhances, or intensifies a facet of a person's sense of cognition.",
+        "effectTags": [
+          "psychedelic",
+          "cognitive",
+          "enhancement"
+        ]
+      },
+      {
+        "title": "Cognitive Suppressions",
+        "icon": "lucide:arrow-down",
+        "description": "Cognitive suppressions are any subjective effect which decreases or lowers the intensity of an aspect of a person's cognition.",
+        "effectTags": [
+          "psychedelic",
+          "cognitive",
+          "suppression"
+        ]
+      },
+      {
+        "title": "Novel Cognitive States",
+        "icon": "lucide:lightbulb",
+        "description": "A novel cognitive state is any cognitive effect which does not merely amplify or suppress familiar states of mind, but rather induces an experience that is qualitatively different from that of ordinary consciousness.",
+        "effectTags": [
+          "psychedelic",
+          "cognitive",
+          "novel"
+        ]
+      },
+      {
+        "title": "Psychological States",
+        "icon": "lucide:heart",
+        "description": "Psychological effects are any cognitive effect that is either established within the psychological literature or arises as a result of the complex interplay between other more simplistic components such as cognitive enhancements and suppressions.",
+        "effectTags": [
+          "psychedelic",
+          "cognitive",
+          "psychological state"
+        ]
+      },
+      {
+        "title": "Transpersonal States",
+        "icon": "lucide:infinity",
+        "description": "Transpersonal states are any subjective effect which feels as if it alters a person's cognition in a manner which relates to or contains information regarding their place in the universe, the inner workings of reality or consciousness, and the context of their existence. The fullest manifestation of these effects fall under what are sometimes called 'peak', 'transcendent' or 'transformative' experiences.",
+        "effectTags": [
+          "psychedelic",
+          "cognitive",
+          "transpersonal state"
+        ]
+      },
+      {
+        "title": "Auditory Effects",
+        "icon": "lucide:volume-2",
+        "description": "Auditory effects are any subjective effect which directly alters a person's sense of hearing.",
+        "effectTags": [
+          "psychedelic",
+          "miscellaneous",
+          "auditory"
+        ]
+      },
+      {
+        "title": "Tactile Effects",
+        "icon": "lucide:hand",
+        "description": "Tactile effects are any subjective effect which directly alters a person's sense of touch.",
+        "effectTags": [
+          "psychedelic",
+          "miscellaneous",
+          "tactile"
+        ]
+      },
+      {
+        "title": "Multisensory Effects",
+        "icon": "lucide:cog",
+        "description": "Multisensory effects are any subjective effect which directly alters two or more senses simultaneously. Although some hallucinatory effects may affect multiple senses at one time they are usually not categorized as 'multisensory effects' unless they do so consistently.",
+        "effectTags": [
+          "psychedelic",
+          "miscellaneous",
+          "multisensory"
+        ]
+      },
+      {
+        "title": "Physical Effects",
+        "icon": "lucide:activity",
+        "description": "Physical effects are any subjective effect which directly affects an aspect of a person's physical body. Although many uncomfortable physical effects also technically fit into this definition, they are excluded from this category as they have their own defining qualities.",
+        "effectTags": [
+          "psychedelic",
+          "miscellaneous",
+          "physical"
+        ],
+        "excludeTags": [
+          "uncomfortable"
+        ]
+      },
+      {
+        "title": "Uncomfortable Effects",
+        "icon": "lucide:frown",
+        "description": "An uncomfortable physical effect is any substance-induced alteration of a person's physical state which is unpleasant, undesirable, painful, or otherwise a source of distress. In most cases they indicate a temporary part of a substance's interaction with the body. However, in certain contexts, they can also indicate the need for attention or even medical treatment if they become dangerously severe.",
+        "effectTags": [
+          "psychedelic",
+          "miscellaneous",
+          "uncomfortable"
+        ]
+      }
+    ]
+  },
+  {
+    "categoryKey": "dissociative",
+    "title": "Subjective Effects of Dissociatives",
+    "introHtml": "\n      <p><b>Dissociatives</b> are a class of hallucinogen which distort perceptions of sight and sound to produce feelings of disconnection, detachment, and dissociation from the environment and self. These effects occur due to the way in which these compounds function as NMDA receptor antagonists. This means they bind to receptors in the brain but do not activate them, thus blocking other neurotransmitters from doing so. The result is a dose-dependent decrease in the passing of electrical signals across the brain and an overall disconnection of neurons, which leads to states of disconnection between conscious parts of the brain and its sensory organs.</p>\n      <p>This page breaks down the subjective effects of the dissociative experience into simple and easy to understand descriptions. These descriptions are not specific to any particular substance but are applicable to effects which commonly occur under the influence of almost any dissociative compound.</p>\n    ",
+    "applicableSubstances": "Ketamine, MXE, PCP, DXM, DCK, 3-MeO-PCP, O-PCE, 3-HO-PCE, 3-HO-PCP, 3-MeO-PCE, 4-MeO-PCP, PCE, Diphenidine, Ephenidine, Methoxphenidine",
+    "sections": [
+      {
+        "title": "Disconnective Effects",
+        "icon": "lucide:unplug",
+        "description": "Disconnective effects are any subjective effect which feels as if it detaches or disconnects one from the external environment, their senses, and their consciousness. These effects are typically associated with dissociative hallucinogens and likely occur due to the way in which these compounds function as NMDA receptor antagonists.",
+        "effectTags": [
+          "dissociative",
+          "disconnective"
+        ]
+      },
+      {
+        "title": "Miscellaneous Sensory Effects",
+        "icon": "lucide:cog",
+        "description": "In this context, miscellaneous sensory effects are any subjective experience which alters a person's visual, tactile, or gustatory senses.",
+        "effectTags": [
+          "dissociative",
+          "sensory"
+        ],
+        "excludeTags": [
+          "disconnective"
+        ]
+      },
+      {
+        "title": "Cognitive Effects",
+        "icon": "fluent:thinking-24-regular",
+        "description": "Cognitive effects are any subjective experience which directly alter or introduce new content to an element of a person's cognition.",
+        "effectTags": [
+          "dissociative",
+          "cognitive"
+        ],
+        "excludeTags": [
+          "disconnective"
+        ]
+      },
+      {
+        "title": "Physical Effects",
+        "icon": "lucide:activity",
+        "description": "Physical effects are any subjective experience which directly affects an aspect of a person's physical body.",
+        "effectTags": [
+          "dissociative",
+          "physical"
+        ],
+        "excludeTags": [
+          "uncomfortable"
+        ]
+      }
+    ]
+  },
+  {
+    "categoryKey": "deliriant",
+    "title": "Subjective Effects of Deliriants",
+    "introHtml": "\n      <p><b>Deliriants</b> are a class of hallucinogen that are unique in that they offer solid hallucinations which display themselves seamlessly into waking consciousness, similar to fully formed dreams. These hallucinations are also characterised by delusions and psychosis as they are most often immediately accepted as reality by the person experiencing them. In contrast, classical psychedelics and dissociatives have progressive levels of multiple all-encompassing sensory effects before reaching the level of concrete hallucination. They also rarely induce psychosis, with most people maintaining an understanding that they are simply under the influence of a substance throughout any hallucinations which they undergo.</p>\n      <p>Outside of these delirious external hallucinations, deliriant trips are primarily characterised by incredibly uncomfortable and often dangerous physical side effects alongside deep feelings of fear, anxiety, and confusion. It is because of this that deliriant substances hold no therapeutic or recreational potential and are instead merely curiosities that should not be experimented with by any but the most experienced of psychonauts.</p>\n      <p>This page breaks down the subjective effects of the deliriant experience into simple and easy to understand descriptions. These descriptions are not specific to any particular substance but are applicable to effects which commonly occur under the influence of almost any deliriant compound.</p>\n    ",
+    "applicableSubstances": "Diphenhydramine (DPH), Datura, Atropine, Hyoscyamine, Scopolamine, Dimenhydrinate, Doxylamine, Benzydamine, Elemicin, Brugmansia, Atropa Belladonna, Hyoscyamus Niger, Mandragora Officinarum",
+    "sections": [
+      {
+        "title": "Visual Effects",
+        "icon": "lucide:eye",
+        "description": "Visual effects are any subjective experience which directly alters a person's sense of sight.",
+        "effectTags": [
+          "deliriant",
+          "visual"
+        ]
+      },
+      {
+        "title": "Auditory Effects",
+        "icon": "lucide:ear",
+        "description": "Auditory effects are any subjective effect which directly alters a person's sense of hearing.",
+        "effectTags": [
+          "deliriant",
+          "auditory"
+        ]
+      },
+      {
+        "title": "Tactile Effects",
+        "icon": "lucide:hand",
+        "description": "Tactile effects are any subjective effect which directly alters a person's sense of touch.",
+        "effectTags": [
+          "deliriant",
+          "tactile"
+        ]
+      },
+      {
+        "title": "Multisensory Effects",
+        "icon": "lucide:cog",
+        "description": "Multisensory effects are any subjective effect which directly alters two or more senses simultaneously. Although some hallucinatory effects may affect multiple senses at one time they are usually not categorized as 'multisensory effects' unless they do so consistently.",
+        "effectTags": [
+          "deliriant",
+          "multisensory"
+        ]
+      },
+      {
+        "title": "Cognitive Effects",
+        "icon": "fluent:thinking-24-regular",
+        "description": "Cognitive effects are any subjective experience which directly alter or introduce new content to an element of a person's cognition.",
+        "effectTags": [
+          "deliriant",
+          "cognitive"
+        ]
+      },
+      {
+        "title": "Physical Effects",
+        "icon": "lucide:activity",
+        "description": "Physical effects are any subjective experience which directly affects an aspect of a person's physical body.",
+        "effectTags": [
+          "deliriant",
+          "physical"
+        ],
+        "excludeTags": [
+          "uncomfortable"
+        ]
+      },
+      {
+        "title": "Uncomfortable Physical Effects",
+        "icon": "lucide:frown",
+        "description": "An uncomfortable physical effect is any substance-induced alteration of a person's physical state which is unpleasant, undesirable, painful, or otherwise a source of distress. In most cases they indicate a temporary part of a substance's interaction with the body. However, in certain contexts, they can also indicate the need for attention or even medical treatment if they become dangerously severe.",
+        "effectTags": [
+          "deliriant",
+          "uncomfortable"
+        ]
+      }
+    ]
+  }
+]

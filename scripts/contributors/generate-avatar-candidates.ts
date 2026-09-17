@@ -1,5 +1,5 @@
 // Pure contributor-work eligibility and candidate ranking.
-import featuredReplications from "../../src/data/config/effectIndexFeaturedReplications.json";
+import featuredReplications from "@data/effects/effectIndexFeaturedReplications.json";
 import {
   profileMatchesName,
   sanitizeContributorAvatarUrl,

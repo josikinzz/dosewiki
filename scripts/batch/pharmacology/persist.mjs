@@ -1,6 +1,5 @@
-import { existsSync, copyFileSync } from "fs";
-
 import {
+  copyLocalJsonBackup,
   createArticlePersistence,
 } from "../lib/persistence-artifacts.mjs";
 import {
@@ -18,10 +17,7 @@ import {
 } from "./lib.mjs";
 
 export function createBackup() {
-  if (existsSync(CONFIG.articlesFile)) {
-    copyFileSync(CONFIG.articlesFile, CONFIG.backupFile);
-    console.log(`Backup created: ${CONFIG.backupFile}`);
-  }
+  return copyLocalJsonBackup(CONFIG);
 }
 
 export async function processArticle(apiKey, article, systemPrompt, verbose) {

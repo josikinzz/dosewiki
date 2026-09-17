@@ -75,7 +75,7 @@ async function importReplications() {
   // Load metadata
   if (!fs.existsSync(METADATA_FILE)) {
     console.error(`Error: Metadata file not found: ${METADATA_FILE}`);
-    console.error(`Run: node scripts/scan-replications.mjs`);
+    console.error("Provide the replication metadata export before importing.");
     process.exit(1);
   }
 

@@ -42,7 +42,6 @@ type MoleculeRevision = {
 type CardManifest = {
   version: 1;
   rendererVersion: string;
-  sourceDeployment: string;
   cards: Record<string, string>;
 };
 
@@ -207,7 +206,6 @@ async function main(): Promise<void> {
   const manifest: CardManifest = {
     version: 1,
     rendererVersion: SUBSTANCE_SOCIAL_CARD_RENDER_VERSION,
-    sourceDeployment: deploymentName,
     cards: sortedCards,
   };
   await writeAtomic(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);

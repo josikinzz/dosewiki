@@ -21,7 +21,7 @@ export function assertCitationSourceIdentity(value) {
 
 export function assertExplicitCitationPromotionTarget(context) {
   if (context?.backend !== "postgres") {
-    throw new Error("Citation promotion requires DATA_BACKEND=postgres; frozen Convex is not a promotion target.");
+    throw new Error("Citation promotion requires DATA_BACKEND=postgres; no other backend is a promotion target.");
   }
   if (!context?.targetUrl) {
     throw new Error("Citation promotion requires --target or TARGET_POSTGRES_URL.");

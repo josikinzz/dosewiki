@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveContributorHref, type ContributorDirectory } from "../../../lib/contributorDirectory";
-import userProfiles from "./userProfiles.json";
+import userProfiles from "@data/contributors/userProfiles.json";
 
 // Effect Index credits contributors by free-text name. These cases pin the
 // mapping decisions taken for the names that had no profile, so a later edit

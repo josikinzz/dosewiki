@@ -1,5 +1,5 @@
 /**
- * Tickets 12 and 13 rehearsal: replication curation, playback metadata,
+ * Rehearsal: replication curation, playback metadata,
  * contributor identity and attribution, all through `PostgresClient`
  * with the owned native handlers.
  *
@@ -223,19 +223,19 @@ async function main() {
 
     // ---- scratch corpus ------------------------------------------------------
     await scratch.seedStorageObject(storageId, storageUrl);
-    await scratch.seed("substanceIndex", { ...structuredClone(minimalArticle), slug: substanceSlug, title: `Ticket 12 ${RUN}`, classification: { psychoactive_class: ["Psychedelic"], chemical_class: [] } });
-    const effectId = await scratch.seed("subjectiveEffects", { slug: effectSlug, name: `Ticket 12 effect ${RUN}`, tags: [], summary: "", description_raw: "" });
-    const titleDrug = { slug: substanceSlug, name: `Ticket 12 ${RUN}`, class: "psychedelics", matched_title_text: "ticket" };
+    await scratch.seed("substanceIndex", { ...structuredClone(minimalArticle), slug: substanceSlug, title: `Rehearsal ${RUN}`, classification: { psychoactive_class: ["Psychedelic"], chemical_class: [] } });
+    const effectId = await scratch.seed("subjectiveEffects", { slug: effectSlug, name: `Rehearsal effect ${RUN}`, tags: [], summary: "", description_raw: "" });
+    const titleDrug = { slug: substanceSlug, name: `Rehearsal ${RUN}`, class: "psychedelics", matched_title_text: "ticket" };
     const base = { artist: ARTIST, type: "image", format: "jpg", created_at: now, role: "replication", publication_state: "published", replication_status: "replication", effect_slug: effectSlug, title_drugs: [titleDrug] };
     const ids = {
-      r1: await scratch.seed("replications", { ...base, slug: slugs.r1, title: `Ticket 12 work one ${RUN}`, storage_id: storageId }),
-      r2: await scratch.seed("replications", { ...base, slug: slugs.r2, title: `Ticket 12 work two ${RUN}`, url: `https://media.rehearsal.invalid/${P12}/two.jpg`, created_at: new Date(Date.now() - 1000).toISOString() }),
+      r1: await scratch.seed("replications", { ...base, slug: slugs.r1, title: `Rehearsal work one ${RUN}`, storage_id: storageId }),
+      r2: await scratch.seed("replications", { ...base, slug: slugs.r2, title: `Rehearsal work two ${RUN}`, url: `https://media.rehearsal.invalid/${P12}/two.jpg`, created_at: new Date(Date.now() - 1000).toISOString() }),
       // Unmapped storage id and no direct URL: the null path.
-      r3: await scratch.seed("replications", { ...base, slug: slugs.r3, title: `Ticket 12 unmapped ${RUN}`, storage_id: `${P12}-storage-missing`, effect_slug: undefined, title_drugs: undefined }),
-      r4: await scratch.seed("replications", { ...base, slug: slugs.r4, title: `Ticket 12 work four ${RUN}`, url: `https://media.rehearsal.invalid/${P12}/four.jpg`, created_at: new Date(Date.now() - 2000).toISOString() }),
+      r3: await scratch.seed("replications", { ...base, slug: slugs.r3, title: `Rehearsal unmapped ${RUN}`, storage_id: `${P12}-storage-missing`, effect_slug: undefined, title_drugs: undefined }),
+      r4: await scratch.seed("replications", { ...base, slug: slugs.r4, title: `Rehearsal work four ${RUN}`, url: `https://media.rehearsal.invalid/${P12}/four.jpg`, created_at: new Date(Date.now() - 2000).toISOString() }),
       // Attributed under an alias, not the profile's display name.
-      r5: await scratch.seed("replications", { ...base, slug: slugs.r5, title: `Ticket 13 alias work ${RUN}`, artist: ALIAS, url: `https://media.rehearsal.invalid/${P13}/five.jpg`, effect_slug: undefined, title_drugs: undefined }),
-      r6: await scratch.seed("replications", { ...base, slug: slugs.r6, title: `Ticket 13 duplicate ${RUN}`, artist: ALIAS, url: `https://media.rehearsal.invalid/${P13}/six.jpg`, effect_slug: undefined, title_drugs: undefined, publication_state: "duplicate-suppressed" }),
+      r5: await scratch.seed("replications", { ...base, slug: slugs.r5, title: `Rehearsal alias work ${RUN}`, artist: ALIAS, url: `https://media.rehearsal.invalid/${P13}/five.jpg`, effect_slug: undefined, title_drugs: undefined }),
+      r6: await scratch.seed("replications", { ...base, slug: slugs.r6, title: `Rehearsal duplicate ${RUN}`, artist: ALIAS, url: `https://media.rehearsal.invalid/${P13}/six.jpg`, effect_slug: undefined, title_drugs: undefined, publication_state: "duplicate-suppressed" }),
     };
     await scratch.seed("memberships", { email: OWNER_EMAIL, role: "editor", createdAt: now, updatedAt: now });
     await scratch.seed("memberships", { email: ADMIN_EMAIL, role: "admin", createdAt: now, updatedAt: now });
@@ -249,13 +249,13 @@ async function main() {
     const snapshot = { artist: ARTIST, role: "replication" as const, effect_slug: effectSlug, credit_line: null, effect_tags: [] as string[] };
     const request1 = `${P12}-publish-metadata-1`;
     const publish1 = await client.mutation(api.replicationContextualEditing.publishMetadata, {
-      ...admin, id: ids.r1, expectedRevision: detail0.revision, requestId: request1, updates: { ...snapshot, title: `Ticket 12 retitled ${RUN}` }, sourceUrl: null,
+      ...admin, id: ids.r1, expectedRevision: detail0.revision, requestId: request1, updates: { ...snapshot, title: `Rehearsal retitled ${RUN}` }, sourceUrl: null,
     });
     const candidates1 = await candidateState(pool, ids.r1);
     const receipts1 = await receiptState(pool, targetR1);
     expect(A, "publishMetadata applied", publish1.ok && !publish1.reconciled, publish1);
     expect(A, "candidates derived for slug and title drug route with the new title",
-      same(candidates1.map((row) => row.candidate_key), [`drug:${substanceSlug}`, `slug:${slugs.r1}`]) && candidates1.every((row) => row.title === `Ticket 12 retitled ${RUN}` && row.replication_id === ids.r1), candidates1);
+      same(candidates1.map((row) => row.candidate_key), [`drug:${substanceSlug}`, `slug:${slugs.r1}`]) && candidates1.every((row) => row.title === `Rehearsal retitled ${RUN}` && row.replication_id === ids.r1), candidates1);
     expect(A, "exactly one receipt with the request id, whose id is the returned revision", receipts1.length === 1 && receipts1[0].requestId === request1 && receipts1[0].id === publish1.resultRevision, receipts1);
     const detail1 = await client.query(api.replicationContextualEditing.detail, { ...admin, slug: slugs.r1 });
     expect(A, "revision token moved with the receipt", detail1.revision !== detail0.revision);
@@ -266,21 +266,21 @@ async function main() {
     expect(A, "stale expectedRevision is refused with CONFLICT", errorCode(stale.error) === "CONFLICT", errorMessage(stale.error));
     expect(A, "stale write left the candidates untouched", same(await candidateState(pool, ids.r1), candidates1));
     expect(A, "stale write left the receipts untouched", same(await receiptState(pool, targetR1), receipts1));
-    expect(A, "stale write left the row untouched", (await client.query(api.replications.getBySlug, { slug: slugs.r1 }))?.title === `Ticket 12 retitled ${RUN}`);
+    expect(A, "stale write left the row untouched", (await client.query(api.replications.getBySlug, { slug: slugs.r1 }))?.title === `Rehearsal retitled ${RUN}`);
 
     // Retained maintenance writer: the journal proxy records a generation without a request id.
     const editorial = await client.mutation(api.replications.updateEditorialFields, {
-      ...admin, id: ids.r1, expected: { ...snapshot, title: `Ticket 12 retitled ${RUN}` }, updates: { ...snapshot, title: `Ticket 12 retitled twice ${RUN}` },
+      ...admin, id: ids.r1, expected: { ...snapshot, title: `Rehearsal retitled ${RUN}` }, updates: { ...snapshot, title: `Rehearsal retitled twice ${RUN}` },
     });
     const receipts2 = await receiptState(pool, targetR1);
     expect(A, "retained studio write succeeded", editorial.success === true, editorial);
     expect(A, "retained studio write journaled one retained receipt", receipts2.length === 2 && String(receipts2[1].requestId).startsWith("retained-"), receipts2);
-    expect(A, "candidates follow the retained write", (await candidateState(pool, ids.r1)).every((row) => row.title === `Ticket 12 retitled twice ${RUN}`));
+    expect(A, "candidates follow the retained write", (await candidateState(pool, ids.r1)).every((row) => row.title === `Rehearsal retitled twice ${RUN}`));
 
     // ---- d. replay identities on the metadata path -------------------------
     const D = "d-conflict-replay";
     const replay = await client.mutation(api.replicationContextualEditing.publishMetadata, {
-      ...admin, id: ids.r1, expectedRevision: detail0.revision, requestId: request1, updates: { ...snapshot, title: `Ticket 12 retitled ${RUN}` }, sourceUrl: null,
+      ...admin, id: ids.r1, expectedRevision: detail0.revision, requestId: request1, updates: { ...snapshot, title: `Rehearsal retitled ${RUN}` }, sourceUrl: null,
     });
     expect(D, "same request id and payload replays as reconciled with the original revision", replay.ok && replay.reconciled && replay.resultRevision === publish1.resultRevision, replay);
     expect(D, "replay wrote no receipt", (await receiptState(pool, targetR1)).length === 2);
@@ -319,14 +319,14 @@ async function main() {
 
     // Playlist: owner-scoped visibility and archive/restore.
     const playlistOrder = [slugs.r2, slugs.r4, slugs.r1];
-    const upsert = await client.mutation(api.replicationPlaylists.upsert, { ...owner, key: playlistKey, title: `Ticket 12 playlist ${RUN}`, replication_slugs: [...playlistOrder, slugs.r6] });
+    const upsert = await client.mutation(api.replicationPlaylists.upsert, { ...owner, key: playlistKey, title: `Rehearsal playlist ${RUN}`, replication_slugs: [...playlistOrder, slugs.r6] });
     expect(B, "playlist upsert kept the order and pruned the suppressed work", upsert.status === "ok" && same(upsert.replication_slugs, playlistOrder) && same(upsert.pruned, [slugs.r6]), upsert);
     const playlist = await client.query(api.replicationPlaylists.get, { ...owner, key: playlistKey });
     expect(B, "playlist reads back in order, owned and editable", playlist !== null && same(playlist.replication_slugs, playlistOrder) && playlist.owner_email === OWNER_EMAIL && playlist.editable, playlist);
     const playlistCollection = await client.query(api.replicationContextualEditing.collectionDetail, { ...owner, targetKind: "playlist", targetKey: playlistKey });
     const playlistReorder = [slugs.r1, slugs.r4, slugs.r2];
     const playlistPublish = await client.mutation(api.replicationContextualEditing.publishCollection, {
-      ...owner, targetKind: "playlist", targetKey: playlistKey, expectedRevision: playlistCollection.revision, requestId: `${P12}-playlist-order`, slugs: playlistReorder, previousSlugs: playlistOrder, title: `Ticket 12 playlist ${RUN}`,
+      ...owner, targetKind: "playlist", targetKey: playlistKey, expectedRevision: playlistCollection.revision, requestId: `${P12}-playlist-order`, slugs: playlistReorder, previousSlugs: playlistOrder, title: `Rehearsal playlist ${RUN}`,
     });
     expect(B, "owner published a playlist reorder", playlistPublish.ok, playlistPublish);
     expect(B, "playlist order retained after publish", same((await client.query(api.replicationPlaylists.get, { ...owner, key: playlistKey }))?.replication_slugs, playlistReorder));

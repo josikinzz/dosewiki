@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import REPLICATION_SLUG_ALIASES from "../../src/data/config/replicationSlugAliases.json";
+import REPLICATION_SLUG_ALIASES from "@data/effects/replicationSlugAliases.json";
 import {
   getCategoryRouteAlias,
   getEffectCategoryRouteAlias,

@@ -9,7 +9,7 @@ import { renderPromptDriftReport } from "./compare-prompts.mjs";
 describe("compare-prompts CLI report", () => {
   it("renders deterministic dry comparison output from fake prompt records", () => {
     const source = new Map([
-      ["generator", { key: "generator", kind: "generator", content: "local generator", file: "generatorPrompt.md" }],
+      ["generator", { key: "generator", kind: "generator", content: "local generator", file: "generator.md" }],
       ["section_base", { key: "section_base", kind: "section", content: "same", file: "base.md" }],
     ]);
     const target = collectDataPromptInventory([

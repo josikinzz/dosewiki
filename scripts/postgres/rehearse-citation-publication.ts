@@ -1,5 +1,5 @@
 /**
- * Ticket 07 rehearsal: citation evidence and guarded publication on Postgres.
+ * Rehearsal: citation evidence and guarded publication on Postgres.
  *
  *   bun scripts/postgres/rehearse-citation-publication.ts [--target <url>] [--allow-remote] [--keep]
  *
@@ -178,19 +178,19 @@ async function main() {
     let articleId = 70_000_000 + Math.floor(Math.random() * 10_000_000);
     while ((await selectDocuments(pool, "substanceIndex", { where: '"id" = $1', params: [articleId], limit: 1 })).length) articleId += 1;
     const references = [
-      { id: REF1, type: "journal_article", title: "Ticket 07 source one", authors: ["Rehearsal, A."], year: 2020, sourceType: "primary_literature", quality: "high" },
-      { id: REF2, type: "book", title: "Ticket 07 source two", authors: ["Rehearsal, B."], year: 2018, sourceType: "book", quality: "medium" },
+      { id: REF1, type: "journal_article", title: "Rehearsal source one", authors: ["Rehearsal, A."], year: 2020, sourceType: "primary_literature", quality: "high" },
+      { id: REF2, type: "book", title: "Rehearsal source two", authors: ["Rehearsal, B."], year: 2018, sourceType: "book", quality: "medium" },
     ];
     const seed = {
       ...structuredClone(minimalArticle),
       id: articleId,
       slug,
-      title: `Ticket 07 rehearsal ${prefix}`,
+      title: `Rehearsal ${prefix}`,
       summary: `Summary claim about overdose risk. [cite:${REF1}]`,
       pharmacology: { ...structuredClone(minimalArticle.pharmacology), pharmacodynamics: `Pharmacodynamics claim with lethal dose data. [cite:${REF2}]` },
       tolerance: { ...structuredClone(minimalArticle.tolerance), full_tolerance: "Tolerance claim without a source." },
       references,
-      editorial_review: { status: "needed", notes: "ticket 07 scratch" },
+      editorial_review: { status: "needed", notes: "rehearsal scratch" },
     } as Record<string, unknown>;
     // The write validator (`substanceArticleLightValidator`) does not name `section_gaps`; stored articles that
     // round-trip through the editor never carry it.
@@ -208,7 +208,7 @@ async function main() {
       entailmentVerdict: "entails" as const, status: "approved" as const, severity: "blocking" as const, confidence: 0.93,
       referenceIds: [REF1],
       supports: [{
-        sourceId: `${prefix}-src-1`, sourceName: "Ticket 07 source one", referenceId: REF1, sourceType: "journal_article", quality: null,
+        sourceId: `${prefix}-src-1`, sourceName: "Rehearsal source one", referenceId: REF1, sourceType: "journal_article", quality: null,
         supportingQuote: "Overdose risk is documented in the cohort.", rationale: "The quote states the claim directly.",
         verifiedQuote: { sourceId: `${prefix}-src-1`, matchType: "exact" as const, startOffset: 12, endOffset: 41 },
       }],
@@ -220,7 +220,7 @@ async function main() {
       entailmentVerdict: "entails" as const, status: "approved" as const, severity: "blocking" as const, confidence: 0.81,
       referenceIds: [REF2],
       supports: [{
-        sourceId: `${prefix}-src-2`, sourceName: "Ticket 07 source two", referenceId: REF2, sourceType: null, quality: "medium",
+        sourceId: `${prefix}-src-2`, sourceName: "Rehearsal source two", referenceId: REF2, sourceType: null, quality: "medium",
         supportingQuote: "The lethal dose was reported   with irregular spacing.", rationale: "Whitespace-normalized match.",
         verifiedQuote: { sourceId: `${prefix}-src-2`, matchType: "normalized_whitespace" as const, startOffset: null, endOffset: null },
       }],
@@ -290,10 +290,10 @@ async function main() {
         return canon(first) === canon(third) && before !== after;
       }));
     const status1 = await data.mutation(api.citationEvidence.setManyStatus, {
-      apiKey: TOKENS.citationEvidenceReview, actorEmail: adminEmail, slug, claimKeys: [rowC.claimKey], status: "needs_review", statusReason: "Ticket 07 reviewer note",
+      apiKey: TOKENS.citationEvidenceReview, actorEmail: adminEmail, slug, claimKeys: [rowC.claimKey], status: "needs_review", statusReason: "Rehearsal reviewer note",
     });
     const c4 = (await evidenceByClaim()).get(rowC.claimKey)!;
-    expect("round-trip", "setManyStatus round-trips status and reviewer note", status1.updated === 1 && c4.status === "needs_review" && c4.statusReason === "Ticket 07 reviewer note" && canon(c4.referenceIds) === "[]", c4);
+    expect("round-trip", "setManyStatus round-trips status and reviewer note", status1.updated === 1 && c4.status === "needs_review" && c4.statusReason === "Rehearsal reviewer note" && canon(c4.referenceIds) === "[]", c4);
 
     // ---------------------------------------------------------------- b. invalidation
     const before = await evidenceByClaim();
@@ -302,7 +302,7 @@ async function main() {
     const publishStart = Date.now();
     const published = await data.mutation(api.articleLifecycle.write, {
       apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, action: "publish", slug,
-      baseHash: state.baseHash, changeId: `${prefix}-publish-1`, article: edited, summary: "Ticket 07 rehearsal: revise the summary wording",
+      baseHash: state.baseHash, changeId: `${prefix}-publish-1`, article: edited, summary: "Rehearsal: revise the summary wording",
     });
     const after = await evidenceByClaim();
     expect("invalidation", "publish recorded a revision", typeof published.revisionId === "string" && published.baseHash !== state.baseHash, published);
@@ -384,13 +384,13 @@ async function main() {
     await unchanged("wrong-intent tokens");
 
     const progress = await data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "in_progress" });
-    expect("reviewed-gate", "editor may move the review to in_progress (notes kept, no reviewer stamp)", progress.editorial_review.status === "in_progress" && progress.editorial_review.notes === "ticket 07 scratch" && !("reviewed_by" in progress.editorial_review), progress);
+    expect("reviewed-gate", "editor may move the review to in_progress (notes kept, no reviewer stamp)", progress.editorial_review.status === "in_progress" && progress.editorial_review.notes === "rehearsal scratch" && !("reviewed_by" in progress.editorial_review), progress);
     const back = await data.mutation(api.substanceIndex.setEditorialReview, { ...editorCall(TOKENS.editorArticleWrite), slug, status: "needed" });
     expect("reviewed-gate", "editor may move it back to needed", back.editorial_review.status === "needed");
 
-    const flagged = await data.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Check wording", severity: "minor", note: "Ticket 07 flag", section: "summary" } });
+    const flagged = await data.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Check wording", severity: "minor", note: "Rehearsal flag", section: "summary" } });
     expect("reviewed-gate", "addHumanReviewFlag appends a flag and preserves status", flagged.flags.length === 1 && (await reviewStatus()) === "needed", flagged);
-    const agentFlags = await data.mutation(api.substanceIndex.replaceAgentReviewFlagsForArticle, { apiKey: TOKENS.editorArticleWrite, slug, runId: `${prefix}-review-run`, flags: [{ label: "Agent flag", severity: "note", note: "Ticket 07 agent flag" }] });
+    const agentFlags = await data.mutation(api.substanceIndex.replaceAgentReviewFlagsForArticle, { apiKey: TOKENS.editorArticleWrite, slug, runId: `${prefix}-review-run`, flags: [{ label: "Agent flag", severity: "note", note: "Rehearsal agent flag" }] });
     expect("reviewed-gate", "replaceAgentReviewFlagsForArticle (bare-token script path) replaces agent flags only and preserves status",
       agentFlags.flags.length === 2 && agentFlags.flags.some((flag) => flag.source === "human") && (await reviewStatus()) === "needed", agentFlags);
     const injected = await refusal(() => data.mutation(api.substanceIndex.addHumanReviewFlag, { ...editorCall(TOKENS.editorArticleWrite), slug, flag: { label: "Smuggled", severity: "note", note: "", status: "completed" } as never }));
@@ -402,16 +402,16 @@ async function main() {
     const reviewedArticle = { ...structuredClone(lifecycle.article), editorial_review: { ...(lifecycle.article.editorial_review as Record<string, unknown>), status: "completed", reviewed_by: editorEmail, reviewed_at: now } };
     for (const action of ["saveDraft", "submit"] as const) {
       const result = await refusal(() => data.mutation(api.articleLifecycle.write, {
-        ...editorCall(TOKENS.editorArticleWrite), action, slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-${action}-review`, article: reviewedArticle, summary: "Ticket 07 attempt", draftVersion: lifecycle.draftVersion,
+        ...editorCall(TOKENS.editorArticleWrite), action, slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-${action}-review`, article: reviewedArticle, summary: "Rehearsal attempt", draftVersion: lifecycle.draftVersion,
       }));
       expect("reviewed-gate", `articleLifecycle.write ${action} carrying a completed review is refused as an invalid content edit`, result?.code === "ARTICLE_INVALID" && result.message.startsWith("editorial_review:"), result);
     }
     const editorPublish = await refusal(() => data.mutation(api.articleLifecycle.write, {
-      ...editorCall(TOKENS.editorArticleWrite), action: "publish", slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-publish-review-editor`, article: reviewedArticle, summary: "Ticket 07 attempt",
+      ...editorCall(TOKENS.editorArticleWrite), action: "publish", slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-publish-review-editor`, article: reviewedArticle, summary: "Rehearsal attempt",
     }));
     expect("reviewed-gate", "articleLifecycle.write publish by an editor is refused at the admin floor", editorPublish?.message === "Admin access required", editorPublish);
     const adminPublish = await refusal(() => data.mutation(api.articleLifecycle.write, {
-      apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, action: "publish", slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-publish-review-admin`, article: reviewedArticle, summary: "Ticket 07 attempt",
+      apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, action: "publish", slug, baseHash: lifecycle.baseHash, changeId: `${prefix}-publish-review-admin`, article: reviewedArticle, summary: "Rehearsal attempt",
     }));
     expect("reviewed-gate", "even an admin content publish cannot carry a review status change", adminPublish?.code === "ARTICLE_INVALID" && adminPublish.message.startsWith("editorial_review:"), adminPublish);
     await unchanged("articleLifecycle.write");

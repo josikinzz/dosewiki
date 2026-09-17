@@ -18,7 +18,7 @@ export const CONFIG = {
   quotesDir: join(PROJECT_ROOT, "quotes/dosage-duration-quotes"),
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
   progressFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-dosage-duration-progress.json"),
-  promptFallbackFile: join(PROJECT_ROOT, "src/data/config/sectionPrompts/dosageDuration.md"),
+  promptFallbackFile: join(PROJECT_ROOT, "content/prompts/sections/dosageDuration.md"),
   skipArticles: ["dextromethorphan", "ketamine"],
 };
 

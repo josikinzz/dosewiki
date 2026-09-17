@@ -80,7 +80,7 @@ export function createUploadLedger(plan, { planPath, planSha256 }) {
       attempts: 0,
     }])),
     summary: {},
-    safety: { copyOnly: true, delete: false, sourceWrites: 0, convexWrites: 0 },
+    safety: { copyOnly: true, delete: false, sourceWrites: 0, databaseWrites: 0 },
   };
   refreshSummary(ledger);
   return ledger;

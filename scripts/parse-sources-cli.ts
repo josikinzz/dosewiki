@@ -26,7 +26,7 @@ const __dirname = path.dirname(__filename);
 
 const SOURCES_DIR = path.join(__dirname, "../src/data/article-sources");
 const DEFAULT_OUTPUT = path.join(__dirname, "../src/data/parsed-sources.json");
-const COMBOS_PATH = path.join(__dirname, "../src/data/tripsit-combos.json");
+const COMBOS_PATH = path.join(__dirname, "../data/third-party/tripsit/tripsit-combos.json");
 
 interface CliOptions {
   substance: string;

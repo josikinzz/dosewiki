@@ -4,8 +4,8 @@ import { mediaTypeFromContentType } from "./article-media-evidence.mjs";
 /**
  * Whether the public surfaces will publish this row, per `isPublishableReplication`.
  *
- * The Convex queries deliberately return every stored row — the rights and
- * provenance tooling needs figures to stay visible — so the gate lives app-side
+ * The data queries deliberately return every stored row (the rights and
+ * provenance tooling needs figures to stay visible), so the gate lives app-side
  * in `src/types/replications.ts`. Restated here as the one thing a written row
  * must be checked against, and cross-checked against the real implementation in
  * this script's test rather than left as a comment claiming they agree.

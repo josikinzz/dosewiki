@@ -100,7 +100,7 @@ function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
 
 /**
  * The deliberate asymmetry with `lib/next/copyBlocks.ts`: copy blocks degrade to
- * the checked-in defaults in `src/data/content/copyBlocks.json`, because a
+ * the checked-in defaults in `content/copy-blocks/copyBlocks.json`, because a
  * missing footer line is a visible hole on the page. A banner degrades to
  * nothing. There is no checked-in banner default and there must not be one — a
  * stale fallback could paint a safety warning onto an article an editor had

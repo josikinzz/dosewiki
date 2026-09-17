@@ -2,7 +2,7 @@
  * Editorial content shown for a substance-index category tab.
  *
  * Source of truth for per-category `definition`/`warning` is
- * `src/data/indexes/psychoactiveIndexManual.json`. Umbrella "super-category"
+ * `data/substances/psychoactiveIndexManual.json`. Umbrella "super-category"
  * tabs (Hallucinogens, Depressants) are defined in code alongside their
  * tab config in `DosagesPage`. Both are projected into this shape.
  *

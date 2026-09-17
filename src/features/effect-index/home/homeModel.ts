@@ -310,7 +310,7 @@ function humanizeSlug(slug: string): string {
  * Resolve the curated slug list against the live replication read.
  *
  * "Featured" is editorial curation rather than derived data, so the list is checked in
- * (`src/data/config/effectIndexFeaturedReplications.json`) rather than stored as a
+ * (`data/effects/effectIndexFeaturedReplications.json`) rather than stored as a
  * `featured` field the `replications` table does not have. A slug that no longer resolves,
  * whose media has no URL, or whose kind the panel cannot draw, is skipped silently — a
  * curated list will always drift behind the data, and a broken tile is worse than a

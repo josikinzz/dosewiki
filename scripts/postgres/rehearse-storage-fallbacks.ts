@@ -1,5 +1,5 @@
 /**
- * Ticket 11 rehearsal: prove on Postgres that `ctx.storage.getUrl` serves the
+ * Rehearsal: prove on Postgres that `ctx.storage.getUrl` serves the
  * `storageObjects` mapping and that every storage-id fallback behaves exactly
  * as specified when the mapping is absent (null, never a throw).
  *
@@ -81,7 +81,7 @@ async function main() {
     const directThumb = `https://fallback.invalid/${prefix}/thumb.webp`;
     const replicationId = await insertDocument(pool, "replications", {
       slug,
-      title: `Ticket 11 rehearsal ${prefix}`,
+      title: `Rehearsal ${prefix}`,
       artist: prefix,
       type: "video",
       format: "mp4",
@@ -100,12 +100,12 @@ async function main() {
     const bareKey = `${prefix}-BARE`.toUpperCase();
     const avatarFallback = `https://fallback.invalid/${prefix}/avatar.png`;
     const profileId = await insertDocument(pool, "contributorProfiles", {
-      key: profileKey, displayName: "Ticket 11", aliases: [], bio: "", links: [], createdAt: now, updatedAt: now,
+      key: profileKey, displayName: "Rehearsal", aliases: [], bio: "", links: [], createdAt: now, updatedAt: now,
       avatarStorageId: storageIds.avatar, avatarUrl: avatarFallback,
     });
     scratch.push({ table: "contributorProfiles", id: profileId });
     const bareId = await insertDocument(pool, "contributorProfiles", {
-      key: bareKey, displayName: "Ticket 11 bare", aliases: [], bio: "", links: [], createdAt: now, updatedAt: now,
+      key: bareKey, displayName: "Rehearsal bare", aliases: [], bio: "", links: [], createdAt: now, updatedAt: now,
       avatarStorageId: `${prefix}-bare-avatar`,
     });
     scratch.push({ table: "contributorProfiles", id: bareId });

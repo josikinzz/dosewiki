@@ -8,9 +8,10 @@
  * ("Continuum Infinitum by Ben Ridgeway"), into `rightsholder`, and into the
  * slug, which was built from title plus artist.
  *
- * The corrections themselves are not here. They are the `strong` entries of
- * `src/data/config/contributorIdentityCorrections.json`, where each one carries
- * its evidence, and this script only turns them into a plan.
+ * The corrections themselves are not here. They are the `strong` entries of a
+ * reviewed identity corrections JSON, where each one carries its evidence. That
+ * file describes real people and is kept outside the repository; the run passes
+ * it in with `--corrections=<path>`, and this script only turns it into a plan.
  *
  * ## What it will and will not do
  *
@@ -31,18 +32,19 @@
  * than being overwritten from stale data.
  *
  * It does **not** rename slugs. A slug is a public URL and renaming one needs an
- * alias entry in `src/data/config/replicationSlugAliases.json` to keep shared
+ * alias entry in `data/effects/replicationSlugAliases.json` to keep shared
  * links alive — and one of the affected slugs is already the *target* of an
  * existing alias, which would be left pointing at a 404. So the slug half is
  * reported in full, with the exact redirect entries it would need, and left for
  * a human to run through `scripts/replications/normalize-slugs.mjs`.
  *
  * Dry run (default):
- *   node scripts/replications/plan-artist-name-corrections.mjs
- *   node scripts/replications/plan-artist-name-corrections.mjs --stored=StingrayZ
+ *   node scripts/replications/plan-artist-name-corrections.mjs --corrections=<path>
+ *   node scripts/replications/plan-artist-name-corrections.mjs --corrections=<path> --stored=StingrayZ
  *
  * Apply:
  *   node scripts/replications/plan-artist-name-corrections.mjs --write \
+ *     --corrections=<path> \
  *     --stored=StingrayZ \
  *     --confirm-write=correct-replication-artist-names \
  *     --expected-deployment=<fingerprint>
@@ -58,13 +60,13 @@ import {
   printProductionWriteCommand,
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
+import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { buildSlugCandidate } from "./normalize-slugs.mjs";
 
 const OPERATION = "correct-replication-artist-names";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const CORRECTIONS_PATH = path.join(ROOT, "src/data/config/contributorIdentityCorrections.json");
-const ALIAS_PATH = path.join(ROOT, "src/data/config/replicationSlugAliases.json");
+const ALIAS_PATH = path.join(ROOT, "data/effects/replicationSlugAliases.json");
 
 function normalizeName(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -81,7 +83,10 @@ function normalizeName(value) {
  * correction on file is an error rather than an empty plan: a misspelled flag
  * must not look like a corpus that needs nothing.
  */
-export function loadArtistNameCorrections(filePath = CORRECTIONS_PATH, { only = [] } = {}) {
+export function loadArtistNameCorrections(filePath, { only = [] } = {}) {
+  if (!filePath) {
+    throw new Error("Pass --corrections=<path> pointing at the reviewed identity corrections JSON.");
+  }
   const corrections = JSON.parse(fs.readFileSync(filePath, "utf8"));
   const strong = (corrections.nameCorrections ?? []).filter(
     (entry) => entry.strength === "strong" && entry.correctsReplicationArtistField === true,
@@ -303,7 +308,7 @@ function printPlan(plan, slugPlan) {
   console.log(
     "\n  Slugs were derived from title + artist, so correcting the artist changes what the\n" +
       "  derivation produces. These are public URLs; renaming one needs a redirect entry in\n" +
-      "  src/data/config/replicationSlugAliases.json, which scripts/replications/normalize-slugs.mjs\n" +
+      "  data/effects/replicationSlugAliases.json, which scripts/replications/normalize-slugs.mjs\n" +
       "  writes as part of the same run that performs the rename.\n",
   );
 
@@ -353,12 +358,12 @@ async function main() {
     );
   }
 
-  const only = process.argv
-    .slice(2)
+  const argv = process.argv.slice(2);
+  const only = argv
     .filter((arg) => arg.startsWith("--stored="))
     .map((arg) => arg.slice("--stored=".length))
     .filter(Boolean);
-  const corrections = loadArtistNameCorrections(CORRECTIONS_PATH, { only });
+  const corrections = loadArtistNameCorrections(getFlagValue(argv, "--corrections"), { only });
   const client = createDataClient({ target: readUrl }).client;
   const replications = await client.query(api.replications.getAll, {});
   const aliases = JSON.parse(fs.readFileSync(ALIAS_PATH, "utf8"));

@@ -1,4 +1,4 @@
-import routeSynonymData from "../mappings/routeSynonyms.json" assert { type: "json" };
+import routeSynonymData from "@data/substances/routeSynonyms.json" assert { type: "json" };
 import {
   parseQualifiedMechanismLabel,
   type QualifiedMechanismLabel,

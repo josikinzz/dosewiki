@@ -1,8 +1,8 @@
 /**
  * Lossless mapping between stored document values and Postgres rows.
  *
- * The persisted encoding originated in Convex ZIP exports, which wrote one
- * `documents.jsonl` per table. Values that JSON cannot carry use wrappers:
+ * The persisted encoding follows the original document-export format, which
+ * wrote one `documents.jsonl` per table. Values that JSON cannot carry use wrappers:
  * `{"$float": base64}` for NaN, infinities, and -0; `{"$integer": base64}` for
  * int64; `{"$bytes": base64}` for byte arrays.
  *

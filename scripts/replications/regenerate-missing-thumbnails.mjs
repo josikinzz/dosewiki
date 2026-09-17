@@ -18,7 +18,7 @@ import {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const AUDIT_PATH = path.resolve(getFlagValue(process.argv.slice(2), "--audit-path") ?? path.join(os.homedir(), ".local/state/dosewiki-housecleaning/replication-provenance/audit-latest.json"));
-const LEDGER_PATH = path.join(ROOT, "notes-and-plans/reports/replication-provenance/thumbnail-ledger.json");
+const LEDGER_PATH = path.join(ROOT, "tmp/replication-provenance/thumbnail-ledger.json");
 const WRITE = process.argv.includes("--write");
 const CONFIRMED = process.argv.includes("--confirm-thumbnail-write");
 const requestedDigest = process.argv.find((value) => value.startsWith("--digest="))?.slice(9);
@@ -90,6 +90,7 @@ async function main() {
     process.stderr.write("\n");
   }
   const ledger = { schema_version: 1, applied_at: new Date().toISOString(), audit_generated_at: audit.generated_at, payload_digest: payloadDigest, summary: { proposed: records.length, applied: outcomes.filter((row) => row.status === "applied").length, failed: outcomes.filter((row) => row.status === "failed").length }, outcomes };
+  fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
   fs.writeFileSync(LEDGER_PATH, `${JSON.stringify(ledger, null, 2)}\n`);
   console.log(JSON.stringify(ledger.summary, null, 2));
   if (ledger.summary.failed) process.exitCode = 1;

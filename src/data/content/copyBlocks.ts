@@ -1,4 +1,4 @@
-import copyBlockDefaultsSource from "./copyBlocks.json";
+import copyBlockDefaultsSource from "@content/copy-blocks/copyBlocks.json";
 
 /**
  * Local defaults for the editable copy blocks.

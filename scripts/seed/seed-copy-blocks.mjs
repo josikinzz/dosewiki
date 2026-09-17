@@ -2,7 +2,7 @@
 /**
  * Seed the `copyBlocks` table from the checked-in copy defaults.
  *
- * The defaults in `src/data/content/copyBlocks.json` are the strings the public
+ * The defaults in `content/copy-blocks/copyBlocks.json` are the strings the public
  * pages hardcoded before the copy CMS existed. Seeding copies them into Postgres
  * so the /dev Copy Studio has something to edit; the same JSON stays the
  * fallback the server read helper uses when a key has no row, so a deployment
@@ -37,7 +37,7 @@ import {
 } from "../lib/production-write-command.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULTS_PATH = path.join(__dirname, "../../src/data/content/copyBlocks.json");
+const DEFAULTS_PATH = path.join(__dirname, "../../content/copy-blocks/copyBlocks.json");
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const VALID_KINDS = new Set(["markdown", "plain", "list"]);
