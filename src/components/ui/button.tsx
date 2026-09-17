@@ -10,21 +10,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-xl border border-[var(--theme-frosted-panel-border)] bg-[var(--theme-frosted-control-bg)] text-[var(--theme-accent-strong)] hover:border-[var(--theme-frosted-control-hover-border)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
+          "rounded-control border border-[var(--theme-frosted-panel-border)] bg-[var(--theme-frosted-control-bg)] text-[var(--theme-accent-strong)] hover:border-[var(--theme-frosted-control-hover-border)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
         accent:
-          "rounded-xl border border-transparent theme-cta-accent",
+          "rounded-control border border-transparent theme-cta-accent",
         secondary:
-          "rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
+          "rounded-control border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         ghost:
-          "rounded-xl text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-surface-muted)]",
+          "rounded-control text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-surface-muted)]",
         destructive:
-          "rounded-xl border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
+          "rounded-control border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
         ghostDestructive:
-          "rounded-xl border border-transparent bg-transparent text-[color:var(--theme-danger-text)] hover:bg-[color:var(--theme-danger-bg)] hover:text-[color:var(--theme-danger-text-strong)]",
+          "rounded-control border border-transparent bg-transparent text-[color:var(--theme-danger-text)] hover:bg-[color:var(--theme-danger-bg)] hover:text-[color:var(--theme-danger-text-strong)]",
         success:
-          "rounded-xl border border-[color:var(--theme-success-border)] bg-[color:var(--theme-success-bg)] text-[color:var(--theme-success-text)] hover:border-[color:var(--theme-success-border-strong)] hover:bg-[color:var(--theme-success-bg-strong)] hover:text-[color:var(--theme-success-text-strong)]",
+          "rounded-control border border-[color:var(--theme-success-border)] bg-[color:var(--theme-success-bg)] text-[color:var(--theme-success-text)] hover:border-[color:var(--theme-success-border-strong)] hover:bg-[color:var(--theme-success-bg-strong)] hover:text-[color:var(--theme-success-text-strong)]",
         outline:
-          "rounded-xl border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)]",
+          "rounded-control border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)]",
         link:
           "text-[var(--theme-accent-strong)] underline-offset-4 hover:text-[var(--theme-accent)] hover:underline",
         pill:
@@ -48,27 +48,27 @@ const buttonVariants = cva(
         chip:
           "rounded-full bg-[var(--theme-frosted-control-bg)] text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]",
         listItem:
-          "w-full justify-start rounded-xl text-left text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-accent-strong)]",
+          "w-full justify-start rounded-control text-left text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-accent-strong)]",
         card:
-          "w-full items-start justify-between rounded-2xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-left hover:border-[var(--theme-frosted-panel-hover-border)] hover:bg-[var(--theme-surface-soft)]",
+          "w-full items-start justify-between rounded-card border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-left hover:border-[var(--theme-frosted-panel-hover-border)] hover:bg-[var(--theme-surface-soft)]",
         suggestion:
-          "w-full justify-between rounded-xl border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
+          "w-full justify-between rounded-control border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         suggestionActive:
-          "w-full justify-between rounded-xl border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,rgb(var(--c-brand))_20%,var(--theme-control-base))] to-[color-mix(in_srgb,rgb(var(--c-violet))_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)]",
+          "w-full justify-between rounded-control border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,rgb(var(--c-brand))_20%,var(--theme-control-base))] to-[color-mix(in_srgb,rgb(var(--c-violet))_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)]",
         tagRemove:
           "rounded-full p-0.5 text-[var(--theme-text-muted)] transition hover:text-[var(--theme-text-primary)]",
         iconGhost:
-          "rounded-xl p-1.5 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
+          "rounded-control p-1.5 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         textLink:
           "text-sm text-[var(--theme-accent-strong)] hover:text-[var(--theme-accent)]",
         iconSmall:
-          "shrink-0 rounded p-1 text-[var(--theme-text-faint)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
+          "shrink-0 rounded-chip p-1 text-[var(--theme-text-faint)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         iconAction:
-          "rounded-lg p-2 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
+          "rounded-chip p-2 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         iconClose:
-          "rounded-lg p-2 text-[var(--theme-text-muted)] transition hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
+          "rounded-chip p-2 text-[var(--theme-text-muted)] transition hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         iconWarning:
-          "rounded-lg bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] transition hover:bg-[color:var(--theme-warning-bg-strong)]",
+          "rounded-chip bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] transition hover:bg-[color:var(--theme-warning-bg-strong)]",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -188,4 +188,20 @@ describe("shared UI ownership boundaries", () => {
     expect(offAxis).toEqual([]);
   });
 
+  it("reads corner roles, not Tailwind radius sizes, in the primitives tier", () => {
+    // The geometry tokens (--radius-control/-chip/-card/-panel/-pill) carry a value per
+    // visual style; a size utility bypasses them and Pro has to re-square it by selector.
+    const sizeUtilities = readSourceFiles(["src/components/ui"], { extensions: /\.tsx$/ }).flatMap(
+      ({ path: filePath, text }) =>
+        /\.test\.tsx$/.test(filePath)
+          ? []
+          : Array.from(
+              text.matchAll(/(?<![\w-])rounded(?:-(?:sm|md|lg|xl|2xl|3xl|\[[^\]]+\]))?(?![\w-])(?=[\s"'`])/g),
+              (match) => `${filePath}: ${match[0]}`,
+            ),
+    );
+
+    expect(sizeUtilities).toEqual([]);
+  });
+
 });

@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
  * component.
  */
 const safetyBannerVariants = cva(
-  "grid w-full gap-x-4 gap-y-3 overflow-hidden rounded-2xl p-4 max-[560px]:block",
+  "grid w-full gap-x-4 gap-y-3 overflow-hidden rounded-card p-4 max-[560px]:block",
   {
     variants: {
       // Tonal names only. Feature-named variants are blocked by

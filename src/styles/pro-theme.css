@@ -1728,11 +1728,19 @@ html[data-visual-style="pro"] .theme-effect-neutral-panel
    FLATTENED GEOMETRY
    =====================================================================
    The original's panels were square-cornered with hairline borders. The
-   Surface component maps its radius scale onto plain Tailwind utilities
-   (rounded-lg / -xl / -2xl / -[2rem]), so squaring the site is a matter
-   of redefining those utilities under the flavor. rounded-full is left
-   alone — avatars, dots and pills are meant to be round.
+   shared kit reads corner roles (--radius-control/-chip/-card/-panel, see
+   base.css), re-seated here once; the plain Tailwind size utilities are
+   still redefined under the flavor for feature code that has not moved to
+   the roles. rounded-full is left alone: avatars, dots and pills are round.
    --------------------------------------------------------------------- */
+html[data-visual-style="pro"] {
+  --radius-control: 0.25rem;
+  --radius-chip: 0.1875rem;
+  --radius-card: 0.25rem;
+  --radius-panel: 0.375rem;
+}
+
+/* Size utilities still in feature code; the shared kit reads the roles above. */
 html[data-visual-style="pro"] .rounded-lg {
   border-radius: 0.1875rem;
 }

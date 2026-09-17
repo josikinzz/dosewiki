@@ -47,7 +47,7 @@ list, so `tone` means the same thing on `Button`, `Badge`, and `Surface`:
 | `tone` | Semantic color: status and severity | `StatusBadge` today: `red`, `rose`, `yellow`, `orange`, `blue`, `green`, `emerald`, `gray`, `white`. Color names, not meanings; the geometry and tone normalization in the kit polish plan renames them. |
 | `selected` | Boolean selected state on a surface or control | `true`, `false` |
 | `padding` | Inner spacing role on a surface | `none`, `xs`, `sm`, `md`, `lg`, `xl` |
-| `radius` | Corner role on a surface | `none`, `md`, `lg`, `xl`, plus the role names `index`, `state`, `compactState` until geometry tokens replace them |
+| `radius` | Corner role on a surface | `none`, `md` (chip role), `lg` (control role), `xl` and `index` (card role), `state` and `compactState` (panel role); each resolves to a `--radius-*` role token |
 
 Recorded exceptions: `Input`, `Select`, and `Textarea` carry `inputSize`,
 `selectSize`, and `textareaSize` because `size` collides with the native

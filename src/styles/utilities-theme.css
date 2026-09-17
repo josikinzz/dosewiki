@@ -3764,16 +3764,16 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   border-color: transparent;
   background: var(--theme-duration-stage-row-background);
   color: var(--theme-text-primary);
-  box-shadow: var(--theme-dose-tier-row-box-shadow);
-  --tw-ring-color: var(--theme-dose-tier-row-tw-ring-color);
+  box-shadow: var(--theme-dosage-row-box-shadow);
+  --tw-ring-color: var(--theme-dosage-row-ring-color);
 }
 
 .theme-dose-tier-row {
-  background: var(--theme-dose-tier-row-background);
+  background: var(--theme-dosage-row-background);
 }
 
 .theme-plateau-tier-row {
-  background: var(--theme-plateau-tier-row-background);
+  background: var(--theme-plateau-row-background);
 }
 
 /* Dose tier tints: dark-theme values for the tier scale; the light theme
@@ -3787,23 +3787,23 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-dose-tier-row [data-dose-tier="threshold"] {
-  background-image: var(--theme-dose-tier-row-dose-tier-threshold-background-image);
+  background-image: var(--theme-dosage-row-threshold-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="light"] {
-  background-image: var(--theme-dose-tier-row-dose-tier-light-background-image);
+  background-image: var(--theme-dosage-row-light-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="moderate"] {
-  background-image: var(--theme-dose-tier-row-dose-tier-moderate-background-image);
+  background-image: var(--theme-dosage-row-moderate-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="strong"] {
-  background-image: var(--theme-dose-tier-row-dose-tier-strong-background-image);
+  background-image: var(--theme-dosage-row-strong-image);
 }
 
 .theme-dose-tier-row [data-dose-tier="heavy"] {
-  background-image: var(--theme-dose-tier-row-dose-tier-heavy-background-image);
+  background-image: var(--theme-dosage-row-heavy-image);
 }
 
 /* Plateau tier tints mirror the dose tier construction; Sigma carries
@@ -3814,23 +3814,23 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-plateau-tier-row [data-plateau-tier="first_plateau"] {
-  background-image: var(--theme-plateau-tier-row-plateau-tier-first-plateau-background-image);
+  background-image: var(--theme-plateau-row-first-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="second_plateau"] {
-  background-image: var(--theme-plateau-tier-row-plateau-tier-second-plateau-background-image);
+  background-image: var(--theme-plateau-row-second-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="third_plateau"] {
-  background-image: var(--theme-plateau-tier-row-plateau-tier-third-plateau-background-image);
+  background-image: var(--theme-plateau-row-third-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="fourth_plateau"] {
-  background-image: var(--theme-plateau-tier-row-plateau-tier-fourth-plateau-background-image);
+  background-image: var(--theme-plateau-row-fourth-image);
 }
 
 .theme-plateau-tier-row [data-plateau-tier="fifth_plateau"] {
-  background-image: var(--theme-plateau-tier-row-plateau-tier-fifth-plateau-background-image);
+  background-image: var(--theme-plateau-row-fifth-image);
 }
 
 .theme-dosage-mode-tab {
@@ -3920,7 +3920,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-duration-stage-row:nth-child(even) {
-  background: var(--theme-duration-stage-row-nth-child-even-background);
+  background: var(--theme-duration-stage-row-even-background);
 }
 
 /* LD50 toxicity table — dress the real <table> in the same frosted

@@ -13,7 +13,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "theme-overlay-surface flex h-full w-full flex-col overflow-hidden rounded-2xl border",
+      "theme-overlay-surface flex h-full w-full flex-col overflow-hidden rounded-card border",
       className
     )}
     {...props}
@@ -113,7 +113,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "theme-text-secondary relative flex cursor-pointer gap-2 select-none items-center rounded-xl px-2 py-2 text-sm outline-none transition",
+      "theme-text-secondary relative flex cursor-pointer gap-2 select-none items-center rounded-control px-2 py-2 text-sm outline-none transition",
       "hover:bg-[var(--theme-frosted-control-on-panel-bg)]",
       "data-[selected='true']:bg-[var(--theme-frosted-control-on-panel-hover-bg)] data-[selected='true']:text-[var(--theme-text-primary)]",
       "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",

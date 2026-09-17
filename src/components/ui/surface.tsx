@@ -45,12 +45,12 @@ const surfaceVariants = cva("relative border", {
     },
     radius: {
       none: "rounded-none",
-      md: "rounded-lg",
-      lg: "rounded-xl",
-      xl: "rounded-2xl",
-      index: "rounded-2xl",
-      state: "rounded-[2rem]",
-      compactState: "rounded-[1.75rem]",
+      md: "rounded-chip",
+      lg: "rounded-control",
+      xl: "rounded-card",
+      index: "rounded-card",
+      state: "rounded-panel",
+      compactState: "rounded-panel",
     },
   },
   defaultVariants: {

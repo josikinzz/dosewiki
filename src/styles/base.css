@@ -39,6 +39,18 @@
   --radius-2xl: 0.375rem;
   --radius-3xl: 0.5625rem;
 
+  /* Corner roles. Components ask for the role (rounded-control, rounded-chip,
+     rounded-card, rounded-panel, rounded-pill via the Tailwind aliases in
+     tailwind.config.mjs) rather than a size, so one visual style can square
+     every card without touching a component: Fun maps the roles onto the
+     scale above; pro-theme.css re-seats them. Pills and discs stay round in
+     both styles. */
+  --radius-control: var(--radius-xl);
+  --radius-chip: var(--radius);
+  --radius-card: var(--radius-2xl);
+  --radius-panel: 2rem;
+  --radius-pill: 9999px;
+
   /* Sticky chrome offsets. The app header measures 4.25rem; the replications
      control bar sticks below it, and in the phone browse view each artist
      label sticks below that. Deriving every offset from these three keeps the

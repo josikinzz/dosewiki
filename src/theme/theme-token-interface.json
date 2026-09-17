@@ -191,6 +191,17 @@
       "--editor-chip-border",
       "--editor-chip-text",
       "--editor-toolbar-separator"
+    ],
+    "geometry": [
+      "--radius",
+      "--radius-xl",
+      "--radius-2xl",
+      "--radius-3xl",
+      "--radius-control",
+      "--radius-chip",
+      "--radius-card",
+      "--radius-panel",
+      "--radius-pill"
     ]
   },
   "semanticClasses": {

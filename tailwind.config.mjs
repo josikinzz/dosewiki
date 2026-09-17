@@ -55,6 +55,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        // Corner roles; values per visual style live in src/styles/base.css and pro-theme.css.
+        control: "var(--radius-control)",
+        chip: "var(--radius-chip)",
+        card: "var(--radius-card)",
+        panel: "var(--radius-panel)",
+        pill: "var(--radius-pill)",
       },
       keyframes: {
         "accordion-down": {

@@ -95,7 +95,16 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    slugs, or display labels with `resolveEffectCategoryIcon` from
    `src/features/effects/pages/effectsIndexConfig.ts`. Keep bespoke fallback icons
    only for sections that do not correspond to a canonical effect category.
-8. **Focus is quiet, not an accent frame.** Use `focusRingClassName` or
+8. **Corners are roles, not sizes.** Shared components ask for a corner role:
+   `rounded-control` (buttons, fields, tabs, menu items), `rounded-chip`
+   (name chips, small tags), `rounded-card` (cards, dialogs, popovers),
+   `rounded-panel` (state and hero panels), `rounded-pill` (capsules). The
+   roles are `--radius-*` tokens in `src/styles/base.css` with a value per
+   visual style (`pro-theme.css` re-seats them), so Clinical squares every
+   card without touching a component. `src/components/ui/ownership.test.ts`
+   rejects a Tailwind radius size in the primitives tier; `rounded-full` and
+   `rounded-none` stay allowed.
+9. **Focus is quiet, not an accent frame.** Use `focusRingClassName` or
    `theme-focus-ring` for a 1px neutral keyboard-focus cue. Use
    `theme-field-focus` for text fields and selects, which emphasize their
    existing border without an outside ring. Do not add thick accent outlines,
