@@ -1,6 +1,6 @@
 # data/
 
-Tracked datasets a third party can download and use without running the site. Everything here is loaded by source under `src/`, `lib/`, `server/`, or `scripts/` through the `@data/*` alias (TypeScript) or a relative path (`.mjs`). Generated build artifacts (`*.generated.json`, theme baselines, icon data, social-card manifests, route availability) stay beside their consumers; runtime configuration and prompt sources stay under `src/data/config/`; editorial copy stays under `src/data/content/`.
+Tracked datasets a third party can download and use without running the site. Everything here is loaded by source under `src/`, `lib/`, `server/`, or `scripts/` through the `@data/*` alias (TypeScript) or a relative path (`.mjs`). Generated build artifacts (`*.generated.json`, theme baselines, icon data, social-card manifests, route availability) stay beside their consumers; runtime configuration stays under `src/data/config/`; prompts and editorial copy live under `content/`.
 
 `data/lineage.json` is the provenance contract for every operational artifact in the repository: role, producer, consumers, inputs, edit policy, and the refresh command. `npm run provenance:check` validates it. Producer scripts write per-run sidecars into the gitignored `data/.lineage/` directory.
 
@@ -31,6 +31,7 @@ Licenses: datasets authored by dose.wiki are released under CC0 1.0 as described
 | `changelog/devChangeLog.json`, `changelog/devChangeLog.archive.json` | Editor save history committed through the Dev Tools change log (recent entries and the rolled-over archive) | CC0 1.0 (edit history of CC0 article content) | Dev Tools change log commit workflow |
 | `third-party/tripsit/tripsit-combos.json` | TripSit drug-combination chart keyed by dose.wiki slug | TripSit's terms: non-commercial, attribution, link back, quick-reference note (`third-party/tripsit/LICENSE.md`) | TripSit snapshot; re-keyed by `scripts/parsers/tripsit-combos.ts` |
 | `third-party/tripsit/combo_definitions.json` | TripSit combination status legend (Dangerous, Unsafe, Caution, the three Low Risk variants, Unknown) | TripSit's terms (`third-party/tripsit/LICENSE.md`) | TripSit snapshot |
+| `third-party/protestkit/reagentTests.json` | ProtestKit reagent test colour outcomes keyed by dose.wiki slug | Used with permission; redistribution terms on file with the maintainer (`third-party/protestkit/LICENSE.md`). Refresh only with ProtestKit permission | `node scripts/data/cacheProtestKitReagentTests.mjs` |
 | `../public/SubstanceIndex.json` | Archival sanitized snapshot of the substance article corpus, the download linked from the About page; stays under `public/` because it is served at `/SubstanceIndex.json` | CC0 1.0 (article text) with the exceptions in `/docs/license` section 4 | `node scripts/data/sanitize-public-substance-archive.mjs` |
 
 The live open-data downloads (`/open-data/SubstanceIndex.json`, `/open-data/EffectIndex.json`, `/open-data/TripReports.json`) are rendered from Postgres by `src/app/open-data/` and are not tracked files.

@@ -12,9 +12,9 @@ This is the current authority for Vercel project routing, build separation, requ
 
 Public hosts redirect `/dev`, `/review`, `/sign-in`, and `/unauthorized` to `dev.dose.wiki`. Credentialed APIs stay unavailable on public origins. Editor hosts remain `noindex`, return private/no-store caching directives, and must never receive a public alias. `src/config/siteFlavor.ts`, `lib/next/flavorGatedRoutes.ts`, and `src/middleware.ts` own route and host behavior.
 
-`vercel.json` disables Git-triggered deployments for `main` and
-`no-corpus-drain`. This keeps workflow and generated-pack pushes from
-deploying application code. Explicit releases still follow the sequence
+`vercel.json` disables Git-triggered deployments for `main`. This keeps
+workflow and generated-pack pushes from deploying application code.
+Explicit releases still follow the sequence
 below. Vercel's `gitProviderOptions.createDeployments` controls GitHub
 deployment records, not this build-suppression boundary.
 

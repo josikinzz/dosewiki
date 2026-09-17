@@ -14,7 +14,7 @@ const currentGuidanceDocs = [
   "docs/design/font-swap-howto.md",
 ];
 
-const agentGuidanceDocs = ["AGENTS.md", "CLAUDE.md"];
+const agentGuidanceDocs = ["AGENTS.md"];
 
 const retiredRuntimeCurrentDocPatterns = [
   { label: "retired Vite runtime", pattern: /\b(?:Vite dev server|React \+ Vite|Client-side React application delivered by Vite)\b/i },

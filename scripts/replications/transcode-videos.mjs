@@ -11,20 +11,20 @@
  *      connection at playback rate, so the video stalls regardless of caching.
  *   2. Atom order. No script has ever passed `-movflags +faststart`, so the
  *      `moov` atom trails the `mdat` payload. A browser cannot begin decoding
- *      until it has the `moov`, so it fetches to end-of-file first — on a 4.8 GB
+ *      until it has the `moov`, so it fetches to end-of-file first: on a 4.8 GB
  *      file that is the entire download before the first frame paints.
  *
  * This script fixes both, locally, on files the operator has already pulled
  * down. It performs NO Postgres write and never contacts a deployment: it reads a
  * directory of masters and writes a directory of renditions plus a manifest.
  * Uploading the renditions and repointing `storage_id` is a separate, later
- * operation that consumes this manifest — see docs/operations/replication-media-delivery.md.
+ * operation that consumes this manifest: see docs/operations/replication-media-delivery.md.
  *
  * Masters are treated as irreplaceable. The script refuses to encode a file
  * whose master is not verifiably preserved at the configured archive location,
  * and it never writes into that archive.
  *
- * Dry run (default — probes everything, plans, writes the manifest, encodes
+ * Dry run (default: probes everything, plans, writes the manifest, encodes
  * nothing):
  *   node scripts/replications/transcode-videos.mjs \
  *     --source-dir=/vol/replication-masters \
@@ -182,7 +182,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
-  console.log("Postgres writes: none — this operation is local-only.\n");
+  console.log("Postgres writes: none: this operation is local-only.\n");
 
   const sourceDir = getFlagValue(argv, "--source-dir");
   const mastersDir = getFlagValue(argv, "--masters-dir");
@@ -373,7 +373,7 @@ async function main() {
       entry.status = "already-done";
       resumed += 1;
       entries.push(entry);
-      console.log(`             already rendered (${formatBytes(entry.outputBytes)}) — skipping`);
+      console.log(`             already rendered (${formatBytes(entry.outputBytes)}): skipping`);
       continue;
     }
     if (fs.existsSync(outputPath)) {
@@ -430,7 +430,7 @@ async function main() {
         entry.status = "failed";
         entry.reasons = [...entry.reasons, `ffmpeg exited ${result.status}`];
         entries.push(entry);
-        console.warn(`             FAILED — ffmpeg exited ${result.status}`);
+        console.warn(`             FAILED: ffmpeg exited ${result.status}`);
         continue;
       }
     }
@@ -481,7 +481,7 @@ async function main() {
 
   if (command.dryRun) {
     console.log(
-      `\nDry run — nothing encoded, nothing copied, no Postgres writes. Re-run with --write --confirm-transcode to execute.`,
+      `\nDry run: nothing encoded, nothing copied, no Postgres writes. Re-run with --write --confirm-transcode to execute.`,
     );
     return;
   }

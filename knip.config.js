@@ -33,7 +33,6 @@ const config = {
         "server/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "eslint-plugins/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "lib/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
-        "notes-and-plans/prototypes/**/*.{js,mjs,cjs,ts,mts,cts,tsx,css}",
         "runs/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "scripts/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "src/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,css}",
