@@ -20,7 +20,7 @@ import {
  */
 const TONE_TILE_SURFACE: Record<EditorStatusPillTone, { tile: string; icon: string }> = {
   neutral: {
-    tile: "border-[color:var(--theme-border-subtle)] bg-[var(--theme-frosted-control-on-panel-bg)]",
+    tile: "border-[color:var(--theme-border-subtle)] [background:var(--theme-frosted-control-on-panel-bg)]",
     icon: "theme-text-faint",
   },
   info: {

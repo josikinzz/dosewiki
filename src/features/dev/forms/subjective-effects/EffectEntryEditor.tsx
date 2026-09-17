@@ -40,7 +40,7 @@ export function EffectEntryEditor({
   const descriptionField = useGrowToContent();
 
   return (
-    <div className="group relative flex gap-2 rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-frosted-control-on-panel-bg)] p-3 transition hover:border-[var(--theme-frosted-panel-hover-border)]">
+    <div className="group relative flex gap-2 rounded-lg border border-[var(--theme-border-subtle)] [background:var(--theme-frosted-control-on-panel-bg)] p-3 transition hover:border-[var(--theme-frosted-panel-hover-border)]">
       {/* Effect name and description */}
       <div className="min-w-0 flex-1 space-y-3">
         <EditorField htmlFor={`${idPrefix}-effect-${index}-name`} label="Effect name">

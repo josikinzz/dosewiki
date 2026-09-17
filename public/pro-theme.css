@@ -143,7 +143,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --ei-ink-5: #7c7c7c;
 
   --ei-accent: #3d9991;
-  --ei-accent-strong: #27635d;
+  --ei-accent-strong: #336f68; /* 5.34:1 on paper; the old #27635d ran 6.35:1 and read as ink, not teal */
   --ei-accent-soft: #5cb3aa;
   --ei-accent-muted: #34837c;
 
@@ -467,6 +467,11 @@ html[data-visual-style="pro"][data-theme="dark"] {
   /* Neutral, not the accent: the entry label beside it is the link, and doubling
      the affordance on the bullet is what made the index read as accent-washed. */
   --theme-index-card-bullet: var(--ei-ink-4);
+  /* Flat sunk neutral: the Fun value is a highlight gradient that reads as a
+     lit panel on Pro's paper canvas. */
+  --theme-index-card-dim-border-color: var(--ei-border);
+  --theme-index-card-dim-background: var(--ei-surface-sunk);
+  --theme-index-card-dim-color: var(--ei-ink-2);
   --theme-avatar-gradient-from: var(--ei-accent-soft);
   --theme-avatar-gradient-to: var(--ei-accent-strong);
   --theme-home-nav-card-border: var(--ei-border);

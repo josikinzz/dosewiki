@@ -82,9 +82,9 @@ export function TagMultiSelectMenu({
                     onMouseDown={onOptionMouseDown}
                     onMouseEnter={() => onHighlight(index)}
                     onClick={() => onOptionClick(item)}
-                    className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm [overflow-wrap:anywhere] transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] theme-focus-ring ${
+                    className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm [overflow-wrap:anywhere] transition hover:[background:var(--theme-frosted-control-on-panel-hover-bg)] theme-focus-ring ${
                       isActive
-                        ? "bg-[var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
+                        ? "[background:var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
                         : "text-[var(--theme-text-secondary)]"
                     }`}
                   >
@@ -103,9 +103,9 @@ export function TagMultiSelectMenu({
                   onMouseDown={onOptionMouseDown}
                   onMouseEnter={() => onHighlight(index)}
                   onClick={() => onOptionClick(item)}
-                  className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm [overflow-wrap:anywhere] transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] theme-focus-ring ${
+                  className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm [overflow-wrap:anywhere] transition hover:[background:var(--theme-frosted-control-on-panel-hover-bg)] theme-focus-ring ${
                     isActive
-                      ? "bg-[var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
+                      ? "[background:var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
                       : "text-[var(--theme-text-secondary)]"
                   }`}
                 >

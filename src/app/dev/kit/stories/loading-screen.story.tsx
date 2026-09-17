@@ -15,11 +15,11 @@ export const loadingScreenStory: StoryDef = {
   examples: [
     {
       label: "Full loading screen",
-      note: "Mounted live inside a clipped, relative frame so its fixed inset-0 positioning is scoped to this preview instead of covering the page.",
+      note: "Mounted live inside a clipped frame that carries a transform, so it is the containing block for the fixed inset-0 shell and the preview stays inside it instead of covering the page.",
       background: "plain",
       full: true,
       render: () => (
-        <div className="relative h-[26rem] w-full overflow-hidden rounded-xl border border-[var(--theme-border-subtle)]">
+        <div className="relative h-[26rem] w-full overflow-hidden rounded-card border border-[var(--theme-border-subtle)] [transform:translateZ(0)]">
           <LoadingScreen />
         </div>
       ),
@@ -30,7 +30,7 @@ export const loadingScreenStory: StoryDef = {
       background: "plain",
       full: true,
       render: () => (
-        <div className="relative h-56 w-full overflow-hidden rounded-xl border border-[var(--theme-border-subtle)]">
+        <div className="relative h-56 w-full overflow-hidden rounded-card border border-[var(--theme-border-subtle)] [transform:translateZ(0)]">
           <LoadingScreen />
         </div>
       ),

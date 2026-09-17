@@ -114,8 +114,8 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       "theme-text-secondary relative flex cursor-pointer gap-2 select-none items-center rounded-control px-2 py-2 text-sm outline-none transition",
-      "hover:bg-[var(--theme-frosted-control-on-panel-bg)]",
-      "data-[selected='true']:bg-[var(--theme-frosted-control-on-panel-hover-bg)] data-[selected='true']:text-[var(--theme-text-primary)]",
+      "hover:[background:var(--theme-frosted-control-on-panel-bg)]",
+      "data-[selected='true']:[background:var(--theme-frosted-control-on-panel-hover-bg)] data-[selected='true']:text-[var(--theme-text-primary)]",
       "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className

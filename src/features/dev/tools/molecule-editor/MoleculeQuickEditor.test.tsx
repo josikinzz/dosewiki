@@ -2,18 +2,18 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const useQueryMock = vi.hoisted(() => vi.fn());
+const useMoleculeSourceReadMock = vi.hoisted(() => vi.fn());
 const useRdkitMock = vi.hoisted(() => vi.fn());
 const useOclMock = vi.hoisted(() => vi.fn());
 const renderMoleculeSvgMock = vi.hoisted(() => vi.fn());
 const compareInchiMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/hooks/useEditorRead", () => ({
-  useEditorRead: useQueryMock,
+  useEditorRead: vi.fn(),
   useInvalidateEditorReads: () => async () => undefined,
 }));
 vi.mock("./useMoleculeSourceRead", () => ({
-  useMoleculeSourceRead: () => ({ slug: "example", smiles: "CCO" }),
+  useMoleculeSourceRead: useMoleculeSourceReadMock,
 }));
 
 vi.mock("./useRdkit", () => ({
@@ -77,21 +77,14 @@ describe("MoleculeQuickEditor", () => {
       inchiOriginal: "InChI=1S/example",
       inchiEdited: "InChI=1S/example",
     });
-    // Stable object identity, like the structurally shared read: a fresh object per
-    // render would retrigger the source-resolution effect and discard live edits.
-    const article = { identification: { smiles: "CCO" } };
-    useQueryMock.mockImplementation((query: unknown, args: unknown) => {
-      if (query === "substanceIndex:getBySlug") {
-        return args === "skip" ? undefined : article;
-      }
-      return undefined;
-    });
+    // The real hook retains its result identity until a source response arrives.
+    useMoleculeSourceReadMock.mockReturnValue({ slug: "example", smiles: "CCO" });
   });
 
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
-    useQueryMock.mockReset();
+    useMoleculeSourceReadMock.mockReset();
     useRdkitMock.mockReset();
     useOclMock.mockReset();
     renderMoleculeSvgMock.mockReset();
@@ -169,8 +162,7 @@ describe("MoleculeQuickEditor", () => {
   });
 
   it("shows the no-structure notice when the article has no SMILES", async () => {
-    const articleWithoutSmiles = { identification: {} };
-    useQueryMock.mockImplementation(() => articleWithoutSmiles);
+    useMoleculeSourceReadMock.mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ ok: true, override: null }), {
         status: 200,

@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-control border border-[var(--theme-frosted-panel-border)] bg-[var(--theme-frosted-control-bg)] text-[var(--theme-accent-strong)] hover:border-[var(--theme-frosted-control-hover-border)] hover:bg-[var(--theme-frosted-control-hover-bg)]",
+          "rounded-control border border-[var(--theme-frosted-panel-border)] [background:var(--theme-frosted-control-bg)] text-[var(--theme-accent-strong)] hover:border-[var(--theme-frosted-control-hover-border)] hover:[background:var(--theme-frosted-control-hover-bg)]",
         accent:
           "rounded-control border border-transparent theme-cta-accent",
         secondary:
@@ -30,15 +30,15 @@ const buttonVariants = cva(
         pill:
           "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-soft)] hover:text-[var(--theme-text-primary)]",
         pillActive:
-          "rounded-full border-[var(--theme-frosted-control-hover-border)] bg-[var(--theme-frosted-control-hover-bg)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-control-active)]",
+          "rounded-full border-[var(--theme-frosted-control-hover-border)] [background:var(--theme-frosted-control-hover-bg)] text-[var(--theme-text-primary)] shadow-[var(--theme-elevation-control-active)]",
         quiet:
           "rounded-full bg-transparent font-medium text-[var(--theme-text-faint)] hover:bg-transparent hover:text-[var(--theme-text-primary)]",
         quietActive:
           "rounded-full bg-transparent theme-accent-emphasis font-semibold text-[var(--theme-accent-strong)] hover:bg-transparent hover:text-[var(--theme-accent-strong)]",
         glass:
-          "rounded-full bg-[var(--theme-frosted-control-bg)] ring-1 ring-[var(--theme-frosted-control-border)] text-[var(--theme-text-primary)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:ring-[var(--theme-frosted-control-hover-border)]",
+          "rounded-full [background:var(--theme-frosted-control-bg)] ring-1 ring-[var(--theme-frosted-control-border)] text-[var(--theme-text-primary)] hover:[background:var(--theme-frosted-control-hover-bg)] hover:ring-[var(--theme-frosted-control-hover-border)]",
         ghostPill:
-          "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
+          "rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-[var(--theme-text-secondary)] hover:border-[var(--theme-frosted-panel-border)] hover:[background:var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         destructivePill:
           "rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
         toggleActive:
@@ -46,13 +46,13 @@ const buttonVariants = cva(
         toggleInactive:
           "rounded-full bg-gradient-to-tr from-[color-mix(in_srgb,#fff_12%,var(--theme-control-base))] via-[color-mix(in_srgb,#fff_5%,var(--theme-control-base))] to-[var(--theme-control-base)] text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:text-[var(--theme-text-primary)] hover:ring-[var(--theme-border-strong)]",
         chip:
-          "rounded-full bg-[var(--theme-frosted-control-bg)] text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] hover:bg-[var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]",
+          "rounded-full [background:var(--theme-frosted-control-bg)] text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-frosted-control-border)] hover:[background:var(--theme-frosted-control-hover-bg)] hover:text-[var(--theme-accent-strong)]",
         listItem:
           "w-full justify-start rounded-control text-left text-[var(--theme-text-secondary)] hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-accent-strong)]",
         card:
           "w-full items-start justify-between rounded-card border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] text-left hover:border-[var(--theme-frosted-panel-hover-border)] hover:bg-[var(--theme-surface-soft)]",
         suggestion:
-          "w-full justify-between rounded-control border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
+          "w-full justify-between rounded-control border border-transparent bg-[var(--theme-surface-muted)] text-left text-[var(--theme-text-secondary)] ring-1 ring-[var(--theme-border-subtle)] hover:border-[var(--theme-frosted-panel-border)] hover:[background:var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         suggestionActive:
           "w-full justify-between rounded-control border border-[var(--theme-frosted-control-hover-border)] bg-gradient-to-r from-[color-mix(in_srgb,rgb(var(--c-brand))_20%,var(--theme-control-base))] to-[color-mix(in_srgb,rgb(var(--c-violet))_10%,var(--theme-control-base))] text-left text-[var(--theme-text-primary)] ring-1 ring-[var(--theme-border-subtle)]",
         tagRemove:
@@ -66,7 +66,7 @@ const buttonVariants = cva(
         iconAction:
           "rounded-chip p-2 text-[var(--theme-text-secondary)] transition hover:bg-[var(--theme-surface-muted)] hover:text-[var(--theme-text-primary)]",
         iconClose:
-          "rounded-chip p-2 text-[var(--theme-text-muted)] transition hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
+          "rounded-chip p-2 text-[var(--theme-text-muted)] transition hover:[background:var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)]",
         iconWarning:
           "rounded-chip bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] transition hover:bg-[color:var(--theme-warning-bg-strong)]",
       },

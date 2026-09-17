@@ -25,7 +25,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "theme-text-secondary flex cursor-default select-none items-center gap-2 rounded-control px-2 py-1.5 text-sm outline-none focus:bg-[var(--theme-frosted-control-on-panel-bg)] data-[state=open]:bg-[var(--theme-frosted-control-on-panel-bg)] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      "theme-text-secondary flex cursor-default select-none items-center gap-2 rounded-control px-2 py-1.5 text-sm outline-none focus:[background:var(--theme-frosted-control-on-panel-bg)] data-[state=open]:[background:var(--theme-frosted-control-on-panel-bg)] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       inset && "pl-8",
       className
     )}
@@ -87,8 +87,8 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       "theme-text-secondary relative flex cursor-pointer select-none items-center gap-2 rounded-control px-2 py-2 text-sm outline-none transition",
-      "hover:bg-[var(--theme-frosted-control-on-panel-bg)]",
-      "focus:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus:text-[var(--theme-text-primary)]",
+      "hover:[background:var(--theme-frosted-control-on-panel-bg)]",
+      "focus:[background:var(--theme-frosted-control-on-panel-hover-bg)] focus:text-[var(--theme-text-primary)]",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       inset && "pl-8",
@@ -106,7 +106,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "theme-text-secondary relative flex cursor-default select-none items-center rounded-control py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-[var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "theme-text-secondary relative flex cursor-default select-none items-center rounded-control py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:[background:var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     checked={checked}
@@ -130,7 +130,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "theme-text-secondary relative flex cursor-default select-none items-center rounded-control py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-[var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "theme-text-secondary relative flex cursor-default select-none items-center rounded-control py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:[background:var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}

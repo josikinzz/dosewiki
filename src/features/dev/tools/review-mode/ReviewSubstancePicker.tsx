@@ -112,7 +112,7 @@ function DisclosureRow({
       aria-expanded={expanded}
       className={cn(
         "theme-focus-ring-inset flex w-full items-center gap-2 rounded-xl py-1.5 pr-2 text-left transition [@media(pointer:coarse)]:min-h-11",
-        "hover:bg-[var(--theme-frosted-control-on-panel-bg)]",
+        "hover:[background:var(--theme-frosted-control-on-panel-bg)]",
         depth === 0
           ? "theme-text-primary pl-2 text-sm font-semibold"
           : "theme-text-secondary pl-6 text-xs font-medium",

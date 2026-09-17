@@ -45,7 +45,7 @@ export function AvatarUpload({
         <NestedContentCard
           padding="none"
           radius="xl"
-          className="theme-text-primary flex h-24 w-24 items-center justify-center overflow-hidden border-[color:var(--theme-frosted-control-on-panel-border)] bg-[var(--theme-frosted-control-on-panel-bg)] text-3xl font-semibold shadow-[var(--theme-frosted-control-on-panel-shadow)]"
+          className="theme-text-primary flex h-24 w-24 items-center justify-center overflow-hidden border-[color:var(--theme-frosted-control-on-panel-border)] [background:var(--theme-frosted-control-on-panel-bg)] text-3xl font-semibold shadow-[var(--theme-frosted-control-on-panel-shadow)]"
         >
           {avatarPreviewSource ? (
             <AppImage src={avatarPreviewSource} alt="Avatar preview" width={96} height={96} className="h-full w-full object-cover" />

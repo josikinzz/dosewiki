@@ -10,11 +10,11 @@ const toggleVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-control border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[var(--theme-elevation-control-active)]",
+          "rounded-control border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:[background:var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:[background:var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[var(--theme-elevation-control-active)]",
         outline:
-          "rounded-control border border-[var(--theme-border-subtle)] bg-transparent hover:bg-[var(--theme-frosted-control-bg)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-accent-strong)]",
+          "rounded-control border border-[var(--theme-border-subtle)] bg-transparent hover:[background:var(--theme-frosted-control-bg)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:[background:var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-accent-strong)]",
         pill:
-          "rounded-full border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:bg-[var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[var(--theme-elevation-control-active)]",
+          "rounded-full border border-[var(--theme-border-subtle)] bg-transparent text-[var(--theme-text-secondary)] hover:[background:var(--theme-frosted-control-bg)] hover:text-[var(--theme-text-primary)] data-[state=on]:border-[var(--theme-frosted-control-hover-border)] data-[state=on]:[background:var(--theme-frosted-control-hover-bg)] data-[state=on]:text-[var(--theme-text-primary)] data-[state=on]:shadow-[var(--theme-elevation-control-active)]",
       },
       size: {
         default: "h-10 px-3 min-w-10",

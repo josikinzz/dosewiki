@@ -18,7 +18,7 @@ const selectTriggerVariants = cva(
     variants: {
       variant: {
         default: "border-[var(--theme-field-border)]",
-        error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)]",
+        error: "border-[color:var(--theme-danger-border-strong)] ring-1 ring-inset ring-[var(--theme-danger-border-strong)] focus:border-[color:var(--theme-danger-text)]",
       },
       selectSize: {
         sm: `h-10 px-3 py-2 pr-10 text-[16px] md:text-sm ${TOUCH_PILL}`,
@@ -143,7 +143,7 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "theme-text-secondary relative flex w-full cursor-pointer select-none items-center rounded-chip py-2 pl-8 pr-2 text-sm outline-none transition",
-      "focus:bg-[var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)]",
+      "focus:[background:var(--theme-frosted-control-on-panel-bg)] focus:text-[var(--theme-text-primary)]",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
