@@ -15,8 +15,8 @@ The dose.wiki source code is released under the MIT License (see `LICENSE`). The
 | Contributor profile avatars | `public/profile-avatars/` | Each contributor's own replication artwork or published self-portrait; per-file provenance for artwork crops in `data/contributors/contributorAvatarSources.json` | Rights remain with the artist; no open license | Centre-square crop, delivered at 256x256 WebP or the source's short side |
 | Subjective-effect replication audio | `public/audio/` | Replication creators; credits are stored in the database and shown on each replication page | Creator retained; no open license (see `/docs/license` section 8) | None |
 | Cited-source favicons | `public/favicons/` | Fetched from each cited site's own icon by `scripts/data/generate-further-reading-favicons.mjs` | Each site's own mark, shown only to identify the source | Resized to 32x32 PNG |
-| Community and project logos | `public/about/community/` | Marks of the communities named on the About page | Provenance unknown; confirm before publish | Delivered as WebP or SVG |
-| Supporter logo | `public/supporters/mindstate-design-labs.webp` | Mindstate Design Labs | Provenance unknown; confirm before publish | Delivered as WebP |
-| Country and language flag icons | `public/flags/` | Provenance unknown; confirm before publish | Provenance unknown; confirm before publish | Circular 512x512 SVG icons |
+| Community and project logos | `public/about/community/` | Each organisation's own mark, fetched from its public site | Each organisation's own mark, shown only to identify the community it links to | Resized, delivered as WebP or SVG |
+| Supporter logo | `public/supporters/mindstate-design-labs.webp` | Mindstate Design Labs, the project's parent company | Mindstate Design Labs; not licensed for reuse | Delivered as WebP |
+| Country and language flag icons | `public/flags/` | [HatScripts/circle-flags](https://github.com/HatScripts/circle-flags) | MIT | None; files match upstream byte for byte |
 
 Rights questions: <contact@dose.wiki>.
