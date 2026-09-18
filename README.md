@@ -1,4 +1,10 @@
-# dose.wiki
+<p align="center">
+  <a href="https://dose.wiki"><img src="public/dosewiki-logo.png" alt="dose.wiki" width="160"></a>
+</p>
+
+<h1 align="center">dose.wiki</h1>
+
+<p align="center">An open dataset and encyclopedia of psychoactive substances, subjective effects, replications, and trip reports.</p>
 
 Next.js application for the dose.wiki harm-reduction knowledge base and its Effect Index publication, backed by PlanetScale Postgres since 2026-09-10. Authored handlers in `server/` execute in-process through `lib/postgres/runtime/`. The two publications use one repository, branch, and production database; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
 
