@@ -1,0 +1,1866 @@
+{
+  "version": 3,
+  "classes": [
+    {
+      "key": "phenethylamine",
+      "label": "Phenethylamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Phenethylamine",
+        "Phenethylamine (substituted)",
+        "Substituted phenethylamine",
+        "β-keto phenethylamine",
+        "Alkaloid (phenethylamine)"
+      ],
+      "description": "Substituted phenethylamines are a chemical class of organic compounds derived from the core phenethylamine structure. Phenethylamines are derived from a phenyl ring that is joined to an amino group via a two-carbon ethyl sidechain. Members of the class are produced by adding substituents to the aromatic ring, to the sidechain carbons, or to the amine nitrogen. Most substituted phenethylamines are psychoactive substances which behave across a wide range of categories, including stimulants, hallucinogens and entactogens. Many endogenous compounds, including catecholamines such as dopamine and noradrenaline, are phenethylamines.",
+      "representatives": [
+        "mescaline",
+        "2c-b",
+        "amphetamine"
+      ],
+      "parents": [
+        "arylalkylamine"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])C([*:8])C([*:7])c1c([*:2])c([*:3])c([*:4])c([*:5])c1[*:6]",
+        "rLabels": {
+          "2": "R2",
+          "3": "R3",
+          "4": "R4",
+          "5": "R5",
+          "6": "R6",
+          "7": "Rβ",
+          "8": "Rα",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "amphetamine",
+      "label": "α-Methylphenethylamine (amphetamines)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Amphetamine",
+        "Amphetamine (substituted)",
+        "Substituted amphetamine"
+      ],
+      "description": "Substituted amphetamines are a chemical class of organic compounds derived from the core phenethylamine structure. Amphetamines carry an additional methyl group on the alpha carbon, the sidechain carbon adjacent to the amine, giving the alpha-methylphenethylamine backbone that defines the family. Individual members vary by substituents on the benzene ring, on the amine nitrogen, and by that alpha-methyl branch, which distinguishes them from the unbranched phenethylamines. Most amphetamines behave as stimulants, though ring substitution can also produce entactogens and psychedelics.",
+      "representatives": [
+        "amphetamine",
+        "methamphetamine",
+        "mdma"
+      ],
+      "parents": [
+        "phenethylamine"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])C(C)C([*:7])c1c([*:2])c([*:3])c([*:4])c([*:5])c1[*:6]",
+        "rLabels": {
+          "2": "R2",
+          "3": "R3",
+          "4": "R4",
+          "5": "R5",
+          "6": "R6",
+          "7": "Rβ",
+          "9": "RN"
+        }
+      },
+      "bioisosteres": [
+        "thiopropamine"
+      ]
+    },
+    {
+      "key": "tryptamine",
+      "label": "Tryptamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Tryptamine",
+        "Tryptamine (derivative)",
+        "Tryptamine (plant-derived)",
+        "Brominated indole alkaloid"
+      ],
+      "description": "Substituted tryptamines are a chemical class of organic compounds built around an indole ring system, a benzene ring fused to a five-membered nitrogen-containing pyrrole ring, with an aminoethyl sidechain attached at the indole 3-position. Individual members differ mainly in what is attached to the terminal amine nitrogen and in substituents on the indole ring, such as a hydroxyl or phosphoryloxy group at the 4-position or a methoxy group at the 5-position. Most psychoactive tryptamines act as serotonergic hallucinogens, though the class also includes non-psychoactive relatives. The neurotransmitter serotonin shares this same tryptamine backbone, which is why the class is often described in relation to it.",
+      "representatives": [
+        "dmt",
+        "psilocin",
+        "5-meo-dmt"
+      ],
+      "parents": [
+        "arylalkylamine",
+        "indole"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([*:10])C([*:8])Cc1c([*:2])[nH]c2c([*:7])c([*:6])c([*:5])c([*:4])c12",
+        "rLabels": {
+          "2": "R2",
+          "4": "R4",
+          "5": "R5",
+          "6": "R6",
+          "7": "R7",
+          "8": "Rα",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "cathinone",
+      "label": "β-Ketoamphetamine (cathinones)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Cathinone",
+        "Cathinone (substituted)",
+        "Substituted cathinone"
+      ],
+      "description": "Substituted cathinones are a chemical class of organic compounds derived from the core amphetamine structure. Cathinones are the beta-keto analogues of amphetamines, sharing the alpha-methylphenethylamine backbone but adding a ketone group at the beta carbon of the sidechain, the carbon adjacent to the benzene ring. Aside from this beta-keto group, members differ in the same ways amphetamines do, through ring substituents and groups on the amine nitrogen. Most cathinones behave as stimulants or entactogens, and the beta-keto group is what relates each one to its corresponding amphetamine.",
+      "representatives": [
+        "mephedrone",
+        "methcathinone",
+        "mdpv"
+      ],
+      "parents": [
+        "amphetamine"
+      ],
+      "structure": {
+        "smiles": "O=C(c1c([*:2])c([*:3])c([*:4])c([*:5])c1[*:6])C([*:8])N([H])[*:9]",
+        "rLabels": {
+          "2": "R2",
+          "3": "R3",
+          "4": "R4",
+          "5": "R5",
+          "6": "R6",
+          "8": "Rα",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "benzodiazepine",
+      "label": "1,4-Benzodiazepine (benzodiazepines)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Benzodiazepine",
+        "Benzodiazepine (N-trifluoroethyl substituted)",
+        "Benzodiazepine (prodrug)",
+        "Imidazobenzodiazepine"
+      ],
+      "description": "Benzodiazepines are a chemical class of organic compounds built around a fused bicyclic core in which a benzene ring is joined to a seven-membered diazepine ring containing two nitrogen atoms, the classic 1,4-diazepine arrangement. Most members additionally carry a pendant phenyl ring and varied substituents such as chlorine, nitro or fluorine groups, which distinguish individual compounds. Benzodiazepines act as positive modulators at the GABA-A receptor, producing sedative, anxiolytic, muscle-relaxant and anticonvulsant effects. Fusing a triazole or imidazole ring onto the diazepine gives rise to several closely related subgroups.",
+      "representatives": [
+        "diazepam",
+        "alprazolam",
+        "clonazepam"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "O=C1CN=C(c2ccccc2[*:2])c2cc([*:7])ccc2N1[*:1]",
+        "rLabels": {
+          "1": "R1",
+          "2": "R2'",
+          "7": "R7"
+        }
+      },
+      "bioisosteres": [
+        "1-5-benzodiazepine"
+      ]
+    },
+    {
+      "key": "arylcyclohexylamine",
+      "label": "Arylcyclohexylamine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Arylcyclohexylamine",
+        "Arylcyclohexyl-related NMDA antagonist",
+        "Diarycycloheptene"
+      ],
+      "description": "Arylcyclohexylamines are a chemical class of organic compounds built from a cyclohexane ring that carries two key groups on the same carbon, an aromatic aryl ring and an amine. The amine is often part of a second ring, such as a piperidine, or appears as a simple N-methylamino group, and members differ by the choice of aryl ring, the type of amine, and substituents added to the cyclohexane. Most arylcyclohexylamines act as dissociatives through antagonism of the NMDA receptor. The class is a structural cousin of the diarylethylamines, which achieve a similar layout using an open chain rather than a ring.",
+      "representatives": [
+        "ketamine",
+        "pcp",
+        "methoxetamine"
+      ],
+      "parents": [
+        "benzylamine",
+        "cycloalkylamine"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1ccccc1C1(N([*:9])[*:10])CCCCC1",
+        "rLabels": {
+          "1": "R",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "lysergamide",
+      "label": "Lysergamide",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Lysergamide"
+      ],
+      "description": "Lysergamides are a chemical class of organic compounds that are amides of lysergic acid, a complex four-ring fused ergoline structure containing an indole system embedded within additional rings, giving the molecule a rigid, locked geometry. The defining feature of the class is a carboxamide group at the ergoline 8-position, with individual members varying the amine groups on that amide. Most lysergamides are potent serotonergic psychedelics. Because the ergoline scaffold rigidly holds a tryptamine-like unit in place, lysergamides can be viewed as conformationally constrained relatives of the tryptamines.",
+      "representatives": [
+        "lsd",
+        "1p-lsd",
+        "al-lad"
+      ],
+      "parents": [
+        "tryptamine"
+      ],
+      "structure": {
+        "smiles": "CN1CC(C(=O)N([*:1])[*:2])C=C2c3cccc4[nH]cc(c34)CC12",
+        "rLabels": {
+          "1": "R",
+          "2": "R'"
+        }
+      }
+    },
+    {
+      "key": "2c-x",
+      "label": "2,5-Dimethoxyphenethylamine (2C-x)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "2C-X",
+        "Benzodifuran"
+      ],
+      "description": "The 2C-x compounds are a chemical class of organic compounds derived from the core phenethylamine structure. They are defined by two methoxy groups on the benzene ring at the 2- and 5-positions, with a variable substituent at the 4-position that gives each member its name (the \"x\"). The \"2C\" label refers to the two-carbon chain between the ring and the amino group, which is left unbranched, unlike the amphetamines, which add a methyl branch. Most 2C-x compounds are serotonergic psychedelics, and the corresponding alpha-methyl versions form the related DOx amphetamine series.",
+      "representatives": [
+        "2c-b",
+        "2c-e",
+        "2c-i"
+      ],
+      "parents": [
+        "phenethylamine"
+      ],
+      "structure": {
+        "smiles": "NCCc1cc(OC)c([*:4])cc1OC",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "scaline"
+      ]
+    },
+    {
+      "key": "nbome",
+      "label": "N-(2-Methoxybenzyl)phenethylamine (x-NBOMe)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "NBOMe",
+        "25x-NBOMe"
+      ],
+      "description": "The x-NBOMe compounds are a chemical class of organic compounds derived from the core 2C-x phenethylamine structure. They are 2C-x phenethylamines in which a benzyl group bearing a methoxy substituent, an N-2-methoxybenzyl group, has been attached to the amine nitrogen, hence the name NBOMe. The core keeps the 2,5-dimethoxy benzene ring and 4-position substituent of the parent 2C compound, with the added N-benzyl arm being the distinguishing structural change. This N-benzyl addition dramatically increases affinity at the serotonin 5-HT2A receptor, making the class potent and long-acting psychedelics.",
+      "representatives": [
+        "25i-nbome",
+        "25b-nbome",
+        "25c-nbome"
+      ],
+      "parents": [
+        "nbx"
+      ],
+      "structure": {
+        "smiles": "COc1ccccc1CN([H])CCc1cc(OC)c([*:4])cc1OC",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "nboh",
+        "nbf",
+        "nb3ome",
+        "nb4ome"
+      ]
+    },
+    {
+      "key": "morphinan",
+      "label": "Morphinan",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Morphinan",
+        "Morphinan (substituted)",
+        "Morphinan (opioid)"
+      ],
+      "description": "Morphinans are a chemical class of organic compounds built on a fused tetracyclic carbon skeleton derived from the morphine framework, including a partially hydrogenated phenanthrene core with a nitrogen-containing ring bridged across it. Members differ by which oxygen-bearing groups sit on the rings, by the presence or absence of an oxygen bridge linking two rings, and by the substituent on the nitrogen. Most morphinans act at opioid receptors, functioning as analgesics, though the exact profile ranges from full agonists to antagonists. The morphine molecule itself, along with codeine and many semi-synthetic opioids, is a variation on this shared rigid scaffold.",
+      "representatives": [
+        "morphine",
+        "codeine",
+        "heroin"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "Oc1ccc2CC3N(C)CCC4(CCCCC34)c2c1",
+        "rLabels": {}
+      }
+    },
+    {
+      "key": "pyrrolidine",
+      "label": "Pyrrolidine",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Pyrrolidine (substituted)"
+      ],
+      "description": "Substituted pyrrolidines are a chemical class of organic compounds in which the amine nitrogen is incorporated into a five-membered pyrrolidine ring. In the psychoactive pyrrolidinophenones they retain the cathinone framework, a benzene ring linked to an alpha-methyl sidechain bearing a beta-keto group, but the terminal amine is replaced by this pyrrolidine ring. Members vary by ring substituents, by the length of the alkyl chain on the sidechain, and by whether a methylenedioxy bridge is present on the aromatic ring. These compounds typically act as potent stimulants through inhibition of dopamine and noradrenaline reuptake.",
+      "representatives": [
+        "mdpv",
+        "a-php",
+        "alpha-pcyp"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "[*:1]C1CCCN1[*:9]",
+        "rLabels": {
+          "1": "R",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "cannabinoid",
+      "label": "Cannabinoid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Cannabinoid (synthetic)",
+        "Cannabinoid (phytocannabinoid)",
+        "Naphthoylindole (synthetic cannabinoid)",
+        "Indazolecarboxamide (synthetic cannabinoid)",
+        "Benzoylindole"
+      ],
+      "description": "Cannabinoids are a structurally diverse chemical class whose members are united by activity at the cannabinoid receptors rather than by a single common skeleton. The classical phytocannabinoid members share a dibenzopyran-type framework in which an aromatic ring bearing a hydroxyl and a long alkyl chain is fused to an oxygen-containing pyran ring and a carbocyclic terpene-derived ring. Synthetic cannabinoids often abandon this scaffold entirely, linking core groups such as indole or indazole rings through amide or ester linkers to assorted tail and head groups. Members act predominantly as cannabinoid receptor agonists, producing effects that range from mild relaxation to intense intoxication, and the class spans several distinct structural families.",
+      "representatives": [
+        "cannabis",
+        "jwh-018",
+        "ab-fubinaca"
+      ],
+      "parents": [],
+      "structure": {
+        "smiles": "O=C([*:1])c1cn([*:2])c2ccccc12",
+        "rLabels": {
+          "1": "R",
+          "2": "R'"
+        }
+      }
+    },
+    {
+      "key": "benzofuran",
+      "label": "Benzofuranethylamine (benzofurans)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Benzofuran",
+        "Benzofuran (substituted)",
+        "Benzofuran (dihydrobenzofuran)",
+        "Benzofuran (benzodihydrodifuran)",
+        "Benzofuran (psychedelic)"
+      ],
+      "description": "Substituted benzofurans are a chemical class of organic compounds derived from the core phenethylamine structure and based on the benzofuran ring system, a benzene ring fused to a five-membered oxygen-containing furan ring. In the psychoactive members this fused ring system replaces the methylenedioxyphenyl portion of compounds like MDA, with an aminopropyl sidechain attached. They are therefore close structural relatives of the amphetamines and phenethylamines, differing mainly by the benzofuran ring in place of a simpler substituted benzene. Most members behave as entactogens or stimulants with a serotonergic character.",
+      "representatives": [
+        "5-apb",
+        "6-apb",
+        "2c-b-fly"
+      ],
+      "parents": [
+        "phenethylamine"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])C([*:8])Cc1ccc2ccoc2c1",
+        "rLabels": {
+          "8": "Rα",
+          "9": "RN"
+        }
+      },
+      "bioisosteres": [
+        "mdxx"
+      ]
+    },
+    {
+      "key": "anilidopiperidine",
+      "label": "Anilidopiperidine (fentanyls)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Anilidopiperidine",
+        "Anilidopiperidine (opioid)",
+        "Anilinopiperidine",
+        "Anilinopiperidine (opioid)"
+      ],
+      "description": "Anilidopiperidines are a chemical class of organic compounds organized around a piperidine ring, a six-membered ring with one nitrogen, that bears an anilide group, an amide linking the ring to a phenyl-bearing aniline, which gives the class its name. The piperidine nitrogen typically carries a phenethyl arm, and individual members differ by substituents on the rings and by the acyl group of the amide. The class comprises the fentanyls, potent synthetic opioids that act as agonists at the mu-opioid receptor. Their high potency makes them associated with a substantial overdose risk.",
+      "representatives": [
+        "fentanyl",
+        "acetylfentanyl",
+        "sufentanil"
+      ],
+      "parents": [
+        "piperidine"
+      ],
+      "structure": {
+        "smiles": "O=C([*:1])N(c1ccccc1)C1CCN([*:9])CC1",
+        "rLabels": {
+          "1": "R",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "phenidate",
+      "label": "Phenidate",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Phenidate",
+        "Pipradrol homologue"
+      ],
+      "description": "Phenidates are a chemical class of organic compounds built around a structure that joins a phenyl ring and a six-membered nitrogen-containing piperidine ring to a central carbon, which also carries an ester group, formally esters of phenyl(piperidin-2-yl)acetic acid. The prototype carries a methyl ester, while other members vary the ester group, the aromatic ring substituents, or the piperidine. Most phenidates act as stimulants through inhibition of dopamine and noradrenaline reuptake. The phenyl-piperidine-ester arrangement is the consistent structural signature of the class.",
+      "representatives": [
+        "methylphenidate",
+        "pipradrol",
+        "desoxypipradrol"
+      ],
+      "parents": [
+        "2-benzylpiperidine"
+      ],
+      "structure": {
+        "smiles": "[*:1]OC(=O)C(c1ccc([*:4])cc1)C1CCCCN1[H]",
+        "rLabels": {
+          "1": "R",
+          "4": "R4"
+        }
+      }
+    },
+    {
+      "key": "gabapentinoid",
+      "label": "γ-Aminobutyric acid analogue (gabapentinoids)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Gabapentinoid",
+        "GABA analogue (gabapentinoid)",
+        "GABA analogue",
+        "GABA analogue (prodrug)"
+      ],
+      "description": "Gabapentinoids are a chemical class of organic compounds that are structural analogues of the neurotransmitter GABA (gamma-aminobutyric acid), built around the same short amino-acid chain but with a lipophilic group added at the 3-position of that backbone. The addition may be a cyclohexane ring fused onto the chain or a branched alkyl group, making the members 3-substituted GABA derivatives. Pharmacologically they act at the alpha-2-delta subunit of voltage-gated calcium channels, producing anxiolytic, anticonvulsant and sedating effects. This shared GABA backbone with a bulky lipophilic substituent is the structural thread linking the class.",
+      "representatives": [
+        "gabapentin",
+        "pregabalin",
+        "phenibut"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "NCC([*:3])CC(=O)O",
+        "rLabels": {
+          "3": "R"
+        }
+      }
+    },
+    {
+      "key": "piperazine",
+      "label": "Benzylpiperazine (piperazines)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Piperazine",
+        "Phenylpiperazine"
+      ],
+      "description": "Substituted piperazines are a chemical class of organic compounds defined by the piperazine ring, a six-membered ring containing two nitrogen atoms positioned opposite each other in the 1,4 arrangement. Psychoactive members carry substituents on one or both nitrogens, broadly splitting into benzylpiperazines, which attach a benzyl group, and phenylpiperazines, which attach a phenyl ring directly, often with halogen or trifluoromethyl groups. Members act across several categories, with some behaving as stimulants and others as more serotonergic agents. The shared two-nitrogen ring with an attached aromatic group is the structural hallmark of the class.",
+      "representatives": [
+        "bzp",
+        "mcpp",
+        "4-fpp"
+      ],
+      "parents": [
+        "benzylamine"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1ccccc1CN1CCN([*:9])CC1",
+        "rLabels": {
+          "1": "R",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "mdxx",
+      "label": "Methylenedioxyphenethylamine (MDxx)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "MDxx"
+      ],
+      "description": "The MDxx compounds are a chemical class of organic compounds derived from the core phenethylamine and amphetamine structures, built around a methylenedioxy bridge, a small ring fused across the 3,4-positions of the benzene ring, which is the feature the \"MD\" prefix points to. They share this 3,4-methylenedioxy phenyl group attached to an alpha-methyl amphetamine sidechain, differing mainly in the group on the amine nitrogen. Most MDxx compounds act as entactogens, releasing serotonin alongside dopamine and noradrenaline. The methylenedioxy ring is what distinguishes the family from the plain amphetamines and phenethylamines it is otherwise derived from.",
+      "representatives": [
+        "mdma",
+        "mda",
+        "mdea"
+      ],
+      "parents": [
+        "phenethylamine"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])C([*:8])Cc1ccc2OCOc2c1",
+        "rLabels": {
+          "8": "Rα",
+          "9": "RN"
+        }
+      },
+      "bioisosteres": [
+        "benzofuran"
+      ]
+    },
+    {
+      "key": "barbiturate",
+      "label": "Barbiturate",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Barbiturate",
+        "Thiobarbituric acid derivative"
+      ],
+      "description": "Barbiturates are a chemical class of organic compounds built on a barbituric acid core, a six-membered ring containing two nitrogen atoms and three carbonyl groups, formed by combining urea with a malonic acid unit. Individual members carry two substituents on the central carbon of that ring, typically alkyl, aryl, or allyl groups, which distinguish the compounds. Barbiturates act as positive modulators at the GABA-A receptor, producing sedative, hypnotic and anticonvulsant effects with a narrow margin of safety. The thiobarbiturates are a close variant in which one ring oxygen is replaced by a sulfur atom.",
+      "representatives": [
+        "phenobarbital",
+        "secobarbital",
+        "pentobarbital"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "O=C1N([*:9])C(=O)C([*:1])([*:2])C(=O)N1[*:10]",
+        "rLabels": {
+          "1": "R",
+          "2": "R'",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "racetam",
+      "label": "2-Pyrrolidinone (racetams)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Racetam"
+      ],
+      "description": "Racetams are a chemical class of organic compounds that share a five-membered 2-pyrrolidinone ring, a pyrrolidine ring carrying a single carbonyl group, which is the structure their \"-racetam\" suffix refers to. Members differ by the groups attached to that ring, most often an acetamide on the ring nitrogen, plus further additions that give the various relatives. Racetams are generally marketed as nootropics, with proposed effects on cognition and memory, though their mechanisms are not fully established. The 2-pyrrolidinone nucleus is the consistent backbone uniting the family.",
+      "representatives": [
+        "piracetam",
+        "aniracetam",
+        "phenylpiracetam"
+      ],
+      "parents": [
+        "pyrrolidine"
+      ],
+      "structure": {
+        "smiles": "O=C1CCC([*:5])N1[*:9]",
+        "rLabels": {
+          "5": "R",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "aminoindane",
+      "label": "2-Aminoindane (aminoindanes)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Aminoindane"
+      ],
+      "description": "Aminoindanes are a chemical class of organic compounds and conformationally rigid analogues of amphetamine in which the flexible sidechain is locked into a ring. The indane system, a benzene ring fused to a five-membered carbocyclic ring, carries the amino group on that saturated ring, typically at the 2-position. Members differ by substituents on the aromatic ring, including a methylenedioxy bridge or a halogen, and by N-alkylation. Depending on substitution, members act as stimulants or as more serotonergic entactogens, and tying the amphetamine backbone into the indane ring is what defines and rigidifies the class.",
+      "representatives": [
+        "mdai",
+        "5-iai",
+        "nm-2-ai"
+      ],
+      "parents": [
+        "amphetamine"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])C1Cc2c([*:4])c([*:5])c([*:6])c([*:7])c2C1",
+        "rLabels": {
+          "4": "R",
+          "5": "R'",
+          "6": "R''",
+          "7": "R'''",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "diarylethylamine",
+      "label": "1,2-Diarylethylamine (diarylethylamines)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Diarylethylamine (substituted)",
+        "Diarylethylamine"
+      ],
+      "description": "Diarylethylamines are a chemical class of organic compounds built on a two-carbon ethylamine chain that bears two aromatic aryl rings, one on each of the two carbons, in the 1,2-diarylethylamine arrangement. The amine is frequently incorporated into a ring such as piperidine or pyrrolidine, or left as a simple N-ethyl group, and ring substituents such as methoxy groups distinguish the members. Most diarylethylamines act as dissociatives through antagonism of the NMDA receptor. They are close structural cousins of the arylcyclohexylamines, achieving a similar aryl-plus-amine layout using an open two-aryl ethyl chain rather than a cyclohexane ring.",
+      "representatives": [
+        "diphenidine",
+        "ephenidine",
+        "2-chloroephenidine"
+      ],
+      "parents": [
+        "amphetamine"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1ccccc1C(N([*:9])[*:10])Cc1ccccc1[*:2]",
+        "rLabels": {
+          "1": "R",
+          "2": "R'",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "tropane",
+      "label": "Tropane",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Alkaloid (tropane)",
+        "Phenyltropane"
+      ],
+      "description": "Tropane alkaloids are a chemical class of organic compounds defined by the tropane ring system, a bicyclic structure in which a nitrogen-containing bridge spans a seven-membered carbon ring, formally a fused pyrrolidine and piperidine sharing two carbons with an N-methyl bridge. Members carry various groups esterified or attached to this bicyclic core, and the choice of these groups determines the pharmacology. The class spans dopaminergic stimulants as well as anticholinergic deliriants that block the muscarinic acetylcholine receptors. The rigid bridged tropane skeleton is the common structural feature uniting the class.",
+      "representatives": [
+        "cocaine",
+        "scopolamine",
+        "dichloropane"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "CN1C2CCC1CC([*:3])C2",
+        "rLabels": {
+          "3": "R3"
+        }
+      }
+    },
+    {
+      "key": "aminorex",
+      "label": "2-Amino-5-aryloxazoline (aminorexes)",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Aminorex",
+        "Substituted aminorex",
+        "2-amino-5-aryloxazoline",
+        "Oxazolinone"
+      ],
+      "description": "Aminorexes are a chemical class of organic compounds organized around a 2-amino-oxazoline ring, a five-membered ring containing both an oxygen and a nitrogen, bearing an amino group, with a phenyl ring attached. Members differ by substituents on that phenyl ring or on the oxazoline ring itself. Most aminorexes act as stimulants through the release of monoamines, relating them structurally and functionally to the broader phenethylamine stimulants. The amino-aryl-oxazoline arrangement is what defines the class.",
+      "representatives": [
+        "aminorex",
+        "4-4-dmar",
+        "pemoline"
+      ],
+      "parents": [
+        "phenethylamine"
+      ],
+      "structure": {
+        "smiles": "N([H])([*:9])C1=NC([*:8])C(c2ccc([*:4])cc2)O1",
+        "rLabels": {
+          "4": "R4",
+          "8": "R4'",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "amine",
+      "label": "Amine",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Amine",
+        "Alkyl amine",
+        "Substituted amine"
+      ],
+      "description": "Amines are a chemical class of organic compounds built around a basic nitrogen atom bonded to alkyl or aryl groups. The amine is the broadest structural family in psychopharmacology, from which nearly every classical stimulant, psychedelic, opioid, and depressant scaffold on this site descends. Because the class is so general, its members span every psychoactive category rather than sharing a single effect profile. Most of the more specific structural families described here can be traced back to this simple nitrogen-centered arrangement.",
+      "structure": {
+        "smiles": "[*:1]N([*:2])[*:3]",
+        "rLabels": {
+          "1": "R",
+          "2": "R'",
+          "3": "R''"
+        }
+      }
+    },
+    {
+      "key": "arylalkylamine",
+      "label": "Arylalkylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Arylalkylamine",
+        "Naphthylaminopropane",
+        "Naphthylaminopropane (substituted)"
+      ],
+      "description": "Arylalkylamines are a chemical class of organic compounds in which an aromatic ring is joined to an amino group through a short carbon chain. This umbrella covers the phenethylamines, tryptamines, and their many descendants, forming the structural core of most monoaminergic psychoactives. Because the family is so broad, its members act across many categories, including stimulants, hallucinogens and entactogens. The shared aromatic-ring-plus-amine-chain motif is what links these otherwise diverse compounds.",
+      "structure": {
+        "smiles": "[*:1]c1ccccc1CC([*:8])N([H])[*:9]",
+        "rLabels": {
+          "1": "R",
+          "8": "Rα",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "thiopropamine",
+      "label": "Thiopropamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine"
+      ],
+      "aliases": [
+        "Thiopropamine",
+        "Thiophene"
+      ],
+      "description": "Thiopropamines are a chemical class of organic compounds derived from the core amphetamine structure in which the benzene ring is replaced by a thiophene ring, a five-membered sulfur-containing aromatic ring. The sulfur-for-carbon ring swap is a classic bioisosteric substitution, leaving the alpha-methyl amine sidechain otherwise intact. Members act as stimulants, behaving much like their amphetamine counterparts. The thiophene ring in place of a benzene ring is the single feature that defines the class.",
+      "representatives": [
+        "methiopropamine"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])C(C)Cc1ccc([*:5])s1",
+        "rLabels": {
+          "5": "R",
+          "9": "RN"
+        }
+      },
+      "bioisosteres": [
+        "amphetamine"
+      ]
+    },
+    {
+      "key": "scaline",
+      "label": "3,5-Dimethoxyphenethylamine (scalines)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine"
+      ],
+      "aliases": [
+        "Scaline",
+        "3,5-dimethoxyphenethylamine"
+      ],
+      "description": "Scalines are a chemical class of organic compounds derived from the core phenethylamine structure, carrying methoxy groups at the 3- and 5-positions with a variable substituent at the 4-position. They are the mescaline analogues and are positional isomers of the 2C-x family, which instead places the methoxy groups at the 2- and 5-positions. Most scalines are serotonergic psychedelics. The 3,5-dimethoxy substitution pattern with an unbranched two-carbon chain is the defining feature of the class.",
+      "representatives": [
+        "mescaline",
+        "escaline",
+        "allylescaline"
+      ],
+      "structure": {
+        "smiles": "NCCc1cc(OC)c([*:4])c(OC)c1",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "2c-x"
+      ]
+    },
+    {
+      "key": "3c-x",
+      "label": "3,5-Dimethoxyamphetamine (3C-x)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "scaline",
+        "amphetamine"
+      ],
+      "aliases": [
+        "3C-x",
+        "3C-X",
+        "3,5-dimethoxyamphetamine"
+      ],
+      "description": "The 3C-x compounds are a chemical class of organic compounds derived from the core amphetamine and scaline structures. They are the alpha-methylated homologues of the scalines, bearing the 3,5-dimethoxy substitution pattern on the benzene ring with a variable 4-position substituent. Most 3C-x compounds are serotonergic psychedelics that tend to be more potent and longer-acting than their scaline counterparts. They relate to the scalines exactly as the DOx series relates to the 2C-x series.",
+      "representatives": [
+        "3c-e",
+        "3c-p"
+      ],
+      "structure": {
+        "smiles": "CC(N)Cc1cc(OC)c([*:4])c(OC)c1",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "dox"
+      ]
+    },
+    {
+      "key": "dox",
+      "label": "2,5-Dimethoxyamphetamine (DOx)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "2c-x",
+        "amphetamine"
+      ],
+      "aliases": [
+        "DOx",
+        "Amphetamine (psychedelic)",
+        "2,5-dimethoxyamphetamine"
+      ],
+      "description": "The DOx compounds are a chemical class of organic compounds derived from the core amphetamine and 2C-x structures, carrying the 2,5-dimethoxy substitution pattern on the benzene ring with a variable 4-position substituent. They are the alpha-methylated homologues of the 2C-x series, with the added methyl branch on the sidechain distinguishing them from those unbranched phenethylamines. Most DOx compounds are potent, long-acting serotonergic psychedelics acting at the 5-HT2A receptor. The alpha-methyl group is what separates them from the corresponding 2C compounds.",
+      "representatives": [
+        "dom",
+        "doi",
+        "dob"
+      ],
+      "structure": {
+        "smiles": "CC(N)Cc1cc(OC)c([*:4])cc1OC",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "3c-x"
+      ]
+    },
+    {
+      "key": "nbx",
+      "label": "N-Benzylphenethylamine (x-NBx)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine"
+      ],
+      "aliases": [
+        "Phenethylamine (N-benzylated)",
+        "N-benzylphenethylamine",
+        "NBx"
+      ],
+      "description": "The x-NBx compounds are a chemical class of organic compounds derived from the core phenethylamine structure, extended with a benzyl group on the amine nitrogen. This N-benzyl addition dramatically increases affinity at the serotonin 5-HT2A receptor, making the members potent psychedelics. The family divides according to the substituent on the benzyl ring, giving the NBOMe, NBOH, NBF, and related series. The N-benzyl arm attached to a 2,5-dimethoxyphenethylamine core is the shared structural feature of the class.",
+      "representatives": [
+        "25i-nbome",
+        "25c-nboh",
+        "25b-nboh"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1ccccc1CN([H])CCc1cc(OC)c([*:4])cc1OC",
+        "rLabels": {
+          "1": "R2'",
+          "4": "R4"
+        }
+      }
+    },
+    {
+      "key": "nbf",
+      "label": "N-(2-Fluorobenzyl)phenethylamine (x-NBF)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NBF",
+        "25x-NBF",
+        "N-(2-fluorobenzyl)phenethylamine"
+      ],
+      "description": "The x-NBF compounds are a chemical class of organic compounds derived from the core N-benzylphenethylamine structure, carrying a fluorine atom at the benzyl 2-position. They keep the 2,5-dimethoxyphenethylamine core and N-benzyl arm of the wider family, with the fluorine substituent being the distinguishing change. Members act as serotonergic psychedelics at the 5-HT2A receptor, with generally somewhat reduced receptor affinity relative to the NBOMe series they are bioisosteres of.",
+      "structure": {
+        "smiles": "Fc1ccccc1CN([H])CCc1cc(OC)c([*:4])cc1OC",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "nbome",
+        "nboh",
+        "nb3ome",
+        "nb4ome"
+      ]
+    },
+    {
+      "key": "nboh",
+      "label": "N-(2-Hydroxybenzyl)phenethylamine (x-NBOH)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NBOH",
+        "25x-NBOH",
+        "N-(2-hydroxybenzyl)phenethylamine"
+      ],
+      "description": "The x-NBOH compounds are a chemical class of organic compounds derived from the core N-benzylphenethylamine structure, carrying a hydroxyl group at the benzyl 2-position. They keep the 2,5-dimethoxyphenethylamine core and N-benzyl arm of the wider family, with the hydroxyl substituent being the distinguishing change. Members act as potent serotonergic psychedelics at the 5-HT2A receptor, closely related to the NBOMes.",
+      "representatives": [
+        "25b-nboh",
+        "25c-nboh"
+      ],
+      "structure": {
+        "smiles": "Oc1ccccc1CN([H])CCc1cc(OC)c([*:4])cc1OC",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "nbome",
+        "nbf",
+        "nb3ome",
+        "nb4ome"
+      ]
+    },
+    {
+      "key": "nb3ome",
+      "label": "N-(3-Methoxybenzyl)phenethylamine (x-NB3OMe)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NB3OMe",
+        "25x-NB3OMe",
+        "N-(3-methoxybenzyl)phenethylamine"
+      ],
+      "description": "The x-NB3OMe compounds are a chemical class of organic compounds derived from the core N-benzylphenethylamine structure and are positional isomers of the NBOMes, with the methoxy group moved to the benzyl 3-position. They otherwise retain the 2,5-dimethoxyphenethylamine core and N-benzyl arm of the family. Members act as serotonergic psychedelics, but the 3-position methoxy markedly lowers 5-HT2A affinity relative to the 2-position parents.",
+      "structure": {
+        "smiles": "COc1cccc(CN([H])CCc2cc(OC)c([*:4])cc2OC)c1",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "nbome",
+        "nboh",
+        "nbf",
+        "nb4ome"
+      ]
+    },
+    {
+      "key": "nb4ome",
+      "label": "N-(4-Methoxybenzyl)phenethylamine (x-NB4OMe)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nbx"
+      ],
+      "aliases": [
+        "NB4OMe",
+        "25x-NB4OMe",
+        "N-(4-methoxybenzyl)phenethylamine"
+      ],
+      "description": "The x-NB4OMe compounds are a chemical class of organic compounds derived from the core N-benzylphenethylamine structure and are positional isomers of the NBOMes, with the methoxy group placed at the benzyl 4-position. They otherwise retain the 2,5-dimethoxyphenethylamine core and N-benzyl arm of the family. Members act as serotonergic psychedelics, but like the NB3OMe series they are substantially less potent than the 2-methoxy parents.",
+      "structure": {
+        "smiles": "COc1ccc(CN([H])CCc2cc(OC)c([*:4])cc2OC)cc1",
+        "rLabels": {
+          "4": "R4"
+        }
+      },
+      "bioisosteres": [
+        "nbome",
+        "nboh",
+        "nbf",
+        "nb3ome"
+      ]
+    },
+    {
+      "key": "benzeneacetamide",
+      "label": "Benzeneacetamide (U-compounds)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenethylamine",
+        "benzamide"
+      ],
+      "aliases": [
+        "Benzeneacetamide",
+        "U-compound"
+      ],
+      "description": "Benzeneacetamides are a chemical class of organic compounds derived from the phenethylamine and benzamide families, in which an acetamide bridge connects to an aryl ring. They sit structurally between those two families, sharing features of each. The class includes most of the Upjohn U-series compounds beyond U-47700 itself, which act as opioid agonists at the mu-opioid receptor. As with other novel synthetic opioids, their potency carries a notable overdose risk.",
+      "structure": {
+        "smiles": "O=C(N([*:1])[*:2])Cc1ccc([*:4])cc1",
+        "rLabels": {
+          "1": "R",
+          "2": "R'",
+          "4": "R4"
+        }
+      }
+    },
+    {
+      "key": "2-benzylpiperidine",
+      "label": "2-Benzylpiperidine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amphetamine"
+      ],
+      "aliases": [
+        "2-benzylpiperidine",
+        "Benzylpiperidine"
+      ],
+      "description": "2-Benzylpiperidines are a chemical class of organic compounds derived from the core amphetamine structure in which the amine nitrogen is incorporated into a piperidine ring attached at the benzylic position. Members differ by ring substituents and by the groups attached to the piperidine. Most act as stimulants through inhibition of dopamine and noradrenaline reuptake. The phenidates, esters built on this scaffold, are the best-known branch of the family.",
+      "structure": {
+        "smiles": "[*:4]c1ccc(CC2CCCCN2[H])cc1",
+        "rLabels": {
+          "4": "R"
+        }
+      }
+    },
+    {
+      "key": "phenylmorpholine",
+      "label": "2-Phenylmorpholine (phenylmorpholines)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amphetamine"
+      ],
+      "aliases": [
+        "Phenylmorpholine",
+        "Phenylmorpholine (substituted)"
+      ],
+      "description": "Phenylmorpholines are a chemical class of organic compounds derived from the core amphetamine structure, cyclized into a morpholine ring, a six-membered ring containing one oxygen and one nitrogen. The amphetamine sidechain and amine are folded into this ring, with a phenyl group attached and variable ring substituents distinguishing the members. Most phenylmorpholines act as dopaminergic and noradrenergic stimulants. The morpholine ring is the defining structural feature separating them from the open-chain amphetamines.",
+      "representatives": [
+        "3-fpm",
+        "phenmetrazine"
+      ],
+      "structure": {
+        "smiles": "O1CCN([H])C([*:8])C1c1ccc([*:4])cc1",
+        "rLabels": {
+          "4": "R4",
+          "8": "R3"
+        }
+      }
+    },
+    {
+      "key": "phenylpropylamine",
+      "label": "Phenylpropylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "arylalkylamine"
+      ],
+      "aliases": [
+        "Phenylpropylamine",
+        "Phenylpropylaminopentane"
+      ],
+      "description": "Phenylpropylamines are a chemical class of organic compounds derived from the core arylalkylamine structure, with a three-carbon chain between the aromatic ring and the nitrogen, one carbon longer than the phenethylamines. Members differ by ring substituents and by groups on the sidechain and amine. The class includes atypical opioid analgesics that combine mu-opioid activity with monoamine reuptake inhibition. The extended three-carbon chain is what distinguishes the family from the shorter phenethylamines.",
+      "representatives": [
+        "tramadol",
+        "tapentadol"
+      ],
+      "structure": {
+        "smiles": "[*:9]N([H])CC([*:8])Cc1ccc([*:4])cc1",
+        "rLabels": {
+          "4": "R4",
+          "8": "Rβ",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "diphenylpropylamine",
+      "label": "Diphenylpropylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "phenylpropylamine"
+      ],
+      "aliases": [
+        "Diphenylpropylamine",
+        "Diphenylheptane (opioid)"
+      ],
+      "description": "Diphenylpropylamines are a chemical class of organic compounds derived from the core phenylpropylamine structure, carrying a second aryl ring on the propylamine chain. This gives a scaffold bearing two phenyl rings near the sidechain. Members act as full opioid agonists at the mu-opioid receptor, forming the methadone family of long-acting analgesics. The second aryl ring is the feature that distinguishes them from the simpler phenylpropylamines.",
+      "representatives": [
+        "methadone"
+      ],
+      "structure": {
+        "smiles": "[*:1]C(c1ccccc1)(c1ccccc1)CC([*:8])N([*:9])[*:10]",
+        "rLabels": {
+          "1": "R",
+          "8": "Rα",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "benzylamine",
+      "label": "Benzylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "arylalkylamine"
+      ],
+      "aliases": [
+        "Benzylamine"
+      ],
+      "description": "Benzylamines are a chemical class of organic compounds derived from the core arylalkylamine structure, with a single carbon between the aromatic ring and the nitrogen. This makes them one carbon shorter than the phenethylamines. As a small umbrella family, they encompass the benzamide opioids, the benzylpiperazines, and, by one structural lineage, the arylcyclohexylamine dissociatives. Because of this breadth, members act across several psychoactive categories rather than sharing a single effect profile.",
+      "structure": {
+        "smiles": "[*:1]c1ccccc1C([*:8])N([*:9])[*:10]",
+        "rLabels": {
+          "1": "R",
+          "8": "Rα",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "benzamide",
+      "label": "Benzamide",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzylamine"
+      ],
+      "aliases": [
+        "Benzamide"
+      ],
+      "description": "Benzamides are a chemical class of organic compounds built on an amide-linked benzene ring, in which a carbonyl-nitrogen amide group is attached directly to an aromatic ring. Members differ by substituents on the ring and on the amide nitrogen. In psychoactive chemistry the family is most prominent as the parent of certain U-series synthetic opioids, which act as agonists at the mu-opioid receptor. As with other potent novel opioids, they carry a significant overdose risk.",
+      "representatives": [
+        "u-47700"
+      ],
+      "structure": {
+        "smiles": "O=C(N([*:1])[*:2])c1ccc([*:4])cc1",
+        "rLabels": {
+          "1": "R",
+          "2": "R'",
+          "4": "R4"
+        }
+      }
+    },
+    {
+      "key": "quinazolinone",
+      "label": "Quinazolinone",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzamide"
+      ],
+      "aliases": [
+        "Quinazolinone"
+      ],
+      "description": "Quinazolinones are a chemical class of organic compounds derived from the benzamide family, consisting of bicyclic ketone-bearing heterocycles in which a benzene ring is fused to a nitrogen-containing pyrimidinone ring. Members differ by substituents on the ring nitrogens and the aromatic ring. They act as sedative-hypnotics, producing effects broadly similar to the benzodiazepines despite being chemically unrelated to them. The fused ketone-bearing bicyclic core is the defining structural feature of the class.",
+      "representatives": [
+        "methaqualone",
+        "etaqualone"
+      ],
+      "structure": {
+        "smiles": "O=C1c2ccccc2N=C([*:2])N1[*:3]",
+        "rLabels": {
+          "2": "R2",
+          "3": "R3"
+        }
+      }
+    },
+    {
+      "key": "cycloalkylamine",
+      "label": "Cycloalkylamine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "arylalkylamine"
+      ],
+      "aliases": [
+        "Cycloalkylamine"
+      ],
+      "description": "Cycloalkylamines are a chemical class of organic compounds derived from the core arylalkylamine structure, in which an amine is attached to a saturated carbon ring rather than a flat aromatic one. This saturated ring gives the family a different geometry from the aromatic amines. Its principal psychoactive branch is the arylcyclohexylamine dissociatives, which act as NMDA receptor antagonists. The saturated carbocyclic ring bearing an amine is the shared feature of the class.",
+      "structure": {
+        "smiles": "[*:9]N([H])C1([*:1])CCCCC1",
+        "rLabels": {
+          "1": "R",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "ibogalog",
+      "label": "Hexahydroazepinoindole (ibogalogs)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "tryptamine"
+      ],
+      "aliases": [
+        "Ibogalog",
+        "Iboga alkaloid",
+        "Hexahydroazepinoindole"
+      ],
+      "description": "Ibogalogs are a chemical class of organic compounds derived from the core tryptamine structure, built on the hexahydroazepinoindole core that also underlies the iboga alkaloids. They are simplified analogues of ibogaine, retaining the indole-containing fused ring system while streamlining the larger natural scaffold. Members are studied for atypical psychedelic and potential anti-addictive properties, with a pharmacology distinct from the classical serotonergic hallucinogens. The hexahydroazepinoindole core is the defining structural feature of the class.",
+      "representatives": [
+        "ibogaine"
+      ],
+      "structure": {
+        "smiles": "[*:1]N1CCc2c(CC1)c1cc([*:5])ccc1[nH]2",
+        "rLabels": {
+          "1": "RN",
+          "5": "R5"
+        }
+      }
+    },
+    {
+      "key": "beta-carboline",
+      "label": "β-Carboline",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "tryptamine"
+      ],
+      "aliases": [
+        "β-carboline",
+        "Beta-carboline",
+        "Harmala alkaloid"
+      ],
+      "description": "Beta-carbolines are a chemical class of organic compounds derived from the core tryptamine structure, formed by ring closure between the indole and the ethylamine chain to give a tricyclic system. Members carry various substituents on the resulting ring system. The harmala alkaloids among them act as reversible inhibitors of monoamine oxidase A, a role central to the pharmacology of ayahuasca, where they allow orally ingested tryptamines to remain active. The tricyclic indole-fused ring closure is the defining feature of the class.",
+      "representatives": [
+        "harmine",
+        "harmaline"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1nccc2c1[nH]c1ccc([*:7])cc12",
+        "rLabels": {
+          "1": "R1",
+          "7": "R7"
+        }
+      }
+    },
+    {
+      "key": "pyrrolidinophenone",
+      "label": "α-Pyrrolidinophenone (pyrrolidinophenones)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "cathinone",
+        "pyrrolidine"
+      ],
+      "aliases": [
+        "Pyrrolidinophenone",
+        "Phenylalkylpyrrolidine"
+      ],
+      "description": "Pyrrolidinophenones are a chemical class of organic compounds derived from the core cathinone structure, in which the amine nitrogen is enclosed within a five-membered pyrrolidine ring. They retain the beta-keto aryl framework of the cathinones, with the pyrrolidine ring replacing the terminal amine and variable ring and sidechain substituents distinguishing the members. Most pyrrolidinophenones act as potent inhibitors of dopamine and noradrenaline reuptake, producing strong stimulant effects. The pyrrolidine ring on a cathinone backbone is the defining feature of the class.",
+      "representatives": [
+        "mdpv",
+        "a-php",
+        "alpha-pcyp"
+      ],
+      "structure": {
+        "smiles": "O=C(c1ccc([*:4])cc1)C([*:8])N1CCCC1",
+        "rLabels": {
+          "4": "R4",
+          "8": "Rα"
+        }
+      }
+    },
+    {
+      "key": "adamantane",
+      "label": "Adamantane",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Adamantane",
+        "Adamantane derivative"
+      ],
+      "description": "Adamantanes are a chemical class of organic compounds built on the rigid diamond-lattice adamantane cage, a symmetrical three-ring carbon framework, with an amine or other group attached. Members differ by the substituents on the cage. In psychoactive chemistry the family includes NMDA receptor antagonists used for their effects on cognition and movement. The compact rigid carbon cage is the defining structural feature of the class.",
+      "representatives": [
+        "memantine",
+        "amantadine"
+      ],
+      "structure": {
+        "smiles": "[*:1]C12CC3CC(CC(C3)C1)C2",
+        "rLabels": {
+          "1": "R"
+        }
+      }
+    },
+    {
+      "key": "piperidine",
+      "label": "Piperidine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Piperidine"
+      ],
+      "description": "Piperidines are a chemical class of organic compounds derived from the core amine structure, consisting of six-membered saturated rings containing one nitrogen atom. This ring is one of the most common heterocycles in pharmacology and appears across many drug families. Because the ring is so general, its members span several psychoactive categories, but its most consequential psychoactive branch is the anilidopiperidine opioids. The single-nitrogen saturated six-membered ring is the shared feature of the class.",
+      "structure": {
+        "smiles": "[*:2]C1CCCN([*:9])C1",
+        "rLabels": {
+          "2": "R",
+          "9": "RN"
+        }
+      }
+    },
+    {
+      "key": "carbamate",
+      "label": "Carbamate",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Carbamate",
+        "1,3-Propanediol dicarbamate"
+      ],
+      "description": "Carbamates are a chemical class of organic compounds that are esters of carbamic acid, bearing a nitrogen atom linked to a carbonyl and an oxygen. Members differ by the groups attached to the nitrogen and the ester oxygen. Historically the family was important as sedative-hypnotics and muscle relaxants acting on the central nervous system. The carbamic acid ester linkage is the defining feature of the class.",
+      "representatives": [
+        "carisoprodol",
+        "meprobamate"
+      ],
+      "structure": {
+        "smiles": "[*:1]OC(=O)N([*:9])[*:10]",
+        "rLabels": {
+          "1": "R",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "benzimidazole",
+      "label": "Benzimidazole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Benzimidazole"
+      ],
+      "description": "Benzimidazoles are a chemical class of organic compounds derived from the core amine structure, consisting of fused benzene and imidazole heterocycles. Members differ by substituents on the ring system and on the attached groups. In psychoactive chemistry the family matters chiefly as the parent of the nitazene opioids, which act as potent agonists at the mu-opioid receptor. The fused benzene-imidazole ring system is the defining structural feature of the class.",
+      "structure": {
+        "smiles": "[*:2]c1nc2ccccc2n1[*:1]",
+        "rLabels": {
+          "1": "R1",
+          "2": "R2"
+        }
+      }
+    },
+    {
+      "key": "nitazene",
+      "label": "2-Benzylbenzimidazole (nitazenes)",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzimidazole"
+      ],
+      "aliases": [
+        "Nitazene",
+        "Benzimidazole (nitazene)",
+        "Benzimidazole opioid"
+      ],
+      "description": "Nitazenes are a chemical class of organic compounds derived from the core benzimidazole structure, built on a 2-benzylbenzimidazole scaffold. First developed in the 1950s and re-emerging as novel synthetic opioids, they act as agonists at the mu-opioid receptor. Several members exceed fentanyl in potency, giving the class an extreme overdose risk. The 2-benzylbenzimidazole core with its characteristic nitro group is the defining structural feature of the family.",
+      "representatives": [
+        "isotonitazene",
+        "metonitazene",
+        "etonitazene"
+      ],
+      "structure": {
+        "smiles": "O=[N+]([O-])c1ccc2nc(Cc3ccc([*:4])cc3)n(CCN([*:9])[*:10])c2c1",
+        "rLabels": {
+          "4": "R4'",
+          "9": "RN",
+          "10": "RN'"
+        }
+      }
+    },
+    {
+      "key": "nitazepyne",
+      "label": "Nitazepyne",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nitazene"
+      ],
+      "aliases": [
+        "Nitazepyne"
+      ],
+      "description": "Nitazepynes are a chemical class of organic compounds derived from the core nitazene structure, in which the flexible ethylamine sidechain is replaced by an azetidine or pyrrolidine ring. They otherwise retain the 2-benzylbenzimidazole scaffold of the parent nitazenes and act as agonists at the mu-opioid receptor. Their potency remains in the nitazene range, so the same extreme overdose caution applies. The cyclized amine sidechain is the feature that distinguishes them from the open-chain nitazenes.",
+      "structure": {
+        "smiles": "O=[N+]([O-])c1ccc2nc(Cc3ccc([*:4])cc3)n(CCN3CCCC3)c2c1",
+        "rLabels": {
+          "4": "R4'"
+        }
+      },
+      "bioisosteres": [
+        "nitazepipne"
+      ]
+    },
+    {
+      "key": "nitazepipne",
+      "label": "Nitazepipne",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "nitazene"
+      ],
+      "aliases": [
+        "Nitazepipne"
+      ],
+      "description": "Nitazepipnes are a chemical class of organic compounds derived from the core nitazene structure, carrying a piperidine ring in place of the flexible ethylamine sidechain. They otherwise retain the 2-benzylbenzimidazole scaffold of the parent nitazenes and act as agonists at the mu-opioid receptor. As with the wider nitazene family, their potency and overdose risk are extreme. The piperidine-bearing sidechain is the feature that distinguishes them from the open-chain nitazenes.",
+      "structure": {
+        "smiles": "O=[N+]([O-])c1ccc2nc(Cc3ccc([*:4])cc3)n(CCN3CCCCC3)c2c1",
+        "rLabels": {
+          "4": "R4'"
+        }
+      },
+      "bioisosteres": [
+        "nitazepyne"
+      ]
+    },
+    {
+      "key": "indole",
+      "label": "Indole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Indole",
+        "Indole alkaloid",
+        "Alkaloid (indole)"
+      ],
+      "description": "Indoles are a chemical class of organic compounds derived from the core amine structure, consisting of a fused benzene and pyrrole ring system. This ring system lies at the heart of serotonin and its many mimics. The tryptamines, and through them the lysergamides, ibogalogs, and beta-carbolines, are all elaborated indoles, so the family underlies a large share of serotonergic psychoactives. The fused benzene-pyrrole ring system is the defining structural feature of the class.",
+      "structure": {
+        "smiles": "[*:3]c1c([*:2])n([*:1])c2ccc([*:5])cc12",
+        "rLabels": {
+          "1": "R1",
+          "2": "R2",
+          "3": "R3",
+          "5": "R5"
+        }
+      },
+      "bioisosteres": [
+        "indazole"
+      ]
+    },
+    {
+      "key": "indazole",
+      "label": "Indazole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Indazole"
+      ],
+      "description": "Indazoles are a chemical class of organic compounds derived from the core amine structure, consisting of a benzene ring fused to a pyrazole ring. Structurally they are bioisosteres of the indoles, differing by an extra nitrogen in the five-membered ring. In psychoactive chemistry the family is most visible as the core of many synthetic cannabinoid receptor agonists. The fused benzene-pyrazole ring system is the defining structural feature of the class.",
+      "structure": {
+        "smiles": "[*:3]c1nn([*:1])c2ccc([*:5])cc12",
+        "rLabels": {
+          "1": "R1",
+          "3": "R3",
+          "5": "R5"
+        }
+      },
+      "bioisosteres": [
+        "indole"
+      ]
+    },
+    {
+      "key": "triazolobenzodiazepine",
+      "label": "Triazolobenzodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzodiazepine"
+      ],
+      "aliases": [
+        "Triazolobenzodiazepine",
+        "Benzodiazepine (triazolobenzodiazepine)",
+        "Benzodiazepine (Triazolobenzodiazepine)"
+      ],
+      "description": "Triazolobenzodiazepines are a chemical class of organic compounds derived from the core benzodiazepine structure, fused with an additional triazole ring. This fused triazole typically raises potency and shortens the onset of action relative to the classical benzodiazepines. Like their parent family, they act as positive modulators at the GABA-A receptor, producing sedative, anxiolytic and hypnotic effects. The fused triazole ring on a benzodiazepine core is the defining feature of the class.",
+      "representatives": [
+        "alprazolam",
+        "triazolam",
+        "clonazolam"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1nnc2CN=C(c3ccccc3[*:2])c3cc([*:8])ccc3-n12",
+        "rLabels": {
+          "1": "R1",
+          "2": "R2'",
+          "8": "R8"
+        }
+      }
+    },
+    {
+      "key": "thienodiazepine",
+      "label": "Thienodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "benzodiazepine"
+      ],
+      "aliases": [
+        "Thienodiazepine"
+      ],
+      "description": "Thienodiazepines are a chemical class of organic compounds derived from the core benzodiazepine structure, in which the fused benzene ring is replaced by a thiophene ring, a five-membered sulfur-containing aromatic ring. This ring swap is a bioisosteric substitution that leaves the diazepine core otherwise intact. Pharmacologically the members behave as classical benzodiazepines, acting as positive modulators at the GABA-A receptor. The thiophene ring in place of the benzene ring is the defining feature of the class.",
+      "representatives": [
+        "bentazepam"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1cc2c(s1)N([*:2])C(=O)CN=C2c1ccccc1[*:3]",
+        "rLabels": {
+          "1": "R2",
+          "2": "RN",
+          "3": "R2'"
+        }
+      }
+    },
+    {
+      "key": "thienotriazolodiazepine",
+      "label": "Thienotriazolodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "triazolobenzodiazepine",
+        "thienodiazepine"
+      ],
+      "aliases": [
+        "Thienotriazolodiazepine"
+      ],
+      "description": "Thienotriazolodiazepines are a chemical class of organic compounds derived from the triazolobenzodiazepine and thienodiazepine structures, combining both the thiophene ring swap and the fused triazole ring on a diazepine core. Members carry various substituents around this modified scaffold. They act as positive modulators at the GABA-A receptor and inherit the short onset and high potency of the triazolo family. The combination of a thiophene ring and a fused triazole is the defining structural feature of the class.",
+      "representatives": [
+        "etizolam",
+        "brotizolam"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1cc2c(s1)-n1c([*:2])nnc1CN=C2c1ccccc1[*:3]",
+        "rLabels": {
+          "1": "R2",
+          "2": "R9",
+          "3": "R2'"
+        }
+      }
+    },
+    {
+      "key": "1-5-benzodiazepine",
+      "label": "1,5-Benzodiazepine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "1,5-benzodiazepine",
+        "Benzodiazepine (1,5-benzodiazepine)"
+      ],
+      "description": "The 1,5-benzodiazepines are a chemical class of organic compounds derived from the core amine structure and are positional isomers of the classical 1,4-benzodiazepines, with the ring nitrogens at the 1- and 5-positions of the seven-membered diazepine ring. Members carry various substituents around this rearranged core. They act as positive modulators at the GABA-A receptor, showing a GABAergic pharmacology similar to the 1,4 isomers but with a distinct side-effect profile. The 1,5 nitrogen arrangement is the defining feature of the class.",
+      "representatives": [
+        "clobazam"
+      ],
+      "structure": {
+        "smiles": "O=C1CC(=O)N([*:1])c2ccc([*:7])cc2N1[*:5]",
+        "rLabels": {
+          "1": "R1",
+          "5": "R5",
+          "7": "R7"
+        }
+      },
+      "bioisosteres": [
+        "benzodiazepine"
+      ]
+    },
+    {
+      "key": "cyclopyrrolone",
+      "label": "Cyclopyrrolone",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Cyclopyrrolone"
+      ],
+      "description": "Cyclopyrrolones are a chemical class of organic compounds derived from the core amine structure, built on a cyclopyrrolone core in which a pyrrolone ring is fused to an additional heterocycle. Members carry various substituents on this scaffold. They act as non-benzodiazepine positive modulators at the GABA-A receptor and belong to the group of hypnotics commonly called Z-drugs. The fused cyclopyrrolone core is the defining structural feature of the class.",
+      "representatives": [
+        "zopiclone",
+        "eszopiclone"
+      ],
+      "structure": {
+        "smiles": "O=C1N([*:1])C([*:2])c2nccnc12",
+        "rLabels": {
+          "1": "R",
+          "2": "R'"
+        }
+      }
+    },
+    {
+      "key": "pyrazolopyrimidine",
+      "label": "Pyrazolopyrimidine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Pyrazolopyrimidine"
+      ],
+      "description": "Pyrazolopyrimidines are a chemical class of organic compounds derived from the core amine structure, consisting of a fused pyrazole and pyrimidine ring system. Members differ by the substituents attached to this fused core. In psychoactive use the family provides a non-benzodiazepine hypnotic that acts as a positive modulator at the GABA-A receptor, belonging to the group of Z-drugs. The fused pyrazole-pyrimidine ring system is the defining feature of the class.",
+      "representatives": [
+        "zaleplon"
+      ],
+      "structure": {
+        "smiles": "[*:3]c1ccn2ncc([*:1])c2n1",
+        "rLabels": {
+          "1": "R",
+          "3": "R'"
+        }
+      }
+    },
+    {
+      "key": "imidazopyridine",
+      "label": "Imidazopyridine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Imidazopyridine"
+      ],
+      "description": "Imidazopyridines are a chemical class of organic compounds derived from the core amine structure, consisting of a fused imidazole and pyridine ring system. Members differ by the substituents attached to this fused core. In psychoactive use the family provides a non-benzodiazepine hypnotic that acts as a positive modulator at the GABA-A receptor, belonging to the group of Z-drugs. The fused imidazole-pyridine ring system is the defining feature of the class.",
+      "representatives": [
+        "zolpidem"
+      ],
+      "structure": {
+        "smiles": "[*:1]c1cn2ccc([*:6])cc2n1",
+        "rLabels": {
+          "1": "R2",
+          "6": "R6"
+        }
+      }
+    },
+    {
+      "key": "isoxazole",
+      "label": "Isoxazole",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Isoxazole"
+      ],
+      "description": "Isoxazoles are a chemical class of organic compounds derived from the core amine structure, consisting of five-membered rings containing adjacent oxygen and nitrogen atoms. Members differ by the substituents attached to this ring. The principal psychoactive members are the actives of the fly agaric mushroom, which act at GABA-A and glutamate receptors to produce deliriant and sedating effects. The five-membered ring with adjacent oxygen and nitrogen is the defining feature of the class.",
+      "representatives": [
+        "muscimol"
+      ],
+      "structure": {
+        "smiles": "[*:3]c1cc([*:5])on1",
+        "rLabels": {
+          "3": "R3",
+          "5": "R5"
+        }
+      }
+    },
+    {
+      "key": "xanthine",
+      "label": "Xanthine",
+      "iconKey": "lucide:hexagon",
+      "parents": [
+        "amine"
+      ],
+      "aliases": [
+        "Xanthine",
+        "Purine alkaloid"
+      ],
+      "description": "Xanthines are a chemical class of organic compounds that are purine-derived alkaloids, built on a fused double-ring purine skeleton bearing carbonyl groups. Members differ by the methyl groups attached to the ring nitrogens. They act primarily as antagonists at adenosine receptors, producing mild stimulant effects, and include the most widely consumed stimulant on earth. The methylated purine skeleton is the defining structural feature of the class.",
+      "representatives": [
+        "caffeine",
+        "theobromine"
+      ],
+      "structure": {
+        "smiles": "O=c1c2c(n([*:7])cn2)n([*:3])c(=O)n1[*:1]",
+        "rLabels": {
+          "1": "R1",
+          "3": "R3",
+          "7": "R7"
+        }
+      }
+    },
+    {
+      "key": "non-metal-nitride",
+      "label": "Non-metal nitride",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Non-metal nitride",
+        "Nitrogen oxide"
+      ],
+      "description": "Non-metal nitrides are a chemical class of simple inorganic compounds composed of nitrogen combined with other non-metallic elements, rather than organic carbon-based scaffolds. Their structures are small molecules rather than elaborate ring systems. The family's psychoactive representative is a nitrogen-oxygen gas that acts as a dissociative anaesthetic, producing brief euphoria and analgesia when inhaled. Their simple inorganic composition sets them apart from the organic families described elsewhere.",
+      "representatives": [
+        "nitrous-oxide"
+      ],
+      "structure": {
+        "smiles": "N#[N+][O-]",
+        "rLabels": {}
+      }
+    },
+    {
+      "key": "noble-gas",
+      "label": "Noble gas",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Noble gas"
+      ],
+      "description": "Noble gases are a chemical class of chemically inert monatomic elements that exist as single atoms rather than bonded molecules. Because they do not readily form chemical bonds, they have no substituents or scaffold to vary. Despite this inertness, one heavier member acts as an NMDA-antagonist anaesthetic at elevated partial pressures, producing dissociative and anaesthetic effects. Their monatomic, unreactive nature distinguishes them entirely from the organic families described elsewhere.",
+      "representatives": [
+        "xenon"
+      ],
+      "structure": {
+        "smiles": "[Xe]",
+        "rLabels": {}
+      }
+    },
+    {
+      "key": "ether",
+      "label": "Ether",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Ether"
+      ],
+      "description": "Ethers are a chemical class of organic compounds in which an oxygen atom bridges two carbon-bearing groups. Members differ by the identity of the two groups flanking that oxygen. Several volatile ethers act as central nervous system depressants and anaesthetics, and one was among the first anaesthetics and recreational depressants ever used. The oxygen bridge between two carbon groups is the defining structural feature of the class.",
+      "representatives": [
+        "diethyl-ether"
+      ],
+      "structure": {
+        "smiles": "[*:1]O[*:2]",
+        "rLabels": {
+          "1": "R",
+          "2": "R'"
+        }
+      }
+    },
+    {
+      "key": "dibenzopyran",
+      "label": "Dibenzopyran",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Dibenzopyran",
+        "Benzochromene"
+      ],
+      "description": "Dibenzopyrans are a chemical class of organic compounds consisting of a tricyclic ring system in which two rings flank a central oxygen-containing pyran ring. This ring system underlies the classical phytocannabinoids. Members act at the cannabinoid receptors, producing effects that range from intoxication to more subtle modulation depending on the specific compound. The tricyclic dibenzopyran framework is the defining structural feature of the class.",
+      "representatives": [
+        "thc",
+        "cbd"
+      ],
+      "structure": {
+        "smiles": "CC1(C)Oc2cc([*:3])cc(O)c2C2C=C(C)CCC12",
+        "rLabels": {
+          "3": "R3"
+        }
+      }
+    },
+    {
+      "key": "diphenylmethanethiol",
+      "label": "Diphenylmethanethiol (modafinils)",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Diphenylmethanethiol",
+        "Diphenylmethylsulfinylacetamide (modafinil analogue)"
+      ],
+      "description": "Diphenylmethanethiols are a chemical class of organic compounds that are sulfur-bearing benzhydryl compounds, built on a central carbon flanked by two phenyl rings and bearing a sulfur atom. Members differ by the groups attached at that sulfur. The family comprises the modafinil-type eugeroics, wakefulness-promoting agents whose mechanism involves dopamine transporter inhibition. The sulfur-bearing diphenylmethyl core is the defining structural feature of the class.",
+      "representatives": [
+        "modafinil",
+        "armodafinil"
+      ],
+      "structure": {
+        "smiles": "[*:1]SC(c1ccccc1)c1ccccc1",
+        "rLabels": {
+          "1": "R"
+        }
+      },
+      "bioisosteres": [
+        "diphenylmethanol"
+      ]
+    },
+    {
+      "key": "diphenylmethanol",
+      "label": "Diphenylmethanol (benzhydrols)",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Diphenylmethanol",
+        "Benzhydrol",
+        "Benzhydryl",
+        "Dephenylmethane",
+        "Ethanolamine",
+        "Ethanolamine derivative (antihistamine)"
+      ],
+      "description": "Diphenylmethanols are a chemical class of organic compounds, also called benzhydrols, built on a diphenyl-substituted carbinol carbon in which a carbon bearing a hydroxyl or ether oxygen is flanked by two phenyl rings. Members differ by the groups attached at that oxygen. The family includes the ethanolamine antihistamines, which act as antagonists at histamine and muscarinic acetylcholine receptors, producing sedating and, at high doses, deliriant effects. The oxygen-bearing diphenylmethyl core is the defining structural feature of the class.",
+      "representatives": [
+        "diphenhydramine"
+      ],
+      "structure": {
+        "smiles": "[*:1]OC(c1ccccc1)c1ccccc1",
+        "rLabels": {
+          "1": "R"
+        }
+      },
+      "bioisosteres": [
+        "diphenylmethanethiol"
+      ]
+    },
+    {
+      "key": "alcohol",
+      "label": "Alcohol",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Alcohol",
+        "Tertiary alcohol",
+        "Diol (alkanediol)"
+      ],
+      "description": "Alcohols are a chemical class of organic compounds bearing a hydroxyl group on a saturated carbon. Members differ by the size and branching of the carbon skeleton carrying that hydroxyl. Several act as central nervous system depressants, with the simplest and most widely consumed being the archetype of the class, alongside less common branched relatives. The hydroxyl group on a saturated carbon is the defining structural feature of the class.",
+      "representatives": [
+        "alcohol",
+        "2m2b"
+      ],
+      "structure": {
+        "smiles": "[*:1]O",
+        "rLabels": {
+          "1": "R"
+        }
+      }
+    },
+    {
+      "key": "furanolactone",
+      "label": "Furanolactone",
+      "iconKey": "lucide:hexagon",
+      "parents": [],
+      "aliases": [
+        "Furanolactone",
+        "Neoclerodane diterpenoid"
+      ],
+      "description": "Furanolactones are a chemical class of organic compounds that are terpenoids carrying fused furan and lactone rings. Members differ by the substituents around this fused ring system. The family's most notable psychoactive member is a non-nitrogenous agonist at the kappa-opioid receptor, giving it a dissociative and strongly hallucinogenic character unusual among natural products. The fused furan and lactone rings are the defining structural feature of the class.",
+      "representatives": [
+        "salvinorin-a"
+      ],
+      "structure": {
+        "smiles": "O=C1CCC(c2ccoc2)O1",
+        "rLabels": {}
+      }
+    },
+    {
+      "key": "pyridine-alkaloid",
+      "label": "Pyridine alkaloid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Pyridine alkaloid",
+        "Alkaloid (pyridine)",
+        "Nicotinic alkaloid"
+      ],
+      "description": "Pyridine alkaloids are a chemical class of plant-derived organic compounds built from a pyridine ring joined to a saturated nitrogen-containing ring, most often a pyrrolidine bonded at the pyridine 3-position. Members differ in the size of that saturated ring and in the group carried by its nitrogen, a methyl group in nicotine and hydrogen in nornicotine. The family acts as agonists at nicotinic acetylcholine receptors, producing the stimulant and strongly reinforcing effects associated with tobacco. A pyridine ring linked to a saturated azacycle is the defining structural feature of the class.",
+      "representatives": [
+        "tobacco"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "[*:1]N1CCCC1c1cccnc1",
+        "rLabels": {
+          "1": "RN"
+        }
+      }
+    },
+    {
+      "key": "mesembrine",
+      "label": "Mesembrine alkaloid",
+      "iconKey": "lucide:hexagon",
+      "aliases": [
+        "Mesembrine alkaloid",
+        "Alkaloid (mesembrine)",
+        "Sceletium alkaloid"
+      ],
+      "description": "Mesembrine alkaloids are a chemical class of organic compounds defined by a cis-fused octahydroindole core carrying an aryl group at the ring-fusion carbon. Members differ in the substituents on that aryl ring, in the oxidation state of the six-membered ring, and in the group attached to the ring nitrogen. The family occurs in Sceletium tortuosum, where mesembrine and its relatives act chiefly as serotonin reuptake inhibitors with additional PDE4 inhibition. The 3a-aryl octahydroindole skeleton is the defining structural feature of the class.",
+      "representatives": [
+        "kanna"
+      ],
+      "parents": [
+        "amine"
+      ],
+      "structure": {
+        "smiles": "[*:1]N1CCC2(C1CC(=O)CC2)c1ccc([*:4])c([*:3])c1",
+        "rLabels": {
+          "1": "RN",
+          "3": "R",
+          "4": "R'"
+        }
+      }
+    }
+  ]
+}

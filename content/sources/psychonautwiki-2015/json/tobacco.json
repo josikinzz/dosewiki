@@ -1,0 +1,126 @@
+{
+  "slug": "tobacco",
+  "title": "Tobacco",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/tobacco.md",
+  "archive_timestamp": "20150426005439",
+  "archive_date_utc": "2015-04-26T00:54:39Z",
+  "archive_url": "https://web.archive.org/web/20150426005439/http://psychonautwiki.org/wiki/Tobacco",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, April 2015.",
+    "url": "https://web.archive.org/web/20150426005439/http://psychonautwiki.org/wiki/Tobacco"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Focus enhancement",
+            "description": ""
+          },
+          {
+            "name": "Memory enhancement",
+            "description": ""
+          },
+          {
+            "name": "Motivation enhancement",
+            "description": ""
+          },
+          {
+            "name": "Euphoria",
+            "description": ""
+          },
+          {
+            "name": "Anxiety and Anxiety suppression",
+            "description": "Low doses of nicotine produce stimulatory effects which can cause anxiety. Higher doses stimulate the release of beta-endorphin which relieves anxiety."
+          },
+          {
+            "name": "Sexual arousal",
+            "description": "Nicotine has the capability of inducing heightened sexual arousal due to its effect on dopamine transmission."
+          },
+          {
+            "name": "Compulsive redosing",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Stimulation and Sedation",
+            "description": "The stimulatory effects of nicotine are much less pronounced than other stimulants such as caffeine or amphetamine. At higher doses, however, nicotine inhibits nerve transmission which produces sedative effects."
+          },
+          {
+            "name": "Abnormal heartbeat",
+            "description": "At high doses, nicotine can trigger an elevated heart rate or even heart palpitations."
+          },
+          {
+            "name": "Vasoconstriction",
+            "description": ""
+          },
+          {
+            "name": "Appetite suppression",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, April 2015.",
+      "url": "https://web.archive.org/web/20150426005439/http://psychonautwiki.org/wiki/Tobacco"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects mapped to physical.General in source order.",
+    "The source bullet `Stimulation and Sedation` is represented as one effect name preserving the source `and` relationship.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "The source bullet `Anxiety and Anxiety suppression` is represented as one effect name preserving the source `and` relationship.",
+    "No sensory effects headings were present in the source; sensory categories are empty schema shells.",
+    "No subjective effects stub warning was present in the source article.",
+    "Markdown bold and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

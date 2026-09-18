@@ -1,0 +1,128 @@
+{
+  "slug": "fentanyl",
+  "title": "Fentanyl",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/fentanyl.md",
+  "archive_timestamp": "20160803235227",
+  "archive_date_utc": "2016-08-03T23:52:27Z",
+  "archive_url": "https://web.archive.org/web/20160803235227/https://psychonautwiki.org/wiki/Fentanyl",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160803235227/https://psychonautwiki.org/wiki/Fentanyl"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Cognitive euphoria",
+            "description": "This particular substance can be considered as less intense in its cognitive euphoria when compared with that of morphine or diacetylmorphine (heroin) due to the upper limit of how much can be converted into its active form through metabolism. It is still, however, capable of extreme intensity and overwhelming bliss at heavier dosages with a low tolerance. The sensation itself can be described as powerful and overwhelming feeling of emotional bliss, contentment, and happiness."
+          },
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          },
+          {
+            "name": "Compulsive redosing",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Pain relief",
+            "description": "In comparison to other opiates, fentanyl can be described as a strong analgesic, providing relief even at non-recreational doses."
+          },
+          {
+            "name": "Physical euphoria",
+            "description": "This particular substance can be considered as less intense in its physical euphoria when compared with that of morphine or diacetylmorphine (heroin) due to the upper limit of how much can be converted into its active form through metabolism. The sensation itself can be described as strong feelings of intense physical comfort, warmth and physical blissful euphoria which spreads throughout the body."
+          },
+          {
+            "name": "Itchiness",
+            "description": "This compound presents very little itch response due to little to no amounts of histamine being release, unlike other opioids."
+          },
+          {
+            "name": "Respiratory depression",
+            "description": "In comparison to other opiates, fentanyl displays this effect at lower doses relative to euphoria then other opiates, and even at low doses results in the sensation that the breath is slowed down mildly to moderately, but does not cause noticeable impairment. At high doses and overdoses, opioid-induced respiratory depression can result in a shortness of breath, abnormal breathing patterns, semi-consciousness, or unconsciousness. Severe overdoses can result in a coma or death without immediate medical attention."
+          },
+          {
+            "name": "Sedation",
+            "description": "Fentanyl can be described as much more sedating then other opiates. Even at moderate dosages, this compound can result in overwhelming feelings of sedation and tiredness that is considerably more sedating than that of heroin and oxycodone."
+          },
+          {
+            "name": "Constipation",
+            "description": ""
+          },
+          {
+            "name": "Cough suppression",
+            "description": ""
+          },
+          {
+            "name": "Difficulty urinating",
+            "description": ""
+          },
+          {
+            "name": "Pupil constriction",
+            "description": ""
+          },
+          {
+            "name": "Decreased libido",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160803235227/https://psychonautwiki.org/wiki/Fentanyl"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects mapped to physical.General in source order.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "No sensory effects headings were present in the source; sensory categories are empty schema shells.",
+    "No subjective effects stub warning was present in the source article.",
+    "Markdown bold and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

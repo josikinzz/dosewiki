@@ -1,0 +1,4 @@
+# Python deps for scripts/chemistry/validate_smiles.py (RDKit SMILES validation,
+# used by scripts/data/mergeGeneratedSmiles.mjs).
+# Set up a venv:  npm run molecules:setup-venv
+rdkit>=2025.3

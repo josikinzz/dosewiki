@@ -1,0 +1,649 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "replication-index-contributor-profile-import-projection",
+  "campaignId": "replication-index-2026-08-30",
+  "scope": {
+    "planningOnly": true,
+    "sourceFilesReadOnly": true,
+    "profileWrites": 0,
+    "productionWrites": 0,
+    "r2Writes": 0,
+    "uploads": 0,
+    "sources": {
+      "profileMatchPlan": {
+        "path": "campaign-inputs/replication-index-2026-08-30/reviewed-profile-match-plan.json",
+        "sha256": "f570c44efcebfd1be95584d01f4461041fe77510dd4ba250950e72e9c108a5f9"
+      },
+      "identitySummary": {
+        "path": "campaign-inputs/replication-index-2026-08-30/creator-identity-review-summary.json",
+        "sha256": "6acbdd9c5185676756d67dde69054ff9ede77e269a3826c14b29103bf899cbc6"
+      },
+      "liveProfiles": {
+        "path": "campaign-inputs/replication-index-2026-08-30/live-profiles.json",
+        "sha256": "2c6f956f00b96d24d3c3cd010a7df6ba36415037e3504d80032b33da341482e6"
+      },
+      "reviewedAvatarEvidence": {
+        "path": "campaign-inputs/replication-index-2026-08-30/reviewed-avatar-source-evidence.json",
+        "sha256": "45ba417b9bbd42365f37b26c7c6f9f86981de59fee439ee13f5283b80fbc8f80"
+      },
+      "avatarPlan": {
+        "path": "campaign-inputs/replication-index-2026-08-30/reviewed-avatar-acquisition-plan.json",
+        "sha256": "65aa0afb7dcc0950e32c7042a0ef224bbe4ab8e2b4340bc741864039e2aa074d"
+      }
+    }
+  },
+  "policy": {
+    "profileLinkLimit": 3,
+    "linkSelection": "Prefer a primary site or portfolio, then primary social profiles; preserve work-specific and excess URLs as evidence-only.",
+    "excessLinkReason": "profile-link-limit"
+  },
+  "counts": {
+    "existingProfileAssignments": 4,
+    "existingProfiles": 4,
+    "existingProfilesWithLinkAdditions": 3,
+    "existingLinkAdditions": 5,
+    "createProfileAssignments": 10,
+    "createProfiles": 8,
+    "createProfilesWithAvatarCandidate": 4,
+    "createProfilesWithInitialsFallback": 4,
+    "excludedAssignments": 31,
+    "profileLinkLimit": 3,
+    "profileLinkLimitExclusions": 2
+  },
+  "existingProfiles": [
+    {
+      "operation": "update-existing-links",
+      "profileId": "kx7fygrh7annh5dz4x566hrw318d2gca",
+      "key": "ANGUSLONG",
+      "displayName": "Angus Long",
+      "assignmentShas": [
+        "ed482972eb4d35d6b9a9f019982625e435dcedbbf9e6d4acc74734f2b24bb3fb"
+      ],
+      "avatarUrl": "/profile-avatars/anguslong/avatar.webp",
+      "existingLinks": [],
+      "addLinks": [
+        {
+          "url": "https://algaart.com/",
+          "kind": "official artist website candidate",
+          "confidence": "high",
+          "evidence": "The creator-controlled Reddit account directs readers to algaart.com for its work and prints.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://algaart.com"
+        },
+        {
+          "url": "https://www.facebook.com/algaartworks/",
+          "kind": "Facebook page",
+          "confidence": "high",
+          "evidence": "The creator-controlled Reddit account and an independent exact-work page both identify /algaartworks.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://facebook.com/algaartworks"
+        },
+        {
+          "url": "https://www.instagram.com/alga_artist/",
+          "kind": "Instagram profile",
+          "confidence": "high",
+          "evidence": "The creator-controlled Reddit account directly identifies @alga_artist as its Instagram.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://instagram.com/alga_artist"
+        }
+      ],
+      "evidenceOnlyLinks": [
+        {
+          "url": "https://www.reddit.com/user/Algaart_Works/",
+          "kind": "Reddit profile",
+          "confidence": "high",
+          "evidence": "Direct source account.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/Algaart_Works",
+          "notImportedReason": "profile-link-limit"
+        }
+      ]
+    },
+    {
+      "operation": "update-existing-links",
+      "profileId": "kx7d518v763abwy6nj1wkvw6jn8d37rq",
+      "key": "LARRYCARLSON",
+      "displayName": "Larry Carlson",
+      "assignmentShas": [
+        "c01d428625ab1b823b8c47a14c990a5435087808fee20a2003a97ee4ff3a17b0"
+      ],
+      "avatarUrl": "/profile-avatars/larrycarlson/avatar.webp",
+      "existingLinks": [],
+      "addLinks": [
+        {
+          "url": "https://larrycarlson.com/",
+          "kind": "official artist website",
+          "confidence": "high",
+          "evidence": "Creator-controlled artist site corroborated by institutional and artist-biography sources.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://larrycarlson.com"
+        }
+      ],
+      "evidenceOnlyLinks": []
+    },
+    {
+      "operation": "reuse-existing",
+      "profileId": "kx798b4vkng84202adgphq5bq98c8gjm",
+      "key": "SAMPERKINS",
+      "displayName": "Sam Perkins",
+      "assignmentShas": [
+        "3d492a22ff944cce766e7d30457d69e42943e6643bdc8e32d0ef5c2304634797"
+      ],
+      "avatarUrl": "/profile-avatars/samperkins/avatar.webp",
+      "existingLinks": [
+        {
+          "label": "flickr.com",
+          "url": "https://www.flickr.com/photos/thecubb/"
+        }
+      ],
+      "addLinks": [],
+      "evidenceOnlyLinks": []
+    },
+    {
+      "operation": "update-existing-links",
+      "profileId": "kx7b8qa6zsa9zwkkzjvcgeat1d8c9hn1",
+      "key": "SIMONHAIDUK",
+      "displayName": "Simon Haiduk",
+      "assignmentShas": [
+        "18ab9ad0272688bc06b10839519d8b6188e8bba06c6f05881d8c3aa62ad889c2"
+      ],
+      "avatarUrl": "/profile-avatars/simonhaiduk/avatar.webp",
+      "existingLinks": [
+        {
+          "label": "simonhaiduk.com",
+          "url": "https://simonhaiduk.com/"
+        }
+      ],
+      "addLinks": [
+        {
+          "url": "https://simonhaiduk.bandcamp.com/music",
+          "kind": "artist-operated music and profile page linking simonhaiduk.com",
+          "confidence": "unverified",
+          "evidence": "search result corroborated 2026-08-31",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://simonhaiduk.bandcamp.com/music"
+        }
+      ],
+      "evidenceOnlyLinks": []
+    }
+  ],
+  "createProfiles": [
+    {
+      "operation": "create-candidate",
+      "key": "BRYANITCH",
+      "displayName": "Bryan Itch",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "7e0a076d0afa080bda4586258eb541dfd446b2f11b0b6b8da916a87e61f4cd1e"
+      ],
+      "links": [
+        {
+          "url": "https://www.instagram.com/bryan_itch/",
+          "kind": "primary-social-profile",
+          "confidence": "high",
+          "evidence": "The creator's link hub and independent artist directories consistently identify this as Bryan Itch's Instagram.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://instagram.com/bryan_itch"
+        },
+        {
+          "url": "https://linktr.ee/bryan_itch",
+          "kind": "primary-creator-link-hub",
+          "confidence": "high",
+          "evidence": "The page identifies Bryan Itch and links his official social and portfolio destinations.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://linktr.ee/bryan_itch"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "acquire-reviewed-public-candidate",
+        "sourceUrl": "https://linktr.ee/bryan_itch",
+        "imageUrl": "https://ugc.production.linktr.ee/oh83z9f6SMOofrzZDp5S_32C8Vse5bgz5kEBg?io=true&size=avatar-v3_0"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": "Bryan Itch / bryan_itch Linktree account",
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "DARTHSADER",
+      "displayName": "darthsader",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "1e1e3ce069de27ce6aa6e60e5e16fe7477a1a3ec968931b531c2321cd52e1f07"
+      ],
+      "links": [
+        {
+          "url": "https://www.reddit.com/user/darthsader/",
+          "kind": "source account attached to the post's [OC] self-attribution",
+          "confidence": "unverified",
+          "evidence": "source-derived; profile contents not independently verified",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/darthsader"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "generated-initials-placeholder",
+        "initials": "D"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": null,
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "FRAKTALITY",
+      "displayName": "Fraktality",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "85c94f47b1ccc62ce5f2473e27784cd40e713b3ff827e5200a58162f5afa2080"
+      ],
+      "links": [
+        {
+          "url": "https://fraktality.com/elements/sections/about/",
+          "kind": "primary-brand-site",
+          "confidence": "high",
+          "evidence": "Fraktality's own site identifies the company and links its @fraktality social account.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://fraktality.com/elements/sections/about"
+        },
+        {
+          "url": "https://giphy.com/fraktality/",
+          "kind": "primary-media-profile-candidate",
+          "confidence": "medium",
+          "evidence": "The branded GIPHY profile identifies itself as Fraktality, carries the same official domain, and publishes psychedelic GIF work.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://giphy.com/fraktality"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "acquire-reviewed-public-candidate",
+        "sourceUrl": "https://giphy.com/fraktality/",
+        "imageUrl": "https://media.giphy.com/avatars/fraktality/n576U1qPyFN4/200h.jpg"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": "Fraktality GIPHY profile",
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "LUCIDITYVISIONS",
+      "displayName": "lucidity.visions",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "d9d0d20be6280574402c1946a1d30b667957263f8947e4f4e27f4e049214eb53"
+      ],
+      "links": [
+        {
+          "url": "https://www.instagram.com/lucidity.visions/",
+          "kind": "Instagram profile",
+          "confidence": "high",
+          "evidence": "The exact source post says the work was made by the submitter and directly identifies lucidity.visions as the submitter's Instagram account.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://instagram.com/lucidity.visions"
+        },
+        {
+          "url": "https://www.reddit.com/user/YUNGPRODd/",
+          "kind": "Reddit profile",
+          "confidence": "high",
+          "evidence": "Direct source account; current profile display name is Doubledois25.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/YUNGPRODd"
+        },
+        {
+          "url": "https://www.tiktok.com/@lucidity.visions",
+          "kind": "TikTok profile",
+          "confidence": "high",
+          "evidence": "The exact source post directly identifies lucidity.visions as the submitter's TikTok account.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://tiktok.com/@lucidity.visions"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "generated-initials-placeholder",
+        "initials": "LV"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": null,
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "PARKERTHIBAULT",
+      "displayName": "Parker Thibault",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "406697a2c8dbf20f58984d889928a57ca227d3e1853db8404950d32b2b74dc31",
+        "863e65cc89087006b30f102592032a7cbc7fd6a55b62645b3af90800e531ee39"
+      ],
+      "links": [
+        {
+          "url": "https://www.instagram.com/pbodesigns/",
+          "kind": "Instagram account explicitly supplied in the creator byline; same handle as the Reddit submitter",
+          "confidence": "unverified",
+          "evidence": "source-provided; direct fetch was throttled on 2026-08-31",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://instagram.com/pbodesigns"
+        },
+        {
+          "url": "https://pthibault7823.artstation.com/",
+          "kind": "primary-portfolio",
+          "confidence": "high",
+          "evidence": "The ArtStation portfolio identifies Parker Thibault and the studio label Pbo Designs, matching the source submitter handle pbodesigns.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://pthibault7823.artstation.com"
+        },
+        {
+          "url": "https://www.reddit.com/user/pbodesigns/",
+          "kind": "source account whose handle matches the linked creator brand",
+          "confidence": "unverified",
+          "evidence": "source-derived; profile contents not independently verified",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/pbodesigns"
+        }
+      ],
+      "evidenceOnlyLinks": [
+        {
+          "url": "https://pthibault7823.artstation.com/projects/3oQDnv",
+          "kind": "primary-portfolio-work",
+          "confidence": "high",
+          "evidence": "A dated psychedelic artwork page on the same primary portfolio identifies both Parker Thibault and Pbo Designs.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://pthibault7823.artstation.com/projects/3oQDnv",
+          "notImportedReason": "profile-link-limit"
+        }
+      ],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "generated-initials-placeholder",
+        "initials": "PT"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": null,
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "PEENPOON",
+      "displayName": "peenpoon",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "034f29868f67efb8a2563fe9945578e4198de0846d494db4e89ff21681cd3023"
+      ],
+      "links": [
+        {
+          "url": "https://www.reddit.com/user/peenpoon/",
+          "kind": "source account that made the explicit self-attribution",
+          "confidence": "unverified",
+          "evidence": "source-derived; profile contents not independently verified",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/peenpoon"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "acquire-reviewed-public-candidate",
+        "sourceUrl": "https://www.reddit.com/user/peenpoon/",
+        "imageUrl": "https://i.redd.it/snoovatar/avatars/464dc89f-e7d0-4a49-9df1-5d90b1a47aa1.png"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": "peenpoon Reddit account / Reddit Snoovatar",
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "SKRANDADDY",
+      "displayName": "Skrandaddy",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "d0fe93c87d60b5d9b98c67ae297a7ac400a342708144d55820d2cf4e4c2bc271"
+      ],
+      "links": [
+        {
+          "url": "https://www.reddit.com/user/Skrandaddy/",
+          "kind": "Reddit profile",
+          "confidence": "high",
+          "evidence": "The exact source post is a first-person authorship statement from this account.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/Skrandaddy"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "acquire-reviewed-public-candidate",
+        "sourceUrl": "https://www.reddit.com/user/Skrandaddy/",
+        "imageUrl": "https://i.redd.it/snoovatar/avatars/950d7d52-0d42-40c1-9575-760dacaf229b.png"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": "Skrandaddy Reddit account / Reddit Snoovatar",
+        "permissionEvidence": null
+      }
+    },
+    {
+      "operation": "create-candidate",
+      "key": "ULONGFARTISART",
+      "displayName": "u/longfartisart",
+      "aliases": [],
+      "role": "Replication Artist",
+      "assignmentShas": [
+        "5f3f582fd217742a204f49cbb753d2effc470ba5557440bd6b61a90d2fcbe290",
+        "8db47e9496495a27cd40a846db05768fa8e6b88b0eec3a9714c0f6cb1a33a37a"
+      ],
+      "links": [
+        {
+          "url": "https://www.reddit.com/r/migraine/comments/dfqura/scintillating_scotoma/",
+          "kind": "primary-creator-post",
+          "confidence": "high",
+          "evidence": "The credited account posted the work and answered creation questions, naming After Effects and later describing the displacement/fractal-noise method.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/r/migraine/comments/dfqura/scintillating_scotoma"
+        },
+        {
+          "url": "https://www.reddit.com/user/longfartisart/",
+          "kind": "primary-account",
+          "confidence": "high",
+          "evidence": "The account page is active and links the account's original Scintillating scotoma post.",
+          "authorityStatus": "primary-or-official-candidate",
+          "normalizedUrl": "https://reddit.com/user/longfartisart"
+        }
+      ],
+      "evidenceOnlyLinks": [],
+      "avatarUrl": null,
+      "avatarPlan": {
+        "mode": "generated-initials-placeholder",
+        "initials": "L"
+      },
+      "rights": {
+        "license": "unknown",
+        "attribution": null,
+        "permissionEvidence": null
+      }
+    }
+  ],
+  "exclusions": [
+    {
+      "sha256": "01468c16b9df851f81d41c418d332ef4cd9f5f3bf0aeae520943f6fa344f0a24",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "0882cbc9d0c750700eb7ebc2716e6f419d3857c0c72565515b02e0abc3d73a22",
+      "reason": "identity-kind-or-single-creator-unresolved",
+      "label": null
+    },
+    {
+      "sha256": "0d188183e854ac341925b1fd93c8ec83950d26f8916369066fbea630a33279e0",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "101704c259ea4ac1bb758a13f4f2777fb56520a6acd3114000ae7c448e10d016",
+      "reason": "identity-kind-or-single-creator-unresolved",
+      "label": "Ayjay Art"
+    },
+    {
+      "sha256": "2541c355285106ce1796eb0bf7c300757a346797933853b698caa627b0b20f01",
+      "reason": "identity-kind-or-single-creator-unresolved",
+      "label": "Nectyrnal Art"
+    },
+    {
+      "sha256": "2fdc731a206fc6b903319eb424c68295809d59191f3ab4cddf1d10229e11cfe6",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "301c2c55d8c2f13a0f4000b1f8045bd9a4abfde10e8af999d3df8bf829a03944",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "3d9b53fa9076703020cdb374fe45493a4b291c85d73c1268c7caa883daee786a",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "4024f4737029f3f762ea1e3864093ef4d148d9fba28fbe7f8713b6e45ae45378",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "43d60f80e9a19c0347cff8307b34d1f97fa377d27470c2df2eded5f5253c5335",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "4477470ac1e4e98d156c54086175560f30baced2cc6fba197529a49583273cf9",
+      "reason": "ambiguous-or-insufficient-identity",
+      "label": "Unnamed self-credited creator"
+    },
+    {
+      "sha256": "4c4091cbe66457ecef785c456ee2cd149da643b86eec6bb48247a115d92496a5",
+      "reason": "system-or-process-not-profile",
+      "label": "BigGAN and GANtools"
+    },
+    {
+      "sha256": "4c90053ebe5299f3478e857457a3bbd9d11b54eeb66245bd7b613d1e2713bab7",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "4fb6d00f96659b122c275b63b2f997093cd0b172140eca44f11e7eb1424a35d2",
+      "reason": "system-or-process-not-profile",
+      "label": "Energy release in chemical reactions"
+    },
+    {
+      "sha256": "67ac0a82ab243955c1e253dafc1c709ffa68fd62640afc386a94fd499559cd75",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "6ab8e08f44949e83d36f8fd142b02914c3895d0c1217192d7536101798512e35",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "6ec7e0ee16746a3daebaadcf419f94c8d2f43b2c3726227bcb076ffbe390ff5b",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "7d73af5098c26a5986b544b51a6bfe962c0a15426c66235cc4ee1e4e1dfba9db",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "85c90b562f4b11217d164e86d346fa0ae5870fe09da03d7d29ad00e8c0e6ebcc",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo people"
+    },
+    {
+      "sha256": "92357677c8fe3c51a86fb99832e68212de724d863852c78d6b1a4e57b57211fa",
+      "reason": "ambiguous-or-insufficient-identity",
+      "label": null
+    },
+    {
+      "sha256": "a53c1c2b51371f226d808d5cdeed1f25dcc9ac1c4201b0ebbad062d39540d23f",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo-Konibo community artists"
+    },
+    {
+      "sha256": "a843487f746847099b0f89a9a1716dd9ff0cb18d210b30a9075d521c3c182b75",
+      "reason": "ambiguous-or-insufficient-identity",
+      "label": null
+    },
+    {
+      "sha256": "aa4b1a98166444094c0373382c576ba2e61ca53df02f8dea4be620e7acfc368e",
+      "reason": "unverified-public-identity",
+      "label": "thepsychedelicdeity"
+    },
+    {
+      "sha256": "b499374c99b7b5ee4820ce1d5c6b3912dee2b346e75dd784ead08eb4716b2314",
+      "reason": "unverified-public-identity",
+      "label": "Redmix2"
+    },
+    {
+      "sha256": "bf90c0abb675b9a6c5c1dbb720858cb2f0600503064aab01c1bedb4bf99bc5d9",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo-Konibo community artists"
+    },
+    {
+      "sha256": "c1a723afd3752c496188b5e7c090b1f9ed26fa7718ce58769d23133f959b619d",
+      "reason": "ambiguous-or-insufficient-identity",
+      "label": null
+    },
+    {
+      "sha256": "c1d356f78472a7d0f3a4b4407a82dbedb98b0b04e7a7099eb129ceb24d785a64",
+      "reason": "ambiguous-or-insufficient-identity",
+      "label": null
+    },
+    {
+      "sha256": "cceadf61d4beb6da30a587e28d8ca32800a7c9b9014ec5e956f4278c7027e913",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo-Konibo community artists"
+    },
+    {
+      "sha256": "cf30340b50f5d83b1cfb0d1db87e19e455bb2df8a24b4d4c42255e467cdd83c5",
+      "reason": "ambiguous-or-insufficient-identity",
+      "label": null
+    },
+    {
+      "sha256": "d2167f57890824c6b83d25112673006b567f76129203f7d4a4158fcd035cf0da",
+      "reason": "collective-or-tradition-not-individual-profile",
+      "label": "Shipibo-Konibo community artists"
+    },
+    {
+      "sha256": "df16a0038c16ffd4454a571ea053d40f2baf8afc284234f744540169504d5fa4",
+      "reason": "unverified-public-identity",
+      "label": "Redmix2"
+    }
+  ]
+}

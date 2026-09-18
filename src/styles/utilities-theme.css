@@ -1,0 +1,4699 @@
+/* Shared theme utilities: the .theme-* recipes the component kit and more than
+   one feature read. Imported into the utilities cascade layer by
+   src/styles/utilities.css.
+
+   Ownership rule. A class used by one feature directory belongs beside that
+   feature, in a sheet the feature's route or entry imports and that declares
+   its rules inside `@layer utilities` so nothing changes in the cascade:
+     src/features/dev/dev-tools.css   (editor-only; loaded by the editor style entry)
+     src/app/china/china.css          (one route)
+     src/styles/mantras.css           (one route)
+   A class used by two features, or by anything under src/components, stays
+   here. `npm run theme:classes:check` reports classes nothing consumes.
+
+   Scheme rule. Nothing here keys on data-theme. Every value that differs
+   between dark and light is a --theme-* token in site-colors.css with a value
+   per scheme; src/theme/lightSheet.test.ts enforces it. The only scheme
+   selectors left are the molecule colourway switch and the dark chrome
+   islands, which are structural rather than stylistic.
+
+   Families still authored here that a later pass may co-locate: article
+   sections (src/features/article), replications, effects, and reports. They
+   stay for now because moving them changes source order against the shared
+   recipes they sit beside, and that has to be verified per route. */
+
+.hyphenate {
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.theme-page-shell {
+  background-color: var(--theme-body-bg);
+  background-image: var(--theme-page-shell-background-image);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  color: var(--theme-text-primary);
+}
+
+.theme-card-surface {
+  background-color: var(--theme-surface-soft);
+  border-color: var(--theme-border-subtle);
+  color: var(--theme-text-primary);
+}
+
+.theme-route-tabs-list {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+
+:is(.theme-route-tabs-list, .theme-dosage-mode-tabs) {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
+}
+
+.theme-dosage-mode-tabs {
+  background: var(--theme-dosage-mode-tabs-background) !important;
+  color: var(--theme-dosage-mode-tabs-color);
+  box-shadow: var(--theme-dosage-mode-tabs-box-shadow) !important;
+  --tw-ring-color: var(--theme-dosage-mode-tabs-tw-ring-color) !important;
+}
+
+.theme-overlay-surface {
+  background-color: var(--theme-surface-strong);
+  border-color: var(--theme-border-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: 0 18px 40px -18px var(--theme-shadow-strong);
+}
+
+/* The appearance popover's stem. Filled with the same surface variable as the
+   panel it hangs from so the two read as one shape; Pro re-seats that variable
+   itself, so one declaration dresses all four theme combinations. */
+.theme-popover-arrow {
+  fill: var(--theme-surface-strong);
+}
+
+.theme-public-card {
+  border-color: var(--theme-card-border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--theme-surface-muted) 34%, var(--theme-body-bg)),
+    color-mix(in srgb, var(--theme-surface-soft) 88%, var(--theme-body-bg))
+  );
+  color: var(--theme-text-primary);
+  box-shadow: 0 18px 42px -26px var(--theme-shadow-strong);
+}
+
+.theme-public-card-interactive {
+  transition:
+    background-color 260ms cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 260ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 260ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 260ms cubic-bezier(0.25, 1, 0.5, 1),
+    scale 160ms ease,
+    color 260ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.theme-section-card-enter {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  animation: theme-section-card-enter 420ms cubic-bezier(0.22, 1, 0.36, 1)
+    forwards;
+  animation-delay: var(--theme-section-card-delay, 0s);
+  will-change: opacity, transform;
+}
+
+/* A shorter version of the shared entrance for newly selected tab content.
+   No forwards fill or will-change: release the compositing layer on completion. */
+.theme-tab-panel-enter {
+  --theme-section-card-distance: 4px;
+  animation: theme-section-card-enter 240ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Public interaction entrances share the section motion without retaining a
+   transform after completion. Keep positioner nodes and live players outside. */
+.theme-reveal-enter,
+.theme-overlay-enter {
+  --theme-section-card-distance: 2px;
+  animation: theme-section-card-enter 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.theme-overlay-enter {
+  --theme-section-card-distance: 4px;
+}
+
+.theme-feedback-enter {
+  animation: theme-feedback-enter 160ms ease-out;
+}
+
+.theme-navigation-target:target,
+.theme-navigation-target[data-navigation-highlight="true"] {
+  animation: theme-navigation-emphasis 700ms ease-out;
+}
+
+@keyframes theme-feedback-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* A destination cue, not a change to the content's semantic color or layout. */
+@keyframes theme-navigation-emphasis {
+  from {
+    background-color: color-mix(in srgb, var(--theme-text-secondary) 10%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-tab-panel-enter,
+  .theme-reveal-enter,
+  .theme-overlay-enter,
+  .theme-feedback-enter,
+  .theme-navigation-target:target,
+  .theme-navigation-target[data-navigation-highlight="true"] {
+    animation: none;
+  }
+
+  .theme-section-card-enter {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    will-change: auto;
+  }
+}
+
+/* Pending-navigation feedback (SmartLink + NavigationProgress).
+   The moment a click starts a navigation, the anchor gains data-nav-pending
+   and the route chrome mounts the .theme-nav-progress bar. Together they
+   answer "did my click register?" on the next paint, and keep answering for
+   as long as the route payload takes to arrive. */
+
+a[data-nav-pending="true"] {
+  cursor: progress;
+  opacity: 0.65;
+  transition: opacity 200ms ease-out;
+}
+
+/* Index list links (IndexCard.tsx: Substance Index and Subjective Effect
+   Index entries) answer the click with a shimmer instead of a dim: the label
+   takes the progress bar's accent ink and a narrow brighter band sweeps
+   through it, the same recipe and intensity as .theme-beta-shimmer, looping
+   for as long as the navigation stays in flight. The eye resting on the
+   clicked entry sees motion in place, then finds the bar at the top. Only
+   the label span is clipped so the bullet, meta count, and the hover
+   background on the anchor keep painting normally.
+
+   Geometry, so the first frame is not a blank one: the image is twice the
+   label wide with the band (40%..60% of the image, so 0.4 label widths)
+   centred; background-position 120% parks the band just off the label's
+   left edge, -20% just off its right, so the loop point is invisible and
+   the band is on the label for the whole 1.4-width cycle. The negative
+   delay starts the first cycle one seventh in, where the band's centre sits
+   on the label's left edge: the glint is there on the click frame instead
+   of ramping in from nothing. On hover the label is already accent ink, so
+   this band is the only thing that changes, and it has to change at once. */
+.theme-index-card-link[data-nav-pending="true"] {
+  opacity: 1;
+}
+
+.theme-index-card-link[data-nav-pending="true"] .theme-index-card-label {
+  color: var(--theme-accent-strong);
+}
+
+/* Homepage tiles (HomeExperience.tsx) answer the click the same way the Index
+   entries do: the label takes the progress bar's accent ink and a narrow
+   brighter band sweeps through it, on the same 1.4s cycle and the same
+   negative delay, so a click anywhere in the app reads as one gesture. The
+   generic dim above would fight that, so it is overridden here.
+
+   No ring and no lift. A 2px outline at a 3px offset around a 5.75rem icon is
+   a wide flat band of accent that reads as a selection chrome rather than as
+   progress, and it lands on the loudest element on the page. The shimmer says
+   the same thing in the label's own ink.
+
+   The icon keeps a quiet accent border so the pressed tile is still
+   identifiable at a glance while its label carries the motion. */
+.theme-home-nav-link[data-nav-pending="true"] {
+  opacity: 1;
+  color: var(--theme-text-primary);
+}
+
+.theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-label {
+  color: var(--theme-accent-strong);
+}
+
+.theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-icon {
+  border-color: var(--theme-accent-strong);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .theme-index-card-link[data-nav-pending="true"] .theme-index-card-label,
+    .theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-label {
+      background-image: linear-gradient(
+        100deg,
+        var(--theme-accent-strong) 40%,
+        var(--theme-accent-soft) 50%,
+        var(--theme-accent-strong) 60%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: theme-nav-link-shimmer 1.4s linear -200ms infinite;
+    }
+  }
+}
+
+@keyframes theme-nav-link-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -20% 0;
+  }
+}
+
+/* The beta disclaimer's own shimmer (article top slot, Substance Index
+   header) recedes while a navigation is pending so the progress bar and the
+   clicked link are the only things moving. */
+.theme-beta-disclaimer-shell {
+  transition: opacity 200ms ease-out;
+}
+
+html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
+  opacity: 0.45;
+}
+
+.theme-nav-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  /* Above .app-header (z-index: 50); purely decorative, never interactive. */
+  z-index: 60;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  background: var(--theme-accent-strong);
+}
+
+.theme-nav-progress[data-phase="active"] {
+  /* Fast launch that asymptotes: ~60% of the track inside the first second,
+     then a slow crawl — the classic "still working" indeterminate shape. */
+  animation: theme-nav-progress-advance 12s cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+}
+
+.theme-nav-progress[data-phase="done"] {
+  animation: theme-nav-progress-finish 350ms ease-out forwards;
+}
+
+@keyframes theme-nav-progress-advance {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.96);
+  }
+}
+
+@keyframes theme-nav-progress-finish {
+  0% {
+    transform: scaleX(0.7);
+    opacity: 1;
+  }
+  55% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a[data-nav-pending="true"],
+  .theme-beta-disclaimer-shell {
+    transition: none;
+  }
+
+  .theme-nav-progress[data-phase="active"] {
+    animation: none;
+    transform: scaleX(0.6);
+  }
+
+  .theme-nav-progress[data-phase="done"] {
+    animation: none;
+    transform: scaleX(1);
+    opacity: 0;
+    transition: opacity 250ms ease-out;
+  }
+}
+
+@media (hover: hover) {
+  .theme-public-card-interactive:hover {
+    border-color: var(--theme-card-border-strong);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--theme-surface-strong) 56%, var(--theme-body-bg)),
+      color-mix(in srgb, var(--theme-surface-soft) 92%, var(--theme-body-bg))
+    );
+    box-shadow: 0 26px 54px -28px var(--theme-shadow-strong);
+  }
+}
+
+@media (hover: hover) {
+  .group:hover .theme-contributor-avatar {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent-strong) 30%,
+      transparent
+    );
+  }
+}
+
+.theme-icon-accent {
+  color: var(--theme-accent-strong);
+}
+
+.theme-icon-muted {
+  color: var(--theme-text-faint);
+}
+
+.theme-icon-badge {
+  color: var(--theme-accent-strong);
+}
+
+.theme-icon-danger {
+  color: var(--theme-semantic-danger-badge-text);
+}
+
+.theme-badge-surface {
+  border-color: color-mix(
+    in srgb,
+    var(--theme-accent) 26%,
+    var(--theme-border-subtle)
+  );
+  background-color: color-mix(
+    in srgb,
+    var(--theme-accent) 12%,
+    var(--theme-surface-muted)
+  );
+  color: var(--theme-accent-strong);
+  --tw-ring-color: color-mix(in srgb, var(--theme-accent) 22%, transparent);
+}
+
+.theme-name-chip {
+  background-color: var(--theme-name-chip-bg);
+  color: var(--theme-name-chip-text);
+  --tw-ring-color: var(--theme-name-chip-ring);
+}
+
+.theme-name-chip-interactive:focus-visible {
+  background-color: var(--theme-name-chip-bg-hover);
+  color: var(--theme-name-chip-text-hover);
+  --tw-ring-color: var(--theme-name-chip-ring-hover);
+}
+@media (hover: hover) {
+  .theme-name-chip-interactive:hover {
+    background-color: var(--theme-name-chip-bg-hover);
+    color: var(--theme-name-chip-text-hover);
+    --tw-ring-color: var(--theme-name-chip-ring-hover);
+  }
+}
+
+.theme-control-pill,
+.theme-control-pill-quiet {
+  border: 1px solid var(--theme-border-subtle);
+  color: var(--theme-text-secondary);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+  --tw-ring-color: var(--theme-ring-soft);
+}
+
+.theme-control-pill {
+  background-color: var(--theme-control-pill-background-color);
+  box-shadow: 0 10px 24px -22px var(--theme-shadow-soft);
+}
+
+.theme-control-pill-quiet {
+  background-color: transparent;
+}
+
+.theme-control-pill:focus-visible,
+.theme-control-pill[data-active="true"] {
+  border-color: color-mix(
+    in srgb,
+    var(--theme-accent) 28%,
+    var(--theme-border-strong)
+  );
+  background-color: var(--theme-control-pill-focus-visible-background-color);
+  color: var(--theme-text-primary);
+}
+@media (hover: hover) {
+  .theme-control-pill:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent) 28%,
+      var(--theme-border-strong)
+    );
+    background-color: var(--theme-control-pill-hover-background-color);
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-control-pill-quiet:focus-visible,
+.theme-control-pill-quiet[data-active="true"] {
+  border-color: color-mix(
+    in srgb,
+    var(--theme-accent) 22%,
+    var(--theme-border-strong)
+  );
+  background-color: var(--theme-control-pill-quiet-focus-visible-background-color);
+  color: var(--theme-text-primary);
+}
+@media (hover: hover) {
+  .theme-control-pill-quiet:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent) 22%,
+      var(--theme-border-strong)
+    );
+    background-color: var(--theme-control-pill-quiet-hover-background-color);
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-control-pill:focus-visible,
+.theme-control-pill-quiet:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+}
+
+/* The hue and saturation sliders in the appearance panel — one recipe for
+     both rails. The track's gradient is data, painted as an inline background
+     on the wrapper by AppearanceAxes: five stops of the axis's base colour at
+     levels 0..1 for a saturation rail, seven relative-colour rotations across
+     the hue circle for a hue rail. The recipe shapes the rail, authored-position
+     tick, thumb, and input hit area. Coarse pointers get a full 44px interaction
+     lane even though the visible rail stays compact. */
+.theme-chroma-track {
+  --theme-chroma-thumb-size: 0.875rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 1.125rem;
+  flex: 1;
+}
+
+.theme-chroma-track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--theme-chroma-track-gradient);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--theme-text-primary) 14%, transparent);
+}
+
+/* The appearance panel's reading-type sliders are meters, not legends: the filled
+   portion wears the reader's accent — repainting the accent repaints the meters,
+   answering the colour tab — while the remainder stays a faint ink step. The
+   component carries only the fill position in --dw-type-fill; the gradient lives
+   here so the accent resolves through the token system. At accent saturation 0
+   the token greys out and the fill follows, the honest unmuted signal. */
+[data-appearance-type] .theme-chroma-track::before {
+  background: linear-gradient(
+    90deg,
+    var(--theme-accent-strong) var(--dw-type-fill, 50%),
+    color-mix(in srgb, var(--theme-text-primary) 12%, transparent) var(--dw-type-fill, 50%)
+  );
+}
+
+/* Where the authored colour sits: the authored saturation level as a
+      unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail.
+      The inset follows half the responsive thumb size because a range thumb's
+      centre travels between those insets rather than from 0 to 100%. */
+.theme-chroma-tick {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: calc(
+    var(--theme-chroma-thumb-size) / 2 + var(--theme-chroma-tick, 0) *
+      (100% - var(--theme-chroma-thumb-size))
+  );
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--theme-text-primary) 60%, transparent);
+  pointer-events: none;
+}
+
+.theme-chroma-slider {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.theme-chroma-slider:disabled {
+  cursor: not-allowed;
+}
+
+.theme-chroma-slider:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+}
+
+.theme-chroma-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--theme-chroma-thumb-size);
+  height: var(--theme-chroma-thumb-size);
+  border-radius: 9999px;
+  background: var(--theme-text-primary);
+  border: 3px solid var(--theme-panel-base);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+}
+
+.theme-chroma-slider::-moz-range-thumb {
+  width: var(--theme-chroma-thumb-size);
+  height: var(--theme-chroma-thumb-size);
+  border-radius: 9999px;
+  background: var(--theme-text-primary);
+  border: 3px solid var(--theme-panel-base);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+}
+
+@media (pointer: coarse) {
+  .theme-chroma-track {
+    --theme-chroma-thumb-size: 1.5rem;
+    height: 2.75rem;
+  }
+
+  .theme-chroma-track::before {
+    height: 0.5rem;
+  }
+
+  .theme-chroma-slider::-webkit-slider-thumb {
+    border-width: 4px;
+    box-shadow: 0 2px 7px rgb(0 0 0 / 0.4);
+  }
+
+  .theme-chroma-slider::-moz-range-thumb {
+    border-width: 4px;
+    box-shadow: 0 2px 7px rgb(0 0 0 / 0.4);
+  }
+}
+
+/* Tertiary inline expander: a faint flat plum wash at rest (no gloss, no
+     lift) so it reads at body-copy altitude, then fills with the frosted
+     control treatment on hover/focus. Kept out of the frosted control sweep
+     above so the resting state stays quiet. */
+.theme-control-pill-faint {
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 16%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--theme-accent) 6%,
+    var(--theme-body-bg)
+  );
+  color: var(--theme-text-secondary);
+  box-shadow: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+  --tw-ring-color: var(--theme-ring-soft);
+}
+
+.theme-control-pill-faint:focus-visible,
+.theme-control-pill-faint[data-active="true"] {
+  border-color: transparent;
+  background: var(--theme-frosted-control-bg);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-frosted-control-shadow);
+}
+@media (hover: hover) {
+  .theme-control-pill-faint:hover {
+    border-color: transparent;
+    background: var(--theme-frosted-control-bg);
+    color: var(--theme-text-primary);
+    box-shadow: var(--theme-frosted-control-shadow);
+  }
+}
+
+.theme-control-pill-faint:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+}
+
+/* The floating control bar's own material. `--theme-frosted-control-bg` holds
+   two stacked gradients and `--theme-frosted-control-shadow` holds a ring plus
+   an inset highlight, so both have to travel through the `background` and
+   `box-shadow` shorthands. Tailwind's `bg-[var(...)]` compiles to
+   `background-color`, which drops a gradient on the floor: the bar was
+   rendering as a bare hairline with no fill at all.
+
+   The hairline is the shadow's first layer (`0 0 0 1px` in
+   `--theme-frosted-control-border`, in every theme that defines the token), so
+   this recipe deliberately has no `border`: a border here painted the same
+   line a second time at the same radius in the same colour, and charged 2px of
+   box for it. Call sites must not add one back. */
+.theme-frosted-control-bar {
+  background: var(--theme-frosted-control-bg);
+  box-shadow: var(--theme-frosted-control-shadow);
+}
+
+.theme-evidence-surface {
+  border-color: var(--theme-evidence-border);
+  background-color: var(--theme-evidence-surface-background-color);
+  color: var(--theme-evidence-text);
+  --tw-ring-color: var(--theme-evidence-ring);
+}
+
+.theme-citation-marker,
+.theme-reference-number {
+  color: var(--theme-inline-reference-text);
+  background: var(--theme-inline-reference-bg);
+  box-shadow: 0 0 0 1px var(--theme-inline-reference-border);
+  --tw-ring-color: var(--theme-inline-reference-border);
+}
+
+.theme-citation-marker {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--theme-inline-reference-text) 46%,
+    var(--theme-body-bg)
+  );
+  text-underline-offset: 0.18em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+@media (hover: hover) {
+  .theme-citation-marker:hover {
+    background: var(--theme-inline-reference-hover-bg);
+    box-shadow: 0 0 0 1px var(--theme-inline-reference-hover-border);
+    color: var(--theme-inline-reference-hover-text);
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--theme-inline-reference-hover-text) 72%,
+      var(--theme-body-bg)
+    );
+  }
+}
+
+.theme-citation-marker:focus-visible {
+  border-radius: 0.12rem;
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+}
+
+/* Citation-needed marker: free-floating superscript-register annotation.
+   No chip, no ring, no fill — the flag should read on inspection, not shout
+   mid-sentence. It sits in the same faint-ink register as meta labels, and
+   the brackets are presentational pseudo-elements so the sentinel text never
+   lands in copied prose. */
+.theme-citation-needed-marker {
+  color: var(--theme-text-faint);
+}
+
+.theme-citation-needed-marker::before {
+  content: "[";
+}
+
+.theme-citation-needed-marker::after {
+  content: "]";
+}
+
+.theme-public-card-subtle {
+  border-color: var(--theme-border-subtle);
+  background-color: color-mix(
+    in srgb,
+    var(--theme-surface-muted) 78%,
+    var(--theme-body-bg)
+  );
+  color: var(--theme-text-secondary);
+}
+
+.theme-chemistry-identifier-code {
+  border-color: transparent !important;
+  background: var(--theme-frosted-control-on-panel-bg) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
+}
+
+.theme-public-card-hover-quiet {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 180ms ease;
+}
+
+@media (hover: hover) {
+  .theme-public-card-hover-quiet:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-card-border) 42%,
+      var(--theme-border-strong)
+    );
+    background-color: color-mix(
+      in srgb,
+      var(--theme-surface-muted) 72%,
+      var(--theme-body-bg)
+    );
+    box-shadow: 0 14px 30px -24px var(--theme-shadow-soft);
+  }
+}
+
+.theme-home-ambient {
+  background: var(--theme-home-ambient-background);
+}
+
+.theme-home-shell {
+  place-items: start center;
+  padding-top: max(env(safe-area-inset-top, 0px), clamp(3.75rem, 9vh, 6.25rem));
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 2.5rem);
+  --theme-home-mobile-chrome-reserve: clamp(5.25rem, 16svh, 7rem);
+  --theme-home-mobile-focus-footer: calc(
+    env(safe-area-inset-bottom, 0px) + 4.75rem
+  );
+}
+
+.theme-home-stage {
+  justify-content: flex-start;
+}
+
+.theme-dosewiki-logo {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  background: var(--theme-logo-fill);
+  background-size: 140% 140%;
+  background-position: 48% 50%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Supporter credit: a two-row lockup, quiet by construction. The label is the smallest
+     thing in the footer and the mark is roughly twice its size, so the supporter's name
+     carries the credit and the words "Supported by" only introduce it. */
+.theme-site-supporter {
+  color: var(--theme-text-faint);
+  transition: color 200ms ease;
+}
+
+.theme-site-supporter:hover,
+.theme-site-supporter:focus-visible {
+  color: var(--theme-text-muted);
+}
+
+/* Tracked uppercase at 11px. Uppercase and letter-spacing are what mark this as a
+     label rather than one more sentence of footer prose: it sits directly beneath the
+     licence line, which is sentence-case body copy at 12px, and the two must not read as
+     a single paragraph. `leading: 1` keeps the row tight so the flex gap sets the space
+     between label and mark rather than half-leading doing it invisibly. */
+.theme-site-supporter-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* The mark is the asset's alpha silhouette painted with a background colour, so the one
+     monochrome file tracks the theme for free. It sits one tone above the label — the
+     supporter's name is the point of the credit, the lead-in is not. */
+.theme-site-supporter-mark {
+  display: block;
+  flex-shrink: 0;
+  background-color: var(--theme-text-muted);
+  transition: background-color 200ms ease;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.theme-site-supporter:hover .theme-site-supporter-mark,
+.theme-site-supporter:focus-visible .theme-site-supporter-mark {
+  background-color: var(--theme-text-secondary);
+}
+
+.theme-home-shell[data-search-mode="true"] {
+  align-items: flex-start;
+  justify-content: center;
+  place-items: start center;
+  padding-top: clamp(1.25rem, 4vh, 2.75rem);
+  padding-bottom: 6rem;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-stage {
+  max-width: 72rem;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-brand-lockup {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-0.75rem) scale(0.98);
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-intro {
+  max-height: 0;
+  margin-top: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-search-input {
+  min-height: 3.25rem;
+  font-size: 1rem;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-search-button {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-search-clear {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-nav {
+  position: fixed;
+  right: 6.75rem;
+  bottom: 1rem;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  width: max-content;
+  max-width: calc(100vw - 8.5rem);
+  transform: translateX(-50%);
+  gap: 0.625rem;
+  margin-top: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-nav-link {
+  width: auto;
+  height: 2.875rem;
+  gap: 0;
+  overflow: visible;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-nav-icon {
+  width: 2.875rem;
+  height: 2.875rem;
+  border-color: var(--theme-home-nav-icon-search-border-color);
+  background: var(--theme-home-nav-icon-search-background);
+  box-shadow: var(--theme-home-nav-icon-search-box-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-nav-svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.theme-home-shell[data-search-mode="true"] .theme-home-nav-label {
+  display: none;
+  max-width: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  white-space: nowrap;
+}
+
+.theme-home-shell[data-search-mode="true"]
+  .theme-home-nav-link:focus-visible
+  .theme-home-nav-icon {
+  background-color: color-mix(
+    in srgb,
+    var(--theme-accent) 14%,
+    var(--theme-surface-muted)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--theme-accent) 42%,
+    var(--theme-border-strong)
+  );
+  box-shadow:
+    0 16px 34px -24px color-mix(in srgb, var(--theme-accent) 60%, transparent),
+    inset 0 1px 0
+      color-mix(in srgb, var(--theme-surface-muted) 60%, transparent);
+  transform: translate3d(0, -1px, 0);
+}
+@media (hover: hover) {
+  .theme-home-shell[data-search-mode="true"]
+    .theme-home-nav-link:hover
+    .theme-home-nav-icon {
+    background-color: color-mix(
+      in srgb,
+      var(--theme-accent) 14%,
+      var(--theme-surface-muted)
+    );
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent) 42%,
+      var(--theme-border-strong)
+    );
+    box-shadow:
+      0 16px 34px -24px color-mix(in srgb, var(--theme-accent) 60%, transparent),
+      inset 0 1px 0
+        color-mix(in srgb, var(--theme-surface-muted) 60%, transparent);
+    transform: translate3d(0, -1px, 0);
+  }
+}
+
+@media (max-width: 639px) {
+  .theme-home-shell {
+    position: fixed;
+    inset: var(--theme-header-height, 4.25rem) 0 0;
+    min-height: calc(100dvh - var(--theme-header-height, 4.25rem));
+    height: calc(100dvh - var(--theme-header-height, 4.25rem));
+    max-height: calc(100dvh - var(--theme-header-height, 4.25rem));
+    overflow: hidden;
+    padding-top: max(
+      env(safe-area-inset-top, 0px),
+      clamp(1.9rem, 4.8svh, 2.6rem)
+    );
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+    touch-action: pan-x pan-y;
+  }
+
+  @supports (height: 100svh) {
+    .theme-home-shell {
+      min-height: calc(100svh - var(--theme-header-height, 4.25rem));
+      height: calc(100svh - var(--theme-header-height, 4.25rem));
+      max-height: calc(100svh - var(--theme-header-height, 4.25rem));
+    }
+  }
+
+  .theme-home-stage {
+    min-height: 0;
+    height: 100%;
+    justify-content: flex-start;
+  }
+
+  .theme-home-brand-lockup {
+    gap: 0.625rem;
+  }
+
+  .theme-home-logo-main {
+    width: clamp(5rem, 20svh, 6.5rem);
+    height: clamp(5rem, 20svh, 6.5rem);
+  }
+
+  .theme-home-wordmark {
+    font-size: clamp(2.75rem, 13vw, 3.8rem);
+  }
+
+  .theme-home-intro {
+    max-width: 21rem;
+    margin-top: 0.875rem;
+    font-size: clamp(0.95rem, 3.8vw, 1.0625rem);
+    line-height: 1.36;
+  }
+
+  .theme-home-search-input {
+    min-height: 3.625rem;
+    padding-left: 1.45rem;
+    font-size: 1rem;
+  }
+
+  .theme-home-nav {
+    margin-top: clamp(1.45rem, 4.4svh, 2rem);
+    row-gap: clamp(0.85rem, 2.6svh, 1.25rem);
+  }
+
+  /* Each row spaces its own tiles: a short last row is a tight centred pair,
+       never spread to echo the wider row above it. */
+  .theme-home-nav-row {
+    column-gap: clamp(0.75rem, 3.5vw, 1.25rem);
+  }
+
+  .theme-home-nav-link {
+    width: min(6rem, 26vw);
+    gap: 0.55rem;
+  }
+
+  .theme-home-nav-icon {
+    width: min(clamp(4.5rem, 16svh, 5.5rem), 25vw);
+    height: min(clamp(4.5rem, 16svh, 5.5rem), 25vw);
+    border-radius: 1.25rem;
+  }
+
+  /* The glyph's ink is a fixed share of its tile, so the tile's viewport-height
+     scaling above (and the short-viewport override below) never changes the
+     glyph-to-tile proportion, the way an app icon keeps its symbol in scale.
+     Each collection pads its glyph differently inside the nominal box, so the
+     box is enlarged and recentred by the icon's measured ink
+     (`--theme-home-glyph-*`, set per tile from homeTileGlyphMetrics.generated.json)
+     rather than sized directly. */
+  .theme-home-nav-svg {
+    --theme-home-glyph-ink: 60%;
+    width: calc(var(--theme-home-glyph-ink) * var(--theme-home-glyph-scale, 1));
+    height: calc(var(--theme-home-glyph-ink) * var(--theme-home-glyph-scale, 1));
+    translate: calc(var(--theme-home-glyph-dx, 0) * 100%)
+      calc(var(--theme-home-glyph-dy, 0) * 100%);
+  }
+
+  .theme-home-nav-label {
+    font-size: clamp(1rem, 4vw, 1.15rem);
+  }
+
+  .theme-home-shell[data-search-mode="true"] {
+    align-items: flex-start;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+    padding-bottom: var(--theme-home-mobile-focus-footer);
+  }
+
+  .theme-home-shell[data-search-mode="true"] .theme-home-stage {
+    height: auto;
+    justify-content: flex-start;
+  }
+
+  .theme-home-shell[data-search-mode="true"] .theme-home-search-input {
+    min-height: 3rem;
+    padding-left: 1.25rem;
+    font-size: 1rem;
+  }
+
+  .theme-home-shell[data-search-mode="true"] .theme-home-nav {
+    right: auto;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.875rem);
+    max-width: calc(100vw - 7rem);
+    gap: 0.5rem;
+    overflow: visible;
+  }
+
+  .theme-home-shell[data-search-mode="true"] .theme-home-nav-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .theme-home-shell[data-search-mode="true"] .theme-home-nav-link {
+    height: 2.75rem;
+  }
+
+  @media (max-height: 760px) {
+    .theme-home-shell {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+      padding-bottom: calc(
+        env(safe-area-inset-bottom, 0px) + clamp(4.75rem, 14svh, 6rem)
+      );
+    }
+
+    .theme-home-logo-main {
+      width: clamp(4.75rem, 20svh, 6rem);
+      height: clamp(4.75rem, 20svh, 6rem);
+    }
+
+    .theme-home-brand-lockup {
+      gap: 0.625rem;
+    }
+
+    .theme-home-wordmark {
+      font-size: clamp(2.65rem, 13vw, 3.55rem);
+    }
+
+    .theme-home-intro {
+      margin-top: 0.625rem;
+      font-size: 0.95rem;
+      line-height: 1.32;
+    }
+
+    .theme-home-search-input {
+      min-height: 3.35rem;
+    }
+
+    .theme-home-nav {
+      margin-top: 1.35rem;
+      row-gap: 0.75rem;
+    }
+
+    .theme-home-nav-icon {
+      width: 4.25rem;
+      height: 4.25rem;
+    }
+
+    .theme-home-shell[data-search-mode="true"] {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4.5rem);
+    }
+  }
+
+  /* Corner widgets (supporter credit, mailing-list trigger) are fixed to the
+     shell's bottom corners. Below ~620px of viewport height the hero's minimum
+     content (header + lockup + intro + two tile rows at their clamped floors)
+     reaches into that bottom band, so the widgets would sit under the tiles.
+     They are supplementary, so they hide outright rather than overlap. */
+  @media (max-height: 620px) {
+    .theme-home-corner-widget {
+      display: none;
+    }
+  }
+}
+
+.theme-home-logo {
+  filter: var(--theme-home-logo-filter);
+}
+
+.theme-home-logo-frame {
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center;
+  animation:
+    theme-home-logo-arrive 680ms cubic-bezier(0.16, 1, 0.3, 1) both,
+    theme-home-logo-breathe 7.5s ease-in-out 900ms infinite;
+  will-change: transform;
+}
+
+.theme-home-logo-main {
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center;
+  transition:
+    filter 340ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 340ms cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform, filter;
+}
+
+@media (hover: hover) {
+  .theme-home-logo-frame:hover .theme-home-logo-main {
+    filter: var(--theme-home-logo-frame-hover-home-logo-main-filter);
+    transform: translate3d(0, -0.08rem, 0) rotate(-0.6deg) scale(1.012);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-home-logo-frame {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+
+  .theme-home-logo-main {
+    transition-duration: 0.01ms;
+    transform: none;
+    will-change: auto;
+  }
+
+  @media (hover: hover) {
+    .theme-home-logo-frame:hover .theme-home-logo-main {
+      transform: none;
+    }
+  }
+}
+
+.theme-home-intro {
+  color: var(--theme-home-intro-color);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.42;
+}
+
+.theme-home-nav-link {
+  color: var(--theme-text-secondary);
+  --tw-ring-color: var(--theme-accent-strong);
+  --tw-ring-offset-color: var(--theme-body-bg);
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-home-nav-link:focus-visible {
+  color: var(--theme-text-primary);
+}
+@media (hover: hover) {
+  .theme-home-nav-link:hover {
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-home-nav-icon {
+  border-color: var(--theme-home-nav-card-border);
+  background: var(--theme-home-nav-icon-background);
+  color: var(--theme-home-nav-icon-color);
+  box-shadow: var(--theme-home-nav-icon-box-shadow);
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .theme-home-nav-link:hover .theme-home-nav-icon {
+    border-color: var(--theme-home-nav-link-hover-home-nav-icon-border-color);
+    background: var(--theme-home-nav-link-hover-home-nav-icon-background);
+    box-shadow: var(--theme-home-nav-link-hover-home-nav-icon-box-shadow);
+    transform: translate3d(0, -0.08rem, 0) scale(1.01);
+  }
+}
+
+.theme-home-nav-link:active .theme-home-nav-icon {
+  transform: translate3d(0, -0.02rem, 0) scale(0.99);
+  transition-duration: 140ms;
+}
+
+.theme-home-mock-button {
+  cursor: pointer;
+}
+
+.theme-home-mock-button[data-clicked="true"] .theme-home-nav-icon,
+.theme-home-mock-button[data-clicked="true"].theme-header-nav-link,
+.theme-home-mock-button[data-clicked="true"].theme-mobile-nav-link {
+  animation: theme-home-mock-nudge 520ms cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+
+.theme-home-mock-button[data-clicked="true"] .theme-home-soon-badge {
+  opacity: 1;
+  transform: translate3d(0, -0.12rem, 0) rotate(-2deg);
+}
+
+.theme-home-soon-badge {
+  color: var(--theme-text-primary);
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 36%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--theme-surface-strong) 86%,
+    var(--theme-body-bg)
+  );
+  box-shadow: 0 12px 22px -18px var(--theme-shadow-strong);
+  backdrop-filter: blur(14px);
+  white-space: nowrap;
+}
+
+@keyframes theme-home-mock-nudge {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: grayscale(0);
+  }
+  28% {
+    transform: translate3d(0, -0.16rem, 0) scale(1.035) rotate(-1.25deg);
+    filter: grayscale(0.35);
+  }
+  58% {
+    transform: translate3d(0, 0.04rem, 0) scale(0.99) rotate(0.75deg);
+    filter: grayscale(0.55);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: grayscale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-home-mock-button[data-clicked="true"] .theme-home-nav-icon,
+  .theme-home-mock-button[data-clicked="true"].theme-header-nav-link,
+  .theme-home-mock-button[data-clicked="true"].theme-mobile-nav-link {
+    animation: none;
+  }
+}
+
+.theme-home-nav-svg {
+  color: var(--theme-home-nav-svg-color);
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.theme-home-nav-link:focus-visible .theme-home-nav-svg {
+  transform: translate3d(0, 0, 0) scale(1.025);
+}
+@media (hover: hover) {
+  .theme-home-nav-link:hover .theme-home-nav-svg {
+    transform: translate3d(0, 0, 0) scale(1.025);
+  }
+}
+
+.theme-home-nav-link:active .theme-home-nav-svg {
+  transform: translate3d(0, 0, 0) scale(0.99);
+  transition-duration: 140ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-home-nav-icon,
+  .theme-home-nav-svg {
+    transition-duration: 0.01ms;
+    transform: none;
+    will-change: auto;
+  }
+
+  .theme-home-nav-link:focus-visible .theme-home-nav-icon,
+  .theme-home-nav-link:active .theme-home-nav-icon,
+  .theme-home-nav-link:focus-visible .theme-home-nav-svg,
+  .theme-home-nav-link:active .theme-home-nav-svg {
+    transform: none;
+  }
+  @media (hover: hover) {
+    .theme-home-nav-link:hover .theme-home-nav-icon,
+    .theme-home-nav-link:hover .theme-home-nav-svg {
+      transform: none;
+    }
+  }
+}
+
+.theme-global-search-input {
+  border-color: var(--theme-field-on-chrome-border);
+  background-color: var(--theme-field-on-chrome-surface);
+  color: var(--theme-text-primary);
+  /* Hairline ring plus a top highlight: the field is a control lifted off the
+       chrome rail, so it carries no inner shadow. It used to end with
+       `inset 0 1px 2px var(--theme-shadow-soft)`, which darkened the top edge
+       against the very highlight above it — a recessed cue on a raised control,
+       and a hangover from when --theme-field-on-chrome-surface sat below the
+       rail. */
+  box-shadow:
+    0 0 0 1px
+      color-mix(in srgb, var(--theme-field-on-chrome-border) 68%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
+}
+
+.theme-global-search-input::placeholder {
+  color: var(--theme-text-faint);
+  font-style: italic;
+  opacity: 0.68;
+}
+
+@media (hover: hover) {
+  .theme-global-search-input:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent) 22%,
+      var(--theme-field-on-chrome-border)
+    );
+    background-color: color-mix(
+      in srgb,
+      var(--theme-field-on-chrome-surface) 88%,
+      var(--theme-field-on-panel-surface-alt)
+    );
+  }
+}
+
+.theme-global-search-input:focus {
+  border-color: var(--theme-text-secondary);
+  background-color: var(--theme-field-on-chrome-surface);
+  box-shadow: var(--theme-elevation-field-inset);
+}
+
+.theme-home-search-input {
+  border-color: var(--theme-home-search-input-border-color);
+  background-color: var(--theme-home-search-input-background-color);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-home-search-input-box-shadow);
+}
+
+/* The light search halo rings pull from the --c-plum-pink seed (exactly the
+     old rgba(159, 33, 128) literal) so palette presets reach them; the
+     desaturated rgba(84, 46, 112) drop shadow is neutral depth, not accent,
+     and stays literal like the other light-mode plum shadows. */
+
+.theme-home-search-input::placeholder {
+  color: var(--theme-text-faint);
+  font-style: italic;
+  opacity: 0.68;
+}
+
+@media (hover: hover) {
+  .theme-home-search-input:hover {
+    border-color: var(--theme-home-search-input-hover-border-color);
+    background-color: var(--theme-home-search-input-hover-background-color);
+  }
+}
+
+.theme-home-search-input:focus {
+  border-color: var(--theme-text-secondary);
+  background-color: var(--theme-home-search-input-focus-background-color);
+  box-shadow: var(--theme-elevation-field-inset);
+}
+
+.theme-home-search-button,
+.theme-home-search-clear {
+  color: var(--theme-text-muted);
+  background: transparent;
+  box-shadow: none;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease,
+    transform 200ms ease;
+}
+
+.theme-home-search-button {
+  color: var(--theme-accent-strong);
+  --tw-ring-color: var(--theme-accent-strong);
+}
+
+@media (hover: hover) {
+  .theme-home-search-clear:hover {
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--theme-text-primary);
+  }
+}
+
+@media (hover: hover) {
+  .theme-home-search-button:hover {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.theme-home-search-divider {
+  background-color: var(--theme-divider);
+}
+
+/* Search results page: the group cards drop to the dark chrome/inset tone
+     (same family as the header, footer, and TOC). The highlight marks and
+     suggestion icons, which normally use that inset tone, flip to the mid
+     plum chip so they still read against the darker card. */
+.theme-search-page-shell .theme-public-card {
+  border-color: var(--theme-search-page-card-border-color);
+  background: var(--theme-search-page-card-background);
+  box-shadow: var(--theme-search-page-card-box-shadow);
+}
+
+.theme-search-page-shell .theme-search-highlight-mark,
+.theme-search-page-shell .theme-search-suggestion-icon {
+  border-color: transparent;
+  background: var(--theme-search-page-chip-background);
+  box-shadow: var(--theme-search-page-chip-box-shadow);
+}
+
+.theme-search-result-divider {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--theme-divider) 72%, transparent),
+    transparent
+  );
+}
+
+.theme-search-suggestion {
+  color: var(--theme-text-secondary);
+  --tw-ring-color: var(--theme-ring-soft);
+  box-shadow: none;
+}
+
+.theme-search-suggestion[data-highlighted="true"] {
+  color: var(--theme-text-primary);
+  border-color: color-mix(
+    in srgb,
+    var(--theme-accent) 18%,
+    var(--theme-border-subtle)
+  );
+  background-color: color-mix(
+    in srgb,
+    var(--theme-accent) 9%,
+    var(--theme-surface-muted)
+  );
+}
+@media (hover: hover) {
+  .theme-search-suggestion:hover {
+    color: var(--theme-text-primary);
+    border-color: var(--theme-search-suggestion-hover-border-color);
+    background: var(--theme-search-suggestion-hover-background);
+    box-shadow: var(--theme-search-suggestion-hover-box-shadow);
+  }
+}
+
+.theme-search-suggestion[data-highlighted="true"] {
+  border-color: var(--theme-search-suggestion-highlighted-true-border-color);
+  background: var(--theme-search-suggestion-highlighted-background);
+  box-shadow: var(--theme-search-suggestion-highlighted-true-box-shadow);
+}
+
+.theme-search-suggestion-icon {
+  border: 1px solid transparent;
+  background: var(--theme-frosted-control-on-panel-bg);
+  color: var(--theme-search-suggestion-icon-color);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+}
+
+.theme-search-suggestion-title {
+  color: var(--theme-accent-strong);
+}
+
+.theme-search-suggestion-aliases {
+  color: var(--theme-search-suggestion-aliases-color);
+}
+
+.theme-search-suggestion-secondary {
+  color: var(--theme-search-suggestion-secondary-color);
+}
+
+.theme-search-best-match {
+  border: 1px solid var(--theme-search-best-match-border-color);
+  background: var(--theme-search-best-match-background);
+  color: var(--theme-search-best-match-color);
+  box-shadow: var(--theme-search-best-match-box-shadow);
+}
+
+.theme-search-highlight-mark {
+  border-radius: 0.35em;
+  background: var(--theme-frosted-control-on-panel-bg);
+  color: var(--theme-search-highlight-mark-color);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+}
+
+/* Active-search loading affordances (see SearchingIndicator.tsx). The looping
+     line-md glyph carries the primary "we're working" signal; the dot wave and
+     the icon-tile ring reinforce it. All motion is opt-in via the media query so
+     reduced-motion users get a calm, static card. */
+.theme-searching-dots {
+  display: inline-flex;
+  margin-left: 0.15em;
+  vertical-align: baseline;
+}
+
+.theme-searching-dots > span {
+  opacity: 0.2;
+  transform: translateY(0);
+}
+
+.theme-searching-icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-searching-dots > span {
+    animation: theme-searching-dots 1.4s ease-in-out infinite;
+  }
+
+  .theme-searching-dots > span:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .theme-searching-dots > span:nth-child(3) {
+    animation-delay: 0.36s;
+  }
+
+  .theme-searching-icon::after {
+    animation: theme-searching-icon-ring 2.2s ease-out infinite;
+  }
+}
+
+@keyframes theme-searching-dots {
+  0% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translateY(-0.12em);
+  }
+
+  60%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+}
+
+@keyframes theme-searching-icon-ring {
+  0% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--theme-accent) 38%, transparent);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 0 13px
+      color-mix(in srgb, var(--theme-accent) 0%, transparent);
+  }
+}
+
+.theme-reference-label {
+  color: color-mix(
+    in srgb,
+    var(--theme-text-primary) 72%,
+    var(--theme-body-bg)
+  );
+}
+
+@media (hover: hover) {
+  .theme-reference-label:hover,
+  .group:hover .theme-reference-label {
+    color: color-mix(
+      in srgb,
+      var(--theme-text-primary) 88%,
+      var(--theme-body-bg)
+    );
+  }
+}
+
+.theme-reference-link {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--theme-text-primary) 12%,
+    var(--theme-body-bg)
+  );
+}
+
+@media (hover: hover) {
+  .theme-reference-link:hover {
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--theme-accent-strong) 55%,
+      var(--theme-body-bg)
+    );
+  }
+}
+
+.theme-reference-link:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 4px;
+}
+
+.theme-article-subsection-card {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+}
+
+/*
+   * The stub banner sits inside the hero, where a frosted panel reads as a
+   * faint smudge against the card behind it. It borrows the solid name-chip
+   * surface so it separates from the hero the way the classification pills do,
+   * and follows the alternate palette rather than hardcoding black.
+   */
+.theme-article-stub-banner {
+  border-color: var(--theme-name-chip-ring);
+  background: var(--theme-name-chip-bg);
+}
+
+/*
+   * One empty slot inside a subsection that does have content. It carries no
+   * fill and no shadow on purpose: the frosted panel recipe would give a single
+   * missing fact the same visual weight as the section that contains it. A
+   * hairline on the panel border token is enough to read as a bounded marker in
+   * both themes, and keeps it a step quieter than the stub banner above it.
+   */
+.theme-article-gap-slot {
+  border-color: var(--theme-frosted-panel-border);
+  background: transparent;
+}
+
+.theme-article-subsection-card-nested {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+}
+
+.theme-article-subsection-card-interactive {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
+}
+
+@media (hover: hover) {
+  .theme-article-subsection-card-interactive:hover {
+    border-color: var(--theme-frosted-panel-hover-border);
+    background: var(--theme-frosted-panel-hover-bg);
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
+  }
+}
+
+.theme-subjective-stub-panel {
+  border-color: color-mix(
+    in srgb,
+    var(--theme-semantic-caution-badge-border) 46%,
+    var(--theme-frosted-panel-border)
+  );
+  background: var(--theme-frosted-panel-bg);
+  color: var(--theme-text-secondary);
+  box-shadow:
+    var(--theme-frosted-panel-shadow),
+    0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--theme-semantic-caution-badge-ring) 22%,
+        transparent
+      ),
+    0 18px 42px -34px
+      color-mix(
+        in srgb,
+        var(--theme-semantic-caution-badge-glow) 72%,
+        transparent
+      );
+  -webkit-backdrop-filter: blur(14px) saturate(1.06);
+  backdrop-filter: blur(14px) saturate(1.06);
+}
+
+.theme-subjective-stub-panel::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-semantic-caution-badge-bg) 54%, transparent),
+    transparent 46%
+  );
+}
+
+.theme-subjective-stub-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-subjective-stub-icon {
+  color: var(--theme-semantic-caution-badge-text);
+  border-color: var(--theme-semantic-caution-badge-border);
+  background: var(--theme-semantic-caution-badge-bg);
+  --theme-status-badge-ring: var(--theme-semantic-caution-badge-ring);
+  --theme-status-badge-glow: var(--theme-semantic-caution-badge-glow);
+  box-shadow: var(--theme-status-badge-shadow);
+}
+
+.theme-subjective-stub-copy {
+  color: color-mix(
+    in srgb,
+    var(--theme-text-primary) 88%,
+    var(--theme-text-secondary)
+  );
+  font-kerning: normal;
+}
+
+.theme-external-source-pill {
+  background-color: var(--theme-name-chip-bg);
+  color: var(--theme-name-chip-text);
+  --tw-ring-color: var(--theme-name-chip-ring);
+}
+
+@media (hover: hover) {
+  .theme-external-source-pill .theme-text-faint {
+  color: var(--theme-external-source-pill-faint-color);
+}
+
+.theme-external-source-pill:hover {
+    background-color: var(--theme-name-chip-bg-hover);
+    color: var(--theme-name-chip-text-hover);
+    --tw-ring-color: var(--theme-name-chip-ring-hover);
+  }
+}
+
+.theme-public-overline {
+  color: var(--theme-text-faint);
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: var(--type-tracking-label);
+  text-transform: uppercase;
+}
+
+.theme-loading-surface {
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(1rem, 3vw, 2.75rem);
+}
+
+.theme-loading-surface::before,
+.theme-loading-surface::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(42px);
+  opacity: 0.38;
+}
+
+.theme-loading-surface::before {
+  inset: 6% auto auto 8%;
+  width: min(24rem, 58vw);
+  height: min(13rem, 32vw);
+  background: color-mix(in srgb, var(--theme-accent) 18%, transparent);
+  transform: rotate(-8deg);
+}
+
+.theme-loading-surface::after {
+  right: 4%;
+  bottom: 8%;
+  width: min(20rem, 52vw);
+  height: min(12rem, 30vw);
+  background: color-mix(in srgb, var(--theme-accent-strong) 13%, transparent);
+  transform: rotate(10deg);
+}
+
+.theme-loading-heading {
+  max-width: min(42rem, 88vw);
+  opacity: 0.62;
+}
+
+.theme-skeleton-pulse {
+  background-image: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--theme-surface-muted) 58%, var(--theme-body-bg)),
+    color-mix(in srgb, var(--theme-accent) 14%, var(--theme-surface-muted)) 46%,
+    color-mix(in srgb, var(--theme-surface-muted) 52%, var(--theme-body-bg))
+  );
+  background-size: 220% 100%;
+  box-shadow: inset 0 1px 0
+    color-mix(in srgb, var(--theme-text-primary) 7%, transparent);
+}
+
+.theme-skeleton-pulse-strong {
+  opacity: 0.48;
+}
+
+.theme-skeleton-pulse-soft {
+  opacity: 0.34;
+}
+
+.theme-loading-section-shell {
+  display: grid;
+  gap: 0.875rem;
+  min-height: 9.5rem;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(in srgb, var(--theme-border-subtle) 54%, transparent);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(
+      circle at 16% 12%,
+      color-mix(in srgb, var(--theme-accent) 8%, transparent),
+      transparent 38%
+    ),
+    color-mix(in srgb, var(--theme-surface-muted) 34%, var(--theme-body-bg));
+  padding: clamp(1rem, 2vw, 1.375rem);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 5%, transparent),
+    0 18px 54px color-mix(in srgb, black 14%, transparent);
+  opacity: 0.72;
+}
+
+.theme-loading-section-shell-prominent {
+  min-height: 12rem;
+  opacity: 0.78;
+}
+
+.theme-loading-section-shell-quiet {
+  min-height: 7.5rem;
+  opacity: 0.52;
+}
+
+.theme-loading-stalled-label {
+  opacity: 0;
+  animation: theme-loading-stalled-label 900ms ease 4s forwards;
+}
+
+@keyframes theme-loading-stalled-label {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-loading-stalled-label {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.theme-loading-logo {
+  animation: theme-loading-logo-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes theme-loading-logo-breathe {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.82;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.theme-loading-bar {
+  height: 100%;
+  width: 50%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--theme-accent),
+    var(--theme-accent-strong)
+  );
+  animation: theme-loading-bar 1.4s ease-in-out infinite;
+}
+
+/* The bar is half the track wide, so -100% parks it just off the left edge
+     and 200% (twice its own width = the full track) exits it on the right:
+     one continuous left-to-right sweep, no ping-pong reversal. */
+@keyframes theme-loading-bar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-loading-logo {
+    animation: none;
+  }
+
+  /* Frozen mid-track: a static half-filled bar instead of an invisible
+       off-screen one. */
+  .theme-loading-bar {
+    animation: none;
+    transform: translateX(50%);
+  }
+}
+
+@keyframes theme-section-card-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--theme-section-card-distance, 12px), 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes theme-home-logo-arrive {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.45rem, 0) scale(0.96) rotate(1.5deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes theme-home-logo-breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+
+  48% {
+    transform: translate3d(0, -0.14rem, 0) scale(1.012) rotate(-0.55deg);
+  }
+}
+
+.theme-header-surface {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-chrome-rail-bg);
+  box-shadow: var(--theme-header-shadow);
+  backdrop-filter: none;
+}
+
+.theme-mobile-nav-panel {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-chrome-rail-bg);
+  box-shadow: var(--theme-header-shadow);
+  backdrop-filter: none;
+}
+
+.theme-header-nav-link {
+  color: var(--theme-text-muted);
+  transition: color 180ms ease;
+}
+
+@media (hover: hover) {
+  .theme-header-nav-link:hover {
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-header-nav-link:focus-visible {
+  color: var(--theme-text-primary);
+}
+
+/* The current page is named by colour alone. The label joins the icon on the
+     accent, which is the one thing hover never does — hover lifts the label only
+     as far as --theme-text-primary — so the two states stay distinguishable
+     without a fill.
+
+     What used to be here: --theme-header-nav-active-bg, a matching border, and a
+     three-layer box-shadow (1px ring, accent glow, inset highlight). Together
+     they drew a pill solid and bright enough to read as a button, an affordance
+     a nav link does not have, on every page of the site.
+
+     --theme-accent-strong is legible on the rail in both schemes because the
+     .theme-chrome-dark island (site-colors.css:173) rebinds it to its dark value
+     while the page around it is light. */
+.theme-header-nav-link[data-active="true"] {
+  color: var(--theme-accent-strong);
+}
+
+.theme-header-nav-icon {
+  color: var(--theme-text-faint);
+  opacity: 0.9;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+.theme-header-nav-link:focus-visible .theme-header-nav-icon {
+  color: var(--theme-text-secondary);
+  opacity: 1;
+}
+@media (hover: hover) {
+  .theme-header-nav-link:hover .theme-header-nav-icon {
+    color: var(--theme-text-secondary);
+    opacity: 1;
+  }
+}
+
+.theme-header-nav-link[data-active="true"] .theme-header-nav-icon {
+  color: var(--theme-accent-strong);
+  opacity: 1;
+}
+
+.theme-header-icon-button {
+  border-color: transparent;
+  background: transparent;
+  color: var(--theme-text-muted);
+  box-shadow: none;
+  transition: color 180ms ease;
+}
+
+.theme-header-icon-button:focus-visible {
+  color: var(--theme-text-primary);
+}
+
+.theme-header-icon-button[data-open="true"],
+.theme-header-icon-button[data-state="open"] {
+  color: var(--theme-accent-strong);
+}
+
+@media (hover: hover) {
+  .theme-header-icon-button:hover {
+    background: transparent;
+    color: var(--theme-text-primary);
+    box-shadow: none;
+  }
+}
+
+.theme-header-nav-indicator {
+  background-color: var(--theme-accent);
+}
+
+.theme-taxonomy-link-label {
+  color: var(--theme-text-primary);
+  font-weight: 600;
+}
+
+.theme-taxonomy-link-meta {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.theme-footer-surface {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow);
+}
+
+/* The hairline is a light-mode-only separator: a page-coloured footer needs it,
+     a dark chrome island does not, and adding one would be a seam the dark theme
+     never shows. `.theme-chrome-dark` footers are excluded for that reason. */
+.theme-footer-surface:not(.theme-chrome-dark) {
+  border-top: var(--theme-footer-hairline-width) solid var(--theme-frosted-panel-border);
+}
+
+.theme-text-primary {
+  color: var(--theme-text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--theme-text-secondary);
+}
+
+.theme-text-muted {
+  color: var(--theme-text-muted);
+}
+
+.theme-text-faint {
+  color: var(--theme-text-faint);
+}
+
+/* Quiet back link: muted at rest, accent-strong on hover. The gallery
+   explorer's focused view carries this pair inline (pre-token-audit
+   baseline); new call sites reach it through this class so component text
+   never names a theme variable directly. */
+.theme-back-link {
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) {
+  .theme-back-link:hover {
+    color: var(--theme-accent-strong);
+  }
+}
+
+/* Decorative/divider step of the text ramp (3:1 non-text floor, not 4.5:1).
+     The class was missing while five call sites already passed it, so those
+     nodes silently inherited --theme-text-primary #ffffff instead of dimming. */
+.theme-text-ghost {
+  color: var(--theme-text-ghost);
+}
+
+/* Accent roles: standalone headings follow --theme-section-heading (which
+     palettes and Pro pin separately), accented emphasis follows
+     --theme-accent-strong. */
+.theme-accent-heading {
+  color: var(--theme-section-heading);
+}
+
+.theme-accent-emphasis {
+  color: var(--theme-accent-strong);
+}
+
+.theme-accent-emphasis-scope :is(strong, b) {
+  color: var(--theme-accent-strong);
+}
+
+.theme-danger-text {
+  color: var(--theme-danger-text);
+}
+
+.theme-danger-text-strong {
+  color: var(--theme-danger-text-strong);
+}
+
+.theme-danger-border {
+  border-color: var(--theme-danger-border);
+}
+
+/* Article Status ladder (ContributorsSection). A done step's check takes the
+   success ink; a step not yet performed puts the vivid danger ink on its
+   shield-off marker and the danger surface on its badge and "Pending" chip.
+   Red sits only on the status cluster; label and description keep neutral ink. */
+.theme-status-step-done-mark {
+  color: var(--theme-success-text);
+}
+
+.theme-status-step-pending-mark {
+  color: var(--theme-danger-text-vivid);
+}
+
+.theme-status-step-pending-surface {
+  border-color: var(--theme-danger-border-strong);
+  background-color: var(--theme-danger-bg);
+  color: var(--theme-danger-text-vivid);
+}
+
+.theme-success-text-strong {
+  color: var(--theme-success-text-strong);
+}
+
+.theme-warning-text-strong {
+  color: var(--theme-warning-text-strong);
+}
+
+.theme-report-substance-text {
+  color: var(--theme-report-substance-text);
+}
+
+.theme-report-metadata-text {
+  color: var(--theme-report-metadata-text);
+}
+
+.theme-report-featured-text {
+  color: var(--theme-report-featured-text);
+}
+
+/* Trip report timeline rail: a continuous vertical line through the
+     onset/peak/offset phases. Phase headings and entries hang dots on it via
+     .theme-report-rail-marker; the marker halo uses the page canvas color so
+     the line appears to pass behind each dot. */
+.theme-report-rail::before {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.75rem;
+  bottom: 0.4rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    var(--theme-divider),
+    var(--theme-divider) calc(100% - 3rem),
+    transparent
+  );
+}
+
+.theme-report-rail-marker {
+  box-shadow: 0 0 0 3px var(--theme-body-bg);
+  /* Hang the dot on the rail. The offset is derived from a single token so
+       the heading dot and the smaller entry dot (-sm) stay aligned on the
+       same line; -sm nudges right by the dot radius difference (0.13rem). */
+  left: calc(var(--theme-report-rail-inset) * -1);
+}
+
+.theme-report-rail-marker-sm {
+  left: calc(var(--theme-report-rail-inset) * -1 + 0.13rem);
+}
+
+/* Accent CTA: the single solid-magenta action on a page (e.g. Submit
+     report). Uses the brand accent tokens so dark mode gets a luminous pink
+     pill with dark text and light mode a deep magenta pill with white text.
+     The label is painted with the page canvas: it already inverts with the
+     colour scheme exactly as ink on a filled accent must, and it resolves the
+     same palette seeds the fill does, so recolouring the accent can never
+     leave the label stranded on top of it. */
+.theme-cta-accent {
+  color: var(--theme-body-bg);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(255, 255, 255, 0.34),
+      transparent 46%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--theme-accent-strong) 80%, var(--theme-accent)),
+      var(--theme-accent)
+    );
+  box-shadow:
+    0 12px 26px -14px color-mix(in srgb, var(--theme-accent) 62%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -10px 18px -14px
+      color-mix(in srgb, var(--theme-accent-strong) 45%, transparent);
+  transition:
+    transform 240ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 240ms cubic-bezier(0.25, 1, 0.5, 1),
+    filter 240ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.theme-cta-accent:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 16px 32px -14px color-mix(in srgb, var(--theme-accent) 72%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+@media (hover: hover) {
+  .theme-cta-accent:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow:
+      0 16px 32px -14px color-mix(in srgb, var(--theme-accent) 72%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-cta-accent {
+    transition: none;
+    transform: none;
+  }
+  @media (hover: hover) {
+    .theme-cta-accent:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+}
+
+/* Index rows: open list rows on the canvas, separated by the site's gradient
+     hairline, with the search-suggestion hover tint instead of card chrome. The
+     divider is an inset element with breathing room so the rounded hover fill
+     never touches it. `theme-index-row` is the general name; the
+     `theme-report-index-*` aliases predate it and still name the same material
+     in the trip report explorer. */
+.theme-index-row + .theme-index-row::before,
+.theme-report-index-row + .theme-report-index-row::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin: 0.3rem 0.75rem;
+  background-image: var(--theme-horizontal-divider-image);
+}
+
+.theme-index-row-link,
+.theme-report-index-link {
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    scale 160ms ease,
+    color 200ms ease;
+}
+
+/* Hover lifts the row into the shared frosted-control material (radial
+     upper-left highlight + inset top sheen) rather than a flat tint. Keyboard
+     focus adds the site ring on top so it never reads as a stray hover. */
+.theme-index-row-link:focus-visible,
+.theme-report-index-link:focus-visible {
+  background: var(--theme-frosted-control-hover-bg);
+  box-shadow: var(--theme-frosted-control-hover-shadow);
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .theme-index-row-link:hover,
+  .theme-report-index-link:hover {
+    background: var(--theme-frosted-control-hover-bg);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+  }
+}
+
+/* Progressive stages (subjective-effects accordion): open rows on the canvas
+     separated by the site's gradient hairline. A collapsed row lifts into the
+     shared frosted-control material on hover/focus; an expanded row stays
+     lifted as one rounded block so the open stage reads as raised rather than
+     stained. The divider is an inset pseudo-element so the rounded fill never
+     touches it, and it fades around an expanded row so the block reads clean. */
+.theme-progressive-stage,
+.theme-progressive-stage-trigger {
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease;
+}
+
+.theme-progressive-stage + .theme-progressive-stage::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin: 0.3rem 0.75rem;
+  background-image: var(--theme-horizontal-divider-image);
+  transition: opacity 200ms ease;
+}
+
+.theme-progressive-stage[data-expanded]::before,
+.theme-progressive-stage[data-expanded] + .theme-progressive-stage::before {
+  opacity: 0;
+}
+
+.theme-progressive-stage:not([data-expanded])
+  .theme-progressive-stage-trigger:focus-visible {
+  background: var(--theme-frosted-control-hover-bg);
+  box-shadow: var(--theme-frosted-control-hover-shadow);
+}
+@media (hover: hover) {
+  .theme-progressive-stage:not([data-expanded])
+    .theme-progressive-stage-trigger:hover {
+    background: var(--theme-frosted-control-hover-bg);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+  }
+}
+
+.theme-progressive-stage[data-expanded] {
+  background: var(--theme-frosted-control-hover-bg);
+  box-shadow: var(--theme-frosted-control-hover-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-progressive-stage,
+  .theme-progressive-stage-trigger,
+  .theme-progressive-stage + .theme-progressive-stage::before {
+    transition: none;
+  }
+}
+
+/* Trip report dossier: the single fact-sheet strip under the hero. Shares
+     the dark chrome/inset tone with the header, footer, and TOC so it reads
+     as quiet reference material next to the open narrative. */
+.theme-report-dossier,
+.theme-aside-panel {
+  border: 1px solid var(--theme-border-subtle);
+  background: var(--theme-frosted-control-on-panel-bg);
+  box-shadow: var(--theme-report-dossier-box-shadow);
+}
+
+/* Theme-invariant media-well text, borders, controls, and elevation. These
+     roles cover both compact tiles and the expanded replication viewer. */
+.theme-media-tile-title {
+  color: var(--theme-text-on-media);
+}
+
+.theme-media-tile-creator {
+  color: var(--theme-text-on-media-muted);
+}
+
+.theme-media-progress-track {
+  background-color: color-mix(
+    in srgb,
+    var(--theme-text-on-media) 20%,
+    transparent
+  );
+}
+
+/* .theme-media-progress-fill was removed 2026-08: the seek bar's playhead is
+   .theme-media-playback-fill (ReplicationMediaStage.tsx); no markup ever
+   rendered the -progress-fill spelling. */
+
+/* Buffered layer of the seek bar: the subdued neutral stretch between the
+     bare track and the accent playhead fill, read from video.buffered. */
+.theme-media-progress-buffered {
+  background-color: color-mix(
+    in srgb,
+    var(--theme-text-on-media) 40%,
+    transparent
+  );
+}
+
+.theme-media-thumbnail-border {
+  border-color: color-mix(in srgb, var(--theme-text-on-media) 20%, transparent);
+}
+
+.theme-media-thumbnail-selected {
+  border-color: var(--theme-text-on-media);
+}
+
+/* Raised media control: the viewer header's square buttons. A soft top-lit
+     gradient and hairline keep them legible on the black media chrome in
+     both visual styles without borrowing panel materials. */
+.theme-media-control-raised {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--theme-text-on-media) 17%, transparent),
+    color-mix(in srgb, var(--theme-text-on-media) 6%, transparent)
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--theme-text-on-media) 14%, transparent);
+  box-shadow: inset 0 1px 0
+    color-mix(in srgb, var(--theme-text-on-media) 12%, transparent);
+}
+
+/* The immersive viewer keeps its settings menu in the header's compositor
+   layer. A fully opaque surface and no transform animation prevent iOS Safari
+   from flashing the menu against a playing <video> layer. */
+.theme-media-settings-menu {
+  background-color: var(--theme-surface-strong);
+  border-color: var(--theme-border-subtle);
+  box-shadow: var(--theme-elevation-overlay);
+}
+
+.theme-media-settings-item:is(:hover, :focus-visible) {
+  background: var(--theme-frosted-control-on-panel-bg);
+}
+
+/* Accent playback meter: the hairline video progress fill at the bottom of
+     the expanded stage. The faint glow keeps it visible over bright frames. */
+.theme-media-playback-fill {
+  background-color: var(--theme-accent-strong);
+  box-shadow: 0 0 6px
+    color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
+}
+
+/* The scrub thumb riding the playhead edge of the seek bar. */
+.theme-media-playback-thumb {
+  background-color: var(--theme-accent-strong);
+  box-shadow: 0 0 6px
+    color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
+}
+
+/* Gesture Hint: the one-time swipe tutor on the immersive stage. The pointer
+     glyph sweeps the track like a finger; reduced motion parks it centered. */
+.theme-media-hint-track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0.25rem;
+  top: 50%;
+  height: 2px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.theme-media-hint-dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: grid;
+  place-items: center;
+  transform: translate(0, -50%);
+  animation: theme-media-hint-sweep 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes theme-media-hint-sweep {
+  0%,
+  8% {
+    transform: translate(0, -50%);
+  }
+  46%,
+  54% {
+    transform: translate(2.25rem, -50%);
+  }
+  92%,
+  100% {
+    transform: translate(0, -50%);
+  }
+}
+
+.theme-media-hint-track-y::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.25rem;
+  left: 50%;
+  width: 2px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.theme-media-hint-dot-y {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, 0);
+  animation: theme-media-hint-sweep-y 2.4s cubic-bezier(0.45, 0, 0.55, 1)
+    infinite;
+}
+
+@keyframes theme-media-hint-sweep-y {
+  0%,
+  8% {
+    transform: translate(-50%, 0);
+  }
+  46%,
+  54% {
+    transform: translate(-50%, 1.25rem);
+  }
+  92%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-media-hint-dot {
+    animation: none;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .theme-media-hint-dot-y {
+    animation: none;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* The expanded viewer owns its playback affordances: suppress WebKit's giant
+     native start-playback glyph so a blocked video shows exactly one Play
+     control (iOS Safari paints it over autoplay-blocked video elements).
+     The pooled elements live in the track's panes. */
+[data-replication-media-track] video::-webkit-media-controls,
+[data-replication-media-track]
+  video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+.theme-media-control-soft {
+  background-color: color-mix(
+    in srgb,
+    var(--theme-text-on-media) 10%,
+    transparent
+  );
+}
+
+.theme-media-action {
+  color: rgb(var(--c-black));
+  background-color: var(--theme-text-on-media);
+}
+
+.theme-media-overlay-shadow {
+  box-shadow: var(--theme-elevation-overlay);
+}
+
+.theme-media-rail-arrow {
+  background: var(--theme-frosted-control-bg);
+  box-shadow: var(--theme-frosted-control-shadow);
+}
+
+.theme-media-rail-arrow:hover {
+  background: var(--theme-frosted-control-hover-bg);
+}
+
+.theme-media-tile:focus-visible {
+  outline-color: var(--theme-text-secondary);
+}
+
+/* The speech-bubble tail on .theme-aside-panel: a rotated square sharing the
+     panel's fill and border. Only the two outer edges are bordered, so the
+     opaque half that overlaps the panel notches its bottom border and the two
+     shapes read as one outline. Rotation, size and offset stay at the call
+     site — this carries only the themed fill and border. */
+.theme-aside-panel-tail {
+  border-right: 1px solid var(--theme-border-subtle);
+  border-bottom: 1px solid var(--theme-border-subtle);
+  background: var(--theme-frosted-control-on-panel-bg);
+}
+
+/* Tail clip, shared by both speech-bubble tails (Personal Commentary and the
+     profile editor's note). The square's fill is the panel token resampled
+     into a 14px box, so the half overlapping the panel never quite matches
+     the panel behind it and reads as a faint triangle above the point. In
+     local (pre-rotation) coordinates the panel edge runs along the ↗
+     diagonal; keep only the bottom-right half plus a 3px inset band (≈2px
+     perpendicular) past it — enough to keep notching the panel's 1px bottom
+     border while the mismatched interior collapses to an invisible sliver. */
+.theme-aside-panel-tail,
+.theme-profile-markdown-quote-tail {
+  clip-path: polygon(
+    calc(100% - 3px) 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 calc(100% - 3px)
+  );
+}
+
+.theme-report-dossier-substance {
+  background: color-mix(in srgb, var(--theme-accent) 9%, var(--theme-body-bg));
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--theme-accent) 22%, var(--theme-border-subtle));
+}
+
+.theme-report-phase-onset-text {
+  color: var(--theme-report-phase-onset-text);
+}
+
+.theme-report-phase-peak-text {
+  color: var(--theme-report-phase-peak-text);
+}
+
+.theme-report-phase-offset-text {
+  color: var(--theme-report-phase-offset-text);
+}
+
+.theme-report-phase-onset-dot {
+  background-color: var(--theme-report-phase-onset-dot);
+}
+
+.theme-report-phase-peak-dot {
+  background-color: var(--theme-report-phase-peak-dot);
+}
+
+.theme-report-phase-offset-dot {
+  background-color: var(--theme-report-phase-offset-dot);
+}
+
+.theme-profile-markdown {
+  color: var(--theme-text-secondary);
+}
+
+.theme-profile-markdown-link {
+  color: var(--theme-accent-strong);
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--theme-accent-strong) 36%,
+    var(--theme-body-bg)
+  );
+}
+
+@media (hover: hover) {
+  .theme-profile-markdown-link:hover {
+    color: var(--theme-accent);
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--theme-accent) 56%,
+      var(--theme-body-bg)
+    );
+  }
+}
+
+.theme-profile-markdown-marker::marker {
+  color: var(--theme-accent-strong);
+}
+
+.theme-profile-markdown-quote {
+  border: 1px solid var(--theme-profile-markdown-quote-border);
+  background-color: var(--theme-profile-markdown-quote-bg);
+  color: var(--theme-text-secondary);
+}
+
+.theme-profile-markdown-quote-tail {
+  border-right-color: var(--theme-profile-markdown-quote-border);
+  border-bottom-color: var(--theme-profile-markdown-quote-border);
+  background-color: var(--theme-profile-markdown-quote-bg);
+}
+
+.theme-divider {
+  background-color: var(--theme-divider);
+  border-color: var(--theme-divider);
+}
+
+.theme-gradient-divider,
+.theme-horizontal-divider {
+  background-image: var(--theme-horizontal-divider-image);
+}
+
+.theme-horizontal-divider {
+  height: 1px;
+  width: 100%;
+}
+
+/* Text-styled inline label inputs (index-layout taxonomy editors): border
+     is transparent at rest, surfaces on hover, and takes the accent on focus
+     (kept here after the hover rule so focus wins while hovered). */
+
+.theme-horizontal-divider-block {
+  position: relative;
+}
+
+.theme-horizontal-divider-block::before,
+.theme-horizontal-divider-block::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: var(--theme-horizontal-divider-image);
+  content: "";
+  pointer-events: none;
+}
+
+.theme-horizontal-divider-block::before {
+  top: 0;
+}
+
+.theme-horizontal-divider-block::after {
+  bottom: 0;
+}
+
+.theme-section-group-divider {
+  --theme-section-group-divider-accent-width: min(11rem, 34%);
+  position: relative;
+  padding-top: 2rem;
+}
+
+.theme-section-group-divider::before,
+.theme-section-group-divider::after {
+  position: absolute;
+  top: 0;
+  height: 1px;
+  content: "";
+  pointer-events: none;
+}
+
+.theme-section-group-divider::before {
+  left: 0;
+  right: 0;
+  background-image: var(--theme-horizontal-divider-image);
+}
+
+.theme-section-group-divider::after {
+  left: 0;
+  width: var(--theme-section-group-divider-accent-width);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--theme-accent-strong) 26%, transparent) 8%,
+    color-mix(in srgb, var(--theme-accent) 9%, transparent),
+    transparent
+  );
+  box-shadow: 0 0 14px color-mix(in srgb, var(--theme-accent) 7%, transparent);
+}
+
+.theme-section-group-divider:first-child {
+  padding-top: 0;
+}
+
+.theme-section-group-divider:first-child::before,
+.theme-section-group-divider:first-child::after {
+  display: none;
+}
+
+.theme-loading-track {
+  background-color: var(--theme-surface-muted);
+}
+
+.theme-link-muted {
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) {
+  .theme-link-muted:hover {
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-link-muted:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
+/* VCode article links (IntLink/ExtLink): the underline tint follows the
+     accent tokens so the hue slider and Pro's --theme-accent remap reach it
+     (was raw decoration-fuchsia-300/35 + hover:decoration-fuchsia-200/55). */
+.theme-accent-underline {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--theme-accent) 35%,
+    transparent
+  );
+}
+
+@media (hover: hover) {
+  .theme-accent-underline:hover {
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--theme-accent-soft) 55%,
+      transparent
+    );
+  }
+}
+
+.theme-control-pill-expander {
+  color: var(--theme-accent-muted);
+}
+
+.theme-report-author-link {
+  color: var(--theme-accent-muted);
+}
+
+@media (hover: hover) {
+  .theme-report-author-link:hover {
+    color: var(--theme-accent-strong);
+  }
+}
+
+.theme-report-author-link:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
+.theme-icon-button {
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) {
+  .theme-icon-button:hover {
+    background-color: var(--theme-surface-muted);
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-icon-button:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+}
+
+.theme-toggle-pill {
+  border: 1px solid var(--theme-border-subtle);
+  background-color: transparent;
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) {
+  .theme-toggle-pill:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent) 20%,
+      var(--theme-border-subtle)
+    );
+    background-color: var(--theme-surface-muted);
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-toggle-pill:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 3px;
+}
+
+.theme-toggle-icon-muted {
+  color: var(--theme-text-faint);
+}
+
+.theme-toggle-icon-accent {
+  color: var(--theme-accent-strong);
+}
+
+.theme-code-surface {
+  background-color: var(--theme-field-surface);
+}
+
+.theme-about-json-preview {
+  border-color: var(--theme-border-subtle);
+  background-color: var(--theme-field-surface);
+}
+
+.theme-about-json-preview-header {
+  border-color: var(--theme-border-subtle);
+  background-color: color-mix(
+    in srgb,
+    var(--theme-field-surface) 72%,
+    var(--theme-body-bg)
+  );
+}
+
+.theme-about-json-preview-body {
+  background-color: var(--theme-field-surface);
+}
+
+.theme-json-preview-ambient {
+  background-image:
+    radial-gradient(
+      900px 420px at 10% -10%,
+      color-mix(in srgb, var(--theme-accent) 16%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      700px 340px at 90% 0%,
+      color-mix(in srgb, var(--theme-json-window-success) 12%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--theme-surface-strong) 12%, transparent),
+      transparent 18%,
+      transparent 82%,
+      color-mix(in srgb, var(--theme-surface-strong) 12%, transparent)
+    );
+}
+
+.theme-json-preview-muted {
+  color: var(--theme-text-muted);
+}
+
+.theme-json-preview-text {
+  color: var(--theme-text-secondary);
+}
+
+.theme-json-preview-line-number {
+  color: var(--theme-text-faint);
+}
+
+.theme-json-preview-key {
+  color: var(--theme-accent-strong);
+}
+
+.theme-json-preview-string {
+  color: var(--theme-json-string);
+}
+
+.theme-json-preview-number {
+  color: var(--theme-json-number);
+}
+
+.theme-json-preview-boolean {
+  color: var(--theme-json-boolean);
+}
+
+.theme-json-preview-null {
+  color: var(--theme-json-null);
+}
+
+.theme-json-preview-truncation {
+  border-color: var(--theme-border-subtle);
+  background-color: color-mix(
+    in srgb,
+    var(--theme-field-surface-alt) 88%,
+    var(--theme-body-bg)
+  );
+  color: var(--theme-text-muted);
+}
+
+.theme-json-preview-action {
+  color: var(--theme-text-muted);
+}
+
+@media (hover: hover) {
+  .theme-json-preview-action:hover {
+    background-color: var(--theme-surface-muted);
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-article-hero {
+  border: 1px solid var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  box-shadow: var(--theme-frosted-panel-shadow) !important;
+  --tw-ring-color: var(--theme-frosted-panel-border);
+}
+
+.theme-article-hero-summary {
+  position: relative;
+}
+
+.theme-article-hero-summary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-image: var(--theme-article-hero-summary-divider);
+  pointer-events: none;
+}
+
+/* When the hero floats a molecule SVG on md+, stop the divider 2rem short of
+     the 16rem-wide float so the line never slices through the molecule when
+     there isn't enough text above the summary to push the divider below it. */
+@media (min-width: 768px) {
+  .theme-article-hero-summary--has-molecule::before {
+    right: 18rem;
+  }
+}
+
+.theme-interaction-danger,
+.theme-interaction-unsafe,
+.theme-interaction-caution {
+  border: 1px solid transparent;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.theme-interaction-danger {
+  border-color: var(--theme-interaction-danger-border-color);
+  background: var(--theme-interaction-danger-background);
+  box-shadow: var(--theme-interaction-danger-box-shadow);
+}
+
+.theme-interaction-unsafe {
+  border-color: var(--theme-interaction-unsafe-border-color);
+  background: var(--theme-interaction-unsafe-background);
+  box-shadow: var(--theme-interaction-unsafe-box-shadow);
+}
+
+.theme-interaction-caution {
+  border-color: var(--theme-interaction-caution-border-color);
+  background: var(--theme-interaction-caution-background);
+  box-shadow: var(--theme-interaction-caution-box-shadow);
+}
+
+/* The severity chip in a card header is a quiet control sitting on a tinted
+     panel, not a second tone block: the on-panel group rule below paints its
+     frosted fill and hairline, and the tone survives as text and icon colour.
+     The retired `background: …-badge-bg` plus `0 0 0 1px …-badge-border` drew
+     a saturated pill that outshouted the heading beside it. */
+.theme-interaction-severity-badge-danger,
+.theme-interaction-severity-badge-unsafe,
+.theme-interaction-severity-badge-caution {
+  border: 1px solid transparent;
+}
+
+.theme-interaction-severity-badge-danger {
+  color: var(--theme-semantic-danger-badge-text);
+}
+
+.theme-interaction-severity-badge-unsafe {
+  color: var(--theme-semantic-unsafe-badge-text);
+}
+
+.theme-interaction-severity-badge-caution {
+  color: var(--theme-semantic-caution-badge-text);
+}
+
+.theme-molecule-panel {
+  border-color: var(--theme-molecule-panel-border-color);
+  background-color: var(--theme-molecule-panel-background-color);
+}
+
+.theme-molecule-image {
+  --tw-brightness: brightness(1);
+  --tw-saturate: saturate(1);
+  --tw-contrast: contrast(1);
+  --tw-hue-rotate: hue-rotate(0deg);
+  /* Explicit chain so authored drop-shadows still compose. The bytes carry
+       the final scheme-keyed element colours (the image routes serve the
+       pro-light/pro-dark colourway per scheme), so CSS never recolors a
+       molecule. */
+  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,)
+    var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,)
+    var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+  transition: filter 180ms ease;
+}
+
+/* Molecule bytes are scheme-keyed, so MoleculeImage renders both colourways and
+   the root's pre-painted data-theme picks one here. The first paint is right
+   for a reader on either scheme, with no src swap after hydration; the hidden
+   variant is lazy-loaded, and a display:none lazy image is never fetched. */
+html[data-theme="light"] [data-molecule-colorway="pro-dark"],
+html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
+  display: none;
+}
+
+.theme-accent-icon,
+.theme-accent-icon-scope .iconify,
+.theme-accent-icon-scope svg {
+  filter: var(--theme-accent-icon-filter);
+  transition: filter 180ms ease;
+}
+
+.theme-inline-expanded-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: color-mix(in srgb, rgb(10 8 18) 34%, var(--theme-body-bg));
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+/* Zebra rows in the pharmacology tables (receptor binding, metabolites) are
+     shallow wells cut into the card, dressed like the header search field:
+     depth comes from the sunk fill and inner shading, never a brighter
+     outline. The retired `0 0 0 1px var(--theme-field-on-chrome-border)` drew
+     a 36%-white rectangle around every other row — an on-chrome control rim
+     borrowed onto an inert data row, and the loudest edge in the section. */
+.theme-pharmacology-table-row-alt {
+  background: var(--theme-field-on-panel-surface-alt);
+  box-shadow:
+    inset 0 2px 3px
+      color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+    inset 0 -1px 0 var(--theme-frosted-panel-highlight);
+}
+
+.theme-receptor-qualifier-badge {
+  border-color: transparent;
+  background: var(--theme-frosted-control-on-panel-bg);
+  color: var(--theme-accent-strong);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+}
+
+.theme-metabolite-status-badge {
+  border-color: transparent;
+  background: var(--theme-frosted-control-on-panel-bg);
+  color: var(--theme-text-muted);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+}
+
+.theme-pharmacology-table-row-alt
+  :is(.theme-receptor-qualifier-badge, .theme-metabolite-status-badge) {
+  background: var(--theme-frosted-control-bg);
+  box-shadow: var(--theme-frosted-control-shadow);
+  --tw-ring-color: var(--theme-frosted-control-border);
+}
+
+.theme-metabolite-status-badge-active {
+  color: var(--theme-metabolite-status-badge-active-color);
+  background: var(--theme-evidence-bg);
+  box-shadow: 0 0 0 1px var(--theme-evidence-border);
+}
+
+.theme-metabolite-status-badge-inactive {
+  color: var(--theme-metabolite-status-badge-inactive-color);
+}
+
+.theme-status-badge,
+.theme-external-link-badge-icon {
+  transition: color 180ms ease;
+}
+
+.theme-external-link-badge-icon {
+  color: var(--theme-external-link-badge-icon-color);
+  opacity: var(--theme-external-link-badge-icon-opacity);
+  transition:
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+@media (hover: hover) {
+  .group:hover .theme-external-link-badge-icon,
+  .theme-external-link-badge-icon:hover {
+    color: var(--theme-external-link-badge-icon-hover-color);
+    opacity: var(--theme-external-link-badge-icon-hover-opacity);
+  }
+}
+
+.theme-status-badge {
+  box-shadow: var(
+    --theme-status-badge-shadow,
+    var(--theme-frosted-control-on-panel-shadow)
+  );
+  backdrop-filter: blur(8px) saturate(1.02);
+}
+
+.theme-status-badge[data-badge-tone="red"],
+.theme-status-badge[data-badge-tone="rose"] {
+  color: var(--theme-semantic-danger-badge-text);
+  background: var(--theme-semantic-danger-badge-bg);
+  --theme-status-badge-ring: var(--theme-semantic-danger-badge-ring);
+  --theme-status-badge-glow: var(--theme-semantic-danger-badge-glow);
+}
+
+.theme-status-badge[data-badge-tone="yellow"],
+.theme-status-badge[data-badge-tone="orange"] {
+  color: var(--theme-semantic-caution-badge-text);
+  background: var(--theme-semantic-caution-badge-bg);
+  --theme-status-badge-ring: var(--theme-semantic-caution-badge-ring);
+  --theme-status-badge-glow: var(--theme-semantic-caution-badge-glow);
+}
+
+.theme-status-badge[data-badge-tone="blue"] {
+  color: var(--theme-semantic-info-badge-text);
+  background: var(--theme-semantic-info-badge-bg);
+  --theme-status-badge-ring: var(--theme-semantic-info-badge-ring);
+  --theme-status-badge-glow: var(--theme-semantic-info-badge-glow);
+}
+
+.theme-status-badge[data-badge-tone="green"],
+.theme-status-badge[data-badge-tone="emerald"] {
+  color: var(--theme-semantic-success-badge-text);
+  background: var(--theme-semantic-success-badge-bg);
+  --theme-status-badge-ring: var(--theme-semantic-success-badge-ring);
+  --theme-status-badge-glow: var(--theme-semantic-success-badge-glow);
+}
+
+.theme-status-badge[data-badge-tone="gray"],
+.theme-status-badge[data-badge-tone="white"] {
+  color: var(--theme-semantic-neutral-badge-text);
+  background: var(--theme-semantic-neutral-badge-bg);
+  --theme-status-badge-ring: var(--theme-semantic-neutral-badge-ring);
+  --theme-status-badge-glow: var(--theme-semantic-neutral-badge-glow);
+}
+
+/* Text-only status tones (legality status lines): the badge tones' semantic
+   inks with no fill or ring, for status labels too long to render as pills. */
+.theme-status-text[data-badge-tone="red"] {
+  color: var(--theme-semantic-danger-badge-text);
+}
+
+.theme-status-text[data-badge-tone="yellow"] {
+  color: var(--theme-semantic-caution-badge-text);
+}
+
+.theme-status-text[data-badge-tone="blue"] {
+  color: var(--theme-semantic-info-badge-text);
+}
+
+.theme-status-text[data-badge-tone="green"] {
+  color: var(--theme-semantic-success-badge-text);
+}
+
+.theme-status-text[data-badge-tone="gray"] {
+  color: var(--theme-semantic-neutral-badge-text);
+}
+
+.theme-country-flag {
+  border-radius: 9999px;
+  box-shadow: var(--theme-flag-shadow);
+  --tw-ring-width: 1px;
+  --tw-ring-color: var(--theme-flag-ring);
+}
+
+.theme-public-card,
+.theme-card-surface,
+.theme-overlay-surface,
+.theme-public-card-subtle,
+.theme-public-card-hover-quiet,
+.theme-article-subsection-card,
+.theme-article-subsection-card-nested,
+.theme-article-subsection-card-interactive,
+.theme-inline-expanded-card,
+.theme-dose-duration-panel,
+.theme-article-toc-panel,
+.theme-toggle-thumb {
+  border-color: var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-frosted-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-panel-border);
+}
+
+.theme-public-card-subtle {
+  color: var(--theme-public-card-subtle-color);
+}
+
+.theme-article-toc-panel,
+.theme-dose-duration-panel,
+.theme-effect-neutral-panel {
+  border-color: var(--theme-article-neutral-panel-border);
+  background: var(--theme-article-neutral-panel-bg);
+  box-shadow: var(--theme-article-neutral-panel-shadow);
+  --tw-ring-color: var(--theme-article-neutral-panel-border);
+}
+
+/* The light scheme draws a hairline around these panels; dark keeps them
+   borderless, so the width is a token rather than a call-site utility. */
+.theme-dose-duration-panel,
+.theme-feedback-icon-well {
+  border-width: var(--theme-panel-hairline-width);
+}
+
+.theme-article-toc-panel,
+.theme-dose-duration-panel {
+  border-color: var(--theme-article-side-panel-border-color);
+  background: var(--theme-article-side-panel-background);
+  box-shadow: var(--theme-article-side-panel-box-shadow);
+  --tw-ring-color: var(--theme-article-side-panel-border-color);
+}
+
+@media (hover: hover) {
+  .theme-public-card-interactive:hover,
+  .theme-public-card-hover-quiet:hover,
+  .theme-article-subsection-card-interactive:hover {
+    border-color: var(--theme-frosted-panel-hover-border);
+    background: var(--theme-frosted-panel-hover-bg);
+    box-shadow: var(--theme-frosted-panel-hover-shadow);
+  }
+}
+
+.theme-badge-surface,
+.theme-author-avatar-placeholder,
+.theme-name-chip,
+.theme-external-source-pill,
+.theme-control-pill,
+.theme-control-pill-quiet,
+.theme-toggle-pill,
+.theme-icon-button {
+  border-color: transparent;
+  background: var(--theme-frosted-control-bg);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-frosted-control-shadow);
+  --tw-ring-color: var(--theme-frosted-control-border);
+}
+
+.theme-author-avatar-placeholder {
+  background: var(--theme-author-avatar-placeholder-background);
+  box-shadow: var(--theme-author-avatar-placeholder-box-shadow);
+  --tw-ring-color: var(--theme-author-avatar-placeholder-tw-ring-color);
+}
+
+.theme-name-chip-interactive:focus-visible,
+.theme-control-pill:focus-visible,
+.theme-control-pill[data-active="true"],
+.theme-control-pill-quiet:focus-visible,
+.theme-control-pill-quiet[data-active="true"],
+.theme-toggle-pill:focus-visible,
+.theme-icon-button:focus-visible {
+  border-color: transparent;
+  background: var(--theme-frosted-control-hover-bg);
+  color: var(--theme-accent-strong);
+  box-shadow: var(--theme-frosted-control-hover-shadow);
+  --tw-ring-color: var(--theme-frosted-control-hover-border);
+}
+@media (hover: hover) {
+  .theme-name-chip-interactive:hover,
+  .theme-external-source-pill:hover,
+  .theme-control-pill:hover,
+  .theme-control-pill-quiet:hover,
+  .theme-toggle-pill:hover,
+  .theme-icon-button:hover {
+    border-color: transparent;
+    background: var(--theme-frosted-control-hover-bg);
+    color: var(--theme-accent-strong);
+    box-shadow: var(--theme-frosted-control-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-hover-border);
+  }
+}
+
+.theme-toggle-pill {
+  border-color: transparent;
+  background: var(--theme-toggle-pill-bg);
+  box-shadow: var(--theme-toggle-pill-box-shadow);
+  --tw-ring-color: var(--theme-toggle-pill-tw-ring-color);
+}
+
+.theme-toggle-pill:focus-visible {
+  border-color: transparent;
+  background: var(--theme-toggle-pill-focus-visible-background);
+  box-shadow: var(--theme-toggle-pill-active-box-shadow);
+  --tw-ring-color: var(--theme-toggle-pill-active-tw-ring-color);
+}
+@media (hover: hover) {
+  .theme-toggle-pill:hover {
+    border-color: transparent;
+    background: var(--theme-toggle-pill-hover-background);
+    box-shadow: var(--theme-toggle-pill-active-box-shadow);
+    --tw-ring-color: var(--theme-toggle-pill-active-tw-ring-color);
+  }
+}
+
+:is(
+    .theme-public-card,
+    .theme-public-card-subtle,
+    .theme-public-card-hover-quiet,
+    .theme-card-surface,
+    .theme-overlay-surface,
+    .theme-article-hero,
+    .theme-article-subsection-card,
+    .theme-article-subsection-card-nested,
+    .theme-article-subsection-card-interactive,
+    .theme-inline-expanded-card,
+    .theme-dose-duration-panel,
+    .theme-article-toc-panel,
+    .theme-interaction-danger,
+    .theme-interaction-unsafe,
+    .theme-interaction-caution
+  )
+  :is(
+    .theme-badge-surface,
+    .theme-author-avatar-placeholder,
+    .theme-name-chip,
+    .theme-external-source-pill,
+    .theme-control-pill,
+    .theme-control-pill-quiet,
+    .theme-icon-button,
+    .theme-interaction-severity-badge-danger,
+    .theme-interaction-severity-badge-unsafe,
+    .theme-interaction-severity-badge-caution
+  ) {
+  border-color: transparent;
+  background: var(--theme-frosted-control-on-panel-bg);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+}
+
+:is(
+    .theme-public-card,
+    .theme-public-card-subtle,
+    .theme-public-card-hover-quiet,
+    .theme-card-surface,
+    .theme-overlay-surface,
+    .theme-article-hero,
+    .theme-article-subsection-card,
+    .theme-article-subsection-card-nested,
+    .theme-article-subsection-card-interactive,
+    .theme-inline-expanded-card,
+    .theme-dose-duration-panel,
+    .theme-article-toc-panel,
+    .theme-interaction-danger,
+    .theme-interaction-unsafe,
+    .theme-interaction-caution
+  )
+  :is(
+    .theme-name-chip-interactive:focus-visible,
+    .theme-control-pill:focus-visible,
+    .theme-control-pill[data-active="true"],
+    .theme-control-pill-quiet:focus-visible,
+    .theme-control-pill-quiet[data-active="true"],
+    .theme-icon-button:focus-visible
+  ) {
+  background: var(--theme-frosted-control-on-panel-hover-bg);
+  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+}
+@media (hover: hover) {
+  :is(
+      .theme-public-card,
+      .theme-public-card-subtle,
+      .theme-public-card-hover-quiet,
+      .theme-card-surface,
+      .theme-overlay-surface,
+      .theme-article-hero,
+      .theme-article-subsection-card,
+      .theme-article-subsection-card-nested,
+      .theme-article-subsection-card-interactive,
+      .theme-inline-expanded-card,
+      .theme-dose-duration-panel,
+      .theme-article-toc-panel,
+      .theme-interaction-danger,
+      .theme-interaction-unsafe,
+      .theme-interaction-caution
+    )
+    :is(
+      .theme-name-chip-interactive:hover,
+      .theme-external-source-pill:hover,
+      .theme-citation-marker:hover,
+      .theme-control-pill:hover,
+      .theme-control-pill-quiet:hover,
+      .theme-icon-button:hover,
+      .theme-interaction-severity-badge-danger:hover,
+      .theme-interaction-severity-badge-unsafe:hover,
+      .theme-interaction-severity-badge-caution:hover
+    ) {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+  }
+}
+
+/* Tone colour only. The toggle is a `.theme-control-pill-quiet`, so its
+     surface comes from the on-panel group above and it reads like the collapse
+     pill in the pharmacology cards. Stated as a descendant pair so the tone
+     also survives the group's hover accent. */
+.theme-interaction-danger .theme-interaction-expanded-toggle-danger {
+  color: var(--theme-semantic-danger-badge-text);
+}
+
+.theme-interaction-unsafe .theme-interaction-expanded-toggle-unsafe {
+  color: var(--theme-semantic-unsafe-badge-text);
+}
+
+.theme-interaction-caution .theme-interaction-expanded-toggle-caution {
+  color: var(--theme-semantic-caution-badge-text);
+}
+
+.theme-selected-control {
+  border-color: transparent;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+
+.theme-selected-control:focus-visible {
+  color: var(--theme-text-primary);
+  outline-color: var(--theme-text-secondary);
+}
+@media (hover: hover) {
+  .theme-selected-control:hover {
+    border-color: transparent;
+    background: transparent;
+    color: var(--theme-text-primary);
+    box-shadow: none;
+  }
+}
+
+.theme-selected-control[data-state="active"] {
+  border-color: var(--theme-selected-control-border);
+  background: var(--theme-selected-control-bg);
+  background-clip: border-box;
+  background-origin: border-box;
+  color: var(--theme-selected-control-text);
+  box-shadow: var(--theme-selected-control-shadow);
+  --tw-ring-color: var(--theme-selected-control-border);
+}
+
+.theme-selected-control-icon {
+  border-color: transparent;
+  background: transparent;
+  color: var(--theme-selected-control-icon-rest-color);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+
+.theme-selected-control:focus-visible .theme-selected-control-icon,
+.theme-selected-control[data-state="active"] .theme-selected-control-icon {
+  background: transparent;
+  color: var(--theme-selected-control-text);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+@media (hover: hover) {
+  .theme-selected-control:hover .theme-selected-control-icon {
+    background: transparent;
+    color: var(--theme-selected-control-text);
+    box-shadow: none;
+    --tw-ring-color: transparent;
+  }
+}
+
+/* Desktop selection grows behind the glyph without moving the tab layout.
+   Mobile index tiles keep their filled, rounded-square app-icon treatment. */
+@media (min-width: 768px) {
+  .theme-route-tabs-list .theme-selected-control-icon {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .theme-route-tabs-list .theme-selected-control-icon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--theme-body-bg);
+    box-shadow: var(--theme-route-tab-well-shadow, none);
+    opacity: 0;
+    transform: scale(0.55);
+    transition:
+      transform 240ms cubic-bezier(0.25, 1, 0.5, 1),
+      opacity 160ms ease-out;
+  }
+
+  .theme-route-tabs-list .theme-selected-control[data-state="active"] .theme-selected-control-icon::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-route-tabs-list .theme-selected-control-icon,
+  .theme-index-mobile-tab-icon,
+  .theme-route-tabs-list .theme-selected-control-icon::before {
+    transition: none;
+  }
+}
+
+.theme-selected-control-glow {
+  background-image: var(--theme-selected-control-glow);
+}
+
+.theme-replication-media-well {
+  background: var(--theme-surface-deep);
+}
+
+.theme-replication-waveform-bar {
+  background: var(--theme-accent-muted);
+}
+
+.theme-portal-prose-phase-text,
+.theme-portal-group-heading {
+  color: var(--theme-section-heading);
+}
+
+.theme-index-mobile-tab {
+  color: color-mix(in srgb, var(--theme-text-muted) 82%, var(--theme-body-bg));
+}
+
+.theme-index-mobile-tab:focus-visible,
+.theme-index-mobile-tab[data-state="active"] {
+  color: var(--theme-text-primary);
+}
+
+.theme-index-mobile-tab:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) {
+  .theme-index-mobile-tab:hover {
+    color: var(--theme-text-primary);
+  }
+}
+
+.theme-index-mobile-tab-icon {
+  background:
+    radial-gradient(
+      circle at 30% 12%,
+      color-mix(in srgb, var(--theme-text-primary) 8%, transparent),
+      transparent 38%
+    ),
+    color-mix(
+      in srgb,
+      var(--theme-frosted-control-on-panel-bg) 62%,
+      var(--theme-body-bg)
+    );
+  color: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--theme-accent-strong) 68%, var(--theme-text-muted))
+      75%,
+    var(--theme-body-bg)
+  );
+  box-shadow:
+    0 0 0 1px
+      color-mix(
+        in srgb,
+        var(--theme-frosted-control-on-panel-border) 62%,
+        transparent
+      ),
+    0 10px 20px -18px
+      color-mix(in srgb, var(--theme-shadow-soft) 62%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 6%, transparent);
+  --tw-ring-color: color-mix(
+    in srgb,
+    var(--theme-frosted-control-on-panel-border) 62%,
+    transparent
+  );
+}
+
+.theme-index-mobile-tab:focus-visible .theme-index-mobile-tab-icon {
+  background: var(--theme-frosted-control-on-panel-hover-bg);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+}
+@media (hover: hover) {
+  .theme-index-mobile-tab:hover .theme-index-mobile-tab-icon {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+    color: var(--theme-text-primary);
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+    --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+  }
+}
+
+.theme-index-mobile-tab[data-state="active"] .theme-index-mobile-tab-icon {
+  background: var(--theme-selected-control-bg);
+  color: var(--theme-selected-control-text);
+  box-shadow:
+    0 0 0 1px var(--theme-selected-control-border),
+    0 14px 28px -20px
+      color-mix(in srgb, var(--theme-selected-control-text) 58%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 12%, transparent);
+  --tw-ring-color: var(--theme-selected-control-border);
+}
+
+.theme-index-mobile-tab-label {
+  text-wrap: balance;
+}
+
+.theme-dose-tier-row,
+.theme-duration-stage-row,
+.theme-dose-detail-row,
+.theme-plateau-tier-row {
+  border-color: transparent;
+  background: var(--theme-duration-stage-row-background);
+  color: var(--theme-text-primary);
+  box-shadow: var(--theme-dosage-row-box-shadow);
+  --tw-ring-color: var(--theme-dosage-row-ring-color);
+}
+
+.theme-dose-tier-row {
+  background: var(--theme-dosage-row-background);
+}
+
+.theme-plateau-tier-row {
+  background: var(--theme-plateau-row-background);
+}
+
+/* Dose tier tints: dark-theme values for the tier scale; the light theme
+     overrides these per tier in theme-light-mode.css with the same selectors.
+     Both themes use the same construction: equal-lightness OKLCH hues that
+     fade through an explicit panel-tone stop (never straight to transparent,
+     which muddies sRGB interpolation). */
+.theme-dose-tier-row [data-dose-tier] {
+  width: 82%;
+  background-repeat: no-repeat;
+}
+
+.theme-dose-tier-row [data-dose-tier="threshold"] {
+  background-image: var(--theme-dosage-row-threshold-image);
+}
+
+.theme-dose-tier-row [data-dose-tier="light"] {
+  background-image: var(--theme-dosage-row-light-image);
+}
+
+.theme-dose-tier-row [data-dose-tier="moderate"] {
+  background-image: var(--theme-dosage-row-moderate-image);
+}
+
+.theme-dose-tier-row [data-dose-tier="strong"] {
+  background-image: var(--theme-dosage-row-strong-image);
+}
+
+.theme-dose-tier-row [data-dose-tier="heavy"] {
+  background-image: var(--theme-dosage-row-heavy-image);
+}
+
+/* Plateau tier tints mirror the dose tier construction; Sigma carries
+     extra chroma/alpha as the danger tier. */
+.theme-plateau-tier-row [data-plateau-tier] {
+  width: 82%;
+  background-repeat: no-repeat;
+}
+
+.theme-plateau-tier-row [data-plateau-tier="first_plateau"] {
+  background-image: var(--theme-plateau-row-first-image);
+}
+
+.theme-plateau-tier-row [data-plateau-tier="second_plateau"] {
+  background-image: var(--theme-plateau-row-second-image);
+}
+
+.theme-plateau-tier-row [data-plateau-tier="third_plateau"] {
+  background-image: var(--theme-plateau-row-third-image);
+}
+
+.theme-plateau-tier-row [data-plateau-tier="fourth_plateau"] {
+  background-image: var(--theme-plateau-row-fourth-image);
+}
+
+.theme-plateau-tier-row [data-plateau-tier="fifth_plateau"] {
+  background-image: var(--theme-plateau-row-fifth-image);
+}
+
+.theme-dosage-mode-tab {
+  border-color: transparent;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+
+.theme-article-toc-item {
+  border-color: transparent;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+
+/* The mobile table-of-contents bar: a full-bleed frosted rail attached to
+     the bottom edge of the sticky site header, closing the chrome frame
+     around the article. Border-bottom only — its sides meet the viewport and
+     its top meets the header. */
+.theme-toc-strip-shell {
+  top: var(--public-toc-strip-top, var(--theme-header-height, 4.25rem));
+}
+
+.theme-article-toc-panel h2 {
+  color: var(--theme-article-toc-panel-heading-color);
+}
+
+.theme-toc-strip-bar {
+  background: var(--theme-toc-strip-bar-background);
+  border-bottom: 1px solid var(--theme-toc-strip-bar-border-color);
+}
+
+.theme-article-toc-item:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: -2px;
+}
+
+.theme-article-toc-item[data-tone="warning"] {
+  border-color: var(--theme-warning-border);
+  background: var(--theme-warning-bg);
+  color: var(--theme-warning-text);
+}
+
+/* The bar's chip scroller. The scrollbar is hidden because the strip
+     advertises its overflow itself: each edge fade appears only while chips
+     remain hidden beyond that edge (data attributes written by a scroll
+     listener in PublicTocStrip). The mask sits on the scroller, not the bar
+     around it, so the bottom border never dissolves. */
+.theme-toc-strip {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.theme-toc-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.theme-toc-strip[data-fade-start="true"] {
+  mask-image: linear-gradient(to right, transparent, #000 2.25rem);
+}
+
+.theme-toc-strip[data-fade-end="true"] {
+  mask-image: linear-gradient(to left, transparent, #000 2.25rem);
+}
+
+.theme-toc-strip[data-fade-start="true"][data-fade-end="true"] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 2.25rem,
+    #000 calc(100% - 2.25rem),
+    transparent
+  );
+}
+
+.theme-duration-stage-row:nth-child(even),
+.theme-dose-tier-row:nth-child(even),
+.theme-plateau-tier-row:nth-child(even) {
+  background: color-mix(
+    in srgb,
+    var(--theme-field-on-panel-surface-alt) 82%,
+    var(--theme-article-neutral-panel-border)
+  );
+}
+
+.theme-duration-stage-row:nth-child(even) {
+  background: var(--theme-duration-stage-row-even-background);
+}
+
+/* LD50 toxicity table — dress the real <table> in the same frosted
+     control-on-panel material as the dose/duration in-card tables: a frosted
+     surface with a soft shadow ring instead of a hard border, zebra rows
+     instead of hairline dividers, and a softly separated header. These are the
+     dark-theme defaults; the light theme overrides the same selectors in
+     theme-light-mode.css. */
+.theme-ld50-table-panel {
+  border-color: transparent;
+  background: var(--theme-frosted-control-on-panel-bg);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+}
+
+.theme-ld50-table-head {
+  background: var(--theme-ld50-table-head-background);
+}
+
+.theme-ld50-table-head th {
+  border-bottom: 1px solid var(--theme-frosted-control-on-panel-border);
+}
+
+.theme-ld50-table-body {
+  background: transparent;
+}
+
+.theme-ld50-table-row {
+  background: transparent;
+}
+
+.theme-ld50-table-row:nth-child(even) {
+  background: var(--theme-ld50-table-row-nth-child-even-background);
+}
+
+@media (hover: hover) {
+  .theme-ld50-table-row:hover {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+  }
+}
+
+.theme-dosage-mode-tab:focus-visible {
+  background: transparent;
+  color: var(--theme-text-primary);
+  box-shadow: none;
+  --tw-ring-color: transparent;
+}
+@media (hover: hover) {
+  .theme-dosage-mode-tab:hover {
+    background: transparent;
+    color: var(--theme-text-primary);
+    box-shadow: none;
+    --tw-ring-color: transparent;
+  }
+}
+
+.theme-dosage-mode-tab[data-state="active"] {
+  background: var(--theme-frosted-control-on-panel-hover-bg);
+  color: var(--theme-accent-strong);
+  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
+}
+
+.theme-article-toc-item:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--theme-article-neutral-panel-border) 42%,
+    var(--theme-body-bg)
+  );
+  color: var(--theme-text-primary);
+  box-shadow: none;
+  --tw-ring-color: var(--theme-article-neutral-panel-border);
+}
+@media (hover: hover) {
+  .theme-article-toc-item:hover {
+    background: color-mix(
+      in srgb,
+      var(--theme-article-neutral-panel-border) 42%,
+      var(--theme-body-bg)
+    );
+    color: var(--theme-text-primary);
+    box-shadow: none;
+    --tw-ring-color: var(--theme-article-neutral-panel-border);
+  }
+}
+
+/* Scrollspy: the entry for the section currently under the header lights up
+     with the same frosted fill as hover, so the reader always sees where they
+     are on the page. The icon picks up the accent tint hover gives it too. */
+.theme-article-toc-item[data-active="true"] {
+  background: color-mix(
+    in srgb,
+    var(--theme-article-neutral-panel-border) 42%,
+    var(--theme-body-bg)
+  );
+  color: var(--theme-text-primary);
+  box-shadow: none;
+  --tw-ring-color: var(--theme-article-neutral-panel-border);
+}
+
+.theme-article-toc-item[data-active="true"] .theme-article-toc-item-icon {
+  color: var(--theme-accent-strong);
+}
+
+.theme-dose-detail-expanded,
+.theme-plateau-tier-expanded {
+  background: var(--theme-dose-detail-expanded-background);
+}
+
+/* The expanded rationale is a well cut into the tone panel, dressed like the
+     pharmacology zebra rows: depth from the sunk fill and inner shading, never
+     an outline. The retired
+     `0 0 0 1px var(--theme-field-on-chrome-border)` drew a 36%-white rectangle
+     — an on-chrome control rim on an inert block — and the per-tone
+     `border-color` stacked a second, saturated edge outside it. */
+.theme-interaction-expanded-card {
+  border-color: transparent;
+  background: var(--theme-field-on-panel-surface-alt);
+  box-shadow:
+    inset 0 2px 3px
+      color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+    inset 0 -1px 0 var(--theme-frosted-panel-highlight);
+}
+
+.theme-semantic-danger-badge,
+.theme-semantic-unsafe-badge,
+.theme-semantic-caution-badge {
+  border: 1px solid transparent;
+}
+
+.theme-semantic-danger-badge {
+  color: var(--theme-semantic-danger-badge-text);
+  background: var(--theme-semantic-danger-badge-bg);
+  box-shadow: 0 0 0 1px var(--theme-semantic-danger-badge-border);
+}
+
+.theme-semantic-unsafe-badge {
+  color: var(--theme-semantic-unsafe-badge-text);
+  background: var(--theme-semantic-unsafe-badge-bg);
+  box-shadow: 0 0 0 1px var(--theme-semantic-unsafe-badge-border);
+}
+
+.theme-semantic-caution-badge {
+  color: var(--theme-semantic-caution-badge-text);
+  background: var(--theme-semantic-caution-badge-bg);
+  box-shadow: 0 0 0 1px var(--theme-semantic-caution-badge-border);
+}
+
+.theme-index-card-bullet {
+  background-color: var(--theme-index-card-bullet);
+}
+
+/* Dimmed index panel tone for deconstructed category views: the neutral
+     plum-grey panel recipe. The featured ("Common") panel keeps the default
+     purple index surface for contrast. Light values in theme-light-mode.css. */
+.theme-index-card-dim {
+  border-color: var(--theme-index-card-dim-border-color);
+  background: var(--theme-index-card-dim-background);
+  color: var(--theme-index-card-dim-color);
+  box-shadow: var(--theme-article-neutral-panel-shadow);
+}
+
+.theme-index-card-link:focus-visible {
+  background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+  color: var(--theme-accent-strong) !important;
+  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
+  --tw-ring-color: var(--theme-index-card-link-focus-visible-tw-ring-color);
+}
+
+@media (hover: hover) {
+  .theme-index-card-link:hover {
+    background: var(--theme-frosted-control-on-panel-hover-bg) !important;
+    color: var(--theme-accent-strong) !important;
+    box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
+    --tw-ring-color: var(--theme-index-card-link-hover-tw-ring-color);
+  }
+}
+
+.theme-index-card-link:focus-visible .theme-index-card-bullet {
+  background-color: var(--theme-accent-strong) !important;
+}
+
+@media (hover: hover) {
+  .theme-index-card-link:hover .theme-index-card-bullet {
+    background-color: var(--theme-accent-strong) !important;
+  }
+}
+
+.theme-index-card-icon {
+  border-color: var(--theme-index-card-icon-border-color);
+  color: var(--theme-index-card-icon-color);
+  background: var(--theme-index-card-icon-background);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  --tw-ring-color: var(--theme-frosted-control-on-panel-border);
+}
+
+.theme-index-card-icon-glyph {
+  color: var(--theme-accent-strong);
+}
+
+/* Count chips sit between the panel tone and the text tone: a mid plum
+     raised slightly above the card, not an inset darker than it. The bg and
+     shadow live in --theme-index-card-count-* tokens (accent role) so the
+     appearance hue/saturation axes rotate them with the rest of the accent
+     family; site-colors.css carries the light equivalents. */
+.theme-index-card-count {
+  border-radius: 0.5rem;
+  color: var(--theme-text-muted);
+  background: var(--theme-index-card-count-bg);
+  box-shadow: var(--theme-index-card-count-shadow);
+  --tw-ring-color: transparent;
+}
+
+.theme-index-card-count-sm {
+  color: var(--theme-text-muted);
+  background: var(--theme-index-card-count-bg);
+  box-shadow: var(--theme-index-card-count-shadow);
+  --tw-ring-color: transparent;
+  opacity: 0.9;
+}
+
+.theme-index-card-section-label {
+  color: var(--theme-accent-muted);
+}
+
+.theme-index-card-title-accent {
+  color: var(--theme-index-card-title-accent-color);
+}
+
+.theme-index-card-toggle {
+  color: var(--theme-index-card-toggle-color);
+}
+
+.theme-about-json-preview,
+.theme-about-json-preview-header,
+.theme-about-json-preview-body {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.theme-skip-link {
+  background-color: var(--theme-skip-link-bg);
+  color: var(--theme-skip-link-text);
+  --tw-ring-offset-color: var(--theme-page-end);
+}
+
+/* Pro is excluded: this is a glass recipe (white sheen over a cool near-black)
+     and it is layered `!important`, so the flat Pro sheet cannot out-cascade it
+     from outside a layer. pro-theme.css paints the panel instead. */
+.theme-reagent-results-panel {
+  border: 1px solid var(--theme-reagent-results-panel-border-color);
+  background: var(--theme-reagent-results-panel-background);
+  box-shadow: var(--theme-reagent-results-panel-box-shadow);
+}
+
+.theme-reagent-swatch {
+  
+  
+  
+  
+  
+  
+  
+  box-shadow: var(--theme-reagent-swatch-box-shadow);
+}
+
+/* Seam between the darkened label surface and the bright spectrum bar. The
+     bar sits to the right of the reagent name and spans the full row height,
+     so the label's former right-edge highlight + drop shadow live as insets on
+     the bar's left edge. */
+.theme-reagent-swatch .reagent-spectrum-panel {
+  box-shadow: var(--theme-reagent-swatch-spectrum-seam-shadow);
+}
+
+.theme-reagent-swatch-label-layer {
+  border-top: 1px solid var(--theme-reagent-swatch-label-border-top);
+  border-bottom: 1px solid var(--theme-reagent-swatch-label-border-bottom);
+  background: var(--theme-reagent-swatch-label-overlay);
+}
+
+.theme-reagent-swatch-spectrum-layer {
+  border-top: 1px solid var(--theme-reagent-swatch-spectrum-border-top);
+  border-bottom: 1px solid var(--theme-reagent-swatch-spectrum-border-bottom);
+  background: var(--theme-reagent-swatch-spectrum-overlay);
+}
+
+.reagent-label-title {
+  color: var(--theme-text-primary) !important;
+}
+
+.reagent-label-panel .reagent-label-title {
+  color: color-mix(
+    in srgb,
+    rgb(255 255 255) 96%,
+    var(--theme-body-bg)
+  ) !important;
+}
+
+.reagent-label-code {
+  color: var(--theme-text-muted) !important;
+}
+
+.reagent-label-panel .reagent-label-code {
+  color: color-mix(
+    in srgb,
+    rgb(255 255 255) 72%,
+    var(--theme-body-bg)
+  ) !important;
+}
+
+/* Only the in-bar "No reaction" label remains as description text. */
+
+.reagent-label-description-muted {
+  color: var(--theme-text-muted) !important;
+}
+
+.reagent-label-panel .reagent-label-description-muted {
+  color: color-mix(
+    in srgb,
+    rgb(255 255 255) 68%,
+    var(--theme-body-bg)
+  ) !important;
+}
+
+/* Dark chrome rails. The header and its panels are dark chrome in BOTH
+     themes — that is the dark-banner-over-light-page look, and it is why these
+     two are no longer gated on the theme. The footer still flips, so the page
+     reads as content framed between a permanent dark rail above and a
+     theme-following rail below.
+
+     The Pro visual style is excluded: it paints its own charcoal chrome, and
+     its sheet wants a floating drop shadow rather than the rail's hairline.
+     This rule is layered `!important`, which outranks unlayered `!important`,
+     so without the exclusion it would silently beat the mobile-panel rule in
+     pro-theme.css. The exclusion follows the STYLE, not the publication:
+     dose.wiki readers can now select Pro too.
+
+     `box-shadow` is stated here so the panels keep the header shadow in light
+     mode; the shared `.theme-overlay-surface` rules in theme-light-mode.css
+     would otherwise hand them the frosted-panel shadow. The value matches what
+     the base classes already resolve in dark mode, so dark is unchanged. */
+html:not([data-visual-style="pro"]) .theme-header-surface,
+html:not([data-visual-style="pro"])
+  .theme-overlay-surface.theme-mobile-nav-panel {
+  border-color: var(--theme-frosted-panel-border) !important;
+  background: var(--theme-chrome-rail-bg) !important;
+  box-shadow: var(--theme-header-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The settings popover is an extension of the permanent dark header, not a page card.
+   Its dark-chrome token island is supplied by `theme-chrome-dark` in Fun and by the
+   Pro block in pro-theme.css. The stronger overlay shadow separates it from either page
+   canvas without turning the lightweight popover into a modal. */
+.theme-appearance-popover {
+  color: var(--theme-text-primary);
+  border-color: var(--theme-frosted-panel-border) !important;
+  background: var(--theme-chrome-rail-bg) !important;
+  /* The 1px inset rim sharpens the panel edge over the near-black article hero —
+     the same treatment the frosted controls and swatch dots get — layered inside
+     the elevation shadow rather than replacing it. Derived from the ink token, so
+     Pro's re-pointed on-dark values rim it too. */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--theme-text-primary) 9%, transparent),
+    0 26px 64px -20px rgb(0 0 0 / 0.78),
+    0 10px 26px -18px rgb(0 0 0 / 0.72) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.theme-appearance-popover [role="combobox"]:focus {
+  border-color: var(--theme-field-border);
+  box-shadow: var(--theme-elevation-inner);
+}
+
+.theme-appearance-popover [role="combobox"]:focus-visible {
+  outline: 1px solid var(--theme-text-muted);
+  outline-offset: 2px;
+}
+
+.theme-appearance-popover .theme-popover-arrow {
+  fill: var(--theme-chrome-rail-primary);
+}
+
+/* Second selector is the light-mode dark-chrome island. It has to be spelled
+     out rather than left to the token block alone: the rail background is only
+     handed to the footer by this rule, and the light-mode rule above would
+     otherwise paint it with the frosted panel. Pro is excluded for the
+     same reason as the header pair above — layered `!important` outranks the
+     unlayered `!important` its own footer block relies on. */
+html:not([data-theme="light"]) .theme-footer-surface,
+html[data-theme="light"]:not([data-visual-style="pro"])
+  .theme-chrome-dark.theme-footer-surface {
+  border-color: var(--theme-frosted-panel-border) !important;
+  background: var(--theme-chrome-rail-bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Header search fields should sit into the chrome rather than float above it.
+     Their quiet rim reuses the same panel hairline as the homepage icon tiles;
+     depth comes from the sunk fill and inner shading, not a brighter outline. */
+.theme-header-surface .theme-global-search-input {
+  color: var(--theme-text-secondary);
+  border-color: var(--theme-frosted-panel-border);
+  background: color-mix(
+    in srgb,
+    var(--theme-toggle-pill-bg) 82%,
+    var(--theme-field-on-chrome-surface)
+  );
+  box-shadow:
+    inset 0 2px 3px
+      color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent);
+  --tw-ring-color: var(--theme-frosted-panel-border);
+}
+
+@media (hover: hover) {
+  .theme-header-surface .theme-global-search-input:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--theme-accent) 16%,
+      var(--theme-frosted-panel-border)
+    );
+    background: color-mix(
+      in srgb,
+      var(--theme-toggle-pill-bg) 76%,
+      var(--theme-field-on-chrome-surface)
+    );
+  }
+}
+
+.theme-header-surface .theme-global-search-input:focus {
+  border-color: var(--theme-text-secondary);
+  background: color-mix(
+    in srgb,
+    var(--theme-toggle-pill-bg) 76%,
+    var(--theme-field-on-chrome-surface)
+  );
+  box-shadow:
+    inset 0 2px 3px
+      color-mix(in srgb, var(--theme-shadow-soft) 44%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent);
+}
+
+/* Keyboard focus uses a quiet neutral hairline, never a thick accent rim.
+   Shared by focusRingClassName and the UI kit's focus utilities. */
+.theme-focus-ring:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 2px;
+}
+
+/* Sibling target for visually hidden range inputs such as the audio scrubber. */
+.peer:focus-visible ~ .theme-peer-focus-ring {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 4px;
+}
+
+/* Inset variant for full-bleed list rows where an outset ring would be
+     clipped by the scroll container (equivalent to `-outline-offset-2`). */
+.theme-focus-ring-inset:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: -2px;
+}
+
+/* Text-entry controls use their existing border instead of an outside ring.
+   Low specificity lets semantic validation borders retain their meaning. */
+:where(.theme-field-focus):focus {
+  border-color: var(--theme-text-secondary);
+  outline: none;
+}
+
+@media (forced-colors: active) {
+  :is(.theme-focus-ring, .theme-focus-ring-inset, .theme-focus-ring-tight, .focus-visible-ring):focus-visible,
+  .peer:focus-visible ~ .theme-peer-focus-ring {
+    outline: 2px solid Highlight;
+  }
+
+  :where(.theme-field-focus):focus-visible {
+    outline: 1px solid Highlight;
+    outline-offset: 1px;
+  }
+}
+
+/* Audio replication scrubber. The filled run and thumb are positioned from the
+     `--audio-progress` custom property the player sets inline; only the colors
+     live here so the component keeps no raw theme variables. */
+.theme-audio-scrubber-track {
+  background-color: var(--theme-border-subtle);
+}
+
+.theme-audio-scrubber-fill {
+  background-color: var(--theme-accent-strong);
+}
+
+.theme-audio-scrubber-thumb {
+  background-color: var(--theme-accent-strong);
+  box-shadow: 0 2px 8px -2px var(--theme-shadow-soft);
+}
+
+/* The review workbench pins a command bar the public site does not have, so
+     the article's own offsets — sized for a page whose header does not stick —
+     are re-timed against the bar's live height. `--review-bar-height` is
+     published by a ResizeObserver in ReviewExperience; the fallback is the
+     collapsed single-row height for the frames before it lands.
+
+     Without the first rule every table-of-contents anchor lands underneath the
+     bar (article sections carry `scroll-mt-6`, i.e. 24px). Without the second,
+     StickyTocLayout's `top-24` is overtaken the moment the bar wraps to two
+     rows — the 1200–1300px window where the gutter TOC exists and the bar is
+     tall enough to cover it. */
+.theme-review-article-scope [id] {
+  scroll-margin-top: calc(var(--review-bar-height, 3.25rem) + 1rem);
+}
+
+.theme-review-article-scope aside > .sticky {
+  top: calc(var(--review-bar-height, 3.25rem) + 1rem);
+  max-height: calc(100dvh - var(--review-bar-height, 3.25rem) - 2rem);
+}
+
+/* The workbench also replaces the mobile TOC strip's anchor: on the public
+     site the strip pins under the sticky site header, but the review portal
+     suppresses that header in favor of its command bar, so the strip re-times
+     against the bar's live height instead. */
+.theme-review-article-scope {
+  --public-toc-strip-top: var(--review-bar-height, 3.25rem);
+}
+
+/* Pages that render the mobile TOC strip mark their layout root with this
+     scope. Below the 1200px gutter-rail breakpoint every anchor target must
+     scroll clear of two pinned layers — the site header (or, via the override
+     above, the review command bar) plus the strip itself (~3.25rem of chip
+     row inside its panel). Declared after the review [id] rule on purpose:
+     same specificity, later source order, so on a narrow review viewport the
+     strip-aware clearance wins. */
+@media (max-width: 1199.98px) {
+  .theme-toc-strip-scope [id] {
+    scroll-margin-top: calc(
+      var(--public-toc-strip-top, var(--theme-header-height, 4.25rem)) + 3rem
+    );
+  }
+}
+
+@media (max-width: 1199.98px) and (pointer: coarse) {
+  .theme-toc-strip-scope [id] {
+    scroll-margin-top: calc(
+      var(--public-toc-strip-top, var(--theme-header-height, 4.25rem)) + 3.5rem
+    );
+  }
+}
+
+/* Article editing adds a full-width chrome row between the site header (or
+     review command bar) and the TOC. The editor layout measures all three
+     rows locally, including mobile wrapping and error notices. Its wrapper
+     spans the article so the action row stays pinned through the final section. */
+.theme-article-editor-scope {
+  --article-editor-top: var(--review-bar-height, var(--theme-header-height, 4.25rem));
+  --article-editor-bar-height: 3rem;
+  --article-editor-toc-height: 0px;
+  --public-toc-strip-top: calc(var(--article-editor-top) + var(--article-editor-bar-height));
+}
+
+.theme-article-editor-bar {
+  top: var(--article-editor-top);
+  border-bottom: 1px solid var(--theme-border-subtle);
+  background: var(--theme-chrome-rail-bg);
+}
+
+.theme-article-editor-scope [id] {
+  scroll-margin-top: calc(
+    var(--public-toc-strip-top) + var(--article-editor-toc-height) + 1rem
+  );
+}
+
+.theme-article-editor-scope aside > .sticky {
+  top: calc(var(--public-toc-strip-top) + 1rem);
+  max-height: calc(100dvh - var(--public-toc-strip-top) - 2rem);
+}
+
+@media (max-width: 1199.98px) {
+  .theme-article-editor-scope {
+    --article-editor-toc-height: 3rem;
+  }
+}
+
+/* Review delight, in three loudness tiers. Tier 1 (every tick): the badge
+     check pops and draws itself on the Reviewed button, and the progress
+     fill's leading edge blooms. Tier 2 (a chemical-class subsection
+     finished): one highlight sweep across the fill, plus the seal chip in the
+     picker. Tier 3 (a whole psychoactive category finished): the sweep runs
+     twice, and the confetti + medallion card components take the stage.
+     Everything animates transform/opacity only, one-shot, and the
+     reduced-motion block at the end zeroes all of it out. */
+
+/* ---------------------------------------------------------------------
+   About page · Partners & Community (AboutCommunitySection.tsx)
+   Logo artwork keeps a black backing except Nervewing's cream paper;
+   hover and focus borders retain their theme colors.
+   --------------------------------------------------------------------- */
+.theme-community-tile {
+  background: rgb(var(--c-black));
+}
+
+/* Match the paper in Nervewing's antlion artwork, independent of theme. */
+.theme-community-node[href="https://nervewing.blogspot.com"] .theme-community-tile {
+  background: rgb(236 240 218);
+}
+
+@media (hover: hover) {
+  .theme-community-node:hover .theme-community-tile {
+    border-color: var(--theme-card-border-strong);
+    box-shadow: var(--theme-elevation-accent-lift);
+  }
+}
+
+.theme-community-node:focus-visible .theme-community-tile {
+  border-color: var(--theme-card-border-strong);
+}
+
+/* ---------------------------------------------------------------------
+   SEI roadmap notice (SEIRoadmapNotice.tsx): the mindstate.design favicon is
+   a white disc on transparent, so as an <img> it vanishes on the light
+   theme. Masking a bg-current span with it makes the glyph take the link's
+   ink and follow its hover accent like the text beside it.
+   --------------------------------------------------------------------- */
+.theme-mindstate-favicon {
+  -webkit-mask: url("/favicons/mindstate-design.png") center / contain no-repeat;
+  mask: url("/favicons/mindstate-design.png") center / contain no-repeat;
+}
+
+/* The SEI page variant borrows the beta disclaimer's sweep, one brighter band
+   through background-clipped text, but in the notice's own faint ink rather
+   than danger red. The lab link inside sets its own colour, so it and its
+   bg-current favicon stay solid while the sentence around them shimmers.
+   Same three-run cap and reduced-motion/clip fallbacks as .theme-beta-shimmer. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .theme-sei-notice-shimmer {
+      background-image: linear-gradient(
+        100deg,
+        var(--theme-text-faint) 42%,
+        var(--theme-text-primary) 50%,
+        var(--theme-text-faint) 58%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: theme-beta-shimmer 5s linear 3;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Sitewide beta disclaimer (BetaDisclaimer.tsx: Substance Index header and
+   audited substance articles)
+   Danger-toned link whose text carries a very subtle shimmer: a narrow
+   brighter band sweeps left-to-right through background-clipped text. The
+   sweep runs three times after mount, then rests: an infinite iteration kept
+   the entire rendering pipeline (style → paint → commit) ticking at 60fps on
+   every page for the life of the tab — a standing tax on exactly the old,
+   slow hardware this site wants to run on. After the final sweep the
+   computed background-position snaps to its initial flat-vivid region, which
+   is visually identical to the resting frames of the loop.
+   Falls back to plain danger text when motion is reduced or clipping is
+   unsupported.
+   --------------------------------------------------------------------- */
+.theme-beta-shimmer {
+  color: var(--theme-danger-text-vivid);
+}
+
+/* The flanking construction glyphs share the shimmer's resting ink. A class
+   rather than an inline var() so the token audit sees one owned recipe. */
+.theme-beta-disclaimer-icon {
+  color: var(--theme-danger-text-vivid);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .theme-beta-shimmer {
+      background-image: linear-gradient(
+        100deg,
+        var(--theme-danger-text-vivid) 42%,
+        var(--theme-danger-text-vivid-strong) 50%,
+        var(--theme-danger-text-vivid) 58%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: theme-beta-shimmer 5s linear 3;
+    }
+  }
+}
+
+@keyframes theme-beta-shimmer {
+  from {
+    background-position: 125% 0;
+  }
+  to {
+    background-position: -25% 0;
+  }
+}
+
+/* The inline docs link lives inside the clipped shimmer span, where
+   currentColor is transparent — the underline needs an explicit ink. */
+.theme-beta-disclaimer {
+  text-decoration-color: var(--theme-danger-text-vivid);
+}
+
+@media (hover: hover) {
+  .theme-beta-disclaimer:hover {
+    text-decoration-color: var(--theme-danger-text-vivid-strong);
+  }
+}
+
+.theme-beta-disclaimer:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------------
+   Offscreen render deferral (ArticleSection.tsx: top-level article and
+   effect sections)
+   `content-visibility: auto` lets the engine skip style, layout and paint
+   for sections outside the viewport. A theme, style, or font flip restyles
+   the whole document at once; on a long article (~3000 nodes) deferring the
+   offscreen sections cut that restyle by ~60% in profiling, and the same
+   saving applies to every style-invalidating frame. The 500px estimate
+   approximates a typical section so the scrollbar stays honest before a
+   section is first rendered; `auto` then pins the real measured size.
+   Scrollspy safety: the spy reads the *section elements'* own boxes
+   (PublicTableOfContents.tsx), which containment never skips — only
+   descendant boxes go unmeasurable while a section is offscreen.
+   Engine gate: Gecko and WebKit both have paint bugs where a
+   content-visibility:auto subtree stays unpainted after scrolling or
+   fragment-navigating it into view (sections render as blank regions; only
+   sibling dividers show). The deferral was profiled in Chromium, so apply it
+   only there: `-moz-appearance` matches Gecko, `-webkit-hyphens` matches
+   WebKit, and Chromium matches neither.
+   Adornment safety: content-visibility implies paint containment, which
+   clips anything outside the section's border box. Trailing adornments
+   (articleSectionLayout.ts: source-credit pills, expand toggles) carry
+   `-mb-8` so they tuck into the next section's top padding, which places
+   their box 2rem below the section's edge, exactly where containment
+   erased them. The padding grows the border box to enclose that overhang
+   and the matching negative margin returns the flow position, so every
+   section lays out exactly as before and nothing hangs outside the clip.
+   Both values must equal the adornment's `-mb-8`.
+   --------------------------------------------------------------------- */
+@supports (not (-moz-appearance: none)) and (not (-webkit-hyphens: none)) {
+  .theme-offscreen-defer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+    padding-bottom: 2rem;
+    margin-bottom: -2rem;
+  }
+}
+
+/* Printing renders every section; deferral would truncate the document. */
+@media print {
+  .theme-offscreen-defer {
+    content-visibility: visible;
+  }
+}
+
+/* Alpha-edge glow for transparent artwork (the /china banner). A drop-shadow
+   filter traces the painted silhouette rather than the image box; light mode
+   drops it because a pale halo on a pale page reads as a smudge. */
+.theme-cutout-glow {
+  filter: var(--theme-cutout-glow-filter);
+}
+

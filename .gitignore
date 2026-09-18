@@ -1,0 +1,158 @@
+# Dependencies
+node_modules/
+
+# Generated build and test outputs
+dist/
+dist-inline/
+# The DoseWiki-owned OpenChemLib fork commits browser-ready artifacts so app
+# builds never require Java/GWT.
+!vendor/openchemlib/dist/
+!vendor/openchemlib/dist/**
+public/share/
+.next/
+# Isolated flavor and verification builds must not enter Tailwind's source scan.
+/.next-*/
+.generated/
+# Anchored: unanchored `coverage/` matches a directory of that name at any
+# depth, which silently swallowed `src/features/coverage/` — untracked by Git
+# and invisible to Tailwind's source scan. Vitest writes here at the root.
+/coverage/
+# Per-file runtime and flake evidence written by `npm run test:evidence`.
+.test-evidence/
+data/.lineage/
+# Vendored RDKit.js runtime, copied from node_modules by scripts/tools/copyRdkitAssets.mjs
+# on predev/prebuild: reproducible, so not committed.
+public/rdkit/
+# Build-generated immutable social cards; tracked manifests own their URLs.
+public/images/social/substances/*.jpg
+public/images/social/pages/*.jpg
+public/images/social/entities/**/*.jpg
+# ProtestKit reagent data: used with permission, not redistributable
+/data/third-party/protestkit/
+# Translation packs are built by translate:packs and deployed as artifacts, not committed
+/public/downloads/zh-Hans/
+output/
+outputs/
+
+# Project-local Postgres cluster for isolated rehearsal
+# (scripts/postgres/local-db.mjs) and raw database snapshots, which carry
+# private tables and must never be committed.
+/.postgres/
+
+# Run evidence and scratch output live outside the tree
+# (~/Documents/Utilities/dosewiki-runs/runs), never in git.
+/runs/
+
+# Logs & env
+npm-debug.log*
+npm-dev.log
+npm-dev.err.log
+.DS_Store
+.pi-subagents/
+.codex/*.log
+.codex/*.pid
+.codex/dev-server/*.log
+.codex/dev-server/*.pid
+
+# npm lockfile (using bun)
+package-lock.json
+
+# Environment files (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+!.env.*.example
+# Timestamped copies made while rotating a credential; same secrets, different name
+.env*.bak-*
+
+# Editor directories
+.idea/
+.vscode/
+
+# Local reference archives that are not part of the active runtime
+/archive/
+/notes-and-plans/archive/
+/scripts/deprecated/archive/
+
+# Generated operational exports; tracked legacy exports require retention policy.
+notes-and-plans/exports/
+
+# Data ops audit logs and backups (contain sensitive operation data)
+scripts/data/audit-logs/
+scripts/data/backups/
+
+# Quote files (database-owned, not bundled)
+quotes/
+
+.vercel
+.lakebed/
+**/.lakebed/
+.impeccable.md
+tmp/
+# Local Java/GWT toolchains used only to rebuild the OpenChemLib fork.
+vendor/openchemlib/.tools/
+
+# Personal learning workspace (teach skill) — never commit
+learning/
+
+# Molecule SVG generation Python venv
+.venv-molecules/
+__pycache__/
+
+# Runtime lock for the headless pi citation loop (held by a live process)
+.pi-loop.json.lock
+
+# Scratch artifacts from OCR/scan tooling that land in the repo root. All
+# root-anchored: these are throwaway inputs and page dumps, never site content,
+# and an unanchored pattern here would shadow real files under src/ or public/.
+# A whole-worktree push once swept files like these toward a commit, so keep the
+# list tight rather than broad.
+/z[0-9]*.jpg
+/z[0-9]*.pdf
+/z[0-9]*.txt
+/p-[0-9]*.jpg
+/ocr*.txt
+/ignore.*
+/tmp-page.png
+/[0-9][0-9][0-9]
+/[0-9][0-9][0-9][0-9]
+/E
+
+# Agent tooling stays local: skills, agent definitions, command adapters, run state.
+/.claude/
+/.agents/
+/.omp/
+/.pi/
+/.cursor/
+
+# Local agent settings
+**/settings.local.json
+!**/settings.local.example.json
+# Impeccable design-critique screenshots and live-server state; private review output.
+/.impeccable/
+
+# Generated GT translation bundles (npx gt translate output)
+public/_gt/
+
+# Private authoring aid; not part of the project.
+/.unslop/
+
+# Local data snapshots and one-off run residue; regenerate or keep outside the tree.
+# Prepopulate/batch backups of the local substance export.
+/src/data/backups/
+# Local Postgres export produced by the data export script; public/SubstanceIndex.json is the tracked archival snapshot.
+/src/data/SubstanceIndex.json
+# Recovered legacy media bytes staged for R2 upload.
+/recovery/
+# Cutover assignment receipts written by agent runs.
+/final-*.json
+# Scratch legality country dumps.
+/node/
+# Legality gap-hunt scratch output.
+/gap-hunt/
+# Retired Lakebed capsule experiment.
+/lakebed/
+# Timestamped data-ops run reports.
+/scripts/data/*-reports/
+# Plagiarism audit worklists and proposal bundles.
+/docs/audits/

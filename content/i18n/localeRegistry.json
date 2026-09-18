@@ -1,0 +1,32 @@
+{
+  "en": {
+    "code": "en",
+    "publicHost": "dose.wiki",
+    "pathPrefix": "",
+    "htmlLanguage": "en",
+    "formattingLocale": "en-GB",
+    "catalogIdentity": "en",
+    "direction": "ltr",
+    "coveragePolicy": { "script": "latin", "numerals": "arabic" }
+  },
+  "zh-Hans": {
+    "code": "zh-Hans",
+    "publicHost": "zh.dose.wiki",
+    "pathPrefix": "/zh",
+    "htmlLanguage": "zh-Hans",
+    "formattingLocale": "zh-CN",
+    "catalogIdentity": "zh-Hans",
+    "direction": "ltr",
+    "coveragePolicy": { "script": "simplified-han", "numerals": "arabic-or-chinese-small" }
+  },
+  "nl": {
+    "code": "nl",
+    "publicHost": null,
+    "pathPrefix": null,
+    "htmlLanguage": "nl",
+    "formattingLocale": "nl-NL",
+    "catalogIdentity": "nl",
+    "direction": "ltr",
+    "coveragePolicy": { "script": "latin", "numerals": "arabic" }
+  }
+}

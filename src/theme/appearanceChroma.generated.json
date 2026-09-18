@@ -1,0 +1,14 @@
+{
+  "version": "87320143",
+  "levels": {
+    "surfaces": {
+      "orchid": {
+        "dark": 0.7763,
+        "light": 0.5268
+      }
+    },
+    "accents": {
+      "default": 0.9429
+    }
+  }
+}

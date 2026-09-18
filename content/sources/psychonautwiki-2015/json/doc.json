@@ -1,0 +1,248 @@
+{
+  "slug": "doc",
+  "title": "DOC",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/doc.md",
+  "archive_timestamp": "20150921134509",
+  "archive_date_utc": "2015-09-21T13:45:09Z",
+  "archive_url": "https://web.archive.org/web/20150921134509/https://psychonautwiki.org/wiki/DOC",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+    "url": "https://web.archive.org/web/20150921134509/https://psychonautwiki.org/wiki/DOC"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "The cognitive effects of DOC are described by many as extreme mental stimulation combined with a powerful enhancement of a person's current mental state.\n\nThe total sum of these cognitive components regardless of the setting generally includes:",
+      "physical": "The physical effects of DOC can be broken down into several components which progressively intensify proportional to dosage. These are described below and generally include:"
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "DOC presents a full and complete array of possible visual enhancements which generally includes:",
+            "effects": [
+              {
+                "name": "Visual acuity enhancement",
+                "description": ""
+              },
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "DOC presents a full and complete array of possible visual distortions which generally includes:",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, flowing, breathing and morphing) - In comparison to other psychedelics, this effect can be described as highly detailed, slow and smooth in motion, static in appearance and unrealistic/cartoon-like in style."
+              },
+              {
+                "name": "Tracers",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              },
+              {
+                "name": "Symmetrical texture repetition",
+                "description": ""
+              },
+              {
+                "name": "Colour shifting",
+                "description": ""
+              },
+              {
+                "name": "Scenery slicing",
+                "description": ""
+              },
+              {
+                "name": "Diffraction",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "The visual geometry that is present throughout this trip can be described as more similar in appearance to that of 4-AcO-DMT or ayahuasca than that of LSD, 2C-B or 2C-I. It can be comprehensively described through its variations as intricate in complexity, abstract in form, organic in feel, structured in organization, brightly lit, multicoloured in scheme, glossy in shading, sharp in edges, large in size, fast in speed, smooth in motion, equally rounded and angular in its corners, non-immersive in depth and consistent in intensity. At higher dosages this geometry is significantly more likely to result in states of level 8B visual geometry over level 8A.",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "DOC and other substituted amphetamines produce a full range of high level hallucinatory states in a fashion that is more consistent and reproducible than that of many other commonly used psychedelics. This holds particularly true in comparison to other substances within the phenethylamine family. These effects include:",
+            "effects": [
+              {
+                "name": "Transformations",
+                "description": ""
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots) - In comparison to other psychedelics such as LSD, DOC is extremely high in internal hallucinations. They are more common within dark environments and can be comprehensibly described through its variations as lucid in believability, interactive in style, new experiences in content, autonomous in controllability, geometry-based in style and almost exclusively of a religious, spiritual, mystical or transcendental nature in their overall theme."
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "The auditory effects of DOC are common in their occurrence and exhibit a full range of effects which commonly includes:",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Empathy, love and sociability enhancement",
+            "description": "This component is consistently manifested only in the context of social settings in which one is within the company of others. These feelings of sociability, love and empathy are a little weaker and less sharp than those found on substances such as MDMA and 2C-B, but still prove strong enough to provide long lasting therapeutic effects."
+          },
+          {
+            "name": "Analysis enhancement",
+            "description": ""
+          },
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Novelty enhancement",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Thought connectivity",
+            "description": ""
+          },
+          {
+            "name": "Current mind state enhancement",
+            "description": ""
+          },
+          {
+            "name": "Personal bias suppression",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Ego death",
+            "description": ""
+          },
+          {
+            "name": "Wakefulness",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "The \"body high\" of DOC is manifested as somewhat intense in comparison to most classical psychedelics such as LSD. The sensation itself can be described as a constantly present yet somewhat mild energetic pins and needles sensation that encompasses a person’s entire body. It is usually felt over every square inch of the skin, but occasionally manifests itself in the form of a continuously shifting tingling sensation that travels up and down the body in spontaneous waves."
+          },
+          {
+            "name": "Stimulation",
+            "description": "In terms of its effects on the physical energy levels of the tripper, DOC is usually considered to be extremely stimulating at levels which do not become overwhelming, resulting in a shakiness and unsteadiness of the hands but encouraging one to move around, run, dance, climb and generally engage in physical activities. In comparison, other more commonly used psychedelics such as psilocin are generally sedating and relaxed."
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": "Feelings of enhanced tactile sensation are consistently present at moderate levels throughout most DOC trips."
+          },
+          {
+            "name": "Nausea",
+            "description": "Mild to extreme nausea is reported when consumed in moderate to high dosages and either passes once the person has vomited or gradually fades by itself as the peak sets in."
+          },
+          {
+            "name": "Vasoconstriction",
+            "description": "This effect is usually only present at higher dosages, but can be particularly uncomfortable."
+          },
+          {
+            "name": "Bodily control enhancement",
+            "description": ""
+          },
+          {
+            "name": "Pupil dilation",
+            "description": ""
+          },
+          {
+            "name": "Increased blood pressure",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+      "url": "https://web.archive.org/web/20150921134509/https://psychonautwiki.org/wiki/DOC"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects prose before bullets preserved in subjective_effects.notes.physical; physical bullets preserved in subjective_effects.physical.General in source order.",
+    "Cognitive effects prose before bullets preserved in subjective_effects.notes.cognitive with its second introductory line; cognitive bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Visual Enhancements, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; prose under those headings preserved as subcategory notes.",
+    "Geometry heading has no bullets in source, so its full paragraph is retained as a subcategory note with an empty effects array.",
+    "Parenthetical variant text for Drifting and Internal hallucinations preserved in descriptions with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects has no source subheading, so its bullets are preserved in subjective_effects.sensory.auditory.General in source order.",
+    "No source stub warning was present in the archived DOC Subjective effects section."
+  ]
+}

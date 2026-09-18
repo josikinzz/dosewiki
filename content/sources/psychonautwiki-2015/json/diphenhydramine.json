@@ -1,0 +1,287 @@
+{
+  "slug": "diphenhydramine",
+  "title": "Diphenhydramine",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/diphenhydramine.md",
+  "archive_timestamp": "20150921130816",
+  "archive_date_utc": "2015-09-21T13:08:16Z",
+  "archive_url": "https://web.archive.org/web/20150921130816/https://psychonautwiki.org/wiki/Diphenhydramine",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+    "url": "https://web.archive.org/web/20150921130816/https://psychonautwiki.org/wiki/Diphenhydramine"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "The head space of DPH is described by many as generally negative and dysphoric throughout the trip, often consisting of extreme paranoia and feelings of impending doom. It is largely confusing and disorienting often leading to a complete inability to communicate or understand normal language.\n\nThe most prominent of these effects include:",
+      "physical": "The physical effects of DPH are usually described as extremely uncomfortable. They can be broken down into several components which progressively intensify proportional to dosage. These are described below and generally include:"
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Suppression": {
+            "note": "DPH does not enhance visual stimuli in the way that psychedelics do. Instead, they tend to degrade and decrease visual aptitude resulting in increasing hallucinations and degrading vision. These components are detailed below.",
+            "effects": [
+              {
+                "name": "Visual acuity suppression",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition suppression",
+                "description": ""
+              },
+              {
+                "name": "Vibrating vision",
+                "description": ""
+              },
+              {
+                "name": "Double vision",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "As for visual distortions and alterations, effects experienced are detailed below:",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, breathing, morphing and flowing) - In comparison to other hallucinogens, this effect can be described as intricate in complexity, jittery, slow and rigid in motion, static in their permanence, realistic in believability, and interactive in plasticity."
+              },
+              {
+                "name": "Brightness alteration",
+                "description": "It is not uncommon during DPH experiences for one's vision to become dark and gloomy in its brightness."
+              },
+              {
+                "name": "Visual haze",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              }
+            ]
+          },
+          "Hallucinatory states": {
+            "note": "The effects of DPH are extremely efficient at inducing delirious hallucinations which can be broken into the two categories described below:",
+            "effects": [
+              {
+                "name": "External hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots) - In comparison to other classes of hallucinogen, this effect occurs more frequently than that of any other at moderate to heavy dosages and is the defining feature of the experience. It can be comprehensively described through its variations as delirious in believability, autonomous in controllability and solid in style. The most common themes for these hallucinations include those of both everyday occurrences such as smoking phantom cigarettes, talking to people who are not there, insects and sinister, nightmarish experiences."
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots) - In comparison to other classes of hallucinogen, this effect occurs briefly and spontaneously at moderate dosages but becomes progressively extended in its occurrence and duration proportional to dosage before eventually becoming all-encompassing. It can be comprehensively described through its variations as delirious in believability, interactive in style, equal in new experiences and memory replays in content, autonomous in controllability and solid in style."
+              },
+              {
+                "name": "Peripheral information prediction",
+                "description": ""
+              },
+              {
+                "name": "Shadow people",
+                "description": ""
+              },
+              {
+                "name": "Unspeakable horrors",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "The auditory effects of DPH are common in their occurrence and exhibit a range of effects which commonly includes:",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Auditory suppression",
+                "description": ""
+              },
+              {
+                "name": "Auditory hallucination",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Depression",
+            "description": ""
+          },
+          {
+            "name": "Anxiety",
+            "description": ""
+          },
+          {
+            "name": "Cognitive dysphoria",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Emotion suppression",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Amnesia",
+            "description": ""
+          },
+          {
+            "name": "Language suppression",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Paranoia",
+            "description": ""
+          },
+          {
+            "name": "Dream potentiation",
+            "description": ""
+          },
+          {
+            "name": "Thought disorganization",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Feelings of impending doom",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "The levels of dysphoria experienced, however, vary between people with a very small percentage of users reporting that they do not seem to experience them at all.",
+        "effects": [
+          {
+            "name": "Perception of increased weight",
+            "description": "The first noticeable sensation is that of having an extremely heavy body, as if the gravity has been multiplied by a thousand. This makes it extremely difficult and uncomfortable to move."
+          },
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "Users commonly report all-encompassing, sharp and extremely painful jolts of electricity that spontaneously manifest themselves in a similar rhythm to hiccups."
+          },
+          {
+            "name": "Motor control loss",
+            "description": ""
+          },
+          {
+            "name": "Sedation",
+            "description": ""
+          },
+          {
+            "name": "Physical fatigue",
+            "description": ""
+          },
+          {
+            "name": "Muscle cramps",
+            "description": ""
+          },
+          {
+            "name": "Muscle spasms",
+            "description": ""
+          },
+          {
+            "name": "Dehydration",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Dizziness",
+            "description": ""
+          },
+          {
+            "name": "Restless leg syndrome",
+            "description": ""
+          },
+          {
+            "name": "Abnormal heartbeat",
+            "description": ""
+          },
+          {
+            "name": "Frequent urination",
+            "description": ""
+          },
+          {
+            "name": "Difficulty urinating",
+            "description": "This can be described as a feeling of concrete blocking your urethra and painfully conflicts with a frequent need to urinate."
+          },
+          {
+            "name": "Increased heart rate",
+            "description": ""
+          },
+          {
+            "name": "Tactile hallucinations",
+            "description": ""
+          },
+          {
+            "name": "Photophobia",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, September 2015.",
+      "url": "https://web.archive.org/web/20150921130816/https://psychonautwiki.org/wiki/Diphenhydramine"
+    },
+    "is_stub": false,
+    "source_overview": "In terms of its subjective effects, DPH has a non-linear dosage scale unlike anything found within other substances. It is not like other drugs in sense of dosage, as a light dose does not equal a light trip. Doses under 300mg induce more of a restless feeling, body high, and muscle relaxation. Doses typically 600mg+ are what make the user enter delirium and begin to see fully formed hallucinations. Anything in between these two extremes is often a disappointing and uncomfortable experience, characterized with twitching and only very minor hallucinations, mostly in the peripheral vision."
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview; article-specific prose moved to subjective_effects.source_overview when present.",
+    "Physical effects heading has no subheading in the source, so bullets are preserved in subjective_effects.physical.General in source order.",
+    "Physical pre-list paragraph preserved in subjective_effects.notes.physical; post-list dysphoria paragraph preserved in subjective_effects.physical.General.note.",
+    "Cognitive effects heading has no subheading in the source, so bullets are preserved in subjective_effects.cognitive.General in source order.",
+    "Cognitive pre-list paragraphs preserved in subjective_effects.notes.cognitive.",
+    "Visual Suppression, Distortions, and Hallucinatory states headings preserved as visual subcategory keys with their pre-list prose preserved as subcategory notes.",
+    "Visual and auditory bullets preserved in source order; Markdown bold and emphasis markers removed as structural formatting while parenthetical text and descriptions remain intact.",
+    "Auditory effects heading has no subheading in the source, so bullets are preserved in subjective_effects.sensory.auditory.General and the pre-list sentence is preserved in subjective_effects.sensory.auditory.note.",
+    "No source stub warning was present in the archived Diphenhydramine Subjective effects section.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

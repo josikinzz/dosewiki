@@ -1,0 +1,271 @@
+{
+  "slug": "4-meo-pcp",
+  "title": "4-MeO-PCP",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/4-meo-pcp.md",
+  "archive_timestamp": "20160803232118",
+  "archive_date_utc": "2016-08-03T23:21:18Z",
+  "archive_url": "https://web.archive.org/web/20160803232118/https://psychonautwiki.org/wiki/4-MeO-PCP",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160803232118/https://psychonautwiki.org/wiki/4-MeO-PCP"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Suppression": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Visual disconnection",
+                "description": "This eventually results in 4-MeO-PCP's equivalent of the famous \"k-hole\" or, more specifically, holes, spaces and voids alongside of structures."
+              },
+              {
+                "name": "Visual acuity suppression",
+                "description": ""
+              },
+              {
+                "name": "Double vision",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition suppression",
+                "description": ""
+              },
+              {
+                "name": "Frame rate suppression",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Perspective distortions",
+                "description": ""
+              },
+              {
+                "name": "Environmental cubism",
+                "description": ""
+              },
+              {
+                "name": "Environmental orbism",
+                "description": ""
+              },
+              {
+                "name": "Scenery slicing",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Internal hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots)"
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Suppression",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Depersonalization",
+            "description": ""
+          },
+          {
+            "name": "Derealization",
+            "description": ""
+          },
+          {
+            "name": "Consciousness disconnection",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Ego death",
+            "description": ""
+          },
+          {
+            "name": "Thought deceleration",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Information processing suppression",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Euphoria",
+            "description": ""
+          },
+          {
+            "name": "Introspection",
+            "description": ""
+          },
+          {
+            "name": "Déjà vu",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Unity and interconnectedness",
+            "description": ""
+          },
+          {
+            "name": "Compulsive redosing",
+            "description": ""
+          },
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          },
+          {
+            "name": "Disinhibition",
+            "description": ""
+          },
+          {
+            "name": "Amnesia",
+            "description": ""
+          },
+          {
+            "name": "Creativity enhancement",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Tactile disconnection",
+            "description": ""
+          },
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Tactile suppression",
+            "description": ""
+          },
+          {
+            "name": "Physical autonomy",
+            "description": ""
+          },
+          {
+            "name": "Motor control loss",
+            "description": ""
+          },
+          {
+            "name": "Physical euphoria",
+            "description": ""
+          },
+          {
+            "name": "Perception of decreased weight",
+            "description": ""
+          },
+          {
+            "name": "Dizziness",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Visual sliding",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160803232118/https://psychonautwiki.org/wiki/4-MeO-PCP"
+    },
+    "is_stub": true
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Generic source overview replaced with default public overview.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order, including Visual sliding because it appears under the source Physical effects heading.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Visual Suppression, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; empty Geometry heading retained with no effects.",
+    "Visual disconnection and Internal hallucinations descriptions preserve source wording with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "installCommand": "bun install --frozen-lockfile",
+  "buildCommand": "bun run build:vercel",
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
+  "crons": [
+    { "path": "/open-data/SubstanceIndex.json", "schedule": "0 9 * * *" },
+    { "path": "/open-data/EffectIndex.json", "schedule": "0 9 * * *" },
+    { "path": "/open-data/TripReports.json", "schedule": "0 9 * * *" },
+    { "path": "/api/warm", "schedule": "0 * * * *" },
+    { "path": "/api/cron/publication-delivery", "schedule": "* * * * *" },
+    { "path": "/api/cron/translation-refresh", "schedule": "*/5 * * * *" }
+  ]
+}

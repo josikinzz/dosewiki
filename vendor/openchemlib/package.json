@@ -1,0 +1,90 @@
+{
+  "name": "openchemlib",
+  "version": "9.23.0-dosewiki.1",
+  "type": "module",
+  "description": "Manipulate molecules",
+  "keywords": [
+    "chemistry",
+    "molecule",
+    "molfile",
+    "SMILES"
+  ],
+  "scripts": {
+    "build": "npm run build-java && npm run build-js && npm run build-resources",
+    "build-help": "node scripts/build_help.js",
+    "build-java": "npm run build-java-min && npm run build-java-debug",
+    "build-java-debug": "node scripts/build.js build --mode=pretty -s debug",
+    "build-java-debug-verbose": "npm run build-java-debug -- --verbose",
+    "build-java-min": "node scripts/build.js build --mode=min",
+    "build-js": "npm run build-js-min && npm run build-js-debug && npm run build-js-types",
+    "build-js-debug": "esbuild lib/index.debug.js --bundle --format=esm --outfile=dist/openchemlib.debug.js",
+    "build-js-min": "esbuild lib/index.js --minify --bundle --format=esm --outfile=dist/openchemlib.js",
+    "build-js-types": "node -e \"fs.cpSync('lib/index.d.ts', 'dist/openchemlib.d.ts')\"",
+    "build-resources": "node scripts/build_resources.js",
+    "check-types": "tsc --noEmit",
+    "clean": "node scripts/clean.js",
+    "eslint": "eslint . --max-warnings=15",
+    "eslint-fix": "npm run eslint -- --fix",
+    "prettier": "prettier --check .",
+    "prettier-write": "prettier --write .",
+    "test": "npm run build && npm run test-no-build",
+    "test-no-build": "npm run test-only && npm run check-types && npm run eslint && npm run prettier",
+    "test-only": "vitest run",
+    "vite": "vite --open",
+    "vite-build": "vite build",
+    "vite-preview": "vite preview"
+  },
+  "types": "./dist/openchemlib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/openchemlib.d.ts",
+      "default": "./dist/openchemlib.js"
+    },
+    "./debug": {
+      "types": "./dist/openchemlib.d.ts",
+      "default": "./dist/openchemlib.debug.js"
+    }
+  },
+  "imports": {
+    "#lib": "./lib/index.js",
+    "#lib_debug": "./lib/index.debug.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "PROVENANCE.md",
+    "LOCAL_MODIFICATIONS.md",
+    "README.dosewiki.md"
+  ],
+  "license": "BSD-3-Clause",
+  "author": "Michaël Zasso",
+  "contributors": [
+    "Christian Rufener"
+  ],
+  "homepage": "https://github.com/josikinzz/dosewiki-admin",
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "benchmark": "^2.1.4",
+    "esbuild": "^0.28.0",
+    "eslint": "^9.39.4",
+    "eslint-config-cheminfo-typescript": "^22.0.0",
+    "fast-png": "^8.0.0",
+    "globals": "^17.6.0",
+    "gwt-api-exporter": "^3.1.0",
+    "image-js": "^1.6.0",
+    "jsdom": "^29.1.1",
+    "openchemlib-utils": "^8.15.0",
+    "postcss": "^8.5.13",
+    "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5",
+    "yargs": "^18.0.0"
+  },
+  "volta": {
+    "node": "24.15.0"
+  },
+  "private": true
+}

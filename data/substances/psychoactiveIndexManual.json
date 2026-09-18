@@ -1,0 +1,799 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "definition": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug is causing the experience. Psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\"",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "drugs": [],
+      "iconKey": "psychedelic",
+      "key": "psychedelic",
+      "label": "Psychedelic",
+      "sections": [
+        {
+          "drugs": [
+            "2c-b",
+            "5-meo-dmt",
+            "ayahuasca",
+            "dmt",
+            "lsd",
+            "mescaline",
+            "psilocybin-mushrooms"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "4-aco-det",
+            "4-aco-dipt",
+            "4-aco-dmt",
+            "4-aco-met",
+            "4-aco-mipt",
+            "4-ho-dipt",
+            "4-ho-met",
+            "4-ho-mipt",
+            "5-meo-dmt",
+            "5-meo-dipt",
+            "5-meo-mipt",
+            "ayahuasca",
+            "amt",
+            "det",
+            "dipt",
+            "dmt",
+            "dpt",
+            "ept",
+            "ibogaine",
+            "met",
+            "psilocybin-mushrooms",
+            "psilocin"
+          ],
+          "key": "tryptamine",
+          "label": "Tryptamine"
+        },
+        {
+          "drugs": [
+            "1b-lsd",
+            "1cp-al-lad",
+            "1cp-lsd",
+            "1cp-mipla",
+            "1p-eth-lad",
+            "1p-lsd",
+            "1v-lsd",
+            "al-lad",
+            "ald-52",
+            "eth-lad",
+            "lsd",
+            "lsa",
+            "lsz",
+            "mipla"
+          ],
+          "key": "lysergamide",
+          "label": "Lysergamide"
+        },
+        {
+          "drugs": [
+            "2c-b-an",
+            "2c-b",
+            "2c-b-fly",
+            "2c-c",
+            "2c-d",
+            "2c-e",
+            "2c-g",
+            "2c-i",
+            "2c-ip",
+            "2c-p",
+            "2c-t",
+            "2c-t-2",
+            "2c-t-4",
+            "2c-t-7",
+            "2c-t-21"
+          ],
+          "key": "2c-x",
+          "label": "2C-X"
+        },
+        {
+          "drugs": [
+            "allylescaline",
+            "escaline",
+            "methallylescaline",
+            "mescaline",
+            "proscaline"
+          ],
+          "key": "scaline",
+          "label": "Scalines"
+        },
+        {
+          "drugs": [
+            "aleph",
+            "aleph-2",
+            "bromo-dragonfly",
+            "dob",
+            "doc",
+            "doet",
+            "doi",
+            "dom",
+            "tma-2",
+            "tma-6"
+          ],
+          "key": "amphetamine-psychedelic",
+          "label": "Amphetamines"
+        },
+        {
+          "drugs": [
+            "2c-b-fly-nbome",
+            "25b-nboh",
+            "25c-nboh",
+            "25d-nbome",
+            "25e-nboh",
+            "25i-nbf",
+            "25i-nbmd",
+            "25i-nboh",
+            "25i-nbome",
+            "25ip-nbome"
+          ],
+          "key": "phenethylamine-n-benzylated",
+          "label": "NBOMes"
+        }
+      ]
+    },
+    {
+      "definition": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the sense of self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience.",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 0,
+        "3": 2,
+        "4": 2,
+        "5": 1,
+        "6": 2
+      },
+      "drugs": [],
+      "iconKey": "dissociative",
+      "key": "dissociative",
+      "label": "Dissociative",
+      "sections": [
+        {
+          "drugs": [
+            "dextromethorphan",
+            "ketamine",
+            "nitrous",
+            "pcp"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "2-fluorodeschloroketamine",
+            "3-cl-pcp",
+            "3-ho-pce",
+            "3-ho-pcp",
+            "3-me-pcpy",
+            "3-meo-pce",
+            "3-meo-pcmo",
+            "3-meo-pcp",
+            "3-meo-pcpr",
+            "3-meo-pcpy",
+            "4-meo-pcp",
+            "deschloroketamine",
+            "dmxe",
+            "hxe",
+            "ketamine",
+            "methoxetamine",
+            "o-pce",
+            "pce",
+            "pcp"
+          ],
+          "key": "arylcyclohexylamine",
+          "label": "Arylcyclohexylamine"
+        },
+        {
+          "drugs": [
+            "2-chloroephenidine",
+            "diphenidine",
+            "ephenidine"
+          ],
+          "key": "diarylethylamine-substituted",
+          "label": "Diarylethylamine (substituted)"
+        },
+        {
+          "drugs": [
+            "dextromethorphan",
+            "memantine",
+            "nitrous"
+          ],
+          "key": "other-dissociatives",
+          "label": "Other dissociatives"
+        }
+      ]
+    },
+    {
+      "definition": "**Entactogens** (also known as empathogens) are a class of psychoactive substances that produce emotional openness, empathy, warmth, and closeness to other people. Entactogens mainly cause a large release of serotonin, with some dopamine and noradrenaline. This mix makes the experience mildly euphoric and social, not strongly hallucinatory. The name comes from the Greek *en* (\"within\"), the Latin *tactus* (\"touch\"), and *-gen* (\"to produce\"). Together these parts mean \"to touch within.\"",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 2,
+        "6": 0
+      },
+      "drugs": [],
+      "iconKey": "entactogen",
+      "key": "entactogen",
+      "label": "Entactogen",
+      "sections": [
+        {
+          "drugs": [
+            "mda",
+            "mdma"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "2-fea",
+            "3-fea",
+            "4-fa",
+            "4-fma",
+            "mda",
+            "mdma"
+          ],
+          "key": "amphetamine",
+          "label": "Amphetamine"
+        },
+        {
+          "drugs": [
+            "5-apb",
+            "5-mapb",
+            "6-apb"
+          ],
+          "key": "benzofuran",
+          "label": "Benzofuran"
+        },
+        {
+          "drugs": [
+            "2-mmc",
+            "3-cmc",
+            "3-fmc",
+            "3-mec",
+            "3-mmc",
+            "4-emc",
+            "4-fmc",
+            "4-mec",
+            "butylone",
+            "ethylone",
+            "eutylone",
+            "methcathinone",
+            "methylone",
+            "nep"
+          ],
+          "key": "cathinone",
+          "label": "Cathinone"
+        },
+        {
+          "drugs": [
+            "5-meo-dipt",
+            "amt",
+            "kanna",
+            "nm-2-ai"
+          ],
+          "key": "other-entactogens",
+          "label": "Other entactogens"
+        }
+      ]
+    },
+    {
+      "definition": "**Stimulants** (also known as \"uppers\") are a class of psychoactive substances that speed up the central nervous system. They increase energy, alertness, wakefulness, and focus. They also reduce appetite and fatigue. Stimulants mainly raise the levels of dopamine and noradrenaline, the drive and alertness chemicals of the brain. These raised levels are also the reason that a crash often follows the effects. The name comes from the Latin *stimulare*, which means \"to goad on.\"",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 0,
+        "3": 2,
+        "4": 2,
+        "5": 2,
+        "6": 2
+      },
+      "drugs": [],
+      "iconKey": "stimulant",
+      "key": "stimulant",
+      "label": "Stimulant",
+      "sections": [
+        {
+          "drugs": [
+            "amphetamine",
+            "caffeine",
+            "cocaine",
+            "dextroamphetamine",
+            "mdma",
+            "methamphetamine",
+            "methylphenidate",
+            "nicotine"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "2-fa",
+            "2-fea",
+            "2-fma",
+            "3-fa",
+            "3-fea",
+            "4-fa",
+            "4-fma",
+            "amphetamine",
+            "dextroamphetamine",
+            "ephedrine",
+            "lisdexamfetamine",
+            "mdma",
+            "methamphetamine"
+          ],
+          "key": "amphetamine",
+          "label": "Amphetamine"
+        },
+        {
+          "drugs": [
+            "2-mmc",
+            "3-cmc",
+            "3-fmc",
+            "3-mec",
+            "3-mmc",
+            "4-emc",
+            "4-fmc",
+            "4-mec",
+            "a-pvp",
+            "butylone",
+            "ethylone",
+            "eutylone",
+            "khat",
+            "mephedrone",
+            "methcathinone",
+            "methylone",
+            "mdpv",
+            "nep"
+          ],
+          "key": "cathinone",
+          "label": "Cathinone"
+        },
+        {
+          "drugs": [
+            "5-mapb",
+            "6-apb"
+          ],
+          "key": "benzofuran",
+          "label": "Benzofuran"
+        },
+        {
+          "drugs": [
+            "adrafinil",
+            "armodafinil",
+            "flmodafinil",
+            "modafinil"
+          ],
+          "key": "modafinil-like",
+          "label": "Modafinil-like"
+        },
+        {
+          "drugs": [
+            "caffeine",
+            "cocaine",
+            "desoxypipradrol",
+            "dexmethylphenidate",
+            "methiopropamine",
+            "methylphenidate",
+            "nicotine",
+            "nm-2-ai",
+            "phenethylamine",
+            "phenylpiracetam",
+            "tobacco"
+          ],
+          "key": "other-stimulants",
+          "label": "Other stimulants"
+        }
+      ]
+    },
+    {
+      "definition": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\"",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 2,
+        "4": 2,
+        "5": 2,
+        "6": 2
+      },
+      "drugs": [],
+      "iconKey": "nootropic",
+      "key": "nootropic",
+      "label": "Nootropic",
+      "sections": [
+        {
+          "drugs": [
+            "noopept",
+            "piracetam"
+          ],
+          "key": "racetam-and-peptide-like",
+          "label": "Racetam and peptide-like"
+        },
+        {
+          "drugs": [
+            "melatonin",
+            "theanine"
+          ],
+          "key": "supplements-and-oneirogens",
+          "label": "Supplements and oneirogens"
+        }
+      ]
+    },
+    {
+      "definition": "**Antidepressants** are a class of psychoactive medications that treat depression and related conditions. Most antidepressants slow the reabsorption of serotonin or noradrenaline in the brain, which keeps more of it active over time. For this reason, they have no immediate effect and take weeks to work. An antidepressant is not the opposite of a \"depressant\" drug. The two words use \"depress\" in different senses: one refers to the mood disorder, and the other refers to a slower nervous system.",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 4,
+        "6": 0
+      },
+      "drugs": [],
+      "iconKey": "antidepressant",
+      "key": "antidepressant",
+      "label": "Antidepressant",
+      "sections": [
+        {
+          "drugs": [
+            "bupropion",
+            "sertraline",
+            "trazodone"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "bupropion",
+            "lithium",
+            "sertraline",
+            "trazodone"
+          ],
+          "key": "other-antidepressants",
+          "label": "Other antidepressants"
+        }
+      ]
+    },
+    {
+      "definition": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which is too high during a psychotic state.",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 4,
+        "6": 1
+      },
+      "drugs": [
+        "quetiapine"
+      ],
+      "iconKey": "antipsychotic",
+      "key": "antipsychotic",
+      "label": "Antipsychotic",
+      "sections": []
+    },
+    {
+      "definition": "**Opioids** are a class of psychoactive substances that relieve pain and produce euphoria, relaxation, and contentment. They also cause sedation. At high doses, opioids slow breathing to a dangerous degree. Opioids imitate endorphins, the natural painkilling chemicals of the body, and act on the same opioid receptors. The name comes from *opium*, the extract of the poppy, and *-oid* (\"resembling\"). The term \"opiate\" covers only natural poppy derivatives, but \"opioid\" covers any substance that acts on these receptors.",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 0,
+        "4": 3,
+        "5": 4,
+        "6": 3
+      },
+      "drugs": [],
+      "iconKey": "mynaui:danger-hexagon",
+      "key": "opioid",
+      "label": "Opioid",
+      "sections": [
+        {
+          "drugs": [
+            "codeine",
+            "fentanyl",
+            "heroin",
+            "kratom",
+            "methadone",
+            "morphine",
+            "oxycodone",
+            "tramadol"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "buprenorphine",
+            "codeine",
+            "desomorphine",
+            "dihydrocodeine",
+            "ethylmorphine",
+            "heroin",
+            "hydrocodone",
+            "hydromorphone",
+            "morphine",
+            "oxycodone",
+            "oxymorphone"
+          ],
+          "key": "morphinan",
+          "label": "Morphinan"
+        },
+        {
+          "drugs": [
+            "acetylfentanyl",
+            "acrylfentanyl",
+            "fentanyl",
+            "furanylfentanyl"
+          ],
+          "key": "fentanyl-analogue",
+          "label": "Fentanyl analogues"
+        },
+        {
+          "drugs": [
+            "kratom",
+            "lean",
+            "methadone",
+            "o-desmethyltramadol",
+            "tapentadol",
+            "tianeptine",
+            "tramadol",
+            "u-47700"
+          ],
+          "key": "other-opioids",
+          "label": "Other opioids"
+        }
+      ]
+    },
+    {
+      "definition": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. The name comes from the Latin *delirare*, which means \"to go off the track.\"",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 0,
+        "6": 1
+      },
+      "drugs": [],
+      "iconKey": "deliriant",
+      "key": "deliriant",
+      "label": "Deliriant",
+      "sections": [
+        {
+          "drugs": [
+            "dimenhydrinate",
+            "diphenhydramine",
+            "promethazine"
+          ],
+          "key": "antihistamines",
+          "label": "Antihistamines"
+        },
+        {
+          "drugs": [
+            "datura",
+            "scopolamine"
+          ],
+          "key": "alkaloid-tropane",
+          "label": "Alkaloid (tropane)"
+        },
+        {
+          "drugs": [
+            "nutmeg"
+          ],
+          "key": "other-deliriants",
+          "label": "Other deliriants"
+        }
+      ]
+    },
+    {
+      "definition": "",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 0,
+        "4": 3,
+        "5": 1,
+        "6": 3
+      },
+      "drugs": [
+        "eszopiclone",
+        "salvia",
+        "zaleplon",
+        "zolpidem",
+        "zopiclone"
+      ],
+      "iconKey": "hallucinogen",
+      "key": "hallucinogen",
+      "label": "A-typical Hallucinogen",
+      "sections": []
+    },
+    {
+      "definition": "**Sedative-hypnotics** are psychoactive substances that usually cause sedation, drowsiness, or sleep. This class holds several families of depressant drugs with different mechanisms: benzodiazepines, barbiturates, alcohol, GABA analogs, and some substances that act on voltage-gated calcium channels. Opioids have their own category.",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 3,
+        "6": 1
+      },
+      "drugs": [],
+      "iconKey": "gabaergic",
+      "key": "gabaergic",
+      "label": "Sedative-hypnotics",
+      "sections": [
+        {
+          "drugs": [
+            "alcohol",
+            "alprazolam",
+            "diazepam",
+            "lorazepam",
+            "oxazepam",
+            "temazepam"
+          ],
+          "key": "common",
+          "label": "Common"
+        },
+        {
+          "drugs": [
+            "alprazolam",
+            "bromazepam",
+            "bromazolam",
+            "brotizolam",
+            "clobazam",
+            "clonazepam",
+            "clonazolam",
+            "delorazepam",
+            "deschloroetizolam",
+            "desmethylflunitrazepam",
+            "diazepam",
+            "diclazepam",
+            "etizolam",
+            "flualprazolam",
+            "flubromazepam",
+            "flubromazolam",
+            "fluclotizolam",
+            "flunitrazepam",
+            "flunitrazolam",
+            "lorazepam",
+            "midazolam",
+            "nifoxipam",
+            "nitrazepam",
+            "oxazepam",
+            "phenazepam",
+            "pyrazolam",
+            "temazepam",
+            "triazolam"
+          ],
+          "key": "benzodiazepines",
+          "label": "Benzodiazepines"
+        },
+        {
+          "drugs": [
+            "amobarbital",
+            "pentobarbital",
+            "phenobarbital",
+            "secobarbital",
+            "thiopental"
+          ],
+          "key": "barbiturates",
+          "label": "Barbiturates"
+        },
+        {
+          "drugs": [
+            "eszopiclone",
+            "zaleplon",
+            "zolpidem",
+            "zopiclone"
+          ],
+          "key": "z-drugs",
+          "label": "Z-drugs"
+        },
+        {
+          "drugs": [
+            "1-4-butanediol",
+            "baclofen",
+            "f-phenibut",
+            "gabapentin",
+            "gbl",
+            "ghb",
+            "phenibut",
+            "pregabalin"
+          ],
+          "key": "gaba-analogues",
+          "label": "GABA analogues"
+        },
+        {
+          "drugs": [
+            "2m2b",
+            "alcohol",
+            "carisoprodol",
+            "kava",
+            "methaqualone",
+            "metizolam"
+          ],
+          "key": "other-gabaergics",
+          "label": "Other GABAergics"
+        }
+      ]
+    },
+    {
+      "definition": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the body's own cannabis-like signal chemicals normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where these compounds were first identified.",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 0,
+        "3": 2,
+        "4": 2,
+        "5": 1,
+        "6": 2
+      },
+      "drugs": [],
+      "iconKey": "cannabinoid",
+      "key": "cannabinoid",
+      "label": "Cannabinoid",
+      "sections": [
+        {
+          "drugs": [
+            "cannabis"
+          ],
+          "key": "natural",
+          "label": "Natural"
+        },
+        {
+          "drugs": [
+            "ab-fubinaca",
+            "jwh-018",
+            "jwh-073"
+          ],
+          "key": "synthetic",
+          "label": "Synthetic"
+        }
+      ]
+    },
+    {
+      "definition": "",
+      "warning": "",
+      "columns": {
+        "1": 0,
+        "2": 1,
+        "3": 0,
+        "4": 3,
+        "5": 3,
+        "6": 3
+      },
+      "drugs": [
+        "hydroxyzine",
+        "propranolol"
+      ],
+      "iconKey": "miscellaneous",
+      "key": "miscellaneous",
+      "label": "Miscellaneous",
+      "sections": []
+    }
+  ]
+}

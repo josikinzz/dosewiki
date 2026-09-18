@@ -1,0 +1,3026 @@
+{
+  "artifactType": "citation_author_repair_lineage_manifest",
+  "artifactVersion": 2,
+  "scope": "Successful production author repairs and their completed canonical metadata provenance backfill. This tracked manifest preserves compact per-reference lineage; ignored source artifacts remain the full audit record.",
+  "canonicalMetadataProvenancePolicy": "All 759 repaired canonical references now retain bounded metadataProvenance: 74 deterministic repairs are recorded as fetched and 685 independently reviewed repairs as inspected. The immutable production proposal digest, approval digest, completed-audit file, and post-apply verification are hash-bound below.",
+  "canonicalMetadataProvenanceBackfill": {
+    "status": "completed",
+    "sourceDeployment": "retired-hosted-deployment",
+    "referenceCount": 759,
+    "proposalArtifactSha256": "8d19afa96040694258ceb4ab0f1f0ca51d3f1974259c78d19c2e042dd3b1ddfb",
+    "approvalArtifactSha256": "205b88f2abf08bdc0bab46a503c407ccf445d1362c3cb01221e9b33fe882ce48",
+    "completedAudit": {
+      "path": "scripts/data/audit-logs/2026-08-10T06-17-03-707Z-apply-citation-reference-provenance-backfill-759-repair-lineage-rows.json",
+      "fileSha256": "291234ed30de42165bb4504d8a3f67236a8325aca7dc3e6fb54aac0d4bc8584d",
+      "status": "completed",
+      "successfulMutationCount": 759,
+      "articleBackupCount": 182
+    },
+    "postApplyVerification": {
+      "pending": 0,
+      "alreadyApplied": 759
+    },
+    "bindingSha256": "dddeb8b24f740dba1bee349bedb4f38bfd89693fbc6e20e5b0bfbde978501dcd"
+  },
+  "sourceDeployment": "retired-hosted-deployment",
+  "waves": [
+    {
+      "name": "deterministic-high-confidence",
+      "appliedAt": "2026-08-09T22:19:26.320Z",
+      "proposalArtifactSha256": "8298b2524d17adef0f48751702d7697588425b0e1c147af9605822178a6da4b8",
+      "approval": {
+        "decision": "approved",
+        "scope": "high_confidence_only",
+        "approvedAt": "2026-08-09T22:14:11.181Z",
+        "approvedBy": "user-explicit-session-instruction"
+      },
+      "successfulMutationCount": 74,
+      "sourceArtifacts": {
+        "audit": {
+          "path": "scripts/data/audit-logs/2026-08-09T22-19-26-320Z-apply-citation-author-repairs-high-confidence.json",
+          "fileSha256": "d6fff8a504ad80f2970b3a00bf362bfd1843e26ae938b24486bc7e5d0ba2f725"
+        },
+        "approval": {
+          "path": "tmp/citation-author-repair-approvals/full-live-20260809T215735Z.json",
+          "fileSha256": "94c3bb339d6e83d6f9b63c76aad02bd9ce918c4f1fe18a60a18a598a4d47e76b"
+        }
+      },
+      "mutationSetSha256": "c195f3d1e0d63de8674059168710ec76395684da45f5797d822bb63cd4502021",
+      "referenceProviders": {
+        "1cp-mipla::doi-10-1016-j-toxac-2022-06-295": [
+          "crossref"
+        ],
+        "2-fa::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "2-fa::doi-10-1016-j-forsciint-2004-05-003": [
+          "crossref"
+        ],
+        "2-fma::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "25c-nboh::doi-10-1007-s11419-019-00509-7": [
+          "crossref"
+        ],
+        "25d-nbome::doi-10-1016-j-psym-2018-11-002": [
+          "crossref"
+        ],
+        "25d-nbome::doi-10-1016-j-toxlet-2019-01-004": [
+          "crossref"
+        ],
+        "25i-nboh::doi-10-1007-s11419-017-0362-0": [
+          "crossref"
+        ],
+        "25i-nbome::pmc-6950699": [
+          "crossref"
+        ],
+        "25i-nbome::pmid-23727882": [
+          "crossref"
+        ],
+        "2c-b-fly-nbome::doi-10-3389-fphar-2023-1120419": [
+          "crossref"
+        ],
+        "3-cmc::romanczuk-2023-jat": [
+          "crossref"
+        ],
+        "4-aco-dmt::doi-10-1055-s-1999-3490": [
+          "crossref"
+        ],
+        "4-fma::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "4-fma::doi-10-1016-j-euroneuro-2014-12-012": [
+          "crossref"
+        ],
+        "5-meo-dmt::doi-10-1246-bcsj-11-221": [
+          "crossref"
+        ],
+        "6-apb::doi-10-1021-jm00075a027": [
+          "crossref"
+        ],
+        "ab-fubinaca::frontierspsych-2024-sc-dependence": [
+          "crossref"
+        ],
+        "adrafinil::doi-10-1111-j-1527-3458-1999-tb00100-x": [
+          "crossref"
+        ],
+        "al-lad::doi-10-1111-j-1755-5949-2008-00059-x": [
+          "crossref"
+        ],
+        "ald-52::doi-10-1124-pr-115-011478": [
+          "crossref"
+        ],
+        "amt::doi-10-1016-j-ejphar-2006-11-075": [
+          "crossref"
+        ],
+        "buprenorphine::frontiers-suboxone-history-2022": [
+          "crossref"
+        ],
+        "bupropion::jabfm-bupropion-psychosis-2008": [
+          "crossref"
+        ],
+        "butylone::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "cocaine::doi-10-1017-s0003598x00067004": [
+          "crossref"
+        ],
+        "codeine::pmc-dorsomedial-medulla-codeine-2017": [
+          "crossref"
+        ],
+        "datura::doi-10-2307-1178037": [
+          "crossref"
+        ],
+        "dextroamphetamine::harris-2003-amph-neurotox": [
+          "crossref"
+        ],
+        "diclazepam::doi-10-1097-paf-0b013e3181875aa0": [
+          "crossref"
+        ],
+        "diphenidine::doi-10-1007-s11419-014-0240-y": [
+          "crossref"
+        ],
+        "diphenidine::doi-10-1007-s11419-014-0245-6": [
+          "crossref"
+        ],
+        "dmxe::han-2022-addictedchem": [
+          "crossref"
+        ],
+        "dob::doi-10-1001-jama-1983-03330350053028": [
+          "crossref"
+        ],
+        "doc::doi-10-1139-v73-210": [
+          "crossref"
+        ],
+        "doi::glennon-dukat-2024-doi-review": [
+          "crossref"
+        ],
+        "doi::neumann-2024-doi-cardiac": [
+          "crossref"
+        ],
+        "dpt::doi-10-1080-02791072-1977-10472020": [
+          "crossref"
+        ],
+        "ethylmorphine::doi-10-1136-bmj-1-2261-1009-a": [
+          "crossref"
+        ],
+        "flunitrazolam::doi-10-1097-paf-0b013e3181875aa0": [
+          "crossref"
+        ],
+        "furanylfentanyl::pmc9697990-genotox-fuf": [
+          "crossref"
+        ],
+        "gbl::doi-10-1016-j-drugalcdep-2009-04-012": [
+          "crossref"
+        ],
+        "gbl::doi-10-1017-s1461145709000157": [
+          "crossref"
+        ],
+        "gbl::doi-10-1067-mem-2001-112985": [
+          "crossref"
+        ],
+        "hydrocodone::doi-10-1002-ardp-19202580218": [
+          "crossref"
+        ],
+        "jwh-018::fattore-fratta-2011": [
+          "crossref"
+        ],
+        "lsz::doi-10-1124-pr-115-011478": [
+          "crossref"
+        ],
+        "mda::doi-10-1002-cber-19100430126": [
+          "crossref"
+        ],
+        "mda::doi-10-1016-j-bmc-2011-10-007": [
+          "crossref"
+        ],
+        "mda::doi-10-1371-journal-pone-0009019": [
+          "crossref"
+        ],
+        "mda::doi-10-1517-14740330902931524": [
+          "crossref"
+        ],
+        "melatonin::doi-10-1002-jez-1400230108": [
+          "crossref"
+        ],
+        "methylone::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "metizolam::doi-10-1592-phco-24-13-1177-38089": [
+          "crossref"
+        ],
+        "metizolam::jgim-benzo-taper-2025": [
+          "crossref"
+        ],
+        "nep::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "nep::doi-10-1016-j-neuropharm-2021-108475": [
+          "crossref"
+        ],
+        "nicotine::doi-10-1017-jsc-2014-27": [
+          "crossref"
+        ],
+        "nifoxipam::doi-10-1097-paf-0b013e3181875aa0": [
+          "crossref"
+        ],
+        "nitrazepam::younes-1993-nitrazepam-childhood-seizures": [
+          "crossref"
+        ],
+        "nm-2-ai::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref"
+        ],
+        "pregabalin::doi-10-1016-j-cell-2009-09-025": [
+          "crossref"
+        ],
+        "pregabalin::frontiers-gabapentinoid-mortality": [
+          "crossref"
+        ],
+        "psilocybin-mushrooms::doi-10-1016-j-neuropharm-2018-05-012": [
+          "crossref"
+        ],
+        "psilocybin-mushrooms::doi-10-1371-journal-pmed-0030437": [
+          "crossref"
+        ],
+        "psilocybin-mushrooms::doi-10-2492-inflammregen-29-47": [
+          "crossref"
+        ],
+        "temazepam::doi-10-18773-austprescr-2004-053": [
+          "crossref"
+        ],
+        "theanine::doi-10-1179-147683008x301513": [
+          "crossref"
+        ],
+        "theanine::doi-10-1271-bbb-62-816": [
+          "crossref"
+        ],
+        "tma-2::doi-10-1002-prac-19331380907": [
+          "crossref"
+        ],
+        "tma-2::doi-10-1007-bf02147960": [
+          "crossref"
+        ],
+        "u-47700::doi-10-3390-brainsci10110895": [
+          "crossref"
+        ],
+        "zolpidem::frontiers-zolpidem-high-dose-pmc10565798": [
+          "crossref"
+        ],
+        "zopiclone::pmid-18077750": [
+          "pubmed"
+        ]
+      }
+    },
+    {
+      "name": "independently-reviewed-residual",
+      "appliedAt": "2026-08-10T01:37:30.539Z",
+      "proposalArtifactSha256": "fa52c09f921cee8fbcf4097b833fd850a58edc3cd6f4d38cdf3e72d60af7b883",
+      "approval": {
+        "decision": "approved",
+        "scope": "high_confidence_only",
+        "approvedAt": "2026-08-10T01:24:56.229Z",
+        "approvedBy": "user-explicit-session-instruction"
+      },
+      "successfulMutationCount": 685,
+      "sourceArtifacts": {
+        "audit": {
+          "path": "scripts/data/audit-logs/2026-08-10T01-37-30-539Z-apply-citation-author-repairs-high-confidence.json",
+          "fileSha256": "aaadb9513401cbfc2c3fa7118965251d00d1806d142c7db404edac5ae9d28a62"
+        },
+        "approval": {
+          "path": "tmp/citation-author-repair-approvals/current-reviewed-residual-20260810T005325Z.json",
+          "fileSha256": "cd980f7cf5d354e7d2a918cbde0516585d2dce9754340c4fbc2a4080ca2ef7e0"
+        },
+        "proposal": {
+          "path": "tmp/citation-author-repair-proposals/current-reviewed-residual-20260810T005325Z.json",
+          "fileSha256": "73af1a16300ab45d8b1e67373e12089b00f468b032dd08b6426e5e3dedc94bb1"
+        }
+      },
+      "mutationSetSha256": "d46ac587ad931dd486723afa668d2edd90d6d0caa49241f0cf1a92adcce61fcc",
+      "referenceProviders": {
+        "1b-lsd::doi-10-1002-dta-2613": [
+          "crossref",
+          "pubmed"
+        ],
+        "1b-lsd::doi-10-1007-s00216-018-1558-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "1b-lsd::doi-10-1016-j-neuropharm-2019-107856": [
+          "crossref",
+          "pubmed"
+        ],
+        "1b-lsd::doi-10-3390-molecules25030712": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-al-lad::doi-10-1002-dta-3397": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-lsd::doi-10-1002-dta-2789": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-lsd::doi-10-1002-vms3-70486": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-lsd::doi-10-1248-yakushi-20-00124": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-lsd::doi-10-3390-vetsci12090872": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-lsd::doi-10-3390-vetsci13010096": [
+          "crossref",
+          "pubmed"
+        ],
+        "1cp-mipla::doi-10-1007-s11419-023-00661-1": [
+          "crossref",
+          "pubmed"
+        ],
+        "1p-lsd::doi-10-1002-dta-1884": [
+          "crossref",
+          "pubmed"
+        ],
+        "1p-lsd::doi-10-1002-dta-2821": [
+          "crossref",
+          "pubmed"
+        ],
+        "1p-lsd::doi-10-1007-s00216-018-1558-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "1p-lsd::doi-10-1016-j-jpba-2019-05-062": [
+          "crossref",
+          "pubmed"
+        ],
+        "1p-lsd::doi-10-1016-j-neuropharm-2019-107856": [
+          "crossref",
+          "pubmed"
+        ],
+        "1p-lsd::doi-10-1111-1556-4029-15224": [
+          "crossref",
+          "pubmed"
+        ],
+        "1v-lsd::doi-10-1002-dta-3205": [
+          "crossref",
+          "pubmed"
+        ],
+        "1v-lsd::doi-10-1016-j-neuropharm-2019-107856": [
+          "crossref",
+          "pubmed"
+        ],
+        "2-fma::doi-10-1016-j-forsciint-2009-12-048": [
+          "crossref",
+          "pubmed"
+        ],
+        "2-mmc::doi-10-1021-acschemneuro-8b00524": [
+          "crossref",
+          "pubmed"
+        ],
+        "2-mmc::power-2011-fsi": [
+          "crossref",
+          "pubmed"
+        ],
+        "25b-nboh::doi-10-1021-cn400216u": [
+          "crossref",
+          "pubmed"
+        ],
+        "25b-nboh::doi-10-1124-mol-106-028720": [
+          "crossref",
+          "pubmed"
+        ],
+        "25c-nboh::doi-10-1021-cn400216u": [
+          "crossref",
+          "pubmed"
+        ],
+        "25d-nbome::doi-10-1016-j-bcp-2018-09-024": [
+          "crossref",
+          "pubmed"
+        ],
+        "25d-nbome::doi-10-1016-j-toxrep-2025-101890": [
+          "crossref",
+          "pubmed"
+        ],
+        "25d-nbome::doi-10-1021-acschemneuro-3c00196": [
+          "crossref",
+          "pubmed"
+        ],
+        "25e-nboh::doi-10-1007-s00414-023-03151-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "25e-nboh::doi-10-1007-s11419-019-00509-7": [
+          "crossref"
+        ],
+        "25e-nboh::doi-10-1021-cn400216u": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbf::doi-10-1016-j-bcp-2020-114251": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbmd::doi-10-1124-mol-106-028720": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nboh::doi-10-1007-7854-2016-64": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nboh::doi-10-1007-s00259-010-1686-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nboh::doi-10-1016-j-bcp-2018-09-024": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nboh::doi-10-1016-j-neuropharm-2019-107933": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1002-dta-2031": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1007-s12640-019-00033-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1016-j-bcp-2018-09-024": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1016-j-bmc-2008-04-050": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1016-j-neuropharm-2013-08-025": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1016-j-neuropharm-2015-08-034": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1124-mol-106-028720": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-1177-0269881114523866": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-2967-jnumed-109-074021": [
+          "crossref",
+          "pubmed"
+        ],
+        "25i-nbome::doi-10-3109-15563650-2013-802795": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-an::doi-10-1111-1556-4029-14268": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-fly-nbome::doi-10-1007-s00259-010-1686-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-fly-nbome::doi-10-1007-s10822-010-9400-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-fly::doi-10-1021-acschemneuro-5c00647": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-fly::doi-10-1021-jm960199j": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-fly::doi-10-1111-bph-13128": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-b-fly::doi-10-1371-journal-pone-0009019": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-c::doi-10-1007-s00204-021-02980-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-c::doi-10-1007-s00213-013-3303-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-c::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-c::doi-10-1016-j-toxrep-2025-101890": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-c::doi-10-1124-jpet-115-229765": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::doi-10-1002-jms-1128": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::doi-10-1007-s13181-013-0295-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::doi-10-1016-j-neuropharm-2015-08-034": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::doi-10-1021-jm00295a034": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::doi-10-1124-jpet-106-117507": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-d::pmid-1223994": [
+          "openalex"
+        ],
+        "2c-e::doi-10-1007-s00213-013-3303-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-e::doi-10-1007-s13181-013-0295-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-e::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-e::doi-10-1080-08998280-2012-11928883": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-e::doi-10-3389-fphar-2020-00233": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-i::doi-10-1007-s00213-013-3303-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-i::doi-10-1007-s13181-013-0295-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1002-dta-2494": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1007-s00204-021-02980-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1007-s13181-013-0295-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1016-j-neuropharm-2015-08-034": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1016-j-toxrep-2025-101890": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-p::doi-10-1124-jpet-115-229765": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-2::doi-10-1002-dta-2494": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-2::doi-10-1007-s00213-013-3303-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-2::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-2::doi-10-1016-j-neuropharm-2017-07-012": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-21::doi-10-1007-s00213-022-06279-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-4::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-4::doi-10-1016-j-neuropharm-2015-08-034": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-4::doi-10-1016-j-neuropharm-2017-07-012": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-7::doi-10-1007-s00213-005-0009-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-7::doi-10-1016-j-bcp-2006-09-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "2c-t-7::doi-10-1016-j-neuropharm-2017-07-012": [
+          "crossref",
+          "pubmed"
+        ],
+        "2m2b::doi-10-1016-j-toxlet-2003-10-024": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cl-pcp::doi-10-1124-jpet-123-001942": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cl-pcp::doi-10-3389-fpsyt-2020-632405": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cmc::doi-10-1007-s00213-018-5063-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cmc::doi-10-1007-s12640-020-00227-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cmc::doi-10-1208-s12248-024-00940-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cmc::doi-10-2147-cpaa-s42832": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-cmc::doi-10-3390-ijms26083540": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-fea::doi-10-1016-s0022-3565-25-30504-5": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-fea::jo-2023-3fea-withdrawal": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-fmc::doi-10-1016-j-forsciint-2008-11-013": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-ho-pcp::doi-10-1002-dta-2807": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-ho-pcp::doi-10-1016-0014-2999-81-90097-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-ho-pcp::doi-10-1016-0014-2999-84-90171-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-ho-pcp::doi-10-1021-jm00346a019": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-me-pcpy::doi-10-1002-dta-1468": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-meo-pce::doi-10-1093-jat-bkt023": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-meo-pce::doi-10-1371-journal-pone-0059334": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-meo-pcmo::doi-10-1007-s00213-019-05412-y": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-meo-pcmo::doi-10-1016-j-pbb-2010-12-019": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-meo-pcp::doi-10-1093-jat-bkac015": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-meo-pcp::doi-10-3390-ph17040452": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1016-j-drugpo-2015-03-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1016-j-forsciint-2016-01-039": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1016-j-forsciint-2018-11-024": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1016-j-neuropharm-2017-07-026": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1038-s41386-024-02042-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1124-jpet-115-229765": [
+          "crossref",
+          "pubmed"
+        ],
+        "3-mmc::doi-10-1177-0269881115576687": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-aco-dmt::doi-10-1002-hup-2719": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-aco-dmt::doi-10-1021-acs-jmedchem-4c02612": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-aco-dmt::doi-10-1021-acschemneuro-8b00186": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-aco-dmt::doi-10-1021-acsptsci-0c00176": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-aco-dmt::doi-10-3389-fpsyt-2023-1303365": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-emc::doi-10-1002-dta-2890": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-emc::doi-10-1016-j-aca-2017-03-023": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-fa::doi-10-1016-0028-3908-75-90099-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-fa::pmid-16445122": [
+          "pubmed"
+        ],
+        "4-fmc::doi-10-1007-s13181-012-0232-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-fmc::doi-10-1016-j-forsciint-2008-11-013": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-dipt::doi-10-1021-acschemneuro-4c00058": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-dipt::doi-10-1021-acsptsci-0c00176": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-dipt::doi-10-1021-acsptsci-2c00222": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-dipt::doi-10-1124-jpet-122-001454": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-met::doi-10-1002-jhet-5570180131": [
+          "crossref"
+        ],
+        "4-ho-met::doi-10-1124-pr-115-011478": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-mipt::doi-10-1016-0028-3908-90-90001-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-mipt::doi-10-1021-jm00145a007": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-ho-mipt::doi-10-1107-s2056989019011253": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-mec::doi-10-1002-dta-155": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-mec::doi-10-1016-j-forsciint-2011-03-019": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-meo-pcp::doi-10-1002-dta-1620": [
+          "crossref",
+          "pubmed"
+        ],
+        "4-meo-pcp::doi-10-1371-journal-pone-0059334": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-apb::doi-10-1007-s00204-020-02693-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-apb::doi-10-1007-s00213-020-05648-z": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-apb::doi-10-1016-j-ejphar-2012-12-006": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-apb::doi-10-1016-j-pnpbp-2013-08-013": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-apb::doi-10-1111-bph-13128": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-mapb::doi-10-1007-s00216-014-8360-0": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-mapb::doi-10-1016-j-pnpbp-2016-11-004": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-mapb::doi-10-1177-0269881120920420": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1002-npr2-12161": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1007-bf03160901": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1007-s00213-014-3557-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1007-s11419-018-0433-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1007-s12640-016-9654-0": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1016-j-bcp-2006-01-015": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1016-j-physbeh-2011-01-021": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1097-fbp-0000000000000841": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1124-pr-115-011478": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1186-1940-0640-8-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-1186-s40249-018-0508-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::doi-10-4065-81-4-550": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dipt::pmid-6949674": [
+          "pubmed"
+        ],
+        "5-meo-dmt::doi-10-1007-s00213-014-3557-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dmt::doi-10-1016-j-bpsc-2024-01-007": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dmt::doi-10-1111-jnc-15587": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dmt::doi-10-1371-journal-pone-0009019": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-dmt::doi-10-2174-138920010794233495": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1002-dta-2245": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1007-s00213-014-3557-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1007-s00213-024-06526-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1007-s12640-016-9654-0": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1016-j-euroneuro-2016-05-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1016-j-jpba-2024-115987": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1021-jm00145a007": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-1038-s41380-024-02506-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "5-meo-mipt::doi-10-4274-balkanmedj-galenos-2020-2019-11-68": [
+          "crossref",
+          "pubmed"
+        ],
+        "6-apb::doi-10-1007-s00213-020-05648-z": [
+          "crossref",
+          "pubmed"
+        ],
+        "6-apb::doi-10-1007-s13181-013-0306-y": [
+          "crossref",
+          "pubmed"
+        ],
+        "6-apb::doi-10-1016-j-ejphar-2012-12-006": [
+          "crossref",
+          "pubmed"
+        ],
+        "6-apb::doi-10-1111-bph-13128": [
+          "crossref",
+          "pubmed"
+        ],
+        "6-apb::doi-10-1177-0269881120920420": [
+          "crossref",
+          "pubmed"
+        ],
+        "acetylfentanyl::doi-10-1007-s11419-007-0039-1": [
+          "crossref"
+        ],
+        "acetylfentanyl::doi-10-1007-s13181-015-0477-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "acetylfentanyl::doi-10-1016-j-drugpo-2015-04-003": [
+          "crossref",
+          "pubmed"
+        ],
+        "acetylfentanyl::doi-10-1016-j-forsciint-2016-08-025": [
+          "crossref",
+          "pubmed"
+        ],
+        "acrylfentanyl::doi-10-1002-dta-2046": [
+          "crossref",
+          "pubmed"
+        ],
+        "acrylfentanyl::doi-10-1016-j-neuropharm-2022-109020": [
+          "crossref",
+          "pubmed"
+        ],
+        "acrylfentanyl::doi-10-1021-jm00350a006": [
+          "crossref",
+          "pubmed"
+        ],
+        "acrylfentanyl::hayashi-2024-frontspsychiatry": [
+          "crossref",
+          "pubmed"
+        ],
+        "adrafinil::doi-10-1124-jpet-108-146142": [
+          "crossref",
+          "pubmed"
+        ],
+        "adrafinil::url-fda-gov-peak-nootropics-llc-aka-advanced-nootropics-557887-02052019": [],
+        "al-lad::doi-10-1002-dta-1985": [
+          "crossref",
+          "pubmed"
+        ],
+        "al-lad::doi-10-1021-jm00147a022": [
+          "crossref",
+          "pubmed"
+        ],
+        "al-lad::doi-10-1248-yakushi1947-96-5-673": [
+          "crossref",
+          "pubmed"
+        ],
+        "al-lad::doi-dbc3139042e2b2baf5a2e6c65edc6afe9b131f79": [
+          "pubmed"
+        ],
+        "ald-52::doi-10-1002-dta-3691": [
+          "crossref",
+          "pubmed"
+        ],
+        "ald-52::doi-10-1007-s00216-018-1558-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "ald-52::doi-10-1016-j-neuropharm-2019-107856": [
+          "crossref",
+          "pubmed"
+        ],
+        "aleph-2::doi-10-3389-fphar-2019-01590": [
+          "crossref",
+          "pubmed"
+        ],
+        "alprazolam::doi-10-1016-s0924-977x-00-00137-1": [
+          "crossref",
+          "pubmed"
+        ],
+        "alprazolam::doi-10-1097-adm-0000000000000350": [
+          "crossref",
+          "pubmed"
+        ],
+        "amobarbital::doi-10-1038-sj-bjp-0705974": [
+          "crossref",
+          "pubmed"
+        ],
+        "amobarbital::pmid-684279": [
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1002-14651858-cd003021-pub2": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1002-14651858-cd003026-pub3": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1007-bf03033289": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1007-s40263-013-0084-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1016-j-bmc-2011-10-007": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1016-j-neuron-2014-05-043": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1016-j-pharmthera-2014-03-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1111-j-1471-4159-2010-07109-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1111-j-1749-6632-2010-05906-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1124-pr-115-012260": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1177-0269881113482532": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-1186-1471-244x-12-221": [
+          "crossref",
+          "pubmed"
+        ],
+        "amphetamine::doi-10-4161-23328940-2014-982049": [
+          "crossref",
+          "pubmed"
+        ],
+        "amt::doi-10-1093-jat-29-5-394": [
+          "crossref",
+          "pubmed"
+        ],
+        "armodafinil::doi-10-1016-bs-apha-2023-10-006": [
+          "crossref",
+          "openalex",
+          "pubmed"
+        ],
+        "armodafinil::doi-10-1016-j-biopsych-2010-08-026": [
+          "crossref",
+          "pubmed"
+        ],
+        "armodafinil::doi-10-1517-13543784-17-4-565": [
+          "crossref",
+          "pubmed"
+        ],
+        "armodafinil::doi-10-2165-11203290-000000000-00000": [
+          "crossref",
+          "pubmed"
+        ],
+        "armodafinil::doi-10-2165-11315280-000000000-00000": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-1002-hup-2728": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-1007-s00018-024-05353-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-1016-j-drugpo-2006-11-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-1016-j-pharmthera-2004-03-002": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-1080-02791072-2005-10399797": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-1177-10915818241230916": [
+          "crossref",
+          "pubmed"
+        ],
+        "ayahuasca::doi-10-3389-fphar-2016-00035": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1002-14651858-cd012557-pub3": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1007-s12028-020-01114-y": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1159-000333247": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1176-appi-psy-46-6-503": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1177-1941874416637404": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1177-20503121211022197": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::doi-10-1542-peds-101-6-1045": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::frontiers-psy-2022-949750": [
+          "crossref",
+          "pubmed"
+        ],
+        "baclofen::pmid-32436697": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromazepam::doi-10-1007-s00228-003-0681-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromazepam::doi-10-1016-0379-0738-84-90028-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromazepam::doi-10-1185-03007998409110117": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromazepam::pmid-1575069": [
+          "pubmed"
+        ],
+        "bromazepam::pmid-6124936": [
+          "pubmed"
+        ],
+        "bromazolam::doi-10-1016-j-tins-2011-01-004": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromazolam::doi-10-1093-jat-bkaa161": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromo-dragonfly::doi-10-1007-bf03178273": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromo-dragonfly::doi-10-1016-j-forsciint-2008-11-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromo-dragonfly::doi-10-1016-j-toxlet-2018-07-018": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromo-dragonfly::doi-10-1021-jm9803525": [
+          "crossref",
+          "pubmed"
+        ],
+        "bromo-dragonfly::pmid-18522262": [
+          "pubmed"
+        ],
+        "brotizolam::doi-10-2165-00003495-198835020-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "brotizolam::doi-10-3109-15563659509010615": [
+          "crossref",
+          "pubmed"
+        ],
+        "buprenorphine::doi-10-4103-0976-3147-91934": [
+          "crossref",
+          "pubmed"
+        ],
+        "butylone::doi-10-1007-s00213-018-5075-5": [
+          "crossref",
+          "pubmed"
+        ],
+        "butylone::doi-10-1007-s13181-011-0193-z": [
+          "crossref",
+          "pubmed"
+        ],
+        "butylone::doi-10-1016-j-bcp-2013-04-004": [
+          "crossref",
+          "pubmed"
+        ],
+        "butylone::doi-10-1016-j-forsciint-2009-04-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "butylone::doi-10-1111-j-1476-5381-2012-01998-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "butylone::doi-10-1111-j-1476-5381-2012-02145-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-1007-bf00613933": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-1007-s00213-004-2000-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-1007-s40429-014-0024-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-1016-j-neuropharm-2015-05-028": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-1073-pnas-1208404109": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-1093-ajcn-74-5-694": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-3233-jad-2010-1379": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-3233-jad-2010-1400": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-3389-fpsyg-2024-1270246": [
+          "crossref",
+          "pubmed"
+        ],
+        "caffeine::doi-10-3406-cea-1980-2353": [
+          "crossref"
+        ],
+        "caffeine::pmid-30137774": [
+          "pubmed"
+        ],
+        "caffeine::pmid-30422505": [
+          "pubmed"
+        ],
+        "cannabis::doi-10-1038-sj-bjp-0706406": [
+          "crossref",
+          "pubmed"
+        ],
+        "cannabis::doi-10-1126-sciadv-abg2286": [
+          "crossref",
+          "pubmed"
+        ],
+        "clobazam::doi-10-1111-cns-12399": [
+          "crossref",
+          "pubmed"
+        ],
+        "clonazepam::pmid-10779253": [
+          "pubmed"
+        ],
+        "clonazepam::pmid-32310470": [
+          "pubmed"
+        ],
+        "cocaine::doi-10-1001-archotol-1989-01860250065028": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1002-bewi-202400005": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1016-0378-8741-81-90063-5": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1016-j-addbeh-2004-10-010": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1016-j-ccc-2012-07-003": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1016-s0090-9556-25-08737-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1016-s0376-8716-97-00157-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1038-npp-2014-71": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-1111-j-1369-1600-2009-00179-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-3389-fneur-2015-00134": [
+          "crossref",
+          "pubmed"
+        ],
+        "cocaine::doi-10-3390-biology12050752": [
+          "crossref",
+          "pubmed"
+        ],
+        "codeine::doi-10-1038-tp-2014-121": [
+          "crossref",
+          "openalex"
+        ],
+        "delorazepam::doi-10-1002-bdd-2510010306": [
+          "crossref",
+          "pubmed"
+        ],
+        "delorazepam::doi-10-1002-bmc-1249": [
+          "crossref",
+          "pubmed"
+        ],
+        "delorazepam::doi-10-1007-bf00198309": [
+          "crossref",
+          "pubmed"
+        ],
+        "delorazepam::pmid-2568350": [
+          "pubmed"
+        ],
+        "delorazepam::pmid-2875955": [
+          "pubmed"
+        ],
+        "delorazepam::pmid-322671": [
+          "pubmed"
+        ],
+        "delorazepam::pmid-6127668": [
+          "pubmed"
+        ],
+        "delorazepam::pmid-6130594": [
+          "pubmed"
+        ],
+        "desmethylflunitrazepam::doi-10-1002-jms-3840": [
+          "crossref",
+          "pubmed"
+        ],
+        "desmethylflunitrazepam::doi-10-1007-s11419-016-0338-5": [
+          "crossref",
+          "pubmed"
+        ],
+        "desmethylflunitrazepam::doi-10-1016-s0378-4347-98-00383-1": [
+          "crossref",
+          "pubmed"
+        ],
+        "desmethylflunitrazepam::pmid-11259331": [
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1016-j-drugalcdep-2016-12-021": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1016-j-drugpo-2013-04-007": [
+          "crossref",
+          "openalex"
+        ],
+        "desomorphine::doi-10-1016-j-forsciint-2015-02-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1016-j-forsciint-2018-05-017": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1016-j-jdcr-2016-02-007": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1016-j-lfs-2014-03-008": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1021-acschemneuro-0c00495": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-1080-10550887-2012-735570": [
+          "crossref",
+          "pubmed"
+        ],
+        "desomorphine::doi-10-2196-jmir-3203": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::doi-10-1111-j-1471-4159-2010-07109-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::doi-10-1111-j-1749-6632-2010-05906-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::doi-10-1124-mol-60-6-1181": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::mcgregor-2005-withdrawal": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::nestler-2001-deltafosbswitch": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::shoptaw-2009-psychosis": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::wilens-2003-stimulant-sud": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextroamphetamine::zhang-2022-cvd-meta": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextromethorphan::ajhp-2010-dxm-vote": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextromethorphan::doi-10-1016-j-neuro-2007-03-009": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextromethorphan::doi-10-1126-science-2660263": [
+          "crossref",
+          "pubmed"
+        ],
+        "dextromethorphan::pmc3938562-dxm-sigma1": [
+          "crossref",
+          "pubmed"
+        ],
+        "diazepam::doi-10-1097-01-yco-0000165594-60434-84": [
+          "crossref",
+          "pubmed"
+        ],
+        "diazepam::doi-10-1111-j-1600-0404-2008-01004-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "diazepam::pmid-2826308": [
+          "pubmed"
+        ],
+        "diclazepam::doi-10-1002-dta-1628": [
+          "crossref",
+          "pubmed"
+        ],
+        "diclazepam::doi-10-1016-j-encep-2007-05-005": [
+          "crossref"
+        ],
+        "dimenhydrinate::doi-10-1136-bcr-2023-258493": [
+          "crossref",
+          "pubmed"
+        ],
+        "dimenhydrinate::doi-10-3389-fphar-2018-00913": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenhydramine::doi-10-1002-cpdd-391": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenhydramine::doi-10-1016-j-jmb-2005-08-040": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenhydramine::doi-10-1016-s0006-8993-00-02860-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenhydramine::doi-10-1016-s0022-3565-24-38031-0": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenhydramine::doi-10-1177-0269881107083809": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenidine::doi-10-1002-dta-1620": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenidine::doi-10-1002-dta-1689": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenidine::doi-10-1016-j-bmc-2009-03-025": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenidine::doi-10-1016-j-legalmed-2015-06-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "diphenidine::doi-10-1371-journal-pone-0157021": [
+          "crossref",
+          "pubmed"
+        ],
+        "dipt::doi-10-1007-s00213-014-3557-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "dipt::doi-10-1111-j-1476-5381-1959-tb00934-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "dipt::doi-10-1124-jpet-111-179705": [
+          "crossref",
+          "pubmed"
+        ],
+        "dipt::doi-10-1124-jpet-114-219337": [
+          "crossref",
+          "pubmed"
+        ],
+        "dipt::doi-10-3109-15563650-2011-615318": [
+          "crossref",
+          "pubmed"
+        ],
+        "dipt::pmid-6949674": [
+          "pubmed"
+        ],
+        "dmt::doi-10-1007-s00018-024-05353-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-1007-s002130000606": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-1016-j-drugalcdep-2022-109586": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-1073-pnas-1902174116": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-1111-j-1360-0443-2006-01652-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-1177-02698811231196877": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-2174-1570159x16666180125095902": [
+          "crossref",
+          "pubmed"
+        ],
+        "dmt::doi-10-3389-fpsyt-2017-00152": [
+          "crossref",
+          "pubmed"
+        ],
+        "dob::doi-10-1111-j-1471-4159-2005-03477-x": [
+          "crossref"
+        ],
+        "doc::doi-10-1093-jat-bku087": [
+          "crossref",
+          "pubmed"
+        ],
+        "doc::doi-10-1177-1941874414528939": [
+          "crossref",
+          "pubmed"
+        ],
+        "doet::doi-10-1002-dta-3667": [
+          "crossref",
+          "pubmed"
+        ],
+        "doet::doi-10-1007-978-1-4757-0510-2-6": [
+          "crossref"
+        ],
+        "doet::doi-10-1038-s41380-025-03325-1": [
+          "crossref",
+          "pubmed"
+        ],
+        "doi::doi-10-1002-dta-1333": [
+          "crossref",
+          "pubmed"
+        ],
+        "doi::doi-10-1016-j-celrep-2018-05-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "doi::doi-10-1073-pnas-0905884106": [
+          "crossref",
+          "pubmed"
+        ],
+        "doi::doi-10-1124-jpet-108-143461": [
+          "crossref",
+          "pubmed"
+        ],
+        "dpt::doi-10-1097-fbp-0b013e3281f19ca0": [
+          "crossref",
+          "pubmed"
+        ],
+        "ephedrine::doi-10-1016-j-ejps-2018-10-027": [
+          "crossref",
+          "pubmed"
+        ],
+        "ephenidine::doi-10-1002-dta-1621": [
+          "crossref",
+          "pubmed"
+        ],
+        "ephenidine::doi-10-1002-dta-1689": [
+          "crossref",
+          "pubmed"
+        ],
+        "eszopiclone::doi-10-1056-nejmp0907708": [
+          "crossref",
+          "pubmed"
+        ],
+        "eszopiclone::doi-10-5664-jcsm-27552": [
+          "crossref",
+          "pubmed"
+        ],
+        "eth-lad::doi-10-1016-0091-3057-86-90362-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "eth-lad::doi-10-1021-jm00147a022": [
+          "crossref",
+          "pubmed"
+        ],
+        "eth-lad::doi-10-1248-yakushi1947-96-5-673": [
+          "crossref",
+          "pubmed"
+        ],
+        "etizolam::doi-10-1007-bf00280074": [
+          "crossref",
+          "pubmed"
+        ],
+        "etizolam::doi-10-1016-j-ejphar-2005-06-047": [
+          "crossref",
+          "pubmed"
+        ],
+        "etizolam::doi-10-1016-j-ejphar-2008-08-024": [
+          "crossref",
+          "pubmed"
+        ],
+        "etizolam::doi-10-1055-s-0031-1300366": [
+          "crossref",
+          "pubmed"
+        ],
+        "eutylone::doi-10-1093-jat-bkaa113": [
+          "crossref",
+          "pubmed"
+        ],
+        "fentanyl::doi-10-1016-0885-3924-92-90047-l": [
+          "crossref",
+          "pubmed"
+        ],
+        "fentanyl::doi-10-1016-j-heliyon-2023-e23083": [
+          "crossref",
+          "pubmed"
+        ],
+        "fentanyl::doi-10-1093-jat-bks078": [
+          "crossref",
+          "pubmed"
+        ],
+        "fentanyl::doi-10-1124-jpet-119-258566": [
+          "crossref",
+          "pubmed"
+        ],
+        "fentanyl::doi-10-1152-physiol-00015-2020": [
+          "crossref",
+          "pubmed"
+        ],
+        "flubromazolam::doi-10-3109-15563650-2015-1112907": [
+          "crossref",
+          "pubmed"
+        ],
+        "flubromazolam::doi-10-3390-neurolint14030053": [
+          "crossref",
+          "pubmed"
+        ],
+        "flunitrazepam::doi-10-1016-j-pharma-2009-07-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "flunitrazepam::doi-10-1016-s0379-0738-01-00632-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "flunitrazepam::doi-10-1097-00007611-200093060-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "flunitrazepam::doi-10-1371-journal-pone-0089031": [
+          "crossref",
+          "pubmed"
+        ],
+        "flunitrazepam::doi-10-2165-00003495-198223050-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "flunitrazepam::pmid-11159802": [
+          "pubmed"
+        ],
+        "flunitrazepam::pmid-23789008": [
+          "pubmed"
+        ],
+        "flunitrazepam::pmid-23801": [
+          "pubmed"
+        ],
+        "flunitrazepam::pmid-2905804": [
+          "pubmed"
+        ],
+        "flunitrazolam::doi-10-1002-dta-2480": [
+          "crossref",
+          "pubmed"
+        ],
+        "furanylfentanyl::doi-10-1016-j-drugpo-2015-04-003": [
+          "crossref",
+          "pubmed"
+        ],
+        "furanylfentanyl::doi-10-1016-j-neuropharm-2022-109020": [
+          "crossref",
+          "pubmed"
+        ],
+        "furanylfentanyl::doi-10-24875-ric-23000109": [
+          "crossref",
+          "pubmed"
+        ],
+        "furanylfentanyl::doi-10-3109-15563650-2016-1139715": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1002-pds-2036": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1007-s40263-014-0164-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1007-s40265-017-0700-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1016-j-bcp-2013-03-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1111-j-1360-0443-2011-03619-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1111-j-1399-5618-2005-00200-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-1124-mol-118-112953": [
+          "crossref",
+          "pubmed"
+        ],
+        "gabapentin::doi-10-25259-ijmr-1990-2024": [
+          "crossref",
+          "pubmed"
+        ],
+        "gbl::doi-10-1111-j-1360-0443-1997-tb03640-x": [
+          "crossref"
+        ],
+        "heroin::doi-10-1016-j-crad-2007-07-021": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1016-j-drugalcdep-2019-02-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1046-j-1360-0443-1996-911217652-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1111-j-1365-2125-2008-03286-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1136-bmj-297-6662-1511": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1186-1477-7517-8-3": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1378-chest-123-2-510": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-1517-14740338-4-1-19": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::doi-10-4103-0976-500x-99448": [
+          "crossref",
+          "pubmed"
+        ],
+        "heroin::url-medlineplus-gov-000949-htm": [],
+        "hxe::doi-10-1002-dta-1541": [
+          "crossref",
+          "pubmed"
+        ],
+        "hxe::doi-10-1016-j-brainresbull-2016-05-002": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydrocodone::doi-10-1007-s13181-012-0263-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydrocodone::doi-10-1007-s40262-016-0373-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydrocodone::doi-10-1016-j-otohns-2010-01-010": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydrocodone::doi-10-1016-s0196-0709-00-80007-1": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydrocodone::doi-10-1124-jpet-113-207548": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydrocodone::doi-10-2147-cpaa-s70831": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydroxyzine::doi-10-1002-ana-410110423": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydroxyzine::doi-10-1002-hup-1051": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydroxyzine::doi-10-1007-bf00626365": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydroxyzine::doi-10-1016-0091-6749-84-90486-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydroxyzine::doi-10-1038-clpt-1989-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "hydroxyzine::doi-10-2165-00003088-198510060-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1002-cpdd-254": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1007-s12012-015-9311-5": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1016-0304-3940-95-11608-y": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1016-j-celrep-2018-05-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1016-j-neuropharm-2015-08-032": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1016-s0022-3565-24-29567-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1021-acs-jmedchem-5c02510": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1021-acschemneuro-8b00294": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1080-00952990-2017-1320802": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1111-j-1556-4029-2011-02008-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-1371-journal-pone-0077262": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-2174-1570159x21666221017085612": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-3109-15563650-2016-1138226": [
+          "crossref",
+          "pubmed"
+        ],
+        "ibogaine::doi-10-3390-molecules20022208": [
+          "crossref",
+          "pubmed"
+        ],
+        "jwh-018::doi-10-1002-dta-2310": [
+          "crossref",
+          "pubmed"
+        ],
+        "jwh-018::doi-10-1016-j-drugalcdep-2011-01-012": [
+          "crossref",
+          "pubmed"
+        ],
+        "jwh-018::doi-10-1016-j-forsciint-2009-06-008": [
+          "crossref",
+          "pubmed"
+        ],
+        "jwh-018::doi-10-1016-j-forsciint-2010-04-003": [
+          "crossref",
+          "pubmed"
+        ],
+        "jwh-018::doi-10-1021-ac2005636": [
+          "crossref",
+          "pubmed"
+        ],
+        "jwh-018::doi-10-3238-arztebl-2009-0464": [
+          "crossref",
+          "pubmed"
+        ],
+        "kava::doi-10-1016-j-phrs-2012-04-003": [
+          "crossref",
+          "pubmed"
+        ],
+        "kava::doi-10-1021-tx100412m": [
+          "crossref",
+          "pubmed"
+        ],
+        "kava::doi-10-2165-00023210-200216110-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-1002-nau-24341": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-1016-j-ajem-2007-12-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-1016-j-cgh-2014-01-041": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-1016-s0006-3223-99-00230-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-1111-j-1360-0443-2009-02761-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-1111-pcn-12902": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-3389-fnhum-2016-00612": [
+          "crossref",
+          "pubmed"
+        ],
+        "ketamine::doi-10-3892-etm-2017-4913": [
+          "crossref",
+          "pubmed"
+        ],
+        "kratom::doi-10-7759-cureus-16582": [
+          "crossref",
+          "pubmed"
+        ],
+        "lisdexamfetamine::pmid-20514273": [
+          "pubmed"
+        ],
+        "lithium::pmid-28591541": [
+          "crossref",
+          "pubmed"
+        ],
+        "lorazepam::doi-10-1007-bf02245638": [
+          "crossref",
+          "pubmed"
+        ],
+        "lorazepam::doi-10-1592-phco-24-13-1177-38089": [
+          "crossref",
+          "pubmed"
+        ],
+        "lorazepam::pmid-10779253": [
+          "pubmed"
+        ],
+        "lsd::doi-10-1016-j-forsciint-2018-01-006": [
+          "crossref",
+          "pubmed"
+        ],
+        "lsd::doi-10-1016-j-nsa-2025-105525": [
+          "crossref",
+          "pubmed"
+        ],
+        "lsz::doi-10-1021-acschemneuro-8b00043": [
+          "crossref",
+          "pubmed"
+        ],
+        "mda::simmler-2016-taar1": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1016-0006-8993-90-90813-q": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1016-j-ejphar-2021-174156": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1016-j-expneurol-2021-113894": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1016-j-neubiorev-2016-02-003": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1021-acschemneuro-8b00155": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1046-j-1365-2125-2000-00121-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1080-02791072-1986-10472368": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1080-02791072-2001-10400568": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1093-toxsci-kfv170": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1097-ftd-0b013e3181684fa0": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1111-bph-70225": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1111-j-1360-0443-2006-01511-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1111-j-1360-0443-2010-02948-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1124-jpet-115-229765": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1124-mol-63-6-1223": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-1523-jneurosci-5723-07-2008": [
+          "crossref",
+          "pubmed"
+        ],
+        "mdma::doi-10-2147-sar-s37258": [
+          "crossref",
+          "pubmed"
+        ],
+        "melatonin::doi-10-1093-jxb-err256": [
+          "crossref",
+          "pubmed"
+        ],
+        "melatonin::doi-10-1126-science-1167425": [
+          "crossref",
+          "pubmed"
+        ],
+        "memantine::doi-10-1021-acschemneuro-7b00270": [
+          "crossref",
+          "pubmed"
+        ],
+        "memantine::pmid-9832937": [
+          "openalex"
+        ],
+        "mescaline::doi-10-1016-j-jep-2005-04-022": [
+          "crossref",
+          "pubmed"
+        ],
+        "mescaline::doi-10-3390-molecules28247942": [
+          "crossref",
+          "pubmed"
+        ],
+        "methadone::doi-10-2165-00003088-200241140-00003": [
+          "crossref",
+          "pubmed"
+        ],
+        "methadone::pmid-21619737": [
+          "openalex"
+        ],
+        "methadone::pmid-21935293": [
+          "pubmed"
+        ],
+        "methamphetamine::doi-10-3109-15563650-2010-516752": [
+          "crossref",
+          "pubmed"
+        ],
+        "methaqualone::chen-2024-nat-commun": [
+          "crossref",
+          "pubmed"
+        ],
+        "methaqualone::clifford-1974-clin-pharmacol-ther": [
+          "crossref",
+          "pubmed"
+        ],
+        "methaqualone::doi-10-1124-mol-115-099291": [
+          "crossref",
+          "pubmed"
+        ],
+        "methcathinone::doi-10-1007-s00213-018-5063-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "methcathinone::doi-10-1016-0091-3057-87-90164-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "methcathinone::doi-10-1080-02791072-1995-10472472": [
+          "crossref",
+          "pubmed"
+        ],
+        "methcathinone::pmc-10937789-cathinone-cardiotox": [
+          "crossref",
+          "pubmed"
+        ],
+        "methoxetamine::doi-10-1007-s00228-011-1199-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "methoxetamine::doi-10-1080-02791072-2013-803647": [
+          "crossref",
+          "pubmed"
+        ],
+        "methoxetamine::doi-10-3109-15563650-2012-683437": [
+          "crossref",
+          "pubmed"
+        ],
+        "methoxetamine::doi-10-3109-15563650-2014-892605": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-1001-jamapsychiatry-2025-4625": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-1016-j-brainresbull-2016-03-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-1080-00498250600780191": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-1177-0269881120920420": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-3389-fnins-2024-1353131": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-3389-fpsyt-2022-990405": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-3390-ijms232314636": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylone::doi-10-3390-ijms24076230": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1001-jamanetworkopen-2022-43597": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1007-s40120-022-00392-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1016-j-coph-2004-10-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1056-nejmoa1110212": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1089-cap-2006-16-687": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1097-wnf-0b013e3181e29174": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1124-jpet-104-067116": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1136-adc-2004-056952": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-1136-dtb-2025-000019": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-2165-00003088-199937060-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-2174-1570159x13666150407225902": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-3109-03602539709037587": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-3390-ijerph15081789": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-4414-smw-2011-13267": [
+          "crossref",
+          "pubmed"
+        ],
+        "methylphenidate::doi-10-64719-pb-4104": [
+          "crossref",
+          "pubmed"
+        ],
+        "metizolam::doi-10-1002-dta-2099": [
+          "crossref",
+          "pubmed"
+        ],
+        "metizolam::doi-10-1002-jms-3840": [
+          "crossref",
+          "pubmed"
+        ],
+        "mipla::doi-10-1007-s00213-018-5055-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "mipla::doi-10-1016-0091-3057-94-90172-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "modafinil::doi-10-1080-21556660-2020-1745209": [
+          "crossref",
+          "pubmed"
+        ],
+        "modafinil::doi-10-1161-01-hyp-0000158267-66763-63": [
+          "crossref",
+          "pubmed"
+        ],
+        "modafinil::doi-10-2165-00003088-200342020-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "modafinil::doi-10-5620-eht-2012-27-e2012007": [
+          "crossref",
+          "pubmed"
+        ],
+        "modafinil::pmid-30285371": [
+          "pubmed"
+        ],
+        "morphine::doi-10-1002-med-20035": [
+          "crossref",
+          "pubmed"
+        ],
+        "morphine::doi-10-1016-s0140-6736-20-30852-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "morphine::doi-10-1021-cn300049m": [
+          "crossref",
+          "pubmed"
+        ],
+        "morphine::doi-10-1021-cn9000236": [
+          "crossref",
+          "pubmed"
+        ],
+        "morphine::doi-10-1111-bph-12222": [
+          "crossref",
+          "pubmed"
+        ],
+        "morphine::doi-10-14712-fb2012058020049": [
+          "crossref",
+          "pubmed"
+        ],
+        "morphine::pmid-15082884": [
+          "pubmed"
+        ],
+        "morphine::pmid-17152761": [
+          "pubmed"
+        ],
+        "nicotine::doi-10-1007-bf02245088": [
+          "crossref",
+          "pubmed"
+        ],
+        "nicotine::doi-10-1007-s00204-013-1127-0": [
+          "crossref",
+          "pubmed"
+        ],
+        "nicotine::doi-10-1007-s00213-010-1848-1": [
+          "crossref",
+          "pubmed"
+        ],
+        "nicotine::doi-10-1093-toxsci-kfq103": [
+          "crossref",
+          "pubmed"
+        ],
+        "nicotine::doi-10-2105-ajph-78-6-696": [
+          "crossref",
+          "pubmed"
+        ],
+        "nicotine::doi-10-2174-1570159x15666171103152136": [
+          "crossref",
+          "pubmed"
+        ],
+        "nicotine::doi-10-3389-fonc-2015-00196": [
+          "crossref",
+          "pubmed"
+        ],
+        "nifoxipam::doi-10-1002-wps-20236": [
+          "crossref",
+          "pubmed"
+        ],
+        "nifoxipam::doi-10-1016-j-encep-2007-05-005": [
+          "crossref"
+        ],
+        "nitrazepam::doi-10-1002-chem-202000710": [
+          "crossref",
+          "pubmed"
+        ],
+        "nitrazepam::doi-10-1016-s0387-7604-12-80149-5": [
+          "crossref",
+          "pubmed"
+        ],
+        "nitrazepam::doi-10-1111-j-1528-1157-1999-tb00746-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "nitrazepam::doi-10-1124-dmd-108-024521": [
+          "crossref",
+          "pubmed"
+        ],
+        "nitrazepam::pmid-10030438": [
+          "pubmed"
+        ],
+        "nitrazepam::pmid-29254253": [
+          "crossref",
+          "pubmed"
+        ],
+        "nitrazepam::pmid-6517646": [
+          "pubmed"
+        ],
+        "nitrazepam::viukari-1978-nitrazepam-sleep": [
+          "crossref",
+          "pubmed"
+        ],
+        "noopept::doi-10-1007-bf03189814": [
+          "crossref",
+          "pubmed"
+        ],
+        "noopept::doi-10-1134-s1607672916040104": [
+          "crossref",
+          "pubmed"
+        ],
+        "noopept::doi-10-1134-s1607672920050129": [
+          "crossref",
+          "pubmed"
+        ],
+        "noopept::doi-10-1134-s1607672922060047": [
+          "crossref",
+          "pubmed"
+        ],
+        "noopept::doi-10-1212-cpj-0000000000000960": [
+          "crossref",
+          "pubmed"
+        ],
+        "noopept::pmid-12596521": [
+          "pubmed"
+        ],
+        "noopept::pmid-15079908": [
+          "pubmed"
+        ],
+        "o-pce::doi-10-1016-j-forsciint-2018-07-014": [
+          "crossref",
+          "pubmed"
+        ],
+        "o-pce::doi-10-1093-jat-bkaa038": [
+          "crossref",
+          "pubmed"
+        ],
+        "o-pce::doi-10-1093-jat-bky063": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxazepam::doi-10-1007-bf02244823": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxazepam::doi-10-1016-j-scitotenv-2019-05-488": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxazepam::doi-10-1038-ncomms13460": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxazepam::doi-10-1111-j-1753-6405-1993-tb00167-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxazepam::doi-10-1126-science-1226850": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1007-s12094-007-0057-9": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1007-s40618-018-0964-3": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1016-j-ijscr-2017-11-060": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1016-j-jpainsymman-2005-01-010": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1016-s1522-8649-03-50051-8": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1124-dmd-106-009746": [
+          "crossref",
+          "pubmed"
+        ],
+        "oxycodone::doi-10-1517-17425255-2013-779669": [
+          "crossref",
+          "pubmed"
+        ],
+        "pce::pelletier-2022-ach": [
+          "crossref",
+          "pubmed"
+        ],
+        "pentobarbital::doi-10-1177-014107680409701214": [
+          "crossref",
+          "pubmed"
+        ],
+        "pentobarbital::doi-10-2146-ajhp100333": [
+          "crossref",
+          "pubmed"
+        ],
+        "pentobarbital::doi-10-3390-ani12030365": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenazepam::doi-10-1002-dta-349": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenazepam::doi-10-1016-j-forsciint-2012-02-006": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenazepam::doi-10-1016-j-jflm-2011-12-014": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenazepam::kopanitsa-2001-gabaa": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenethylamine::doi-10-1016-j-meatsci-2013-06-030": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenethylamine::doi-10-1016-j-pharmthera-2009-11-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenethylamine::doi-10-1021-ja01191a057": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenethylamine::doi-10-1073-pnas-93-10-5166": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenethylamine::doi-10-1126-science-7063846": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenethylamine::doi-10-3389-fnins-2016-00148": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenibut::doi-10-1016-j-ejphar-2008-01-015": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenibut::doi-10-1016-j-pbb-2015-07-014": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenibut::doi-10-1111-j-1527-3458-2001-tb00211-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenibut::doi-10-15585-mmwr-mm6935a5": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenobarbital::pmid-18568113": [
+          "pubmed"
+        ],
+        "phenylpiracetam::doi-10-1016-j-pbb-2017-07-009": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenylpiracetam::doi-10-1017-s1461145714000996": [
+          "crossref",
+          "pubmed"
+        ],
+        "phenylpiracetam::doi-10-17116-jnevro202412408121": [
+          "crossref",
+          "pubmed"
+        ],
+        "piracetam::doi-10-1001-jamainternmed-2019-5507": [
+          "crossref",
+          "pubmed"
+        ],
+        "piracetam::doi-10-1016-0165-0173-94-90011-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "piracetam::doi-10-1021-jm901905j": [
+          "crossref",
+          "pubmed"
+        ],
+        "piracetam::doi-10-1111-j-1527-3458-2005-tb00268-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "piracetam::doi-10-1258-ebm-2012-012128": [
+          "crossref",
+          "pubmed"
+        ],
+        "promethazine::doi-10-1016-j-neuropharm-2012-03-006": [
+          "crossref",
+          "pubmed"
+        ],
+        "promethazine::doi-10-1093-qjmed-hcn153": [
+          "crossref",
+          "pubmed"
+        ],
+        "proscaline::doi-10-1177-0269881119826610": [
+          "crossref",
+          "pubmed"
+        ],
+        "proscaline::doi-10-3389-fphar-2021-794254": [
+          "crossref",
+          "pubmed"
+        ],
+        "psilocin::doi-10-1016-j-neuropharm-2011-01-017": [
+          "crossref",
+          "pubmed"
+        ],
+        "psilocin::doi-10-1017-s1092852922000888": [
+          "crossref",
+          "pubmed"
+        ],
+        "psilocybin-mushrooms::doi-10-1097-00005053-196312000-00007": [
+          "crossref"
+        ],
+        "psilocybin-mushrooms::doi-10-1097-00005053-198410000-00001": [
+          "crossref"
+        ],
+        "pyrazolam::doi-10-1002-wps-20236": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1002-wps-21010": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1016-s0924-977x-00-00133-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1016-s2215-0366-19-30416-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1080-10826084-2019-1668013": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1097-yco-0b013e3282f53132": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1111-acps-13515": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1111-j-1600-0447-2006-00787-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-1176-appi-ajp-158-3-360": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-3389-fpsyt-2013-00102": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-4103-2279-042x-200987": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::doi-10-9740-mhc-2016-11-308": [
+          "crossref",
+          "pubmed"
+        ],
+        "quetiapine::pmid-12562141": [
+          "pubmed"
+        ],
+        "quetiapine::pmid-9855315": [
+          "pubmed"
+        ],
+        "sertraline::doi-10-7759-cureus-45558": [
+          "crossref",
+          "pubmed"
+        ],
+        "sertraline::pmid-16913164": [
+          "pubmed"
+        ],
+        "sertraline::pmid24800130": [
+          "pubmed"
+        ],
+        "sertraline::pmid33224471": [
+          "crossref",
+          "pubmed"
+        ],
+        "tapentadol::doi-10-2147-dddt-s402362": [
+          "crossref",
+          "pubmed"
+        ],
+        "temazepam::doi-10-1046-j-1360-0443-1995-9079598-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "temazepam::pmid-38261668": [],
+        "theanine::doi-10-1016-j-bbrc-2004-05-143": [
+          "crossref",
+          "pubmed"
+        ],
+        "theanine::doi-10-1016-j-nutres-2024-12-008": [
+          "crossref",
+          "pubmed"
+        ],
+        "theanine::doi-10-1016-j-phrs-2011-03-010": [
+          "crossref",
+          "pubmed"
+        ],
+        "theanine::doi-10-1016-s0378-4274-01-00317-4": [
+          "crossref",
+          "pubmed"
+        ],
+        "theanine::doi-10-1021-acschemneuro-7b00036": [
+          "crossref",
+          "pubmed"
+        ],
+        "theanine::doi-10-1186-2193-1801-2-635": [
+          "crossref",
+          "pubmed"
+        ],
+        "thiopental::doi-10-1016-j-bbrep-2016-09-005": [
+          "crossref",
+          "pubmed"
+        ],
+        "thiopental::doi-10-1176-ajp-137-12-1580": [
+          "crossref",
+          "openalex",
+          "pubmed"
+        ],
+        "tianeptine::doi-10-1016-0006-2952-89-90580-7": [
+          "crossref",
+          "pubmed"
+        ],
+        "tianeptine::doi-10-15585-mmwr-mm6730a2": [
+          "crossref",
+          "pubmed"
+        ],
+        "tianeptine::pmid-3180120": [
+          "pubmed"
+        ],
+        "tramadol::doi-10-1002-anie-201406639": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::doi-10-1016-s0014-2999-98-00195-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::doi-10-1016-s0376-8716-02-00321-6": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::doi-10-1080-1556365050014418": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::doi-10-1213-ane-0000000000001683": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::doi-10-1517-14656566-2012-696097": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::doi-10-2165-00003495-199700532-00006": [
+          "crossref",
+          "pubmed"
+        ],
+        "tramadol::pmid-19724727": [
+          "pubmed"
+        ],
+        "tramadol::pmid-30725745": [
+          "pubmed"
+        ],
+        "trazodone::doi-10-1177-0269881117742101": [
+          "crossref",
+          "pubmed"
+        ],
+        "trazodone::pmid-9616194": [
+          "pubmed"
+        ],
+        "u-47700::doi-10-1002-dta-2228": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-1002-dta-2391": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-1002-dta-3182": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-1016-j-forsciint-2016-05-001": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-1016-j-jemermed-2017-05-034": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-1016-j-neuropharm-2020-108195": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-1080-15563650-2016-1209767": [
+          "crossref",
+          "pubmed"
+        ],
+        "u-47700::doi-10-7759-cureus-1791": [
+          "crossref",
+          "pubmed"
+        ],
+        "zolpidem::doi-10-1046-j-1365-2125-1999-00953-x": [
+          "crossref",
+          "pubmed"
+        ],
+        "zolpidem::doi-10-1097-md-0000000000040280": [
+          "crossref",
+          "pubmed"
+        ],
+        "zolpidem::doi-10-2165-00003088-199529030-00002": [
+          "crossref",
+          "pubmed"
+        ],
+        "zolpidem::doi-10-33588-rn-3403-2001316": [
+          "crossref",
+          "pubmed"
+        ],
+        "zolpidem::doi-10-4082-kjfm-17-0025": [
+          "crossref",
+          "pubmed"
+        ],
+        "zopiclone::doi-10-1016-j-smrv-2009-10-008": [
+          "crossref",
+          "pubmed"
+        ],
+        "zopiclone::doi-10-1016-s0140-6736-98-04087-2": [
+          "crossref",
+          "pubmed"
+        ],
+        "zopiclone::pmid-10674059": [
+          "pubmed"
+        ]
+      },
+      "manualEvidence": {
+        "adrafinil::url-fda-gov-peak-nootropics-llc-aka-advanced-nootropics-557887-02052019": {
+          "method": "independent_authoritative_source_review",
+          "evidenceDomains": [
+            "fda.gov"
+          ],
+          "identifiers": {
+            "doi": null,
+            "pmid": null
+          },
+          "reviewResultSha256": "b8aea00fef8195d8145212c73dd101de5dd7bd058b1f00619819535bc38a4ef1",
+          "refutationArtifactSha256": "febe390eee892946be6748f5bf63356d53edfb7ee60cdf20dee6f06ac0bdbe36"
+        },
+        "heroin::url-medlineplus-gov-000949-htm": {
+          "method": "independent_authoritative_source_review",
+          "evidenceDomains": [
+            "medlineplus.gov"
+          ],
+          "identifiers": {
+            "doi": null,
+            "pmid": null
+          },
+          "reviewResultSha256": "e6e7fc804f2d9813cd89befd45ad903c031fdfcff13b31a2b2ec250d93536fa3",
+          "refutationArtifactSha256": "047833e824de415795fd6e08b9359f987faf70f351e642b324f5c99b31b6d6c1"
+        },
+        "temazepam::pmid-38261668": {
+          "method": "independent_authoritative_source_review",
+          "evidenceDomains": [
+            "pubmed.ncbi.nlm.nih.gov",
+            "ncbi.nlm.nih.gov"
+          ],
+          "identifiers": {
+            "doi": null,
+            "pmid": "38261668"
+          },
+          "reviewResultSha256": "e31f038ff172a54444bcd1ff6a14a7330f0f153f602203372eb09c169b0d49a5",
+          "refutationArtifactSha256": "d6e87ede4a2fcd3f8792e19dd69681eaba01b2b5050874e76bfda94f3bff2ab6"
+        }
+      }
+    }
+  ],
+  "mutationSetCanonicalization": "SHA-256 of UTF-8 JSON.stringify over the referenceProviders object keys sorted lexicographically as a JSON string array. Exact authors and review evidence remain bound by each wave source-artifact SHA-256.",
+  "evidenceBundle": {
+    "path": "scripts/data/tracked/citation-author-repair-evidence.json",
+    "fileSha256": "b97ebb2a3a53a08de805379ae84a26f650c3d6bc59332698d29cc7ffba986112",
+    "bundleDigest": "f06f2486b40f4d85cd71bef91c2b11c0770553d8b3b492aab8242f63584ec389",
+    "rowCount": 759
+  }
+}

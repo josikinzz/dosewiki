@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dose.wiki/schemas/pi-citation-worker-handoff.json",
+  "title": "DoseWiki Pi citation worker handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "section",
+    "outputPath",
+    "artifactSha256",
+    "gaps",
+    "notes"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "missing_preserve_original",
+        "failed"
+      ]
+    },
+    "section": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outputPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactSha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "artifactSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "artifactSha256": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

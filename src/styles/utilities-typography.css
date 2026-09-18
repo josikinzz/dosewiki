@@ -1,0 +1,161 @@
+  /*
+   * `overflow-wrap: anywhere` lets a chemical name longer than the measure
+   * ("2-Fluorodeschloroketamine", "O-desmethyltramadol") break mid-word once
+   * its hyphen breaks are spent, instead of overflowing the hero card's
+   * `overflow-hidden` and getting clipped. It only fires when a word cannot
+   * fit the line, so ordinary titles keep their natural breaks.
+   */
+  .type-page-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-title);
+    font-weight: 600;
+    line-height: var(--type-leading-tight);
+    letter-spacing: var(--type-tracking-display);
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .type-section-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-section);
+    font-weight: 600;
+    line-height: var(--type-leading-heading);
+    letter-spacing: var(--type-tracking-heading);
+    text-wrap: balance;
+  }
+
+  /* Editorial-scale headings for /docs pages: the hero clamp of
+     .type-page-title overwhelms a Read surface, and thirteen
+     .type-section-title headings at article scale flatten hierarchy.
+     Tracking relaxes with the size (the display face's -0.04em is tuned
+     for 48-72px lettering). */
+  .type-doc-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-doc-title);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .type-doc-section-title {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-doc-section);
+    font-weight: 600;
+    line-height: var(--type-leading-heading);
+    letter-spacing: var(--type-tracking-heading);
+    text-wrap: balance;
+  }
+
+  .type-lead {
+    font-size: var(--type-size-lead);
+    line-height: var(--type-leading-relaxed);
+    letter-spacing: var(--type-tracking-body);
+  }
+
+  /*
+   * The standfirst under an article title: the one line that says what the page
+   * is before the body starts saying it. `type-lead` is the body's own size, so
+   * a deck set in it reads as a stray first paragraph — this is a step up in
+   * size and a step down in leading, which is what separates the two by eye. Set
+   * it at `type-measure-deck`, deliberately shorter than the body measure, so
+   * the ragged edge looks chosen rather than truncated.
+   */
+  .type-deck {
+    font-size: var(--type-size-deck);
+    line-height: 1.5;
+    letter-spacing: -0.014em;
+    max-width: var(--type-measure-deck);
+    text-wrap: pretty;
+  }
+
+  .type-supporting-copy {
+    font-size: var(--type-size-body);
+    line-height: 1.68;
+    letter-spacing: var(--type-tracking-body);
+  }
+
+  .type-detail-copy {
+    font-size: var(--type-size-sm);
+    line-height: 1.62;
+    letter-spacing: 0;
+  }
+
+  .type-meta-label {
+    font-size: var(--type-size-caption);
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: var(--type-tracking-label);
+    text-transform: uppercase;
+  }
+
+  .type-control-label {
+    font-size: var(--type-size-sm);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+
+  .type-chip-label {
+    font-size: var(--type-size-chip-label);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .type-kicker {
+    font-family: var(--font-family-display);
+    font-size: var(--type-size-sm);
+    font-weight: 600;
+    line-height: var(--type-leading-heading);
+    letter-spacing: var(--type-tracking-label);
+    text-transform: uppercase;
+  }
+
+  .type-reading-measure {
+    max-width: var(--type-measure-reading);
+  }
+
+  /* Article prose stays readable while embedded index panels use the full rail. */
+  .article-narrative-body :where(p, ul, ol, blockquote):not(:where(.not-prose, .not-prose *)) {
+    max-width: var(--type-measure-reading);
+  }
+
+  /*
+   * The reading rhythm of an article section. Paragraph spacing is a FIXED site
+   * value, not a reader preference: the gap between two consecutive paragraphs is
+   * 2x the font size — authored in rem, so it rides the reader's text-size choice —
+   * and no slider offers it. Headings, lists, tables and callouts keep the authored
+   * 1.5rem sibling rhythm, so the chapter structure never moves and a wide paragraph
+   * gap can never read as a line-height change.
+   */
+  .theme-article-flow > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .theme-article-flow > p + p {
+    margin-top: 2rem;
+  }
+
+  .numeric-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .focus-visible-ring:focus-visible {
+    outline: 1px solid var(--theme-text-secondary);
+    outline-offset: 2px;
+  }
+
+  .effect-vcode-card-body > :where(h1, h2, h3, h4, p, ul, ol, blockquote, pre, figure) {
+    margin: 0;
+  }
+
+  .effect-vcode-card-body > :where(* + h1, * + h2, * + h3, * + h4, * + p, * + ul, * + ol, * + blockquote, * + pre, * + figure) {
+    margin-top: 0.95rem;
+  }
+
+  .effect-vcode-caption > :where(*) {
+    margin: 0;
+  }

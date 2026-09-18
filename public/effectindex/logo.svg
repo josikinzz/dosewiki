@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="271" height="150" viewBox="143 1.5 271 150" role="img" aria-labelledby="effectindex-mark-title">
+  <title id="effectindex-mark-title">Effect Index</title>
+  <!--
+    Eye-only extraction of the Effect Index lockup (EffectIndex repo: static/logo.svg,
+    potrace output, 569x247). Only the two eye paths (svg_2: almond + iris ring,
+    svg_3: pupil + catchlight) are kept; the ten letterform paths that spell
+    "Effect Index" are dropped because every call site pairs this mark with a separate
+    text wordmark. The group transform from the source file is preserved verbatim so the
+    curve data is untouched; the viewBox is the measured bounding box of those two paths.
+
+    Rendered as a CSS mask (alpha channel) by DoseWikiLogo, so this fill is only what you
+    see when the file is opened directly or used as an <img>: ink, not the original white,
+    because the Effect Index deployment is light.
+  -->
+  <g fill="#1c1917" transform="translate(0,388) scale(0.10000000149011612,-0.10000000149011612)">
+    <path d="m2544,3841c-283,-59 -565,-199 -809,-402c-95,-79 -225,-213 -271,-280l-27,-39l29,-42c45,-66 217,-240 305,-310c364,-286 777,-427 1139,-388c373,40 751,216 1021,477c59,57 130,138 159,179c61,88 62,80 -30,202c-121,161 -315,315 -540,431c-153,78 -267,121 -420,158c-146,35 -420,42 -556,14zm396,-188c353,-97 518,-525 320,-833c-45,-70 -148,-163 -222,-199c-69,-34 -178,-61 -248,-61c-70,0 -179,27 -248,61c-123,60 -242,198 -282,325c-63,207 -15,408 135,560c147,150 344,203 545,147z"/>
+    <path d="m2673,3506c-104,-34 -204,-123 -251,-224c-24,-50 -27,-69 -27,-162c0,-97 2,-110 32,-172c39,-83 108,-154 188,-194c56,-27 68,-29 175,-29c111,0 117,1 178,33c84,44 146,108 185,190c30,62 32,75 32,172c0,89 -4,113 -23,155l-23,50l-14,-38c-16,-46 -30,-64 -66,-83c-114,-59 -236,73 -169,183c21,34 48,53 95,63c30,7 29,8 -30,36c-50,23 -76,29 -150,31c-57,2 -106,-2 -132,-11z"/>
+  </g>
+</svg>

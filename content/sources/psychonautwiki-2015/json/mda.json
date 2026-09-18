@@ -1,0 +1,249 @@
+{
+  "slug": "mda",
+  "title": "MDA",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/mda.md",
+  "archive_timestamp": "20160804042728",
+  "archive_date_utc": "2016-08-04T04:27:28Z",
+  "archive_url": "https://web.archive.org/web/20160804042728/https://psychonautwiki.org/wiki/MDA",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160804042728/https://psychonautwiki.org/wiki/MDA"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, breathing, morphing and flowing)"
+              },
+              {
+                "name": "Tracers",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              },
+              {
+                "name": "Depth perception distortions",
+                "description": ""
+              },
+              {
+                "name": "Symmetrical texture repetition",
+                "description": ""
+              },
+              {
+                "name": "Colour shifting",
+                "description": ""
+              },
+              {
+                "name": "Scenery slicing",
+                "description": ""
+              },
+              {
+                "name": "Perspective distortions",
+                "description": ""
+              },
+              {
+                "name": "Recursion",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "",
+            "effects": [
+              {
+                "name": "External hallucinations",
+                "description": "(autonomous entities; settings, sceneries, and landscapes; alterations in perspective and scenarios and plots)"
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": ""
+              },
+              {
+                "name": "Peripheral information misinterpretation",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Cognitive euphoria",
+            "description": ""
+          },
+          {
+            "name": "Empathy, love and sociability enhancement",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Unity and interconnectedness",
+            "description": ""
+          },
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Anxiety suppression",
+            "description": ""
+          },
+          {
+            "name": "Mindfulness",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Creativity enhancement",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Stimulation",
+            "description": ""
+          },
+          {
+            "name": "Vibrating vision",
+            "description": ""
+          },
+          {
+            "name": "Dehydration",
+            "description": ""
+          },
+          {
+            "name": "Difficulty urinating",
+            "description": ""
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": ""
+          },
+          {
+            "name": "Increased perspiration",
+            "description": ""
+          },
+          {
+            "name": "Temporary erectile dysfunction",
+            "description": ""
+          },
+          {
+            "name": "Increased heart rate",
+            "description": ""
+          },
+          {
+            "name": "Increased blood pressure",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160804042728/https://psychonautwiki.org/wiki/MDA"
+    },
+    "is_stub": true,
+    "source_overview": "While MDA is generally similar to MDMA, users report that MDA has more stimulant and psychedelic qualities and less intense entactogenic effects than MDMA. MDA is also considered less predictable than MDMA, with effects varying greatly from person to person."
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Two introductory Subjective effects paragraphs preserved in subjective_effects.notes.overview after the stub warning, separated by blank lines.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Visual Enhancements, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; empty Geometry heading retained with no effects.",
+    "Parenthetical details for Drifting and External hallucinations preserved as descriptions with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order.",
+    "Article-specific source overview prose preserved in subjective_effects.source_overview and not rendered as the public overview."
+  ]
+}

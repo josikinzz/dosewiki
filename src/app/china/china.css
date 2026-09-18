@@ -1,0 +1,122 @@
+/* /china route styles, consumed only under src/app/china. Loaded by the
+   route so the rest of the site never carries them. Same utilities layer as
+   src/styles/utilities-theme.css. */
+@layer utilities {
+  /* /china delight. Every motion here sits behind the reduced-motion query and
+     none of it gates a download or a read. */
+  @media (prefers-reduced-motion: no-preference) {
+    /* The banner arms lean into the grip on hover. Origin sits on the clasped
+       hands (about 52% across, 45% down the artwork). */
+    .theme-china-banner {
+      transform-origin: 52% 45%;
+      transition: transform 700ms cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .theme-china-banner:hover {
+      transform: rotate(-1.2deg) scale(1.01);
+    }
+
+    /* A freshly shuffled record: the two sides slide in from their own edge. */
+    .theme-china-reveal-left {
+      animation: theme-china-reveal-left 320ms cubic-bezier(0.25, 1, 0.5, 1) both;
+    }
+    .theme-china-reveal-right {
+      animation: theme-china-reveal-right 320ms cubic-bezier(0.25, 1, 0.5, 1) 60ms both;
+    }
+
+    /* The signature fades and settles once the reader reaches the end. */
+    .theme-china-signature {
+      opacity: 0.6;
+      transform: translateY(2px) rotate(-6deg);
+      transition: opacity 600ms ease-out, transform 600ms cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .theme-china-signature[data-seen="true"] {
+      opacity: 1;
+      transform: translateY(0) rotate(-4deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-china-signature {
+      opacity: 1;
+      transform: rotate(-4deg);
+    }
+  }
+
+  .theme-china-signature {
+    font-family: var(--font-family-display);
+    font-style: italic;
+    color: var(--theme-accent-strong);
+  }
+
+  /* The /china molecule carousel. Fades at both edges so drawings enter and
+     leave rather than pop. The animation is transform-only. */
+  .theme-china-carousel {
+    contain: layout paint;
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .theme-china-carousel-track {
+      animation: theme-china-carousel linear infinite;
+      will-change: transform;
+    }
+  }
+
+  /* The /china format switch: the chosen segment takes a solid accent fill with
+     body-coloured text, the same pairing as the accent CTA, so the pair reads as
+     one control with one side lit. */
+  .theme-china-switch {
+    border-color: var(--theme-border-subtle);
+    background: var(--theme-surface-muted);
+  }
+
+  .theme-china-segment {
+    color: var(--theme-text-secondary);
+  }
+
+  .theme-china-segment:hover {
+    background: var(--theme-frosted-control-bg);
+  }
+
+  .theme-china-segment[data-state="on"] {
+    color: var(--theme-body-bg);
+    background: var(--theme-accent-strong);
+  }
+
+  .theme-china-segment[data-state="on"]:hover {
+    color: var(--theme-body-bg);
+    background: var(--theme-accent-strong);
+  }
+
+  @keyframes theme-china-reveal-left {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes theme-china-reveal-right {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes theme-china-carousel {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+}

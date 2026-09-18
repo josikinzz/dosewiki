@@ -1,0 +1,85 @@
+.theme-status-orb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  isolation: isolate;
+}
+
+.theme-status-orb[data-tone="accent"] {
+  color: var(--theme-accent-soft);
+}
+
+.theme-status-orb[data-tone="success"] {
+  color: var(--theme-success-text-strong);
+}
+
+.theme-status-orb[data-tone="warning"] {
+  color: var(--theme-warning-text-strong);
+}
+
+.theme-status-orb[data-tone="danger"] {
+  color: var(--theme-danger-text-strong);
+}
+
+.theme-status-orb[data-tone="neutral"] {
+  color: var(--theme-text-secondary);
+}
+
+.theme-status-orb-core {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 72%;
+  width: 72%;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 18%, rgba(255, 255, 255, 0.08));
+  background:
+    radial-gradient(circle at 30% 28%, color-mix(in srgb, currentColor 18%, rgba(255, 255, 255, 0.14)), transparent 52%),
+    color-mix(in srgb, rgba(14, 10, 26, 0.92) 84%, currentColor 16%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 42px -22px color-mix(in srgb, currentColor 38%, transparent);
+}
+
+.theme-status-orb-icon {
+  filter: drop-shadow(0 0 16px color-mix(in srgb, currentColor 24%, transparent));
+}
+
+html[data-theme="light"] .theme-status-orb-core {
+  border-color: color-mix(in srgb, currentColor 18%, var(--theme-border-subtle));
+  background:
+    radial-gradient(circle at 32% 26%, color-mix(in srgb, currentColor 14%, white), transparent 54%),
+    color-mix(in srgb, currentColor 8%, var(--theme-surface-strong));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 14px 30px -24px color-mix(in srgb, currentColor 42%, transparent);
+}
+
+html[data-theme="light"] .theme-status-orb-icon {
+  filter: drop-shadow(0 8px 12px color-mix(in srgb, currentColor 12%, transparent));
+}
+
+.theme-state-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--theme-state-card-sheen);
+}
+
+.theme-state-card[data-tone="warning"]::before {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), transparent 42%, rgba(245, 158, 11, 0.08));
+}
+
+.theme-state-card[data-tone="danger"]::before {
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.12), transparent 42%, rgba(244, 63, 94, 0.08));
+}
+
+.theme-state-card[data-tone="success"]::before {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.12), transparent 42%, rgba(16, 185, 129, 0.08));
+}
+

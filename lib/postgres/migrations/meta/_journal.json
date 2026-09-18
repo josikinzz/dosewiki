@@ -1,0 +1,125 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788991176472,
+      "tag": "0000_convex_snapshot_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789009174001,
+      "tag": "0001_identity_unique_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789010225705,
+      "tag": "0002_document_ids_and_storage",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789012018282,
+      "tag": "0003_unique_identities",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789030535441,
+      "tag": "0004_c_collation_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789036363355,
+      "tag": "0005_relied_upon_unique_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789105831422,
+      "tag": "0006_translation_segments",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789153302130,
+      "tag": "0007_translation_rejections",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789239305764,
+      "tag": "0008_translation_glossary",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789256047685,
+      "tag": "0009_glossary_retranslated_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789256053854,
+      "tag": "0010_glossary_retranslated_at_backfill",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789274429043,
+      "tag": "0011_glossary_term_glosses",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789402550315,
+      "tag": "0012_localized_publication_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789402585190,
+      "tag": "0013_localized_publication_index_triggers",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789417766483,
+      "tag": "0014_restore_localized_publication_index_triggers",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1789432259535,
+      "tag": "0015_shared_signup_rate_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789450983390,
+      "tag": "0016_member_glossary_permissions",
+      "breakpoints": true
+    }
+  ]
+}

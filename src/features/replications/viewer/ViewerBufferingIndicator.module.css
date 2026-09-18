@@ -1,0 +1,169 @@
+.indicator {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: rgb(var(--c-white) / 0.94);
+  opacity: 1;
+  transition: opacity 160ms ease-out;
+}
+
+.indicator[hidden] {
+  display: none;
+}
+
+.indicator[data-buffering="false"] {
+  opacity: 0;
+}
+
+.content {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+}
+
+.markFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  isolation: isolate;
+  background: radial-gradient(
+    closest-side,
+    rgb(var(--c-black) / 0.76) 52%,
+    transparent
+  );
+}
+
+.mark {
+  width: 40px;
+  height: 40px;
+  animation: markTurn 5s linear infinite;
+  animation-play-state: paused;
+}
+
+.indicator[data-running="true"] .mark,
+.indicator[data-running="true"] .dot {
+  animation-play-state: running;
+}
+
+.indicator[data-phase="rebuffer"] .markFrame {
+  width: 60px;
+  height: 60px;
+}
+
+.indicator[data-phase="rebuffer"] .mark {
+  width: 32px;
+  height: 32px;
+  animation-duration: 7s;
+}
+
+.label {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgb(var(--c-black) / 0.76);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  transition: transform 200ms ease-out;
+}
+
+/* Leans with the stage media, the way the transport iconography does. */
+.indicator[data-rotated="true"] .label {
+  transform: rotate(90deg);
+}
+
+.ellipsis {
+  display: inline-block;
+  /* Hold all three dots so the word never shifts as the count breathes. */
+  width: 1.4em;
+  text-align: left;
+}
+
+.dot:nth-child(n + 2) {
+  opacity: 0;
+  animation-duration: 1.6s;
+  animation-timing-function: step-end;
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+}
+
+.dot:nth-child(2) {
+  animation-name: ellipsisSecond;
+}
+
+.dot:nth-child(3) {
+  animation-name: ellipsisThird;
+}
+
+:global(html[data-visual-style="pro"]) .indicator {
+  --theme-accent-strong: var(--ei-accent-on-dark);
+  --theme-logo-fill: linear-gradient(
+    118deg,
+    var(--ei-accent-on-dark),
+    color-mix(in srgb, var(--ei-accent-on-dark) 72%, black)
+  );
+}
+
+.indicator[data-reduced-motion="true"],
+.indicator[data-reduced-motion="true"] .label {
+  transition: none;
+}
+
+.indicator[data-reduced-motion="true"] .mark {
+  animation: none;
+}
+
+/* Matches the animated dots' own specificity, so the ellipsis rests full. */
+.indicator[data-reduced-motion="true"] .dot:nth-child(n + 2) {
+  opacity: 1;
+  animation: none;
+}
+
+@keyframes markTurn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* One dot, two, three, back to two: the count breathes instead of marching. */
+@keyframes ellipsisSecond {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+}
+
+@keyframes ellipsisThird {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator,
+  .label {
+    transition: none;
+  }
+
+  .mark {
+    animation: none;
+  }
+
+  .dot:nth-child(n + 2) {
+    opacity: 1;
+    animation: none;
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "__comment": "Original DCK backfill (applied to prod 2026-07-23), retained for dev-deployment replay.",
+  "proposals": {
+    "deschloroketamine": {
+      "identification": {
+        "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2",
+        "iupac_name": "2-(methylamino)-2-phenylcyclohexan-1-one",
+        "molecular_formula": "C13H17NO",
+        "molecular_weight": "203.285 g/mol",
+        "cas_number": "7063-30-1",
+        "inchi_key": "ZAGBSZSITDFFAF-UHFFFAOYSA-N",
+        "substitutive_name": "2'-Oxo-PCM",
+        "alternative_names": ["DCK", "2'-Oxo-PCM", "O-PCM", "DXE"]
+      },
+      "psychoactive_class": ["Dissociative", "Hallucinogen"]
+    }
+  },
+  "provenance": {
+    "deschloroketamine": "PubChem CID 437168 (properties + synonyms, fetched 2026-07-23); SMILES matches data/chemistry/generatedSmiles.json; psychoactive_class mirrors ketamine and o-pce."
+  }
+}

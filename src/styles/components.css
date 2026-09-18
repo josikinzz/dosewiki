@@ -1,0 +1,303 @@
+  /* This prose stack is hand-rolled — @tailwindcss/typography is NOT installed —
+     so the plugin's automatic `not-prose` escape hatch does not exist unless
+     every descendant rule below opts out of it explicitly. Components embedded
+     in an article body (EffectListPanel's index cards, inside the VCode article
+     `prose` container) mark themselves `not-prose` and style themselves; without
+     the guard they still collected prose heading margins, list padding and link
+     underlines. The `:where()` wrapper keeps the guard at zero specificity, so
+     these rules keep cascading against the theme sheets exactly as before. */
+  .prose,
+  .prose-fuchsia {
+    color: var(--theme-text-secondary);
+    font-size: var(--type-size-body);
+    line-height: var(--type-leading-relaxed);
+    letter-spacing: var(--type-tracking-body);
+  }
+
+  .prose-sm {
+    font-size: 0.9375rem;
+    line-height: 1.72;
+  }
+
+  .prose :where(h1, h2, h3, h4):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(h1, h2, h3, h4):not(:where(.not-prose, .not-prose *)) {
+    margin: 0 0 0.8em;
+    color: var(--theme-text-primary);
+    font-family: var(--font-family-display);
+    font-weight: 600;
+    line-height: var(--type-leading-heading);
+    letter-spacing: var(--type-tracking-heading);
+    text-wrap: balance;
+  }
+
+  .prose :where(h1):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(h1):not(:where(.not-prose, .not-prose *)) {
+    margin-top: 0;
+    font-size: clamp(2rem, 1.84rem + 0.95vw, 2.7rem);
+    line-height: 1.02;
+    letter-spacing: var(--type-tracking-display);
+  }
+
+  .prose :where(h2):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(h2):not(:where(.not-prose, .not-prose *)) {
+    margin-top: 1.8em;
+    font-size: clamp(1.5rem, 1.4rem + 0.55vw, 1.9rem);
+  }
+
+  .prose :where(h3):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(h3):not(:where(.not-prose, .not-prose *)) {
+    margin-top: 1.45em;
+    font-size: 1.25rem;
+  }
+
+  .prose :where(h4):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(h4):not(:where(.not-prose, .not-prose *)) {
+    margin-top: 1.3em;
+    font-size: 1.0625rem;
+  }
+
+  .prose-fuchsia :where(h1, h2):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-fuchsia :where(h1, h2):not(:where(.not-prose, .not-prose *)) {
+    color: var(--theme-accent-strong);
+  }
+
+  .prose :where(p, ul, ol, blockquote, pre, figure):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(p, ul, ol, blockquote, pre, figure):not(:where(.not-prose, .not-prose *)) {
+    margin: 0 0 1.1rem;
+  }
+
+  /* Paragraph spacing is a fixed site value — the gap after a plain paragraph is 2x
+     the font size, not a reader preference. Every other prose block (and the gap
+     before headings, tables, callouts) keeps its authored 1.1rem, so the chapter
+     rhythm never moves. Sits before the last-child zeroing below, which must keep
+     winning the trailing edge. */
+  .prose :where(p):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(p):not(:where(.not-prose, .not-prose *)) {
+    margin-bottom: 2rem;
+  }
+
+  .prose :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)) {
+    margin-bottom: 0;
+  }
+
+  .prose :where(a):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(a):not(:where(.not-prose, .not-prose *)) {
+    color: var(--theme-accent-strong);
+    font-weight: inherit;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 45%, transparent);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+    transition: color 180ms ease, text-decoration-color 180ms ease;
+  }
+
+  @media (hover: hover) {
+    .prose :where(a:hover):not(:where(.not-prose, .not-prose *)),
+    .prose-fuchsia :where(a:hover):not(:where(.not-prose, .not-prose *)) {
+      color: var(--theme-accent-soft);
+      text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 62%, transparent);
+    }
+  }
+
+  .prose :where(strong, b):not(:where(.not-prose, .not-prose *)) {
+    color: var(--theme-text-primary);
+    font-weight: 600;
+  }
+
+  .prose-fuchsia :where(strong, b):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-fuchsia :where(strong, b):not(:where(.not-prose, .not-prose *)) {
+    color: var(--theme-accent-strong);
+    font-weight: 600;
+  }
+
+  .prose :where(ul, ol):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(ul, ol):not(:where(.not-prose, .not-prose *)) {
+    padding-left: 1.2rem;
+  }
+
+  .prose :where(li):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(li):not(:where(.not-prose, .not-prose *)) {
+    margin: 0.35rem 0;
+    padding-left: 0.2rem;
+  }
+
+  .prose :where(blockquote):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(blockquote):not(:where(.not-prose, .not-prose *)) {
+    border-left: 1px solid color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
+    padding-left: 1rem;
+    color: var(--theme-text-secondary);
+  }
+
+  .prose :where(code):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(code):not(:where(.not-prose, .not-prose *)) {
+    font-size: 0.92em;
+  }
+
+  .app-container {
+    --theme-header-height: 4.25rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: visible;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  @supports (height: 100svh) {
+    .app-container {
+      min-height: 100svh;
+    }
+  }
+
+  @supports (height: 100dvh) {
+    .app-container {
+      min-height: 100dvh;
+    }
+  }
+
+  .app-header {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .app-footer {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .app-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    scroll-padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .theme-article-section-bleed {
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  .theme-article-section-bleed:empty {
+    display: none;
+  }
+
+  .backdrop-safe {
+    background-color: var(--theme-backdrop-safe);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .backdrop-safe {
+      background-color: transparent;
+    }
+  }
+
+  @supports not (gap: 1rem) {
+    .gap-fallback-row-6 > * + * {
+      margin-left: 1.5rem;
+    }
+
+    .gap-fallback-row-4 > * + * {
+      margin-left: 1rem;
+    }
+
+    .gap-fallback-row-3 > * + * {
+      margin-left: 0.75rem;
+    }
+
+    .gap-fallback-row-2 > * + * {
+      margin-left: 0.5rem;
+    }
+
+    .gap-fallback-row-tight > * + * {
+      margin-left: 0.375rem;
+    }
+
+    .gap-fallback-row-1 > * + * {
+      margin-left: 0.25rem;
+    }
+
+    .gap-fallback-col-4 > * + * {
+      margin-top: 1rem;
+    }
+
+    .gap-fallback-col-3 > * + * {
+      margin-top: 0.75rem;
+    }
+
+    .gap-fallback-col-2 > * + * {
+      margin-top: 0.5rem;
+    }
+
+    .gap-fallback-wrap-4 {
+      margin: -1rem;
+    }
+
+    .gap-fallback-wrap-4 > * {
+      margin: 1rem;
+    }
+
+    .gap-fallback-wrap-3 {
+      margin: -0.75rem;
+    }
+
+    .gap-fallback-wrap-3 > * {
+      margin: 0.75rem;
+    }
+
+    .gap-fallback-col-1 > * + * {
+      margin-top: 0.25rem;
+    }
+  }
+
+  .json-editor pre {
+    margin: 0;
+    background: transparent;
+  }
+
+  .json-editor textarea {
+    color: transparent;
+  }
+
+  .json-editor .token.property {
+    color: #7dd3fc;
+  }
+
+  .json-editor .token.string {
+    color: #f9a8d4;
+  }
+
+  .json-editor .token.number {
+    color: #86efac;
+  }
+
+  .json-editor .token.boolean {
+    color: #facc15;
+  }
+
+  .json-editor .token.null {
+    color: rgba(248, 250, 252, 0.6);
+    font-style: italic;
+  }
+
+  .json-editor .token.punctuation,
+  .json-editor .token.operator {
+    color: rgba(248, 250, 252, 0.75);
+  }
+
+  .safari-svg-gpu {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  .is-safari .safari-svg-gpu {
+    -webkit-transform: none;
+    transform: none;
+    animation: none !important;
+  }
+

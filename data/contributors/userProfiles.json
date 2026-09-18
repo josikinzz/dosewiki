@@ -1,0 +1,130 @@
+[
+  {
+    "key": "ADMIN",
+    "displayName": "Admin",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "ANONYMOUS",
+    "displayName": "Anonymous",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "ARCTIC",
+    "displayName": "Arctic",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "BLUURAE",
+    "displayName": "BluuRae",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "COCOA",
+    "displayName": "Cocoa",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "COE",
+    "displayName": "Coe",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "DEMFRACTALSYO",
+    "displayName": "DemFractalsYo",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "EMOBOY",
+    "displayName": "EmoBoy",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "GREGASAURUS",
+    "displayName": "Gregasaurus",
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/gregasaurus/avatar.webp"
+  },
+  {
+    "key": "JOSIE",
+    "displayName": "Josie Kins",
+    "bio": "Hi, my name is josie and i have been learning web development ^_^",
+    "links": [
+      {
+        "label": "personal website",
+        "url": "https://josiekins.xyz/"
+      }
+    ],
+    "avatarUrl": "/profile-avatars/josie/avatar.webp"
+  },
+  {
+    "key": "KAYTWO",
+    "displayName": "Kaytwo",
+    "aliases": [
+      "kaylee"
+    ],
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/kaylee/avatar.webp"
+  },
+  {
+    "key": "GABRIEL",
+    "displayName": "Gabriel",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "GRAHAM",
+    "displayName": "Graham",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "KOSM",
+    "displayName": "Kosm",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "NERVEWING",
+    "displayName": "Nervewing",
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/nervewing/avatar.webp"
+  },
+  {
+    "key": "OSCARETTE",
+    "displayName": "Oscarette",
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/oscarette/avatar.webp"
+  },
+  {
+    "key": "PLURALIST-ART",
+    "displayName": "Pluralist-Art",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "LYREA",
+    "displayName": "Lyrea",
+    "aliases": [],
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "ZENBY",
+    "displayName": "Zenby",
+    "bio": "",
+    "links": []
+  }
+]

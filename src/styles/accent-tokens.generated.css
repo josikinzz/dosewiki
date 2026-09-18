@@ -1,0 +1,36 @@
+/* GENERATED FILE — do not edit by hand.
+   Source: src/theme/accents.ts
+   Regenerate: npm run generate:accent-css
+
+   The base accent's Pro seeds, per colour scheme, so dose.wiki's Pro wears the publication's
+   own plum instead of pro-theme.css's authored teal — that sheet is Effect Index's
+   presentation, shared with dose.wiki's Pro style. The block is keyed on the absence of
+   data-accent (the retired accent axis's attribute, which nothing writes any more):
+   bare :not(), so it keeps the (0,3,1) that out-ranks the Pro palette it re-tints. The Fun
+   half emits nothing because Fun's authored palette IS the base accent. Effect Index never
+   imports this file, so it keeps the authored teal byte for byte. */
+
+/* Default — Fun: authored; Pro: --ei-* seeds */
+html[data-visual-style="pro"]:not([data-accent])[data-theme="dark"] {
+  --ei-accent: #cfa1d0;
+  --ei-accent-strong: #e0b7e0;
+  --ei-accent-soft: #a67da7;
+  --ei-accent-muted: #b589b5;
+  --ei-accent-on-dark: #cfa0cf;
+  --ei-selection: #534153;
+  --ei-ring-soft: #926f92;
+  --ei-highlight: #574557;
+  --ei-on-accent: #1b1b1b;
+}
+
+html[data-visual-style="pro"]:not([data-accent])[data-theme="light"] {
+  --ei-accent: #8f618f;
+  --ei-accent-strong: #573957;
+  --ei-accent-soft: #a87ba9;
+  --ei-accent-muted: #785178;
+  --ei-accent-on-dark: #cfa0cf;
+  --ei-selection: #e9d9e8;
+  --ei-ring-soft: #d4b7d4;
+  --ei-highlight: #e9dfe9;
+  --ei-on-accent: #ffffff;
+}

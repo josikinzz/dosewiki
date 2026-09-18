@@ -1,0 +1,2381 @@
+{
+  "locale": "zh-Hans",
+  "exportedAt": "2026-09-13T00:29:31.573Z",
+  "note": "Export of the translationGlossary table for review and diffing. Nothing reads this file; edit terms in /dev/glossary and regenerate with build-glossary.mjs --export.",
+  "counts": {
+    "approved": 395,
+    "draft": 0
+  },
+  "terms": {
+    "1,2-Diarylethylamine (diarylethylamines)": {
+      "target": "1,2-二芳基乙胺（二芳基乙胺类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "1,4-Benzodiazepine (benzodiazepines)": {
+      "target": "1,4-苯二氮䓬（苯二氮䓬类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "1,5-Benzodiazepine": {
+      "target": "1,5-苯二氮䓬",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2-Aminoindane (aminoindanes)": {
+      "target": "2-氨基茚满（氨基茚类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2-Benzylbenzimidazole (nitazenes)": {
+      "target": "2-苄基苯并咪唑（硝唑奈类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2-Benzylpiperidine": {
+      "target": "2-苄基哌啶",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2-Phenylmorpholine (phenylmorpholines)": {
+      "target": "2-苯基吗啉（苯基吗啉类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2-Pyrrolidinone (racetams)": {
+      "target": "2-吡咯烷酮（拉西坦类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2,5-Dimethoxyamphetamine (DOx)": {
+      "target": "2,5-二甲氧基苯丙胺（DOx类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "2,5-Dimethoxyphenethylamine (2C-x)": {
+      "target": "2,5-二甲氧基苯乙胺（2C-x类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "3,5-Dimethoxyamphetamine (3C-x)": {
+      "target": "3,5-二甲氧基苯丙胺（3C-x类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "3,5-Dimethoxyphenethylamine (scalines)": {
+      "target": "3,5-二甲氧基苯乙胺（scaline类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "A-typical Hallucinogen": {
+      "target": "非典型致幻剂",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Abnormal heartbeat": {
+      "target": "心律异常",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Adamantane": {
+      "target": "金刚烷",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Addiction suppression": {
+      "target": "成瘾抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "After Effects": {
+      "target": "后遗效应",
+      "kind": "enum:duration-stage",
+      "status": "approved",
+      "source": "human"
+    },
+    "After images": {
+      "target": "视觉后像",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Alcohol": {
+      "target": "酒精",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Amine": {
+      "target": "胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Amnesia": {
+      "target": "遗忘症",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Analysis enhancement": {
+      "target": "分析能力增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Analysis suppression": {
+      "target": "分析能力抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Anilidopiperidine (fentanyls)": {
+      "target": "苯胺基哌啶（芬太尼类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Anticipatory response": {
+      "target": "预期性反应",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Antidepressant": {
+      "target": "抗抑郁药",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Antipsychotic": {
+      "target": "抗精神病药",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Anxiety": {
+      "target": "焦虑",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Anxiety suppression": {
+      "target": "焦虑抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Appetite enhancement": {
+      "target": "食欲增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Appetite suppression": {
+      "target": "食欲抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Arylalkylamine": {
+      "target": "芳基烷基胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Arylcyclohexylamine": {
+      "target": "芳基环己胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Auditory distortion": {
+      "target": "听觉扭曲",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Auditory Effects": {
+      "target": "听觉效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Auditory enhancement": {
+      "target": "听觉增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Auditory hallucination": {
+      "target": "听幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Auditory misinterpretation": {
+      "target": "听觉误读",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Auditory suppression": {
+      "target": "听觉抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Autonomous entity": {
+      "target": "自主实体",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Autonomous voice communication": {
+      "target": "自主语音交流",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Back pain": {
+      "target": "背痛",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Barbiturate": {
+      "target": "巴比妥类",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Benzamide": {
+      "target": "苯甲酰胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Benzeneacetamide (U-compounds)": {
+      "target": "苯乙酰胺（U系列化合物）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Benzimidazole": {
+      "target": "苯并咪唑",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Benzofuranethylamine (benzofurans)": {
+      "target": "苯并呋喃乙胺（苯并呋喃类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Benzylamine": {
+      "target": "苄胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Benzylpiperazine (piperazines)": {
+      "target": "苄基哌嗪（哌嗪类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Bodily control enhancement": {
+      "target": "身体控制增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Bodily pressures": {
+      "target": "躯体压迫感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Body odour alteration": {
+      "target": "体味改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Brain zaps": {
+      "target": "脑电击感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Brightness alteration": {
+      "target": "亮度改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Bronchodilation": {
+      "target": "支气管扩张",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cannabinoid": {
+      "target": "大麻素类",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Carbamate": {
+      "target": "氨基甲酸酯",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cardiovascular Effects": {
+      "target": "心血管效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Catharsis": {
+      "target": "宣泄",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Changes in felt bodily form": {
+      "target": "身体形态感知改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Changes in felt gravity": {
+      "target": "重力感知改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Chromatic aberration": {
+      "target": "色差",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive Amplifications": {
+      "target": "认知放大效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive disconnection": {
+      "target": "认知解离",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive dysphoria": {
+      "target": "认知烦躁",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive Effects": {
+      "target": "认知效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive euphoria": {
+      "target": "认知欣快",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive fatigue": {
+      "target": "认知疲劳",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cognitive Suppressions": {
+      "target": "认知抑制",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Colour enhancement": {
+      "target": "色彩增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Colour replacement": {
+      "target": "色彩替换",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Colour shifting": {
+      "target": "色彩偏移",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Colour suppression": {
+      "target": "色彩抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Come Up": {
+      "target": "起效期",
+      "kind": "enum:duration-stage",
+      "status": "approved",
+      "source": "human"
+    },
+    "come-up": {
+      "target": "上头",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "comedown": {
+      "target": "退效",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Common": {
+      "target": "常见",
+      "kind": "frequency",
+      "status": "approved",
+      "source": "human"
+    },
+    "Component controllability": {
+      "target": "成分可控性",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Compulsive redosing": {
+      "target": "强迫性补服",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Conceptual thinking": {
+      "target": "概念性思维",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Confirmed": {
+      "target": "已确认",
+      "kind": "enum:carcinogenicity-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Confusion": {
+      "target": "意识模糊",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Constipation": {
+      "target": "便秘",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Controlled precursor": {
+      "target": "受管制前体",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cough suppression": {
+      "target": "镇咳",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Creativity enhancement": {
+      "target": "创造力增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Creativity suppression": {
+      "target": "创造力抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cycloalkylamine": {
+      "target": "环烷基胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Cyclopyrrolone": {
+      "target": "环吡咯酮",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Decreased blood pressure": {
+      "target": "血压降低",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Decreased heart rate": {
+      "target": "心率降低",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Decreased libido": {
+      "target": "性欲减退",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Decriminalized": {
+      "target": "非罪化",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dehydration": {
+      "target": "脱水",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Deja vu": {
+      "target": "既视感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "deliriant": {
+      "target": "谵妄剂",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Delirium": {
+      "target": "谵妄",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Delusion": {
+      "target": "妄想",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Depersonalization": {
+      "target": "人格解体",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Depression": {
+      "target": "抑郁",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Depression reduction": {
+      "target": "抑郁缓解",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Depth perception distortions": {
+      "target": "深度知觉扭曲",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Derealization": {
+      "target": "现实解体",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Diarrhea": {
+      "target": "腹泻",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dibenzopyran": {
+      "target": "二苯并吡喃",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Difficulty urinating": {
+      "target": "排尿困难",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Diffraction": {
+      "target": "衍射",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Diphenylmethanethiol (modafinils)": {
+      "target": "二苯甲硫醇（莫达非尼类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Diphenylmethanol (benzhydrols)": {
+      "target": "二苯甲醇（二苯甲醇类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Diphenylpropylamine": {
+      "target": "二苯丙胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Disconnective Effects": {
+      "target": "解离效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Disinhibition": {
+      "target": "去抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "dissociative": {
+      "target": "解离剂",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dizziness": {
+      "target": "头晕",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "dosage": {
+      "target": "剂量",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dosage independent intensity": {
+      "target": "剂量无关强度",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Double vision": {
+      "target": "复视",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dream potentiation": {
+      "target": "梦境增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dream suppression": {
+      "target": "梦境抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Drifting": {
+      "target": "漂移感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Dry mouth": {
+      "target": "口干",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Ego death": {
+      "target": "自我消解",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Ego inflation": {
+      "target": "自我膨胀",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Ego replacement": {
+      "target": "自我替代",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Emotion intensification": {
+      "target": "情绪增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Emotion suppression": {
+      "target": "情绪抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Empathogen": {
+      "target": "共感剂",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "empathogenic": {
+      "target": "共情",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Empathogens": {
+      "target": "共感剂",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Empathy, affection, and sociability enhancement": {
+      "target": "共情、情感与社交性增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Enhancement and suppression cycles": {
+      "target": "增强与抑制循环",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Entactogen": {
+      "target": "共情剂",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "entactogenic": {
+      "target": "共情",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Entactogens": {
+      "target": "共情剂",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Environmental cubism": {
+      "target": "环境立体主义",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Environmental patterning": {
+      "target": "环境模式化",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Ether": {
+      "target": "醚",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Excessive yawning": {
+      "target": "过度打哈欠",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Existential self-realization": {
+      "target": "存在性自我实现",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "External hallucination": {
+      "target": "外部幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Extremely High": {
+      "target": "极高",
+      "kind": "enum:risk-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Extremely Low": {
+      "target": "极低",
+      "kind": "enum:risk-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Feelings of impending doom": {
+      "target": "厄运临头感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Field of view alteration": {
+      "target": "视野改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Focus enhancement": {
+      "target": "专注力增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Focus suppression": {
+      "target": "专注力抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Frame rate suppression": {
+      "target": "帧率抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Frequent": {
+      "target": "频繁",
+      "kind": "frequency",
+      "status": "approved",
+      "source": "human"
+    },
+    "Frequent urination": {
+      "target": "尿频",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Furanolactone": {
+      "target": "呋喃内酯",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Gait alteration": {
+      "target": "步态改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Geometric Patterns": {
+      "target": "几何图案",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Geometry": {
+      "target": "几何结构",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Geometry Video Script": {
+      "target": "几何结构视频脚本",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Glossolalia": {
+      "target": "言语混乱",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Gustatory enhancement": {
+      "target": "味觉增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Gustatory hallucination": {
+      "target": "味觉幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Gustatory suppression": {
+      "target": "味觉抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Hallucinatory Effects": {
+      "target": "致幻效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "hallucinogen": {
+      "target": "致幻剂",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "harm reduction": {
+      "target": "减害",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Headache": {
+      "target": "头痛",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Heavy": {
+      "target": "重度",
+      "kind": "enum:dose-tier",
+      "status": "approved",
+      "source": "human"
+    },
+    "Hexahydroazepinoindole (ibogalogs)": {
+      "target": "六氢氮杂䓬吲哚（ibogalogs）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "High": {
+      "target": "高",
+      "kind": "enum:risk-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Identity alteration": {
+      "target": "身份认同改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Illegal": {
+      "target": "非法",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Illegal (analog/blanket ban)": {
+      "target": "非法（类似物/全面禁令）",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Imidazopyridine": {
+      "target": "咪唑并吡啶",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Immersion enhancement": {
+      "target": "沉浸感增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased blood pressure": {
+      "target": "血压升高",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased bodily temperature": {
+      "target": "体温升高",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased heart rate": {
+      "target": "心率加快",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased libido": {
+      "target": "性欲增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased music appreciation": {
+      "target": "音乐欣赏力增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased pareidolia": {
+      "target": "空想性错视增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased perspiration": {
+      "target": "出汗增多",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased phlegm production": {
+      "target": "痰液分泌增多",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased salivation": {
+      "target": "唾液分泌增多",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased sense of humor": {
+      "target": "幽默感增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Increased suggestibility": {
+      "target": "易受暗示性增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Indazole": {
+      "target": "吲唑",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Indole": {
+      "target": "吲哚",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Internal hallucination": {
+      "target": "内部幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Introspection": {
+      "target": "内省",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Irritability": {
+      "target": "易激惹",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Itchiness": {
+      "target": "瘙痒",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Jamais vu": {
+      "target": "似曾陌生感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Language suppression": {
+      "target": "语言抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Laughter fits": {
+      "target": "大笑发作",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Legal (regulated)": {
+      "target": "合法（受管制）",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Light": {
+      "target": "轻度",
+      "kind": "enum:dose-tier",
+      "status": "approved",
+      "source": "human"
+    },
+    "Limited": {
+      "target": "有限",
+      "kind": "enum:evidence-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Low": {
+      "target": "低",
+      "kind": "enum:risk-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Lysergamide": {
+      "target": "麦角酰胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Machinescapes": {
+      "target": "机械景观",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Magnification": {
+      "target": "放大",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Mania": {
+      "target": "躁狂",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Memory enhancement": {
+      "target": "记忆增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Memory replays": {
+      "target": "记忆回放",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Memory suppression": {
+      "target": "记忆抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Mesembrine alkaloid": {
+      "target": "Mesembrine类生物碱",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Methylenedioxyphenethylamine (MDxx)": {
+      "target": "亚甲二氧基苯乙胺（MDxx）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Mindfulness": {
+      "target": "正念",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Miscellaneous": {
+      "target": "其他",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Mixed emotions": {
+      "target": "混合情绪",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Moderate": {
+      "target": "中度",
+      "kind": "enum:dose-tier",
+      "status": "approved",
+      "source": "human"
+    },
+    "Morphinan": {
+      "target": "吗啡烷",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Motivation enhancement": {
+      "target": "动力增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Motivation suppression": {
+      "target": "动力抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Motor control loss": {
+      "target": "运动控制丧失",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Mouth numbing": {
+      "target": "口腔麻木",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Multiple thought streams": {
+      "target": "多重思维流",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Multisensory Effects": {
+      "target": "多感官效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Muscle cramp": {
+      "target": "肌肉痉挛",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Muscle relaxation": {
+      "target": "肌肉放松",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Muscle tension": {
+      "target": "肌肉紧张",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Muscle twitching": {
+      "target": "肌肉抽搐",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "N-(2-Fluorobenzyl)phenethylamine (x-NBF)": {
+      "target": "N-(2-氟苄基)苯乙胺（x-NBF）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "N-(2-Hydroxybenzyl)phenethylamine (x-NBOH)": {
+      "target": "N-(2-羟基苄基)苯乙胺（x-NBOH）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "N-(2-Methoxybenzyl)phenethylamine (x-NBOMe)": {
+      "target": "N-(2-甲氧基苄基)苯乙胺（x-NBOMe）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "N-(3-Methoxybenzyl)phenethylamine (x-NB3OMe)": {
+      "target": "N-(3-甲氧基苄基)苯乙胺（x-NB3OMe）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "N-(4-Methoxybenzyl)phenethylamine (x-NB4OMe)": {
+      "target": "N-(4-甲氧基苄基)苯乙胺（x-NB4OMe）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "N-Benzylphenethylamine (x-NBx)": {
+      "target": "N-苄基苯乙胺（x-NBx）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Nausea": {
+      "target": "恶心",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Nausea suppression": {
+      "target": "恶心抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Near universal": {
+      "target": "近乎普遍",
+      "kind": "frequency",
+      "status": "approved",
+      "source": "human"
+    },
+    "Negative": {
+      "target": "阴性",
+      "kind": "enum:evidence-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Neurological Effects": {
+      "target": "神经效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Nitazepipne": {
+      "target": "Nitazepipne",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Nitazepyne": {
+      "target": "Nitazepyne",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "No Evidence": {
+      "target": "无证据",
+      "kind": "enum:carcinogenicity-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Noble gas": {
+      "target": "稀有气体",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Non-metal nitride": {
+      "target": "非金属氮化物",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "None": {
+      "target": "无",
+      "kind": "enum:evidence-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Nootropic": {
+      "target": "益智药",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Not scheduled": {
+      "target": "未列管",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Novel Cognitive States": {
+      "target": "新颖认知状态",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Novelty enhancement": {
+      "target": "新奇感增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Object activation": {
+      "target": "物体激活",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Object alteration": {
+      "target": "物体改变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Offset": {
+      "target": "消退",
+      "kind": "enum:duration-stage",
+      "status": "approved",
+      "source": "human"
+    },
+    "Olfactory enhancement": {
+      "target": "嗅觉增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Olfactory hallucination": {
+      "target": "嗅幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Olfactory suppression": {
+      "target": "嗅觉抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Onset": {
+      "target": "起效",
+      "kind": "enum:duration-stage",
+      "status": "approved",
+      "source": "human"
+    },
+    "Opioid": {
+      "target": "阿片类物质",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Optical sliding": {
+      "target": "视觉滑动",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Orgasm suppression": {
+      "target": "性高潮抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Pain relief": {
+      "target": "疼痛缓解",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Panic attack": {
+      "target": "惊恐发作",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Paranoia": {
+      "target": "偏执",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Peak": {
+      "target": "峰值",
+      "kind": "enum:duration-stage",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perception of bodily heaviness": {
+      "target": "身体沉重感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perception of bodily lightness": {
+      "target": "身体轻盈感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perception of eternalism": {
+      "target": "永恒感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perception of interdependent opposites": {
+      "target": "对立统一感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perception of predeterminism": {
+      "target": "宿命感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perception of self-design": {
+      "target": "自我设计感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Peripheral information misinterpretation": {
+      "target": "周边信息误读",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Personal bias suppression": {
+      "target": "个人偏见抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Personal meaning enhancement": {
+      "target": "个人意义增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Personality regression": {
+      "target": "人格退行",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perspective distortion": {
+      "target": "透视扭曲",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Perspective hallucination": {
+      "target": "透视幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Phenethylamine": {
+      "target": "苯乙胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Phenidate": {
+      "target": "Phenidate",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Phenylpropylamine": {
+      "target": "苯丙胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Photophobia": {
+      "target": "畏光",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical Alterations": {
+      "target": "躯体改变",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical Amplifications": {
+      "target": "躯体增强",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical autonomy": {
+      "target": "躯体自主性",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical disconnection": {
+      "target": "躯体解离感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical Effects": {
+      "target": "躯体效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical euphoria": {
+      "target": "躯体快感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical fatigue": {
+      "target": "躯体疲乏",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Physical Suppressions": {
+      "target": "躯体抑制",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Piperidine": {
+      "target": "哌啶",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Positive": {
+      "target": "阳性",
+      "kind": "enum:evidence-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Possible": {
+      "target": "可能",
+      "kind": "enum:carcinogenicity-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Prescription only": {
+      "target": "仅限处方",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Probable": {
+      "target": "很可能",
+      "kind": "enum:carcinogenicity-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "psychedelic": {
+      "target": "迷幻剂",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Psychological States": {
+      "target": "心理状态",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Psychosis": {
+      "target": "精神病性障碍",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Pupil constriction": {
+      "target": "瞳孔缩小",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Pupil dilation": {
+      "target": "瞳孔散大",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Pyrazolopyrimidine": {
+      "target": "吡唑并嘧啶",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Pyridine alkaloid": {
+      "target": "吡啶生物碱",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Pyrrolidine": {
+      "target": "吡咯烷",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Quinazolinone": {
+      "target": "喹唑啉酮",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Rare": {
+      "target": "罕见",
+      "kind": "frequency",
+      "status": "approved",
+      "source": "human"
+    },
+    "Recursion": {
+      "target": "递归",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Rejuvenation": {
+      "target": "返老还童感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Respiratory depression": {
+      "target": "呼吸抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Restless legs": {
+      "target": "不宁腿",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Restricted": {
+      "target": "受限制",
+      "kind": "enum:legal-status",
+      "status": "approved",
+      "source": "human"
+    },
+    "Runny nose": {
+      "target": "流涕",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Scenarios and plots": {
+      "target": "情境与情节",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Scenery slicing": {
+      "target": "景物切片",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Sedation": {
+      "target": "镇静",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Sedative-hypnotics": {
+      "target": "镇静催眠药",
+      "kind": "psychoactive-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Seizure": {
+      "target": "癫痫发作",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Seizure suppression": {
+      "target": "癫痫发作抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Sensed presence": {
+      "target": "感知到他人存在",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Sensory overload": {
+      "target": "感官超载",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Serotonin syndrome": {
+      "target": "5-羟色胺综合征",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "set and setting": {
+      "target": "心态与环境",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Settings, sceneries, and landscapes": {
+      "target": "场景、风景与地貌",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Shadow people": {
+      "target": "影子人",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Shakiness": {
+      "target": "颤抖",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Skin flushing": {
+      "target": "皮肤潮红",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Sleepiness": {
+      "target": "嗜睡",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Smell & Taste Effects": {
+      "target": "嗅觉与味觉效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Spatial disorientation": {
+      "target": "空间定向障碍",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Spirituality enhancement": {
+      "target": "灵性增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Spontaneous physical movements": {
+      "target": "自发性躯体运动",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Spontaneous tactile sensations": {
+      "target": "自发性触觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Stamina enhancement": {
+      "target": "耐力增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "stimulant": {
+      "target": "兴奋剂",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Stimulation": {
+      "target": "兴奋作用",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Stomach bloating": {
+      "target": "腹胀",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Stomach cramp": {
+      "target": "胃痉挛",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Strong": {
+      "target": "强",
+      "kind": "enum:dose-tier",
+      "status": "approved",
+      "source": "human"
+    },
+    "Suggestibility suppression": {
+      "target": "暗示感受性抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Suicidal ideation": {
+      "target": "自杀意念",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Symmetrical texture repetition": {
+      "target": "对称纹理重复",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Synaesthesia": {
+      "target": "联觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tactile distortion": {
+      "target": "触觉扭曲",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tactile Effects": {
+      "target": "触觉效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tactile enhancement": {
+      "target": "触觉增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tactile hallucination": {
+      "target": "触幻觉",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tactile suppression": {
+      "target": "触觉抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Teeth chattering": {
+      "target": "牙齿打颤",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Teeth grinding": {
+      "target": "磨牙",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Temperature regulation suppression": {
+      "target": "体温调节抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Temporary erectile dysfunction": {
+      "target": "暂时性勃起功能障碍",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Texture liquidation": {
+      "target": "纹理液化",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thienodiazepine": {
+      "target": "噻吩并二氮䓬",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thienotriazolodiazepine": {
+      "target": "噻吩并三唑并二氮䓬",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thiopropamine": {
+      "target": "噻丙胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thought acceleration": {
+      "target": "思维加速",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thought connectivity": {
+      "target": "思维联结",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thought deceleration": {
+      "target": "思维迟缓",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thought disorganization": {
+      "target": "思维散乱",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thought loops": {
+      "target": "思维循环",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Thought organization": {
+      "target": "思维条理化",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Threshold": {
+      "target": "阈值",
+      "kind": "enum:dose-tier",
+      "status": "approved",
+      "source": "human"
+    },
+    "Time distortion": {
+      "target": "时间扭曲",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tinnitus": {
+      "target": "耳鸣",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "tolerance": {
+      "target": "耐受性",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Total": {
+      "target": "总量",
+      "kind": "enum:duration-stage",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tracers": {
+      "target": "拖影",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Transformations": {
+      "target": "形态转变",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Transpersonal Effects": {
+      "target": "超个人效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Transpersonal States": {
+      "target": "超个人状态",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Triazolobenzodiazepine": {
+      "target": "三唑并苯并二氮䓬",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "trip report": {
+      "target": "体验报告",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tropane": {
+      "target": "托品烷",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Tryptamine": {
+      "target": "色胺",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "Uncomfortable Bodily Effects": {
+      "target": "不适的身体效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Uncomfortable Physical Effects": {
+      "target": "不适的躯体效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Uncommon": {
+      "target": "不常见",
+      "kind": "frequency",
+      "status": "approved",
+      "source": "human"
+    },
+    "Unity and interconnectedness": {
+      "target": "合一与万物互联感",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Unknown": {
+      "target": "未知",
+      "kind": "enum:carcinogenicity-level",
+      "status": "approved",
+      "source": "human"
+    },
+    "Unspeakable horrors": {
+      "target": "难以言喻的恐怖",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Vasoconstriction": {
+      "target": "血管收缩",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Vasodilation": {
+      "target": "血管舒张",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Vibrating vision": {
+      "target": "视觉振动",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual acuity enhancement": {
+      "target": "视敏度增强",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual acuity suppression": {
+      "target": "视敏度抑制",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual agnosia": {
+      "target": "视觉失认症",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual Amplifications": {
+      "target": "视觉放大效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual auras": {
+      "target": "视觉先兆",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual disconnection": {
+      "target": "视觉断连",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual Distortions": {
+      "target": "视觉扭曲",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual Effects": {
+      "target": "视觉效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual exposure to inner mechanics of consciousness": {
+      "target": "意识内在机制的视觉呈现",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual exposure to semantic concept network": {
+      "target": "语义概念网络的视觉呈现",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual flipping": {
+      "target": "视觉翻转",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual haze": {
+      "target": "视觉朦胧",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual processing acceleration": {
+      "target": "视觉加工加速",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual stretching": {
+      "target": "视觉拉伸",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual strobing": {
+      "target": "视觉频闪",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual Suppressions": {
+      "target": "视觉抑制效应",
+      "kind": "effect-category",
+      "status": "approved",
+      "source": "human"
+    },
+    "Visual twisting": {
+      "target": "视觉扭转",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Wakefulness": {
+      "target": "清醒度",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "Watery eyes": {
+      "target": "流泪",
+      "kind": "effect-name",
+      "status": "approved",
+      "source": "human"
+    },
+    "withdrawal": {
+      "target": "戒断反应",
+      "kind": "register",
+      "status": "approved",
+      "source": "human"
+    },
+    "Xanthine": {
+      "target": "黄嘌呤",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "α-Methylphenethylamine (amphetamines)": {
+      "target": "α-甲基苯乙胺（苯丙胺类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "α-Pyrrolidinophenone (pyrrolidinophenones)": {
+      "target": "α-吡咯烷基苯酮（吡咯烷基苯酮类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "β-Carboline": {
+      "target": "β-咔啉",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "β-Ketoamphetamine (cathinones)": {
+      "target": "β-酮基苯丙胺（卡西酮类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    },
+    "γ-Aminobutyric acid analogue (gabapentinoids)": {
+      "target": "γ-氨基丁酸类似物（加巴喷丁类）",
+      "kind": "chemical-class",
+      "status": "approved",
+      "source": "human"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "slug": "example-substance",
+  "generatedAt": "2026-07-11T00:00:00.000Z",
+  "international": [
+    "Not scheduled under the 1971 Convention."
+  ],
+  "internationalSources": [
+    {
+      "url": "https://www.incb.org/",
+      "title": "International Narcotics Control Board"
+    }
+  ],
+  "entries": {
+    "United States": {
+      "canonicalStatus": "prohibited",
+      "instrument": "Schedule I, Controlled Substances Act (US)",
+      "designation": "Schedule I",
+      "status": "Illegal",
+      "notes": "The substance is listed in Schedule I.",
+      "sources": [
+        {
+          "url": "https://www.deadiversion.usdoj.gov/schedules/",
+          "title": "Controlled Substances Schedules",
+          "supportQuote": "Schedule I substances are listed under federal law."
+        }
+      ]
+    }
+  },
+  "enrichments": {
+    "Netherlands": {
+      "canonicalStatus": "prohibited",
+      "instrument": "List I, Opiumwet (Netherlands)",
+      "designation": "List I",
+      "sources": [
+        {
+          "url": "https://wetten.overheid.nl/",
+          "title": "Opium Act",
+          "supportQuote": "List I contains prohibited substances."
+        }
+      ]
+    }
+  },
+  "usStates": {
+    "Colorado": {
+      "canonicalStatus": "decriminalized",
+      "instrument": "Colorado Revised Statutes",
+      "designation": "Decriminalized",
+      "status": "Decriminalized",
+      "notes": "Colorado law decriminalizes limited possession by adults.",
+      "sources": [
+        {
+          "url": "https://leg.colorado.gov/",
+          "title": "Colorado General Assembly",
+          "supportQuote": "Colorado law establishes the possession threshold."
+        }
+      ],
+      "cities": {
+        "Denver": {
+          "canonicalStatus": "decriminalized",
+          "instrument": "Denver Municipal Code",
+          "designation": "Lowest priority",
+          "status": "Decriminalized",
+          "notes": "Denver treats enforcement as a low priority.",
+          "sources": [
+            {
+              "url": "https://library.municode.com/co/denver/codes/code_of_ordinances",
+              "title": "Denver Municipal Code",
+              "supportQuote": "The ordinance identifies the enforcement priority."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "usStatesNote": "The remaining states control the substance in line with federal Schedule I.",
+  "usMirrors": [
+    {
+      "state": "Alabama",
+      "statuteCitation": "Ala. Code § 20-2-23",
+      "sourceUrl": "https://www.legislature.state.al.us/"
+    }
+  ],
+  "corrections": {},
+  "gaps": [],
+  "refuted": []
+}

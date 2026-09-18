@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "ignoreDeprecations": "6.0",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "useDefineForClassFields": true,
+    "lib": ["ES2020"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "types": ["node", "next"],
+    "baseUrl": "../..",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@lib/*": ["./lib/*"],
+      "@auth": ["./lib/auth/authOptions.ts"],
+      "@server/*": ["./lib/*"]
+    }
+  },
+  "include": ["../../server/**/*.ts", "../../lib/postgres/runtime/**/*.ts"],
+  "exclude": ["../../node_modules"]
+}

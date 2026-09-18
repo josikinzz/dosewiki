@@ -1,0 +1,232 @@
+{
+  "slug": "allylescaline",
+  "title": "Allylescaline",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/allylescaline.md",
+  "archive_timestamp": "20160804042719",
+  "archive_date_utc": "2016-08-04T04:27:19Z",
+  "archive_url": "https://web.archive.org/web/20160804042719/https://psychonautwiki.org/wiki/Allylescaline",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160804042719/https://psychonautwiki.org/wiki/Allylescaline"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Acuity enhancement",
+                "description": ""
+              },
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(melting, flowing, breathing and morphing)"
+              },
+              {
+                "name": "Tracers",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              },
+              {
+                "name": "Symmetrical texture repetition",
+                "description": ""
+              },
+              {
+                "name": "Colour shifting",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Transformations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Emotion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Novelty enhancement",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Analysis enhancement",
+            "description": ""
+          },
+          {
+            "name": "Personal bias suppression",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Thought loops",
+            "description": ""
+          },
+          {
+            "name": "Thought disorganization",
+            "description": ""
+          },
+          {
+            "name": "Unity and interconnectedness",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": ""
+          },
+          {
+            "name": "Stimulation",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": ""
+          },
+          {
+            "name": "Bodily control enhancement",
+            "description": ""
+          },
+          {
+            "name": "Pupil dilation",
+            "description": ""
+          },
+          {
+            "name": "Wakefulness",
+            "description": ""
+          },
+          {
+            "name": "Physical euphoria",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160804042719/https://psychonautwiki.org/wiki/Allylescaline"
+    },
+    "is_stub": true
+  },
+  "fidelity_notes": [
+    "Source stub warning represented as subjective_effects.is_stub.",
+    "Generic source overview replaced with default public overview.",
+    "Physical effects bullets preserved in subjective_effects.physical.General in source order.",
+    "Cognitive effects bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Visual Enhancements, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; empty Geometry heading retained with no effects.",
+    "Parenthetical variant text for Drifting preserved in its description with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects bullets preserved in subjective_effects.sensory.auditory.General in source order.",
+    "Markdown bold, italics, table pipes, and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

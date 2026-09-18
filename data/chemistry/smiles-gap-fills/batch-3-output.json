@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "diethyl-ether",
+    "title": "Diethyl-Ether",
+    "smiles": "CCOCC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3283 (diethyl ether)."
+  },
+  {
+    "slug": "dimemebfe",
+    "title": "Dimemebfe",
+    "smiles": "CN(C)CCC1=COC2=C1C=C(C=C2)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 126589 (2-(5-methoxy-1-benzofuran-3-yl)-N,N-dimethylethanamine; 5-MeO-DMT benzofuran analogue)."
+  },
+  {
+    "slug": "dipipanone",
+    "title": "Dipipanone",
+    "smiles": "CCC(=O)C(CC(C)N1CCCCC1)(C2=CC=CC=C2)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 13331."
+  },
+  {
+    "slug": "dmaa",
+    "title": "DMAA",
+    "smiles": "CCC(C)CC(C)N",
+    "represents": "1,3-dimethylamylamine (methylhexanamine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "DMAA = 1,3-dimethylamylamine / methylhexanamine; PubChem CID 7753."
+  },
+  {
+    "slug": "doip",
+    "title": "Doip",
+    "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CC(C)N)OC",
+    "represents": "DOiP (2,5-dimethoxy-4-isopropylamphetamine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "DOiP = 2,5-dimethoxy-4-isopropylamphetamine, PubChem CID 44265275. Confirmed as DOx psychedelic amphetamine from source quotes; the name 'DOIP' alone in PubChem returns an unrelated phthalate plasticizer, which was rejected."
+  },
+  {
+    "slug": "don",
+    "title": "DON",
+    "smiles": "CC(CC1=CC(=C(C=C1OC)[N+](=O)[O-])OC)N",
+    "represents": "DON (2,5-dimethoxy-4-nitroamphetamine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "DON = 2,5-dimethoxy-4-nitroamphetamine, PubChem CID 105432. Confirmed as rare DOx psychedelic amphetamine from source quotes."
+  },
+  {
+    "slug": "dopr",
+    "title": "Dopr",
+    "smiles": "CCCC1=CC(=C(C=C1OC)CC(C)N)OC",
+    "represents": "DOPR (2,5-dimethoxy-4-propylamphetamine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "DOPR = 2,5-dimethoxy-4-propylamphetamine, PubChem CID 542051."
+  },
+  {
+    "slug": "doxylamine",
+    "title": "Doxylamine",
+    "smiles": "CC(C1=CC=CC=C1)(C2=CC=CC=N2)OCCN(C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3162."
+  },
+  {
+    "slug": "ephylone",
+    "title": "Ephylone",
+    "smiles": "CCCC(C(=O)C1=CC2=C(C=C1)OCO2)NCC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 57359308 (N-ethylpentylone)."
+  },
+  {
+    "slug": "estazolam",
+    "title": "Estazolam",
+    "smiles": "C1C2=NN=CN2C3=C(C=C(C=C3)Cl)C(=N1)C4=CC=CC=C4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3261."
+  },
+  {
+    "slug": "et",
+    "title": "ET",
+    "smiles": "CCC(CC1=CNC2=CC=CC=C21)N",
+    "represents": "αET (alpha-ethyltryptamine / etryptamine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Article is αET (alpha-ethyltryptamine, marketed as Monase), PubChem CID 8367. Identity confirmed from source quotes referencing Upjohn 'Monase' and agranulocytosis."
+  },
+  {
+    "slug": "eth-cat",
+    "title": "ETH-CAT",
+    "smiles": "CCNC(C)C(=O)C1=CC=CC=C1",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 458519 (N-ethylcathinone / ethcathinone)."
+  },
+  {
+    "slug": "ethaqualone",
+    "title": "Ethaqualone",
+    "smiles": "CCC1=CC=CC=C1N2C(=NC3=CC=CC=C3C2=O)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 23914 (etaqualone; 3-(2-ethylphenyl)-2-methylquinazolin-4-one, ethyl analogue of methaqualone)."
+  },
+  {
+    "slug": "ethchlorvynol",
+    "title": "Ethchlorvynol",
+    "smiles": "CCC(/C=C/Cl)(C#C)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 5281077."
+  },
+  {
+    "slug": "ethketamine",
+    "title": "Ethketamine",
+    "smiles": "CCNC1(CCCCC1=O)C2=CC=CC=C2Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 57483649 (N-ethylnorketamine / NENK)."
+  },
+  {
+    "slug": "ethylphenidate",
+    "title": "Ethylphenidate",
+    "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3080846."
+  },
+  {
+    "slug": "f-phenibut",
+    "title": "F-Phenibut",
+    "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+    "represents": "4-fluorophenibut",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "F-Phenibut = 4-fluorophenibut (4-amino-3-(4-fluorophenyl)butanoic acid), PubChem CID 103611. Same molecule as the 'Fluorophenibut' entry."
+  },
+  {
+    "slug": "fasoracetam",
+    "title": "Fasoracetam",
+    "smiles": "C1CCN(CC1)C(=O)[C@H]2CCC(=O)N2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 198695 (stereochemistry from PubChem isomeric SMILES)."
+  },
+  {
+    "slug": "fluorophenibut",
+    "title": "Fluorophenibut",
+    "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+    "represents": "4-fluorophenibut",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Fluorophenibut = 4-fluorophenibut, PubChem CID 103611. Same molecule as the 'F-Phenibut' entry."
+  },
+  {
+    "slug": "flutazolam",
+    "title": "Flutazolam",
+    "smiles": "C1COC2(N1CC(=O)N(C3=C2C=C(C=C3)Cl)CCO)C4=CC=CC=C4F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3398."
+  },
+  {
+    "slug": "gaba",
+    "title": "GABA",
+    "smiles": "C(CC(=O)O)CN",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 119 (gamma-aminobutyric acid)."
+  },
+  {
+    "slug": "ghb",
+    "title": "GHB",
+    "smiles": "C(CC(=O)O)CO",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 10413 (gamma-hydroxybutyric acid)."
+  },
+  {
+    "slug": "glaucine",
+    "title": "Glaucine",
+    "smiles": "CN1CCC2=CC(=C(C3=C2[C@@H]1CC4=CC(=C(C=C43)OC)OC)OC)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 16754 (S-glaucine; stereochemistry from PubChem isomeric SMILES)."
+  },
+  {
+    "slug": "glutethimide",
+    "title": "Glutethimide",
+    "smiles": "CCC1(CCC(=O)NC1=O)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3487."
+  },
+  {
+    "slug": "h-2c-b",
+    "title": "H-2c-B",
+    "smiles": "COC1=CC(=C(C=C1C(CN)O)OC)Br",
+    "represents": "βH-2C-B (β-hydroxy-2C-B / BOH-2C-B)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Article is βH-2C-B = β-hydroxy-2C-B (2-amino-1-(4-bromo-2,5-dimethoxyphenyl)ethanol), PubChem CID 11370394. Identity confirmed from source pharmacology quote describing 'β-Hydroxy-2C-B'."
+  },
+  {
+    "slug": "haloperidol",
+    "title": "Haloperidol",
+    "smiles": "C1CN(CCC1(C2=CC=C(C=C2)Cl)O)CCCC(=O)C3=CC=C(C=C3)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3559."
+  },
+  {
+    "slug": "hdep-28",
+    "title": "HDEP-28",
+    "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC3=CC=CC=C3C=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 91844468 (ethyl ester naphthyl analogue of phenidate)."
+  },
+  {
+    "slug": "hexobarbital",
+    "title": "Hexobarbital",
+    "smiles": "CC1(C(=O)NC(=O)N(C1=O)C)C2=CCCCC2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3608."
+  },
+  {
+    "slug": "homosildenafil",
+    "title": "Homosildenafil",
+    "smiles": "CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)CC)OCC)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 135565273 (sildenafil analogue with N-ethylpiperazine)."
+  },
+  {
+    "slug": "hot-2",
+    "title": "HOT-2",
+    "smiles": "CCSC1=C(C=C(C(=C1)OC)CCNO)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 44350142 (N-hydroxy-2C-T-2)."
+  }
+]

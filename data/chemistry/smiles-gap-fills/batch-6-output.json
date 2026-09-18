@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "paracetamol",
+    "title": "Paracetamol",
+    "smiles": "CC(=O)NC1=CC=C(C=C1)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "parafluorofentanyl",
+    "title": "Parafluorofentanyl",
+    "smiles": "CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "para-Fluorofentanyl (4-fluorofentanyl), PubChem CID 62300."
+  },
+  {
+    "slug": "pargy-lad",
+    "title": "Pargy-LAD",
+    "smiles": "CCN(CC)C(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(=C34)C2=C1)CC#C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "N-propargyl lysergic acid diethylamide analog (PARGY-LAD), PubChem CID 139030999."
+  },
+  {
+    "slug": "pbp",
+    "title": "PBP",
+    "smiles": "CCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "represents": "alpha-PBP (alpha-Pyrrolidinobutiophenone)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Source describes it as the homologue between alpha-PPP and alpha-PVP; this is alpha-PBP, PubChem CID 23199082."
+  },
+  {
+    "slug": "pentazocine",
+    "title": "Pentazocine",
+    "smiles": "C[C@H]1[C@H]2CC3=C([C@@]1(CCN2CC=C(C)C)C)C=C(C=C3)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "pentylone",
+    "title": "Pentylone",
+    "smiles": "CCCC(C(=O)C1=CC2=C(C=C1)OCO2)NC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "pfbt",
+    "title": "Pfbt",
+    "smiles": "CN1C2CCC1CC(C2)OC(=O)C3=CC=C(C=C3)F",
+    "represents": "3-(p-Fluorobenzoyloxy)tropane (fluorotropacocaine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PFBT = 3-(p-fluorobenzoyloxy)tropane, a tropane local anaesthetic ~30% potency of cocaine (matches source). PubChem CID 5147770. Note: a literal PubChem name lookup of 'pFBT' wrongly returns pentafluorothiophenol, which was rejected."
+  },
+  {
+    "slug": "phenetrazine",
+    "title": "Phenetrazine",
+    "smiles": "CCC1C(OCCN1)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Ethyl homolog of phenmetrazine (3-ethyl-2-phenylmorpholine), PubChem CID 43350824."
+  },
+  {
+    "slug": "phenmetrazine",
+    "title": "Phenmetrazine",
+    "smiles": "CC1C(OCCN1)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "phentermine",
+    "title": "Phentermine",
+    "smiles": "CC(C)(CC1=CC=CC=C1)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "picamilon",
+    "title": "Picamilon",
+    "smiles": "C1=CC(=CN=C1)C(=O)NCCCC(=O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "pinazepam",
+    "title": "Pinazepam",
+    "smiles": "C#CCN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "pipt",
+    "title": "Pipt",
+    "smiles": "CCCN(CCC1=CNC2=CC=CC=C21)C(C)C",
+    "represents": "N-isopropyl-N-propyltryptamine (PiPT)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PiPT is N-isopropyl-N-propyltryptamine, a psychedelic tryptamine (matches source effects). PubChem CID 57464898."
+  },
+  {
+    "slug": "prl-8-53",
+    "title": "PRL-8-53",
+    "smiles": "CN(CCC1=CC(=CC=C1)C(=O)OC)CC2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Free base of PRL-8-53, PubChem CID 39989 (the HCl salt is CID 70700868); salt counterion removed."
+  },
+  {
+    "slug": "prochlorperazine",
+    "title": "Prochlorperazine",
+    "smiles": "CN1CCN(CC1)CCCN2C3=CC=CC=C3SC4=C2C=C(C=C4)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "progesterone",
+    "title": "Progesterone",
+    "smiles": "CC(=O)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CCC4=CC(=O)CC[C@]34C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "promethazine",
+    "title": "Promethazine",
+    "smiles": "CC(CN1C2=CC=CC=C2SC3=CC=CC=C31)N(C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "propofol",
+    "title": "Propofol",
+    "smiles": "CC(C)C1=C(C(=CC=C1)C(C)C)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "propoxyphene",
+    "title": "Propoxyphene",
+    "smiles": "CCC(=O)O[C@](CC1=CC=CC=C1)(C2=CC=CC=C2)[C@H](C)CN(C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Dextropropoxyphene, PubChem CID 10100."
+  },
+  {
+    "slug": "propylphenidate",
+    "title": "Propylphenidate",
+    "smiles": "CCCOC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "pseudoephrine",
+    "title": "Pseudoephrine",
+    "smiles": "C[C@@H]([C@H](C1=CC=CC=C1)O)NC",
+    "represents": "Pseudoephedrine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Title 'Pseudoephrine' is a misspelling of pseudoephedrine, PubChem CID 7028."
+  },
+  {
+    "slug": "pst",
+    "title": "PST",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+    "represents": "Morphine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PST = poppy seed/straw tea, a preparation whose principal active opium alkaloid is morphine. PubChem CID 5288826."
+  },
+  {
+    "slug": "pv-8",
+    "title": "PV-8",
+    "smiles": "CCCCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "represents": "alpha-PHpP (alpha-PV-8 / alpha-pyrrolidinoheptiophenone)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PV-8 is the higher homologue of alpha-PHP (matches source), i.e. alpha-pyrrolidinoheptaphenone. PubChem CID 69245534."
+  },
+  {
+    "slug": "pvt",
+    "title": "PVT",
+    "smiles": "CCCC(C(=O)C1=CC=CS1)N2CCCC2",
+    "represents": "alpha-PVT (alpha-pyrrolidinopentiothiophenone)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "alpha-PVT, the thiophene analog of alpha-PVP (matches source). PubChem CID 71721462."
+  },
+  {
+    "slug": "pyrophenidone",
+    "title": "Pyrophenidone",
+    "smiles": "CC1=CC=C(C=C1)C(=O)C(C2=CC=CC=C2)N3CCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 165411888."
+  },
+  {
+    "slug": "quazepam",
+    "title": "Quazepam",
+    "smiles": "C1C(=S)N(C2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3F)CC(F)(F)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "rilmazafone",
+    "title": "Rilmazafone",
+    "smiles": "CN(C)C(=O)C1=NN(C(=N1)CNC(=O)CN)C2=C(C=C(C=C2)Cl)C(=O)C3=CC=CC=C3Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "risperidone",
+    "title": "Risperidone",
+    "smiles": "CC1=C(C(=O)N2CCCCC2=N1)CCN3CCC(CC3)C4=NOC5=C4C=CC(=C5)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "rolicyclidine",
+    "title": "Rolicyclidine",
+    "smiles": "C1CCC(CC1)(C2=CC=CC=C2)N3CCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Rolicyclidine (PCPy), PubChem CID 62436."
+  },
+  {
+    "slug": "ronlax",
+    "title": "Ronlax",
+    "smiles": "CCOC(=O)C1C(=O)NC2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3F",
+    "represents": "Ethyl loflazepate",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Ronlax is a Mexican brand name for ethyl loflazepate, a long-half-life benzodiazepine metabolizing into descarboxyloflazepate (matches source). PubChem CID 3299."
+  }
+]

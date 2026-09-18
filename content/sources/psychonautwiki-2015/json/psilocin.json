@@ -1,0 +1,272 @@
+{
+  "slug": "psilocin",
+  "title": "Psilocin",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/psilocin.md",
+  "archive_timestamp": "20150424040116",
+  "archive_date_utc": "2015-04-24T04:01:16Z",
+  "archive_url": "https://web.archive.org/web/20150424040116/http://psychonautwiki.org/wiki/4-HO-DMT",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, April 2015.",
+    "url": "https://web.archive.org/web/20150424040116/http://psychonautwiki.org/wiki/4-HO-DMT"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "The cognitive effects of psilocin are described by many as extremely relaxing, profound and stoning in style when compared to other commonly used psychedelics such as LSD or 2C-B which tend to be energetic and stimulating. It contains a large number of psychedelic typical and unique cognitive effects.\n\nThe most prominent of these typical effects generally include:",
+      "physical": "The physical effects of psilocin can be broken down into several components all of which progressively intensify proportional to dosage. These are described below and generally include:"
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {
+          "Enhancements": {
+            "note": "Psilocin presents a full and complete array of possible visual enhancements which generally includes:",
+            "effects": [
+              {
+                "name": "Visual acuity enhancement",
+                "description": ""
+              },
+              {
+                "name": "Colour enhancement",
+                "description": ""
+              },
+              {
+                "name": "Pattern recognition enhancement",
+                "description": ""
+              }
+            ]
+          },
+          "Distortions": {
+            "note": "As for visual distortions and alterations, the effects experienced are detailed below:",
+            "effects": [
+              {
+                "name": "Drifting",
+                "description": "(Melting, Flowing, Breathing and morphing) - In comparison to other psychedelics, this effect can be described as highly detailed, realistic, slow and smooth in motion and static in appearance."
+              },
+              {
+                "name": "Tracers",
+                "description": ""
+              },
+              {
+                "name": "After images",
+                "description": ""
+              },
+              {
+                "name": "Symmetrical texture repetition",
+                "description": ""
+              },
+              {
+                "name": "Colour shifting",
+                "description": ""
+              },
+              {
+                "name": "Scenery slicing",
+                "description": ""
+              }
+            ]
+          },
+          "Geometry": {
+            "note": "The visual geometry that is present throughout this trip can be described as more similar in appearance to that of 4-AcO-DMT, Ayahuasca and 2C-E than LSD or 2C-B. It can be comprehensively described through its variations as intricate in complexity, abstract in form, organic in feel, structured in organization, brightly lit and multicoloured in scheme, glossy in shading, soft in its edges, large in size, slow in speed, smooth in motion, rounded in its corners, non-immersive in depth and consistent in intensity. They have a very \"natural\" feel to them and at higher dosages are significantly more likely to result in states of Level 8B visual geometry over Level 8A.",
+            "effects": []
+          },
+          "Hallucinatory states": {
+            "note": "Psilocin and its various other forms produce a full range of high level hallucinatory states in a fashion that is more consistent and reproducible than that of many other commonly used psychedelics. These effects generally include:",
+            "effects": [
+              {
+                "name": "Transformations",
+                "description": ""
+              },
+              {
+                "name": "Internal hallucinations",
+                "description": "(Autonomous entities, Settings, sceneries, and landscapes, Alterations in perspective and Scenarios and plots) - This effect is very consistent in dark environments at appropriately high dosages. They can be comprehensively described through their variations as lucid in believability, interactive in style, new experiences in content, autonomous in controllability, geometry-based in style and almost exclusively of a religious, spiritual, mystical, science fiction or transcendental nature in their overall theme."
+              }
+            ]
+          }
+        }
+      },
+      "auditory": {
+        "note": "The auditory effects of psilocin are common in their occurrence and exhibit a full range of effects which commonly includes:",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              },
+              {
+                "name": "Distortions",
+                "description": ""
+              },
+              {
+                "name": "Hallucinations",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Current mind state enhancement",
+            "description": ""
+          },
+          {
+            "name": "Thought connectivity",
+            "description": ""
+          },
+          {
+            "name": "Novelty enhancement",
+            "description": ""
+          },
+          {
+            "name": "Time distortion",
+            "description": ""
+          },
+          {
+            "name": "Analysis enhancement",
+            "description": "This effect is consistent in its manifestation and outrospection dominant."
+          },
+          {
+            "name": "Déjà vu",
+            "description": ""
+          },
+          {
+            "name": "Personal bias suppression",
+            "description": ""
+          },
+          {
+            "name": "Feelings of predeterminism",
+            "description": ""
+          },
+          {
+            "name": "Immersion enhancement",
+            "description": ""
+          },
+          {
+            "name": "Conceptual thinking",
+            "description": ""
+          },
+          {
+            "name": "Direct communication with the subconscious",
+            "description": ""
+          },
+          {
+            "name": "Memory suppression",
+            "description": ""
+          },
+          {
+            "name": "Feelings of interdependent opposites",
+            "description": ""
+          },
+          {
+            "name": "Delusions",
+            "description": ""
+          },
+          {
+            "name": "Unity and interconnectedness",
+            "description": ""
+          },
+          {
+            "name": "Feelings of self-design",
+            "description": ""
+          },
+          {
+            "name": "Exposure to inner mechanics of consciousness",
+            "description": ""
+          },
+          {
+            "name": "Spirituality enhancement",
+            "description": ""
+          },
+          {
+            "name": "Enhancement and suppression cycles",
+            "description": "This can be described as constant waves of extremely stimulated and profound thinking which are spontaneously surpassed in a cyclic fashion by waves of general thought suppression and mental intoxication. These two states seem to switch between each other in a consistent loop once every 20 - 60 minutes."
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "The \"body high\" of psilocin can be described as a pleasurable, warm, soft and all-encompassing tingling sensation. This maintains a consistent presence that steadily rises with the onset and hits its limit once the peak has been reached."
+          },
+          {
+            "name": "Sedation",
+            "description": "In terms of its effects on the physical energy levels of the tripper, psilocin is considered by most to be relaxing, stoning and mildly sedating. This sense of sedation is often accompanied by compulsive yawning."
+          },
+          {
+            "name": "Runny nose",
+            "description": ""
+          },
+          {
+            "name": "Excessive yawning",
+            "description": ""
+          },
+          {
+            "name": "Watery eyes",
+            "description": ""
+          },
+          {
+            "name": "Nausea",
+            "description": ""
+          },
+          {
+            "name": "Changes in gravity",
+            "description": ""
+          },
+          {
+            "name": "Salivation",
+            "description": ""
+          },
+          {
+            "name": "Pupil dilation",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, April 2015.",
+      "url": "https://web.archive.org/web/20150424040116/http://psychonautwiki.org/wiki/4-HO-DMT"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects prose before bullets preserved in subjective_effects.notes.physical; physical bullets preserved in subjective_effects.physical.General in source order.",
+    "Cognitive effects prose before bullets preserved in subjective_effects.notes.cognitive with its second introductory line; cognitive bullets preserved in subjective_effects.cognitive.General in source order.",
+    "Visual Enhancements, Distortions, Geometry, and Hallucinatory states headings preserved as visual subcategory keys; prose under those headings preserved as subcategory notes.",
+    "Geometry heading has no bullets in source, so its full paragraph is retained as a subcategory note with an empty effects array.",
+    "Parenthetical variant text for Drifting and Internal hallucinations preserved in descriptions with Markdown emphasis markers removed as structural formatting.",
+    "Auditory effects prose preserved in subjective_effects.sensory.auditory.note; auditory bullets preserved in subjective_effects.sensory.auditory.General in source order.",
+    "No source stub warning was present in the archived Psilocin Subjective effects section."
+  ]
+}

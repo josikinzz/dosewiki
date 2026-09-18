@@ -1,0 +1,706 @@
+/* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */
+
+/* Orchid */
+html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {
+  --theme-body-bg: #110617;
+  --theme-page-start: #7800b5;
+  --theme-page-mid: oklch(13.2% 0.045 318);
+  --theme-page-end: oklch(8% 0.018 318);
+  --theme-page-halo-top: oklch(46% 0.12 318 / 0.06);
+  --theme-page-halo-left: oklch(46% 0.1 326 / 0.035);
+  --theme-page-halo-right: oklch(46% 0.1 290 / 0.03);
+  --theme-page-edge-vignette: transparent;
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #dcdcdc;
+  --theme-text-muted: #bcb9be;
+  --theme-text-faint: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
+  --theme-text-ghost: color-mix(in srgb, rgb(255 255 255) 42%, #110617);
+  --theme-text-on-media: #f5f5f5;
+  --theme-text-on-media-muted: rgb(245 245 245 / 0.72);
+  --theme-border-subtle: rgb(255 255 255 / 0.1);
+  --theme-border-strong: rgb(255 255 255 / 0.18);
+  --theme-card-border: rgb(240 171 252 / 0.16);
+  --theme-card-border-strong: rgb(240 171 252 / 0.24);
+  --theme-divider: rgb(255 255 255 / 0.14);
+  --theme-shadow-soft: rgb(0 0 0 / 0.42);
+  --theme-shadow-strong: rgb(0 0 0 / 0.62);
+  --theme-backdrop-blur: on;
+  --theme-elevation-none: 0 0 #0000;
+  --theme-elevation-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --theme-elevation-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --theme-elevation-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --theme-elevation-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --theme-elevation-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --theme-elevation-card: 0 10px 30px -12px rgb(0 0 0 / 0.42);
+  --theme-elevation-card-subtle: 0 16px 34px -22px rgb(0 0 0 / 0.42);
+  --theme-elevation-overlay: 0 18px 50px -12px rgb(0 0 0 / 0.62);
+  --theme-elevation-panel: 0 18px 40px -24px rgb(0 0 0 / 0.62);
+  --theme-elevation-panel-deep: 0 18px 45px -20px rgb(0 0 0 / 0.6);
+  --theme-elevation-tile-hover: 0 18px 36px -26px rgb(0 0 0 / 0.62);
+  --theme-elevation-motion-card: 0 10px 24px -14px rgb(0 0 0 / 0.28);
+  --theme-elevation-motion-card-hover: 0 16px 36px -18px rgb(0 0 0 / 0.36);
+  --theme-elevation-swatch: 0 2px 8px -2px rgb(0 0 0 / 0.42);
+  --theme-elevation-accent-lift: 0 22px 45px -28px color-mix(in srgb, #f0abfc 60%, transparent);
+  --theme-elevation-accent-ring: 0 0 0 1px #f0abfc;
+  --theme-elevation-danger: 0 14px 36px -22px rgb(244 63 94 / 0.24);
+  --theme-elevation-danger-hover: 0 18px 46px -25px rgb(244 63 94 / 0.24);
+  --theme-elevation-control-active: 0 10px 30px -12px oklch(62.7% 0.233 290 / 0.65);
+  --theme-elevation-control-primary: 0 18px 40px -24px oklch(59.6% 0.261 290 / 0.6);
+  --theme-elevation-icon-tile: 0 10px 15px -3px oklch(66.7% 0.259 326 / 0.08), 0 4px 6px -4px oklch(66.7% 0.259 326 / 0.08);
+  --theme-elevation-field-inset: inset 0 1px 2px rgb(0 0 0 / 0.42);
+  --theme-elevation-inner-accent: inset 0 2px 4px 0 color-mix(in srgb, #f0abfc 22%, transparent);
+  --theme-elevation-top-highlight: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --theme-elevation-top-highlight-faint: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --theme-elevation-mark-hairline: inset 0 0 0 1px oklch(72.5% 0.175 326 / 0.18);
+  --theme-elevation-avatar-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.2);
+  --theme-elevation-avatar-glow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  --theme-surface-soft: color-mix(in srgb, rgb(31 22 51) 72%, #110617);
+  --theme-surface-muted: #070015;
+  --theme-surface-strong: color-mix(in srgb, rgb(22 15 39) 96%, #110617);
+  --theme-surface-deep: color-mix(in srgb, oklch(13% 0.026 318) 90%, #110617);
+  --theme-chrome-surface: color-mix(in srgb, oklch(30.8% 0.123 318) 72%, #110617);
+  --theme-chrome-surface-strong: color-mix(in srgb, oklch(33.6% 0.134 318) 82%, #110617);
+  --theme-chrome-border: rgb(240 171 252 / 0.22);
+  --theme-chrome-rail-base: oklch(15.5% 0.037 318);
+  --theme-chrome-rail-highlight: #201024;
+  --theme-chrome-rail-primary: oklch(15.5% 0.037 318);
+  --theme-chrome-rail-secondary: #1d0e21;
+  --theme-chrome-rail-bg: radial-gradient(circle at 12% 0%, #201024, oklch(15.5% 0.037 318) 38%),
+    linear-gradient(135deg, oklch(15.5% 0.037 318), #1d0e21);
+  --theme-menu-surface: color-mix(in srgb, rgb(28 15 56) 96%, #110617);
+  --theme-field-surface: oklch(20.3% 0.05 318);
+  --theme-field-surface-alt: color-mix(in srgb, oklch(16% 0.026 318) 72%, #110617);
+  --theme-field-border: rgb(255 255 255 / 0.36);
+  --theme-field-on-chrome-surface: oklch(24.5% 0.045 318);
+  --theme-field-on-chrome-border: rgb(255 255 255 / 0.36);
+  --theme-field-on-panel-surface: oklch(16% 0.078 318);
+  --theme-field-on-panel-surface-alt: oklch(14% 0.067 318);
+  --theme-article-neutral-panel-border: oklch(72% 0.012 318 / 0.16);
+  --theme-article-neutral-panel-base: oklch(22.9% 0.076 318);
+  --theme-article-neutral-panel-highlight: #351b3e;
+  --theme-article-neutral-panel-primary: color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617);
+  --theme-article-neutral-panel-secondary: #16001e;
+  --theme-article-neutral-panel-bg: radial-gradient(circle at 14% 0%, #351b3e, transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), #16001e);
+  --theme-article-neutral-panel-shadow: 0 16px 32px -28px rgb(0 0 0 / 0.66),
+    inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --theme-json-string: oklch(77% 0.15 160);
+  --theme-json-number: oklch(76% 0.13 232);
+  --theme-json-boolean: oklch(78% 0.14 82);
+  --theme-json-null: oklch(73% 0.17 18);
+  --theme-json-window-danger: oklch(68% 0.18 18);
+  --theme-json-window-warning: oklch(78% 0.14 82);
+  --theme-json-window-success: oklch(72% 0.14 160);
+  --theme-panel-base: #1f0527;
+  --theme-frosted-panel-border: rgb(240 171 252 / 0.16);
+  --theme-frosted-panel-highlight: #270d30;
+  --theme-frosted-panel-primary: #1f0527;
+  --theme-frosted-panel-secondary: #080218;
+  --theme-frosted-panel-bg: radial-gradient(circle at 12% 0%, #270d30, #1f0527 38%),
+    linear-gradient(135deg, #1f0527, #080218);
+  --theme-frosted-panel-shadow: 0 16px 32px -28px rgb(0 0 0 / 0.64),
+    inset 0 1px 0 rgb(255 255 255 / 0.1);
+  --theme-frosted-panel-hover-border: rgb(240 171 252 / 0.24);
+  --theme-frosted-panel-hover-bg: radial-gradient(circle at 12% 0%, #2f1437, #250a2d 38%),
+    linear-gradient(135deg, #250a2d, #0b031f);
+  --theme-frosted-panel-hover-shadow: 0 18px 34px -28px rgb(0 0 0 / 0.72),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --theme-control-base: #220c2a;
+  --theme-frosted-control-border: rgb(240 171 252 / 0.18);
+  --theme-frosted-control-highlight: #2a1133;
+  --theme-frosted-control-primary: #220c2a;
+  --theme-frosted-control-secondary: #0d071c;
+  --theme-frosted-control-bg: radial-gradient(circle at 12% 0%, #2a1133, #220c2a 36%),
+    linear-gradient(135deg, #220c2a, #0d071c);
+  --theme-frosted-control-shadow: 0 0 0 1px rgb(240 171 252 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.075);
+  --theme-frosted-control-hover-border: rgb(240 171 252 / 0.3);
+  --theme-frosted-control-hover-bg: radial-gradient(circle at 12% 0%, #371742, #2c0f36 36%),
+    linear-gradient(135deg, #2c0f36, #170b2b);
+  --theme-frosted-control-hover-shadow: 0 0 0 1px rgb(240 171 252 / 0.3),
+    0 10px 22px -20px rgb(240 171 252 / 0.32),
+    inset 0 1px 0 rgb(255 255 255 / 0.1);
+  --theme-frosted-control-on-panel-border: rgb(255 255 255 / 0.1);
+  --theme-frosted-control-on-panel-bg: radial-gradient(circle at 12% 0%, oklch(17% 0.03 318), oklch(12% 0.022 318) 38%),
+    linear-gradient(135deg, oklch(12% 0.022 318), oklch(16% 0.028 318));
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px rgb(255 255 255 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.09);
+  --theme-frosted-control-on-panel-hover-border: rgb(240 171 252 / 0.3);
+  --theme-frosted-control-on-panel-hover-bg: radial-gradient(circle at 12% 0%, oklch(19% 0.034 318), oklch(13% 0.024 318) 38%),
+    linear-gradient(135deg, oklch(13% 0.024 318), oklch(19% 0.045 318));
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px rgb(240 171 252 / 0.3),
+    0 10px 22px -20px rgb(240 171 252 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.11);
+  --theme-scroll-track: color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617);
+  --theme-scroll-track-bg: linear-gradient(135deg, color-mix(in srgb, oklch(34% 0.034 318) 42%, #110617), color-mix(in srgb, oklch(25% 0.026 318) 20%, #110617));
+  --theme-scroll-track-border: rgb(255 255 255 / 0.06);
+  --theme-scroll-thumb: color-mix(in srgb, rgb(240 171 252) 50%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617));
+  --theme-scroll-thumb-hover: color-mix(in srgb, rgb(240 171 252) 70%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617));
+  --theme-scroll-thumb-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.2 326) 66%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)), color-mix(in srgb, oklch(62% 0.26 326) 50%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(62% 0.26 326) 50%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)), color-mix(in srgb, oklch(50% 0.22 318) 40%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)));
+  --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(82% 0.18 326) 82%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)), color-mix(in srgb, oklch(68% 0.27 326) 64%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(68% 0.27 326) 64%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)), color-mix(in srgb, oklch(56% 0.24 318) 52%, color-mix(in srgb, oklch(30% 0.028 318) 50%, #110617)));
+  --theme-scroll-thumb-glow: oklch(70% 0.26 326 / 0.42);
+  --theme-status-badge-inset: rgb(255 255 255 / 0.08);
+  --theme-status-badge-shadow: 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 8px 18px -18px oklch(38% 0.114 316 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  --theme-report-substance-text: #f5d0fe;
+  --theme-report-metadata-text: color-mix(in srgb, rgb(255 255 255) 72%, #110617);
+  --theme-report-featured-text: #fde68a;
+  --theme-report-rail-inset: 2.04rem;
+  --theme-review-progress-track-bg: oklch(8% 0.024 318);
+  --theme-review-progress-fill-gradient: linear-gradient(
+    to right,
+    rgb(5 150 105),
+    rgb(16 185 129) 55%,
+    rgb(52 211 153)
+  );
+  --theme-review-status-completed-dot: rgb(52 211 153);
+  --theme-doc-domain-blue: oklch(74% 0.13 235);
+  --theme-doc-domain-gold: oklch(72% 0.18 326);
+  --theme-doc-domain-green: oklch(74% 0.13 165);
+  --theme-doc-domain-orange: oklch(74% 0.13 54);
+  --theme-doc-domain-plum: oklch(74% 0.12 350);
+  --theme-name-chip-bg: color-mix(in srgb, rgb(255 255 255) 3%, #110617);
+  --theme-name-chip-bg-hover: color-mix(in srgb, rgb(255 255 255) 10%, #110617);
+  --theme-name-chip-text: color-mix(in srgb, rgb(255 255 255) 85%, #110617);
+  --theme-name-chip-text-hover: #f5d0fe;
+  --theme-name-chip-ring: rgb(255 255 255 / 0.1);
+  --theme-name-chip-ring-hover: rgb(240 171 252 / 0.3);
+  --theme-skip-link-bg: #a21caf;
+  --theme-skip-link-text: #ffffff;
+  --theme-autofill-bg: color-mix(in srgb, rgb(255 255 255) 8%, #110617);
+  --theme-autofill-text: #bfbfbf;
+  --theme-backdrop-safe: oklch(14.9% 0.04 290 / 0.9);
+  --theme-table-row-alt: color-mix(in srgb, rgb(255 255 255) 4%, #110617);
+  --theme-flag-ring: rgb(240 171 252 / 0.25);
+  --theme-flag-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.5);
+  --theme-header-shadow: 0 1px 2px rgb(0 0 0 / 0.4),
+    0 10px 24px -12px rgb(0 0 0 / 0.7),
+    0 1px 0 rgb(255 255 255 / 0.06);
+  --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(240 171 252) 8%, #110617);
+  --theme-profile-markdown-quote-border: rgb(240 171 252 / 0.18);
+  --theme-horizontal-divider-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, #f0abfc 12%, transparent) 12%,
+    color-mix(in srgb, rgb(255 255 255 / 0.14) 48%, transparent) 42%,
+    color-mix(in srgb, rgb(255 255 255 / 0.14) 34%, transparent) 72%,
+    transparent 100%
+  );
+  --theme-home-glow-top: rgba(126, 34, 206, 0.13);
+  --theme-home-glow-bottom: rgba(217, 70, 239, 0.06);
+  --theme-avatar-gradient-from: color-mix(in srgb, rgb(240 171 252) 20%, #070015);
+  --theme-avatar-gradient-to: color-mix(in srgb, rgb(139 92 246) 25%, #070015);
+  --theme-construction-banner-text: #fbbf24;
+  --theme-home-nav-card-border: rgba(217, 70, 239, 0.18);
+  --theme-search-overlay-bg: #1f1230;
+  --theme-toggle-pill-bg: oklch(14% 0.025 318);
+  --theme-search-page-card-border-color: rgb(255 255 255 / 0.1);
+  --theme-search-page-card-background: radial-gradient(circle at 12% 0%, oklch(17% 0.03 318), oklch(12% 0.022 318) 38%),
+    linear-gradient(135deg, oklch(12% 0.022 318), oklch(16% 0.028 318));
+  --theme-search-page-card-box-shadow: 0 18px 42px -26px rgb(0 0 0 / 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --theme-search-page-chip-background: radial-gradient(circle at 12% 0%, oklch(32% 0.04 318), oklch(27% 0.034 318) 38%), linear-gradient(135deg, oklch(27% 0.034 318), oklch(24% 0.03 318));
+  --theme-search-page-chip-box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --theme-toggle-pill-box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.09);
+  --theme-toggle-pill-tw-ring-color: rgb(255 255 255 / 0.1);
+  --theme-toggle-pill-active-box-shadow: 0 0 0 1px rgb(240 171 252 / 0.3),
+    0 10px 22px -20px rgb(240 171 252 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.11);
+  --theme-toggle-pill-active-tw-ring-color: rgb(240 171 252 / 0.3);
+  --theme-index-card-icon-border-color: currentColor;
+  --theme-index-card-icon-color: inherit;
+  --theme-article-side-panel-border-color: oklch(72% 0.012 318 / 0.16);
+  --theme-article-side-panel-background: radial-gradient(circle at 14% 0%, #351b3e, transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), #16001e);
+  --theme-article-side-panel-box-shadow: 0 16px 32px -28px rgb(0 0 0 / 0.66),
+    inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --theme-home-nav-icon-search-border-color: rgb(255 255 255 / 0.1);
+  --theme-home-nav-icon-search-background: color-mix(in srgb, color-mix(in srgb, rgb(22 15 39) 96%, #110617) 78%, #110617);
+  --theme-home-nav-icon-search-box-shadow: 0 14px 34px -26px rgb(0 0 0 / 0.62), inset 0 1px 0 color-mix(in srgb, #070015 56%, transparent);
+  --theme-index-card-dim-border-color: oklch(72% 0.012 318 / 0.16);
+  --theme-index-card-dim-background: radial-gradient(circle at 14% 0%, #351b3e, transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), #16001e);
+  --theme-index-card-dim-color: inherit;
+  --theme-article-hero-summary-divider: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 4%, rgba(255, 255, 255, 0.12) 16%, rgba(255, 255, 255, 0.12) 84%, rgba(255, 255, 255, 0.05) 96%, transparent 100%);
+  --theme-footer-hairline-width: 0;
+  --theme-panel-hairline-width: 0;
+  --theme-external-source-pill-faint-color: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
+  --theme-index-card-title-accent-color: #f5d0fe;
+  --theme-index-card-icon-background: radial-gradient(circle at 12% 0%, oklch(17% 0.03 318), oklch(12% 0.022 318) 38%),
+    linear-gradient(135deg, oklch(12% 0.022 318), oklch(16% 0.028 318));
+  --theme-external-link-badge-icon-color: currentColor;
+  --theme-external-link-badge-icon-opacity: 0.6;
+  --theme-external-link-badge-icon-hover-color: currentColor;
+  --theme-external-link-badge-icon-hover-opacity: 0.9;
+  --theme-toc-strip-bar-background: radial-gradient(circle at 14% 0%, #351b3e, transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), #16001e);
+  --theme-toc-strip-bar-border-color: oklch(72% 0.012 318 / 0.16);
+  --theme-dosage-mode-tabs-background: transparent;
+  --theme-dosage-mode-tabs-color: inherit;
+  --theme-dosage-mode-tabs-box-shadow: none;
+  --theme-dosage-mode-tabs-tw-ring-color: transparent;
+  --theme-article-toc-panel-heading-color: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
+  --theme-metabolite-status-badge-inactive-color: color-mix(in srgb, rgb(255 255 255) 56%, #110617);
+  --theme-reagent-results-panel-border-color: rgba(255, 255, 255, 0.08);
+  --theme-reagent-results-panel-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 38%), linear-gradient(135deg, color-mix(in srgb, rgb(24 24 27) 96%, #110617), color-mix(in srgb, rgb(14 14 17) 98%, #110617));
+  --theme-reagent-results-panel-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 18px 34px -30px rgba(255, 255, 255, 0.12), 0 18px 36px -32px rgba(0, 0, 0, 0.86);
+  --theme-molecule-panel-border-color: rgba(255, 255, 255, 0.06);
+  --theme-molecule-panel-background-color: color-mix(in srgb, rgb(15 10 31) 80%, #110617);
+  --theme-control-pill-background-color: color-mix(in srgb, #070015 78%, #110617);
+  --theme-control-pill-focus-visible-background-color: color-mix(in srgb, color-mix(in srgb, rgb(22 15 39) 96%, #110617) 82%, #f0abfc 8%);
+  --theme-control-pill-quiet-focus-visible-background-color: color-mix(in srgb, #070015 72%, #110617);
+  --theme-control-pill-hover-background-color: color-mix(in srgb, color-mix(in srgb, rgb(22 15 39) 96%, #110617) 82%, #f0abfc 8%);
+  --theme-control-pill-quiet-hover-background-color: color-mix(in srgb, #070015 72%, #110617);
+  --theme-index-card-link-focus-visible-tw-ring-color: rgb(240 171 252 / 0.3);
+  --theme-index-card-link-hover-tw-ring-color: rgb(240 171 252 / 0.3);
+  --theme-index-card-toggle-color: color-mix(in srgb, color-mix(in srgb, rgb(255 255 255) 56%, #110617) 78%, #110617);
+  --theme-dosage-row-box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.09);
+  --theme-dosage-row-ring-color: rgb(255 255 255 / 0.1);
+  --theme-duration-stage-row-background: color-mix(in srgb, oklch(16% 0.078 318) 88%, #ffffff 2%);
+  --theme-author-avatar-placeholder-background: radial-gradient(circle at 12% 0%, #2a1133, #220c2a 36%),
+    linear-gradient(135deg, #220c2a, #0d071c);
+  --theme-author-avatar-placeholder-box-shadow: 0 0 0 1px rgb(240 171 252 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.075);
+  --theme-author-avatar-placeholder-tw-ring-color: rgb(240 171 252 / 0.18);
+  --theme-dosage-row-background: color-mix(in srgb, oklch(16% 0.078 318) 88%, #ffffff 2%);
+  --theme-dosage-row-threshold-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 165) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-dosage-row-light-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 235) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-dosage-row-moderate-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 82) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-dosage-row-strong-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 54) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-dosage-row-heavy-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 16) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-plateau-row-background: color-mix(in srgb, oklch(16% 0.078 318) 88%, #ffffff 2%);
+  --theme-plateau-row-first-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 165) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-plateau-row-second-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 235) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-plateau-row-third-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 82) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-plateau-row-fourth-image: linear-gradient(90deg, color-mix(in srgb, oklch(58% 0.12 54) 55%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-plateau-row-fifth-image: linear-gradient(90deg, color-mix(in srgb, oklch(56% 0.15 16) 62%, oklch(14% 0.067 318)), color-mix(in srgb, oklch(22% 0.02 326) 40%, oklch(14% 0.067 318)) 70%, transparent 100%);
+  --theme-duration-stage-row-even-background: color-mix(in srgb, oklch(14% 0.067 318) 82%, oklch(72% 0.012 318 / 0.16));
+  --theme-metabolite-status-badge-active-color: oklch(88% 0.09 160);
+  --theme-page-shell-background-image: none;
+  --theme-public-card-subtle-color: #ffffff;
+  --theme-home-ambient-background: radial-gradient(circle at 50% 28%, rgba(126, 34, 206, 0.13), transparent 42%), radial-gradient(circle at 50% 62%, rgba(217, 70, 239, 0.06), transparent 46%), linear-gradient(180deg, rgba(5, 4, 12, 0.3), rgba(5, 4, 12, 0.54));
+  --theme-home-logo-filter: drop-shadow(0 0 30px rgb(240 171 252 / 0.44));
+  --theme-home-logo-frame-hover-home-logo-main-filter: drop-shadow(0 0 34px rgb(240 171 252 / 0.5)) drop-shadow(0 18px 30px rgba(0, 0, 0, 0.16));
+  --theme-home-intro-color: #bcb9be;
+  --theme-home-nav-icon-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.055), transparent 32%), linear-gradient(135deg, color-mix(in srgb, rgb(159 33 128 / 0.64) 34%, rgb(28 15 56 / 0.64)), rgb(28 15 56 / 0.82));
+  --theme-home-nav-icon-color: #ef91ff;
+  --theme-home-nav-icon-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 24px 44px -30px rgb(0 0 0 / 0.62);
+  --theme-home-nav-link-hover-home-nav-icon-border-color: rgb(240 171 252 / 0.28);
+  --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.075), transparent 32%), linear-gradient(135deg, color-mix(in srgb, #f0abfc 18%, color-mix(in srgb, rgb(159 33 128 / 0.68) 34%, rgb(28 15 56 / 0.68))), color-mix(in srgb, rgb(28 15 56) 88%, #110617));
+  --theme-home-nav-link-hover-home-nav-icon-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 24px 48px -28px rgb(0 0 0 / 0.62);
+  --theme-home-nav-svg-color: #ef91ff;
+  --theme-home-search-input-border-color: rgb(255 255 255 / 0.36);
+  --theme-home-search-input-background-color: oklch(20.3% 0.05 318);
+  --theme-home-search-input-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px color-mix(in srgb, #f0abfc 16%, transparent), 0 24px 58px -34px color-mix(in srgb, #f0abfc 88%, transparent);
+  --theme-home-search-input-hover-border-color: color-mix(in srgb, #f0abfc 64%, rgb(255 255 255 / 0.18));
+  --theme-home-search-input-hover-background-color: color-mix(in srgb, oklch(20.3% 0.05 318) 72%, #070015);
+  --theme-home-search-input-focus-background-color: oklch(20.3% 0.05 318);
+  --theme-report-dossier-box-shadow: 0 14px 30px -26px rgb(0 0 0 / 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --theme-toggle-pill-focus-visible-background: radial-gradient(circle at 12% 0%, oklch(19% 0.034 318), oklch(13% 0.024 318) 38%),
+    linear-gradient(135deg, oklch(13% 0.024 318), oklch(19% 0.045 318));
+  --theme-toggle-pill-hover-background: radial-gradient(circle at 12% 0%, oklch(19% 0.034 318), oklch(13% 0.024 318) 38%),
+    linear-gradient(135deg, oklch(13% 0.024 318), oklch(19% 0.045 318));
+  --theme-reagent-swatch-label-overlay: linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 0%, transparent 40%, rgba(0, 0, 0, 0.2) 100%);
+  --theme-reagent-swatch-spectrum-overlay: linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 0%, transparent 40%, rgba(0, 0, 0, 0.15) 100%);
+  --theme-reagent-swatch-label-border-top: rgba(255, 255, 255, 0.15);
+  --theme-reagent-swatch-label-border-bottom: rgba(0, 0, 0, 0.3);
+  --theme-reagent-swatch-spectrum-border-top: rgba(255, 255, 255, 0.2);
+  --theme-reagent-swatch-spectrum-border-bottom: rgba(0, 0, 0, 0.25);
+  --theme-reagent-swatch-spectrum-seam-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.1), inset 2px 0 4px rgba(0, 0, 0, 0.3);
+  --theme-reagent-swatch-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --theme-cutout-glow-filter: drop-shadow(0 0 6px color-mix(in srgb, #ef91ff 22%, transparent)) drop-shadow(0 0 1.5px color-mix(in srgb, #ffffff 18%, transparent));
+}
+
+@supports (color: oklch(from red l c calc(h + 1))) {
+  html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {
+    --theme-text-muted: color-mix(in srgb, rgb(255 255 255) 72%, #110617);
+    --theme-chrome-rail-highlight: oklch(from oklch(15.5% 0.037 318) calc(l + 0.05) calc(c + 0.008) h);
+    --theme-chrome-rail-secondary: oklch(from oklch(15.5% 0.037 318) calc(l + 0.04) calc(c + 0.006) h);
+    --theme-chrome-rail-bg: radial-gradient(circle at 12% 0%, oklch(from oklch(15.5% 0.037 318) calc(l + 0.05) calc(c + 0.008) h), oklch(15.5% 0.037 318) 38%),
+    linear-gradient(135deg, oklch(15.5% 0.037 318), oklch(from oklch(15.5% 0.037 318) calc(l + 0.04) calc(c + 0.006) h));
+    --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617));
+    --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l - 0.08) calc(c - 0.002) h) 94%, #110617);
+    --theme-article-neutral-panel-bg: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617)), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l - 0.08) calc(c - 0.002) h) 94%, #110617));
+    --theme-frosted-panel-highlight: oklch(from #1f0527 calc(l + 0.034) c h);
+    --theme-frosted-panel-secondary: oklch(from #1f0527 calc(l - 0.062) calc(c - 0.019) calc(h - 24));
+    --theme-frosted-panel-bg: radial-gradient(circle at 12% 0%, oklch(from #1f0527 calc(l + 0.034) c h), #1f0527 38%),
+    linear-gradient(135deg, #1f0527, oklch(from #1f0527 calc(l - 0.062) calc(c - 0.019) calc(h - 24)));
+    --theme-frosted-panel-hover-bg: radial-gradient(circle at 12% 0%, oklch(from #1f0527 calc(l + 0.063) c h), oklch(from #1f0527 calc(l + 0.023) c h) 38%),
+      linear-gradient(135deg, oklch(from #1f0527 calc(l + 0.023) c h), oklch(from #1f0527 calc(l - 0.046) calc(c - 0.011) calc(h - 24)));
+    --theme-frosted-control-highlight: oklch(from #220c2a calc(l + 0.028) calc(c + 0.005) h);
+    --theme-frosted-control-secondary: oklch(from #220c2a calc(l - 0.052) calc(c - 0.019) calc(h - 22));
+    --theme-frosted-control-bg: radial-gradient(circle at 12% 0%, oklch(from #220c2a calc(l + 0.028) calc(c + 0.005) h), #220c2a 36%),
+    linear-gradient(135deg, #220c2a, oklch(from #220c2a calc(l - 0.052) calc(c - 0.019) calc(h - 22)));
+    --theme-frosted-control-hover-bg: radial-gradient(circle at 12% 0%, oklch(from #220c2a calc(l + 0.068) calc(c + 0.021) h), oklch(from #220c2a calc(l + 0.031) calc(c + 0.015) h) 36%),
+      linear-gradient(135deg, oklch(from #220c2a calc(l + 0.031) calc(c + 0.015) h), oklch(from #220c2a calc(l - 0.018) c calc(h - 19)));
+    --theme-article-side-panel-background: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617)), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l - 0.08) calc(c - 0.002) h) 94%, #110617));
+    --theme-index-card-dim-background: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617)), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l - 0.08) calc(c - 0.002) h) 94%, #110617));
+    --theme-toc-strip-bar-background: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617)), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), color-mix(in srgb, oklch(from oklch(22.9% 0.076 318) calc(l - 0.08) calc(c - 0.002) h) 94%, #110617));
+    --theme-author-avatar-placeholder-background: radial-gradient(circle at 12% 0%, oklch(from #220c2a calc(l + 0.028) calc(c + 0.005) h), #220c2a 36%),
+    linear-gradient(135deg, #220c2a, oklch(from #220c2a calc(l - 0.052) calc(c - 0.019) calc(h - 22)));
+    --theme-home-intro-color: color-mix(in srgb, rgb(255 255 255) 72%, #110617);
+    --theme-home-nav-icon-color: oklch(from rgb(240 171 252) calc(l - 0.041) calc(c * 1.35) h);
+    --theme-home-nav-svg-color: oklch(from rgb(240 171 252) calc(l - 0.041) calc(c * 1.35) h);
+    --theme-cutout-glow-filter: drop-shadow(0 0 6px color-mix(in srgb, oklch(from rgb(240 171 252) calc(l - 0.041) calc(c * 1.35) h) 22%, transparent)) drop-shadow(0 0 1.5px color-mix(in srgb, #ffffff 18%, transparent));
+  }
+}
+
+html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"])) {
+  --theme-body-bg: oklch(99.4% 0.002 326);
+  --theme-page-start: oklch(99.6% 0.002 326);
+  --theme-page-mid: oklch(99.3% 0.003 326);
+  --theme-page-end: oklch(99% 0.004 326);
+  --theme-page-halo-top: oklch(74% 0.09 326 / 0.014);
+  --theme-page-halo-left: oklch(69% 0.08 326 / 0.01);
+  --theme-page-halo-right: oklch(67% 0.075 290 / 0.009);
+  --theme-page-edge-vignette: rgb(255 255 255 / 0);
+  --theme-text-primary: oklch(27% 0.082 316);
+  --theme-text-secondary: oklch(35% 0.058 316);
+  --theme-text-muted: oklch(42% 0.05 316);
+  --theme-text-faint: oklch(49% 0.04 316);
+  --theme-text-ghost: oklch(57% 0.03 316);
+  --theme-text-on-media: #f5f5f5;
+  --theme-text-on-media-muted: rgb(245 245 245 / 0.72);
+  --theme-border-subtle: oklch(60% 0.052 316 / 0.18);
+  --theme-border-strong: oklch(54% 0.064 316 / 0.3);
+  --theme-card-border: oklch(48% 0.13 326 / 0.2);
+  --theme-card-border-strong: oklch(45% 0.145 326 / 0.32);
+  --theme-divider: oklch(58% 0.052 316 / 0.18);
+  --theme-shadow-soft: oklch(48% 0.08 316 / 0.12);
+  --theme-shadow-strong: oklch(42% 0.09 316 / 0.16);
+  --theme-backdrop-blur: on;
+  --theme-elevation-none: 0 0 #0000;
+  --theme-elevation-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --theme-elevation-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --theme-elevation-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --theme-elevation-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --theme-elevation-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --theme-elevation-card: 0 10px 30px -12px oklch(48% 0.08 316 / 0.12);
+  --theme-elevation-card-subtle: 0 16px 34px -22px oklch(48% 0.08 316 / 0.12);
+  --theme-elevation-overlay: 0 18px 50px -12px oklch(42% 0.09 316 / 0.16);
+  --theme-elevation-panel: 0 18px 40px -24px oklch(42% 0.09 316 / 0.16);
+  --theme-elevation-panel-deep: 0 18px 45px -20px rgb(0 0 0 / 0.6);
+  --theme-elevation-tile-hover: 0 18px 36px -26px oklch(42% 0.09 316 / 0.16);
+  --theme-elevation-motion-card: 0 10px 24px -14px rgb(0 0 0 / 0.28);
+  --theme-elevation-motion-card-hover: 0 16px 36px -18px rgb(0 0 0 / 0.36);
+  --theme-elevation-swatch: 0 2px 8px -2px oklch(48% 0.08 316 / 0.12);
+  --theme-elevation-accent-lift: 0 22px 45px -28px color-mix(in srgb, oklch(49% 0.19 326) 60%, transparent);
+  --theme-elevation-accent-ring: 0 0 0 1px oklch(49% 0.19 326);
+  --theme-elevation-danger: 0 14px 36px -22px rgb(225 29 72 / 0.16);
+  --theme-elevation-danger-hover: 0 18px 46px -25px rgb(225 29 72 / 0.16);
+  --theme-elevation-control-active: 0 10px 30px -12px oklch(62.7% 0.233 290 / 0.65);
+  --theme-elevation-control-primary: 0 18px 40px -24px oklch(59.6% 0.261 290 / 0.6);
+  --theme-elevation-icon-tile: 0 10px 15px -3px oklch(66.7% 0.259 326 / 0.08), 0 4px 6px -4px oklch(66.7% 0.259 326 / 0.08);
+  --theme-elevation-field-inset: inset 0 1px 2px oklch(48% 0.08 316 / 0.12);
+  --theme-elevation-inner-accent: inset 0 2px 4px 0 color-mix(in srgb, oklch(49% 0.19 326) 22%, transparent);
+  --theme-elevation-top-highlight: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --theme-elevation-top-highlight-faint: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --theme-elevation-mark-hairline: inset 0 0 0 1px oklch(72.5% 0.175 326 / 0.18);
+  --theme-elevation-avatar-inner: 0 0 #0000;
+  --theme-elevation-avatar-glow: 0 0 #0000;
+  --theme-surface-soft: color-mix(in srgb, oklch(97% 0.014 326) 86%, oklch(99.4% 0.002 326));
+  --theme-surface-muted: color-mix(in srgb, oklch(95% 0.024 326) 90%, oklch(99.4% 0.002 326));
+  --theme-surface-strong: color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326));
+  --theme-surface-deep: color-mix(in srgb, oklch(93% 0.036 326) 94%, oklch(99.4% 0.002 326));
+  --theme-chrome-surface: color-mix(in srgb, oklch(88% 0.054 326) 90%, oklch(99.4% 0.002 326));
+  --theme-chrome-surface-strong: color-mix(in srgb, oklch(84% 0.07 326) 94%, oklch(99.4% 0.002 326));
+  --theme-chrome-border: oklch(46% 0.13 326 / 0.2);
+  --theme-chrome-rail-base: oklch(88% 0.054 326);
+  --theme-chrome-rail-highlight: #fff4ff;
+  --theme-chrome-rail-primary: #f6e5f6;
+  --theme-chrome-rail-secondary: oklch(88% 0.054 326);
+  --theme-chrome-rail-bg: radial-gradient(circle at 12% 0%, #fff4ff, transparent 38%),
+    linear-gradient(180deg, #f6e5f6, oklch(88% 0.054 326));
+  --theme-menu-surface: oklch(91% 0.05 326);
+  --theme-field-surface: color-mix(in srgb, oklch(96% 0.018 326) 98%, oklch(99.4% 0.002 326));
+  --theme-field-surface-alt: color-mix(in srgb, oklch(94% 0.026 326) 96%, oklch(99.4% 0.002 326));
+  --theme-field-border: oklch(50% 0.11 326 / 0.76);
+  --theme-field-on-chrome-surface: color-mix(in srgb, oklch(99% 0.004 326) 96%, color-mix(in srgb, oklch(88% 0.054 326) 90%, oklch(99.4% 0.002 326)));
+  --theme-field-on-chrome-border: oklch(54% 0.08 326 / 0.8);
+  --theme-field-on-panel-surface: color-mix(in srgb, oklch(99% 0.004 326) 94%, oklch(95.5% 0.026 326));
+  --theme-field-on-panel-surface-alt: color-mix(in srgb, oklch(97% 0.01 326) 92%, oklch(95.5% 0.026 326));
+  --theme-article-neutral-panel-border: oklch(58% 0.022 318 / 0.16);
+  --theme-article-neutral-panel-base: oklch(97% 0.006 318);
+  --theme-article-neutral-panel-highlight: #fdfcfd;
+  --theme-article-neutral-panel-primary: color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326));
+  --theme-article-neutral-panel-secondary: #ede7ee;
+  --theme-article-neutral-panel-bg: radial-gradient(circle at 14% 0%, #fdfcfd, transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), #ede7ee);
+  --theme-article-neutral-panel-shadow: 0 16px 32px -28px oklch(38% 0.04 318 / 0.18),
+    inset 0 1px 0 oklch(100% 0 0 / 0.74);
+  --theme-json-string: oklch(44% 0.118 160);
+  --theme-json-number: oklch(46% 0.12 232);
+  --theme-json-boolean: oklch(48% 0.12 82);
+  --theme-json-null: oklch(46% 0.14 18);
+  --theme-json-window-danger: oklch(58% 0.16 18);
+  --theme-json-window-warning: oklch(66% 0.13 82);
+  --theme-json-window-success: oklch(58% 0.12 160);
+  --theme-panel-base: oklch(95.5% 0.026 326);
+  --theme-frosted-panel-border: oklch(58% 0.105 326 / 0.14);
+  --theme-frosted-panel-highlight: #fdf1fd;
+  --theme-frosted-panel-primary: #faedfa;
+  --theme-frosted-panel-secondary: #f0dcf0;
+  --theme-frosted-panel-bg: radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0);
+  --theme-frosted-panel-shadow: 0 16px 32px -28px oklch(48% 0.1 318 / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-frosted-panel-hover-border: oklch(50% 0.13 326 / 0.2);
+  --theme-frosted-panel-hover-bg: radial-gradient(circle at 12% 0%, #fdf2fd, transparent 38%), linear-gradient(135deg, #ffeeff, #f5ddf5);
+  --theme-frosted-panel-hover-shadow: 0 18px 36px -28px oklch(48% 0.1 318 / 0.22),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.8);
+  --theme-control-base: oklch(94% 0.03 326);
+  --theme-frosted-control-border: oklch(58% 0.105 326 / 0.16);
+  --theme-frosted-control-highlight: #fbeffb;
+  --theme-frosted-control-primary: oklch(94% 0.03 326);
+  --theme-frosted-control-secondary: #ecd0ec;
+  --theme-frosted-control-bg: radial-gradient(circle at 12% 0%, #fbeffb, transparent 36%), linear-gradient(135deg, oklch(94% 0.03 326), #ecd0ec);
+  --theme-frosted-control-shadow: 0 0 0 1px oklch(58% 0.105 326 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-frosted-control-hover-border: oklch(47% 0.14 326 / 0.24);
+  --theme-frosted-control-hover-bg: radial-gradient(circle at 12% 0%, #fcf0fc, transparent 36%), linear-gradient(135deg, #feebfe, #f4d6f4);
+  --theme-frosted-control-hover-shadow: 0 0 0 1px oklch(47% 0.14 326 / 0.24),
+    0 10px 24px -20px oklch(48% 0.14 318 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.82);
+  --theme-frosted-control-on-panel-border: oklch(58% 0.08 326 / 0.14);
+  --theme-frosted-control-on-panel-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 326) 60%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 326) 94%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(95% 0.016 326) 92%, oklch(95.5% 0.026 326)));
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px oklch(58% 0.08 326 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.78);
+  --theme-frosted-control-on-panel-hover-border: oklch(48% 0.13 326 / 0.22);
+  --theme-frosted-control-on-panel-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.022 326) 68%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.008 326) 96%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(96% 0.02 326) 94%, oklch(95.5% 0.026 326)));
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px oklch(48% 0.13 326 / 0.22),
+    0 10px 24px -20px oklch(48% 0.14 318 / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.84);
+  --theme-scroll-track: color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326));
+  --theme-scroll-track-bg: linear-gradient(135deg, color-mix(in srgb, oklch(95% 0.024 326) 72%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(90% 0.032 326) 58%, oklch(99.4% 0.002 326)));
+  --theme-scroll-track-border: oklch(58% 0.08 326 / 0.12);
+  --theme-scroll-thumb: color-mix(in srgb, oklch(48% 0.17 326) 42%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326)));
+  --theme-scroll-thumb-hover: color-mix(in srgb, oklch(44% 0.18 326) 56%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326)));
+  --theme-scroll-thumb-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(72% 0.16 326) 64%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))), color-mix(in srgb, oklch(54% 0.19 326) 50%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(54% 0.19 326) 50%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))), color-mix(in srgb, oklch(46% 0.17 326) 42%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))));
+  --theme-scroll-thumb-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(76% 0.16 326) 78%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))), color-mix(in srgb, oklch(50% 0.2 326) 64%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))) 42%), linear-gradient(135deg, color-mix(in srgb, oklch(50% 0.2 326) 64%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))), color-mix(in srgb, oklch(42% 0.18 326) 54%, color-mix(in srgb, oklch(94% 0.02 326) 70%, oklch(99.4% 0.002 326))));
+  --theme-scroll-thumb-glow: oklch(52% 0.18 326 / 0.3);
+  --theme-status-badge-inset: oklch(99% 0.01 326 / 0.5);
+  --theme-status-badge-shadow: 0 0 0 1px oklch(58% 0.08 326 / 0.14),
+    0 8px 18px -18px oklch(42% 0.1 316 / 0.1),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.5);
+  --theme-report-substance-text: #6d1762;
+  --theme-report-metadata-text: #5b456c;
+  --theme-report-featured-text: #92400e;
+  --theme-report-rail-inset: 2.04rem;
+  --theme-review-progress-track-bg: oklch(30% 0.03 318);
+  --theme-review-progress-fill-gradient: linear-gradient(
+    to right,
+    rgb(5 150 105),
+    rgb(16 185 129) 55%,
+    rgb(52 211 153)
+  );
+  --theme-review-status-completed-dot: rgb(5 150 105);
+  --theme-doc-domain-blue: oklch(47% 0.13 235);
+  --theme-doc-domain-gold: oklch(45% 0.18 326);
+  --theme-doc-domain-green: oklch(45% 0.12 165);
+  --theme-doc-domain-orange: oklch(50% 0.13 54);
+  --theme-doc-domain-plum: oklch(46% 0.15 350);
+  --theme-name-chip-bg: color-mix(in srgb, oklch(96% 0.016 326) 94%, oklch(99.4% 0.002 326));
+  --theme-name-chip-bg-hover: oklch(98% 0.012 326);
+  --theme-name-chip-text: oklch(31% 0.07 316);
+  --theme-name-chip-text-hover: oklch(43% 0.205 326);
+  --theme-name-chip-ring: oklch(54% 0.064 316 / 0.18);
+  --theme-name-chip-ring-hover: oklch(46% 0.16 326 / 0.34);
+  --theme-skip-link-bg: #a21caf;
+  --theme-skip-link-text: #ffffff;
+  --theme-autofill-bg: oklch(96% 0.018 326);
+  --theme-autofill-text: oklch(27% 0.082 316);
+  --theme-backdrop-safe: oklch(96% 0.018 326 / 0.9);
+  --theme-table-row-alt: color-mix(in srgb, oklch(96% 0.012 326) 72%, oklch(99.4% 0.002 326));
+  --theme-flag-ring: oklch(58% 0.1 326 / 0.16);
+  --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 316 / 0.14);
+  --theme-header-shadow: 0 1px 2px oklch(36% 0.02 316 / 0.12),
+    0 10px 22px -12px oklch(36% 0.02 316 / 0.26),
+    0 1px 0 oklch(46% 0.16 326 / 0.14);
+  --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(159 33 128) 7%, oklch(99.4% 0.002 326));
+  --theme-profile-markdown-quote-border: oklch(41.6% 0.113 318 / 0.16);
+  --theme-horizontal-divider-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, oklch(49% 0.19 326) 12%, transparent) 12%,
+    color-mix(in srgb, oklch(58% 0.052 316 / 0.18) 48%, transparent) 42%,
+    color-mix(in srgb, oklch(58% 0.052 316 / 0.18) 34%, transparent) 72%,
+    transparent 100%
+  );
+  --theme-home-glow-top: rgba(159, 33, 128, 0.032);
+  --theme-home-glow-bottom: rgba(124, 58, 237, 0.022);
+  --theme-avatar-gradient-from: oklch(89.5% 0.075 334);
+  --theme-avatar-gradient-to: oklch(80.5% 0.114 319);
+  --theme-construction-banner-text: oklch(56% 0.13 78);
+  --theme-home-nav-card-border: oklch(58% 0.1 326 / 0.14);
+  --theme-search-overlay-bg: oklch(96% 0.032 334);
+  --theme-toggle-pill-bg: #ffffff;
+  --theme-search-page-card-border-color: oklch(58% 0.105 326 / 0.14);
+  --theme-search-page-card-background: radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0);
+  --theme-search-page-card-box-shadow: 0 16px 32px -28px oklch(48% 0.1 318 / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-search-page-chip-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 326) 60%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 326) 94%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(95% 0.016 326) 92%, oklch(95.5% 0.026 326)));
+  --theme-search-page-chip-box-shadow: 0 0 0 1px oklch(58% 0.08 326 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.78);
+  --theme-toggle-pill-box-shadow: 0 0 0 1px oklch(58% 0.105 326 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-toggle-pill-tw-ring-color: oklch(58% 0.105 326 / 0.16);
+  --theme-toggle-pill-active-box-shadow: 0 0 0 1px oklch(47% 0.14 326 / 0.24),
+    0 10px 24px -20px oklch(48% 0.14 318 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.82);
+  --theme-toggle-pill-active-tw-ring-color: oklch(47% 0.14 326 / 0.24);
+  --theme-index-card-icon-border-color: transparent;
+  --theme-index-card-icon-color: oklch(43% 0.205 326);
+  --theme-article-side-panel-border-color: oklch(58% 0.105 326 / 0.14);
+  --theme-article-side-panel-background: radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0);
+  --theme-article-side-panel-box-shadow: 0 16px 32px -28px oklch(48% 0.1 318 / 0.18),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-home-nav-icon-search-border-color: oklch(58% 0.1 326 / 0.14);
+  --theme-home-nav-icon-search-background: radial-gradient(circle at 30% 18%, rgb(255 246 255 / 0.62), transparent 34%), linear-gradient(135deg, #f8d4f8, #eab6eb);
+  --theme-home-nav-icon-search-box-shadow: 0 14px 28px -24px rgb(132 60 135 / 0.3), inset 0 1px 0 rgb(255 249 255 / 0.78), inset 0 0 0 1px rgb(255 248 255 / 0.22);
+  --theme-index-card-dim-border-color: oklch(58% 0.012 318 / 0.22);
+  --theme-index-card-dim-background: radial-gradient(circle at 12% 0%, oklch(99% 0.002 318 / 0.9), transparent 42%), linear-gradient(160deg, color-mix(in srgb, oklch(95.5% 0.004 318) 96%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(91.5% 0.008 318) 96%, oklch(99.4% 0.002 326)));
+  --theme-index-card-dim-color: oklch(35% 0.058 316);
+  --theme-article-hero-summary-divider: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(48% 0.085 326 / 0.08) 4%,
+    oklch(48% 0.085 326 / 0.16) 16%,
+    oklch(48% 0.085 326 / 0.16) 84%,
+    oklch(48% 0.085 326 / 0.08) 96%,
+    transparent 100%
+  );
+  --theme-footer-hairline-width: 1px;
+  --theme-panel-hairline-width: 1px;
+  --theme-external-source-pill-faint-color: oklch(43% 0.045 316);
+  --theme-index-card-title-accent-color: oklch(43% 0.205 326);
+  --theme-index-card-icon-background: #fff;
+  --theme-external-link-badge-icon-color: oklch(27% 0.082 316);
+  --theme-external-link-badge-icon-opacity: 0.82;
+  --theme-external-link-badge-icon-hover-color: oklch(43% 0.205 326);
+  --theme-external-link-badge-icon-hover-opacity: 1;
+  --theme-toc-strip-bar-background: radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0);
+  --theme-toc-strip-bar-border-color: oklch(58% 0.105 326 / 0.14);
+  --theme-dosage-mode-tabs-background: radial-gradient(circle at 12% 0%, #fbeffb, transparent 36%), linear-gradient(135deg, oklch(94% 0.03 326), #ecd0ec);
+  --theme-dosage-mode-tabs-color: oklch(27% 0.082 316);
+  --theme-dosage-mode-tabs-box-shadow: 0 0 0 1px oklch(58% 0.105 326 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-dosage-mode-tabs-tw-ring-color: oklch(58% 0.105 326 / 0.16);
+  --theme-article-toc-panel-heading-color: oklch(42% 0.05 316);
+  --theme-metabolite-status-badge-inactive-color: oklch(42% 0.05 316);
+  --theme-reagent-results-panel-border-color: oklch(58% 0.022 318 / 0.16);
+  --theme-reagent-results-panel-background: radial-gradient(circle at 14% 0%, #fdfcfd, transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), #ede7ee);
+  --theme-reagent-results-panel-box-shadow: 0 16px 32px -28px oklch(38% 0.04 318 / 0.18),
+    inset 0 1px 0 oklch(100% 0 0 / 0.74);
+  --theme-molecule-panel-border-color: rgba(93, 56, 123, 0.12);
+  --theme-molecule-panel-background-color: color-mix(in srgb, rgb(255 255 255) 94%, oklch(99.4% 0.002 326));
+  --theme-control-pill-background-color: color-mix(in srgb, color-mix(in srgb, oklch(95% 0.024 326) 90%, oklch(99.4% 0.002 326)) 88%, oklch(99.4% 0.002 326));
+  --theme-control-pill-focus-visible-background-color: color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 92%, oklch(49% 0.19 326) 6%);
+  --theme-control-pill-quiet-focus-visible-background-color: color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 92%, oklch(49% 0.19 326) 6%);
+  --theme-control-pill-hover-background-color: color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 92%, oklch(49% 0.19 326) 6%);
+  --theme-control-pill-quiet-hover-background-color: color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 92%, oklch(49% 0.19 326) 6%);
+  --theme-index-card-link-focus-visible-tw-ring-color: oklch(48% 0.13 326 / 0.22);
+  --theme-index-card-link-hover-tw-ring-color: oklch(48% 0.13 326 / 0.22);
+  --theme-index-card-toggle-color: color-mix(in srgb, oklch(43% 0.205 326) 58%, oklch(99.4% 0.002 326));
+  --theme-dosage-row-box-shadow: 0 0 0 1px oklch(58% 0.105 326 / 0.16),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
+  --theme-dosage-row-ring-color: oklch(58% 0.105 326 / 0.16);
+  --theme-duration-stage-row-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 326) 60%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 326) 94%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(95% 0.016 326) 92%, oklch(95.5% 0.026 326)));
+  --theme-author-avatar-placeholder-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 326) 60%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 326) 94%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(95% 0.016 326) 92%, oklch(95.5% 0.026 326)));
+  --theme-author-avatar-placeholder-box-shadow: 0 0 0 1px oklch(58% 0.08 326 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.78);
+  --theme-author-avatar-placeholder-tw-ring-color: oklch(58% 0.08 326 / 0.14);
+  --theme-dosage-row-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 326) 60%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 326) 94%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(95% 0.016 326) 92%, oklch(95.5% 0.026 326)));
+  --theme-dosage-row-threshold-image: linear-gradient(90deg, color-mix(in srgb, oklch(78% 0.105 165) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-dosage-row-light-image: linear-gradient(90deg, color-mix(in srgb, oklch(80% 0.105 235) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-dosage-row-moderate-image: linear-gradient(90deg, color-mix(in srgb, oklch(84% 0.115 82) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-dosage-row-strong-image: linear-gradient(90deg, color-mix(in srgb, oklch(78% 0.11 54) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-dosage-row-heavy-image: linear-gradient(90deg, color-mix(in srgb, oklch(78% 0.12 16) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-plateau-row-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(99% 0.016 326) 60%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.5% 0.006 326) 94%, oklch(95.5% 0.026 326)), color-mix(in srgb, oklch(95% 0.016 326) 92%, oklch(95.5% 0.026 326)));
+  --theme-plateau-row-first-image: linear-gradient(90deg, color-mix(in srgb, oklch(78% 0.105 165) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-plateau-row-second-image: linear-gradient(90deg, color-mix(in srgb, oklch(80% 0.105 235) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-plateau-row-third-image: linear-gradient(90deg, color-mix(in srgb, oklch(84% 0.115 82) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-plateau-row-fourth-image: linear-gradient(90deg, color-mix(in srgb, oklch(78% 0.11 54) 68%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-plateau-row-fifth-image: linear-gradient(90deg, color-mix(in srgb, oklch(74% 0.15 16) 76%, transparent), oklch(99% 0.004 326 / 0.88) 70%, transparent 100%);
+  --theme-duration-stage-row-even-background: radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.4% 0.006 326) 92%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(95.5% 0.018 326) 94%, oklch(99.4% 0.002 326)));
+  --theme-metabolite-status-badge-active-color: #047857;
+  --theme-page-shell-background-image: linear-gradient(90deg, rgb(255 255 255 / 0) 0%, transparent 16%, transparent 84%, rgb(255 255 255 / 0) 100%), radial-gradient(150% 88% at 50% -18%, oklch(74% 0.09 326 / 0.014) 0%, transparent 58%), radial-gradient(82% 118% at -14% 22%, oklch(69% 0.08 326 / 0.01) 0%, transparent 54%), radial-gradient(84% 122% at 114% 34%, oklch(67% 0.075 290 / 0.009) 0%, transparent 52%), linear-gradient(180deg, oklch(99.6% 0.002 326) 0%, color-mix(in srgb, oklch(99.3% 0.003 326) 88%, oklch(99.6% 0.002 326)) 42%, oklch(99% 0.004 326) 100%);
+  --theme-public-card-subtle-color: oklch(35% 0.058 316);
+  --theme-home-ambient-background: radial-gradient(circle at 50% 24%, rgba(159, 33, 128, 0.032), transparent 44%), radial-gradient(circle at 50% 66%, rgba(124, 58, 237, 0.022), transparent 50%), linear-gradient(180deg, rgba(255, 253, 255, 0.22), rgba(250, 247, 255, 0.2));
+  --theme-home-logo-filter: drop-shadow(0 18px 28px rgba(84, 46, 112, 0.16)) drop-shadow(0 0 20px oklch(48% 0.14 318 / 0.2));
+  --theme-home-logo-frame-hover-home-logo-main-filter: drop-shadow(0 20px 30px rgba(84, 46, 112, 0.2)) drop-shadow(0 0 24px oklch(48% 0.14 318 / 0.28));
+  --theme-home-intro-color: oklch(49% 0.04 316);
+  --theme-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 246 255 / 0.64), transparent 34%), radial-gradient(circle at 78% 88%, rgb(207 146 209 / 0.16), transparent 42%), linear-gradient(135deg, #f8cbf8 0%, #f2b9f2 54%, #e6a5e7 100%);
+  --theme-home-nav-icon-color: #5b0a5f;
+  --theme-home-nav-icon-box-shadow: inset 0 1px 0 rgb(255 249 255 / 0.76), 0 18px 34px -28px rgb(132 60 135 / 0.3);
+  --theme-home-nav-link-hover-home-nav-icon-border-color: rgb(149 87 151 / 0.18);
+  --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 245 255 / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, rgb(206 135 208 / 0.2), transparent 42%), linear-gradient(135deg, #f9c5fa 0%, #efaff0 54%, #e098e1 100%);
+  --theme-home-nav-link-hover-home-nav-icon-box-shadow: inset 0 1px 0 rgb(255 249 255 / 0.82), 0 20px 36px -28px rgb(131 45 135 / 0.36);
+  --theme-home-nav-svg-color: inherit;
+  --theme-home-search-input-border-color: color-mix(in srgb, oklch(49% 0.19 326) 34%, oklch(54% 0.064 316 / 0.3));
+  --theme-home-search-input-background-color: color-mix(in srgb, rgb(255 251 255) 96%, oklch(99.4% 0.002 326));
+  --theme-home-search-input-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 0 0 1px rgb(159 33 128 / 0.06), 0 24px 52px -34px rgba(84, 46, 112, 0.3);
+  --theme-home-search-input-hover-border-color: color-mix(in srgb, oklch(49% 0.19 326) 48%, oklch(54% 0.064 316 / 0.3));
+  --theme-home-search-input-hover-background-color: #fffaff;
+  --theme-home-search-input-focus-background-color: #fffaff;
+  --theme-report-dossier-box-shadow: 0 14px 30px -26px oklch(42% 0.09 316 / 0.16), inset 0 1px 0 oklch(99% 0.01 333 / 0.7);
+  --theme-toggle-pill-focus-visible-background: #ffffff;
+  --theme-toggle-pill-hover-background: #ffffff;
+  --theme-reagent-swatch-label-overlay: linear-gradient(to bottom, color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 18%, transparent) 0%, transparent 42%, rgba(0, 0, 0, 0.16) 100%);
+  --theme-reagent-swatch-spectrum-overlay: linear-gradient(to bottom, color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 14%, transparent) 0%, transparent 42%, rgba(0, 0, 0, 0.12) 100%);
+  --theme-reagent-swatch-label-border-top: oklch(58% 0.08 326 / 0.14);
+  --theme-reagent-swatch-label-border-bottom: color-mix(in srgb, oklch(48% 0.08 316 / 0.12) 24%, transparent);
+  --theme-reagent-swatch-spectrum-border-top: color-mix(in srgb, oklch(58% 0.08 326 / 0.14) 78%, transparent);
+  --theme-reagent-swatch-spectrum-border-bottom: color-mix(in srgb, oklch(48% 0.08 316 / 0.12) 18%, transparent);
+  --theme-reagent-swatch-spectrum-seam-shadow: inset 1px 0 0 color-mix(in srgb, oklch(58% 0.08 326 / 0.14) 85%, transparent), inset 2px 0 4px color-mix(in srgb, oklch(48% 0.08 316 / 0.12) 22%, transparent);
+  --theme-reagent-swatch-box-shadow: 0 0 0 1px oklch(58% 0.08 326 / 0.14),
+    inset 0 1px 0 oklch(99% 0.01 326 / 0.78);
+  --theme-cutout-glow-filter: none;
+  --theme-molecule-panel-border: rgba(93, 56, 123, 0.12);
+  --theme-article-priority-border: rgba(93, 56, 123, 0.14);
+  --theme-article-priority-bg: radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%), color-mix(in srgb, rgb(255 255 255) 52%, oklch(99.4% 0.002 326));
+  --theme-country-flag-shadow: 0 0 0 2px oklch(100% 0 0 / 0.72),
+    0 0 0 3px oklch(58% 0.08 326 / 0.14),
+    0 10px 20px -14px oklch(38% 0.08 316 / 0.36),
+    inset 0 1px 0 oklch(100% 0 0 / 0.58);
+  --theme-external-source-pill-faint-text: oklch(43% 0.045 316);
+}
+
+@supports (color: oklch(from red l c calc(h + 1))) {
+  html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"])) {
+    --theme-chrome-rail-highlight: oklch(from oklch(88% 0.054 326) calc(l + 0.1) calc(c - 0.032) h);
+    --theme-chrome-rail-primary: oklch(from oklch(88% 0.054 326) calc(l + 0.06) calc(c - 0.024) h);
+    --theme-chrome-rail-bg: radial-gradient(circle at 12% 0%, oklch(from oklch(88% 0.054 326) calc(l + 0.1) calc(c - 0.032) h), transparent 38%),
+    linear-gradient(180deg, oklch(from oklch(88% 0.054 326) calc(l + 0.06) calc(c - 0.024) h), oklch(88% 0.054 326));
+    --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)));
+    --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l - 0.04) calc(c + 0.006) h) 92%, oklch(99.4% 0.002 326));
+    --theme-article-neutral-panel-bg: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326))), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l - 0.04) calc(c + 0.006) h) 92%, oklch(99.4% 0.002 326)));
+    --theme-frosted-panel-highlight: color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.035) c h) 58%, oklch(95.5% 0.026 326));
+    --theme-frosted-panel-primary: color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) l c h) 88%, oklch(99.4% 0.002 326));
+    --theme-frosted-panel-secondary: color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l - 0.045) calc(c + 0.012) h) 92%, oklch(99.4% 0.002 326));
+    --theme-frosted-panel-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.035) c h) 58%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) l c h) 88%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l - 0.045) calc(c + 0.012) h) 92%, oklch(99.4% 0.002 326)));
+    --theme-frosted-panel-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.035) c h) 64%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.01) calc(c + 0.004) h) 92%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l - 0.035) calc(c + 0.018) h) 94%, oklch(99.4% 0.002 326)));
+    --theme-frosted-control-highlight: color-mix(in srgb, oklch(from oklch(94% 0.03 326) calc(l + 0.05) calc(c - 0.01) h) 56%, oklch(94% 0.03 326));
+    --theme-frosted-control-secondary: oklch(from oklch(94% 0.03 326) calc(l - 0.05) calc(c + 0.018) h);
+    --theme-frosted-control-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(94% 0.03 326) calc(l + 0.05) calc(c - 0.01) h) 56%, oklch(94% 0.03 326)), transparent 36%), linear-gradient(135deg, oklch(94% 0.03 326), oklch(from oklch(94% 0.03 326) calc(l - 0.05) calc(c + 0.018) h));
+    --theme-frosted-control-hover-bg: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(94% 0.03 326) calc(l + 0.05) calc(c - 0.006) h) 66%, oklch(94% 0.03 326)), transparent 36%), linear-gradient(135deg, oklch(from oklch(94% 0.03 326) calc(l + 0.02) calc(c + 0.002) h), oklch(from oklch(94% 0.03 326) calc(l - 0.03) calc(c + 0.022) h));
+    --theme-search-page-card-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.035) c h) 58%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) l c h) 88%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l - 0.045) calc(c + 0.012) h) 92%, oklch(99.4% 0.002 326)));
+    --theme-article-side-panel-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.035) c h) 58%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) l c h) 88%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l - 0.045) calc(c + 0.012) h) 92%, oklch(99.4% 0.002 326)));
+    --theme-home-nav-icon-search-background: radial-gradient(circle at 30% 18%, oklch(from oklch(95.5% 0.026 326) 99% calc(c * 1) h / 0.62), transparent 34%), linear-gradient(135deg, oklch(from oklch(95.5% 0.026 326) 91% calc(c * 2.4) h), oklch(from oklch(95.5% 0.026 326) 84% calc(c * 3.5) h));
+    --theme-home-nav-icon-search-box-shadow: 0 14px 28px -24px oklch(from oklch(95.5% 0.026 326) 48% calc(c * 5.4) h / 0.3), inset 0 1px 0 oklch(from oklch(95.5% 0.026 326) 99% calc(c * 0.4) h / 0.78), inset 0 0 0 1px oklch(from oklch(95.5% 0.026 326) 99% calc(c * 0.7) h / 0.22);
+    --theme-toc-strip-bar-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l + 0.035) c h) 58%, oklch(95.5% 0.026 326)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) l c h) 88%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(95.5% 0.026 326) calc(l - 0.045) calc(c + 0.012) h) 92%, oklch(99.4% 0.002 326)));
+    --theme-dosage-mode-tabs-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(94% 0.03 326) calc(l + 0.05) calc(c - 0.01) h) 56%, oklch(94% 0.03 326)), transparent 36%), linear-gradient(135deg, oklch(94% 0.03 326), oklch(from oklch(94% 0.03 326) calc(l - 0.05) calc(c + 0.018) h));
+    --theme-reagent-results-panel-background: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326))), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l - 0.04) calc(c + 0.006) h) 92%, oklch(99.4% 0.002 326)));
+    --theme-home-nav-link-hover-home-nav-icon-border-color: oklch(from oklch(43% 0.205 326) 55% calc(c * 0.59) h / 0.18);
+    --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, oklch(from oklch(95.5% 0.026 326) 99% calc(c * 1.15) h / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, oklch(from oklch(95.5% 0.026 326) 72% calc(c * 5) h / 0.2), transparent 42%), linear-gradient(135deg, oklch(from oklch(95.5% 0.026 326) 88.5% calc(c * 3.5) h) 0%, oklch(from oklch(95.5% 0.026 326) 83.5% calc(c * 4.3) h) 54%, oklch(from oklch(95.5% 0.026 326) 77.5% calc(c * 4.9) h) 100%);
+    --theme-home-nav-link-hover-home-nav-icon-box-shadow: inset 0 1px 0 oklch(from oklch(95.5% 0.026 326) 99% calc(c * 0.45) h / 0.82), 0 20px 36px -28px oklch(from oklch(95.5% 0.026 326) 46% calc(c * 6.2) h / 0.36);
+  }
+}

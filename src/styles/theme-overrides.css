@@ -1,0 +1,44 @@
+@import "./theme-status.css";
+/* theme-light-mode.css is NOT imported here any more. It is inert without
+   html[data-theme="light"], so dark readers (the dose.wiki default) were
+   paying ~56 KB for nothing. It now ships as a static copy in public/
+   (`npm run generate:appearance-sheets`), attached as a <link> — rendered by
+   the server when the flavor's default scheme is light, injected pre-paint by
+   the theme bootstrap for a reader whose saved scheme is light, and ensured
+   on demand by the provider before a scheme toggle flips the attribute. */
+
+/* Global motion-reduction affordances. These universal rules previously sat at
+   the bottom of theme-light-mode.css, which was wrong twice over: they are not
+   gated on the light scheme, and moving that sheet out of the bundle would
+   have cost dark readers their reduced-motion accessibility. They apply to
+   every reader, so they live in the always-shipped chain. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Appearance-flip transition lock. Flipping a root appearance attribute
+   (data-theme, data-visual-style, data-font) restyles the whole document at
+   once; every element carrying a colour transition would then run that
+   transition simultaneously — hundreds of per-frame style recalculations and
+   repaints for ~300ms after each toggle, plus thousands of transition events
+   for React's root listeners to process. Those transitions exist as hover
+   polish; animating a whole-theme flip through them is accidental. The
+   provider pins this attribute for the flip's frame and removes it one frame
+   after the new appearance paints, so the switch lands as a single clean
+   restyle and no transition ever observes it. */
+html[data-appearance-transition-lock] *,
+html[data-appearance-transition-lock] *::before,
+html[data-appearance-transition-lock] *::after {
+  transition: none !important;
+}
+
+/* lightbox.css is NOT imported here either — it must stay out of the global
+   bundle. It ships in the lazily-imported ReplicationLightbox chunk instead. */

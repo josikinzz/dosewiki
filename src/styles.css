@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@config "../tailwind.config.mjs";
+
+/* Tailwind v4 auto-detects sources across the project, which includes the ~67 MB
+   of data JSON under src/data. Article prose there is full of `[cite:id]` markers,
+   which Tailwind reads as arbitrary-property utilities and emits as nonsense rules
+   (`.\[cite\:21-cfr-1308-14\]{cite:21-cfr-1308-14}`) — 2,216 of them, ~223 KB, a
+   quarter of the shipped stylesheet. No class names are authored in these data
+   files, so nothing real is scanned out of them. */
+@source not "./data";
+
+/* Design-critique snapshots quote class names as prose, including malformed ones
+   lifted from a finding (`bg-[var()]`). Tailwind emits those as real rules, and
+   an empty `var()` fails PostCSS parsing outright, so one archived critique can
+   break every page's stylesheet. Nothing under `.impeccable` is authored markup. */
+@source not "../.impeccable";
+
+/* Keep Tailwind's build-time source graph to runtime owners. Tests, build tooling,
+   archived runs, and prose documentation can quote utility strings but do not render
+   in an application route. The live /dev/kit route renders src/dev stories, so that
+   tree deliberately remains scanned. */
+@source not "./**/*.test.*";
+@source not "../scripts";
+@source not "../docs";
+@source not "../runs";
+@source not "../notes-and-plans";
+
+@import "./styles/base.css" layer(base);
+@import "./styles/theme-overrides.css";
+@import "./styles/site-colors.css";
+@import "./styles/utilities.css";
+@import "./styles/components.css" layer(components);

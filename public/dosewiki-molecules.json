@@ -1,0 +1,2143 @@
+{
+  "__comment": "dose.wiki molecule pack manifest. Every molecule SVG is rendered by OpenChemLib from the canonical current-backend depiction set (one editable MOL block per substance). The pack ZIP contains each structure in three colourways: molecules-light/ (neutral, for a light background), molecules-dark/ (neutral, for a dark background) and molecules-standard/ (textbook element colours — black skeleton, blue N, red O — derived from the same MOL block at pack time). Class skeletons ship under classes/ in the light and dark sets. `represents` names the active molecule when the substance is a plant, preparation, or brand name. Pack ZIP: /dosewiki-molecules.zip",
+  "count": 267,
+  "license": "CC0 1.0 (public domain) — dose.wiki-generated artwork; credit appreciated, not required",
+  "molecules": [
+    {
+      "slug": "1-4-butanediol",
+      "title": "1,4-Butanediol",
+      "filename": "1-4-butanediol.svg",
+      "smiles": "C(CCCO)O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1b-lsd",
+      "title": "1B-LSD",
+      "filename": "1b-lsd.svg",
+      "smiles": "CCCC(=O)n1cc2c3c1cccc3C1=C[C@H](CN([C@@H]1C2)C)C(=O)N(CC)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1cp-al-lad",
+      "title": "1cP-AL-LAD",
+      "filename": "1cp-al-lad.svg",
+      "smiles": "C=CCN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)C1CC1)C(=O)N(CC)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1cp-lsd",
+      "title": "1cP-LSD",
+      "filename": "1cp-lsd.svg",
+      "smiles": "CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)C1CC1)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1cp-mipla",
+      "title": "1cP-MiPLA",
+      "filename": "1cp-mipla.svg",
+      "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)C1CC1)C(=O)N(C(C)C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1p-eth-lad",
+      "title": "1P-ETH-LAD",
+      "filename": "1p-eth-lad.svg",
+      "smiles": "CCN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)CC)C(=O)N(CC)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1p-lsd",
+      "title": "1P-LSD",
+      "filename": "1p-lsd.svg",
+      "smiles": "CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)CC)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "1v-lsd",
+      "title": "1V-LSD",
+      "filename": "1v-lsd.svg",
+      "smiles": "C(CCCC)(=O)N1C=C2C[C@H]3N(C[C@@H](C=C3C=3C=CC=C1C32)C(=O)N(CC)CC)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2-aminoindane",
+      "title": "2-Aminoindane",
+      "filename": "2-aminoindane.svg",
+      "smiles": "C1C(CC2=CC=CC=C21)N",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "2-chloroephenidine",
+      "title": "2-Chloroephenidine",
+      "filename": "2-chloroephenidine.svg",
+      "smiles": "ClC1=C(C=CC=C1)CC(NCC)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2-fa",
+      "title": "2-FA",
+      "filename": "2-fa.svg",
+      "smiles": "CC(Cc1ccccc1F)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2-fea",
+      "title": "2-FEA",
+      "filename": "2-fea.svg",
+      "smiles": "CCNC(Cc1ccccc1F)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2-fluorodeschloroketamine",
+      "title": "2-Fluorodeschloroketamine",
+      "filename": "2-fluorodeschloroketamine.svg",
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2F",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2-fma",
+      "title": "2-FMA",
+      "filename": "2-fma.svg",
+      "smiles": "CNC(Cc1ccccc1F)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2-mmc",
+      "title": "2-MMC",
+      "filename": "2-mmc.svg",
+      "smiles": "CNC(C(=O)C1=CC=CC=C1)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25b-nboh",
+      "title": "25B-NBOH",
+      "filename": "25b-nboh.svg",
+      "smiles": "COc1cc(Br)c(cc1CCNCc1ccccc1O)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25b-nbome",
+      "title": "25b-NBOMe",
+      "filename": "25b-nbome.svg",
+      "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Br)OC",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "25c-nboh",
+      "title": "25C-NBOH",
+      "filename": "25c-nboh.svg",
+      "smiles": "COc1cc(Cl)c(cc1CCNCc1ccccc1O)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25c-nbome",
+      "title": "25c-NBOMe",
+      "filename": "25c-nbome.svg",
+      "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Cl)OC",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "25d-nbome",
+      "title": "25D-NBOMe",
+      "filename": "25d-nbome.svg",
+      "smiles": "COc1cc(C)c(cc1CCNCc1ccccc1OC)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25e-nboh",
+      "title": "25E-NBOH",
+      "filename": "25e-nboh.svg",
+      "smiles": "COc1cc(CC)c(cc1CCNCc1ccccc1O)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25e-nbome",
+      "title": "25e-NBOMe",
+      "filename": "25e-nbome.svg",
+      "smiles": "CCC1=CC(=C(C=C1OC)CCNCC2=CC=CC=C2OC)OC",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "25i-nbmd",
+      "title": "25I-NBMD",
+      "filename": "25i-nbmd.svg",
+      "smiles": "O1COC2=C1C=CC=C2CNCCC2=C(C=C(C(=C2)OC)I)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25i-nboh",
+      "title": "25I-NBOH",
+      "filename": "25i-nboh.svg",
+      "smiles": "COc1cc(I)c(cc1CCNCc1ccccc1O)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25i-nbome",
+      "title": "25I-NBOMe",
+      "filename": "25i-nbome.svg",
+      "smiles": "COc1cc(I)c(cc1CCNCc1ccccc1OC)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "25ip-nbome",
+      "title": "25iP-NBOMe",
+      "filename": "25ip-nbome.svg",
+      "smiles": "COC1=C(C=C(C(=C1)C(C)C)OC)CCNCC1=C(C=CC=C1)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-b",
+      "title": "2C-B",
+      "filename": "2c-b.svg",
+      "smiles": "BrC1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": ""
+    },
+    {
+      "slug": "2c-b-fly",
+      "title": "2C-B-FLY",
+      "filename": "2c-b-fly.svg",
+      "smiles": "NCCc1c2OCCc2c(c2c1CCO2)Br",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "2c-c",
+      "title": "2C-C",
+      "filename": "2c-c.svg",
+      "smiles": "ClC1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-d",
+      "title": "2C-D",
+      "filename": "2c-d.svg",
+      "smiles": "COC1=C(C=C(C(=C1)C)OC)CCN",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-e",
+      "title": "2C-E",
+      "filename": "2c-e.svg",
+      "smiles": "C(C)C1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "2c-g",
+      "title": "2C-G",
+      "filename": "2c-g.svg",
+      "smiles": "COC1=C(C=C(C(=C1C)C)OC)CCN",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-i",
+      "title": "2C-I",
+      "filename": "2c-i.svg",
+      "smiles": "IC1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-p",
+      "title": "2C-P",
+      "filename": "2c-p.svg",
+      "smiles": "COC1=C(C=C(C(=C1)CCC)OC)CCN",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-t",
+      "title": "2C-T",
+      "filename": "2c-t.svg",
+      "smiles": "CSC1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-t-2",
+      "title": "2C-T-2",
+      "filename": "2c-t-2.svg",
+      "smiles": "C(C)SC1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-t-21",
+      "title": "2C-T-21",
+      "filename": "2c-t-21.svg",
+      "smiles": "FCCSC1=CC(=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-t-4",
+      "title": "2C-T-4",
+      "filename": "2c-t-4.svg",
+      "smiles": "COC1=C(C=C(C(=C1)SC(C)C)OC)CCN",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2c-t-7",
+      "title": "2C-T-7",
+      "filename": "2c-t-7.svg",
+      "smiles": "COC1=C(C=C(C(=C1)SCCC)OC)CCN",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "2m2b",
+      "title": "2M2B",
+      "filename": "2m2b.svg",
+      "smiles": "CC(C)(CC)O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-cmc",
+      "title": "3-CMC",
+      "filename": "3-cmc.svg",
+      "smiles": "ClC=1C=C(C=CC1)C(C(C)NC)=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-fa",
+      "title": "3-FA",
+      "filename": "3-fa.svg",
+      "smiles": "CC(Cc1cccc(c1)F)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-fea",
+      "title": "3-FEA",
+      "filename": "3-fea.svg",
+      "smiles": "CCNC(Cc1cccc(c1)F)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-fmc",
+      "title": "3-FMC",
+      "filename": "3-fmc.svg",
+      "smiles": "FC=1C=C(C=CC1)C(C(C)NC)=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-ho-pce",
+      "title": "3-HO-PCE",
+      "filename": "3-ho-pce.svg",
+      "smiles": "CCNC1(CCCCC1)c1cccc(c1)O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-ho-pcp",
+      "title": "3-HO-PCP",
+      "filename": "3-ho-pcp.svg",
+      "smiles": "Oc1cccc(c1)C1(CCCCC1)N1CCCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-me-pcpy",
+      "title": "3-Me-PCPy",
+      "filename": "3-me-pcpy.svg",
+      "smiles": "CC=1C=C(C=CC1)C1(CCCCC1)N1CCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-mec",
+      "title": "3-MEC",
+      "filename": "3-mec.svg",
+      "smiles": "C(C)NC(C(=O)C1=CC(=CC=C1)C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "3-meo-pce",
+      "title": "3-MeO-PCE",
+      "filename": "3-meo-pce.svg",
+      "smiles": "CCNC1(CCCCC1)c1cccc(c1)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-meo-pcmo",
+      "title": "3-MeO-PCMo",
+      "filename": "3-meo-pcmo.svg",
+      "smiles": "COc1cccc(c1)C1(CCCCC1)N1CCOCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-meo-pcp",
+      "title": "3-MeO-PCP",
+      "filename": "3-meo-pcp.svg",
+      "smiles": "COc1cccc(c1)C1(CCCCC1)N1CCCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-meo-pcpr",
+      "title": "3-MeO-PCPr",
+      "filename": "3-meo-pcpr.svg",
+      "smiles": "COC=1C=C(C=CC1)C1(CCCCC1)NCCC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-meo-pcpy",
+      "title": "3-MeO-PCPy",
+      "filename": "3-meo-pcpy.svg",
+      "smiles": "COC1=CC=CC(=C1)C2(CCCCC2)N3CCCC3",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "3-mmc",
+      "title": "3-MMC",
+      "filename": "3-mmc.svg",
+      "smiles": "CNC(C(=O)c1cccc(c1)C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-aco-det",
+      "title": "4-AcO-DET",
+      "filename": "4-aco-det.svg",
+      "smiles": "CCN(CCc1c[nH]c2c1c(ccc2)OC(=O)C)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-aco-dipt",
+      "title": "4-AcO-DiPT",
+      "filename": "4-aco-dipt.svg",
+      "smiles": "CC(=O)Oc1cccc2c1c(CCN(C(C)C)C(C)C)c[nH]2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-aco-dmt",
+      "title": "4-AcO-DMT",
+      "filename": "4-aco-dmt.svg",
+      "smiles": "CN(CCc1c[nH]c2c1c(ccc2)OC(=O)C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-aco-met",
+      "title": "4-AcO-MET",
+      "filename": "4-aco-met.svg",
+      "smiles": "CCN(C)CCC1=CNC2=C1C(=CC=C2)OC(=O)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-aco-mipt",
+      "title": "4-AcO-MiPT",
+      "filename": "4-aco-mipt.svg",
+      "smiles": "CC(=O)Oc1cccc2c1c(CCN(C(C)C)C)c[nH]2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-cmc",
+      "title": "4-CMC",
+      "filename": "4-cmc.svg",
+      "smiles": "ClC1=CC=C(C=C1)C(C(C)NC)=O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-emc",
+      "title": "4-EMC",
+      "filename": "4-emc.svg",
+      "smiles": "C(C)C1=CC=C(C=C1)C(C(C)NC)=O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-fa",
+      "title": "4-FA",
+      "filename": "4-fa.svg",
+      "smiles": "CC(Cc1ccc(cc1)F)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-fluorobutyrfentanyl",
+      "title": "4-Fluorobutyrfentanyl",
+      "filename": "4-fluorobutyrfentanyl.svg",
+      "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-fma",
+      "title": "4-FMA",
+      "filename": "4-fma.svg",
+      "smiles": "CNC(Cc1ccc(cc1)F)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-fmc",
+      "title": "4-FMC",
+      "filename": "4-fmc.svg",
+      "smiles": "FC1=CC=C(C=C1)C(C(C)NC)=O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-ho-dipt",
+      "title": "4-HO-DiPT",
+      "filename": "4-ho-dipt.svg",
+      "smiles": "CC(C)N(CCC1=CNC=2C=CC=C(C12)O)C(C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-ho-met",
+      "title": "4-HO-MET",
+      "filename": "4-ho-met.svg",
+      "smiles": "C(C)N(CCC1=CNC=2C=CC=C(C12)O)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-ho-mipt",
+      "title": "4-HO-MiPT",
+      "filename": "4-ho-mipt.svg",
+      "smiles": "CC(C)N(C)CCC1=CNC2=C1C(=CC=C2)O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-mec",
+      "title": "4-MEC",
+      "filename": "4-mec.svg",
+      "smiles": "C(C)NC(C(=O)C1=CC=C(C=C1)C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-meo-butyrfentanyl",
+      "title": "4-MeO-Butyrfentanyl",
+      "filename": "4-meo-butyrfentanyl.svg",
+      "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "4-meo-pcp",
+      "title": "4-MeO-PCP",
+      "filename": "4-meo-pcp.svg",
+      "smiles": "COc1ccc(cc1)C1(CCCCC1)N1CCCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "4-methylmethylphenidate",
+      "title": "4-Methylmethylphenidate",
+      "filename": "4-methylmethylphenidate.svg",
+      "smiles": "CC1=CC=C(C=C1)[C@H]([C@@H]2CCCCN2)C(=O)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "5-apb",
+      "title": "5-APB",
+      "filename": "5-apb.svg",
+      "smiles": "CC(Cc1ccc2c(c1)cco2)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "5-mapb",
+      "title": "5-MAPB",
+      "filename": "5-mapb.svg",
+      "smiles": "CNC(Cc1ccc2c(c1)cco2)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "5-meo-dipt",
+      "title": "5-MeO-DiPT",
+      "filename": "5-meo-dipt.svg",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C(C)C)C(C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "5-meo-dmt",
+      "title": "5-MeO-DMT",
+      "filename": "5-meo-dmt.svg",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "5-meo-mipt",
+      "title": "5-MeO-MiPT",
+      "filename": "5-meo-mipt.svg",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C(C)C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "5-methylethylone",
+      "title": "5-Methylethylone",
+      "filename": "5-methylethylone.svg",
+      "smiles": "CCNC(C)C(=O)C1=CC2=C(C(=C1)C)OCO2",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "6-apb",
+      "title": "6-APB",
+      "filename": "6-apb.svg",
+      "smiles": "CC(Cc1ccc2c(c1)occ2)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "a-pvp",
+      "title": "A-PVP",
+      "filename": "a-pvp.svg",
+      "smiles": "CCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "ab-fubinaca",
+      "title": "AB-FUBINACA",
+      "filename": "ab-fubinaca.svg",
+      "smiles": "NC([C@H](C(C)C)NC(=O)C1=NN(C2=CC=CC=C12)CC1=CC=C(C=C1)F)=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "acetylfentanyl",
+      "title": "Acetylfentanyl",
+      "filename": "acetylfentanyl.svg",
+      "smiles": "CC(=O)N(c1ccccc1)C1CCN(CC1)CCc1ccccc1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "acrylfentanyl",
+      "title": "Acrylfentanyl",
+      "filename": "acrylfentanyl.svg",
+      "smiles": "C=CC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "adrafinil",
+      "title": "Adrafinil",
+      "filename": "adrafinil.svg",
+      "smiles": "ONC(=O)CS(=O)C(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "al-lad",
+      "title": "AL-LAD",
+      "filename": "al-lad.svg",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)CC=C)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "alcohol",
+      "title": "Alcohol",
+      "filename": "alcohol.svg",
+      "smiles": "CCO",
+      "represents": "ethanol",
+      "source": "editor"
+    },
+    {
+      "slug": "ald-52",
+      "title": "ALD-52",
+      "filename": "ald-52.svg",
+      "smiles": "CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)C)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "aleph",
+      "title": "ALEPH",
+      "filename": "aleph.svg",
+      "smiles": "COC1=C(C=C(C(=C1)SC)OC)CC(C)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "aleph-2",
+      "title": "ALEPH-2",
+      "filename": "aleph-2.svg",
+      "smiles": "C(C)SC1=CC(=C(C=C1OC)CC(C)N)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "allylescaline",
+      "title": "Allylescaline",
+      "filename": "allylescaline.svg",
+      "smiles": "C(C=C)OC1=C(C=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "alprazolam",
+      "title": "Alprazolam",
+      "filename": "alprazolam.svg",
+      "smiles": "CC1=NN=C2CN=C(C3=CC=CC=C3)C3=C(C=CC(Cl)=C3)N12",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "amobarbital",
+      "title": "Amobarbital",
+      "filename": "amobarbital.svg",
+      "smiles": "CCC1(CCC(C)C)C(=O)NC(=O)NC1=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "amphetamine",
+      "title": "Amphetamine",
+      "filename": "amphetamine.svg",
+      "smiles": "CC(N)CC1=CC=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "amt",
+      "title": "AMT",
+      "filename": "amt.svg",
+      "smiles": "N1C=C(C2=CC=CC=C12)CC(C)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "armodafinil",
+      "title": "Armodafinil",
+      "filename": "armodafinil.svg",
+      "smiles": "NC(=O)C[S@@](=O)C(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "ayahuasca",
+      "title": "Ayahuasca",
+      "filename": "ayahuasca.svg",
+      "smiles": "CN(C)CCC1=CNC2=CC=CC=C12",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "baclofen",
+      "title": "Baclofen",
+      "filename": "baclofen.svg",
+      "smiles": "NCC(CC(O)=O)C1=CC=C(Cl)C=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "bk-2c-b",
+      "title": "bk-2c-B",
+      "filename": "bk-2c-b.svg",
+      "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)Br",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "bromazepam",
+      "title": "Bromazepam",
+      "filename": "bromazepam.svg",
+      "smiles": "BrC1=CC2=C(NC(=O)CN=C2C2=CC=CC=N2)C=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "bromazolam",
+      "title": "Bromazolam",
+      "filename": "bromazolam.svg",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=CC=CC=C3)C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "bromo-dragonfly",
+      "title": "Bromo-DragonFLY",
+      "filename": "bromo-dragonfly.svg",
+      "smiles": "CC(Cc1c2occc2c(c2c1cco2)Br)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "brotizolam",
+      "title": "Brotizolam",
+      "filename": "brotizolam.svg",
+      "smiles": "CC1=NN=C2CN=C(C3=C(SC(Br)=C3)N12)C1=CC=CC=C1Cl",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "buprenorphine",
+      "title": "Buprenorphine",
+      "filename": "buprenorphine.svg",
+      "smiles": "CO[C@]12CC[C@@]3(C[C@@H]1[C@](C)(O)C(C)(C)C)[C@H]1CC4=C5C(O[C@@H]2[C@@]35CCN1CC1CC1)=C(O)C=C4",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "bupropion",
+      "title": "Bupropion",
+      "filename": "bupropion.svg",
+      "smiles": "CC(NC(C)(C)C)C(=O)C1=CC(Cl)=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "butylone",
+      "title": "Butylone",
+      "filename": "butylone.svg",
+      "smiles": "CCC(C(=O)c1ccc2c(c1)OCO2)NC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "butyrfentanyl",
+      "title": "Butyrfentanyl",
+      "filename": "butyrfentanyl.svg",
+      "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "caffeine",
+      "title": "Caffeine",
+      "filename": "caffeine.svg",
+      "smiles": "CN1C=NC2=C1C(=O)N(C)C(=O)N2C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "cannabis",
+      "title": "Cannabis",
+      "filename": "cannabis.svg",
+      "smiles": "CC1(OC=2C=C(C=C(C2[C@H]2[C@H]1CCC(=C2)C)O)CCCCC)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "carisoprodol",
+      "title": "Carisoprodol",
+      "filename": "carisoprodol.svg",
+      "smiles": "CCCC(C)(COC(N)=O)COC(=O)NC(C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "clobazam",
+      "title": "Clobazam",
+      "filename": "clobazam.svg",
+      "smiles": "CN1C2=C(C=C(Cl)C=C2)N(C2=CC=CC=C2)C(=O)CC1=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "clonazepam",
+      "title": "Clonazepam",
+      "filename": "clonazepam.svg",
+      "smiles": "[O-][N+](=O)C1=CC2=C(NC(=O)CN=C2C2=CC=CC=C2Cl)C=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "clonazolam",
+      "title": "Clonazolam",
+      "filename": "clonazolam.svg",
+      "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4Cl",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "cocaine",
+      "title": "Cocaine",
+      "filename": "cocaine.svg",
+      "smiles": "[H][C@]12CC[C@]([H])([C@H]([C@H](C1)OC(=O)C1=CC=CC=C1)C(=O)OC)N2C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "codeine",
+      "title": "Codeine",
+      "filename": "codeine.svg",
+      "smiles": "[H][C@]12C=C[C@H](O)[C@@H]3OC4=C5C(C[C@H]1N(C)CC[C@@]235)=CC=C4OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "datura",
+      "title": "Datura",
+      "filename": "datura.svg",
+      "smiles": "CN1[C@@H]2CC(C[C@H]1[C@H]3[C@@H]2O3)OC(=O)[C@H](CO)C4=CC=CC=C4",
+      "represents": "Scopolamine (hyoscine)",
+      "source": "editor"
+    },
+    {
+      "slug": "delorazepam",
+      "title": "Delorazepam",
+      "filename": "delorazepam.svg",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)Cl)C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "deschloroetizolam",
+      "title": "Deschloroetizolam",
+      "filename": "deschloroetizolam.svg",
+      "smiles": "CCc1cc2c(s1)n1c(CN=C2c2ccccc2)nnc1C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "deschloroketamine",
+      "title": "Deschloroketamine",
+      "filename": "deschloroketamine.svg",
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "desmethylflunitrazepam",
+      "title": "Desmethylflunitrazepam",
+      "filename": "desmethylflunitrazepam.svg",
+      "smiles": "FC1=C(C=CC=C1)C1=NCC(NC2=C1C=C(C=C2)[N+](=O)[O-])=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "desomorphine",
+      "title": "Desomorphine",
+      "filename": "desomorphine.svg",
+      "smiles": "CN1CC[C@@]23[C@@H]4[C@H]1Cc1c3c(O[C@H]2CCC4)c(cc1)O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "desoxypipradrol",
+      "title": "Desoxypipradrol",
+      "filename": "desoxypipradrol.svg",
+      "smiles": "C1CCC(NC1)C(c1ccccc1)c1ccccc1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "det",
+      "title": "DET",
+      "filename": "det.svg",
+      "smiles": "C(C)N(CCC1=CNC2=CC=CC=C12)CC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "dexmethylphenidate",
+      "title": "Dexmethylphenidate",
+      "filename": "dexmethylphenidate.svg",
+      "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "dextroamphetamine",
+      "title": "Dextroamphetamine",
+      "filename": "dextroamphetamine.svg",
+      "smiles": "C[C@H](N)CC1=CC=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "dextromethorphan",
+      "title": "Dextromethorphan",
+      "filename": "dextromethorphan.svg",
+      "smiles": "[H][C@]12CCCC[C@]11CCN(C)[C@H]2CC2=C1C=C(OC)C=C2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "diazepam",
+      "title": "Diazepam",
+      "filename": "diazepam.svg",
+      "smiles": "CN1C2=C(C=C(Cl)C=C2)C(=NCC1=O)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "diclazepam",
+      "title": "Diclazepam",
+      "filename": "diclazepam.svg",
+      "smiles": "Clc1ccc2c(c1)C(=NCC(=O)N2C)c1ccccc1Cl",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "dihydrocodeine",
+      "title": "Dihydrocodeine",
+      "filename": "dihydrocodeine.svg",
+      "smiles": "[H][C@@]12OC3=C4C(C[C@H]5N(C)CC[C@@]14[C@@]5([H])CC[C@@H]2O)=CC=C3OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "dimenhydrinate",
+      "title": "Dimenhydrinate",
+      "filename": "dimenhydrinate.svg",
+      "smiles": "CN1C2=C(N=C(Cl)N2)C(=O)N(C)C1=O.CN(C)CCOC(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "diphenhydramine",
+      "title": "Diphenhydramine",
+      "filename": "diphenhydramine.svg",
+      "smiles": "CN(C)CCOC(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "diphenidine",
+      "title": "Diphenidine",
+      "filename": "diphenidine.svg",
+      "smiles": "C1(=CC=CC=C1)C(CC1=CC=CC=C1)N1CCCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "dipt",
+      "title": "DiPT",
+      "filename": "dipt.svg",
+      "smiles": "C(C)(C)N(CCC1=CNC2=CC=CC=C12)C(C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "dmt",
+      "title": "DMT",
+      "filename": "dmt.svg",
+      "smiles": "N1C=C(C2=CC=CC=C12)CCN(C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "dmxe",
+      "title": "DMXE",
+      "filename": "dmxe.svg",
+      "smiles": "C(C)NC1(C(CCCC1)=O)C1=CC(=CC=C1)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "dob",
+      "title": "DOB",
+      "filename": "dob.svg",
+      "smiles": "BrC1=CC(=C(C=C1OC)CC(C)N)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "doc",
+      "title": "DOC",
+      "filename": "doc.svg",
+      "smiles": "ClC1=CC(=C(C=C1OC)CC(C)N)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "doet",
+      "title": "DOET",
+      "filename": "doet.svg",
+      "smiles": "COC1=C(C=C(C(=C1)CC)OC)CC(C)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "doi",
+      "title": "DOI",
+      "filename": "doi.svg",
+      "smiles": "IC1=CC(=C(C=C1OC)CC(C)N)OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "dom",
+      "title": "DOM",
+      "filename": "dom.svg",
+      "smiles": "COC1=C(C=C(C(=C1)C)OC)CC(C)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "dpt",
+      "title": "DPT",
+      "filename": "dpt.svg",
+      "smiles": "N1C=C(C2=CC=CC=C12)CCN(CCC)CCC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "ephedrine",
+      "title": "Ephedrine",
+      "filename": "ephedrine.svg",
+      "smiles": "CN[C@@H](C)[C@H](O)C1=CC=CC=C1",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "ephenidine",
+      "title": "Ephenidine",
+      "filename": "ephenidine.svg",
+      "smiles": "C(C)NC(CC1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "escaline",
+      "title": "Escaline",
+      "filename": "escaline.svg",
+      "smiles": "C(C)OC1=C(C=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "eszopiclone",
+      "title": "Eszopiclone",
+      "filename": "eszopiclone.svg",
+      "smiles": "CN1CCN(CC1)C(=O)O[C@@H]1N(C(=O)C2=NC=CN=C12)C1=NC=C(Cl)C=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "eth-lad",
+      "title": "ETH-LAD",
+      "filename": "eth-lad.svg",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)CC)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "ethketamine",
+      "title": "Ethketamine",
+      "filename": "ethketamine.svg",
+      "smiles": "CCNC1(CCCCC1=O)C2=CC=CC=C2Cl",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "ethylmorphine",
+      "title": "Ethylmorphine",
+      "filename": "ethylmorphine.svg",
+      "smiles": "CCOc1ccc2c3c1O[C@@H]1[C@@]43CCN([C@H](C2)[C@@H]4C=C[C@@H]1O)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "ethylone",
+      "title": "Ethylone",
+      "filename": "ethylone.svg",
+      "smiles": "CCNC(C(=O)c1ccc2c(c1)OCO2)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "ethylphenidate",
+      "title": "Ethylphenidate",
+      "filename": "ethylphenidate.svg",
+      "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "etizolam",
+      "title": "Etizolam",
+      "filename": "etizolam.svg",
+      "smiles": "CCc1cc2c(s1)n1c(CN=C2c2ccccc2Cl)nnc1C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "eutylone",
+      "title": "Eutylone",
+      "filename": "eutylone.svg",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CC)NCC)=O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "f-phenibut",
+      "title": "F-Phenibut",
+      "filename": "f-phenibut.svg",
+      "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+      "represents": "4-fluorophenibut",
+      "source": "template"
+    },
+    {
+      "slug": "fentanyl",
+      "title": "Fentanyl",
+      "filename": "fentanyl.svg",
+      "smiles": "CCC(=O)N(C1CCN(CCC2=CC=CC=C2)CC1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "flualprazolam",
+      "title": "Flualprazolam",
+      "filename": "flualprazolam.svg",
+      "smiles": "Clc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccc1F",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "flubromazepam",
+      "title": "Flubromazepam",
+      "filename": "flubromazepam.svg",
+      "smiles": "O=C1CN=C(c2c(N1)ccc(c2)Br)c1ccccc1F",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "flubromazolam",
+      "title": "Flubromazolam",
+      "filename": "flubromazolam.svg",
+      "smiles": "Brc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccc1F",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "fluclotizolam",
+      "title": "Fluclotizolam",
+      "filename": "fluclotizolam.svg",
+      "smiles": "Clc1cc2c(s1)n1c(CN=C2c2ccccc2F)nnc1C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "flunitrazepam",
+      "title": "Flunitrazepam",
+      "filename": "flunitrazepam.svg",
+      "smiles": "CN1C2=C(C=C(C=C2)[N+]([O-])=O)C(=NCC1=O)C1=CC=CC=C1F",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "flunitrazolam",
+      "title": "Flunitrazolam",
+      "filename": "flunitrazolam.svg",
+      "smiles": "Fc1ccccc1C1=NCc2n(c3c1cc(cc3)N(=O)=O)c(nn2)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "furanylfentanyl",
+      "title": "Furanylfentanyl",
+      "filename": "furanylfentanyl.svg",
+      "smiles": "C1(=CC=CC=C1)N(C(=O)C=1OC=CC1)C1CCN(CC1)CCC1=CC=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "gabapentin",
+      "title": "Gabapentin",
+      "filename": "gabapentin.svg",
+      "smiles": "NCC1(CC(O)=O)CCCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "gbl",
+      "title": "GBL",
+      "filename": "gbl.svg",
+      "smiles": "O=C1CCCO1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "ghb",
+      "title": "GHB",
+      "filename": "ghb.svg",
+      "smiles": "C(CC(=O)O)CO",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "h-2c-b",
+      "title": "H-2c-B",
+      "filename": "h-2c-b.svg",
+      "smiles": "COC1=CC(=C(C=C1C(CN)O)OC)Br",
+      "represents": "βH-2C-B (β-hydroxy-2C-B / BOH-2C-B)",
+      "source": "seeded"
+    },
+    {
+      "slug": "heroin",
+      "title": "Heroin",
+      "filename": "heroin.svg",
+      "smiles": "[H][C@@]12C=C[C@H](OC(C)=O)[C@@H]3OC4=C(OC(C)=O)C=CC5=C4[C@]13CCN(C)[C@@H]2C5",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "hxe",
+      "title": "HXE",
+      "filename": "hxe.svg",
+      "smiles": "CCNC1(CCCCC1=O)c1cccc(c1)O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "hydrocodone",
+      "title": "Hydrocodone",
+      "filename": "hydrocodone.svg",
+      "smiles": "[H][C@@]12OC3=C(OC)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])CCC2=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "hydromorphone",
+      "title": "Hydromorphone",
+      "filename": "hydromorphone.svg",
+      "smiles": "[H][C@@]12OC3=C(O)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])CCC2=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "hydroxyzine",
+      "title": "Hydroxyzine",
+      "filename": "hydroxyzine.svg",
+      "smiles": "OCCOCCN1CCN(CC1)C(C1=CC=CC=C1)C1=CC=C(Cl)C=C1",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "ibogaine",
+      "title": "Ibogaine",
+      "filename": "ibogaine.svg",
+      "smiles": "CCC1CC2CC3C1N(C2)CCC4=C3NC5=C4C=C(C=C5)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "isomethadone",
+      "title": "Isomethadone",
+      "filename": "isomethadone.svg",
+      "smiles": "CCC(=O)C(C1=CC=CC=C1)(C2=CC=CC=C2)C(C)CN(C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "jwh-018",
+      "title": "JWH-018",
+      "filename": "jwh-018.svg",
+      "smiles": "C1(=CC=CC2=CC=CC=C12)C(=O)C1=CN(C2=CC=CC=C12)CCCCC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "jwh-073",
+      "title": "JWH-073",
+      "filename": "jwh-073.svg",
+      "smiles": "C(CCC)N1C=C(C2=CC=CC=C12)C(=O)C1=CC=CC2=CC=CC=C12",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "k-2c-i",
+      "title": "K-2c-I",
+      "filename": "k-2c-i.svg",
+      "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)I",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "kanna",
+      "title": "Kanna",
+      "filename": "kanna.svg",
+      "smiles": "CN1CC[C@]2([C@@H]1CC(=O)CC2)C3=CC(=C(C=C3)OC)OC",
+      "represents": "mesembrine",
+      "source": "editor"
+    },
+    {
+      "slug": "kava",
+      "title": "Kava",
+      "filename": "kava.svg",
+      "smiles": "COC1=CC(=O)OC(C1)\\C=C\\C1=CCCC=C1",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "ketamine",
+      "title": "Ketamine",
+      "filename": "ketamine.svg",
+      "smiles": "CNC1(CCCCC1=O)C1=CC=CC=C1Cl",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "khat",
+      "title": "Khat",
+      "filename": "khat.svg",
+      "smiles": "N[C@H](C(=O)C1=CC=CC=C1)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "kratom",
+      "title": "Kratom",
+      "filename": "kratom.svg",
+      "smiles": "CC[C@@H]1CN2CCC3=C([C@@H]2C[C@@H]1/C(=C\\OC)/C(=O)OC)NC4=C3C(=CC=C4)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "lean",
+      "title": "Lean",
+      "filename": "lean.svg",
+      "smiles": "[H][C@]12C=C[C@H](O)[C@@H]3OC4=C5C(C[C@H]1N(C)CC[C@@]235)=CC=C4OC",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "lisdexamfetamine",
+      "title": "Lisdexamfetamine",
+      "filename": "lisdexamfetamine.svg",
+      "smiles": "C[C@@H](CC1=CC=CC=C1)NC(=O)[C@@H](N)CCCCN",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "lithium",
+      "title": "Lithium",
+      "filename": "lithium.svg",
+      "smiles": "[Li]",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "lorazepam",
+      "title": "Lorazepam",
+      "filename": "lorazepam.svg",
+      "smiles": "OC1N=C(C2=CC=CC=C2Cl)C2=C(NC1=O)C=CC(Cl)=C2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "lsa",
+      "title": "LSA",
+      "filename": "lsa.svg",
+      "smiles": "CN1C[C@@H](C=C2C=3C=CC=C4NC=C(C[C@@H]12)C34)C(=O)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "lsd",
+      "title": "LSD",
+      "filename": "lsd.svg",
+      "smiles": "[H][C@@]12CC3=CNC4=CC=CC(=C34)C1=C[C@H](CN2C)C(=O)N(CC)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "lsz",
+      "title": "LSZ",
+      "filename": "lsz.svg",
+      "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N1[C@@H](C)C[C@@H]1C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "mda",
+      "title": "MDA",
+      "filename": "mda.svg",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(C)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "mdma",
+      "title": "MDMA",
+      "filename": "mdma.svg",
+      "smiles": "CNC(C)CC1=CC2=C(OCO2)C=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "mdpv",
+      "title": "MDPV",
+      "filename": "mdpv.svg",
+      "smiles": "CCCC(C(=O)c1ccc2c(c1)OCO2)N1CCCC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "meclonazepam",
+      "title": "Meclonazepam",
+      "filename": "meclonazepam.svg",
+      "smiles": "C[C@H]1C(=O)NC2=C(C=C(C=C2)[N+](=O)[O-])C(=N1)C3=CC=CC=C3Cl",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "melatonin",
+      "title": "Melatonin",
+      "filename": "melatonin.svg",
+      "smiles": "COC1=CC2=C(NC=C2CCNC(C)=O)C=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "memantine",
+      "title": "Memantine",
+      "filename": "memantine.svg",
+      "smiles": "CC12CC3CC(C)(C1)CC(N)(C3)C2",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "mephedrone",
+      "title": "Mephedrone",
+      "filename": "mephedrone.svg",
+      "smiles": "CNC(C(=O)c1ccc(cc1)C)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "mescaline",
+      "title": "Mescaline",
+      "filename": "mescaline.svg",
+      "smiles": "COC=1C=C(C=C(C1OC)OC)CCN",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "met",
+      "title": "MET",
+      "filename": "met.svg",
+      "smiles": "CCN(CCc1c[nH]c2c1cccc2)C",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "methadone",
+      "title": "Methadone",
+      "filename": "methadone.svg",
+      "smiles": "CCC(=O)C(CC(C)N(C)C)(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methallylescaline",
+      "title": "Methallylescaline",
+      "filename": "methallylescaline.svg",
+      "smiles": "CC(=C)COC1=C(C=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methamphetamine",
+      "title": "Methamphetamine",
+      "filename": "methamphetamine.svg",
+      "smiles": "CNC(Cc1ccccc1)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methaqualone",
+      "title": "Methaqualone",
+      "filename": "methaqualone.svg",
+      "smiles": "CC1=CC=CC=C1N1C(C)=NC2=CC=CC=C2C1=O",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "methcathinone",
+      "title": "Methcathinone",
+      "filename": "methcathinone.svg",
+      "smiles": "CNC(C(=O)c1ccccc1)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methiopropamine",
+      "title": "Methiopropamine",
+      "filename": "methiopropamine.svg",
+      "smiles": "CNC(Cc1cccs1)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methoxetamine",
+      "title": "Methoxetamine",
+      "filename": "methoxetamine.svg",
+      "smiles": "CCNC1(CCCCC1=O)c1cccc(c1)OC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methoxyacetyl-fentanyl",
+      "title": "Methoxyacetyl-Fentanyl",
+      "filename": "methoxyacetyl-fentanyl.svg",
+      "smiles": "COCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "methoxyketamine",
+      "title": "Methoxyketamine",
+      "filename": "methoxyketamine.svg",
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2OC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "methylmethaqualone",
+      "title": "Methylmethaqualone",
+      "filename": "methylmethaqualone.svg",
+      "smiles": "CC1=CC(=C(C=C1)N2C(=NC3=CC=CC=C3C2=O)C)C",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "methylone",
+      "title": "Methylone",
+      "filename": "methylone.svg",
+      "smiles": "CNC(C(=O)c1ccc2c(c1)OCO2)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "methylphenidate",
+      "title": "Methylphenidate",
+      "filename": "methylphenidate.svg",
+      "smiles": "COC(=O)C(C1CCCCN1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "metizolam",
+      "title": "Metizolam",
+      "filename": "metizolam.svg",
+      "smiles": "CCc1cc2c(s1)n1cnnc1CN=C2c1ccccc1Cl",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "midazolam",
+      "title": "Midazolam",
+      "filename": "midazolam.svg",
+      "smiles": "CC1=NC=C2CN=C(C3=CC=CC=C3F)C3=C(C=CC(Cl)=C3)N12",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "mipla",
+      "title": "MiPLA",
+      "filename": "mipla.svg",
+      "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N(C(C)C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "modafinil",
+      "title": "Modafinil",
+      "filename": "modafinil.svg",
+      "smiles": "NC(=O)CS(=O)C(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "morphine",
+      "title": "Morphine",
+      "filename": "morphine.svg",
+      "smiles": "[H][C@@]12OC3=C(O)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])C=C[C@@H]2O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "n-methylbisfluoromodafinil",
+      "title": "N-Methylbisfluoromodafinil",
+      "filename": "n-methylbisfluoromodafinil.svg",
+      "smiles": "O=S(CC(NC)=O)C(C1=CC=C(F)C=C1)C2=CC=C(F)C=C2",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "nep",
+      "title": "NEP",
+      "filename": "nep.svg",
+      "smiles": "CCCC(C(=O)c1ccccc1)NCC",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "nicomorphine",
+      "title": "Nicomorphine",
+      "filename": "nicomorphine.svg",
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC(=O)C6=CN=CC=C6)O[C@H]3[C@H](C=C4)OC(=O)C7=CN=CC=C7",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "nicotine",
+      "title": "Nicotine",
+      "filename": "nicotine.svg",
+      "smiles": "CN1CCC[C@H]1C1=CN=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "nifoxipam",
+      "title": "Nifoxipam",
+      "filename": "nifoxipam.svg",
+      "smiles": "OC1N=C(c2c(NC1=O)ccc(c2)N(=O)=O)c1ccccc1F",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "nitemazepam",
+      "title": "Nitemazepam",
+      "filename": "nitemazepam.svg",
+      "smiles": "CN1C2=C(C=C(C=C2)[N+](=O)[O-])C(=NC(C1=O)O)C3=CC=CC=C3",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "nitrazepam",
+      "title": "Nitrazepam",
+      "filename": "nitrazepam.svg",
+      "smiles": "[O-][N+](=O)C1=CC2=C(NC(=O)CN=C2C2=CC=CC=C2)C=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "nitrous",
+      "title": "Nitrous",
+      "filename": "nitrous.svg",
+      "smiles": "[N-]=[N+]=O",
+      "represents": "Nitrous oxide",
+      "source": "editor"
+    },
+    {
+      "slug": "nm-2-ai",
+      "title": "NM-2-AI",
+      "filename": "nm-2-ai.svg",
+      "smiles": "CNC1Cc2c(C1)cccc2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "noopept",
+      "title": "Noopept",
+      "filename": "noopept.svg",
+      "smiles": "C1(=CC=CC=C1)CC(=O)N1[C@@H](CCC1)C(=O)NCC(=O)OCC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "nutmeg",
+      "title": "Nutmeg",
+      "filename": "nutmeg.svg",
+      "smiles": "COC1=CC(=CC=2OCOC21)CC=C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "o-desmethyltramadol",
+      "title": "O-Desmethyltramadol",
+      "filename": "o-desmethyltramadol.svg",
+      "smiles": "CN(C)C[C@H]1CCCC[C@@]1(C2=CC(=CC=C2)O)O",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "o-pce",
+      "title": "O-PCE",
+      "filename": "o-pce.svg",
+      "smiles": "CCNC1(CCCCC1=O)c1ccccc1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "oxazepam",
+      "title": "Oxazepam",
+      "filename": "oxazepam.svg",
+      "smiles": "OC1N=C(C2=CC=CC=C2)C2=C(NC1=O)C=CC(Cl)=C2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "oxycodone",
+      "title": "Oxycodone",
+      "filename": "oxycodone.svg",
+      "smiles": "COC1=C2O[C@H]3C(=O)CC[C@@]4(O)[C@H]5CC(C=C1)=C2[C@@]34CCN5C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "oxymorphone",
+      "title": "Oxymorphone",
+      "filename": "oxymorphone.svg",
+      "smiles": "[H][C@@]12OC3=C(O)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1(O)CCC2=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "parafluorofentanyl",
+      "title": "Parafluorofentanyl",
+      "filename": "parafluorofentanyl.svg",
+      "smiles": "CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "pce",
+      "title": "PCE",
+      "filename": "pce.svg",
+      "smiles": "C(C)NC1(CCCCC1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "pcp",
+      "title": "PCP",
+      "filename": "pcp.svg",
+      "smiles": "C1(=CC=CC=C1)C1(CCCCC1)N1CCCCC1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "pentobarbital",
+      "title": "Pentobarbital",
+      "filename": "pentobarbital.svg",
+      "smiles": "CCCC(C)C1(CC)C(=O)NC(=O)NC1=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "phenazepam",
+      "title": "Phenazepam",
+      "filename": "phenazepam.svg",
+      "smiles": "BrC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)Cl)C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "phenethylamine",
+      "title": "Phenethylamine",
+      "filename": "phenethylamine.svg",
+      "smiles": "C1(=CC=CC=C1)CCN",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "phenibut",
+      "title": "Phenibut",
+      "filename": "phenibut.svg",
+      "smiles": "NCC(c1ccccc1)CC(=O)O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "phenobarbital",
+      "title": "Phenobarbital",
+      "filename": "phenobarbital.svg",
+      "smiles": "CCC1(C(=O)NC(=O)NC1=O)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "phenylpiracetam",
+      "title": "Phenylpiracetam",
+      "filename": "phenylpiracetam.svg",
+      "smiles": "NC(=O)CN1CC(CC1=O)c1ccccc1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "pipradrol",
+      "title": "Pipradrol",
+      "filename": "pipradrol.svg",
+      "smiles": "[H]N1CCCCC1C(O)(C1=CC=CC=C1)C1=CC=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "piracetam",
+      "title": "Piracetam",
+      "filename": "piracetam.svg",
+      "smiles": "NC(=O)CN1CCCC1=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "pregabalin",
+      "title": "Pregabalin",
+      "filename": "pregabalin.svg",
+      "smiles": "CC(C)C[C@H](CN)CC(O)=O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "promethazine",
+      "title": "Promethazine",
+      "filename": "promethazine.svg",
+      "smiles": "CC(CN1C2=CC=CC=C2SC3=CC=CC=C31)N(C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "propranolol",
+      "title": "Propranolol",
+      "filename": "propranolol.svg",
+      "smiles": "CC(C)NCC(O)COC1=CC=CC2=C1C=CC=C2",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "proscaline",
+      "title": "Proscaline",
+      "filename": "proscaline.svg",
+      "smiles": "COC=1C=C(C=C(C1OCCC)OC)CCN",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "psilocybin-mushrooms",
+      "title": "Psilocybin Mushrooms",
+      "filename": "psilocybin-mushrooms.svg",
+      "smiles": "P(=O)(OC1=C2C(=CNC2=CC=C1)CCN(C)C)(O)O",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "pyrazolam",
+      "title": "Pyrazolam",
+      "filename": "pyrazolam.svg",
+      "smiles": "Brc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccn1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "quetiapine",
+      "title": "Quetiapine",
+      "filename": "quetiapine.svg",
+      "smiles": "OCCOCCN1CCN(CC1)C1=NC2=CC=CC=C2SC2=CC=CC=C12",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "salvia",
+      "title": "Salvia",
+      "filename": "salvia.svg",
+      "smiles": "CC(=O)O[C@H]1C[C@H]([C@@]2(CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]2C1=O)C)C4=COC=C4)C)C(=O)OC",
+      "represents": "Salvinorin A",
+      "source": "editor"
+    },
+    {
+      "slug": "scopolamine",
+      "title": "Scopolamine",
+      "filename": "scopolamine.svg",
+      "smiles": "CN1[C@H]2C[C@@H](C[C@@H]1[C@H]1O[C@@H]21)OC(=O)[C@H](CO)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "secobarbital",
+      "title": "Secobarbital",
+      "filename": "secobarbital.svg",
+      "smiles": "CCCC(C)C1(CC=C)C(=O)NC(=O)NC1=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "sertraline",
+      "title": "Sertraline",
+      "filename": "sertraline.svg",
+      "smiles": "CN[C@H]1CC[C@H](C2=CC=CC=C12)C3=CC(=C(C=C3)Cl)Cl",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "tapentadol",
+      "title": "Tapentadol",
+      "filename": "tapentadol.svg",
+      "smiles": "CC[C@H]([C@@H](C)CN(C)C)C1=CC(O)=CC=C1",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "temazepam",
+      "title": "Temazepam",
+      "filename": "temazepam.svg",
+      "smiles": "CN1C2=C(C=C(Cl)C=C2)C(=NC(O)C1=O)C1=CC=CC=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "theanine",
+      "title": "Theanine",
+      "filename": "theanine.svg",
+      "smiles": "CCNC(=O)CC[C@@H](C(=O)O)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "thiopental",
+      "title": "Thiopental",
+      "filename": "thiopental.svg",
+      "smiles": "CCCC(C)C1(CC)C(=O)NC(=S)NC1=O",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "thiopropamine",
+      "title": "Thiopropamine",
+      "filename": "thiopropamine.svg",
+      "smiles": "CC(CC1=CC=CS1)N",
+      "represents": "",
+      "source": "seeded"
+    },
+    {
+      "slug": "tianeptine",
+      "title": "Tianeptine",
+      "filename": "tianeptine.svg",
+      "smiles": "OC(=O)CCCCCCNC1c2ccccc2N(S(=O)(=O)c2c1ccc(c2)Cl)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "tma-2",
+      "title": "TMA-2",
+      "filename": "tma-2.svg",
+      "smiles": "COC1=C(C=C(C(=C1)OC)OC)CC(C)N",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "tma-6",
+      "title": "TMA-6",
+      "filename": "tma-6.svg",
+      "smiles": "COC1=C(C(=CC(=C1)OC)OC)CC(C)N",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "tobacco",
+      "title": "Tobacco",
+      "filename": "tobacco.svg",
+      "smiles": "CN1CCC[C@H]1C2=CN=CC=C2",
+      "represents": "Nicotine",
+      "source": "seeded"
+    },
+    {
+      "slug": "tramadol",
+      "title": "Tramadol",
+      "filename": "tramadol.svg",
+      "smiles": "COC1=CC=CC(=C1)C1(O)CCCCC1CN(C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "trazodone",
+      "title": "Trazodone",
+      "filename": "trazodone.svg",
+      "smiles": "ClC1=CC=CC(=C1)N1CCN(CCCN2N=C3C=CC=CN3C2=O)CC1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "triazolam",
+      "title": "Triazolam",
+      "filename": "triazolam.svg",
+      "smiles": "CC1=NN=C2CN=C(C3=CC=CC=C3Cl)C3=C(C=CC(Cl)=C3)N12",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "u-47700",
+      "title": "U-47700",
+      "filename": "u-47700.svg",
+      "smiles": "CN([C@@H]1CCCC[C@H]1N(C(=O)c1ccc(c(c1)Cl)Cl)C)C",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "valerylfentanyl",
+      "title": "Valerylfentanyl",
+      "filename": "valerylfentanyl.svg",
+      "smiles": "CCCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "template"
+    },
+    {
+      "slug": "zaleplon",
+      "title": "Zaleplon",
+      "filename": "zaleplon.svg",
+      "smiles": "C(#N)C=1C=NN2C1N=CC=C2C=2C=C(C=CC2)N(C(C)=O)CC",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "zolpidem",
+      "title": "Zolpidem",
+      "filename": "zolpidem.svg",
+      "smiles": "CN(C)C(=O)CC1=C(N=C2C=CC(C)=CN12)C1=CC=C(C)C=C1",
+      "represents": "",
+      "source": "editor"
+    },
+    {
+      "slug": "zopiclone",
+      "title": "Zopiclone",
+      "filename": "zopiclone.svg",
+      "smiles": "CN1CCN(CC1)C(=O)OC1N(C(=O)C2=NC=CN=C12)C1=NC=C(Cl)C=C1",
+      "represents": "",
+      "source": "editor"
+    }
+  ]
+}

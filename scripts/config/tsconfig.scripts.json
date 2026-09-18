@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "ignoreDeprecations": "6.0",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "jsx": "preserve",
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "types": [
+      "node"
+    ],
+    "baseUrl": "../..",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@lib/*": [
+        "./lib/*"
+      ],
+      "@auth": [
+        "./lib/auth/authOptions.ts"
+      ],
+      "@server/*": [
+        "./lib/*"
+      ]
+    }
+  },
+  "include": [
+    "../../scripts/**/*.ts"
+  ],
+  "files": [
+    "../../src/types/next-auth.d.ts"
+  ],
+  "exclude": [
+    "../../node_modules",
+    "../../scripts/deprecated/**",
+    "../../scripts/**/archive/**"
+  ]
+}

@@ -1,0 +1,1898 @@
+/* =====================================================================
+   Pro visual style — paper-toned academic reference presentation.
+
+   This is the Effect Index presentation, lifted off the publication that
+   used to own it. Effect Index renders it by policy; dose.wiki renders it
+   when a reader picks Pro. Nothing here may express publication identity:
+   routes, copy, navigation, wordmark strings, metadata and licensing stay
+   behind data-site, and this sheet never reads that attribute.
+
+   Deliberately UNLAYERED, and no longer bundled at all: this sheet ships as
+   a static copy in public/ (npm run generate:appearance-sheets), attached as
+   a <link> AFTER the bundled chain — after theme-light-mode.css's link and
+   before the generated chroma sheet's (src/theme/appearanceSheets.ts pins
+   that order) — for exactly the readers whose visual style is Pro. Two
+   consequences the whole sheet depends on:
+
+   1. Unlayered rules beat every layered rule regardless of specificity,
+      so these rules win over Tailwind call-site utilities (backdrop-blur-*,
+      shadow-[...]) and over everything in utilities-theme.css /
+      components.css with no !important at all.
+   2. theme-light-mode.css carries no component rules any more: the light
+      scheme is a token swap in site-colors.css, and utilities-theme.css
+      reads those tokens once for both schemes (src/theme/lightSheet.test.ts
+      holds that line). This sheet therefore works through the TOKENS the
+      Fun rules read, and the rule blocks further down exist only for the
+      handful of decorations that hardcode colour instead of reading a token.
+
+   Every selector is scoped to html[data-visual-style="pro"], so the sheet
+   is inert on Fun: the attribute value is never "pro" there.
+
+   Both colour schemes run through ONE set of rules. The scheme axis lives
+   entirely in the --ei-* seed variables at the top: every --theme-* binding
+   below resolves a seed rather than a literal, and custom properties are
+   substituted per element after the cascade, so the dark seed block
+   re-tints the whole sheet without restating a single derived token. A
+   literal colour anywhere below the palette is therefore a bug, with exactly
+   two exceptions, both scheme-independent by nature: the header and footer
+   rails, which are charcoal in BOTH schemes, and the lightbox theatre, which
+   is a darkened room. proTheme.test.ts holds that line.
+
+   The one legitimate !important is the backdrop-filter kill. It is kept
+   defensively: any lazily-injected third-party sheet lands in <head> after
+   this one and would otherwise win on source order at equal specificity.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   Palette: light seeds, and every derived token for both schemes.
+
+   The three-selector list is specificity, not repetition. It matches at
+   (0,2,1) whenever data-theme is present — light OR dark — and still at
+   (0,1,1) if the attribute is missing, so the palette never depends on
+   script timing and never leaves Pro unstyled. (0,2,1) is what puts this
+   palette above the authored Fun token blocks in site-colors.css and level
+   with the Fun half of the generated surface sheet,
+   surface-tokens.generated.css (the base block of the retired surface axis).
+
+   That sheet is bundled while this one attaches after the bundle, so at that
+   tie THIS sheet would now win on source order — but the tie never happens,
+   because the Fun block it emits carries
+   :where(:not([data-visual-style="pro"])) and so matches no Pro root at all.
+   That guard adds nothing to specificity, which is the point: it separates
+   the rungs without moving them, from wherever each sheet loads.
+
+   accent-tokens.generated.css is the half that is meant to reach this palette:
+   it re-seats the --ei-* seeds below at (0,3,1), one attribute above this block.
+   That is how the surface and accent axes re-tint roughly two hundred derived
+   tokens from outside this file, on specificity rather than on where the
+   bundler happens to put them.
+
+   It does NOT out-rank the Theme Lab. The Lab's runtime overrides name
+   data-theme four times to reach (0,4,1) (see userLayerSelector in
+   themeLabStorage.ts) and land in <head> after this sheet, so they win
+   over everything here. That is the intended direction: an editor authoring
+   in the Lab has to be able to see a Pro edit take effect, and a palette
+   that repainted Pro from underneath the Lab would make every such edit look
+   like it did nothing. proTheme.test.ts pins the whole ladder.
+
+   The dark seed block below repeats the (0,2,1) dark selector and wins on
+   source order, which is why only the seeds have to be restated there.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"],
+html[data-visual-style="pro"][data-theme="light"],
+html[data-visual-style="pro"][data-theme="dark"] {
+  /* Paper canvas. Every gradient stop collapses to the single page value;
+     every halo, glow and vignette goes fully transparent. */
+  /* Cooled toward the original site's near-white sheet (#fff content on
+     #fbfbfb cards). A trace of warmth is kept so the page does not read as
+     clinical white next to the charcoal chrome, but the parchment cast is
+     gone — it clashed with the neutral dark bar. */
+  --ei-paper: #f6f5f1;
+  --ei-surface: #fbfaf8;
+  --ei-surface-raised: #ffffff;
+  --ei-surface-sunk: #efeee9;
+  --ei-surface-deep: #e4e2db;
+  --ei-chrome: #efeee9;
+
+  --ei-border: #dcdad3;
+  /* The strong border is the one that outlines fields, selects and other real
+     controls, so SC 1.4.11 puts a 3:1 floor on it against the surface it is
+     drawn on. The retired #c6c3ba measured 1.76:1 on the raised surface
+     #ffffff that every Pro light field fills with, and 1.62:1 on paper — it
+     was a hairline wearing the "strong" name. #8b8880 keeps the same warm
+     R>G>B cast and reads 3.54:1 on #ffffff, 3.39:1 on --ei-surface #fbfaf8,
+     3.25:1 on paper #f6f5f1 and 3.05:1 on the sunk step #efeee9, so it clears
+     the floor on every light ground rather than only the measured one.
+
+     Repainting the token rather than splitting a field-only value out of it:
+     the dark block already defines this token BY that role (see :540) and
+     tunes it to 4.08:1 there, so light was the scheme that disagreed with the
+     shared definition. The three decorative consumers — --theme-border-strong,
+     --theme-card-border-strong and --theme-profile-markdown-quote-border —
+     darken with it, which is the point: the quiet hairline is --ei-border
+     #dcdad3, and "strong" now differs from it by more than a rounding step. */
+  --ei-border-strong: #8b8880;
+
+  /* Neutral warm-grey ink. The original's #333 body anchor is kept; its
+     #4a4a4a headings and #999 subtitles are not, because #999 could not carry
+     text at any Pro light ground and pulling only the tail down would have
+     bunched the last three steps.
+
+     Every step from --ei-ink to --ei-ink-4 is text (--theme-text-primary
+     through --theme-text-faint), so all four owe 4.5:1 against the WORST light
+     ground, the sunk surface #efeee9; --ei-ink-5 is --theme-text-ghost, which
+     owes 3:1. The retired #8a8a8a faint step measured 2.97:1 there and the
+     retired #9d9d9d ghost step 2.33:1. Clearing 4.5:1 on #efeee9 caps a text
+     step at #6c6c6c, which is where the old ink-3 already sat, so the ramp is
+     redistributed as a set instead of having its top two steps darkened into
+     the step below them.
+
+     The five steps are now evenly spaced at a constant 7.7 L* pitch
+     (21.2 / 28.9 / 36.6 / 44.4 / 52.0), so the separation the old ramp had is
+     preserved while the whole ramp fits under the floor. Measured on the sunk
+     step #efeee9 / on paper #f6f5f1: 10.88:1 / 11.58:1 primary, 8.38:1 /
+     8.93:1 headings, 6.32:1 / 6.73:1 muted, 4.73:1 / 5.03:1 faint, and
+     3.59:1 / 3.83:1 ghost. #4a4a4a moved 2.6 L* to #444444 to hold that pitch;
+     the other three light grounds (#fbfaf8, #ffffff, #f6f5f1) are all lighter
+     than #efeee9, so every one of them measures higher than the figures
+     above. */
+  --ei-ink: #333333;
+  --ei-ink-2: #444444;
+  --ei-ink-3: #565656;
+  --ei-ink-4: #696969;
+  --ei-ink-5: #7c7c7c;
+
+  --ei-accent: #3d9991;
+  --ei-accent-strong: #336f68; /* 5.34:1 on paper; the old #27635d ran 6.35:1 and read as ink, not teal */
+  --ei-accent-soft: #5cb3aa;
+  --ei-accent-muted: #34837c;
+
+  /* Border-weight accent. The four seeds above are TEXT-contrast values
+     (links, labels), and reusing them as 1px hover/selected outlines is what
+     made every interactive edge read as a hard bright line. These two are the
+     accent mixed back toward the hairline: `edge` is the hover cue, and
+     `edge-strong` is the selected/inline-reference outline that still has to
+     be identifiable at rest. Derived with color-mix rather than authored so
+     the generated plum seeds (accent-tokens.generated.css) re-tint them for
+     free in both schemes — custom properties substitute per element after the
+     cascade, so each scheme's own --ei-accent/--ei-border pair feeds the mix.
+     Focus rings deliberately do NOT use these: focus keeps the full accent. */
+  --ei-accent-edge: color-mix(in srgb, var(--ei-accent) 30%, var(--ei-border));
+  --ei-accent-edge-strong: color-mix(in srgb, var(--ei-accent) 55%, var(--ei-border));
+
+  --ei-shadow-soft: rgb(51 51 51 / 0.08);
+  --ei-shadow-strong: rgb(51 51 51 / 0.12);
+
+  /* Dark chrome. The original site bracketed a light sheet between a #2e2e2e
+     bar and a #1f1f1f footer; these are the only two dark surfaces on the
+     site and they are applied under scoped selectors further down, never as
+     page-level tokens. They stay charcoal in BOTH schemes — the bracketing is
+     the page shell, not a light-mode trick — so the dark block only nudges
+     them far enough apart from a dark canvas to stay legible as rails.
+
+     `sunk` completes the family for controls that have to read as recessed
+     while sitting on a rail: the appearance toggles' track is the only one
+     today, and without it the track inherits the paper-scheme page value. */
+  --ei-chrome-dark: #2e2e2e;
+  --ei-chrome-darker: #1f1f1f;
+  --ei-chrome-sunk: #232323;
+  --ei-chrome-raised: #3a3a3a;
+  --ei-chrome-border: #444444;
+  --ei-on-dark: #f2f2f0;
+  --ei-on-dark-muted: #cccccc;
+  /* The faint step is the header's smallest ink — nav icons, and via
+     --theme-text-faint anything the bar renders below label weight. Both
+     rails read this ONE value: their selectors carry no data-theme, so it is
+     measured against the LIGHTER of the two, the light scheme's #2e2e2e bar,
+     where it reads 4.83:1; on the dark scheme's #1f1f1f bar it reads 5.86:1.
+     The retired #8a8a8a was tuned against #1f1f1f alone (4.77:1) and fell to
+     3.93:1 on the light bar, under the 4.5:1 body-text floor. */
+  --ei-on-dark-faint: #9a9a9a;
+  /* The accent has to lighten to stay legible on charcoal; this is the accent
+     hue at a luminance that reads on a dark bar. Declared ONCE, here in the
+     light/root block, because the chrome rails read it in BOTH schemes — their
+     selectors carry no data-theme — so the dark block never restates it.
+
+     Teal is this family's DEFAULT VALUE, not its nature. `--ei-accent*` is the
+     accent axis's Pro half: accent-tokens.generated.css re-seats all five steps
+     under html:not([data-accent]) on dose.wiki, so every token below that
+     resolves one of them wears that publication's plum with no restatement. */
+  --ei-accent-on-dark: #6fc4bb;
+
+  /* Tinted washes and marks — the values that cannot be derived from the
+     ramps above: a selection wash, a search-hit fill, the scrim that fades a
+     collapsed dose table into the canvas, the ink that sits ON a filled
+     accent, and the flat mark colour. Each is a seed rather than a literal at
+     its use site so the dark block can flip it without restating the token
+     that reads it. */
+  --ei-selection: #cde5e1;
+  --ei-ring-soft: #9ecdc7;
+  --ei-highlight: #d7e7e4;
+  --ei-fade: rgb(246 245 241 / 0.88);
+  --ei-on-accent: #ffffff;
+
+  /* Intensity ramp for the Levelling System rows: five steps of neutral grey
+     running away from the canvas — light→dark here, dark→light in the dark
+     block, which runs the same five steps in the opposite direction. Still
+     greyscale: the Levelling System is not the safety ramp and must not borrow
+     its colours.
+
+     The two families answer to DIFFERENT floors, which nothing here recorded
+     before and which is how the quiet end of both drifted under its own.
+     --ei-level-N is the level label, set 12px/600 at :1684-1727 — normal text,
+     so 4.5:1. --ei-level-N-mark is painted as background-color on that row's
+     dot/bar in the same block — a graphical object, so 3:1. Label and marker
+     also stay tuned apart because a solid fill reads with more presence than
+     type set at the same value.
+
+     Both are measured against the WORST light ground, the sunk surface
+     #efeee9; paper #f6f5f1 and surface #fbfaf8 are lighter, so every step
+     reads higher on them. Retired against that ground: label #9a9a9a at
+     2.42:1 (2.70:1 even on surface) and label #7c7c7c at 3.59:1 (3.83:1 on
+     paper), both under 4.5:1, and mark #a8a8a8 at 2.05:1, under the mark
+     family's 3:1. Clearing 4.5:1 on #efeee9 caps a text step at #6c6c6c, so
+     — as with --ei-ink at :107 — the whole five-step ramp is redistributed at
+     an even pitch instead of the failing tail being darkened into the step
+     beside it.
+
+     Labels now sit at a constant 8.3 L* pitch (44.8 / 36.6 / 28.4 / 19.9 /
+     11.8) measuring 4.66 / 6.32 / 8.52 / 11.36 / 14.19:1 on #efeee9. The mark
+     family is that ramp lifted a uniform 6 L*, measuring 3.75 / 5.09 / 6.83 /
+     9.21 / 12.19:1 there. The #1f1f1f lead label is unchanged. */
+  --ei-level-1: #6a6a6a;
+  --ei-level-2: #565656;
+  --ei-level-3: #434343;
+  --ei-level-4: #303030;
+  --ei-level-5: #1f1f1f;
+  --ei-level-1-mark: #797979;
+  --ei-level-2-mark: #646464;
+  --ei-level-3-mark: #515151;
+  --ei-level-4-mark: #3e3e3e;
+  --ei-level-5-mark: #2b2b2b;
+
+  /* Page canvas */
+  --theme-body-bg: var(--ei-paper);
+  --theme-page-start: var(--ei-paper);
+  --theme-page-mid: var(--ei-paper);
+  --theme-page-end: var(--ei-paper);
+  --theme-page-halo-top: transparent;
+  --theme-page-halo-left: transparent;
+  --theme-page-halo-right: transparent;
+  --theme-page-edge-vignette: transparent;
+  --theme-home-glow-top: transparent;
+  --theme-home-glow-bottom: transparent;
+
+  /* Ink ramp */
+  --theme-text-primary: var(--ei-ink);
+  --theme-text-secondary: var(--ei-ink-2);
+  --theme-text-muted: var(--ei-ink-3);
+  --theme-text-faint: var(--ei-ink-4);
+  --theme-text-ghost: var(--ei-ink-5);
+
+  /* Accent */
+  --theme-accent-strong: var(--ei-accent-strong);
+  --theme-accent: var(--ei-accent);
+  --theme-accent-soft: var(--ei-accent-soft);
+  --theme-accent-muted: var(--ei-accent-muted);
+  /* Opaque rather than alpha-blended: on paper a translucent wash reads as a
+     smudge. Shadow tokens keep their alpha — a shadow colour has to. */
+  --theme-selection: var(--ei-selection);
+  /* Section headings follow the base themes' logic: the accent-strong step.
+     Pro used to hold headings to ink ("accent means clickable"), but the site
+     rule is now one logic across dark/light/fun/pro — headings, emphasis and
+     heading icons all paint from the accent ramp, which here resolves to the
+     --ei-* accent seeds per scheme. */
+  --theme-section-heading: var(--theme-accent-strong);
+  --theme-ring-soft: var(--ei-ring-soft);
+
+  /* Logo. The mark is an alpha mask over --theme-logo-fill, so these stops are
+     the only thing that gives the mark its colour.
+
+     Pro is a flat skin with exactly one gradient: this mark. Everything else —
+     page, cards, chrome, controls — stays flat, and the ramp is what keeps the
+     one piece of brand on the page from reading as a stencil. The mark leads
+     with the scheme's accent and deepens toward a darker mix of the same
+     accent, so it stays brand-coloured in both schemes instead of flipping
+     between an ink-led black and white mark.
+
+     The positions are pulled inside 0-100% on purpose: .theme-dosewiki-logo
+     paints this at `background-size: 140%` (utilities-theme.css), so roughly
+     the outer 15% at each end is cropped and a stop parked at 100% would
+     never be seen.
+
+     Both ends resolve seeds: --ei-accent already flips to its dark-canvas
+     luminance, and the tail mixes that seed toward black so it is always the
+     darker end of whichever accent is in force. --theme-logo-fill has to stay
+     <image>-typed because it is consumed as a background-image over a mask —
+     a bare hex is silently dropped by the CSS parser. */
+  --site-logo-stop-1: var(--ei-accent);
+  --site-logo-stop-2: var(--ei-accent);
+  --site-logo-stop-3: color-mix(in srgb, var(--ei-accent) 78%, #000000);
+  --site-logo-stop-4: color-mix(in srgb, var(--ei-accent) 58%, #000000);
+  --theme-logo-fill: linear-gradient(
+    118deg,
+    var(--site-logo-stop-1) 0%,
+    var(--site-logo-stop-2) 26%,
+    var(--site-logo-stop-3) 62%,
+    var(--site-logo-stop-4) 90%
+  );
+  --theme-logo-shadow: transparent;
+  --theme-logo-shadow-hover: transparent;
+
+  /* Borders, rings, shadows */
+  --theme-border-subtle: var(--ei-border);
+  --theme-border-strong: var(--ei-border-strong);
+  --theme-card-border: var(--ei-border);
+  --theme-card-border-strong: var(--ei-border-strong);
+  --theme-divider: var(--ei-border);
+  --theme-shadow-soft: var(--ei-shadow-soft);
+  --theme-shadow-strong: var(--ei-shadow-strong);
+
+  /* Elevation values. The neutral scale and the shadow-colour-derived tokens
+     inherit --theme-shadow-* above, so only the three brand-coloured lifts
+     need restating: two magenta/violet glows this skin has always killed
+     (the gradient button and the public-content icon tile) and the search
+     mark's pink hairline, which keeps its geometry and takes the accent. Killing a
+     shadow by token rather than by `box-shadow: none` leaves the element's
+     ring intact, which is why these were --tw-shadow-color patches before. */
+  --theme-elevation-control-primary: 0 0 #0000;
+  --theme-elevation-icon-tile: 0 0 #0000;
+  --theme-elevation-mark-hairline: inset 0 0 0 1px color-mix(in srgb, var(--ei-accent) 34%, transparent);
+
+  /* Opaque surfaces — never translucent, never a colour-mix over the page */
+  --theme-surface-soft: var(--ei-surface);
+  --theme-surface-muted: var(--ei-surface-sunk);
+  --theme-surface-strong: var(--ei-surface-raised);
+  --theme-surface-deep: var(--ei-surface-deep);
+  --theme-menu-surface: var(--ei-surface-raised);
+  --theme-table-row-alt: var(--ei-surface-sunk);
+  --theme-backdrop-safe: var(--ei-paper);
+  --theme-autofill-bg: var(--ei-surface-raised);
+  --theme-autofill-text: var(--ei-ink);
+
+  /* Fields */
+  --theme-field-surface: var(--ei-surface-raised);
+  --theme-field-surface-alt: var(--ei-surface);
+  --theme-field-border: var(--ei-border-strong);
+  --theme-field-on-chrome-surface: var(--ei-surface-raised);
+  --theme-field-on-chrome-border: var(--ei-border-strong);
+  --theme-field-on-panel-surface: var(--ei-surface-raised);
+  --theme-field-on-panel-surface-alt: var(--ei-surface);
+
+  /* Chrome: flat warm bar with a hairline rule instead of a drop shadow. */
+  --theme-chrome-surface: var(--ei-chrome);
+  --theme-chrome-surface-strong: var(--ei-surface-sunk);
+  --theme-chrome-border: var(--ei-border);
+  --theme-chrome-rail-base: var(--ei-chrome);
+  --theme-chrome-rail-highlight: var(--ei-chrome);
+  --theme-chrome-rail-primary: var(--ei-chrome);
+  --theme-chrome-rail-secondary: var(--ei-chrome);
+  /* Consumed only through the `background:` shorthand (5 call sites), so a
+     bare colour is legal here — verified, this token is NOT <image>-typed. */
+  --theme-chrome-rail-bg: var(--ei-chrome);
+  --theme-header-shadow: 0 1px 0 var(--ei-border);
+  /* Recessed track: the thumb takes the raised step, so the two stop being
+     the same near-white. */
+  --theme-toggle-pill-bg: var(--ei-surface-sunk);
+
+  /* Panels: flat, opaque, hairline-bordered. */
+  --theme-panel-base: var(--ei-surface);
+  --theme-frosted-panel-border: var(--ei-border);
+  --theme-frosted-panel-highlight: var(--ei-surface);
+  --theme-frosted-panel-primary: var(--ei-surface);
+  --theme-frosted-panel-secondary: var(--ei-surface);
+  --theme-frosted-panel-bg: var(--ei-surface);
+  /* `0 0 #0000`, not `none`: utilities-theme.css:1898 substitutes this token as the
+     FIRST entry of a three-shadow comma list on .theme-subjective-stub-panel, and
+     `none` is only legal as a sole value — it would make the whole declaration
+     invalid at computed-value time and delete that panel's caution hairline too.
+     A fully transparent shadow is visually identical and composes. */
+  --theme-frosted-panel-shadow: 0 0 #0000;
+  --theme-frosted-panel-hover-border: var(--ei-accent-edge);
+  --theme-frosted-panel-hover-bg: var(--ei-surface-raised);
+  --theme-frosted-panel-hover-shadow: 0 0 #0000;
+
+  /* Controls */
+  --theme-control-base: var(--ei-surface-sunk);
+  --theme-frosted-control-border: var(--ei-border);
+  --theme-frosted-control-highlight: var(--ei-surface-sunk);
+  --theme-frosted-control-primary: var(--ei-surface-sunk);
+  --theme-frosted-control-secondary: var(--ei-surface-sunk);
+  --theme-frosted-control-bg: var(--ei-surface-sunk);
+  --theme-frosted-control-shadow: 0 0 0 1px var(--ei-border);
+  --theme-frosted-control-hover-border: var(--ei-accent-edge);
+  --theme-frosted-control-hover-bg: var(--ei-surface-raised);
+  --theme-frosted-control-hover-shadow: 0 0 0 1px var(--ei-accent-edge);
+
+  --theme-frosted-control-on-panel-border: var(--ei-border);
+  --theme-frosted-control-on-panel-bg: var(--ei-surface-raised);
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-border);
+  --theme-frosted-control-on-panel-hover-border: var(--ei-accent-edge);
+  --theme-frosted-control-on-panel-hover-bg: var(--ei-surface-raised);
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px var(--ei-accent-edge);
+
+  /* Article panel families */
+  --theme-article-neutral-panel-border: var(--ei-border);
+  --theme-article-neutral-panel-base: var(--ei-surface);
+  --theme-article-neutral-panel-highlight: var(--ei-surface);
+  --theme-article-neutral-panel-primary: var(--ei-surface);
+  --theme-article-neutral-panel-secondary: var(--ei-surface);
+  --theme-article-neutral-panel-bg: var(--ei-surface);
+  --theme-article-neutral-panel-shadow: none;
+
+  /* Pro uses the same Accent-owned selected-control and inline-reference
+     contracts as Fun, but flattens them onto restrained paper surfaces. */
+  --theme-selected-control-base: var(--ei-surface-sunk);
+  --theme-selected-control-border: var(--ei-accent-edge-strong);
+  --theme-selected-control-highlight: var(--ei-surface-sunk);
+  --theme-selected-control-primary: var(--ei-surface-sunk);
+  --theme-selected-control-secondary: var(--ei-surface-sunk);
+  --theme-selected-control-bg: var(--ei-surface-sunk);
+  --theme-selected-control-text: var(--ei-accent-strong);
+  --theme-selected-control-shadow: none;
+  --theme-selected-control-focus: var(--ei-accent);
+  --theme-selected-control-glow: none;
+
+  --theme-inline-reference-border: var(--ei-accent-edge-strong);
+  --theme-inline-reference-bg: var(--ei-surface-raised);
+  --theme-inline-reference-text: var(--ei-accent-strong);
+  --theme-inline-reference-hover-border: var(--ei-accent);
+  --theme-inline-reference-hover-bg: var(--ei-surface-raised);
+  --theme-inline-reference-hover-text: var(--ei-accent-strong);
+  --theme-inline-reference-focus: var(--ei-accent);
+
+  /* Scrollbars pick up the accent. */
+  --theme-scroll-track: var(--ei-surface-sunk);
+  --theme-scroll-track-bg: var(--ei-surface-sunk);
+  --theme-scroll-track-border: var(--ei-border);
+  --theme-scroll-thumb: var(--ei-accent);
+  --theme-scroll-thumb-hover: var(--ei-accent-strong);
+  --theme-scroll-thumb-bg: var(--ei-accent);
+  --theme-scroll-thumb-hover-bg: var(--ei-accent-strong);
+  --theme-scroll-thumb-glow: transparent;
+
+  /* Misc UI accents */
+  --theme-name-chip-bg: var(--ei-surface-sunk);
+  --theme-name-chip-bg-hover: var(--ei-surface-raised);
+  --theme-name-chip-text: var(--ei-ink-2);
+  --theme-name-chip-text-hover: var(--ei-accent-strong);
+  --theme-name-chip-ring: var(--ei-border);
+  --theme-name-chip-ring-hover: var(--ei-accent-edge);
+  --theme-skip-link-bg: var(--ei-accent-strong);
+  --theme-skip-link-text: var(--ei-on-accent);
+  --theme-flag-ring: var(--ei-border);
+  --theme-flag-shadow: none;
+  --theme-profile-markdown-quote-bg: var(--ei-surface-sunk);
+  --theme-profile-markdown-quote-border: var(--ei-border-strong);
+  /* Neutral, not the accent: the entry label beside it is the link, and doubling
+     the affordance on the bullet is what made the index read as accent-washed. */
+  --theme-index-card-bullet: var(--ei-ink-4);
+  /* Flat sunk neutral: the Fun value is a highlight gradient that reads as a
+     lit panel on Pro's paper canvas. */
+  --theme-index-card-dim-border-color: var(--ei-border);
+  --theme-index-card-dim-background: var(--ei-surface-sunk);
+  --theme-index-card-dim-color: var(--ei-ink-2);
+  --theme-avatar-gradient-from: var(--ei-accent-soft);
+  --theme-avatar-gradient-to: var(--ei-accent-strong);
+  --theme-home-nav-card-border: var(--ei-border);
+  --theme-dose-tier-fade: var(--ei-fade);
+  --theme-plateau-tier-fade: var(--theme-dose-tier-fade);
+
+  /* Search. The stock light theme sets --theme-search-highlight-text to a
+     near-white (#fae8ff) that is unreadable on a pale fill; ink it. */
+  --theme-search-highlight-bg: var(--ei-highlight);
+  --theme-search-highlight-text: var(--ei-ink);
+  --theme-search-overlay-bg: var(--ei-paper);
+
+  /* Trip report identity colours (plum/violet in stock light mode). These
+     are brand decoration, not the safety ramp, so they retint. The onset
+     green is left alone — it belongs to the phase ramp's own logic. */
+  --theme-report-substance-text: var(--ei-accent-strong);
+  --theme-report-metadata-text: var(--ei-ink-3);
+  --theme-report-phase-peak-text: var(--ei-accent-strong);
+  --theme-report-phase-offset-text: var(--ei-ink-2);
+  --theme-report-phase-peak-bg: var(--ei-surface-sunk);
+  --theme-report-phase-offset-bg: var(--ei-surface-sunk);
+  --theme-report-phase-onset-bg: var(--ei-surface-sunk);
+  --theme-report-phase-peak-border: var(--ei-border);
+  --theme-report-phase-offset-border: var(--ei-border);
+  --theme-report-phase-peak-dot: var(--ei-accent);
+  --theme-report-phase-offset-dot: var(--ei-ink-3);
+
+  /* Status badges and interaction cards. The semantic ramp's TEXT, BORDER and
+     RING colours stay untouched — they are the safety signal and must remain
+     readable and distinguishable from the link accent. Only the glassy
+     gradient FILLS are flattened to solid tints of the same hue over the
+     neutral surface, so danger / unsafe / caution / info / success still read
+     at a glance without the Fun sheen. Cards sit on the surface; chips sit
+     one step recessed to match the neutral badge. */
+  --theme-status-badge-inset: transparent;
+  --theme-semantic-neutral-badge-bg: var(--ei-surface-sunk);
+  --theme-semantic-neutral-badge-text: var(--ei-ink-2);
+  --theme-semantic-neutral-badge-ring: var(--ei-border);
+  --theme-semantic-neutral-badge-glow: transparent;
+  --theme-semantic-danger-card-bg: color-mix(in srgb, rgb(var(--c-rose)) 10%, var(--ei-surface));
+  --theme-semantic-unsafe-card-bg: color-mix(in srgb, rgb(var(--c-orange)) 10%, var(--ei-surface));
+  --theme-semantic-caution-card-bg: color-mix(in srgb, rgb(var(--c-amber)) 10%, var(--ei-surface));
+  --theme-semantic-danger-badge-bg: color-mix(in srgb, rgb(var(--c-rose)) 18%, var(--ei-surface-sunk));
+  --theme-semantic-unsafe-badge-bg: color-mix(in srgb, rgb(var(--c-orange)) 18%, var(--ei-surface-sunk));
+  --theme-semantic-caution-badge-bg: color-mix(in srgb, rgb(var(--c-amber)) 18%, var(--ei-surface-sunk));
+  --theme-semantic-info-badge-bg: color-mix(in srgb, rgb(var(--c-blue)) 18%, var(--ei-surface-sunk));
+  --theme-semantic-success-badge-bg: color-mix(in srgb, rgb(var(--c-emerald)) 18%, var(--ei-surface-sunk));
+  --theme-semantic-danger-card-shadow: none;
+  --theme-semantic-unsafe-card-shadow: none;
+  --theme-semantic-caution-card-shadow: none;
+
+  /* Type. Pro's face is Titillium Web wherever the build keeps it. dose.wiki
+     registers it lazily as --font-pro (next/font/local, preload:false, so a
+     Fun reader downloads nothing until Pro paints), and the Effect Index build
+     renders it as its own preloaded --font-display face and defines no
+     --font-pro at all — the fallback in this var() is what makes Pro resolve
+     the face that build has already fetched instead of registering the same
+     four woff2 files a second time.
+
+     All three families have to be named. base.css binds --font-family-display to
+     var(--font-display), which is Blinker on dose.wiki, so Pro states its own
+     display face rather than inheriting the build's. The stable standard-body
+     token lets the font picker preview Pro while the document itself is wearing
+     the Dyslexic-friendly face. Each next/font variable already expands to the
+     face plus its metric-matched fallback, so the swap changes letterforms and
+     not line boxes. */
+  --font-family-standard-body: var(--font-pro, var(--font-display)), "Titillium Web", Inter,
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-body: var(--font-family-standard-body);
+  --font-family-display: var(--font-pro, var(--font-display)), "Titillium Web", Inter,
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Tracking. base.css:49-51 sets the display/heading/body tracking NEGATIVE
+     (-0.04em / -0.025em / -0.01em). Tight tracking is a modern-product signal
+     and it is the single strongest reason the reskin still read as a different
+     typeface even though every element resolves Titillium: the eye reads
+     letterfit before it reads letterforms. Zero, not a positive value — this
+     ramp feeds body copy (base.css:144 puts --type-tracking-body on <body>)
+     and prose does not want to be tracked out. The tracked-out voice belongs
+     to headings and labels, which are set explicitly further down and by
+     --type-tracking-label, left at its already-positive 0.16em. */
+  --type-tracking-display: 0;
+  --type-tracking-heading: 0;
+  --type-tracking-body: 0;
+}
+
+/* ---------------------------------------------------------------------
+   Pro dark — the same system after dark.
+
+   Seeds only. Every --theme-* binding in the block above reads one of these
+   through var(), and custom properties are substituted per element AFTER the
+   cascade has picked a winner for each property independently, so redefining
+   the seed here re-tints roughly two hundred derived tokens without repeating
+   one of them. Nothing in either block is exempt: every colour token holds a
+   colour value, never an `H S% L%` component list, because a component list
+   cannot read a colour-valued seed and so cannot follow the palette.
+
+   What does NOT change: type, case, tracking, radii, flatness, and the rule
+   that the accent means "interactive" and nothing else. This is a palette swap
+   inside one visual system, not a second visual system.
+
+   The chrome rails do not flip. Header and footer are charcoal in both
+   schemes — that bracketing IS the Pro page shell, not a light-mode trick —
+   so the chrome seeds below only step apart far enough to stay legible
+   as rails against a dark canvas instead of merging into it.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"][data-theme="dark"] {
+  /* Canvas and surfaces. Neutral near-black, never pure black and never plum:
+     the paper scheme's warmth comes from print stock, which has no counterpart
+     on a lit screen. Surfaces step UP from the canvas, so the sunk step is the
+     one that has to move down instead. */
+  --ei-paper: #131313;
+  --ei-surface: #191919;
+  --ei-surface-raised: #212121;
+  --ei-surface-sunk: #0c0c0c;
+  --ei-surface-deep: #070707;
+  --ei-chrome: #191919;
+
+  /* Hairlines stay quiet; the strong border is the one that outlines fields,
+     selects and other real controls, so it clears 3:1 against the raised
+     surface it sits on: #808080 on #212121 measures 4.08:1. The paper scheme
+     is held to the same role rather than to a decorative hairline — this
+     comment used to describe it as "decorative 1.8:1", which was a statement
+     of the defect, not of a design: the same token outlines the same controls
+     in both schemes, and light now carries #8b8880 at 3.54:1 on its own raised
+     surface #ffffff (see :89). */
+  --ei-border: #3f3f3f;
+  --ei-border-strong: #808080;
+
+  /* Ink ramp. Same five steps as the paper ramp, walking the other way and
+     opening each gap a little: light type on a dark ground reads thinner than
+     dark type on paper, so the muted step that carries body-adjacent text
+     lands near #cccccc rather than at the paper ramp's 4.9:1 equivalent.
+     13.5:1 primary, 10.4:1 headings, 8.5:1 muted, 5.4:1 faint, 3.8:1 ghost. */
+  --ei-ink: #f2f2f0;
+  --ei-ink-2: #d6d6d3;
+  --ei-ink-3: #c2c2bf;
+  --ei-ink-4: #9b9b98;
+  --ei-ink-5: #7f7f7c;
+
+  /* The accent keeps its meaning and swaps its direction: "strong" is the
+     highest contrast against the canvas, which on paper meant darker and here
+     means lighter. 7.4:1 for the base link, 9.2:1 for the strong one, measured
+     against the raised charcoal surface these sit on rather than the page: the
+     canvas is darker still, so the same pair measures 9.1:1 and 11.2:1 there.
+     Every accent in accents.ts clears both numbers. */
+  --ei-accent: #6fc4bb;
+  --ei-accent-strong: #8fd6ce;
+  --ei-accent-soft: #4e9c95;
+  --ei-accent-muted: #59aaa2;
+
+  /* Shadows carry the separation that borders carry on paper, so they deepen
+     rather than tint. No glow: depth here is occlusion, not light. */
+  --ei-shadow-soft: rgb(0 0 0 / 0.45);
+  --ei-shadow-strong: rgb(0 0 0 / 0.6);
+
+  /* Chrome. The bar lifts above the canvas and the footer sinks below it, so
+     the page still reads as content bracketed between two rails instead of
+     one flat sheet of charcoal. Both stay off black. */
+  --ei-chrome-dark: #1f1f1f;
+  --ei-chrome-darker: #0a0a0a;
+  --ei-chrome-sunk: #0c0c0c;
+  --ei-chrome-raised: #2b2b2b;
+  --ei-chrome-border: #383838;
+
+  /* Washes and marks. The selection and search-hit fills become deep tints of
+     the accent that keep the primary ink above 7:1; the tier scrim fades to the dark
+     canvas; accent fills now want dark ink on them; the mark's lead end goes
+     white, which is the other half of its ink→accent ramp. */
+  --ei-selection: #2f4f4c;
+  --ei-ring-soft: #4a8a83;
+  --ei-highlight: #33534f;
+  --ei-fade: rgb(19 19 19 / 0.88);
+  --ei-on-accent: #1b1b1b;
+
+  /* The intensity ramp runs the other way: level 1 is the step nearest the
+     canvas and level 5 the furthest from it, which on a dark ground means
+     climbing toward the ink rather than away from it. Still greyscale — the
+     Levelling System is not the safety ramp and must not borrow its colours.
+
+     Same two floors as the light block at :193: --ei-level-N is 12px/600 label
+     text (4.5:1), --ei-level-N-mark is a background-color fill on the row's
+     dot/bar (3:1, a graphical object). Measured against the WORST dark ground,
+     the raised surface #212121; surface #191919 and paper #131313 are darker,
+     so every step reads higher on them. The retired #7a7a7a level-1 label
+     measured 3.75:1 there — 4.10:1 on surface and 4.33:1 on paper, under
+     4.5:1 on all three. The retired marks all cleared 3:1 (#6e6e6e, the
+     quietest, at 3.16:1) but sat only a rounding step above it.
+
+     Clearing 4.5:1 on #212121 floors a text step at #888888, so the ramp is
+     redistributed as a set at a constant 9.3 L* pitch (58.3 / 67.4 / 77.0 /
+     86.0 / 95.4) measuring 4.79 / 6.46 / 8.66 / 11.19 / 14.37:1 on #212121.
+     The mark family is that ramp dropped a uniform 6 L* — toward the ground,
+     since a solid fill reads with more presence than type — measuring 3.91 /
+     5.38 / 7.18 / 9.53 / 12.31:1 there. The #f2f2f0 lead label is unchanged;
+     it is the --ei-on-dark ink anchor. */
+  --ei-level-1: #8c8c8c;
+  --ei-level-2: #a4a4a4;
+  --ei-level-3: #bebebe;
+  --ei-level-4: #d7d7d7;
+  --ei-level-5: #f2f2f0;
+  --ei-level-1-mark: #7d7d7d;
+  --ei-level-2-mark: #959595;
+  --ei-level-3-mark: #adadad;
+  --ei-level-4-mark: #c7c7c7;
+  --ei-level-5-mark: #e1e1e1;
+}
+
+/* ---------------------------------------------------------------------
+   Theme-agnostic tokens.
+
+   --theme-horizontal-divider-image is declared ONLY in the dark :root block
+   of site-colors.css; the light block never redefines it. Scoping it to the
+   site attribute alone (not site + data-theme) is what makes the override
+   actually land. It stays <image>-typed: 10 Tailwind
+   bg-[image:var(--theme-horizontal-divider-image)]
+   call sites plus 8 background-image declarations consume it, and a bare
+   colour there is silently dropped.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] {
+  --theme-horizontal-divider-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ei-border) 8%,
+    var(--ei-border) 92%,
+    transparent 100%
+  );
+}
+
+/* The second and only other <image>-typed token. It is not declared in
+   site-colors.css at all — it lives on .theme-article-hero-summary in
+   theme-light-mode.css (0,2,1) and utilities-theme.css. Matching (0,2,1)
+   unlayered and later in source order wins. Two-stop gradient, not a hex. */
+html[data-visual-style="pro"] .theme-article-hero-summary {
+  --theme-article-hero-summary-divider: linear-gradient(
+    90deg,
+    var(--ei-border),
+    var(--ei-border)
+  );
+}
+
+/* ---------------------------------------------------------------------
+   De-glassing: backdrop filters.
+
+   The ONE legitimate !important in this sheet. src/styles/lightbox.css is
+   imported inside the lazily-loaded ReplicationLightbox chunk, so its
+   <style> lands in <head> AFTER this sheet at an arbitrary time; it is
+   unlayered too, so at equal specificity it would win on source order.
+
+   Written as three selectors rather than :is(*, ::before, ::after) — a
+   pseudo-element inside :is() is invalid and would drop the whole rule.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"],
+html[data-visual-style="pro"] *,
+html[data-visual-style="pro"] *::before,
+html[data-visual-style="pro"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ---------------------------------------------------------------------
+   Page shell. utilities-theme.css paints a five-layer gradient here for
+   light mode (edge vignette + three halos + the page linear). Unlayered
+   beats layer(utilities) with no !important.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .theme-page-shell,
+html[data-visual-style="pro"] body.theme-page-shell {
+  background-color: var(--ei-paper);
+  background-image: none;
+}
+
+/* ---------------------------------------------------------------------
+   Shared card / surface / overlay classes, defensively flattened: opaque
+   fill, one-pixel warm-grey border, no ambient drop shadow.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .theme-card-surface,
+html[data-visual-style="pro"] .theme-overlay-surface,
+html[data-visual-style="pro"] .theme-public-card,
+html[data-visual-style="pro"] .theme-public-card-subtle,
+html[data-visual-style="pro"] .theme-public-card-hover-quiet,
+html[data-visual-style="pro"] .theme-inline-expanded-card,
+html[data-visual-style="pro"] .theme-mobile-nav-panel {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--ei-border);
+  background-color: var(--ei-surface);
+  background-image: none;
+  box-shadow: none;
+  --tw-ring-color: var(--ei-border);
+}
+
+/* !important is not decoration here: theme-light-mode.css:797 paints
+   :is(…, .theme-overlay-surface, …) with `background: … !important` at the
+   same (0,2,1), so the plain declaration above would be a silent no-op and
+   overlays would render --ei-surface instead of the raised value. The
+   .theme-mobile-nav-panel sibling only escapes that because it has its own
+   !important rule further down. */
+html[data-visual-style="pro"] .theme-overlay-surface,
+html[data-visual-style="pro"] .theme-mobile-nav-panel {
+  background-color: var(--ei-surface-raised) !important;
+}
+
+/* Borders pick up the accent on hover instead of lifting on a glow. */
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-public-card-interactive:hover,
+  html[data-visual-style="pro"] .theme-public-card-hover-quiet:hover,
+  html[data-visual-style="pro"] .theme-card-surface:hover {
+    border-color: var(--ei-accent-edge);
+    background-color: var(--ei-surface-raised);
+    background-image: none;
+    box-shadow: none;
+  }
+
+  /* The result-card hover glow is an arbitrary shadow utility at the call
+     site (src/components/ui/surface.tsx, the `result` variant). That file
+     is inside a token-audit scan root, so it must not be edited; the
+     compiled utility lives in layer(utilities) and loses to this rule. */
+  html[data-visual-style="pro"] .theme-public-card-hover-quiet.group:hover {
+    box-shadow: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Interactions and the accent CTA.
+
+   The stock light theme paints the danger/unsafe/caution interaction panels
+   with a hardcoded two-layer gradient (theme-light-mode.css) that bypasses
+   the --theme-semantic-*-card-bg tokens, so the flat token overrides in the
+   palette block never reach them in the light scheme. Flattening the panels
+   here covers both schemes directly; the semantic border and text stay via
+   the existing tokens. The accent CTA (the single solid action on a page,
+   e.g. "Submit report") is painted with a brand gradient and glow shadow in
+   utilities-theme.css; on Pro the fill is flat accent and the lift is removed.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .theme-interaction-danger,
+html[data-visual-style="pro"] .theme-interaction-unsafe,
+html[data-visual-style="pro"] .theme-interaction-caution {
+  background: var(--ei-surface);
+  box-shadow: none;
+}
+
+html[data-visual-style="pro"] .theme-cta-accent {
+  background: var(--ei-accent-strong);
+  box-shadow: none;
+}
+
+html[data-visual-style="pro"] .theme-cta-accent:hover,
+html[data-visual-style="pro"] .theme-cta-accent:focus-visible {
+  background: var(--ei-accent);
+  box-shadow: none;
+  transform: none;
+  filter: none;
+}
+
+/* The collapse/expand toggle inside an expanded interaction card. The stock
+   sheets now hand it the frosted on-panel control surface, which Pro replaces
+   with a flat raised chip; !important is still required because
+   theme-light-mode.css states its own tone rule at equal specificity. The
+   icon's semantic tone (untouched `color`) survives either way. */
+html[data-visual-style="pro"] .theme-interaction-expanded-toggle-danger,
+html[data-visual-style="pro"] .theme-interaction-expanded-toggle-unsafe,
+html[data-visual-style="pro"] .theme-interaction-expanded-toggle-caution,
+html[data-visual-style="pro"] .theme-interaction-danger .theme-interaction-expanded-toggle,
+html[data-visual-style="pro"] .theme-interaction-unsafe .theme-interaction-expanded-toggle,
+html[data-visual-style="pro"] .theme-interaction-caution .theme-interaction-expanded-toggle {
+  background: var(--ei-surface-raised) !important;
+  box-shadow: 0 0 0 1px var(--ei-border) !important;
+}
+
+/* ---------------------------------------------------------------------
+   Light-mode decorations that hardcode colour rather than reading a token.
+   All of these live in utilities-theme.css / theme-light-mode.css.
+   --------------------------------------------------------------------- */
+
+/* Home navigation icon, both the resting and the search-mode variants.
+   The stock light rules derive their fill from chroma-multiplied relative
+   colours off --theme-panel-base, which would collapse to grey anyway;
+   overriding the whole family explicitly is cheaper than reasoning about it. */
+html[data-visual-style="pro"] .theme-home-nav-icon,
+html[data-visual-style="pro"] .theme-home-shell[data-search-mode="true"] .theme-home-nav-icon {
+  border-color: var(--ei-border);
+  background: var(--ei-surface);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-home-nav-link:hover .theme-home-nav-icon {
+    border-color: var(--ei-accent-edge);
+    background: var(--ei-surface-raised);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+html[data-visual-style="pro"] .theme-home-nav-link:focus-visible .theme-home-nav-icon,
+html[data-visual-style="pro"]
+  .theme-home-shell[data-search-mode="true"]
+  .theme-home-nav-link:focus-visible
+  .theme-home-nav-icon {
+  border-color: var(--ei-accent);
+  background: var(--ei-surface-raised);
+  box-shadow: none;
+  transform: none;
+}
+
+html[data-visual-style="pro"] .theme-home-ambient {
+  background: var(--ei-paper);
+}
+
+
+/* ---------------------------------------------------------------------
+   Raw Tailwind palette utilities written at the call site.
+
+   These never pass through the token layer, so nothing above reaches them,
+   and the backdrop-filter kill does not either: they use `filter`, which is
+   a different property. Neutralising them here rather than editing the
+   components keeps the token-audit baseline untouched. Every selector is a
+   compiled utility class living in layer(utilities), so unlayered wins
+   without !important unless noted.
+   --------------------------------------------------------------------- */
+
+/* Decorative blurred colour washes: the loading screen's two corner halos
+   and its logo glow, and the band above the dosage/duration tabs on every
+   substance page. On a paper skin they are pure haze — removed outright. */
+html[data-visual-style="pro"] .bg-fuchsia-600\/14,
+html[data-visual-style="pro"] .bg-violet-600\/14,
+html[data-visual-style="pro"] .bg-fuchsia-500\/30,
+html[data-visual-style="pro"] .bg-fuchsia-500\/10 {
+  background-color: transparent;
+  filter: none;
+}
+
+html[data-visual-style="pro"] .from-fuchsia-500\/10 {
+  background-image: none;
+  filter: none;
+}
+
+/* The loading bar is real UI, not haze, so it is retinted rather than
+   removed. `bg-gradient-to-r` only sets background-image; overriding that
+   supersedes the from-/to- colour stops. */
+html[data-visual-style="pro"] .from-fuchsia-500 {
+  background-image: linear-gradient(to right, var(--ei-accent), var(--ei-accent-strong));
+}
+
+/* Prose link underlines need no compat rule any more: IntLink and ExtLink
+   paint them with .theme-accent-underline, which mixes from --theme-accent /
+   --theme-accent-soft — both remapped to the --ei-* accents above. */
+
+/* Public-content hero icon tile: a brand→violet seed gradient fill over a
+   fuchsia drop shadow. The shadow itself is killed by the
+   --theme-elevation-icon-tile override in the token block above; what is left
+   here is the gradient fill, anchored to the tile's own `from-` stop (the
+   element no longer carries a fuchsia shadow utility to hang this on). The
+   `ring-1 ring-[rgb(var(--c-brand)/0.22)]` is retinted by the ring block
+   below. */
+html[data-visual-style="pro"]
+  .from-\[color-mix\(in_srgb\,rgb\(var\(--c-brand\)\)_18\%\,var\(--theme-surface-muted\)\)\] {
+  background-image: none;
+  background-color: var(--ei-surface-sunk);
+}
+
+/* The same tile treatment covers three more arbitrary `from-[color-mix(…)]`
+   gradient stops:
+     - PublicFeedbackPrimitives.tsx:259, the artwork-less replication media
+       placeholder — still a raw #701a75 hex, and it really does render, on
+       effect pages;
+     - button.tsx:45 and :57, the two gradient button variants, now mixed
+       from the --c-brand seed.
+   `bg-gradient-to-*` only sets background-image, so overriding that one
+   property supersedes every from-/via-/to- stop at once. */
+html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#701a75_20\%\,var\(--theme-surface-muted\)\)\],
+html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,rgb\(var\(--c-brand\)\)_20\%\,var\(--theme-control-base\)\)\],
+html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,rgb\(var\(--c-brand\)\)_25\%\,var\(--theme-control-base\)\)\],
+html[data-visual-style="pro"] .from-\[color-mix\(in_srgb\,\#fff_12\%\,var\(--theme-control-base\)\)\] {
+  background-image: none;
+  background-color: var(--ei-surface-sunk);
+}
+
+
+/* Resting decorative rings: contributor avatars and the article-section
+   card hairline. */
+html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.10\)\],
+html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.20\)\],
+html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.22\)\] {
+  --tw-ring-color: var(--ei-border);
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .group:hover .group-hover\:ring-\[rgb\(var\(--c-brand\)\/0\.50\)\] {
+    --tw-ring-color: var(--ei-accent-edge);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Search surfaces.
+
+   The base .theme-search-* rules in utilities-theme.css are fully tokenised
+   and need nothing at all. It is the html[data-theme="light"] variants sitting
+   directly beneath each of them (utilities-theme.css:1413-1740) that repaint
+   the whole family in the stock plum ramp — oklch hues 316-334 plus two raw
+   plum rgba() glows — so the token block above never gets a look in. Every one
+   of those rules is layer(utilities), so unlayered wins with no !important.
+
+   This is the cluster behind the "search page is still pink" report.
+   --------------------------------------------------------------------- */
+
+/* Suggestion rows: keyboard-highlighted and hovered both paint the same
+   two-radial pink wash. Declared twice upstream (once plain, once deeper);
+   one override covers both because it is the same selector. */
+html[data-visual-style="pro"] .theme-search-suggestion[data-highlighted="true"] {
+  border-color: var(--ei-accent-edge-strong);
+  background: var(--ei-surface-sunk);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-search-suggestion:hover {
+    border-color: var(--ei-accent-edge);
+    background: var(--ei-surface-sunk);
+    box-shadow: none;
+  }
+}
+
+html[data-visual-style="pro"] .theme-search-suggestion-secondary {
+  color: var(--ei-ink-3);
+}
+
+html[data-visual-style="pro"] .theme-search-suggestion-icon {
+  border-color: var(--ei-border);
+  background: var(--ei-surface-sunk);
+  color: var(--ei-accent-strong);
+  box-shadow: none;
+  --tw-ring-color: var(--ei-border);
+}
+
+/* "Best match" chip. */
+html[data-visual-style="pro"] .theme-search-best-match {
+  border-color: var(--ei-accent-edge-strong);
+  background: var(--ei-surface-sunk);
+  color: var(--ei-accent-strong);
+  box-shadow: none;
+}
+
+/* The <mark> around a matched run. The light rule fills it with the raised
+   surface and inks the text oklch(31% 0.12 326); pointing both back at the
+   --theme-search-highlight-* tokens is what finally puts the pale accent fill
+   set in the palette block on screen.
+
+   The ring is stated rather than inherited. In light, upstream already
+   resolves it to exactly this token, so nothing moves; in dark, the search
+   PAGE variant (utilities-theme.css:1623) hangs two white glass insets on the
+   same element, and naming the token here is what flattens them. */
+html[data-visual-style="pro"] .theme-search-highlight-mark {
+  background: var(--theme-search-highlight-bg);
+  color: var(--theme-search-highlight-text);
+  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+}
+
+/* Homepage / focused search field. The light variant fills it with a pinkish
+   white (#fffbff, #fffaff on hover and focus) and hangs two plum glows off it,
+   rgb(var(--c-plum-pink)) and rgba(84, 46, 112). */
+html[data-visual-style="pro"] .theme-home-search-input {
+  border-color: var(--ei-border-strong);
+  background-color: var(--ei-surface-raised);
+  box-shadow: 0 0 0 1px var(--ei-border);
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-home-search-input:hover {
+    border-color: var(--ei-accent-edge);
+    background-color: var(--ei-surface-raised);
+  }
+}
+
+html[data-visual-style="pro"] .theme-home-search-input:focus {
+  border-color: var(--theme-text-secondary);
+  background-color: var(--ei-surface-raised);
+  box-shadow: var(--theme-elevation-field-inset);
+}
+
+/* ---------------------------------------------------------------------
+   Site chrome and shared cards that hardcode plum outside the search stack.
+   --------------------------------------------------------------------- */
+
+/* Homepage mark: a plum drop-shadow filter, resting and on hover. The
+   backdrop-filter kill above does not reach it — `filter` is a different
+   property. */
+html[data-visual-style="pro"] .theme-home-logo {
+  filter: none;
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-home-logo-frame:hover .theme-home-logo-main {
+    filter: none;
+  }
+}
+
+/* theme-status.css:135 lays a pink→violet diagonal over every empty/status
+   card (Surface variant="state" — the /blog listing, among others). The
+   warning/danger/success tone variants below it are semantic and stay. Higher
+   specificity than the (0,1,0) source rule, so order does not matter. */
+html[data-visual-style="pro"] .theme-state-card::before {
+  background: none;
+}
+
+/* Sunk wells: the pharmacology zebra rows and the expanded interaction
+   rationale. The stock rule builds its well from
+   --theme-field-on-panel-surface-alt plus inner shading, and in Pro both
+   halves collapse: the alt surface maps to --ei-surface, the same value as the
+   panel it sits on, and --ei-shadow-soft is 0.08 alpha in light, so the well
+   disappears. Pro states it with the real sunk surface and nothing else. A
+   hairline was tried and dropped: --ei-border is lighter than
+   --ei-surface-sunk in Pro Dark, so it drew the outline this change exists to
+   remove — hence the transparent border, which also overrides the flat card
+   border .theme-inline-expanded-card carries. !important is for
+   theme-light-mode.css, which states the same well one specificity step up. */
+html[data-visual-style="pro"] .theme-pharmacology-table-row-alt,
+html[data-visual-style="pro"] .theme-interaction-expanded-card {
+  border-color: transparent !important;
+  background: var(--ei-surface-sunk) !important;
+  box-shadow: inset 0 1px 2px var(--ei-shadow-soft) !important;
+}
+
+/* ---------------------------------------------------------------------
+   theme-light-mode.css decorations that hardcode colour AND carry
+   !important. These are the only rules in this sheet, besides the
+   backdrop-filter kill, that need it back.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .theme-index-card-count,
+html[data-visual-style="pro"] .theme-index-card-count-sm {
+  background-color: var(--ei-surface-sunk) !important;
+  background-image: none !important;
+  box-shadow: inset 0 0 0 1px var(--ei-border) !important;
+  color: var(--ei-ink-2) !important;
+}
+
+html[data-visual-style="pro"] .theme-index-card-icon {
+  background: var(--ei-surface-raised) !important;
+  border-color: var(--ei-border) !important;
+  box-shadow: none !important;
+  color: var(--ei-accent-strong) !important;
+  --tw-ring-color: var(--ei-border) !important;
+}
+
+html[data-visual-style="pro"] .theme-mobile-nav-panel {
+  border-color: var(--ei-border) !important;
+  background: var(--ei-surface-raised) !important;
+  box-shadow: 0 0 0 1px var(--ei-border) !important;
+  --tw-ring-color: var(--ei-border) !important;
+}
+
+/* theme-light-mode.css:1129 fills the expanded dose-detail and plateau-tier
+   rows with a lilac two-stop gradient — oklch(95% 0.032 319) — on every
+   substance page. Same (0,2,1) as the source rule, but later in source order:
+   the Pro link always attaches after the light-mode link. */
+html[data-visual-style="pro"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
+  background: var(--ei-surface-sunk) !important;
+}
+
+/* theme-light-mode.css:523 pins the prefix run inside every external-source
+   pill to a literal mauve (oklch(43% 0.045 316)) with !important, so the
+   token block cannot reach it. */
+html[data-visual-style="pro"] .theme-external-source-pill .theme-text-faint {
+  color: var(--ei-ink-4) !important;
+}
+
+/* Plum-tinted decorations without !important — beaten on source order. */
+html[data-visual-style="pro"] .theme-molecule-panel {
+  border-color: var(--ei-border);
+  background: var(--ei-surface);
+  box-shadow: none;
+}
+
+html[data-visual-style="pro"] .theme-control-pill,
+html[data-visual-style="pro"] .theme-control-pill-quiet {
+  box-shadow: none;
+}
+
+html[data-visual-style="pro"] .theme-header-surface input[type="search"] {
+  box-shadow: none;
+}
+
+/* Reagent swatches are the only place besides .theme-article-hero-summary
+   where --theme-* properties are declared on a descendant rather than on the
+   root, so the root token block cannot reach them. The swatch colours are the
+   data and stay untouched; only the glass sheen over them is removed. Both
+   overlays are consumed through the `background:` shorthand, so `none` is
+   legal here — they are not <image>-typed consumers. */
+html[data-visual-style="pro"] .theme-reagent-swatch {
+  --theme-reagent-swatch-label-overlay: none;
+  --theme-reagent-swatch-spectrum-overlay: none;
+  --theme-reagent-swatch-label-border-top: var(--ei-border);
+  --theme-reagent-swatch-label-border-bottom: var(--ei-border);
+  --theme-reagent-swatch-spectrum-border-top: var(--ei-border);
+  --theme-reagent-swatch-spectrum-border-bottom: var(--ei-border);
+  --theme-reagent-swatch-spectrum-seam-shadow: inset 1px 0 0 var(--ei-border);
+  box-shadow: 0 0 0 1px var(--ei-border);
+}
+
+/* The reagent results panel that holds those swatches. Its dark recipe is a
+   white sheen over a cool near-black, declared `!important` inside
+   layer(utilities) — and a layered `!important` outranks an unlayered one, so
+   this sheet cannot win that one from outside a layer. utilities-theme.css
+   excludes Pro from the rule instead, and the flat panel is painted here.
+   The tokens are the ones the light rule already resolves, so Pro light is
+   unchanged and Pro dark gets the same neutral panel. */
+html[data-visual-style="pro"] .theme-reagent-results-panel {
+  border: 1px solid var(--theme-article-neutral-panel-border);
+  background: var(--theme-article-neutral-panel-bg);
+  box-shadow: var(--theme-article-neutral-panel-shadow);
+}
+
+/* ---------------------------------------------------------------------
+   Appearance controls — Day/Night and Fun/Pro.
+
+   Two geometric twins from the shared kit: a 44px pill, a 36px sliding thumb
+   and two 36px label slots. Nothing here changes their structure or their
+   hit target. Pro only closes the three places where the shared recipe stops
+   being readable once the palette is flat and opaque:
+
+   1. Track and thumb both resolve raised surfaces upstream, which on paper is
+      a white knob on a white track. The track drops to the sunk step in the
+      palette block; the thumb keeps the raised step and takes the strong
+      border, which is the same recessed-track/raised-control pairing every
+      other Pro field uses.
+   2. These slots carry 11px type, so the resting label takes the muted step
+      rather than the faint one it would inherit: --theme-text-muted #565656
+      reads 6.32:1 against the sunk track #efeee9, where --theme-text-faint
+      #696969 reads 4.73:1. In the dark scheme the same pair reads 10.96:1 and
+      7.02:1 against that scheme's sunk track #0c0c0c. (Both light figures
+      moved when the paper ink ramp was redistributed at :107;
+      before that the faint step read 2.97:1 here, under the floor, which is
+      what first put the muted step in this slot.)
+   3. Inside the rails the control sits on charcoal in BOTH schemes, so it
+      takes chrome tones rather than page tones.
+
+   The active slot keeps --theme-accent-strong, which is Pro's link accent in
+   both schemes: state stays colour-coded the same way every other affordance
+   here is. Focus is untouched — the shared rule outlines with the same token.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .theme-toggle-thumb {
+  border-color: var(--ei-border-strong);
+  background: var(--ei-surface-raised);
+}
+
+html[data-visual-style="pro"] .theme-toggle-icon-muted {
+  color: var(--ei-ink-3);
+}
+
+html[data-visual-style="pro"] :is(.app-header, .app-footer, .theme-appearance-popover) .theme-toggle-thumb {
+  border-color: var(--ei-chrome-border);
+  background: var(--ei-chrome-raised);
+}
+
+html[data-visual-style="pro"] :is(.app-header, .app-footer, .theme-appearance-popover) .theme-toggle-icon-muted {
+  color: var(--ei-on-dark-muted);
+}
+
+/* ---------------------------------------------------------------------
+   Replication lightbox. lightbox.css keeps an always-dark plum theatre in
+   both themes; on this flavor it becomes a plain neutral backdrop. The
+   blur on .yarl__container is already handled by the kill above.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .yarl__root {
+  --yarl__color_backdrop: rgb(32 38 43 / 0.92);
+  --yarl__color_button: #f1ebdd;
+  --yarl__color_button_active: #ffffff;
+  --yarl__color_button_disabled: rgb(241 235 221 / 0.5);
+}
+
+/* ---------------------------------------------------------------------
+   Typography. Both family tokens are re-pointed at the Pro face in the
+   palette block above, which covers <body> and everything that reads
+   --font-family-display. The `font-sans` utility is the one escape hatch: it
+   resolves a plain Inter stack straight from tailwind.config.mjs, so a call
+   site that names it would otherwise punch a hole in the Pro voice. It lives
+   in layer(utilities) and is overridden here. No serif heading face is
+   introduced, and no rule below depends on the colour scheme.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] body,
+html[data-visual-style="pro"] .font-sans {
+  font-family: var(--font-family-body);
+}
+
+/* =====================================================================
+   DARK CHROME
+   =====================================================================
+   The original site bracketed a light content sheet between a #2e2e2e
+   header and a #1f1f1f footer. Reproducing that is almost entirely a
+   token-rebinding job rather than a rule-writing one: every !important
+   rule in theme-light-mode.css that paints header and footer internals
+   (nav rest/hover/active, the header root, the hamburger, the mobile
+   panel and its links) resolves a --theme-* token rather than a literal
+   colour. Redefining those tokens *inside* the chrome scope means the
+   existing !important declarations pick up the dark values on their own,
+   so nothing here has to fight importance.
+
+   Scope matters: these tokens are shared with inputs, cards, controls and
+   article panels, so they are bound to .app-header / .app-footer and
+   never at the html level.
+   --------------------------------------------------------------------- */
+
+html[data-visual-style="pro"] .app-header {
+  /* Bar surface. --theme-chrome-rail-bg is what utilities-theme.css:2264
+     actually paints the header with; --theme-chrome-border feeds the
+     border-color !important at theme-light-mode.css:709. */
+  --theme-chrome-rail-bg: var(--ei-chrome-dark);
+  --theme-chrome-rail-base: var(--ei-chrome-dark);
+  --theme-chrome-rail-highlight: var(--ei-chrome-dark);
+  --theme-chrome-rail-primary: var(--ei-chrome-dark);
+  --theme-chrome-rail-secondary: var(--ei-chrome-dark);
+  --theme-chrome-surface: var(--ei-chrome-dark);
+  --theme-chrome-surface-strong: var(--ei-chrome-raised);
+  --theme-chrome-border: var(--ei-chrome-dark);
+  --theme-header-shadow: 0 1px 0 #171717;
+
+  /* Foreground ramp, inverted. Nav links, the search placeholder and the
+     search clear button all resolve --theme-text-muted (utilities-theme.css
+     :2334, :1515), so it carries the original's #ccc rest ink rather than the
+     faint step — the faint step stays on --theme-text-faint, which is what the
+     nav icons read.
+
+     One ramp serves both bars, because this selector carries no data-theme,
+     so every step is measured against the LIGHTER one — #2e2e2e in the light
+     scheme, #1f1f1f in the dark — and quoted light/dark below. Muted #cccccc
+     is 8.46:1 / 10.26:1 and faint --ei-on-dark-faint 4.83:1 / 5.86:1, both
+     over the 4.5:1 body floor. Ghost is the decorative step, so its floor is
+     3:1: #7d7d7d is 3.30:1 / 4.00:1. The retired #6f6f6f cleared neither bar
+     — 2.70:1 light, 3.28:1 dark. */
+  --theme-text-primary: var(--ei-on-dark-muted);
+  --theme-text-secondary: var(--ei-on-dark-muted);
+  --theme-text-muted: var(--ei-on-dark-muted);
+  --theme-text-faint: var(--ei-on-dark-faint);
+  --theme-text-ghost: #7d7d7d;
+
+  /* Nav icons and the search magnifier read --theme-accent-strong; the
+     wordmark's accent run — SiteWordmark's `.theme-accent-heading` span, the
+     ".wiki" in "dose.wiki" — reads --theme-section-heading. The page-scheme
+     accent disappears on charcoal, so base, strong, soft and the heading
+     token all flatten onto --ei-accent-on-dark — steps a few percent of
+     luminance apart are indistinguishable on a #2e2e2e bar. Muted keeps a
+     step of its own: a token named "muted" that equals the base is a lie the
+     next reader has to discover.
+
+     It used to be a hand-tuned teal literal, which is why it was the one
+     member of the family no accent could reach. The mix below is a SEMANTIC
+     derivation, not a port of that literal — it holds the same mute depth
+     (HSL L 0.500 against the old 0.502) while following the reader's accent,
+     and measures 4.63:1 on this bar. It lands 4/5/4 per channel off the
+     retired colour, close but incidentally so; no mix could have hit that
+     colour exactly, because the two hold the same 9/255 green-blue gap while
+     their red-green gap narrows 85 → 80 — a chroma move, and a scalar mix
+     scales every gap alike.
+
+     Black anchors the mix rather than a chrome token because --ei-chrome-* is
+     scheme-dependent and these rail selectors carry no data-theme. */
+  --theme-accent: var(--ei-accent-on-dark);
+  --theme-accent-strong: var(--ei-accent-on-dark);
+  --theme-accent-soft: var(--ei-accent-on-dark);
+  --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
+
+  /* --theme-section-heading has to be RESTATED here, not left to the
+     `var(--theme-accent-strong)` it is declared as at :284. A custom property
+     whose value is a var() reference is substituted at computed-value time on
+     the element that declares it, so the html-level declaration resolves the
+     html-level accent-strong once and inherits that resolved colour into the
+     rail; rebinding accent-strong four lines up never reaches it.
+
+     Measured in the browser at the shipped default axes, before this line
+     existed: the light scheme's page accent-strong resolved #652966 and
+     painted the wordmark's ".wiki" at 1.33:1 on the #2e2e2e bar — a dark plum
+     on charcoal — while the nav icons beside it already carried the on-dark
+     step. The dark scheme hid the bug: its page accent-strong resolves #f2a9f3,
+     light enough to read on the rail (9.22:1), so the wordmark looked right
+     there while sitting a step off the logo mask and the icons around it. On
+     the on-dark seed the run resolves #e68be8 at 5.96:1 light and #e38fe4 at
+     7.31:1 dark, and equals the rail's own accent-strong in both. */
+  --theme-section-heading: var(--ei-accent-on-dark);
+
+  /* The mark on dark chrome. Same accent → darker-accent ramp as the page
+     mark, but built on the on-dark accent: the rail is charcoal in BOTH
+     schemes, so this ramp is scheme-independent and cannot use the canvas
+     accent. The tail stays a mix of the same accent toward black — never
+     white — so the rail mark matches the page mark instead of mirroring it.
+     Positions match the page ramp's inset (the mask paints this at
+     background-size: 140%, which crops the outer ~15% of each end). */
+  --theme-logo-fill: linear-gradient(
+    118deg,
+    var(--ei-accent-on-dark) 0%,
+    var(--ei-accent-on-dark) 12%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 78%, #000000) 52%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 58%, #000000) 90%
+  );
+
+  /* Search field: a lifted charcoal rather than a white cut-out, so the
+     bar reads as one solid mass the way the original's did. */
+  --theme-field-surface: var(--ei-chrome-raised);
+  --theme-field-surface-alt: var(--ei-chrome-raised);
+  --theme-field-border: var(--ei-chrome-border);
+  --theme-field-on-chrome-surface: var(--ei-chrome-raised);
+  --theme-field-on-chrome-border: var(--ei-chrome-border);
+
+  /* Active navigation, footer controls, and settings-panel controls share these
+     frosted-control families. Re-seat them on the charcoal rail so a Pro reader
+     never gets a white paper control on dark chrome. */
+  --theme-frosted-control-bg: var(--ei-chrome-raised);
+  --theme-frosted-control-border: var(--ei-chrome-border);
+  --theme-frosted-control-shadow: 0 0 0 1px var(--ei-chrome-border);
+  --theme-frosted-control-hover-bg: #454545;
+  --theme-frosted-control-hover-border: #5c5c5c;
+  --theme-frosted-control-hover-shadow: 0 0 0 1px #5c5c5c;
+  --theme-frosted-control-on-panel-bg: var(--ei-chrome-raised);
+  --theme-frosted-control-on-panel-border: var(--ei-chrome-border);
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-chrome-border);
+  --theme-frosted-control-on-panel-hover-bg: #454545;
+  --theme-frosted-control-on-panel-hover-border: #5c5c5c;
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c;
+  --theme-divider: var(--ei-chrome-border);
+  --theme-card-border: var(--ei-chrome-border);
+  --theme-border-subtle: var(--ei-chrome-border);
+  --theme-frosted-panel-border: var(--ei-chrome-border);
+  --theme-autofill-bg: var(--ei-chrome-raised);
+  --theme-autofill-text: var(--ei-on-dark);
+
+  /* Appearance toggles ride the bar; their track has to recess against it
+     rather than borrow the paper-scheme page value. */
+  --theme-toggle-pill-bg: var(--ei-chrome-sunk);
+}
+
+/* Appearance is portalled outside `.app-header`, so it carries the header's charcoal
+   palette explicitly. The page may be light; every control in this island still resolves
+   the same on-dark ink, accent, and recessed control steps as the sticky rail. */
+html[data-visual-style="pro"] .theme-appearance-popover {
+  /* Important locally because generated reader palettes are injected after the static
+     sheets; this component boundary must stay chrome-dark even when those page tokens win. */
+  --theme-chrome-rail-bg: var(--ei-chrome-dark) !important;
+  --theme-chrome-rail-primary: var(--ei-chrome-dark) !important;
+  --theme-chrome-rail-secondary: var(--ei-chrome-dark) !important;
+  --theme-surface-strong: var(--ei-chrome-raised) !important;
+  --theme-field-surface: var(--ei-chrome-raised) !important;
+  --theme-field-surface-alt: var(--ei-chrome-raised) !important;
+  --theme-field-border: var(--ei-chrome-border) !important;
+  --theme-text-primary: var(--ei-on-dark-muted) !important;
+  --theme-text-secondary: var(--ei-on-dark-muted) !important;
+  --theme-text-muted: var(--ei-on-dark-muted) !important;
+  --theme-text-faint: var(--ei-on-dark-faint) !important;
+  --theme-accent: var(--ei-accent-on-dark) !important;
+  --theme-accent-strong: var(--ei-accent-on-dark) !important;
+  --theme-accent-soft: var(--ei-accent-on-dark) !important;
+  --theme-frosted-control-bg: var(--ei-chrome-raised) !important;
+  --theme-frosted-control-border: var(--ei-chrome-border) !important;
+  --theme-frosted-control-shadow: 0 0 0 1px var(--ei-chrome-border) !important;
+  --theme-frosted-control-hover-bg: #454545 !important;
+  --theme-frosted-control-hover-border: #5c5c5c !important;
+  --theme-frosted-control-hover-shadow: 0 0 0 1px #5c5c5c !important;
+  --theme-frosted-control-on-panel-bg: var(--ei-chrome-raised) !important;
+  --theme-frosted-control-on-panel-border: var(--ei-chrome-border) !important;
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px var(--ei-chrome-border) !important;
+  --theme-frosted-control-on-panel-hover-bg: #454545 !important;
+  --theme-frosted-control-on-panel-hover-border: #5c5c5c !important;
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #5c5c5c !important;
+  --theme-frosted-panel-bg: var(--ei-chrome-raised) !important;
+  --theme-frosted-panel-border: var(--ei-chrome-border) !important;
+  --theme-divider: var(--ei-chrome-border) !important;
+  --theme-border-subtle: var(--ei-chrome-border) !important;
+  /* `hover:bg-dose-surface-muted` rows (colour-axis disclosures, Reset, Theme
+     Lab) hover inside this dark island; without this the light scheme's paper
+     value paints a near-white bar under on-dark ink. */
+  --theme-surface-muted: var(--ei-chrome-sunk) !important;
+  --theme-toggle-pill-bg: var(--ei-chrome-sunk) !important;
+}
+
+/* The segmented appearance toggles are the one control in this island whose whole
+   track reacts to hover, and only half of it is ever the thing being pointed at.
+   The shared on-panel hover step (#454545 over the #0c0c0c sunk track, plus a
+   #5c5c5c ring) therefore read as the pill lighting up rather than acknowledging
+   the pointer. Clinical gets a single step along the same charcoal ladder and keeps
+   its hairline, so the moving thumb stays the loudest thing in the panel. */
+html[data-visual-style="pro"] .theme-appearance-popover .theme-toggle-pill:focus-visible {
+  background: var(--ei-chrome-dark);
+  box-shadow: 0 0 0 1px var(--ei-chrome-border);
+}
+
+@media (hover: hover) {
+  html[data-visual-style="pro"] .theme-appearance-popover .theme-toggle-pill:hover {
+    background: var(--ei-chrome-dark);
+    box-shadow: 0 0 0 1px var(--ei-chrome-border);
+  }
+}
+
+/* The wordmark's lead word sits at --theme-text-primary, which the block
+   above dims to nav-link grey. The brand should be brighter than the nav
+   around it. */
+html[data-visual-style="pro"] .app-header .theme-text-primary {
+  color: var(--ei-on-dark);
+}
+
+/* Restore the original Effect Index nav rhythm: small, regular, uppercase
+   labels tracked widely inside full 44px targets. The target geometry remains
+   generous; the type keeps the reference's compact voice but the floor is
+   raised to 12px so the labels stay legible. */
+html[data-visual-style="pro"] .app-header .theme-header-nav-link {
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Hover lifts the link to white rather than tinting it, matching the
+   original's #ccc -> #fff. */
+@media (hover: hover) {
+  html[data-visual-style="pro"] .app-header .theme-header-nav-link:hover {
+    color: var(--ei-on-dark) !important;
+  }
+}
+
+html[data-visual-style="pro"] .app-header .theme-header-nav-link[data-active="true"] {
+  color: var(--ei-on-dark) !important;
+}
+
+/* The route icons in the nav are kept. The original site's nav was type only,
+   and they were briefly hidden here to match it, but the owner prefers them —
+   and with the nav item split into a label link plus a disclosure chevron, the
+   leading icon also helps anchor the left edge of a three-part control. The
+   uppercase tracked type above is what carries the original's voice. */
+
+/* The mobile sheet hangs inside .app-header, so it inherits the inverted
+   foreground ramp above. Its surface is painted opaque-light by an earlier
+   rule in this file and by theme-light-mode.css:798 — both use
+   !important, so this later, more specific rule is what darkens it. */
+html[data-visual-style="pro"] .app-header .theme-mobile-nav-panel,
+html[data-visual-style="pro"] .app-header .theme-overlay-surface.theme-mobile-nav-panel {
+  background: var(--ei-chrome-dark) !important;
+  border-color: var(--ei-chrome-border) !important;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.32) !important;
+}
+
+/* ---------------------------------------------------------------------
+   Footer. Same technique; the footer paints from the frosted-panel family
+   rather than the chrome rail.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .app-footer {
+  --theme-frosted-panel-bg: var(--ei-chrome-darker);
+  --theme-frosted-panel-base: var(--ei-chrome-darker);
+  --theme-frosted-panel-highlight: var(--ei-chrome-darker);
+  --theme-frosted-panel-primary: var(--ei-chrome-darker);
+  --theme-frosted-panel-secondary: var(--ei-chrome-darker);
+  --theme-panel-base: var(--ei-chrome-darker);
+  --theme-frosted-panel-border: #383838;
+  --theme-frosted-panel-shadow: 0 0 #0000;
+
+  --theme-text-primary: var(--ei-on-dark-muted);
+  --theme-text-secondary: var(--ei-on-dark-muted);
+  /* Three steps that stay three steps, all measured against the LIGHTER rail
+     for the same reason as the header: this selector carries no data-theme
+     and --ei-chrome-darker is #1f1f1f in the light scheme, #0a0a0a in the
+     dark. Muted and faint are body and label ink — the tagline at
+     Footer.tsx:31, the licence notice at SiteLicenceNotice.tsx:32, the 11px
+     "Supported by" label, and .theme-link-muted, which is a LINK and so has
+     no large-text exemption — so both clear 4.5:1 on #1f1f1f: muted 6.77:1 /
+     8.13:1, faint 4.77:1 / 5.73:1 (light / dark). Ghost is decorative and
+     clears the 3:1 floor at 3.63:1 / 4.36:1. The retired #7d7d7d / #6b6b6b /
+     #5a5a5a trio was tuned against #0a0a0a alone and read 4.00 / 3.09 / 2.39
+     on the light rail. */
+  --theme-text-muted: #a6a6a6;
+  --theme-text-faint: #8a8a8a;
+  --theme-text-ghost: #767676;
+
+  /* The header's accent family, all four members plus the heading token, for
+     the same reason: this rail is charcoal in both schemes, so every accent it
+     shows has to come from the scheme-independent on-dark seed. The footer
+     stopped at three, which left --theme-accent-muted resolving the
+     page-scheme --ei-accent-muted — #34837c at 3.68:1 here on paper — for
+     anything that lands in this subtree. Nothing does yet; the
+     AppearanceControls cluster lives here and is the likeliest first. The
+     muted step repeats the header's mix and measures 5.63:1 against this
+     darker rail. */
+  --theme-accent: var(--ei-accent-on-dark);
+  --theme-accent-strong: var(--ei-accent-on-dark);
+  --theme-accent-soft: var(--ei-accent-on-dark);
+  --theme-accent-muted: color-mix(in srgb, var(--ei-accent-on-dark) 83%, #000000);
+
+  /* The heading token, restated for the same computed-value-time reason as the
+     header's at :1398: the html-level
+     `--theme-section-heading: var(--theme-accent-strong)` is resolved on html
+     and inherited already-resolved, so the four lines above cannot reach it.
+     Nothing in this rail carries `.theme-accent-heading` today — the footer
+     dropped its wordmark (Footer.tsx:27) — so this is the same forward
+     provision as the muted step above: a heading landing here would otherwise
+     paint the light scheme's page accent-strong #652966 at 1.62:1 on this
+     rail. */
+  --theme-section-heading: var(--ei-accent-on-dark);
+
+  /* Same treatment as the header: the rail mark runs accent → darker accent
+     on the on-dark seed. It is not dimmed to a grey ramp to keep the footer
+     quieter than the header — the surrounding footer text is already muted,
+     which is what carries the de-emphasis. Scheme-independent, because this
+     rail is charcoal in both schemes. */
+  --theme-logo-fill: linear-gradient(
+    118deg,
+    var(--ei-accent-on-dark) 0%,
+    var(--ei-accent-on-dark) 12%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 78%, #000000) 52%,
+    color-mix(in srgb, var(--ei-accent-on-dark) 58%, #000000) 90%
+  );
+
+  /* Footer icon buttons. */
+  --theme-frosted-control-bg: #2a2a2a;
+  --theme-frosted-control-border: #3d3d3d;
+  --theme-frosted-control-shadow: 0 0 0 1px #3d3d3d;
+  --theme-frosted-control-hover-bg: #363636;
+  --theme-frosted-control-hover-border: #4d4d4d;
+  --theme-frosted-control-hover-shadow: 0 0 0 1px #4d4d4d;
+  --theme-divider: #383838;
+  --theme-border-subtle: #383838;
+  --theme-toggle-pill-bg: var(--ei-chrome-sunk);
+}
+
+html[data-visual-style="pro"] .app-footer .theme-text-primary {
+  color: var(--ei-on-dark);
+}
+
+/* =====================================================================
+   TYPOGRAPHIC HIERARCHY
+   =====================================================================
+   The original expressed hierarchy through weight, case and tracking, not
+   colour: #333 h1 at regular weight, #4a4a4a section heads in uppercase
+   with 2px tracking. Pro keeps that typographic vocabulary — weight, case,
+   tracking, size — while colour follows the site-wide accent logic: heading
+   and emphasis classes resolve through the shared theme tokens, remapped to
+   the --ei-* accent seeds above.
+   --------------------------------------------------------------------- */
+
+/* In-article section heads ("Sub-types", "Levelling System") take the same
+   real size step as the standalone ones: semibold, sentence case, a clear
+   rung below the page title. The uppercase-tracked voice is reserved for
+   the kicker/TOC/sub-label tier below. */
+html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2) {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+html[data-visual-style="pro"] .prose.prose-fuchsia :is(h3, h4) {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Article and page titles inherit Fun's responsive scale (`type-page-title`'s
+   clamp, or the call site's Tailwind ramp): the Pro voice keeps its own family
+   and tracking, not a smaller display size. */
+html[data-visual-style="pro"] h1.theme-accent-heading {
+  letter-spacing: -0.005em;
+}
+
+/* Section heads (SectionHeader's h2 — "Sub-types", "Levelling System").
+   The colour resolves through --theme-section-heading (accent-strong); this
+   supplies the size step: semibold sentence case, matching the in-prose tier. */
+html[data-visual-style="pro"] h2.text-\[var\(--theme-section-heading\)\] {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+/* The section icon is sized against the old 2xl/3xl heading; rebalance it
+   against the smaller section head. */
+html[data-visual-style="pro"] h2.text-\[var\(--theme-section-heading\)\] svg {
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
+/* Subarticle heads ("Morphing", "Breathing", "Melting"). */
+html[data-visual-style="pro"] h3.theme-accent-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Subsection heads inside article section groups — effect categories
+   ("Physical", "Cognitive") and harm subsections ("Addiction & Dependence").
+   ArticleSubsectionHeader ships them semibold, but the feature headingClassNames
+   re-add the Fun voice (font-bold + tracking-tight at text-lg/xl). Pro drops
+   them to semibold at body scale with neutral tracking, so a category head
+   never outranks the section head above it. */
+html[data-visual-style="pro"] .theme-article-subsection-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   INTENSITY RAMP
+   =====================================================================
+   The Levelling System rows currently borrow the semantic safety ramp
+   (success/info/caution/unsafe), which paints Level 1-4 green/blue/
+   orange/red. The original ran the same four levels as a GREYSCALE
+   ramp — light grey through charcoal — which reads as intensity rather
+   than as a safety warning, and stops the article competing with the
+   genuine harm badges elsewhere on the site.
+
+   Scoped to the effect panel so the real safety badges, which share the
+   text- form of these classes, keep their colours. The bg- form is used
+   only here, but the scope costs nothing and documents the intent.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-success-badge-text\)\] {
+  color: var(--ei-level-1);
+}
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-success-badge-text\)\] {
+  background-color: var(--ei-level-1-mark);
+}
+
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-info-badge-text\)\] {
+  color: var(--ei-level-2);
+}
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-info-badge-text\)\] {
+  background-color: var(--ei-level-2-mark);
+}
+
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-caution-badge-text\)\] {
+  color: var(--ei-level-3);
+}
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-caution-badge-text\)\] {
+  background-color: var(--ei-level-3-mark);
+}
+
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-unsafe-badge-text\)\] {
+  color: var(--ei-level-4);
+}
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-unsafe-badge-text\)\] {
+  background-color: var(--ei-level-4-mark);
+}
+
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .text-\[color\:var\(--theme-semantic-danger-badge-text\)\] {
+  color: var(--ei-level-5);
+}
+html[data-visual-style="pro"] .theme-effect-neutral-panel
+  .bg-\[color\:var\(--theme-semantic-danger-badge-text\)\] {
+  background-color: var(--ei-level-5-mark);
+}
+
+/* =====================================================================
+   FLATTENED GEOMETRY
+   =====================================================================
+   The original's panels were square-cornered with hairline borders. The
+   shared kit reads corner roles (--radius-control/-chip/-card/-panel, see
+   base.css), re-seated here once; the plain Tailwind size utilities are
+   still redefined under the flavor for feature code that has not moved to
+   the roles. rounded-full is left alone: avatars, dots and pills are round.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] {
+  --radius-control: 0.25rem;
+  --radius-chip: 0.1875rem;
+  --radius-card: 0.25rem;
+  --radius-panel: 0.375rem;
+}
+
+/* Size utilities still in feature code; the shared kit reads the roles above. */
+html[data-visual-style="pro"] .rounded-lg {
+  border-radius: 0.1875rem;
+}
+html[data-visual-style="pro"] .rounded-xl,
+html[data-visual-style="pro"] .rounded-2xl,
+html[data-visual-style="pro"] .rounded-3xl {
+  border-radius: 0.25rem;
+}
+html[data-visual-style="pro"] .rounded-\[2rem\],
+html[data-visual-style="pro"] .rounded-\[1\.75rem\] {
+  border-radius: 0.375rem;
+}
+
+/* =====================================================================
+   LINKS
+   =====================================================================
+   The original underlined nothing: links were colour-only. An underline is
+   kept on hover as the interaction affordance, so the cue survives for anyone
+   who cannot separate the hues.
+   --------------------------------------------------------------------- */
+html[data-visual-style="pro"] .prose :where(a),
+html[data-visual-style="pro"] a.theme-accent-emphasis {
+  text-decoration-line: none;
+}
+
+html[data-visual-style="pro"] .prose :where(a):hover,
+html[data-visual-style="pro"] a.theme-accent-emphasis:hover {
+  text-decoration-line: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+/* Standalone section heads (the /contact "Site founder" family) carry
+   .theme-accent-heading rather than the --theme-section-heading class, so
+   the in-prose rule above never reached them and they missed the section
+   size step. h1 is deliberately excluded: page titles ride the larger
+   top-of-ramp rule above. */
+html[data-visual-style="pro"] h2.theme-accent-heading {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+html[data-visual-style="pro"] h3.theme-accent-heading,
+html[data-visual-style="pro"] h4.theme-accent-heading {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Index-card panel titles ("Visual effects", "Tryptamines" — the column
+   headers on the effects and substances indexes). IndexCard.tsx:156 ships them
+   as `text-lg font-bold tracking-tight`, i.e. 18px/700 at -0.45px of
+   negative tracking: the loudest surviving piece of the dose.wiki voice, and it
+   sat directly above lists of tracked-out labels.
+
+   COLOUR IS DELIBERATELY ABSENT. These titles are usually wrapped in a <Link>
+   (IndexCard.tsx:185) and theme-light-mode.css:624 pins them to
+   var(--theme-accent-strong) !important, which the palette block above has
+   already resolved to the accent — the link affordance. Declaring any colour here,
+   even the same one, risks breaking that; only weight, case, tracking and size
+   are touched. Both classes ride the same element; naming each keeps the
+   `-accent` variant covered if it is ever used alone.
+
+   The call-site utilities are compiled into layer(utilities), so this
+   unlayered rule wins without !important. */
+html[data-visual-style="pro"] .theme-index-card-title,
+html[data-visual-style="pro"] .theme-index-card-title-accent {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* The <span> case of .theme-accent-heading. The element-typed rules above
+   cover h1-h6 and svg, but the class is also applied to inline runs, and those
+   kept `font-bold` / `font-medium` from their call sites — the probe found the
+   header wordmark's accent run at 700.
+
+   Weight only here. These spans are content titles (article titles in
+   ArticlesIndexPage, trip-report titles in TripReportsExplorer and
+   TripReportsSection, comparison drug names, replication destinations) rather
+   than structural headings, and uppercasing a sentence-length report title at
+   0.16em would be a ribbon nobody can read. Tracking is left to inherit: the
+   negative values it used to pick up came from --type-tracking-body, rebound
+   to 0 in the token block, and from the wordmark's `tracking-tight`, handled
+   by the rule below. Colour comes from the shared utility (accent-strong). */
+html[data-visual-style="pro"] span.theme-accent-heading {
+  font-weight: 400;
+}
+
+/* The wordmark, both runs. SiteWordmark renders "Effect " + <span>Index</span>,
+   so the rule dropping span.theme-accent-heading to 400 would otherwise leave
+   the accent run at 400 while the lead run kept the container's `font-bold`,
+   splitting the brand in half. The container carries the type styles, so it is
+   the container that has to move.
+
+   It moves to regular weight and normal tracking, and it stays MIXED CASE.
+   That is deliberate and verified against a screenshot of the live original:
+   the old header set a sentence-cased "Effect Index" logotype directly against
+   uppercase tracked-out nav links. The contrast is the point — being the one
+   mixed-case string in the dark bar is what makes the wordmark read as a mark
+   rather than as another nav item. Uppercasing it to match the nav collapses
+   that distinction and loses the brand.
+
+   `.font-display` + `.theme-text-primary` is the wordmark span in Header.tsx:105
+   and Footer.tsx:43; nothing else in either chrome carries both. */
+html[data-visual-style="pro"] :is(.app-header, .app-footer) .font-display.theme-text-primary {
+  /* SiteWordmark owns the only separator it needs as a non-breaking space.
+     Container gap would also split dose + .wiki, which is one word. */
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+html[data-visual-style="pro"] .app-header .font-display.theme-text-primary {
+  font-size: 1.25rem;
+}
+
+/* DoseWiki keeps its own homepage composition in Pro, but its type should use
+   the Effect Index hierarchy rather than Fun's oversized display scale. The
+   wordmark remains the dominant item without overwhelming the editorial copy. */
+html[data-visual-style="pro"] .theme-home-wordmark {
+  font-size: clamp(3rem, 5vw, 4rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* The reference site's lead copy is 17px with relaxed 28px leading. DoseWiki's
+   tagline stays italic as authored, while matching that readable measure. */
+html[data-visual-style="pro"] .theme-home-intro {
+  font-size: 1.0625rem;
+  letter-spacing: 0;
+  line-height: 1.65;
+}
+
+/* Quick-link labels join the same compact navigation vocabulary as the header,
+   with a slightly larger 12px floor because they sit below standalone icons. */
+html[data-visual-style="pro"] .theme-home-nav-link {
+  font-family: var(--font-family-display);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}

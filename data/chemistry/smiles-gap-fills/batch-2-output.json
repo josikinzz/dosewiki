@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "buspirone",
+    "title": "Buspirone",
+    "smiles": "C1CCC2(C1)CC(=O)N(C(=O)C2)CCCCN3CCN(CC3)C4=NC=CC=N4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "butyrfentanyl",
+    "title": "Butyrfentanyl",
+    "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cake",
+    "title": "Cake",
+    "smiles": null,
+    "represents": "",
+    "source": "other",
+    "confidence": "high",
+    "note": "Fictional/joke drug from the Brass Eye 'Drugs' satire (fake Eastern European drug 'Cake' with invented 'dimesmeric andersonphosphate' ingredient). No real molecule exists."
+  },
+  {
+    "slug": "camazepam",
+    "title": "Camazepam",
+    "smiles": "CN1C2=C(C=C(C=C2)Cl)C(=NC(C1=O)OC(=O)N(C)C)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cathinone",
+    "title": "Cathinone",
+    "smiles": "C[C@@H](C(=O)C1=CC=CC=C1)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem returns (S)-cathinone (natural enantiomer); racemic cathinone also exists."
+  },
+  {
+    "slug": "changa",
+    "title": "Changa",
+    "smiles": "CN(C)CCC1=CNC2=CC=CC=C21",
+    "represents": "N,N-Dimethyltryptamine (DMT)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Changa is a smokable blend of DMT-containing extract and MAOI-containing herbs; principal psychoactive molecule is N,N-DMT."
+  },
+  {
+    "slug": "chloral-betaine",
+    "title": "Chloral-Betaine",
+    "smiles": "C[N+](C)(C)CC(=O)[O-].C(C(Cl)(Cl)Cl)(O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Chloral betaine is a 1:1 complex of chloral hydrate and betaine; recorded as the two-component salt/adduct."
+  },
+  {
+    "slug": "chloroform",
+    "title": "Chloroform",
+    "smiles": "C(Cl)(Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cinolazepam",
+    "title": "Cinolazepam",
+    "smiles": "C1=CC=C(C(=C1)C2=NC(C(=O)N(C3=C2C=C(C=C3)Cl)CCC#N)O)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "citalopram",
+    "title": "Citalopram",
+    "smiles": "CN(C)CCCC1(C2=C(CO1)C=C(C=C2)C#N)C3=CC=C(C=C3)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Recorded as racemic citalopram (PubChem CID 2771)."
+  },
+  {
+    "slug": "clomethiazole",
+    "title": "Clomethiazole",
+    "smiles": "CC1=C(SC=N1)CCCl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "clonazolam",
+    "title": "Clonazolam",
+    "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "clonidine",
+    "title": "Clonidine",
+    "smiles": "C1CN=C(N1)NC2=C(C=CC=C2Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cloniprazepam",
+    "title": "Cloniprazepam",
+    "smiles": "C1CC1CN2C(=O)CN=C(C3=C2C=CC(=C3)[N+](=O)[O-])C4=CC=CC=C4Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "clonitazene",
+    "title": "Clonitazene",
+    "smiles": "CCN(CC)CCN1C2=C(C=C(C=C2)[N+](=O)[O-])N=C1CC3=CC=C(C=C3)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "clorazepate",
+    "title": "Clorazepate",
+    "smiles": "C1=CC=C(C=C1)C2=NC(C(=O)NC3=C2C=C(C=C3)Cl)C(=O)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "clotiazepam",
+    "title": "Clotiazepam",
+    "smiles": "CCC1=CC2=C(S1)N(C(=O)CN=C2C3=CC=CC=C3Cl)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cloxazolam",
+    "title": "Cloxazolam",
+    "smiles": "C1COC2(N1CC(=O)NC3=C2C=C(C=C3)Cl)C4=CC=CC=C4Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "crl-40-940",
+    "title": "CRL-40-940",
+    "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)F)S(=O)CC(=O)N)F",
+    "represents": "Flmodafinil (bisfluoromodafinil)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "CRL-40,940 = flmodafinil = bisfluoromodafinil = lauflumide; bis(p-fluoro) amide analog of modafinil (PubChem CID 13271852)."
+  },
+  {
+    "slug": "crl-40-941",
+    "title": "CRL-40-941",
+    "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)F)S(=O)CC(=O)NO)F",
+    "represents": "Fladrafinil (fluorafinil)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "CRL-40,941 = fladrafinil = fluorafinil; bis(p-fluoro) N-hydroxyacetamide prodrug of flmodafinil (PubChem CID 13316557). Verified against Wikipedia to distinguish from CRL-40,940."
+  },
+  {
+    "slug": "cyclizine",
+    "title": "Cyclizine",
+    "smiles": "CN1CCN(CC1)C(C2=CC=CC=C2)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cyclo-methiodrone",
+    "title": "Cyclo-Methiodrone",
+    "smiles": "C1CCNC(C1)C(=O)C2=CC=CS2",
+    "represents": "piperidin-2-yl(thiophen-2-yl)methanone (TCAT)",
+    "source": "pubchem",
+    "confidence": "medium",
+    "note": "Novel research chemical (TCAT); IUPAC name piperidin-2-yl(thiophen-2-yl)methanone per TripSit. SMILES from PubChem CID 24261075 matching that IUPAC name. Limited literature."
+  },
+  {
+    "slug": "cyclobenzaprine",
+    "title": "Cyclobenzaprine",
+    "smiles": "CN(C)CCC=C1C2=CC=CC=C2C=CC3=CC=CC=C31",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "cyclopropylmescaline",
+    "title": "Cyclopropylmescaline",
+    "smiles": "COC1=CC(=CC(=C1OCC2CC2)OC)CCN",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "4-(cyclopropylmethoxy) mescaline analog, PubChem CID 44350143."
+  },
+  {
+    "slug": "dalt",
+    "title": "DALT",
+    "smiles": "C=CCN(CCC1=CNC2=CC=CC=C21)CC=C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "N,N-Diallyltryptamine (PubChem CID 24839550)."
+  },
+  {
+    "slug": "datura",
+    "title": "Datura",
+    "smiles": "CN1[C@@H]2CC(C[C@H]1[C@H]3[C@@H]2O3)OC(=O)[C@H](CO)C4=CC=CC=C4",
+    "represents": "Scopolamine (hyoscine)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Datura is a botanical genus (e.g. jimsonweed) containing tropane alkaloids; principal psychoactive molecule represented here is scopolamine (also rich in atropine/hyoscyamine)."
+  },
+  {
+    "slug": "deschloroketamine",
+    "title": "Deschloroketamine",
+    "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "dexmethylphenidate",
+    "title": "Dexmethylphenidate",
+    "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "D-threo enantiomer of methylphenidate (PubChem CID 154101)."
+  },
+  {
+    "slug": "dextromoramide",
+    "title": "Dextromoramide",
+    "smiles": "C[C@H](CN1CCOCC1)C(C2=CC=CC=C2)(C3=CC=CC=C3)C(=O)N4CCCC4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "diclofensine",
+    "title": "Diclofensine",
+    "smiles": "CN1CC(C2=C(C1)C=C(C=C2)OC)C3=CC(=C(C=C3)Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  }
+]

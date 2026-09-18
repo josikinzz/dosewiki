@@ -1,0 +1,130 @@
+/* =====================================================================
+   The reader's font axis — dose.wiki only (Effect Index locks the axis
+   and never carries `data-font`, reads its storage key, or ships these
+   faces' re-seats as live rules).
+
+   One kind of block: THE CHOSEN FACE. One per paintable value of
+   `data-font`, re-seating both family tokens on the dyslexic sheet's
+   stacked-attribute pattern. The repetition lifts each block to (0,3,1) —
+   a step above the Pro palette's (0,2,1) re-seat of the same two tokens
+   from a <link> attached after the bundle — so a chosen face wins on
+   specificity, from wherever each sheet loads, while the Theme Lab's
+   (0,4,1) user layer still wins for an editor auditioning faces.
+
+   There is deliberately no default block. The site default is Standard,
+   which is the *absence* of `data-font`: the authored base.css pairing
+   (the Inter body face on --font-family-standard-body, the Blinker
+   display face, and the negative tracking ramp) is already what a
+   document with no attribute wears, so the default state re-seats
+   nothing and the picker's Standard entry is a removal, not a paint.
+
+   `var(--font-dyslexic)` / `--font-body` / `--font-display` / `--font-pro`
+   are the next/font/local registrations in `src/app/_fonts/dosewiki.ts`;
+   each variable expands to the face plus its metric-matched fallback, and
+   a woff2 is only fetched once a rendered element resolves to the family.
+   ===================================================================== */
+
+/* Lexend re-declares tracking, alone among the faces: base.css tracks
+   display, heading and body copy NEGATIVE (-0.04/-0.025/-0.01em) as a
+   product-voice signal, and generous letterfit is the readability property
+   Lexend exists for, so compressing it would spend the face's whole point.
+   Lexend's letterforms also sit visibly larger than Blinker's or
+   Titillium's at the same declared size — taller x-height, wider fit — so
+   the display scale that reads as a title in the standard faces reads as a
+   wall in this one (and overruns the hero card sooner). Re-seat only the
+   display sizes, ~0.85x the base.css clamps; body sizes stay untouched
+   because the larger rendering IS the readability property. */
+html[data-font="lexend"][data-font][data-font] {
+  --font-family-body: var(--font-dyslexic), Lexend, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-dyslexic), Lexend, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --type-tracking-display: 0;
+  --type-tracking-heading: 0;
+  --type-tracking-body: 0;
+  --type-size-title: clamp(2.5rem, 2.125rem + 1.9vw, 3.8125rem);
+  --type-size-section: clamp(1.35rem, 1.15rem + 0.6vw, 1.75rem);
+}
+
+html[data-font="inter"][data-font][data-font] {
+  --font-family-body: var(--font-body, Inter), Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-body, Inter), Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html[data-font="blinker"][data-font][data-font] {
+  --font-family-body: var(--font-display), Blinker, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-display), Blinker, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html[data-font="titillium"][data-font][data-font] {
+  --font-family-body: var(--font-pro, "Titillium Web"), "Titillium Web", Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-pro, "Titillium Web"), "Titillium Web", Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html[data-font="system"][data-font][data-font] {
+  --font-family-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* The `font-sans` utility resolves a plain Inter stack straight from
+   tailwind.config.mjs and would otherwise punch a hole in the reader's
+   chosen face — the same escape hatch pro-theme.css closes for Pro. Only
+   the chosen-face state needs it: the default state re-seats nothing, so
+   the utility and `--font-family-body` already agree there. */
+html[data-font][data-font][data-font] .font-sans {
+  font-family: var(--font-family-body);
+}
+
+/* =====================================================================
+   The reading-type axes' consumption rules (dose.wiki only — the
+   bootstrap never writes these attributes on a locked publication).
+
+   Line height must beat the per-paragraph Tailwind leading utilities on
+   the reading surface (leading-relaxed and friends), which the custom
+   property alone cannot do: the engage attribute lifts this rule to
+   (0,1,1), one step above any single utility class. Headings and display
+   copy keep their authored leading; the reader's choice is for reading.
+   ===================================================================== */
+html[data-reader-leading] p,
+html[data-reader-leading] li {
+  line-height: var(--dw-reader-leading);
+}
+
+/* Each picker label stays in the face it offers instead of inheriting whichever
+   preference is active. --font-family-standard-body follows Fun/Pro but is deliberately
+   not re-seated by any `data-font` block. The full-face variable leads each stack, so a
+   label renders in its face the moment the picker first renders it — which, for the
+   default face, is also the face every page already paints. */
+.theme-font-preview-standard {
+  font-family: var(--font-family-standard-body);
+}
+
+.theme-font-preview-lexend {
+  font-family: var(--font-dyslexic), Lexend, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.theme-font-preview-inter {
+  font-family: var(--font-body, Inter), Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+.theme-font-preview-blinker {
+  font-family: var(--font-display), Blinker, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.theme-font-preview-titillium {
+  font-family: var(--font-pro, "Titillium Web"), "Titillium Web", Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.theme-font-preview-system {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

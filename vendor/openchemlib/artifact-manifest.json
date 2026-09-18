@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "upstream": {
+    "openchemlibJsVersion": "9.23.0",
+    "openchemlibJsCommit": "d0157013aef3bb3e0057804491d4acc2192fe283",
+    "openchemlibJavaCommit": "94f77815728907829087ef350bf069ce241b54c1"
+  },
+  "verification": {
+    "artifactCheck": "npm run openchemlib:verify",
+    "testLane": "npm run openchemlib:test",
+    "forkTests": "tests/dosewiki"
+  },
+  "inputs": {
+    "fileCount": 815,
+    "sha256": "5ce6896f915df0dbc6c9b66b3dc162137e5f30d39ddee2260b8e455ad55d6b6f"
+  },
+  "artifacts": {
+    "sha256": "96e180aa23ffa4af3e14341094b525991538504a45c2cb47843ee574b1b98bba",
+    "files": [
+      {
+        "path": "dist/openchemlib.js",
+        "bytes": 1099246,
+        "sha256": "b5a27db7be082b6efbf961f41c541b6e06da2dc54b53d5a4f894f86dd047f2eb"
+      },
+      {
+        "path": "dist/openchemlib.debug.js",
+        "bytes": 3476290,
+        "sha256": "fff11390a7921b00d498c045b4f6c14795c5f8c54be07697ca691fbeadc63718"
+      },
+      {
+        "path": "dist/openchemlib.d.ts",
+        "bytes": 137638,
+        "sha256": "8b65f0b2d2e4b8cdad759839ef787b650e5f76afbf1e56c2c97e520d8ebcff4f"
+      },
+      {
+        "path": "dist/resources.json",
+        "bytes": 1351963,
+        "sha256": "d2741130d5a5546aeebebc43eb3dac937881b04755fefe5925e4b228a56bee14"
+      }
+    ]
+  }
+}

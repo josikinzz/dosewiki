@@ -1,0 +1,1056 @@
+/* Theme Lab — a frosted, on-brand live color instrument.
+   Everything reads the site's own --theme-* tokens so the tool itself recolors
+   along with whatever the visitor is editing. */
+
+/* ---------------------------------------------------------------- Panel */
+
+/* A right-edge sidebar that SPLITS the page rather than overlaying it: the page
+   reserves a matching right gutter (theme-lab.css owns the split layout) and this panel
+   fills it. Full height, rounded left corners, left shadow. It slides via
+   transform so open/close stay in sync with the page reflow. */
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  width: var(--pl-sidebar-width);
+  /* Square corners: the panel is flush to the top/right/bottom screen edges, so
+     any corner radius would reveal the page behind it as a poking notch. */
+  border-radius: 0;
+  border: 1px solid var(--theme-frosted-panel-border);
+  border-right: none;
+  background: var(--theme-frosted-panel-bg);
+  box-shadow:
+    var(--theme-frosted-panel-shadow),
+    -28px 0 64px -32px var(--theme-shadow-strong);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--theme-text-secondary);
+  /* Alpha-checkerboard tint for translucent swatches. Fixed seed on purpose:
+     it must contrast against whatever swatch color sits on top, not against the
+     panel, so it is a house-style literal — not a themed surface. */
+  --pl-checker: rgb(var(--c-white) / 0.16);
+  transform: translateX(0);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+}
+
+/* Closed: slid off the right edge, non-interactive, and hidden from assistive
+   tech once the slide-out completes. */
+.panelClosed {
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 240ms;
+}
+
+:global(html[data-theme="light"]) .panel {
+  --pl-checker: rgb(40 12 56 / 0.12);
+}
+
+/* ---- Mobile: the same panel, re-docked as a bottom sheet ---------------- */
+/* Below the desktop breakpoint there is no room for a side gutter, so the panel
+   becomes a bottom sheet that overlays the page instead of splitting it. It is
+   still non-modal (no scrim): the strip of page above the sheet keeps showing
+   the colors being edited, and stays scrollable and tappable. */
+@media (max-width: 63.999rem) {
+  .panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--pl-sheet-height);
+    /* One scroll column instead of the desktop layout's pinned wheel over a
+       scrolling catalog. That layout needs ~600px of never-scrolling chrome
+       (header, wheel, tabs, search, footer) before the catalog gets a single
+       row — more than a phone screen has, so on mobile the whole sheet scrolls
+       and `revealEditor` brings the wheel back when a swatch is tapped. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    /* Rounded top corners only — the sheet is flush to the bottom/side edges. */
+    border-radius: 1.125rem 1.125rem 0 0;
+    border-right: 1px solid var(--theme-frosted-panel-border);
+    border-bottom: none;
+    box-shadow:
+      var(--theme-frosted-panel-shadow),
+      0 -28px 64px -32px var(--theme-shadow-strong);
+    transform: translateY(0);
+  }
+
+  /* Eyedropper armed: drop the sheet to a peek so there is actually a page to
+     tap. Picking clears itself once a color is chosen, which slides it back up. */
+  .panelPicking {
+    transform: translateY(calc(100% - var(--pl-sheet-peek)));
+  }
+
+  /* Declared after `.panelPicking` on purpose: closing wins over peeking when a
+     pick was left armed. Slides down rather than sideways. */
+  .panelClosed,
+  .panelClosed.panelPicking {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panelClosed,
+  .groupCaret,
+  .advancedCaret {
+    transition: none;
+  }
+}
+
+.panelHeader {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem 0.5rem;
+}
+
+.titleBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* The panel's own glyph is the tool mark. It is deliberately a plain themed
+   icon rather than the brand wheel: the wheel now names the appearance control
+   that opens this drawer, and two copies of one mark on two different surfaces
+   would stop either of them meaning anything. Held to a text token so it stays
+   legible whatever the reader does to the accent from inside this panel. */
+.titleMark {
+  flex-shrink: 0;
+  color: var(--theme-text-secondary);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--theme-text-primary);
+}
+
+.subtitle {
+  margin: 0.0625rem 0 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--theme-text-faint);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.pickBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  margin: 0 0.875rem 0.5rem;
+  padding: 0.4375rem 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 10%, var(--theme-surface-muted));
+  color: var(--theme-accent-strong);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
+
+.pickBanner kbd {
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 0.3125rem;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-soft);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.625rem;
+  color: var(--theme-text-secondary);
+}
+
+/* ------------------------------------------------------- Appearance axes */
+
+/* The site's four appearance controls, directly under the header. They are the
+   shared `AppearanceAxes` component, so only its placement in the panel column
+   is this stylesheet's business. */
+.appearanceAxes {
+  flex-shrink: 0;
+  padding: 0.125rem 0.875rem 0.625rem;
+}
+
+/* ------------------------------------------------------ Changed indicator */
+
+/* One right-aligned row of edit bookkeeping between the appearance controls and
+   the editor: the count pushes itself over with its own auto margin. */
+.changedRow {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 0.875rem 0.5rem;
+}
+
+.changedBadge {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--theme-text-faint);
+}
+
+/* ---------------------------------------------------------------- Editor */
+
+/* The only scrolling region: just the color catalog. The editor (wheel), view
+   tabs, and search are pinned above it so the wheel stays reachable while you
+   browse the list — no scrolling up to adjust a color. */
+.scrollBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.editor {
+  flex-shrink: 0;
+  padding: 0.125rem 0.875rem 0.5rem;
+}
+
+/* Nothing selected: one line of hint instead of the editor. */
+.editorCollapsed {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.editorEmpty {
+  margin: 0;
+  padding: 0.375rem 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--theme-text-faint);
+  text-align: center;
+}
+
+.editorMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.editorTokenId {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.6875rem;
+  color: var(--theme-accent-strong);
+  word-break: break-all;
+}
+
+.editorTokenLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+/* The selected token's own plain-language note, on its own line under the label:
+   quiet enough that it never competes with the value being edited. */
+.editorHint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--theme-text-faint);
+}
+
+.mergedMembers {
+  flex-basis: 100%;
+  list-style: none;
+  margin: 0.125rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* ----------------------------------------------------------- Color field */
+
+/* The compact editing control: a full-width saturation/value rectangle over a
+   full-width hue slider. It replaces the fixed 176px ring-plus-square wheel,
+   which pinned more of the panel than the catalog beneath it. The rainbow wheel
+   still exists — as the brand glyph in the panel header. */
+.colorField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+  width: 100%;
+}
+
+.svSquare {
+  position: relative;
+  width: 100%;
+  height: 5.5rem;
+  border-radius: 0.5rem;
+  cursor: crosshair;
+  touch-action: none;
+  box-shadow: inset 0 0 0 1px rgb(var(--c-black) / 0.18);
+}
+
+.hueBar {
+  position: relative;
+  width: 100%;
+  /* Comfortably past the 44px touch floor once the handle overhang counts. */
+  height: 1.5rem;
+  border-radius: 9999px;
+  cursor: crosshair;
+  touch-action: none;
+  background: linear-gradient(
+    to right,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  box-shadow: inset 0 0 0 1px rgb(var(--c-black) / 0.18);
+}
+
+/* The white ring + dark halo is a deliberate, theme-agnostic color-picker
+   affordance: the handle must stay legible over ANY hue/value it sits on, so it
+   uses fixed white/black seeds rather than theme tokens. */
+.hueHandle,
+.svHandle {
+  position: absolute;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  border: 2px solid rgb(var(--c-white));
+  box-shadow: 0 0 0 1px rgb(var(--c-black) / 0.45), 0 1px 4px rgb(var(--c-black) / 0.4);
+  cursor: grab;
+}
+
+.hueHandle:active,
+.svHandle:active {
+  cursor: grabbing;
+}
+
+.svHandle {
+  transform: translate(-50%, -50%);
+}
+
+/* Rides the middle of the hue bar, so only the horizontal position varies. */
+.hueHandle {
+  top: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translate(-50%, -50%);
+}
+
+.hueHandle:focus-visible,
+.svHandle:focus-visible {
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: 2px;
+}
+
+.fieldReadout {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+}
+
+.swatchLarge,
+.tokenSwatch {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-image: repeating-conic-gradient(var(--pl-checker) 0 25%, transparent 0 50%);
+  background-size: 10px 10px;
+}
+
+.swatchLarge {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  box-shadow: inset 0 0 0 1px var(--theme-border-strong);
+}
+
+.swatchLargeFill {
+  position: absolute;
+  inset: 0;
+}
+
+.readoutFields {
+  display: flex;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.hexField,
+.alphaField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.hexField {
+  flex: 0 0 7.5rem;
+}
+
+.alphaField {
+  flex: 1;
+}
+
+.fieldCaption {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-text-faint);
+}
+
+.alphaValue {
+  color: var(--theme-text-secondary);
+}
+
+/* The panel's range instruments — the alpha track, the length track and the hue
+   track — are one class rather than three selector lists, because they are one
+   control family wearing three gradients (each field paints its own). */
+.rangeTrack {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.5rem;
+  margin-top: 0.125rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--theme-field-border);
+  cursor: pointer;
+}
+
+/* Slider thumb mirrors the wheel handle: a fixed white/black affordance kept
+   legible over the alpha-gradient track in either theme. */
+.rangeTrack::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.875rem;
+  height: 1.375rem;
+  border-radius: 0.3125rem;
+  background: rgb(var(--c-white));
+  border: 1px solid rgb(var(--c-black) / 0.4);
+  box-shadow: 0 1px 3px rgb(var(--c-black) / 0.4);
+}
+
+.rangeTrack::-moz-range-thumb {
+  width: 0.875rem;
+  height: 1.375rem;
+  border-radius: 0.3125rem;
+  background: rgb(var(--c-white));
+  border: 1px solid rgb(var(--c-black) / 0.4);
+  box-shadow: 0 1px 3px rgb(var(--c-black) / 0.4);
+}
+
+
+/* ------------------------------------------------------------- Length field */
+
+/* The radius instrument: two preview tiles (a wide surface and a small control,
+   because the same radius reads differently on each) over the shared range
+   track. The track itself is styled with .rangeTrack above. */
+.lengthField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.lengthPreview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.lengthPreviewTile {
+  height: 2.25rem;
+  flex: 1;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-strong);
+}
+
+.lengthPreviewTile:last-child {
+  flex: 0 0 2.25rem;
+}
+
+/* Catalog rows: a length has no color, so its row chip wears the shape itself. */
+.radiusSwatch {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-strong);
+}
+
+/* --------------------------------------------------------------- Raw editor */
+
+.rawEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.rawPreview {
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--theme-border-strong);
+}
+
+/* --------------------------------------------------------------- Toolbar */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0 0.875rem 0.5rem;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.6875rem;
+  color: var(--theme-text-faint);
+  pointer-events: none;
+}
+
+/* Full-width segmented control: the primary way to switch depth
+   (Essentials → All colors → Merged). Plain words, not developer icons. */
+.viewTabs {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin: 0 0.875rem 0.5rem;
+  padding: 0.1875rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--theme-border-subtle);
+  background: var(--theme-field-surface);
+}
+
+/* --------------------------------------------------------------- Catalog */
+
+.catalog {
+  padding: 0 0.5rem 0.25rem;
+  border-top: 1px solid var(--theme-divider);
+}
+
+.group {
+  border-top: 1px solid var(--theme-divider);
+}
+
+.group:first-child {
+  border-top: none;
+}
+
+/* Sticky within the .scrollBody/.catalog scroll container: rows slide cleanly
+   under an opaque header so the current section stays labelled. Use the solid
+   panel base (not the gradient) so nothing bleeds through. The header is a kit
+   Button; only this stickiness is the panel's own concern. */
+.groupHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--theme-panel-base);
+}
+
+.groupCaret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-text-muted);
+  transition: transform 160ms ease;
+}
+
+.groupCaretOpen {
+  transform: rotate(90deg);
+}
+
+.groupTitle {
+  flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.groupCount {
+  font-size: 0.625rem;
+  color: var(--theme-text-ghost);
+}
+
+.groupBlurb {
+  margin: 0 0.375rem 0.375rem 1.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--theme-text-faint);
+}
+
+/* Essentials groups are always-open and have no collapse caret, so their
+   header and blurb align flush-left rather than indented under a chevron. */
+.essentialHead {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.375rem 0.25rem;
+  /* Sticky like the All-colors group header so the section title persists. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--theme-panel-base);
+}
+
+.essentialBlurb {
+  margin: 0 0.375rem 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--theme-text-faint);
+}
+
+.mergedHint {
+  margin: 1.5rem 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--theme-text-faint);
+  text-align: center;
+}
+
+.tokenList {
+  list-style: none;
+  margin: 0 0 0.375rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.tokenSwatch {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.3125rem;
+  box-shadow: inset 0 0 0 1px var(--theme-border-strong);
+}
+
+.tokenSwatchFill {
+  position: absolute;
+  inset: 0;
+}
+
+.tokenLabel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.78125rem;
+  color: var(--theme-text-secondary);
+  min-width: 0;
+}
+
+.editorScopeNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  margin: 0 0 0.625rem;
+  padding: 0.4375rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--theme-warning-border) 70%, transparent);
+  background: var(--theme-warning-bg);
+  color: var(--theme-warning-text);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.editorScopeNote strong {
+  text-transform: capitalize;
+  font-weight: 700;
+}
+
+/* Quieter than the scope warning: a heads-up that a fill is see-through. */
+.editorAlphaNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  margin: 0 0 0.625rem;
+  padding: 0.4375rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--theme-border-subtle);
+  background: var(--theme-surface-soft);
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.editorAlphaNote :global(svg) {
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+  color: var(--theme-accent-strong);
+}
+
+.tokenValue {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.625rem;
+  color: var(--theme-text-faint);
+}
+
+/* "You changed this." Carried by a pencil glyph inside an outlined chip, so the
+   state survives without color vision — the accent tint is reinforcement, not
+   the message. */
+.tokenDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  color: var(--theme-accent-strong);
+}
+
+/* ----------------------------------------------------------------- JSON */
+
+.jsonArea {
+  flex-shrink: 0;
+  padding: 0.625rem 0.875rem 0.875rem;
+  border-top: 1px solid var(--theme-divider);
+}
+
+/* Always-visible bar: primary copy action, status badge, and the disclosure
+   toggle for the technical drawer. Keeps the console out of sight by default. */
+.jsonBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Row 1: the primary "Copy colors" action + a right-aligned status. */
+.jsonBarTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.advancedToggleText {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4375rem;
+  min-width: 0;
+}
+
+.advancedToggleLabel {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.advancedToggleHint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.625rem;
+  letter-spacing: 0.02em;
+  color: var(--theme-text-faint);
+}
+
+.advancedCaret {
+  flex-shrink: 0;
+  color: var(--theme-text-muted);
+  transition: transform 160ms ease;
+}
+
+.advancedCaretOpen {
+  transform: rotate(90deg);
+}
+
+/* The collapsed technical drawer: JSON console, apply/revert, undo, danger. */
+.advancedDrawer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--theme-divider);
+  animation: pl-drawer-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pl-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advancedDrawer {
+    animation: none;
+  }
+}
+
+.advancedDrawer .fieldCaption {
+  margin-bottom: 0.375rem;
+}
+
+.importError {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--theme-danger-text-strong);
+}
+
+.jsonActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Destructive resets, fenced off from Apply/Copy under their own label. */
+.dangerZone {
+  margin-top: 0.875rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--theme-divider);
+}
+
+.dangerLabel {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-danger-text-strong);
+}
+
+.dangerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* ------------------------------------------------------- Eyedropper layer */
+
+/* Outline tracking the hovered element. Snaps instantly (no transition on
+   position) so it reads as a precise instrument, not a lagging ghost. */
+.pickOverlay {
+  position: fixed;
+  z-index: 88;
+  pointer-events: none;
+  border: 2px solid var(--theme-accent);
+  border-radius: 0.375rem;
+  box-shadow:
+    0 0 0 1px var(--theme-shadow-strong),
+    0 0 18px -4px var(--theme-logo-shadow);
+}
+
+.pickOverlayLabel {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  max-width: calc(100% - 0.5rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.125rem 0.4375rem;
+  border-radius: 0.375rem;
+  background: var(--theme-accent);
+  color: var(--theme-body-bg);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.pickToast {
+  position: fixed;
+  z-index: 96;
+  pointer-events: none;
+  transform: translate(0.625rem, 0.625rem);
+  padding: 0.3125rem 0.5625rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-menu-surface, var(--theme-surface-strong));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--theme-text-secondary);
+  font-size: 0.6875rem;
+  box-shadow: 0 12px 28px -18px var(--theme-shadow-strong);
+  animation: pl-pick-in 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The "edit which color?" chooser shown when a click maps to several tokens. */
+.pickMenu {
+  position: fixed;
+  z-index: 96;
+  min-width: 12.5rem;
+  max-width: 14.5rem;
+  padding: 0.375rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--theme-frosted-panel-border);
+  background: var(--theme-frosted-panel-bg);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    var(--theme-frosted-panel-shadow),
+    0 28px 56px -28px var(--theme-shadow-strong);
+  transform-origin: top left;
+  animation: pl-pick-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pl-pick-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pickMenuTitle {
+  margin: 0.1875rem 0.375rem 0.3125rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-text-faint);
+}
+
+.pickMenuRole {
+  flex-shrink: 0;
+  width: 4.25rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--theme-text-faint);
+}
+
+.pickMenuName {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78125rem;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pickMenu,
+  .pickToast {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------ Legibility floors */
+/* Declared late on purpose: these raise a set of micro-type sizes that grew
+   organically across the blocks above, and CSS decides equal-specificity ties
+   by source order. Nothing here is a new component — it is one place to see,
+   and keep, the panel's minimum text sizes.
+
+   Floor: 0.6875rem (11px) for badges and captions that are never the only copy
+   carrying a meaning, 0.75rem (12px) for body-ish copy anyone must read. */
+
+.subtitle,
+.pickBanner,
+.changedBadge,
+.groupBlurb,
+.essentialBlurb,
+.editorTokenId,
+.editorHint,
+.editorScopeNote,
+.editorAlphaNote,
+.importError,
+.pickToast {
+  font-size: 0.75rem;
+}
+
+.pickBanner kbd,
+.fieldCaption,
+.groupCount,
+.tokenValue,
+.advancedToggleHint,
+.dangerLabel,
+.pickMenuTitle,
+.pickMenuRole,
+.pickOverlayLabel {
+  font-size: 0.6875rem;
+}
+
+.tokenLabel,
+.pickMenuName {
+  font-size: 0.8125rem;
+}
+
+/* ------------------------------------------ Mobile sheet: scrolling + touch */
+/* Last block in the file on purpose: every rule here overrides a desktop
+   declaration made further up, and CSS media queries add no specificity — only
+   source order decides. Two jobs: finish the single-scroll sheet layout, and
+   loosen controls that are dense by design for a mouse. */
+@media (max-width: 63.999rem) {
+  /* The catalog is no longer its own scroll container — it grows to its content
+     and the sheet (see `.panel` above) scrolls past it. */
+  .scrollBody {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
+
+  /* Group headers stick to their scroll container. Now that the container is
+     the whole sheet, a sticky header would pin itself over the wheel instead of
+     over its own rows. */
+  .groupHeader {
+    position: static;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .headerActions {
+    gap: 0.5rem;
+  }
+
+  /* The 44px touch floor now rides the kit controls themselves (they carry a
+     coarse-pointer minimum), so nothing here re-tunes a control by hand. */
+
+  /* Fatter grab handles and a taller field: the SV rectangle is dragged with a
+     fingertip here, not a mouse cursor. */
+  .svSquare {
+    height: 7rem;
+  }
+
+  .hueBar {
+    height: 1.75rem;
+  }
+
+  .hueHandle,
+  .svHandle {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* The sheet is flush to the bottom edge, so its last row would otherwise sit
+     under the home indicator. */
+  .jsonArea {
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+

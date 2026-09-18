@@ -1,0 +1,4051 @@
+[
+  {
+    "id": 1,
+    "slug": "1-4-butanediol",
+    "title": "1,4-Butanediol",
+    "smiles": "C(CCCO)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 2,
+    "slug": "1b-lsd",
+    "title": "1B-LSD",
+    "smiles": "CCCC(=O)n1cc2c3c1cccc3C1=C[C@H](CN([C@@H]1C2)C)C(=O)N(CC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 3,
+    "slug": "1cp-al-lad",
+    "title": "1cP-AL-LAD",
+    "smiles": "C=CCN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)C1CC1)C(=O)N(CC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 4,
+    "slug": "1cp-lsd",
+    "title": "1cP-LSD",
+    "smiles": "CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)C1CC1)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 5,
+    "slug": "1cp-mipla",
+    "title": "1cP-MiPLA",
+    "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)C1CC1)C(=O)N(C(C)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 6,
+    "slug": "1d-lsd",
+    "title": "1D-LSD",
+    "smiles": "CC1(C(CC1)C)C(=O)N1C=C2C[C@H]3N(C[C@@H](C=C3C=3C=CC=C1C32)C(=O)N(CC)CC)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 7,
+    "slug": "1p-eth-lad",
+    "title": "1P-ETH-LAD",
+    "smiles": "CCN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)CC)C(=O)N(CC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 8,
+    "slug": "1p-lsd",
+    "title": "1P-LSD",
+    "smiles": "CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)CC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 9,
+    "slug": "1v-lsd",
+    "title": "1V-LSD",
+    "smiles": "C(CCCC)(=O)N1C=C2C[C@H]3N(C[C@@H](C=C3C=3C=CC=C1C32)C(=O)N(CC)CC)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 11,
+    "slug": "2-aminoindane",
+    "title": "2-Aminoindane",
+    "smiles": "C1C(CC2=CC=CC=C21)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 12,
+    "slug": "2-chloroephenidine",
+    "title": "2-Chloroephenidine",
+    "smiles": "ClC1=C(C=CC=C1)CC(NCC)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 13,
+    "slug": "2-fa",
+    "title": "2-FA",
+    "smiles": "CC(Cc1ccccc1F)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 14,
+    "slug": "2-fea",
+    "title": "2-FEA",
+    "smiles": "CCNC(Cc1ccccc1F)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 15,
+    "slug": "2-fluorodeschloroketamine",
+    "title": "2-Fluorodeschloroketamine",
+    "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 16,
+    "slug": "2-fma",
+    "title": "2-FMA",
+    "smiles": "CNC(Cc1ccccc1F)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 17,
+    "slug": "2-ma",
+    "title": "2-MA",
+    "smiles": "CC1=C(C=CC=C1)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 18,
+    "slug": "2-me-dmt",
+    "title": "2-Me-DMT",
+    "smiles": "CN(CCC1=C(NC2=CC=CC=C12)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 19,
+    "slug": "2-mec",
+    "title": "2-MEC",
+    "smiles": "C(C)NC(C(=O)C1=C(C=CC=C1)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 20,
+    "slug": "2-meo-ketamine",
+    "title": "2-MeO-Ketamine",
+    "smiles": "COC1=C(C=CC=C1)C1(C(CCCC1)=O)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 21,
+    "slug": "2-mmc",
+    "title": "2-MMC",
+    "smiles": "CNC(C)C(=O)c1ccccc1C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 22,
+    "slug": "2-mppp",
+    "title": "2-MPPP",
+    "smiles": "CC(C(=O)C1=CC=CC=C1)CN1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 23,
+    "slug": "2-nmc",
+    "title": "2-NMC",
+    "smiles": "CNC(C(=O)C1=CC2=CC=CC=C2C=C1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 24,
+    "slug": "2-pa",
+    "title": "2-PA",
+    "smiles": "C1(=CC=CC=C1)C(C(C)N)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 25,
+    "slug": "2-pta",
+    "title": "2-PTA",
+    "smiles": "C1(=CC=CC=C1)C(C)(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 26,
+    "slug": "25-dma",
+    "title": "25-DMA",
+    "smiles": "CC(CC1=C(C=CC(=C1)OC)OC)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 27,
+    "slug": "25b-nboh",
+    "title": "25B-NBOH",
+    "smiles": "COc1cc(Br)c(cc1CCNCc1ccccc1O)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 28,
+    "slug": "25b-nbome",
+    "title": "25b-NBOMe",
+    "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Br)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 29,
+    "slug": "25c-nboh",
+    "title": "25C-NBOH",
+    "smiles": "COc1cc(Cl)c(cc1CCNCc1ccccc1O)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 30,
+    "slug": "25c-nbome",
+    "title": "25c-NBOMe",
+    "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Cl)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 31,
+    "slug": "25d-nbome",
+    "title": "25D-NBOMe",
+    "smiles": "COc1cc(C)c(cc1CCNCc1ccccc1OC)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 32,
+    "slug": "25e-nboh",
+    "title": "25E-NBOH",
+    "smiles": "COc1cc(CC)c(cc1CCNCc1ccccc1O)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 33,
+    "slug": "25e-nbome",
+    "title": "25e-NBOMe",
+    "smiles": "CCC1=CC(=C(C=C1OC)CCNCC2=CC=CC=C2OC)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 34,
+    "slug": "25g-nbome",
+    "title": "25g-NBOMe",
+    "smiles": "CC1=C(C=C(C(=C1C)OC)CCNCC2=CC=CC=C2OC)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 35,
+    "slug": "25h-nbome",
+    "title": "25H-NBOMe",
+    "smiles": "COC1=C(C=C(C=C1)OC)CCNCC1=C(C=CC=C1)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 36,
+    "slug": "25i-nbf",
+    "title": "25I-NBF",
+    "smiles": "IC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)F)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 37,
+    "slug": "25i-nbmd",
+    "title": "25I-NBMD",
+    "smiles": "O1COC2=C1C=CC=C2CNCCC2=C(C=C(C(=C2)OC)I)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 38,
+    "slug": "25i-nboh",
+    "title": "25I-NBOH",
+    "smiles": "COc1cc(I)c(cc1CCNCc1ccccc1O)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 39,
+    "slug": "25i-nbome",
+    "title": "25I-NBOMe",
+    "smiles": "COc1cc(I)c(cc1CCNCc1ccccc1OC)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 40,
+    "slug": "25ip-nbome",
+    "title": "25iP-NBOMe",
+    "smiles": "COC1=C(C=C(C(=C1)C(C)C)OC)CCNCC1=C(C=CC=C1)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 41,
+    "slug": "25n-nbome",
+    "title": "25N-NBOMe",
+    "smiles": "COc1cc(N(=O)=O)c(cc1CCNCc1ccccc1OC)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 42,
+    "slug": "25p-nbome",
+    "title": "25P-NBOMe",
+    "smiles": "C(CC)C1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)OC)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 43,
+    "slug": "25t-2-nbome",
+    "title": "25T-2-NBOMe",
+    "smiles": "C(C)SC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)OC)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 44,
+    "slug": "25t-4-nbome",
+    "title": "25t-4-NBOMe",
+    "smiles": "CC(C)SC1=C(C=C(C(=C1)OC)CCNCC2=CC=CC=C2OC)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 45,
+    "slug": "2c-b",
+    "title": "2C-B",
+    "smiles": "BrC1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 46,
+    "slug": "2c-b-an",
+    "title": "2C-B-AN",
+    "smiles": "BrC1=CC(=C(C=C1OC)CCNC(C#N)C1=CC=CC=C1)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 47,
+    "slug": "2c-b-fly",
+    "title": "2C-B-FLY",
+    "smiles": "NCCc1c2OCCc2c(c2c1CCO2)Br",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 48,
+    "slug": "2c-b-fly-nbome",
+    "title": "2C-B-FLY-NBOMe",
+    "smiles": "BrC1=C2OCCC2=C(C=2OCCC21)CCNCC2=C(C=CC=C2)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 49,
+    "slug": "2c-c",
+    "title": "2C-C",
+    "smiles": "ClC1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 50,
+    "slug": "2c-d",
+    "title": "2C-D",
+    "smiles": "COC1=C(C=C(C(=C1)C)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 51,
+    "slug": "2c-e",
+    "title": "2C-E",
+    "smiles": "C(C)C1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 52,
+    "slug": "2c-g",
+    "title": "2C-G",
+    "smiles": "COC1=C(C=C(C(=C1C)C)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 53,
+    "slug": "2c-i",
+    "title": "2C-I",
+    "smiles": "IC1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 54,
+    "slug": "2c-ip",
+    "title": "2C-iP",
+    "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CCN)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 55,
+    "slug": "2c-n",
+    "title": "2C-N",
+    "smiles": "COC1=C(C=C(C(=C1)[N+](=O)[O-])OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 56,
+    "slug": "2c-p",
+    "title": "2C-P",
+    "smiles": "COC1=C(C=C(C(=C1)CCC)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 57,
+    "slug": "2c-t",
+    "title": "2C-T",
+    "smiles": "CSC1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 58,
+    "slug": "2c-t-2",
+    "title": "2C-T-2",
+    "smiles": "C(C)SC1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 59,
+    "slug": "2c-t-21",
+    "title": "2C-T-21",
+    "smiles": "FCCSC1=CC(=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 60,
+    "slug": "2c-t-4",
+    "title": "2C-T-4",
+    "smiles": "COC1=C(C=C(C(=C1)SC(C)C)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 61,
+    "slug": "2c-t-7",
+    "title": "2C-T-7",
+    "smiles": "COC1=C(C=C(C(=C1)SCCC)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 62,
+    "slug": "2m2b",
+    "title": "2M2B",
+    "smiles": "CC(C)(CC)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 63,
+    "slug": "3-4-ctmp",
+    "title": "3-4-CTMP",
+    "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC(=C(C=C2)Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 64,
+    "slug": "3-cl-pcp",
+    "title": "3-Cl-PCP",
+    "smiles": "Clc1cccc(c1)C1(CCCCC1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 65,
+    "slug": "3-cmc",
+    "title": "3-CMC",
+    "smiles": "ClC=1C=C(C=CC1)C(C(C)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 66,
+    "slug": "3-fa",
+    "title": "3-FA",
+    "smiles": "CC(Cc1cccc(c1)F)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 67,
+    "slug": "3-fea",
+    "title": "3-FEA",
+    "smiles": "CCNC(Cc1cccc(c1)F)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 69,
+    "slug": "3-fma",
+    "title": "3-FMA",
+    "smiles": "CC(CC1=CC(=CC=C1)F)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 70,
+    "slug": "3-fmc",
+    "title": "3-FMC",
+    "smiles": "FC=1C=C(C=CC1)C(C(C)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 71,
+    "slug": "3-fpm",
+    "title": "3-FPM",
+    "smiles": "CC1NCCOC1c1cccc(c1)F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 72,
+    "slug": "3-ho-pce",
+    "title": "3-HO-PCE",
+    "smiles": "CCNC1(CCCCC1)c1cccc(c1)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 73,
+    "slug": "3-ho-pcp",
+    "title": "3-HO-PCP",
+    "smiles": "Oc1cccc(c1)C1(CCCCC1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 74,
+    "slug": "3-me-pcpy",
+    "title": "3-Me-PCPy",
+    "smiles": "CC=1C=C(C=CC1)C1(CCCCC1)N1CCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 75,
+    "slug": "3-mec",
+    "title": "3-MEC",
+    "smiles": "C(C)NC(C(=O)C1=CC(=CC=C1)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 76,
+    "slug": "3-meo-pce",
+    "title": "3-MeO-PCE",
+    "smiles": "CCNC1(CCCCC1)c1cccc(c1)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 77,
+    "slug": "3-meo-pcmo",
+    "title": "3-MeO-PCMo",
+    "smiles": "COc1cccc(c1)C1(CCCCC1)N1CCOCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 78,
+    "slug": "3-meo-pcp",
+    "title": "3-MeO-PCP",
+    "smiles": "COc1cccc(c1)C1(CCCCC1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 79,
+    "slug": "3-meo-pcpr",
+    "title": "3-MeO-PCPr",
+    "smiles": "COC=1C=C(C=CC1)C1(CCCCC1)NCCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 80,
+    "slug": "3-meo-pcpy",
+    "title": "3-MeO-PCPy",
+    "smiles": "COC1=CC=CC(=C1)C2(CCCCC2)N3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 81,
+    "slug": "3-meomc",
+    "title": "3-Meomc",
+    "smiles": "CC(C(=O)C1=CC(=CC=C1)OC)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 82,
+    "slug": "3-mmc",
+    "title": "3-MMC",
+    "smiles": "CNC(C(=O)c1cccc(c1)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 83,
+    "slug": "3-oh-phenazepam",
+    "title": "3-OH-Phenazepam",
+    "smiles": "C1=CC=C(C(=C1)C2=NC(C(=O)NC3=C2C=C(C=C3)Br)O)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 84,
+    "slug": "3-4-dichloromethylphenidate",
+    "title": "3,4-Dichloromethylphenidate",
+    "smiles": "ClC=1C=C(C=CC1Cl)C(C(=O)OC)C1NCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 85,
+    "slug": "3c-e",
+    "title": "3C-E",
+    "smiles": "C(C)OC1=C(C=C(C=C1OC)CC(C)N)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 86,
+    "slug": "3c-p",
+    "title": "3C-P",
+    "smiles": "CCCOc1c(OC)cc(cc1OC)CC(N)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 87,
+    "slug": "3f-pcp",
+    "title": "3F-PCP",
+    "smiles": "FC=1C=C(C=CC1)C1(CCCCC1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 88,
+    "slug": "4-aco-dalt",
+    "title": "4-AcO-DALT",
+    "smiles": "CC(=O)OC1=CC=CC2=C1C(=CN2)CCN(CC=C)CC=C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 89,
+    "slug": "4-aco-det",
+    "title": "4-AcO-DET",
+    "smiles": "CCN(CCc1c[nH]c2c1c(ccc2)OC(=O)C)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 90,
+    "slug": "4-aco-dipt",
+    "title": "4-AcO-DiPT",
+    "smiles": "CC(=O)Oc1cccc2c1c(CCN(C(C)C)C(C)C)c[nH]2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 91,
+    "slug": "4-aco-dmt",
+    "title": "4-AcO-DMT",
+    "smiles": "CN(CCc1c[nH]c2c1c(ccc2)OC(=O)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 92,
+    "slug": "4-aco-dpt",
+    "title": "4-AcO-DPT",
+    "smiles": "C(C)(=O)OC1=C2C(=CNC2=CC=C1)CCN(CCC)CCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 93,
+    "slug": "4-aco-met",
+    "title": "4-AcO-MET",
+    "smiles": "CCN(C)CCC1=CNC2=C1C(=CC=C2)OC(=O)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 94,
+    "slug": "4-aco-mipt",
+    "title": "4-AcO-MiPT",
+    "smiles": "CC(=O)Oc1cccc2c1c(CCN(C(C)C)C)c[nH]2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 95,
+    "slug": "4-benzylpiperidine",
+    "title": "4-Benzylpiperidine",
+    "smiles": "C1(=CC=CC=C1)CC1CCNCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 96,
+    "slug": "4-cbc",
+    "title": "4-CBC",
+    "smiles": "ClC1=CC=C(C=C1)C(C(CC)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 98,
+    "slug": "4-cmc",
+    "title": "4-CMC",
+    "smiles": "ClC1=CC=C(C=C1)C(C(C)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 99,
+    "slug": "4-emc",
+    "title": "4-EMC",
+    "smiles": "C(C)C1=CC=C(C=C1)C(C(C)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 100,
+    "slug": "4-epd",
+    "title": "4-EPD",
+    "smiles": "CNC(C(=O)C1=CC=C(C=C1)CC)CCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 101,
+    "slug": "4-fa",
+    "title": "4-FA",
+    "smiles": "CC(Cc1ccc(cc1)F)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 102,
+    "slug": "4-fea",
+    "title": "4-FEA",
+    "smiles": "C(C)NC(CC1=CC=C(C=C1)F)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 103,
+    "slug": "4-fluorobutyrfentanyl",
+    "title": "4-Fluorobutyrfentanyl",
+    "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 105,
+    "slug": "4-fluoropentedrone",
+    "title": "4-Fluoropentedrone",
+    "smiles": "FC1=CC=C(C=C1)C(C(CCC)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 107,
+    "slug": "4-fma",
+    "title": "4-FMA",
+    "smiles": "CNC(Cc1ccc(cc1)F)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 109,
+    "slug": "4-fmc",
+    "title": "4-FMC",
+    "smiles": "FC1=CC=C(C=C1)C(C(C)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 110,
+    "slug": "4-fpp",
+    "title": "4-FPP",
+    "smiles": "FC1=CC=C(C=C1)N1CCNCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 111,
+    "slug": "4-ho-det",
+    "title": "4-HO-DET",
+    "smiles": "C(C)N(CCC1=CNC=2C=CC=C(C12)O)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 112,
+    "slug": "4-ho-dipt",
+    "title": "4-HO-DiPT",
+    "smiles": "CC(C)N(CCC1=CNC=2C=CC=C(C12)O)C(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 113,
+    "slug": "4-ho-dpt",
+    "title": "4-HO-DPT",
+    "smiles": "CCCN(CCC)CCC1=CNC2=C1C(=CC=C2)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 114,
+    "slug": "4-ho-ept",
+    "title": "4-HO-EPT",
+    "smiles": "CCCN(CCc1c[nH]c2c1c(O)ccc2)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 115,
+    "slug": "4-ho-mcpt",
+    "title": "4-HO-McPT",
+    "smiles": "C1(CC1)N(CCC1=CNC=2C=CC=C(C12)O)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 116,
+    "slug": "4-ho-met",
+    "title": "4-HO-MET",
+    "smiles": "C(C)N(CCC1=CNC=2C=CC=C(C12)O)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 117,
+    "slug": "4-ho-mipt",
+    "title": "4-HO-MiPT",
+    "smiles": "CC(C)N(C)CCC1=CNC2=C1C(=CC=C2)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 118,
+    "slug": "4-ho-mpmi",
+    "title": "4-HO-MPMI",
+    "smiles": "CN1CCC[C@@H]1CC2=CNC3=C2C(=CC=C3)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 119,
+    "slug": "4-ho-mpt",
+    "title": "4-HO-MPT",
+    "smiles": "CN(CCC1=CNC=2C=CC=C(C12)O)CCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 120,
+    "slug": "4-ho-pipt",
+    "title": "4-HO-PiPT",
+    "smiles": "CC(C)N(CCC1=CNC=2C=CC=C(C12)O)CCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 121,
+    "slug": "4-mec",
+    "title": "4-MEC",
+    "smiles": "C(C)NC(C(=O)C1=CC=C(C=C1)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 122,
+    "slug": "4-meo-butyrfentanyl",
+    "title": "4-MeO-Butyrfentanyl",
+    "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 123,
+    "slug": "4-meo-mipt",
+    "title": "4-MeO-MiPT",
+    "smiles": "COC1=C2C(=CNC2=CC=C1)CCN(C(C)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 124,
+    "slug": "4-meo-pcp",
+    "title": "4-MeO-PCP",
+    "smiles": "COc1ccc(cc1)C1(CCCCC1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 125,
+    "slug": "4-methylaminorex",
+    "title": "4-Methylaminorex",
+    "smiles": "CC1C(OC(=N1)N)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 126,
+    "slug": "4-methylmethylphenidate",
+    "title": "4-Methylmethylphenidate",
+    "smiles": "CC1=CC=C(C=C1)[C@H]([C@@H]2CCCCN2)C(=O)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 127,
+    "slug": "4-mpd",
+    "title": "4-MPD",
+    "smiles": "CC1=CC=C(C=C1)C(C(CCC)NC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 128,
+    "slug": "4-mpm",
+    "title": "4-MPM",
+    "smiles": "CC1NCCOC1C1=CC=C(C=C1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 131,
+    "slug": "4-pro-dmt",
+    "title": "4-PrO-DMT",
+    "smiles": "C(CC)(=O)OC1=C2C(=CNC2=CC=C1)CCN(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 132,
+    "slug": "4-4-dmar",
+    "title": "4,4'-DMAR",
+    "smiles": "CC1N=C(OC1C1=CC=C(C=C1)C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 133,
+    "slug": "4f-eph",
+    "title": "4F-EPH",
+    "smiles": "CCOC(=O)C(c1ccc(cc1)F)C1CCCCN1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 134,
+    "slug": "4f-mph",
+    "title": "4f-MPH",
+    "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=C(C=C2)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 135,
+    "slug": "4f-neb",
+    "title": "4f-NEB",
+    "smiles": "CCC(C(=O)C1=CC=C(C=C1)F)NCC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 136,
+    "slug": "4f-php",
+    "title": "4F-PHP",
+    "smiles": "FC1=CC=C(C=C1)C(C(CCCC)N1CCCC1)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 137,
+    "slug": "4f-pvp",
+    "title": "4f-PVP",
+    "smiles": "CCCC(C(=O)C1=CC=C(C=C1)F)N2CCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 138,
+    "slug": "5-apb",
+    "title": "5-APB",
+    "smiles": "CC(Cc1ccc2c(c1)cco2)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 139,
+    "slug": "5-apdb",
+    "title": "5-APDB",
+    "smiles": "CC(CC1=CC2=C(C=C1)OCC2)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 140,
+    "slug": "5-apdi",
+    "title": "5-APDI",
+    "smiles": "C1CCC2=CC(=CC=C12)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 141,
+    "slug": "5-bpdi",
+    "title": "5-BPDi",
+    "smiles": "C1CCC2=CC(=CC=C12)C(C(CCCC)N1CCCC1)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 142,
+    "slug": "5-bromo-dmt",
+    "title": "5-Bromo-DMT",
+    "smiles": "BrC=1C=C2C(=CNC2=CC1)CCN(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 143,
+    "slug": "5-dbfpv",
+    "title": "5-DBFPV",
+    "smiles": "O1CCC2=C1C=CC(=C2)C(C(CCC)N2CCCC2)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 144,
+    "slug": "5-eapb",
+    "title": "5-EAPB",
+    "smiles": "O1C=CC2=C1C=CC(=C2)CC(C)NCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 145,
+    "slug": "5-hydroxytryptophan",
+    "title": "5-Hydroxytryptophan",
+    "smiles": "C1=CC2=C(C=C1O)C(=CN2)CC(C(=O)O)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 146,
+    "slug": "5-iai",
+    "title": "5-IAI",
+    "smiles": "IC=1C=C2CC(CC2=CC1)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 147,
+    "slug": "5-it",
+    "title": "5-IT",
+    "smiles": "CC(CC1=CC2=C(C=C1)NC=C2)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 149,
+    "slug": "5-mapb",
+    "title": "5-MAPB",
+    "smiles": "CNC(Cc1ccc2c(c1)cco2)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 150,
+    "slug": "5-mapdb",
+    "title": "5-MAPDB",
+    "smiles": "O1CCC2=C1C=CC(=C2)CC(C)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 151,
+    "slug": "5-meo-dalt",
+    "title": "5-MeO-DALT",
+    "smiles": "C(C=C)N(CC=C)CCC1=CNC2=CC=C(C=C12)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 152,
+    "slug": "5-meo-dibf",
+    "title": "5-MeO-DiBF",
+    "smiles": "COc1ccc2c(c1)c(CCN(C(C)C)C(C)C)co2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 153,
+    "slug": "5-meo-dipt",
+    "title": "5-MeO-DiPT",
+    "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C(C)C)C(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 154,
+    "slug": "5-meo-dmt",
+    "title": "5-MeO-DMT",
+    "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 155,
+    "slug": "5-meo-dpt",
+    "title": "5-MeO-DPT",
+    "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(CCC)CCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 156,
+    "slug": "5-meo-eipt",
+    "title": "5-MeO-EiPT",
+    "smiles": "CCN(CCC1=CNC2=C1C=C(C=C2)OC)C(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 157,
+    "slug": "5-meo-malt",
+    "title": "5-MeO-MaLT",
+    "smiles": "CN(CCC1=CNC2=C1C=C(C=C2)OC)CC=C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 158,
+    "slug": "5-meo-met",
+    "title": "5-MeO-MET",
+    "smiles": "CCN(C)CCC1=CNC2=C1C=C(C=C2)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 159,
+    "slug": "5-meo-mipt",
+    "title": "5-MeO-MiPT",
+    "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C(C)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 160,
+    "slug": "5-meo-mt",
+    "title": "5-MeO-MT",
+    "smiles": "CNCCC1=CNC2=C1C=C(C=C2)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 161,
+    "slug": "5-meo-nipt",
+    "title": "5-MeO-NiPT",
+    "smiles": "CC(C)N(C)CCC1=CNC2=C1C=C(C=C2)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 162,
+    "slug": "5-meo-pyr-t",
+    "title": "5-MeO-Pyr-T",
+    "smiles": "COC1=CC2=C(C=C1)NC=C2CCN3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 163,
+    "slug": "5-methylethylone",
+    "title": "5-Methylethylone",
+    "smiles": "CCNC(C)C(=O)C1=CC2=C(C(=C1)C)OCO2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 164,
+    "slug": "5-ppdi",
+    "title": "5-PPDI",
+    "smiles": "CCC(C(=O)C1=CC2=C(CCC2)C=C1)N3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 165,
+    "slug": "5f-akb48",
+    "title": "5f-Akb48",
+    "smiles": "C1C2CC3CC1CC(C2)(C3)NC(=O)C4=NN(C5=CC=CC=C54)CCCCCF",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 166,
+    "slug": "5f-pb-22",
+    "title": "5f-PB-22",
+    "smiles": "C1=CC=C2C(=C1)C(=CN2CCCCCF)C(=O)OC3=CC=CC4=C3N=CC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 167,
+    "slug": "6-apb",
+    "title": "6-APB",
+    "smiles": "CC(Cc1ccc2c(c1)occ2)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 168,
+    "slug": "6-apdb",
+    "title": "6-APDB",
+    "smiles": "CC(Cc1ccc2c(c1)OCC2)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 169,
+    "slug": "6-eapb",
+    "title": "6-EAPB",
+    "smiles": "CCNC(C)CC1=CC2=C(C=C1)C=CO2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 170,
+    "slug": "6-mapb",
+    "title": "6-MAPB",
+    "smiles": "CC(CC1=CC2=C(C=C1)C=CO2)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 171,
+    "slug": "6-mddm",
+    "title": "6-Mddm",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3C(=C)CC4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 172,
+    "slug": "a-php",
+    "title": "A-PHP",
+    "smiles": "C1(=CC=CC=C1)C(C(CCCC)N1CCCC1)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 173,
+    "slug": "a-pihp",
+    "title": "A-PIHP",
+    "smiles": "CC(C)CC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 174,
+    "slug": "a-pvp",
+    "title": "A-PVP",
+    "smiles": "CCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 175,
+    "slug": "ab-chminaca",
+    "title": "AB-CHMINACA",
+    "smiles": "CC(C)[C@@H](C(=O)N)NC(=O)C1=NN(C2=CC=CC=C21)CC3CCCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 176,
+    "slug": "ab-fubinaca",
+    "title": "AB-FUBINACA",
+    "smiles": "NC([C@H](C(C)C)NC(=O)C1=NN(C2=CC=CC=C12)CC1=CC=C(C=C1)F)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 177,
+    "slug": "acetildenafil",
+    "title": "Acetildenafil",
+    "smiles": "C(C)OC1=C(C=C(C=C1)C(CN1CCN(CC1)CC)=O)C1=NC(C2=C(N1)C(=NN2C)CCC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 178,
+    "slug": "acetylfentanyl",
+    "title": "Acetylfentanyl",
+    "smiles": "CC(=O)N(c1ccccc1)C1CCN(CC1)CCc1ccccc1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 179,
+    "slug": "acrylfentanyl",
+    "title": "Acrylfentanyl",
+    "smiles": "C=CC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 180,
+    "slug": "adinazolam",
+    "title": "Adinazolam",
+    "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NN3)CN(C)C)C3=CC=CC=C3)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 181,
+    "slug": "adrafinil",
+    "title": "Adrafinil",
+    "smiles": "ONC(=O)CS(=O)C(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 182,
+    "slug": "afloqualone",
+    "title": "Afloqualone",
+    "smiles": "NC=1C=C2C(N(C(=NC2=CC1)CF)C1=C(C=CC=C1)C)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 183,
+    "slug": "ah-7921",
+    "title": "AH-7921",
+    "smiles": "CN(C)C1(CCCCC1)CNC(=O)C2=CC(=C(C=C2)Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 184,
+    "slug": "al-lad",
+    "title": "AL-LAD",
+    "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)CC=C)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 185,
+    "slug": "alcohol",
+    "title": "Alcohol",
+    "smiles": "CCO",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 186,
+    "slug": "ald-52",
+    "title": "ALD-52",
+    "smiles": "CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)C)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 187,
+    "slug": "aleph",
+    "title": "ALEPH",
+    "smiles": "COC1=C(C=C(C(=C1)SC)OC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 188,
+    "slug": "aleph-2",
+    "title": "ALEPH-2",
+    "smiles": "C(C)SC1=CC(=C(C=C1OC)CC(C)N)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 189,
+    "slug": "allobarbital",
+    "title": "Allobarbital",
+    "smiles": "C=CCC1(C(=O)NC(=O)NC1=O)CC=C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 190,
+    "slug": "allylescaline",
+    "title": "Allylescaline",
+    "smiles": "C(C=C)OC1=C(C=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 191,
+    "slug": "alpha-gpc",
+    "title": "Alpha-GPC",
+    "smiles": "C[N+](C)(C)CCOP(=O)([O-])OC[C@@H](CO)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 192,
+    "slug": "alpha-pcyp",
+    "title": "alpha-PCYP",
+    "smiles": "C1(CCCCC1)C(C(=O)C1=CC=CC=C1)N1CCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 196,
+    "slug": "alprazolam",
+    "title": "Alprazolam",
+    "smiles": "CC1=NN=C2CN=C(C3=CC=CC=C3)C3=C(C=CC(Cl)=C3)N12",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 197,
+    "slug": "am-2201",
+    "title": "AM-2201",
+    "smiles": "C1=CC=C2C(=C1)C=CC=C2C(=O)C3=CN(C4=CC=CC=C43)CCCCCF",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 198,
+    "slug": "am-694",
+    "title": "AM-694",
+    "smiles": "FCCCCCN1C=C(C2=CC=CC=C12)C(=O)C1=C(C=CC=C1)I",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 199,
+    "slug": "amfecloral",
+    "title": "Amfecloral",
+    "smiles": "ClC(C=NC(CC1=CC=CC=C1)C)(Cl)Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 200,
+    "slug": "amfonelic-acid",
+    "title": "Amfonelic-Acid",
+    "smiles": "CCN1C=C(C(=O)C2=C1N=C(C=C2)CC3=CC=CC=C3)C(=O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 201,
+    "slug": "aminorex",
+    "title": "Aminorex",
+    "smiles": "C1(=CC=CC=C1)C1CN=C(O1)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 202,
+    "slug": "aminotadalafil",
+    "title": "Aminotadalafil",
+    "smiles": "C1[C@@H]2C(=O)N(CC(=O)N2[C@@H](C3=C1C4=CC=CC=C4N3)C5=CC6=C(C=C5)OCO6)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 203,
+    "slug": "amobarbital",
+    "title": "Amobarbital",
+    "smiles": "CCC1(CCC(C)C)C(=O)NC(=O)NC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 204,
+    "slug": "amphetamine",
+    "title": "Amphetamine",
+    "smiles": "CC(N)CC1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 205,
+    "slug": "amt",
+    "title": "AMT",
+    "smiles": "N1C=C(C2=CC=CC=C12)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 206,
+    "slug": "aniracetam",
+    "title": "Aniracetam",
+    "smiles": "COc1ccc(cc1)C(=O)N1CCCC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 207,
+    "slug": "armodafinil",
+    "title": "Armodafinil",
+    "smiles": "NC(=O)C[S@@](=O)C(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 208,
+    "slug": "ashwagandha",
+    "title": "Ashwagandha",
+    "smiles": "CC1=C(C(=O)O[C@H](C1)[C@@H](C)[C@H]2CC[C@@H]3[C@@]2(CC[C@H]4[C@H]3C[C@@H]5[C@]6([C@@]4(C(=O)C=C[C@@H]6O)C)O5)C)CO",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 209,
+    "slug": "aspirin",
+    "title": "Aspirin",
+    "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 210,
+    "slug": "atomoxetine",
+    "title": "Atomoxetine",
+    "smiles": "CC1=CC=CC=C1O[C@H](CCNC)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 211,
+    "slug": "ayahuasca",
+    "title": "Ayahuasca",
+    "smiles": {
+      "components": {
+        "N,N-Dimethyltryptamine": "CN(C)CCC1=CNC2=CC=CC=C12",
+        "Harmine": "COC1=CC2=C(C=C1)C1=C(N2)C(C)=NC=C1"
+      }
+    },
+    "source": "titleIupacSmiles"
+  },
+  {
+    "id": 212,
+    "slug": "baclofen",
+    "title": "Baclofen",
+    "smiles": "NCC(CC(O)=O)C1=CC=C(Cl)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 213,
+    "slug": "barbital",
+    "title": "Barbital",
+    "smiles": "CCC1(C(=O)NC(=O)NC1=O)CC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 214,
+    "slug": "bentazepam",
+    "title": "Bentazepam",
+    "smiles": "C1CCC2=C(C1)C3=C(S2)NC(=O)CN=C3C4=CC=CC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 215,
+    "slug": "benzydamine",
+    "title": "Benzydamine",
+    "smiles": "CN(C)CCCOC1=NN(CC2=CC=CC=C2)C2=CC=CC=C12",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 216,
+    "slug": "bk-2c-b",
+    "title": "bk-2c-B",
+    "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)Br",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 217,
+    "slug": "bod",
+    "title": "BOD",
+    "smiles": "CC1=CC(=C(C=C1OC)C(CN)OC)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 218,
+    "slug": "bromantane",
+    "title": "Bromantane",
+    "smiles": "Brc1ccc(cc1)NC1C2CC3CC1CC(C2)C3",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 219,
+    "slug": "bromazepam",
+    "title": "Bromazepam",
+    "smiles": "BrC1=CC2=C(NC(=O)CN=C2C2=CC=CC=N2)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 220,
+    "slug": "bromazolam",
+    "title": "Bromazolam",
+    "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=CC=CC=C3)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 221,
+    "slug": "bromo-dragonfly",
+    "title": "Bromo-DragonFLY",
+    "smiles": "CC(Cc1c2occc2c(c2c1cco2)Br)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 222,
+    "slug": "brotizolam",
+    "title": "Brotizolam",
+    "smiles": "CC1=NN=C2CN=C(C3=C(SC(Br)=C3)N12)C1=CC=CC=C1Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 223,
+    "slug": "buphedrone",
+    "title": "Buphedrone",
+    "smiles": "CCC(C(=O)C1=CC=CC=C1)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 224,
+    "slug": "buprenorphine",
+    "title": "Buprenorphine",
+    "smiles": "CO[C@]12CC[C@@]3(C[C@@H]1[C@](C)(O)C(C)(C)C)[C@H]1CC4=C5C(O[C@@H]2[C@@]35CCN1CC1CC1)=C(O)C=C4",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 225,
+    "slug": "bupropion",
+    "title": "Bupropion",
+    "smiles": "CC(NC(C)(C)C)C(=O)C1=CC(Cl)=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 226,
+    "slug": "buspirone",
+    "title": "Buspirone",
+    "smiles": "C1CCC2(C1)CC(=O)N(C(=O)C2)CCCCN3CCN(CC3)C4=NC=CC=N4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 227,
+    "slug": "butylone",
+    "title": "Butylone",
+    "smiles": "CCC(C(=O)c1ccc2c(c1)OCO2)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 228,
+    "slug": "butyrfentanyl",
+    "title": "Butyrfentanyl",
+    "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 229,
+    "slug": "bzp",
+    "title": "BZP",
+    "smiles": "C(C1=CC=CC=C1)N1CCNCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 231,
+    "slug": "caffeine",
+    "title": "Caffeine",
+    "smiles": "CN1C=NC2=C1C(=O)N(C)C(=O)N2C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 232,
+    "slug": "cake",
+    "title": "Cake",
+    "smiles": null,
+    "source": null
+  },
+  {
+    "id": 233,
+    "slug": "camazepam",
+    "title": "Camazepam",
+    "smiles": "CN1C2=C(C=C(C=C2)Cl)C(=NC(C1=O)OC(=O)N(C)C)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 234,
+    "slug": "canket",
+    "title": "Canket",
+    "smiles": "FC1=C(C=CC=C1)C1(C(CCCC1)=O)NCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 235,
+    "slug": "cannabis",
+    "title": "Cannabis",
+    "smiles": "CC1(OC=2C=C(C=C(C2[C@H]2[C@H]1CCC(=C2)C)O)CCCCC)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 236,
+    "slug": "carisoprodol",
+    "title": "Carisoprodol",
+    "smiles": "CCCC(C)(COC(N)=O)COC(=O)NC(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 237,
+    "slug": "cathinone",
+    "title": "Cathinone",
+    "smiles": "C[C@@H](C(=O)C1=CC=CC=C1)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 238,
+    "slug": "changa",
+    "title": "Changa",
+    "smiles": "CN(C)CCC1=CNC2=CC=CC=C21",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 239,
+    "slug": "chloral-hydrate",
+    "title": "Chloral Hydrate",
+    "smiles": "ClC(C(O)O)(Cl)Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 240,
+    "slug": "chloral-betaine",
+    "title": "Chloral-Betaine",
+    "smiles": "C[N+](C)(C)CC(=O)[O-].C(C(Cl)(Cl)Cl)(O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 242,
+    "slug": "chloroform",
+    "title": "Chloroform",
+    "smiles": "C(Cl)(Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 243,
+    "slug": "choline-bitartrate",
+    "title": "Choline Bitartrate",
+    "smiles": "OCC[N+](C)(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 244,
+    "slug": "cinolazepam",
+    "title": "Cinolazepam",
+    "smiles": "C1=CC=C(C(=C1)C2=NC(C(=O)N(C3=C2C=C(C=C3)Cl)CCC#N)O)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 245,
+    "slug": "citalopram",
+    "title": "Citalopram",
+    "smiles": "CN(C)CCCC1(C2=C(CO1)C=C(C=C2)C#N)C3=CC=C(C=C3)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 246,
+    "slug": "citicoline",
+    "title": "Citicoline",
+    "smiles": "C[N+](C)(C)CCOP([O-])(=O)OP(O)(=O)OC[C@H]1O[C@H]([C@H](O)[C@@H]1O)N1C=CC(N)=NC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 247,
+    "slug": "clobazam",
+    "title": "Clobazam",
+    "smiles": "CN1C2=C(C=C(Cl)C=C2)N(C2=CC=CC=C2)C(=O)CC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 248,
+    "slug": "clomethiazole",
+    "title": "Clomethiazole",
+    "smiles": "CC1=C(SC=N1)CCCl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 249,
+    "slug": "clonazepam",
+    "title": "Clonazepam",
+    "smiles": "[O-][N+](=O)C1=CC2=C(NC(=O)CN=C2C2=CC=CC=C2Cl)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 250,
+    "slug": "clonazolam",
+    "title": "Clonazolam",
+    "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 251,
+    "slug": "clonidine",
+    "title": "Clonidine",
+    "smiles": "C1CN=C(N1)NC2=C(C=CC=C2Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 252,
+    "slug": "cloniprazepam",
+    "title": "Cloniprazepam",
+    "smiles": "C1CC1CN2C(=O)CN=C(C3=C2C=CC(=C3)[N+](=O)[O-])C4=CC=CC=C4Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 253,
+    "slug": "clonitazene",
+    "title": "Clonitazene",
+    "smiles": "CCN(CC)CCN1C2=C(C=C(C=C2)[N+](=O)[O-])N=C1CC3=CC=C(C=C3)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 254,
+    "slug": "clorazepate",
+    "title": "Clorazepate",
+    "smiles": "C1=CC=C(C=C1)C2=NC(C(=O)NC3=C2C=C(C=C3)Cl)C(=O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 255,
+    "slug": "clotiazepam",
+    "title": "Clotiazepam",
+    "smiles": "CCC1=CC2=C(S1)N(C(=O)CN=C2C3=CC=CC=C3Cl)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 256,
+    "slug": "cloxazolam",
+    "title": "Cloxazolam",
+    "smiles": "C1COC2(N1CC(=O)NC3=C2C=C(C=C3)Cl)C4=CC=CC=C4Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 257,
+    "slug": "cocaine",
+    "title": "Cocaine",
+    "smiles": "[H][C@]12CC[C@]([H])([C@H]([C@H](C1)OC(=O)C1=CC=CC=C1)C(=O)OC)N2C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 258,
+    "slug": "codeine",
+    "title": "Codeine",
+    "smiles": "[H][C@]12C=C[C@H](O)[C@@H]3OC4=C5C(C[C@H]1N(C)CC[C@@]235)=CC=C4OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 259,
+    "slug": "coluracetam",
+    "title": "Coluracetam",
+    "smiles": "O=C(Nc1c2CCCCc2nc2c1c(C)c(o2)C)CN1CCCC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 260,
+    "slug": "creatine",
+    "title": "Creatine",
+    "smiles": "CN(CC(O)=O)C(N)=N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 261,
+    "slug": "crl-40-940",
+    "title": "CRL-40-940",
+    "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)F)S(=O)CC(=O)N)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 262,
+    "slug": "crl-40-941",
+    "title": "CRL-40-941",
+    "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)F)S(=O)CC(=O)NO)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 263,
+    "slug": "cyclazodone",
+    "title": "Cyclazodone",
+    "smiles": "O=C1N=C(OC1c1ccccc1)NC1CC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 264,
+    "slug": "cyclizine",
+    "title": "Cyclizine",
+    "smiles": "CN1CCN(CC1)C(C2=CC=CC=C2)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 265,
+    "slug": "cyclo-methiodrone",
+    "title": "Cyclo-Methiodrone",
+    "smiles": "C1CCNC(C1)C(=O)C2=CC=CS2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 266,
+    "slug": "cyclobenzaprine",
+    "title": "Cyclobenzaprine",
+    "smiles": "CN(C)CCC=C1C2=CC=CC=C2C=CC3=CC=CC=C31",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 267,
+    "slug": "cyclopropylmescaline",
+    "title": "Cyclopropylmescaline",
+    "smiles": "COC1=CC(=CC(=C1OCC2CC2)OC)CCN",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 268,
+    "slug": "d2pm",
+    "title": "D2PM",
+    "smiles": "C1(=CC=CC=C1)C(O)(C1NCCC1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 269,
+    "slug": "dalt",
+    "title": "DALT",
+    "smiles": "C=CCN(CCC1=CNC2=CC=CC=C21)CC=C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 270,
+    "slug": "datura",
+    "title": "Datura",
+    "smiles": "CN1[C@@H]2CC(C[C@H]1[C@H]3[C@@H]2O3)OC(=O)[C@H](CO)C4=CC=CC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 271,
+    "slug": "dehydroxyfluorafinil",
+    "title": "Dehydroxyfluorafinil",
+    "smiles": "FC1=CC=C(C=C1)C(S(=O)CC(=O)NC)C1=CC=C(C=C1)F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 272,
+    "slug": "delorazepam",
+    "title": "Delorazepam",
+    "smiles": "ClC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)Cl)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 274,
+    "slug": "deschloroetizolam",
+    "title": "Deschloroetizolam",
+    "smiles": "CCc1cc2c(s1)n1c(CN=C2c2ccccc2)nnc1C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 275,
+    "slug": "deschloroketamine",
+    "title": "Deschloroketamine",
+    "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 276,
+    "slug": "desmethylflunitrazepam",
+    "title": "Desmethylflunitrazepam",
+    "smiles": "FC1=C(C=CC=C1)C1=NCC(NC2=C1C=C(C=C2)[N+](=O)[O-])=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 277,
+    "slug": "desomorphine",
+    "title": "Desomorphine",
+    "smiles": "CN1CC[C@@]23[C@@H]4[C@H]1Cc1c3c(O[C@H]2CCC4)c(cc1)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 278,
+    "slug": "desoxypipradrol",
+    "title": "Desoxypipradrol",
+    "smiles": "C1CCC(NC1)C(c1ccccc1)c1ccccc1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 279,
+    "slug": "det",
+    "title": "DET",
+    "smiles": "C(C)N(CCC1=CNC2=CC=CC=C12)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 280,
+    "slug": "dexmethylphenidate",
+    "title": "Dexmethylphenidate",
+    "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 281,
+    "slug": "dextroamphetamine",
+    "title": "Dextroamphetamine",
+    "smiles": "C[C@H](N)CC1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 282,
+    "slug": "dextromethorphan",
+    "title": "Dextromethorphan",
+    "smiles": "[H][C@]12CCCC[C@]11CCN(C)[C@H]2CC2=C1C=C(OC)C=C2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 283,
+    "slug": "dextromoramide",
+    "title": "Dextromoramide",
+    "smiles": "C[C@H](CN1CCOCC1)C(C2=CC=CC=C2)(C3=CC=CC=C3)C(=O)N4CCCC4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 284,
+    "slug": "dextropropoxyphene",
+    "title": "Dextropropoxyphene",
+    "smiles": "CCC(=O)O[C@@](CC1=CC=CC=C1)([C@H](C)CN(C)C)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 286,
+    "slug": "diazepam",
+    "title": "Diazepam",
+    "smiles": "CN1C2=C(C=C(Cl)C=C2)C(=NCC1=O)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 287,
+    "slug": "dichloropane",
+    "title": "Dichloropane",
+    "smiles": "COC(=O)[C@@H]1C2CCC(N2C)C[C@@H]1c1ccc(c(c1)Cl)Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 288,
+    "slug": "diclazepam",
+    "title": "Diclazepam",
+    "smiles": "Clc1ccc2c(c1)C(=NCC(=O)N2C)c1ccccc1Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 289,
+    "slug": "diclofensine",
+    "title": "Diclofensine",
+    "smiles": "CN1CC(C2=C(C1)C=C(C=C2)OC)C3=CC(=C(C=C3)Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 290,
+    "slug": "diethyl-ether",
+    "title": "Diethyl-Ether",
+    "smiles": "CCOCC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 291,
+    "slug": "dihydrocodeine",
+    "title": "Dihydrocodeine",
+    "smiles": "[H][C@@]12OC3=C4C(C[C@H]5N(C)CC[C@@]14[C@@]5([H])CC[C@@H]2O)=CC=C3OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 292,
+    "slug": "dimemebfe",
+    "title": "Dimemebfe",
+    "smiles": "CN(C)CCC1=COC2=C1C=C(C=C2)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 293,
+    "slug": "dimenhydrinate",
+    "title": "Dimenhydrinate",
+    "smiles": "CN1C2=C(N=C(Cl)N2)C(=O)N(C)C1=O.CN(C)CCOC(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 294,
+    "slug": "diphenhydramine",
+    "title": "Diphenhydramine",
+    "smiles": "CN(C)CCOC(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 295,
+    "slug": "diphenidine",
+    "title": "Diphenidine",
+    "smiles": "C1(=CC=CC=C1)C(CC1=CC=CC=C1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 296,
+    "slug": "dipipanone",
+    "title": "Dipipanone",
+    "smiles": "CCC(=O)C(CC(C)N1CCCCC1)(C2=CC=CC=C2)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 297,
+    "slug": "dipt",
+    "title": "DiPT",
+    "smiles": "C(C)(C)N(CCC1=CNC2=CC=CC=C12)C(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 298,
+    "slug": "dmaa",
+    "title": "DMAA",
+    "smiles": "CCC(C)CC(C)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 299,
+    "slug": "dmt",
+    "title": "DMT",
+    "smiles": "N1C=C(C2=CC=CC=C12)CCN(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 300,
+    "slug": "dmxe",
+    "title": "DMXE",
+    "smiles": "C(C)NC1(C(CCCC1)=O)C1=CC(=CC=C1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 301,
+    "slug": "dob",
+    "title": "DOB",
+    "smiles": "BrC1=CC(=C(C=C1OC)CC(C)N)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 302,
+    "slug": "doc",
+    "title": "DOC",
+    "smiles": "ClC1=CC(=C(C=C1OC)CC(C)N)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 303,
+    "slug": "doet",
+    "title": "DOET",
+    "smiles": "COC1=C(C=C(C(=C1)CC)OC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 304,
+    "slug": "doi",
+    "title": "DOI",
+    "smiles": "IC1=CC(=C(C=C1OC)CC(C)N)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 305,
+    "slug": "doip",
+    "title": "Doip",
+    "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CC(C)N)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 306,
+    "slug": "dom",
+    "title": "DOM",
+    "smiles": "COC1=C(C=C(C(=C1)C)OC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 307,
+    "slug": "don",
+    "title": "DON",
+    "smiles": "CC(CC1=CC(=C(C=C1OC)[N+](=O)[O-])OC)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 308,
+    "slug": "dopr",
+    "title": "Dopr",
+    "smiles": "CCCC1=CC(=C(C=C1OC)CC(C)N)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 309,
+    "slug": "doxylamine",
+    "title": "Doxylamine",
+    "smiles": "CC(C1=CC=CC=C1)(C2=CC=CC=N2)OCCN(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 310,
+    "slug": "dpt",
+    "title": "DPT",
+    "smiles": "N1C=C(C2=CC=CC=C12)CCN(CCC)CCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 311,
+    "slug": "ephedrine",
+    "title": "Ephedrine",
+    "smiles": "CN[C@@H](C)[C@H](O)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 312,
+    "slug": "ephenidine",
+    "title": "Ephenidine",
+    "smiles": "C(C)NC(CC1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 313,
+    "slug": "ephylone",
+    "title": "Ephylone",
+    "smiles": "CCCC(C(=O)C1=CC2=C(C=C1)OCO2)NCC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 314,
+    "slug": "ept",
+    "title": "EPT",
+    "smiles": "CCCN(CCc1c[nH]c2c1cccc2)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 315,
+    "slug": "escaline",
+    "title": "Escaline",
+    "smiles": "C(C)OC1=C(C=C(C=C1OC)CCN)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 316,
+    "slug": "estazolam",
+    "title": "Estazolam",
+    "smiles": "C1C2=NN=CN2C3=C(C=C(C=C3)Cl)C(=N1)C4=CC=CC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 317,
+    "slug": "eszopiclone",
+    "title": "Eszopiclone",
+    "smiles": "CN1CCN(CC1)C(=O)O[C@@H]1N(C(=O)C2=NC=CN=C12)C1=NC=C(Cl)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 318,
+    "slug": "et",
+    "title": "ET",
+    "smiles": "CCC(CC1=CNC2=CC=CC=C21)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 319,
+    "slug": "eth-cat",
+    "title": "ETH-CAT",
+    "smiles": "CCNC(C)C(=O)C1=CC=CC=C1",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 320,
+    "slug": "eth-lad",
+    "title": "ETH-LAD",
+    "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)CC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 321,
+    "slug": "ethaqualone",
+    "title": "Ethaqualone",
+    "smiles": "CCC1=CC=CC=C1N2C(=NC3=CC=CC=C3C2=O)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 322,
+    "slug": "ethchlorvynol",
+    "title": "Ethchlorvynol",
+    "smiles": "CCC(/C=C/Cl)(C#C)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 323,
+    "slug": "ethketamine",
+    "title": "Ethketamine",
+    "smiles": "CCNC1(CCCCC1=O)C2=CC=CC=C2Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 324,
+    "slug": "ethylmorphine",
+    "title": "Ethylmorphine",
+    "smiles": "CCOc1ccc2c3c1O[C@@H]1[C@@]43CCN([C@H](C2)[C@@H]4C=C[C@@H]1O)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 325,
+    "slug": "ethylone",
+    "title": "Ethylone",
+    "smiles": "CCNC(C(=O)c1ccc2c(c1)OCO2)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 326,
+    "slug": "ethylphenidate",
+    "title": "Ethylphenidate",
+    "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 327,
+    "slug": "etizolam",
+    "title": "Etizolam",
+    "smiles": "CCc1cc2c(s1)n1c(CN=C2c2ccccc2Cl)nnc1C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 328,
+    "slug": "eutylone",
+    "title": "Eutylone",
+    "smiles": "O1COC2=C1C=CC(=C2)C(C(CC)NCC)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 329,
+    "slug": "f-phenibut",
+    "title": "F-Phenibut",
+    "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 330,
+    "slug": "fasoracetam",
+    "title": "Fasoracetam",
+    "smiles": "C1CCN(CC1)C(=O)[C@H]2CCC(=O)N2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 331,
+    "slug": "fenethylline",
+    "title": "Fenethylline",
+    "smiles": "CC(Cc1ccccc1)NCCn1cnc2c1c(=O)n(C)c(=O)n2C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 332,
+    "slug": "fentanyl",
+    "title": "Fentanyl",
+    "smiles": "CCC(=O)N(C1CCN(CCC2=CC=CC=C2)CC1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 333,
+    "slug": "flmodafinil",
+    "title": "Flmodafinil",
+    "smiles": "FC1=CC=C(C=C1)C(S(=O)CC(=O)N)C1=CC=C(C=C1)F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 334,
+    "slug": "flualprazolam",
+    "title": "Flualprazolam",
+    "smiles": "Clc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccc1F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 335,
+    "slug": "flubromazepam",
+    "title": "Flubromazepam",
+    "smiles": "O=C1CN=C(c2c(N1)ccc(c2)Br)c1ccccc1F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 336,
+    "slug": "flubromazolam",
+    "title": "Flubromazolam",
+    "smiles": "Brc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccc1F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 337,
+    "slug": "fluclotizolam",
+    "title": "Fluclotizolam",
+    "smiles": "Clc1cc2c(s1)n1c(CN=C2c2ccccc2F)nnc1C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 338,
+    "slug": "flunitrazepam",
+    "title": "Flunitrazepam",
+    "smiles": "CN1C2=C(C=C(C=C2)[N+]([O-])=O)C(=NCC1=O)C1=CC=CC=C1F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 339,
+    "slug": "flunitrazolam",
+    "title": "Flunitrazolam",
+    "smiles": "Fc1ccccc1C1=NCc2n(c3c1cc(cc3)N(=O)=O)c(nn2)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 340,
+    "slug": "fluorolintane",
+    "title": "Fluorolintane",
+    "smiles": "FC1=C(C=CC=C1)C(CC1=CC=CC=C1)N1CCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 341,
+    "slug": "fluorophenibut",
+    "title": "Fluorophenibut",
+    "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 342,
+    "slug": "flurazepam",
+    "title": "Flurazepam",
+    "smiles": "CCN(CC)CCN1C2=C(C=C(Cl)C=C2)C(=NCC1=O)C1=CC=CC=C1F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 343,
+    "slug": "flutazolam",
+    "title": "Flutazolam",
+    "smiles": "C1COC2(N1CC(=O)N(C3=C2C=C(C=C3)Cl)CCO)C4=CC=CC=C4F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 344,
+    "slug": "flutoprazepam",
+    "title": "Flutoprazepam",
+    "smiles": "ClC=1C=CC2=C(C(=NCC(N2CC2CC2)=O)C2=C(C=CC=C2)F)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 345,
+    "slug": "furanylfentanyl",
+    "title": "Furanylfentanyl",
+    "smiles": "C1(=CC=CC=C1)N(C(=O)C=1OC=CC1)C1CCN(CC1)CCC1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 346,
+    "slug": "gaba",
+    "title": "GABA",
+    "smiles": "C(CC(=O)O)CN",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 347,
+    "slug": "gabapentin",
+    "title": "Gabapentin",
+    "smiles": "NCC1(CC(O)=O)CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 348,
+    "slug": "gbl",
+    "title": "GBL",
+    "smiles": "O=C1CCCO1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 349,
+    "slug": "ghb",
+    "title": "GHB",
+    "smiles": "C(CC(=O)O)CO",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 350,
+    "slug": "glaucine",
+    "title": "Glaucine",
+    "smiles": "CN1CCC2=CC(=C(C3=C2[C@@H]1CC4=CC(=C(C=C43)OC)OC)OC)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 351,
+    "slug": "glutethimide",
+    "title": "Glutethimide",
+    "smiles": "CCC1(CCC(=O)NC1=O)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 352,
+    "slug": "h-2c-b",
+    "title": "H-2c-B",
+    "smiles": "COC1=CC(=C(C=C1C(CN)O)OC)Br",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 353,
+    "slug": "halazepam",
+    "title": "Halazepam",
+    "smiles": "FC(F)(F)CN1C2=C(C=C(Cl)C=C2)C(=NCC1=O)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 354,
+    "slug": "haloperidol",
+    "title": "Haloperidol",
+    "smiles": "C1CN(CCC1(C2=CC=C(C=C2)Cl)O)CCCC(=O)C3=CC=C(C=C3)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 355,
+    "slug": "hdep-28",
+    "title": "HDEP-28",
+    "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC3=CC=CC=C3C=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 356,
+    "slug": "heroin",
+    "title": "Heroin",
+    "smiles": "[H][C@@]12C=C[C@H](OC(C)=O)[C@@H]3OC4=C(OC(C)=O)C=CC5=C4[C@]13CCN(C)[C@@H]2C5",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 357,
+    "slug": "hexedrone",
+    "title": "Hexedrone",
+    "smiles": "CCCCC(C(=O)c1ccccc1)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 359,
+    "slug": "hexobarbital",
+    "title": "Hexobarbital",
+    "smiles": "CC1(C(=O)NC(=O)N(C1=O)C)C2=CCCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 360,
+    "slug": "homosildenafil",
+    "title": "Homosildenafil",
+    "smiles": "CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)CC)OCC)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 361,
+    "slug": "hot-2",
+    "title": "HOT-2",
+    "smiles": "CCSC1=C(C=C(C(=C1)OC)CCNO)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 362,
+    "slug": "hot-7",
+    "title": "HOT-7",
+    "smiles": "CCCSC1=C(C=C(C(=C1)OC)CCNO)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 363,
+    "slug": "huperzine-a",
+    "title": "Huperzine-A",
+    "smiles": "C/C=C/1\\[C@@H]2CC3=C([C@]1(CC(=C2)C)N)C=CC(=O)N3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 364,
+    "slug": "hxe",
+    "title": "HXE",
+    "smiles": "CCNC1(CCCCC1=O)c1cccc(c1)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 365,
+    "slug": "hydrocodone",
+    "title": "Hydrocodone",
+    "smiles": "[H][C@@]12OC3=C(OC)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])CCC2=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 366,
+    "slug": "hydromorphone",
+    "title": "Hydromorphone",
+    "smiles": "[H][C@@]12OC3=C(O)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])CCC2=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 367,
+    "slug": "hydroxyzine",
+    "title": "Hydroxyzine",
+    "smiles": "OCCOCCN1CCN(CC1)C(C1=CC=CC=C1)C1=CC=C(Cl)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 368,
+    "slug": "ibogaine",
+    "title": "Ibogaine",
+    "smiles": "CCC1CC2CC3C1N(C2)CCC4=C3NC5=C4C=C(C=C5)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 369,
+    "slug": "ibuprofen",
+    "title": "Ibuprofen",
+    "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 370,
+    "slug": "indapex",
+    "title": "Indapex",
+    "smiles": "CC1=C(C2=C(N1)C=CC(=C2)OC)CCN(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 371,
+    "slug": "indapyrophenidone",
+    "title": "Indapyrophenidone",
+    "smiles": "C1CCN(C1)C(C2=CC=CC=C2)C(=O)C3=CC4=C(CCC4)C=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 372,
+    "slug": "isomethadone",
+    "title": "Isomethadone",
+    "smiles": "CCC(=O)C(C1=CC=CC=C1)(C2=CC=CC=C2)C(C)CN(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 373,
+    "slug": "isophenmetrazine",
+    "title": "Isophenmetrazine",
+    "smiles": "CC1COC(CN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 374,
+    "slug": "isopropylphenidate",
+    "title": "Isopropylphenidate",
+    "smiles": "CC(C)OC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 375,
+    "slug": "isoproscaline",
+    "title": "Isoproscaline",
+    "smiles": "CC(C)OC1=C(C=C(C=C1OC)CCN)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 376,
+    "slug": "jwh-018",
+    "title": "JWH-018",
+    "smiles": "C1(=CC=CC2=CC=CC=C12)C(=O)C1=CN(C2=CC=CC=C12)CCCCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 377,
+    "slug": "jwh-073",
+    "title": "JWH-073",
+    "smiles": "C(CCC)N1C=C(C2=CC=CC=C12)C(=O)C1=CC=CC2=CC=CC=C12",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 378,
+    "slug": "k-2c-b",
+    "title": "K-2c-B",
+    "smiles": null,
+    "source": null
+  },
+  {
+    "id": 379,
+    "slug": "k-2c-i",
+    "title": "K-2c-I",
+    "smiles": null,
+    "source": null
+  },
+  {
+    "id": 380,
+    "slug": "k-ivp",
+    "title": "K-IVP",
+    "smiles": null,
+    "source": null
+  },
+  {
+    "id": 381,
+    "slug": "kanna",
+    "title": "Kanna",
+    "smiles": "CN1CC[C@]2([C@@H]1CC(=O)CC2)C3=CC(=C(C=C3)OC)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 382,
+    "slug": "kava",
+    "title": "Kava",
+    "smiles": "COC1=CC(=O)OC(C1)\\C=C\\c1ccccc1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 383,
+    "slug": "ketamine",
+    "title": "Ketamine",
+    "smiles": "CNC1(CCCCC1=O)C1=CC=CC=C1Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 384,
+    "slug": "ketazolam",
+    "title": "Ketazolam",
+    "smiles": "CC1=CC(=O)N2CC(=O)N(C3=C(C2(O1)C4=CC=CC=C4)C=C(C=C3)Cl)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 385,
+    "slug": "ketobemidone",
+    "title": "Ketobemidone",
+    "smiles": "CCC(=O)C1(CCN(CC1)C)C2=CC(=CC=C2)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 386,
+    "slug": "khat",
+    "title": "Khat",
+    "smiles": "N[C@H](C(=O)C1=CC=CC=C1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 387,
+    "slug": "kratom",
+    "title": "Kratom",
+    "smiles": "CC[C@@H]1CN2CCC3=C([C@@H]2C[C@@H]1/C(=C\\OC)/C(=O)OC)NC4=C3C(=CC=C4)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 389,
+    "slug": "lae-32",
+    "title": "LAE-32",
+    "smiles": "CCNC(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(=C34)C2=C1)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 390,
+    "slug": "lagochilus-inebrians",
+    "title": "Lagochilus-Inebrians",
+    "smiles": "C[C@@H]1CC[C@@H]2[C@@]([C@@]13CC[C@](O3)(CCO)CO)(CC[C@@H]([C@@]2(C)CO)O)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 391,
+    "slug": "lean",
+    "title": "Lean",
+    "smiles": {
+      "components": {
+        "Codeine": "[H][C@]12C=C[C@H](O)[C@@H]3OC4=C5C(C[C@H]1N(C)CC[C@@]235)=CC=C4OC",
+        "Promethazine": "CC(CN1C2=CC=CC=C2SC2=CC=CC=C12)N(C)C"
+      }
+    },
+    "source": "titleIupacSmiles"
+  },
+  {
+    "id": 392,
+    "slug": "librium",
+    "title": "Librium",
+    "smiles": "CNC1=[N+]([O-])c2cc(Cl)ccc2N=C(c2ccccc2)C1",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 393,
+    "slug": "lisdexamfetamine",
+    "title": "Lisdexamfetamine",
+    "smiles": "C[C@@H](CC1=CC=CC=C1)NC(=O)[C@@H](N)CCCCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 394,
+    "slug": "lithium",
+    "title": "Lithium",
+    "smiles": "[Li]",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 395,
+    "slug": "loprazolam",
+    "title": "Loprazolam",
+    "smiles": "CN1CCN(CC1)/C=C\\2/C(=O)N3C(=N2)CN=C(C4=C3C=CC(=C4)[N+](=O)[O-])C5=CC=CC=C5Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 396,
+    "slug": "lorazepam",
+    "title": "Lorazepam",
+    "smiles": "OC1N=C(C2=CC=CC=C2Cl)C2=C(NC1=O)C=CC(Cl)=C2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 397,
+    "slug": "lormetazepam",
+    "title": "Lormetazepam",
+    "smiles": "CN1C2=C(C=C(C=C2)Cl)C(=NC(C1=O)O)C3=CC=CC=C3Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 398,
+    "slug": "lsa",
+    "title": "LSA",
+    "smiles": "CN1C[C@@H](C=C2C=3C=CC=C4NC=C(C[C@@H]12)C34)C(=O)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 399,
+    "slug": "lsd",
+    "title": "LSD",
+    "smiles": "[H][C@@]12CC3=CNC4=CC=CC(=C34)C1=C[C@H](CN2C)C(=O)N(CC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 400,
+    "slug": "lsm-775",
+    "title": "LSM-775",
+    "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N1CCOCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 401,
+    "slug": "lsz",
+    "title": "LSZ",
+    "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N1[C@@H](C)C[C@@H]1C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 402,
+    "slug": "mal",
+    "title": "MAL",
+    "smiles": "COC=1C=C(C=C(C1OCC(=C)C)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 403,
+    "slug": "marinol",
+    "title": "Marinol",
+    "smiles": "CCCCCC1=CC(=C2[C@@H]3C=C(CC[C@H]3C(OC2=C1)(C)C)C)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 404,
+    "slug": "mbdb",
+    "title": "MBDB",
+    "smiles": "CCC(CC1=CC2=C(C=C1)OCO2)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 405,
+    "slug": "mbzp",
+    "title": "Mbzp",
+    "smiles": "CN1CCN(CC1)CC2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 406,
+    "slug": "mcpp",
+    "title": "mCPP",
+    "smiles": "Clc1cccc(c1)N1CCNCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 408,
+    "slug": "mda",
+    "title": "MDA",
+    "smiles": "O1COC2=C1C=CC(=C2)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 409,
+    "slug": "mdai",
+    "title": "MDAI",
+    "smiles": "NC1Cc2c(C1)cc1c(c2)OCO1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 410,
+    "slug": "mdea",
+    "title": "MDEA",
+    "smiles": "O1COC2=C1C=CC(=C2)CC(C)NCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 411,
+    "slug": "mdma",
+    "title": "MDMA",
+    "smiles": "CNC(C)CC1=CC2=C(OCO2)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 412,
+    "slug": "mdoh",
+    "title": "Mdoh",
+    "smiles": "CC(CC1=CC2=C(C=C1)OCO2)NO",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 413,
+    "slug": "mdpa",
+    "title": "Mdpa",
+    "smiles": "CCCNC(C)CC1=CC2=C(C=C1)OCO2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 414,
+    "slug": "mdphp",
+    "title": "Mdphp",
+    "smiles": "CCCCC(C(=O)C1=CC2=C(C=C1)OCO2)N3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 415,
+    "slug": "mdpv",
+    "title": "MDPV",
+    "smiles": "CCCC(C(=O)c1ccc2c(c1)OCO2)N1CCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 416,
+    "slug": "meai",
+    "title": "Meai",
+    "smiles": "COC1=CC2=C(CC(C2)N)C=C1",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 417,
+    "slug": "mebroqualone",
+    "title": "Mebroqualone",
+    "smiles": "CC1=NC2=CC=CC=C2C(=O)N1C3=CC=CC=C3Br",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 418,
+    "slug": "meclofenoxate",
+    "title": "Meclofenoxate",
+    "smiles": "CN(CCOC(=O)COc1ccc(cc1)Cl)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 419,
+    "slug": "meclonazepam",
+    "title": "Meclonazepam",
+    "smiles": "C[C@H]1C(=O)NC2=C(C=C(C=C2)[N+](=O)[O-])C(=N1)C3=CC=CC=C3Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 420,
+    "slug": "medazepam",
+    "title": "Medazepam",
+    "smiles": "ClC=1C=CC2=C(C(=NCCN2C)C2=CC=CC=C2)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 421,
+    "slug": "mefloquine",
+    "title": "Mefloquine",
+    "smiles": "OC(C1CCCCN1)C1=CC(=NC2=C1C=CC=C2C(F)(F)F)C(F)(F)F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 422,
+    "slug": "melatonin",
+    "title": "Melatonin",
+    "smiles": "COC1=CC2=C(NC=C2CCNC(C)=O)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 423,
+    "slug": "mem",
+    "title": "MEM",
+    "smiles": "COC1=CC(=C(C=C1OC)OCC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 424,
+    "slug": "memantine",
+    "title": "Memantine",
+    "smiles": "CC12CC3CC(C)(C1)CC(N)(C3)C2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 425,
+    "slug": "mephedrone",
+    "title": "Mephedrone",
+    "smiles": "CNC(C(=O)c1ccc(cc1)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 426,
+    "slug": "mephenaqualone",
+    "title": "Mephenaqualone",
+    "smiles": "O=C1N(C(=Nc2c(OC)cccc12)c1ccccc1)c1ccccc1C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 427,
+    "slug": "mescaline",
+    "title": "Mescaline",
+    "smiles": "COC=1C=C(C=C(C1OC)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 428,
+    "slug": "met",
+    "title": "MET",
+    "smiles": "CCN(CCc1c[nH]c2c1cccc2)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 429,
+    "slug": "metaclazepam",
+    "title": "Metaclazepam",
+    "smiles": "CN1C(CN=C(C2=C1C=CC(=C2)Br)C3=CC=CC=C3Cl)COC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 430,
+    "slug": "metaxalone",
+    "title": "Metaxalone",
+    "smiles": "CC1=CC(=CC(=C1)OCC2CNC(=O)O2)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 431,
+    "slug": "methadone",
+    "title": "Methadone",
+    "smiles": "CCC(=O)C(CC(C)N(C)C)(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 432,
+    "slug": "methallylescaline",
+    "title": "Methallylescaline",
+    "smiles": "CC(=C)COC1=C(C=C(C=C1OC)CCN)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 433,
+    "slug": "methamnetamine",
+    "title": "Methamnetamine",
+    "smiles": "CC(CC1=CC2=CC=CC=C2C=C1)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 434,
+    "slug": "methamphetamine",
+    "title": "Methamphetamine",
+    "smiles": "CNC(Cc1ccccc1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 435,
+    "slug": "methaqualone",
+    "title": "Methaqualone",
+    "smiles": "CC1=CC=CC=C1N1C(C)=NC2=CC=CC=C2C1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 436,
+    "slug": "methcathinone",
+    "title": "Methcathinone",
+    "smiles": "CNC(C(=O)c1ccccc1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 437,
+    "slug": "methiopropamine",
+    "title": "Methiopropamine",
+    "smiles": "CNC(Cc1cccs1)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 438,
+    "slug": "methoxetamine",
+    "title": "Methoxetamine",
+    "smiles": "CCNC1(CCCCC1=O)c1cccc(c1)OC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 439,
+    "slug": "methoxphenidine",
+    "title": "Methoxphenidine",
+    "smiles": "COC1=CC=CC=C1C(CC2=CC=CC=C2)N3CCCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 440,
+    "slug": "methoxyacetyl-fentanyl",
+    "title": "Methoxyacetyl-Fentanyl",
+    "smiles": "COCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 441,
+    "slug": "methoxyketamine",
+    "title": "Methoxyketamine",
+    "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 442,
+    "slug": "methoxypiperamide",
+    "title": "Methoxypiperamide",
+    "smiles": "CN1CCN(CC1)C(=O)C2=CC=C(C=C2)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 443,
+    "slug": "methylmethaqualone",
+    "title": "Methylmethaqualone",
+    "smiles": "CC1=CC(=C(C=C1)N2C(=NC3=CC=CC=C3C2=O)C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 444,
+    "slug": "methylnaphthidate",
+    "title": "Methylnaphthidate",
+    "smiles": "COC(=O)C(c1ccc2c(c1)cccc2)C1CCCCN1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 445,
+    "slug": "methylone",
+    "title": "Methylone",
+    "smiles": "CNC(C(=O)c1ccc2c(c1)OCO2)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 446,
+    "slug": "methylphenidate",
+    "title": "Methylphenidate",
+    "smiles": "COC(=O)C(C1CCCCN1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 447,
+    "slug": "methyprylon",
+    "title": "Methyprylon",
+    "smiles": "CCC1(C(=O)C(CNC1=O)C)CC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 448,
+    "slug": "metizolam",
+    "title": "Metizolam",
+    "smiles": "CCc1cc2c(s1)n1cnnc1CN=C2c1ccccc1Cl",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 449,
+    "slug": "mexazolam",
+    "title": "Mexazolam",
+    "smiles": "CC1COC2(N1CC(=O)NC3=C2C=C(C=C3)Cl)C4=CC=CC=C4Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 450,
+    "slug": "mexedrone",
+    "title": "Mexedrone",
+    "smiles": "COCC(C(=O)c1ccc(cc1)C)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 451,
+    "slug": "midazolam",
+    "title": "Midazolam",
+    "smiles": "CC1=NC=C2CN=C(C3=CC=CC=C3F)C3=C(C=CC(Cl)=C3)N12",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 452,
+    "slug": "mipla",
+    "title": "MiPLA",
+    "smiles": "CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N(C(C)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 453,
+    "slug": "mipt",
+    "title": "MiPT",
+    "smiles": "CC(C)N(C)CCC1=CNC2=CC=CC=C21",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 454,
+    "slug": "mk-801",
+    "title": "MK-801",
+    "smiles": "CC12C3=CC=CC=C3CC(N1)C4=CC=CC=C24",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 455,
+    "slug": "moclobemide",
+    "title": "Moclobemide",
+    "smiles": "ClC1=CC=C(C=C1)C(=O)NCCN1CCOCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 456,
+    "slug": "modafinil",
+    "title": "Modafinil",
+    "smiles": "NC(=O)CS(=O)C(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 457,
+    "slug": "morpheridine",
+    "title": "Morpheridine",
+    "smiles": "CCOC(=O)C1(CCN(CC1)CCN2CCOCC2)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 458,
+    "slug": "morphine",
+    "title": "Morphine",
+    "smiles": "[H][C@@]12OC3=C(O)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])C=C[C@@H]2O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 459,
+    "slug": "mt-45",
+    "title": "MT-45",
+    "smiles": "C1CCC(CC1)N2CCN(CC2)C(CC3=CC=CC=C3)C4=CC=CC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 461,
+    "slug": "mxm",
+    "title": "MXM",
+    "smiles": "COC=1C=C(C=CC1)C1(C(CCCC1)=O)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 462,
+    "slug": "n-acetylcysteine",
+    "title": "N-Acetylcysteine",
+    "smiles": "CC(=O)N[C@@H](CS)C(O)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 463,
+    "slug": "n-ethylhexedrone",
+    "title": "N-Ethylhexedrone",
+    "smiles": "CCCCC(C(=O)C1=CC=CC=C1)NCC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 464,
+    "slug": "n-methylbisfluoromodafinil",
+    "title": "N-Methylbisfluoromodafinil",
+    "smiles": "O=S(CC(NC)=O)C(C1=CC=C(F)C=C1)C2=CC=C(F)C=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 465,
+    "slug": "naloxone",
+    "title": "Naloxone",
+    "smiles": "C=CCN1CC[C@]23[C@@H]4C(=O)CC[C@]2([C@H]1CC5=C3C(=C(C=C5)O)O4)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 466,
+    "slug": "naphyrone",
+    "title": "Naphyrone",
+    "smiles": "C1=C(C=CC2=CC=CC=C12)C(C(CCC)N1CCCC1)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 467,
+    "slug": "naproxen",
+    "title": "Naproxen",
+    "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 468,
+    "slug": "neb",
+    "title": "NEB",
+    "smiles": "CCC(C(=O)C1=CC=CC=C1)NCC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 469,
+    "slug": "nefiracetam",
+    "title": "Nefiracetam",
+    "smiles": "CC1=C(C(=CC=C1)C)NC(=O)CN2CCCC2=O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 470,
+    "slug": "nep",
+    "title": "NEP",
+    "smiles": "CCCC(C(=O)c1ccccc1)NCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 471,
+    "slug": "nicomorphine",
+    "title": "Nicomorphine",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC(=O)C6=CN=CC=C6)O[C@H]3[C@H](C=C4)OC(=O)C7=CN=CC=C7",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 472,
+    "slug": "nicotine",
+    "title": "Nicotine",
+    "smiles": "CN1CCC[C@H]1C1=CN=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 473,
+    "slug": "nifoxipam",
+    "title": "Nifoxipam",
+    "smiles": "OC1N=C(c2c(NC1=O)ccc(c2)N(=O)=O)c1ccccc1F",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 474,
+    "slug": "nimetazepam",
+    "title": "Nimetazepam",
+    "smiles": "CN1C(CN=C(C2=C1C=CC(=C2)[N+](=O)[O-])C2=CC=CC=C2)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 475,
+    "slug": "nitemazepam",
+    "title": "Nitemazepam",
+    "smiles": "CN1C2=C(C=C(C=C2)[N+](=O)[O-])C(=NC(C1=O)O)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 476,
+    "slug": "nitracaine",
+    "title": "Nitracaine",
+    "smiles": "CCN(CC)CC(C)(C)COC(=O)C1=CC=C(C=C1)[N+](=O)[O-]",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 477,
+    "slug": "nitrazepam",
+    "title": "Nitrazepam",
+    "smiles": "[O-][N+](=O)C1=CC2=C(NC(=O)CN=C2C2=CC=CC=C2)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 478,
+    "slug": "nitrazolam",
+    "title": "Nitrazolam",
+    "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 479,
+    "slug": "nitrous",
+    "title": "Nitrous",
+    "smiles": "[N-]=[N+]=O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 481,
+    "slug": "nm-2-ai",
+    "title": "NM-2-AI",
+    "smiles": "CNC1Cc2c(C1)cccc2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 482,
+    "slug": "noopept",
+    "title": "Noopept",
+    "smiles": "C1(=CC=CC=C1)CC(=O)N1[C@@H](CCC1)C(=O)NCC(=O)OCC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 483,
+    "slug": "nordazepam",
+    "title": "Nordazepam",
+    "smiles": "C1C(=O)NC2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 484,
+    "slug": "norflurazepam",
+    "title": "Norflurazepam",
+    "smiles": "ClC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)F)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 485,
+    "slug": "nutmeg",
+    "title": "Nutmeg",
+    "smiles": "COC1=CC(=CC=2OCOC21)CC=C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 486,
+    "slug": "o-desmethyltramadol",
+    "title": "O-Desmethyltramadol",
+    "smiles": "CN(C)C[C@H]1CCCC[C@@]1(C2=CC(=CC=C2)O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 487,
+    "slug": "o-pce",
+    "title": "O-PCE",
+    "smiles": "CCNC1(CCCCC1=O)c1ccccc1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 488,
+    "slug": "opium",
+    "title": "Opium",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 489,
+    "slug": "oxazepam",
+    "title": "Oxazepam",
+    "smiles": "OC1N=C(C2=CC=CC=C2)C2=C(NC1=O)C=CC(Cl)=C2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 490,
+    "slug": "oxazolam",
+    "title": "Oxazolam",
+    "smiles": "CC1CN2CC(=O)NC3=C(C2(O1)C4=CC=CC=C4)C=C(C=C3)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 491,
+    "slug": "oxiracetam",
+    "title": "Oxiracetam",
+    "smiles": "NC(=O)CN1CC(CC1=O)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 492,
+    "slug": "oxycodone",
+    "title": "Oxycodone",
+    "smiles": "COC1=C2O[C@H]3C(=O)CC[C@@]4(O)[C@H]5CC(C=C1)=C2[C@@]34CCN5C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 493,
+    "slug": "oxymorphone",
+    "title": "Oxymorphone",
+    "smiles": "[H][C@@]12OC3=C(O)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1(O)CCC2=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 494,
+    "slug": "pagoclone",
+    "title": "Pagoclone",
+    "smiles": "CC(C)CCC(=O)CC1C2=CC=CC=C2C(=O)N1C3=NC4=C(C=C3)C=CC(=N4)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 495,
+    "slug": "paracetamol",
+    "title": "Paracetamol",
+    "smiles": "CC(=O)NC1=CC=C(C=C1)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 496,
+    "slug": "parafluorofentanyl",
+    "title": "Parafluorofentanyl",
+    "smiles": "CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 497,
+    "slug": "pargy-lad",
+    "title": "Pargy-LAD",
+    "smiles": "CCN(CC)C(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(=C34)C2=C1)CC#C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 498,
+    "slug": "pbp",
+    "title": "PBP",
+    "smiles": "CCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 499,
+    "slug": "pce",
+    "title": "PCE",
+    "smiles": "C(C)NC1(CCCCC1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 500,
+    "slug": "pcp",
+    "title": "PCP",
+    "smiles": "C1(=CC=CC=C1)C1(CCCCC1)N1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 501,
+    "slug": "pemoline",
+    "title": "Pemoline",
+    "smiles": "NC1=NC(=O)C(O1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 502,
+    "slug": "pentazocine",
+    "title": "Pentazocine",
+    "smiles": "C[C@H]1[C@H]2CC3=C([C@@]1(CCN2CC=C(C)C)C)C=C(C=C3)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 503,
+    "slug": "pentedrone",
+    "title": "Pentedrone",
+    "smiles": "CCCC(C(=O)c1ccccc1)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 504,
+    "slug": "pentobarbital",
+    "title": "Pentobarbital",
+    "smiles": "CCCC(C)C1(CC)C(=O)NC(=O)NC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 505,
+    "slug": "pentylone",
+    "title": "Pentylone",
+    "smiles": "CCCC(C(=O)C1=CC2=C(C=C1)OCO2)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 506,
+    "slug": "pethidine",
+    "title": "Pethidine",
+    "smiles": "CCOC(=O)C1(CCN(C)CC1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 507,
+    "slug": "pfbt",
+    "title": "Pfbt",
+    "smiles": "CN1C2CCC1CC(C2)OC(=O)C3=CC=C(C=C3)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 508,
+    "slug": "phenazepam",
+    "title": "Phenazepam",
+    "smiles": "BrC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)Cl)C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 509,
+    "slug": "phenethylamine",
+    "title": "Phenethylamine",
+    "smiles": "C1(=CC=CC=C1)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 510,
+    "slug": "phenetrazine",
+    "title": "Phenetrazine",
+    "smiles": "CCC1C(OCCN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 511,
+    "slug": "phenibut",
+    "title": "Phenibut",
+    "smiles": "NCC(c1ccccc1)CC(=O)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 512,
+    "slug": "phenmetrazine",
+    "title": "Phenmetrazine",
+    "smiles": "CC1C(OCCN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 513,
+    "slug": "phenobarbital",
+    "title": "Phenobarbital",
+    "smiles": "CCC1(C(=O)NC(=O)NC1=O)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 514,
+    "slug": "phentermine",
+    "title": "Phentermine",
+    "smiles": "CC(C)(CC1=CC=CC=C1)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 515,
+    "slug": "phenylpiracetam",
+    "title": "Phenylpiracetam",
+    "smiles": "NC(=O)CN1CC(CC1=O)c1ccccc1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 516,
+    "slug": "picamilon",
+    "title": "Picamilon",
+    "smiles": "C1=CC(=CN=C1)C(=O)NCCCC(=O)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 517,
+    "slug": "pinazepam",
+    "title": "Pinazepam",
+    "smiles": "C#CCN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 518,
+    "slug": "pipradrol",
+    "title": "Pipradrol",
+    "smiles": "[H]N1CCCCC1C(O)(C1=CC=CC=C1)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 519,
+    "slug": "pipt",
+    "title": "Pipt",
+    "smiles": "CCCN(CCC1=CNC2=CC=CC=C21)C(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 520,
+    "slug": "piracetam",
+    "title": "Piracetam",
+    "smiles": "NC(=O)CN1CCCC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 521,
+    "slug": "pma",
+    "title": "PMA",
+    "smiles": "COC1=CC=C(C=C1)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 522,
+    "slug": "pmma",
+    "title": "PMMA",
+    "smiles": "COC1=CC=C(C=C1)CC(C)NC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 523,
+    "slug": "pramiracetam",
+    "title": "Pramiracetam",
+    "smiles": "CC(C)N(CCNC(=O)CN1CCCC1=O)C(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 524,
+    "slug": "prazepam",
+    "title": "Prazepam",
+    "smiles": "ClC1=CC2=C(C=C1)N(CC1CC1)C(=O)CN=C2C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 525,
+    "slug": "pre-084",
+    "title": "PRE-084",
+    "smiles": "C1(=CC=CC=C1)C1(CCCCC1)C(=O)OCCN1CCOCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 526,
+    "slug": "pregabalin",
+    "title": "Pregabalin",
+    "smiles": "CC(C)C[C@H](CN)CC(O)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 527,
+    "slug": "prl-8-53",
+    "title": "PRL-8-53",
+    "smiles": "CN(CCC1=CC(=CC=C1)C(=O)OC)CC2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 528,
+    "slug": "pro-lad",
+    "title": "PRO-LAD",
+    "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(C2=C1)=C34)CCC)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 529,
+    "slug": "prochlorperazine",
+    "title": "Prochlorperazine",
+    "smiles": "CN1CCN(CC1)CCCN2C3=CC=CC=C3SC4=C2C=C(C=C4)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 530,
+    "slug": "progesterone",
+    "title": "Progesterone",
+    "smiles": "CC(=O)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CCC4=CC(=O)CC[C@]34C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 531,
+    "slug": "prolintane",
+    "title": "Prolintane",
+    "smiles": "CCCC(N1CCCC1)Cc1ccccc1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 532,
+    "slug": "promethazine",
+    "title": "Promethazine",
+    "smiles": "CC(CN1C2=CC=CC=C2SC3=CC=CC=C31)N(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 533,
+    "slug": "propofol",
+    "title": "Propofol",
+    "smiles": "CC(C)C1=C(C(=CC=C1)C(C)C)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 534,
+    "slug": "propoxyphene",
+    "title": "Propoxyphene",
+    "smiles": "CCC(=O)O[C@](CC1=CC=CC=C1)(C2=CC=CC=C2)[C@H](C)CN(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 535,
+    "slug": "propranolol",
+    "title": "Propranolol",
+    "smiles": "CC(C)NCC(O)COC1=CC=CC2=C1C=CC=C2",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 536,
+    "slug": "propylhexedrine",
+    "title": "Propylhexedrine",
+    "smiles": "CNC(C)CC1CCCCC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 537,
+    "slug": "propylphenidate",
+    "title": "Propylphenidate",
+    "smiles": "CCCOC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 538,
+    "slug": "proscaline",
+    "title": "Proscaline",
+    "smiles": "COC=1C=C(C=C(C1OCCC)OC)CCN",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 539,
+    "slug": "pseudoephrine",
+    "title": "Pseudoephrine",
+    "smiles": "C[C@@H]([C@H](C1=CC=CC=C1)O)NC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 540,
+    "slug": "psilocin",
+    "title": "Psilocin",
+    "smiles": "CN(CCC1=CNC=2C=CC=C(C12)O)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 541,
+    "slug": "psilocybin-mushrooms",
+    "title": "Psilocybin Mushrooms",
+    "smiles": "P(=O)(OC1=C2C(=CNC2=CC=C1)CCN(C)C)(O)O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 542,
+    "slug": "pst",
+    "title": "PST",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 543,
+    "slug": "pv-8",
+    "title": "PV-8",
+    "smiles": "CCCCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 544,
+    "slug": "pvt",
+    "title": "PVT",
+    "smiles": "CCCC(C(=O)C1=CC=CS1)N2CCCC2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 545,
+    "slug": "pyrazolam",
+    "title": "Pyrazolam",
+    "smiles": "Brc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccn1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 546,
+    "slug": "pyrophenidone",
+    "title": "Pyrophenidone",
+    "smiles": "CC1=CC=C(C=C1)C(=O)C(C2=CC=CC=C2)N3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 547,
+    "slug": "quazepam",
+    "title": "Quazepam",
+    "smiles": "C1C(=S)N(C2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3F)CC(F)(F)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 548,
+    "slug": "quetiapine",
+    "title": "Quetiapine",
+    "smiles": "OCCOCCN1CCN(CC1)C1=NC2=CC=CC=C2SC2=CC=CC=C12",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 549,
+    "slug": "rilmazafone",
+    "title": "Rilmazafone",
+    "smiles": "CN(C)C(=O)C1=NN(C(=N1)CNC(=O)CN)C2=C(C=C(C=C2)Cl)C(=O)C3=CC=CC=C3Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 550,
+    "slug": "risperidone",
+    "title": "Risperidone",
+    "smiles": "CC1=C(C(=O)N2CCCCC2=N1)CCN3CCC(CC3)C4=NOC5=C4C=CC(=C5)F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 551,
+    "slug": "rolicyclidine",
+    "title": "Rolicyclidine",
+    "smiles": "C1CCC(CC1)(C2=CC=CC=C2)N3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 552,
+    "slug": "ronlax",
+    "title": "Ronlax",
+    "smiles": "CCOC(=O)C1C(=O)NC2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3F",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 553,
+    "slug": "salvia",
+    "title": "Salvia",
+    "smiles": "CC(=O)O[C@H]1C[C@H]([C@@]2(CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]2C1=O)C)C4=COC=C4)C)C(=O)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 554,
+    "slug": "salvinorin-b-methoxymethyl-ether",
+    "title": "Salvinorin-B-Methoxymethyl-Ether",
+    "smiles": "C[C@@]12CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]1C(=O)[C@H](C[C@H]2C(=O)OC)OCOC)C)C4=COC=C4",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 555,
+    "slug": "sam-e",
+    "title": "SAM-e",
+    "smiles": "C[S+](CC[C@H](N)C([O-])=O)C[C@H]1O[C@H]([C@H](O)[C@@H]1O)N1C=NC2=C1N=CN=C2N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 556,
+    "slug": "scopolamine",
+    "title": "Scopolamine",
+    "smiles": "CN1[C@H]2C[C@@H](C[C@@H]1[C@H]1O[C@@H]21)OC(=O)[C@H](CO)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 557,
+    "slug": "secobarbital",
+    "title": "Secobarbital",
+    "smiles": "CCCC(C)C1(CC=C)C(=O)NC(=O)NC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 558,
+    "slug": "sentia",
+    "title": "Sentia",
+    "smiles": null,
+    "source": null
+  },
+  {
+    "id": 559,
+    "slug": "sertraline",
+    "title": "Sertraline",
+    "smiles": "CN[C@H]1CC[C@H](C2=CC=CC=C12)C3=CC(=C(C=C3)Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 560,
+    "slug": "sildenafil",
+    "title": "Sildenafil",
+    "smiles": "CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)C)OCC)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 561,
+    "slug": "sinicuichi",
+    "title": "Sinicuichi",
+    "smiles": "COC1=C(C=C2C(=C1)[C@@H]3C[C@H](C[C@@H]4N3CCCC4)OC(=O)/C=C\\C5=CC2=C(C=C5)O)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 562,
+    "slug": "sonata",
+    "title": "Sonata",
+    "smiles": "CCN(C1=CC=CC(=C1)C2=CC=NC3=C(C=NN23)C#N)C(=O)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 563,
+    "slug": "sufentanil",
+    "title": "Sufentanil",
+    "smiles": "CCC(=O)N(C1=CC=CC=C1)C1(COC)CCN(CCC2=CC=CS2)CC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 564,
+    "slug": "sulbutiamine",
+    "title": "Sulbutiamine",
+    "smiles": "CC1=NC=C(C(=N1)N)CN(/C(=C(/SS/C(=C(/N(C=O)CC2=CN=C(N=C2N)C)\\C)/CCOC(=O)C(C)C)\\CCOC(=O)C(C)C)/C)C=O",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 565,
+    "slug": "tadalafil",
+    "title": "Tadalafil",
+    "smiles": "CN1CC(=O)N2[C@@H](C1=O)CC3=C([C@H]2C4=CC5=C(C=C4)OCO5)NC6=CC=CC=C36",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 566,
+    "slug": "tapentadol",
+    "title": "Tapentadol",
+    "smiles": "CC[C@H]([C@@H](C)CN(C)C)C1=CC(O)=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 567,
+    "slug": "temazepam",
+    "title": "Temazepam",
+    "smiles": "CN1C2=C(C=C(Cl)C=C2)C(=NC(O)C1=O)C1=CC=CC=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 568,
+    "slug": "tetrazepam",
+    "title": "Tetrazepam",
+    "smiles": "CN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CCCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 569,
+    "slug": "th-pvp",
+    "title": "TH-PVP",
+    "smiles": "CCCC(C(=O)C1=CC2=C(CCCC2)C=C1)N3CCCC3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 570,
+    "slug": "theacrine",
+    "title": "Theacrine",
+    "smiles": "CN1C(N(C=2N(C(N(C2C1=O)C)=O)C)C)=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 571,
+    "slug": "theanine",
+    "title": "Theanine",
+    "smiles": "CCNC(=O)CC[C@@H](C(=O)O)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 572,
+    "slug": "theobromine",
+    "title": "Theobromine",
+    "smiles": "CN1C=NC2=C1C(=O)NC(=O)N2C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 573,
+    "slug": "thiopental",
+    "title": "Thiopental",
+    "smiles": "CCCC(C)C1(CC)C(=O)NC(=S)NC1=O",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 574,
+    "slug": "thiopropamine",
+    "title": "Thiopropamine",
+    "smiles": "CC(CC1=CC=CS1)N",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 575,
+    "slug": "tianeptine",
+    "title": "Tianeptine",
+    "smiles": "OC(=O)CCCCCCNC1c2ccccc2N(S(=O)(=O)c2c1ccc(c2)Cl)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 576,
+    "slug": "tiletamine",
+    "title": "Tiletamine",
+    "smiles": "C(C)NC1(C(CCCC1)=O)C=1SC=CC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 577,
+    "slug": "tilidine",
+    "title": "Tilidine",
+    "smiles": "CCOC(=O)[C@@]1(CCC=C[C@H]1N(C)C)C2=CC=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 578,
+    "slug": "tizanidine",
+    "title": "Tizanidine",
+    "smiles": "C1CN=C(N1)NC2=C(C=CC3=NSN=C32)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 579,
+    "slug": "tma",
+    "title": "TMA",
+    "smiles": "COC=1C=C(C=C(C1OC)OC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 580,
+    "slug": "tma-2",
+    "title": "TMA-2",
+    "smiles": "COC1=C(C=C(C(=C1)OC)OC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 581,
+    "slug": "tma-6",
+    "title": "TMA-6",
+    "smiles": "COC1=C(C(=CC(=C1)OC)OC)CC(C)N",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 582,
+    "slug": "tobacco",
+    "title": "Tobacco",
+    "smiles": "CN1CCC[C@H]1C2=CN=CC=C2",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 583,
+    "slug": "tramadol",
+    "title": "Tramadol",
+    "smiles": "COC1=CC=CC(=C1)C1(O)CCCCC1CN(C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 584,
+    "slug": "trazodone",
+    "title": "Trazodone",
+    "smiles": "ClC1=CC=CC(=C1)N1CCN(CCCN2N=C3C=CC=CN3C2=O)CC1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 585,
+    "slug": "triazolam",
+    "title": "Triazolam",
+    "smiles": "CC1=NN=C2CN=C(C3=CC=CC=C3Cl)C3=C(C=CC(Cl)=C3)N12",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 586,
+    "slug": "troparil",
+    "title": "Troparil",
+    "smiles": "CN1[C@H]2CC[C@@H]1[C@H]([C@H](C2)C3=CC=CC=C3)C(=O)OC",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 587,
+    "slug": "u-47700",
+    "title": "U-47700",
+    "smiles": "CN([C@@H]1CCCC[C@H]1N(C(=O)c1ccc(c(c1)Cl)Cl)C)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 588,
+    "slug": "u-51754",
+    "title": "U-51754",
+    "smiles": "CN(C)C1CCCCC1N(C)C(=O)CC2=CC(=C(C=C2)Cl)Cl",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 589,
+    "slug": "ur-144",
+    "title": "UR-144",
+    "smiles": "CCCCCN1C=C(C2=CC=CC=C21)C(=O)C3C(C3(C)C)(C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 590,
+    "slug": "valerylfentanyl",
+    "title": "Valerylfentanyl",
+    "smiles": "CCCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 591,
+    "slug": "viloxazine",
+    "title": "Viloxazine",
+    "smiles": "CCOC1=CC=CC=C1OCC1CNCCO1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 592,
+    "slug": "w-15",
+    "title": "W-15",
+    "smiles": "C1CCN(/C(=N/S(=O)(=O)C2=CC=C(C=C2)Cl)/C1)CCC3=CC=CC=C3",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 593,
+    "slug": "yerba-mate",
+    "title": "Yerba-Mate",
+    "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 594,
+    "slug": "yopo",
+    "title": "Yopo",
+    "smiles": "CN(CCC1=CNC2=CC=C(C=C12)O)C",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 595,
+    "slug": "zaleplon",
+    "title": "Zaleplon",
+    "smiles": "C(#N)C=1C=NN2C1N=CC=C2C=2C=C(C=CC2)N(C(C)=O)CC",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 596,
+    "slug": "zolazepam",
+    "title": "Zolazepam",
+    "smiles": "CC1=NN(C2=C1C(=NCC(=O)N2C)C3=CC=CC=C3F)C",
+    "source": "generatedSmiles"
+  },
+  {
+    "id": 597,
+    "slug": "zolpidem",
+    "title": "Zolpidem",
+    "smiles": "CN(C)C(=O)CC1=C(N=C2C=CC(C)=CN12)C1=CC=C(C)C=C1",
+    "source": "identification.smiles"
+  },
+  {
+    "id": 598,
+    "slug": "zopiclone",
+    "title": "Zopiclone",
+    "smiles": "CN1CCN(CC1)C(=O)OC1N(C(=O)C2=NC=CN=C12)C1=NC=C(Cl)C=C1",
+    "source": "identification.smiles"
+  }
+]

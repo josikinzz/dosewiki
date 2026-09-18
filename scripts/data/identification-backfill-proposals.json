@@ -1,0 +1,426 @@
+{
+  "proposals": {
+    "2-aminoindane": {
+      "identification": {
+        "smiles": "C1C(CC2=CC=CC=C21)N",
+        "iupac_name": "2,3-dihydro-1H-inden-2-amine",
+        "molecular_formula": "C9H11N",
+        "molecular_weight": "133.19 g/mol",
+        "inchi_key": "LMHHFZAXSANGGM-UHFFFAOYSA-N",
+        "cas_number": "2975-41-9"
+      }
+    },
+    "2-fluorodeschloroketamine": {
+      "identification": {
+        "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2F",
+        "iupac_name": "2-(2-fluorophenyl)-2-(methylamino)cyclohexan-1-one",
+        "molecular_formula": "C13H16FNO",
+        "molecular_weight": "221.27 g/mol",
+        "inchi_key": "PHFAGYYTDLITTB-UHFFFAOYSA-N",
+        "cas_number": "111982-50-4"
+      },
+      "psychoactive_class": [
+        "Dissociative",
+        "Hallucinogen"
+      ]
+    },
+    "25b-nbome": {
+      "identification": {
+        "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Br)OC",
+        "iupac_name": "2-(4-bromo-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine",
+        "molecular_formula": "C18H22BrNO3",
+        "molecular_weight": "380.3 g/mol",
+        "inchi_key": "SUXGNJVVBGJEFB-UHFFFAOYSA-N",
+        "cas_number": "1026511-90-9"
+      }
+    },
+    "25c-nbome": {
+      "identification": {
+        "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Cl)OC",
+        "iupac_name": "2-(4-chloro-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine",
+        "molecular_formula": "C18H22ClNO3",
+        "molecular_weight": "335.8 g/mol",
+        "inchi_key": "FJFPOGCVVLUYAQ-UHFFFAOYSA-N",
+        "cas_number": "1227608-02-7"
+      }
+    },
+    "25e-nbome": {
+      "identification": {
+        "smiles": "CCC1=CC(=C(C=C1OC)CCNCC2=CC=CC=C2OC)OC",
+        "iupac_name": "2-(4-ethyl-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine",
+        "molecular_formula": "C20H27NO3",
+        "molecular_weight": "329.4 g/mol",
+        "inchi_key": "PXDVGFGXPVCNAB-UHFFFAOYSA-N",
+        "cas_number": "1354632-14-6"
+      }
+    },
+    "2c-ip": {
+      "identification": {
+        "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CCN)OC",
+        "iupac_name": "2-(2,5-dimethoxy-4-propan-2-ylphenyl)ethanamine",
+        "molecular_formula": "C13H21NO2",
+        "molecular_weight": "223.31 g/mol",
+        "inchi_key": "XUGPCRRUMVWELT-UHFFFAOYSA-N",
+        "cas_number": "1498978-47-4"
+      }
+    },
+    "3-meo-pcpy": {
+      "identification": {
+        "smiles": "COC1=CC=CC(=C1)C2(CCCCC2)N3CCCC3",
+        "iupac_name": "1-[1-(3-methoxyphenyl)cyclohexyl]pyrrolidine",
+        "molecular_formula": "C17H25NO",
+        "molecular_weight": "259.4 g/mol",
+        "inchi_key": "NLTZYGQREVLCBK-UHFFFAOYSA-N",
+        "cas_number": "1364933-79-8"
+      },
+      "psychoactive_class": [
+        "Dissociative",
+        "Hallucinogen"
+      ]
+    },
+    "4-aco-met": {
+      "identification": {
+        "smiles": "CCN(C)CCC1=CNC2=C1C(=CC=C2)OC(=O)C",
+        "iupac_name": "[3-[2-[ethyl(methyl)amino]ethyl]-1H-indol-4-yl] acetate",
+        "molecular_formula": "C15H20N2O2",
+        "molecular_weight": "260.33 g/mol",
+        "inchi_key": "OMDKHOOGGJRLLX-UHFFFAOYSA-N",
+        "cas_number": "1445751-40-5"
+      }
+    },
+    "4-fluorobutyrfentanyl": {
+      "identification": {
+        "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+        "iupac_name": "N-(4-fluorophenyl)-N-[1-(2-phenylethyl)piperidin-4-yl]butanamide",
+        "molecular_formula": "C23H29FN2O",
+        "molecular_weight": "368.5 g/mol",
+        "inchi_key": "QZFMCYUBPSLOBP-UHFFFAOYSA-N",
+        "cas_number": "244195-31-1"
+      }
+    },
+    "4-ho-mipt": {
+      "identification": {
+        "smiles": "CC(C)N(C)CCC1=CNC2=C1C(=CC=C2)O",
+        "iupac_name": "3-[2-[methyl(propan-2-yl)amino]ethyl]-1H-indol-4-ol",
+        "molecular_formula": "C14H20N2O",
+        "molecular_weight": "232.32 g/mol",
+        "inchi_key": "RXKGHZCQFXXWFQ-UHFFFAOYSA-N",
+        "cas_number": "77872-43-6"
+      }
+    },
+    "4-meo-butyrfentanyl": {
+      "identification": {
+        "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)OC",
+        "iupac_name": "N-(4-methoxyphenyl)-N-[1-(2-phenylethyl)piperidin-4-yl]butanamide",
+        "molecular_formula": "C24H32N2O2",
+        "molecular_weight": "380.5 g/mol",
+        "inchi_key": "FNVSEQCPMXWQKG-UHFFFAOYSA-N",
+        "cas_number": "2088842-68-4"
+      }
+    },
+    "4-methylmethylphenidate": {
+      "identification": {
+        "smiles": "CC1=CC=C(C=C1)[C@H]([C@@H]2CCCCN2)C(=O)OC",
+        "iupac_name": "methyl (2R)-2-(4-methylphenyl)-2-[(2S)-piperidin-2-yl]acetate",
+        "molecular_formula": "C15H21NO2",
+        "molecular_weight": "247.33 g/mol",
+        "inchi_key": "WJZNCJIOIACDBR-UONOGXRCSA-N",
+        "cas_number": "467468-40-2"
+      }
+    },
+    "5-methylethylone": {
+      "identification": {
+        "smiles": "CCNC(C)C(=O)C1=CC2=C(C(=C1)C)OCO2",
+        "iupac_name": "2-(ethylamino)-1-(7-methyl-1,3-benzodioxol-5-yl)propan-1-one",
+        "molecular_formula": "C13H17NO3",
+        "molecular_weight": "235.28 g/mol",
+        "inchi_key": "YCLKQJDSTUZDKJ-UHFFFAOYSA-N",
+        "cas_number": "1364933-82-3"
+      },
+      "psychoactive_class": [
+        "Entactogen",
+        "Stimulant"
+      ]
+    },
+    "a-pvp": {
+      "identification": {
+        "smiles": "CCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+        "iupac_name": "1-phenyl-2-pyrrolidin-1-ylpentan-1-one",
+        "molecular_formula": "C15H21NO",
+        "molecular_weight": "231.33 g/mol",
+        "inchi_key": "YDIIDRWHPFMLGR-UHFFFAOYSA-N",
+        "cas_number": "14530-33-7"
+      }
+    },
+    "bk-2c-b": {
+      "identification": {
+        "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)Br",
+        "iupac_name": "2-amino-1-(4-bromo-2,5-dimethoxyphenyl)ethanone",
+        "molecular_formula": "C10H12BrNO3",
+        "molecular_weight": "274.11 g/mol",
+        "inchi_key": "HFYJGAIOBIDRPX-UHFFFAOYSA-N",
+        "cas_number": "807631-09-0"
+      }
+    },
+    "butyrfentanyl": {
+      "identification": {
+        "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+        "iupac_name": "N-phenyl-N-[1-(2-phenylethyl)piperidin-4-yl]butanamide",
+        "molecular_formula": "C23H30N2O",
+        "molecular_weight": "350.5 g/mol",
+        "inchi_key": "QQOMYEQLWQJRKK-UHFFFAOYSA-N",
+        "cas_number": "1169-70-6"
+      }
+    },
+    "clonazolam": {
+      "identification": {
+        "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4Cl",
+        "iupac_name": "6-(2-chlorophenyl)-1-methyl-8-nitro-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+        "molecular_formula": "C17H12ClN5O2",
+        "molecular_weight": "353.8 g/mol",
+        "inchi_key": "XJRGLCAWBRZUFC-UHFFFAOYSA-N",
+        "cas_number": "33887-02-4"
+      }
+    },
+    "dexmethylphenidate": {
+      "identification": {
+        "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+        "iupac_name": "methyl (2R)-2-phenyl-2-[(2R)-piperidin-2-yl]acetate",
+        "molecular_formula": "C14H19NO2",
+        "molecular_weight": "233.31 g/mol",
+        "inchi_key": "DUGOZIWVEXMGBE-CHWSQXEVSA-N",
+        "cas_number": "40431-64-9"
+      }
+    },
+    "ethketamine": {
+      "identification": {
+        "smiles": "CCNC1(CCCCC1=O)C2=CC=CC=C2Cl",
+        "iupac_name": "2-(2-chlorophenyl)-2-(ethylamino)cyclohexan-1-one",
+        "molecular_formula": "C14H18ClNO",
+        "molecular_weight": "251.75 g/mol",
+        "inchi_key": "ITBBBZIIFJJMDU-UHFFFAOYSA-N",
+        "cas_number": "1354634-10-8"
+      },
+      "psychoactive_class": [
+        "Dissociative",
+        "Hallucinogen"
+      ]
+    },
+    "ethylphenidate": {
+      "identification": {
+        "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+        "iupac_name": "ethyl 2-phenyl-2-piperidin-2-ylacetate",
+        "molecular_formula": "C15H21NO2",
+        "molecular_weight": "247.33 g/mol",
+        "inchi_key": "AIVSIRYZIBXTMM-UHFFFAOYSA-N",
+        "cas_number": "57413-43-1"
+      }
+    },
+    "ghb": {
+      "identification": {
+        "smiles": "C(CC(=O)O)CO",
+        "iupac_name": "4-hydroxybutanoic acid",
+        "molecular_formula": "C4H8O3",
+        "molecular_weight": "104.10 g/mol",
+        "inchi_key": "SJZRECIVHVDYJC-UHFFFAOYSA-N",
+        "cas_number": "591-81-1"
+      }
+    },
+    "isomethadone": {
+      "identification": {
+        "smiles": "CCC(=O)C(C1=CC=CC=C1)(C2=CC=CC=C2)C(C)CN(C)C",
+        "iupac_name": "6-(dimethylamino)-5-methyl-4,4-diphenylhexan-3-one",
+        "molecular_formula": "C21H27NO",
+        "molecular_weight": "309.4 g/mol",
+        "inchi_key": "IFKPLJWIEQBPGG-UHFFFAOYSA-N",
+        "cas_number": "466-40-0"
+      }
+    },
+    "meclonazepam": {
+      "identification": {
+        "smiles": "C[C@H]1C(=O)NC2=C(C=C(C=C2)[N+](=O)[O-])C(=N1)C3=CC=CC=C3Cl",
+        "iupac_name": "(3S)-5-(2-chlorophenyl)-3-methyl-7-nitro-1,3-dihydro-1,4-benzodiazepin-2-one",
+        "molecular_formula": "C16H12ClN3O3",
+        "molecular_weight": "329.74 g/mol",
+        "inchi_key": "LMUVYJCAFWGNSY-VIFPVBQESA-N",
+        "cas_number": "58662-84-3"
+      }
+    },
+    "methallylescaline": {
+      "identification": {
+        "smiles": "CC(=C)COC1=C(C=C(C=C1OC)CCN)OC",
+        "iupac_name": "2-[3,5-dimethoxy-4-(2-methylprop-2-enoxy)phenyl]ethanamine",
+        "molecular_formula": "C14H21NO3",
+        "molecular_weight": "251.32 g/mol",
+        "inchi_key": "FOXJFBFFGULACD-UHFFFAOYSA-N",
+        "cas_number": "207740-41-8"
+      },
+      "psychoactive_class": [
+        "Hallucinogen",
+        "Psychedelic"
+      ]
+    },
+    "methoxyacetyl-fentanyl": {
+      "identification": {
+        "smiles": "COCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+        "iupac_name": "2-methoxy-N-phenyl-N-[1-(2-phenylethyl)piperidin-4-yl]acetamide",
+        "molecular_formula": "C22H28N2O2",
+        "molecular_weight": "352.5 g/mol",
+        "inchi_key": "SADNVKRDSWWFTK-UHFFFAOYSA-N",
+        "cas_number": "101345-67-9"
+      }
+    },
+    "methoxyketamine": {
+      "identification": {
+        "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2OC",
+        "iupac_name": "2-(2-methoxyphenyl)-2-(methylamino)cyclohexan-1-one",
+        "molecular_formula": "C14H19NO2",
+        "molecular_weight": "233.31 g/mol",
+        "inchi_key": "OYAUVHORXFUVAJ-UHFFFAOYSA-N",
+        "cas_number": "7063-51-6"
+      },
+      "psychoactive_class": [
+        "Dissociative",
+        "Hallucinogen"
+      ]
+    },
+    "methylmethaqualone": {
+      "identification": {
+        "smiles": "CC1=CC(=C(C=C1)N2C(=NC3=CC=CC=C3C2=O)C)C",
+        "iupac_name": "3-(2,4-dimethylphenyl)-2-methylquinazolin-4-one",
+        "molecular_formula": "C17H16N2O",
+        "molecular_weight": "264.32 g/mol",
+        "inchi_key": "MPMDMUROZIYIIM-UHFFFAOYSA-N",
+        "cas_number": "1915-80-6"
+      }
+    },
+    "nicomorphine": {
+      "identification": {
+        "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC(=O)C6=CN=CC=C6)O[C@H]3[C@H](C=C4)OC(=O)C7=CN=CC=C7",
+        "iupac_name": "[(4R,4aR,7S,7aR,12bS)-3-methyl-9-(pyridine-3-carbonyloxy)-2,4,4a,7,7a,13-hexahydro-1H-4,12-methanobenzofuro[3,2-e]isoquinolin-7-yl] pyridine-3-carboxylate",
+        "molecular_formula": "C29H25N3O5",
+        "molecular_weight": "495.5 g/mol",
+        "inchi_key": "HNDXBGYRMHRUFN-CIVUWBIHSA-N",
+        "cas_number": "639-48-5"
+      }
+    },
+    "nitemazepam": {
+      "identification": {
+        "smiles": "CN1C2=C(C=C(C=C2)[N+](=O)[O-])C(=NC(C1=O)O)C3=CC=CC=C3",
+        "iupac_name": "3-hydroxy-1-methyl-7-nitro-5-phenyl-3H-1,4-benzodiazepin-2-one",
+        "molecular_formula": "C16H13N3O4",
+        "molecular_weight": "311.29 g/mol",
+        "inchi_key": "QRWVNMAJJIQCEG-UHFFFAOYSA-N",
+        "cas_number": "40762-03-6"
+      }
+    },
+    "o-desmethyltramadol": {
+      "identification": {
+        "smiles": "CN(C)C[C@H]1CCCC[C@@]1(C2=CC(=CC=C2)O)O",
+        "iupac_name": "3-[(1R,2R)-2-[(dimethylamino)methyl]-1-hydroxycyclohexyl]phenol",
+        "molecular_formula": "C15H23NO2",
+        "molecular_weight": "249.35 g/mol",
+        "inchi_key": "UWJUQVWARXYRCG-HIFRSBDPSA-N",
+        "cas_number": "80456-81-1"
+      }
+    },
+    "parafluorofentanyl": {
+      "identification": {
+        "smiles": "CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+        "iupac_name": "N-(4-fluorophenyl)-N-[1-(2-phenylethyl)piperidin-4-yl]propanamide",
+        "molecular_formula": "C22H27FN2O",
+        "molecular_weight": "354.5 g/mol",
+        "inchi_key": "KXUBAVLIJFTASZ-UHFFFAOYSA-N",
+        "cas_number": "90736-23-5"
+      }
+    },
+    "promethazine": {
+      "identification": {
+        "smiles": "CC(CN1C2=CC=CC=C2SC3=CC=CC=C31)N(C)C",
+        "iupac_name": "N,N-dimethyl-1-phenothiazin-10-ylpropan-2-amine",
+        "molecular_formula": "C17H20N2S",
+        "molecular_weight": "284.4 g/mol",
+        "inchi_key": "PWWVAXIEGOYWEE-UHFFFAOYSA-N",
+        "cas_number": "60-87-7"
+      }
+    },
+    "sertraline": {
+      "identification": {
+        "smiles": "CN[C@H]1CC[C@H](C2=CC=CC=C12)C3=CC(=C(C=C3)Cl)Cl",
+        "iupac_name": "(1S,4S)-4-(3,4-dichlorophenyl)-N-methyl-1,2,3,4-tetrahydronaphthalen-1-amine",
+        "molecular_formula": "C17H17Cl2N",
+        "molecular_weight": "306.2 g/mol",
+        "inchi_key": "VGKDLMBJGBXTGI-SJCJKPOMSA-N",
+        "cas_number": "79617-96-2"
+      }
+    },
+    "theanine": {
+      "identification": {
+        "smiles": "CCNC(=O)CC[C@@H](C(=O)O)N",
+        "iupac_name": "(2S)-2-amino-5-(ethylamino)-5-oxopentanoic acid",
+        "molecular_formula": "C7H14N2O3",
+        "molecular_weight": "174.20 g/mol",
+        "inchi_key": "DATAGRPVKZEWHA-YFKPBYRVSA-N",
+        "cas_number": "3081-61-6"
+      }
+    },
+    "thiopropamine": {
+      "identification": {
+        "smiles": "CC(CC1=CC=CS1)N",
+        "iupac_name": "1-thiophen-2-ylpropan-2-amine",
+        "molecular_formula": "C7H11NS",
+        "molecular_weight": "141.24 g/mol",
+        "inchi_key": "NYVQQTOGYLBBDQ-UHFFFAOYSA-N",
+        "cas_number": "30433-93-3"
+      }
+    },
+    "valerylfentanyl": {
+      "identification": {
+        "smiles": "CCCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+        "iupac_name": "N-phenyl-N-[1-(2-phenylethyl)piperidin-4-yl]pentanamide",
+        "molecular_formula": "C24H32N2O",
+        "molecular_weight": "364.5 g/mol",
+        "inchi_key": "VCCPXHWAJYWQMR-UHFFFAOYSA-N",
+        "cas_number": "122882-90-0"
+      }
+    }
+  },
+  "provenance": {
+    "2-aminoindane": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 76310 by SMILES (fetched 2026-07-23).",
+    "2-fluorodeschloroketamine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 13771618 by SMILES (fetched 2026-07-23). psychoactive_class: peer consensus, consensus [\"Dissociative\",\"Hallucinogen\"] (15/18 peers of \"Arylcyclohexylamine\")",
+    "25b-nbome": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 9977044 by SMILES (fetched 2026-07-23).",
+    "25c-nbome": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 46856354 by SMILES (fetched 2026-07-23).",
+    "25e-nbome": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 118796522 by SMILES (fetched 2026-07-23).",
+    "2c-ip": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 57474311 by SMILES (fetched 2026-07-23).",
+    "3-meo-pcpy": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 137332196 by SMILES (fetched 2026-07-23). psychoactive_class: peer consensus, consensus [\"Dissociative\",\"Hallucinogen\"] (15/18 peers of \"Arylcyclohexylamine\")",
+    "4-aco-met": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 71308138 by SMILES (fetched 2026-07-23).",
+    "4-fluorobutyrfentanyl": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 86280430 by SMILES (fetched 2026-07-23).",
+    "4-ho-mipt": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 10082683 by SMILES (fetched 2026-07-23).",
+    "4-meo-butyrfentanyl": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 118796493 by SMILES (fetched 2026-07-23).",
+    "4-methylmethylphenidate": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 23815457 by SMILES (fetched 2026-07-23).",
+    "5-methylethylone": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 112500536 by SMILES (fetched 2026-07-23). psychoactive_class: peer consensus, consensus [\"Entactogen\",\"Stimulant\"] (8/13 peers of \"Cathinone (substituted)\")",
+    "a-pvp": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 11148955 by SMILES (fetched 2026-07-23).",
+    "bk-2c-b": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 11288812 by SMILES (fetched 2026-07-23). psychoactive_class deliberately omitted: cathinone-peer consensus would mistag this psychedelic; needs manual tagging.",
+    "butyrfentanyl": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 621174 by SMILES (fetched 2026-07-23).",
+    "clonazolam": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 12317881 by SMILES (fetched 2026-07-23).",
+    "dexmethylphenidate": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 154101 by SMILES (fetched 2026-07-23).",
+    "ethketamine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 57483649 by SMILES (fetched 2026-07-23). psychoactive_class: peer consensus, consensus [\"Dissociative\",\"Hallucinogen\"] (15/18 peers of \"Arylcyclohexylamine\")",
+    "ethylphenidate": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 3080846 by SMILES (fetched 2026-07-23).",
+    "ghb": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 10413 by SMILES (fetched 2026-07-23).",
+    "isomethadone": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 10072 by SMILES (fetched 2026-07-23).",
+    "meclonazepam": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 3033985 by SMILES (fetched 2026-07-23).",
+    "methallylescaline": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 44350127 by SMILES (fetched 2026-07-23). psychoactive_class: peer consensus, consensus [\"Hallucinogen\",\"Psychedelic\"] (4/4 peers of \"Scaline\")",
+    "methoxyacetyl-fentanyl": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 968688 by SMILES (fetched 2026-07-23).",
+    "methoxyketamine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 57483650 by SMILES (fetched 2026-07-23). psychoactive_class: peer consensus, consensus [\"Dissociative\",\"Hallucinogen\"] (15/18 peers of \"Arylcyclohexylamine\")",
+    "methylmethaqualone": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 63382 by SMILES (fetched 2026-07-23).",
+    "nicomorphine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 5362460 by SMILES (fetched 2026-07-23).",
+    "nitemazepam": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 12362353 by SMILES (fetched 2026-07-23).",
+    "o-desmethyltramadol": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 9838803 by SMILES (fetched 2026-07-23).",
+    "parafluorofentanyl": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 62300 by SMILES (fetched 2026-07-23).",
+    "promethazine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 4927 by SMILES (fetched 2026-07-23).",
+    "sertraline": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 68617 by SMILES (fetched 2026-07-23).",
+    "theanine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 439378 by SMILES (fetched 2026-07-23).",
+    "thiopropamine": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 6484133 by SMILES (fetched 2026-07-23).",
+    "valerylfentanyl": "SMILES: generatedSmiles.json (pubchem/high). Chemistry: PubChem CID 21595398 by SMILES (fetched 2026-07-23)."
+  }
+}

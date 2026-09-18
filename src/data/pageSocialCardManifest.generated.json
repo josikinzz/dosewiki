@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "rendererVersion": "8",
+  "cards": {
+    "home": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/36/36e33475ce436e1e93cc34dc643ac120164043ffeab894d8bd7bd4506ef0ae8c.jpg",
+    "substances": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/be/be499727d3b3be9ced460b2687e8ac19b57577a2bdfd451918b2491679ad210a.jpg",
+    "effects": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/eb/eb8c3a8f926efd8f2fed6045574cc8aa1a14ea9176e2746b3abdbffd12d039d3.jpg",
+    "replications": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/64/64f0974df66b45af4ba401c2290a05c63ecefc6bc694db4ed9196162baf4b79b.jpg",
+    "chemical-classes": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/80/809d88009068d44ff41930ca49cd5a91aab9bfa6b4f1e618cc72289f594d4fc7.jpg",
+    "about": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/eb/eb54403830b6ce4ac13898527fb58524a152911451e7381f5675c389a0d949a8.jpg",
+    "china": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/c8/c86cc3807ccac2778252c62e94e6bcce75856c19ab4e59b97df9b8fa647c327a.jpg",
+    "languages": "/images/social/pages/languages.96a7aa8ba3868481.jpg"
+  }
+}

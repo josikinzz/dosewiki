@@ -1,0 +1,1002 @@
+{
+  "_note": "Per-slug chemical_class deltas for the chemical-class tree. Applied against LIVE article classification.chemical_class. Generated + reviewed 2026-07-05.",
+  "proposals": {
+    "2-aminoindane": {
+      "added": [
+        "Aminoindane"
+      ]
+    },
+    "2-fluorodeschloroketamine": {
+      "added": [
+        "Arylcyclohexylamine"
+      ]
+    },
+    "25b-nboh": {
+      "added": [
+        "NBOH"
+      ]
+    },
+    "25b-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25c-nboh": {
+      "added": [
+        "NBOH"
+      ]
+    },
+    "25c-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25d-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25e-nboh": {
+      "added": [
+        "NBOH"
+      ]
+    },
+    "25e-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25g-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25h-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25i-nbf": {
+      "added": [
+        "NBF"
+      ]
+    },
+    "25i-nboh": {
+      "added": [
+        "NBOH"
+      ]
+    },
+    "25i-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25ip-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25n-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25p-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25t-2-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "25t-4-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "2c-b-fly-nbome": {
+      "added": [
+        "NBOMe"
+      ]
+    },
+    "3-4-ctmp": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "3-meo-pcpy": {
+      "added": [
+        "Arylcyclohexylamine"
+      ]
+    },
+    "3-meomc": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "3-oh-phenazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "3c-e": {
+      "added": [
+        "3C-x"
+      ],
+      "removed": [
+        "Amphetamine (psychedelic)"
+      ]
+    },
+    "3c-p": {
+      "added": [
+        "3C-x"
+      ],
+      "removed": [
+        "Amphetamine (psychedelic)"
+      ]
+    },
+    "4-aco-dalt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "4-aco-met": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "4-fluorobutyrfentanyl": {
+      "added": [
+        "Anilidopiperidine (opioid)"
+      ]
+    },
+    "4-ho-dpt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "4-ho-mipt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "4-ho-mpmi": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "4-meo-butyrfentanyl": {
+      "added": [
+        "Anilidopiperidine (opioid)"
+      ]
+    },
+    "4-methylaminorex": {
+      "added": [
+        "Aminorex"
+      ]
+    },
+    "4-methylmethylphenidate": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "4f-mph": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "4f-pvp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "5-meo-eipt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "5-meo-malt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "5-meo-met": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "5-meo-mt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "5-meo-nipt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "5-meo-pyr-t": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "5-methylethylone": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "5f-akb48": {
+      "added": [
+        "Cannabinoid (synthetic)"
+      ]
+    },
+    "5f-pb-22": {
+      "added": [
+        "Cannabinoid (synthetic)"
+      ]
+    },
+    "a-php": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "a-pihp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "a-pvp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "ab-chminaca": {
+      "added": [
+        "Cannabinoid (synthetic)"
+      ]
+    },
+    "alcohol": {
+      "added": [
+        "Alcohol"
+      ]
+    },
+    "allobarbital": {
+      "added": [
+        "Barbiturate"
+      ]
+    },
+    "alpha-pcyp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "barbital": {
+      "added": [
+        "Barbiturate"
+      ]
+    },
+    "bentazepam": {
+      "added": [
+        "Thienodiazepine"
+      ]
+    },
+    "bk-2c-b": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "buphedrone": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "butyrfentanyl": {
+      "added": [
+        "Anilidopiperidine (opioid)"
+      ]
+    },
+    "camazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "cinolazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "clonazolam": {
+      "added": [
+        "Triazolobenzodiazepine"
+      ]
+    },
+    "cloniprazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "clonitazene": {
+      "added": [
+        "Nitazene"
+      ]
+    },
+    "clorazepate": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "clotiazepam": {
+      "added": [
+        "Thienodiazepine"
+      ]
+    },
+    "cyclo-methiodrone": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "cyclopropylmescaline": {
+      "added": [
+        "Scaline"
+      ]
+    },
+    "dalt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "deschloroketamine": {
+      "added": [
+        "Arylcyclohexylamine"
+      ]
+    },
+    "dexmethylphenidate": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "diethyl-ether": {
+      "added": [
+        "Ether"
+      ]
+    },
+    "dimemebfe": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "doip": {
+      "added": [
+        "DOx"
+      ]
+    },
+    "don": {
+      "added": [
+        "DOx"
+      ]
+    },
+    "dopr": {
+      "added": [
+        "DOx"
+      ]
+    },
+    "ephylone": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "estazolam": {
+      "added": [
+        "Triazolobenzodiazepine"
+      ]
+    },
+    "et": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "eth-cat": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "ethaqualone": {
+      "added": [
+        "Quinazolinone"
+      ]
+    },
+    "ethketamine": {
+      "added": [
+        "Arylcyclohexylamine"
+      ]
+    },
+    "ethylphenidate": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "fasoracetam": {
+      "added": [
+        "Racetam"
+      ]
+    },
+    "hdep-28": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "hexobarbital": {
+      "added": [
+        "Barbiturate"
+      ]
+    },
+    "ibogaine": {
+      "added": [
+        "Ibogalog"
+      ]
+    },
+    "indapyrophenidone": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "isophenmetrazine": {
+      "added": [
+        "Phenylmorpholine"
+      ]
+    },
+    "isopropylphenidate": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "isoproscaline": {
+      "added": [
+        "Scaline"
+      ]
+    },
+    "k-ivp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "lormetazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "mdphp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "mdpv": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "mebroqualone": {
+      "added": [
+        "Quinazolinone"
+      ]
+    },
+    "meclonazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "mephenaqualone": {
+      "added": [
+        "Quinazolinone"
+      ]
+    },
+    "metaclazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "methallylescaline": {
+      "added": [
+        "Scaline"
+      ]
+    },
+    "methoxphenidine": {
+      "added": [
+        "Diarylethylamine (substituted)"
+      ]
+    },
+    "methoxyacetyl-fentanyl": {
+      "added": [
+        "Anilidopiperidine (opioid)"
+      ]
+    },
+    "methoxyketamine": {
+      "added": [
+        "Arylcyclohexylamine"
+      ]
+    },
+    "methylmethaqualone": {
+      "added": [
+        "Quinazolinone"
+      ]
+    },
+    "mipt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "n-ethylhexedrone": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "n-methylbisfluoromodafinil": {
+      "added": [
+        "Diphenylmethanethiol"
+      ]
+    },
+    "naphyrone": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "nefiracetam": {
+      "added": [
+        "Racetam"
+      ]
+    },
+    "nitemazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "nitrazolam": {
+      "added": [
+        "Triazolobenzodiazepine"
+      ]
+    },
+    "nitrous": {
+      "added": [
+        "Non-metal nitride"
+      ]
+    },
+    "nordazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "parafluorofentanyl": {
+      "added": [
+        "Anilidopiperidine (opioid)"
+      ]
+    },
+    "pbp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "pentylone": {
+      "added": [
+        "Cathinone (substituted)"
+      ]
+    },
+    "phenetrazine": {
+      "added": [
+        "Phenylmorpholine"
+      ]
+    },
+    "phenmetrazine": {
+      "added": [
+        "Phenylmorpholine"
+      ]
+    },
+    "pinazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "pipt": {
+      "added": [
+        "Tryptamine"
+      ]
+    },
+    "propylphenidate": {
+      "added": [
+        "Phenidate"
+      ]
+    },
+    "pv-8": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "pvt": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "pyrophenidone": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "quazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "rilmazafone": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "rolicyclidine": {
+      "added": [
+        "Arylcyclohexylamine"
+      ]
+    },
+    "salvia": {
+      "added": [
+        "Furanolactone"
+      ]
+    },
+    "salvinorin-b-methoxymethyl-ether": {
+      "added": [
+        "Furanolactone"
+      ]
+    },
+    "tetrazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "th-pvp": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "theobromine": {
+      "added": [
+        "Xanthine"
+      ]
+    },
+    "ur-144": {
+      "added": [
+        "Cannabinoid (synthetic)"
+      ]
+    },
+    "valerylfentanyl": {
+      "added": [
+        "Anilidopiperidine (opioid)"
+      ]
+    },
+    "zolazepam": {
+      "added": [
+        "1,4-Benzodiazepine"
+      ]
+    },
+    "25-dma": {
+      "added": [
+        "DOx"
+      ]
+    },
+    "3-fma": {
+      "added": [
+        "Amphetamine"
+      ]
+    },
+    "4f-neb": {
+      "added": [
+        "Cathinone"
+      ]
+    },
+    "5-apdb": {
+      "added": [
+        "Benzofuran"
+      ]
+    },
+    "5-it": {
+      "added": [
+        "Indole"
+      ]
+    },
+    "5-ppdi": {
+      "added": [
+        "Pyrrolidinophenone"
+      ]
+    },
+    "6-eapb": {
+      "added": [
+        "Benzofuran"
+      ]
+    },
+    "6-mapb": {
+      "added": [
+        "Benzofuran"
+      ]
+    },
+    "6-mddm": {
+      "added": [
+        "Morphinan"
+      ]
+    },
+    "ah-7921": {
+      "added": [
+        "Benzamide"
+      ]
+    },
+    "bod": {
+      "added": [
+        "2C-X"
+      ]
+    },
+    "cathinone": {
+      "added": [
+        "Cathinone"
+      ]
+    },
+    "chloral-hydrate": {
+      "added": [
+        "Alcohol"
+      ]
+    },
+    "chloral-betaine": {
+      "added": [
+        "Alcohol"
+      ]
+    },
+    "cloxazolam": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "crl-40-940": {
+      "added": [
+        "Diphenylmethanethiol"
+      ]
+    },
+    "crl-40-941": {
+      "added": [
+        "Diphenylmethanethiol"
+      ]
+    },
+    "cyclizine": {
+      "added": [
+        "Piperazine"
+      ]
+    },
+    "dextromoramide": {
+      "added": [
+        "Diphenylpropylamine"
+      ]
+    },
+    "dipipanone": {
+      "added": [
+        "Diphenylpropylamine"
+      ]
+    },
+    "dmaa": {
+      "added": [
+        "Amine"
+      ]
+    },
+    "doxylamine": {
+      "added": [
+        "Benzhydrol"
+      ]
+    },
+    "ethchlorvynol": {
+      "added": [
+        "Alcohol"
+      ]
+    },
+    "f-phenibut": {
+      "added": [
+        "Gabapentinoid"
+      ]
+    },
+    "fluorophenibut": {
+      "added": [
+        "Gabapentinoid"
+      ]
+    },
+    "flutazolam": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "ghb": {
+      "added": [
+        "Gabapentinoid"
+      ]
+    },
+    "glutethimide": {
+      "added": [
+        "Piperidine"
+      ]
+    },
+    "hot-2": {
+      "added": [
+        "2C-X"
+      ]
+    },
+    "hot-7": {
+      "added": [
+        "2C-X"
+      ]
+    },
+    "isomethadone": {
+      "added": [
+        "Diphenylpropylamine"
+      ]
+    },
+    "ketazolam": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "ketobemidone": {
+      "added": [
+        "Piperidine"
+      ]
+    },
+    "lae-32": {
+      "added": [
+        "Lysergamide"
+      ]
+    },
+    "librium": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "loprazolam": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "marinol": {
+      "added": [
+        "Cannabinoid",
+        "Dibenzopyran"
+      ]
+    },
+    "mbdb": {
+      "added": [
+        "MDxx"
+      ]
+    },
+    "mbzp": {
+      "added": [
+        "Piperazine"
+      ]
+    },
+    "mdoh": {
+      "added": [
+        "MDxx"
+      ]
+    },
+    "mdpa": {
+      "added": [
+        "MDxx"
+      ]
+    },
+    "meai": {
+      "added": [
+        "Aminoindane"
+      ]
+    },
+    "methamnetamine": {
+      "added": [
+        "Amphetamine"
+      ]
+    },
+    "methyprylon": {
+      "added": [
+        "Piperidine"
+      ]
+    },
+    "mexazolam": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "morpheridine": {
+      "added": [
+        "Piperidine"
+      ]
+    },
+    "mt-45": {
+      "added": [
+        "Piperazine"
+      ]
+    },
+    "naloxone": {
+      "added": [
+        "Morphinan"
+      ]
+    },
+    "neb": {
+      "added": [
+        "Cathinone"
+      ]
+    },
+    "nicomorphine": {
+      "added": [
+        "Morphinan"
+      ]
+    },
+    "o-desmethyltramadol": {
+      "added": [
+        "Phenylpropylamine"
+      ]
+    },
+    "oxazolam": {
+      "added": [
+        "Benzodiazepine"
+      ]
+    },
+    "pagoclone": {
+      "added": [
+        "Cyclopyrrolone"
+      ]
+    },
+    "pargy-lad": {
+      "added": [
+        "Lysergamide"
+      ]
+    },
+    "pfbt": {
+      "added": [
+        "Tropane"
+      ]
+    },
+    "phentermine": {
+      "added": [
+        "Amphetamine"
+      ]
+    },
+    "propoxyphene": {
+      "added": [
+        "Diphenylpropylamine"
+      ]
+    },
+    "pseudoephrine": {
+      "added": [
+        "Amphetamine"
+      ]
+    },
+    "sonata": {
+      "added": [
+        "Pyrazolopyrimidine"
+      ]
+    },
+    "thiopropamine": {
+      "added": [
+        "Thiophene"
+      ]
+    },
+    "tilidine": {
+      "added": [
+        "Cycloalkylamine"
+      ]
+    },
+    "troparil": {
+      "added": [
+        "Tropane"
+      ]
+    },
+    "u-51754": {
+      "added": [
+        "U-compound"
+      ]
+    },
+    "pethidine": {
+      "added": [
+        "Piperidine"
+      ]
+    }
+  }
+}

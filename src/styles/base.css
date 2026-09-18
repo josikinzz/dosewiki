@@ -1,0 +1,346 @@
+:root {
+  color-scheme: dark;
+
+  /* shadcn theme variables - mapped to dose.wiki palette */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+
+  --card: 261 30% 8%;
+  --card-foreground: 0 0% 100%;
+
+  --popover: 261 35% 10%;
+  --popover-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 100%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 261 20% 12%;
+  --muted-foreground: 0 0% 75%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 0% 100%;
+  --input: 0 0% 100%;
+
+  /* Corner roundness: the Theme Lab's "Sharp" step, baked in as the shipped
+       default. Sharp is 0.375x the scale it is applied to, so these are the
+       former baselines (1rem, and Tailwind's 0.75/1/1.5rem for xl/2xl/3xl)
+       scaled by that factor. The xl/2xl/3xl steps were previously inherited
+       from Tailwind's own theme layer and are declared explicitly now so the
+       whole scale moves together.
+
+       Consequence for the lab: "Default" is this sharp scale, and tapping
+       "Sharp" again shrinks it a further 0.375x. That relativity is by design
+       (see CORNER_STEPS in src/features/theme-lab/flatnessAxes.ts). Pills and
+       circles use rounded-full and never follow. */
+  --radius: 0.375rem;
+  --radius-xl: 0.2813rem;
+  --radius-2xl: 0.375rem;
+  --radius-3xl: 0.5625rem;
+
+  /* Corner roles. Components ask for the role (rounded-control, rounded-chip,
+     rounded-card, rounded-panel, rounded-pill via the Tailwind aliases in
+     tailwind.config.mjs) rather than a size, so one visual style can square
+     every card without touching a component: Fun maps the roles onto the
+     scale above; pro-theme.css re-seats them. Pills and discs stay round in
+     both styles. */
+  --radius-control: var(--radius-xl);
+  --radius-chip: var(--radius);
+  --radius-card: var(--radius-2xl);
+  --radius-panel: 2rem;
+  --radius-pill: 9999px;
+
+  /* Sticky chrome offsets. The app header measures 4.25rem; the replications
+     control bar sticks below it, and in the phone browse view each artist
+     label sticks below that. Deriving every offset from these three keeps the
+     whole stack in agreement instead of drifting when the header changes.
+     The control-bar height is its phone geometry: p-1.5 twice plus a h-10
+     control row. */
+  --site-header-height: 4.25rem;
+  --site-header-sticky-gap: 0.5rem;
+  --replications-control-bar-height: 3.25rem;
+
+  /* Stable standard face for previews that must not follow data-font="dyslexic".
+       --font-body is the self-hosted Inter registration (src/app/_fonts/dosewiki.ts);
+       the bare `Inter` after it is only for a build that registers none (Effect
+       Index, which re-seats this token to Titillium anyway) and then falls to the
+       reader's own copy or the system sans, as it always did. */
+  --font-family-standard-body:
+    var(--font-body, Inter), Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-body: var(--font-family-standard-body);
+  --font-family-display:
+    var(--font-display), var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --type-size-caption: 0.75rem;
+  --type-size-chip-label: 0.6875rem;
+  --type-size-sm: 0.875rem;
+  --type-size-body: 1rem;
+  --type-size-lead: 1.0625rem;
+  --type-size-deck: clamp(1.1875rem, 1.11rem + 0.34vw, 1.375rem);
+  --type-size-title: clamp(3rem, 2.5rem + 2.25vw, 4.5rem);
+  --type-size-section: clamp(1.5rem, 1.28rem + 0.7vw, 2rem);
+  /* Docs pages (/docs/*) read at editorial scale, not the substance-article
+       hero ramp: a Read surface where a dozen section titles share the page
+       with long-form body text. Same display voice, one step down. Consumed
+       by .type-doc-title / .type-doc-section-title. */
+  --type-size-doc-title: clamp(2rem, 1.7rem + 1.35vw, 2.75rem);
+  --type-size-doc-section: clamp(1.375rem, 1.3rem + 0.35vw, 1.5rem);
+  --type-leading-tight: 1.04;
+  --type-leading-heading: 1.12;
+  --type-leading-body: 1.7;
+  --type-leading-relaxed: 1.78;
+  --type-tracking-display: -0.04em;
+  --type-tracking-heading: -0.025em;
+  --type-tracking-body: -0.01em;
+  --type-tracking-label: 0.16em;
+  --type-measure-reading: 68ch;
+  --type-measure-deck: 54ch;
+
+  /* Color tokens live in site-colors.css, the single, annotated source of
+       truth for both themes (page canvas, text, accent, surfaces, chrome,
+       fields, frosted panels, the semantic safety ramp, trip-report colors,
+       and misc UI accents). Edit colors there, not here. base.css keeps only
+       the shadcn HSL bridge and the type scale above, plus the
+       --editor-* aliases below (which just re-point at the palette tokens). */
+  --editor-panel-bg: var(--theme-surface-soft);
+  --editor-panel-bg-subtle: var(--theme-surface-muted);
+  --editor-panel-border: var(--theme-border-subtle);
+  --editor-panel-border-strong: var(--theme-border-strong);
+  --editor-field-bg: var(--theme-field-surface);
+  --editor-field-border: var(--theme-border-subtle);
+  --editor-field-focus: var(--theme-accent-strong);
+  --editor-code-bg: var(--theme-surface-deep);
+  --editor-code-border: var(--theme-border-subtle);
+  --editor-code-line-add-bg: var(--theme-success-bg);
+  --editor-code-line-add-text: var(--theme-success-text);
+  --editor-code-line-remove-bg: var(--theme-danger-bg);
+  --editor-code-line-remove-text: var(--theme-danger-text);
+  --editor-chip-bg: var(--theme-surface-muted);
+  --editor-chip-border: var(--theme-border-subtle);
+  --editor-chip-text: var(--theme-text-secondary);
+  --editor-toolbar-separator: var(--theme-divider);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --background: 282 58% 98%;
+  --foreground: 271 31% 18%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 271 31% 18%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 271 31% 18%;
+
+  --secondary: 274 29% 88%;
+  --secondary-foreground: 271 31% 18%;
+
+  --muted: 276 34% 94%;
+  --muted-foreground: 272 18% 42%;
+
+  --destructive: 0 72% 52%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 272 23% 58%;
+  --input: 272 23% 58%;
+
+  /* Light-mode color tokens also live in site-colors.css. Only the shadcn
+       HSL bridge for light mode stays in this file. */
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Horizontal page pan is never a feature: overflow pokes (full-bleed strips,
+     wide chips) get clipped at the root. The clip lives on <html> because the
+     root scroller is what the viewport pans: body's own overflow propagates
+     to the viewport (and computes to visible on <body> per spec), which leaves
+     a few px of pannable slop whenever the classic scrollbar makes the
+     full-bleed math (50vw centering) overshoot the client area.
+
+     The clip also keeps the client width constant while a modal Select
+     dropdown's scroll lock sets overflow: hidden on <body>: body's overflow no
+     longer propagates to the viewport, so the page scrollbar and the layout
+     width hold still and the Theme/Font pickers open without shifting
+     anything. */
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+  /* Radix Select's scroll lock injects body[data-scroll-locked] {
+       overflow: hidden !important; padding-right: 0px !important;
+       margin-right: 10px !important; } while a Theme/Font dropdown is open,
+but the scrollbar itself never moves (html overflow-x: clip blocks the
+       body-to-viewport propagation), so the margin only squishes the whole
+       page left of a 10px gap. Zero it out; the dropdown opens as a pure
+       overlay. */
+  margin-right: 0px !important;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-body);
+  font-size: var(--type-size-body);
+  line-height: var(--type-leading-body);
+  letter-spacing: var(--type-tracking-body);
+  font-kerning: normal;
+  /* Kept off because every face the stacks lead with ships the slopes and
+       weights the sheets ask for: Inter (--font-body) is two variable files,
+       upright and italic, wght 100 to 900; Titillium and Lexend are documented
+       beside their files. Blinker (--font-display) ships 400 and 600 only, so a
+       700 display request resolves to 600 rather than a faux bold: consistent
+       across platforms, and deliberate. */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--theme-body-bg);
+  color: var(--theme-text-primary);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-variant-ligatures: none;
+  font-kerning: normal;
+}
+
+::selection {
+  background-color: var(--theme-selection);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-scroll-thumb) var(--theme-scroll-track);
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Frosted channel: a faint tinted gradient with a 1px inset rim so the
+     track reads as a recessed frosted groove rather than empty page. */
+*::-webkit-scrollbar-track {
+  background: var(--theme-scroll-track-bg);
+  border-radius: 9999px;
+  box-shadow: inset 0 0 0 1px var(--theme-scroll-track-border);
+}
+
+/* Frosted pink pill. The transparent border + padding-box clip float the
+     thumb inside the channel so the frosted track shows through the gap; the
+     gradient supplies the upper-left highlight and the inner ring adds glassy
+     depth. (backdrop-filter is ignored on scrollbar parts, so the frost is
+     painted, not blurred.) */
+*::-webkit-scrollbar-thumb {
+  background: var(--theme-scroll-thumb-bg);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  box-shadow: inset 0 0 6px var(--theme-ring-soft);
+}
+
+@media (hover: hover) {
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--theme-scroll-thumb-hover-bg);
+    background-clip: padding-box;
+    box-shadow:
+      inset 0 0 6px var(--theme-ring-soft),
+      0 0 8px var(--theme-scroll-thumb-glow);
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--theme-autofill-bg) inset !important;
+  -webkit-text-fill-color: var(--theme-autofill-text) !important;
+  caret-color: var(--theme-autofill-text) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+@media (hover: hover) {
+  input:-webkit-autofill:hover {
+    -webkit-box-shadow: 0 0 0 1000px var(--theme-autofill-bg) inset !important;
+    -webkit-text-fill-color: var(--theme-autofill-text) !important;
+    caret-color: var(--theme-autofill-text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+/* ------------------------------------------------------------------
+     Reader text scale (the appearance cog's Text size axis).
+
+     The axis writes --dw-reader-text-scale on <html>; this block re-seats
+     the Tailwind text-size variables and the repo's type tokens as their
+     authored value multiplied by the reader's scale. Font sizes move;
+     nothing else does. Tailwind's spacing utilities are built on
+     --spacing: 0.25rem (untouched), every margin/padding/gap is rem-based
+     (untouched), and the type tokens' line-height/tracking companions are
+     unitless or em (they follow the glyphs, not the scale). The result is
+     reading comfort WITHOUT reproducing browser zoom: containers, rhythm
+     and chrome hold their layout while the text grows or shrinks inside
+     them.
+
+     Layer arithmetic: Tailwind emits its theme variables in layer(theme);
+     this file is imported as layer(base), declared after theme, so these
+     re-seats win the custom-property cascade at :root without needing
+     !important. With the axis at its default (no property on the root),
+     var(--dw-reader-text-scale, 1) is a no-op multiplication.
+     ------------------------------------------------------------------ */
+:root {
+  --text-xs: calc(0.75rem * var(--dw-reader-text-scale, 1));
+  --text-sm: calc(0.875rem * var(--dw-reader-text-scale, 1));
+  --text-base: calc(1rem * var(--dw-reader-text-scale, 1));
+  --text-lg: calc(1.125rem * var(--dw-reader-text-scale, 1));
+  --text-xl: calc(1.25rem * var(--dw-reader-text-scale, 1));
+  --text-2xl: calc(1.5rem * var(--dw-reader-text-scale, 1));
+  --text-3xl: calc(1.875rem * var(--dw-reader-text-scale, 1));
+  --text-4xl: calc(2.25rem * var(--dw-reader-text-scale, 1));
+  --text-5xl: calc(3rem * var(--dw-reader-text-scale, 1));
+  --text-6xl: calc(3.75rem * var(--dw-reader-text-scale, 1));
+  --text-7xl: calc(4.5rem * var(--dw-reader-text-scale, 1));
+  --text-8xl: calc(6rem * var(--dw-reader-text-scale, 1));
+  --text-9xl: calc(8rem * var(--dw-reader-text-scale, 1));
+  --type-size-caption: calc(0.75rem * var(--dw-reader-text-scale, 1));
+  --type-size-chip-label: calc(0.6875rem * var(--dw-reader-text-scale, 1));
+  --type-size-sm: calc(0.875rem * var(--dw-reader-text-scale, 1));
+  --type-size-body: calc(1rem * var(--dw-reader-text-scale, 1));
+  --type-size-lead: calc(1.0625rem * var(--dw-reader-text-scale, 1));
+  --type-size-deck: calc(
+    clamp(1.1875rem, 1.11rem + 0.34vw, 1.375rem) *
+      var(--dw-reader-text-scale, 1)
+  );
+  --type-size-title: calc(
+    clamp(3rem, 2.5rem + 2.25vw, 4.5rem) * var(--dw-reader-text-scale, 1)
+  );
+  --type-size-section: calc(
+    clamp(1.5rem, 1.28rem + 0.7vw, 2rem) * var(--dw-reader-text-scale, 1)
+  );
+  --type-size-doc-title: calc(
+    clamp(2rem, 1.7rem + 1.35vw, 2.75rem) * var(--dw-reader-text-scale, 1)
+  );
+  --type-size-doc-section: calc(
+    clamp(1.375rem, 1.3rem + 0.35vw, 1.5rem) * var(--dw-reader-text-scale, 1)
+  );
+}

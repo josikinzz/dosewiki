@@ -1,0 +1,233 @@
+name: Vercel Policy Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Approved release environment with read-only build configuration
+        type: environment
+        required: true
+
+
+permissions:
+  contents: read
+
+jobs:
+  verification:
+    name: Verification & Policy Checks
+    runs-on: ubuntu-latest
+    env:
+      DATA_BACKEND: postgres
+      DATA_WRITES_FROZEN: "1"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Check for secrets in codebase
+        run: node scripts/security/scan-secrets.mjs --tracked
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run checkout-safe verification graph
+        run: |
+          bun run openchemlib:verify
+          bun run test
+          bun run test:workflow
+          bun run typecheck
+          bun run lint:all
+          bun run lint:api
+          bun run typecheck:scripts
+          bun run typecheck:handlers
+          bun run provenance:check
+          bun run cleanup:metrics --check
+
+      - name: Check owned Postgres function references
+        run: node scripts/build/check-function-references.mjs
+
+      - name: Check the Postgres-only Vercel build command
+        run: node scripts/deploy/check-build-command-wiring.mjs
+
+      - name: Validate Vercel configuration
+        run: |
+          echo "Validating Vercel configuration..."
+
+          if [ -f vercel.json ]; then
+            node --input-type=module <<'NODE'
+            import { readFileSync } from "node:fs";
+
+            const config = JSON.parse(readFileSync("vercel.json", "utf8"));
+            const functions = Object.entries(config.functions ?? {});
+
+            for (const [pattern, options] of functions) {
+              const memory = options?.memory ?? 0;
+              const duration = options?.maxDuration ?? 0;
+
+              if (memory > 3008) {
+                console.error(`Function ${pattern} memory exceeds pro plan limit`);
+                process.exitCode = 1;
+              }
+
+              if (duration > 300) {
+                console.error(`Function ${pattern} duration exceeds pro plan limit`);
+                process.exitCode = 1;
+              }
+            }
+          NODE
+
+            echo "vercel.json configuration valid"
+          fi
+
+      - name: Check .env files not committed
+        run: |
+          echo "Checking for committed .env files..."
+
+          ENV_FILES=$(find . -name ".env*" -not -name ".env.example" -not -path "./node_modules/*" -type f 2>/dev/null)
+
+          if [ -n "$ENV_FILES" ]; then
+            echo "Found .env files that should not be committed:"
+            echo "$ENV_FILES"
+            exit 1
+          fi
+
+          echo "No .env files committed"
+
+      - name: Check dangerous patterns in App Router API routes
+        run: |
+          echo "Checking App Router API routes for dangerous patterns..."
+
+          API_DIR="src/app/api"
+          DANGEROUS_FOUND=0
+
+          if grep -rE '\beval\s*\(' "$API_DIR" 2>/dev/null; then
+            echo "eval() usage detected in App Router API routes"
+            DANGEROUS_FOUND=1
+          fi
+
+          if grep -rE '\bnew\s+Function\s*\(' "$API_DIR" 2>/dev/null; then
+            echo "Function constructor detected in App Router API routes"
+            DANGEROUS_FOUND=1
+          fi
+
+          if grep -rE "(exec|spawn|execSync|spawnSync)\s*\([^)]*\$\{" "$API_DIR" 2>/dev/null; then
+            echo "Potential command injection in App Router API routes"
+            DANGEROUS_FOUND=1
+          fi
+
+          if [ $DANGEROUS_FOUND -eq 1 ]; then
+            echo "Dangerous patterns found in App Router API routes"
+            exit 1
+          fi
+
+          echo "App Router API routes look safe"
+
+  release-build:
+    name: Authorized release artifact (${{ matrix.artifact }})
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: verification
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        include:
+          - artifact: public
+            surface: public
+            flavor: dosewiki
+          - artifact: editor
+            surface: editor
+            flavor: dosewiki
+          - artifact: effectindex
+            surface: public
+            flavor: effectindex
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Configure required reviewers and these values in the selected environment.
+      # No build credential is available to checkout verification or PR jobs.
+      - name: Build with explicitly approved read-only configuration
+        env:
+          RELEASE_BUILD_ENABLED: ${{ vars.RELEASE_BUILD_ENABLED }}
+          DATA_BACKEND: postgres
+          DATA_WRITES_FROZEN: "1"
+          POSTGRES_POOLED_URL: ${{ secrets.POSTGRES_POOLED_READONLY_URL }}
+          REPLICATION_MEDIA_BASE_URL: ${{ vars.REPLICATION_MEDIA_BASE_URL }}
+          DOSEWIKI_BUILD_SURFACE: ${{ matrix.surface }}
+          NEXT_PUBLIC_SITE_FLAVOR: ${{ matrix.flavor }}
+          DOSEWIKI_BUILD_DIR: .next-release-${{ matrix.artifact }}
+        run: |
+          test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
+          test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
+          test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL is required"; exit 1; }
+          bun run build
+
+  security-reporting:
+    name: Dependency Security Reports (non-blocking)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Create audit output directory
+        run: mkdir -p security-audit-results
+
+      - name: Audit production dependencies (non-blocking)
+        id: audit-production
+        continue-on-error: true
+        run: bun audit --production --json > security-audit-results/security-audit-production.json
+
+      - name: Audit full dependency graph (non-blocking)
+        id: audit-full
+        continue-on-error: true
+        run: bun audit --json > security-audit-results/security-audit-full.json
+
+      - name: Publish audit summary
+        if: always()
+        run: |
+          {
+            echo "## Dependency security reports"
+            echo
+            echo "| Scope | Audit outcome | Enforcement |"
+            echo "| --- | --- | --- |"
+            echo "| Production dependencies | ${{ steps.audit-production.outcome }} | Informational |"
+            echo "| Full dependency graph | ${{ steps.audit-full.outcome }} | Informational |"
+            echo
+            echo "Machine-readable JSON is attached as the dependency-security-reports artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload dependency audit reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dependency-security-reports
+          path: security-audit-results/*.json
+          if-no-files-found: error
+          retention-days: 30

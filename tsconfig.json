@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "ignoreDeprecations": "6.0",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "types": ["vite/client", "vitest/globals", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@data/*": ["./data/*"],
+      "@content/*": ["./content/*"],
+      "@site-font": ["./src/app/_fonts/dosewiki"],
+      "@site-styles": ["./src/app/_styles/dosewiki"],
+      "@lib/*": ["./lib/*"],
+      "@auth": ["./lib/auth/authOptions.ts"],
+      "@server/*": ["./lib/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "src", "lib", ".next/types/**/*.ts"],
+  "references": [{ "path": "./scripts/config/tsconfig.node.json" }]
+}

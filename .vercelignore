@@ -1,0 +1,94 @@
+# Dependencies and generated output
+node_modules/
+.next/
+.next-*/
+dist/
+# The project-local Postgres cluster (scripts/postgres/local-db.mjs) and raw
+# database snapshots. `.gitignore` keeps them out of Git for the same reason:
+# they carry private tables. Anchored, matching the `/.postgres/` there.
+# Without this the cluster's heap files were 1.4 GB of a 2.0 GB deployment
+# upload and landed inside a production artifact.
+/.postgres/
+# The repository-owned OpenChemLib package resolves from committed browser
+# artifacts during Vercel's no-Java/GWT install and build.
+!vendor/openchemlib/dist/
+!vendor/openchemlib/dist/**
+# Local compiler tools and intermediates are not runtime fork artifacts.
+vendor/openchemlib/.tools/
+vendor/openchemlib/gwt-unitCache/
+vendor/openchemlib/war/
+vendor/openchemlib/lib/java/
+# Social cards are served from committed R2 manifests, not workstation renders.
+public/images/social/substances/*.jpg
+public/images/social/pages/*.jpg
+public/images/social/entities/**/*.jpg
+dist-inline/
+# Anchored: unanchored `coverage/` matches a directory of that name at any
+# depth, which excluded src/features/coverage and src/app/about/coverage from
+# the Vercel build — the route silently did not exist. Same fix as .gitignore.
+/coverage/
+.generated/
+data/.lineage/
+
+# Local deployment and editor state
+.git/
+.vercel/
+.vscode/
+.cursor/
+.claude/
+.codex/
+.venv-molecules/
+.impeccable.md
+.omp/
+.impeccable/
+.test-evidence/
+.unslop/
+.agents/
+.pi/task-graph.json
+**/settings.local.json
+**/.lakebed/
+
+# Environment and logs
+.env
+.env.*
+*.log
+*.pid
+npm-debug.log*
+npm-dev.log
+npm-dev.err.log
+
+# Operational workspaces not needed for the Next.js production build
+archive/
+learning/
+notes-and-plans/
+output/
+outputs/
+quotes/
+runs/
+recovery/
+# Workstation audit records can contain private operation data.
+scripts/data/audit-logs/
+scripts/data/backups/
+# Keep scripts/ in the upload. Vercel's ignore implementation did not honor
+# nested negations reliably, which omitted scripts/deploy/vercel-build.mjs and
+# made otherwise valid deployments fail before the build could start.
+tmp/
+.pi/
+.pi-subagents/
+package-lock.json
+
+# Repository hygiene: root OCR/scan scratch inputs and process state, not site content.
+# Keep these rules narrow so real src/ and public/ assets remain eligible.
+/z[0-9]*.jpg
+/z[0-9]*.pdf
+/z[0-9]*.txt
+/p-[0-9]*.jpg
+/ocr*.txt
+/ignore.*
+/tmp-page.png
+/[0-9][0-9][0-9]
+/[0-9][0-9][0-9][0-9]
+/E
+/.pi-loop.json.lock
+# OS metadata is never a deployment input.
+.DS_Store

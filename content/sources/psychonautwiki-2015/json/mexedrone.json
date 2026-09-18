@@ -1,0 +1,134 @@
+{
+  "slug": "mexedrone",
+  "title": "Mexedrone",
+  "source_markdown": "content/sources/psychonautwiki-2015/articles/mexedrone.md",
+  "archive_timestamp": "20160804042744",
+  "archive_date_utc": "2016-08-04T04:27:44Z",
+  "archive_url": "https://web.archive.org/web/20160804042744/https://psychonautwiki.org/wiki/Mexedrone",
+  "attribution": {
+    "author": "Josie Kins",
+    "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+    "url": "https://web.archive.org/web/20160804042744/https://psychonautwiki.org/wiki/Mexedrone"
+  },
+  "subjective_effects": {
+    "notes": {
+      "overview": "Effects vary widely by individual, dose, and context.",
+      "sensory": "",
+      "cognitive": "",
+      "physical": ""
+    },
+    "sensory": {
+      "visual": {
+        "note": "",
+        "subcategories": {}
+      },
+      "auditory": {
+        "note": "",
+        "subcategories": {
+          "General": {
+            "note": "",
+            "effects": [
+              {
+                "name": "Enhancements",
+                "description": ""
+              }
+            ]
+          }
+        }
+      },
+      "tactile": {
+        "note": "",
+        "subcategories": {}
+      },
+      "olfactory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "gustatory": {
+        "note": "",
+        "subcategories": {}
+      },
+      "multisensory": {
+        "note": "",
+        "subcategories": {}
+      }
+    },
+    "cognitive": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Euphoria",
+            "description": "Mild emotional euphoria and feelings of happiness are present within mexedrone and are likely a direct result of serotonin and dopamine release."
+          },
+          {
+            "name": "Thought acceleration",
+            "description": ""
+          },
+          {
+            "name": "Thought connectivity",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "physical": {
+      "General": {
+        "note": "",
+        "effects": [
+          {
+            "name": "Physical euphoria",
+            "description": ""
+          },
+          {
+            "name": "Tactile enhancement",
+            "description": ""
+          },
+          {
+            "name": "Sedation",
+            "description": "The biggest difference between mexedrone and mephedrone is that it primarily results in moderate sedation over stimulation and can therefore discourage physical activities such as running, dancing or climbing."
+          },
+          {
+            "name": "Spontaneous tactile sensations",
+            "description": "The \"body high\" of mexedrone can be described as a mild soft and warm tingling sensation that encompasses the entire body. This sensation maintains a consistent presence that steadily rises with the onset and hits its limit once the peak has been reached."
+          },
+          {
+            "name": "Dehydration",
+            "description": ""
+          },
+          {
+            "name": "Vibrating vision",
+            "description": "At high doses, a person's eyeballs may begin to spontaneously wiggle back and forth in a rapid motion, causing the vision to become blurry and temporarily out of focus. This is a condition known as nystagmus."
+          },
+          {
+            "name": "Increased perspiration",
+            "description": ""
+          },
+          {
+            "name": "Temperature regulation suppression",
+            "description": ""
+          },
+          {
+            "name": "Teeth grinding",
+            "description": "This component can be considered to be less intense when compared with that of MDMA."
+          }
+        ]
+      }
+    },
+    "progressive_stages": null,
+    "attribution": {
+      "author": "Josie Kins",
+      "text": "Forked from Subjective Effect Documentation work by Josie Kins, August 2016.",
+      "url": "https://web.archive.org/web/20160804042744/https://psychonautwiki.org/wiki/Mexedrone"
+    },
+    "is_stub": false
+  },
+  "fidelity_notes": [
+    "Generic source overview replaced with default public overview.",
+    "Physical effects mapped to physical.General in source order.",
+    "Cognitive effects mapped to cognitive.General in source order.",
+    "Auditory effects mapped to sensory.auditory.General in source order.",
+    "No subjective effects stub warning was present in the source article.",
+    "Markdown bold and list markers removed only as structural formatting; effect names and description text preserved exactly."
+  ]
+}

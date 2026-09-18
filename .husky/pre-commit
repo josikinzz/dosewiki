@@ -1,0 +1,55 @@
+# Vercel Policy Guardrails - Pre-commit Hook
+# Prevents commits that contain secrets, unsafe patterns, or policy violations
+
+echo "🔒 Running Vercel policy guardrails..."
+
+# 1. Check for secrets in staged files
+./.husky/check-secrets.sh
+if [ $? -ne 0 ]; then
+  echo "❌ Secret detection failed. Please remove secrets before committing."
+  exit 1
+fi
+
+# 2. Run ESLint on staged files (including API routes)
+# Warnings are printed but only errors block the commit.
+# The vendored OpenChemLib package owns its generated declarations and test lint
+# policy; root ESLint must not rewrite or reject its pinned upstream sources.
+STAGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' | grep -v '^vendor/openchemlib/' || true)
+STAGED_API_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^api/.*\.js$' || true)
+
+if [ -n "$STAGED_TS_FILES" ]; then
+  echo "📝 Linting TypeScript files..."
+  printf '%s\n' "$STAGED_TS_FILES" | xargs npx eslint --no-warn-ignored
+  if [ $? -ne 0 ]; then
+    echo "❌ ESLint failed. Please fix issues before committing."
+    exit 1
+  fi
+fi
+
+if [ -n "$STAGED_API_FILES" ]; then
+  echo "📝 Linting API routes..."
+  npx eslint $STAGED_API_FILES
+  if [ $? -ne 0 ]; then
+    echo "❌ ESLint failed on API routes. Please fix issues before committing."
+    exit 1
+  fi
+fi
+
+# 3. Check for .env files being committed
+STAGED_ENV=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.env' | grep -v '\.env\.example' || true)
+if [ -n "$STAGED_ENV" ]; then
+  echo "❌ Attempting to commit .env files: $STAGED_ENV"
+  echo "   Add these to .gitignore or use .env.example for templates"
+  exit 1
+fi
+
+# 4. Check vercel.json for dangerous configurations
+if git diff --cached --name-only --diff-filter=ACM | grep -q "vercel.json"; then
+  echo "📋 Checking vercel.json configuration..."
+  ./.husky/check-vercel-config.sh
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+fi
+
+echo "✅ All pre-commit checks passed!"

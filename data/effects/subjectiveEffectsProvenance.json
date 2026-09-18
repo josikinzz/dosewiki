@@ -1,0 +1,747 @@
+{
+  "generatedAt": "2026-08-15T19:02:02.615Z",
+  "description": "Archive.org capture links behind the /docs/license subjective-effects provenance section. Includes every substance whose subjective-effects text dose.wiki restored from a PsychonautWiki capture credited to Josie Kins, plus any captures excluded for falling outside the rights boundary.",
+  "cutoffDate": "2016-08-31",
+  "inBoundaryTotal": 102,
+  "summary": {
+    "segments": [
+      {
+        "key": "2015-or-earlier",
+        "label": "2015 or earlier",
+        "detail": "Earliest recovered sections",
+        "count": 72,
+        "percent": "70.6%"
+      },
+      {
+        "key": "jan-jul-2016",
+        "label": "Jan-Jul 2016",
+        "detail": "Still before August",
+        "count": 2,
+        "percent": "2.0%"
+      },
+      {
+        "key": "august-2016",
+        "label": "August 2016",
+        "detail": "Latest included captures",
+        "count": 28,
+        "percent": "27.5%"
+      }
+    ]
+  },
+  "entries": [
+    {
+      "slug": "marinol",
+      "title": "Marinol",
+      "captureUrl": "https://web.archive.org/web/20150423153214/http://psychonautwiki.org/wiki/%CE%949-THC",
+      "captureDate": "2015-04-23",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "scopolamine",
+      "title": "Scopolamine",
+      "captureUrl": "https://web.archive.org/web/20150423101342/http://psychonautwiki.org/wiki/Scopolamine",
+      "captureDate": "2015-04-23",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "4-pro-dmt",
+      "title": "4-PrO-DMT",
+      "captureUrl": "https://web.archive.org/web/20150424040116/http://psychonautwiki.org/wiki/4-HO-DMT",
+      "captureDate": "2015-04-24",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "psilocin",
+      "title": "Psilocin",
+      "captureUrl": "https://web.archive.org/web/20150424040116/http://psychonautwiki.org/wiki/4-HO-DMT",
+      "captureDate": "2015-04-24",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "tobacco",
+      "title": "Tobacco",
+      "captureUrl": "https://web.archive.org/web/20150426005439/http://psychonautwiki.org/wiki/Tobacco",
+      "captureDate": "2015-04-26",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "heroin",
+      "title": "Heroin",
+      "captureUrl": "https://web.archive.org/web/20150815165909/https://psychonautwiki.org/wiki/Diacetylmorphine",
+      "captureDate": "2015-08-15",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "2-aminoindane",
+      "title": "2-Aminoindane",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/2-AI",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "2-fma",
+      "title": "2-FMA",
+      "captureUrl": "https://web.archive.org/web/20150921133731/https://psychonautwiki.org/wiki/2-FMA",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "25c-nbome",
+      "title": "25c-NBOMe",
+      "captureUrl": "https://web.archive.org/web/20150921130942/https://psychonautwiki.org/wiki/25C-NBOMe",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "25n-nbome",
+      "title": "25N-NBOMe",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/25N-NBOMe",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "2c-d",
+      "title": "2C-D",
+      "captureUrl": "https://web.archive.org/web/20150921135029/https://psychonautwiki.org/wiki/2C-D",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "2m2b",
+      "title": "2M2B",
+      "captureUrl": "https://web.archive.org/web/20150921133452/https://psychonautwiki.org/wiki/2-methyl-2-butanol",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "3-fpm",
+      "title": "3-FPM",
+      "captureUrl": "https://web.archive.org/web/20150921135044/https://psychonautwiki.org/wiki/3-FPM",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "4-fa",
+      "title": "4-FA",
+      "captureUrl": "https://web.archive.org/web/20150921133203/https://psychonautwiki.org/wiki/4-FA",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "4-ho-met",
+      "title": "4-HO-MET",
+      "captureUrl": "https://web.archive.org/web/20150921124505/https://psychonautwiki.org/wiki/4-HO-MET",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "5-meo-dalt",
+      "title": "5-MeO-DALT",
+      "captureUrl": "https://web.archive.org/web/20150921130048/https://psychonautwiki.org/wiki/5-MeO-DALT",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "5f-akb48",
+      "title": "5f-Akb48",
+      "captureUrl": "https://web.archive.org/web/20150921134159/https://psychonautwiki.org/wiki/5F-AKB-48",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "5f-pb-22",
+      "title": "5f-PB-22",
+      "captureUrl": "https://web.archive.org/web/20150921140159/https://psychonautwiki.org/wiki/5F-PB-22",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "a-pvp",
+      "title": "A-PVP",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/A-PVP",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "ab-fubinaca",
+      "title": "AB-FUBINACA",
+      "captureUrl": "https://web.archive.org/web/20150921134800/https://psychonautwiki.org/wiki/AB-FUBINACA",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "adrafinil",
+      "title": "Adrafinil",
+      "captureUrl": "https://web.archive.org/web/20150921132420/https://psychonautwiki.org/wiki/Modafinil",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "alcohol",
+      "title": "Alcohol",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Alcohol",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "alprazolam",
+      "title": "Alprazolam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Alprazolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "amphetamine",
+      "title": "Amphetamine",
+      "captureUrl": "https://web.archive.org/web/20150921125720/https://psychonautwiki.org/wiki/Amphetamine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "benzydamine",
+      "title": "Benzydamine",
+      "captureUrl": "https://web.archive.org/web/20150921130546/https://psychonautwiki.org/wiki/Benzydamine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "caffeine",
+      "title": "Caffeine",
+      "captureUrl": "https://web.archive.org/web/20150921134503/https://psychonautwiki.org/wiki/Caffeine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "cannabis",
+      "title": "Cannabis",
+      "captureUrl": "https://web.archive.org/web/20150921134704/https://psychonautwiki.org/wiki/Cannabis",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "clonazepam",
+      "title": "Clonazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Clonazepam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "clonazolam",
+      "title": "Clonazolam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Clonazolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "cloniprazepam",
+      "title": "Cloniprazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Clonazepam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "cocaine",
+      "title": "Cocaine",
+      "captureUrl": "https://web.archive.org/web/20150921134220/https://psychonautwiki.org/wiki/Cocaine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "codeine",
+      "title": "Codeine",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Codeine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "datura",
+      "title": "Datura",
+      "captureUrl": "https://web.archive.org/web/20150921132624/https://psychonautwiki.org/wiki/Datura",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "deschloroetizolam",
+      "title": "Deschloroetizolam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Deschloroetizolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "diazepam",
+      "title": "Diazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Diazepam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "diclazepam",
+      "title": "Diclazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Diclazepam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "dihydrocodeine",
+      "title": "Dihydrocodeine",
+      "captureUrl": "https://web.archive.org/web/20150921130808/https://psychonautwiki.org/wiki/Dihydrocodeine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "diphenhydramine",
+      "title": "Diphenhydramine",
+      "captureUrl": "https://web.archive.org/web/20150921130816/https://psychonautwiki.org/wiki/Diphenhydramine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "doc",
+      "title": "DOC",
+      "captureUrl": "https://web.archive.org/web/20150921134509/https://psychonautwiki.org/wiki/DOC",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "dom",
+      "title": "DOM",
+      "captureUrl": "https://web.archive.org/web/20150921131453/https://psychonautwiki.org/wiki/DOM",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "ethylmorphine",
+      "title": "Ethylmorphine",
+      "captureUrl": "https://web.archive.org/web/20150921134314/https://psychonautwiki.org/wiki/Ethylmorphine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "ethylphenidate",
+      "title": "Ethylphenidate",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Ethylphenidate",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "etizolam",
+      "title": "Etizolam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Etizolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "flubromazepam",
+      "title": "Flubromazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Flubromazepam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "flubromazolam",
+      "title": "Flubromazolam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Flubromazolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "gabapentin",
+      "title": "Gabapentin",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Gabapentin",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "gbl",
+      "title": "GBL",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/GBL",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "ghb",
+      "title": "GHB",
+      "captureUrl": "https://web.archive.org/web/20150921133737/https://psychonautwiki.org/wiki/GHB",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "isopropylphenidate",
+      "title": "Isopropylphenidate",
+      "captureUrl": "https://web.archive.org/web/20150921124925/https://psychonautwiki.org/wiki/Isopropylphenidate",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "jwh-018",
+      "title": "JWH-018",
+      "captureUrl": "https://web.archive.org/web/20150921133445/https://psychonautwiki.org/wiki/JWH-018",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "kratom",
+      "title": "Kratom",
+      "captureUrl": "https://web.archive.org/web/20150921134447/https://psychonautwiki.org/wiki/Kratom",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "lorazepam",
+      "title": "Lorazepam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Lorazepam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "mephedrone",
+      "title": "Mephedrone",
+      "captureUrl": "https://web.archive.org/web/20150921134007/https://psychonautwiki.org/wiki/Mephedrone",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "mescaline",
+      "title": "Mescaline",
+      "captureUrl": "https://web.archive.org/web/20150921134345/https://psychonautwiki.org/wiki/Mescaline",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "methamphetamine",
+      "title": "Methamphetamine",
+      "captureUrl": "https://web.archive.org/web/20150921140242/https://psychonautwiki.org/wiki/Methamphetamine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "methaqualone",
+      "title": "Methaqualone",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Methaqualone",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "methiopropamine",
+      "title": "Methiopropamine",
+      "captureUrl": "https://web.archive.org/web/20150921132833/https://psychonautwiki.org/wiki/Methiopropamine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "methylphenidate",
+      "title": "Methylphenidate",
+      "captureUrl": "https://web.archive.org/web/20150921133929/https://psychonautwiki.org/wiki/Methylphenidate",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "modafinil",
+      "title": "Modafinil",
+      "captureUrl": "https://web.archive.org/web/20150921132420/https://psychonautwiki.org/wiki/Modafinil",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "nicotine",
+      "title": "Nicotine",
+      "captureUrl": "https://web.archive.org/web/20150921131635/https://psychonautwiki.org/wiki/Nicotine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "nifoxipam",
+      "title": "Nifoxipam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Nifoxipam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "nm-2-ai",
+      "title": "NM-2-AI",
+      "captureUrl": "https://web.archive.org/web/20150921125751/https://psychonautwiki.org/wiki/NM2AI",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "noopept",
+      "title": "Noopept",
+      "captureUrl": "https://web.archive.org/web/20150921130532/https://psychonautwiki.org/wiki/Noopept",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "o-desmethyltramadol",
+      "title": "O-Desmethyltramadol",
+      "captureUrl": "https://web.archive.org/web/20150921131113/https://psychonautwiki.org/wiki/O-Desmethyltramadol",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "oxycodone",
+      "title": "Oxycodone",
+      "captureUrl": "https://web.archive.org/web/20150921134948/https://psychonautwiki.org/wiki/Oxycodone",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "pregabalin",
+      "title": "Pregabalin",
+      "captureUrl": "https://web.archive.org/web/20150921134158/https://psychonautwiki.org/wiki/Pregabalin",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "prochlorperazine",
+      "title": "Prochlorperazine",
+      "captureUrl": "https://web.archive.org/web/20150921133931/https://psychonautwiki.org/wiki/Prochlorperazine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "pyrazolam",
+      "title": "Pyrazolam",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Pyrazolam",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "quetiapine",
+      "title": "Quetiapine",
+      "captureUrl": "https://web.archive.org/web/20150921133915/https://psychonautwiki.org/wiki/Quetiapine",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "tramadol",
+      "title": "Tramadol",
+      "captureUrl": "https://web.archive.org/web/20150921124532/https://psychonautwiki.org/wiki/Tramadol",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "zopiclone",
+      "title": "Zopiclone",
+      "captureUrl": "https://web.archive.org/web/20150921133949/https://psychonautwiki.org/wiki/Zopiclone",
+      "captureDate": "2015-09-21",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "1-4-butanediol",
+      "title": "1,4-Butanediol",
+      "captureUrl": "https://web.archive.org/web/20150924220651/https://psychonautwiki.org/wiki/1,4-Butanediol",
+      "captureDate": "2015-09-24",
+      "bucket": "2015-or-earlier"
+    },
+    {
+      "slug": "escaline",
+      "title": "Escaline",
+      "captureUrl": "https://web.archive.org/web/20160214114530/https://psychonautwiki.org/wiki/Escaline",
+      "captureDate": "2016-02-14",
+      "bucket": "jan-jul-2016"
+    },
+    {
+      "slug": "25d-nbome",
+      "title": "25D-NBOMe",
+      "captureUrl": "https://web.archive.org/web/20160730143815/https://psychonautwiki.org/wiki/25D-NBOMe",
+      "captureDate": "2016-07-30",
+      "bucket": "jan-jul-2016"
+    },
+    {
+      "slug": "3-meo-pcp",
+      "title": "3-MeO-PCP",
+      "captureUrl": "https://web.archive.org/web/20160803222947/https://psychonautwiki.org/wiki/3-MeO-PCP",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "4-aco-det",
+      "title": "4-AcO-DET",
+      "captureUrl": "https://web.archive.org/web/20160803224714/https://psychonautwiki.org/wiki/4-HO-DET",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "4-ho-det",
+      "title": "4-HO-DET",
+      "captureUrl": "https://web.archive.org/web/20160803224714/https://psychonautwiki.org/wiki/4-HO-DET",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "4-meo-pcp",
+      "title": "4-MeO-PCP",
+      "captureUrl": "https://web.archive.org/web/20160803232118/https://psychonautwiki.org/wiki/4-MeO-PCP",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "dehydroxyfluorafinil",
+      "title": "Dehydroxyfluorafinil",
+      "captureUrl": "https://web.archive.org/web/20160803222509/https://psychonautwiki.org/wiki/Fluorafinil",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "dpt",
+      "title": "DPT",
+      "captureUrl": "https://web.archive.org/web/20160803223920/http://psychonautwiki.org/wiki/DPT",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "fentanyl",
+      "title": "Fentanyl",
+      "captureUrl": "https://web.archive.org/web/20160803235227/https://psychonautwiki.org/wiki/Fentanyl",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "metizolam",
+      "title": "Metizolam",
+      "captureUrl": "https://web.archive.org/web/20160803221735/https://psychonautwiki.org/wiki/Metizolam",
+      "captureDate": "2016-08-03",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "1p-eth-lad",
+      "title": "1P-ETH-LAD",
+      "captureUrl": "https://web.archive.org/web/20160804042757/https://psychonautwiki.org/wiki/ETH-LAD",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "3-mmc",
+      "title": "3-MMC",
+      "captureUrl": "https://web.archive.org/web/20160804042911/https://psychonautwiki.org/wiki/3-MMC",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "4-aco-dipt",
+      "title": "4-AcO-DiPT",
+      "captureUrl": "https://web.archive.org/web/20160804042638/https://psychonautwiki.org/wiki/4-AcO-DiPT",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "4-ho-dipt",
+      "title": "4-HO-DiPT",
+      "captureUrl": "https://web.archive.org/web/20160804042638/https://psychonautwiki.org/wiki/4-AcO-DiPT",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "allylescaline",
+      "title": "Allylescaline",
+      "captureUrl": "https://web.archive.org/web/20160804042719/https://psychonautwiki.org/wiki/Allylescaline",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "bk-2c-b",
+      "title": "bk-2c-B",
+      "captureUrl": "https://web.archive.org/web/20160804011210/https://psychonautwiki.org/wiki/Bk-2C-B",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "deschloroketamine",
+      "title": "Deschloroketamine",
+      "captureUrl": "https://web.archive.org/web/20160804042835/https://psychonautwiki.org/wiki/Deschloroketamine",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "doi",
+      "title": "DOI",
+      "captureUrl": "https://web.archive.org/web/20160804042743/https://psychonautwiki.org/wiki/DOI",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "eth-lad",
+      "title": "ETH-LAD",
+      "captureUrl": "https://web.archive.org/web/20160804042757/https://psychonautwiki.org/wiki/ETH-LAD",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "mda",
+      "title": "MDA",
+      "captureUrl": "https://web.archive.org/web/20160804042728/https://psychonautwiki.org/wiki/MDA",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "methallylescaline",
+      "title": "Methallylescaline",
+      "captureUrl": "https://web.archive.org/web/20160804041639/https://psychonautwiki.org/wiki/Methallylescaline",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "mexedrone",
+      "title": "Mexedrone",
+      "captureUrl": "https://web.archive.org/web/20160804042744/https://psychonautwiki.org/wiki/Mexedrone",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "morphine",
+      "title": "Morphine",
+      "captureUrl": "https://web.archive.org/web/20160804042738/https://psychonautwiki.org/wiki/Morphine",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "phenibut",
+      "title": "Phenibut",
+      "captureUrl": "https://web.archive.org/web/20160804042826/https://psychonautwiki.org/wiki/Phenibut",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "pro-lad",
+      "title": "PRO-LAD",
+      "captureUrl": "https://web.archive.org/web/20160804010453/https://psychonautwiki.org/wiki/PRO-LAD",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "tianeptine",
+      "title": "Tianeptine",
+      "captureUrl": "https://web.archive.org/web/20160804042025/https://psychonautwiki.org/wiki/Tianeptine",
+      "captureDate": "2016-08-04",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "2c-b-fly",
+      "title": "2C-B-FLY",
+      "captureUrl": "https://web.archive.org/web/20160805080503/https://psychonautwiki.org/wiki/2C-B-FLY",
+      "captureDate": "2016-08-05",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "5-meo-dibf",
+      "title": "5-MeO-DiBF",
+      "captureUrl": "https://web.archive.org/web/20160805080514/https://psychonautwiki.org/wiki/5-MeO-DiBF",
+      "captureDate": "2016-08-05",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "ald-52",
+      "title": "ALD-52",
+      "captureUrl": "https://web.archive.org/web/20160805204337/https://psychonautwiki.org/wiki/ALD-52",
+      "captureDate": "2016-08-05",
+      "bucket": "august-2016"
+    },
+    {
+      "slug": "lsz",
+      "title": "LSZ",
+      "captureUrl": "https://web.archive.org/web/20160805204732/https://psychonautwiki.org/wiki/LSZ",
+      "captureDate": "2016-08-05",
+      "bucket": "august-2016"
+    }
+  ]
+}

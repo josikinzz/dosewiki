@@ -1,0 +1,3240 @@
+[
+  {
+    "key": "home-hero-tagline",
+    "kind": "plain",
+    "label": "Hero tagline",
+    "group": "Home",
+    "body": "An open encyclopedic database for the study of psychopharmacology"
+  },
+  {
+    "key": "home-construction-title",
+    "kind": "plain",
+    "label": "Under-construction banner title",
+    "group": "Home",
+    "body": "Under construction"
+  },
+  {
+    "key": "home-construction-subtitle",
+    "kind": "plain",
+    "label": "Under-construction banner subtitle",
+    "group": "Home",
+    "body": "coming soon"
+  },
+  {
+    "key": "home-construction-body",
+    "kind": "markdown",
+    "label": "Under-construction page body",
+    "group": "Home",
+    "body": "The public site is under construction while the harm-reduction library is being reviewed."
+  },
+  {
+    "key": "home-construction-body-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Under-construction page body",
+    "group": "Home",
+    "body": "The public site is under construction while the subjective effect archive is being reviewed."
+  },
+  {
+    "key": "home-loading-lines",
+    "kind": "list",
+    "label": "Loading screen lines",
+    "group": "Home",
+    "items": [
+      "Indexing dosage, effects, and safety references…",
+      "Preparing the public library"
+    ]
+  },
+  {
+    "key": "home-loading-lines-effect-index",
+    "flavor": "effect-index",
+    "kind": "list",
+    "label": "Loading screen lines",
+    "group": "Home",
+    "items": [
+      "Indexing subjective effects, replications, and reports…",
+      "Preparing the public library"
+    ]
+  },
+  {
+    "key": "footer-tagline",
+    "kind": "plain",
+    "label": "Footer tagline",
+    "group": "Footer",
+    "body": "dose.wiki does not endorse or warrant the accuracy or safety of the information published here. Its articles, reports, and data describe substances and individual experiences and must not be read as medical advice, dosing recommendations, or a representation that any substance or dose is safe.\n\ndose.wiki is an independently governed repository of psychoactive-substance information and first-person experiences. Its operations, content policies, and editorial decisions are its own."
+  },
+  {
+    "key": "footer-tagline-effect-index",
+    "flavor": "effect-index",
+    "kind": "plain",
+    "label": "Footer tagline",
+    "group": "Footer",
+    "body": "Formalised documentation of subjective effects. Not medical advice."
+  },
+  {
+    "key": "footer-supporter-prefix",
+    "kind": "plain",
+    "label": "Supporter credit prefix",
+    "group": "Footer",
+    "body": "Supported by"
+  },
+  {
+    "key": "about-reuse-notice",
+    "kind": "markdown",
+    "label": "Reuse notice",
+    "group": "About",
+    "body": "Writing by dose.wiki editors, data schemas, and data normalization efforts are licensed [CC0](/docs/license): they are in the public domain. You are free to use and improve CC0 content without permission or attribution. Our code is [MIT licensed](/docs/license).\n\nThird-party content such as quoted text, [reagent test data](https://protestkit.eu), [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), legacy trip reports, or replications may be subject to other terms. Datasets downloaded from dose.wiki are not necessarily licensed CC0.\n\nYou can use our datasets on effects, substances, and/or trip reports in your own datasets, harm reduction efforts, or to build your own encyclopedia as described [here](/docs/license)."
+  },
+  {
+    "key": "about-reuse-notice-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Reuse notice",
+    "group": "About",
+    "body": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed."
+  },
+  {
+    "key": "about-doc-link-blurbs",
+    "kind": "list",
+    "label": "Documentation card blurbs",
+    "group": "About",
+    "items": [
+      "Sources, AI drafting, human review, and citation checks for substance articles.",
+      "The codebase, data layer, and systems behind the site.",
+      "Reuse terms for our writing, datasets, code, and third-party material."
+    ]
+  },
+  {
+    "key": "about-mission-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Mission statement",
+    "group": "About",
+    "body": "Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.\n\nWe believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.\n\nEffect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.\n\nIf you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord)."
+  },
+  {
+    "key": "about-community-intro",
+    "kind": "markdown",
+    "label": "Community intro",
+    "group": "About",
+    "body": "Other projects & communities we admire or work with include:"
+  },
+  {
+    "key": "effect-index-home-intro-lead",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Homepage intro, lead paragraph",
+    "group": "Effect Index",
+    "body": "**Effect Index,** is a resource dedicated to establishing the field of formalised subjective effect documentation. It is the home of the [Subjective Effect Index](/effects) (SEI), which contains {{effectCount}} effect descriptions that exist to serve as a comprehensive map of all potential experiences that can occur under the influence of any class of psychoactive compound, particularly hallucinogens."
+  },
+  {
+    "key": "effect-index-home-intro-method",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Homepage intro, method paragraph",
+    "group": "Effect Index",
+    "body": "The effects identified here are accompanied by detailed descriptions of how it feels to experience them. These are written in an objective and [consistent writing style](/documentation-style-guide) based upon phenomenological observation and avoids the use of metaphor or analogy. The descriptions also strive to use language that is as simple and understandable as possible. This has been done with the hope that they will serve as a universal terminology that allows people to describe and discuss that which was previously considered ineffable."
+  },
+  {
+    "key": "effect-index-home-intro-organisation",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Homepage intro, organisation paragraph",
+    "group": "Effect Index",
+    "body": "These effects are organised into categories based on the sense affected and their behaviour. Many of these are further broken down into levels, subcomponents, and variations in style, which can occur across different substances. Detailed [replications](/replications) are included whenever possible to supplement the text descriptions in the form of images, audio clips, and animations."
+  },
+  {
+    "key": "effect-index-home-panel-blurbs",
+    "flavor": "effect-index",
+    "kind": "list",
+    "label": "Homepage panel blurbs",
+    "group": "Effect Index",
+    "items": [
+      "Hallucinogenic substance classes, broken down and described",
+      "A selection of subjective effects that best represent the SEI",
+      "Analyses that go beyond individual subjective effects",
+      "Recommended firsthand accounts of hallucinogenic experiences",
+      "Artistic representations of specific subjective effects"
+    ]
+  },
+  {
+    "key": "effects-index-credit",
+    "kind": "plain",
+    "label": "Subjective Effect Index credit line",
+    "group": "Index pages",
+    "body": "created by Josie Kins, 2011"
+  },
+  {
+    "key": "submit-report-intro",
+    "kind": "markdown",
+    "label": "Submission page intro",
+    "group": "Submissions",
+    "body": "Share a structured account for editor review. Submissions stay in a private queue and only become public after manual approval."
+  },
+  {
+    "key": "submit-report-privacy-note",
+    "kind": "plain",
+    "label": "Submission privacy note",
+    "group": "Submissions",
+    "body": "Include only identifying details you are comfortable with editors reviewing."
+  },
+  {
+    "key": "submit-report-consent-publish",
+    "kind": "markdown",
+    "label": "CC0 publication consent",
+    "group": "Submissions",
+    "body": "I consent to this report being reviewed and, if published, dedicated to the public domain (CC0), free for anyone to use, with no attribution required. This dedication cannot be revoked once the report is public: anyone who has already copied it may keep using it. If I later ask dose.wiki to remove the report, that removal applies to dose.wiki only, not to copies made elsewhere."
+  },
+  {
+    "key": "submit-report-consent-age",
+    "kind": "plain",
+    "label": "Age confirmation consent",
+    "group": "Submissions",
+    "body": "I confirm I am at least 18 years old and can submit this report."
+  },
+  {
+    "key": "not-found-title",
+    "kind": "plain",
+    "label": "404 title",
+    "group": "Status pages",
+    "body": "Page not found"
+  },
+  {
+    "key": "not-found-body",
+    "kind": "plain",
+    "label": "404 body",
+    "group": "Status pages",
+    "body": "That page doesn’t exist or may have moved."
+  },
+  {
+    "key": "root-meta-description",
+    "kind": "plain",
+    "label": "Root SEO description",
+    "group": "Status pages",
+    "body": "dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances."
+  },
+  {
+    "key": "root-meta-description-effect-index",
+    "flavor": "effect-index",
+    "kind": "plain",
+    "label": "Root SEO description",
+    "group": "Status pages",
+    "body": "A resource dedicated to establishing the field of formalised subjective effect documentation."
+  },
+  {
+    "key": "substances-category-psychedelic",
+    "kind": "markdown",
+    "label": "Psychedelic definition",
+    "group": "Substance categories",
+    "body": "**Psychedelics** (also known as serotonergic hallucinogens) are a subclass of hallucinogen that change perception, emotion, and thought. The user usually stays aware that a drug is causing the experience. Psychedelics act mainly on a serotonin receptor called 5-HT2A, which loosens the normal filtering of incoming information in the brain. Common effects are stronger color, flowing geometric patterns, deeper emotion, and a sense of insight. The term dates from 1956. It comes from the Greek *psyche* (\"mind\") and *delos* (\"to reveal\"), and means \"mind-manifesting.\""
+  },
+  {
+    "key": "substances-category-dissociative",
+    "kind": "markdown",
+    "label": "Dissociative definition",
+    "group": "Substance categories",
+    "body": "**Dissociatives** are a subclass of hallucinogen that produce a feeling of detachment from the body, the sense of self, and the surroundings. Dissociatives mainly block NMDA receptors, which are part of the glutamate system. This system binds sensory information and the sense of self into one coherent experience. The block interrupts this system and creates the sense of disconnection. At low doses, the effect is a floaty, dreamlike state. At high doses, the effect is a full out-of-body experience."
+  },
+  {
+    "key": "substances-category-entactogen",
+    "kind": "markdown",
+    "label": "Entactogen definition",
+    "group": "Substance categories",
+    "body": "**Entactogens** (also known as empathogens) are a class of psychoactive substances that produce emotional openness, empathy, warmth, and closeness to other people. Entactogens mainly cause a large release of serotonin, with some dopamine and noradrenaline. This mix makes the experience mildly euphoric and social, not strongly hallucinatory. The name comes from the Greek *en* (\"within\"), the Latin *tactus* (\"touch\"), and *-gen* (\"to produce\"). Together these parts mean \"to touch within.\""
+  },
+  {
+    "key": "substances-category-stimulant",
+    "kind": "markdown",
+    "label": "Stimulant definition",
+    "group": "Substance categories",
+    "body": "**Stimulants** (also known as \"uppers\") are a class of psychoactive substances that speed up the central nervous system. They increase energy, alertness, wakefulness, and focus. They also reduce appetite and fatigue. Stimulants mainly raise the levels of dopamine and noradrenaline, the drive and alertness chemicals of the brain. These raised levels are also the reason that a crash often follows the effects. The name comes from the Latin *stimulare*, which means \"to goad on.\""
+  },
+  {
+    "key": "substances-category-nootropic",
+    "kind": "markdown",
+    "label": "Nootropic definition",
+    "group": "Substance categories",
+    "body": "**Nootropics** (also known as cognitive enhancers or \"smart drugs\") are a class of psychoactive substances that support mental performance, such as memory, focus, learning, and motivation. They usually have few side effects. Nootropics do not share one mechanism: some change neurotransmitter levels, some increase blood flow to the brain, and some protect brain cells. Their effects are therefore small and gradual, and they do not produce an obvious high. The term dates from 1972 and comes from the Greek *noos* (\"mind\") and *tropein* (\"to turn\"), which mean \"mind-turning.\""
+  },
+  {
+    "key": "substances-category-antidepressant",
+    "kind": "markdown",
+    "label": "Antidepressant definition",
+    "group": "Substance categories",
+    "body": "**Antidepressants** are a class of psychoactive medications that treat depression and related conditions. Most antidepressants slow the reabsorption of serotonin or noradrenaline in the brain, which keeps more of it active over time. For this reason, they have no immediate effect and take weeks to work. An antidepressant is not the opposite of a \"depressant\" drug. The two words use \"depress\" in different senses: one refers to the mood disorder, and the other refers to a slower nervous system."
+  },
+  {
+    "key": "substances-category-antipsychotic",
+    "kind": "markdown",
+    "label": "Antipsychotic definition",
+    "group": "Substance categories",
+    "body": "**Antipsychotics** (also known as neuroleptics) are a class of psychoactive medications that manage psychosis. Psychosis includes hallucinations, delusions, and disordered thought. Antipsychotics mainly block dopamine receptors. This block reduces dopamine signaling, which is too high during a psychotic state."
+  },
+  {
+    "key": "substances-category-opioid",
+    "kind": "markdown",
+    "label": "Opioid definition",
+    "group": "Substance categories",
+    "body": "**Opioids** are a class of psychoactive substances that relieve pain and produce euphoria, relaxation, and contentment. They also cause sedation. At high doses, opioids slow breathing to a dangerous degree. Opioids imitate endorphins, the natural painkilling chemicals of the body, and act on the same opioid receptors. The name comes from *opium*, the extract of the poppy, and *-oid* (\"resembling\"). The term \"opiate\" covers only natural poppy derivatives, but \"opioid\" covers any substance that acts on these receptors."
+  },
+  {
+    "key": "substances-category-deliriant",
+    "kind": "markdown",
+    "label": "Deliriant definition",
+    "group": "Substance categories",
+    "body": "**Deliriants** are a subclass of hallucinogen that produce delirium: a state of confusion, an inability to tell hallucinations from reality, and frequent amnesia afterward. Deliriants block acetylcholine, a neurotransmitter that the brain needs for memory, attention, and a stable view of the real world. Psychedelics and dissociatives usually cause hallucinations that the user knows are unreal. Deliriants instead produce \"true\" hallucinations, which the user cannot tell apart from reality. The name comes from the Latin *delirare*, which means \"to go off the track.\""
+  },
+  {
+    "key": "substances-category-gabaergic",
+    "kind": "markdown",
+    "label": "Sedative-hypnotics definition",
+    "group": "Substance categories",
+    "body": "**Sedative-hypnotics** are psychoactive substances that usually cause sedation, drowsiness, or sleep. This class holds several families of depressant drugs with different mechanisms: benzodiazepines, barbiturates, alcohol, GABA analogs, and some substances that act on voltage-gated calcium channels. Opioids have their own category."
+  },
+  {
+    "key": "substances-category-cannabinoid",
+    "kind": "markdown",
+    "label": "Cannabinoid definition",
+    "group": "Substance categories",
+    "body": "**Cannabinoids** are a class of psychoactive substances that change mood, appetite, memory, perception, and pain through the endocannabinoid system of the body. They act on the CB1 receptors that the body's own cannabis-like signal chemicals normally use. Common effects are relaxation, a changed sense of time, and more appetite. The name comes from the *Cannabis* plant, where these compounds were first identified."
+  },
+  {
+    "key": "substances-category-super-hallucinogens",
+    "kind": "markdown",
+    "label": "Hallucinogens (umbrella tab) definition",
+    "group": "Substance categories",
+    "body": "**Hallucinogens** are a class of psychoactive substances that produce strong changes in perception, mood, and thought. The experience often feels like a different state of consciousness, not a stronger or weaker version of normal awareness. There are three subclasses of hallucinogens: psychedelics, dissociatives, and deliriants. Each subclass acts on a different brain system and produces a different type of experience. The name comes from the Latin *hallucinari*, which means \"to wander in the mind.\""
+  },
+  {
+    "key": "substances-category-super-depressants",
+    "kind": "markdown",
+    "label": "Depressants (umbrella tab) definition",
+    "group": "Substance categories",
+    "body": "**Depressants** (also known as \"downers\") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or \"braking\" system of the brain. The word \"depressant\" means lower nervous-system activity. It does not mean sadness."
+  },
+  {
+    "key": "dosage-panel-disclaimer",
+    "kind": "plain",
+    "label": "Dosage panel disclaimer",
+    "group": "Substance articles",
+    "body": "Doses are population estimates that vary widely between individuals."
+  },
+  {
+    "key": "tolerance-section-disclaimer",
+    "kind": "plain",
+    "label": "Tolerance section disclaimer",
+    "group": "Substance articles",
+    "body": "Tolerance timelines are rules of thumb, not exact schedules, and vary widely between individuals and use patterns."
+  },
+  {
+    "key": "review-status-banner",
+    "kind": "plain",
+    "label": "Pending-review banner",
+    "group": "Substance articles",
+    "body": "Not yet reviewed: this article is pending editorial review by {{reviewer}}."
+  },
+  {
+    "key": "expert-review-credit",
+    "kind": "plain",
+    "label": "Expert-review credit",
+    "group": "Substance articles",
+    "body": "Subject-matter expert {{reviewer}} has reviewed this article's essentials: dosage, duration, prose, and copy. This does not guarantee factual accuracy."
+  },
+  {
+    "key": "seo-substances-index-description",
+    "kind": "plain",
+    "label": "Substance Index meta description",
+    "group": "SEO",
+    "body": "Browse {{substanceCount}} substance records in {{siteName}}."
+  },
+  {
+    "key": "effects-index-intro-lead",
+    "kind": "plain",
+    "label": "SEI intro, lead paragraph",
+    "group": "Subjective Effect Index",
+    "body": "The **Subjective Effect Index** is a comprehensive catalogue of {{effectCount}} subjective effects that may occur under the influence of psychoactive substances."
+  },
+  {
+    "key": "effects-index-intro-method",
+    "kind": "plain",
+    "label": "SEI intro, writing-style paragraph",
+    "group": "Subjective Effect Index",
+    "body": "The effects are accompanied by detailed descriptions written in a consistent style that avoids flowery metaphors, using simple and accessible language to serve as a universal terminology for communicating experiences that are difficult to convey."
+  },
+  {
+    "key": "effects-index-intro-organisation",
+    "kind": "plain",
+    "label": "SEI intro, organisation paragraph",
+    "group": "Subjective Effect Index",
+    "body": "Effects are organised into categories based on the senses they affect and their behavior, with many broken down into leveling systems, subcomponents, and style variations. Image, video, and audio replications supplement text-based descriptions."
+  },
+  {
+    "key": "effects-index-tab-sensory",
+    "kind": "plain",
+    "label": "Sensory tab intro",
+    "group": "Subjective Effect Index",
+    "body": "Sensory effects are subjective effects that directly alter a person's senses. These can include any combination of sight, sound, touch, taste, and smell."
+  },
+  {
+    "key": "effects-index-tab-cognitive",
+    "kind": "plain",
+    "label": "Cognitive tab intro",
+    "group": "Subjective Effect Index",
+    "body": "Cognitive effects are subjective effects that directly alter or introduce new content to an element of a person's cognition."
+  },
+  {
+    "key": "effects-index-tab-physical",
+    "kind": "plain",
+    "label": "Physical tab intro",
+    "group": "Subjective Effect Index",
+    "body": "Physical effects are subjective effects that directly affect part of a person's physical body."
+  },
+  {
+    "key": "effects-index-tab-library",
+    "kind": "plain",
+    "label": "Library tab intro",
+    "group": "Subjective Effect Index",
+    "body": "The long-form writing behind the index: the scales that grade how intense these effects are, the substance guides that walk an experience end to end, and the pieces on dreaming and meditation."
+  },
+  {
+    "key": "effects-category-visual-effects",
+    "kind": "markdown",
+    "label": "Visual Effects description",
+    "group": "Effect categories",
+    "body": "Visual effects are defined as any subjective effect that directly alters a person's sense of sight."
+  },
+  {
+    "key": "effects-category-visual-amplifications",
+    "kind": "markdown",
+    "label": "Visual Amplifications description",
+    "group": "Effect categories",
+    "body": "Visual amplifications are defined as any subjective effect that increases, enhances, accelerates, or intensifies a facet of a person's sense of sight."
+  },
+  {
+    "key": "effects-category-visual-suppressions",
+    "kind": "markdown",
+    "label": "Visual Suppressions description",
+    "group": "Effect categories",
+    "body": "Visual suppressions are defined as any subjective effect that decreases a person's ability to perceive the external environment through their sense of sight."
+  },
+  {
+    "key": "effects-category-visual-distortions",
+    "kind": "markdown",
+    "label": "Visual Distortions description",
+    "group": "Effect categories",
+    "body": "Visual distortions are defined as any subjective effect that alters the perception or appearance of pre-existing visual data without adding any entirely new content."
+  },
+  {
+    "key": "effects-category-geometric-patterns",
+    "kind": "markdown",
+    "label": "Geometric Patterns description",
+    "group": "Effect categories",
+    "body": "Geometric patterns are defined as any subjective effect that introduces complex arrays of shapes, colours, symbols, patterns, geometry, form constants, and fractals to one's field of vision."
+  },
+  {
+    "key": "effects-category-hallucinatory-states",
+    "kind": "markdown",
+    "label": "Hallucinatory Effects description",
+    "group": "Effect categories",
+    "body": "Hallucinatory states are defined as any subjective effect that changes the perception or appearance of pre-existing sensory data by adding entirely new content in a manner similar to that of dreams."
+  },
+  {
+    "key": "effects-category-auditory-effects",
+    "kind": "markdown",
+    "label": "Auditory Effects description",
+    "group": "Effect categories",
+    "body": "Effects that directly alter a person's sense of hearing."
+  },
+  {
+    "key": "effects-category-smell-and-taste-effects",
+    "kind": "markdown",
+    "label": "Smell & Taste Effects description",
+    "group": "Effect categories",
+    "body": "Smell and taste effects are defined as any subjective effect that directly alters either a person's sense of smell or taste."
+  },
+  {
+    "key": "effects-category-tactile-effects",
+    "kind": "markdown",
+    "label": "Tactile Effects description",
+    "group": "Effect categories",
+    "body": "Tactile effects are defined as any subjective effect that directly alters a person's sense of touch."
+  },
+  {
+    "key": "effects-category-multisensory-effects",
+    "kind": "markdown",
+    "label": "Multisensory Effects description",
+    "group": "Effect categories",
+    "body": "Multisensory effects are defined as any subjective effect that directly alters two or more senses at a time."
+  },
+  {
+    "key": "effects-category-disconnective-effects",
+    "kind": "markdown",
+    "label": "Disconnective Effects description",
+    "group": "Effect categories",
+    "body": "Disconnective effects are defined as any subjective effect that feels as if it disconnects one from the external environment, their senses, and/or their consciousness."
+  },
+  {
+    "key": "effects-category-cognitive-effects",
+    "kind": "markdown",
+    "label": "Cognitive Effects description",
+    "group": "Effect categories",
+    "body": "Cognitive effects are subjective effects that directly alter or introduce new content to an element of a person's cognition."
+  },
+  {
+    "key": "effects-category-cognitive-amplifications",
+    "kind": "markdown",
+    "label": "Cognitive Amplifications description",
+    "group": "Effect categories",
+    "body": "Cognitive amplifications are defined as any subjective effect that increases, enhances, accelerates, or intensifies a facet of a person's cognition."
+  },
+  {
+    "key": "effects-category-cognitive-suppressions",
+    "kind": "markdown",
+    "label": "Cognitive Suppressions description",
+    "group": "Effect categories",
+    "body": "Cognitive suppressions are defined as any subjective effect that decreases the intensity of a facet of a person's cognition."
+  },
+  {
+    "key": "effects-category-novel-cognitive-states",
+    "kind": "markdown",
+    "label": "Novel Cognitive States description",
+    "group": "Effect categories",
+    "body": "Novel cognitive states are defined as any cognitive effect that does not merely amplify or suppress familiar states of mind; rather, it induces an experience that is qualitatively different from that of ordinary consciousness."
+  },
+  {
+    "key": "effects-category-psychological-states",
+    "kind": "markdown",
+    "label": "Psychological States description",
+    "group": "Effect categories",
+    "body": "Psychological states are defined as any cognitive effect that is either established within the psychological literature or arises as a result of the complex interplay between more simplistic components such as cognitive enhancements and suppressions."
+  },
+  {
+    "key": "effects-category-transpersonal-states",
+    "kind": "markdown",
+    "label": "Transpersonal States description",
+    "group": "Effect categories",
+    "body": "Transpersonal states are defined as any subjective effect that feels as if it alters a person's cognition in a manner that relates to their place in the universe, the inner workings of reality or consciousness, and/or the context of their existence. The highest manifestations of these effects fall under what are commonly known as 'peak', 'transcendent' or 'transformative' experiences."
+  },
+  {
+    "key": "effects-category-transpersonal-effects",
+    "kind": "markdown",
+    "label": "Transpersonal Effects description",
+    "group": "Effect categories",
+    "body": "Transpersonal effects are defined as any subjective effect that feels as if it alters a person's cognition in a manner that relates to their place in the universe, the inner workings of reality or consciousness, and/or the context of their existence. The highest manifestations of these effects fall under what are commonly known as \"peak\", \"transcendent\" or \"transformative\" experiences.\n\nThese effects are typically associated with high dose psychedelic or dissociative experiences. They can occur regardless of the person's spiritual or religious beliefs and often have a distinct and lasting impact on the user's perspective of the world around them. During the experience of a substance-induced transpersonal state, the information conveyed is often felt to be a real and objective truth. However, the person will often come to disagree with these supposed \"epiphanies\" once the effects of the substance have worn off.\n\nIt should be noted that these mind-states are the least reproducible of all effects within the Subjective Effect Index. Simply taking more of a given substance does not necessarily increase the chances of having these states occur. Instead, they seem to rely more on contextual factors, such as the person's set and setting.\n\nThis page lists the various transpersonal effects that can occur under the influence of certain psychoactive compounds."
+  },
+  {
+    "key": "effects-category-physical-effects",
+    "kind": "markdown",
+    "label": "Physical Effects description",
+    "group": "Effect categories",
+    "body": "Physical effects are subjective effects that directly alter a person's perception of their physical body or its physiological functions."
+  },
+  {
+    "key": "effects-category-physical-amplifications",
+    "kind": "markdown",
+    "label": "Physical Amplifications description",
+    "group": "Effect categories",
+    "body": "Physical amplifications are defined as any subjective effect that increases, enhances, accelerates, or intensifies a facet of a person's physical body."
+  },
+  {
+    "key": "effects-category-physical-suppressions",
+    "kind": "markdown",
+    "label": "Physical Suppressions description",
+    "group": "Effect categories",
+    "body": "Physical suppressions are defined as any subjective effect that decreases or reduces a facet of a person's physical body."
+  },
+  {
+    "key": "effects-category-physical-alterations",
+    "kind": "markdown",
+    "label": "Physical Alterations description",
+    "group": "Effect categories",
+    "body": "Physical alterations are defined as any subjective effect that changes a facet of a person's physical body in a manner which is not uncomfortable and does not involve a clearly definable enhancement or suppression."
+  },
+  {
+    "key": "effects-category-uncomfortable-physical-effects",
+    "kind": "markdown",
+    "label": "Uncomfortable Physical Effects description",
+    "group": "Effect categories",
+    "body": "Uncomfortable physical effects are defined as any substance-induced alteration of a person's physical state that is unpleasant, undesirable, painful, or otherwise a source of distress."
+  },
+  {
+    "key": "effects-category-cardiovascular-effects",
+    "kind": "markdown",
+    "label": "Cardiovascular Effects description",
+    "group": "Effect categories",
+    "body": "Cardiovascular effects are defined as any uncomfortable physical effect that relates to the heart and blood vessels."
+  },
+  {
+    "key": "effects-category-neurological-effects",
+    "kind": "markdown",
+    "label": "Neurological Effects description",
+    "group": "Effect categories",
+    "body": "Neurological effects are defined as any uncomfortable physical effect that relates to the brain and its blood vessels."
+  },
+  {
+    "key": "effects-category-uncomfortable-bodily-effects",
+    "kind": "markdown",
+    "label": "Uncomfortable Bodily Effects description",
+    "group": "Effect categories",
+    "body": "Uncomfortable bodily effects are defined as any uncomfortable physical effect that relates to the overall body and cannot be categorized as cardiovascular or cerebrovascular."
+  },
+  {
+    "key": "seo-effects-index-description",
+    "kind": "plain",
+    "label": "Effects Index meta description",
+    "group": "SEO",
+    "body": "Browse {{effectCount}} subjective effect entries in {{siteName}}."
+  },
+  {
+    "key": "home-hero-tagline-effect-index",
+    "flavor": "effect-index",
+    "kind": "plain",
+    "label": "Hero tagline",
+    "group": "Home",
+    "body": "A resource dedicated to establishing the field of formalised subjective effect documentation."
+  },
+  {
+    "key": "replications-intro",
+    "kind": "markdown",
+    "label": "Replications description (More Info tab)",
+    "group": "Replications",
+    "body": "Image, video, and audio recreations of the sensory experiences produced by subjective effects."
+  },
+  {
+    "key": "replications-fair-use-notice",
+    "kind": "markdown",
+    "label": "Fair-use & takedown notice",
+    "group": "Replications",
+    "body": "**Why this art is here.** We host replications for educational and archival purposes: they show what altered states of consciousness actually look and sound like, so you can understand these experiences without having them. We believe this non-commercial, educational use constitutes fair use. We have tried in good faith to credit every artist and to link their pages so you can find and support them. Rights remain with the original creator or rightsholder unless an individual item states another license. See the [licensing terms](/docs/license#replication-media-terms).\n\nIf your art appears here and you want it taken down, email [contact@dose.wiki](mailto:contact@dose.wiki) and we will remove it. Use the same address to correct a misattribution, ask a question, or share more of your work."
+  },
+  {
+    "key": "seo-replications-description",
+    "kind": "plain",
+    "label": "Replications meta description",
+    "group": "SEO",
+    "body": "Browse the replication gallery: image and video recreations of the sensory experiences produced by subjective effects, grouped by artist and effect."
+  },
+  {
+    "key": "seo-reports-index-description",
+    "kind": "plain",
+    "label": "Reports index meta description",
+    "group": "SEO",
+    "body": "Browse {{reportCount}} trip reports in {{siteName}}."
+  },
+  {
+    "key": "contact-intro-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Contact intro",
+    "group": "Support pages",
+    "body": "To collectively contact the staff members of this site, please email us at [effectindex@gmail.com.](mailto:effectindex@gmail.com) However, if you would like to contact the site founder directly, please refer to the contact information below:"
+  },
+  {
+    "key": "donate-intro-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Donate intro",
+    "group": "Support pages",
+    "body": "If you would be interested in contributing to the Effect Index project we have a number of donation options available. The funds will be used for hosting costs and enable us to devote more of our time to Subjective Effect Documentation.\n\nAny contribution is greatly appreciated!"
+  },
+  {
+    "key": "discord-intro-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Discord intro",
+    "group": "Support pages",
+    "body": "The official Effect Index community is hosted on Discord and may be joined [here.]({{discordInvite}})\n\nThis a semi-private community and is not primarily for general conversation; instead, it aims to be a place of discussion and co-operation for progressing the field of formalised subjective effect documentation. For this reason, we tend to only invite people who genuinely want to contribute to the project. This can include anyone from proofreaders, trip reporters, web developers, programmers, replicators, artists, and more.\n\nIf you have an interest in contributing to and taking part in our community's various projects, please contact us within the public waiting room channel and tell us why you are interested in this project. Thanks!"
+  },
+  {
+    "key": "discord-rules-effect-index",
+    "flavor": "effect-index",
+    "kind": "list",
+    "label": "Discord rules",
+    "group": "Support pages",
+    "items": [
+      "You must be at least 18+ years old.",
+      "Please be polite and reasonable.",
+      "You may not discuss any drug sources. Not even in DMs.",
+      "Keep specific topics within their relevant channels.",
+      "This community is inclusive and does not accept any kind of racism, homophobia, sexism, transphobia, ableism, general hatefulness, etc, etc.",
+      "This community is relatively Safe For Work (SFW), please do not post overtly sexual or edgy content. This includes hornyposting and excessive shitposting."
+    ]
+  },
+  {
+    "key": "copyright-disclaimer-body-effect-index",
+    "flavor": "effect-index",
+    "kind": "markdown",
+    "label": "Copyright disclaimer",
+    "group": "Support pages",
+    "body": "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [effectindex@gmail.com](mailto:effectindex@gmail.com) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [effectindex@gmail.com](mailto:effectindex@gmail.com)"
+  },
+  {
+    "key": "empty-effects-badge",
+    "kind": "plain",
+    "label": "Effects index empty badge",
+    "group": "Empty states",
+    "body": "No effects"
+  },
+  {
+    "key": "empty-effects-title",
+    "kind": "plain",
+    "label": "Effects index empty title",
+    "group": "Empty states",
+    "body": "No effects found"
+  },
+  {
+    "key": "empty-effects-description",
+    "kind": "plain",
+    "label": "Effects index empty body",
+    "group": "Empty states",
+    "body": "No subjective effects are published yet. They will appear here once the index is available."
+  },
+  {
+    "key": "empty-reports-badge",
+    "kind": "plain",
+    "label": "Reports index empty badge",
+    "group": "Empty states",
+    "body": "No reports yet"
+  },
+  {
+    "key": "empty-reports-title",
+    "kind": "plain",
+    "label": "Reports index empty title",
+    "group": "Empty states",
+    "body": "No trip reports found"
+  },
+  {
+    "key": "empty-reports-description",
+    "kind": "plain",
+    "label": "Reports index empty body",
+    "group": "Empty states",
+    "body": "There aren't any public reports yet. Once reports are available, they'll appear here grouped by substance, title, or author."
+  },
+  {
+    "key": "empty-articles-badge",
+    "kind": "plain",
+    "label": "Articles index empty badge",
+    "group": "Empty states",
+    "body": "No articles yet"
+  },
+  {
+    "key": "empty-articles-title",
+    "kind": "plain",
+    "label": "Articles index empty title",
+    "group": "Empty states",
+    "body": "No published articles found"
+  },
+  {
+    "key": "empty-articles-description",
+    "kind": "plain",
+    "label": "Articles index empty body",
+    "group": "Empty states",
+    "body": "There aren't any published Effect Index articles yet. Unlisted articles remain available only at their direct URLs."
+  },
+  {
+    "key": "empty-blog-badge",
+    "kind": "plain",
+    "label": "Blog index empty badge",
+    "group": "Empty states",
+    "body": "No posts yet"
+  },
+  {
+    "key": "empty-blog-title",
+    "kind": "plain",
+    "label": "Blog index empty title",
+    "group": "Empty states",
+    "body": "No archived posts found"
+  },
+  {
+    "key": "empty-blog-description",
+    "kind": "plain",
+    "label": "Blog index empty body",
+    "group": "Empty states",
+    "body": "The Effect Index blog archive is not available yet. The articles index carries the site's long-form writing in the meantime."
+  },
+  {
+    "key": "unauthorized-badge",
+    "kind": "plain",
+    "label": "Unauthorized badge",
+    "group": "Status pages",
+    "body": "Access denied"
+  },
+  {
+    "key": "unauthorized-title",
+    "kind": "plain",
+    "label": "Unauthorized title",
+    "group": "Status pages",
+    "body": "You do not have editor access"
+  },
+  {
+    "key": "seo-contact-description",
+    "kind": "plain",
+    "label": "Contact meta description",
+    "group": "SEO",
+    "body": "How to reach the Effect Index staff by email, and the site founder's own Discord, Reddit and email contact details."
+  },
+  {
+    "key": "seo-donate-description",
+    "kind": "plain",
+    "label": "Donate meta description",
+    "group": "SEO",
+    "body": "Support the Effect Index project through Patreon, the merchandise store, PayPal or Ethereum, covering hosting costs and subjective effect documentation."
+  },
+  {
+    "key": "seo-discord-description",
+    "kind": "plain",
+    "label": "Discord meta description",
+    "group": "SEO",
+    "body": "The official Effect Index Discord community: what it is for, how to join it, and the rules its members are expected to follow."
+  },
+  {
+    "key": "seo-copyright-disclaimer-description",
+    "kind": "plain",
+    "label": "Copyright disclaimer meta description",
+    "group": "SEO",
+    "body": "The licence covering Effect Index material, and how to request that artwork be removed or reattributed to its original creator."
+  },
+  {
+    "key": "seo-docs-code-description",
+    "kind": "plain",
+    "label": "How dose.wiki is built meta description",
+    "group": "SEO",
+    "body": "An educational tour of the dose.wiki codebase: its architecture, data layer, and the systems that power the public site."
+  },
+  {
+    "key": "seo-docs-how-description",
+    "kind": "plain",
+    "label": "How articles are made meta description",
+    "group": "SEO",
+    "body": "A detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and human expert review."
+  },
+  {
+    "key": "seo-docs-license-description",
+    "kind": "plain",
+    "label": "Licensing and reuse meta description",
+    "group": "SEO",
+    "body": "Reuse terms for dose.wiki content, dataset, molecule SVG pack, replication media, source code, trip reports, interaction ratings, and reagent-test data."
+  },
+  {
+    "key": "seo-about-coverage-description",
+    "kind": "plain",
+    "label": "Coverage meta description",
+    "group": "SEO",
+    "body": "Per-section content and citation coverage across every dose.wiki substance article."
+  },
+  {
+    "key": "seo-about-feedback-description",
+    "kind": "plain",
+    "label": "General feedback meta description",
+    "group": "SEO",
+    "body": "Send the dose.wiki editors private feedback about the site, an article request, a technical issue, design, performance, or accessibility."
+  },
+  {
+    "key": "seo-replications-audio-description",
+    "kind": "plain",
+    "label": "Audio replications meta description",
+    "group": "SEO",
+    "body": "Audio recreations of subjective effects, credited to the artists who made them and preserved from the Effect Index archive."
+  },
+  {
+    "key": "seo-replications-tutorials-description",
+    "kind": "plain",
+    "label": "Replication tutorials meta description",
+    "group": "SEO",
+    "body": "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive."
+  },
+  {
+    "key": "seo-replications-more-info-description",
+    "kind": "plain",
+    "label": "About replications meta description",
+    "group": "SEO",
+    "body": "What replications are, why this art is hosted here, and how artists are credited."
+  },
+  {
+    "key": "seo-reports-submit-description",
+    "kind": "plain",
+    "label": "Submit a trip report meta description",
+    "group": "SEO",
+    "body": "Submit a structured trip report for private editor review on dose.wiki."
+  },
+  {
+    "key": "seo-api-v1-description",
+    "kind": "plain",
+    "label": "Public API meta description",
+    "group": "SEO",
+    "body": "Documentation and examples for the read-only dose.wiki substance API."
+  },
+  {
+    "key": "seo-documentation-style-guide-description",
+    "kind": "plain",
+    "label": "Documentation style guide meta description",
+    "group": "SEO",
+    "body": "The house style the Subjective Effect Index is written in: how subjective effects are described, how levels of intensity are introduced, and which words are preferred."
+  },
+  {
+    "key": "seo-mantras-description",
+    "kind": "plain",
+    "label": "Mantra Vision meta description",
+    "group": "SEO",
+    "body": "A full-screen contemplative field of source-attributed Buddhist liberation-upon-seeing mantra forms rendered in Tibetan script with custom visualizations."
+  },
+  {
+    "key": "seo-chemical-classes-description",
+    "kind": "plain",
+    "label": "Chemical classes meta description",
+    "group": "SEO",
+    "body": "Browse the chemical class tree organized by structural lineage on dose.wiki."
+  },
+  {
+    "key": "docs-code-header-title",
+    "kind": "plain",
+    "label": "Page title",
+    "group": "Docs · Code",
+    "body": "How dose.wiki is built"
+  },
+  {
+    "key": "docs-code-header-tagline",
+    "kind": "plain",
+    "label": "Header tagline",
+    "group": "Docs · Code",
+    "body": "The public site, editor, data pipelines, and database."
+  },
+  {
+    "key": "docs-code-header-intro",
+    "kind": "markdown",
+    "label": "Header intro paragraph",
+    "group": "Docs · Code",
+    "body": "dose.wiki is a **harm-reduction encyclopedia** of substances, subjective effects, and trip reports. Three systems share its PlanetScale Postgres database: a public website that displays content and accepts reader submissions, a protected `/dev` editor for writing, review, and citations, and command-line pipelines that scrape, generate, and migrate content."
+  },
+  {
+    "key": "docs-code-toc-s1",
+    "kind": "plain",
+    "label": "TOC label · 01 · The big picture in numbers",
+    "group": "Docs · Code",
+    "body": "01 · The big picture in numbers"
+  },
+  {
+    "key": "docs-code-toc-s2",
+    "kind": "plain",
+    "label": "TOC label · 02 · System overview",
+    "group": "Docs · Code",
+    "body": "02 · System overview"
+  },
+  {
+    "key": "docs-code-toc-s3",
+    "kind": "plain",
+    "label": "TOC label · 03 · Tech stack",
+    "group": "Docs · Code",
+    "body": "03 · Tech stack"
+  },
+  {
+    "key": "docs-code-toc-s4",
+    "kind": "plain",
+    "label": "TOC label · 04 · Repository map",
+    "group": "Docs · Code",
+    "body": "04 · Repository map"
+  },
+  {
+    "key": "docs-code-toc-s5",
+    "kind": "plain",
+    "label": "TOC label · 05 · Frontend",
+    "group": "Docs · Code",
+    "body": "05 · Frontend"
+  },
+  {
+    "key": "docs-code-toc-s6",
+    "kind": "plain",
+    "label": "TOC label · 06 · The Postgres data layer",
+    "group": "Docs · Code",
+    "body": "06 · The data layer"
+  },
+  {
+    "key": "docs-code-toc-s7",
+    "kind": "plain",
+    "label": "TOC label · 07 · Four kinds of traffic",
+    "group": "Docs · Code",
+    "body": "07 · Four kinds of traffic"
+  },
+  {
+    "key": "docs-code-toc-s8",
+    "kind": "plain",
+    "label": "TOC label · 08 · Scripts and pipelines",
+    "group": "Docs · Code",
+    "body": "08 · Scripts and pipelines"
+  },
+  {
+    "key": "docs-code-toc-s9",
+    "kind": "plain",
+    "label": "TOC label · 09 · Replications platform",
+    "group": "Docs · Code",
+    "body": "09 · Replications platform"
+  },
+  {
+    "key": "docs-code-toc-s10",
+    "kind": "plain",
+    "label": "TOC label · 10 · Three flows, step by step",
+    "group": "Docs · Code",
+    "body": "10 · Three flows, step by step"
+  },
+  {
+    "key": "docs-code-toc-s11",
+    "kind": "plain",
+    "label": "TOC label · 11 · Recurring vocabulary",
+    "group": "Docs · Code",
+    "body": "11 · Recurring vocabulary"
+  },
+  {
+    "key": "docs-code-toc-s12",
+    "kind": "plain",
+    "label": "TOC label · 12 · Where to start reading",
+    "group": "Docs · Code",
+    "body": "12 · Where to start reading"
+  },
+  {
+    "key": "docs-code-s1-heading",
+    "kind": "plain",
+    "label": "01 · Section heading",
+    "group": "Docs · Code",
+    "body": "The big picture in numbers"
+  },
+  {
+    "key": "docs-code-s2-heading",
+    "kind": "plain",
+    "label": "02 · Section heading",
+    "group": "Docs · Code",
+    "body": "System overview"
+  },
+  {
+    "key": "docs-code-s3-heading",
+    "kind": "plain",
+    "label": "03 · Section heading",
+    "group": "Docs · Code",
+    "body": "Tech stack: what each tool is for"
+  },
+  {
+    "key": "docs-code-s4-heading",
+    "kind": "plain",
+    "label": "04 · Section heading",
+    "group": "Docs · Code",
+    "body": "Repository map: where things live"
+  },
+  {
+    "key": "docs-code-s5-heading",
+    "kind": "plain",
+    "label": "05 · Section heading",
+    "group": "Docs · Code",
+    "body": "Frontend: routes and feature modules"
+  },
+  {
+    "key": "docs-code-s6-heading",
+    "kind": "plain",
+    "label": "06 · Section heading",
+    "group": "Docs · Code",
+    "body": "The data layer: what is in the database"
+  },
+  {
+    "key": "docs-code-s7-heading",
+    "kind": "plain",
+    "label": "07 · Section heading",
+    "group": "Docs · Code",
+    "body": "Four kinds of traffic, one database"
+  },
+  {
+    "key": "docs-code-s8-heading",
+    "kind": "plain",
+    "label": "08 · Section heading",
+    "group": "Docs · Code",
+    "body": "Scripts and pipelines: the third system"
+  },
+  {
+    "key": "docs-code-s9-heading",
+    "kind": "plain",
+    "label": "09 · Section heading",
+    "group": "Docs · Code",
+    "body": "The replications media platform"
+  },
+  {
+    "key": "docs-code-s10-heading",
+    "kind": "plain",
+    "label": "10 · Section heading",
+    "group": "Docs · Code",
+    "body": "Three flows, step by step"
+  },
+  {
+    "key": "docs-code-s11-heading",
+    "kind": "plain",
+    "label": "11 · Section heading",
+    "group": "Docs · Code",
+    "body": "Recurring vocabulary"
+  },
+  {
+    "key": "docs-code-s12-heading",
+    "kind": "plain",
+    "label": "12 · Section heading",
+    "group": "Docs · Code",
+    "body": "Where to start reading"
+  },
+  {
+    "key": "docs-code-s1-stat-articles",
+    "kind": "plain",
+    "label": "01 · Numbers · stat: substance articles",
+    "group": "Docs · Code",
+    "body": "Published substance articles"
+  },
+  {
+    "key": "docs-code-s1-stat-effects",
+    "kind": "plain",
+    "label": "01 · Numbers · stat: subjective effects",
+    "group": "Docs · Code",
+    "body": "Subjective effects"
+  },
+  {
+    "key": "docs-code-s1-stat-reports",
+    "kind": "plain",
+    "label": "01 · Numbers · stat: trip reports",
+    "group": "Docs · Code",
+    "body": "Trip reports"
+  },
+  {
+    "key": "docs-code-s1-stat-src-files",
+    "kind": "markdown",
+    "label": "01 · Numbers · stat: src files",
+    "group": "Docs · Code",
+    "body": "TS/TSX files in `src/`"
+  },
+  {
+    "key": "docs-code-s1-stat-scripts",
+    "kind": "markdown",
+    "label": "01 · Numbers · stat: pipeline scripts",
+    "group": "Docs · Code",
+    "body": "Pipeline scripts in `scripts/`"
+  },
+  {
+    "key": "docs-code-s1-body",
+    "kind": "markdown",
+    "label": "01 · Numbers · closing paragraph",
+    "group": "Docs · Code",
+    "body": "Pipelines produce most of the site's content and media. Reading only `src/` shows the website, but not the tooling that fills it."
+  },
+  {
+    "key": "docs-code-s2-intro",
+    "kind": "markdown",
+    "label": "02 · Overview · intro",
+    "group": "Docs · Code",
+    "body": "Scrapers and AI workflows supply content; readers submit reports and feedback. Shared server functions connect these inputs and the editor to the database. The public site serves published records, with replication files delivered separately from Cloudflare R2."
+  },
+  {
+    "key": "docs-code-s2-legend-public",
+    "kind": "plain",
+    "label": "02 · Overview · legend: public site",
+    "group": "Docs · Code",
+    "body": "Public site"
+  },
+  {
+    "key": "docs-code-s2-legend-dev",
+    "kind": "plain",
+    "label": "02 · Overview · legend: /dev editor",
+    "group": "Docs · Code",
+    "body": "/dev editor"
+  },
+  {
+    "key": "docs-code-s2-legend-data",
+    "kind": "plain",
+    "label": "02 · Overview · legend: Postgres data",
+    "group": "Docs · Code",
+    "body": "Database and server functions"
+  },
+  {
+    "key": "docs-code-s2-legend-scripts",
+    "kind": "plain",
+    "label": "02 · Overview · legend: scripts",
+    "group": "Docs · Code",
+    "body": "Scripts & pipelines"
+  },
+  {
+    "key": "docs-code-s2-legend-external",
+    "kind": "plain",
+    "label": "02 · Overview · legend: external/AI",
+    "group": "Docs · Code",
+    "body": "External / AI services"
+  },
+  {
+    "key": "docs-code-s2-callout",
+    "kind": "markdown",
+    "label": "02 · Overview · no-REST-backend callout",
+    "group": "Docs · Code",
+    "body": "**There is no separate REST service.** TypeScript queries (reads) and mutations (writes) in `server/*.ts` run inside the Next.js app and scripts through the Postgres adapter in `lib/postgres/runtime/`. Browser saves and submissions enter through Next.js route handlers in `src/app/api/`; [access controls](#s7) differ by route."
+  },
+  {
+    "key": "docs-code-s3-framework-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · Framework: label",
+    "group": "Docs · Code",
+    "body": "Framework"
+  },
+  {
+    "key": "docs-code-s3-framework-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · Framework: title",
+    "group": "Docs · Code",
+    "body": "Next.js 16 + React 19"
+  },
+  {
+    "key": "docs-code-s3-framework-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · Framework: body",
+    "group": "Docs · Code",
+    "body": "App Router **server components** fetch data and render mostly static HTML, prerendered at build time where possible. **Vercel** hosts the app."
+  },
+  {
+    "key": "docs-code-s3-database-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · Database + backend: label",
+    "group": "Docs · Code",
+    "body": "Database + backend"
+  },
+  {
+    "key": "docs-code-s3-database-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · Database + backend: title",
+    "group": "Docs · Code",
+    "body": "PlanetScale Postgres"
+  },
+  {
+    "key": "docs-code-s3-database-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · Database + backend: body",
+    "group": "Docs · Code",
+    "body": "PlanetScale Postgres hosts the production database. Authored queries, mutations, and schema definitions live in `server/`; `lib/postgres/runtime/` executes them inside database transactions."
+  },
+  {
+    "key": "docs-code-s3-auth-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · Auth: label",
+    "group": "Docs · Code",
+    "body": "Auth"
+  },
+  {
+    "key": "docs-code-s3-auth-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · Auth: title",
+    "group": "Docs · Code",
+    "body": "next-auth: username and password"
+  },
+  {
+    "key": "docs-code-s3-auth-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · Auth: body",
+    "group": "Docs · Code",
+    "body": "`auth.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7)."
+  },
+  {
+    "key": "docs-code-s3-ai-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · AI generation: label",
+    "group": "Docs · Code",
+    "body": "AI generation"
+  },
+  {
+    "key": "docs-code-s3-ai-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · AI generation: title",
+    "group": "Docs · Code",
+    "body": "OpenRouter"
+  },
+  {
+    "key": "docs-code-s3-ai-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · AI generation: body",
+    "group": "Docs · Code",
+    "body": "An API gateway to multiple language models. Section synthesis, dosage and duration rewrites, quote extraction, and citation workflows each select a model in their configuration or entry module. Model choices change over time."
+  },
+  {
+    "key": "docs-code-s3-styling-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · Styling + UI: label",
+    "group": "Docs · Code",
+    "body": "Styling + UI"
+  },
+  {
+    "key": "docs-code-s3-styling-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · Styling + UI: title",
+    "group": "Docs · Code",
+    "body": "Tailwind CSS 4 + Radix UI"
+  },
+  {
+    "key": "docs-code-s3-styling-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · Styling + UI: body",
+    "group": "Docs · Code",
+    "body": "Tailwind provides utility-first styling from the tokens in `src/theme/`; Radix supplies accessible UI primitives. Framer Motion handles animation, and React Hook Form manages editor forms."
+  },
+  {
+    "key": "docs-code-s3-media-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · Media + abuse controls: label",
+    "group": "Docs · Code",
+    "body": "Media + abuse controls"
+  },
+  {
+    "key": "docs-code-s3-media-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · Media + abuse controls: title",
+    "group": "Docs · Code",
+    "body": "Cloudflare R2 + Turnstile"
+  },
+  {
+    "key": "docs-code-s3-media-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · Media + abuse controls: body",
+    "group": "Docs · Code",
+    "body": "R2 stores replication files. Turnstile adds a CAPTCHA to site feedback; [other intake controls](#s7) and [media handling](#s9) are described below."
+  },
+  {
+    "key": "docs-code-s3-tooling-label",
+    "kind": "plain",
+    "label": "03 · Tech stack · Tooling + safety: label",
+    "group": "Docs · Code",
+    "body": "Tooling + safety"
+  },
+  {
+    "key": "docs-code-s3-tooling-title",
+    "kind": "plain",
+    "label": "03 · Tech stack · Tooling + safety: title",
+    "group": "Docs · Code",
+    "body": "Bun, Vitest, Zod"
+  },
+  {
+    "key": "docs-code-s3-tooling-body",
+    "kind": "markdown",
+    "label": "03 · Tech stack · Tooling + safety: body",
+    "group": "Docs · Code",
+    "body": "Bun manages packages; Vitest runs the tests (~500 test files in the recorded inventory). Zod schemas in `src/schema/` and `data/schemas/` reject invalid article structures before storage or rendering. **Structural validation does not establish factual accuracy.** Molecule diagrams use the vendored OpenChemLib fork in `vendor/openchemlib`, checked by `scripts/chemistry/verify-openchemlib-fork.mjs`."
+  },
+  {
+    "key": "docs-code-s4-intro",
+    "kind": "markdown",
+    "label": "04 · Repository map · intro",
+    "group": "Docs · Code",
+    "body": "Four directories hold most code: `src/` for the app, `server/` for database functions, `scripts/` for pipelines, and `lib/` for shared server helpers. The rest holds documentation, assets, vendored dependencies, and configuration."
+  },
+  {
+    "key": "docs-code-s4-skills",
+    "kind": "markdown",
+    "label": "04 · Repository map · local-skill note",
+    "group": "Docs · Code",
+    "body": "Citation auditing and legality research run as editorial agent workflows maintained outside this repository; the runbooks they follow are `docs/workflows/citations.md` and `docs/workflows/legality.md`. Other workflow guidance lives beside its scripts or in `docs/workflows/`."
+  },
+  {
+    "key": "docs-code-s5-intro",
+    "kind": "markdown",
+    "label": "05 · Frontend · intro",
+    "group": "Docs · Code",
+    "body": "`src/app/` maps URLs to page routes and ~70 API handlers. Page routes fetch data, prepare metadata, and pass content to the rendering logic in `src/features/`, grouped into 15 domain modules."
+  },
+  {
+    "key": "docs-code-s5-public-routes-label",
+    "kind": "plain",
+    "label": "05 · Frontend · public routes card label",
+    "group": "Docs · Code",
+    "body": "src/app/ · public routes"
+  },
+  {
+    "key": "docs-code-s5-public-routes",
+    "kind": "list",
+    "label": "05 · Frontend · public routes list",
+    "group": "Docs · Code",
+    "items": [
+      "`/[slug]`: the core substance article.",
+      "`/substances`, `/effects`, `/effects/[effectSlug]`, `/reports`, `/reports/[slug]`: content catalogs and entries.",
+      "`/replications`, with `audio`, `tutorials`, `artist/[key]`, and `[slug]` routes: gallery browsing and playback.",
+      "`/reports/submit`: trip-report intake. `/about/feedback`: site feedback; each article also has a feedback box.",
+      "`/psychoactive`, `/chemical-classes`, `/mechanism`, `/category`: classification indexes.",
+      "Other pages: `/interactions`, `/search`, `/about`, `/contributors`, `/articles`, `/blog`, `/mantras`, `/documentation-style-guide`.",
+      "`/open-data/*.json` and `/api/v1`: [machine-readable data](#s7). Exports are linked from `/about#data`; `/data` redirects there.",
+      "`/docs/how`, `/docs/code`, `/docs/license`: article methodology, this page, and licensing."
+    ]
+  },
+  {
+    "key": "docs-code-s5-protected-routes-label",
+    "kind": "plain",
+    "label": "05 · Frontend · protected routes card label",
+    "group": "Docs · Code",
+    "body": "src/app/ · protected routes"
+  },
+  {
+    "key": "docs-code-s5-protected-routes",
+    "kind": "list",
+    "label": "05 · Frontend · protected routes list",
+    "group": "Docs · Code",
+    "items": [
+      "`/dev`: a catch-all page (`src/app/dev/[[...segments]]`) dispatches ~17 tabs: articles, writing, citations, trip-report submissions, article and site feedback, replications, molecules, copy, banners, contributors, tags, index layout, change log, and profiles.",
+      "`/review`: a standalone, full-width article-review workbench.",
+      "`/api/dev/*`: ~15 per-tool write endpoint families. `/api/save-article`: whole-article saves.",
+      "`/sign-in`: next-auth sign-in. Protected routes require an authorised session."
+    ]
+  },
+  {
+    "key": "docs-code-s5-flavor",
+    "kind": "markdown",
+    "label": "05 · Frontend · site-flavor paragraph",
+    "group": "Docs · Code",
+    "body": "`NEXT_PUBLIC_SITE_FLAVOR` selects **dose.wiki** or **Effect Index** at build time. `src/config/siteFlavor.ts` controls their navigation, wordmarks, and available routes; both publications share content records. Public DoseWiki, editor DoseWiki, and Effect Index are separate build artifacts and deployments. Only the editor carries general admin credentials; public DoseWiki has restricted create-only intake permissions, and Effect Index is read-only."
+  },
+  {
+    "key": "docs-code-s5-features-public-label",
+    "kind": "plain",
+    "label": "05 · Frontend · public features card label",
+    "group": "Docs · Code",
+    "body": "src/features/ · public-facing (14 modules)"
+  },
+  {
+    "key": "docs-code-s5-features-public",
+    "kind": "list",
+    "label": "05 · Frontend · public features list",
+    "group": "Docs · Code",
+    "items": [
+      "**`article/`**: dosage tables, duration charts, interaction grids, citations, and article feedback.",
+      "**`effects/`**: effect rendering, including the custom VCode markup.",
+      "**`reports/`**: report rendering and submission forms.",
+      "**`replications/`**: gallery exploration, media viewing, and artist showcases.",
+      "**Ten smaller modules:** `blog/`, `articles/`, `chemical-classes/`, `coverage/`, `mantras/`, `site-feedback/`, `mailing-list/`, `effect-index/`, `psychoactive-summaries/`, `theme-lab/`."
+    ]
+  },
+  {
+    "key": "docs-code-s5-features-dev-label",
+    "kind": "plain",
+    "label": "05 · Frontend · dev features card label",
+    "group": "Docs · Code",
+    "body": "src/features/dev/ · the editor (~400 TS/TSX files, including tests)"
+  },
+  {
+    "key": "docs-code-s5-features-dev",
+    "kind": "list",
+    "label": "05 · Frontend · dev features list",
+    "group": "Docs · Code",
+    "items": [
+      "**`forms/`**: one React Hook Form section per article field group.",
+      "**`tools/`**: ~14 tools, including substance, replication, copy, molecule, and banner editors; citation review; three intake queues; contributors; writing; and index layout.",
+      "**`save-orchestrator/`**: coordinates multi-endpoint saves.",
+      "**`context/`, `notices/`, `profile/`, `tags/`, `prompts/`**: editor state, notifications, profiles, tags, and prompts."
+    ]
+  },
+  {
+    "key": "docs-code-s6-intro",
+    "kind": "markdown",
+    "label": "06 · Data layer · intro",
+    "group": "Docs · Code",
+    "body": "`server/schema.ts` declares the data shapes (~45 in the recorded inventory); most tables have a matching `server/<table>.ts` query-and-mutation module. The groups below describe purpose, not visibility: editorial records can include public profiles, while content configuration can hold unpublished drafts. Related tables share a row. Stored-record estimates are historical snapshots, distinct from the live published counts above."
+  },
+  {
+    "key": "docs-code-s6-th-table",
+    "kind": "plain",
+    "label": "06 · Data layer · column header: Table",
+    "group": "Docs · Code",
+    "body": "Table"
+  },
+  {
+    "key": "docs-code-s6-group-content",
+    "kind": "plain",
+    "label": "06 · Data layer · Content group",
+    "group": "Docs · Code",
+    "body": "Content and configuration"
+  },
+  {
+    "key": "docs-code-s6-group-editorial",
+    "kind": "plain",
+    "label": "06 · Data layer · Editorial group",
+    "group": "Docs · Code",
+    "body": "Editorial records"
+  },
+  {
+    "key": "docs-code-s6-group-workflow",
+    "kind": "plain",
+    "label": "06 · Data layer · Workflow group",
+    "group": "Docs · Code",
+    "body": "Pipeline data"
+  },
+  {
+    "key": "docs-code-s6-th-holds",
+    "kind": "plain",
+    "label": "06 · Data layer · column header: What it holds",
+    "group": "Docs · Code",
+    "body": "What it holds"
+  },
+  {
+    "key": "docs-code-s6-table-substance-index",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: substanceIndex",
+    "group": "Docs · Code",
+    "body": "One record per substance (~580 stored): summary, dosage, duration, pharmacology, harm potential, legality, citations, and references."
+  },
+  {
+    "key": "docs-code-s6-table-subjective-effects",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: subjectiveEffects",
+    "group": "Docs · Code",
+    "body": "Effect articles such as geometry and euphoria, with VCode bodies, galleries, and audio replications (~230 stored)."
+  },
+  {
+    "key": "docs-code-s6-table-trip-reports",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: tripReports / tripReportSubstances",
+    "group": "Docs · Code",
+    "body": "Trip reports (~165 stored) linked to substances and doses. `tripReportSubstances` indexes report/substance-name pairs so article pages can find related reports without scanning the table."
+  },
+  {
+    "key": "docs-code-s6-table-trip-report-submissions",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: tripReportSubmissions",
+    "group": "Docs · Code",
+    "body": "Private `/reports/submit` intake. Editors review submissions before promoting them into public `tripReports` records."
+  },
+  {
+    "key": "docs-code-s6-table-replications",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: replications / effectIndexArticles",
+    "group": "Docs · Code",
+    "body": "Replication gallery metadata for videos, images, and audio, plus Effect Index methodology articles. R2 holds the media files."
+  },
+  {
+    "key": "docs-code-s6-table-category-layout",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: categoryLayout",
+    "group": "Docs · Code",
+    "body": "The curated psychoactive layout read by `/substances`. Saving `indexLayouts` updates this table; the public page does not read `indexLayouts` directly."
+  },
+  {
+    "key": "docs-code-s6-table-index-layouts",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: indexLayouts / siteConfig",
+    "group": "Docs · Code",
+    "body": "Hand-curated classification trees (psychoactive / chemical / mechanism) and about-page configuration."
+  },
+  {
+    "key": "docs-code-s6-table-molecule-overrides",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: moleculeOverrides",
+    "group": "Docs · Code",
+    "body": "Canonical substance and chemical-class drawings from the Molecules editor: editable MOL data, rendered SVG, and seeded, hand-drawn, or template-aligned provenance. Articles display the SVG; without a record, they show no drawing."
+  },
+  {
+    "key": "docs-code-s6-table-warning-banners",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: warningBannerPresets",
+    "group": "Docs · Code",
+    "body": "Safety-banner text and its explicit substance-slug or sitewide scope. Editors can change the wording without redeploying."
+  },
+  {
+    "key": "docs-code-s6-table-copy-blocks",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: copyBlocks",
+    "group": "Docs · Code",
+    "body": "Editable site text, one record per block, including this page. Copy Studio saves changes without a deploy; missing keys fall back to the checked-in JSON seed."
+  },
+  {
+    "key": "docs-code-s6-table-reagent-tests",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: reagentTests",
+    "group": "Docs · Code",
+    "body": "Point-in-time ProtestKit reagent-test results, keyed by substance slug."
+  },
+  {
+    "key": "docs-code-s6-table-substance-galleries",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: substanceGalleries",
+    "group": "Docs · Code",
+    "body": "Per-substance Replication Showcase curation: a pinned first item and suppressed `replications` slugs."
+  },
+  {
+    "key": "docs-code-s6-table-replication-playlists",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: replicationPlaylists",
+    "group": "Docs · Code",
+    "body": "Named, ordered replication sets applied to gallery drafts. Saving a playlist does not publish it."
+  },
+  {
+    "key": "docs-code-s6-table-memberships",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: memberships",
+    "group": "Docs · Code",
+    "body": "Email-linked membership and role records, read by next-auth at sign-in."
+  },
+  {
+    "key": "docs-code-s6-table-changelog",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: changelog",
+    "group": "Docs · Code",
+    "body": "Editor-save history: author, time, and Markdown diff. Viewable at `/dev/change-log`."
+  },
+  {
+    "key": "docs-code-s6-table-contributor-profiles",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: contributorProfiles",
+    "group": "Docs · Code",
+    "body": "Public bios, aliases, links, and avatars for contributors."
+  },
+  {
+    "key": "docs-code-s6-table-article-feedback",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: articleFeedback",
+    "group": "Docs · Code",
+    "body": "Private issues and suggested edits submitted from article feedback boxes. Visible only to authorised editorial users, never published."
+  },
+  {
+    "key": "docs-code-s6-table-site-feedback",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: siteFeedback",
+    "group": "Docs · Code",
+    "body": "Private `/about/feedback` submissions. Visible only to authorised editorial users, never published."
+  },
+  {
+    "key": "docs-code-s6-table-mailing-list",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: mailingListSubscribers",
+    "group": "Docs · Code",
+    "body": "Private signups shared by the portal's four public sites, submitted through each site's own `/api/subscribe` route."
+  },
+  {
+    "key": "docs-code-s6-table-molecule-class-templates",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: moleculeClassTemplates",
+    "group": "Docs · Code",
+    "body": "Editor-authored scaffold-orientation templates for the Molecules editor. These editor-only cosmetic settings do not change published molecules."
+  },
+  {
+    "key": "docs-code-s6-table-article-sources",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: articleSources",
+    "group": "Docs · Code",
+    "body": "Raw per-substance text from the [source sites](/docs/how#sources), used for AI quote extraction."
+  },
+  {
+    "key": "docs-code-s6-table-prompts-quotes",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: prompts / quotes",
+    "group": "Docs · Code",
+    "body": "Editable section-generation prompts and verbatim quotes extracted from sources."
+  },
+  {
+    "key": "docs-code-s6-table-citation-evidence",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: citationEvidence",
+    "group": "Docs · Code",
+    "body": "Citation-audit records linking claims to reference IDs, supporting quotes, and review status."
+  },
+  {
+    "key": "docs-code-s6-table-replication-provenance",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: replication provenance + identity",
+    "group": "Docs · Code",
+    "body": "About 17 `replication*` and `contributor*` tables retain source attribution, artist/contributor identity bindings, alias and taxonomy evidence, duplicate reconciliation, date research, and reversible merge/social operations. Separate display records keep gallery reads small."
+  },
+  {
+    "key": "docs-code-s6-table-effect-index-archive",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: effectIndexArchive",
+    "group": "Docs · Code",
+    "body": "Lossless Effect Index source records retained for reuse by Effect Index, outside dose.wiki's public read paths."
+  },
+  {
+    "key": "docs-code-s6-table-generated-publication-operations",
+    "kind": "markdown",
+    "label": "06 · Data layer · table row: generatedPublicationOperations",
+    "group": "Docs · Code",
+    "body": "Successful reviewed section publications. Proposal IDs prevent the same publication from being applied twice."
+  },
+  {
+    "key": "docs-code-s7-read-label",
+    "kind": "plain",
+    "label": "07 · Traffic · read card: label",
+    "group": "Docs · Code",
+    "body": "Public site · read path"
+  },
+  {
+    "key": "docs-code-s7-read-who",
+    "kind": "markdown",
+    "label": "07 · Traffic · read card: who",
+    "group": "Docs · Code",
+    "body": "Anyone can read without signing in. Most pages are static, open to crawlers, and include search metadata."
+  },
+  {
+    "key": "docs-code-s7-read-how",
+    "kind": "markdown",
+    "label": "07 · Traffic · read card: how",
+    "group": "Docs · Code",
+    "body": "Server components use route loaders in `lib/next/` and cached `lib/data/publicData.*` readers. Cache tags identify related data for invalidation."
+  },
+  {
+    "key": "docs-code-s7-read-key",
+    "kind": "markdown",
+    "label": "07 · Traffic · read card: key",
+    "group": "Docs · Code",
+    "body": "Browsers never connect to the database directly. Shared caches avoid a query on every visit, though generating or refreshing a page can read the database. [Flow A](#s10) follows that path."
+  },
+  {
+    "key": "docs-code-s7-submit-label",
+    "kind": "plain",
+    "label": "07 · Traffic · submit card: label",
+    "group": "Docs · Code",
+    "body": "Public writes · reader submissions"
+  },
+  {
+    "key": "docs-code-s7-submit-who",
+    "kind": "markdown",
+    "label": "07 · Traffic · submit card: who",
+    "group": "Docs · Code",
+    "body": "Trip reports, article feedback, site feedback, and mailing-list signups require no sign-in."
+  },
+  {
+    "key": "docs-code-s7-submit-how",
+    "kind": "markdown",
+    "label": "07 · Traffic · submit card: how",
+    "group": "Docs · Code",
+    "body": "Each form POSTs to its own rate-limited API handler with a honeypot, payload cap, and hashed IP. Site feedback also requires Turnstile. Records enter private tables."
+  },
+  {
+    "key": "docs-code-s7-submit-key",
+    "kind": "markdown",
+    "label": "07 · Traffic · submit card: key",
+    "group": "Docs · Code",
+    "body": "Editors can publish reviewed trip reports through [Flow C](#s10). Feedback and mailing-list signups remain private."
+  },
+  {
+    "key": "docs-code-s7-write-label",
+    "kind": "plain",
+    "label": "07 · Traffic · write card: label",
+    "group": "Docs · Code",
+    "body": "/dev editor · write path"
+  },
+  {
+    "key": "docs-code-s7-write-who",
+    "kind": "markdown",
+    "label": "07 · Traffic · write card: who",
+    "group": "Docs · Code",
+    "body": "Authorised users sign in on the editor host. Membership roles are admin, editor, translator, contributor, and viewer; viewer has no editor access, and the other roles have distinct permissions. `src/middleware.ts` enforces the page and host gates."
+  },
+  {
+    "key": "docs-code-s7-write-how",
+    "kind": "markdown",
+    "label": "07 · Traffic · write card: how",
+    "group": "Docs · Code",
+    "body": "Whole-article saves use `save-orchestrator/` and `/api/save-article`; other tools use `/api/dev/*`. Routes enforce session roles and named rate limits. The browser never holds an admin key."
+  },
+  {
+    "key": "docs-code-s7-write-generation",
+    "kind": "markdown",
+    "label": "07 · Traffic · write card: generation",
+    "group": "Docs · Code",
+    "body": "Source-backed generation runs in authenticated local batches. The browser editor supports manual review and editing without exposing scraped source text."
+  },
+  {
+    "key": "docs-code-s7-data-label",
+    "kind": "plain",
+    "label": "07 · Traffic · data card: label",
+    "group": "Docs · Code",
+    "body": "Machine reads · open data + API"
+  },
+  {
+    "key": "docs-code-s7-data-who",
+    "kind": "markdown",
+    "label": "07 · Traffic · data card: who",
+    "group": "Docs · Code",
+    "body": "Researchers, mirrors, and other applications can read the data without signing in."
+  },
+  {
+    "key": "docs-code-s7-data-how",
+    "kind": "markdown",
+    "label": "07 · Traffic · data card: how",
+    "group": "Docs · Code",
+    "body": "`/open-data/SubstanceIndex.json`, `/open-data/EffectIndex.json`, and `/open-data/TripReports.json` provide daily snapshots with per-dataset licensing metadata. `/api/v1` provides versioned JSON endpoints described by `/api/v1/openapi.json`."
+  },
+  {
+    "key": "docs-code-s7-data-key",
+    "kind": "markdown",
+    "label": "07 · Traffic · data card: key",
+    "group": "Docs · Code",
+    "body": "Both interfaces are read-only and cache-friendly. Pages still draw their content from the database, not the export files."
+  },
+  {
+    "key": "docs-code-s7-licensing",
+    "kind": "markdown",
+    "label": "07 · Traffic · licensing paragraph",
+    "group": "Docs · Code",
+    "body": "**Licensing varies by dataset.** Base data is CC0, but exports include exceptions: TripSit's terms on substance `interactions`, third-party replication media in the effect index, and authors' rights on legacy trip reports. See [License & reuse](/docs/license)."
+  },
+  {
+    "key": "docs-code-s8-intro",
+    "kind": "markdown",
+    "label": "08 · Scripts · intro",
+    "group": "Docs · Code",
+    "body": "Node and Bun scripts parse scraped sources (`scripts/parsers/`), prepopulate high-confidence fields (`scripts/prepopulate/`), and draft prose through OpenRouter (`scripts/batch/`). Citation and legality workflows research and check supporting sources; claims can remain uncited. Editors review the results in `/dev`. Article text and citations have separate, ongoing review workflows, and each article displays its review status."
+  },
+  {
+    "key": "docs-code-s8-writes",
+    "kind": "markdown",
+    "label": "08 · Scripts · production write safeguards",
+    "group": "Docs · Code",
+    "body": "**Local execution does not imply a local database.** Check the target before any write. Production commands require `DATA_BACKEND=postgres`, an explicit `--target` or `TARGET_POSTGRES_URL`, an allowlisted operation, and every command-specific guard. Shared wrappers default to a dry run and require `--write`, `--confirm-write=<operation>`, and a matching `--expected-deployment` where supported. `DATA_WRITES_FROZEN=1` blocks writes. Neither credentials nor a successful dry run authorise publication."
+  },
+  {
+    "key": "docs-code-s8-write-records",
+    "kind": "markdown",
+    "label": "08 · Scripts · backups and audit records",
+    "group": "Docs · Code",
+    "body": "`scripts/lib/data-ops-run-context.mjs` resolves intent-scoped tokens (`DATA_ADMIN_TOKEN_<INTENT>`); `scripts/lib/production-write-command.mjs` supplies shared write gates. Migration-style scripts use pre-write backups and `scripts/data/audit-logs/`. Follow `docs/operations/data-credentials.md` for native environment diagnostics, the current allowlist, and the exact write procedure."
+  },
+  {
+    "key": "docs-code-s8-families-intro",
+    "kind": "markdown",
+    "label": "08 · Scripts · workflow families introduction",
+    "group": "Docs · Code",
+    "body": "Workflow families have their own subdirectories and package commands:"
+  },
+  {
+    "key": "docs-code-s8-families",
+    "kind": "list",
+    "label": "08 · Scripts · workflow families",
+    "group": "Docs · Code",
+    "items": [
+      "`scripts/citations/verdict-*`: citation-support audits, run by the citation workflow in `docs/workflows/citations.md`.",
+      "`scripts/legality/`: legal-source research, run by the legality workflow in `docs/workflows/legality.md`.",
+      "`scripts/replications/`: media intake and R2 migration, the largest family.",
+      "`scripts/contributors/`: contributor avatars.",
+      "`scripts/chemistry/`: molecule and chemistry audits.",
+      "`scripts/migrate/`, `scripts/data-ops/`: guarded Postgres migration and export tooling.",
+      "`scripts/build/`: social-card and theme-CSS generators."
+    ]
+  },
+  {
+    "key": "docs-code-s8-command-registry",
+    "kind": "markdown",
+    "label": "08 · Scripts · command registry",
+    "group": "Docs · Code",
+    "body": "`scripts/lib/workflow-command-surface.mjs` and its sibling `citation-command-surface.mjs` index runnable commands; `package.json` defines the `npm run` entry points."
+  },
+  {
+    "key": "docs-code-s8-deferral",
+    "kind": "markdown",
+    "label": "08 · Scripts · pointer to the content page",
+    "group": "Docs · Code",
+    "body": "[How substance articles are made](/docs/how) explains scraping, verbatim quote extraction, section prompts, citation proposal and auditing, and human review. It publishes unedited extraction and section-generation prompts, but not citation or legality workflow prompts. Published prompts may differ from those used for a particular article."
+  },
+  {
+    "key": "docs-code-s9-intro",
+    "kind": "markdown",
+    "label": "09 · Replications · intro",
+    "group": "Docs · Code",
+    "body": "Replications are artist-made videos, images, and audio recreations of subjective effects. **Postgres stores metadata; Cloudflare R2 stores files** under content-addressed keys derived from their contents. `server/lib/replicationUrls.ts` constructs public URLs using `REPLICATION_MEDIA_BASE_URL`, required in every deployment."
+  },
+  {
+    "key": "docs-code-s9-intake",
+    "kind": "markdown",
+    "label": "09 · Replications · intake paragraph",
+    "group": "Docs · Code",
+    "body": "`scripts/replications/` uploads and verifies reviewed media before importing metadata, taxonomy, and attribution into Postgres. The Reddit archive follows `docs/workflows/replication-intake.md`. In Replication Studio, editors curate carousels, substance showcases, and playlists, and reconcile duplicates. Separate provenance and identity records preserve the source history."
+  },
+  {
+    "key": "docs-code-s9-curation",
+    "kind": "markdown",
+    "label": "09 · Replications · curation paragraph",
+    "group": "Docs · Code",
+    "body": "`substanceGalleries` controls pinned and suppressed showcase items; `replicationPlaylists` supplies ordered sets to gallery drafts; `siteConfig` stores the Effect Index homepage carousel order. These database edits need no deploy. Public reads use `lib/data/publicData.replications.ts`, `/api/replications/gallery`, and `/api/replications/showcase`; both JSON endpoints are cacheable."
+  },
+  {
+    "key": "docs-code-s9-rights",
+    "kind": "markdown",
+    "label": "09 · Replications · rights paragraph",
+    "group": "Docs · Code",
+    "body": "Known artists are credited; unidentified creators are shown as Unattributed. Rights default to `unknown`, independently of artist attribution. Source posts and posters are retained losslessly. The gallery's fair-use position appears in `src/features/replications/replicationsFairUseCopy.ts` and [License & reuse](/docs/license)."
+  },
+  {
+    "key": "docs-code-s10-flow-a-heading",
+    "kind": "plain",
+    "label": "10 · Flows · Flow A subheading",
+    "group": "Docs · Code",
+    "body": "Flow A: a reader opens dose.wiki/lsd"
+  },
+  {
+    "key": "docs-code-s10-flow-a-intro",
+    "kind": "markdown",
+    "label": "10 · Flow A · cache behaviour",
+    "group": "Docs · Code",
+    "body": "Readers usually receive a cached page. When the page is generated or refreshed, this sequence runs:"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step1-title",
+    "kind": "plain",
+    "label": "10 · Flow A · step1 title",
+    "group": "Docs · Code",
+    "body": "Route"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step1-body",
+    "kind": "markdown",
+    "label": "10 · Flow A · step1 body",
+    "group": "Docs · Code",
+    "body": "The server component in `src/app/[slug]/page.tsx` runs."
+  },
+  {
+    "key": "docs-code-s10-flow-a-step2-title",
+    "kind": "plain",
+    "label": "10 · Flow A · step2 title",
+    "group": "Docs · Code",
+    "body": "Fetch"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step2-body",
+    "kind": "markdown",
+    "label": "10 · Flow A · step2 body",
+    "group": "Docs · Code",
+    "body": "A `lib/next/` loader calls the tagged, cached, read-only `lib/data/publicData.*` readers."
+  },
+  {
+    "key": "docs-code-s10-flow-a-step3-title",
+    "kind": "plain",
+    "label": "10 · Flow A · step3 title",
+    "group": "Docs · Code",
+    "body": "Validate"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step3-body",
+    "kind": "markdown",
+    "label": "10 · Flow A · step3 body",
+    "group": "Docs · Code",
+    "body": "`lib/data/publicData.substanceContract.ts` validates the record against the Zod schemas in `src/schema/`."
+  },
+  {
+    "key": "docs-code-s10-flow-a-step4-title",
+    "kind": "plain",
+    "label": "10 · Flow A · step4 title",
+    "group": "Docs · Code",
+    "body": "Render"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step4-body",
+    "kind": "markdown",
+    "label": "10 · Flow A · step4 body",
+    "group": "Docs · Code",
+    "body": "`src/features/article/` renders sections, tables, and citations."
+  },
+  {
+    "key": "docs-code-s10-flow-a-step5-title",
+    "kind": "plain",
+    "label": "10 · Flow A · step5 title",
+    "group": "Docs · Code",
+    "body": "Serve"
+  },
+  {
+    "key": "docs-code-s10-flow-a-step5-body",
+    "kind": "markdown",
+    "label": "10 · Flow A · step5 body",
+    "group": "Docs · Code",
+    "body": "The page includes JSON-LD search metadata and a substance-specific social card. Incremental static regeneration allows refresh after an hour; editor saves also invalidate affected paths and cache tags."
+  },
+  {
+    "key": "docs-code-s10-flow-b-heading",
+    "kind": "plain",
+    "label": "10 · Flows · Flow B subheading",
+    "group": "Docs · Code",
+    "body": "Flow B: an editor saves an article in /dev"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step1-title",
+    "kind": "plain",
+    "label": "10 · Flow B · step1 title",
+    "group": "Docs · Code",
+    "body": "Edit"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step1-body",
+    "kind": "markdown",
+    "label": "10 · Flow B · step1 body",
+    "group": "Docs · Code",
+    "body": "React Hook Form holds edits in `src/features/dev/forms/`."
+  },
+  {
+    "key": "docs-code-s10-flow-b-step2-title",
+    "kind": "plain",
+    "label": "10 · Flow B · step2 title",
+    "group": "Docs · Code",
+    "body": "Collect changes"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step2-body",
+    "kind": "markdown",
+    "label": "10 · Flow B · step2 body",
+    "group": "Docs · Code",
+    "body": "`save-orchestrator/` collects articles with unsaved changes."
+  },
+  {
+    "key": "docs-code-s10-flow-b-step3-title",
+    "kind": "plain",
+    "label": "10 · Flow B · step3 title",
+    "group": "Docs · Code",
+    "body": "Check access and input"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step3-body",
+    "kind": "markdown",
+    "label": "10 · Flow B · step3 body",
+    "group": "Docs · Code",
+    "body": "`/api/save-article` checks the session role, rate limit, and Zod contract."
+  },
+  {
+    "key": "docs-code-s10-flow-b-step4-title",
+    "kind": "plain",
+    "label": "10 · Flow B · step4 title",
+    "group": "Docs · Code",
+    "body": "Save"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step4-body",
+    "kind": "markdown",
+    "label": "10 · Flow B · step4 body",
+    "group": "Docs · Code",
+    "body": "`substanceIndex.saveSubstances` writes the changes and creates a `changelog` entry."
+  },
+  {
+    "key": "docs-code-s10-flow-b-step5-title",
+    "kind": "plain",
+    "label": "10 · Flow B · step5 title",
+    "group": "Docs · Code",
+    "body": "Refresh"
+  },
+  {
+    "key": "docs-code-s10-flow-b-step5-body",
+    "kind": "markdown",
+    "label": "10 · Flow B · step5 body",
+    "group": "Docs · Code",
+    "body": "Publication invalidates local caches and requests revalidation on public deployments. A toast reports the save result."
+  },
+  {
+    "key": "docs-code-s10-flow-c-heading",
+    "kind": "plain",
+    "label": "10 · Flows · Flow C subheading",
+    "group": "Docs · Code",
+    "body": "Flow C: a reader submits a trip report"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step1-title",
+    "kind": "plain",
+    "label": "10 · Flow C · step1 title",
+    "group": "Docs · Code",
+    "body": "Write"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step1-body",
+    "kind": "markdown",
+    "label": "10 · Flow C · step1 body",
+    "group": "Docs · Code",
+    "body": "`/reports/submit` collects the report using `src/features/reports/submissions/`."
+  },
+  {
+    "key": "docs-code-s10-flow-c-step2-title",
+    "kind": "plain",
+    "label": "10 · Flow C · step2 title",
+    "group": "Docs · Code",
+    "body": "Check the submission"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step2-body",
+    "kind": "markdown",
+    "label": "10 · Flow C · step2 body",
+    "group": "Docs · Code",
+    "body": "`/api/trip-report-submissions` enforces a rate limit, honeypot, and 128 KB cap. The submitter's IP is stored only as a salted hash."
+  },
+  {
+    "key": "docs-code-s10-flow-c-step3-title",
+    "kind": "plain",
+    "label": "10 · Flow C · step3 title",
+    "group": "Docs · Code",
+    "body": "Store privately"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step3-body",
+    "kind": "markdown",
+    "label": "10 · Flow C · step3 body",
+    "group": "Docs · Code",
+    "body": "The report enters `tripReportSubmissions`, not the public catalog."
+  },
+  {
+    "key": "docs-code-s10-flow-c-step4-title",
+    "kind": "plain",
+    "label": "10 · Flow C · step4 title",
+    "group": "Docs · Code",
+    "body": "Review"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step4-body",
+    "kind": "markdown",
+    "label": "10 · Flow C · step4 body",
+    "group": "Docs · Code",
+    "body": "The `/dev` Trip Report Portal shows the queued report with a needs-review badge."
+  },
+  {
+    "key": "docs-code-s10-flow-c-step5-title",
+    "kind": "plain",
+    "label": "10 · Flow C · step5 title",
+    "group": "Docs · Code",
+    "body": "Approve for publication"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step5-body",
+    "kind": "markdown",
+    "label": "10 · Flow C · step5 body",
+    "group": "Docs · Code",
+    "body": "An editor previews the result, assigns authorship, and confirms through `/api/trip-report-submissions/[id]/promote`."
+  },
+  {
+    "key": "docs-code-s10-flow-c-step6-title",
+    "kind": "plain",
+    "label": "10 · Flow C · step6 title",
+    "group": "Docs · Code",
+    "body": "Publish"
+  },
+  {
+    "key": "docs-code-s10-flow-c-step6-body",
+    "kind": "markdown",
+    "label": "10 · Flow C · step6 body",
+    "group": "Docs · Code",
+    "body": "A `tripReports` record makes the report available at `/reports/[slug]`."
+  },
+  {
+    "key": "docs-code-s11-substance-article-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary · Substance article: term",
+    "group": "Docs · Code",
+    "body": "Substance article"
+  },
+  {
+    "key": "docs-code-s11-substance-article-body",
+    "kind": "markdown",
+    "label": "11 · Vocabulary · Substance article: definition",
+    "group": "Docs · Code",
+    "body": "A structured substance record with about 15 sections, defined by `src/schema/` and stored in `substanceIndex`."
+  },
+  {
+    "key": "docs-code-s11-vcode-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary · VCode: term",
+    "group": "Docs · Code",
+    "body": "VCode"
+  },
+  {
+    "key": "docs-code-s11-vcode-body",
+    "kind": "markdown",
+    "label": "11 · Vocabulary · VCode: definition",
+    "group": "Docs · Code",
+    "body": "Custom markup for effect articles, stored with a parsed syntax tree (AST) and rendered by `src/features/effects/`."
+  },
+  {
+    "key": "docs-code-s11-deployment-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary · Database: term",
+    "group": "Docs · Code",
+    "body": "Database"
+  },
+  {
+    "key": "docs-code-s11-deployment-body",
+    "kind": "markdown",
+    "label": "11 · Vocabulary · Database: definition",
+    "group": "Docs · Code",
+    "body": "The shared Postgres store for content, editorial records, and pipeline data. A database record is not necessarily public."
+  },
+  {
+    "key": "docs-code-s11-flavor-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary · Site flavor: term",
+    "group": "Docs · Code",
+    "body": "Site flavor"
+  },
+  {
+    "key": "docs-code-s11-flavor-body",
+    "kind": "markdown",
+    "label": "11 · Vocabulary · Site flavor: definition",
+    "group": "Docs · Code",
+    "body": "The build-time choice of dose.wiki or Effect Index, distinct from the public/editor deployment boundary."
+  },
+  {
+    "key": "docs-code-s11-copy-block-term",
+    "kind": "plain",
+    "label": "11 · Vocabulary · Copy block: term",
+    "group": "Docs · Code",
+    "body": "Copy block"
+  },
+  {
+    "key": "docs-code-s11-copy-block-body",
+    "kind": "markdown",
+    "label": "11 · Vocabulary · Copy block: definition",
+    "group": "Docs · Code",
+    "body": "A keyed piece of editable site text. `getCopy()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent."
+  },
+  {
+    "key": "docs-code-s12-intro",
+    "kind": "markdown",
+    "label": "12 · Start reading · intro",
+    "group": "Docs · Code",
+    "body": "For a first pass through the code:"
+  },
+  {
+    "key": "docs-code-s12-reading-order",
+    "kind": "list",
+    "label": "12 · Start reading · reading order list",
+    "group": "Docs · Code",
+    "items": [
+      "**`README.md`, `ARCHITECTURE.md`**: orientation, routes, package commands, and system layout.",
+      "**`server/schema.ts`**: the data model; start with `substanceIndex`.",
+      "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/data/publicData.*` → `src/features/article/`**: follow the public read path in Flow A.",
+      "**`src/middleware.ts`, `auth.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
+      "**`src/lib/http/protectedRouteOperation.ts`, `lib/http/rateLimitPolicy.ts`**: protected API handling, session roles, named rate limits, and payload caps. Public intake uses separate controls.",
+      "**`src/features/dev/save-orchestrator/`, `src/app/api/save-article/`**: follow Flow B's saves and audit trail.",
+      "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points."
+    ]
+  },
+  {
+    "key": "docs-code-s12-caveats-summary",
+    "kind": "plain",
+    "label": "12 · Start reading · caveats summary",
+    "group": "Docs · Code",
+    "body": "Caveats about this page"
+  },
+  {
+    "key": "docs-code-s12-caveats-body",
+    "kind": "markdown",
+    "label": "12 · Start reading · caveats body",
+    "group": "Docs · Code",
+    "body": "Code and stored-record counts are approximate inventory snapshots; check the current tree and database. This overview simplifies rate limits and host routing. Consult `AGENTS.md`, `docs/glossary.md`, and `docs/architecture/` before operational changes."
+  },
+  {
+    "key": "docs-how-title",
+    "kind": "plain",
+    "label": "Page title",
+    "group": "Docs · How",
+    "body": "How dose.wiki substance articles are made"
+  },
+  {
+    "key": "docs-how-toc-made",
+    "kind": "plain",
+    "label": "TOC — What's in an article",
+    "group": "Docs · How",
+    "body": "What's in an article"
+  },
+  {
+    "key": "docs-how-toc-sources",
+    "kind": "plain",
+    "label": "TOC — The sources",
+    "group": "Docs · How",
+    "body": "The sources"
+  },
+  {
+    "key": "docs-how-toc-pipeline",
+    "kind": "plain",
+    "label": "TOC — The pipeline",
+    "group": "Docs · How",
+    "body": "The pipeline"
+  },
+  {
+    "key": "docs-how-toc-parsing",
+    "kind": "plain",
+    "label": "TOC — Scraping & parsing",
+    "group": "Docs · How",
+    "body": "Scraping & parsing"
+  },
+  {
+    "key": "docs-how-toc-excerpts",
+    "kind": "plain",
+    "label": "TOC — Verbatim excerpts",
+    "group": "Docs · How",
+    "body": "Verbatim excerpts"
+  },
+  {
+    "key": "docs-how-toc-synthesis",
+    "kind": "plain",
+    "label": "TOC — AI synthesis",
+    "group": "Docs · How",
+    "body": "AI synthesis"
+  },
+  {
+    "key": "docs-how-toc-citations",
+    "kind": "plain",
+    "label": "TOC — Citations & legality",
+    "group": "Docs · How",
+    "body": "Citations & legality"
+  },
+  {
+    "key": "docs-how-toc-review",
+    "kind": "plain",
+    "label": "TOC — Human review",
+    "group": "Docs · How",
+    "body": "Human review"
+  },
+  {
+    "key": "docs-how-toc-limits",
+    "kind": "plain",
+    "label": "TOC — What can go wrong",
+    "group": "Docs · How",
+    "body": "What can go wrong"
+  },
+  {
+    "key": "docs-how-toc-status",
+    "kind": "plain",
+    "label": "TOC — Status & roadmap",
+    "group": "Docs · How",
+    "body": "Status & roadmap"
+  },
+  {
+    "key": "docs-how-toc-dataset",
+    "kind": "plain",
+    "label": "TOC — The open dataset",
+    "group": "Docs · How",
+    "body": "The open dataset"
+  },
+  {
+    "key": "docs-license-header-updated",
+    "kind": "plain",
+    "label": "Header — last-updated line",
+    "group": "Docs · License",
+    "body": "Last updated August 15, 2026"
+  },
+  {
+    "key": "docs-license-header-title",
+    "kind": "plain",
+    "label": "Header — page title",
+    "group": "Docs · License",
+    "body": "Licensing and reuse"
+  },
+  {
+    "key": "docs-license-header-tagline",
+    "kind": "markdown",
+    "label": "Header — tagline",
+    "group": "Docs · License",
+    "body": "What you can reuse, what needs attribution, and what dose.wiki does not license."
+  },
+  {
+    "key": "docs-license-header-intro",
+    "kind": "markdown",
+    "label": "Header — CC0 intro paragraph",
+    "group": "Docs · License",
+    "body": "Most dose.wiki-authored material is released under **CC0 1.0 Universal**. You can copy, modify, redistribute, and use that material commercially without asking permission or giving attribution."
+  },
+  {
+    "key": "docs-license-header-terms-note",
+    "kind": "markdown",
+    "label": "Header — own-terms paragraph",
+    "group": "Docs · License",
+    "body": "The source code and several kinds of contributor and third-party material keep their own terms. The reuse matrix in section 2 is the authoritative inventory. Before you republish anything, check the matrix."
+  },
+  {
+    "key": "docs-license-toc-quick-answer",
+    "kind": "plain",
+    "label": "TOC — 1. Quick answer",
+    "group": "Docs · License",
+    "body": "1. Quick answer"
+  },
+  {
+    "key": "docs-license-toc-reuse-matrix",
+    "kind": "plain",
+    "label": "TOC — 2. Reuse matrix",
+    "group": "Docs · License",
+    "body": "2. Reuse matrix"
+  },
+  {
+    "key": "docs-license-toc-cc0-scope",
+    "kind": "plain",
+    "label": "TOC — 3. CC0 scope",
+    "group": "Docs · License",
+    "body": "3. CC0 scope"
+  },
+  {
+    "key": "docs-license-toc-exceptions",
+    "kind": "plain",
+    "label": "TOC — 4. Important exceptions",
+    "group": "Docs · License",
+    "body": "4. Important exceptions"
+  },
+  {
+    "key": "docs-license-toc-provenance",
+    "kind": "plain",
+    "label": "TOC — 5. Subjective effects provenance",
+    "group": "Docs · License",
+    "body": "5. Subjective effects provenance"
+  },
+  {
+    "key": "docs-license-toc-source-code",
+    "kind": "plain",
+    "label": "TOC — 6. Source code",
+    "group": "Docs · License",
+    "body": "6. Source code"
+  },
+  {
+    "key": "docs-license-toc-attribution",
+    "kind": "plain",
+    "label": "TOC — 7. Attribution examples",
+    "group": "Docs · License",
+    "body": "7. Attribution examples"
+  },
+  {
+    "key": "docs-license-toc-full-terms",
+    "kind": "plain",
+    "label": "TOC — 8. Full terms",
+    "group": "Docs · License",
+    "body": "8. Full terms"
+  },
+  {
+    "key": "docs-license-s1-heading",
+    "kind": "plain",
+    "label": "01 · Quick answer — heading",
+    "group": "Docs · License",
+    "body": "Quick answer"
+  },
+  {
+    "key": "docs-license-s1-cc0-alert",
+    "kind": "markdown",
+    "label": "01 · Quick answer — CC0 callout",
+    "group": "Docs · License",
+    "body": "dose.wiki's own article text, structured dataset, schema, and generated molecule assets are CC0 unless a page or data field says otherwise."
+  },
+  {
+    "key": "docs-license-s1-freely-label",
+    "kind": "plain",
+    "label": "01 · Quick answer — freely-reusable label",
+    "group": "Docs · License",
+    "body": "Freely reusable"
+  },
+  {
+    "key": "docs-license-s1-freely-items",
+    "kind": "list",
+    "label": "01 · Quick answer — freely-reusable list",
+    "group": "Docs · License",
+    "items": [
+      "dose.wiki-authored article prose and structured fields.",
+      "The downloadable `SubstanceIndex.json` snapshot and schema, apart from its `interactions` field.",
+      "Molecule structure SVGs drawn or laid out by dose.wiki, plus their manifest.",
+      "Trip reports submitted through the current report form."
+    ]
+  },
+  {
+    "key": "docs-license-s1-check-label",
+    "kind": "plain",
+    "label": "01 · Quick answer — check-before-reuse label",
+    "group": "Docs · License",
+    "body": "Check before reuse"
+  },
+  {
+    "key": "docs-license-s1-check-items",
+    "kind": "list",
+    "label": "01 · Quick answer — check-before-reuse list",
+    "group": "Docs · License",
+    "items": [
+      "Legacy trip reports, where rights remain with the author.",
+      "Subjective-effect replication images, videos, and audio.",
+      "TripSit interaction ratings and combination guidance.",
+      "Reagent-test data fetched from protestkit.eu.",
+      "External sources cited by articles, trademarks, and third-party names."
+    ]
+  },
+  {
+    "key": "docs-license-s1-disclaimer",
+    "kind": "markdown",
+    "label": "01 · Quick answer — not-legal-advice note",
+    "group": "Docs · License",
+    "body": "**Not legal advice.** This page describes dose.wiki's licensing intent and the reuse terms we apply to our own material. If your use is sensitive, commercial, or jurisdiction-specific, check the relevant terms yourself."
+  },
+  {
+    "key": "docs-license-s2-heading",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — heading",
+    "group": "Docs · License",
+    "body": "Reuse matrix"
+  },
+  {
+    "key": "docs-license-s2-intro",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — intro",
+    "group": "Docs · License",
+    "body": "This table separates material dose.wiki can license from material that belongs to contributors or third-party projects."
+  },
+  {
+    "key": "docs-license-s2-col-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Material",
+    "group": "Docs · License",
+    "body": "Material"
+  },
+  {
+    "key": "docs-license-s2-col-terms",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Terms",
+    "group": "Docs · License",
+    "body": "Terms"
+  },
+  {
+    "key": "docs-license-s2-col-attribution",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Attribution",
+    "group": "Docs · License",
+    "body": "Attribution"
+  },
+  {
+    "key": "docs-license-s2-col-commercial",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Commercial use",
+    "group": "Docs · License",
+    "body": "Commercial use"
+  },
+  {
+    "key": "docs-license-s2-col-notes",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — column: Notes",
+    "group": "Docs · License",
+    "body": "Notes"
+  },
+  {
+    "key": "docs-license-s2-articles-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — article content row title",
+    "group": "Docs · License",
+    "body": "dose.wiki-authored article content"
+  },
+  {
+    "key": "docs-license-s2-articles-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — article content notes",
+    "group": "Docs · License",
+    "body": "CC0 covers dose.wiki's own copyrightable contributions to summaries, pharmacology, tolerance, harm potential, history, legality, dosage, duration, and related article fields."
+  },
+  {
+    "key": "docs-license-s2-dataset-material",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — dataset row title",
+    "group": "Docs · License",
+    "body": "Structured dataset `SubstanceIndex.json`"
+  },
+  {
+    "key": "docs-license-s2-dataset-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — dataset notes",
+    "group": "Docs · License",
+    "body": "CC0 covers the downloadable snapshot, the dose.wiki schema, and the normalization work. Every article document also carries an `interactions` object built from TripSit combination guidance, which keeps TripSit's terms (section 4). Strip or separately license that field before commercial reuse. CC0 grants no rights to external sources cited by articles."
+  },
+  {
+    "key": "docs-license-s2-molecules-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — molecule SVG row title",
+    "group": "Docs · License",
+    "body": "Molecule SVG pack and manifest"
+  },
+  {
+    "key": "docs-license-s2-molecules-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — molecule SVG notes",
+    "group": "Docs · License",
+    "body": "Structure SVGs made by dose.wiki: an automatic layout from SMILES, then redrawn by hand or aligned to a class template, rendered with a dose.wiki fork of OpenChemLib. Includes the molecule metadata manifest."
+  },
+  {
+    "key": "docs-license-s2-replication-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — replication media row title",
+    "group": "Docs · License",
+    "body": "Subjective-effect replication media"
+  },
+  {
+    "key": "docs-license-s2-replication-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — replication media notes",
+    "group": "Docs · License",
+    "body": "Images, videos, and audio that recreate subjective effects remain owned by their original creators or rightsholders. No open license covers them and none is CC0; reuse is the artist's call unless an individual item states its own license. dose.wiki displays and credits them; it does not relicense them."
+  },
+  {
+    "key": "docs-license-s2-code-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — source code row title",
+    "group": "Docs · License",
+    "body": "Website source code"
+  },
+  {
+    "key": "docs-license-s2-code-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — source code notes",
+    "group": "Docs · License",
+    "body": "MIT covers the application code and tooling only (section 6)."
+  },
+  {
+    "key": "docs-license-s2-legacy-reports-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — legacy reports row title",
+    "group": "Docs · License",
+    "body": "Legacy trip reports"
+  },
+  {
+    "key": "docs-license-s2-legacy-reports-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — legacy reports notes",
+    "group": "Docs · License",
+    "body": "Reports already on the site are contributor-authored personal accounts. Reuse outside ordinary linking or quotation depends on the report's marker or the author's permission."
+  },
+  {
+    "key": "docs-license-s2-new-reports-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — new submissions row title",
+    "group": "Docs · License",
+    "body": "New report-form submissions"
+  },
+  {
+    "key": "docs-license-s2-new-reports-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — new submissions notes",
+    "group": "Docs · License",
+    "body": "CC0 applies when the submitter accepts the report form's CC0 terms before they send the report."
+  },
+  {
+    "key": "docs-license-s2-interactions-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — interaction ratings row title",
+    "group": "Docs · License",
+    "body": "Interaction ratings"
+  },
+  {
+    "key": "docs-license-s2-interactions-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — interaction ratings notes",
+    "group": "Docs · License",
+    "body": "Combination data comes from TripSit. Reuse follows TripSit's own terms (section 4)."
+  },
+  {
+    "key": "docs-license-s2-reagent-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — reagent data row title",
+    "group": "Docs · License",
+    "body": "Reagent-test data"
+  },
+  {
+    "key": "docs-license-s2-reagent-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — reagent data notes",
+    "group": "Docs · License",
+    "body": "dose.wiki fetches reagent results from protestkit.eu when you view an article. The downloadable dataset does not contain them."
+  },
+  {
+    "key": "docs-license-s2-fonts-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — bundled fonts row title",
+    "group": "Docs · License",
+    "body": "Bundled fonts"
+  },
+  {
+    "key": "docs-license-s2-fonts-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — bundled fonts notes",
+    "group": "Docs · License",
+    "body": "Inter, Lexend, Titillium Web, Blinker, and a Noto Sans CJK subset ship with the site under the SIL Open Font License 1.1. Each family carries its OFL text beside the font files in `public/fonts/`. Fonts are not part of the CC0 release or the MIT license."
+  },
+  {
+    "key": "docs-license-s2-openchemlib-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — OpenChemLib row title",
+    "group": "Docs · License",
+    "body": "OpenChemLib fork"
+  },
+  {
+    "key": "docs-license-s2-openchemlib-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — OpenChemLib notes",
+    "group": "Docs · License",
+    "body": "The molecule renderer is a dose.wiki fork of [OpenChemLib](https://github.com/cheminfo/openchemlib-js) by cheminfo, redistributed under its BSD 3-Clause license in `vendor/openchemlib/`. The MIT license covers dose.wiki's own code only."
+  },
+  {
+    "key": "docs-license-s2-pw-captures-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — PsychonautWiki captures row title",
+    "group": "Docs · License",
+    "body": "Archived PsychonautWiki captures"
+  },
+  {
+    "key": "docs-license-s2-pw-captures-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — PsychonautWiki captures notes",
+    "group": "Docs · License",
+    "body": "The source repository keeps Internet Archive captures of 2015 to August 2016 PsychonautWiki subjective-effects sections as research staging (section 5). That archived text stays PsychonautWiki's under CC BY-SA 4.0 and is not CC0; the attribution file sits beside it in the repository."
+  },
+  {
+    "key": "docs-license-s2-avatars-material",
+    "kind": "plain",
+    "label": "02 · Reuse matrix — contributor avatars row title",
+    "group": "Docs · License",
+    "body": "Contributor avatars"
+  },
+  {
+    "key": "docs-license-s2-avatars-notes",
+    "kind": "markdown",
+    "label": "02 · Reuse matrix — contributor avatars notes",
+    "group": "Docs · License",
+    "body": "Profile avatars are crops of each contributor's own replication artwork or published self-portrait. Rights stay with the artist, the same as replication media (section 4)."
+  },
+  {
+    "key": "docs-license-s3-heading",
+    "kind": "plain",
+    "label": "03 · CC0 scope — heading",
+    "group": "Docs · License",
+    "body": "CC0 scope"
+  },
+  {
+    "key": "docs-license-s3-intro",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — intro",
+    "group": "Docs · License",
+    "body": "Published facts and the writing used to explain them are different things. In U.S. copyright law, copyright generally does not protect the underlying facts, but it can protect an author's wording and original selection or arrangement."
+  },
+  {
+    "key": "docs-license-s3-dedication",
+    "kind": "markdown",
+    "label": "03 · CC0 scope: public-domain dedication",
+    "group": "Docs · License",
+    "body": "Where dose.wiki holds copyright or database rights in its own writing, editorial contributions, schema, or compilation, it waives those rights through CC0 to the extent the law allows. The rest of this page calls these the **covered material**. The dedication applies to those contributions, not to the source works used to prepare them. Quoted passages, third-party media, and separately licensed data keep their own terms, whether they appear on a page or in a download."
+  },
+  {
+    "key": "docs-license-s3-covered-label",
+    "kind": "plain",
+    "label": "03 · CC0 scope — covered material label",
+    "group": "Docs · License",
+    "body": "Covered material"
+  },
+  {
+    "key": "docs-license-s3-covered-items",
+    "kind": "list",
+    "label": "03 · CC0 scope — covered material list",
+    "group": "Docs · License",
+    "items": [
+      "Original article prose.",
+      "The dataset compilation and the schema design.",
+      "Normalization work.",
+      "Generated molecule assets.",
+      "Report-form submissions whose contributors accepted CC0 terms."
+    ]
+  },
+  {
+    "key": "docs-license-s3-you-can-label",
+    "kind": "plain",
+    "label": "03 · CC0 scope — you-can label",
+    "group": "Docs · License",
+    "body": "You can"
+  },
+  {
+    "key": "docs-license-s3-you-can-items",
+    "kind": "list",
+    "label": "03 · CC0 scope — you-can list",
+    "group": "Docs · License",
+    "items": [
+      "Copy and redistribute the covered material in any format.",
+      "Modify, translate, extract, remix, or combine it with other work.",
+      "Use it in commercial projects.",
+      "Skip attribution, permission requests, and share-alike obligations."
+    ]
+  },
+  {
+    "key": "docs-license-s3-not-covered-label",
+    "kind": "plain",
+    "label": "03 · CC0 scope — does-not-cover label",
+    "group": "Docs · License",
+    "body": "This does not cover"
+  },
+  {
+    "key": "docs-license-s3-not-covered-body",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — does-not-cover body",
+    "group": "Docs · License",
+    "body": "The carve-outs detailed in section 4, external sources cited or linked from articles, and third-party names, trademarks, logos, and site identities."
+  },
+  {
+    "key": "docs-license-s3-attribution",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — attribution note",
+    "group": "Docs · License",
+    "body": "**Attribution is appreciated, not required.** A link to dose.wiki helps other people find the source dataset, but CC0 does not require credit."
+  },
+  {
+    "key": "docs-license-s3-trademark",
+    "kind": "markdown",
+    "label": "03 · CC0 scope — trademark note",
+    "group": "Docs · License",
+    "body": "**CC0 waives copyright, not trademark.** Forks can use the covered material and the source code freely, including commercially. A fork must not use the \"dose.wiki\" name or logo to present itself as the official site or to claim endorsement."
+  },
+  {
+    "key": "docs-license-s4-heading",
+    "kind": "plain",
+    "label": "04 · Important exceptions — heading",
+    "group": "Docs · License",
+    "body": "Important exceptions"
+  },
+  {
+    "key": "docs-license-s4-intro",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — intro",
+    "group": "Docs · License",
+    "body": "Five **carve-outs** do not inherit the blanket CC0 release. This section is the authoritative statement of their terms."
+  },
+  {
+    "key": "docs-license-s4-legacy-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — legacy reports label",
+    "group": "Docs · License",
+    "body": "Legacy trip reports"
+  },
+  {
+    "key": "docs-license-s4-legacy-title",
+    "kind": "plain",
+    "label": "04 · Important exceptions — legacy reports title",
+    "group": "Docs · License",
+    "body": "Rights remain with the author unless marked otherwise."
+  },
+  {
+    "key": "docs-license-s4-legacy-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — legacy reports body",
+    "group": "Docs · License",
+    "body": "Trip reports are contributor-authored personal accounts. dose.wiki publishes legacy reports with permission, but they are not part of the covered material. Link to them freely. If the report's license marker permits it, or if the author agrees, you can republish or commercially use a report."
+  },
+  {
+    "key": "docs-license-s4-new-reports-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — new submissions label",
+    "group": "Docs · License",
+    "body": "New report-form submissions"
+  },
+  {
+    "key": "docs-license-s4-new-reports-title",
+    "kind": "plain",
+    "label": "04 · Important exceptions — new submissions title",
+    "group": "Docs · License",
+    "body": "CC0 applies when the submitter accepted the form terms."
+  },
+  {
+    "key": "docs-license-s4-new-reports-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — new submissions body",
+    "group": "Docs · License",
+    "body": "The submitter dedicates the report to the public domain before the form sends it. A CC0 dedication cannot be revoked after a report is public. dose.wiki honors good-faith requests to correct attribution, to update identifying details, or to remove a report from dose.wiki. dose.wiki cannot retract copies that other sites already made."
+  },
+  {
+    "key": "docs-license-s4-replication-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — replication media label",
+    "group": "Docs · License",
+    "body": "Subjective-effect replication media"
+  },
+  {
+    "key": "docs-license-s4-replication-title",
+    "kind": "plain",
+    "label": "04 · Important exceptions — replication media title",
+    "group": "Docs · License",
+    "body": "Rights stay with the creator or rightsholder."
+  },
+  {
+    "key": "docs-license-s4-replication-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — replication media body",
+    "group": "Docs · License",
+    "body": "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all; treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms)."
+  },
+  {
+    "key": "docs-license-s4-interactions-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — interaction ratings label",
+    "group": "Docs · License",
+    "body": "Interaction ratings"
+  },
+  {
+    "key": "docs-license-s4-interactions-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — interaction ratings body",
+    "group": "Docs · License",
+    "body": "The combination ratings shown on dose.wiki come from [TripSit's drug-combination guidance](https://wiki.tripsit.me/wiki/Drug_combinations). dose.wiki does not place that data under CC0. Reuse must follow TripSit's terms: non-commercial use, attribution, a link back to TripSit or [combo.tripsit.me](https://combo.tripsit.me), and a note that the information is only a quick reference. Commercial use needs TripSit permission."
+  },
+  {
+    "key": "docs-license-s4-reagent-label",
+    "kind": "plain",
+    "label": "04 · Important exceptions — reagent data label",
+    "group": "Docs · License",
+    "body": "Reagent-test data"
+  },
+  {
+    "key": "docs-license-s4-reagent-body",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — reagent data body",
+    "group": "Docs · License",
+    "body": "Reagent color reactions are fetched from [protestkit.eu](https://protestkit.eu) when an article is viewed. They are not included in the downloadable dataset, and dose.wiki does not grant reuse rights for them. Consult ProtestKit directly before republishing reagent-test data."
+  },
+  {
+    "key": "docs-license-s4-datasets-alert",
+    "kind": "markdown",
+    "label": "04 · Important exceptions — datasets warning",
+    "group": "Docs · License",
+    "body": "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references, the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references, credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms."
+  },
+  {
+    "key": "docs-license-s5-heading",
+    "kind": "plain",
+    "label": "05 · Provenance — heading",
+    "group": "Docs · License",
+    "body": "Subjective effects provenance"
+  },
+  {
+    "key": "docs-license-s5-intro",
+    "kind": "markdown",
+    "label": "05 · Provenance — intro",
+    "group": "Docs · License",
+    "body": "Subjective-effects material has a longer and more distributed publication history than the rest of the dataset, and it reaches dose.wiki by several separate paths. This section covers text and index material. Replication media stays creator-retained, as section 4 states."
+  },
+  {
+    "key": "docs-license-s5-index-authorship",
+    "kind": "markdown",
+    "label": "05 · Provenance — index authorship",
+    "group": "Docs · License",
+    "body": "The Subjective Effect Index is a work authored by [Josie Kins](https://en.wikipedia.org/wiki/Josie_Kins). She created it on her blog Disregard Everything I Say in 2011, before PsychonautWiki existed, and continued to develop it independently afterwards, including through Effect Index. dose.wiki includes this index material in its CC0 release to the extent it reflects Josie Kins / dose.wiki authorship."
+  },
+  {
+    "key": "docs-license-s5-restored-sections",
+    "kind": "markdown",
+    "label": "05 · Provenance — restored sections",
+    "group": "Docs · License",
+    "body": "dose.wiki handles substance-article \"Subjective effects\" sections separately, and they are currently a mixture of two paths. Where an earlier Josie Kins version exists, dose.wiki restores it, working only from Internet Archive captures dated on or before August 31, 2016, and including only material it has a good-faith basis to treat as her own authorship. It excludes contributions made after that boundary, and edits by others that it does not have the right to dedicate. The date is a rights boundary, not a measure of how current the information is. dose.wiki reviews and updates substance content independently of the boundary."
+  },
+  {
+    "key": "docs-license-s5-synthesized-sections",
+    "kind": "markdown",
+    "label": "05 · Provenance — synthesized sections",
+    "group": "Docs · License",
+    "body": "Where no such section exists, dose.wiki synthesizes one from source material gathered across the internet, the same way it writes the other article sections. Those runs exclude every project Josie Kins was involved in, Disregard Everything I Say, PsychonautWiki, and Effect Index, to avoid a conflict of interest. Synthesized sections are dose.wiki's own authorship and fall under the covered material. dose.wiki intends to replace these sections entirely with Mindstate Design Labs data."
+  },
+  {
+    "key": "docs-license-s5-boundary-note",
+    "kind": "markdown",
+    "label": "05 · Provenance — boundary note",
+    "group": "Docs · License",
+    "body": "Most of the recovered sections on substance pages are dated well before the boundary, not clustered against it."
+  },
+  {
+    "key": "docs-license-s5-badges-label",
+    "kind": "plain",
+    "label": "05 · Provenance — date badges label",
+    "group": "Docs · License",
+    "body": "Recovered date badges"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: origin label",
+    "group": "Docs · License",
+    "body": "Origin"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: origin year label",
+    "group": "Docs · License",
+    "body": "Founded"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: origin title",
+    "group": "Docs · License",
+    "body": "Disregard Everything I Say"
+  },
+  {
+    "key": "docs-license-s5-timeline-origin-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: origin description",
+    "group": "Docs · License",
+    "body": "Where the Subjective Effect Index began."
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: expanded label",
+    "group": "Docs · License",
+    "body": "Expanded"
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: expanded year label",
+    "group": "Docs · License",
+    "body": "Launched"
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: expanded title",
+    "group": "Docs · License",
+    "body": "PsychonautWiki"
+  },
+  {
+    "key": "docs-license-s5-timeline-expanded-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: expanded description",
+    "group": "Docs · License",
+    "body": "Structured collaborative reference."
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: formalized label",
+    "group": "Docs · License",
+    "body": "Formalized"
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: formalized year label",
+    "group": "Docs · License",
+    "body": "Launched"
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: formalized title",
+    "group": "Docs · License",
+    "body": "Effect Index"
+  },
+  {
+    "key": "docs-license-s5-timeline-formalized-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: formalized description",
+    "group": "Docs · License",
+    "body": "Dedicated subjective-effect index."
+  },
+  {
+    "key": "docs-license-s5-timeline-current-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: current label",
+    "group": "Docs · License",
+    "body": "Current"
+  },
+  {
+    "key": "docs-license-s5-timeline-current-year-label",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: current year label",
+    "group": "Docs · License",
+    "body": "Maintained since"
+  },
+  {
+    "key": "docs-license-s5-timeline-current-title",
+    "kind": "plain",
+    "label": "05 · Provenance — timeline: current title",
+    "group": "Docs · License",
+    "body": "dose.wiki"
+  },
+  {
+    "key": "docs-license-s5-timeline-current-desc",
+    "kind": "markdown",
+    "label": "05 · Provenance — timeline: current description",
+    "group": "Docs · License",
+    "body": "Current maintained corpus."
+  },
+  {
+    "key": "docs-license-s5-scope-alert",
+    "kind": "markdown",
+    "label": "05 · Provenance — licensing-scope note",
+    "group": "Docs · License",
+    "body": "This provenance note is about licensing scope, not authorship credit requirements. Subjective-effect text and index material inside the boundary follows the same CC0 terms as the rest of the covered material."
+  },
+  {
+    "key": "docs-license-s6-heading",
+    "kind": "plain",
+    "label": "06 · Source code — heading",
+    "group": "Docs · License",
+    "body": "Source code"
+  },
+  {
+    "key": "docs-license-s6-intro",
+    "kind": "markdown",
+    "label": "06 · Source code — intro",
+    "group": "Docs · License",
+    "body": "The website source code and tooling are released under the **MIT License**. MIT lets you use, copy, modify, distribute, sublicense, or sell copies of the software, including in commercial and closed-source projects."
+  },
+  {
+    "key": "docs-license-s6-condition-label",
+    "kind": "plain",
+    "label": "06 · Source code — condition label",
+    "group": "Docs · License",
+    "body": "Condition"
+  },
+  {
+    "key": "docs-license-s6-condition-body",
+    "kind": "markdown",
+    "label": "06 · Source code — condition body",
+    "group": "Docs · License",
+    "body": "Keep the MIT copyright and permission notice in copies or substantial portions of the code."
+  },
+  {
+    "key": "docs-license-s6-boundary-label",
+    "kind": "plain",
+    "label": "06 · Source code — boundary label",
+    "group": "Docs · License",
+    "body": "Boundary"
+  },
+  {
+    "key": "docs-license-s6-boundary-body",
+    "kind": "markdown",
+    "label": "06 · Source code — boundary body",
+    "group": "Docs · License",
+    "body": "MIT applies to the software only. The covered material is CC0 (section 3), and the carve-outs keep the terms in section 4."
+  },
+  {
+    "key": "docs-license-s6-third-party-body",
+    "kind": "markdown",
+    "label": "06 · Source code — third-party notices",
+    "group": "Docs · License",
+    "body": "Third-party software, fonts, and datasets bundled with the code keep their own licenses. The repository's `NOTICE.md` lists each one with its source, license, and any modifications."
+  },
+  {
+    "key": "docs-license-s7-heading",
+    "kind": "plain",
+    "label": "07 · Attribution examples — heading",
+    "group": "Docs · License",
+    "body": "Attribution examples"
+  },
+  {
+    "key": "docs-license-s7-intro",
+    "kind": "markdown",
+    "label": "07 · Attribution examples — intro",
+    "group": "Docs · License",
+    "body": "If you choose to credit dose.wiki, or need to keep third-party data and media labels clear, these examples are ready to copy."
+  },
+  {
+    "key": "docs-license-s7-dataset-label",
+    "kind": "plain",
+    "label": "07 · Attribution examples — dataset label",
+    "group": "Docs · License",
+    "body": "Dataset or article text only"
+  },
+  {
+    "key": "docs-license-s7-interactions-label",
+    "kind": "plain",
+    "label": "07 · Attribution examples — interactions label",
+    "group": "Docs · License",
+    "body": "If you also display interactions"
+  },
+  {
+    "key": "docs-license-s7-replication-label",
+    "kind": "plain",
+    "label": "07 · Attribution examples — replication label",
+    "group": "Docs · License",
+    "body": "If you display replication media"
+  },
+  {
+    "key": "docs-license-s8-heading",
+    "kind": "plain",
+    "label": "08 · Full terms — heading",
+    "group": "Docs · License",
+    "body": "Full terms"
+  },
+  {
+    "key": "docs-license-s8-intro",
+    "kind": "markdown",
+    "label": "08 · Full terms — intro",
+    "group": "Docs · License",
+    "body": "Canonical license texts, the replication-media terms, and the rights contact. The carve-out terms themselves live in section 4."
+  },
+  {
+    "key": "docs-license-s8-cc0-summary",
+    "kind": "plain",
+    "label": "08 · Full terms — CC0 card summary",
+    "group": "Docs · License",
+    "body": "CC0 1.0 Universal - the covered material"
+  },
+  {
+    "key": "docs-license-s8-cc0-body",
+    "kind": "markdown",
+    "label": "08 · Full terms — CC0 explanation",
+    "group": "Docs · License",
+    "body": "CC0 places a work as completely as possible into the public domain. The person who associates a work with CC0 waives copyright and related rights worldwide to the extent allowed by law. You can copy, modify, distribute, and commercially use the covered material without permission or attribution. It comes without warranties."
+  },
+  {
+    "key": "docs-license-s8-cc0-links",
+    "kind": "markdown",
+    "label": "08 · Full terms — CC0 links",
+    "group": "Docs · License",
+    "body": "Summary and legal code: [creativecommons.org/publicdomain/zero/1.0](https://creativecommons.org/publicdomain/zero/1.0/) ([legal code](https://creativecommons.org/publicdomain/zero/1.0/legalcode))."
+  },
+  {
+    "key": "docs-license-s8-mit-summary",
+    "kind": "plain",
+    "label": "08 · Full terms — MIT card summary",
+    "group": "Docs · License",
+    "body": "MIT License - source code"
+  },
+  {
+    "key": "docs-license-s8-replication-summary",
+    "kind": "plain",
+    "label": "08 · Full terms — replication card summary",
+    "group": "Docs · License",
+    "body": "Replication media - creator and rightsholder terms"
+  },
+  {
+    "key": "docs-license-s8-replication-purpose",
+    "kind": "markdown",
+    "label": "08 · Full terms: replication purpose",
+    "group": "Docs · License",
+    "body": "Replications accompany the effect descriptions as visual and auditory examples. They give readers another way to understand experiences that can be difficult to describe in words. Creator credits and source links, where known, let readers find the work in its original context."
+  },
+  {
+    "key": "docs-license-s8-replication-policy",
+    "kind": "markdown",
+    "label": "08 · Full terms — replication policy",
+    "group": "Docs · License",
+    "body": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item, explicit license, creator-retained, or unknown, so check the item itself rather than assuming any dataset's terms carry over."
+  },
+  {
+    "key": "docs-license-s8-replication-provenance",
+    "kind": "markdown",
+    "label": "08 · Full terms — replication provenance",
+    "group": "Docs · License",
+    "body": "Much of this library was originally published on **Effect Index**, and reaches dose.wiki through the Effect Index archive. Recovered files keep the creator credit and source link recorded for them there. Some original hosting services shut down, and their attribution did not survive. dose.wiki shows those items as creator unknown. It does not credit them to dose.wiki. These items are the most likely to need correction."
+  },
+  {
+    "key": "docs-license-s8-replication-corrections",
+    "kind": "markdown",
+    "label": "08 · Full terms — replication corrections",
+    "group": "Docs · License",
+    "body": "If a replication file is miscredited, has no source link, or must be removed, email [contact@dose.wiki](mailto:contact@dose.wiki) with the item title, creator name, and preferred correction."
+  },
+  {
+    "key": "docs-license-s8-contact-label",
+    "kind": "plain",
+    "label": "08 · Full terms — contact label",
+    "group": "Docs · License",
+    "body": "Rights and takedown contact"
+  },
+  {
+    "key": "docs-license-s8-contact-body",
+    "kind": "markdown",
+    "label": "08 · Full terms — contact body",
+    "group": "Docs · License",
+    "body": "For miscredited or disputed replication media, report-removal requests, trademark or name-use concerns, or any other rights question about material on dose.wiki, email [contact@dose.wiki](mailto:contact@dose.wiki). Include the article or item, and what you want changed."
+  },
+  {
+    "key": "docs-license-s8-crosslinks",
+    "kind": "markdown",
+    "label": "08 · Full terms — cross links",
+    "group": "Docs · License",
+    "body": "For content-generation provenance, see [how dose.wiki substance articles are made](/docs/how). For the application architecture and data flow, see [how dose.wiki is built](/docs/code)."
+  },
+  {
+    "key": "china-statement-en",
+    "kind": "markdown",
+    "label": "Statement to FreeODwiki (English)",
+    "group": "China",
+    "body": "Hey everyone, [Josie Kins](https://josiekins.xyz) here.\n\nIt recently came to my attention that the biggest psychoactive substance encyclopedia in China is a translation of [PsychonautWiki](https://psychonautwiki.rip), a website I founded back in 2013. I'm not involved in [PsychonautWiki](https://psychonautwiki.rip) these days; it sort of slowly died after I left it in 2017.\n\nI think it's great that you translated it into Chinese. As a gift, I'd like to present the people of China and [FreeODwiki](https://freeodwiki.org/) with the dose.wiki dataset, fully translated into Simplified Chinese, for you to use. It's in JSON, which is easily machine-readable. I also took a look at your [GitHub repo](https://github.com/SalviaSWC/FreeODwiki) and took the liberty of converting it into a FreeODwiki Markdown-compatible format.\n\nIncluded are:\n\n- The entire substance index, which I believe is more comprehensive than [PsychonautWiki](https://psychonautwiki.rip)'s.\n- The entire subjective effect index, which is definitely more up to date than the one on [PsychonautWiki](https://psychonautwiki.rip), because I've continued to work on it.\n- SVG molecule packs.\n- Various articles I've written over the years on dreams, lucid dreaming, psychedelic effects, substance effects, lots of little things like that.\n\nI took all the prose from the website and put it into nice, easily downloadable packs for you.\n\nI think this will be great to supplement the material you already have. There's a lot more on [PsychonautWiki](https://psychonautwiki.rip) outside these narrow databases, like articles on neurotransmitters and mechanisms in the brain, chemistry articles, harm reduction articles, and we don't have equivalents to those on dose.wiki yet. But the substance articles that are there are just a lot more comprehensive and standardised than the ones on PsychonautWiki. I basically made a pipeline that takes all the actual information online about a psychoactive substance and synthesises it. Take 4-AcO-DMT: there are maybe ten articles about it across ten different major English-language substance encyclopedias, and the pipeline folds them into one. That's why there's more information per substance on dose.wiki, and why it's so much more standardised.\n\nThere's also more in there than PsychonautWiki ever had: reagent test information, subjective effect information, a broader array of substances, more detailed history and culture sections, TripSit interaction and combination data so it's easier to look up and avoid dangerous combinations, and legality sections that are way more comprehensive than anything on the old PsychonautWiki. This is a 0.9 beta, by the way, and there's a lot more coming.\n\nI've been thinking for a while about having translations on dose.wiki itself, but when it came down to it, I don't think it's very sensible for me to be managing web infrastructure for substance information for a nation and culture that, as a silly Westerner, is honestly quite mysterious to me. So I figured I'd fork the dataset in its current form and send it over.\n\nI used GLM 5.3 Flash to translate this, and it only cost about a dollar. If you'd rather have Traditional Chinese, just let me know. We have another 250 substance articles on the way, but we haven't done human review of those yet, so we're waiting; I definitely don't want to give you AI slop. I'll update this as they land.\n\nThat's the gist of it. Enjoy. I won't be offended if you don't use it, but I figured it might come in handy. Obviously I don't speak Chinese, but online translation is a thing. Feel free to hit me up on Twitter anytime if you have questions. Happy to work with you. :) <3"
+  },
+  {
+    "key": "china-statement-zh",
+    "kind": "markdown",
+    "label": "Statement to FreeODwiki (Simplified Chinese)",
+    "group": "China",
+    "body": "大家好，我是 [Josie Kins](https://josiekins.xyz)。\n\n最近我才知道，中国最大的精神活性物质百科数据库，是 [PsychonautWiki](https://psychonautwiki.rip) 的翻译版，而那个网站是我 2013 年创办的。这些年我已经不参与 [PsychonautWiki](https://psychonautwiki.rip) 了；2017 年我离开之后，它就慢慢没落了。\n\n你们把它翻译成中文，我觉得非常棒。作为一份礼物，我想把整个 dose.wiki 数据集完整翻译成简体中文，送给中国的朋友们和 [FreeODwiki](https://freeodwiki.org/)，随你们使用。数据是 JSON 格式，方便机器读取。我还看了你们平台的 [GitHub 仓库](https://github.com/SalviaSWC/FreeODwiki)，顺手把它转成了兼容 FreeODwiki Markdown 的格式。\n\n里面包括：\n\n- 完整的物质索引，我认为它比 [PsychonautWiki](https://psychonautwiki.rip) 的更全面。\n- 完整的主观效应索引，它肯定比 [PsychonautWiki](https://psychonautwiki.rip) 上的更新，因为我一直在继续维护它。\n- 几套 SVG 分子结构图。\n- 我这些年写的各种文章，关于梦、清醒梦、迷幻效应、物质效应，还有很多类似的小东西。\n\n我把网站上所有的文字都整理成了方便下载的数据包给你们。\n\n我觉得这些资料很适合用来补充你们已有的内容。[PsychonautWiki](https://psychonautwiki.rip) 上有很多东西是这些专门的数据库之外的，比如神经递质和大脑机制的文章、化学文章、减害文章，dose.wiki 目前还没有对应的内容。但 dose.wiki 上已有的物质条目，比 PsychonautWiki 的要全面和规范得多。我基本上做了一条流水线，把网上关于某种精神活性物质的所有实际资料汇总起来。拿 4-AcO-DMT 来说，大概有十家主要的英文精神活性物质百科各写了一篇，流水线会把它们合成为一篇。这就是为什么 dose.wiki 上每种物质的信息更多，而且规范得多。\n\n里面还有不少 PsychonautWiki 从来没有的东西：试剂检测信息、主观效应信息、更广的物质范围、更详细的历史与文化章节、TripSit 的相互作用与合用数据（方便查询和避开危险组合），还有比老 PsychonautWiki 上任何内容都全面得多的法律地位章节。顺带一提，这还是 0.9 测试版，后面还会有很多。\n\n我考虑过很久要不要在 dose.wiki 上直接提供翻译版本，但真到了做决定的时候，我觉得由我来为一个国家、一种文化维护物质信息的网络基础设施并不明智——作为一个傻乎乎的西方人，说实话这对我来说太陌生了。所以我想，不如把数据集按现在的样子分叉一份，直接送过来。\n\n这次翻译用的是 GLM 5.3 Flash，只花了一美元左右。如果你们更想要繁体中文版，告诉我就行。我们还有 250 篇物质条目在路上，但还没做人工审核，所以先等一等；我可不想给你们 AI 垃圾。等它们完成了我会更新这份数据。\n\n大概就是这样。请享用。你们不用也没关系，我不会介意，只是觉得也许能派上用场。我当然不会中文，不过有在线翻译嘛。有任何问题，随时在 Twitter 上找我。很高兴能和你们合作。 :) <3"
+  }
+]

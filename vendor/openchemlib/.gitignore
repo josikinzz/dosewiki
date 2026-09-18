@@ -1,0 +1,17 @@
+/.idea
+/.settings
+/config.json
+/distbuild
+/gwt
+/gwt.zip
+/gwt-unitCache
+/.tools
+/jdk
+/jdk.tar.gz
+/lib/java
+/node_modules
+/war
+
+.claude
+.DS_Store
+*.log

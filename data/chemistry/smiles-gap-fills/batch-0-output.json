@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "2-aminoindane",
+    "title": "2-Aminoindane",
+    "smiles": "C1C(CC2=CC=CC=C21)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "2-fluorodeschloroketamine",
+    "title": "2-Fluorodeschloroketamine",
+    "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "25-dma",
+    "title": "25-DMA",
+    "smiles": "CC(CC1=C(C=CC(=C1)OC)OC)N",
+    "represents": "2,5-dimethoxyamphetamine (2,5-DMA)",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Name not found directly; '25-DMA' = 2,5-dimethoxyamphetamine per the 2,5-dimethoxy ('25') naming convention. PubChem CID 62787."
+  },
+  {
+    "slug": "25b-nbome",
+    "title": "25b-NBOMe",
+    "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Br)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "25c-nbome",
+    "title": "25c-NBOMe",
+    "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Cl)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "25e-nbome",
+    "title": "25e-NBOMe",
+    "smiles": "CCC1=CC(=C(C=C1OC)CCNCC2=CC=CC=C2OC)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "25g-nbome",
+    "title": "25g-NBOMe",
+    "smiles": "CC1=C(C=C(C(=C1C)OC)CCNCC2=CC=CC=C2OC)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "25t-4-nbome",
+    "title": "25t-4-NBOMe",
+    "smiles": "CC(C)SC1=C(C=C(C(=C1)OC)CCNCC2=CC=CC=C2OC)OC",
+    "represents": "",
+    "source": "wikipedia",
+    "confidence": "high",
+    "note": "PubChem name lookup failed; identified as 25T4-NBOMe (NBOMe analogue of 2C-T-4, 4-isopropylthio). SMILES confirmed against PubChem CID 125181243."
+  },
+  {
+    "slug": "2c-ip",
+    "title": "2C-iP",
+    "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CCN)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "3-4-ctmp",
+    "title": "3-4-CTMP",
+    "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC(=C(C=C2)Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved as 3,4-CTMP (3,4-dichloromethylphenidate). PubChem CID 44296390."
+  },
+  {
+    "slug": "3-fma",
+    "title": "3-FMA",
+    "smiles": "CC(CC1=CC(=CC=C1)F)NC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "3-meo-pcpy",
+    "title": "3-MeO-PCPy",
+    "smiles": "COC1=CC=CC(=C1)C2(CCCCC2)N3CCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved via IUPAC name 1-[1-(3-methoxyphenyl)cyclohexyl]pyrrolidine. PubChem CID 137332196."
+  },
+  {
+    "slug": "3-meomc",
+    "title": "3-Meomc",
+    "smiles": "CC(C(=O)C1=CC(=CC=C1)OC)NC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved as 3-methoxymethcathinone (3-MeOMC). PubChem CID 82281626."
+  },
+  {
+    "slug": "3-oh-phenazepam",
+    "title": "3-OH-Phenazepam",
+    "smiles": "C1=CC=C(C(=C1)C2=NC(C(=O)NC3=C2C=C(C=C3)Br)O)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved as 3-hydroxyphenazepam. PubChem CID 125820."
+  },
+  {
+    "slug": "4-aco-dalt",
+    "title": "4-AcO-DALT",
+    "smiles": "CC(=O)OC1=CC=CC2=C1C(=CN2)CCN(CC=C)CC=C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-aco-met",
+    "title": "4-AcO-MET",
+    "smiles": "CCN(C)CCC1=CNC2=C1C(=CC=C2)OC(=O)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-fluorobutyrfentanyl",
+    "title": "4-Fluorobutyrfentanyl",
+    "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-ho-dpt",
+    "title": "4-HO-DPT",
+    "smiles": "CCCN(CCC)CCC1=CNC2=C1C(=CC=C2)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-ho-mipt",
+    "title": "4-HO-MiPT",
+    "smiles": "CC(C)N(C)CCC1=CNC2=C1C(=CC=C2)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-ho-mpmi",
+    "title": "4-HO-MPMI",
+    "smiles": "CN1CCC[C@@H]1CC2=CNC3=C2C(=CC=C3)O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Also known as 4-hydroxy-N-methyl-alpha,N-trimethylene-tryptamine. PubChem CID 10466404."
+  },
+  {
+    "slug": "4-meo-butyrfentanyl",
+    "title": "4-MeO-Butyrfentanyl",
+    "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-methylaminorex",
+    "title": "4-Methylaminorex",
+    "smiles": "CC1C(OC(=N1)N)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4-methylmethylphenidate",
+    "title": "4-Methylmethylphenidate",
+    "smiles": "CC1=CC=C(C=C1)[C@H]([C@@H]2CCCCN2)C(=O)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "4f-mph",
+    "title": "4f-MPH",
+    "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=C(C=C2)F",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved as 4-fluoromethylphenidate (4F-MPH). PubChem CID 52944002."
+  },
+  {
+    "slug": "4f-neb",
+    "title": "4f-NEB",
+    "smiles": "CCC(C(=O)C1=CC=C(C=C1)F)NCC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved as 4-fluoro-N-ethylbuphedrone (4F-NEB). PubChem CID 112476877."
+  },
+  {
+    "slug": "4f-pvp",
+    "title": "4f-PVP",
+    "smiles": "CCCC(C(=O)C1=CC=C(C=C1)F)N2CCCC2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Resolved as 4'-fluoro-alpha-pyrrolidinopentiophenone (4F-PVP). PubChem CID 11322641."
+  },
+  {
+    "slug": "5-apdb",
+    "title": "5-APDB",
+    "smiles": "CC(CC1=CC2=C(C=C1)OCC2)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "5-hydroxytryptophan",
+    "title": "5-Hydroxytryptophan",
+    "smiles": "C1=CC2=C(C=C1O)C(=CN2)CC(C(=O)O)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  },
+  {
+    "slug": "5-it",
+    "title": "5-IT",
+    "smiles": "CC(CC1=CC2=C(C=C1)NC=C2)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "5-(2-aminopropyl)indole (5-API). PubChem CID 55253543."
+  },
+  {
+    "slug": "5-meo-eipt",
+    "title": "5-MeO-EiPT",
+    "smiles": "CCN(CCC1=CNC2=C1C=C(C=C2)OC)C(C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": ""
+  }
+]

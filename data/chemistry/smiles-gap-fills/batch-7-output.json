@@ -1,0 +1,218 @@
+[
+  {
+    "slug": "salvia",
+    "title": "Salvia",
+    "smiles": "CC(=O)O[C@H]1C[C@H]([C@@]2(CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]2C1=O)C)C4=COC=C4)C)C(=O)OC",
+    "represents": "Salvinorin A",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Salvia divinorum; principal psychoactive constituent is salvinorin A (PubChem CID 128563)."
+  },
+  {
+    "slug": "salvinorin-b-methoxymethyl-ether",
+    "title": "Salvinorin-B-Methoxymethyl-Ether",
+    "smiles": "C[C@@]12CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]1C(=O)[C@H](C[C@H]2C(=O)OC)OCOC)C)C4=COC=C4",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 44456192."
+  },
+  {
+    "slug": "sentia",
+    "title": "Sentia",
+    "smiles": null,
+    "represents": "",
+    "source": "other",
+    "confidence": "high",
+    "note": "Sentia (GABA Labs) is a proprietary multi-botanical 'spirit' blend with no single defined active molecule; cannot in good conscience pick one representative structure."
+  },
+  {
+    "slug": "sertraline",
+    "title": "Sertraline",
+    "smiles": "CN[C@H]1CC[C@H](C2=CC=CC=C12)C3=CC(=C(C=C3)Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 68617."
+  },
+  {
+    "slug": "sildenafil",
+    "title": "Sildenafil",
+    "smiles": "CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)C)OCC)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 135398744."
+  },
+  {
+    "slug": "sinicuichi",
+    "title": "Sinicuichi",
+    "smiles": "COC1=C(C=C2C(=C1)[C@@H]3C[C@H](C[C@@H]4N3CCCC4)OC(=O)/C=C\\C5=CC2=C(C=C5)O)OC",
+    "represents": "Cryogenine (vertine)",
+    "source": "pubchem",
+    "confidence": "medium",
+    "note": "Sinicuichi = Heimia salicifolia; principal alkaloid commonly cited as cryogenine/vertine (PubChem CID 5315204)."
+  },
+  {
+    "slug": "sonata",
+    "title": "Sonata",
+    "smiles": "CCN(C1=CC=CC(=C1)C2=CC=NC3=C(C=NN23)C#N)C(=O)C",
+    "represents": "Zaleplon",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Sonata is the brand name for zaleplon (PubChem CID 5719)."
+  },
+  {
+    "slug": "sulbutiamine",
+    "title": "Sulbutiamine",
+    "smiles": "CC1=NC=C(C(=N1)N)CN(/C(=C(/SS/C(=C(/N(C=O)CC2=CN=C(N=C2N)C)\\C)/CCOC(=O)C(C)C)\\CCOC(=O)C(C)C)/C)C=O",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 3002120."
+  },
+  {
+    "slug": "tadalafil",
+    "title": "Tadalafil",
+    "smiles": "CN1CC(=O)N2[C@@H](C1=O)CC3=C([C@H]2C4=CC5=C(C=C4)OCO5)NC6=CC=CC=C36",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 110635."
+  },
+  {
+    "slug": "tetrazepam",
+    "title": "Tetrazepam",
+    "smiles": "CN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CCCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 25215."
+  },
+  {
+    "slug": "th-pvp",
+    "title": "TH-PVP",
+    "smiles": "CCCC(C(=O)C1=CC2=C(CCCC2)C=C1)N3CCCC3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 132989549."
+  },
+  {
+    "slug": "theanine",
+    "title": "Theanine",
+    "smiles": "CCNC(=O)CC[C@@H](C(=O)O)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "L-theanine (PubChem CID 439378)."
+  },
+  {
+    "slug": "theobromine",
+    "title": "Theobromine",
+    "smiles": "CN1C=NC2=C1C(=O)NC(=O)N2C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 5429."
+  },
+  {
+    "slug": "thiopropamine",
+    "title": "Thiopropamine",
+    "smiles": "CC(CC1=CC=CS1)N",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 6484133."
+  },
+  {
+    "slug": "tilidine",
+    "title": "Tilidine",
+    "smiles": "CCOC(=O)[C@@]1(CCC=C[C@H]1N(C)C)C2=CC=CC=C2",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 30131."
+  },
+  {
+    "slug": "tizanidine",
+    "title": "Tizanidine",
+    "smiles": "C1CN=C(N1)NC2=C(C=CC3=NSN=C32)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 5487."
+  },
+  {
+    "slug": "tobacco",
+    "title": "Tobacco",
+    "smiles": "CN1CCC[C@H]1C2=CN=CC=C2",
+    "represents": "Nicotine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Tobacco (Nicotiana); principal psychoactive constituent is nicotine (PubChem CID 89594)."
+  },
+  {
+    "slug": "troparil",
+    "title": "Troparil",
+    "smiles": "CN1[C@H]2CC[C@@H]1[C@H]([C@H](C2)C3=CC=CC=C3)C(=O)OC",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 170832."
+  },
+  {
+    "slug": "u-51754",
+    "title": "U-51754",
+    "smiles": "CN(C)C1CCCCC1N(C)C(=O)CC2=CC(=C(C=C2)Cl)Cl",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 21328050."
+  },
+  {
+    "slug": "ur-144",
+    "title": "UR-144",
+    "smiles": "CCCCCN1C=C(C2=CC=CC=C21)C(=O)C3C(C3(C)C)(C)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 44626619."
+  },
+  {
+    "slug": "valerylfentanyl",
+    "title": "Valerylfentanyl",
+    "smiles": "CCCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 21595398."
+  },
+  {
+    "slug": "w-15",
+    "title": "W-15",
+    "smiles": "C1CCN(/C(=N/S(=O)(=O)C2=CC=C(C=C2)Cl)/C1)CCC3=CC=CC=C3",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 13373538."
+  },
+  {
+    "slug": "yerba-mate",
+    "title": "Yerba-Mate",
+    "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+    "represents": "Caffeine",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "Yerba mate (Ilex paraguariensis); principal psychoactive constituent is caffeine (PubChem CID 2519)."
+  },
+  {
+    "slug": "zolazepam",
+    "title": "Zolazepam",
+    "smiles": "CC1=NN(C2=C1C(=NCC(=O)N2C)C3=CC=CC=C3F)C",
+    "represents": "",
+    "source": "pubchem",
+    "confidence": "high",
+    "note": "PubChem CID 35775."
+  }
+]

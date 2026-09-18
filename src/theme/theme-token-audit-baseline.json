@@ -1,0 +1,6546 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-08-21T21:11:37.129Z",
+  "reviewScope": "production push shared public UI token audit review",
+  "scanRoots": [
+    "src/app",
+    "src/components/common",
+    "src/components/layout",
+    "src/components/pages",
+    "src/components/ui",
+    "src/features"
+  ],
+  "findings": [
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/unauthorized/page.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 32,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/unauthorized/page.tsx",
+      "match": "var(--theme-surface-strong)",
+      "line": 32,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/unauthorized/page.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 32,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/unauthorized/page.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 32,
+      "column": 189
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/license/page.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 50,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/license/page.tsx",
+      "match": "var(--theme-elevation-inner)",
+      "line": 773,
+      "column": 127
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/how/page.tsx",
+      "match": "var(--theme-elevation-inner)",
+      "line": 283,
+      "column": 189
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/how/page.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 285,
+      "column": 151
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/how/page.tsx",
+      "match": "var(--theme-elevation-lg)",
+      "line": 1535,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-doc-domain-blue)",
+      "line": 55,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-doc-domain-gold)",
+      "line": 56,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-doc-domain-green)",
+      "line": 57,
+      "column": 11
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-doc-domain-orange)",
+      "line": 58,
+      "column": 12
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-doc-domain-plum)",
+      "line": 59,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 73,
+      "column": 45
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-elevation-inner)",
+      "line": 87,
+      "column": 180
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 88,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 114,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 135,
+      "column": 139
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 390,
+      "column": 106
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/code/page.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 1231,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/_components/HomeExperience.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 194,
+      "column": 169
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/_components/HomeExperience.tsx",
+      "match": "var(--theme-header-height,4.25rem)",
+      "line": 238,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/_components/HomeExperience.tsx",
+      "match": "var(--theme-header-height,4.25rem)",
+      "line": 238,
+      "column": 227
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/_components/HomeExperience.tsx",
+      "match": "var(--theme-header-height,4.25rem)",
+      "line": 238,
+      "column": 308
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 16,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 16,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 38,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 38,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 39,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 50,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 74,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 76,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 86,
+      "column": 63
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 89,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 96,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 99,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 100,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 101,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 102,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 125,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 125,
+      "column": 65
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 130,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 133,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 155,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 157,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 159,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/components/CatalogPrimitives.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 184,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 20,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 24,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 36,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 53,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 54,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-accent)",
+      "line": 55,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 56,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/custom-icons.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 67,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dialog.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 53,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dialog.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 132,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dialog.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 132,
+      "column": 124
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dropdown-menu.story.tsx",
+      "match": "var(--theme-error-text)",
+      "line": 48,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-tokens.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 29,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/loading-screen.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 22,
+      "column": 93
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/loading-screen.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 33,
+      "column": 88
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 23,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 27,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 41,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/bullet.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 51,
+      "column": 63
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-page-primitives.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 45,
+      "column": 57
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-feedback-primitives.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 176,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-feedback-primitives.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 179,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 32,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-surface)",
+      "line": 32,
+      "column": 75
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 32,
+      "column": 121
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 32,
+      "column": 166
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-border)",
+      "line": 48,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-surface)",
+      "line": 48,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 48,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 48,
+      "column": 171
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/label.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 58,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/input.story.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 75,
+      "column": 98
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 17,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 18,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 112,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/surface.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 124,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/tabs.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 6,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 13,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 13,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 14,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/index-panel-layout.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 16,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/definition-list.story.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 30,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/definition-list.story.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 70,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-citation-list.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 82,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-citation-list.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 88,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 31,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 34,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 54,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 72,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 76,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-surface-subtle)",
+      "line": 76,
+      "column": 88
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 76,
+      "column": 141
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/popover.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 102,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/card.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 45,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/card.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 79,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/card.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 98,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/section-card.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 8,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/section-card.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 9,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/route-announcer.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 22,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/route-announcer.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 35,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 20,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 33,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 44,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 55,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 69,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 70,
+      "column": 63
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 71,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 72,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 81,
+      "column": 83
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 91,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/toggle-group.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 71,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/toggle-group.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 90,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 20,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 32,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 44,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 56,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 73,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/highlighted-text.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 85,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/public-table-of-contents.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 72,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 46,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-surface-subtle)",
+      "line": 66,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 66,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/article-expandable.story.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 87,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/dose-wiki-logo.story.tsx",
+      "match": "var(--theme-logo-fill)",
+      "line": 61,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 7,
+      "column": 57
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 8,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 12,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 23,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 26,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/sticky-toc-layout.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 27,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/app-image.story.tsx",
+      "match": "var(--theme-border-strong)",
+      "line": 84,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/motion-card.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 8,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/motion-card.story.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 9,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/stories/icon-badge.story.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 62,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/registry/types.ts",
+      "match": "var(--theme-success-text)",
+      "line": 87,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/registry/types.ts",
+      "match": "var(--theme-warning-text)",
+      "line": 88,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/registry/types.ts",
+      "match": "var(--theme-text-muted)",
+      "line": 89,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 41,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 42,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 50,
+      "column": 84
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 57,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 57,
+      "column": 108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 61,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 64,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 74,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 82,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 82,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 82,
+      "column": 156
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 92,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 99,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 99,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 99,
+      "column": 142
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 125,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 125,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 129,
+      "column": 60
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 129,
+      "column": 101
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 137,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 144,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 144,
+      "column": 81
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 156,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 159,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 160,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 164,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 177,
+      "column": 68
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 177,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 177,
+      "column": 152
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 177,
+      "column": 197
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 177,
+      "column": 322
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 189,
+      "column": 62
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/dev/kit/KitCatalog.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 190,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/sign-in/page.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 41,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/sign-in/page.tsx",
+      "match": "var(--theme-surface-strong)",
+      "line": 41,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/sign-in/page.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 41,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/sign-in/page.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 41,
+      "column": 189
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ExpandButton.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 123,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/PublicTableOfContents.tsx",
+      "match": "var(--theme-warning-border)",
+      "line": 154,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/PublicTableOfContents.tsx",
+      "match": "var(--theme-warning-bg)",
+      "line": 154,
+      "column": 88
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/PublicTableOfContents.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 154,
+      "column": 125
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/PublicTableOfContents.tsx",
+      "match": "var(--theme-warning-bg-strong)",
+      "line": 154,
+      "column": 168
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/PublicTableOfContents.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 164,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/PublicTableOfContents.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 167,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/SectionHeader.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 23,
+      "column": 97
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/SectionHeader.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 28,
+      "column": 45
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ReferenceList.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 64,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ReferenceList.tsx",
+      "match": "var(--theme-accent)",
+      "line": 64,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ReferenceList.tsx",
+      "match": "var(--theme-accent)",
+      "line": 65,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ReferenceList.tsx",
+      "match": "var(--theme-accent)",
+      "line": 65,
+      "column": 123
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ReferenceList.tsx",
+      "match": "var(--theme-accent-soft)",
+      "line": 107,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ReferenceList.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 107,
+      "column": 108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/HighlightedText.tsx",
+      "match": "var(--theme-search-highlight-bg)",
+      "line": 81,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/HighlightedText.tsx",
+      "match": "var(--theme-search-highlight-text)",
+      "line": 81,
+      "column": 83
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/HighlightedText.tsx",
+      "match": "var(--theme-elevation-mark-hairline)",
+      "line": 81,
+      "column": 127
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/IndexCard.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 275,
+      "column": 113
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 238,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 239,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 243,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 244,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 248,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 249,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/common/ArticleSection.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 493,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicSegmentedTabs.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 134,
+      "column": 114
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicSegmentedTabs.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 169,
+      "column": 81
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicFeedbackPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 259,
+      "column": 111
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicFeedbackPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 259,
+      "column": 174
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicPagePrimitives.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 109,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicPagePrimitives.tsx",
+      "match": "var(--theme-avatar-gradient-from)",
+      "line": 189,
+      "column": 131
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicPagePrimitives.tsx",
+      "match": "var(--theme-avatar-gradient-to)",
+      "line": 189,
+      "column": 170
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicPagePrimitives.tsx",
+      "match": "var(--theme-elevation-avatar-inner)",
+      "line": 189,
+      "column": 237
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicPagePrimitives.tsx",
+      "match": "var(--theme-elevation-avatar-glow)",
+      "line": 190,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicContentPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 307,
+      "column": 128
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicContentPrimitives.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 307,
+      "column": 204
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/PublicContentPrimitives.tsx",
+      "match": "var(--theme-elevation-icon-tile)",
+      "line": 307,
+      "column": 241
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/Header.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 393,
+      "column": 164
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/layout/Header.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 743,
+      "column": 167
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/UserProfileExpandableSections.tsx",
+      "match": "var(--theme-semantic-info-badge-text)",
+      "line": 123,
+      "column": 30
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/LiveSearchResultsPage.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 36,
+      "column": 36
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/MechanismDetailPage.tsx",
+      "match": "var(--theme-elevation-panel-deep)",
+      "line": 91,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/FocusedSearchResultsPage.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 100,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/FocusedSearchResultsPage.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 109,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/pages/FocusedSearchResultsPage.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 126,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/tabs.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 33,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/popover.tsx",
+      "match": "var(--theme-elevation-overlay)",
+      "line": 20,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 14,
+      "column": 104
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-card-border)",
+      "line": 20,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-card)",
+      "line": 20,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-card-subtle)",
+      "line": 24,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-card-subtle)",
+      "line": 26,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 31,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 31,
+      "column": 62
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 31,
+      "column": 98
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-danger)",
+      "line": 31,
+      "column": 132
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-2xl)",
+      "line": 33,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 33,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-panel)",
+      "line": 35,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 73,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-overlay)",
+      "line": 73,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-accent-lift)",
+      "line": 79,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 81,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-danger-bg-strong)",
+      "line": 81,
+      "column": 83
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-danger-hover)",
+      "line": 81,
+      "column": 128
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 83,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-surface-strong)",
+      "line": 83,
+      "column": 99
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 83,
+      "column": 131
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 86,
+      "column": 30
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-accent)",
+      "line": 86,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 86,
+      "column": 115
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.tsx",
+      "match": "var(--theme-elevation-inner-accent)",
+      "line": 86,
+      "column": 152
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/motion-card.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 15,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/motion-card.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 16,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/motion-card.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 16,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/motion-card.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 16,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/motion-card.tsx",
+      "match": "var(--theme-elevation-motion-card)",
+      "line": 48,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/motion-card.tsx",
+      "match": "var(--theme-elevation-motion-card-hover)",
+      "line": 48,
+      "column": 68
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.test.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 44,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.test.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 57,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/surface.test.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 77,
+      "column": 74
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 12,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 12,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 14,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 14,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 14,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 14,
+      "column": 146
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-warning-border)",
+      "line": 16,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-warning-bg)",
+      "line": 16,
+      "column": 65
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 16,
+      "column": 102
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-warning-text-strong)",
+      "line": 16,
+      "column": 149
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-success-border)",
+      "line": 18,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-success-bg)",
+      "line": 18,
+      "column": 65
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 18,
+      "column": 102
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/alert.tsx",
+      "match": "var(--theme-success-text-strong)",
+      "line": 18,
+      "column": 149
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/command.tsx",
+      "match": "var(--theme-elevation-lg)",
+      "line": 27,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/command.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 45,
+      "column": 105
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/command.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 88,
+      "column": 284
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/command.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 117,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/command.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 118,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/command.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 118,
+      "column": 112
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dialog.tsx",
+      "match": "var(--theme-backdrop-safe)",
+      "line": 24,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dialog.tsx",
+      "match": "var(--theme-elevation-lg)",
+      "line": 43,
+      "column": 148
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dialog.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 50,
+      "column": 187
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dialog.tsx",
+      "match": "var(--theme-body-bg)",
+      "line": 50,
+      "column": 254
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 8,
+      "column": 111
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 13,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 13,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 13,
+      "column": 98
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 15,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 15,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 15,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 17,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 17,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 17,
+      "column": 100
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 19,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 19,
+      "column": 69
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-success-border)",
+      "line": 21,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-success-bg)",
+      "line": 21,
+      "column": 65
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 21,
+      "column": 102
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 23,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 23,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 23,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 23,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 23,
+      "column": 179
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 23,
+      "column": 218
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 25,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 25,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-control-border)",
+      "line": 25,
+      "column": 136
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 27,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 27,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-control-border)",
+      "line": 27,
+      "column": 136
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 27,
+      "column": 198
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 27,
+      "column": 249
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 27,
+      "column": 377
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 29,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-surface-deep)",
+      "line": 29,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 29,
+      "column": 153
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/badge.tsx",
+      "match": "var(--theme-elevation-top-highlight-faint)",
+      "line": 29,
+      "column": 190
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 8,
+      "column": 250
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 13,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 13,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 13,
+      "column": 116
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 13,
+      "column": 158
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 13,
+      "column": 211
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 17,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 17,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 17,
+      "column": 104
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 17,
+      "column": 143
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 17,
+      "column": 182
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 19,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 19,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 19,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 21,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 21,
+      "column": 82
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 21,
+      "column": 118
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 21,
+      "column": 164
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-bg-strong)",
+      "line": 21,
+      "column": 215
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 23,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 23,
+      "column": 118
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 23,
+      "column": 160
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-success-border)",
+      "line": 25,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-success-bg)",
+      "line": 25,
+      "column": 83
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 25,
+      "column": 120
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-success-border-strong)",
+      "line": 25,
+      "column": 167
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-success-bg-strong)",
+      "line": 25,
+      "column": 219
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-success-text-strong)",
+      "line": 25,
+      "column": 269
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 27,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 27,
+      "column": 87
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 27,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 29,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent)",
+      "line": 29,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 31,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 31,
+      "column": 72
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 31,
+      "column": 106
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 31,
+      "column": 145
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 31,
+      "column": 184
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 33,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 33,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 33,
+      "column": 125
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-elevation-control-active)",
+      "line": 33,
+      "column": 160
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 35,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 35,
+      "column": 116
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 37,
+      "column": 82
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 37,
+      "column": 143
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 39,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-border)",
+      "line": 39,
+      "column": 75
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 39,
+      "column": 118
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 39,
+      "column": 155
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 39,
+      "column": 206
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 41,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 41,
+      "column": 72
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 41,
+      "column": 106
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 41,
+      "column": 149
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 41,
+      "column": 194
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 41,
+      "column": 239
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 43,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 43,
+      "column": 84
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 43,
+      "column": 120
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 43,
+      "column": 166
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-bg-strong)",
+      "line": 43,
+      "column": 217
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 43,
+      "column": 266
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 45,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 45,
+      "column": 166
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 45,
+      "column": 225
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 45,
+      "column": 259
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-elevation-control-primary)",
+      "line": 45,
+      "column": 294
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 45,
+      "column": 347
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 47,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 47,
+      "column": 135
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 47,
+      "column": 167
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 47,
+      "column": 200
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 47,
+      "column": 242
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 47,
+      "column": 282
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-strong)",
+      "line": 47,
+      "column": 321
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 49,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 49,
+      "column": 68
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-border)",
+      "line": 49,
+      "column": 108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 49,
+      "column": 155
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 49,
+      "column": 206
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 51,
+      "column": 60
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 51,
+      "column": 99
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 51,
+      "column": 139
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 53,
+      "column": 74
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 53,
+      "column": 106
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-panel-hover-border)",
+      "line": 53,
+      "column": 158
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 53,
+      "column": 209
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 55,
+      "column": 76
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 55,
+      "column": 120
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 55,
+      "column": 162
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 55,
+      "column": 204
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 55,
+      "column": 249
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 55,
+      "column": 294
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 55,
+      "column": 389
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 57,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 57,
+      "column": 169
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-control-base)",
+      "line": 57,
+      "column": 244
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 57,
+      "column": 288
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 57,
+      "column": 328
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 57,
+      "column": 424
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 59,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 59,
+      "column": 143
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 59,
+      "column": 226
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 59,
+      "column": 284
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 61,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 63,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 63,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 63,
+      "column": 173
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 63,
+      "column": 231
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 65,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 65,
+      "column": 85
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 67,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 67,
+      "column": 85
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 67,
+      "column": 125
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 69,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-accent)",
+      "line": 69,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 71,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 71,
+      "column": 85
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 71,
+      "column": 125
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 73,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-surface-muted)",
+      "line": 73,
+      "column": 83
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 73,
+      "column": 123
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 75,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 75,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 75,
+      "column": 124
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-warning-bg)",
+      "line": 77,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 77,
+      "column": 74
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/button.tsx",
+      "match": "var(--theme-warning-bg-strong)",
+      "line": 77,
+      "column": 128
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 8,
+      "column": 175
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 13,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 13,
+      "column": 87
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 13,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 13,
+      "column": 171
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 13,
+      "column": 222
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 13,
+      "column": 285
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 13,
+      "column": 346
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-elevation-control-active)",
+      "line": 13,
+      "column": 397
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 15,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 15,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 15,
+      "column": 148
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 15,
+      "column": 211
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 15,
+      "column": 272
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 17,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 17,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 17,
+      "column": 128
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 17,
+      "column": 173
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 17,
+      "column": 224
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 17,
+      "column": 287
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 17,
+      "column": 348
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/toggle.tsx",
+      "match": "var(--theme-elevation-control-active)",
+      "line": 17,
+      "column": 399
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 28,
+      "column": 134
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 28,
+      "column": 198
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-elevation-lg)",
+      "line": 48,
+      "column": 95
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-elevation-overlay)",
+      "line": 66,
+      "column": 175
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 88,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 89,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 89,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 107,
+      "column": 160
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 107,
+      "column": 214
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 131,
+      "column": 160
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/dropdown-menu.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 131,
+      "column": 214
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 15,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 15,
+      "column": 101
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-elevation-inner)",
+      "line": 15,
+      "column": 136
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 15,
+      "column": 195
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 15,
+      "column": 245
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 15,
+      "column": 284
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 15,
+      "column": 356
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-field-border)",
+      "line": 19,
+      "column": 27
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 20,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 20,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-danger-ring)",
+      "line": 20,
+      "column": 132
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-elevation-lg)",
+      "line": 100,
+      "column": 167
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 145,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/select.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 145,
+      "column": 72
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 7,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 7,
+      "column": 74
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 7,
+      "column": 108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-elevation-field-inset)",
+      "line": 7,
+      "column": 143
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 7,
+      "column": 208
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 7,
+      "column": 277
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 11,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 12,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 12,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/textarea.tsx",
+      "match": "var(--theme-danger-ring)",
+      "line": 12,
+      "column": 132
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 7,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 7,
+      "column": 74
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 7,
+      "column": 108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-elevation-field-inset)",
+      "line": 7,
+      "column": 143
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 7,
+      "column": 208
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 7,
+      "column": 308
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 7,
+      "column": 381
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 11,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 12,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 12,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/components/ui/input.tsx",
+      "match": "var(--theme-danger-ring)",
+      "line": 12,
+      "column": 132
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/LengthField.tsx",
+      "match": "var(--theme-accent-muted)",
+      "line": 72,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/paletteTokens.ts",
+      "match": "var(--theme-*)",
+      "line": 791,
+      "column": 11
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 28,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-backdrop-safe)",
+      "line": 32,
+      "column": 27
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-chrome-rail-bg)",
+      "line": 51,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-article-neutral-panel-bg)",
+      "line": 70,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 89,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 90,
+      "column": 23
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-text-primary)",
+      "line": 113,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-body-bg)",
+      "line": 113,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-text-primary)",
+      "line": 130,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-body-bg)",
+      "line": 130,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-accent-strong)",
+      "line": 146,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-logo-fill)",
+      "line": 160,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-semantic-danger-card-bg)",
+      "line": 196,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-text-primary)",
+      "line": 229,
+      "column": 16
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 245,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.test.ts",
+      "match": "var(--theme-border-strong)",
+      "line": 261,
+      "column": 27
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/pickToken.ts",
+      "match": "var(--theme-*)",
+      "line": 8,
+      "column": 17
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/paletteTokensElevation.ts",
+      "match": "var(--theme-elevation-\u2026)",
+      "line": 11,
+      "column": 13
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/elevationTokens.test.ts",
+      "match": "var(--theme-\u2026)",
+      "line": 32,
+      "column": 18
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/elevationTokens.test.ts",
+      "match": "var(--theme-elevation-card)",
+      "line": 68,
+      "column": 118
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 12,
+      "column": 16
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 16,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 55,
+      "column": 16
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 59,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 43,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 45,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-shadow)",
+      "line": 47,
+      "column": 5
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 48,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 51,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 97,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-shadow)",
+      "line": 100,
+      "column": 7
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 101,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 167,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 176,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 183,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 200,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 201,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-surface-muted)",
+      "line": 201,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 202,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 210,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 211,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 214,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 242,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 272,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 287,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 294,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 304,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 394,
+      "column": 22
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 418,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 451,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 455,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-field-border)",
+      "line": 468,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 516,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-surface-strong)",
+      "line": 517,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 529,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-surface-strong)",
+      "line": 530,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 544,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 567,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 580,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-field-surface)",
+      "line": 581,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 588,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 592,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-panel-base)",
+      "line": 607,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 614,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-ghost)",
+      "line": 630,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 637,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-panel-base)",
+      "line": 650,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 657,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 663,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 680,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 694,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-warning-border)",
+      "line": 705,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-warning-bg)",
+      "line": 706,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-warning-text)",
+      "line": 707,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-subtle)",
+      "line": 725,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-surface-soft)",
+      "line": 726,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 727,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 735,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 748,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 762,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 763,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent-strong)",
+      "line": 764,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 772,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 809,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-muted)",
+      "line": 814,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 828,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 856,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-divider)",
+      "line": 870,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 879,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 896,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 899,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-logo-shadow)",
+      "line": 900,
+      "column": 19
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-accent)",
+      "line": 913,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-body-bg)",
+      "line": 914,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-border-strong)",
+      "line": 927,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-menu-surface, var(--theme-surface-strong)",
+      "line": 928,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-secondary)",
+      "line": 931,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 933,
+      "column": 33
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 945,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-bg)",
+      "line": 946,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-frosted-panel-shadow)",
+      "line": 950,
+      "column": 5
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-shadow-strong)",
+      "line": 951,
+      "column": 23
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 972,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-faint)",
+      "line": 981,
+      "column": 10
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "var(--theme-text-primary)",
+      "line": 989,
+      "column": 10
+    },
+    {
+      "rule": "negative-letter-spacing",
+      "filePath": "src/features/theme-lab/ThemeLab.module.css",
+      "match": "letter-spacing: -0.01em",
+      "line": 175,
+      "column": 3
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 36,
+      "column": 117
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 36,
+      "column": 197
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 36,
+      "column": 306
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 36,
+      "column": 386
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 37,
+      "column": 125
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 37,
+      "column": 206
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 37,
+      "column": 316
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 37,
+      "column": 396
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 44,
+      "column": 114
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 44,
+      "column": 189
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 44,
+      "column": 293
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 44,
+      "column": 368
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 45,
+      "column": 120
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 45,
+      "column": 195
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 45,
+      "column": 299
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/presetRecipes.ts",
+      "match": "var(--theme-scroll-track)",
+      "line": 45,
+      "column": 374
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/components/ReplicationsTabNav.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 72,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-frosted-control-border)",
+      "line": 449,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 449,
+      "column": 151
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-frosted-control-shadow)",
+      "line": 449,
+      "column": 196
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 589,
+      "column": 84
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 658,
+      "column": 158
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 658,
+      "column": 286
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 673,
+      "column": 152
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/ReplicationsGalleryExplorer.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 687,
+      "column": 143
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/CategoryEditor.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 250,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/CategoryEditor.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-border)",
+      "line": 363,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/CategoryEditor.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 363,
+      "column": 145
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/IndexLayoutColumns.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 135,
+      "column": 140
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/IndexLayoutColumns.tsx",
+      "match": "var(--theme-frosted-control-bg)",
+      "line": 135,
+      "column": 179
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/IndexLayoutColumns.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 135,
+      "column": 248
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/IndexLayoutColumns.tsx",
+      "match": "var(--theme-frosted-control-hover-bg)",
+      "line": 135,
+      "column": 301
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/IndexLayoutColumns.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 135,
+      "column": 352
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/SectionEditor.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 143,
+      "column": 121
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/utils.ts",
+      "match": "var(--theme-elevation-none)",
+      "line": 21,
+      "column": 101
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/index-layout/AddSubstanceControl.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 184,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/review-mode/ReviewBarChrome.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 159,
+      "column": 112
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/review-mode/ReviewSubstancePicker.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 115,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/review-mode/ReviewMoleculePanel.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 65,
+      "column": 65
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/molecule-editor/OclEditor.tsx",
+      "match": "var(--theme-elevation-lg)",
+      "line": 465,
+      "column": 225
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/about/AboutFounderSelectionSection.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 71,
+      "column": 340
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/about/AboutFounderSelectionSection.tsx",
+      "match": "var(--theme-evidence-text)",
+      "line": 124,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/about/AboutFounderSelectionSection.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 129,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 34,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 34,
+      "column": 135
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 35,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 42,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/substance-editor/SubstanceEditorSelectionSection.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 129,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/substance-editor/SubstanceEditorSelectionSection.tsx",
+      "match": "var(--theme-surface-deep)",
+      "line": 129,
+      "column": 123
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 52,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 52,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-semantic-info-badge-border)",
+      "line": 56,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-info-bg,var(--theme-semantic-info-badge-bg)",
+      "line": 56,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-semantic-info-badge-text)",
+      "line": 57,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-success-border)",
+      "line": 60,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-success-bg)",
+      "line": 60,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 61,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-warning-border)",
+      "line": 64,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-warning-bg)",
+      "line": 64,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 65,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-warning-border)",
+      "line": 68,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-warning-bg)",
+      "line": 68,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 69,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 72,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 72,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 73,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-evidence-text)",
+      "line": 227,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/citation-review/CitationReviewPanels.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 232,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/ReagentPreviewFieldsRHF.tsx",
+      "match": "var(--theme-warning-text-strong)",
+      "line": 64,
+      "column": 71
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/HistoryCultureFieldsRHF.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 60,
+      "column": 50
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/FormHelpers.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 29,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/CollapsibleEditorCard.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 101,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/rhf/CountryLegalityCardEditor.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 83,
+      "column": 60
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/rhf/CountryLegalityCardEditor.tsx",
+      "match": "var(--theme-elevation-swatch)",
+      "line": 83,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/subjective-effects/SubcategoryEditor.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 100,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/subjective-effects/SubcategoryEditor.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 110,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/subjective-effects/EffectEntryEditor.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 38,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/subjective-effects/EffectEntryEditor.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 38,
+      "column": 105
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/forms/subjective-effects/EffectEntryEditor.tsx",
+      "match": "var(--theme-frosted-panel-hover-border)",
+      "line": 38,
+      "column": 176
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tags/TagMutationForms.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 86,
+      "column": 45
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tags/TagMutationForms.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 136,
+      "column": 45
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tags/TagMutationForms.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 141,
+      "column": 107
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tags/TagMutationForms.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 145,
+      "column": 43
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/DevCommitCard.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 116,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/DevCommitCard.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 122,
+      "column": 41
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/DevCommitCard.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 143,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 32,
+      "column": 14
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 32,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 32,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 34,
+      "column": 20
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-danger-border-strong)",
+      "line": 34,
+      "column": 68
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-danger-ring)",
+      "line": 34,
+      "column": 121
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 69,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 69,
+      "column": 98
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-elevation-field-inset)",
+      "line": 69,
+      "column": 133
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-menu-surface)",
+      "line": 71,
+      "column": 29
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorSelect.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 71,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorPanel.tsx",
+      "match": "var(--theme-elevation-inner)",
+      "line": 48,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorPanel.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 110,
+      "column": 114
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorField.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 28,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorField.tsx",
+      "match": "var(--theme-warning-text)",
+      "line": 29,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorField.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 30,
+      "column": 25
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorField.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 95,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorField.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 115,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 43,
+      "column": 110
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-border)",
+      "line": 45,
+      "column": 28
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 45,
+      "column": 84
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-shadow)",
+      "line": 45,
+      "column": 140
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 46,
+      "column": 37
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-shadow)",
+      "line": 46,
+      "column": 87
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-border)",
+      "line": 46,
+      "column": 153
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorListItem.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 46,
+      "column": 215
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/TagToken.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 20,
+      "column": 237
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/TagToken.tsx",
+      "match": "var(--theme-danger-border)",
+      "line": 24,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/TagToken.tsx",
+      "match": "var(--theme-danger-bg)",
+      "line": 24,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/TagToken.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 24,
+      "column": 133
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/TagToken.tsx",
+      "match": "var(--theme-elevation-sm)",
+      "line": 42,
+      "column": 172
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorCheckbox.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 17,
+      "column": 21
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorCheckbox.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 18,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorCheckbox.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 43,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorCheckbox.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 43,
+      "column": 98
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorCheckbox.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 44,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/EditorCheckbox.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 67,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/JsonEditor.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 23,
+      "column": 15
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/JsonEditor.tsx",
+      "match": "var(--theme-elevation-inner)",
+      "line": 30,
+      "column": 165
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/JsonEditor.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 32,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelect.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 91,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelect.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 91,
+      "column": 88
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelect.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 91,
+      "column": 158
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelect.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 91,
+      "column": 225
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelect.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 114,
+      "column": 79
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelect.tsx",
+      "match": "var(--theme-text-faint)",
+      "line": 114,
+      "column": 124
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 86,
+      "column": 141
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 86,
+      "column": 289
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 88,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 88,
+      "column": 86
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 89,
+      "column": 34
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 107,
+      "column": 139
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 107,
+      "column": 287
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-bg)",
+      "line": 109,
+      "column": 30
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 109,
+      "column": 84
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/components/tag-multi-select/TagMultiSelectMenu.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 110,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/contributors/AvatarUpload.tsx",
+      "match": "var(--theme-frosted-control-on-panel-border)",
+      "line": 48,
+      "column": 114
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/contributors/AvatarUpload.tsx",
+      "match": "var(--theme-frosted-control-on-panel-bg)",
+      "line": 48,
+      "column": 164
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/contributors/AvatarUpload.tsx",
+      "match": "var(--theme-frosted-control-on-panel-shadow)",
+      "line": 48,
+      "column": 237
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/tools/contributors/LinkManager.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 75,
+      "column": 43
+    },
+    {
+      "rule": "raw-white-text",
+      "filePath": "src/features/dev/pages/useDevChromeEnvironment.ts",
+      "match": "text-white",
+      "line": 128,
+      "column": 38
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/pages/useDevModeSaveActions.tsx",
+      "match": "var(--theme-danger-text)",
+      "line": 121,
+      "column": 30
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/pages/useDevModeSaveActions.tsx",
+      "match": "var(--theme-semantic-info-badge-text)",
+      "line": 123,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/dev/pages/useDevModeSaveActions.tsx",
+      "match": "var(--theme-success-text)",
+      "line": 124,
+      "column": 32
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/TableOfContentsSection.test.tsx",
+      "match": "var(--theme-warning-border)",
+      "line": 210,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/TableOfContentsSection.test.tsx",
+      "match": "var(--theme-warning-bg)",
+      "line": 211,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/InteractionsSection.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 52,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/InteractionsSection.tsx",
+      "match": "var(--theme-semantic-unsafe-badge-text)",
+      "line": 63,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/InteractionsSection.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 74,
+      "column": 31
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-border)",
+      "line": 64,
+      "column": 45
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
+      "match": "var(--theme-semantic-danger-badge-border)",
+      "line": 71,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 81,
+      "column": 78
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 85,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 93,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationPlateau.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 103,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/dosageDurationShared.tsx",
+      "match": "var(--theme-frosted-control-on-panel-hover-border)",
+      "line": 198,
+      "column": 107
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 169,
+      "column": 268
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 169,
+      "column": 382
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 178,
+      "column": 268
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 178,
+      "column": 382
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 184,
+      "column": 275
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 184,
+      "column": 402
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 184,
+      "column": 3285
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 192,
+      "column": 275
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 192,
+      "column": 402
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 4561
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 198,
+      "column": 275
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 198,
+      "column": 402
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 198,
+      "column": 1392
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 212,
+      "column": 4172
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-elevation-2xl)",
+      "line": 192,
+      "column": 137
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 913
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 999
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 1048
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 1288
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 1374
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 1423
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 1654
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 1740
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 1789
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 2022
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 2108
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 2157
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 192,
+      "column": 2397
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 192,
+      "column": 2483
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 192,
+      "column": 2532
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 199,
+      "column": 269
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 199,
+      "column": 384
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 209,
+      "column": 229
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 209,
+      "column": 353
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-section-heading)",
+      "line": 227,
+      "column": 272
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 227,
+      "column": 390
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 227,
+      "column": 1221
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/proseInlineEditing.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 227,
+      "column": 2476
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 30,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 31,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 32,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 33,
+      "column": 54
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
+      "match": "var(--theme-surface-strong)",
+      "line": 296,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/harm-potential/ToxicitySubsection.tsx",
+      "match": "var(--theme-panel-base)",
+      "line": 296,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/HeroSection.tsx",
+      "match": "var(--theme-elevation-2xl)",
+      "line": 91,
+      "column": 89
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/HeroSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 110,
+      "column": 146
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/HeroSection.tsx",
+      "match": "var(--theme-accent)",
+      "line": 147,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/DosageDurationSection.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 176,
+      "column": 156
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/DosageDurationSection.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 188,
+      "column": 62
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/DosageDurationSection.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 196,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/ContributorWorksCarousel.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 166,
+      "column": 24
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/ContributorWorksCarousel.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 166,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/ContributorWorksCarousel.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 166,
+      "column": 112
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/GalleryMediaTile.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 134,
+      "column": 26
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/GalleryMediaTile.tsx",
+      "match": "var(--theme-surface-strong)",
+      "line": 134,
+      "column": 58
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/GalleryMediaTile.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 135,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/GalleryMediaTile.tsx",
+      "match": "var(--theme-elevation-tile-hover)",
+      "line": 136,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/GalleryMediaTile.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 137,
+      "column": 112
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 21,
+      "column": 103
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 24,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 161,
+      "column": 164
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 161,
+      "column": 292
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-border-strong)",
+      "line": 196,
+      "column": 173
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 196,
+      "column": 205
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 196,
+      "column": 287
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-card-border-strong)",
+      "line": 196,
+      "column": 335
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/gallery/MediaRail.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 196,
+      "column": 468
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/Reference.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 34,
+      "column": 46
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/Reference.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 36,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/List.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 13,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/List.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 14,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/CaptionedImage.tsx",
+      "match": "var(--theme-frosted-panel-border)",
+      "line": 102,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/Quote.tsx",
+      "match": "var(--theme-profile-markdown-quote-border)",
+      "line": 19,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/Quote.tsx",
+      "match": "var(--theme-profile-markdown-quote-bg)",
+      "line": 19,
+      "column": 113
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/TextFormatting.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 4,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/TextFormatting.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 12,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 33,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-success-badge-text)",
+      "line": 33,
+      "column": 95
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-info-badge-text)",
+      "line": 37,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-info-badge-text)",
+      "line": 37,
+      "column": 92
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 41,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-caution-badge-text)",
+      "line": 41,
+      "column": 95
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-unsafe-badge-text)",
+      "line": 45,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-unsafe-badge-text)",
+      "line": 45,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 49,
+      "column": 35
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-semantic-danger-badge-text)",
+      "line": 49,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/HeaderedTextbox.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 52,
+      "column": 55
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/effects/vcode/components/TableOfContents.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 50,
+      "column": 61
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/coverage/CoverageTable.tsx",
+      "match": "var(--theme-elevation-xl)",
+      "line": 36,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/TripReportCard.tsx",
+      "match": "var(--theme-accent)",
+      "line": 161,
+      "column": 105
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/TripReportCard.tsx",
+      "match": "var(--theme-horizontal-divider-image)",
+      "line": 284,
+      "column": 116
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/TripReportCard.tsx",
+      "match": "var(--theme-accent)",
+      "line": 287,
+      "column": 113
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/AuthorAvatar.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 49,
+      "column": 73
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/components/ReportDossier.tsx",
+      "match": "var(--theme-elevation-accent-ring)",
+      "line": 79,
+      "column": 216
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 179,
+      "column": 91
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 182,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 185,
+      "column": 80
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-warning-text-strong)",
+      "line": 188,
+      "column": 52
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 365,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 366,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 374,
+      "column": 66
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 377,
+      "column": 67
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 386,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 442,
+      "column": 60
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 443,
+      "column": 56
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 541,
+      "column": 40
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 740,
+      "column": 49
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 828,
+      "column": 42
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 828,
+      "column": 87
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 879,
+      "column": 95
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 880,
+      "column": 57
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 883,
+      "column": 62
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 912,
+      "column": 59
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 938,
+      "column": 53
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 941,
+      "column": 77
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 942,
+      "column": 51
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-secondary)",
+      "line": 1018,
+      "column": 96
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 1018,
+      "column": 148
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-border-strong)",
+      "line": 1030,
+      "column": 94
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-field-surface)",
+      "line": 1030,
+      "column": 126
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-surface-deep)",
+      "line": 1030,
+      "column": 160
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 1030,
+      "column": 219
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 1030,
+      "column": 264
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-frosted-control-hover-border)",
+      "line": 1030,
+      "column": 319
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-ring-soft)",
+      "line": 1030,
+      "column": 413
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-danger-text-strong)",
+      "line": 1037,
+      "column": 64
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/reports/submissions/TripReportSubmissionPage.tsx",
+      "match": "var(--theme-success-text-strong)",
+      "line": 1105,
+      "column": 70
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/replications/viewer/ReplicationViewerOverlay.tsx",
+      "match": "var(--theme-elevation-none)",
+      "line": 74,
+      "column": 169
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 169,
+      "column": 9575
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 2549
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 4406
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 5820
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 7459
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 179,
+      "column": 9509
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 185,
+      "column": 3307
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 193,
+      "column": 4583
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 199,
+      "column": 1414
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/features/article/components/sections/inlineEditWiring.test.tsx",
+      "match": "var(--theme-accent-strong)",
+      "line": 213,
+      "column": 4210
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-primary)",
+      "line": 139,
+      "column": 47
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 141,
+      "column": 39
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-surface-soft)",
+      "line": 148,
+      "column": 48
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-border-subtle)",
+      "line": 148,
+      "column": 92
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 149,
+      "column": 44
+    },
+    {
+      "rule": "direct-theme-variable",
+      "filePath": "src/app/docs/_components/Mermaid.tsx",
+      "match": "var(--theme-text-muted)",
+      "line": 150,
+      "column": 40
+    }
+  ]
+}

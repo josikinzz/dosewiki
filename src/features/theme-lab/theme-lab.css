@@ -1,0 +1,46 @@
+/* Theme Lab's document-level geometry, loaded with the on-demand panel.
+   Local panel and control styles stay in ThemeLab.module.css. */
+:root {
+  --pl-sidebar-width: 23.5rem;
+  /* Mobile bottom-sheet height. Deliberately short of full-screen: the strip of
+     page left above the sheet is the thing being recolored, so edits stay
+     visible while you make them. `vh` first for browsers without `dvh` — on
+     mobile Safari that just means the sheet is sized to the collapsed-toolbar
+     viewport, which is a slightly taller sheet, not a broken one. */
+  --pl-sheet-height: 84vh;
+  /* How much of the sheet peeks above the bottom edge while the eyedropper is
+     armed — enough for the header row (~60px with mobile-sized buttons) plus
+     the two-line "click anything on the page" banner. */
+  --pl-sheet-peek: 7.25rem;
+}
+
+@supports (height: 1dvh) {
+  :root {
+    --pl-sheet-height: 84dvh;
+  }
+}
+
+/* ---- Split layout: push the page aside instead of overlaying it ---------- */
+/* Desktop-only (below this width the panel is a bottom sheet that overlays the
+   page instead). Reserving padding on the <body> shrinks every in-flow + sticky
+   element (header, content, footer) into the space left of the panel, so it
+   reads as a real side menu. The fixed panel fills the reserved gutter (same
+   width). */
+@media (min-width: 64rem) {
+  body {
+    transition: padding-right 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html.pl-sidebar-open body {
+    /* !important holds the reserved gutter against Radix Select's scroll lock,
+       which zeroes body padding (padding-right: 0px !important) while a
+       Theme/Font dropdown is open. */
+    padding-right: var(--pl-sidebar-width) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+}

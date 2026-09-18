@@ -1,0 +1,86 @@
+[
+  {
+    "key": "anodyne",
+    "name": "AnodyneWiki",
+    "href": "https://anodyne.wiki",
+    "logo": { "src": "/about/community/anodyne.webp", "fit": "cover" }
+  },
+  {
+    "key": "bluelight",
+    "name": "Bluelight",
+    "href": "https://bluelight.org",
+    "logo": { "src": "/about/community/bluelight.webp" }
+  },
+  {
+    "key": "consciousness-library",
+    "name": "Consciousness Library",
+    "href": "https://consciousnesslibrary.org",
+    "logo": { "src": "/about/community/consciousness-library.svg" }
+  },
+  {
+    "key": "effect-index",
+    "name": "Effect Index",
+    "href": "https://effectindex.com",
+    "logo": { "src": "/about/community/effectindex.webp", "fit": "cover" }
+  },
+  {
+    "key": "erowid",
+    "name": "Erowid",
+    "href": "https://www.erowid.org",
+    "logo": { "src": "/about/community/erowid.webp" }
+  },
+  {
+    "key": "nervewing",
+    "name": "Nervewing",
+    "href": "https://nervewing.blogspot.com",
+    "logo": { "src": "/about/community/nervewing.webp", "fit": "wide" }
+  },
+  {
+    "key": "protestkit",
+    "name": "PRO Test Kit",
+    "href": "https://protestkit.eu",
+    "logo": { "src": "/about/community/protestkit.webp" }
+  },
+  {
+    "key": "psychonautwiki",
+    "name": "PsychonautWiki",
+    "href": "https://psychonautwiki.rip",
+    "logo": { "src": "/about/community/psychonautwiki.webp" }
+  },
+  {
+    "key": "r-drugs",
+    "name": "r/drugs",
+    "href": "https://reddit.com/r/drugs",
+    "logo": { "src": "/about/community/r-drugs.webp", "fit": "cover" }
+  },
+  {
+    "key": "r-replications",
+    "name": "r/replications",
+    "href": "https://reddit.com/r/replications",
+    "logo": { "src": "/about/community/r-replications.webp", "fit": "cover" }
+  },
+  {
+    "key": "r-researchchemicals",
+    "name": "r/researchchemicals",
+    "href": "https://reddit.com/r/researchchemicals",
+    "logo": { "src": "/about/community/r-researchchemicals.webp", "fit": "cover" }
+  },
+  {
+    "key": "substance-search",
+    "name": "Substance Search",
+    "href": "https://substancesearch.com",
+    "logo": { "src": "/about/community/substance-search.svg" }
+  },
+  {
+    "key": "drug-users-bible",
+    "name": "The Drug Users Bible",
+    "href": "https://archive.org/details/the-drug-users-bible-harm-reduction-dominic-milton-trott",
+    "logo": { "src": "/about/community/drug-users-bible.webp" }
+  },
+  {
+    "key": "tripsit",
+    "name": "TripSit",
+    "href": "https://tripsit.me",
+    "logo": { "src": "/about/community/tripsit.webp", "fit": "wide" }
+  }
+]

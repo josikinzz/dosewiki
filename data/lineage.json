@@ -1,0 +1,1230 @@
+{
+  "version": 1,
+  "description": "Operational lineage for local data artifacts. PlanetScale Postgres is live runtime truth; dated inputs and deployment records are historical provenance, not authority to write production.",
+  "artifacts": [
+    {
+      "id": "substance-index-export",
+      "path": "src/data/SubstanceIndex.json",
+      "role": "derived-export",
+      "producer": "scripts/data-ops/export-data-to-json.mjs",
+      "consumers": [
+        "scripts/data-ops/data-import-substance-index.mjs",
+        "scripts/data-ops/import-to-data.mjs",
+        "scripts/migrate/migrate-substance-index-to-data.mjs",
+        "scripts/batch/*/cli.mjs local article fallback"
+      ],
+      "inputs": [
+        "Postgres substance records",
+        "src/schema/substance.schema.ts"
+      ],
+      "freshnessRule": "Gitignored local artifact, never committed. Refresh from the explicitly selected Postgres source before using as migration or batch input.",
+      "sourceDeployment": "SOURCE_POSTGRES_URL or POSTGRES_POOLED_URL or POSTGRES_DIRECT_URL",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "node scripts/data-ops/export-data-to-json.mjs"
+    },
+    {
+      "id": "reagent-tests-snapshot",
+      "path": "data/third-party/protestkit/reagentTests.json",
+      "role": "derived-api-snapshot",
+      "producer": "scripts/data/cacheProtestKitReagentTests.mjs",
+      "consumers": ["scripts/data-ops/import-reagent-tests.mjs"],
+      "inputs": [
+        "public/SubstanceIndex.json",
+        "ProtestKit API v1 substance responses"
+      ],
+      "freshnessRule": "Gitignored local point-in-time snapshot, never committed. Fetch it only with ProtestKit permission and an explicit operator run of the producer, then import through the guarded Postgres workflow.",
+      "sourceDeployment": "https://protestkit.eu/api/v1",
+      "targetDeployment": null,
+      "schemaVersion": "ProtestKit API v1 response keyed by DoseWiki slug",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run reagents:cache"
+    },
+    {
+      "id": "public-substance-index-archive",
+      "path": "public/SubstanceIndex.json",
+      "role": "archival-public-snapshot",
+      "producer": "scripts/data/sanitize-public-substance-archive.mjs",
+      "consumers": [
+        "external consumers with legacy /SubstanceIndex.json links",
+        "About page archival download"
+      ],
+      "inputs": ["historical local substance export retained in private recovery storage"],
+      "freshnessRule": "Do not treat as live runtime data. Preserve historical values and ordering, removing only editorial_review through the owned sanitizer after an explicit compatibility decision. Never restore an unsanitized public snapshot.",
+      "sourceDeployment": "archival local working tree snapshot",
+      "targetDeployment": null,
+      "schemaVersion": "historical SubstanceIndex.json shape",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "node scripts/data/sanitize-public-substance-archive.mjs --recovery-copy <private-recovery-path>"
+    },
+    {
+      "id": "generator-prompt",
+      "path": "content/prompts/generator.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": ["scripts/migrate/migrate-prompts-to-data.mjs"],
+      "inputs": ["editorial prompt source edits"],
+      "freshnessRule": "Compare against Postgres before migrating; Postgres is the runtime source after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
+      "schemaVersion": "server/prompts.ts",
+      "editPolicy": "editable-with-postgres-migration",
+      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "section-prompts",
+      "path": "content/prompts/sections/*.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "scripts/migrate/migrate-prompts-to-data.mjs",
+        "section generation prompts"
+      ],
+      "inputs": [
+        "editorial prompt source edits",
+        "content/prompts/registry.json"
+      ],
+      "freshnessRule": "Compare against Postgres before migrating; Postgres is the runtime source after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
+      "schemaVersion": "server/prompts.ts",
+      "editPolicy": "editable-with-postgres-migration",
+      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "formal-citations-prompts",
+      "path": "content/prompts/formal-citations/*.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "scripts/migrate/migrate-prompts-to-data.mjs",
+        "formal citations agent prompts"
+      ],
+      "inputs": [
+        "editorial prompt source edits",
+        "content/prompts/registry.json"
+      ],
+      "freshnessRule": "Compare against Postgres before migrating; Postgres is the runtime source after migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
+      "schemaVersion": "server/prompts.ts",
+      "editPolicy": "editable-with-postgres-migration",
+      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "user-profiles-migration-seed",
+      "path": "data/contributors/userProfiles.json",
+      "role": "migration-seed",
+      "producer": "legacy contributor profile export",
+      "consumers": [
+        "scripts/data-ops/migrate-user-profiles-to-data.mjs",
+        "profile migration/backfill operators"
+      ],
+      "inputs": ["legacy local contributor profile data"],
+      "freshnessRule": "Do not treat as current runtime data; Postgres contributorProfiles is authoritative. Preserve the seed's historical provenance.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "explicit Postgres target selected by the guarded profile migration",
+      "schemaVersion": "server/contributorProfiles.ts",
+      "editPolicy": "migration-seed-only",
+      "refreshCommand": "node scripts/data-ops/migrate-user-profiles-to-data.mjs --dry-run"
+    },
+    {
+      "id": "contributor-avatar-sources",
+      "path": "data/contributors/contributorAvatarSources.json",
+      "role": "generated-provenance-manifest",
+      "producer": "scripts/contributors/generate-avatars-from-replications.ts",
+      "consumers": [
+        "avatar provenance review",
+        "scripts/contributors/generate-avatars-from-replications.test.ts"
+      ],
+      "inputs": [
+        "production contributorProfiles and publishable replication rows",
+        "data/effects/effectIndexFeaturedReplications.json",
+        "production-resolved replication media bytes"
+      ],
+      "freshnessRule": "Point-in-time provenance emitted with the generated avatar files. Preserve it with those files; a new confirmed generation run must produce provenance for every new avatar.",
+      "sourceDeployment": "explicit Postgres target (production read required by the workflow)",
+      "targetDeployment": "explicit Postgres target selected by the guarded avatar generation command",
+      "schemaVersion": "scripts/contributors/generate-avatar-files.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/generate-avatars-from-replications.ts --write run"
+    },
+    {
+      "id": "schema-generated-helpers",
+      "path": "src/data/schema/*.generated*.ts",
+      "role": "derived-code",
+      "producer": "scripts/generate/generateSchemaUtils.ts",
+      "consumers": ["src/data/schema/index.ts", "editor form schema tooling"],
+      "inputs": [
+        "src/schema/substance.schema.ts",
+        "scripts/generate/schemaGenerationPolicy.ts"
+      ],
+      "freshnessRule": "Refresh after article schema shape changes.",
+      "sourceDeployment": "src/schema/substance.schema.ts",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:schema"
+    },
+    {
+      "id": "schema-generated-field-registry",
+      "path": "src/data/schema/fieldRegistry.generated/*.ts",
+      "role": "derived-code",
+      "producer": "scripts/generate/generateSchemaUtils.ts",
+      "consumers": [
+        "src/data/schema/fieldRegistry.generated.ts",
+        "editor form schema tooling"
+      ],
+      "inputs": [
+        "src/schema/substance.schema.ts",
+        "scripts/generate/schemaGenerationPolicy.ts"
+      ],
+      "freshnessRule": "Refresh after article schema shape changes.",
+      "sourceDeployment": "src/schema/substance.schema.ts",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance.schema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:schema"
+    },
+    {
+      "id": "chemical-class-index",
+      "path": "data/substances/chemicalIndexManual.json",
+      "role": "authored-taxonomy-config",
+      "producer": "chemical taxonomy maintainers",
+      "consumers": [
+        "src/data/indexes/chemicalClassLookup.ts",
+        "lib/data/publicChemicalClassIndex.ts",
+        "scripts/chemistry/seed-class-molecules.ts",
+        "chemical-class molecule editor tooling"
+      ],
+      "inputs": [
+        "reviewed chemical class definitions, aliases, and structures",
+        "article chemical_class values"
+      ],
+      "freshnessRule": "Update deliberately when the reviewed chemical-class taxonomy changes, then seed class drawings through the guarded Postgres workflow.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/builders/chemicalClassTree.ts",
+      "editPolicy": "editable-by-chemical-taxonomy-maintainers",
+      "refreshCommand": "npm run molecules:seed-classes"
+    },
+    {
+      "id": "generated-smiles-overrides",
+      "path": "data/chemistry/generatedSmiles.json",
+      "role": "derived-mapping",
+      "producer": "scripts/data/mergeGeneratedSmiles.mjs",
+      "consumers": [
+        "scripts/data/resolveSmilesCoverage.mjs",
+        "scripts/data/buildMoleculePack.ts"
+      ],
+      "inputs": [
+        "data/chemistry/smiles-gap-fills/batch-*-output.json",
+        "RDKit validation"
+      ],
+      "freshnessRule": "Refresh after reviewed SMILES gap-fill batches change or molecule coverage is regenerated.",
+      "sourceDeployment": "reviewed local gap-fill outputs",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/data/mergeGeneratedSmiles.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run molecules:merge-smiles"
+    },
+    {
+      "id": "opsin-smiles-map",
+      "path": "data/chemistry/iupacSmilesMap.json",
+      "role": "derived-mapping",
+      "producer": "scripts/data/generateSmilesMap.mjs",
+      "consumers": [
+        "scripts/chemistry/identifier-provenance.mjs",
+        "article chemistry identifier enrichment"
+      ],
+      "inputs": ["public/SubstanceIndex.json", "OPSIN web service responses"],
+      "freshnessRule": "Refresh after IUPAC names change in public/SubstanceIndex.json or when missing OPSIN resolutions should be retried.",
+      "sourceDeployment": "public/SubstanceIndex.json and OPSIN",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/chemistry/identifier-provenance.mjs",
+      "editPolicy": "generated-with-manual-preservation",
+      "refreshCommand": "npm run generate:smiles"
+    },
+    {
+      "id": "offline-icon-bundle",
+      "path": "src/components/common/iconData.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateIconData.ts",
+      "consumers": ["src/components/common/Icon.tsx"],
+      "inputs": [
+        "Public src/**/*.{ts,tsx} and lib/**/*.{ts,tsx} icon-name string literals, excluding editor-only modules and src/dev kit literals",
+        "data/substances/chemicalIndexManual.json",
+        "data/substances/psychoactiveIndexManual.json",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh both catalogs whenever icon-name literals, public/editor ownership, or @iconify-json/* packages change. Public runtime and dynamic-config ownership wins over editor and kit-only ownership.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "IconifyJSON collections keyed by prefix (scripts/build/generateIconData.ts)",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:icon-data"
+    },
+    {
+      "id": "offline-editor-icon-bundle",
+      "path": "src/components/common/iconData.editor.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateIconData.ts",
+      "consumers": ["src/components/common/iconData.editor.tsx"],
+      "inputs": [
+        "src/**/*.{ts,tsx} and lib/**/*.{ts,tsx} editor-only icon-name literals, including src/dev kit literals",
+        "scripts/build/public-editor-boundary.mjs",
+        "Public catalog membership",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh both catalogs whenever source icon literals or public/editor boundary membership changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "IconifyJSON collections keyed by prefix",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generateIconData.ts"
+    },
+    {
+      "id": "theme-lab-prepaint-bootstrap",
+      "path": "src/features/theme-lab/themeLabBootstrap.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateThemeLabBootstrap.ts",
+      "consumers": ["src/app/layout.tsx"],
+      "inputs": [
+        "src/features/theme-lab/themeLabBootstrap.ts and its transitive storage/parser/CSS dependencies",
+        "scripts/build/generateThemeLabBootstrap.ts",
+        "Bun browser bundler"
+      ],
+      "freshnessRule": "Refresh with its CSP hash whenever the bootstrap or any transitive dependency changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ script: string }",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generateThemeLabBootstrap.ts"
+    },
+    {
+      "id": "theme-lab-prepaint-csp-hash",
+      "path": "src/features/theme-lab/themeLabBootstrapHash.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateThemeLabBootstrap.ts",
+      "consumers": ["lib/next/cspObservationPolicy.ts"],
+      "inputs": ["src/features/theme-lab/themeLabBootstrap.generated.json"],
+      "freshnessRule": "Generated in the same producer invocation from the exact inline script text; refresh both outputs together.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ hash: string } with quoted SHA-256 CSP source",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generateThemeLabBootstrap.ts"
+    },
+    {
+      "id": "home-tile-glyph-metrics",
+      "path": "src/app/_components/homeTileGlyphMetrics.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateHomeTileGlyphMetrics.ts",
+      "consumers": [
+        "src/app/_components/homeTileGlyph.ts",
+        "src/app/_components/HomeExperience.tsx"
+      ],
+      "inputs": [
+        "src/app/_components/homeQuickLinks.ts quick-link icons for every flavor in src/config/siteFlavor.ts",
+        "src/utils/routeChromeIcons.ts",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh whenever a homepage quick link changes icon, a flavor's quickLinkIds change, or after updating the @iconify-json/* package that supplies any quick-link icon.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "Icon name to { scale, dx, dy } ink framing (scripts/build/generateHomeTileGlyphMetrics.ts)",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:home-tile-glyphs"
+    },
+    {
+      "id": "substance-social-card-manifest",
+      "path": "src/data/substanceSocialCardManifest.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/publishSocialCardsToR2.mjs",
+      "consumers": [
+        "src/data/mappings/substanceSocialCardUrl.ts",
+        "src/app/[slug]/page.tsx"
+      ],
+      "inputs": [
+        "Postgres substanceIndex documents",
+        "Postgres moleculeOverrides revisions",
+        "lib/og/moleculeSocialCard.ts"
+      ],
+      "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing manifest records retain their original provenance",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run refresh:social-cards"
+    },
+    {
+      "id": "substance-social-card-images",
+      "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**/*.jpg",
+      "role": "published-static-assets",
+      "producer": "scripts/build/publishSocialCardsToR2.mjs",
+      "consumers": ["substance Open Graph and Twitter metadata"],
+      "inputs": [
+        "src/data/substanceSocialCardManifest.generated.json",
+        "Postgres substanceIndex documents",
+        "Postgres moleculeOverrides SVGs",
+        "lib/og/moleculeSocialCard.ts",
+        "src/assets/dosewiki-logo.svg",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Published to immutable digest-named R2 keys only through the explicit refresh workflow; ordinary builds perform no image generation or upload.",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing image records retain their original provenance",
+      "targetDeployment": "Cloudflare R2 media/sha256/",
+      "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run refresh:social-cards"
+    },
+    {
+      "id": "page-social-card-manifest",
+      "path": "src/data/pageSocialCardManifest.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/publishSocialCardsToR2.mjs",
+      "consumers": [
+        "src/data/mappings/pageSocialCardUrl.ts",
+        "src/app/page.tsx",
+        "src/app/substances/page.tsx",
+        "src/app/effects/page.tsx",
+        "src/app/replications/(tabs)/page.tsx",
+        "src/app/chemical-classes/page.tsx",
+        "src/app/about/page.tsx"
+      ],
+      "inputs": [
+        "lib/og/pageSocialCard.ts",
+        "https://dose.wiki/api/replications/gallery (current public gallery counts)",
+        "src/features/effects/gallery/galleryModel.ts",
+        "lib/og/socialCardPrimitives.ts",
+        "src/assets/dosewiki-logo.svg",
+        "src/assets/replications-after-images-chelsea-morgan.webp",
+        "public/profile-avatars/josie/avatar.webp",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
+      "sourceDeployment": "local working tree and https://dose.wiki/api/replications/gallery",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generatePageSocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run refresh:social-cards"
+    },
+    {
+      "id": "page-social-card-images",
+      "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**/*.jpg",
+      "role": "published-static-assets",
+      "producer": "scripts/build/publishSocialCardsToR2.mjs",
+      "consumers": ["home and public index Open Graph and Twitter metadata"],
+      "inputs": [
+        "src/data/pageSocialCardManifest.generated.json",
+        "lib/og/pageSocialCard.ts",
+        "lib/og/socialCardPrimitives.ts",
+        "src/assets/dosewiki-logo.svg",
+        "src/assets/replications-after-images-chelsea-morgan.webp",
+        "public/profile-avatars/josie/avatar.webp",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Published to immutable digest-named R2 keys only through the explicit refresh workflow; ordinary builds perform no image generation or upload.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "Cloudflare R2 media/sha256/",
+      "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run refresh:social-cards"
+    },
+    {
+      "id": "entity-social-card-manifest",
+      "path": "src/data/entitySocialCardManifest.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/publishSocialCardsToR2.mjs",
+      "consumers": [
+        "src/data/mappings/entitySocialCardUrl.ts",
+        "subjective-effect, replication, experience-report, contributor, and replication-artist metadata"
+      ],
+      "inputs": [
+        "Postgres subjectiveEffects records",
+        "Postgres replications records",
+        "Postgres tripReports records",
+        "Postgres contributorProfiles records",
+        "lib/og/prototypes/subjectiveEffectSocialCard.ts",
+        "lib/og/prototypes/replicationSocialCard.ts",
+        "lib/og/prototypes/tripReportSocialCard.ts",
+        "lib/og/prototypes/userProfileSocialCard.ts"
+      ],
+      "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing manifest records retain their original provenance",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run refresh:social-cards"
+    },
+    {
+      "id": "entity-social-card-images",
+      "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**/*.jpg",
+      "role": "published-static-assets",
+      "producer": "scripts/build/publishSocialCardsToR2.mjs",
+      "consumers": [
+        "subjective-effect, replication, experience-report, contributor, and replication-artist Open Graph and Twitter metadata"
+      ],
+      "inputs": [
+        "src/data/entitySocialCardManifest.generated.json",
+        "Postgres public entity records",
+        "Postgres replication media identities",
+        "public/profile-avatars/**/*",
+        "lib/og/prototypes/*SocialCard.ts",
+        "lib/og/socialCardPrimitives.ts",
+        "src/assets/dosewiki-logo.svg",
+        "public/fonts/Blinker-Regular.ttf",
+        "public/fonts/Blinker-SemiBold.ttf",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Published to immutable digest-named R2 keys only through the explicit refresh workflow; ordinary builds perform no image generation or upload.",
+      "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing image records retain their original provenance",
+      "targetDeployment": "Cloudflare R2 media/sha256/",
+      "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run refresh:social-cards"
+    },
+    {
+      "id": "postgres-drizzle-schema",
+      "path": "lib/postgres/schema.generated.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateDrizzleSchema.ts",
+      "consumers": [
+        "drizzle.config.ts",
+        "lib/postgres/articlePublication.ts",
+        "lib/postgres/documentCodec.ts",
+        "lib/postgres/documentStore.ts",
+        "lib/postgres/migrations/*.sql",
+        "scripts/postgres/import-document-snapshot.ts",
+        "scripts/postgres/synthesizeDocumentSnapshot.ts"
+      ],
+      "inputs": [
+        "server/lib/publicReadIndexSchema.ts",
+        "server/schema.ts",
+        "lib/postgres/runtime/schema.ts",
+        "lib/postgres/runtime/validate.ts",
+        "scripts/postgres/schemaExport.ts",
+        "scripts/postgres/generateDrizzleSchema.ts"
+      ],
+      "freshnessRule": "Regenerate after an owned document schema change. If SQL changes, generate and commit a new versioned migration; regeneration is not migration authorization.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-schema"
+    },
+    {
+      "id": "postgres-native-data-model",
+      "path": "lib/postgres/runtime/dataModel.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateDrizzleSchema.ts",
+      "consumers": [
+        "lib/postgres/runtime/server.ts",
+        "server/*.ts",
+        "server/lib/*.ts",
+        "application and operator document types"
+      ],
+      "inputs": [
+        "server/schema.ts",
+        "server/lib/publicReadIndexSchema.ts",
+        "lib/postgres/runtime/schema.ts",
+        "lib/postgres/runtime/validate.ts",
+        "lib/postgres/runtime/values.ts",
+        "scripts/postgres/schemaExport.ts",
+        "scripts/postgres/generateDrizzleSchema.ts"
+      ],
+      "freshnessRule": "Regenerate with the Drizzle schema after owned document validator or index metadata changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-schema"
+    },
+    {
+      "id": "postgres-migrations",
+      "path": "lib/postgres/migrations/",
+      "role": "versioned-sql-migrations",
+      "producer": "drizzle-kit generate",
+      "consumers": [
+        "npm run postgres:migrate",
+        "PlanetScale Postgres release steps (dossier W2)"
+      ],
+      "inputs": ["lib/postgres/schema.generated.ts", "lib/postgres/schema.runtime.ts"],
+      "freshnessRule": "Append-only. Never rewrite an applied migration; schema changes add a new file via npm run postgres:migrate:generate.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "POSTGRES_DIRECT_URL",
+      "schemaVersion": "drizzle-kit 0.31",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run postgres:migrate:generate"
+    },
+    {
+      "id": "localized-publication-trigger-restoration",
+      "path": "lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql",
+      "role": "versioned-sql-migrations",
+      "producer": "scripts/postgres/localizedPublicationIndexTriggers.ts",
+      "consumers": ["npm run postgres:migrate"],
+      "inputs": ["scripts/postgres/localizedPublicationIndexTriggers.ts"],
+      "freshnessRule": "Append-only recovery migration. Never rewrite after application; future restoration episodes require a new custom Drizzle migration.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "TARGET_POSTGRES_URL",
+      "schemaVersion": "drizzle-kit 0.31",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql --restore"
+    },
+    {
+      "id": "guarded-responsive-media-renditions",
+      "path": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/**?width=*",
+      "role": "published-static-assets",
+      "producer": "scripts/replications/prepare-r2-image-renditions.ts",
+      "consumers": [
+        "src/components/common/AppImage.tsx",
+        "scripts/replications/r2-delivery-worker.js"
+      ],
+      "inputs": [
+        "reviewed canonical media key inventory",
+        "content-addressed R2 originals"
+      ],
+      "freshnessRule": "Generate and verify every fixed-width rendition before publishing new managed raster references. Ordinary site builds never upload media. Missing or withdrawn originals retain their unavailable status.",
+      "sourceDeployment": "private Cloudflare R2 replications bucket",
+      "targetDeployment": "private Cloudflare R2 replications/_renditions/v1/",
+      "schemaVersion": "private WebP renditions v1, quality 75",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun run replications:prepare-image-renditions --keys <reviewed-keys.json> --out <local-directory>"
+    },
+    {
+      "id": "data-artifact-lineage-manifest",
+      "path": "data/lineage.json",
+      "role": "provenance-contract",
+      "producer": "data workflow maintainers",
+      "consumers": [
+        "scripts/lib/data-artifact-lineage.mjs",
+        "scripts/data/verifyGeneratedDataProvenance.mjs",
+        "npm run hygiene:check"
+      ],
+      "inputs": [
+        "generated data workflow ownership decisions",
+        "README.md",
+        "AGENTS.md",
+        "scripts/README.md"
+      ],
+      "freshnessRule": "Update when a generated or operational local data artifact, producer command, input, or edit policy changes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/lib/data-artifact-lineage.mjs",
+      "editPolicy": "editable-by-data-workflow-maintainers",
+      "refreshCommand": "npm run provenance:check"
+    },
+    {
+      "id": "postgres-function-registry",
+      "path": "lib/postgres/runtime/functions.generated.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateFunctionRegistry.ts",
+      "consumers": ["lib/postgres/runtime/client.ts"],
+      "inputs": [
+        "server/*.ts (owned non-test function modules, excluding schema.ts)",
+        "lib/postgres/runtime/functionOwnership.json"
+      ],
+      "freshnessRule": "Regenerate when owned modules or ownership change. The producer rejects unowned, missing, duplicate-owned, or still-active retired modules and emits both the server registry and browser-safe API types.",
+      "sourceDeployment": null,
+      "targetDeployment": null,
+      "schemaVersion": "lib/postgres/runtime/functionOwnership.json",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-functions"
+    },
+    {
+      "id": "postgres-native-api-types",
+      "path": "lib/postgres/runtime/api.generated.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateFunctionRegistry.ts",
+      "consumers": ["lib/postgres/runtime/api.ts"],
+      "inputs": [
+        "server/*.ts (owned non-test function modules, excluding schema.ts)",
+        "lib/postgres/runtime/functionOwnership.json",
+        "lib/postgres/runtime/server.ts"
+      ],
+      "freshnessRule": "Regenerate alongside functions.generated.ts when callable modules or ownership change. Type-only module imports keep the API reference facade browser-safe.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "lib/postgres/runtime/functionOwnership.json",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-functions"
+    },
+    {
+      "id": "postgres-function-ownership",
+      "path": "lib/postgres/runtime/functionOwnership.json",
+      "role": "provenance-contract",
+      "producer": "Postgres runtime maintainers",
+      "consumers": ["scripts/postgres/generateFunctionRegistry.ts"],
+      "inputs": [
+        "completion dossier module ownership batches 08 to 11",
+        "owned callable modules and explicit retired-module replacements"
+      ],
+      "freshnessRule": "Update deliberately with module additions, removals, or retirement. Every active module has exactly one batch owner; retired modules name an existing replacement and a reason.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/postgres/generateFunctionRegistry.ts",
+      "editPolicy": "editable-by-data-workflow-maintainers",
+      "refreshCommand": "edit ownership input, then npm run generate:postgres-functions"
+    },
+    {
+      "id": "public-route-availability",
+      "path": "src/data/publicRouteAvailability.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generatePublicRouteAvailability.ts",
+      "consumers": [
+        "lib/next/publicRouteAvailability.ts",
+        "src/middleware.ts"
+      ],
+      "inputs": [
+        "Postgres substance public lookup pages",
+        "Postgres replication public gallery pages",
+        "src/types/replications.ts"
+      ],
+      "freshnessRule": "Refresh only after explicit source-read approval with a matching --expected-deployment fingerprint. Ordinary builds consume the committed manifest without a database refresh; review the complete route denominator before release.",
+      "sourceDeployment": "explicitly selected Postgres source matched by --expected-deployment",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generatePublicRouteAvailability.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/build/generatePublicRouteAvailability.ts --expected-deployment <approved-source-fingerprint>"
+    },
+    {
+      "id": "surface-fun-tokens",
+      "path": "src/theme/surfaceFunTokens.generated.json",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearancePaletteData.ts",
+      "consumers": [
+        "src/theme/surfaceStylesheet.ts",
+        "src/theme/chromaStylesheet.ts"
+      ],
+      "inputs": [
+        "src/styles/site-colors.css",
+        "src/styles/pro-theme.css",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/paletteOwnership.ts",
+        "src/test/fixtures/accentAppearanceGrid.ts"
+      ],
+      "freshnessRule": "Regenerate all three palette token maps together after authored palette changes, then regenerate their surface, accent and chroma stylesheet consumers. Review paired chroma hashes and theme bootstrap/CSP changes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "surface-fun-token-fallbacks",
+      "path": "src/theme/surfaceFunTokenFallbacks.generated.json",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearancePaletteData.ts",
+      "consumers": [
+        "src/theme/surfaceStylesheet.ts"
+      ],
+      "inputs": [
+        "src/styles/site-colors.css",
+        "src/styles/pro-theme.css",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/paletteOwnership.ts",
+        "src/test/fixtures/accentAppearanceGrid.ts"
+      ],
+      "freshnessRule": "Regenerate all three palette token maps together after authored palette changes, then regenerate their surface, accent and chroma stylesheet consumers. Review paired chroma hashes and theme bootstrap/CSP changes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "accent-fun-tokens",
+      "path": "src/theme/accentFunTokens.generated.json",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearancePaletteData.ts",
+      "consumers": [
+        "src/theme/chromaStylesheet.ts"
+      ],
+      "inputs": [
+        "src/styles/site-colors.css",
+        "src/styles/pro-theme.css",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/paletteOwnership.ts",
+        "src/test/fixtures/accentAppearanceGrid.ts"
+      ],
+      "freshnessRule": "Regenerate all three palette token maps together after authored palette changes, then regenerate their surface, accent and chroma stylesheet consumers. Review paired chroma hashes and theme bootstrap/CSP changes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "surface-token-stylesheet",
+      "path": "src/styles/surface-tokens.generated.css",
+      "role": "derived",
+      "producer": "scripts/build/generateSurfaceCss.ts",
+      "consumers": [
+        "src/app/_styles/dosewiki.ts"
+      ],
+      "inputs": [
+        "src/theme/surfaceStylesheet.ts",
+        "src/theme/appearanceChroma.ts",
+        "src/theme/surfaceFunTokens.generated.json",
+        "src/theme/surfaceFunTokenFallbacks.generated.json"
+      ],
+      "freshnessRule": "Refresh after palette or stylesheet changes through the ordered appearance pipeline, preserving literal fallbacks and their guarded recipes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateSurfaceCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "accent-token-stylesheet",
+      "path": "src/styles/accent-tokens.generated.css",
+      "role": "derived",
+      "producer": "scripts/build/generateAccentCss.ts",
+      "consumers": [
+        "src/app/_styles/dosewiki.ts"
+      ],
+      "inputs": [
+        "src/theme/accentStylesheet.ts",
+        "src/theme/accents.ts"
+      ],
+      "freshnessRule": "Refresh after authored accent seeds or stylesheet changes through the ordered appearance pipeline.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAccentCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "appearance-chroma-stylesheet",
+      "path": "public/appearance-chroma.css",
+      "role": "derived",
+      "producer": "scripts/build/generateChromaCss.ts",
+      "consumers": [
+        "src/theme/appearanceChroma.ts",
+        "src/theme/index.ts"
+      ],
+      "inputs": [
+        "src/theme/chromaStylesheet.ts",
+        "src/theme/chromaMath.ts",
+        "src/theme/appearanceChroma.ts",
+        "src/theme/chromeDark.ts",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/accentFunTokens.generated.json",
+        "src/theme/surfaceFunTokens.generated.json"
+      ],
+      "freshnessRule": "Regenerate CSS and content-hash manifest together after palette/chroma changes via the ordered appearance pipeline. Refresh theme bootstrap and review its paired CSP hashes before release; ordinary builds do not regenerate appearance styles.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateChromaCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "appearance-chroma-manifest",
+      "path": "src/theme/appearanceChroma.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateChromaCss.ts",
+      "consumers": [
+        "src/theme/appearanceChroma.ts"
+      ],
+      "inputs": [
+        "src/theme/chromaStylesheet.ts",
+        "src/theme/chromaMath.ts",
+        "src/theme/appearanceChroma.ts",
+        "src/theme/chromeDark.ts",
+        "src/theme/accents.ts",
+        "src/theme/surfaces.ts",
+        "src/theme/accentFunTokens.generated.json",
+        "src/theme/surfaceFunTokens.generated.json"
+      ],
+      "freshnessRule": "Regenerate CSS and content-hash manifest together after palette/chroma changes via the ordered appearance pipeline. Refresh theme bootstrap and review its paired CSP hashes before release; ordinary builds do not regenerate appearance styles.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateChromaCss.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-css"
+    },
+    {
+      "id": "appearance-pro-stylesheet",
+      "path": "public/pro-theme.css",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearanceSheets.ts",
+      "consumers": [
+        "src/theme/appearanceSheets.ts"
+      ],
+      "inputs": [
+        "src/styles/pro-theme.css",
+        "src/styles/theme-light-mode.css"
+      ],
+      "freshnessRule": "Regenerate both byte-for-byte public stylesheet copies and their content-hash manifest together after either authored sheet changes. Refresh theme bootstrap and review its paired CSP hashes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-sheets"
+    },
+    {
+      "id": "appearance-light-stylesheet",
+      "path": "public/theme-light-mode.css",
+      "role": "derived",
+      "producer": "scripts/build/generateAppearanceSheets.ts",
+      "consumers": [
+        "src/theme/appearanceSheets.ts"
+      ],
+      "inputs": [
+        "src/styles/pro-theme.css",
+        "src/styles/theme-light-mode.css"
+      ],
+      "freshnessRule": "Regenerate both byte-for-byte public stylesheet copies and their content-hash manifest together after either authored sheet changes. Refresh theme bootstrap and review its paired CSP hashes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-sheets"
+    },
+    {
+      "id": "appearance-sheets-manifest",
+      "path": "src/theme/appearanceSheets.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/build/generateAppearanceSheets.ts",
+      "consumers": [
+        "src/theme/appearanceSheets.ts",
+        "src/theme/index.ts"
+      ],
+      "inputs": [
+        "src/styles/pro-theme.css",
+        "src/styles/theme-light-mode.css"
+      ],
+      "freshnessRule": "Regenerate both byte-for-byte public stylesheet copies and their content-hash manifest together after either authored sheet changes. Refresh theme bootstrap and review its paired CSP hashes before release.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:appearance-sheets"
+    },
+    {
+      "id": "effect-category-definitions",
+      "path": "content/taxonomy/effect-categories.json",
+      "role": "authored-taxonomy-config",
+      "producer": "effect taxonomy maintainers",
+      "consumers": [
+        "src/app/effects/category/[categorySlug]/page.tsx",
+        "src/features/effects/pages/EffectCategoryPage.tsx",
+        "src/features/effects/effectGuideClass.ts",
+        "src/features/effects/articleSectionModel.ts",
+        "src/features/effects/pages/replicationSubject.ts"
+      ],
+      "inputs": ["the 24 Effect Index category descriptions, reviewed by hand"],
+      "freshnessRule": "Update deliberately when an effect category is added, renamed or redescribed; the category pages render this file directly.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/effectCategoryDefinitions.ts (EffectCategoryDefinition)",
+      "editPolicy": "editable-by-effect-taxonomy-maintainers",
+      "refreshCommand": "edit content/taxonomy/effect-categories.json by hand; no generator"
+    },
+    {
+      "id": "psychoactive-class-index",
+      "path": "data/substances/psychoactiveIndexManual.json",
+      "role": "authored-taxonomy-config",
+      "producer": "psychoactive taxonomy maintainers",
+      "consumers": [
+        "lib/next/categoryDefinitions.ts",
+        "lib/next/publicRouteAliases.ts",
+        "lib/translation/glossaryDraft.ts",
+        "scripts/seed/seed-index-layouts.mjs",
+        "scripts/build/generateIconData.ts"
+      ],
+      "inputs": [
+        "reviewed psychoactive class definitions, warnings, icon keys, and aliases"
+      ],
+      "freshnessRule": "Update deliberately when the reviewed psychoactive-class taxonomy changes; regenerate the icon catalog afterwards.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/builders/manualIndexLoader.ts",
+      "editPolicy": "editable-by-psychoactive-taxonomy-maintainers",
+      "refreshCommand": "edit data/substances/psychoactiveIndexManual.json by hand, then npm run generate:icon-data"
+    },
+    {
+      "id": "route-synonyms",
+      "path": "data/substances/routeSynonyms.json",
+      "role": "authored-taxonomy-config",
+      "producer": "route taxonomy maintainers",
+      "consumers": [
+        "src/data/builders/taxonomy.ts"
+      ],
+      "inputs": [
+        "reviewed route-of-administration labels and their synonyms"
+      ],
+      "freshnessRule": "Update deliberately when a route label or synonym is added or renamed.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/builders/taxonomy.ts",
+      "editPolicy": "editable-by-route-taxonomy-maintainers",
+      "refreshCommand": "edit data/substances/routeSynonyms.json by hand; no generator"
+    },
+    {
+      "id": "us-state-flag-mappings",
+      "path": "data/substances/usStateFlagMappings.json",
+      "role": "authored-mapping",
+      "producer": "legality section maintainers",
+      "consumers": [
+        "src/features/article/components/sections/LegalitySection.tsx",
+        "scripts/legality/validate-draft.ts"
+      ],
+      "inputs": [
+        "US state and territory names paired with the public/flags icon each legality row shows"
+      ],
+      "freshnessRule": "Update when a state flag icon is added or renamed under public/flags.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/utils/data/countryCodes.ts",
+      "editPolicy": "editable-by-legality-maintainers",
+      "refreshCommand": "edit data/substances/usStateFlagMappings.json by hand; no generator"
+    },
+    {
+      "id": "title-iupac-smiles",
+      "path": "data/chemistry/titleIupacSmiles.json",
+      "role": "legacy-mapping",
+      "producer": "legacy title-to-SMILES resolution pass (pre-OPSIN)",
+      "consumers": [
+        "scripts/data/resolveSmilesCoverage.mjs"
+      ],
+      "inputs": [
+        "historical substance titles and IUPAC names",
+        "historical SMILES resolutions"
+      ],
+      "freshnessRule": "Frozen legacy map; new SMILES land in data/chemistry/generatedSmiles.json or data/chemistry/iupacSmilesMap.json instead.",
+      "sourceDeployment": "historical local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ drugs: [{ title, iupac, smiles }] }",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; consumed by node scripts/data/resolveSmilesCoverage.mjs"
+    },
+    {
+      "id": "smiles-gap-fill-batches",
+      "path": "data/chemistry/smiles-gap-fills/*.json",
+      "role": "reviewed-research-input",
+      "producer": "SMILES gap-fill research batches (PubChem and Wikipedia lookups, RDKit-validated)",
+      "consumers": [
+        "scripts/data/mergeGeneratedSmiles.mjs"
+      ],
+      "inputs": [
+        "batch-*-input.json substance lists emitted by scripts/data/resolveSmilesCoverage.mjs",
+        "PubChem and Wikipedia structure lookups"
+      ],
+      "freshnessRule": "Append a reviewed batch pair when new substances lack inline SMILES, then merge with npm run molecules:merge-smiles.",
+      "sourceDeployment": "reviewed local gap-fill outputs",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/data/mergeGeneratedSmiles.mjs",
+      "editPolicy": "reviewed-evidence-only",
+      "refreshCommand": "npm run molecules:merge-smiles"
+    },
+    {
+      "id": "subjective-effects-provenance",
+      "path": "data/effects/subjectiveEffectsProvenance.json",
+      "role": "derived-manifest",
+      "producer": "scripts/data-ops/generate-subjective-effects-provenance.mjs",
+      "consumers": [
+        "src/app/docs/license/page.tsx",
+        "src/app/subjective-effects-provenance.json/route.ts"
+      ],
+      "inputs": [
+        "Postgres substance subjective_effects.attribution values",
+        "Archive.org capture dates"
+      ],
+      "freshnessRule": "Refresh after subjective-effects attribution edits so the /docs/license counts and the downloadable manifest agree with Postgres.",
+      "sourceDeployment": "SOURCE_POSTGRES_URL",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance/subjective-effects.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:subjective-effects-provenance"
+    },
+    {
+      "id": "effect-index-featured-replications",
+      "path": "data/effects/effectIndexFeaturedReplications.json",
+      "role": "editorial-curation-fallback",
+      "producer": "Effect Index editorial curation recovered from the legacy effectindex.com dump",
+      "consumers": [
+        "lib/next/effectIndexHome.ts",
+        "scripts/replications/seed-featured-replications.mjs",
+        "scripts/contributors/generate-avatar-candidates.ts"
+      ],
+      "inputs": [
+        "legacy effectindex.com featured flags",
+        "current replication slugs and data/effects/replicationSlugAliases.json"
+      ],
+      "freshnessRule": "The siteConfig document edited in /dev is the live source; this list is the never-curated fallback. Repoint slugs when a rename lands so effectIndexFeaturedReplications.test.ts stays green.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "explicit Postgres target selected by the guarded featured-replications seed",
+      "schemaVersion": "{ slugs: string[] }",
+      "editPolicy": "editable-by-effect-index-editors",
+      "refreshCommand": "edit by hand, then seed the siteConfig document with node scripts/replications/seed-featured-replications.mjs"
+    },
+    {
+      "id": "replication-slug-aliases",
+      "path": "data/effects/replicationSlugAliases.json",
+      "role": "reviewed-redirect-map",
+      "producer": "scripts/replications/normalize-slugs.mjs",
+      "consumers": [
+        "lib/next/publicRouteAliases.ts",
+        "scripts/replications/apply-slug-aliases.mjs",
+        "scripts/replications/plan-artist-name-corrections.mjs"
+      ],
+      "inputs": [
+        "replication slug renames (old -> new)"
+      ],
+      "freshnessRule": "Append an alias in the same run that renames a replication slug; never drop an alias while shared links may still use the old slug.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "Record<oldSlug, newSlug>",
+      "editPolicy": "generated-with-manual-preservation",
+      "refreshCommand": "node scripts/replications/normalize-slugs.mjs"
+    },
+    {
+      "id": "dev-change-log",
+      "path": "data/changelog/devChangeLog*.json",
+      "role": "editorial-history",
+      "producer": "Dev Tools change log commit workflow",
+      "consumers": [
+        "src/data/changelog/changeLog.ts"
+      ],
+      "inputs": [
+        "editor saves committed through the Dev Tools GitHub workflow"
+      ],
+      "freshnessRule": "Appended by the Dev Tools workflow; roll entries from devChangeLog.json into devChangeLog.archive.json before the writable file nears GitHub's 1 MB contents limit.",
+      "sourceDeployment": "GitHub repository contents",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/changelog/changeLog.ts (ChangeLogEntry)",
+      "editPolicy": "append-through-dev-tools",
+      "refreshCommand": "edit through the Dev Tools change log; no local generator"
+    },
+    {
+      "id": "tripsit-combos",
+      "path": "data/third-party/tripsit/tripsit-combos.json",
+      "role": "third-party-snapshot",
+      "producer": "TripSit drug-combination chart snapshot keyed by dose.wiki slug",
+      "consumers": [
+        "scripts/parsers/tripsit-combos.ts",
+        "scripts/parse-sources-cli.ts"
+      ],
+      "inputs": [
+        "https://combo.tripsit.me and https://wiki.tripsit.me/wiki/Drug_combinations"
+      ],
+      "freshnessRule": "Point-in-time snapshot carried under TripSit's terms (data/third-party/tripsit/LICENSE.md). Refresh only by re-downloading under those terms.",
+      "sourceDeployment": "https://combo.tripsit.me",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/parsers/tripsit-combos.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; re-download under TripSit's terms and re-key with scripts/parsers/tripsit-combos.ts"
+    },
+    {
+      "id": "tripsit-combo-definitions",
+      "path": "data/third-party/tripsit/combo_definitions.json",
+      "role": "third-party-snapshot",
+      "producer": "TripSit combination status definitions",
+      "consumers": [
+        "data/README.md",
+        "interaction category documentation"
+      ],
+      "inputs": [
+        "https://combo.tripsit.me status legend"
+      ],
+      "freshnessRule": "Point-in-time snapshot carried under TripSit's terms (data/third-party/tripsit/LICENSE.md).",
+      "sourceDeployment": "https://combo.tripsit.me",
+      "targetDeployment": null,
+      "schemaVersion": "[{ status, emoji, color, definition, thumbnail }]",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; re-download under TripSit's terms"
+    },
+    {
+      "id": "translation-glossary-snapshots",
+      "path": "data/i18n/glossary/*.json",
+      "role": "derived-export",
+      "producer": "scripts/translation/build-glossary.mjs",
+      "consumers": [
+        "scripts/translation/import-glossary-drafts.ts",
+        "glossary review diffs"
+      ],
+      "inputs": [
+        "Postgres translationGlossary rows per locale",
+        "hand-drafted term renderings awaiting native review (zh-Hans.drafts-2026-09-12.json)"
+      ],
+      "freshnessRule": "Snapshot of the Postgres glossary table for review and diffing; never read at runtime. Re-export after approving terms in /dev/glossary.",
+      "sourceDeployment": "explicitly selected Postgres source",
+      "targetDeployment": null,
+      "schemaVersion": "{ locale, exportedAt, terms }",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run translate:glossary -- --locale <code> --export"
+    },
+    {
+      "id": "translation-glosses",
+      "path": "data/i18n/glossary/glosses/*.json",
+      "role": "authored-seed",
+      "producer": "glossary writers",
+      "consumers": [
+        "scripts/translation/load-glosses.ts",
+        "lib/translation/glossaryGloss.ts"
+      ],
+      "inputs": [
+        "one-line English glosses per glossary term, split by topic"
+      ],
+      "freshnessRule": "Edit by hand, then seed translationGlossaryTerms through the guarded loader; the live glosses are read from Postgres.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "explicit Postgres target selected by the guarded gloss loader",
+      "schemaVersion": "Record<term, gloss>",
+      "editPolicy": "editable-by-glossary-writers",
+      "refreshCommand": "npm run translate:glosses -- --dry-run"
+    },
+    {
+      "id": "smiles-coverage-resolution",
+      "path": "data/chemistry/smiles-coverage.json",
+      "role": "derived-mapping",
+      "producer": "scripts/data/resolveSmilesCoverage.mjs",
+      "consumers": [
+        "scripts/chemistry/seed-data-molecules.ts",
+        "scripts/chemistry/README.md"
+      ],
+      "inputs": [
+        "public/SubstanceIndex.json",
+        "data/chemistry/titleIupacSmiles.json",
+        "data/chemistry/iupacSmilesMap.json",
+        "data/chemistry/generatedSmiles.json"
+      ],
+      "freshnessRule": "Regenerate after any chemistry map or the archival substance snapshot changes; the molecule seeder reads it for articles without inline SMILES.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/data/resolveSmilesCoverage.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run molecules:smiles-coverage"
+    },
+    {
+      "id": "smiles-gaps-report",
+      "path": "data/chemistry/smiles-gaps.json",
+      "role": "derived-report",
+      "producer": "scripts/data/resolveSmilesCoverage.mjs",
+      "consumers": [
+        "SMILES gap-fill research batches (data/chemistry/smiles-gap-fills/)"
+      ],
+      "inputs": [
+        "data/chemistry/smiles-coverage.json resolution"
+      ],
+      "freshnessRule": "Regenerate together with smiles-coverage.json; lists the substances still lacking a SMILES.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/data/resolveSmilesCoverage.mjs",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run molecules:smiles-coverage"
+    }
+  ]
+}

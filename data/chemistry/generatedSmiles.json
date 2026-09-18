@@ -1,0 +1,1608 @@
+{
+  "__comment": "Generated SMILES overrides keyed by substance slug. Produced by the gap-fill batches (PubChem/Wikipedia) for substances missing inline identification.smiles. Every entry RDKit-validated. `represents` names the active molecule when the substance is a plant, preparation, or brand name. Depictions render from Postgres moleculeOverrides (seed with npm run molecules:seed).",
+  "entries": {
+    "2-aminoindane": {
+      "smiles": "C1C(CC2=CC=CC=C21)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "2-fluorodeschloroketamine": {
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "25-dma": {
+      "smiles": "CC(CC1=C(C=CC(=C1)OC)OC)N",
+      "represents": "2,5-dimethoxyamphetamine (2,5-DMA)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Name not found directly; '25-DMA' = 2,5-dimethoxyamphetamine per the 2,5-dimethoxy ('25') naming convention. PubChem CID 62787."
+    },
+    "25b-nbome": {
+      "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Br)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "25c-nbome": {
+      "smiles": "COC1=CC=CC=C1CNCCC2=CC(=C(C=C2OC)Cl)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "25e-nbome": {
+      "smiles": "CCC1=CC(=C(C=C1OC)CCNCC2=CC=CC=C2OC)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "25g-nbome": {
+      "smiles": "CC1=C(C=C(C(=C1C)OC)CCNCC2=CC=CC=C2OC)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "25t-4-nbome": {
+      "smiles": "CC(C)SC1=C(C=C(C(=C1)OC)CCNCC2=CC=CC=C2OC)OC",
+      "represents": "",
+      "source": "wikipedia",
+      "confidence": "high",
+      "note": "PubChem name lookup failed; identified as 25T4-NBOMe (NBOMe analogue of 2C-T-4, 4-isopropylthio). SMILES confirmed against PubChem CID 125181243."
+    },
+    "2c-ip": {
+      "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CCN)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "3-4-ctmp": {
+      "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC(=C(C=C2)Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved as 3,4-CTMP (3,4-dichloromethylphenidate). PubChem CID 44296390."
+    },
+    "3-fma": {
+      "smiles": "CC(CC1=CC(=CC=C1)F)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "3-meo-pcpy": {
+      "smiles": "COC1=CC=CC(=C1)C2(CCCCC2)N3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved via IUPAC name 1-[1-(3-methoxyphenyl)cyclohexyl]pyrrolidine. PubChem CID 137332196."
+    },
+    "3-meomc": {
+      "smiles": "CC(C(=O)C1=CC(=CC=C1)OC)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved as 3-methoxymethcathinone (3-MeOMC). PubChem CID 82281626."
+    },
+    "3-oh-phenazepam": {
+      "smiles": "C1=CC=C(C(=C1)C2=NC(C(=O)NC3=C2C=C(C=C3)Br)O)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved as 3-hydroxyphenazepam. PubChem CID 125820."
+    },
+    "4-aco-dalt": {
+      "smiles": "CC(=O)OC1=CC=CC2=C1C(=CN2)CCN(CC=C)CC=C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-aco-met": {
+      "smiles": "CCN(C)CCC1=CNC2=C1C(=CC=C2)OC(=O)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-fluorobutyrfentanyl": {
+      "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-ho-dpt": {
+      "smiles": "CCCN(CCC)CCC1=CNC2=C1C(=CC=C2)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-ho-mipt": {
+      "smiles": "CC(C)N(C)CCC1=CNC2=C1C(=CC=C2)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-ho-mpmi": {
+      "smiles": "CN1CCC[C@@H]1CC2=CNC3=C2C(=CC=C3)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Also known as 4-hydroxy-N-methyl-alpha,N-trimethylene-tryptamine. PubChem CID 10466404."
+    },
+    "4-meo-butyrfentanyl": {
+      "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-methylaminorex": {
+      "smiles": "CC1C(OC(=N1)N)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4-methylmethylphenidate": {
+      "smiles": "CC1=CC=C(C=C1)[C@H]([C@@H]2CCCCN2)C(=O)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "4f-mph": {
+      "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=C(C=C2)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved as 4-fluoromethylphenidate (4F-MPH). PubChem CID 52944002."
+    },
+    "4f-neb": {
+      "smiles": "CCC(C(=O)C1=CC=C(C=C1)F)NCC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved as 4-fluoro-N-ethylbuphedrone (4F-NEB). PubChem CID 112476877."
+    },
+    "4f-pvp": {
+      "smiles": "CCCC(C(=O)C1=CC=C(C=C1)F)N2CCCC2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolved as 4'-fluoro-alpha-pyrrolidinopentiophenone (4F-PVP). PubChem CID 11322641."
+    },
+    "5-apdb": {
+      "smiles": "CC(CC1=CC2=C(C=C1)OCC2)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "5-hydroxytryptophan": {
+      "smiles": "C1=CC2=C(C=C1O)C(=CN2)CC(C(=O)O)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "5-it": {
+      "smiles": "CC(CC1=CC2=C(C=C1)NC=C2)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5-(2-aminopropyl)indole (5-API). PubChem CID 55253543."
+    },
+    "5-meo-eipt": {
+      "smiles": "CCN(CCC1=CNC2=C1C=C(C=C2)OC)C(C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "5-meo-malt": {
+      "smiles": "CN(CCC1=CNC2=C1C=C(C=C2)OC)CC=C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5-methoxy-N-allyl-N-methyltryptamine; PubChem CID 129846174."
+    },
+    "5-meo-met": {
+      "smiles": "CCN(C)CCC1=CNC2=C1C=C(C=C2)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5-methoxy-N-ethyl-N-methyltryptamine; PubChem CID 6619012."
+    },
+    "5-meo-mt": {
+      "smiles": "CNCCC1=CNC2=C1C=C(C=C2)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5-methoxy-N-methyltryptamine (5-MeO-NMT); name 5-MeO-MT 404'd, resolved via synonym, PubChem CID 16184."
+    },
+    "5-meo-nipt": {
+      "smiles": "CC(C)N(C)CCC1=CNC2=C1C=C(C=C2)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5-methoxy-N-isopropyl-N-methyltryptamine; resolved via full IUPAC-style synonym, PubChem CID 2763156. (Bare 'NiPT' name returns a wrong N-isopropyl-only structure.)"
+    },
+    "5-meo-pyr-t": {
+      "smiles": "COC1=CC2=C(C=C1)NC=C2CCN3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5-methoxy-N,N-tetramethylene-tryptamine (pyrrolidyl); PubChem CID 17053."
+    },
+    "5-methylethylone": {
+      "smiles": "CCNC(C)C(=O)C1=CC2=C(C(=C1)C)OCO2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Ethylone (bk-MDEA) bearing a 5-methyl on the methylenedioxyphenyl ring; PubChem CID 112500536."
+    },
+    "5-ppdi": {
+      "smiles": "CCC(C(=O)C1=CC2=C(CCC2)C=C1)N3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Indane analog of alpha-PBP (2-pyrrolidin-1-yl-butanoyl-indane); PubChem CID 132989234."
+    },
+    "5f-akb48": {
+      "smiles": "C1C2CC3CC1CC(C2)(C3)NC(=O)C4=NN(C5=CC=CC=C54)CCCCCF",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5F-AKB48 / 5F-APINACA synthetic cannabinoid; PubChem CID 71711119."
+    },
+    "5f-pb-22": {
+      "smiles": "C1=CC=C2C(=C1)C(=CN2CCCCCF)C(=O)OC3=CC=CC4=C3N=CC=C4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5F-PB-22 synthetic cannabinoid (quinolin-8-yl indole-3-carboxylate); PubChem CID 72710774."
+    },
+    "6-eapb": {
+      "smiles": "CCNC(C)CC1=CC2=C(C=C1)C=CO2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "1-(benzofuran-6-yl)-N-ethylpropan-2-amine; PubChem CID 102336591."
+    },
+    "6-mapb": {
+      "smiles": "CC(CC1=CC2=C(C=C1)C=CO2)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "1-(benzofuran-6-yl)-N-methylpropan-2-amine; PubChem CID 122202866."
+    },
+    "6-mddm": {
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3C(=C)CC4",
+      "represents": "6-methylenedihydrodesoxymorphine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "dose.wiki article confirms 6-MDDM is the semisynthetic morphinan opioid 6-methylenedihydrodesoxymorphine (not an MDMA-class compound); PubChem CID 5492874."
+    },
+    "a-pihp": {
+      "smiles": "CC(C)CC(C(=O)C1=CC=CC=C1)N2CCCC2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "alpha-pyrrolidinoisohexanophenone; resolved via synonym alpha-PiHP, PubChem CID 59809191."
+    },
+    "a-pvp": {
+      "smiles": "CCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "alpha-pyrrolidinopentiophenone (flakka); PubChem CID 11148955."
+    },
+    "ab-chminaca": {
+      "smiles": "CC(C)[C@@H](C(=O)N)NC(=O)C1=NN(C2=CC=CC=C21)CC3CCCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Synthetic cannabinoid, (S)-isomer; PubChem CID 44206133."
+    },
+    "ah-7921": {
+      "smiles": "CN(C)C1(CCCCC1)CNC(=O)C2=CC(=C(C=C2)Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "3,4-dichloro-N-[(1-dimethylamino)cyclohexylmethyl]benzamide opioid; PubChem CID 187760."
+    },
+    "alcohol": {
+      "smiles": "CCO",
+      "represents": "ethanol",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Active psychoactive constituent is ethanol; PubChem CID 702."
+    },
+    "allobarbital": {
+      "smiles": "C=CCC1(C(=O)NC(=O)NC1=O)CC=C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5,5-diallylbarbituric acid; PubChem CID 5842."
+    },
+    "alpha-gpc": {
+      "smiles": "C[N+](C)(C)CCOP(=O)([O-])OC[C@@H](CO)O",
+      "represents": "L-alpha-glycerylphosphorylcholine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "L-alpha-glycerylphosphorylcholine (choline alfoscerate), zwitterionic form; resolved via synonym, PubChem CID 657272."
+    },
+    "am-2201": {
+      "smiles": "C1=CC=C2C(=C1)C=CC=C2C(=O)C3=CN(C4=CC=CC=C43)CCCCCF",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "(1-(5-fluoropentyl)-1H-indol-3-yl)(naphthalen-1-yl)methanone synthetic cannabinoid; PubChem CID 53393997."
+    },
+    "amfonelic-acid": {
+      "smiles": "CCN1C=C(C(=O)C2=C1N=C(C=C2)CC3=CC=CC=C3)C(=O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Dopaminergic stimulant naphthyridine carboxylic acid; PubChem CID 2137."
+    },
+    "aminotadalafil": {
+      "smiles": "C1[C@@H]2C(=O)N(CC(=O)N2[C@@H](C3=C1C4=CC=CC=C4N3)C5=CC6=C(C=C5)OCO6)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "N-amino analog of tadalafil (PDE5 inhibitor); PubChem CID 10178467."
+    },
+    "ashwagandha": {
+      "smiles": "CC1=C(C(=O)O[C@H](C1)[C@@H](C)[C@H]2CC[C@@H]3[C@@]2(CC[C@H]4[C@H]3C[C@@H]5[C@]6([C@@]4(C(=O)C=C[C@@H]6O)C)O5)C)CO",
+      "represents": "withaferin A",
+      "source": "pubchem",
+      "confidence": "medium",
+      "note": "Ashwagandha (Withania somnifera) is a plant; principal/marker active withanolide is withaferin A; PubChem CID 265237. (The herb's effects are attributed to a mix of withanolides; withaferin A chosen as the representative molecule per task guidance.)"
+    },
+    "aspirin": {
+      "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Acetylsalicylic acid; PubChem CID 2244."
+    },
+    "atomoxetine": {
+      "smiles": "CC1=CC=CC=C1O[C@H](CCNC)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "(R)-atomoxetine (the marketed eutomer); PubChem CID 54841."
+    },
+    "barbital": {
+      "smiles": "CCC1(C(=O)NC(=O)NC1=O)CC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "5,5-diethylbarbituric acid; PubChem CID 2294."
+    },
+    "bentazepam": {
+      "smiles": "C1CCC2=C(C1)C3=C(S2)NC(=O)CN=C3C4=CC=CC=C4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Thienodiazepine; PubChem CID 135412795."
+    },
+    "bk-2c-b": {
+      "smiles": "COC1=CC(=C(C=C1C(=O)CN)OC)Br",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "beta-keto-2C-B: 2-amino-1-(4-bromo-2,5-dimethoxyphenyl)ethan-1-one; PubChem CID 11288812."
+    },
+    "bod": {
+      "smiles": "CC1=CC(=C(C=C1OC)C(CN)OC)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "BOD = 4-methyl-2,5,beta-trimethoxyphenethylamine (beta-methoxy-2C-D), PiHKAL entry #14 confirmed via dose.wiki source; PubChem CID 44719486. (Note: bundled WIKIPEDIA source file is mislabeled with DOB content; ISOMERDESIGN/PiHKAL source is authoritative.)"
+    },
+    "buphedrone": {
+      "smiles": "CCC(C(=O)C1=CC=CC=C1)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "alpha-methylamino-butyrophenone cathinone; PubChem CID 53249194."
+    },
+    "buspirone": {
+      "smiles": "C1CCC2(C1)CC(=O)N(C(=O)C2)CCCCN3CCN(CC3)C4=NC=CC=N4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "butyrfentanyl": {
+      "smiles": "CCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "camazepam": {
+      "smiles": "CN1C2=C(C=C(C=C2)Cl)C(=NC(C1=O)OC(=O)N(C)C)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "cathinone": {
+      "smiles": "C[C@@H](C(=O)C1=CC=CC=C1)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem returns (S)-cathinone (natural enantiomer); racemic cathinone also exists."
+    },
+    "changa": {
+      "smiles": "CN(C)CCC1=CNC2=CC=CC=C21",
+      "represents": "N,N-Dimethyltryptamine (DMT)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Changa is a smokable blend of DMT-containing extract and MAOI-containing herbs; principal psychoactive molecule is N,N-DMT."
+    },
+    "chloral-betaine": {
+      "smiles": "C[N+](C)(C)CC(=O)[O-].C(C(Cl)(Cl)Cl)(O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Chloral betaine is a 1:1 complex of chloral hydrate and betaine; recorded as the two-component salt/adduct."
+    },
+    "chloroform": {
+      "smiles": "C(Cl)(Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "cinolazepam": {
+      "smiles": "C1=CC=C(C(=C1)C2=NC(C(=O)N(C3=C2C=C(C=C3)Cl)CCC#N)O)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "citalopram": {
+      "smiles": "CN(C)CCCC1(C2=C(CO1)C=C(C=C2)C#N)C3=CC=C(C=C3)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Recorded as racemic citalopram (PubChem CID 2771)."
+    },
+    "clomethiazole": {
+      "smiles": "CC1=C(SC=N1)CCCl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "clonazolam": {
+      "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "clonidine": {
+      "smiles": "C1CN=C(N1)NC2=C(C=CC=C2Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "cloniprazepam": {
+      "smiles": "C1CC1CN2C(=O)CN=C(C3=C2C=CC(=C3)[N+](=O)[O-])C4=CC=CC=C4Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "clonitazene": {
+      "smiles": "CCN(CC)CCN1C2=C(C=C(C=C2)[N+](=O)[O-])N=C1CC3=CC=C(C=C3)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "clorazepate": {
+      "smiles": "C1=CC=C(C=C1)C2=NC(C(=O)NC3=C2C=C(C=C3)Cl)C(=O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "clotiazepam": {
+      "smiles": "CCC1=CC2=C(S1)N(C(=O)CN=C2C3=CC=CC=C3Cl)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "cloxazolam": {
+      "smiles": "C1COC2(N1CC(=O)NC3=C2C=C(C=C3)Cl)C4=CC=CC=C4Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "crl-40-940": {
+      "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)F)S(=O)CC(=O)N)F",
+      "represents": "Flmodafinil (bisfluoromodafinil)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "CRL-40,940 = flmodafinil = bisfluoromodafinil = lauflumide; bis(p-fluoro) amide analog of modafinil (PubChem CID 13271852)."
+    },
+    "crl-40-941": {
+      "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)F)S(=O)CC(=O)NO)F",
+      "represents": "Fladrafinil (fluorafinil)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "CRL-40,941 = fladrafinil = fluorafinil; bis(p-fluoro) N-hydroxyacetamide prodrug of flmodafinil (PubChem CID 13316557). Verified against Wikipedia to distinguish from CRL-40,940."
+    },
+    "cyclizine": {
+      "smiles": "CN1CCN(CC1)C(C2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "cyclo-methiodrone": {
+      "smiles": "C1CCNC(C1)C(=O)C2=CC=CS2",
+      "represents": "piperidin-2-yl(thiophen-2-yl)methanone (TCAT)",
+      "source": "pubchem",
+      "confidence": "medium",
+      "note": "Novel research chemical (TCAT); IUPAC name piperidin-2-yl(thiophen-2-yl)methanone per TripSit. SMILES from PubChem CID 24261075 matching that IUPAC name. Limited literature."
+    },
+    "cyclobenzaprine": {
+      "smiles": "CN(C)CCC=C1C2=CC=CC=C2C=CC3=CC=CC=C31",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "cyclopropylmescaline": {
+      "smiles": "COC1=CC(=CC(=C1OCC2CC2)OC)CCN",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "4-(cyclopropylmethoxy) mescaline analog, PubChem CID 44350143."
+    },
+    "dalt": {
+      "smiles": "C=CCN(CCC1=CNC2=CC=CC=C21)CC=C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "N,N-Diallyltryptamine (PubChem CID 24839550)."
+    },
+    "datura": {
+      "smiles": "CN1[C@@H]2CC(C[C@H]1[C@H]3[C@@H]2O3)OC(=O)[C@H](CO)C4=CC=CC=C4",
+      "represents": "Scopolamine (hyoscine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Datura is a botanical genus (e.g. jimsonweed) containing tropane alkaloids; principal psychoactive molecule represented here is scopolamine (also rich in atropine/hyoscyamine)."
+    },
+    "deschloroketamine": {
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "dexmethylphenidate": {
+      "smiles": "COC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "D-threo enantiomer of methylphenidate (PubChem CID 154101)."
+    },
+    "dextromoramide": {
+      "smiles": "C[C@H](CN1CCOCC1)C(C2=CC=CC=C2)(C3=CC=CC=C3)C(=O)N4CCCC4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "diclofensine": {
+      "smiles": "CN1CC(C2=C(C1)C=C(C=C2)OC)C3=CC(=C(C=C3)Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "diethyl-ether": {
+      "smiles": "CCOCC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3283 (diethyl ether)."
+    },
+    "dimemebfe": {
+      "smiles": "CN(C)CCC1=COC2=C1C=C(C=C2)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 126589 (2-(5-methoxy-1-benzofuran-3-yl)-N,N-dimethylethanamine; 5-MeO-DMT benzofuran analogue)."
+    },
+    "dipipanone": {
+      "smiles": "CCC(=O)C(CC(C)N1CCCCC1)(C2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 13331."
+    },
+    "dmaa": {
+      "smiles": "CCC(C)CC(C)N",
+      "represents": "1,3-dimethylamylamine (methylhexanamine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "DMAA = 1,3-dimethylamylamine / methylhexanamine; PubChem CID 7753."
+    },
+    "doip": {
+      "smiles": "CC(C)C1=C(C=C(C(=C1)OC)CC(C)N)OC",
+      "represents": "DOiP (2,5-dimethoxy-4-isopropylamphetamine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "DOiP = 2,5-dimethoxy-4-isopropylamphetamine, PubChem CID 44265275. Confirmed as DOx psychedelic amphetamine from source quotes; the name 'DOIP' alone in PubChem returns an unrelated phthalate plasticizer, which was rejected."
+    },
+    "don": {
+      "smiles": "CC(CC1=CC(=C(C=C1OC)[N+](=O)[O-])OC)N",
+      "represents": "DON (2,5-dimethoxy-4-nitroamphetamine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "DON = 2,5-dimethoxy-4-nitroamphetamine, PubChem CID 105432. Confirmed as rare DOx psychedelic amphetamine from source quotes."
+    },
+    "dopr": {
+      "smiles": "CCCC1=CC(=C(C=C1OC)CC(C)N)OC",
+      "represents": "DOPR (2,5-dimethoxy-4-propylamphetamine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "DOPR = 2,5-dimethoxy-4-propylamphetamine, PubChem CID 542051."
+    },
+    "doxylamine": {
+      "smiles": "CC(C1=CC=CC=C1)(C2=CC=CC=N2)OCCN(C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3162."
+    },
+    "ephylone": {
+      "smiles": "CCCC(C(=O)C1=CC2=C(C=C1)OCO2)NCC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 57359308 (N-ethylpentylone)."
+    },
+    "estazolam": {
+      "smiles": "C1C2=NN=CN2C3=C(C=C(C=C3)Cl)C(=N1)C4=CC=CC=C4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3261."
+    },
+    "et": {
+      "smiles": "CCC(CC1=CNC2=CC=CC=C21)N",
+      "represents": "αET (alpha-ethyltryptamine / etryptamine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Article is αET (alpha-ethyltryptamine, marketed as Monase), PubChem CID 8367. Identity confirmed from source quotes referencing Upjohn 'Monase' and agranulocytosis."
+    },
+    "eth-cat": {
+      "smiles": "CCNC(C)C(=O)C1=CC=CC=C1",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 458519 (N-ethylcathinone / ethcathinone)."
+    },
+    "ethaqualone": {
+      "smiles": "CCC1=CC=CC=C1N2C(=NC3=CC=CC=C3C2=O)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 23914 (etaqualone; 3-(2-ethylphenyl)-2-methylquinazolin-4-one, ethyl analogue of methaqualone)."
+    },
+    "ethchlorvynol": {
+      "smiles": "CCC(/C=C/Cl)(C#C)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 5281077."
+    },
+    "ethketamine": {
+      "smiles": "CCNC1(CCCCC1=O)C2=CC=CC=C2Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 57483649 (N-ethylnorketamine / NENK)."
+    },
+    "ethylphenidate": {
+      "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3080846."
+    },
+    "f-phenibut": {
+      "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+      "represents": "4-fluorophenibut",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "F-Phenibut = 4-fluorophenibut (4-amino-3-(4-fluorophenyl)butanoic acid), PubChem CID 103611. Same molecule as the 'Fluorophenibut' entry."
+    },
+    "fasoracetam": {
+      "smiles": "C1CCN(CC1)C(=O)[C@H]2CCC(=O)N2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 198695 (stereochemistry from PubChem isomeric SMILES)."
+    },
+    "fluorophenibut": {
+      "smiles": "C1=CC(=CC=C1C(CC(=O)O)CN)F",
+      "represents": "4-fluorophenibut",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Fluorophenibut = 4-fluorophenibut, PubChem CID 103611. Same molecule as the 'F-Phenibut' entry."
+    },
+    "flutazolam": {
+      "smiles": "C1COC2(N1CC(=O)N(C3=C2C=C(C=C3)Cl)CCO)C4=CC=CC=C4F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3398."
+    },
+    "gaba": {
+      "smiles": "C(CC(=O)O)CN",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 119 (gamma-aminobutyric acid)."
+    },
+    "ghb": {
+      "smiles": "C(CC(=O)O)CO",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 10413 (gamma-hydroxybutyric acid)."
+    },
+    "glaucine": {
+      "smiles": "CN1CCC2=CC(=C(C3=C2[C@@H]1CC4=CC(=C(C=C43)OC)OC)OC)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 16754 (S-glaucine; stereochemistry from PubChem isomeric SMILES)."
+    },
+    "glutethimide": {
+      "smiles": "CCC1(CCC(=O)NC1=O)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3487."
+    },
+    "h-2c-b": {
+      "smiles": "COC1=CC(=C(C=C1C(CN)O)OC)Br",
+      "represents": "βH-2C-B (β-hydroxy-2C-B / BOH-2C-B)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Article is βH-2C-B = β-hydroxy-2C-B (2-amino-1-(4-bromo-2,5-dimethoxyphenyl)ethanol), PubChem CID 11370394. Identity confirmed from source pharmacology quote describing 'β-Hydroxy-2C-B'."
+    },
+    "haloperidol": {
+      "smiles": "C1CN(CCC1(C2=CC=C(C=C2)Cl)O)CCCC(=O)C3=CC=C(C=C3)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3559."
+    },
+    "hdep-28": {
+      "smiles": "CCOC(=O)C(C1CCCCN1)C2=CC3=CC=CC=C3C=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 91844468 (ethyl ester naphthyl analogue of phenidate)."
+    },
+    "hexobarbital": {
+      "smiles": "CC1(C(=O)NC(=O)N(C1=O)C)C2=CCCCC2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3608."
+    },
+    "homosildenafil": {
+      "smiles": "CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)CC)OCC)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 135565273 (sildenafil analogue with N-ethylpiperazine)."
+    },
+    "hot-2": {
+      "smiles": "CCSC1=C(C=C(C(=C1)OC)CCNO)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 44350142 (N-hydroxy-2C-T-2)."
+    },
+    "hot-7": {
+      "smiles": "CCCSC1=C(C=C(C(=C1)OC)CCNO)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "N-hydroxy-2,5-dimethoxy-4-(n)-propylthiophenethylamine (HOT-7); PubChem CID 44350017."
+    },
+    "huperzine-a": {
+      "smiles": "C/C=C/1\\[C@@H]2CC3=C([C@]1(CC(=C2)C)N)C=CC(=O)N3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Huperzine A, acetylcholinesterase inhibitor; stereochemistry-bearing SMILES, PubChem CID 854026."
+    },
+    "ibuprofen": {
+      "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Ibuprofen (racemic; PubChem returns no stereocenter for the marketed mixture), CID 3672."
+    },
+    "indapex": {
+      "smiles": "CC1=C(C2=C(N1)C=CC(=C2)OC)CCN(C)C",
+      "represents": "5-MeO-TMT (5-methoxy-2,N,N-trimethyltryptamine)",
+      "source": "pubchem",
+      "confidence": "medium",
+      "note": "Indapex is a trade/alias name for 5-MeO-TMT (5-methoxy-2,N,N-trimethyltryptamine), a Shulgin tryptamine; PubChem CID 49756."
+    },
+    "indapyrophenidone": {
+      "smiles": "C1CCN(C1)C(C2=CC=CC=C2)C(=O)C3=CC4=C(CCC4)C=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Indapyrophenidone; PubChem CID 129844581."
+    },
+    "isomethadone": {
+      "smiles": "CCC(=O)C(C1=CC=CC=C1)(C2=CC=CC=C2)C(C)CN(C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Isomethadone (opioid analgesic); PubChem CID 10072."
+    },
+    "isophenmetrazine": {
+      "smiles": "CC1COC(CN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Isophenmetrazine (5-methyl-3-phenylmorpholine regioisomer of phenmetrazine); PubChem CID 12945120."
+    },
+    "isopropylphenidate": {
+      "smiles": "CC(C)OC(=O)C(C1CCCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Isopropylphenidate (IPPH/IPH), isopropyl ester analogue of methylphenidate; PubChem CID 68314762."
+    },
+    "isoproscaline": {
+      "smiles": "CC(C)OC1=C(C=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Isoproscaline (4-isopropoxy-3,5-dimethoxyphenethylamine); PubChem CID 15102787."
+    },
+    "kanna": {
+      "smiles": "CN1CC[C@]2([C@@H]1CC(=O)CC2)C3=CC(=C(C=C3)OC)OC",
+      "represents": "mesembrine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Kanna (Sceletium tortuosum) is a plant; principal active alkaloid is mesembrine; PubChem CID 394162."
+    },
+    "ketazolam": {
+      "smiles": "CC1=CC(=O)N2CC(=O)N(C3=C(C2(O1)C4=CC=CC=C4)C=C(C=C3)Cl)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Ketazolam (benzodiazepine); PubChem CID 33746."
+    },
+    "ketobemidone": {
+      "smiles": "CCC(=O)C1(CCN(CC1)C)C2=CC(=CC=C2)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Ketobemidone (opioid analgesic); PubChem CID 10101."
+    },
+    "lae-32": {
+      "smiles": "CCNC(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(=C34)C2=C1)C",
+      "represents": "lysergic acid ethylamide (LAE)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "LAE-32 is lysergic acid ethylamide (ergine ethyl analogue); stereochemistry-bearing form, PubChem CID 12304966."
+    },
+    "lagochilus-inebrians": {
+      "smiles": "C[C@@H]1CC[C@@H]2[C@@]([C@@]13CC[C@](O3)(CCO)CO)(CC[C@@H]([C@@]2(C)CO)O)C",
+      "represents": "lagochiline",
+      "source": "pubchem",
+      "confidence": "medium",
+      "note": "Lagochilus inebrians (Turkestan mint) is a plant; its characteristic diterpene constituent is lagochiline; PubChem CID 7061097."
+    },
+    "librium": {
+      "smiles": "CNC1=[N+]([O-])c2cc(Cl)ccc2N=C(c2ccccc2)C1",
+      "represents": "chlordiazepoxide",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Librium is a brand name for chlordiazepoxide (benzodiazepine); PubChem CID 2712. [fixed: 4-oxide was mis-encoded as N-OH]"
+    },
+    "loprazolam": {
+      "smiles": "CN1CCN(CC1)/C=C\\2/C(=O)N3C(=N2)CN=C(C4=C3C=CC(=C4)[N+](=O)[O-])C5=CC=CC=C5Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Loprazolam (benzodiazepine); PubChem CID 3033860."
+    },
+    "lormetazepam": {
+      "smiles": "CN1C2=C(C=C(C=C2)Cl)C(=NC(C1=O)O)C3=CC=CC=C3Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Lormetazepam (benzodiazepine); PubChem CID 13314."
+    },
+    "marinol": {
+      "smiles": "CCCCCC1=CC(=C2[C@@H]3C=C(CC[C@H]3C(OC2=C1)(C)C)C)O",
+      "represents": "dronabinol (delta-9-THC)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Marinol is a brand name for dronabinol, the synthetic delta-9-tetrahydrocannabinol; PubChem CID 16078."
+    },
+    "mbdb": {
+      "smiles": "CCC(CC1=CC2=C(C=C1)OCO2)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "MBDB (N-methyl-1,3-benzodioxolylbutanamine, 'Eden'/methyl-J); PubChem CID 124844."
+    },
+    "mbzp": {
+      "smiles": "CN1CCN(CC1)CC2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "MBZP (1-benzyl-4-methylpiperazine); PubChem CID 763557."
+    },
+    "mdoh": {
+      "smiles": "CC(CC1=CC2=C(C=C1)OCO2)NO",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "MDOH (N-hydroxy-MDA, 3,4-methylenedioxy-N-hydroxyamphetamine); PubChem CID 98528."
+    },
+    "mdpa": {
+      "smiles": "CCCNC(C)CC1=CC2=C(C=C1)OCO2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "MDPA = 3,4-methylenedioxy-N-propylamphetamine (the psychoactive Shulgin compound), PubChem CID 559375. The bare 'MDPA' PubChem name maps to an unrelated acetamide, so resolved via the full chemical name."
+    },
+    "mdphp": {
+      "smiles": "CCCCC(C(=O)C1=CC2=C(C=C1)OCO2)N3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "MDPHP (3,4-methylenedioxy-alpha-pyrrolidinohexiophenone), MDPV homologue; PubChem CID 119057580."
+    },
+    "meai": {
+      "smiles": "COC1=CC2=C(CC(C2)N)C=C1",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "MEAI (5-methoxy-2-aminoindane); PubChem CID 12147687 (formula C10H13NO confirmed)."
+    },
+    "mebroqualone": {
+      "smiles": "CC1=NC2=CC=CC=C2C(=O)N1C3=CC=CC=C3Br",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Mebroqualone (2'-bromo methaqualone analogue, quinazolinone); PubChem CID 364842."
+    },
+    "meclonazepam": {
+      "smiles": "C[C@H]1C(=O)NC2=C(C=C(C=C2)[N+](=O)[O-])C(=N1)C3=CC=CC=C3Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Meclonazepam (benzodiazepine); stereochemistry-bearing (S)-form, PubChem CID 3033985."
+    },
+    "mephenaqualone": {
+      "smiles": "O=C1N(C(=Nc2c(OC)cccc12)c1ccccc1)c1ccccc1C",
+      "represents": "",
+      "source": "wikipedia",
+      "confidence": "high",
+      "note": "Mephenaqualone (8-methoxy-3-(2-methylphenyl)-2-phenylquinazolin-4(3H)-one, methaqualone analogue). Not in PubChem; SMILES from Wikipedia infobox, formula C22H18N2O2 (342.4) confirmed via RDKit."
+    },
+    "metaclazepam": {
+      "smiles": "CN1C(CN=C(C2=C1C=CC(=C2)Br)C3=CC=CC=C3Cl)COC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "metaxalone": {
+      "smiles": "CC1=CC(=CC(=C1)OCC2CNC(=O)O2)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "methallylescaline": {
+      "smiles": "CC(=C)COC1=C(C=C(C=C1OC)CCN)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "methamnetamine": {
+      "smiles": "CC(CC1=CC2=CC=CC=C2C=C1)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "methoxphenidine": {
+      "smiles": "COC1=CC=CC=C1C(CC2=CC=CC=C2)N3CCCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Also known as MXP / 2-MeO-Diphenidine."
+    },
+    "methoxyacetyl-fentanyl": {
+      "smiles": "COCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Matched via cleaned name 'Methoxyacetylfentanyl' (CID 968688)."
+    },
+    "methoxyketamine": {
+      "smiles": "CNC1(CCCCC1=O)C2=CC=CC=C2OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Resolves to 2-methoxyketamine (2-MeO-ketamine), the commonly referenced isomer."
+    },
+    "methoxypiperamide": {
+      "smiles": "CN1CCN(CC1)C(=O)C2=CC=C(C=C2)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Also known as MeOP / MEXP; PubChem CID 805654 lists 'Methoxypiperamide' as the primary name."
+    },
+    "methylmethaqualone": {
+      "smiles": "CC1=CC(=C(C=C1)N2C(=NC3=CC=CC=C3C2=O)C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "methyprylon": {
+      "smiles": "CCC1(C(=O)C(CNC1=O)C)CC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "mexazolam": {
+      "smiles": "CC1COC2(N1CC(=O)NC3=C2C=C(C=C3)Cl)C4=CC=CC=C4Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "mipt": {
+      "smiles": "CC(C)N(C)CCC1=CNC2=CC=CC=C21",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "N-methyl-N-isopropyltryptamine."
+    },
+    "morpheridine": {
+      "smiles": "CCOC(=O)C1(CCN(CC1)CCN2CCOCC2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "mt-45": {
+      "smiles": "C1CCC(CC1)N2CCN(CC2)C(CC3=CC=CC=C3)C4=CC=CC=C4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "n-ethylhexedrone": {
+      "smiles": "CCCCC(C(=O)C1=CC=CC=C1)NCC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "n-methylbisfluoromodafinil": {
+      "smiles": "O=S(CC(NC)=O)C(C1=CC=C(F)C=C1)C2=CC=C(F)C=C2",
+      "represents": "",
+      "source": "wikipedia",
+      "confidence": "high",
+      "note": "Not found directly in PubChem under this name; SMILES is the N-methyl-4,4-difluoro modafinil structure (CAS 1613222-54-0) from PsychonautWiki/vendor reference standards."
+    },
+    "naloxone": {
+      "smiles": "C=CCN1CC[C@]23[C@@H]4C(=O)CC[C@]2([C@H]1CC5=C3C(=C(C=C5)O)O4)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "naproxen": {
+      "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "neb": {
+      "smiles": "CCC(C(=O)C1=CC=CC=C1)NCC",
+      "represents": "N-Ethylbuphedrone",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "NEB is the common abbreviation for N-ethylbuphedrone (CID 20326296)."
+    },
+    "nefiracetam": {
+      "smiles": "CC1=C(C(=CC=C1)C)NC(=O)CN2CCCC2=O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "nicomorphine": {
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC(=O)C6=CN=CC=C6)O[C@H]3[C@H](C=C4)OC(=O)C7=CN=CC=C7",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "nitemazepam": {
+      "smiles": "CN1C2=C(C=C(C=C2)[N+](=O)[O-])C(=NC(C1=O)O)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "nitracaine": {
+      "smiles": "CCN(CC)CC(C)(C)COC(=O)C1=CC=C(C=C1)[N+](=O)[O-]",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "nitrazolam": {
+      "smiles": "CC1=NN=C2N1C3=C(C=C(C=C3)[N+](=O)[O-])C(=NC2)C4=CC=CC=C4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "nitrous": {
+      "smiles": "[N-]=[N+]=O",
+      "represents": "Nitrous oxide",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "'Nitrous' refers to nitrous oxide (N2O), CID 948."
+    },
+    "nordazepam": {
+      "smiles": "C1C(=O)NC2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "o-desmethyltramadol": {
+      "smiles": "CN(C)C[C@H]1CCCC[C@@]1(C2=CC(=CC=C2)O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "opium": {
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+      "represents": "Morphine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Opium is a plant preparation (Papaver somniferum latex); SMILES is its principal psychoactive alkaloid, morphine (CID 5288826)."
+    },
+    "oxazolam": {
+      "smiles": "CC1CN2CC(=O)NC3=C(C2(O1)C4=CC=CC=C4)C=C(C=C3)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "pagoclone": {
+      "smiles": "CC(C)CCC(=O)CC1C2=CC=CC=C2C(=O)N1C3=NC4=C(C=C3)C=CC(=N4)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "paracetamol": {
+      "smiles": "CC(=O)NC1=CC=C(C=C1)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "parafluorofentanyl": {
+      "smiles": "CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=C(C=C3)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "para-Fluorofentanyl (4-fluorofentanyl), PubChem CID 62300."
+    },
+    "pargy-lad": {
+      "smiles": "CCN(CC)C(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(=C34)C2=C1)CC#C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "N-propargyl lysergic acid diethylamide analog (PARGY-LAD), PubChem CID 139030999."
+    },
+    "pbp": {
+      "smiles": "CCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+      "represents": "alpha-PBP (alpha-Pyrrolidinobutiophenone)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Source describes it as the homologue between alpha-PPP and alpha-PVP; this is alpha-PBP, PubChem CID 23199082."
+    },
+    "pentazocine": {
+      "smiles": "C[C@H]1[C@H]2CC3=C([C@@]1(CCN2CC=C(C)C)C)C=C(C=C3)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "pentylone": {
+      "smiles": "CCCC(C(=O)C1=CC2=C(C=C1)OCO2)NC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "pfbt": {
+      "smiles": "CN1C2CCC1CC(C2)OC(=O)C3=CC=C(C=C3)F",
+      "represents": "3-(p-Fluorobenzoyloxy)tropane (fluorotropacocaine)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PFBT = 3-(p-fluorobenzoyloxy)tropane, a tropane local anaesthetic ~30% potency of cocaine (matches source). PubChem CID 5147770. Note: a literal PubChem name lookup of 'pFBT' wrongly returns pentafluorothiophenol, which was rejected."
+    },
+    "phenetrazine": {
+      "smiles": "CCC1C(OCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Ethyl homolog of phenmetrazine (3-ethyl-2-phenylmorpholine), PubChem CID 43350824."
+    },
+    "phenmetrazine": {
+      "smiles": "CC1C(OCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "phentermine": {
+      "smiles": "CC(C)(CC1=CC=CC=C1)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "picamilon": {
+      "smiles": "C1=CC(=CN=C1)C(=O)NCCCC(=O)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "pinazepam": {
+      "smiles": "C#CCN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "pipt": {
+      "smiles": "CCCN(CCC1=CNC2=CC=CC=C21)C(C)C",
+      "represents": "N-isopropyl-N-propyltryptamine (PiPT)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PiPT is N-isopropyl-N-propyltryptamine, a psychedelic tryptamine (matches source effects). PubChem CID 57464898."
+    },
+    "prl-8-53": {
+      "smiles": "CN(CCC1=CC(=CC=C1)C(=O)OC)CC2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Free base of PRL-8-53, PubChem CID 39989 (the HCl salt is CID 70700868); salt counterion removed."
+    },
+    "prochlorperazine": {
+      "smiles": "CN1CCN(CC1)CCCN2C3=CC=CC=C3SC4=C2C=C(C=C4)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "progesterone": {
+      "smiles": "CC(=O)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CCC4=CC(=O)CC[C@]34C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "promethazine": {
+      "smiles": "CC(CN1C2=CC=CC=C2SC3=CC=CC=C31)N(C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "propofol": {
+      "smiles": "CC(C)C1=C(C(=CC=C1)C(C)C)O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "propoxyphene": {
+      "smiles": "CCC(=O)O[C@](CC1=CC=CC=C1)(C2=CC=CC=C2)[C@H](C)CN(C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Dextropropoxyphene, PubChem CID 10100."
+    },
+    "propylphenidate": {
+      "smiles": "CCCOC(=O)[C@@H]([C@H]1CCCCN1)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "pseudoephrine": {
+      "smiles": "C[C@@H]([C@H](C1=CC=CC=C1)O)NC",
+      "represents": "Pseudoephedrine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Title 'Pseudoephrine' is a misspelling of pseudoephedrine, PubChem CID 7028."
+    },
+    "pst": {
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+      "represents": "Morphine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PST = poppy seed/straw tea, a preparation whose principal active opium alkaloid is morphine. PubChem CID 5288826."
+    },
+    "pv-8": {
+      "smiles": "CCCCCC(C(=O)C1=CC=CC=C1)N2CCCC2",
+      "represents": "alpha-PHpP (alpha-PV-8 / alpha-pyrrolidinoheptiophenone)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PV-8 is the higher homologue of alpha-PHP (matches source), i.e. alpha-pyrrolidinoheptaphenone. PubChem CID 69245534."
+    },
+    "pvt": {
+      "smiles": "CCCC(C(=O)C1=CC=CS1)N2CCCC2",
+      "represents": "alpha-PVT (alpha-pyrrolidinopentiothiophenone)",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "alpha-PVT, the thiophene analog of alpha-PVP (matches source). PubChem CID 71721462."
+    },
+    "pyrophenidone": {
+      "smiles": "CC1=CC=C(C=C1)C(=O)C(C2=CC=CC=C2)N3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 165411888."
+    },
+    "quazepam": {
+      "smiles": "C1C(=S)N(C2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3F)CC(F)(F)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "rilmazafone": {
+      "smiles": "CN(C)C(=O)C1=NN(C(=N1)CNC(=O)CN)C2=C(C=C(C=C2)Cl)C(=O)C3=CC=CC=C3Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "risperidone": {
+      "smiles": "CC1=C(C(=O)N2CCCCC2=N1)CCN3CCC(CC3)C4=NOC5=C4C=CC(=C5)F",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": ""
+    },
+    "rolicyclidine": {
+      "smiles": "C1CCC(CC1)(C2=CC=CC=C2)N3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Rolicyclidine (PCPy), PubChem CID 62436."
+    },
+    "ronlax": {
+      "smiles": "CCOC(=O)C1C(=O)NC2=C(C=C(C=C2)Cl)C(=N1)C3=CC=CC=C3F",
+      "represents": "Ethyl loflazepate",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Ronlax is a Mexican brand name for ethyl loflazepate, a long-half-life benzodiazepine metabolizing into descarboxyloflazepate (matches source). PubChem CID 3299."
+    },
+    "salvia": {
+      "smiles": "CC(=O)O[C@H]1C[C@H]([C@@]2(CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]2C1=O)C)C4=COC=C4)C)C(=O)OC",
+      "represents": "Salvinorin A",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Salvia divinorum; principal psychoactive constituent is salvinorin A (PubChem CID 128563)."
+    },
+    "salvinorin-b-methoxymethyl-ether": {
+      "smiles": "C[C@@]12CC[C@H]3C(=O)O[C@@H](C[C@@]3([C@H]1C(=O)[C@H](C[C@H]2C(=O)OC)OCOC)C)C4=COC=C4",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 44456192."
+    },
+    "sertraline": {
+      "smiles": "CN[C@H]1CC[C@H](C2=CC=CC=C12)C3=CC(=C(C=C3)Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 68617."
+    },
+    "sildenafil": {
+      "smiles": "CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)C)OCC)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 135398744."
+    },
+    "sinicuichi": {
+      "smiles": "COC1=C(C=C2C(=C1)[C@@H]3C[C@H](C[C@@H]4N3CCCC4)OC(=O)/C=C\\C5=CC2=C(C=C5)O)OC",
+      "represents": "Cryogenine (vertine)",
+      "source": "pubchem",
+      "confidence": "medium",
+      "note": "Sinicuichi = Heimia salicifolia; principal alkaloid commonly cited as cryogenine/vertine (PubChem CID 5315204)."
+    },
+    "sonata": {
+      "smiles": "CCN(C1=CC=CC(=C1)C2=CC=NC3=C(C=NN23)C#N)C(=O)C",
+      "represents": "Zaleplon",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Sonata is the brand name for zaleplon (PubChem CID 5719)."
+    },
+    "sulbutiamine": {
+      "smiles": "CC1=NC=C(C(=N1)N)CN(/C(=C(/SS/C(=C(/N(C=O)CC2=CN=C(N=C2N)C)\\C)/CCOC(=O)C(C)C)\\CCOC(=O)C(C)C)/C)C=O",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 3002120."
+    },
+    "tadalafil": {
+      "smiles": "CN1CC(=O)N2[C@@H](C1=O)CC3=C([C@H]2C4=CC5=C(C=C4)OCO5)NC6=CC=CC=C36",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 110635."
+    },
+    "tetrazepam": {
+      "smiles": "CN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CCCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 25215."
+    },
+    "th-pvp": {
+      "smiles": "CCCC(C(=O)C1=CC2=C(CCCC2)C=C1)N3CCCC3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 132989549."
+    },
+    "theanine": {
+      "smiles": "CCNC(=O)CC[C@@H](C(=O)O)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "L-theanine (PubChem CID 439378)."
+    },
+    "theobromine": {
+      "smiles": "CN1C=NC2=C1C(=O)NC(=O)N2C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 5429."
+    },
+    "thiopropamine": {
+      "smiles": "CC(CC1=CC=CS1)N",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 6484133."
+    },
+    "tilidine": {
+      "smiles": "CCOC(=O)[C@@]1(CCC=C[C@H]1N(C)C)C2=CC=CC=C2",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 30131."
+    },
+    "tizanidine": {
+      "smiles": "C1CN=C(N1)NC2=C(C=CC3=NSN=C32)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 5487."
+    },
+    "tobacco": {
+      "smiles": "CN1CCC[C@H]1C2=CN=CC=C2",
+      "represents": "Nicotine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Tobacco (Nicotiana); principal psychoactive constituent is nicotine (PubChem CID 89594)."
+    },
+    "troparil": {
+      "smiles": "CN1[C@H]2CC[C@@H]1[C@H]([C@H](C2)C3=CC=CC=C3)C(=O)OC",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 170832."
+    },
+    "u-51754": {
+      "smiles": "CN(C)C1CCCCC1N(C)C(=O)CC2=CC(=C(C=C2)Cl)Cl",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 21328050."
+    },
+    "ur-144": {
+      "smiles": "CCCCCN1C=C(C2=CC=CC=C21)C(=O)C3C(C3(C)C)(C)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 44626619."
+    },
+    "valerylfentanyl": {
+      "smiles": "CCCCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 21595398."
+    },
+    "w-15": {
+      "smiles": "C1CCN(/C(=N/S(=O)(=O)C2=CC=C(C=C2)Cl)/C1)CCC3=CC=CC=C3",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 13373538."
+    },
+    "yerba-mate": {
+      "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+      "represents": "Caffeine",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "Yerba mate (Ilex paraguariensis); principal psychoactive constituent is caffeine (PubChem CID 2519)."
+    },
+    "zolazepam": {
+      "smiles": "CC1=NN(C2=C1C(=NCC(=O)N2C)C3=CC=CC=C3F)C",
+      "represents": "",
+      "source": "pubchem",
+      "confidence": "high",
+      "note": "PubChem CID 35775."
+    }
+  }
+}

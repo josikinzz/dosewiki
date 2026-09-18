@@ -1,0 +1,115 @@
+# dose.wiki - Substance Information Database for Harm Reduction
+
+## Purpose
+dose.wiki is a harm reduction focused reference database providing dosage, duration,
+effects, and safety information for psychoactive substances. The goal is to provide
+accurate, evidence-based information to help people make informed decisions.
+
+## Site Structure
+
+### Main Pages
+- / - Home page with search and featured content
+- /substances - Index of publicly listed substances
+- /effects - Index of subjective effects
+- /interactions - Redirects to /substances
+- /reports - Structured trip report index
+- /blog - Editorial articles
+- /about - About, contributors, downloads, and reuse information
+- /data - Redirects to /about
+- /api/v1 - Public API documentation
+
+### Substance Articles
+Each publicly listed substance has a canonical page at /{substance-slug} (for
+example, /lsd, /mdma, and /ketamine). Slugs are lowercase and hyphenated. Known
+aliases redirect to the canonical substance slug.
+
+### Classification Pages
+- /category/{key} - Psychoactive category pages (e.g., /category/psychedelic)
+- /chemical-classes/{slug} - Chemical class pages (e.g., /chemical-classes/tryptamine)
+- /psychoactive/{slug} - Psychoactive class pages
+- /mechanism/{slug} - Mechanism of action pages
+- /effect/{slug} redirects to /effects/{slug}
+- /chemical/{key} redirects to /chemical-classes/{key}
+
+## Data Structure
+
+Each substance article contains structured data in the following format:
+
+### Identification
+- Common name, alternative names, and synonyms
+- IUPAC name and molecular formula
+- CAS number and SMILES notation
+
+### Classification
+- Psychoactive class (e.g., Psychedelic, Stimulant, Depressant)
+- Chemical class (e.g., Tryptamine, Phenethylamine, Benzodiazepine)
+
+### Dosage Information
+- Route-specific dosing (oral, insufflated, intravenous, etc.)
+- Dose ranges: threshold, light, moderate, strong, heavy
+- Bioavailability by route
+- Dosage notes and warnings
+
+### Duration Information
+- Route-specific timing
+- Stages: onset, come-up, peak, offset, after-effects
+- Total duration estimates
+
+### Effects
+- Subjective effects organized by category
+- Sensory, cognitive, and physical effects
+- Effect intensity notes
+
+### Pharmacology
+- Mechanism of action
+- Half-life and metabolism
+- Drug interactions
+
+### Safety Information
+- Harm potential assessment
+- Addiction liability
+- Toxicity information
+- Risk factors and contraindications
+
+### Legality
+- International scheduling status
+- Country-specific legal status
+
+### Citations
+- Academic and institutional sources
+- Links to primary research
+
+## Machine Access
+
+- /api/v1 - Human-readable API documentation
+- /api/v1/openapi.json - OpenAPI 3.1 specification
+- /api/v1/substances - Cursor-paginated JSON previews of publicly listed
+  substances; accepts `limit` (1-100) and the opaque `cursor` returned by the
+  previous page
+- /open-data/SubstanceIndex.json - Substance dataset download
+- /open-data/EffectIndex.json - Subjective-effect dataset download
+- /open-data/TripReports.json - Published trip-report dataset download
+- /sitemap.xml - Canonical public URL inventory
+- Substance and effect pages - Server-rendered content and schema.org JSON-LD
+
+There is no /open-data index page. The /data route redirects to the Downloads
+section on /about.
+
+## Content Guidelines
+
+- Information is provided for harm reduction purposes only
+- Content is sourced from academic literature and established databases
+- Dosage information should not be interpreted as recommendations
+- Users should always verify information from multiple sources
+
+## Technical Notes
+
+- The site uses server-rendered Next.js routes
+- Substance and effect pages expose readable HTML without client-side JavaScript
+- Substance pages include Article JSON-LD with public citation URLs
+- Index pages include ItemList JSON-LD
+- Sitemap available at /sitemap.xml
+
+## Contact
+
+For questions or corrections, please visit the About page at /about.

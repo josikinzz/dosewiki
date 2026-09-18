@@ -1,0 +1,14 @@
+/* The light colour scheme.
+
+   Every scheme-dependent value the Fun presentation needs lives in the palette
+   file (site-colors.css) as a --theme-* token with a dark value in :root and a
+   light value in the html[data-theme="light"] block. Component rules in
+   utilities-theme.css read those tokens once and render correctly in either
+   scheme, so this sheet carries no component selectors and no !important.
+
+   It still ships (and is still linked for light readers) so the attachment
+   contract in src/theme/appearanceSheets.ts and the cascade position it pins
+   for pro-theme.css stay unchanged. Rules that genuinely need a scheme
+   selector (structural switches such as the molecule colourway images and the
+   dark chrome islands) live beside their base rules in utilities-theme.css and
+   are the only scheme-keyed selectors src/theme/lightSheet.test.ts allows. */
