@@ -327,6 +327,26 @@ export function AboutArchivePreview({
               href={download.href}
             />
           ))}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3.5 pt-1 text-sm">
+            <a
+              href="https://github.com/josikinzz/dosewiki"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="theme-text-secondary hover:theme-text-primary inline-flex items-center gap-1.5"
+            >
+              <Icon icon="lucide:github" size={14} className="shrink-0" />
+              <span>{t("Source code on GitHub")}</span>
+            </a>
+            <a
+              href="https://github.com/josikinzz/dosewiki/blob/main/docs/api.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="theme-text-secondary hover:theme-text-primary inline-flex items-center gap-1.5"
+            >
+              <Icon icon="lucide:braces" size={14} className="shrink-0" />
+              <span>{t("Public API")}</span>
+            </a>
+          </div>
         </div>
 
         {moleculeStripVisible ? (
