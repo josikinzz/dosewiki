@@ -42,7 +42,7 @@ import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client
 import { resolveAdminIntentToken } from "../lib/data-ops-run-context.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const WRONG_DEPLOYMENT = "glad-minnow-656";
+const WRONG_DEPLOYMENT = "wrong-deployment-000";
 const UNREACHABLE = "http://127.0.0.1:9/";
 
 type Check = { family: string; check: string; pass: boolean; detail?: unknown };

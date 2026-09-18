@@ -12,7 +12,7 @@ const ALTERNATIVES = [
   // Campaign vocabulary that has no place in reader prose.
   String.raw`\b(fetched|inspected|reopened|re-?exported|tracker|packets?|dossier|orchestrator|refuter|subagent|worker|uncited|repaired|refuted|refutation)\b`,
   String.raw`\bstage\s[ab]\b`,
-  String.raw`contentHash|data\.cloud|glad-minnow|citationNeeded|canonicalStatus`,
+  String.raw`contentHash|data\.cloud|citationNeeded|canonicalStatus`,
   String.raw`\bcanonical\b(?!\s*/?\s*(connectivity\s*/?\s*)?SMILES)`,
   String.raw`\bnormali[sz]ed\sto\b`,
   // Talking about the entry instead of the law.
