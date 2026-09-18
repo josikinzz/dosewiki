@@ -27,7 +27,6 @@ const config = {
         "scripts/perf/*.mjs",
       ],
       project: [
-        "auth.ts",
         "src/middleware.ts",
         "*.config.{js,mjs,cjs,ts,mts,cts}",
         "server/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",

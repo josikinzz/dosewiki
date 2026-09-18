@@ -109,7 +109,7 @@ The current tab registry is `TOOL_TAB_ITEMS` in `src/features/dev/pages/DevModeP
 
 ### Authentication and writes
 
-- Auth.js configuration: `auth.ts`
+- Auth.js configuration: `lib/auth/authOptions.ts`
 - Runtime auth policy: `lib/auth/runtimePolicy.ts`
 - Route gate: `src/middleware.ts`
 - Role source: Postgres `memberships`

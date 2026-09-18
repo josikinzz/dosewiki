@@ -38,7 +38,7 @@ process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
 
 import { api } from "../../lib/postgres/runtime/api";
-import { authOptions, authorizeCredentials } from "../../auth";
+import { authOptions, authorizeCredentials } from "../../lib/auth/authOptions";
 import {
   consumePasswordReset,
   getCredentialsByUsername,

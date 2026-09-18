@@ -31,7 +31,7 @@
         "./lib/*"
       ],
       "@auth": [
-        "./auth.ts"
+        "./lib/auth/authOptions.ts"
       ],
       "@server/*": [
         "./lib/*"

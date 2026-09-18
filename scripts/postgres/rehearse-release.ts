@@ -41,7 +41,7 @@ import { Pool } from "pg";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api";
 import { api } from "../../lib/postgres/runtime/api";
 import { createDataClient, postgresFingerprintFromUrl, type DataClient } from "../lib/data-client.ts";
-import { authOptions, authorizeCredentials } from "../../auth";
+import { authOptions, authorizeCredentials } from "../../lib/auth/authOptions";
 import { hashPassword } from "../../lib/auth/passwords";
 import { DATA_WRITES_FROZEN_CODE, isDataWriteFrozenError } from "../../lib/runtime/dataWriteFreeze";
 import {

@@ -20,7 +20,7 @@ vi.mock("./passwords", async (importOriginal) => {
 
 import type * as PasswordsModule from "./passwords";
 import { hashPassword, UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./passwords";
-import { authOptions, authorizeCredentials } from "../../auth";
+import { authOptions, authorizeCredentials } from "./authOptions";
 
 const PASSPHRASE = "a passphrase of twelve+";
 

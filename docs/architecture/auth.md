@@ -16,7 +16,7 @@ handlers live in `server/`; `lib/data/` owns public server adapters and
 ## Main Entry Points
 
 - App shell: `src/app/layout.tsx`
-- Auth config: `auth.ts`
+- Auth config: `lib/auth/authOptions.ts`
 - Middleware: `src/middleware.ts`
 - Protected API handlers: `src/app/api/`
 - Shared server GitHub write helpers: `lib/server/github/`

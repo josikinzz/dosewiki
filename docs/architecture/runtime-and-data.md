@@ -617,7 +617,7 @@ immutable, so propagation is governed by page revalidation rather than stale ima
 
 ### Auth.js
 
-Auth.js configuration lives in `auth.ts`.
+Auth.js configuration lives in `lib/auth/authOptions.ts`.
 
 Sign-in is a single credentials provider: username + password. Accounts live in
 the Postgres `memberships` table with a scrypt password hash

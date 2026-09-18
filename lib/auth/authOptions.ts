@@ -1,14 +1,14 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { approvedGlossaryLocales, resolveSessionRole } from "./src/lib/auth/roles";
+import { approvedGlossaryLocales, resolveSessionRole } from "@/lib/auth/roles";
 import {
   getCredentialsByUsername,
   getMembershipByEmail,
   touchSignIn,
-} from "./lib/auth/memberships";
-import { UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./lib/auth/passwords";
-import { authSecret } from "./lib/auth/runtimePolicy";
-import { safeAuthRedirect } from "./src/lib/auth/returnPath";
+} from "./memberships";
+import { UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./passwords";
+import { authSecret } from "./runtimePolicy";
+import { safeAuthRedirect } from "@/lib/auth/returnPath";
 
 type AuthorizedMember = {
   id: string;

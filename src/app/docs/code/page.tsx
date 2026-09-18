@@ -512,15 +512,6 @@ export default async function DocsCodePage() {
               · vendored molecule-rendering fork
             </span>
             {`
-├── `}
-            <span className="font-semibold" style={{ color: DOMAIN_VAR.blue }}>
-              auth.ts
-            </span>
-            {`                   `}
-            <span className="theme-text-faint">
-              · next-auth sign-in configuration
-            </span>
-            {`
 ├── public/                   `}
             <span className="theme-text-faint">
               · molecule images, flags, favicons

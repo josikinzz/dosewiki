@@ -21,7 +21,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@lib/*": ["./lib/*"],
-      "@auth": ["./auth.ts"],
+      "@auth": ["./lib/auth/authOptions.ts"],
       "@server/*": ["./lib/*"]
     }
   },

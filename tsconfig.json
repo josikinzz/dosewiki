@@ -25,10 +25,10 @@
       "@site-font": ["./src/app/_fonts/dosewiki"],
       "@site-styles": ["./src/app/_styles/dosewiki"],
       "@lib/*": ["./lib/*"],
-      "@auth": ["./auth.ts"],
+      "@auth": ["./lib/auth/authOptions.ts"],
       "@server/*": ["./lib/*"]
     }
   },
-  "include": ["next-env.d.ts", "src", "auth.ts", "lib", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "src", "lib", ".next/types/**/*.ts"],
   "references": [{ "path": "./scripts/config/tsconfig.node.json" }]
 }
