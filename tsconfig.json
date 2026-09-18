@@ -30,5 +30,5 @@
     }
   },
   "include": ["next-env.d.ts", "src", "auth.ts", "lib", ".next/types/**/*.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./scripts/config/tsconfig.node.json" }]
 }

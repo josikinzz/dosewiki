@@ -1,10 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
-export const workflowTestRoots = Object.freeze([
-  "scripts",
-  path.join("tools", "pi-citation-workflow"),
-]);
+export const workflowTestRoots = Object.freeze(["scripts"]);
 
 function walkTestFiles(repoRoot, relativeDir, files) {
   const directory = path.join(repoRoot, relativeDir);

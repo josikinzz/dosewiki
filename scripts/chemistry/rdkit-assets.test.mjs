@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-import { makeLoaderCspCompatible } from "../../tools/copyRdkitAssets.mjs";
+import { makeLoaderCspCompatible } from "../tools/copyRdkitAssets.mjs";
 
 const loaderPath = new URL(
   "../../node_modules/@rdkit/rdkit/dist/RDKit_minimal.js",

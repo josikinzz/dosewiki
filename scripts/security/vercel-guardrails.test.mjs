@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Linter } from 'eslint';
-import guardrails from '../../eslint-plugins/vercel-guardrails/index.js';
+import guardrails from '../eslint-plugins/vercel-guardrails/index.js';
 
 function lint(code, filename, rule, options = []) {
   const linter = new Linter({ cwd: '/repo' });

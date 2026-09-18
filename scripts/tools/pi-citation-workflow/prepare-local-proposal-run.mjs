@@ -32,9 +32,9 @@ import {
   sha256Text,
   topLevelFieldHashes,
   verifyManifest,
-} from "../../scripts/batch/proposal/core.mjs";
+} from "../../batch/proposal/core.mjs";
 
-const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const WORKBENCH_ENV = "DOSEWIKI_CITATION_WORKBENCH";
 
 function requireWorkbench(explicit) {
@@ -487,7 +487,7 @@ export function prepareLocalProposalRun({
 
 export function localProposalHelpText() {
   return `Prepare a permanently local citation run from one immutable proposal.\n\n` +
-    `Usage:\n  node tools/pi-citation-workflow/prepare-local-proposal-run.mjs \\\n    --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<digest>/proposal.json\n\n` +
+    `Usage:\n  node scripts/tools/pi-citation-workflow/prepare-local-proposal-run.mjs \\\n    --proposal notes-and-plans/exports/batch-proposals/<slug>/<section>/<digest>/proposal.json\n\n` +
     `The bridge creates a review-only workbench run and has no write, confirmation, queue, or apply flags.\n`;
 }
 

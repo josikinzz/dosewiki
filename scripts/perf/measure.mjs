@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * tests/perf/measure.mjs: reproducible cold-load page metrics for the perf loop.
+ * scripts/perf/measure.mjs: reproducible cold-load page metrics for the perf loop.
  *
  * Drives system Google Chrome over a raw Chrome DevTools Protocol WebSocket.
  * No third-party automation dependency is required.
@@ -28,7 +28,7 @@
  * clientNavigation.commitMs is a diagnostic route-commit proxy, not a field metric.
  *
  * Usage:
- *   node tests/perf/measure.mjs --url=http://localhost:3000/ --runs=7 --revision=BUILD_ID --family=home
+ *   node scripts/perf/measure.mjs --url=http://localhost:3000/ --runs=7 --revision=BUILD_ID --family=home
  */
 
 import { spawn } from "node:child_process";

@@ -9,7 +9,7 @@
  * JSON payloads the browser receives.
  *
  *   npm run perf:replications -- --url=http://localhost:3000
- *   node --expose-gc tests/perf/replications.mjs --url=http://localhost:3000
+ *   node --expose-gc scripts/perf/replications.mjs --url=http://localhost:3000
  */
 
 import { performance } from "node:perf_hooks";

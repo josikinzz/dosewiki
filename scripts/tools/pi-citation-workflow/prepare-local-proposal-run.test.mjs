@@ -20,7 +20,7 @@ import {
   canonicalHash,
   sha256Text,
   topLevelFieldHashes,
-} from "../../scripts/batch/proposal/core.mjs";
+} from "../../batch/proposal/core.mjs";
 import {
   canonicalizeSourcePacketReferenceIds,
   parseLocalProposalArgs,

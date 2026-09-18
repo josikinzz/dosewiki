@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * tests/perf/bundle-size.mjs — deterministic build-side bundle metric.
+ * scripts/perf/bundle-size.mjs: deterministic build-side bundle metric.
  *
  * Next.js 16's build table no longer prints "First Load JS", so we recompute the
  * shared client JS baseline (the chunks every App Router route downloads on first
@@ -9,7 +9,7 @@
  *
  * Reproducible: same source + same build = same numbers. Run after `npm run build`.
  *
- * Usage: node tests/perf/bundle-size.mjs
+ * Usage: node scripts/perf/bundle-size.mjs
  */
 
 import { readFileSync, statSync, existsSync, readdirSync } from "node:fs";

@@ -1310,7 +1310,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Tooling + safety: body",
     "group": "Docs · Code",
-    "body": "Bun manages packages; Vitest runs the tests (~500 test files in the recorded inventory). Zod schemas in `src/schema/` and `schemas/` reject invalid article structures before storage or rendering. **Structural validation does not establish factual accuracy.** Molecule diagrams use the vendored OpenChemLib fork in `vendor/openchemlib`, checked by `scripts/chemistry/verify-openchemlib-fork.mjs`."
+    "body": "Bun manages packages; Vitest runs the tests (~500 test files in the recorded inventory). Zod schemas in `src/schema/` and `data/schemas/` reject invalid article structures before storage or rendering. **Structural validation does not establish factual accuracy.** Molecule diagrams use the vendored OpenChemLib fork in `vendor/openchemlib`, checked by `scripts/chemistry/verify-openchemlib-fork.mjs`."
   },
   {
     "key": "docs-code-s4-intro",

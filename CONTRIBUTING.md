@@ -46,7 +46,7 @@ aggregate before opening a pull request:
 | `npm run lint` | ESLint for `src/`, `lib/`, and `auth.ts` |
 | `npm run verify:fast` | `test` plus `typecheck` |
 | `npm run verify:app` | OpenChemLib fork check, tests, lint, and build |
-| `npm run test:workflow` | Script and tool tests under `scripts/**` and `tools/**` |
+| `npm run test:workflow` | Script and tool tests under `scripts/**` |
 | `npm run verify:workflow` | Workflow tests, script lint, script and handler type checks, cleanup metrics, and data provenance |
 | `npm run verify:all` | Both aggregates; use when app and workflow surfaces both changed |
 | `npm run theme:tokens:check`, `npm run theme:classes:check` | Theme token and utility class audits for UI changes |

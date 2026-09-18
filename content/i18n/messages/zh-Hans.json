@@ -525,7 +525,7 @@
   "Buccal": "颊含",
   "built by": "由以下团队构建",
   "Bulgaria": "保加利亚",
-  "Bun manages packages; Vitest runs the tests (~500 test files in the recorded inventory). Zod schemas in `src/schema/` and `schemas/` reject invalid article structures before storage or rendering. **Structural validation does not establish factual accuracy.** Molecule diagrams use the vendored OpenChemLib fork in `vendor/openchemlib`, checked by `scripts/chemistry/verify-openchemlib-fork.mjs`.": "Bun 管理依赖包;Vitest 运行测试(记录的清单中约有 500 个测试文件)。`src/schema/` 和 `schemas/` 中的 Zod 模式在存储或渲染前拒绝无效的文章结构。**结构校验并不能确立事实准确性。**分子结构图使用 `vendor/openchemlib` 中内嵌的 OpenChemLib 分支,由 `scripts/chemistry/verify-openchemlib-fork.mjs` 校验。",
+  "Bun manages packages; Vitest runs the tests (~500 test files in the recorded inventory). Zod schemas in `src/schema/` and `data/schemas/` reject invalid article structures before storage or rendering. **Structural validation does not establish factual accuracy.** Molecule diagrams use the vendored OpenChemLib fork in `vendor/openchemlib`, checked by `scripts/chemistry/verify-openchemlib-fork.mjs`.": "Bun 管理依赖包;Vitest 运行测试(记录的清单中约有 500 个测试文件)。`src/schema/` 和 `schemas/` 中的 Zod 模式在存储或渲染前拒绝无效的文章结构。**结构校验并不能确立事实准确性。**分子结构图使用 `vendor/openchemlib` 中内嵌的 OpenChemLib 分支,由 `scripts/chemistry/verify-openchemlib-fork.mjs` 校验。",
   "Bun, Vitest, Zod": "Bun、Vitest、Zod",
   "Butyric acid": "丁酸",
   "by": "作者：",

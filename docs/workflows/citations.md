@@ -76,7 +76,7 @@ location comes from `DOSEWIKI_CITATION_WORKBENCH` or an explicit path argument;
 | `npm run citations:archive-production-dataset` | Snapshot the production dataset before a rollout batch |
 | `npm run citations:audit-subsections` | Read-only audit of citation coverage per subsection |
 
-Run orchestration is `node tools/pi-citation-workflow/pi-run-manifest.mjs`
+Run orchestration is `node scripts/tools/pi-citation-workflow/pi-run-manifest.mjs`
 (`$MANIFEST` below). `scripts/lib/citation-command-surface.mjs` is the
 machine-readable policy for every citation command.
 
@@ -104,7 +104,7 @@ immutable proposal identity across retries.
 
 A coordinator (a person or automation) drives the manifest tool; research
 workers write section artifacts and return a handoff validated against
-`tools/pi-citation-workflow/section-worker-handoff.schema.json`.
+`scripts/tools/pi-citation-workflow/section-worker-handoff.schema.json`.
 
 ### 1. Initialize and preflight
 

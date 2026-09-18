@@ -37,9 +37,9 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 | `src/features/` | Feature UI and editor modules |
 | `lib/` | Runtime, server, Postgres, auth, and Next adapters |
 | `server/` | Authored Postgres schema, handlers, and domain contracts |
-| `scripts/` | Guarded operator, migration, generation, and analysis workflows |
+| `scripts/` | Guarded operator, migration, generation, and analysis workflows, plus `config/` (secondary tsconfig and Vitest configs), `tools/`, `perf/`, `eslint-plugins/`, and `deploy/` |
 | `src/data/` | Content builders, static configuration, and generated helpers |
-| `data/` | Tracked datasets, third-party inputs, and the lineage manifest |
+| `data/` | Tracked datasets, `schemas/` for the hand-maintained index files, third-party inputs, and the lineage manifest |
 | `docs/` | Contributor documentation ([index](docs/README.md)): architecture appendices, ADRs, design, operations runbooks, and editorial workflows |
 
 Use [project layout](docs/architecture/project-layout.md) for detailed ownership, [runtime and data](docs/architecture/runtime-and-data.md) for the data model and flows, [operations and direction](docs/architecture/operations-and-direction.md) for quality gates, and [scripts README](scripts/README.md) for script-wide execution rules.

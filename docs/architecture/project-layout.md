@@ -17,7 +17,13 @@ src/utils/      Routing, SEO, tag, slug, and interaction helpers
 lib/            Shared server helpers, including the production Postgres runtime
 server/         Authored Postgres callable handlers, document schema, and domain helpers
 scripts/        Local operational scripts for migration, generation, parsing, and audits
+scripts/config/ Secondary tsconfig and Vitest configs for scripts and route handlers
+scripts/tools/  RDKit asset copier and the Pi citation workflow bridge
+scripts/perf/   Cold-load, bundle-size, and replication transport harnesses
+scripts/eslint-plugins/  Local ESLint plugin loaded by eslint.config.mjs
+scripts/deploy/ Vercel build, route warming, and the analytics redirect project config
 data/           Tracked datasets, third-party inputs, and the generated-data lineage manifest
+data/schemas/   JSON Schemas for the hand-maintained index files
 content/        Authored prose and prompts loaded by code: About page, copy blocks, prompts, taxonomy text, UI catalogs, source corpora
 docs/           Contributor documentation: architecture, ADRs, design, operations, workflows
 vendor/         Repository-owned third-party forks with explicit provenance and rebuild contracts
@@ -48,6 +54,7 @@ Feature folders must be reachable from the active App Router tree or explicitly 
 
 - `scripts/postgres/` owns the production database migration, import, rehearsal, and rollback-export tooling.
 - `scripts/batch/`, `scripts/parsers/`, `scripts/migrate/`, and `scripts/data-ops/` are operational tooling, not public runtime code.
+- `scripts/config/` holds `tsconfig.scripts.json`, `tsconfig.handlers.json`, `tsconfig.node.json`, and `vitest.scripts.config.ts`; `package.json` scripts pass them explicitly with `-p` or `-c`.
 - `src/schema/substance/contract.ts` is the shared substance article contract adapter used before article ingestion and by contract tests.
 - `src/data/schema/` contains generated and config-heavy schema helper code; update it through the schema generator when the source schema changes.
 - `lib/postgres/runtime/` owns the native callable API, validators, schema definitions, and execution boundary; `server/` contains the authored handlers and domain schema.

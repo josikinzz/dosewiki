@@ -12,7 +12,7 @@ import {
   type CleanupMetricCategory,
 } from "./cleanup-metrics-policy.ts";
 
-const ROOTS = ["src", "lib", "api", "server", "scripts", "eslint-plugins"] as const;
+const ROOTS = ["src", "lib", "api", "server", "scripts"] as const;
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 const IGNORED_DIRS = new Set(["node_modules", ".next", "dist", "coverage"]);
 

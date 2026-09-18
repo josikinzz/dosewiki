@@ -16,7 +16,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const distDir = join(repoRoot, "node_modules", "@rdkit", "rdkit", "dist");
 const outDir = join(repoRoot, "public", "rdkit");
 

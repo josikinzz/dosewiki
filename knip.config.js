@@ -23,21 +23,18 @@ const config = {
     ".": {
       entry: [
         ...executableScripts,
-        "tools/pi-citation-workflow/citation-campaign.mjs",
-        "tests/perf/*.mjs",
+        "scripts/tools/pi-citation-workflow/citation-campaign.mjs",
+        "scripts/perf/*.mjs",
       ],
       project: [
         "auth.ts",
         "src/middleware.ts",
         "*.config.{js,mjs,cjs,ts,mts,cts}",
         "server/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
-        "eslint-plugins/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "lib/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "runs/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "scripts/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "src/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,css}",
-        "tests/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
-        "tools/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
       ],
       ignoreDependencies: ["raw-loader"],
       ignoreBinaries: ["ffmpeg", "ffprobe", "identify", "python3.13"],
@@ -53,12 +50,11 @@ const config = {
         entry: "tailwind.config.mjs",
       },
       vitest: {
-        config: ["vitest.config.ts", "scripts/test/vitest.workflow.config.ts"],
+        config: ["vitest.config.ts", "scripts/config/vitest.scripts.config.ts", "scripts/test/vitest.workflow.config.ts"],
         entry: [
           "src/**/*.{test,spec}.{ts,tsx}",
           "lib/**/*.{test,spec}.{ts,tsx}",
           "scripts/**/*.{test,spec}.{js,mjs,cjs,ts,tsx}",
-          "tools/**/*.{test,spec}.{js,mjs,cjs,ts,tsx}",
         ],
       },
     },

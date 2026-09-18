@@ -96,7 +96,11 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/translation/` | Locale translation, glossaries, packs, mirrors, and publication index backfill. |
 | `scripts/util/` | Local artifact hygiene and small one-file utilities. |
 | `scripts/replications/` | Replication corpus maintenance: provenance audits, rights metadata, R2 renditions and delivery worker, galleries, slug and credit corrections. |
-| `tools/pi-citation-workflow/` | Citation run manifest, campaign status, and local proposal run preparation. |
-| `tools/copyRdkitAssets.mjs` | Copies the RDKit runtime into `public/rdkit/`. |
+| `scripts/config/` | Secondary TypeScript and Vitest configs for scripts and route handlers. |
+| `scripts/deploy/analytics-redirect/` | Vercel config for the analytics redirect project. |
+| `scripts/eslint-plugins/` | Local ESLint plugin loaded by `eslint.config.mjs`. |
+| `scripts/perf/` | Cold-load, bundle-size, and replication transport measurement harnesses. |
+| `scripts/tools/pi-citation-workflow/` | Citation run manifest, campaign status, and local proposal run preparation. |
+| `scripts/tools/copyRdkitAssets.mjs` | Copies the RDKit runtime into `public/rdkit/`. |
 
 Root-level scripts (`scripts/*.mjs`, `scripts/parse-sources*.ts`) are single-purpose maintenance entry points; read the header comment before running one.

@@ -92,7 +92,7 @@ Every test needs a stable placement and an explicit reason to exist. Reviewers s
 - Tests that need external artifacts ship a small committed or temp-generated synthetic fixture that preserves the real digest and precondition logic. A test may not silently skip because a workstation path, campaign directory, or private artifact is absent.
 - Retire completed one-time workflows and their tests only after checking active consumers and verifying private recovery copies. Keep a fail-closed command boundary only while a concrete consumer still requires it.
 - UI tests query by role, accessible name, state, focus, visibility, and rendered output. A class assertion is allowed only when that class is a documented public style contract in [the UI kit](../design/ui-kit.md).
-- Runners stay as they are: root Vitest for `src/**` and `lib/**`, `npm run test:workflow` for `scripts/**` and `tools/**`, `npm run openchemlib:test` for the vendored fork. No new runner or convention is introduced for a single test.
+- Runners stay as they are: root Vitest for `src/**` and `lib/**`, `npm run test:workflow` for `scripts/**`, `npm run openchemlib:test` for the vendored fork. No new runner or convention is introduced for a single test.
 
 `npm run test:evidence` writes `.test-evidence/report.md` (and `report.json`) with per-file runtime for every lane, the skipped suites and cases, `setup:rdkit-or-wasm` tags for files that load RDKit, OpenChemLib, or wasm, and, with `--runs N`, a flake classification that separates files whose outcome differed across runs from files that failed every run. It exits 2 when a safety-listed fixture-backed test skips. Slow files are ranked so their setup cost can be shared or reduced; no test is deleted only because it is slow.
 

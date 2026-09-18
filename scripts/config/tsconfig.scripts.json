@@ -22,7 +22,7 @@
     "types": [
       "node"
     ],
-    "baseUrl": ".",
+    "baseUrl": "../..",
     "paths": {
       "@/*": [
         "./src/*"
@@ -39,14 +39,14 @@
     }
   },
   "include": [
-    "scripts/**/*.ts"
+    "../../scripts/**/*.ts"
   ],
   "files": [
-    "src/types/next-auth.d.ts"
+    "../../src/types/next-auth.d.ts"
   ],
   "exclude": [
-    "node_modules",
-    "scripts/deprecated/**",
-    "scripts/**/archive/**"
+    "../../node_modules",
+    "../../scripts/deprecated/**",
+    "../../scripts/**/archive/**"
   ]
 }

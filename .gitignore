@@ -20,8 +20,8 @@ public/share/
 # Per-file runtime and flake evidence written by `npm run test:evidence`.
 .test-evidence/
 data/.lineage/
-# Vendored RDKit.js runtime, copied from node_modules by scripts/build/copyRdkitAssets.mjs
-# on predev/prebuild — reproducible, so not committed.
+# Vendored RDKit.js runtime, copied from node_modules by scripts/tools/copyRdkitAssets.mjs
+# on predev/prebuild: reproducible, so not committed.
 public/rdkit/
 # Build-generated immutable social cards; tracked manifests own their URLs.
 public/images/social/substances/*.jpg

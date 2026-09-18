@@ -17,7 +17,7 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "types": ["node", "next"],
-    "baseUrl": ".",
+    "baseUrl": "../..",
     "paths": {
       "@/*": ["./src/*"],
       "@lib/*": ["./lib/*"],
@@ -25,6 +25,6 @@
       "@server/*": ["./lib/*"]
     }
   },
-  "include": ["server/**/*.ts", "lib/postgres/runtime/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["../../server/**/*.ts", "../../lib/postgres/runtime/**/*.ts"],
+  "exclude": ["../../node_modules"]
 }

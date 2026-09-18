@@ -480,6 +480,7 @@ export default async function DocsCodePage() {
 │   ├── parsers/  batch/  citations/  prepopulate/
 │   ├── replications/  contributors/  chemistry/  legality/
 │   ├── data-ops/  migrate/  seed/  build/  deploy/  reports/
+│   ├── tools/  perf/  config/  eslint-plugins/
 │   └── lib/                  `}
             <span className="theme-text-faint">
               · CLI plumbing, OpenRouter client

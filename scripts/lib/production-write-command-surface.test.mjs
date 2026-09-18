@@ -14,6 +14,7 @@ const scriptExtensions = new Set([".cjs", ".js", ".mjs", ".ts", ".tsx"]);
 
 function walk(dir, files = []) {
   for (const entry of readdirSync(dir)) {
+    if (entry === "node_modules") continue;
     const path = resolve(dir, entry);
     const relativePath = relative(repoRoot, path);
     if (

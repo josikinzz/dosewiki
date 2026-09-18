@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import globals from 'globals';
-import vercelGuardrails from './eslint-plugins/vercel-guardrails/index.js';
+import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 
 export default tseslint.config(
   {
@@ -18,7 +18,7 @@ export default tseslint.config(
       '*.config.js',
       '*.config.mjs',
       '*.config.ts',
-      'eslint-plugins/**',
+      'scripts/eslint-plugins/**',
     ],
   },
   js.configs.recommended,
