@@ -74,7 +74,11 @@ function stripNonMeasurementDigits(text) {
     .replace(CITE_MARKER, " ")
     .replace(UNIT_SUFFIX, "$1 $2 ")
     .replace(LOCANT_SET, " ")
-    .replace(/(?<![:\d])\d+[.,]?\d*\s*-\s*(?=\p{Script=Han})/gu, " ")
+    // Serotonin is conventionally rendered as 5-羟色胺 in Chinese even when
+    // the English source says only "serotonin". Do not generalize this to
+    // every digit before Han text: that hid real title numbers (`1 - 标题`)
+    // and chemical locants translated as `3-和 6-葡萄糖醛酸苷`.
+    .replace(/(?<![:\d])5-(?=羟色胺)/gu, " ")
     .replace(/\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ")
     .replace(/[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ");
 }

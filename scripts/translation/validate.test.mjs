@@ -45,6 +45,29 @@ test("the Chinese rendering of serotonin does not read as an added dose", () => 
   assert.deepEqual(defects, []);
 });
 
+test("spaced title numbers before Chinese text remain measurable", () => {
+  const verdict = validateSegment({
+    source: "Ambien 1 - Experiments 1 - Feedback",
+    target: "Ambien 1 - 实验 1 - 欢迎反馈",
+    locale: zh,
+  });
+  assert.doesNotMatch(verdict.defects.join(","), /NUMBER_/);
+});
+
+test("translated chemical locants before Chinese conjunctions remain measurable", () => {
+  const verdict = validateSegment({
+    source: "the corresponding 3- and 6-glucuronides",
+    target: "相应的 3-和 6-葡萄糖醛酸苷",
+    locale: zh,
+  });
+  assert.equal(verdict.defects.includes(DEFECT_CODES.NUMBER_MISMATCH), false);
+  assert.equal(isBlocking(verdict.defects), false);
+  assert.deepEqual(
+    compareNumbers("the corresponding 3- and 6-glucuronides", "相应的和 6-葡萄糖醛酸苷").dropped,
+    ["3"],
+  );
+});
+
 test("a small integer translated as a Chinese numeral has survived", () => {
   const { dropped } = compareNumbers("Narcotics in Category 1", "第一类麻醉品");
 
