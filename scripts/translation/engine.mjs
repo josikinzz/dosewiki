@@ -7,6 +7,7 @@
  */
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import { buildBatchPrompt } from "./locales.mjs";
+import { markupTokens } from "./markup.mjs";
 import { validateSegment, isBlocking, parseModelJson, DEFECT_CODES } from "./validate.mjs";
 
 export const DEFAULT_MODEL = "z-ai/glm-5.3-flash";
@@ -23,6 +24,53 @@ const TRANSPORT_ATTEMPTS = 4;
  * Node and Bun both honour it. Each timed-out attempt is aborted before retry.
  */
 const ATTEMPT_TIMEOUT_MS = 180_000;
+
+const PROTECTED_TOKEN_PREFIX = "⟪wprotect";
+
+function alphabeticIndex(index) {
+  let value = index + 1;
+  let label = "";
+  while (value > 0) {
+    value -= 1;
+    label = String.fromCharCode(97 + (value % 26)) + label;
+    value = Math.floor(value / 26);
+  }
+  return label;
+}
+
+/**
+ * Keep syntax and digits out of the model's editing surface. Long legal text,
+ * chemistry names, citation ids, and Markdown URLs otherwise invite tiny
+ * punctuation or digit changes even after a strict retry. The opaque tokens
+ * contain no digits, so the number validator still checks the restored text.
+ */
+export function protectModelTokens(source) {
+  const replacements = [];
+  const protect = (value) => {
+    const token = `${PROTECTED_TOKEN_PREFIX}${alphabeticIndex(replacements.length)}⟫`;
+    replacements.push([token, value]);
+    return token;
+  };
+
+  let protectedSource = source
+    .replace(/\[cite:[^\]]+\]|\[citation-needed\]/g, protect)
+    .replace(/(?<=\])\([^\s)]+(?:\s+"[^"]*")?\)/g, protect)
+    .replace(/\{\{\s*[A-Za-z0-9_]+\s*\}\}/g, protect);
+
+  for (const token of [...new Set(markupTokens(protectedSource))].sort((a, b) => b.length - a.length)) {
+    protectedSource = protectedSource.replaceAll(token, () => protect(token));
+  }
+  protectedSource = protectedSource.replace(/[\uff10-\uff19\d]+(?:[.,][\uff10-\uff19\d]+)*/g, protect);
+
+  return {
+    source: protectedSource,
+    restore(target) {
+      let restored = target;
+      for (const [token, value] of replacements) restored = restored.split(token).join(value);
+      return restored;
+    },
+  };
+}
 
 function sleep(ms, signal) {
   signal?.throwIfAborted();
@@ -139,7 +187,13 @@ export async function sendBatch({ locale, model, apiKey, userMessage, temperatur
 
 export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, temperature, signal }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
-  const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
+  const protections = new Map(units.map((unit) => [unit.hash, protectModelTokens(unit.source)]));
+  const payloadUnits = units.map((unit) => ({
+    ...unit,
+    originalSource: unit.source,
+    source: protections.get(unit.hash).source,
+    id: idByHash.get(unit.hash),
+  }));
   const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds });
 
   const response = await sendBatch({ locale, model, apiKey, userMessage, temperature, signal });
@@ -156,10 +210,12 @@ export async function translateBatch({ units, locale, glossary, glosses, kinds, 
 
   return {
     usage,
-    results: payloadUnits.map((unit) => ({
-      unit,
-      target: parsed.value[unit.id] ?? null,
-      parseCode: parsed.value[unit.id] === undefined ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
+    results: payloadUnits.map((payloadUnit) => ({
+      unit: units.find((unit) => unit.hash === payloadUnit.hash),
+      target: parsed.value[payloadUnit.id] === undefined
+        ? null
+        : protections.get(payloadUnit.hash).restore(parsed.value[payloadUnit.id]),
+      parseCode: parsed.value[payloadUnit.id] === undefined ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
     })),
   };
 }

@@ -252,10 +252,17 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
     );
   }
 
+  if (units.some((unit) => unit.source.includes("⟪wprotect"))) {
+    lines.push(
+      "",
+      "Opaque ⟪wprotect…⟫ tokens represent exact source syntax or digits. Copy every token exactly once and place it where the translated sentence needs it. Never alter, translate, duplicate, or omit a token.",
+    );
+  }
+
   const contexts = new Set(units.map((unit) => unit.contextKind ?? "any"));
   const injected = Object.entries(glossary)
     .filter(([term]) => kindInContext(kinds[term] ?? "", contexts))
-    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.source)));
+    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.originalSource ?? unit.source)));
   const glossed = new Set(
     injected
       .filter(([term]) => glosses[term])
