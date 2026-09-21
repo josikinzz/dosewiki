@@ -14,7 +14,7 @@ export const APP_TITLE = "dose.wiki locale translation";
 export const DEFAULT_BATCH_CHARS = 6000;
 
 /** Validation retries per segment, including the first attempt. */
-export const MAX_ATTEMPTS = 3;
+export const MAX_ATTEMPTS = 5;
 const TRANSPORT_ATTEMPTS = 4;
 
 /**
@@ -169,6 +169,9 @@ export function retryNoteFor(defects) {
   if (defects.includes(DEFECT_CODES.NUMBER_MISMATCH)) {
     notes.push("a number, dose, or unit changed; copy every digit and unit exactly");
   }
+  if (defects.includes(DEFECT_CODES.NUMBER_ADDED)) {
+    notes.push("the translation introduced a number that is not in the source; do not add any digits, list numbers, dates, doses, or units");
+  }
   if (defects.includes(DEFECT_CODES.SCRIPT_LEAK)) {
     notes.push("a Traditional character appeared; emit Simplified characters only");
   }
@@ -177,6 +180,9 @@ export function retryNoteFor(defects) {
   }
   if (defects.includes(DEFECT_CODES.MARKUP_LOSS)) {
     notes.push("an inline [tag] was dropped, added, or altered; reproduce every bracket tag exactly");
+  }
+  if (defects.includes(DEFECT_CODES.GLOSSARY_MISS)) {
+    notes.push("an approved glossary rendering was missed; use each required glossary target exactly as provided, without synonyms or spelling changes");
   }
   if (defects.includes(DEFECT_CODES.PLACEHOLDER_LOSS)) {
     notes.push("a {{token}} was dropped or altered; copy every token exactly, braces included");
