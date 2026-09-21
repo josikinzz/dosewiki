@@ -25,7 +25,7 @@ const TRANSPORT_ATTEMPTS = 4;
  */
 const ATTEMPT_TIMEOUT_MS = 180_000;
 
-const PROTECTED_TOKEN_PREFIX = "⟪wprotect";
+const PROTECTED_TOKEN_PREFIX = "{{DWPROTECT";
 
 function alphabeticIndex(index) {
   let value = index + 1;
@@ -47,15 +47,15 @@ function alphabeticIndex(index) {
 export function protectModelTokens(source) {
   const replacements = [];
   const protect = (value) => {
-    const token = `${PROTECTED_TOKEN_PREFIX}${alphabeticIndex(replacements.length)}⟫`;
+    const token = `${PROTECTED_TOKEN_PREFIX}${alphabeticIndex(replacements.length).toUpperCase()}}}`;
     replacements.push([token, value]);
     return token;
   };
 
   let protectedSource = source
+    .replace(/\{\{\s*[A-Za-z0-9_]+\s*\}\}/g, protect)
     .replace(/\[cite:[^\]]+\]|\[citation-needed\]/g, protect)
-    .replace(/(?<=\])\([^\s)]+(?:\s+"[^"]*")?\)/g, protect)
-    .replace(/\{\{\s*[A-Za-z0-9_]+\s*\}\}/g, protect);
+    .replace(/(?<=\])\([^\s)]+(?:\s+"[^"]*")?\)/g, protect);
 
   for (const token of [...new Set(markupTokens(protectedSource))].sort((a, b) => b.length - a.length)) {
     protectedSource = protectedSource.replaceAll(token, () => protect(token));

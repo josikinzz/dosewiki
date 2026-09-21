@@ -17,7 +17,7 @@ test("model protection restores numbers, citations, links, placeholders, and inl
 test("each repeated protected value receives an independent token", () => {
   const source = "[b]10 minutes[/b], then [b]10 minutes[/b] [cite:x-10] [cite:x-10]";
   const protectedValue = protectModelTokens(source);
-  const tokens = protectedValue.source.match(/⟪wprotect[a-z]+⟫/g) ?? [];
+  const tokens = protectedValue.source.match(/\{\{DWPROTECT[A-Z]+\}\}/g) ?? [];
 
   assert.equal(tokens.length, 8);
   assert.equal(new Set(tokens).size, 8);

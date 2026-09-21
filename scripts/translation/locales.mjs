@@ -252,10 +252,10 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
     );
   }
 
-  if (units.some((unit) => unit.source.includes("⟪wprotect"))) {
+  if (units.some((unit) => unit.source.includes("{{DWPROTECT"))) {
     lines.push(
       "",
-      "Opaque ⟪wprotect…⟫ tokens represent exact source syntax or digits. Copy every token exactly once and place it where the translated sentence needs it. Never alter, translate, duplicate, or omit a token.",
+      "Opaque {{DWPROTECT...}} tokens represent exact source syntax or digits. Copy every token exactly once and place it where the translated sentence needs it. Never alter, translate, duplicate, or omit a token.",
     );
   }
 
