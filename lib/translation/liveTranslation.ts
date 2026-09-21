@@ -18,7 +18,7 @@ import { createHash } from "node:crypto";
 
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize";
 import { CORPORA } from "../../scripts/translation/corpora.mjs";
-import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type WorkUnit } from "../../scripts/translation/engine.mjs";
+import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type SegmentVerdict, type WorkUnit } from "../../scripts/translation/engine.mjs";
 import { LOCALES, glossaryTermPattern, resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
@@ -35,6 +35,7 @@ import {
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { LIBRARY_TRANSLATION_CORPUS } from "./publicationIndexProjection";
 import { isPublishableReplication } from "../../src/types/replications";
+import { createTranslationRequestPool, type TranslationRequestPool } from "./requestPool";
 
 /** Which runtime record corpus a translation job addresses. */
 export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication" | "profile";
@@ -239,6 +240,11 @@ export const TRANSLATION_LOCALE_CODES: readonly string[] = Object.keys(LOCALES);
 /** Requests in flight per refresh; a refresh runs inside one cron invocation, not a 100-wide batch run. */
 const REFRESH_CONCURRENCY = 8;
 
+export type TranslationExecutionOptions = {
+  signal?: AbortSignal;
+  requestPool?: TranslationRequestPool;
+};
+
 /**
  * Everything a translation run needs to agree on: the locale's prompt, the
  * approved glossary it injects, the kind of each approved term (so the
@@ -385,8 +391,10 @@ export async function translateUnits(
   units: readonly WorkUnit[],
   context: TranslationContext,
   apiKey: string,
-  signal?: AbortSignal,
+  options: TranslationExecutionOptions = {},
 ): Promise<Pick<RefreshOutcome, "stored" | "rejected" | "usage">> {
+  const { signal } = options;
+  const requestPool = options.requestPool ?? createTranslationRequestPool(REFRESH_CONCURRENCY);
   const { locale, glossary, kinds, glosses, promptVersion } = context;
   const localeCode = locale.code;
   const usage = { prompt: 0, completion: 0, requests: 0 };
@@ -396,12 +404,12 @@ export async function translateUnits(
   const batches = planBatches(units);
   let cursor = 0;
   const results = await Promise.allSettled(
-    Array.from({ length: Math.min(REFRESH_CONCURRENCY, batches.length) }, async () => {
+    Array.from({ length: Math.min(requestPool.limit, batches.length) }, async () => {
       while (cursor < batches.length) {
         signal?.throwIfAborted();
         const batch = batches[cursor];
         cursor += 1;
-        const verdicts = await translateBatchWithRetries({
+        const verdicts = await requestPool.run<SegmentVerdict[]>(() => translateBatchWithRetries({
           units: batch,
           locale,
           glossary,
@@ -415,7 +423,7 @@ export async function translateUnits(
             usage.completion += used.completion;
             usage.requests += 1;
           },
-        });
+        }));
         for (const verdict of verdicts) {
           if (isBlocking(verdict.defects) || verdict.target.length === 0) {
             rejected.push({ hash: verdict.unit.hash, defects: verdict.defects });
@@ -456,8 +464,9 @@ export async function refreshRecordTranslations(
   context: TranslationContext,
   kind: TranslationRecordKind,
   apiKey: string,
-  signal?: AbortSignal,
+  options: TranslationExecutionOptions = {},
 ): Promise<RefreshOutcome> {
+  const { signal } = options;
   signal?.throwIfAborted();
   const localeCode = context.locale.code;
   const segments = segmentsOf(record, kind);
@@ -468,7 +477,7 @@ export async function refreshRecordTranslations(
   const pending = new Set(await pendingTranslationHashes(localeCode, units.map((unit) => unit.hash), context.promptVersion));
   const due = units.filter((unit) => pending.has(unit.hash));
   const result = due.length > 0
-    ? await translateUnits(due, context, apiKey, signal)
+    ? await translateUnits(due, context, apiKey, options)
     : { stored: 0, rejected: [], usage: { prompt: 0, completion: 0, requests: 0 } };
   return { slug: record.slug, locale: localeCode, segments: segments.length, requested: due.length, ...result };
 }

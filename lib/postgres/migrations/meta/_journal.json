@@ -120,6 +120,27 @@
       "when": 1789450983390,
       "tag": "0016_member_glossary_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790006535946,
+      "tag": "0017_odd_silver_sable",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790007280201,
+      "tag": "0018_useful_guardsmen",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790007480844,
+      "tag": "0019_productive_zaladane",
+      "breakpoints": true
     }
   ]
 }

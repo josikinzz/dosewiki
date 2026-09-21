@@ -95,10 +95,14 @@ describe("middleware role policy adapter", () => {
     expect((await middleware(new NextRequest(
       `https://${host}/api/cron/translation-refresh`, { method: "GET", headers: { host } },
     ))).headers.get("x-middleware-next")).toBe("1");
+    expect((await middleware(new NextRequest(
+      `https://${host}/api/cron/translation-bulk`, { method: "GET", headers: { host } },
+    ))).headers.get("x-middleware-next")).toBe("1");
     for (const [path, method] of [
       ["/api/cron/publication-delivery", "POST"],
       ["/api/cron/publication-delivery/extra", "GET"],
       ["/api/cron/translation-refresh", "POST"],
+      ["/api/cron/translation-bulk", "POST"],
       ["/api/cron/other", "GET"],
     ]) {
       expect((await middleware(new NextRequest(
@@ -130,7 +134,7 @@ describe("middleware role policy adapter", () => {
     const { middleware } = await import("./middleware");
     makeRequest("/");
     const host = "dosewiki-admin-abc123-team.vercel.app";
-    for (const path of ["/api/cron/translation-refresh", "/api/cron/publication-delivery"]) {
+    for (const path of ["/api/cron/translation-refresh", "/api/cron/translation-bulk", "/api/cron/publication-delivery"]) {
       const response = await middleware(new NextRequest(`https://${host}${path}`, { headers: { host } }));
       expect(response.status).toBe(200);
     }

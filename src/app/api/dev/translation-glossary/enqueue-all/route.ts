@@ -9,6 +9,7 @@
  * that mentions it.
  */
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
@@ -51,8 +52,9 @@ export const POST = protectedRouteOperation<EnqueueAllBody, ParsedEnqueueAll>({
       jobs[kind] = bare.length;
       for (const slug of bare) slugs.push(translationJobSlug(kind, slug));
     }
-    await enqueueTranslationJobs([body.locale], slugs);
+    const runId = randomUUID();
+    await enqueueTranslationJobs([body.locale], slugs, { run: { id: runId, mode: "bulk" } });
     await markRetranslated(body.locale);
-    return NextResponse.json({ ok: true, locale: body.locale, jobs, total: slugs.length });
+    return NextResponse.json({ ok: true, locale: body.locale, runId, jobs, total: slugs.length });
   },
 });

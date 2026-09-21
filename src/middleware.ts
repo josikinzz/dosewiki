@@ -334,7 +334,7 @@ export async function middleware(request: NextRequest) {
   // host gate; every other request on an unlisted alias or public origin is
   // refused before an editor build serves it.
   const isServiceCron = request.method === "GET"
-    && (requestPath === "/api/cron/publication-delivery" || requestPath === "/api/cron/translation-refresh");
+    && (requestPath === "/api/cron/publication-delivery" || requestPath === "/api/cron/translation-refresh" || requestPath === "/api/cron/translation-bulk");
   if (delivery === "closed" && !(isServiceCron && process.env.NEXT_PUBLIC_EDITOR_BUILD === "true")) {
     return browserPolicy.secure(new NextResponse("Editor deployment is unavailable.", { status: 503 }));
   }

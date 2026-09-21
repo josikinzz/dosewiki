@@ -13,7 +13,7 @@ import { getDataBackend } from "@server/postgres/runtime/backend";
 import { glossaryLocales, pendingRetranslation, readGlossaryRows } from "@server/translation/glossary";
 import { loadGlosses } from "@server/translation/glossaryGloss";
 import { translationContextFromRows } from "@server/translation/liveTranslation";
-import { translationSegmentCounts } from "@server/translation/segmentStore";
+import { translationJobCounts, translationSegmentCounts } from "@server/translation/segmentStore";
 import { glossaryAccessibleLocales, glossaryLocaleAccess, parseLocale, type GlossaryListResponse, type GlossaryLocaleOption } from "./glossaryRoutes";
 
 export const runtime = "nodejs";
@@ -45,7 +45,10 @@ export const GET = protectedRouteOperation({
       loadGlosses(),
     ]);
     const context = translationContextFromRows(locale, rows, glosses);
-    const segments = await translationSegmentCounts(locale, context.promptVersion);
+    const [segments, jobs] = await Promise.all([
+      translationSegmentCounts(locale, context.promptVersion),
+      translationJobCounts(locale),
+    ]);
     const liveCodes: readonly string[] = LIVE_LOCALE_CODES;
     const byLocale: Record<string, GlossaryLocaleOption> = {};
     for (const code of allowedLocales) byLocale[code] = { locale: code, draft: 0, approved: 0, live: liveCodes.includes(code) };
@@ -56,6 +59,7 @@ export const GET = protectedRouteOperation({
       locale,
       promptVersion: context.promptVersion,
       segments,
+      jobs,
       locales: Object.values(byLocale).sort((a, b) => a.locale.localeCompare(b.locale)),
       rows,
       pending: pendingRetranslation(rows),

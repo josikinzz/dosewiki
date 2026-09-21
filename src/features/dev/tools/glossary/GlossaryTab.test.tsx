@@ -6,6 +6,7 @@ import { GlossaryTab } from "./GlossaryTab";
 import type { GlossaryList, GlossaryRow } from "./glossaryModel";
 
 const LOCALE = "de";
+const NO_JOBS = { runId: null, requestedAt: null, total: 0, active: 0, completed: 0, completedWithRejections: 0, exhausted: 0 };
 
 function row(term: string, status: GlossaryRow["status"], target = `${term}-de`): GlossaryRow {
   return { locale: LOCALE, term, target, kind: "effect-name", status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1 };
@@ -36,6 +37,7 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
           locale: LOCALE,
           promptVersion: "v1",
           segments: { total: 10, current: 10 },
+          jobs: NO_JOBS,
           locales: [{ locale: LOCALE, live: true, draft: rows.filter((r) => r.status === "draft").length, approved: rows.filter((r) => r.status === "approved").length }],
           rows: rows.map((r) => ({ ...r })),
           pending,
@@ -191,7 +193,7 @@ describe("GlossaryTab", () => {
 
   it("hides Start main translation from a translator once the review is complete", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({
-      ok: true, locale: LOCALE, promptVersion: "v1", segments: { total: 0, current: 0 },
+      ok: true, locale: LOCALE, promptVersion: "v1", segments: { total: 0, current: 0 }, jobs: NO_JOBS,
       locales: [{ locale: LOCALE, live: true, draft: 0, approved: 1 }], rows: [row("anxiety", "approved")], pending: [], glosses: {},
     } satisfies GlossaryList)));
     render(<GlossaryTab viewerRole="translator" />);

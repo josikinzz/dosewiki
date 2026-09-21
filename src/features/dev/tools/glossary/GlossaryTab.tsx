@@ -132,6 +132,12 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     void load(null);
   }, [load]);
 
+  useEffect(() => {
+    if (!data || data.jobs.active === 0 || locked) return;
+    const timer = window.setInterval(() => void load(data.locale), 5000);
+    return () => window.clearInterval(timer);
+  }, [data, load, locked]);
+
   // Runs once the written row is unlocked and the reload has rendered: the
   // next unreviewed row after the written one takes focus, or the written row
   // itself if nothing follows it, so a reviewer never reaches for the mouse.
@@ -252,7 +258,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     const terms = [...pending];
     confirm({
       title: `Retranslate everything that mentions ${count(terms.length, "term")}?`,
-      description: "Translations that mention these terms will be redone by the background job within about five minutes; everything else keeps its current translation.",
+      description: "Translations that mention these terms will be redone by the background worker with up to 100 model requests in flight; everything else keeps its current translation.",
       confirmLabel: "Retranslate",
       affected: terms,
       onConfirm: () =>
@@ -285,7 +291,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const startMain = () =>
     confirm({
       title: `Start the main translation for ${locale}?`,
-      description: "Every public page will be translated for this locale in the background, a few at a time.",
+      description: "Every public page will be translated in the background through one shared pool capped at 100 simultaneous GLM 5.3 Flash requests.",
       confirmLabel: "Start translation",
       onConfirm: () =>
         void run("start", async () => {
@@ -336,6 +342,22 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           <StateCard loading compact title="Loading glossary" />
         ) : (
           <div className="space-y-4">
+            {data.jobs.total > 0 ? (
+              <StateCard
+                tone={data.jobs.exhausted > 0 ? "warning" : data.jobs.active > 0 ? "neutral" : "success"}
+                loading={data.jobs.active > 0}
+                compact
+                icon="lucide:languages"
+                title={data.jobs.active > 0
+                  ? `${count(data.jobs.completed, "page")} complete, ${count(data.jobs.active, "page")} active`
+                  : `Translation generation complete for ${count(data.jobs.completed, "page")}`}
+                description={[
+                  `${count(data.jobs.total, "page")} in the newest generation. The worker shares a hard ceiling of 100 simultaneous model requests.`,
+                  data.jobs.completedWithRejections > 0 ? `${count(data.jobs.completedWithRejections, "page")} completed with rejected segments that remain English.` : null,
+                  data.jobs.exhausted > 0 ? `${count(data.jobs.exhausted, "page")} exhausted the legacy retry limit and require a new enqueue.` : null,
+                ].filter((line): line is string => line !== null).join(" ")}
+              />
+            ) : null}
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-full md:w-56">
                 <EditorSelect
@@ -450,7 +472,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                 icon={canRetranslate ? "lucide:languages" : "lucide:check-check"}
                 title={`All ${count(data.rows.length, "term")} for ${data.locale} are reviewed`}
                 description={nothingTranslatedYet
-                  ? "Nothing has been translated under these terms yet. Starting the main translation translates every public page in the background, a few at a time."
+                  ? "Nothing has been translated under these terms yet. Starting the main translation uses the shared worker pool, capped at 100 simultaneous GLM 5.3 Flash requests."
                   : pending.length > 0
                     ? `${count(pending.length, "approved rendering")} ${pending.length === 1 ? "has" : "have"} not reached the stored translations yet. Retranslating redoes only the translations that mention ${pending.length === 1 ? "it" : "them"}.`
                     : "The stored translations already follow these terms. Editing a rendering queues it for a retranslate."}

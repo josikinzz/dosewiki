@@ -94,17 +94,34 @@ Replay preserves that receipt instead of resetting newer work; enqueue failure
 leaves delivery pending. Cache-only refresh does not enqueue new translation work.
 See [the publication boundary](../architecture/runtime-and-data.md#editor-save-article-flow).
 
-The translation-refresh cron processes one job at a time under a shared abort
-signal and an admission reserve. `src/app/api/cron/translation-refresh/route.ts`
-owns those limits; `lib/translation/liveTranslation.ts` and
-`scripts/translation/engine.mjs` propagate cancellation to the provider request.
-Rejected segments or missing/failed cache-delivery receipts leave the job pending
-under the store's bounded attempt limit, not completed or retried indefinitely.
+The five-minute translation-refresh cron remains the one-record incremental lane
+for editorial freshness. Operator-started main translations and glossary
+retranslations receive a stable `run_id` and `mode=bulk`; the separate
+translation-bulk cron claims up to 100 of those records every minute. Every bulk
+model batch crosses one request-pool seam capped at 100 concurrent GLM 5.3 Flash
+requests, including retries from all active records. A database-backed lane lease
+prevents scheduled invocations from overlapping, so the cap holds across processes.
+Both workers propagate
+cancellation through `lib/translation/liveTranslation.ts` and
+`scripts/translation/engine.mjs` to the provider request.
 
-This generation/receipt change needs no schema migration. Drain old requests,
-cron workers and operator binaries before rollout: an old worker can complete
-unconditionally and defeat the new lease check. Preserve job/outbox history;
-repair of already-missed work requires its own bounded approved plan.
+Accepted segments complete their record job even if public-cache delivery is
+still pending. The same database transaction creates a translation-cache job;
+workers retry it until direct delivery succeeds or the publication outbox accepts
+it. Cache delivery never consumes a model attempt. A segment that remains
+rejected after the engine's bounded retries stays English and is recorded, while
+the record completes with terminal rejection detail instead of becoming an
+unclaimable pending job. The Glossary tab polls the newest enqueue generation
+and separates active, completed, completed-with-rejections and legacy exhausted
+counts.
+
+Migrations `0017` through `0019` add run identity and terminal status, lane-safe
+job keys, the shared worker lease, and durable translation-cache jobs. Apply all
+three in order before releasing either worker or the progress reader. Drain old
+requests, cron workers and operator binaries
+before rollout: an old worker can complete unconditionally and defeat the new
+lease check. Preserve job/outbox history; repair of already-missed work requires
+its own bounded approved plan.
 
 ## Finding what is still English
 

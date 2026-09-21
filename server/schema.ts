@@ -315,6 +315,7 @@ export default defineSchema({
     target: v.object({
       kind: v.string(),
       slug: v.optional(v.string()),
+      locale: v.optional(v.string()),
       dependency: v.optional(v.union(
         v.literal("detail"),
         v.literal("content"),

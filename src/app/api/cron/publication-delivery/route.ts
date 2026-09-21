@@ -73,7 +73,7 @@ async function reconcilePublications(client: ServerDataWriteClient): Promise<Pub
           ? `${target.kind}/${target.slug}` : null;
       if (jobSlug) {
         try {
-          await enqueueTranslationJobs(LIVE_LOCALE_CODES, [jobSlug], { id: row._id, generation: row.generation });
+          await enqueueTranslationJobs(LIVE_LOCALE_CODES, [jobSlug], { publication: { id: row._id, generation: row.generation } });
         } catch (error) {
           await client.mutationAsService(recordDelivery, {
             id: row._id, generation: row.generation, complete: false,

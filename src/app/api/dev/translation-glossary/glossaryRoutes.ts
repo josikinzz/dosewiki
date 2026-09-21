@@ -10,6 +10,7 @@ import { approvedGlossaryLocales, canAccessGlossaryLocale } from "@/lib/auth/rol
 import type { RoleSessionGranted } from "@/lib/auth/requireEditorSession";
 import { GlossaryCollisionError, type GlossaryLocaleSummary, type TranslationGlossaryRow } from "@server/translation/glossary";
 import { TRANSLATION_LOCALE_CODES } from "@server/translation/liveTranslation";
+import type { TranslationJobCounts } from "@server/translation/segmentStore";
 
 export const GLOSSARY_BODY_MAX_BYTES = 64 * 1024;
 
@@ -85,6 +86,8 @@ export type GlossaryListResponse = {
   promptVersion: string;
   /** Stored segments for the locale and how many carry `promptVersion`. */
   segments: { total: number; current: number };
+  /** Newest translation enqueue generation, with terminal rejections separated from actionable work. */
+  jobs: TranslationJobCounts;
   locales: GlossaryLocaleOption[];
   rows: TranslationGlossaryRow[];
   /** Approved terms whose rendering changed since it last reached stored segments: what a retranslate sends. */

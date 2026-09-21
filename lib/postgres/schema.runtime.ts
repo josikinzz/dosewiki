@@ -60,8 +60,38 @@ export const translationJobs = pgTable(
     completed_at: bigint("completed_at", { mode: "number" }),
     attempts: integer("attempts").notNull().default(0),
     last_error: text("last_error"),
+    /** incremental for editorial freshness, bulk for an operator-started corpus run. */
+    mode: text("mode").notNull().default("incremental"),
+    /** Stable identity shared by every record in one operator-started bulk run. */
+    run_id: text("run_id"),
+    /** null | rejected; machine-readable terminal outcome, separate from operator prose. */
+    terminal_status: text("terminal_status"),
   },
-  (t) => [primaryKey({ columns: [t.locale, t.slug] }), index("translationJobs_due").on(t.locale, t.completed_at, t.claimed_at)],
+  (t) => [
+    primaryKey({ columns: [t.locale, t.slug, t.mode] }),
+    index("translationJobs_due").on(t.mode, t.locale, t.completed_at, t.claimed_at),
+    index("translationJobs_run").on(t.run_id, t.completed_at),
+  ],
+);
+
+/** One database lease per model prevents overlapping cron invocations. */
+export const translationWorkerLeases = pgTable("translationWorkerLeases", {
+  mode: text("mode").primaryKey(),
+  owner: text("owner").notNull(),
+  expires_at: bigint("expires_at", { mode: "number" }).notNull(),
+});
+
+/** Durable cache work created atomically with translation completion. */
+export const translationCacheJobs = pgTable(
+  "translationCacheJobs",
+  {
+    locale: text("locale").notNull(),
+    slug: text("slug").notNull(),
+    mode: text("mode").notNull(),
+    targets: text("targets").notNull(),
+    requested_at: bigint("requested_at", { mode: "number" }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.slug, t.mode] }), index("translationCacheJobs_due").on(t.requested_at)],
 );
 
 /**

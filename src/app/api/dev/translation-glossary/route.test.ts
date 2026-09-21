@@ -51,6 +51,7 @@ vi.mock("@server/translation/liveTranslation", () => ({
 }));
 const segments = vi.hoisted(() => ({
   translationSegmentCounts: vi.fn(),
+  translationJobCounts: vi.fn(),
 }));
 vi.mock("@server/translation/segmentStore", () => segments);
 vi.mock("@server/next/localeHostPolicy", () => ({ LIVE_LOCALE_CODES: ["zh-Hans"] }));
@@ -72,6 +73,7 @@ describe("translation glossary routes", () => {
     glossary.editGlossaryTerm.mockReset();
     glosses.loadGlosses.mockReset().mockResolvedValue([]);
     backend.getDataBackend.mockReturnValue("postgres");
+    segments.translationJobCounts.mockResolvedValue({ runId: null, requestedAt: null, total: 0, active: 0, completed: 0, completedWithRejections: 0, exhausted: 0 });
     authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", ADMIN));
   });
 

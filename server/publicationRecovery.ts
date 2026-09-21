@@ -1,5 +1,32 @@
 import { v } from "../lib/postgres/runtime/values";
 import { internalMutation } from "./lib/indexedMutation";
+import { isPublicationTarget } from "../lib/next/publicationWire";
+
+/** Queue cache-only delivery after translated segments have committed. */
+export const enqueueTranslationCacheRetry = internalMutation({
+  args: { targets: v.array(v.any()) },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    for (const candidate of args.targets) {
+      if (!isPublicationTarget(candidate)) throw new Error("Invalid translation cache publication target.");
+      const key = JSON.stringify(candidate.kind === "article" ? { kind: candidate.kind, slug: candidate.slug } : candidate);
+      const current = await ctx.db.query("publicCachePublications").withIndex("by_key", (q) => q.eq("key", key)).unique();
+      const generation = (current?.generation ?? 0) + 1;
+      const value = {
+        key,
+        target: candidate,
+        generation,
+        pending: true,
+        nextAttemptAt: now,
+        attempts: 0,
+        receipts: [{ target: "translation-queue", generation, status: "accepted", attempts: 1, jobs: [] }],
+        committedAt: now,
+      };
+      if (current) await ctx.db.patch(current._id, value);
+      else await ctx.db.insert("publicCachePublications", value);
+    }
+  },
+});
 
 /** A lease, not an acknowledgement: crashed actions become due again. */
 export const claimDue = internalMutation({

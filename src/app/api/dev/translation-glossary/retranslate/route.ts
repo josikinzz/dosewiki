@@ -11,6 +11,7 @@
  * Reads the whole corpus to find those records, like `live-mirror.ts stale`.
  */
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
@@ -35,6 +36,7 @@ export type RetranslateResponse = {
   segments: number;
   /** Segments on an older digest that mention no term, restamped with the current one. */
   restamped: number;
+  runId: string;
   /** Records enqueued, by kind. */
   jobs: Partial<Record<TranslationRecordKind, number>>;
 };
@@ -54,7 +56,8 @@ export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>(
     const mentioning = await readTranslationsMentioning(body.locale, body.terms);
     const scoped = await scopeStaleTranslations(body.locale, mentioning.map((row) => row.hash), context.promptVersion);
     const records = await recordsMentioning(getPublicDataReadAdapter(), body.terms);
-    await enqueueTranslationJobs([body.locale], records.map((record) => translationJobSlug(record.kind, record.slug)));
+    const runId = randomUUID();
+    await enqueueTranslationJobs([body.locale], records.map((record) => translationJobSlug(record.kind, record.slug)), { run: { id: runId, mode: "bulk" } });
     await markRetranslated(body.locale, body.terms);
 
     const jobs: RetranslateResponse["jobs"] = {};
@@ -66,6 +69,7 @@ export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>(
       promptVersion: context.promptVersion,
       segments: scoped.marked,
       restamped: scoped.restamped,
+      runId,
       jobs,
     };
     return NextResponse.json(response);
