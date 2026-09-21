@@ -29,7 +29,7 @@ import {
 const RUN_BUDGET_MS = 200_000;
 const MIN_JOB_BUDGET_MS = 10_000;
 const MODEL_LEASE = "glm-5.3-flash";
-const CACHE_JOBS_PER_RUN = 1_000;
+const CACHE_JOBS_PER_RUN = 200;
 const CACHE_DELIVERY_CONCURRENCY = 50;
 const enqueueCacheRetry = makeFunctionReference<"mutation", { targets: PublicationTarget[] }, void>("publicationRecovery:enqueueTranslationCacheRetry");
 
