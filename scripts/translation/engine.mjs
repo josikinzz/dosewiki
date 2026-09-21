@@ -14,7 +14,7 @@ export const APP_TITLE = "dose.wiki locale translation";
 export const DEFAULT_BATCH_CHARS = 6000;
 
 /** Validation retries per segment, including the first attempt. */
-export const MAX_ATTEMPTS = 5;
+export const MAX_ATTEMPTS = 12;
 const TRANSPORT_ATTEMPTS = 4;
 
 /**
@@ -104,7 +104,7 @@ export function planBatches(units, batchChars = DEFAULT_BATCH_CHARS) {
  * normal weather at this concurrency, so a retryable failure waits and repeats
  * the same request rather than degrading into per-segment retries.
  */
-export async function sendBatch({ locale, model, apiKey, userMessage, signal }) {
+export async function sendBatch({ locale, model, apiKey, userMessage, temperature = 0.2, signal }) {
   let lastError;
   for (let attempt = 1; attempt <= TRANSPORT_ATTEMPTS; attempt += 1) {
     signal?.throwIfAborted();
@@ -116,7 +116,7 @@ export async function sendBatch({ locale, model, apiKey, userMessage, signal }) 
           model,
           systemPrompt: locale.systemPrompt,
           userMessage,
-          temperature: 0.2,
+          temperature,
           maxTokens: 16384,
           // This endpoint reasons unconditionally. Lowest effort with the trace
           // excluded keeps a 6k-character batch near two seconds instead of fifty.
@@ -137,12 +137,12 @@ export async function sendBatch({ locale, model, apiKey, userMessage, signal }) 
   throw lastError;
 }
 
-export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, signal }) {
+export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, temperature, signal }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
   const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
   const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds });
 
-  const response = await sendBatch({ locale, model, apiKey, userMessage, signal });
+  const response = await sendBatch({ locale, model, apiKey, userMessage, temperature, signal });
 
   const usage = {
     prompt: response.usage.promptTokens,
@@ -210,7 +210,18 @@ export function retryNoteFor(defects) {
 export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage, signal }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
     signal?.throwIfAborted();
-    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, glosses, kinds, model, apiKey, retryNote, signal });
+    const { usage, results } = await translateBatch({
+      units: unitsToRun,
+      locale,
+      glossary,
+      glosses,
+      kinds,
+      model,
+      apiKey,
+      retryNote,
+      temperature: attempt === 1 ? 0.2 : 0,
+      signal,
+    });
     signal?.throwIfAborted();
     onUsage?.(usage, attempt);
     return results;
