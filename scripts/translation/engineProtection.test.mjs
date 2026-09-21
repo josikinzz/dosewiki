@@ -23,3 +23,13 @@ test("each repeated protected value receives an independent token", () => {
   assert.equal(new Set(tokens).size, 8);
   assert.equal(protectedValue.restore(protectedValue.source), source);
 });
+
+test("restoration removes invented digits and accepts harmless token variants", () => {
+  const source = "Ambien 1 and experiment 2";
+  const protectedValue = protectModelTokens(source);
+
+  assert.equal(
+    protectedValue.restore("安必恩 ｛｛ dwprotecta ｝｝ 与实验 {{dwprotectb}} 3"),
+    "安必恩 1 与实验 2 ",
+  );
+});

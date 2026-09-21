@@ -65,8 +65,16 @@ export function protectModelTokens(source) {
   return {
     source: protectedSource,
     restore(target) {
-      let restored = target;
-      for (const [token, value] of replacements) restored = restored.split(token).join(value);
+      // The model never receives source digits, so any digits it emits are
+      // inventions. Remove them before restoring the exact source values.
+      // GLM occasionally also changes placeholder case or brace width even
+      // under a strict retry, so accept those presentation-only variants.
+      let restored = target.replace(/[\uff10-\uff19\d]+(?:[.,][\uff10-\uff19\d]+)*/g, "");
+      for (const [token, value] of replacements) {
+        const label = token.slice(PROTECTED_TOKEN_PREFIX.length, -2);
+        const variant = new RegExp(`(?:\\{\\{|｛｛)\\s*DWPROTECT\\s*${label}\\s*(?:\\}\\}|｝｝)`, "gi");
+        restored = restored.replace(variant, value);
+      }
       return restored;
     },
   };
