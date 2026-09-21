@@ -29,6 +29,8 @@ import {
 const RUN_BUDGET_MS = 200_000;
 const MIN_JOB_BUDGET_MS = 10_000;
 const MODEL_LEASE = "glm-5.3-flash";
+const CACHE_JOBS_PER_RUN = 1_000;
+const CACHE_DELIVERY_CONCURRENCY = 50;
 const enqueueCacheRetry = makeFunctionReference<"mutation", { targets: PublicationTarget[] }, void>("publicationRecovery:enqueueTranslationCacheRetry");
 
 export type TranslationWorkerRun = {
@@ -70,9 +72,18 @@ export async function runTranslationJobs(
         return false;
       } catch { return false; /* The durable cache row remains due for the next invocation. */ }
     };
-    for (const cacheJob of await readTranslationCacheJobs(100)) {
-      if (!(await deliverCache(cacheJob))) run.cachePending += 1;
-    }
+    const cacheJobs = await readTranslationCacheJobs(CACHE_JOBS_PER_RUN);
+    let cacheCursor = 0;
+    await Promise.all(Array.from(
+      { length: Math.min(CACHE_DELIVERY_CONCURRENCY, cacheJobs.length) },
+      async () => {
+        while (cacheCursor < cacheJobs.length) {
+          const cacheJob = cacheJobs[cacheCursor];
+          cacheCursor += 1;
+          if (!(await deliverCache(cacheJob))) run.cachePending += 1;
+        }
+      },
+    ));
     while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
     const jobs = await claimTranslationJobs(config.jobsPerRun, config.mode);
     if (jobs.length === 0) break;
