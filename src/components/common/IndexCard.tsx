@@ -3,7 +3,7 @@
 import { SmartLink } from "@/components/common/SmartLink";
 import { useCallback, useId, useState, memo, type ReactNode } from "react";
 import { InteractiveSurface } from "@/components/ui/surface";
-import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { ExpandIndicator } from "./ExpandButton";
 import { Icon, type IconName } from "./Icon";
 import { cn } from "@/lib/utils";
@@ -248,7 +248,7 @@ export const IndexCard = memo(function IndexCard({
             aria-expanded={isExpanded}
             aria-controls={resolvedContentId}
             aria-label={resolvedToggleLabel}
-            className={cn("theme-index-card-toggle theme-focus-ring flex h-8 min-w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors motion-reduce:transition-none", TOUCH_ICON)}
+            className={cn("theme-index-card-toggle theme-focus-ring flex h-8 min-w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors motion-reduce:transition-none", TOUCH_HALO)}
           >
             <ExpandIndicator isExpanded={isExpanded} />
           </button>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { Icon } from "./Icon";
 
 type ExpandButtonVariant =
@@ -124,12 +124,11 @@ export function ExpandButton({
       aria-controls={ariaControls}
       aria-label={ariaLabel ?? (isExpanded ? t("Collapse section") : t("Expand section"))}
       className={cn(
-        "relative",
         "theme-focus-ring",
-        "before:absolute before:inset-[-0.5rem] before:content-['']",
-        "before:pointer-events-auto",
-        "[@media(pointer:fine)]:before:inset-0",
-        label || children != null || variant === "count" ? TOUCH_PILL : TOUCH_ICON,
+        // The 44px touch floor lives in the invisible halo, never in the
+        // rendered box: a drawn 44px control turns a 24px chip into a lozenge
+        // and inflates any chip it nests inside.
+        TOUCH_HALO,
         BUTTON_VARIANT_CLASSES[variant],
         className
       )}

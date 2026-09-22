@@ -110,6 +110,8 @@ export const HistoryCultureSectionView = memo(
                 )}
               >
                 <ExpandButton
+                  variant="inline"
+                  className="theme-text-muted"
                   isExpanded={isExpanded}
                   onToggle={() => setIsExpanded(!isExpanded)}
                   ariaLabel={
@@ -209,6 +211,8 @@ export const HistoryCultureSectionView = memo(
                 )}
               >
                 <ExpandButton
+                  variant="inline"
+                  className="theme-text-muted"
                   isExpanded={isExpanded}
                   onToggle={() => setIsExpanded(!isExpanded)}
                   ariaLabel={
