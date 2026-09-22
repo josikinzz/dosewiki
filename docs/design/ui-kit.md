@@ -77,9 +77,15 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    when a lone chevron does not.
 5. **Touch targets are a public style contract.** Under a coarse pointer every
    compact control reaches 44px: the Button sizes `sm`, `pill`, `xs`, `chip`,
-   and `quiet` carry `[@media(pointer:coarse)]:min-h-11`, and icon-only
-   controls that stay compact on desktop append `TOUCH_ICON` from
+   and `quiet` carry `[@media(pointer:coarse)]:min-h-11`, and standalone
+   icon-only controls that stay compact on desktop append `TOUCH_ICON` from
    `src/components/ui/touchTargets.ts` (`TOUCH_PILL` for height-only floors).
+   The floor may be invisible: `ExpandButton`, `ExpandIndicator` hosts, and
+   any control nested inside a chip or a prose row use `TOUCH_HALO`, which
+   grows a centered `::before` hit area to 44px while the rendered box keeps
+   its desktop geometry. Never draw the floor on a chip-sized control; a
+   rendered 44px box turns a 24px pill into a lozenge and inflates the chip
+   it sits in.
    Fields keep 16px on phones so iOS does not zoom on focus: the `sm` size of
    `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders
    `text-[16px] md:text-sm`. Tests may assert these two class recipes by name;
@@ -252,7 +258,8 @@ Variant intent:
 - `inline`: icon-only `...` plus chevron with no pill/container styling. Use inside badge-like parents, chips, inline prose, and compact value rows such as interaction badges, subjective effect badges, bioavailability, half-life, and dosage plateau rows. Do not nest a pill inside another pill.
 - `chip`: the whole control is a badge/chip, with label text and the inline `...` plus chevron inside the same outer capsule. Use for subjective effect chips where the chip itself is the expandable surface.
 - `count`: quantitative hidden-list controls like `+3` plus chevron. Use for aliases, report lists, references, reagent rows, and other collapsed list counts.
-- `floating`: standalone centered or inline section reveal pills. Use for whole-section text previews and list reveals when the control is not inside another badge-like surface.
+- `floating`: standalone centered or inline section reveal pills. Use for list reveals when the control is not inside another badge-like surface and needs its own weight to be found.
+- Row and prose reveals go container-less: legality country rows and the History & Culture text preview use `inline` with `theme-text-muted`, so the `...` plus chevron reads as a row affordance rather than a chip competing with the row's own tags.
 - `card`: contained mini reveal controls inside larger cards or expanded inline cards where a visible control capsule helps the action read clearly.
 
 If a new expand affordance needs the `...` plus chevron symbol, add or reuse one of these semantic variants instead of composing `Icon` instances locally.

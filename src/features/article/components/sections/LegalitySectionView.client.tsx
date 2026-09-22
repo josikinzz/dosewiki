@@ -112,7 +112,7 @@ export function LegalityRowView({
           </span>
         ) : null}
         <ExpandButton
-          variant="faint"
+          variant="inline"
           isExpanded={isExpanded}
           onToggle={() => setIsExpanded((value) => !value)}
           ariaControls={detailsId}
@@ -121,7 +121,7 @@ export function LegalityRowView({
               ? t("Hide details for {{name}}", { name: t(name) })
               : t("Show details for {{name}}", { name: t(name) })
           }
-          className={cn("shrink-0", styles.toggle)}
+          className={cn("theme-text-muted ml-auto shrink-0", styles.toggle)}
         />
       </div>
       <div id={detailsId} ref={detailsRef} hidden className={styles.details}>
