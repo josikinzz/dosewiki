@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState, type MouseEvent } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
+import { TOUCH_HALO_Y } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
 import type { ProjectedCitation } from "@/lib/citationProjection";
@@ -109,7 +110,7 @@ function CitationUseBacklinks({
   return (
     <span
       className={cn(
-        "theme-citation-marker relative -top-[0.28em] ml-1.5 inline-flex h-[1em] max-w-full items-center gap-[0.3em] rounded-[0.12rem] px-[0.32em] align-baseline [@media(pointer:coarse)]:h-auto [@media(pointer:coarse)]:flex-wrap",
+        "theme-citation-marker relative -top-[0.28em] ml-1.5 inline-flex h-[1em] max-w-full items-center gap-[0.3em] rounded-[0.12rem] px-[0.32em] align-baseline [@media(pointer:coarse)]:gap-[0.6em]",
         "text-[0.68em] font-semibold leading-none tabular-nums",
       )}
       aria-label={t("Uses of citation {{number}}", { number: citation.number })}
@@ -121,7 +122,8 @@ function CitationUseBacklinks({
           href={link.href}
           onClick={(event) => handleBacklinkClick(event, link)}
           className={cn(
-            "inline-flex h-[1.12em] min-w-[1.12em] items-center justify-center rounded-[0.12rem] px-[0.22em] [@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:min-w-11",
+            "inline-flex h-[1.12em] min-w-[1.12em] items-center justify-center rounded-[0.12rem] px-[0.22em] [@media(pointer:coarse)]:px-[0.5em]",
+            TOUCH_HALO_Y,
             "text-current transition-colors hover:bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_18%,var(--theme-body-bg))]",
             "theme-focus-ring",
           )}
