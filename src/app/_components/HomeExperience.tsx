@@ -78,7 +78,7 @@ export function HomeExperience({
                       className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 theme-focus-ring sm:w-28"
                     >
                       <span
-                        className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]"
+                        className="theme-home-nav-icon relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]"
                         style={homeTileGlyphStyle(item.icon)}
                       >
                         <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />

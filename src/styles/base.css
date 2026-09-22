@@ -179,14 +179,28 @@ html {
 
 body {
   overflow-x: clip;
-  /* Radix Select's scroll lock injects body[data-scroll-locked] {
-       overflow: hidden !important; padding-right: 0px !important;
-       margin-right: 10px !important; } while a Theme/Font dropdown is open,
-but the scrollbar itself never moves (html overflow-x: clip blocks the
-       body-to-viewport propagation), so the margin only squishes the whole
-       page left of a 10px gap. Zero it out; the dropdown opens as a pure
-       overlay. */
-  margin-right: 0px !important;
+}
+
+/* Radix Select's scroll lock injects body[data-scroll-locked] {
+     overflow: hidden !important; padding-right: 0px !important;
+     margin-right: <gap>px !important; } while a Theme/Font dropdown is open.
+   Because html's clip above blocks body-to-viewport propagation, that
+   overflow: hidden does not lock the viewport at all: it turns <body> itself
+   into a scroll container (hidden creates one; clip does not). The sticky
+   site header then anchors to body's scrollport, which sits at the top of the
+   document rather than the top of the viewport, so on a page scrolled 1400px
+   the header, the appearance popover following its cog anchor, and the
+   dropdown itself all jump 1400px above the fold the instant the Select
+   opens. Keep body a non-scroll-container while locked (clip on x, visible
+   on y, the same computed pair as unlocked), and zero the scrollbar margin
+   the lock reserves, since the scrollbar never moves. Touch and wheel
+   scrolling behind the dropdown stay blocked by react-remove-scroll's own
+   event handlers; the body overflow was never doing that job here.
+   `html body[...]` outranks the injected `body[...]` at equal importance. */
+html body[data-scroll-locked] {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  margin-right: 0 !important;
 }
 
 body {

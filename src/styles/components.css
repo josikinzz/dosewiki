@@ -139,7 +139,11 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    overflow: visible;
+    /* No overflow shorthand here: this class sits on <body>, and a
+       components-layer `overflow: visible` outranks base.css's
+       `body { overflow-x: clip }`. WebKit does not stop root panning from
+       html's clip alone, so on iOS anything a few px too wide made the whole
+       page drag sideways. */
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 

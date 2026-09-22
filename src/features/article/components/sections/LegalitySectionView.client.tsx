@@ -98,7 +98,7 @@ export function LegalityRowView({
         {statusLabel ? (
           <span
             className={cn(
-              "theme-status-text inline-flex max-w-[60%] shrink-0 items-center gap-1.5 font-semibold uppercase",
+              "theme-status-text inline-flex min-w-0 max-w-[60%] items-center gap-1.5 font-semibold uppercase",
               styles.status,
             )}
             data-badge-tone={statusTone}

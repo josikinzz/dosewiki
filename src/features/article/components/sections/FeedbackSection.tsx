@@ -155,7 +155,9 @@ export function FeedbackSection({
         type="button"
         variant="glass"
         size="pill"
-        className={open ? "hidden" : undefined}
+        // Wraps instead of overflowing on the narrowest phones (or Safari page
+        // zoom), where the one-line label is wider than the column.
+        className={open ? "hidden" : "max-w-full whitespace-normal text-center"}
         aria-expanded={open}
         aria-controls={`${fieldPrefix}-form`}
         onClick={() => {

@@ -1238,11 +1238,11 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
+/* Fill, glyph tint, edge ring and hover/focus states come from the shared
+   index-tile glass recipe (see `.theme-index-mobile-tab-icon`). The tile's
+   own 1px border stays transparent so the recipe's ring is the only edge. */
 .theme-home-nav-icon {
-  border-color: var(--theme-home-nav-card-border);
-  background: var(--theme-home-nav-icon-background);
-  color: var(--theme-home-nav-icon-color);
-  box-shadow: var(--theme-home-nav-icon-box-shadow);
+  border-color: transparent;
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
   transition-duration: 300ms;
@@ -1250,17 +1250,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   will-change: transform;
 }
 
-@media (hover: hover) {
-  .theme-home-nav-link:hover .theme-home-nav-icon {
-    border-color: var(--theme-home-nav-link-hover-home-nav-icon-border-color);
-    background: var(--theme-home-nav-link-hover-home-nav-icon-background);
-    box-shadow: var(--theme-home-nav-link-hover-home-nav-icon-box-shadow);
-    transform: translate3d(0, -0.08rem, 0) scale(1.01);
-  }
-}
-
+/* Press matches the index tile's `group-active:scale-[0.96]`. */
 .theme-home-nav-link:active .theme-home-nav-icon {
-  transform: translate3d(0, -0.02rem, 0) scale(0.99);
+  transform: translate3d(0, 0, 0) scale(0.96);
   transition-duration: 140ms;
 }
 
@@ -1319,26 +1311,12 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
+/* The glyph inherits the tile's recipe tint; the tile alone carries press motion. */
 .theme-home-nav-svg {
-  color: var(--theme-home-nav-svg-color);
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
   transition-duration: 300ms;
   transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.theme-home-nav-link:focus-visible .theme-home-nav-svg {
-  transform: translate3d(0, 0, 0) scale(1.025);
-}
-@media (hover: hover) {
-  .theme-home-nav-link:hover .theme-home-nav-svg {
-    transform: translate3d(0, 0, 0) scale(1.025);
-  }
-}
-
-.theme-home-nav-link:active .theme-home-nav-svg {
-  transform: translate3d(0, 0, 0) scale(0.99);
-  transition-duration: 140ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3691,7 +3669,12 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-.theme-index-mobile-tab-icon {
+/* Shared index-tile glass recipe: the mobile category tiles on the index
+   pages and the homepage section tiles (`.theme-home-nav-icon`). The homepage
+   tiles are navigation, so they take only the resting, hover and focus states;
+   the filled selected state below stays exclusive to the filter tiles. */
+.theme-index-mobile-tab-icon,
+.theme-home-nav-icon {
   background:
     radial-gradient(
       circle at 30% 12%,
@@ -3726,14 +3709,16 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   );
 }
 
-.theme-index-mobile-tab:focus-visible .theme-index-mobile-tab-icon {
+.theme-index-mobile-tab:focus-visible .theme-index-mobile-tab-icon,
+.theme-home-nav-link:focus-visible .theme-home-nav-icon {
   background: var(--theme-frosted-control-on-panel-hover-bg);
   color: var(--theme-text-primary);
   box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);
   --tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
 }
 @media (hover: hover) {
-  .theme-index-mobile-tab:hover .theme-index-mobile-tab-icon {
+  .theme-index-mobile-tab:hover .theme-index-mobile-tab-icon,
+  .theme-home-nav-link:hover .theme-home-nav-icon {
     background: var(--theme-frosted-control-on-panel-hover-bg);
     color: var(--theme-text-primary);
     box-shadow: var(--theme-frosted-control-on-panel-hover-shadow);

@@ -18,7 +18,7 @@ export function ConstructionHomeNav({ quickLinks }: ConstructionHomeNavProps) {
         <div key={row[0].href} className="theme-home-nav-row flex justify-center gap-5 sm:gap-8 lg:contents">
           {row.map((item) => (
             <button key={item.href} type="button" onClick={() => showComingSoon(item.label)} data-clicked={clickedItem === item.label} className="theme-home-nav-link theme-home-mock-button group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 theme-focus-ring sm:w-28">
-              <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]" style={homeTileGlyphStyle(item.icon)}>
+              <span className="theme-home-nav-icon relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]" style={homeTileGlyphStyle(item.icon)}>
                 <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
                 <span aria-hidden="true" className="theme-home-soon-badge pointer-events-none absolute -right-2 -top-2 rounded-full px-2 py-1 text-[0.65rem] font-semibold tracking-[0.16em] opacity-0 transition-[opacity,transform] duration-200 group-data-[clicked=true]:opacity-100">
                   SOON
