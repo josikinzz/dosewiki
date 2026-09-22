@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -20,10 +20,33 @@ import { cn } from "@/lib/utils";
 import type { AppearanceAxesRows } from "./AppearanceAxes";
 import { useT } from "@/i18n/client";
 
-const AppearancePanel = dynamic(
-  () => import("./AppearancePanel").then((module) => module.AppearancePanel),
-  { ssr: false },
-);
+type AppearancePanelComponent = typeof import("./AppearancePanel").AppearancePanel;
+
+/**
+ * The panel stays a separate chunk so it costs nothing on first paint, but the popover
+ * never opens around a missing panel. Opening before the chunk arrived used to paint
+ * the 288x26 padded shell (a thin horizontal bar) for the length of the fetch, then
+ * snap to full height. The chunk is now fetched once per page, on idle or on the first
+ * pointer/focus intent at the cog, and the popover opens only once it can render the
+ * panel in its final shape on the first frame.
+ */
+let loadedAppearancePanel: AppearancePanelComponent | null = null;
+let appearancePanelRequest: Promise<AppearancePanelComponent> | null = null;
+
+function loadAppearancePanel(): Promise<AppearancePanelComponent> {
+  appearancePanelRequest ??= import("./AppearancePanel").then(
+    (module) => {
+      loadedAppearancePanel = module.AppearancePanel;
+      return module.AppearancePanel;
+    },
+    (error: unknown) => {
+      // A failed fetch (flaky mobile network) must not poison later attempts.
+      appearancePanelRequest = null;
+      throw error;
+    },
+  );
+  return appearancePanelRequest;
+}
 
 /**
  * Which controls this instrument offers. The reader panel owns the reader preferences;
@@ -71,6 +94,68 @@ export function AppearanceCog({
   const t = useT();
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [AppearancePanel, setAppearancePanel] = useState<AppearancePanelComponent | null>(
+    () => loadedAppearancePanel,
+  );
+  // True while an open request waits on the panel chunk; a close request cancels it.
+  const pendingOpenRef = useRef(false);
+
+  const ensurePanel = useCallback(() => {
+    if (loadedAppearancePanel) {
+      return Promise.resolve(loadedAppearancePanel);
+    }
+    return loadAppearancePanel().then((panel) => {
+      setAppearancePanel(() => panel);
+      return panel;
+    });
+  }, []);
+
+  const preloadPanel = useCallback(() => {
+    ensurePanel().catch(() => {
+      // Retried on the next intent or open request.
+    });
+  }, [ensurePanel]);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        pendingOpenRef.current = false;
+        setPopoverOpen(false);
+        return;
+      }
+      if (loadedAppearancePanel) {
+        setAppearancePanel(() => loadedAppearancePanel);
+        setPopoverOpen(true);
+        return;
+      }
+      pendingOpenRef.current = true;
+      ensurePanel().then(
+        () => {
+          if (pendingOpenRef.current) {
+            pendingOpenRef.current = false;
+            setPopoverOpen(true);
+          }
+        },
+        () => {
+          pendingOpenRef.current = false;
+        },
+      );
+    },
+    [ensurePanel],
+  );
+
+  // Fetch the panel chunk once the page is idle, so a first tap opens instantly.
+  useEffect(() => {
+    if (loadedAppearancePanel) {
+      return;
+    }
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(preloadPanel, { timeout: 4000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const handle = window.setTimeout(preloadPanel, 1500);
+    return () => window.clearTimeout(handle);
+  }, [preloadPanel]);
 
   // The panel anchors to one of two header mounts (desktop bar, mobile cluster) and the
   // bars trade places at the lg breakpoint. A panel left open across that crossing would
@@ -100,7 +185,7 @@ export function AppearanceCog({
   }
 
   return (
-    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+    <Popover open={popoverOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -110,6 +195,10 @@ export function AppearanceCog({
           aria-label={t("Appearance settings")}
           title={t("Appearance settings")}
           data-appearance-cog=""
+          // Intent ahead of the click: fetch the panel chunk if idle has not yet.
+          onPointerEnter={preloadPanel}
+          onPointerDown={preloadPanel}
+          onFocus={preloadPanel}
           // The transparent 44px box preserves the touch target without drawing a
           // button around the glyph. Open turns the gear a quarter-turn — a state
           // cue that does not depend on colour, which matters here because the panel
@@ -164,7 +253,7 @@ export function AppearanceCog({
           className="theme-popover-arrow"
         />
         <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
-          {popoverOpen && <AppearancePanel
+          {popoverOpen && AppearancePanel && <AppearancePanel
             showVisualStyle={showVisualStyle}
             showColorScheme={showColorScheme}
             showSurface={showSurface}
