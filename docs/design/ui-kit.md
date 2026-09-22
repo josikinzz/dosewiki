@@ -85,7 +85,10 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    grows a centered `::before` hit area to 44px while the rendered box keeps
    its desktop geometry. Never draw the floor on a chip-sized control; a
    rendered 44px box turns a 24px pill into a lozenge and inflates the chip
-   it sits in.
+   it sits in. Controls that sit shoulder to shoulder in one row, such as the
+   citation backlink numerals, use `TOUCH_HALO_Y`: only the height grows, and
+   the row supplies its own coarse-pointer spacing so neighbouring halos never
+   overlap and steal each other's tap.
    Fields keep 16px on phones so iOS does not zoom on focus: the `sm` size of
    `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders
    `text-[16px] md:text-sm`. Tests may assert these two class recipes by name;

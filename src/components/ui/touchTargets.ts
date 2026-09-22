@@ -15,3 +15,12 @@ export const TOUCH_ICON = "[@media(pointer:coarse)]:h-11 [@media(pointer:coarse)
  */
 export const TOUCH_HALO =
   "relative before:absolute before:left-1/2 before:top-1/2 before:h-full before:w-full before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] [@media(pointer:coarse)]:before:min-h-11 [@media(pointer:coarse)]:before:min-w-11";
+
+/**
+ * The vertical half of `TOUCH_HALO`, for controls that sit shoulder to
+ * shoulder in one row, such as the citation backlink numerals. A full 44px
+ * halo on each neighbour would overlap and let the later sibling steal the
+ * tap, so the row keeps its own horizontal spacing and only the height grows.
+ */
+export const TOUCH_HALO_Y =
+  "relative before:absolute before:inset-x-0 before:top-1/2 before:h-full before:-translate-y-1/2 before:content-[''] [@media(pointer:coarse)]:before:min-h-11";

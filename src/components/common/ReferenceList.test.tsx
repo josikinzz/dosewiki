@@ -28,6 +28,21 @@ describe("ReferenceCitationList", () => {
     expect(screen.getByRole("button", { name: "Show only the first 10 citations" })).toBeInTheDocument();
   });
 
+  it("keeps citation backlinks compact and floors their hit area invisibly", () => {
+    const citations = makeCitations(1).map((citation) => ({ ...citation, referenceId: "ref-1" }));
+    render(
+      <ReferenceCitationList
+        citations={citations}
+        referenceBacklinks={{ "ref-1": [{ referenceId: "ref-1", occurrenceIndex: 0, label: "1", href: "#use-1" }] }}
+      />,
+    );
+    const link = screen.getByRole("link", { name: "Go to use 1 of citation 1" });
+    expect(link.className).toContain("[@media(pointer:coarse)]:before:min-h-11");
+    expect(link.className).not.toContain("[@media(pointer:coarse)]:min-h-11");
+    expect(link.className).not.toContain("[@media(pointer:coarse)]:min-w-11");
+    expect(link.parentElement?.className).not.toContain("[@media(pointer:coarse)]:h-auto");
+  });
+
   it("renders no control when the list fits", () => {
     render(<ReferenceCitationList citations={makeCitations(10)} />);
     expect(screen.queryByRole("button")).toBeNull();
