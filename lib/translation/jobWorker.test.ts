@@ -27,6 +27,7 @@ vi.mock("./liveTranslation", () => ({
   readTranslationRecord: async () => ({ slug: "fixture" }),
   loadTranslationContext: async () => ({}),
   refreshRecordTranslations: seam.refresh,
+  createTranslationWave: () => ({ pending: new Map(), write: async () => undefined }),
 }));
 
 import { runTranslationJobs } from "./jobWorker";
