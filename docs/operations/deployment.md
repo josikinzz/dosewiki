@@ -19,8 +19,11 @@ reader. Record each artifact's actual page count with `bun run build:census`.
 
 Public hosts redirect `/dev`, `/review`, `/sign-in`, and `/unauthorized` to `dev.dose.wiki`. Credentialed APIs stay unavailable on public origins. Editor hosts remain `noindex`, return private/no-store caching directives, and must never receive a public alias. `src/config/siteFlavor.ts`, `lib/next/flavorGatedRoutes.ts`, and `src/middleware.ts` own route and host behavior.
 
-`vercel.json` disables Git-triggered deployments for `main`. This keeps
-workflow and generated-pack pushes from deploying application code.
+`vercel.json` disables Git-triggered deployments on every branch. This keeps
+workflow and generated-pack pushes from deploying application code, and it
+stops the per-PR previews that always failed: the preview environment holds
+no database URL, so those builds stopped at the first data-backed page.
+Builds for review come from the remote build workflow instead.
 Explicit releases still follow the sequence
 below. Vercel's `gitProviderOptions.createDeployments` controls GitHub
 deployment records, not this build-suppression boundary.
@@ -69,10 +72,13 @@ Two build paths produce the same artifact through the same command:
 
 - **Remote (preferred once proven).** Dispatch
   `.github/workflows/remote-build.yml` with the surface, the ref, the runner
-  label, and the surface's GitHub environment. It runs `bun run build:vercel`
-  through `vercel build` next to the database, prints the census and elapsed
-  time as the job summary, and uploads a preview deployment. It assigns no
-  alias; the release order below continues from step 3 with that deployment.
+  label, the surface's GitHub environment, and the target. It runs
+  `bun run build:vercel` through `vercel build` next to the database, prints
+  the census and elapsed time as the job summary, and uploads the output.
+  With `target: production` the upload is a production deployment created
+  with `--skip-domain`: it serves the production environment at its own URL
+  and holds no domain. The release order below continues from step 3 with
+  that deployment. Dispatch one surface at a time, in release order.
   Capabilities and limits: [security CI](security-ci.md#remote-build-workflow).
   Provisioning the environments and running the first build is a human step
   recorded in [data credentials](data-credentials.md#remote-build-deploy-token).
@@ -95,10 +101,10 @@ Limits of the remote path, observed on its first runs:
   `.next-editor`, so the workflow removes the `.next-*/` rule in its own
   checkout before deploying; without that, Vercel fails with `ENOENT ...
   .next-editor/package.json`.
-- Its preview deployment runs with the project's preview environment, which
-  holds no database URL, so pages rendered on demand fail there. Use it for
-  the census, the artifact audit, and timing; production artifacts still come
-  from `vercel deploy --prod --skip-domain` in each isolated release tree.
+- A `target: preview` deployment runs with the project's preview
+  environment, which holds no database URL, so pages rendered on demand fail
+  there. Use it for the census, the artifact audit, and timing only; a
+  release uses `target: production`.
 
 The remote path becomes the default release path after two production
 releases have gone through it end to end with their census and elapsed time
