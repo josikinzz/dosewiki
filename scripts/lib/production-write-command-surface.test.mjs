@@ -51,9 +51,11 @@ const SHARED_CLIENT_LIBRARIES = new Set([
 // Local-Postgres rehearsals and parity harnesses write scratch rows through
 // the runtime and are gated by targetGuard (loopback only unless
 // --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Postgres deployment
-// ceremony. The `it.each` below holds them to that guard.
+// ceremony. The `it.each` below holds them to that guard. Operator commands
+// that write shared tables, such as the derived-table rebuild and the snapshot
+// importer, are production boundaries instead and never match this pattern.
 const POSTGRES_GUARDED_WRITER_PATTERN =
-  /^scripts\/postgres\/(?:(?:rehearse-[^/]+|parity[^/]*)|rebuild-derived-tables)\.ts$/;
+  /^scripts\/postgres\/(?:rehearse-[^/]+|parity[^/]*)\.ts$/;
 
 function activeDirectMutationWriters() {
   return activeScriptDetections
@@ -92,6 +94,13 @@ function sourceWithoutGuardedDryRunReadFallbacks(source) {
 describe("production writer command surface", () => {
   it("classifies every active direct Postgres mutation file", () => {
     expect(activeDirectMutationWriters().filter((path) => !classifiedDirectProductionWriterPaths.includes(path))).toEqual([]);
+  });
+
+  it("holds the derived-table rebuild to the production boundary, not the rehearsal exemption", () => {
+    const rebuild = "scripts/postgres/rebuild-derived-tables.ts";
+    expect(POSTGRES_GUARDED_WRITER_PATTERN.test(rebuild)).toBe(false);
+    expect(activeDirectMutationWriters()).toContain(rebuild);
+    expect(productionWriterClassifications.productionBoundary).toContain(rebuild);
   });
 
   it.each(postgresRehearsalWriters())("%s writes only behind the Postgres target guard", (path) => {
