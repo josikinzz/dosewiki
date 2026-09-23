@@ -12,7 +12,7 @@ import { randomBytes } from "node:crypto";
 import { Pool, type PoolClient } from "pg";
 import { documentToRow, encodeField, losslessSelectList, rowToDocument, type DataDocument } from "./documentCodec";
 import { tableColumns, type TableName } from "./schema.generated";
-import { setTransactionTimeouts } from "./transactionTimeouts";
+import { beginWithTimeouts } from "./transactionTimeouts";
 import { lockLocalizedPublicationIndexes, refreshLocalizedPublicationIndexes } from "../translation/publicationIndexStore";
 import { isDataWriteFreezeActive } from "../runtime/dataWriteFreeze";
 
@@ -126,9 +126,8 @@ export async function deleteDocument(client: SqlClient, table: TableName, id: st
 export async function withTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
+    await client.query(beginWithTimeouts(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN"));
     try {
-      await setTransactionTimeouts(client);
       const result = await fn(client);
       await client.query("COMMIT");
       return result;

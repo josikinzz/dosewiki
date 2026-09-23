@@ -12,7 +12,7 @@ import { Pool } from "pg";
 import { assertDeploymentEnv } from "./deploymentEnv";
 import { loadIdTableMap, taggedIdTable, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
 import { validateValue, validateReturn } from "./validate";
-import { POOL_ACQUISITION_TIMEOUT_MS, setTransactionTimeouts } from "../transactionTimeouts";
+import { POOL_ACQUISITION_TIMEOUT_MS, beginWithTimeouts } from "../transactionTimeouts";
 import { withTransaction, type SqlClient } from "../documentStore";
 import { parsePostgresTarget } from "./target";
 import { classifyPostgresError } from "../postgresErrors";
@@ -160,9 +160,8 @@ export class PostgresClient {
     return retryTransient(async () => {
       const client = await this.pool.connect();
       try {
-        await client.query(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
+        await client.query(beginWithTimeouts(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN"));
         try {
-          await setTransactionTimeouts(client);
           const result = await client.query<Row>(text, values);
           await client.query("COMMIT");
           return result.rows;
@@ -185,25 +184,10 @@ export class PostgresClient {
     return retryTransient(() => withTransaction(this.pool, operation));
   }
 
-  private async prepareArguments(name: string, fn: Registered, args: Record<string, unknown>): Promise<IdTableMap> {
-    validateValue(fn.args, args, `${name} args`);
+  /** Resolve argument ids inside the callable's own transaction, so a call is one checkout and one snapshot. */
+  private async prepareArguments(executor: SqlExecutor, name: string, fn: Registered, args: Record<string, unknown>): Promise<IdTableMap> {
     const idMap: IdTableMap = new Map();
-    const ids = this.candidateIds(args);
-    if (ids.length) {
-      const client = await this.pool.connect();
-      try {
-        await client.query("BEGIN READ ONLY");
-        try {
-          await setTransactionTimeouts(client);
-          await this.resolveArgumentIds(serialExecutor(client), args, idMap);
-          await client.query("COMMIT");
-        } catch (error) {
-          await client.query("ROLLBACK").catch(() => {});
-          throw error;
-        }
-      }
-      finally { client.release(); }
-    }
+    await this.resolveArgumentIds(executor, args, idMap);
     this.validateArgs(name, fn, args, idMap);
     return idMap;
   }
@@ -212,14 +196,14 @@ export class PostgresClient {
     const args = (rest[0] ?? {}) as Record<string, unknown>;
     const { name, fn } = await resolveFunction(reference);
     if (!fn.isQuery) throw new Error(`${name} is not a query`);
-    const idMap = await this.prepareArguments(name, fn, args);
+    validateValue(fn.args, args, `${name} args`);
     const client = await this.pool.connect();
     try {
-      await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+      await client.query(beginWithTimeouts("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY"));
       try {
-        await setTransactionTimeouts(client);
         const executor = serialExecutor(client);
         const startedAt = performance.now();
+        const idMap = await this.prepareArguments(executor, name, fn, args);
         const result = await this.runQueryOn(executor, idMap, name, fn, args);
         await client.query("COMMIT");
         trace("query", name, executor, startedAt);
@@ -239,15 +223,15 @@ export class PostgresClient {
     const args = (rest[0] ?? {}) as Record<string, unknown>;
     const { name, fn } = await resolveFunction(reference);
     if (!fn.isMutation) throw new Error(`${name} is not a mutation`);
-    const idMap = await this.prepareArguments(name, fn, args);
+    validateValue(fn.args, args, `${name} args`);
     return retryTransient(async (attempt) => {
       const client = await this.pool.connect();
       try {
-        await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+        await client.query(beginWithTimeouts("BEGIN ISOLATION LEVEL SERIALIZABLE"));
         try {
-          await setTransactionTimeouts(client);
           const executor = serialExecutor(client);
           const startedAt = performance.now();
+          const idMap = await this.prepareArguments(executor, name, fn, args);
           const result = await this.runMutationOn(executor, idMap, name, fn, args);
           await client.query("COMMIT");
           trace("mutation", name, executor, startedAt, attempt);

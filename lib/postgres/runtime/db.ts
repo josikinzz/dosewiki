@@ -12,7 +12,7 @@
 
 import { createHash, randomInt } from "node:crypto";
 import type { PoolClient } from "pg";
-import { decodeDocumentValue, encodeDocumentValue, documentToRow, losslessSelectList, rowToDocument, type DataDocument } from "../documentCodec";
+import { decodeDocumentValue, encodeDocumentValue, encodeField, documentToRow, losslessSelectList, rowToDocument, type DataDocument } from "../documentCodec";
 import { tableColumns, tableIndexes, tableNames, type ColumnSpec, type TableName } from "../schema.generated";
 import { lockLocalizedPublicationIndexes, refreshLocalizedPublicationIndexes } from "../../translation/publicationIndexStore";
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
@@ -1352,19 +1352,45 @@ export class PostgresDatabaseWriter extends PostgresDatabaseReader {
     return doc._id;
   }
 
+  /**
+   * Only the named columns change, and `undefined` clears an optional field.
+   * The UPDATE takes the row lock itself, so the document is never read back
+   * and unrelated JSONB sections are never rewritten.
+   */
   async patch(idOrTable: string, idOrValue: string | Record<string, unknown>, maybeValue?: Record<string, unknown>): Promise<void> {
     const id = typeof idOrValue === "string" ? idOrValue : idOrTable;
     const value = (typeof idOrValue === "string" ? maybeValue : idOrValue) ?? {};
     const table = typeof idOrValue === "string" ? assertTable(idOrTable) : await this.tableOf(id);
     if (!table) throw new Error(`Cannot patch missing document ${id}`);
-    const current = await this.lockedGet(table, id);
-    const next: Doc = { ...current };
-    for (const [key, field] of Object.entries(value)) {
-      if (key === "_id" || key === "_creationTime") continue;
-      if (field === undefined) delete next[key];
-      else next[key] = field;
+    const specs = tableColumns[table] as Record<string, ColumnSpec>;
+    const fields = Object.keys(value).filter((key) => key !== "_id" && key !== "_creationTime");
+    const unknownFields = fields.filter((field) => !specs[field]);
+    if (unknownFields.length) {
+      throw new Error(`Document for ${table} carries fields the schema does not declare: ${unknownFields.join(", ")}`);
     }
-    await this.write(table, next, "update");
+    const assignments: string[] = [];
+    const params: unknown[] = [];
+    for (const field of fields) {
+      if (value[field] === undefined) {
+        if (!specs[field].optional) throw new Error(`Field ${table}.${field} is required but absent`);
+        assignments.push(`${quote(field)} = NULL`);
+        continue;
+      }
+      const encoded = encodeField(table, field, encodeDocumentValue(value[field]));
+      params.push(typeof encoded === "number" && Object.is(encoded, -0) ? "-0" : encoded);
+      assignments.push(`${quote(field)} = $${params.length}${specs[field].kind === "jsonb" ? "::jsonb" : ""}`);
+    }
+    params.push(id);
+    if (table === "effectIndexArticles") {
+      await lockLocalizedPublicationIndexes(this.client);
+    }
+    const result = assignments.length
+      ? await this.client.query(`UPDATE ${quote(table)} SET ${assignments.join(", ")} WHERE "_id" = $${params.length}`, params)
+      : await this.client.query(`SELECT "_id" FROM ${quote(table)} WHERE "_id" = $1 FOR UPDATE`, params);
+    if (!result.rowCount) throw new Error(`Document ${id} does not exist in ${table}`);
+    if (assignments.length && table === "effectIndexArticles") {
+      await refreshLocalizedPublicationIndexes(this.client, { publicationId: id });
+    }
   }
 
   async replace(idOrTable: string, idOrValue: string | Record<string, unknown>, maybeValue?: Record<string, unknown>): Promise<void> {

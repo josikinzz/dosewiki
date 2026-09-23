@@ -81,7 +81,7 @@ describe("runtime client transient retry", () => {
     const client = new PostgresClient(pool as never);
     const error = await client.sql(statement).catch((caught: unknown) => caught);
     expect(classifyPostgresError(error)).toBe("frozen");
-    expect(sql[0]).toBe("BEGIN READ ONLY");
+    expect(sql[0]).toMatch(/^BEGIN READ ONLY;/);
     expect(pool.connect).toHaveBeenCalledTimes(1);
   });
 
