@@ -66,8 +66,8 @@ const ASSOCIATIONS_API = "/api/dev/replications/associations";
 type Feedback = { tone: ActionNoticeTone; message: string };
 
 /**
- * A string discriminant, not `ok: boolean`: this project compiles with
- * `strictNullChecks: false`, under which boolean-literal narrowing does not hold.
+ * A string discriminant, not `ok: boolean`, chosen while the project compiled
+ * without strict null checks, where boolean-literal narrowing did not hold.
  */
 type LoadState =
   | { status: "loading" }
