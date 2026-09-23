@@ -63,3 +63,34 @@ export function withCronWriteFreeze(
     }
   };
 }
+
+type CronRouteOptions = {
+  /**
+   * A limiter spent before authorization, so unauthenticated attempts are
+   * bounded as well as the authorized workload. Writer crons omit it.
+   */
+  rateLimit?: (request: Request) => Promise<Response | null>;
+  /** Read per request; defaults to the process environment. */
+  env?: () => CronAuthEnv;
+};
+
+/**
+ * The whole gate for a scheduled route, in one fixed order: the optional rate
+ * limit, then `CRON_SECRET`, then the handler, with a write freeze from the
+ * handler reported as a deliberate 503.
+ */
+export function cronRoute(
+  handler: (request: Request) => Promise<Response>,
+  { rateLimit, env = () => ({ CRON_SECRET: process.env.CRON_SECRET }) }: CronRouteOptions = {},
+): (request: Request) => Promise<Response> {
+  return withCronWriteFreeze(async (request) => {
+    const limited = await rateLimit?.(request);
+    if (limited) return limited;
+    const decision = authorizeCronRequest(request.headers.get("authorization"), env());
+    if (!decision.allowed) {
+      return NextResponse.json({ error: decision.reason }, { status: decision.status });
+    }
+    return handler(request);
+  });
+}
+

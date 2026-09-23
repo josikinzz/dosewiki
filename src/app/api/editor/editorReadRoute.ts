@@ -12,15 +12,15 @@
  * used to deliver, so the TanStack hooks in `src/hooks/useEditorRead.ts` can
  * hand components an unchanged shape.
  *
- * GET requests skip `protectedRouteOperation`'s origin gate (browsers omit
- * `Origin` on same-origin GETs), so this helper adds the read-side equivalent:
- * a foreign `Origin` or a cross-site `Sec-Fetch-Site` is refused. Cookie
- * reads are not a CSRF vector, but these bodies are editor-only projections
- * and there is no reason to serve them to another site.
+ * GET requests skip `protectedRouteOperation`'s mutation origin gate, so this
+ * helper applies the `editorRead` posture of the same rule. Cookie reads are
+ * not a CSRF vector, but these bodies are editor-only projections and there is
+ * no reason to serve them to another site.
  */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import type { RoleFloor } from "@/lib/auth/roles";
 import { getServerDataReadClient, type ServerReadClient } from "@server/data/serverClient";
 
@@ -28,13 +28,6 @@ export type EditorReadOperation = (input: {
   params: URLSearchParams;
   client: ServerReadClient;
 }) => Promise<unknown>;
-
-export function isForeignReadRequest(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (origin !== null && origin !== new URL(request.url).origin) return true;
-  const fetchSite = request.headers.get("sec-fetch-site");
-  return fetchSite !== null && fetchSite !== "same-origin" && fetchSite !== "none";
-}
 
 /** Reject a missing or malformed query-string value with a 400 instead of forwarding it. */
 export function requireParam(params: URLSearchParams, name: string, pattern: RegExp): string {
@@ -66,14 +59,6 @@ export function editorReadRoute(options: {
   });
 
   return async function handleEditorRead(request: Request) {
-    if (isForeignReadRequest(request)) {
-      const response = NextResponse.json(
-        { error: "Editor data is only served to the editor itself.", code: "ORIGIN_REQUIRED" },
-        { status: 403 },
-      );
-      response.headers.set("Cache-Control", "private, no-store");
-      return response;
-    }
-    return operation(request);
+    return foreignOriginResponse(request, "editorRead") ?? operation(request);
   };
 }

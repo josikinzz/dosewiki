@@ -25,9 +25,19 @@ vi.mock("@server/translation/jobWorker", () => ({
   },
 }));
 
+const rateLimit = vi.hoisted(() => ({ enforceRateLimit: vi.fn(async () => null as Response | null) }));
+vi.mock("@server/http/nextRateLimit", () => rateLimit);
+vi.mock("@server/data/publicData", () => ({ getPublicSubstanceLookup: async () => ({}) }));
+vi.mock("../warm/warmPolicy", () => ({
+  parseWarmSearchParams: () => ({ concurrency: 1, budgetMs: 1000, includeLow: false, rotate: 0, maxUrls: 0 }),
+  planWarmTargets: () => [],
+  warmRotationForTick: () => 0,
+}));
+
 import { GET as publicationDelivery } from "./publication-delivery/route";
 import { GET as translationBulk } from "./translation-bulk/route";
 import { GET as translationRefresh } from "./translation-refresh/route";
+import { GET as warm } from "../warm/route";
 
 const writerCrons = [
   ["publication-delivery", publicationDelivery],
@@ -74,6 +84,42 @@ describe("writer crons under a write freeze", () => {
 
   it.each(writerCrons)("%s runs normally when writes are open", async (name, GET) => {
     const response = await GET(cronRequest(name));
+
+    expect(response.status).toBe(200);
+  });
+});
+
+describe("the warm cron", () => {
+  beforeEach(() => {
+    vi.stubEnv("CRON_SECRET", "cron-fixture");
+    vi.stubEnv("DATA_WRITES_FROZEN", "0");
+    rateLimit.enforceRateLimit.mockClear();
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("refuses a wrong secret, after spending the rate limit", async () => {
+    const response = await warm(
+      new Request("https://dose.wiki/api/warm", { headers: { authorization: "Bearer cron-fixturf" } }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(rateLimit.enforceRateLimit).toHaveBeenCalledOnce();
+  });
+
+  it("answers a limited caller before looking at its secret", async () => {
+    rateLimit.enforceRateLimit.mockResolvedValueOnce(Response.json({ error: "Too many requests." }, { status: 429 }));
+
+    const response = await warm(new Request("https://dose.wiki/api/warm"));
+
+    expect(response.status).toBe(429);
+  });
+
+  it("runs with the secret", async () => {
+    const response = await warm(
+      new Request("https://dose.wiki/api/warm", { headers: { authorization: "Bearer cron-fixture" } }),
+    );
 
     expect(response.status).toBe(200);
   });

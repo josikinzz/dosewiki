@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getPublicSubstanceLookup } from "@server/data/publicData";
 import { PUBLIC_SITE } from "@server/next/publicSite";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { authorizeCronRequest, withCronWriteFreeze } from "@server/http/cronAuthorization";
+import { cronRoute } from "@server/http/cronAuthorization";
 import {
   summarizeWarmResults,
   warmUrls,
@@ -28,18 +28,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-export const GET = withCronWriteFreeze(async function GET(request: Request) {
-  // Keep unauthenticated attempts bounded as well as the authorized workload.
-  const rateLimited = await enforceRateLimit(request, "diagnosticRead");
-  if (rateLimited) return rateLimited;
-
-  const decision = authorizeCronRequest(request.headers.get("authorization"), {
-    CRON_SECRET: process.env.CRON_SECRET,
-  });
-  if (!decision.allowed) {
-    return NextResponse.json({ error: decision.reason }, { status: decision.status });
-  }
-
+export const GET = cronRoute(async function GET(request: Request) {
   const startedAt = Date.now();
   const { concurrency, budgetMs, includeLow, rotate, maxUrls } = parseWarmSearchParams(
     new URL(request.url).searchParams,
@@ -80,4 +69,7 @@ export const GET = withCronWriteFreeze(async function GET(request: Request) {
     },
     { headers: { "cache-control": "no-store" } },
   );
+}, {
+  // Keep unauthenticated attempts bounded as well as the authorized workload.
+  rateLimit: (request) => enforceRateLimit(request, "diagnosticRead"),
 });

@@ -3,6 +3,7 @@ import { requireRoleSession, type RoleSessionGranted } from "@/lib/auth/requireE
 import type { RoleFloor } from "@/lib/auth/roles";
 import { dataRejectionResponse } from "@/lib/http/dataRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
+import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import { getServerDataWriteCapability, type ServerDataWriteCapability, type ServerDataWriteConfigurationFailure } from "@server/data/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
@@ -56,17 +57,8 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
 ) {
   const handle = async (request: Request): Promise<NextResponse> => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {
-      const origin = request.headers.get("origin");
-      const fetchSite = request.headers.get("sec-fetch-site");
-      // Origin is browser-controlled. Never trust forwarded host headers to
-      // turn a foreign origin into an allowed cookie-authenticated mutation.
-      if ((origin !== new URL(request.url).origin) ||
-          (fetchSite !== null && fetchSite !== "same-origin")) {
-        return NextResponse.json(
-          { error: "This change must be sent from the same site. Reload the editor and try again.", code: "ORIGIN_REQUIRED" },
-          { status: 403 },
-        );
-      }
+      const foreign = foreignOriginResponse(request, "editorWrite");
+      if (foreign) return foreign;
     }
     const rateLimited = await enforceRateLimit(request, options.rateLimit);
     if (rateLimited) {
@@ -122,7 +114,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       }
 
       // A `PostgresError` is the write layer refusing on purpose, with text meant
-      // for whoever triggered the write — a stale value, a slug that is not
+      // for whoever triggered the write: a stale value, a slug that is not
       // there, a field nobody may edit. Collapsing those into the generic
       // message leaves an editor unable to tell a mistake from an outage. Every
       // other throw keeps falling through below.

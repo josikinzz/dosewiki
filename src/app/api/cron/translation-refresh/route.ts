@@ -12,7 +12,7 @@
  */
 import { NextResponse } from "next/server";
 
-import { authorizeCronRequest, withCronWriteFreeze } from "@server/http/cronAuthorization";
+import { cronRoute } from "@server/http/cronAuthorization";
 import { getDataBackend } from "@server/postgres/runtime/backend";
 import { runTranslationJobs, type TranslationWorkerRun } from "@server/translation/jobWorker";
 
@@ -25,17 +25,7 @@ const REQUEST_CONCURRENCY = 8;
 
 export type TranslationRefreshRun = TranslationWorkerRun;
 
-export const GET = withCronWriteFreeze(async function GET(request: Request) {
-  const decision = authorizeCronRequest(request.headers.get("authorization"), {
-    CRON_SECRET: process.env.CRON_SECRET,
-  });
-  if (!decision.allowed) {
-    return NextResponse.json(
-      { error: decision.reason },
-      { status: decision.status },
-    );
-  }
-
+export const GET = cronRoute(async function GET() {
   getDataBackend();
 
   const apiKey = process.env.OPENROUTER_API_KEY;

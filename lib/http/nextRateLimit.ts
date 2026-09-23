@@ -171,9 +171,6 @@ function resolvePolicy(policyOrOptions?: RateLimitPolicyName | RateLimitOptions)
     name: "legacy",
     windowMs: policyOrOptions?.windowMs !== undefined && Number.isFinite(policyOrOptions.windowMs) ? policyOrOptions.windowMs : DEFAULT_WINDOW_MS,
     max: policyOrOptions?.max !== undefined && Number.isFinite(policyOrOptions.max) ? policyOrOptions.max : DEFAULT_MAX,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
   };
 }
 
@@ -212,7 +209,7 @@ async function limitWithFallback(
   } catch {
     console.warn("[rate-limit] storage:fallback", {
       policy: policy.name,
-      fallbackMode: policy.fallbackMode,
+      fallbackMode: "inMemory",
     });
     return memoryStorage.limit(key, policy);
   }

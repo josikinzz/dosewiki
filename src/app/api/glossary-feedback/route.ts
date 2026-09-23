@@ -7,6 +7,7 @@ import { isDataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { enforceRateLimit, getClientIp } from "@server/http/nextRateLimit";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { dataRejectionResponse } from "@/lib/http/dataRejection";
+import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import { getSiteFeedbackIpHashSecret } from "@/features/site-feedback/siteFeedbackStore.server";
 import {
   TurnstileVerificationError,
@@ -15,15 +16,8 @@ import {
 import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
-  if (
-    request.headers.get("origin") !== new URL(request.url).origin ||
-    (request.headers.get("sec-fetch-site") &&
-      request.headers.get("sec-fetch-site") !== "same-origin")
-  )
-    return NextResponse.json(
-      { error: "Send feedback from this site." },
-      { status: 403 },
-    );
+  const foreign = foreignOriginResponse(request, "publicWrite");
+  if (foreign) return foreign;
   const limited = await enforceRateLimit(request, "publicSiteFeedbackSubmit");
   if (limited) return limited;
   try {

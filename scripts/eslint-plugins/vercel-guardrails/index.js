@@ -408,6 +408,8 @@ const requireRateLimit = {
       'createSubscribeRateLimiter',
       // Cron routes are gated by CRON_SECRET; the caller is Vercel's scheduler, not the public.
       'authorizeCronRequest',
+      // cronRoute applies authorizeCronRequest, after an optional limiter.
+      'cronRoute',
     ]);
 
     return {

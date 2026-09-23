@@ -14,154 +14,54 @@ export type RateLimitPolicyName =
   | "publicContentApiRead"
   | "authCredentialAttempt";
 
-type RateLimitKeyStrategy = "ip";
-type RateLimitFallbackMode = "inMemory";
-type RateLimitResponseShape = "jsonError";
-
+/**
+ * Every policy keys by client IP, falls back to the in-memory store when
+ * Upstash is unavailable, and answers with the JSON 429 from `nextRateLimit`;
+ * only the window and the budget vary.
+ */
 export type RateLimitPolicy = {
   name: RateLimitPolicyName;
   windowMs: number;
   max: number;
-  keyStrategy: RateLimitKeyStrategy;
-  fallbackMode: RateLimitFallbackMode;
-  responseShape: RateLimitResponseShape;
 };
 
 const ONE_MINUTE_MS = 60_000;
 
 const rateLimitPolicies = {
-  editorHeavyWrite: {
-    name: "editorHeavyWrite",
-    windowMs: ONE_MINUTE_MS,
-    max: 5,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  editorSmallWrite: {
-    name: "editorSmallWrite",
-    windowMs: ONE_MINUTE_MS,
-    max: 20,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  authenticatedProfileWrite: {
-    name: "authenticatedProfileWrite",
-    windowMs: ONE_MINUTE_MS,
-    max: 5,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  publicTripReportSubmit: {
-    name: "publicTripReportSubmit",
-    windowMs: ONE_MINUTE_MS,
-    max: 4,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  publicArticleFeedbackSubmit: {
-    name: "publicArticleFeedbackSubmit",
-    windowMs: ONE_MINUTE_MS,
-    max: 3,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  publicSiteFeedbackSubmit: {
-    name: "publicSiteFeedbackSubmit",
-    windowMs: ONE_MINUTE_MS,
-    max: 3,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
+  editorHeavyWrite: { windowMs: ONE_MINUTE_MS, max: 5 },
+  editorSmallWrite: { windowMs: ONE_MINUTE_MS, max: 20 },
+  authenticatedProfileWrite: { windowMs: ONE_MINUTE_MS, max: 5 },
+  publicTripReportSubmit: { windowMs: ONE_MINUTE_MS, max: 4 },
+  publicArticleFeedbackSubmit: { windowMs: ONE_MINUTE_MS, max: 3 },
+  publicSiteFeedbackSubmit: { windowMs: ONE_MINUTE_MS, max: 3 },
   /**
    * Signups a credential-free relay (Effect Index) forwards to the list owner.
    * The relay holds no database limiter, so it spends this local per-reader
    * budget, matching the receiver's `subscribePerIp` refill of five per ten
    * minutes, before it forwards anything.
    */
-  publicSubscribeRelay: {
-    name: "publicSubscribeRelay",
-    windowMs: 10 * ONE_MINUTE_MS,
-    max: 5,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  publicProxyRead: {
-    name: "publicProxyRead",
-    windowMs: ONE_MINUTE_MS,
-    max: 30,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
+  publicSubscribeRelay: { windowMs: 10 * ONE_MINUTE_MS, max: 5 },
+  publicProxyRead: { windowMs: ONE_MINUTE_MS, max: 30 },
   /**
    * Publication signals whose HMAC signature already verified. The editor sends
    * one signed request per outbox row and cache fan-out sends up to 200 at a
    * time, all from the editor's egress address, so this bucket is sized for
    * that burst and kept apart from the unverified public limit.
    */
-  publicationSignalVerified: {
-    name: "publicationSignalVerified",
-    windowMs: ONE_MINUTE_MS,
-    max: 600,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  diagnosticRead: {
-    name: "diagnosticRead",
-    windowMs: ONE_MINUTE_MS,
-    max: 30,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
+  publicationSignalVerified: { windowMs: ONE_MINUTE_MS, max: 600 },
+  diagnosticRead: { windowMs: ONE_MINUTE_MS, max: 30 },
   /**
    * Editor-surface reads that TanStack Query polls (15 s per list, 5 s per
    * open document) plus refetch-on-focus: one editor with several tools open
    * legitimately issues around sixty requests a minute, and editors behind a
    * shared address multiply that.
    */
-  editorPolledRead: {
-    name: "editorPolledRead",
-    windowMs: ONE_MINUTE_MS,
-    max: 300,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  publicSearchRead: {
-    name: "publicSearchRead",
-    windowMs: ONE_MINUTE_MS,
-    max: 30,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  publicContentApiRead: {
-    name: "publicContentApiRead",
-    windowMs: ONE_MINUTE_MS,
-    max: 120,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-  authCredentialAttempt: {
-    name: "authCredentialAttempt",
-    windowMs: 10 * ONE_MINUTE_MS,
-    max: 10,
-    keyStrategy: "ip",
-    fallbackMode: "inMemory",
-    responseShape: "jsonError",
-  },
-} satisfies Record<RateLimitPolicyName, RateLimitPolicy>;
+  editorPolledRead: { windowMs: ONE_MINUTE_MS, max: 300 },
+  publicSearchRead: { windowMs: ONE_MINUTE_MS, max: 30 },
+  publicContentApiRead: { windowMs: ONE_MINUTE_MS, max: 120 },
+  authCredentialAttempt: { windowMs: 10 * ONE_MINUTE_MS, max: 10 },
+} satisfies Record<RateLimitPolicyName, Omit<RateLimitPolicy, "name">>;
 
 export function getRateLimitPolicy(name: RateLimitPolicyName): RateLimitPolicy {
-  return rateLimitPolicies[name];
+  return { name, ...rateLimitPolicies[name] };
 }
