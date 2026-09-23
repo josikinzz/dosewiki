@@ -79,7 +79,7 @@ export async function insertDocument(client: SqlClient, table: TableName, value:
   await client.query(sql, columns.map((column) => encoded.row[column]));
   await client.query('INSERT INTO "documentIds" ("_id", "table") VALUES ($1, $2)', [document._id, table]);
   if (table === "effectIndexArticles") {
-    await refreshLocalizedPublicationIndexes(client);
+    await refreshLocalizedPublicationIndexes(client, { publicationId: document._id as string });
   }
   return document._id as string;
 }
@@ -111,7 +111,7 @@ export async function patchDocument(client: SqlClient, table: TableName, id: str
   params.push(id);
   const result = await client.query(`UPDATE ${quoteIdentifier(table)} SET ${assignments.join(", ")} WHERE "_id" = $${params.length}`, params);
   if (table === "effectIndexArticles" && result.rowCount) {
-    await refreshLocalizedPublicationIndexes(client);
+    await refreshLocalizedPublicationIndexes(client, { publicationId: id });
   }
   return (result.rowCount ?? 0) === 1;
 }

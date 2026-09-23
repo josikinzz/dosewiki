@@ -42,13 +42,18 @@ export function isDataWriteFreezeActive(env: DataWriteFreezeEnv = process.env): 
 export class DataWriteFrozenError extends Error {
   readonly code = DATA_WRITES_FROZEN_CODE;
   readonly functionName: string;
+  /** The database's own read-only refusal, when Postgres rather than this process enforced the freeze. */
+  readonly cause?: unknown;
 
-  constructor(functionName: string) {
+  constructor(functionName: string, options?: { cause: unknown }) {
     super(
-      `Data writes are frozen (${DATA_WRITES_FROZEN_ENV_VAR}): ${functionName} refused before any statement ran.`,
+      options
+        ? `Data writes are frozen: ${functionName} was refused by a read-only database transaction.`
+        : `Data writes are frozen (${DATA_WRITES_FROZEN_ENV_VAR}): ${functionName} refused before any statement ran.`,
     );
     this.name = "DataWriteFrozenError";
     this.functionName = functionName;
+    if (options) this.cause = options.cause;
   }
 }
 

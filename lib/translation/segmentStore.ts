@@ -88,7 +88,7 @@ export async function writeTranslations(rows: readonly TranslationSegmentRow[]):
       rows.map(() => now),
     ],
   );
-    await refreshLocalizedPublicationIndexes(client);
+    await refreshLocalizedPublicationIndexes(client, { segments: rows });
   });
 }
 

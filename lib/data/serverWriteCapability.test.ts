@@ -131,4 +131,15 @@ describe("Postgres write capabilities", () => {
     expect(io.action).not.toHaveBeenCalled();
     await expect(client.query(query, { apiKey: "editorial-secret" })).resolves.toEqual({ slug: "lsd" });
   });
+
+  it("reports a database read-only refusal as the freeze refusal and leaves other failures alone", async () => {
+    const readOnly = Object.assign(new Error("cannot execute UPDATE in a read-only transaction"), { code: "25006" });
+    const lockTimeout = Object.assign(new Error("canceling statement due to lock timeout"), { code: "55P03" });
+    io.mutation.mockRejectedValueOnce(readOnly).mockRejectedValueOnce(lockTimeout);
+    const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
+    const refused = await client.mutation(edit, { apiKey: "editorial-secret", actorEmail: "editor@example.com", slug: "lsd" }).catch((error: unknown) => error);
+    expect(refused).toMatchObject({ code: "DATA_WRITES_FROZEN", functionName: "substanceIndex:setArticleField", cause: readOnly });
+    await expect(client.mutation(edit, { apiKey: "editorial-secret", actorEmail: "editor@example.com", slug: "lsd" })).rejects.toBe(lockTimeout);
+    expect(io.mutation).toHaveBeenCalledTimes(2);
+  });
 });

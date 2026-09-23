@@ -1413,7 +1413,7 @@ export class PostgresDatabaseWriter extends PostgresDatabaseReader {
         params,
       );
       if (table === "effectIndexArticles") {
-        await refreshLocalizedPublicationIndexes(this.client);
+        await refreshLocalizedPublicationIndexes(this.client, { publicationId: doc._id });
       }
       return;
     }
@@ -1425,7 +1425,7 @@ export class PostgresDatabaseWriter extends PostgresDatabaseReader {
       params,
     );
     if (table === "effectIndexArticles") {
-      await refreshLocalizedPublicationIndexes(this.client);
+      await refreshLocalizedPublicationIndexes(this.client, { publicationId: doc._id });
     }
   }
 }

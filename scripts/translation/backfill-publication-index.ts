@@ -98,7 +98,7 @@ async function main() {
         SELECT $1, p."_id", md5(to_jsonb(p)::text), true FROM "effectIndexArticles" p
         WHERE p."status" IS DISTINCT FROM 'draft' AND p."publication_status" = 'published' AND p."kind" IS DISTINCT FROM 'blog'
         ON CONFLICT ("locale", "publication_id") DO UPDATE SET "source_revision" = EXCLUDED."source_revision", "dirty" = true`, [LOCALE]);
-      await refreshLocalizedPublicationIndexes(client, LOCALE);
+      await refreshLocalizedPublicationIndexes(client, { backlog: true, locale: LOCALE });
       const actual = await readLocalizedPublicationIndex(client, LOCALE);
       if (JSON.stringify(actual) !== JSON.stringify(compact)) throw new Error("Materialized index differs from the reviewed projection");
       const after = (await client.query('SELECT * FROM "localizedPublicationIndexes" WHERE "locale" = $1 ORDER BY "publication_id"', [LOCALE])).rows;

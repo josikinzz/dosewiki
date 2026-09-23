@@ -165,8 +165,11 @@ as article details, including English fallback for missing translations.
 
 Migrations `0012` and `0013` add the projection, producer state and invalidation
 triggers. Publication writes and `writeTranslations` rebuild affected metadata
-inside their transaction. Missing or dirty metadata is an explicit readiness
-error, not permission to hide an article or load full bodies in an index read.
+inside their transaction: a publication write rebuilds only that publication's
+rows, and a segment write rebuilds only the rows whose dependency hashes include
+a written segment. Only the backfill command rebuilds the whole dirty backlog.
+Missing or dirty metadata is an explicit readiness error, not permission to hide
+an article or load full bodies in an index read.
 
 `bun run translate:publication-index -- --dry-run` prepares the bounded
 `zh-Hans` non-blog backfill with the explicit target and remote guards from the

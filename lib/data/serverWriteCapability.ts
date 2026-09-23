@@ -16,7 +16,8 @@ import {
   type DataRuntimeTarget,
 } from "./runtimeTargets";
 import { getAdminIntentEnvVar, type AdminIntent } from "../../server/lib/adminIntentTokens";
-import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
+import { assertDataWritesNotFrozen, DataWriteFrozenError, isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
+import { classifyPostgresError } from "../postgres/postgresErrors";
 import { getPostgresClient } from "../postgres/runtime/backend";
 import { resolveRuntimePostgresTarget } from "../postgres/runtime/target";
 import type { PostgresClient } from "../postgres/runtime/client";
@@ -56,6 +57,22 @@ const SERVICE_MUTATION_NAMES: Record<string, true> = {
 };
 
 /**
+ * Routes see one freeze refusal whether the process flag or a read-only
+ * database refused the write. The runtime client already retried transient
+ * failures, so everything else passes through unchanged.
+ */
+async function reportingFreeze<T>(name: string, write: () => Promise<T>): Promise<T> {
+  try {
+    return await write();
+  } catch (error) {
+    if (classifyPostgresError(error) === "frozen" && !isDataWriteFrozenError(error)) {
+      throw new DataWriteFrozenError(name, { cause: error });
+    }
+    throw error;
+  }
+}
+
+/**
  * The Postgres client handed to Next routes. Regular mutations and actions must
  * name the actor they run as. Public intake uses `mutationAsService`, which is
  * restricted to the fixed actorless mutation allowlist above.
@@ -74,18 +91,20 @@ export class ServerDataWriteClient {
     mutation: Mutation,
     ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
   ): Promise<FunctionReturnType<Mutation>> {
-    assertDataWritesNotFrozen(getFunctionName(mutation));
+    const name = getFunctionName(mutation);
+    assertDataWritesNotFrozen(name);
     assertNamesActor(mutation, args[0]);
-    return await this.inner.mutation(mutation, ...args);
+    return await reportingFreeze(name, () => this.inner.mutation(mutation, ...args));
   }
 
   async mutationAsService<Mutation extends FunctionReference<"mutation">>(
     mutation: Mutation,
     ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
   ): Promise<FunctionReturnType<Mutation>> {
-    assertDataWritesNotFrozen(getFunctionName(mutation));
+    const name = getFunctionName(mutation);
+    assertDataWritesNotFrozen(name);
     assertServiceMutation(mutation);
-    return await this.inner.mutation(mutation, ...args);
+    return await reportingFreeze(name, () => this.inner.mutation(mutation, ...args));
   }
 
   /** Privileged worker path for the actorless publication outbox mutation. */
@@ -98,16 +117,17 @@ export class ServerDataWriteClient {
     if (name !== "publicationRecovery:enqueueTranslationCacheRetry") {
       throw new Error(`Server Postgres publication recovery mutation is not allowlisted: ${name}`);
     }
-    return await this.inner.mutation(mutation, ...args);
+    return await reportingFreeze(name, () => this.inner.mutation(mutation, ...args));
   }
 
   async action<Action extends FunctionReference<"action">>(
     action: Action,
     ...args: OptionalRestArgs<Action>
   ): Promise<FunctionReturnType<Action>> {
-    assertDataWritesNotFrozen(getFunctionName(action));
+    const name = getFunctionName(action);
+    assertDataWritesNotFrozen(name);
     assertNamesActor(action, args[0]);
-    return await this.inner.action(action, ...args);
+    return await reportingFreeze(name, () => this.inner.action(action, ...args));
   }
 }
 
