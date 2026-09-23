@@ -1,0 +1,149 @@
+"use client";
+
+import { useRef, type Dispatch, type SetStateAction } from "react";
+
+import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EditorSegmentedControl, EditorStatusPill } from "@/features/dev/components";
+import {
+  count,
+  glossaryExportUrl,
+  STATE_WORD,
+  type GlossaryFilters,
+  type GlossaryStatusFilter,
+} from "./glossaryModel";
+
+const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
+
+const STATUS_OPTIONS: { value: GlossaryStatusFilter; label: string }[] = [
+  { value: "draft", label: capitalize(STATE_WORD.draft) },
+  { value: "approved", label: capitalize(STATE_WORD.approved) },
+  { value: "all", label: "All" },
+];
+
+type GlossaryFilterBarProps = {
+  filters: GlossaryFilters;
+  setFilters: Dispatch<SetStateAction<GlossaryFilters>>;
+  /** Unreviewed rows across the whole locale, shown as the draft filter's badge. */
+  draftCount: number;
+  /** Unreviewed rows the current filters list, which "Approve all shown" approves. */
+  shownDraftCount: number;
+  locked: boolean;
+  onApproveShown: () => void;
+};
+
+export function GlossaryFilterBar({ filters, setFilters, draftCount, shownDraftCount, locked, onApproveShown }: GlossaryFilterBarProps) {
+  return (
+    <div className="flex flex-wrap items-end gap-3">
+      <EditorSegmentedControl
+        label="Status"
+        options={STATUS_OPTIONS.map((option) => ({
+          ...option,
+          badge: option.value === "draft" ? draftCount : undefined,
+        }))}
+        value={filters.status}
+        onChange={(value) => setFilters((current) => ({ ...current, status: value as GlossaryStatusFilter }))}
+      />
+      <div className="w-full md:w-64">
+        <Input
+          type="search"
+          inputSize="sm"
+          aria-label="Search terms"
+          placeholder="Search term or rendering"
+          value={filters.search}
+          onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+        />
+      </div>
+      {/* Sits with the filters it obeys, so "shown" reads as "what these controls show"; the count is the segmented control's badge. */}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={locked || shownDraftCount === 0}
+        aria-label={`Approve all ${count(shownDraftCount, `${STATE_WORD.draft} term`)} shown`}
+        onClick={onApproveShown}
+      >
+        <Icon icon="lucide:check-check" size={14} />
+        Approve all shown
+      </Button>
+    </div>
+  );
+}
+
+type GlossaryActionBarProps = {
+  locale: string;
+  locked: boolean;
+  canAdmin: boolean;
+  nothingTranslatedYet: boolean;
+  pendingCount: number;
+  jobsActive: number;
+  /** The live status pill's text while a write runs, or `null` when idle. */
+  activity: string | null;
+  onImport: (file: File | undefined) => void;
+  onDraft: () => void;
+  onRetranslate: () => void;
+};
+
+export function GlossaryActionBar({
+  locale,
+  locked,
+  canAdmin,
+  nothingTranslatedYet,
+  pendingCount,
+  jobsActive,
+  activity,
+  onImport,
+  onDraft,
+  onRetranslate,
+}: GlossaryActionBarProps) {
+  const fileInput = useRef<HTMLInputElement>(null);
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Glossary actions">
+      <Button asChild variant="outline" size="sm">
+        <a href={glossaryExportUrl(locale)} download={`glossary-${locale}.csv`}>
+          <Icon icon="lucide:download" size={14} />
+          Export CSV
+        </a>
+      </Button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".csv,text/csv"
+        aria-label="Choose a glossary CSV"
+        className="sr-only"
+        disabled={locked}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          onImport(file);
+        }}
+      />
+      <Button type="button" variant="outline" size="sm" disabled={locked} onClick={() => fileInput.current?.click()}>
+        <Icon icon="lucide:upload" size={14} />
+        Import CSV
+      </Button>
+      {canAdmin ? (
+        <Button type="button" variant="outline" size="sm" disabled={locked} onClick={onDraft}>
+          <Icon icon="lucide:sparkles" size={14} />
+          Draft missing terms
+        </Button>
+      ) : null}
+      {/* Absent, not disabled, until something has been translated: there is nothing to redo. */}
+      {!canAdmin || nothingTranslatedYet ? null : (
+        <Button
+          type="button"
+          variant={pendingCount > 0 ? "accent" : "outline"}
+          size="sm"
+          disabled={locked || pendingCount === 0 || jobsActive > 0}
+          aria-label={`Retranslate everything that mentions ${count(pendingCount, "term")}`}
+          onClick={onRetranslate}
+        >
+          <Icon icon="lucide:languages" size={14} />
+          Retranslate
+        </Button>
+      )}
+      {activity ? <EditorStatusPill tone="info" loading live>{activity}</EditorStatusPill> : null}
+    </div>
+  );
+}
