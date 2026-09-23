@@ -90,6 +90,11 @@ Limits of the remote path, observed on its first runs:
   read-only query on a fresh connection and logs `postgres: connection lost,
   rerunning read-only query`. A build that still fails on this error has
   exhausted six attempts on one query; report it instead of raising workers.
+- A prebuilt upload drops function files `.vercelignore` excludes unless they
+  sit under a default output path such as `.next`. The editor builds into
+  `.next-editor`, so the workflow removes the `.next-*/` rule in its own
+  checkout before deploying; without that, Vercel fails with `ENOENT ...
+  .next-editor/package.json`.
 - Its preview deployment runs with the project's preview environment, which
   holds no database URL, so pages rendered on demand fail there. Use it for
   the census, the artifact audit, and timing; production artifacts still come
@@ -128,7 +133,7 @@ authorized.
 | GitHub-hosted runner, Effect Index | 4 | 1 | 5m 52s build, 8 min run (census total 1055) | not measured | 2026-09-23 |
 | GitHub-hosted runner, public and editor, before the read retry | 4, then 2 | 1 | failed: read-only connection terminated mid-build | not measured | 2026-09-23 |
 | GitHub-hosted runner, public DoseWiki | 4 | 1 | 11m 06s build, 13.6 min run (census total 1321; one dropped connection rerun) | not measured | 2026-09-23 |
-| GitHub-hosted runner, editor | 4 | 1 | EDITOR_PENDING | not measured | 2026-09-23 |
+| GitHub-hosted runner, editor | 4 | 1 | 5m 38s build, 8 min run (census total 1053; one dropped connection rerun) | not measured | 2026-09-23 |
 
 Stage scheduler ownership in each isolated release tree before uploading it.
 `node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
