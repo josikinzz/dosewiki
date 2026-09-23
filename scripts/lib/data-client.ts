@@ -11,7 +11,7 @@ import type { ArgsAndOptions, FunctionReference, FunctionReturnType, OptionalRes
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 import type { PostgresClient } from "../../lib/postgres/runtime/client.ts";
 import { assertDeploymentEnv } from "../../lib/postgres/runtime/deploymentEnv.ts";
-import { POOL_ACQUISITION_TIMEOUT_MS, QUERY_READ_TIMEOUT_MS } from "../../lib/postgres/transactionTimeouts.ts";
+import { RUNTIME_POOL_OPTIONS } from "../../lib/postgres/transactionTimeouts.ts";
 import { guardTarget, resolveExplicitTarget } from "../postgres/targetGuard.ts";
 
 import { parsePostgresTarget, requirePostgresBackend } from "../../lib/postgres/runtime/target.ts";
@@ -147,7 +147,7 @@ class LazyPostgresDataClient implements DataClient {
           import("pg"),
         ]);
         // allowExitOnIdle: scripts that fall off the end must not wait for the pool.
-        return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true, keepAlive: true, query_timeout: QUERY_READ_TIMEOUT_MS, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
+        return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true, ...RUNTIME_POOL_OPTIONS }));
       })();
     }
     return this.#loading;

@@ -13,6 +13,10 @@
  * `isConnectionLoss` is a separate question: the socket or the session ended
  * under the statement. A read-only transaction can rerun on a fresh
  * connection; a write cannot, because its COMMIT may already have landed.
+ *
+ * `isReplayableOnFreshConnection` joins the two for work that is idempotent
+ * by construction (upsert by `_id`, keyset SELECT, TRUNCATE): it can run
+ * again on a new client after either a transient failure or a lost session.
  */
 
 import { isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
@@ -78,4 +82,11 @@ export function classifyPostgresError(error: unknown): PostgresErrorClass {
     if (typeof current !== "object") break;
   }
   return "permanent";
+}
+
+/** Idempotent work only: a transient failure or a lost session, never a frozen refusal. */
+export function isReplayableOnFreshConnection(error: unknown): boolean {
+  const errorClass = classifyPostgresError(error);
+  if (errorClass === "frozen") return false;
+  return errorClass === "transient" || isConnectionLoss(error);
 }

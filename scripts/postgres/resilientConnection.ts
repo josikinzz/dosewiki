@@ -8,36 +8,33 @@
  *
  * A half-open socket raises nothing, so callers construct their pool with a
  * client-side `query_timeout`; pg's "Query read timeout" counts as loss here.
+ * What counts as replayable is `isReplayableOnFreshConnection`, the same
+ * vocabulary the runtime client retries with.
  */
 
 import { setTimeout as sleep } from "node:timers/promises";
 import { Pool, type PoolClient } from "pg";
+import { isReplayableOnFreshConnection } from "../../lib/postgres/postgresErrors.ts";
+import { RUNTIME_POOL_OPTIONS } from "../../lib/postgres/transactionTimeouts.ts";
 
 export const MAX_ATTEMPTS = 6;
-/** Client-side wait for one statement's result before the socket is treated as dead. */
+/**
+ * Client-side wait for one statement's result before the socket is treated as
+ * dead. Longer than the runtime's read ceiling: bulk upserts run in autocommit
+ * with no server `statement_timeout`, so a large batch may legitimately take it.
+ */
 export const QUERY_TIMEOUT_MS = 120_000;
 /** Wait for a new socket and TLS handshake; a half-open path otherwise blocks `pool.connect()` forever. */
-const CONNECT_TIMEOUT_MS = 30_000
+const CONNECT_TIMEOUT_MS = 30_000;
 
-/** Two-client pool (PlanetScale caps direct connections at 25) with the timeouts `Connection` relies on. */
+/** Two-client pool (PlanetScale caps direct connections at 25): the runtime pool options with the importer's longer waits. */
 export function resilientPool(connectionString: string): Pool {
-  return new Pool({ connectionString, max: 2, query_timeout: QUERY_TIMEOUT_MS, connectionTimeoutMillis: CONNECT_TIMEOUT_MS, keepAlive: true });
+  return new Pool({ connectionString, max: 2, ...RUNTIME_POOL_OPTIONS, query_timeout: QUERY_TIMEOUT_MS, connectionTimeoutMillis: CONNECT_TIMEOUT_MS });
 }
 
 function isQueryable(client: PoolClient): boolean {
   // `pg` flips this private flag when the socket dies mid-query.
   return !("_queryable" in client && client._queryable === false);
-}
-
-function isConnectionLoss(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
-  return (
-    /connection terminated|not queryable|ECONNRESET|EPIPE|ETIMEDOUT|server closed the connection|Query read timeout|timeout exceeded when trying to connect/i.test(message) ||
-    code === "57P01" ||
-    code === "ECONNRESET" ||
-    code === "ETIMEDOUT"
-  );
 }
 
 export class Connection {
@@ -61,7 +58,7 @@ export class Connection {
       try {
         return await fn(await this.acquire());
       } catch (error) {
-        if (!isConnectionLoss(error) || attempt >= MAX_ATTEMPTS) throw error;
+        if (!isReplayableOnFreshConnection(error) || attempt >= MAX_ATTEMPTS) throw error;
         console.warn(`${label}: ${error instanceof Error ? error.message : String(error)} on attempt ${attempt}, reconnecting`);
         // The stalled client must not be reused; `release(true)` destroys it.
         this.client?.release(true);
