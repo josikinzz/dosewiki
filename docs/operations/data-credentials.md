@@ -100,9 +100,18 @@ org id and the surface's project id. Provisioning it is a human step:
 
 | Environment | Surface | Token scope | Created | Notes |
 | ----------- | ------- | ----------- | ------- | ----- |
-| not yet provisioned | public | | | first remote build pending |
-| not yet provisioned | editor | | | first remote build pending |
-| not yet provisioned | effectindex | | | first remote build pending |
+| `remote-build-public` | public | token pending | environment 2026-09-23 | `VERCEL_PROJECT_ID` is `dosewiki-public` |
+| `remote-build-editor` | editor | token pending | environment 2026-09-23 | `VERCEL_PROJECT_ID` is `dosewiki-admin` |
+| `remote-build-effectindex` | effectindex | token pending | environment 2026-09-23 | `VERCEL_PROJECT_ID` is `effectindex` |
+
+Each environment holds `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and
+`RELEASE_BUILD_ENABLED=true`. `POSTGRES_POOLED_READONLY_URL` and
+`REPLICATION_MEDIA_BASE_URL` are inherited from the repository level, where the
+policy workflow already reads them. The Vercel API refuses to mint tokens from a
+CLI login session, so each `VERCEL_TOKEN` is created in the Vercel dashboard and
+set with `gh secret set VERCEL_TOKEN --env <environment>`. The repository's
+GitHub plan does not support the required-reviewer rule on a private repository,
+so no environment has one; only collaborators with write access can dispatch.
 
 Each environment the workflow can select must hold exactly these values and
 nothing that can write:
