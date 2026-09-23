@@ -38,6 +38,11 @@ function validateInput(input: ReviewMutation): void {
   if (input.action === "save" && (typeof input.target !== "string" || !input.target.trim() || input.target.length > (input.scope === "narrative" ? 30000 : 2000))) throw new TranslationReviewError("Enter a translation within the scope character limit.");
   if (input.action === "restore" && (input.restoreRevision === undefined || !Number.isSafeInteger(input.restoreRevision) || input.restoreRevision < 0)) throw new TranslationReviewError("Choose a valid revision to restore.");
 }
+/** Call inside one transaction to read the row a compound transition will change; null before its first write. */
+export async function lockReviewEntry(tx: ReviewTransaction, locale: string, scope: ReviewScope, sourceId: string): Promise<ReviewEntry | null> {
+  const locked = await tx.query('SELECT * FROM "translationReviewEntries" WHERE "locale" = $1 AND "scope" = $2 AND "source_id" = $3 FOR UPDATE', [locale, scope, sourceId]);
+  return locked.rows[0] ? entry(locked.rows[0] as StoredEntry) : null;
+}
 /** Call inside one transaction. The placeholder row serializes first-writer races. */
 export async function mutateReviewEntryInTransaction(tx: ReviewTransaction, input: ReviewMutation, options: ReviewMutationOptions = {}): Promise<ReviewEntry> {
   assertDataWritesNotFrozen("mutateReviewEntry");

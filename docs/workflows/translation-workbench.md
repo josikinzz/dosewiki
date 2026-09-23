@@ -51,6 +51,24 @@ machine UI prose that disagrees with current glossary terms enters targeted
 refresh during online compilation. Human overrides remain authoritative.
 Drafts do not enter the compiled catalog.
 
+### Short labels
+
+The **Short labels** mode of the UI labels view lists labels of three words or
+fewer that are not yet approved, as a dense grid grouped by the first file that
+uses them. Tick the rows that read right in context, edit any wording inline,
+and press **Approve selected**. Longer strings keep the one-at-a-time card.
+
+`POST /api/dev/translation-workbench/approve-many` takes
+`{ locale, items: [{ id, expectedRevision, target }] }`, at most 200 items per
+request, and returns one result per item. Each label runs the existing per-label
+path in its own transaction: it saves the shown wording as a draft unless that
+exact human draft is already saved, then approves that revision. History records
+the reviewer and the reason "Batch reviewed in context" for each label. A stale
+revision, a validation failure, or a longer label fails only its own row; the
+other rows stay approved. The write freeze refuses the whole request. The grid
+asks for confirmation, stating the count, before approving more than 200 rows,
+and sends larger selections in chunks of 200.
+
 Local deterministic regeneration without database or model access:
 
 ```sh

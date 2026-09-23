@@ -9,6 +9,7 @@ import { Surface } from "@/components/ui/surface";
 import { StateCard } from "@/components/common/StateCard";
 import { EditorNotice, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
+import { ShortLabelGrid } from "./ShortLabelGrid";
 
 export type UiEditDrafts = Map<string, { target: string; reason: string }>;
 
@@ -21,6 +22,7 @@ export function UiTranslationWorkbench({ locale, editDrafts }: { locale: string;
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [mode, setMode] = useState<"cards" | "short">("cards");
   const load = useCallback(async () => {
     setError(null);
     try { const result = await translationRequest<UiTranslationListResponse>(`${endpoint}?locale=${encodeURIComponent(locale)}`); setRows(result.rows); }
@@ -31,18 +33,25 @@ export function UiTranslationWorkbench({ locale, editDrafts }: { locale: string;
   const shown = rows?.filter((row) => [row.source, row.context, row.id, row.draft?.target ?? "", row.approved?.target ?? row.compiledTarget ?? ""].some((value) => value.toLowerCase().includes(needle)));
   return <section aria-label="UI labels" className="space-y-4">
     <p className="theme-text-secondary text-sm">Set the exact wording for each meaning. Saving creates an unreviewed draft. Approval preserves human wording for the next UI catalog build; deployment and public verification are still required.</p>
-    <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reload UI labels</Button>
+    <div className="flex flex-wrap items-center gap-2">
+      <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reload UI labels</Button>
+      <div role="group" aria-label="UI label view" className="flex gap-1">
+        <Button type="button" variant={mode === "cards" ? "accent" : "outline"} size="sm" aria-pressed={mode === "cards"} onClick={() => setMode("cards")}>One at a time</Button>
+        <Button type="button" variant={mode === "short" ? "accent" : "outline"} size="sm" aria-pressed={mode === "short"} onClick={() => setMode("short")}>Short labels</Button>
+      </div>
+    </div>
     <Input inputSize="sm" type="search" aria-label="Search UI labels" placeholder="Search English, translation, or context" value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
     {error ? <StateCard compact tone="danger" title="UI labels could not be loaded" description={error} actions={<Button variant="outline" size="sm" onClick={() => void load()}>Retry</Button>} /> : null}
     {rows === null && !error ? <StateCard compact loading title="Loading UI labels" /> : null}
     {rows ? <p className="theme-text-faint text-xs">{rows.filter((row) => row.status === "draft").length} drafts · {rows.filter((row) => row.status === "approved").length} approved · {rows.filter((row) => row.status === "missing").length} missing from compiled catalog · {rows.filter((row) => row.status === "unreviewed").length} without human review · {rows.filter((row) => row.status === "stale").length} source changes needing review. These labels cover the registered contexts listed below.</p> : null}
-    {shown?.length === 0 ? <StateCard compact title="No labels match" description="Try a different English label, translation, or context." /> : null}
-    {shown && shown.length > 30 ? <div className="flex flex-wrap items-center gap-3" aria-label="UI label pages">
+    {shown && mode === "short" ? <ShortLabelGrid locale={locale} rows={shown} edits={edits} update={(next) => { const byId = new Map(next.map((row) => [row.id, row])); setRows((current) => current?.map((item) => byId.get(item.id) ?? item) ?? null); }} /> : null}
+    {shown?.length === 0 && mode === "cards" ? <StateCard compact title="No labels match" description="Try a different English label, translation, or context." /> : null}
+    {shown && mode === "cards" && shown.length > 30 ? <div className="flex flex-wrap items-center gap-3" aria-label="UI label pages">
       <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((value) => value - 1)}>Previous labels</Button>
       <span className="theme-text-secondary text-sm">{page * 30 + 1} to {Math.min((page + 1) * 30, shown.length)} of {shown.length}</span>
       <Button variant="outline" size="sm" disabled={(page + 1) * 30 >= shown.length} onClick={() => setPage((value) => value + 1)}>Next labels</Button>
     </div> : null}
-    {shown?.slice(page * 30, (page + 1) * 30).map((row) => <UiLabel key={row.id} locale={locale} row={row} edits={edits} update={(next) => setRows((current) => current?.map((item) => item.id === next.id ? next : item) ?? null)} />)}
+    {mode === "cards" && shown?.slice(page * 30, (page + 1) * 30).map((row) => <UiLabel key={row.id} locale={locale} row={row} edits={edits} update={(next) => setRows((current) => current?.map((item) => item.id === next.id ? next : item) ?? null)} />)}
   </section>;
 }
 

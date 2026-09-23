@@ -13,3 +13,17 @@ export type UiTranslationRow = Pick<ReviewEntry, "revision" | "draft" | "approve
 export type UiTranslationListResponse = { ok: true; locale: string; locales: string[]; rows: UiTranslationRow[] };
 export type UiTranslationHistoryResponse = { ok: true; history: ReviewHistoryEntry[] };
 export type UiTranslationWriteResponse = { ok: true; row: UiTranslationRow };
+
+/** Batch review covers labels of this many words or fewer; longer strings keep the one-at-a-time card. */
+export const SHORT_LABEL_MAX_WORDS = 3;
+/** Requests carry at most this many labels; larger selections are sent in chunks. */
+export const UI_BATCH_MAX_ITEMS = 200;
+export const UI_BATCH_APPROVAL_REASON = "Batch reviewed in context";
+export function isShortUiLabel(source: string): boolean {
+  const text = source.trim();
+  return Boolean(text) && !text.includes("\n") && text.split(/\s+/).length <= SHORT_LABEL_MAX_WORDS;
+}
+/** The wording the reviewer saw on screen: the revision they loaded and the target they checked. */
+export type UiBatchApprovalItem = { id: string; expectedRevision: number; target: string };
+export type UiBatchApprovalResult = { id: string; ok: true; row: UiTranslationRow } | { id: string; ok: false; code: string; error: string };
+export type UiBatchApprovalResponse = { ok: true; results: UiBatchApprovalResult[] };
