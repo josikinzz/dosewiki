@@ -1,9 +1,11 @@
 name: Remote Build
 
 # Build one surface on a runner near the database and upload it to Vercel as a
-# prebuilt preview deployment. Stops there: no step assigns an alias, no step
-# passes --prod, and no database write credential is available to the job.
-# Promotion stays in the manual release ceremony in docs/operations/deployment.md.
+# prebuilt deployment: a preview by default, or with target=production an
+# unaliased production deployment (--prod --skip-domain). Stops there: no step
+# assigns an alias or promotes, and no database write credential reaches the
+# build. Promotion stays in the manual release ceremony in
+# docs/operations/deployment.md.
 #
 # Capabilities and limits are described in docs/operations/security-ci.md
 # under "Remote build workflow".
@@ -33,6 +35,14 @@ on:
         description: GitHub environment holding the surface's Vercel deploy token and project id
         type: environment
         required: true
+      target:
+        description: Deployment target. production uploads an unaliased production deployment for the release ceremony to promote
+        type: choice
+        required: true
+        default: preview
+        options:
+          - preview
+          - production
       dry_run:
         description: Only print the build wrapper's plan; no build, no deploy
         type: boolean
@@ -141,8 +151,10 @@ jobs:
             next-cache-${{ inputs.surface }}-
 
       # Pulls the project settings the CLI needs to run the package-owned build
-      # command. The pulled environment file is deleted before anything reads
-      # it: this job builds with the variables named below and nothing else.
+      # command. The pulled environment file is cut down before anything reads
+      # it to the public build inputs a Vercel-hosted build would also inline
+      # (NEXT_PUBLIC_* and NODE_OPTIONS); every secret line is deleted, and the
+      # job builds with those plus the variables named in the build step.
       - name: Link the Vercel project for this surface
         if: ${{ !inputs.dry_run }}
         env:
@@ -153,8 +165,14 @@ jobs:
           test -n "$VERCEL_TOKEN" || { echo "::error::VERCEL_TOKEN is required in the selected environment"; exit 1; }
           test -n "$VERCEL_ORG_ID" || { echo "::error::VERCEL_ORG_ID is required in the selected environment"; exit 1; }
           test -n "$VERCEL_PROJECT_ID" || { echo "::error::VERCEL_PROJECT_ID is required in the selected environment"; exit 1; }
-          bunx "$VERCEL_CLI" pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          target="${{ inputs.target }}"
+          bunx "$VERCEL_CLI" pull --yes --environment="$target" --token="$VERCEL_TOKEN"
+          env_file=".vercel/.env.$target.local"
+          public_inputs="$(grep -E '^(NEXT_PUBLIC_[A-Z0-9_]+|NODE_OPTIONS)=' "$env_file" 2>/dev/null || true)"
           rm -f .vercel/.env.*.local
+          printf '%s\n' "$public_inputs" > "$env_file"
+          echo "Build inputs kept from the $target environment:"
+          sed 's/=.*//' "$env_file"
 
       # vercel build runs vercel.json's buildCommand (bun run build:vercel), so
       # the function-reference check and the artifact audit run exactly as they
@@ -177,7 +195,9 @@ jobs:
           test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
           test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
           test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL is required"; exit 1; }
-          bunx "$VERCEL_CLI" build --yes --token="$VERCEL_TOKEN"
+          prod_flag=""
+          if [ "${{ inputs.target }}" = "production" ]; then prod_flag="--prod"; fi
+          bunx "$VERCEL_CLI" build --yes $prod_flag --token="$VERCEL_TOKEN"
 
       - name: Save the Next build cache
         if: ${{ !inputs.dry_run && always() }}
@@ -203,9 +223,10 @@ jobs:
           grep -qxF '.next-*/' .vercelignore || { echo "::error::.vercelignore no longer carries the .next-*/ rule this step removes"; exit 1; }
           sed -i '/^\.next-\*\/$/d' .vercelignore
 
-      # A preview deployment only. No --prod, no alias, no promotion: the
-      # deployment URL is printed for the release ceremony to inspect.
-      - name: Deploy the prebuilt output to a preview URL
+      # A preview, or an unaliased production deployment (--skip-domain). No
+      # alias, no promotion: the deployment URL is printed for the release
+      # ceremony to inspect and promote.
+      - name: Deploy the prebuilt output
         if: ${{ !inputs.dry_run }}
         id: deploy
         env:
@@ -214,7 +235,9 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           # --archive=tgz: the prebuilt output exceeds the 15000-file upload limit.
-          url="$(bunx "$VERCEL_CLI" deploy --prebuilt --archive=tgz --yes --token="$VERCEL_TOKEN")"
+          prod_flags=""
+          if [ "${{ inputs.target }}" = "production" ]; then prod_flags="--prod --skip-domain"; fi
+          url="$(bunx "$VERCEL_CLI" deploy --prebuilt --archive=tgz --yes $prod_flags --token="$VERCEL_TOKEN")"
           test -n "$url" || { echo "::error::vercel deploy printed no deployment URL"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -233,7 +256,8 @@ jobs:
             echo "| Ref | \`${{ inputs.ref || github.ref }}\` at \`${{ github.sha }}\` |"
             echo "| Next cache | $cache |"
             echo "| Workers x pages per worker | ${{ inputs.build_workers }} x ${{ inputs.pages_per_worker }} |"
-            echo "| Preview deployment | ${{ steps.deploy.outputs.url || 'not deployed (see the failed step)' }} |"
+            echo "| Target | ${{ inputs.target }} |"
+            echo "| Deployment | ${{ steps.deploy.outputs.url || 'not deployed (see the failed step)' }} |"
             echo
             echo "No alias was assigned. Promotion is a separate, manual step."
             echo

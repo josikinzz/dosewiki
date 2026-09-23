@@ -2,9 +2,7 @@
   "installCommand": "bun install --frozen-lockfile",
   "buildCommand": "bun run build:vercel",
   "git": {
-    "deploymentEnabled": {
-      "main": false
-    }
+    "deploymentEnabled": false
   },
   "crons": [
     { "path": "/open-data/SubstanceIndex.json", "schedule": "0 9 * * *" },

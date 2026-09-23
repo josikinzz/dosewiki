@@ -32,28 +32,34 @@ Action or Bun updates should be a deliberate pull request that:
 
 `.github/workflows/remote-build.yml` is a manually dispatched build of one
 surface (public, editor, or Effect Index) on a runner near the database,
-uploaded to Vercel as a prebuilt preview deployment. It exists so a release
-build does not have to run on a laptop an ocean away from PlanetScale. Its
-inputs are the surface, a git ref, the runner label (`runs-on` is that one
-input, so a Blacksmith label is a drop-in swap), the GitHub environment, a
-dry-run switch, and the two static generation concurrency values.
+uploaded to Vercel as a prebuilt deployment. It exists so a release build
+does not have to run on a laptop an ocean away from PlanetScale. Its inputs
+are the surface, a git ref, the runner label (`runs-on` is that one input, so
+a Blacksmith label is a drop-in swap), the GitHub environment, the target
+(`preview` by default, or `production`), a dry-run switch, and the two static
+generation concurrency values.
 
 What it can do:
 
 - run the secret scan, install with the frozen lockfile, restore and save the
   Next build cache keyed on surface and lockfile hash;
-- pull the Vercel project settings for the surface, then delete the pulled
-  environment file so the build sees only the variables the job names;
+- pull the Vercel project settings for the target, then cut the pulled
+  environment file down to its `NEXT_PUBLIC_*` and `NODE_OPTIONS` lines, the
+  public build inputs a Vercel-hosted build would inline too, so no secret
+  line survives to the build;
 - run the package-owned build command through `vercel build` with
   `DATA_BACKEND=postgres`, `DATA_WRITES_FROZEN=1`, the read-only pooled
   Postgres URL, and the replication media base from the selected environment;
 - print the prerender census and the elapsed build time as the job summary;
-- upload the build output as a preview deployment and print its URL.
+- upload the build output and print its URL: a preview deployment, or with
+  `target: production` a production deployment created with `--skip-domain`,
+  which serves the production environment at its own URL and holds no
+  domain until the release ceremony promotes it.
 
 What it cannot do, by construction:
 
-- assign an alias or promote: there is no alias step and no `--prod` flag,
-  and the file's non-comment lines contain neither word;
+- assign a domain or promote: every production upload passes
+  `--skip-domain`, and there is no `alias` or `promote` step;
 - write to the database: the environments it uses hold no write credential,
   and the freeze variable is set for the whole job;
 - run on push or on a schedule: `workflow_dispatch` only, gated by the
@@ -62,7 +68,9 @@ What it cannot do, by construction:
 
 The Vercel token it uses is a team token: Vercel does not scope tokens below
 deploy capability, so the only thing keeping it from promoting is the absence
-of a step that would. Treat it as production-capable, keep it in a
+of a step that would. The pulled production file briefly holds that
+project's secrets on the runner before the job deletes those lines; the
+token could read them anyway, which is why it counts as production-capable. Treat it as production-capable, keep it in a
 reviewer-gated environment, and record its scope in
 [data credentials](data-credentials.md#remote-build-deploy-token). A dry run
 (`dry_run: true`) prints the build wrapper's plan banner and nothing else.
