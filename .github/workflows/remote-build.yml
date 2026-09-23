@@ -101,6 +101,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # The root vercel.json lists every project's cron jobs. Keep only the
+      # jobs this artifact's project owns, so writer jobs never reach a public
+      # deployment.
+      - name: Stage this artifact's cron jobs
+        run: node scripts/deploy/stage-vercel-crons.mjs "${{ inputs.surface }}"
+
       - name: Print the build wrapper's plan (dry run)
         if: ${{ inputs.dry_run }}
         env:

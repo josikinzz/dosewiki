@@ -109,6 +109,9 @@ authorized.
 | GitHub-hosted runner | 4       | 1                | pending first remote build | pending | pending |
 
 Stage scheduler ownership in each isolated release tree before uploading it.
+`node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
+the tree's `vercel.json` to the jobs below; the remote build workflow runs it
+for every artifact.
 The shared root `vercel.json` contains all seven jobs; it is not a surface-aware
 scheduler configuration. Each release tree keeps only the jobs its project owns:
 
