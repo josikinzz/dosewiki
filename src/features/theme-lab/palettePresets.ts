@@ -96,7 +96,7 @@ export function mergeOverrides(base: PresetOverrides, extra: PresetOverrides): P
 const orchid: PalettePreset = {
   id: "orchid",
   name: "Orchid",
-  tagline: "The shipped look — neon fuchsia over black plum glass.",
+  tagline: "The shipped look: neon fuchsia over black plum glass.",
   swatch: {
     dark: ["#110617", "#1f0527", "#ffffff", "#d946ef", "#f0abfc"],
     light: ["#fdfcfd", "#f6e6f4", "#3c2144", "#a827b8", "#c026d3"],

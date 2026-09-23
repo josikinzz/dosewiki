@@ -106,7 +106,7 @@ export const RADIUS_ESSENTIALS: EssentialGroup = {
     {
       id: "--radius",
       label: "Corner roundness",
-      hint: "The main knob — cards, buttons, inputs, and rows across every page.",
+      hint: "The main knob: cards, buttons, inputs, and rows across every page.",
     },
     { id: "--radius-xl", label: "Panel corners", hint: "Frosted panels, tiles, chips, and menus." },
     { id: "--radius-2xl", label: "Large panel corners", hint: "Dialogs, sheets, and wide panels." },

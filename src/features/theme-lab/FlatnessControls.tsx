@@ -122,7 +122,7 @@ export function FlatnessControls({
         <span className={styles.groupTitle}>Flatness</span>
       </div>
       <p className={styles.essentialBlurb}>
-        How much depth the site wears — shadows, ambient glow, frosted-glass blur, and how
+        How much depth the site wears: shadows, ambient glow, frosted-glass blur, and how
         round the corners are. Every color stays editable on top.
       </p>
       <AxisRow label="Shadow depth" steps={DEPTH_STEPS} activeId={depthActive} onPick={pickDepth} />

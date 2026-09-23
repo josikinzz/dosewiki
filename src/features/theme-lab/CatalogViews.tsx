@@ -349,7 +349,7 @@ export function SectionsView({
                         kind={token.kind}
                         raw={token.kind === "raw"}
                         shared={sharedCounts.get(token.id) ?? 1}
-                        sharedTitle={`Shared by ${sharedCounts.get(token.id) ?? 1} tokens — open the Identical view to edit them together.`}
+                        sharedTitle={`Shared by ${sharedCounts.get(token.id) ?? 1} tokens. Open the Identical view to edit them together.`}
                         active={selectedToken === token.id}
                         changed={isOverridden(token.id)}
                         inert={isInertInTheme(token.id, theme)}

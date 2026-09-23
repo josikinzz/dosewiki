@@ -71,7 +71,7 @@ const VIEW_TABS: { mode: ViewMode; label: string; hint: string }[] = [
   {
     mode: "merged",
     label: "Identical",
-    hint: "Colors identical right now — edit once to change them all",
+    hint: "Colors identical right now; edit once to change them all",
   },
 ];
 
@@ -339,7 +339,7 @@ export function ThemeLab() {
     } catch {
       setJsonDraft(exportJson);
       setJsonDirty(true);
-      setJsonError("Clipboard blocked — select the JSON above and copy it manually.");
+      setJsonError("Clipboard blocked. Select the JSON above and copy it manually.");
     }
   }, [exportJson]);
 
@@ -615,7 +615,7 @@ export function ThemeLab() {
             <p className={styles.subtitle}>
               {storageOk
                 ? "Live recolor · saved to this browser"
-                : "Live recolor · not saved — this browser is blocking storage"}
+                : "Live recolor · not saved, because this browser is blocking storage"}
             </p>
           </div>
         </div>
@@ -719,7 +719,7 @@ export function ThemeLab() {
               <p className={styles.editorScopeNote}>
                 <Icon icon="lucide:info" size={13} />
                 <span>
-                  Only affects the <strong>{editInertScope}</strong> theme — switch Day/Night
+                  Only affects the <strong>{editInertScope}</strong> theme. Switch Day/Night
                   above to {editInertScope} to see this change.
                 </span>
               </p>
@@ -728,7 +728,7 @@ export function ThemeLab() {
               <p className={styles.editorAlphaNote}>
                 <Icon icon="lucide:layers" size={13} />
                 <span>
-                  Translucent ({Math.round(editAlpha * 100)}%) — the color behind shows through, so
+                  Translucent ({Math.round(editAlpha * 100)}%): the color behind shows through, so
                   changes here look like a tint. Raise the opacity slider, or edit the surface under it.
                 </span>
               </p>
