@@ -6,6 +6,7 @@ export type RateLimitPolicyName =
   | "publicArticleFeedbackSubmit"
   | "publicSiteFeedbackSubmit"
   | "publicProxyRead"
+  | "publicationSignalVerified"
   | "diagnosticRead"
   | "editorPolledRead"
   | "publicSearchRead"
@@ -80,6 +81,20 @@ const rateLimitPolicies = {
     name: "publicProxyRead",
     windowMs: ONE_MINUTE_MS,
     max: 30,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  /**
+   * Publication signals whose HMAC signature already verified. The editor sends
+   * one signed request per outbox row and cache fan-out sends up to 200 at a
+   * time, all from the editor's egress address, so this bucket is sized for
+   * that burst and kept apart from the unverified public limit.
+   */
+  publicationSignalVerified: {
+    name: "publicationSignalVerified",
+    windowMs: ONE_MINUTE_MS,
+    max: 600,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

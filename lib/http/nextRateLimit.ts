@@ -17,7 +17,12 @@ type RateLimitOptions = {
   keySuffix?: string;
 };
 
-type LegacyRateLimitPolicy = Omit<RateLimitPolicy, "name"> & {
+/** Separates the bucket of a named policy from other policies on the same path. */
+type RateLimitKeyOptions = {
+  keySuffix?: string;
+};
+
+type LegacyRateLimitPolicy =Omit<RateLimitPolicy, "name"> & {
   name: "legacy";
 };
 
@@ -167,7 +172,14 @@ function resolvePolicy(policyOrOptions?: RateLimitPolicyName | RateLimitOptions)
   };
 }
 
-function resolveKeySuffix(request: Request, policyOrOptions?: RateLimitPolicyName | RateLimitOptions) {
+function resolveKeySuffix(
+  request: Request,
+  policyOrOptions?: RateLimitPolicyName | RateLimitOptions,
+  keyOptions?: RateLimitKeyOptions,
+) {
+  if (keyOptions?.keySuffix) {
+    return keyOptions.keySuffix;
+  }
   if (typeof policyOrOptions === "object" && policyOrOptions?.keySuffix) {
     return policyOrOptions.keySuffix;
   }
@@ -201,9 +213,13 @@ async function limitWithFallback(
   }
 }
 
-export async function enforceRateLimit(request: Request, policyOrOptions?: RateLimitPolicyName | RateLimitOptions) {
+export async function enforceRateLimit(
+  request: Request,
+  policyOrOptions?: RateLimitPolicyName | RateLimitOptions,
+  keyOptions?: RateLimitKeyOptions,
+) {
   const policy = resolvePolicy(policyOrOptions);
-  const keySuffix = resolveKeySuffix(request, policyOrOptions);
+  const keySuffix = resolveKeySuffix(request, policyOrOptions, keyOptions);
   const { key, keyType } = buildRateLimitKey(request, keySuffix);
   const result = await limitWithFallback(key, policy);
 
