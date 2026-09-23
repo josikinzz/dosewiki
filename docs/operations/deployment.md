@@ -10,6 +10,13 @@ This is the current authority for Vercel project routing, build separation, requ
 | Editor DoseWiki | `dosewiki-admin`     | `dev.dose.wiki`, `dosewiki-admin.vercel.app` | `DOSEWIKI_BUILD_SURFACE=editor`, DoseWiki flavor       | Only project allowed to carry the general admin and editorial write credential tier |
 | Effect Index    | Effect Index project | `effectindex.com`                            | public artifact, `NEXT_PUBLIC_SITE_FLAVOR=effectindex` | Credential-free and read-only                                                       |
 
+Only the public DoseWiki build prerenders substance articles, and only the
+English high and normal tiers (`lib/next/prerenderPolicy.ts`). The editor
+build, the Effect Index build, and every locale mirror render substance
+articles on first request and hold them in the hourly ISR cache; the
+required post-deploy warm below is what makes that first request cheap for a
+reader. Record each artifact's actual page count with `bun run build:census`.
+
 Public hosts redirect `/dev`, `/review`, `/sign-in`, and `/unauthorized` to `dev.dose.wiki`. Credentialed APIs stay unavailable on public origins. Editor hosts remain `noindex`, return private/no-store caching directives, and must never receive a public alias. `src/config/siteFlavor.ts`, `lib/next/flavorGatedRoutes.ts`, and `src/middleware.ts` own route and host behavior.
 
 `vercel.json` disables Git-triggered deployments for `main`. This keeps
@@ -56,6 +63,29 @@ bun install --frozen-lockfile
 bun run build:vercel
 ```
 
+### Where the build runs
+
+Two build paths produce the same artifact through the same command:
+
+- **Remote (preferred once proven).** Dispatch
+  `.github/workflows/remote-build.yml` with the surface, the ref, the runner
+  label, and the surface's GitHub environment. It runs `bun run build:vercel`
+  through `vercel build` next to the database, prints the census and elapsed
+  time as the job summary, and uploads a preview deployment. It assigns no
+  alias; the release order below continues from step 3 with that deployment.
+  Capabilities and limits: [security CI](security-ci.md#remote-build-workflow).
+  Provisioning the environments and running the first build is a human step
+  recorded in [data credentials](data-credentials.md#remote-build-deploy-token).
+- **Laptop (the fallback).** The isolated release trees and the commands in
+  this section, exactly as before.
+
+The remote path becomes the default release path after two production
+releases have gone through it end to end with their census and elapsed time
+recorded in the concurrency table below. Until then the laptop path is the
+default and the remote path is an option. Either way, record which path built
+each artifact in the release record; the two are not interchangeable
+evidence for each other.
+
 The build must use webpack and produce the surface-specific artifact audit. A public build is acceptable only when the audit reports no protected editorial browser modules. Do not set `NEXT_PUBLIC_EDITOR_BUILD` directly and do not treat dead-code elimination as artifact separation.
 
 The webpack filesystem cache version includes the resolved Next deployment ID.
@@ -65,7 +95,23 @@ can make its font URLs disagree with HTML preloads, downloading the same font
 twice. Verify consecutive cached builds with different IDs. Do not clear
 `.next/cache` or disable preload/skew protection to hide the mismatch.
 
+Static generation concurrency defaults to four workers rendering one page
+each (`lib/next/buildConcurrency.ts`). `DOSEWIKI_BUILD_WORKERS` and
+`DOSEWIKI_BUILD_PAGES_PER_WORKER` raise those numbers for a build that runs
+next to the database. Raise in small steps and record every setting tried
+here, with the census elapsed time and the peak PlanetScale connection count
+observed during the build; a value this table does not support is not
+authorized.
+
+| Where                | Workers | Pages per worker | Elapsed | Peak connections | Recorded    |
+| -------------------- | ------- | ---------------- | ------- | ---------------- | ----------- |
+| Laptop (M1 Pro)      | 4       | 1                | not yet measured with `build:census` | not measured | pending |
+| GitHub-hosted runner | 4       | 1                | pending first remote build | pending | pending |
+
 Stage scheduler ownership in each isolated release tree before uploading it.
+`node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
+the tree's `vercel.json` to the jobs below; the remote build workflow runs it
+for every artifact.
 The shared root `vercel.json` contains all seven jobs; it is not a surface-aware
 scheduler configuration. Each release tree keeps only the jobs its project owns:
 
@@ -95,7 +141,21 @@ Release order:
 2. Deploy without changing aliases.
 3. Inspect the deployment result and its artifact audit.
 4. Assign only the authorized aliases to the matching artifact.
-5. Check public reading, editor anonymous redirects and private headers, Effect Index route gating, and the exact changed behavior.
+5. Warm every public host immediately after the aliases move. Required, not
+   optional: the substance articles a build does not prerender (see
+   `lib/next/prerenderPolicy.ts`) render on their first request, and the ISR
+   page cache did not survive the deploy.
+
+   ```bash
+   bun run warm:public-routes -- \
+     --base-url https://dose.wiki,https://ru.dose.wiki,https://zh.dose.wiki,https://effectindex.com
+   ```
+
+   One invocation prints one summary per host and exits non-zero when any
+   host exceeds the failure threshold. A host that lists nothing to warm is
+   named in a warning; check it is a public host. Add every new locale mirror
+   to the list when it launches.
+6. Check public reading, editor anonymous redirects and private headers, Effect Index route gating, and the exact changed behavior.
 
 Publication signals are wire version 2. A version 2 sender is rejected by a
 version 1 receiver, so deploy the public receivers before the editor sender.
@@ -103,11 +163,19 @@ Durable pending rows retry, so a staggered release delays a warm signal rather
 than losing it. The persisted outbox stores targets, not the wire version, so
 no data migration is involved.
 
-For prerender selection, inspect `lib/next/staticParams.ts` and the route's own
-static parameter function; verify actual output during an authorized build.
+For prerender selection, inspect `lib/next/prerenderPolicy.ts` (the tiers per
+locale and artifact) and `lib/next/staticParams.ts`; verify actual output
+during an authorized build. `bun run build:census -- <build directory>` is the
+step that records a release's page count: it reads the finished build's
+prerender manifest and prints prerendered pages per route family beside the
+wall-clock time `bun run build:vercel` recorded in `build-timing.json`. Paste
+that output into the release record; a page count copied from a previous
+release is not evidence.
 `scripts/deploy/warm-public-routes.mjs` verifies both HTML and complete
-`text/x-component` navigation responses on the public host. HTML success alone
-does not prove in-site navigation is warm.
+`text/x-component` navigation responses on every public host it is given,
+mirrors included (it rehosts the English sitemap onto each mirror, since
+mirrors publish no sitemap of their own). HTML success alone does not prove
+in-site navigation is warm.
 
 For scheduled warming, `src/app/api/warm/route.ts` owns bounds, priority selection,
 timeouts and query overrides; `vercel.json` owns scheduling. Keep the canonical

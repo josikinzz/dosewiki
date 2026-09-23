@@ -9,6 +9,7 @@
     "build": "next build --webpack && node scripts/build/editor-artifact-audit.mjs",
     "next:build": "bun run build",
     "build:vercel": "node scripts/deploy/vercel-build.mjs",
+    "build:census": "node scripts/build/prerender-census.mjs",
     "warm:public-routes": "node scripts/deploy/warm-public-routes.mjs",
     "rdkit:assets": "node scripts/tools/copyRdkitAssets.mjs",
     "openchemlib:build": "npm --prefix vendor/openchemlib run build && node scripts/chemistry/verify-openchemlib-fork.mjs --write",

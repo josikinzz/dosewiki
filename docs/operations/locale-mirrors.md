@@ -362,11 +362,16 @@ workflow; remote reads and provider/model calls retain their own authorization.
 - Production builds must run with `DATA_BACKEND=postgres`, or the prerendered
   mirror pages ship with English titles; a local `npm run build` needs it
   too before a mirror smoke.
-- The mirror uses the shared `getStaticSubstanceParams` selector in
-  `lib/next/staticParams.ts`, including public high, normal and low priorities.
-  Route files under `src/app/zh/` own other static/dynamic choices. During an
-  authorized build, verify the actual output rather than copying a page count.
-  Mirror pages use a locale constant, never request APIs that make static paths dynamic.
+- The mirror calls the shared `getStaticSubstanceParams` loader in
+  `lib/next/staticParams.ts` with its locale, and `lib/next/prerenderPolicy.ts`
+  answers with an empty tier list: no mirror substance article is prerendered.
+  Each renders on its first request with the translation overlay and is held
+  by the hourly ISR cache, so the required post-deploy warm in
+  [deployment](deployment.md#build-and-release-sequence) is what puts the
+  mirror in front of a reader warm. Route files under `src/app/zh/` own other
+  static/dynamic choices. During an authorized build, verify the actual output
+  with `bun run build:census` rather than copying a page count. Mirror pages
+  use a locale constant, never request APIs that make static paths dynamic.
 - When warming after an authorized release, inspect the `mirror:warm` package
   command for current bounds, path filters and target options. Verify canonical
   responses and run both coverage lenses; elapsed time and a historical warm
@@ -402,7 +407,10 @@ Run the coverage audits and review any remaining fallback before launch. Then:
 2. Add the host to `LIVE_LOCALES` in `lib/next/localeHostPolicy.ts` (its
    `code` union), `PUBLIC_HOSTS`, `ROOT_ROUTE_SEGMENTS` in
    `lib/next/publicRouteAvailability.ts`, and mirror every route under
-   `src/app/zh/**` under the new prefix.
+   `src/app/zh/**` under the new prefix. Name the locale in the policy table
+   in `lib/next/prerenderPolicy.ts` (typecheck fails until you do); the
+   expected answer is on demand, so the new mirror adds no pages to the build.
+   Add the new host to the post-deploy warm command in the deployment runbook.
 3. Add the locale to `UI_LOCALES` and `CATALOGS` in `src/i18n/messages.ts`,
    generalize the locale constant in `live-mirror.ts`, `mirror-coverage.ts`,
    and `ui-catalog.ts`, then build its catalog.

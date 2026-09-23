@@ -7,6 +7,8 @@
 import { prepareFlightRouterStateForRequest } from "next/dist/client/flight-data-helpers.js";
 import { computeCacheBustingSearchParam } from "next/dist/shared/lib/router/utils/cache-busting-search-param.js";
 
+export { parseWarmArgs } from "./warm-public-routes.args.mjs";
+
 /**
  * Root path segments that are pages of their own rather than substance
  * articles. `/[slug]` is the single-segment catch-all, so a sitemap URL with one
@@ -443,66 +445,26 @@ export function formatWarmSummary(summary) {
   return lines.join("\n");
 }
 
-/** Parse `--flag=value`, `--flag value`, and boolean `--flag` CLI arguments. */
-export function parseWarmArgs(argv, env = {}) {
-  const options = {
-    baseUrl: env.WARM_BASE_URL || env.PUBLIC_SITE_URL || null,
-    all: false,
-    concurrency: 4,
-    timeoutMs: 20000,
-    maxFailurePercent: 10,
-    slowest: 10,
-    help: false,
-  };
-  const args = Array.from(argv);
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-    if (!arg.startsWith("--")) continue;
-    const eq = arg.indexOf("=");
-    const name = eq === -1 ? arg.slice(2) : arg.slice(2, eq);
-    const takeValue = () => {
-      if (eq !== -1) return arg.slice(eq + 1);
-      index += 1;
-      return args[index];
-    };
-    switch (name) {
-      case "base-url":
-        options.baseUrl = takeValue();
-        break;
-      case "all":
-        options.all = true;
-        break;
-      case "concurrency":
-        options.concurrency = Number(takeValue());
-        break;
-      case "timeout":
-        options.timeoutMs = Number(takeValue());
-        break;
-      case "max-failure-percent":
-        options.maxFailurePercent = Number(takeValue());
-        break;
-      case "slowest":
-        options.slowest = Number(takeValue());
-        break;
-      case "help":
-        options.help = true;
-        break;
-      default:
-        throw new Error(`Unknown flag --${name}`);
+/**
+ * The locations of one sitemap, moved onto the origin being warmed. A locale
+ * mirror publishes no sitemap of its own (its `/sitemap.xml` is the English
+ * list with the English origin), so without this every mirror location would
+ * fail the same-origin filter and the mirror would warm nothing. A malformed
+ * location is dropped; duplicates after rehosting collapse.
+ */
+export function rehostUrls(urls, baseUrl) {
+  const origin = new URL(baseUrl).origin;
+  const rehosted = [];
+  for (const url of urls) {
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      continue;
     }
+    rehosted.push(`${origin}${parsed.pathname}${parsed.search}`);
   }
-  for (const key of [
-    "concurrency",
-    "timeoutMs",
-    "maxFailurePercent",
-    "slowest",
-  ]) {
-    if (!Number.isFinite(options[key]) || options[key] < 0) {
-      throw new Error(`--${key} must be a non-negative number`);
-    }
-  }
-  if (options.concurrency < 1) options.concurrency = 1;
-  return options;
+  return Array.from(new Set(rehosted));
 }
 
 /**

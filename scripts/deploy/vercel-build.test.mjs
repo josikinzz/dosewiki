@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmod, copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -18,13 +18,25 @@ const DEPLOY_KEYS = [
 test("the executable wrapper cannot invoke a deploy child for any deploy-key class", async () => {
   const binDir = await mkdtemp(path.join(os.tmpdir(), "dosewiki vercel build "));
   const callsPath = path.join(binDir, "calls.log");
-  const wrapperPath = path.join(binDir, "vercel-build.mjs");
+  // The wrapper imports two sibling build modules by relative path, so the copy
+  // keeps the scripts/deploy and scripts/build layout under the temp root.
+  const wrapperPath = path.join(binDir, "scripts/deploy/vercel-build.mjs");
   const nodeShim = `#!/bin/sh\nprintf '%s\\n' "$0 $*" >> "$CALLS_PATH"\nexit "\${VERIFY_STATUS:-0}"\n`;
   const commandShim = `#!/bin/sh\nprintf '%s\\n' "$0 $*" >> "$CALLS_PATH"\n`;
 
   try {
+    await mkdir(path.join(binDir, "scripts/deploy"), { recursive: true });
+    await mkdir(path.join(binDir, "scripts/build"), { recursive: true });
     await Promise.all([
       copyFile(scriptPath, wrapperPath),
+      copyFile(
+        path.join(repoRoot, "scripts/build/build-surface.mjs"),
+        path.join(binDir, "scripts/build/build-surface.mjs"),
+      ),
+      copyFile(
+        path.join(repoRoot, "scripts/build/prerender-census.lib.mjs"),
+        path.join(binDir, "scripts/build/prerender-census.lib.mjs"),
+      ),
       writeFile(path.join(binDir, "node"), nodeShim),
       writeFile(path.join(binDir, "bun"), commandShim),
       writeFile(path.join(binDir, "bunx"), commandShim),

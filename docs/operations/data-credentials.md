@@ -82,6 +82,54 @@ publication is a separate Git mutation behind the repository deployment guard.
 
 Before initial activation or any configuration or source-revision change, verify both GitHub values and prove that the dedicated reader authenticates without write or admin privileges. Configuration alone does not publish the Postgres-capable producer and its dependencies: review the exact source revision present on the workflow branch before authorizing a run. Workflow publication and dispatch require owner approval because the job can commit and push public pack outputs. Expected result is a read-only database run with the freeze engaged. Recovery is to disable the schedule and inspect its report; it has no database-write rollback.
 
+## Remote build deploy token
+
+The remote build workflow (see [security CI](security-ci.md#remote-build-workflow))
+authenticates to Vercel with one token per GitHub environment, beside the
+org id and the surface's project id. Provisioning it is a human step:
+
+- Create the token in Vercel with the narrowest scope the account offers (the
+  team that owns the three projects, nothing wider). Vercel tokens cannot be
+  restricted to "deploy but never alias"; the workflow's lack of an alias or
+  `--prod` step is the control, so the token is production-capable and the
+  environment must require a reviewer.
+- Store it only as `VERCEL_TOKEN` in the GitHub environment for that surface,
+  never in `.env.local`, argv, logs, or this file.
+- Record here the token's scope, the environment it lives in, and the date it
+  was created, without the value. Rotate it with the same record.
+
+| Environment | Surface | Token scope | Created | Notes |
+| ----------- | ------- | ----------- | ------- | ----- |
+| `remote-build-public` | public | project `dosewiki-public` only, no expiry | 2026-09-23 | token `github-remote-build-public` |
+| `remote-build-editor` | editor | project `dosewiki-admin` only, no expiry | 2026-09-23 | token `github-remote-build-editor` |
+| `remote-build-effectindex` | effectindex | project `effectindex` only, no expiry | 2026-09-23 | token `github-remote-build-effectindex` |
+
+Each environment holds `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and
+`RELEASE_BUILD_ENABLED=true`. `POSTGRES_POOLED_READONLY_URL` and
+`REPLICATION_MEDIA_BASE_URL` are inherited from the repository level, where the
+policy workflow already reads them. Each `VERCEL_TOKEN` is scoped to its one
+project in the Vercel dashboard (the API refuses to mint tokens from a CLI
+login session) and has no expiry by owner decision, so rotation is manual:
+revoke it under Account Settings, Tokens, create a replacement with the same
+name and scope, and set it with `gh secret set VERCEL_TOKEN --env <environment>`. The repository's
+GitHub plan does not support the required-reviewer rule on a private repository,
+so no environment has one; only collaborators with write access can dispatch.
+
+Each environment the workflow can select must hold exactly these values and
+nothing that can write:
+
+| Name | Kind | Purpose |
+| ---- | ---- | ------- |
+| `VERCEL_TOKEN` | secret | Deploy token described above |
+| `VERCEL_ORG_ID` | secret | The Vercel team id |
+| `VERCEL_PROJECT_ID` | secret | The project id for this surface only |
+| `POSTGRES_POOLED_READONLY_URL` | secret | Read-only pooled Postgres URL the build reads from |
+| `RELEASE_BUILD_ENABLED` | variable | Must be `true`; the explicit gate shared with the policy workflow |
+| `REPLICATION_MEDIA_BASE_URL` | variable | Media base the build embeds; a missing value fails the build |
+
+No environment used by the workflow may hold `DATA_ADMIN_KEY`, any
+`DATA_ADMIN_TOKEN_*`, or a Postgres URL with write grants.
+
 ## Application rollback
 
 Application rollback restores a previous compatible Postgres artifact and configuration while retaining current data. There is no alternate-backend rollback command in this checkout; PlanetScale Postgres is the only runtime. Any exceptional database recovery requires fresh owner authorization and all target, freeze, role and confirmation gates.

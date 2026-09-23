@@ -19,16 +19,16 @@ import { MachineTranslationNotice } from "./MachineTranslationNotice";
 export const revalidate = 3600;
 export const dynamicParams = true;
 
+const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
+
 /**
- * The same tiers as the English `/[slug]`: the ISR cache does not survive a
- * deploy, so the high and normal priority articles are prerendered here too
- * and the low priority long tail renders on first request.
+ * The tiers this mirror prerenders are decided by resolvePrerenderPolicy
+ * (lib/next/prerenderPolicy.ts) for the mirror's locale; every other article
+ * renders on first request and stays in the hourly ISR cache.
  */
 export async function generateStaticParams() {
-  return await getStaticSubstanceParams();
+  return await getStaticSubstanceParams(LOCALE.code);
 }
-
-const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
 
 type LocalizedSubstancePageProps = {
   params: Promise<{ slug: string }>;

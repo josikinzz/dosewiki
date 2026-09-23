@@ -13,6 +13,7 @@ import {
   isSubstanceArticleUrl,
   parseSitemapLocations,
   parseWarmArgs,
+  rehostUrls,
   runWithConcurrency,
   selectWarmUrls,
   summarizeWarmResults,
@@ -273,7 +274,7 @@ test("summarizeWarmResults handles an empty run", () => {
 
 test("parseWarmArgs reads flags in both forms and falls back to the env", () => {
   assert.deepEqual(parseWarmArgs([], { WARM_BASE_URL: "https://dose.wiki" }), {
-    baseUrl: "https://dose.wiki",
+    baseUrls: ["https://dose.wiki"],
     all: false,
     concurrency: 4,
     timeoutMs: 20000,
@@ -290,7 +291,7 @@ test("parseWarmArgs reads flags in both forms and falls back to the env", () => 
     "--max-failure-percent",
     "0",
   ]);
-  assert.equal(parsed.baseUrl, "https://example.test");
+  assert.deepEqual(parsed.baseUrls, ["https://example.test"]);
   assert.equal(parsed.all, true);
   assert.equal(parsed.concurrency, 8);
   assert.equal(parsed.timeoutMs, 500);
@@ -300,6 +301,40 @@ test("parseWarmArgs reads flags in both forms and falls back to the env", () => 
     () => parseWarmArgs(["--concurrency=abc"]),
     /--concurrency must be/,
   );
+});
+
+test("parseWarmArgs accepts several hosts, repeated or comma-separated, deduplicated", () => {
+  const parsed = parseWarmArgs([
+    "--base-url=https://dose.wiki",
+    "--base-url",
+    "https://ru.dose.wiki, https://zh.dose.wiki",
+    "--base-url=https://dose.wiki/",
+  ]);
+  assert.deepEqual(parsed.baseUrls, [
+    "https://dose.wiki",
+    "https://ru.dose.wiki",
+    "https://zh.dose.wiki",
+  ]);
+  assert.deepEqual(parseWarmArgs([], { WARM_BASE_URL: "https://a.test,https://b.test" }).baseUrls, [
+    "https://a.test",
+    "https://b.test",
+  ]);
+  assert.deepEqual(parseWarmArgs([], {}).baseUrls, []);
+  assert.throws(() => parseWarmArgs(["--base-url=not a url"]), /--base-url must be an absolute URL/);
+});
+
+test("rehostUrls moves sitemap locations onto the host being warmed", () => {
+  // A locale mirror publishes no sitemap of its own: its /sitemap.xml is the
+  // English list, so the locations carry the English origin and must be
+  // pointed at the mirror before the origin filter sees them.
+  assert.deepEqual(
+    rehostUrls(
+      ["https://dose.wiki/lsd", "https://dose.wiki/effects/drifting", "not a url", "https://dose.wiki/lsd"],
+      "https://ru.dose.wiki",
+    ),
+    ["https://ru.dose.wiki/lsd", "https://ru.dose.wiki/effects/drifting"],
+  );
+  assert.deepEqual(rehostUrls(["https://dose.wiki/lsd"], "https://dose.wiki"), ["https://dose.wiki/lsd"]);
 });
 
 test("collectSitemapUrls follows a sitemap index one level deep", async () => {

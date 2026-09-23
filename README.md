@@ -166,7 +166,7 @@ Production writes require an allowlisted command, explicit Postgres target, revi
 
 `PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the separate public projects. The signed receiver derives its own paths and tags, grants cache expiry only, and accepts only allowlisted public targets. The editor's durable outbox owns retry and revision receipts. Current variable placement and recovery steps live in [deployment routing](docs/operations/deployment.md).
 
-Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/operations/deployment.md) before changing build keys, aliases, domains, or flavor settings.
+Vercel builds use `bun run build:vercel`; `bun run build:census -- <build directory>` prints what a finished build prerendered and how long it took. Read [deployment routing](docs/operations/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 
 ## Development Workflow
 

@@ -6,20 +6,17 @@ import {
 } from "./scripts/build/editor-artifact-audit.mjs";
 // The legacy redirect table lives in its own module so application code (the Discord
 // page) can read the invite URL from it without importing this config.
+import { resolveBuildDirectory, resolveBuildSurface } from "./scripts/build/build-surface.mjs";
+import { resolveBuildConcurrency } from "./lib/next/buildConcurrency";
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
 
 // Separate artifacts, never a host-conditional lazy import inside one public bundle.
-const buildSurface =
-  process.env.DOSEWIKI_BUILD_SURFACE ??
-  (process.env.NODE_ENV === "development" ? "editor" : "public");
-if (buildSurface !== "public" && buildSurface !== "editor") {
-  throw new Error("DOSEWIKI_BUILD_SURFACE must be public or editor.");
-}
+// The surface and directory rule lives in scripts/build/build-surface.mjs so the
+// prerender policy and the deploy scripts read the same answer.
+const buildSurface = resolveBuildSurface();
 const editorBuild = buildSurface === "editor";
-// `DOSEWIKI_BUILD_DIR` exists so a flavor or surface artifact can be built side by side without clobbering the directory a running server is serving; unset keeps the deployed paths byte-identical.
-const buildDirectory =
-  process.env.DOSEWIKI_BUILD_DIR ?? (editorBuild ? ".next-editor" : ".next");
+const buildDirectory = resolveBuildDirectory();
 if (
   process.env.NODE_ENV === "production" &&
   process.argv.includes("build") &&
@@ -110,15 +107,16 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     // Static generation reads a multi-megabyte substance library once per
-    // worker, and /[slug] prerenders every publicly reachable substance
-    // (lib/next/staticParams.ts). Each worker renders its share against that
-    // in-process library cache. Letting Next use every host CPU creates a
-    // cold-start thundering herd against Postgres; four long-lived workers finish the
-    // build more reliably and amortise the corpus read across many pages.
-    cpus: 4,
-    // Each page fans out server reads against a four-connection pool.
-    // One page per worker bounds producer pressure without extending deadlines.
-    staticGenerationMaxConcurrency: 1,
+    // worker, and each worker renders its share of the substance pages the
+    // prerender policy selects (lib/next/prerenderPolicy.ts) against that
+    // in-process library cache. Each page fans out server reads against a
+    // four-connection pool. Letting Next use every host CPU creates a
+    // cold-start thundering herd against Postgres, so the defaults are four
+    // long-lived workers rendering one page each (lib/next/buildConcurrency.ts).
+    // DOSEWIKI_BUILD_WORKERS and DOSEWIKI_BUILD_PAGES_PER_WORKER raise them
+    // for a runner that sits next to the database; unset or invalid values
+    // keep the defaults, and the ceilings are clamped there.
+    ...resolveBuildConcurrency(),
     optimizePackageImports: [
       "@dnd-kit/core",
       "@dnd-kit/sortable",

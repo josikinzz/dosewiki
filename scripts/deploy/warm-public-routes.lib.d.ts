@@ -101,7 +101,7 @@ export function parseWarmArgs(
   argv: Iterable<string>,
   env?: Record<string, string | undefined>,
 ): {
-  baseUrl: string | null;
+  baseUrls: string[];
   all: boolean;
   concurrency: number;
   timeoutMs: number;
@@ -113,6 +113,7 @@ export function collectSitemapUrls(
   baseUrl: string,
   options?: { fetchImpl?: typeof fetch; timeoutMs?: number },
 ): Promise<{ sitemapUrl: string; urls: string[] }>;
+export function rehostUrls(urls: Iterable<string>, baseUrl: string): string[];
 export function selectWarmUrls(
   urls: Iterable<string>,
   options: { baseUrl?: string | null; all?: boolean },
