@@ -145,7 +145,6 @@ export async function runNormalizeDoseUnits(
     intent: "editorArticleWrite",
     argv,
     env,
-    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,

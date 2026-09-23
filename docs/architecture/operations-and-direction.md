@@ -132,6 +132,8 @@ Start from the current tree rather than audit-era file counts:
 - Auth config and policy: `auth.ts`, `lib/auth/`
 - Route protection: `src/middleware.ts`
 - Protected route wrapper: `src/lib/http/protectedRouteOperation.ts`
+- Same-site origin rule (editor write, editor read, public write postures): `src/lib/http/requestOrigin.ts`
+- Scheduled route gate (optional limit, `CRON_SECRET`, freeze reporting): `cronRoute` in `lib/http/cronAuthorization.ts`; the middleware's cron allowlist is `lib/http/serviceCronPaths.ts`
 - Article schema: `src/schema/substance.schema.ts`
 - Authored Postgres handlers: `server/`
 - Operational tools: `scripts/`

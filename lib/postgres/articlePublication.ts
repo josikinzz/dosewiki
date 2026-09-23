@@ -6,7 +6,7 @@
  * (section CAS, replay receipts, patch boundary). This module supplies its
  * `GeneratedPublicationDb` port over one SQL transaction and reproduces the
  * one derived write a section publish triggers: the
- * `publicCachePublications` outbox upsert (`server/lib/publicationOutbox.ts`).
+ * `publicCachePublications` outbox enqueue (`lib/postgres/publicationOutboxStore.ts`).
  * `reviewedArticles` is deliberately not synced here because section patches
  * never touch the fields that gate it (`server/lib/indexedMutation.ts`).
  *
@@ -26,25 +26,16 @@ import {
 } from "../../server/lib/generatedPublication";
 import { projectPublicArticle, type SubstancePublicArticleProjection } from "../../src/data/projections/substanceReadProjections";
 import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/data/projections/substanceProjectionCore";
-import {
-  classifySubstancePublicationDependency,
-  mergeSubstancePublicationDependency,
-  type SubstancePublicationDependency,
-} from "../../src/data/projections/substancePublicationDependencies";
+import { classifySubstancePublicationDependency } from "../../src/data/projections/substancePublicationDependencies";
+import { publicationOutboxKey } from "../next/publicationOutbox";
 import type { DataDocument } from "./documentCodec";
 import { insertDocument, patchDocument, selectDocumentById, selectDocuments, withTransaction, type SqlClient } from "./documentStore";
+import { enqueuePublications } from "./publicationOutboxStore";
 
-type ArticlePublicationTarget = {
-  kind: "article";
-  slug: string;
-  dependency?: SubstancePublicationDependency;
-};
-
+/** The outbox identity of one article (`lib/next/publicationOutbox.ts`). */
 export function articlePublicationKey(slug: string): string {
-  const target: ArticlePublicationTarget = { kind: "article", slug };
-  return JSON.stringify(target);
+  return publicationOutboxKey({ kind: "article", slug });
 }
-
 
 /** Read the stored article documents for one slug (0, 1, or more rows). */
 async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = false): Promise<DataDocument[]> {
@@ -116,9 +107,9 @@ function publicationDb(client: PoolClient): GeneratedPublicationDb {
 }
 
 /**
- * Mirror of `withPublicationOutbox.commit` for a single substanceIndex row:
- * when the public revision changed, upsert one pending outbox receipt keyed by
- * the article target, bumping `generation` so a stale delivery is ignored.
+ * The article-publish caller of the publication outbox: when the public
+ * revision changed, enqueue one pending row per affected slug. The slug that
+ * still has an article carries its revision; a vacated slug carries null.
  */
 async function upsertArticleOutbox(client: SqlClient, before: DataDocument | null, after: DataDocument | null, now: number): Promise<boolean> {
   const revisionOf = (row: DataDocument | null) => (row ? projectPublicArticle(row as SubstanceArticleRecord).publicRevision : null);
@@ -134,33 +125,10 @@ async function upsertArticleOutbox(client: SqlClient, before: DataDocument | nul
     if (typeof slug === "string" && slug) slugs.add(slug);
   }
   const afterSlug = after ? resolveSubstanceSlug(after as SubstanceArticleRecord) : null;
-  for (const slug of slugs) {
-    const key = articlePublicationKey(slug);
-    const [current] = await selectDocuments(client, "publicCachePublications", { where: '"key" = $1', params: [key], limit: 1, forUpdate: true });
-    // The target that still has an article carries its revision; a vacated slug carries null.
-    const revision = slug === afterSlug ? afterRevision : null;
-    const pendingDependency = current?.pending === true &&
-      (current.target as ArticlePublicationTarget | undefined)?.kind === "article"
-      ? mergeSubstancePublicationDependency(
-          (current.target as ArticlePublicationTarget).dependency,
-          dependency,
-        )
-      : dependency;
-    const value = {
-      key,
-      target: { kind: "article", slug, dependency: pendingDependency },
-      revision,
-      generation: ((current?.generation as number | undefined) ?? 0) + 1,
-      pending: true,
-      nextAttemptAt: now,
-      attempts: 0,
-      receipts: [],
-      committedAt: now,
-    };
-    // A new commit re-pends a dead-lettered identity.
-    if (current) await patchDocument(client, "publicCachePublications", current._id as string, { ...value, deadLetteredAt: undefined });
-    else await insertDocument(client, "publicCachePublications", value);
-  }
+  await enqueuePublications(client, [...slugs].map((slug) => ({
+    target: { kind: "article" as const, slug, dependency },
+    revision: slug === afterSlug ? afterRevision : null,
+  })), { now, origin: "editorial" });
   return true;
 }
 

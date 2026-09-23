@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createProductionWriteCommand, executeProductionWrite } from "./production-write-command.mjs";
+import { authorizeProductionWrite, createProductionWriteCommand, executeProductionWrite } from "./production-write-command.mjs";
 
 const TARGET = "postgres://operator:private-password@db.example/dosewiki";
 const operation = "migrate-pharmacology-schema";
@@ -41,5 +41,35 @@ describe("production Postgres write boundary", () => {
   it("rejects an invalid explicit CLI target rather than using the valid environment", () => {
     expect(() => command(["--target=https://legacy.example.invalid"])).toThrow(/Postgres/);
     expect(() => command(["--target"])).toThrow(/--target/);
+  });
+});
+
+describe("production write authorization", () => {
+  const LOCAL = "postgres://operator:private-password@127.0.0.1:5432/dosewiki";
+  const confirmed = (deployment) => ["--write", `--confirm-write=${operation}`, `--expected-deployment=${deployment}`];
+
+  it("returns the confirmed target for a complete loopback ceremony", () => {
+    const env = { TARGET_POSTGRES_URL: LOCAL };
+    expect(authorizeProductionWrite(command(confirmed("127.0.0.1/dosewiki"), env), { env })).toBe(LOCAL);
+  });
+
+  it("refuses under the freeze before reporting any missing confirmation", () => {
+    const env = { DATA_WRITES_FROZEN: "1" };
+    expect(() => authorizeProductionWrite(command(["--write"], env), { env })).toThrow(/DATA_WRITES_FROZEN/);
+  });
+
+  it("holds a confirmed remote target to the host guard", () => {
+    expect(() => authorizeProductionWrite(command(confirmed("db.example/dosewiki")), { env: {} })).toThrow(/--allow-remote/);
+    const remote = command([...confirmed("db.example/dosewiki"), "--allow-remote"]);
+    expect(() => authorizeProductionWrite(remote, { env: { POSTGRES_IMPORT_CONFIRM: "other.example" } })).toThrow(/POSTGRES_IMPORT_CONFIRM/);
+    expect(authorizeProductionWrite(remote, { env: { POSTGRES_IMPORT_CONFIRM: "db.example" } })).toBe(TARGET);
+  });
+
+  it("checks confirmation before the host guard, so a remote write names its missing phrase", () => {
+    expect(() => authorizeProductionWrite(command(["--write"]), { env: {} })).toThrow(/--confirm-write=/);
+  });
+
+  it("refuses a blank TARGET_POSTGRES_URL instead of reading it as unset", () => {
+    expect(() => command(confirmed("db.example/dosewiki"), { TARGET_POSTGRES_URL: "  " })).toThrow(/TARGET_POSTGRES_URL/);
   });
 });

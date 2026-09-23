@@ -29,7 +29,6 @@ import {
   pendingTranslationHashes,
   readTranslations,
   writeTranslationRejections,
-  writeTranslations,
   type TranslationSegmentRow,
 } from "./segmentStore";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
@@ -37,6 +36,9 @@ import { LIBRARY_TRANSLATION_CORPUS } from "./publicationIndexProjection";
 import { approvedNarrativeOverlay } from "./narrativeOverlay";
 import { isPublishableReplication } from "../../src/types/replications";
 import { createTranslationRequestPool, type TranslationRequestPool } from "./requestPool";
+import { soloClaim, type TranslationWave } from "./translationWave";
+
+export { createTranslationWave, type TranslationWave } from "./translationWave";
 
 /** Which runtime record corpus a translation job addresses. */
 export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication" | "profile";
@@ -244,68 +246,13 @@ const REFRESH_CONCURRENCY = 8;
 export type TranslationExecutionOptions = {
   signal?: AbortSignal;
   requestPool?: TranslationRequestPool;
-  /** Bulk only: the claimed wave this job belongs to. Incremental refreshes write and request on their own. */
+  /** Bulk only: the wave this job belongs to. Incremental refreshes write and request on their own. */
   wave?: TranslationWave;
   /** Called once per model request, including requests of a refresh that later fails. */
   onUsage?: (usage: { prompt: number; completion: number }) => void;
   /** Called with the number of segments a refresh stored, even when it then fails. */
   onStored?: (count: number) => void;
 };
-
-/** What became of one segment the owning job in a wave translated. */
-type SegmentFate = { stored: boolean; defects: string[] };
-
-/**
- * State shared by the jobs of one bulk wave. Every segment write goes through
- * one writer, and a segment another job in the wave already owns is awaited
- * rather than requested again.
- */
-export type TranslationWave = {
-  write(rows: readonly TranslationSegmentRow[]): Promise<void>;
-  /** `locale \u0000 hash -> the owning job's outcome for it`, settled after that job's rows are written. */
-  readonly pending: Map<string, Promise<SegmentFate>>;
-};
-
-/**
- * Rows per segment transaction. Each write locks the one localized
- * publication producer row until commit, so the wave writes serially and
- * coalesces whatever queued behind the running transaction.
- */
-const WAVE_WRITE_ROWS = 2000;
-
-export function createTranslationWave(): TranslationWave {
-  type Queued = { rows: readonly TranslationSegmentRow[]; resolve: () => void; reject: (error: unknown) => void };
-  const queue: Queued[] = [];
-  let draining = false;
-  const drain = async () => {
-    draining = true;
-    while (queue.length > 0) {
-      let count = 1;
-      let size = queue[0].rows.length;
-      while (count < queue.length && size + queue[count].rows.length <= WAVE_WRITE_ROWS) size += queue[count++].rows.length;
-      const flush = queue.splice(0, count);
-      const rows = new Map<string, TranslationSegmentRow>();
-      for (const entry of flush) for (const row of entry.rows) rows.set(`${row.locale}\u0000${row.hash}`, row);
-      try {
-        await writeTranslations([...rows.values()]);
-        for (const entry of flush) entry.resolve();
-      } catch (error) {
-        for (const entry of flush) entry.reject(error);
-      }
-    }
-    draining = false;
-  };
-  return {
-    pending: new Map(),
-    write(rows) {
-      if (rows.length === 0) return Promise.resolve();
-      return new Promise<void>((resolve, reject) => {
-        queue.push({ rows, resolve, reject });
-        if (!draining) void drain();
-      });
-    },
-  };
-}
 
 /**
  * Everything a translation run needs to agree on: the locale's prompt, the
@@ -464,27 +411,11 @@ export async function translateUnits(
   const usage = { prompt: 0, completion: 0, requests: 0 };
   const rows: TranslationSegmentRow[] = [];
   const rejected: RefreshOutcome["rejected"] = [];
+  // Claim before the first await, so a job started later in the same tick
+  // shares this job's segments instead of requesting them again.
+  const claim = wave ? wave.claim(localeCode, promptVersion, units) : soloClaim(units);
 
-  // Claim this job's segments in the wave before the first await, so a job
-  // started later in the same tick sees them as owned.
-  const owned: WorkUnit[] = [];
-  const shared: { hash: string; fate: Promise<SegmentFate> }[] = [];
-  const settle = new Map<string, { resolve: (fate: SegmentFate) => void; reject: (error: unknown) => void }>();
-  for (const unit of units) {
-    const key = `${localeCode}\u0000${unit.hash}`;
-    const existing = wave?.pending.get(key);
-    if (existing) {
-      shared.push({ hash: unit.hash, fate: existing });
-      continue;
-    }
-    owned.push(unit);
-    if (!wave) continue;
-    const fate = new Promise<SegmentFate>((resolve, reject) => settle.set(unit.hash, { resolve, reject }));
-    fate.catch(() => {});
-    wave.pending.set(key, fate);
-  }
-
-  const batches = planBatches(owned);
+  const batches = planBatches(claim.owned);
   let cursor = 0;
   const results = await Promise.allSettled(
     Array.from({ length: Math.min(requestPool.limit, batches.length) }, async () => {
@@ -524,17 +455,9 @@ export async function translateUnits(
             prompt_version: promptVersion,
           });
         }
-        // Persist accepted work before another model batch can time out. A
-        // bulk wave sends it through its one writer.
-        try {
-          await (wave ? wave.write(batchRows) : writeTranslations(batchRows));
-        } catch (error) {
-          for (const row of batchRows) settle.get(row.hash)?.reject(error);
-          throw error;
-        }
+        // Persist accepted work before another model batch can time out.
+        await claim.settle(batchRows, batchRejected);
         if (batchRows.length > 0) options.onStored?.(batchRows.length);
-        for (const row of batchRows) settle.get(row.hash)?.resolve({ stored: true, defects: [] });
-        for (const entry of batchRejected) settle.get(entry.hash)?.resolve({ stored: false, defects: entry.defects });
         await Promise.all([
           clearTranslationRejections(localeCode, batchRows.map((row) => row.hash)),
           writeTranslationRejections(batchRejected.map((entry) => ({
@@ -551,20 +474,13 @@ export async function translateUnits(
   );
 
   const failure = results.find((result) => result.status === "rejected");
-  // A settled promise ignores this; only segments no batch answered are rejected.
-  const unsettled = failure?.status === "rejected" ? failure.reason : new Error("Translation segment was never answered");
-  for (const { reject } of settle.values()) reject(unsettled);
+  // Only segments no batch answered are still open to fail.
+  claim.abandon(failure?.status === "rejected" ? failure.reason : new Error("Translation segment was never answered"));
   if (failure?.status === "rejected") throw failure.reason;
   signal?.throwIfAborted();
   // Segments another job in the wave owned: stored or rejected there, never requested here.
-  let sharedStored = 0;
-  const sharedRejected: RefreshOutcome["rejected"] = [];
-  for (const { hash, fate } of shared) {
-    const outcome = await fate;
-    if (outcome.stored) sharedStored += 1;
-    else sharedRejected.push({ hash, defects: outcome.defects });
-  }
-  return { stored: rows.length + sharedStored, rejected: [...rejected, ...sharedRejected], usage };
+  const shared = await claim.shared();
+  return { stored: rows.length + shared.stored, rejected: [...rejected, ...shared.rejected], usage };
 }
 
 /** Bring one record's locale up to date with its current English and the current prompt digest. */

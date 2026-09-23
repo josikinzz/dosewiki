@@ -9,7 +9,6 @@ function context(argv) {
     intent: "generated-publication",
     argv,
     env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgresql://localhost/target-test" },
-    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     loadsEnvLocal: false,
   });
 }

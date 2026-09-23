@@ -46,7 +46,6 @@ const runContext = createDataOpsRunContext({
   intent: 'dev-data-import',
   sourceUrlKeys: [],
   requiresExecute: true,
-  allowLocalTarget: true,
 });
 const client = createDataClient({ target: requireTargetUrl(runContext) }).client;
 

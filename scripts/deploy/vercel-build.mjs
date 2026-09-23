@@ -27,7 +27,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveBuildDirectory, resolveBuildSurface } from "../build/build-surface.mjs";
+import { normalizeSiteFlavor, resolveBuildDirectory, resolveBuildSurface } from "../build/build-surface.mjs";
 import { BUILD_TIMING_FILE } from "../build/prerender-census.lib.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -78,9 +78,8 @@ function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
   const record = {
     command: APP_BUILD_COMMAND,
     surface: resolveBuildSurface(process.env),
-    // The raw selector as the build saw it; src/config/siteFlavor.ts owns the
-    // resolution and is TypeScript, out of reach of this Node wrapper.
-    flavor: process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() || "dosewiki",
+    // The flavor the build resolved, through the normaliser siteFlavor.ts uses.
+    flavor: normalizeSiteFlavor(process.env.NEXT_PUBLIC_SITE_FLAVOR),
     buildDirectory: path.relative(REPO_ROOT, buildDirectory),
     startedAt: startedAt.toISOString(),
     endedAt: endedAt.toISOString(),

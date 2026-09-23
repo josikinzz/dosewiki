@@ -130,16 +130,6 @@ export function getFlagValue(argv, name) {
   return arg ? arg.slice(prefix.length) : null;
 }
 
-function firstEnvValue(env, keys) {
-  for (const key of keys) {
-    const value = env[key];
-    if (typeof value === "string" && value.trim()) {
-      return { value: value.trim(), key };
-    }
-  }
-  return { value: null, key: null };
-}
-
 function readNonEmptyEnvValue(env, key) {
   const value = env[key];
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -173,8 +163,6 @@ export function createDataOpsRunContext({
   startDir = process.cwd(),
   env = process.env,
   sourceUrlKeys = POSTGRES_SOURCE_URL_KEYS,
-  targetUrlKeys = POSTGRES_TARGET_URL_KEYS,
-  defaultTargetUrl = null,
   dryRunFlag = "--dry-run",
   executeFlag = "--execute",
   requiresExecute = false,
@@ -183,7 +171,6 @@ export function createDataOpsRunContext({
   localArtifacts = [],
   loadsEnvLocal = true,
   destructive = false,
-  allowLocalTarget = false,
 } = {}) {
   if (!operation) {
     throw new Error("operation is required");
@@ -204,7 +191,6 @@ export function createDataOpsRunContext({
   const targetUrlKey = target.source;
   const writeEnabled = !dryRun && writeRequested && (!requiresExecute || execute);
   const operationName = productionOperationName(operation);
-  const targetIsLocal = false;
 
   return {
     operation,
@@ -230,8 +216,6 @@ export function createDataOpsRunContext({
     writeConfirmationPhrase: getFlagValue(argv, "--confirm-write"),
     expectedDeployment: getFlagValue(argv, "--expected-deployment"),
     deploymentFingerprint: postgresFingerprintFromUrl(targetUrl),
-    targetIsLocal,
-    allowLocalTarget,
   };
 }
 
@@ -246,7 +230,7 @@ export function printDataOpsRunContext(context, { logger = console } = {}) {
   }
   if (context.targetUrl) {
     logger.log(
-      `${context.targetIsLocal ? "Local" : "Target"} ${backendLabel}: ` +
+      `Target ${backendLabel}: ` +
         `${redactUrl(context.targetUrl)} (${context.targetUrlKey})`,
     );
   }
@@ -290,35 +274,45 @@ export function assertDataOpsWriteAllowed(context) {
     );
   }
 
-
   if (!context.targetUrl) throw new Error(`${context.operation} requires an explicit Postgres target.`);
-  {
-    const explicitTarget = isPostgresTargetExplicit(context.targetUrlKey);
-    if (!explicitTarget) {
-      const required = "--target or TARGET_POSTGRES_URL";
-      throw new Error(
-        `${context.operation} requires ${required} for privileged writes; ` +
-          `${context.targetUrlKey ?? "an ambiguous fallback"} is not allowed.`,
-      );
-    }
-    if (context.writeConfirmationPhrase !== context.operationName) {
-      throw new Error(
-        `${context.operation} requires --confirm-write=${context.operationName}.`,
-      );
-    }
-    if (!context.expectedDeployment) {
-      throw new Error(
-        `${context.operation} requires --expected-deployment=${context.deploymentFingerprint}.`,
-      );
-    }
-    if (context.expectedDeployment !== context.deploymentFingerprint) {
-      throw new Error(
-        `Expected deployment ${context.expectedDeployment} does not match ` +
-          `target deployment ${context.deploymentFingerprint}.`,
-      );
-    }
+  if (!isPostgresTargetExplicit(context.targetUrlKey)) {
+    throw new Error(
+      `${context.operation} requires --target or TARGET_POSTGRES_URL for privileged writes; ` +
+        `${context.targetUrlKey ?? "an ambiguous fallback"} is not allowed.`,
+    );
   }
+  assertDeploymentConfirmed({
+    operation: context.operation,
+    operationName: context.operationName,
+    confirmationPhrase: context.writeConfirmationPhrase,
+    expectedDeployment: context.expectedDeployment,
+    deploymentFingerprint: context.deploymentFingerprint,
+  });
+}
 
+/**
+ * The operator's two confirmations for a privileged write: the phrase names
+ * the operation, and the expected `<host>/<database>` matches the target.
+ * Shared by the data-ops context and the production write command.
+ */
+export function assertDeploymentConfirmed({
+  operation,
+  operationName,
+  confirmationPhrase,
+  expectedDeployment,
+  deploymentFingerprint,
+}) {
+  if (confirmationPhrase !== operationName) {
+    throw new Error(`${operation} requires --confirm-write=${operationName}.`);
+  }
+  if (!expectedDeployment) {
+    throw new Error(`${operation} requires --expected-deployment=${deploymentFingerprint}.`);
+  }
+  if (expectedDeployment !== deploymentFingerprint) {
+    throw new Error(
+      `Expected deployment ${expectedDeployment} does not match target deployment ${deploymentFingerprint}.`,
+    );
+  }
 }
 
 export function requireTargetUrl(context, label = "Postgres target URL") {

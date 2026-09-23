@@ -699,7 +699,6 @@ async function main() {
     intent: "editorArticleWrite",
     argv,
     sourceUrlKeys: [],
-    targetUrlKeys: ["TARGET_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,

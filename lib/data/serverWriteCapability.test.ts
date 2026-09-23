@@ -108,21 +108,13 @@ describe("Postgres write capabilities", () => {
     await expect(client.mutationAsService(intake, { apiKey: "intake-secret" })).resolves.toEqual({ updated: 1 });
   });
 
-  it("permits privileged translation cache recovery but not public intake recovery", async () => {
+  it("offers no privileged path around the service allowlist for publication delivery", async () => {
     const module = await load();
     const client = module.getServerDataWriteCapabilityOrThrow().client;
+    // Translation completion enqueues into the publication outbox in its own
+    // transaction; the retired cache-retry mutation has no caller and no bypass.
+    expect("mutationAsPublicationRecovery" in client).toBe(false);
     await expect(client.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
-    await expect(client.mutationAsPublicationRecovery(cacheRetry, { targets: [{ kind: "article", slug: "lsd" }] })).resolves.toEqual({ updated: 1 });
-    process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "intake-secret";
-    const publicClient = module.getPublicIntakeWriteCapability()!.client;
-    expect("mutationAsPublicationRecovery" in publicClient).toBe(false);
-    await expect(publicClient.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
-  });
-
-  it("keeps translation cache recovery behind the write freeze", async () => {
-    const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
-    process.env.DATA_WRITES_FROZEN = "1";
-    await expect(client.mutationAsPublicationRecovery(cacheRetry, { targets: [] })).rejects.toMatchObject({ code: "DATA_WRITES_FROZEN" });
     expect(io.mutation).not.toHaveBeenCalled();
   });
 

@@ -10,7 +10,7 @@ This repository builds three Next.js application surfaces from one route tree:
 - editor DoseWiki, built as `DOSEWIKI_BUILD_SURFACE=editor` for `dev.dose.wiki` and `dosewiki-admin.vercel.app`;
 - Effect Index, a separate public, read-only flavor selected by `NEXT_PUBLIC_SITE_FLAVOR=effectindex`.
 
-`src/config/siteFlavor.ts` owns publication identity and route availability. `src/middleware.ts` and `lib/next/flavorGatedRoutes.ts` own host and route enforcement. Public and editor delivery are separate compiled artifacts, not request-time branches of one build. [Deployment](docs/operations/deployment.md) owns the Vercel topology and release procedure.
+`scripts/build/build-surface.mjs` owns artifact identity: from a release artifact name (`public`, `editor`, `effectindex`) it derives the build surface, flavor, build directory, cron ownership, and prebuilt-upload rules that `next.config.ts`, the deploy scripts, and the build workflows read. `src/config/siteFlavor.ts` owns publication identity and route availability, normalising the flavor through that module. `src/middleware.ts` and `lib/next/flavorGatedRoutes.ts` own host and route enforcement. Public and editor delivery are separate compiled artifacts, not request-time branches of one build. [Deployment](docs/operations/deployment.md) owns the Vercel topology and release procedure.
 
 ## Runtime data
 

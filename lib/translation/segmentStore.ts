@@ -2,8 +2,10 @@
  * Postgres access for the two runtime-owned translation tables
  * (`lib/postgres/schema.runtime.ts`). Segments are keyed by the English text's
  * content hash so a read is one `= ANY($hashes)` lookup and a refresh only
- * translates hashes that are missing. Jobs are an outbox with a lease: an
+ * translates hashes that are missing. Jobs are a queue with a lease: an
  * editorial write upserts, the cron claims, and completion clears the row.
+ * Completion hands public delivery to the publication outbox
+ * (`lib/next/publicationOutbox.ts`); this module owns no delivery retries.
  */
 import "server-only";
 
@@ -13,6 +15,9 @@ import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 import type { TranslationQueueCoverage } from "./translationCoverageTypes";
 import { refreshLocalizedPublicationIndexes } from "./publicationIndexStore";
 import { patchDocument, selectDocumentById, type SqlClient } from "../postgres/documentStore";
+import { enqueuePublications, lockPublications } from "../postgres/publicationOutboxStore";
+import { hasTranslationIntent, TRANSLATION_QUEUE_RECEIPT } from "../next/publicationOutbox";
+import type { PublicationTarget } from "../next/publicationWire";
 
 export type TranslationSegmentRow = {
   locale: string;
@@ -34,7 +39,6 @@ export type TranslationJobRow = {
 };
 
 export type TranslationJobMode = "incremental" | "bulk";
-export type TranslationCacheJobRow = Pick<TranslationJobRow, "locale" | "slug" | "mode"> & { targets: string; attempts?: number };
 
 /** A stale lease is retaken after this long; the cron's own budget is shorter. */
 const JOB_LEASE_MS = 10 * 60 * 1000;
@@ -42,9 +46,6 @@ export const MAX_TRANSLATION_JOB_ATTEMPTS = 5;
 /** First retry delay; each later failure doubles it, so five failures span over half an hour. */
 const JOB_RETRY_BASE_MS = 150_000;
 const JOB_RETRY_MAX_MS = 60 * 60 * 1000;
-/** Cache delivery claims before a cache job is left as a dead letter; the backoff spreads them over about two hours. */
-export const MAX_TRANSLATION_CACHE_JOB_ATTEMPTS = 8;
-const CACHE_RETRY_BASE_MS = 60_000;
 /** Run rows older than this are pruned when the same lane records a new run. */
 const WORKER_RUN_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -335,10 +336,10 @@ export async function enqueueTranslationJobs(
     const row = await selectDocumentById(client, "publicCachePublications", publication.id, true);
     if (!row || row.generation !== publication.generation || !row.pending) return;
     const receipts = (row.receipts ?? []) as Array<{ target?: string; generation?: number }>;
-    if (receipts.some((receipt) => receipt.target === "translation-queue" && receipt.generation === publication.generation)) return;
+    if (hasTranslationIntent(receipts, publication.generation)) return;
     await enqueue(client);
     await patchDocument(client, "publicCachePublications", publication.id, {
-      receipts: [...receipts, { target: "translation-queue", generation: publication.generation,
+      receipts: [...receipts, { target: TRANSLATION_QUEUE_RECEIPT, generation: publication.generation,
         status: "accepted", attempts: 1, jobs: pairs.map(({ locale, slug }) => `${locale}/${slug}`) }],
     });
   });
@@ -391,8 +392,11 @@ type JobFinish = {
   refundAttempt: boolean;
 };
 
-async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, cacheTargets: unknown[] = []): Promise<boolean> {
+async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, publications: readonly PublicationTarget[] = []): Promise<boolean> {
+  const entries = finish.completed ? publications.map((target) => ({ target })) : [];
   return getPostgresClient().sqlTransaction(async (client) => {
+    // Outbox rows before the job row: the lock order publication delivery uses.
+    if (entries.length > 0) await lockPublications(client, entries);
     const current = await client.query<TranslationJobRow & { completed_at: string | null }>(
       `SELECT "locale", "slug", "requested_at"::text, "claimed_at"::text, "attempts", "completed_at"::text
        FROM "translationJobs" WHERE "locale" = $1 AND "slug" = $2 AND "mode" = $3 FOR UPDATE`,
@@ -408,24 +412,25 @@ async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, c
       [job.locale, job.slug, finish.completed ? Date.now() : null, finish.error, finish.terminalStatus, job.mode,
         finish.nextAttemptAt, finish.refundAttempt ? 1 : 0],
     );
-    if (finish.completed && cacheTargets.length > 0) {
-      await client.query(
-        `INSERT INTO "translationCacheJobs" ("locale", "slug", "mode", "targets", "requested_at")
-         VALUES ($1, $2, $3, $4, $5::bigint)
-         ON CONFLICT ("locale", "slug", "mode") DO UPDATE SET "targets" = EXCLUDED."targets", "requested_at" = EXCLUDED."requested_at",
-           "attempts" = 0, "next_attempt_at" = NULL, "last_error" = NULL`,
-        [job.locale, job.slug, job.mode, JSON.stringify(cacheTargets), Date.now()],
-      );
-    }
+    if (entries.length > 0) await enqueuePublications(client, entries, { now: Date.now(), origin: "translation" });
     return true;
   });
 }
 
-export async function completeTranslationJob(job: TranslationJobRow, terminalDetail: string | null = null, cacheTargets: unknown[] = []): Promise<boolean> {
+/**
+ * Complete the current lease. `publications` are the public surfaces the
+ * stored segments change; they enter the publication outbox in the same
+ * transaction, so a completed job can never lose its delivery.
+ */
+export async function completeTranslationJob(
+  job: TranslationJobRow,
+  terminalDetail: string | null = null,
+  publications: readonly PublicationTarget[] = [],
+): Promise<boolean> {
   assertDataWritesNotFrozen("completeTranslationJob");
   return finishTranslationJob(job, {
     error: terminalDetail, completed: true, terminalStatus: terminalDetail ? "rejected" : null, nextAttemptAt: null, refundAttempt: false,
-  }, cacheTargets);
+  }, publications);
 }
 
 /**
@@ -479,45 +484,6 @@ export async function releaseTranslationWorkerLease(lane: string, owner: string)
   );
 }
 
-/**
- * Lease up to `limit` due cache jobs: fresh rows first, then retries, oldest
- * first within each. A claim spends an attempt and leases the row until its
- * backoff, so a crash or a failed delivery leaves it due later. Rows at the
- * attempt cap are dead letters: never claimed, kept with their last error.
- */
-export async function claimTranslationCacheJobs(limit = 100): Promise<TranslationCacheJobRow[]> {
-  assertDataWritesNotFrozen("claimTranslationCacheJobs");
-  const now = Date.now();
-  return getPostgresClient().sql<TranslationCacheJobRow>(
-    `UPDATE "translationCacheJobs" SET "attempts" = "attempts" + 1,
-       "next_attempt_at" = $1::bigint + LEAST($4::bigint, $5::bigint * POWER(2, "attempts")::bigint)
-     WHERE ("locale", "slug", "mode") IN (
-       SELECT "locale", "slug", "mode" FROM "translationCacheJobs"
-       WHERE "attempts" < $3::int AND ("next_attempt_at" IS NULL OR "next_attempt_at" <= $1::bigint)
-       ORDER BY ("attempts" > 0), "requested_at" ASC LIMIT $2::int FOR UPDATE SKIP LOCKED
-     )
-     RETURNING "locale", "slug", "mode", "targets", "attempts"`,
-    [now, limit, MAX_TRANSLATION_CACHE_JOB_ATTEMPTS, JOB_RETRY_MAX_MS, CACHE_RETRY_BASE_MS],
-  );
-}
-
-/** Keep the reason a delivery failed; the claim already scheduled the retry. */
-export async function failTranslationCacheJob(job: TranslationCacheJobRow, error: string): Promise<void> {
-  assertDataWritesNotFrozen("failTranslationCacheJob");
-  await getPostgresClient().sql(
-    'UPDATE "translationCacheJobs" SET "last_error" = $4 WHERE "locale" = $1 AND "slug" = $2 AND "mode" = $3',
-    [job.locale, job.slug, job.mode, error.slice(0, 2000)],
-  );
-}
-
-export async function completeTranslationCacheJob(job: TranslationCacheJobRow): Promise<void> {
-  assertDataWritesNotFrozen("completeTranslationCacheJob");
-  await getPostgresClient().sql(
-    'DELETE FROM "translationCacheJobs" WHERE "locale" = $1 AND "slug" = $2 AND "mode" = $3',
-    [job.locale, job.slug, job.mode],
-  );
-}
-
 /** One worker invocation's summary, as `runTranslationJobs` returns it. */
 export type TranslationWorkerRunRecord = {
   id: string;
@@ -529,6 +495,7 @@ export type TranslationWorkerRunRecord = {
   completed: number;
   failed: number;
   exhausted: number;
+  /** Completed records whose public delivery was handed to the publication outbox. */
   cachePending: number;
   usage: { prompt: number; completion: number; requests: number };
   firstError: string | null;

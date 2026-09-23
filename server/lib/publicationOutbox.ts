@@ -2,6 +2,7 @@ import type { Id } from "../../lib/postgres/runtime/dataModel"
 import type { MutationCtx } from "../../lib/postgres/runtime/server"
 import { contentHash } from "../../lib/proposals/contentHash";
 import { isPublicationTarget, type PublicationTarget } from "../../lib/next/publicationWire";
+import { pendingPublicationRow, publicationOutboxKey, type PublicationOutboxRow } from "../../lib/next/publicationOutbox";
 import { projectPublicArticle } from "../../src/data/projections/substanceReadProjections";
 import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/data/projections/substanceProjectionCore";
 import {
@@ -15,20 +16,7 @@ import {
 const tables = ["substanceIndex", "subjectiveEffects", "effectIndexArticles", "effectIndexArchive", "tripReports", "replications", "substanceGalleries", "contributorProfiles", "replicationArtistTaxonomy", "replicationIdentityAttributions", "replicationIdentityProfileBindings", "replicationSocialAssets", "replicationSourceAttribution", "replicationDateResearch", "reagentTests", "moleculeOverrides", "changelog", "copyBlocks", "siteConfig", "categoryLayout", "indexLayouts", "warningBannerPresets"] as const;
 type Table = typeof tables[number];
 
-/**
- * Delivery attempts before an outbox row stops retrying and is kept as a
- * dead letter. With the 300-second backoff ceiling this is about half an hour.
- */
-export const PUBLICATION_OUTBOX_MAX_ATTEMPTS = 10;
 type Row = Record<string, unknown>;
-
-
-
-function publicationIdentity(target: PublicationTarget): string {
-  return JSON.stringify(target.kind === "article"
-    ? { kind: target.kind, slug: target.slug }
-    : target);
-}
 
 function targetsFor(
   table: Table,
@@ -86,7 +74,8 @@ function snapshot(table: Table, row: Row | null): string | null {
   return contentHash(content);
 }
 
-/** Capture original and final state in the writer transaction. A crash after the
+/** The editorial caller of the publication outbox (`lib/next/publicationOutbox.ts`).
+ * Capture original and final state in the writer transaction. A crash after the
  * Postgres commit cannot lose this notification; cron reads only indexed due rows.
  * Coalescing leaves one durable receipt per identity, not a growing event log. */
 export function withPublicationOutbox(ctx: MutationCtx) {
@@ -134,13 +123,13 @@ export function withPublicationOutbox(ctx: MutationCtx) {
         const afterTargets = targetsFor(table, after, dependency);
         const beforeTargets = targetsFor(table, before, dependency);
         for (const target of beforeTargets) {
-          const key = publicationIdentity(target);
-          if (!afterTargets.some((candidate) => publicationIdentity(candidate) === key)) {
+          const key = publicationOutboxKey(target);
+          if (!afterTargets.some((candidate) => publicationOutboxKey(candidate) === key)) {
             targets.set(key, { target, revision: null });
           }
         }
         for (const target of afterTargets) {
-          const key = publicationIdentity(target);
+          const key = publicationOutboxKey(target);
           const current = targets.get(key);
           const preferredTarget = current?.target.kind === "article" && target.kind === "article"
             ? {
@@ -159,24 +148,14 @@ export function withPublicationOutbox(ctx: MutationCtx) {
       }
       for (const [key, pending] of targets) {
         const current = await ctx.db.query("publicCachePublications").withIndex("by_key", (q) => q.eq("key", key)).unique();
-        const target = pending.target.kind === "article" &&
-          current?.pending === true &&
-          current.target?.kind === "article"
-          ? {
-              ...pending.target,
-              dependency: mergeSubstancePublicationDependency(
-                current.target.dependency as SubstancePublicationDependency | undefined,
-                pending.target.dependency,
-              ),
-            }
-          : pending.target;
+        const target = pending.target;
         const knownRevision = pending.revision;
         // Dependency-only commits must not discard an article's unverified
         // revision. Resolve the latest committed source within this transaction.
         const article = target.kind === "article" && !knownRevision ? await ctx.db.query("substanceIndex")
           .withIndex("by_slug", (q) => q.eq("slug", target.slug)).first() : null;
         const revision = knownRevision ?? (article ? projectPublicArticle(article).publicRevision : target.kind === "article" ? null : undefined);
-        const value = { key, target, revision, generation: (current?.generation ?? 0) + 1, pending: true, nextAttemptAt: Date.now(), attempts: 0, receipts: [], committedAt: Date.now() };
+        const value = pendingPublicationRow(current as PublicationOutboxRow | null, { target, revision }, Date.now(), "editorial");
         // A new commit re-pends a dead-lettered identity.
         if (current) await ctx.db.patch(current._id, { ...value, deadLetteredAt: undefined });
         else await ctx.db.insert("publicCachePublications", value);

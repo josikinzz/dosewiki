@@ -400,7 +400,6 @@
   "src/lib/citations/citationTokens.ts": 2,
   "src/lib/citations/referenceIntake.ts": 2,
   "src/lib/http/dataRejection.ts": 4,
-  "src/lib/http/protectedRouteOperation.ts": 1,
   "src/lib/releaseVideoElement.ts": 2,
   "src/middleware.ts": 4,
   "src/schema/substance/articleStubPolicy.test.ts": 1,

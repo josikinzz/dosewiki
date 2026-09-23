@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DataWriteFrozenError } from "../runtime/dataWriteFreeze";
-import { authorizeCronRequest, withCronWriteFreeze } from "./cronAuthorization";
+import { authorizeCronRequest, cronRoute, withCronWriteFreeze } from "./cronAuthorization";
 
 describe("authorizeCronRequest", () => {
   it("refuses to run when CRON_SECRET is unset", () => {
@@ -79,5 +79,39 @@ describe("withCronWriteFreeze", () => {
     });
 
     await expect(handler(request())).rejects.toThrow("database unreachable");
+  });
+});
+
+describe("cronRoute", () => {
+  const request = (authorization?: string) =>
+    new Request("https://editor.dose.wiki/api/cron/x", { headers: authorization ? { authorization } : {} });
+
+  it("runs the handler only for the configured bearer secret", async () => {
+    const handler = vi.fn(async () => Response.json({ ran: true }));
+    const route = cronRoute(handler, { env: () => ({ CRON_SECRET: "s3cret" }) });
+
+    expect((await route(request("Bearer wrong"))).status).toBe(401);
+    expect(handler).not.toHaveBeenCalled();
+    expect((await route(request("Bearer s3cret"))).status).toBe(200);
+    expect(handler).toHaveBeenCalledOnce();
+  });
+
+  it("reports a write freeze from the handler as a deliberate 503", async () => {
+    const route = cronRoute(async () => { throw new DataWriteFrozenError("x"); }, { env: () => ({ CRON_SECRET: "s3cret" }) });
+    const response = await route(request("Bearer s3cret"));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ frozen: true });
+  });
+
+  it("spends the rate limit before authorizing, so wrong secrets are bounded too", async () => {
+    const limited = Response.json({ error: "Too many requests." }, { status: 429 });
+    const rateLimit = vi.fn(async () => limited);
+    const handler = vi.fn(async () => Response.json({ ran: true }));
+    const route = cronRoute(handler, { env: () => ({}), rateLimit });
+
+    const response = await route(request("Bearer wrong"));
+    expect(response.status).toBe(429);
+    expect(rateLimit).toHaveBeenCalledOnce();
+    expect(handler).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DataWriteFrozenError } from "../runtime/dataWriteFreeze";
-import { classifyPostgresError, isConnectionLoss } from "./postgresErrors";
+import { classifyPostgresError, isConnectionLoss, isReplayableOnFreshConnection } from "./postgresErrors";
 
 const sqlState = (code: string) => Object.assign(new Error(`SQLSTATE ${code}`), { code });
 
@@ -59,5 +59,32 @@ describe("Postgres connection loss", () => {
 
   it("leaves connection loss permanent for writers", () => {
     expect(classifyPostgresError(new Error("Connection terminated unexpectedly"))).toBe("permanent");
+  });
+});
+
+describe("Replaying idempotent work on a fresh connection", () => {
+  it.each([
+    ["a socket closed under an active query", new Error("Connection terminated unexpectedly")],
+    ["a silent socket", new Error("Query read timeout")],
+    ["a pool acquisition timeout", new Error("timeout exceeded when trying to connect")],
+    ["a handshake timeout", new Error("Connection terminated due to connection timeout")],
+    ["a refused connection", Object.assign(new Error("connect ECONNREFUSED 127.0.0.1:5432"), { code: "ECONNREFUSED" })],
+    ["a broken pipe", Object.assign(new Error("write EPIPE"), { code: "EPIPE" })],
+    ["a crash shutdown", sqlState("57P02")],
+    ["a server that cannot connect now", sqlState("57P03")],
+    ["a serialization failure", sqlState("40001")],
+    ["too many connections", sqlState("53300")],
+  ])("replays %s", (_label, error) => {
+    expect(isReplayableOnFreshConnection(error)).toBe(true);
+  });
+
+  it.each([
+    ["a write refused by the freeze", new DataWriteFrozenError("articles:save")],
+    ["a write refused inside a read-only transaction", sqlState("25006")],
+    ["a server statement timeout", sqlState("57014")],
+    ["a unique violation", sqlState("23505")],
+    ["an unrelated error", new Error("layout write failed")],
+  ])("does not replay %s", (_label, error) => {
+    expect(isReplayableOnFreshConnection(error)).toBe(false);
   });
 });

@@ -111,9 +111,12 @@ export const translationWorkerRuns = pgTable(
 );
 
 /**
- * Durable cache work created atomically with translation completion. A claim
- * spends an attempt and leases the row until `next_attempt_at`; a row that
- * reaches the attempt cap is no longer claimed and stays for inspection.
+ * Retired. This was a second delivery queue for translation completions; they
+ * now enqueue into the publication outbox (`publicCachePublications`, policy in
+ * `lib/next/publicationOutbox.ts`) in the completion transaction. No code reads
+ * or writes this table. It stays defined so no generated migration drops it:
+ * rows left from before the change are kept for inspection, and dropping the
+ * table needs its own reviewed migration once they are confirmed inert.
  */
 export const translationCacheJobs = pgTable(
   "translationCacheJobs",

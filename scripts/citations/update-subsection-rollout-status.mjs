@@ -72,7 +72,6 @@ const runContext = createDataOpsRunContext({
   intent: "citation-subsection-tracker",
   argv,
   sourceUrlKeys: [],
-  targetUrlKeys: [],
   dryRunFlag: "--dry-run",
   executeFlag: null,
   localArtifacts: [options.tracker],

@@ -29,7 +29,6 @@ const runContext = createDataOpsRunContext({
   intent: "legality-subsection-audit",
   argv,
   sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
-  targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
   localArtifacts: [output],

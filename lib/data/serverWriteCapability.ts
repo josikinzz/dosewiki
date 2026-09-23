@@ -109,19 +109,6 @@ export class ServerDataWriteClient {
     return await reportingFreeze(name, () => this.inner.mutation(mutation, ...args));
   }
 
-  /** Privileged worker path for the actorless publication outbox mutation. */
-  async mutationAsPublicationRecovery<Mutation extends FunctionReference<"mutation">>(
-    mutation: Mutation,
-    ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
-  ): Promise<FunctionReturnType<Mutation>> {
-    const name = getFunctionName(mutation);
-    assertDataWritesNotFrozen(name);
-    if (name !== "publicationRecovery:enqueueTranslationCacheRetry") {
-      throw new Error(`Server Postgres publication recovery mutation is not allowlisted: ${name}`);
-    }
-    return await reportingFreeze(name, () => this.inner.mutation(mutation, ...args));
-  }
-
   async action<Action extends FunctionReference<"action">>(
     action: Action,
     ...args: OptionalRestArgs<Action>

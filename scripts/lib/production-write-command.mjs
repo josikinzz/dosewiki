@@ -1,4 +1,7 @@
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
+import { guardTarget } from "../postgres/targetGuard.ts";
 import {
+  assertDeploymentConfirmed,
   findRepoRoot,
   getFlagValue,
   hasFlag,
@@ -54,6 +57,7 @@ export function createProductionWriteCommand({
     repoRoot,
     writeRequested,
     dryRun: explicitDryRun || !writeRequested,
+    allowRemote: hasFlag(argv, "--allow-remote"),
     confirmationPhrase: readNonEmpty(getFlagValue(argv, "--confirm-write")),
     expectedDeployment: readNonEmpty(getFlagValue(argv, "--expected-deployment")),
   };
@@ -82,21 +86,27 @@ export function assertProductionWriteAllowed(command) {
     const required = "TARGET_POSTGRES_URL or --target";
     throw new Error(`Production writes require ${required}.${compatibilityHint}`);
   }
-  if (command.confirmationPhrase !== command.operation) {
-    throw new Error(
-      `${command.operation} requires --confirm-write=${command.operation}.`,
-    );
-  }
-  if (!command.expectedDeployment) {
-    throw new Error(
-      `${command.operation} requires --expected-deployment=${command.deploymentFingerprint}.`,
-    );
-  }
-  if (command.expectedDeployment !== command.deploymentFingerprint) {
-    throw new Error(
-      `Expected deployment ${command.expectedDeployment} does not match target deployment ${command.deploymentFingerprint}.`,
-    );
-  }
+  assertDeploymentConfirmed({
+    operation: command.operation,
+    operationName: command.operation,
+    confirmationPhrase: command.confirmationPhrase,
+    expectedDeployment: command.expectedDeployment,
+    deploymentFingerprint: command.deploymentFingerprint,
+  });
+}
+
+/**
+ * Every production write gate, in one order, before any pool exists: the
+ * freeze, then the explicit target with its operation-named confirmation and
+ * deployment fingerprint, then the remote-host guard. Returns the confirmed
+ * target URL; scripts that open their own pool build it from this value and
+ * never resolve a target a second time.
+ */
+export function authorizeProductionWrite(command, { env = process.env } = {}) {
+  assertDataWritesNotFrozen(command.operation, env);
+  assertProductionWriteAllowed(command);
+  guardTarget(command.targetUrl, command.allowRemote, env);
+  return command.targetUrl;
 }
 
 export async function executeProductionWrite(command, mutation) {

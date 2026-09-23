@@ -69,7 +69,7 @@ describe("data ops run context", () => {
   it("blocks dry-run writes through the shared policy", () => {
     const context = createDataOpsRunContext({
       operation: "local prepopulate", intent: "local-prepopulate", argv: ["--dry-run"], loadsEnvLocal: false,
-      env: { DATA_BACKEND: "postgres" }, sourceUrlKeys: [], targetUrlKeys: [],
+      env: { DATA_BACKEND: "postgres" }, sourceUrlKeys: [],
     });
     expect(() => assertDataOpsWriteAllowed(context)).toThrow(/dry-run mode/);
   });
@@ -103,7 +103,7 @@ describe("data ops run context", () => {
     const context = createDataOpsRunContext({
       operation: "local replication import", argv: ["--execute", "--write"], loadsEnvLocal: false,
       env: { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "postgres://localhost/db" },
-      requiresExecute: true, allowLocalTarget: true,
+      requiresExecute: true,
     });
     expect(() => assertDataOpsWriteAllowed(context)).toThrow(/--confirm-write/);
   });

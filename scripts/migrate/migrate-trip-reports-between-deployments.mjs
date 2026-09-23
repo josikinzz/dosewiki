@@ -22,7 +22,6 @@ const runContext = createDataOpsRunContext({
   operation: "copy trip reports between Postgres deployments",
   intent: "cross-deployment-copy",
   sourceUrlKeys: ["SOURCE_POSTGRES_URL"],
-  targetUrlKeys: ["TARGET_POSTGRES_URL"],
   selectedTables: ["tripReports"],
   confirmationFlag: "--confirm-cross-deployment-copy",
   destructive: true,

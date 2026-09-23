@@ -36,6 +36,7 @@ import {
   PRIVATE_CACHE_HEADERS,
 } from "@server/next/editorDeliveryPolicy";
 import { isReplicationEmbedPath } from "@server/next/replicationEmbedPolicy";
+import { isServiceCronRequest } from "@server/http/serviceCronPaths";
 
 // Next resolves these environment reads for the deployment's Edge middleware.
 const R2_UPLOAD_ORIGIN = process.env.NEXT_PUBLIC_EDITOR_BUILD === "true"
@@ -329,12 +330,11 @@ export async function middleware(request: NextRequest) {
   });
   const browserPolicy = getBrowserPolicyContext(request, appPath, delivery !== "public");
 
-  // Vercel invokes crons on the deployment URL, never a listed host. Those two
+  // Vercel invokes crons on the deployment URL, never a listed host. Those
   // GETs carry CRON_SECRET and are checked in their handlers, so they pass the
   // host gate; every other request on an unlisted alias or public origin is
   // refused before an editor build serves it.
-  const isServiceCron = request.method === "GET"
-    && (requestPath === "/api/cron/publication-delivery" || requestPath === "/api/cron/translation-refresh" || requestPath === "/api/cron/translation-bulk");
+  const isServiceCron = isServiceCronRequest(request.method, requestPath);
   if (delivery === "closed" && !(isServiceCron && process.env.NEXT_PUBLIC_EDITOR_BUILD === "true")) {
     return browserPolicy.secure(new NextResponse("Editor deployment is unavailable.", { status: 503 }));
   }

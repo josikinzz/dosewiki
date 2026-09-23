@@ -1,4 +1,4 @@
-import type { PoolClient } from "pg";
+import type { PoolClient, PoolConfig } from "pg";
 
 export const POOL_ACQUISITION_TIMEOUT_MS = 10_000;
 
@@ -9,6 +9,17 @@ export const POOL_ACQUISITION_TIMEOUT_MS = 10_000;
  * otherwise take many minutes to notice.
  */
 export const QUERY_READ_TIMEOUT_MS = 45_000;
+
+/**
+ * The one set of socket options every runtime pool uses: keepalive probes, the
+ * client-side read ceiling, and the acquisition timeout. Callers add only
+ * their own `connectionString`, `max`, and process-lifetime flags.
+ */
+export const RUNTIME_POOL_OPTIONS = {
+  keepAlive: true,
+  query_timeout: QUERY_READ_TIMEOUT_MS,
+  connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS,
+} as const satisfies PoolConfig;
 
 const TRANSACTION_TIMEOUTS_SQL = `
   SET LOCAL statement_timeout = '30s';

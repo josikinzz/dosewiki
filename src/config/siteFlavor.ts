@@ -18,12 +18,18 @@ import type { AppearancePolicy } from "@/theme";
 import { effectIndexViewPath } from "@/utils/indexViewRoutes";
 import { msg } from "@/i18n/messages";
 import effectIndexMissionMarkdown from "@content/about/effect-index-mission.md?raw";
+// The flavor names and their normalisation live with the rest of artifact identity, so
+// next.config.ts and the build scripts resolve the same flavor this module does.
+import {
+  DEFAULT_SITE_FLAVOR,
+  SITE_FLAVORS,
+  normalizeSiteFlavor,
+  type SiteFlavorName,
+} from "../../scripts/build/build-surface.mjs";
 
-export const SITE_FLAVORS = ["dosewiki", "effectindex"] as const;
+export { DEFAULT_SITE_FLAVOR, SITE_FLAVORS };
 
-export type SiteFlavor = (typeof SITE_FLAVORS)[number];
-
-export const DEFAULT_SITE_FLAVOR: SiteFlavor = "dosewiki";
+export type SiteFlavor = SiteFlavorName;
 
 /** Environment-shaped input for the flavor resolver. Narrow on purpose. */
 export type SiteFlavorEnv = {
@@ -722,10 +728,6 @@ export const SITE_FLAVOR_CONFIGS: Readonly<Record<SiteFlavor, SiteFlavorConfig>>
   effectindex: EFFECT_INDEX_CONFIG,
 };
 
-function isSiteFlavor(value: string): value is SiteFlavor {
-  return (SITE_FLAVORS as readonly string[]).includes(value);
-}
-
 /**
  * Pure resolver: unset, empty, whitespace-only or unrecognised values fall back to the
  * dose.wiki flavor. The default argument reads the ambient environment inline so tests can
@@ -737,9 +739,7 @@ export function resolveSiteFlavor(
    
   env: SiteFlavorEnv = { NEXT_PUBLIC_SITE_FLAVOR: process.env.NEXT_PUBLIC_SITE_FLAVOR },
 ): SiteFlavor {
-  const normalized = env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() ?? "";
-
-  return isSiteFlavor(normalized) ? normalized : DEFAULT_SITE_FLAVOR;
+  return normalizeSiteFlavor(env.NEXT_PUBLIC_SITE_FLAVOR);
 }
 
 /** Resolve the full config for an environment-shaped object. */

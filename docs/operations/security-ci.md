@@ -46,7 +46,8 @@ What it can do:
 - pull the Vercel project settings for the target, then cut the pulled
   environment file down to its `NEXT_PUBLIC_*` and `NODE_OPTIONS` lines, the
   public build inputs a Vercel-hosted build would inline too, so no secret
-  line survives to the build;
+  line survives to the build (the filter is `keepPublicBuildInputs` in
+  `scripts/build/build-surface.mjs`, fixture-tested beside it);
 - run the package-owned build command through `vercel build` with
   `DATA_BACKEND=postgres`, `DATA_WRITES_FROZEN=1`, the read-only pooled
   Postgres URL, and the replication media base from the selected environment;

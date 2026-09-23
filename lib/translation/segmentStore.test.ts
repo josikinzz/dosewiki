@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const seams = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn(), sql: vi.fn(), select: vi.fn(), patch: vi.fn() }));
+const seams = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn(), sql: vi.fn(), select: vi.fn(), patch: vi.fn(), selectMany: vi.fn(), insert: vi.fn() }));
 vi.mock("@server/postgres/runtime/backend", () => ({
   getPostgresClient: () => ({ sqlTransaction: seams.transaction, sql: seams.sql }),
 }));
-vi.mock("../postgres/documentStore", () => ({ selectDocumentById: seams.select, patchDocument: seams.patch }));
+vi.mock("../postgres/documentStore", () => ({
+  selectDocumentById: seams.select, patchDocument: seams.patch, selectDocuments: seams.selectMany, insertDocument: seams.insert,
+}));
 
 import {
   MAX_TRANSLATION_JOB_ATTEMPTS,
@@ -76,15 +78,30 @@ describe("translation lease ownership", () => {
     expect(current.last_error).toBe("Translation completed with 1 rejected segment");
   });
 
-  it("creates durable cache work in the completion transaction", async () => {
-    seams.query.mockImplementation(async (sql) => String(sql).includes("SELECT")
-      ? { rows: [{ ...lease, completed_at: null }] }
-      : { rows: [] });
-    const targets = [{ kind: "article-translation", slug: "fixture", locale: "zh-Hans" }];
+  it("hands public delivery to the publication outbox in the completion transaction", async () => {
+    const order: string[] = [];
+    seams.query.mockImplementation(async (sql) => {
+      order.push(String(sql).includes("SELECT") ? "job-lock" : "job-update");
+      return String(sql).includes("SELECT") ? { rows: [{ ...lease, completed_at: null }] } : { rows: [] };
+    });
+    seams.selectMany.mockImplementation(async () => { order.push("outbox-lock"); return []; });
+    seams.insert.mockResolvedValue("publicCachePublications:1");
+    const targets = [{ kind: "article-translation" as const, slug: "fixture", locale: "zh-Hans" as const }];
     expect(await completeTranslationJob(lease, null, targets)).toBe(true);
-    expect(seams.query).toHaveBeenCalledTimes(3);
-    expect(String(seams.query.mock.calls[2]?.[0])).toContain('INSERT INTO "translationCacheJobs"');
-    expect(seams.query.mock.calls[2]?.[1]?.[3]).toBe(JSON.stringify(targets));
+    expect(seams.transaction).toHaveBeenCalledTimes(1);
+    // Outbox rows are locked before the job row, the order publication delivery uses.
+    expect(order[0]).toBe("outbox-lock");
+    expect(seams.insert).toHaveBeenCalledWith(expect.anything(), "publicCachePublications", expect.objectContaining({
+      target: targets[0], pending: true, attempts: 0,
+      receipts: [expect.objectContaining({ target: "translation-queue", generation: 1 })],
+    }));
+  });
+
+  it("writes no outbox row when the lease is stale", async () => {
+    seams.query.mockResolvedValue({ rows: [{ ...lease, attempts: 2, completed_at: null }] });
+    seams.selectMany.mockResolvedValue([]);
+    expect(await completeTranslationJob(lease, null, [{ kind: "about" }])).toBe(false);
+    expect(seams.insert).not.toHaveBeenCalled();
   });
 });
 

@@ -112,7 +112,6 @@ export async function runComparePrompts({ dataPrompts, dataUrl, log = console.lo
     operation: "compare local prompts with Postgres prompts",
     intent: "data-read-compare",
     sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
-    targetUrlKeys: [],
     localArtifacts: [
       "content/prompts/generator.md",
       "content/prompts/sections/*.md",

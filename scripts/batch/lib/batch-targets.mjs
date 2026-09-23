@@ -73,7 +73,6 @@ export function createBatchProposalReadContext({
     env: envWithCliOverrides,
     loadsEnvLocal,
     sourceUrlKeys: ["SOURCE_POSTGRES_URL"],
-    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     selectedTables: ["substanceIndex", "prompts", "quotes", "articleSources"],
     localArtifacts: ["notes-and-plans/exports/batch-proposals"],
   });

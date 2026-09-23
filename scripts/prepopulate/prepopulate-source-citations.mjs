@@ -53,7 +53,6 @@ const runContext = createDataOpsRunContext({
   operation: "prepopulate source citations",
   intent: "local-prepopulate",
   sourceUrlKeys: [],
-  targetUrlKeys: [],
   localArtifacts: [path.relative(repoRoot, articlesPath), "src/data/article-sources"],
 });
 

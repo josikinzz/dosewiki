@@ -39,7 +39,6 @@ const runContext = createDataOpsRunContext({
   intent: "citation-second-pass-plan",
   argv,
   sourceUrlKeys: [],
-  targetUrlKeys: [],
   dryRunFlag: "--dry-run",
   executeFlag: null,
   localArtifacts: [auditPath, outPath],

@@ -44,7 +44,6 @@ const runContext = createDataOpsRunContext({
   operation: "copy molecule overrides between deployments",
   intent: "editorArticleWrite",
   sourceUrlKeys: ["SOURCE_POSTGRES_URL"],
-  targetUrlKeys: ["TARGET_POSTGRES_URL"],
   selectedTables: ["moleculeOverrides"],
   confirmationFlag: "--confirm-molecule-copy",
   localArtifacts: [REPORT_RELATIVE_PATH],
