@@ -203,6 +203,11 @@ describe("article chemistry presentation sections", () => {
       expect(
         document.querySelector('[data-hero-molecule-layout="below-title"]'),
       ).not.toBeNull();
+      const desktopMolecule = document.querySelector('[data-hero-molecule-layout="below-title"] img');
+      expect(document.querySelector('[data-hero-molecule-layout="below-title"]')).toHaveStyle({ marginTop: "91px" });
+      fireEvent.load(desktopMolecule!);
+      expect(desktopMolecule).toHaveClass("theme-hero-molecule-arrive");
+      expect(document.querySelectorAll('[data-hero-molecule-layout="below-title"] img')[1]).not.toHaveClass("theme-hero-molecule-arrive");
       expect(
         document.querySelector('[data-hero-molecule-layout="top"]'),
       ).toBeNull();
@@ -223,6 +228,7 @@ describe("article chemistry presentation sections", () => {
       expect(
         document.querySelector('[data-hero-molecule-layout="top"]'),
       ).not.toBeNull();
+      expect(document.querySelector('[data-hero-molecule-layout="top"] img')).toBe(desktopMolecule);
       expect(
         document.querySelector('[data-hero-molecule-layout="below-title"]'),
       ).toBeNull();

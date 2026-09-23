@@ -8,6 +8,7 @@ import type { ColorScheme } from "@/theme";
 
 type MoleculeImageProps = Omit<ComponentProps<typeof AppImage>, "src" | "unoptimized"> & {
   src: string;
+  onLoad?: ComponentProps<typeof Image>["onLoad"];
 };
 
 const COLOR_SCHEMES: readonly ColorScheme[] = ["dark", "light"];

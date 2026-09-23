@@ -1088,16 +1088,10 @@ function GalleryExplorer({
   const orderActive = !searching && !focus;
   const orderOptions = ORDER_OPTIONS[mode];
   /**
-   * Two width thresholds, both about the same row.
-   *
    * `md` (768px) is where each control's label unfolds beside its glyph;
-   * below it the label lives in the menu the glyph opens. `lg` is where the
-   * search field is wide enough for the placeholder to name all three things
-   * it searches; between them it names two, because a clipped placeholder
-   * reads as a bug in the one control that has to look trustworthy.
+   * below it the label lives in the menu the glyph opens.
    */
   const compactBar = useMediaQuery("(max-width: 767px)");
-  const tightField = useMediaQuery("(max-width: 1023px)");
   /**
    * Anything that makes the grid smaller than the archive. While one of these
    * is on, the resting corpus sentence on the tab row is no longer the number
@@ -1330,15 +1324,7 @@ function GalleryExplorer({
                         inputRef.current.value = "";
                         updateQuery("");
                       }}
-                      // Below `lg` the field bottoms out at 192px, where the
-                      // three-noun placeholder clipped mid-word, which reads
-                      // as a bug in the one control that has to look
-                      // trustworthy. It names two things there instead.
-                      placeholder={
-                        tightField
-                          ? t("Search art, artist")
-                          : t("Search art, artist, effect")
-                      }
+                      placeholder={t("Search art, artists…")}
                       className={cn(
                         "h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9",
                         // The trailing slot only holds the clear button or the
@@ -1874,4 +1860,3 @@ function GalleryExplorer({
     </>
   );
 }
-
