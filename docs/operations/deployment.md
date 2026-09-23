@@ -101,6 +101,12 @@ Limits of the remote path, observed on its first runs:
   `.next-editor`, so the workflow removes the `.next-*/` rule in its own
   checkout before deploying; without that, Vercel fails with `ENOENT ...
   .next-editor/package.json`.
+- A prebuilt upload has no platform deployment ID at build time, so skew
+  protection would be off: chunk URLs lose their `?dpl=` and a reader still
+  on the previous version loads mismatched files after promotion. The
+  workflow sets `NEXT_DEPLOYMENT_ID=gh-<run id>-<attempt>`, a custom
+  skew-protection ID. Before promoting a runner-built artifact, confirm its
+  HTML chunk URLs carry `?dpl=gh-`.
 - A `target: preview` deployment runs with the project's preview
   environment, which holds no database URL, so pages rendered on demand fail
   there. Use it for the census, the artifact audit, and timing only; a
