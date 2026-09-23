@@ -117,7 +117,6 @@ export async function main(argv = process.argv.slice(2)) {
     intent: INTENT,
     argv,
     env,
-    targetUrlKeys: targetUrlArg ? ["TARGET_POSTGRES_URL"] : undefined,
     confirmationFlag: CONFIRMATION_FLAG,
     selectedTables: ["reagentTests"],
     localArtifacts: ["data/third-party/protestkit/reagentTests.json", "public/SubstanceIndex.json"],

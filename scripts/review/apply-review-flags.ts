@@ -180,7 +180,6 @@ export async function runReviewApply(
     intent: "editorArticleWrite",
     argv: options.argv,
     env,
-    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,

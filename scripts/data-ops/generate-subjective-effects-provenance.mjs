@@ -43,7 +43,6 @@ const runContext = createDataOpsRunContext({
     "POSTGRES_DIRECT_URL",
     "POSTGRES_POOLED_URL",
   ],
-  targetUrlKeys: [],
   localArtifacts: ["data/effects/subjectiveEffectsProvenance.json"],
 });
 

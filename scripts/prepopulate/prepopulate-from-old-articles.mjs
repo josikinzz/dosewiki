@@ -52,7 +52,6 @@ const runContext = createDataOpsRunContext({
   operation: "prepopulate identification from old articles",
   intent: "local-prepopulate",
   sourceUrlKeys: [],
-  targetUrlKeys: [],
   localArtifacts: [path.relative(repoRoot, articlesPath), "oldosewiki-article.json"],
 });
 

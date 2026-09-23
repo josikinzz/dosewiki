@@ -66,7 +66,6 @@ const runContext = createDataOpsRunContext({
   intent: "citation-rollout-archive",
   argv,
   sourceUrlKeys: ["SOURCE_POSTGRES_URL", "TARGET_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
-  targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
   localArtifacts: [options.outDir],

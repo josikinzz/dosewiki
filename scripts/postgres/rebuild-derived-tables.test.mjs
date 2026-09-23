@@ -87,5 +87,5 @@ test("a write without an explicit target names the missing input", async () => {
     { TARGET_POSTGRES_URL: undefined, POSTGRES_DIRECT_URL: target },
   );
   assert.notEqual(result.status, 0, result.output);
-  assert.match(result.output, /--target.*TARGET_POSTGRES_URL/);
+  assert.match(result.output, /(?=[^]*--target)(?=[^]*TARGET_POSTGRES_URL)/);
 });

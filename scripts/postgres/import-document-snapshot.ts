@@ -30,9 +30,7 @@ import { fileURLToPath } from "node:url";
 import type { PoolClient } from "pg";
 import { tableColumns, tableNames, tableReferences, type TableName } from "../../lib/postgres/schema.generated";
 import { documentHash, documentToRow, losslessSelectList, rowToDocument, type DataDocument } from "../../lib/postgres/documentCodec";
-import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
-import { assertProductionWriteAllowed, createProductionWriteCommand } from "../lib/production-write-command.mjs";
-import { assertTargetMatchesConfirmedDeployment, guardTarget, resolveTarget } from "./targetGuard";
+import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
 import { Connection, resilientPool } from "./resilientConnection";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -46,7 +44,6 @@ type Args = {
   tables: TableName[];
   truncate: boolean;
   verify: boolean;
-  allowRemote: boolean;
 };
 
 type ImportCommand = ReturnType<typeof createProductionWriteCommand>;
@@ -84,29 +81,12 @@ function parseArgs(argv: string[]): Args {
     tables: tables as TableName[],
     truncate: flag("truncate"),
     verify: !flag("skip-verify"),
-    allowRemote: flag("allow-remote"),
   };
 }
 
 /** Truncation is a separate operation so its confirmation names the destructive step. */
 function importOperationName(truncate: boolean): string {
   return truncate ? "postgres-import-truncate" : "postgres-import";
-}
-
-/**
- * Every write gate, in order, before anything opens a pool: the freeze, the
- * explicit target, the operation-named confirmation and deployment
- * fingerprint, then the remote-host guard. Returns the target for a write and
- * null for a plan.
- */
-function authorizeWrite(command: ImportCommand, args: Args, argv: string[], env: NodeJS.ProcessEnv): string | null {
-  if (!command.writeRequested) return null;
-  assertDataWritesNotFrozen(command.operation, env);
-  const target = resolveTarget(argv, env);
-  assertProductionWriteAllowed(command);
-  assertTargetMatchesConfirmedDeployment(target, command.deploymentFingerprint);
-  guardTarget(target, args.allowRemote, env);
-  return target;
 }
 
 function printPlan(command: ImportCommand, args: Args): void {
@@ -270,7 +250,8 @@ async function main() {
   const argv = process.argv.slice(2);
   const args = parseArgs(argv);
   const command = createProductionWriteCommand({ operation: importOperationName(args.truncate), argv, loadsEnvLocal: false });
-  const target = authorizeWrite(command, args, argv, process.env);
+  // Every write gate runs before any pool exists; a plan run authorizes nothing.
+  const target = command.writeRequested ? authorizeProductionWrite(command) : null;
   if (!target) printPlan(command, args);
   const exportDirectory = resolveExportDirectory(args.exportPath);
   const runDirectory = path.join(ROOT, "runs/postgres-import", new Date().toISOString().replace(/[:.]/g, "-"));

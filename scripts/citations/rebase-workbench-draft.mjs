@@ -342,7 +342,6 @@ async function main() {
     intent: "citation-pilot",
     argv,
     sourceUrlKeys: ["SOURCE_POSTGRES_URL", "TARGET_POSTGRES_URL", "POSTGRES_POOLED_URL"],
-    targetUrlKeys: [],
     dryRunFlag: null,
     executeFlag: null,
     localArtifacts: [draftPath, outPath],

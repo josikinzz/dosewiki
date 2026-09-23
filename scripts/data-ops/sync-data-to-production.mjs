@@ -62,7 +62,6 @@ const runContext = createDataOpsRunContext({
   operation: PRODUCTION_SYNC_OPERATION,
   intent: "production-sync",
   sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
-  targetUrlKeys: ["TARGET_POSTGRES_URL"],
   selectedTables,
   confirmationFlag: "--confirm-production-sync",
   destructive: true,

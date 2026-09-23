@@ -339,7 +339,6 @@ async function main(): Promise<void> {
     intent: "local-export",
     argv: process.argv.slice(2),
     sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL"],
-    targetUrlKeys: [],
     selectedTables: ["substanceIndex"],
     localArtifacts: [`runs/${options.runId}`],
   });

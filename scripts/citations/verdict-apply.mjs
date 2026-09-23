@@ -531,7 +531,6 @@ export async function main(argv = process.argv.slice(2)) {
     intent: "citation-verdicts",
     argv,
     sourceUrlKeys: [],
-    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,

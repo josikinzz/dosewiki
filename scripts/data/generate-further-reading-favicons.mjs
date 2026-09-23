@@ -662,7 +662,6 @@ async function main() {
     intent: "local-asset-generation",
     argv,
     sourceUrlKeys: ["SOURCE_POSTGRES_URL", "SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
-    targetUrlKeys: [],
     localArtifacts: ["public/favicons", "src/data/config/sourceFavicons.ts"],
     dryRunFlag: "--dry-run",
     executeFlag: null,

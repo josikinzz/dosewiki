@@ -53,7 +53,6 @@ const runContext = createDataOpsRunContext({
   intent: "citation-verdict-export",
   argv,
   sourceUrlKeys: ["SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL"],
-  targetUrlKeys: [],
   dryRunFlag: null,
   executeFlag: null,
   selectedTables: ["substanceIndex", "citationEvidence"],

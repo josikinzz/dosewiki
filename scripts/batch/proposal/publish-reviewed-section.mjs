@@ -262,7 +262,6 @@ function createPublicationContext({ argv, env, repoRoot, localArtifacts }) {
     startDir: repoRoot,
     env: envWithCliOverrides,
     sourceUrlKeys: [],
-    targetUrlKeys: ["TARGET_POSTGRES_URL"],
     dryRunFlag: "--dry-run",
     executeFlag: "--write",
     requiresExecute: true,

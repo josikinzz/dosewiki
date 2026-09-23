@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guardTarget, resolveTarget, assertTargetMatchesConfirmedDeployment } from "./targetGuard";
+import { guardTarget, resolveTarget } from "./targetGuard";
 
 const LOCAL = "postgres://localhost:5432/dosewiki";
 const REMOTE = "postgres://db.example.test:5432/dosewiki";
@@ -21,6 +21,10 @@ describe("resolveTarget", () => {
     expect(resolveTarget([], env)).toBe(REMOTE);
   });
 
+  it("refuses a set but blank TARGET_POSTGRES_URL, as the data client does", () => {
+    expect(() => resolveTarget([], { TARGET_POSTGRES_URL: "  ", POSTGRES_POOLED_URL: LOCAL })).toThrow(/TARGET_POSTGRES_URL is set but empty/);
+  });
+
   it("refuses a --target flag without a value", () => {
     expect(() => resolveTarget(["--target"], { TARGET_POSTGRES_URL: LOCAL })).toThrow(/--target requires/);
     expect(() => resolveTarget(["--target", "--allow-remote"], {})).toThrow(/--target requires/);
@@ -40,17 +44,5 @@ describe("guardTarget", () => {
     expect(() => guardTarget(REMOTE, false, {})).toThrow(/Refusing non-local target db\.example\.test/);
     expect(() => guardTarget(REMOTE, true, { POSTGRES_IMPORT_CONFIRM: "other.example.test" })).toThrow(/POSTGRES_IMPORT_CONFIRM must equal/);
     expect(() => guardTarget(REMOTE, true, { POSTGRES_IMPORT_CONFIRM: "db.example.test" })).not.toThrow();
-  });
-});
-
-describe("assertTargetMatchesConfirmedDeployment", () => {
-  it("accepts the target whose deployment the operator confirmed", () => {
-    expect(() => assertTargetMatchesConfirmedDeployment(" postgres://db.example:6432/dosewiki ", "db.example/dosewiki")).not.toThrow();
-  });
-
-  it("refuses a write target that differs from the confirmed deployment", () => {
-    expect(() => assertTargetMatchesConfirmedDeployment("postgres://other.example/dosewiki", "db.example/dosewiki"))
-      .toThrow(/other\.example\/dosewiki.*db\.example\/dosewiki/);
-    expect(() => assertTargetMatchesConfirmedDeployment("postgres://db.example/dosewiki", null)).toThrow(/confirmed deployment/);
   });
 });

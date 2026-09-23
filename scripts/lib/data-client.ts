@@ -12,7 +12,7 @@ import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts"
 import type { PostgresClient } from "../../lib/postgres/runtime/client.ts";
 import { assertDeploymentEnv } from "../../lib/postgres/runtime/deploymentEnv.ts";
 import { POOL_ACQUISITION_TIMEOUT_MS, QUERY_READ_TIMEOUT_MS } from "../../lib/postgres/transactionTimeouts.ts";
-import { guardTarget } from "../postgres/targetGuard.ts";
+import { guardTarget, resolveExplicitTarget } from "../postgres/targetGuard.ts";
 
 import { parsePostgresTarget, requirePostgresBackend } from "../../lib/postgres/runtime/target.ts";
 
@@ -68,15 +68,6 @@ export function getDataBackend(env: NodeJS.ProcessEnv = process.env): DataBacken
   return requirePostgresBackend(env);
 }
 
-export function normalizeHostname(hostname: string): string {
-  const normalized = hostname.trim().toLowerCase();
-  return normalized.startsWith("[") && normalized.endsWith("]") ? normalized.slice(1, -1) : normalized;
-}
-
-export function isLoopbackHostname(hostname: string): boolean {
-  return ["localhost", "127.0.0.1", "::1"].includes(normalizeHostname(hostname));
-}
-
 /**
  * The Postgres target fingerprint: `<hostname>/<database>`.
  * Loopback hosts are included on purpose; a local rehearsal spells out
@@ -88,25 +79,18 @@ export function postgresFingerprintFromUrl(targetUrl: string | null | undefined)
 
 /**
  * `--target <url>` > TARGET_POSTGRES_URL > POSTGRES_POOLED_URL > POSTGRES_DIRECT_URL.
- * `explicitOnly` drops the two fallback variables, which is what production
- * write commands use so a preview environment cannot inherit a writer.
+ * The explicit pair comes from the target guard, so every writer agrees on it.
+ * `explicitOnly` drops the two fallback variables,
+ * which is what production write commands use so a preview environment cannot
+ * inherit a writer.
  */
 export function resolvePostgresTarget({
   argv = process.argv.slice(2),
   env = process.env,
   explicitOnly = false,
 }: { argv?: string[]; env?: NodeJS.ProcessEnv; explicitOnly?: boolean } = {}): ResolvedTarget {
-  const cli = flagValue(argv, "--target");
-  if (argv.some((value) => value === "--target" || value.startsWith("--target="))) {
-    if (!cli || cli.startsWith("--")) throw new Error("--target requires an explicit Postgres URL.");
-    parsePostgresTarget(cli);
-    return { url: cli, source: "--target" };
-  }
-  const explicit = env[POSTGRES_EXPLICIT_TARGET_ENV_VAR];
-  if (explicit !== undefined) {
-    parsePostgresTarget(explicit);
-    return { url: explicit, source: POSTGRES_EXPLICIT_TARGET_ENV_VAR };
-  }
+  const explicit = resolveExplicitTarget(argv, env);
+  if (explicit) return explicit;
   if (!explicitOnly) {
     for (const key of POSTGRES_FALLBACK_TARGET_ENV_VARS) {
       const value = env[key];

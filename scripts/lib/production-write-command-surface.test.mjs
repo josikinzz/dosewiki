@@ -164,7 +164,7 @@ describe("production writer command surface", () => {
     (path) => {
       const source = readFileSync(resolve(repoRoot, path), "utf8");
       expect(source).toContain("production-write-command.mjs");
-      expect(source).toMatch(/assertProductionWriteAllowed|executeProductionWrite/);
+      expect(source).toMatch(/authorizeProductionWrite|assertProductionWriteAllowed|executeProductionWrite/);
       expect(sourceWithoutGuardedDryRunReadFallbacks(source)).not.toMatch(
         /process\.env\.(?:POSTGRES_POOLED_URL|POSTGRES_DIRECT_URL)/,
       );

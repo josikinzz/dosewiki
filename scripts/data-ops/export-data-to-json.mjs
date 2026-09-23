@@ -29,7 +29,6 @@ const runContext = createDataOpsRunContext({
   operation: "export Postgres articles to local JSON",
   intent: "local-export",
   sourceUrlKeys: ["SOURCE_POSTGRES_URL", "SOURCE_POSTGRES_URL", "POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL", "POSTGRES_POOLED_URL"],
-  targetUrlKeys: [],
   localArtifacts: ["src/data/SubstanceIndex.json"],
 });
 

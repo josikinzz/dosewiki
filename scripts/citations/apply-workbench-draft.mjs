@@ -66,7 +66,6 @@ const runContext = createDataOpsRunContext({
   intent: "citation-pilot",
   argv,
   sourceUrlKeys: [],
-  targetUrlKeys: [],
   dryRunFlag: "--dry-run",
   executeFlag: "--write",
   requiresExecute: true,
