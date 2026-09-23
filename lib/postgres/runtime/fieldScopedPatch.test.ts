@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PostgresClient } from "./client";
 
 vi.mock("server-only", () => ({}));
@@ -38,6 +38,9 @@ function fakePool(rowCount = 1) {
 }
 
 describe("field-scoped runtime patch", () => {
+  // CI runs with the freeze on; these cases exercise the open-write path.
+  beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
+  afterEach(() => { vi.unstubAllEnvs(); });
   it("updates only the patched column", async () => {
     const { pool, sql, params } = fakePool();
     await new PostgresClient(pool as never).mutation("fixture:patchContent" as never, { id: UNTAGGED_PROMPT, content: "Updated prompt" } as never);

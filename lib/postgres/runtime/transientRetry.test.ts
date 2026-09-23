@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PostgresClient } from "./client";
 import { classifyPostgresError } from "../postgresErrors";
 
@@ -47,6 +47,8 @@ function fakePool(failures: Array<{ on: string; error: Error } | { connect: Erro
   return { pool: { on: vi.fn(), connect }, sql };
 }
 
+// CI runs with the freeze on; each case opens writes unless it tests the freeze.
+beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
 afterEach(() => { vi.unstubAllEnvs(); });
 
 describe("runtime client transient retry", () => {

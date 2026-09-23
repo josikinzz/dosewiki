@@ -44,6 +44,8 @@ describe("writer crons under a write freeze", () => {
   beforeEach(() => {
     vi.stubEnv("CRON_SECRET", "cron-fixture");
     vi.stubEnv("OPENROUTER_API_KEY", "synthetic-fixture");
+    // CI runs with the freeze on; the frozen cases set it themselves.
+    vi.stubEnv("DATA_WRITES_FROZEN", "0");
   });
   afterEach(() => {
     vi.unstubAllEnvs();

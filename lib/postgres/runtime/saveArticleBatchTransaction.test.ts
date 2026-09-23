@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PostgresClient } from "./client";
 import { api } from "./api";
 
@@ -30,6 +30,9 @@ vi.mock("./functions.generated", async () => {
 });
 
 describe("save article transaction", () => {
+  // CI runs with the freeze on; these cases exercise the open-write path.
+  beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
+  afterEach(() => { vi.unstubAllEnvs(); });
   it("rolls back an earlier article write after a later layout error on the same connection", async () => {
     state.failLayout = true;
     events.length = 0;

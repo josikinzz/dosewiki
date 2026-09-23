@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { PostgresClient, resolveFunction } from "../lib/postgres/runtime/client";
 import { api, makeFunctionReference } from "../lib/postgres/runtime/api";
 import { minimalArticle } from "../src/test/fixtures/articles";
@@ -130,6 +130,9 @@ beforeAll(async () => {
 }, 60_000);
 
 describe.each(cases)("$name", ({ table, run, runInvalid, invalidError }) => {
+  // CI runs with the freeze on; these cases exercise the open-write path.
+  beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
+  afterEach(() => { vi.unstubAllEnvs(); });
   it("commits every row when no statement fails", async () => {
     const { client, persisted } = fakePostgres();
     await expect(run(client, ["first", "second", "third"])).resolves.toMatchObject({ created: 3, updated: 0, errors: [] });
