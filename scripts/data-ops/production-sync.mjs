@@ -28,9 +28,10 @@ const TABLE_BACKUP_READS = Object.freeze({
   categoryLayout: async (client) => single(await client.query(api.categoryLayout.get, {})),
   siteConfig: async (client) => single(await client.query(api.siteConfig.getAbout, {})),
   indexLayouts: (client) => client.query(api.indexLayouts.getAll, {}),
-  tripReports: (client) => client.query(api.tripReports.getAll, {}),
+  // getAll returns public projections and drops drafts, so the backups read whole documents.
+  tripReports: (client) => client.query("tripReports:getAllDocumentsForBackup", {}),
   subjectiveEffects: (client) => client.query(api.subjectiveEffects.getAll, {}),
-  effectIndexArticles: (client) => client.query(api.effectIndexArticles.getAll, {}),
+  effectIndexArticles: (client) => client.query("effectIndexArticles:getAllDocumentsForBackup", {}),
   prompts: (client) => client.query(api.prompts.getAll, {}),
   quotes: (client) => client.query(api.quotes.getAll, {}),
   replications: (client) => client.query(api.replications.getAll, {}),

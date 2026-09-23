@@ -1,5 +1,5 @@
 import { PostgresError, v } from "../lib/postgres/runtime/values";
-import { query } from "../lib/postgres/runtime/server";
+import { internalQuery, query } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "../lib/postgres/runtime/dataModel";
 import { requireRole } from "./lib/auth";
@@ -31,6 +31,12 @@ export const getAll = query({
     const all = await ctx.db.query("effectIndexArticles").collect();
     return all.filter(isPublicallyReadable);
   },
+});
+
+/** Every stored article including drafts, for the production sync's pre-write backup. */
+export const getAllDocumentsForBackup = internalQuery({
+  args: {},
+  handler: async (ctx) => await ctx.db.query("effectIndexArticles").collect(),
 });
 
 export const getPublishedIndex = query({

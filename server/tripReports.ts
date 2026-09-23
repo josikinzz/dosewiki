@@ -526,6 +526,12 @@ export const backfillSubstanceIndex = internalMutation({
   handler: (ctx, args) => backfillPublicReadIndexPage(ctx, { ...args, name: "tripReports" }),
 });
 
+/** Every stored report with its private fields, for the production sync's pre-write backup. */
+export const getAllDocumentsForBackup = internalQuery({
+  args: {},
+  handler: async (ctx) => await ctx.db.query("tripReports").collect(),
+});
+
 /** Bounded durable completion status, not a whole-corpus counting query. */
 export const getSubstanceIndexBackfillStatus = internalQuery({
   args: {},

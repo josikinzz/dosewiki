@@ -79,6 +79,22 @@ describe("production data sync", () => {
     expect(outcome.exitCode).toBe(1);
   });
 
+  it("backs up full target documents, not the public projections the sync copies", async () => {
+    const { sourceClient, targetClient } = fakeClients();
+    const reads = {};
+    const backup = vi.fn(async ({ label, queryAll }) => {
+      const before = targetClient.query.mock.calls.length;
+      await queryAll();
+      reads[label] = targetClient.query.mock.calls.slice(before).map(([reference]) => getFunctionName(reference));
+      return { path: `backups/${label}.json`, documentCount: 0 };
+    });
+    await runProductionSync({ sourceClient, targetClient, selectedTables: ["tripReports", "effectIndexArticles"], credentials, backup, logger: quiet });
+    expect(reads).toEqual({
+      "tripReports-production": ["tripReports:getAllDocumentsForBackup"],
+      "effectIndexArticles-production": ["effectIndexArticles:getAllDocumentsForBackup"],
+    });
+  });
+
   it("writes nothing when a backup fails", async () => {
     const { sourceClient, targetClient } = fakeClients();
     const backup = vi.fn(async () => { throw new Error("backup read failed"); });
