@@ -191,6 +191,11 @@ jobs:
           NEXT_PUBLIC_SITE_FLAVOR: ${{ steps.artifact.outputs.flavor }}
           DOSEWIKI_BUILD_WORKERS: ${{ inputs.build_workers }}
           DOSEWIKI_BUILD_PAGES_PER_WORKER: ${{ inputs.pages_per_worker }}
+          # A Vercel-hosted build gets its deployment ID from the platform, and
+          # that ID is what skew protection routes a returning client by
+          # (the ?dpl= on every chunk URL). A prebuilt upload has no ID yet, so
+          # name one per run; vercel build records it in the output config.
+          NEXT_DEPLOYMENT_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
           test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
