@@ -147,6 +147,13 @@ When releasing the compact localized reader or its producers, follow
 That producer-before-reader dependency and reversed rollback order are additional
 gates, not a replacement for public-receiver-before-editor-sender ordering above.
 
+Before a localization release, run `npm run deploy:localization-preflight -- --target <runtime-url>`
+once per surface with `DOSEWIKI_BUILD_SURFACE` set and the staged environment exported (the entry
+loads no env file; remote targets also need `--allow-remote` and `POSTGRES_IMPORT_CONFIRM`). It checks the deployment env contract, the applied migrations against the
+journal and latest snapshot, and the runtime role's grants on every runtime schema table, inside a
+rolled-back read-only transaction. A passing preflight is evidence about that credential only; it
+authorizes no release.
+
 
 
 ### Public read-index rollout

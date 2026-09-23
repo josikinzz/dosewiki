@@ -165,6 +165,7 @@
     "postgres:rehearse-release": "bun scripts/postgres/rehearse-release.ts",
     "postgres:check-env-isolation": "bun scripts/postgres/check-env-isolation.ts",
     "postgres:verify-migrations": "bun scripts/postgres/verify-migrations.ts",
+    "deploy:localization-preflight": "bun --no-env-file scripts/deploy/localization-release-preflight.ts",
     "data:normalize-dose-units": "bun scripts/data-ops/normalize-dose-units.ts",
     "review:export": "bun scripts/review/export-review-run.ts",
     "review:apply": "bun scripts/review/apply-review-flags.ts",
