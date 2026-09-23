@@ -58,7 +58,7 @@ const NEGATIVE_INDICATORS = [
   "suppression",
 ];
 
-export function createEmptyParserResult(): ParserResult {
+export function createEmptyParserResult(): ParserResult & { narrativeContent: NarrativeContent } {
   return {
     dosage: [],
     duration: [],

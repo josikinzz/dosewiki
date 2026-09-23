@@ -42,7 +42,7 @@ aggregate before opening a pull request:
 | --- | --- |
 | `npm run test` | Vitest for `src/**` and `lib/**` |
 | `npm run test -- <path>` | One test file |
-| `npm run typecheck` | Application type check, plus strict null checks for the files listed in `tsconfig.strict-null.json` |
+| `npm run typecheck` | Application type check, with strict null checks on |
 | `npm run lint` | ESLint for `src/` and `lib/` |
 | `npm run verify:fast` | `test` plus `typecheck` |
 | `npm run verify:app` | OpenChemLib fork check, tests, lint, and build |

@@ -1,7 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "strictNullChecks": true
-  },
-  "include": ["next-env.d.ts", "src", "lib", "server"]
-}
