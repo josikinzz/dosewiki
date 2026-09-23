@@ -36,6 +36,7 @@ const REFUSALS: Record<string, { status: number; message: string }> = {
   INVITE_EXHAUSTED: { status: 410, message: "That invite code has already been used." },
   USERNAME_TAKEN: { status: 409, message: "That username is taken. Choose another." },
   EMAIL_TAKEN: { status: 409, message: "An account with that email already exists. Sign in instead, or leave the email blank." },
+  EMAIL_RESERVED: { status: 400, message: "Enter your own email address, or leave it blank to get a members.dose.wiki address." },
 };
 
 type RedeemBody = {

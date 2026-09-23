@@ -94,6 +94,12 @@ const promotionResultValidator = v.object({
   submission: submissionRowValidator,
   reportId: v.id("tripReports"),
   payload: tripReportImportInputValidator,
+  // The membership whose email matches the submission's contact email, for
+  // the admin to assign explicitly. Promotion itself grants no ownership.
+  suggestedOwner: v.union(
+    v.object({ email: v.string(), username: v.optional(v.string()) }),
+    v.null(),
+  ),
 });
 
 type SubmissionStatus =
@@ -390,14 +396,11 @@ export async function promoteHandler(
     requestedProfileKey: args.profileKey,
     confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
   });
-  // A submitter who is already a member owns the published report and may
-  // edit it from My reports. Matched on the contact email alone: the byline
-  // is free text and proves nothing.
-  const owner = doc.contact_email ? await findMembershipByEmail(ctx, doc.contact_email) : null;
-  const reportId = await ctx.db.insert("tripReports", {
-    ...payload,
-    ...(owner ? { owner_email: owner.email } : {}),
-  });
+  // Promotion never grants ownership. The contact email is unverified and a
+  // membership email can be too, so a match is only a suggestion: an admin
+  // grants ownership explicitly through `tripReports.assignOwner`.
+  const suggested = doc.contact_email ? await findMembershipByEmail(ctx, doc.contact_email) : null;
+  const reportId = await ctx.db.insert("tripReports", payload);
   const timestamp = new Date().toISOString();
   const patch = {
     status: "exported" as const,
@@ -414,6 +417,9 @@ export async function promoteHandler(
     submission: toSubmissionRow({ ...doc, ...patch }),
     reportId,
     payload,
+    suggestedOwner: suggested
+      ? { email: suggested.email, ...(suggested.username ? { username: suggested.username } : {}) }
+      : null,
   };
 }
 

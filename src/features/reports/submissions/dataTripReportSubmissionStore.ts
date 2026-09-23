@@ -53,6 +53,8 @@ export type TripReportSubmissionPromotionResult = {
   submission: TripReportSubmissionRow;
   reportId: string;
   payload: DataTripReportImportPayload;
+  /** A membership matching the contact email. A suggestion only: promotion grants no ownership. */
+  suggestedOwner: { email: string; username?: string } | null;
 };
 
 /** The signed-in member a route acts as; Postgres resolves their real role from it. */

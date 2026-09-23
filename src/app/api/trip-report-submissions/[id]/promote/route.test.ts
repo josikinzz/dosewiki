@@ -133,6 +133,30 @@ describe("trip report submission promotion route", () => {
     });
   });
 
+  it("names the suggested owner without granting ownership", async () => {
+    mocks.storePromote.mockResolvedValueOnce({
+      submission: { id: "submission-1", status: "exported" },
+      reportId: "trip-report-id",
+      payload: { slug: "careful-low-dose-museum-walk" },
+      suggestedOwner: { email: "owner@example.com", username: "nervewing" },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
+        method: "POST",
+        body: JSON.stringify({ publish: true }),
+      }),
+      { params: Promise.resolve({ id: "submission-1" }) },
+    );
+
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      published: true,
+      suggestedOwner: { email: "owner@example.com", username: "nervewing" },
+    });
+  });
+
   it("refuses to publish for an editor without calling the store", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");

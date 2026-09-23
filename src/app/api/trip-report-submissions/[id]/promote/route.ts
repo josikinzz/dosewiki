@@ -82,6 +82,7 @@ export async function POST(request: Request, context: PromoteRouteContext) {
       submission: result.submission,
       reportId: result.reportId,
       payload: result.payload,
+      suggestedOwner: result.suggestedOwner ?? null,
     });
   } catch (error) {
     return mapPromoteRouteError(error);

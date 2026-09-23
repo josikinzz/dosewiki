@@ -396,6 +396,25 @@ describe("inviteCodes", () => {
       expect(tables.memberships.size).toBe(2);
     });
 
+    it("refuses a supplied address in the synthetic members domain before recording anything", async () => {
+      const { ctx, tables } = createCtx({ memberships: [admin], inviteCodes: [activeCode({ maxUses: 3 })] });
+
+      for (const email of ["grace@members.dose.wiki", " Grace@Members.Dose.Wiki ", "grace@mail.members.dose.wiki"]) {
+        await expectRefusal(redeemHandler(ctx, redeemArgs({ username: "ada", email })), "EMAIL_RESERVED");
+      }
+
+      expect(tables.inviteCodes.get("inv1")!.redemptions).toEqual([]);
+      expect(tables.memberships.size).toBe(1);
+    });
+
+    it("still accepts an address that only resembles the synthetic domain", async () => {
+      const { ctx } = createCtx({ memberships: [admin], inviteCodes: [activeCode()] });
+
+      const result = await redeemHandler(ctx, redeemArgs({ email: "ada@notmembers.dose.wiki" }));
+
+      expect(result).toMatchObject({ email: "ada@notmembers.dose.wiki" });
+    });
+
     it("refuses a taken email before recording the redemption", async () => {
       const { ctx, tables } = createCtx({ memberships: [admin, editor], inviteCodes: [activeCode()] });
 

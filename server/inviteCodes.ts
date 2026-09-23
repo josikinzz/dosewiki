@@ -48,6 +48,19 @@ const refuse = (code: string, message: string) => new PostgresError({ code, mess
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 const normalizeUsername = (username: string) => username.trim().toLowerCase();
 
+/**
+ * The domain of the fallback address a redemption without an email receives.
+ * Nobody receives mail there, so a supplied address in it (or a subdomain) is
+ * never the visitor's own: accepting one would let a visitor take another
+ * username's fallback address.
+ */
+const SYNTHETIC_MEMBER_EMAIL_DOMAIN = "members.dose.wiki";
+
+function isSyntheticMemberEmail(normalizedEmail: string): boolean {
+  const domain = normalizedEmail.slice(normalizedEmail.lastIndexOf("@") + 1);
+  return domain === SYNTHETIC_MEMBER_EMAIL_DOMAIN || domain.endsWith(`.${SYNTHETIC_MEMBER_EMAIL_DOMAIN}`);
+}
+
 const inviteCodeSummaryValidator = v.object({
   id: v.id("inviteCodes"),
   role: inviteRoleValidator,
@@ -234,7 +247,14 @@ export const redeem = mutation({
     }
 
     const username = normalizeUsername(args.username);
-    const email = normalizeEmail(args.email?.trim() ? args.email : `${username}@members.dose.wiki`);
+    const suppliedEmail = args.email?.trim() ? normalizeEmail(args.email) : null;
+    if (suppliedEmail && isSyntheticMemberEmail(suppliedEmail)) {
+      throw refuse(
+        "EMAIL_RESERVED",
+        `Addresses at ${SYNTHETIC_MEMBER_EMAIL_DOMAIN} are assigned by the site and cannot be supplied.`,
+      );
+    }
+    const email = suppliedEmail ?? normalizeEmail(`${username}@${SYNTHETIC_MEMBER_EMAIL_DOMAIN}`);
 
     const usernameTaken = await ctx.db
       .query("memberships")

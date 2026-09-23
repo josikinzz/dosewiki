@@ -186,18 +186,36 @@ describe("tripReportSubmissions.promote ownership", () => {
     updated_at: "2026-01-01T00:00:00.000Z",
   };
 
-  it("sets owner_email when the contact email matches a member, case-insensitively", async () => {
+  it("grants no ownership when the contact email matches a member, and suggests that member instead", async () => {
     const { ctx, rowsOf } = createCtx({
-      memberships: [admin, owner],
+      memberships: [admin, { ...owner, username: "nervewing" }],
       tripReportSubmissions: [{ ...submission, contact_email: "Owner@Example.com " }],
     });
 
     const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin" });
 
+    expect(rowsOf("tripReports").get(result.reportId)).not.toHaveProperty("owner_email");
+    expect(result.suggestedOwner).toEqual({ email: "owner@example.com", username: "nervewing" });
+  });
+
+  it("lets an admin assign the suggested owner explicitly after promotion", async () => {
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin, owner],
+      tripReportSubmissions: [{ ...submission, contact_email: "owner@example.com" }],
+    });
+
+    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin" });
+    const assigned = await assignOwnerHandler(ctx, {
+      ...as("admin@example.com"),
+      slug: result.payload.slug,
+      email: result.suggestedOwner!.email,
+    });
+
+    expect(assigned).toEqual({ slug: result.payload.slug, ownerEmail: "owner@example.com" });
     expect(rowsOf("tripReports").get(result.reportId)?.owner_email).toBe("owner@example.com");
   });
 
-  it("leaves owner_email unset when no member has the contact email, or none was given", async () => {
+  it("leaves owner_email unset and suggests nobody when no member has the contact email, or none was given", async () => {
     const { ctx, rowsOf } = createCtx({
       memberships: [admin, owner],
       tripReportSubmissions: [
@@ -211,6 +229,8 @@ describe("tripReportSubmissions.promote ownership", () => {
 
     expect(rowsOf("tripReports").get(first.reportId)).not.toHaveProperty("owner_email");
     expect(rowsOf("tripReports").get(second.reportId)).not.toHaveProperty("owner_email");
+    expect(first.suggestedOwner).toBeNull();
+    expect(second.suggestedOwner).toBeNull();
   });
 });
 
