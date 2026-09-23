@@ -133,3 +133,31 @@ it("keeps the whole-group rule for approvals stored in the old context shape", a
     const edited = { ...grouped, toxicity: [approvedSource, "It is structurally related to methylphenidate and other phenidates."] };
     expect((await localizeRecord(edited, "zh-Hans", "article")).record.toxicity[0]).toBe(approvedSource);
 });
+it("derives page review state from current approvals, counting a re-check as not reviewed", async () => {
+    const first = "2-Benzylpiperidine is a stimulant of the piperidine class.";
+    const grouped = { slug: "sample", toxicity: [first, "It is structurally related to methylphenidate."] };
+    let current: typeof grouped = grouped;
+    const groupedReads = { ...reads, getPublicSubstanceBySlug: async () => current } as unknown as PublicDataReadAdapter;
+    expect((await localizeRecord(grouped, "zh-Hans", "article")).review).toEqual({ reviewed: 0, total: 2, latestApprovedAt: null });
+    const review = async (source: string, target: string, action: "save" | "approve" = "approve") => {
+        const packet = await readNarrativeReview(groupedReads, "zh-Hans", "article", "sample");
+        const row = packet.rows.find(r => r.source === source)!;
+        const input = { locale: "zh-Hans", kind: "article" as const, slug: "sample", id: row.id, sourceVersion: packet.sourceVersion, actor: "reviewer@example.test", reason: "Review", expectedRevision: row.revision, action: "save" as const, target };
+        const saved = await writeNarrativeReview(groupedReads, input);
+        return action === "save" ? saved : writeNarrativeReview(groupedReads, { ...input, action: "approve", expectedRevision: saved.revision });
+    };
+    const one = await review(first, "2-苄基哌啶是一种哌啶类兴奋剂。");
+    expect((await localizeRecord(grouped, "zh-Hans", "article")).review).toEqual({ reviewed: 1, total: 2, latestApprovedAt: one.updatedAt });
+    const two = await review(grouped.toxicity[1], "它在结构上与哌甲酯相关。");
+    const full = (await localizeRecord(grouped, "zh-Hans", "article")).review;
+    expect(full).toEqual({ reviewed: 2, total: 2, latestApprovedAt: two.updatedAt });
+    // A later draft on an approved paragraph is not an approval and leaves the date alone.
+    await new Promise(resolve => setTimeout(resolve, 5));
+    await review(first, "草稿", "save");
+    expect((await localizeRecord(grouped, "zh-Hans", "article")).review).toEqual(full);
+    current = { ...grouped, toxicity: [first, "It is structurally related to methylphenidate and other phenidates."] };
+    // The edited paragraph is stale; its unedited neighbour still shows the human text but needs a re-check.
+    const edited = await localizeRecord(current, "zh-Hans", "article");
+    expect(edited.record.toxicity[0]).toBe("2-苄基哌啶是一种哌啶类兴奋剂。");
+    expect(edited.review).toMatchObject({ reviewed: 0, total: 2 });
+});

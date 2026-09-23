@@ -34,6 +34,7 @@ import {
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { LIBRARY_TRANSLATION_CORPUS } from "./publicationIndexProjection";
 import { approvedNarrativeOverlay } from "./narrativeOverlay";
+import { pageReviewState, type PageReviewState } from "./pageReview";
 import { isPublishableReplication } from "../../src/types/replications";
 import { createTranslationRequestPool, type TranslationRequestPool } from "./requestPool";
 import { soloClaim, type TranslationWave } from "./translationWave";
@@ -316,7 +317,8 @@ export function workUnitsOf(segments: readonly Segment[], kind: TranslationRecor
   return buildWorkUnits(segments).map((unit) => ({ ...unit, contextKind: kind }));
 }
 
-export type LocalizedRecord<T> = { record: T; applied: number; missing: number };
+/** `review` is the page review state: paragraphs whose human approval is current, of all paragraphs. */
+export type LocalizedRecord<T> = { record: T; applied: number; missing: number; review: PageReviewState };
 
 /** The record with every stored translation spliced in; untranslated leaves stay English. */
 export async function localizeRecord<T extends { slug: string }>(
@@ -333,7 +335,12 @@ export async function localizeRecord<T extends { slug: string }>(
     corpus,
     parse: CORPUS_PARSE[kind] ?? null,
   });
-  return { record: assembled.dataset.items[0], applied: assembled.applied, missing: assembled.missing };
+  return {
+    record: assembled.dataset.items[0],
+    applied: assembled.applied,
+    missing: assembled.missing,
+    review: pageReviewState(reviewed.decisions, reviewed.approvedAt),
+  };
 }
 
 /** A whole set of records with stored translations spliced in, one store round trip. */

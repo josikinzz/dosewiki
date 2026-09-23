@@ -21,6 +21,7 @@ import {
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/data/publicData.molecules";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getLocalizedPublicSubstanceBySlug } from "@server/translation/localizedSubstance";
+import type { PageReviewState } from "@server/translation/pageReview";
 import {
   getLocalizedPublicEffectBySlug,
 } from "@server/translation/localizedRecords";
@@ -97,7 +98,11 @@ function interactionCandidateSlugs(substance: SubstanceArticle): string[] {
   }).filter(Boolean))];
 }
 export type SubstanceRouteResult =
-  | (OkRouteResult<SubstanceArticleViewModel["pageProps"]> & { publicRevision?: string })
+  | (OkRouteResult<SubstanceArticleViewModel["pageProps"]> & {
+    publicRevision?: string;
+    /** Locale routes only: human review of this article's paragraphs, for the notice. */
+    review?: PageReviewState;
+  })
   | RedirectRouteResult
   | NotFoundRouteResult;
 
@@ -116,15 +121,14 @@ const getSubstanceRouteIdentity = cache(async (slug: string, locale: LiveLocale 
     };
   }
 
-  const substance = locale
-    ? await getLocalizedPublicSubstanceBySlug(slug, locale.code)
-    : await getPublicSubstanceBySlug(slug);
+  const localized = locale ? await getLocalizedPublicSubstanceBySlug(slug, locale.code) : null;
+  const substance = locale ? localized?.substance : await getPublicSubstanceBySlug(slug);
 
   if (!substance) {
     return { kind: "not-found" } as const;
   }
 
-  return { kind: "ok", substance } as const;
+  return { kind: "ok", substance, review: localized?.review } as const;
 });
 
 export const loadSubstanceMetadataRoute = cache(async (slug: string, locale: LiveLocale | null = null) => {
@@ -143,7 +147,7 @@ export const loadSubstanceMetadataRoute = cache(async (slug: string, locale: Liv
 export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<SubstanceRouteResult> => {
   const identity = await getSubstanceRouteIdentity(slug, locale);
   if (identity.kind !== "ok") return identity;
-  const { substance } = identity;
+  const { substance, review } = identity;
 
   const secondaryData = loadSubstanceSecondaryData(substance, slug, locale);
   // Only identity, linkability, molecule and safety data gate the article shell.
@@ -256,6 +260,7 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     kind: "ok",
     publicRevision: "publicRevision" in substance && typeof substance.publicRevision === "string"
       ? substance.publicRevision : undefined,
+    ...(review ? { review } : {}),
     pageProps: viewModel.pageProps,
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "substance", params: { slug } },

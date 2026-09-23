@@ -72,7 +72,7 @@ export default async function LocalizedSubstancePage({ params }: LocalizedSubsta
         )}
         <SubstanceArticlePage
           {...result.pageProps}
-          warningBannerNotice={<MachineTranslationNotice locale={LOCALE.code} englishUrl={englishUrl} />}
+          warningBannerNotice={<MachineTranslationNotice locale={LOCALE.code} englishUrl={englishUrl} review={result.review} />}
         />
       </div>
     </UiLocaleProvider>

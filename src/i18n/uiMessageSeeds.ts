@@ -7,8 +7,12 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "gallery.replications": "体验再现",
     "gallery.replication": "体验再现",
     "article.machineTranslationNotice": "本页由机器翻译，以[英文原文]({{englishUrl}})为准。尚未翻译的段落保留英文。",
+    "article.humanReviewedNotice": "人工审校 · {{date}} · [英文原文]({{englishUrl}})",
+    "article.paragraphsReviewed": "共 {{total}} 段，已人工审校 {{reviewed}} 段。",
   },
   ru: {
     "article.machineTranslationNotice": "Эта страница переведена автоматически, приоритет имеет [английский оригинал]({{englishUrl}}). Ещё не переведённые абзацы остаются на английском.",
+    "article.humanReviewedNotice": "Проверено человеком · {{date}} · [английский оригинал]({{englishUrl}})",
+    "article.paragraphsReviewed": "Проверено человеком: {{reviewed}} из {{total}} абзацев.",
   },
 };

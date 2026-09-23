@@ -213,6 +213,12 @@ reviewed until someone saves and approves it again. Approvals stored before this
 split carry the old whole-group fingerprint and go stale on any change in their
 field group until their next approval. Shared English in another record does not
 inherit a correction.
+The public article notice reads page review state from the same overlay at
+render, cached with the page: when every paragraph (segment) of a substance
+article has an `apply` approval, the machine-translation notice becomes the quiet
+line "人工审校 · date" with the latest approval date and the English link; a
+partly reviewed article keeps the notice and adds "N of M paragraphs reviewed".
+`apply-recheck` and `stale` count as not reviewed. Reviewer names never appear.
 Approval returns cache publication receipts; failed propagation remains distinct
 from a successful saved approval. Verify the public result before claiming delivery.
 
