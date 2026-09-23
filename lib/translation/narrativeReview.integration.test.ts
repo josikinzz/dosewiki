@@ -118,6 +118,8 @@ it("keeps an approval applied for re-check after a neighbour edit and drops it a
     current = { ...grouped, toxicity: [approvedSource, "It is structurally related to methylphenidate and other phenidates."] };
     expect((await localizeRecord(current, "zh-Hans", "article")).record.toxicity[0]).toBe(target);
     expect(await reviewed()).toMatchObject({ status: "recheck", overlay: "apply-recheck" });
+    // Re-check wording stays live but is not counted as human approved.
+    expect((await readNarrativeReview(groupedReads, "zh-Hans", "article", "sample")).tally.humanApproved).toBe(0);
     current = { ...grouped, toxicity: ["2-Benzylpiperidine is a weak stimulant of the piperidine class.", grouped.toxicity[1]] };
     expect((await localizeRecord(current, "zh-Hans", "article")).record.toxicity[0]).not.toBe(target);
     expect(await reviewed()).toMatchObject({ status: "stale", overlay: "stale" });
@@ -160,4 +162,20 @@ it("derives page review state from current approvals, counting a re-check as not
     const edited = await localizeRecord(current, "zh-Hans", "article");
     expect(edited.record.toxicity[0]).toBe("2-苄基哌啶是一种哌啶类兴奋剂。");
     expect(edited.review).toMatchObject({ reviewed: 0, total: 2 });
+});
+it("tallies the paragraphs whose human approval applies to the current source", async () => {
+    const packet = await readNarrativeReview(reads, "zh-Hans", "article", "sample");
+    expect(packet.tally).toEqual({ humanApproved: 0, total: packet.rows.length });
+    const row = packet.rows[0];
+    const input = { locale: "zh-Hans", kind: "article" as const, slug: "sample", id: row.id, sourceVersion: packet.sourceVersion, actor: "reviewer@example.test", reason: "Meaning", expectedRevision: 0, action: "save" as const, target: "这是一段有关视觉感知的较长说明。" };
+    const saved = await writeNarrativeReview(reads, input);
+    expect((await readNarrativeReview(reads, "zh-Hans", "article", "sample")).tally.humanApproved).toBe(0);
+    const approved = await writeNarrativeReview(reads, { ...input, action: "approve", expectedRevision: saved.revision });
+    expect((await readNarrativeReview(reads, "zh-Hans", "article", "sample")).tally).toEqual({ humanApproved: 1, total: packet.rows.length });
+    // A newer draft does not withdraw the approval readers already see.
+    await writeNarrativeReview(reads, { ...input, expectedRevision: approved.revision, target: "新的草稿内容" });
+    expect((await readNarrativeReview(reads, "zh-Hans", "article", "sample")).tally.humanApproved).toBe(1);
+    // Changed English makes the approval stale, so it no longer counts.
+    const changed = { ...reads, getPublicSubstanceBySlug: async () => ({ ...record, summary: "The source meaning has changed completely." }) } as unknown as PublicDataReadAdapter;
+    expect((await readNarrativeReview(changed, "zh-Hans", "article", "sample")).tally.humanApproved).toBe(0);
 });

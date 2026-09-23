@@ -238,8 +238,19 @@ language translation.
 
 ## Substance narrative review
 
-The Narratives view previews the stored wording of one public substance article
-and opens a selected field for correction. Save draft, Approve saved revision,
+The Narratives view reads one public substance article side by side. Find article
+searches substance titles and aliases in the public search manifests for English
+and, for a UI locale, the reviewed locale; Source slug remains as an exact fallback.
+English and the wording a reader sees now sit in two columns, paragraph by
+paragraph, and stack as pairs below 768px. Each translated paragraph carries one
+mark: Machine, Draft, Human approved, Re-check: nearby English changed, or Source
+changed. The header reads "N of M paragraphs human approved", counted by the read
+response from approvals whose overlay decision is `apply`; a re-check paragraph
+still shows the human wording but is not counted. Clicking a translated paragraph opens its
+correction editor in place and focuses it. The URL records `translationSlug`, and
+for an open paragraph `translationSegment` and `translationVersion`, so a link
+reopens that paragraph; a link to an older source version shows the refreshed text
+without opening the editor. Save draft, Approve saved revision,
 and Restore as draft use the same locale capability and revision history as the
 other workbench scopes. The initial HTTP surface accepts `article` only; other
 record kinds and independently produced publication indexes need separate rollout

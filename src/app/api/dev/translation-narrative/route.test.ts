@@ -20,6 +20,12 @@ it("requires assigned locale for both source and mutation", async () => {
     expect((await POST(post())).status).toBe(403);
     expect(store.writeNarrativeReview).not.toHaveBeenCalled();
 });
+it("returns the per-article approval tally beside the rows", async () => {
+    store.readNarrativeReview.mockResolvedValue({ rows: [{ id: "a".repeat(64) }], tally: { humanApproved: 0, total: 1 } });
+    const response = await GET(new Request(`${url}?locale=zh-Hans&kind=article&slug=sample`));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ rows: [{ id: "a".repeat(64) }], tally: { humanApproved: 0, total: 1 } });
+});
 it("rejects cross-origin and malformed revisions and identities", async () => {
     expect((await POST(post({}, "https://evil.example"))).status).toBe(403);
     for (const change of [{ id: "bad" }, { sourceVersion: "old" }, { expectedRevision: -1 }, { kind: "unknown" }, { reason: "" }])

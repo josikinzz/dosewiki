@@ -23,14 +23,17 @@ export async function readNarrativeReview(reads: PublicDataReadAdapter, locale: 
     const hashes = [...new Set(segments.map(s => s.hash))];
     const machine = new Map((await readTranslationCoverageRows(locale, hashes)).map(s => [s.hash, s]));
     const usages = await getTranslationHashUsages(reads, hashes.slice(0, 200), 50);
-    return { locale, kind, slug: canonicalSlug, sourceVersion, rows: segments.map(s => {
-            const id = narrativeIdentity(kind, s), context = narrativeContext(kind, s, segments), e = entries.get(id), active = e?.draft ?? e?.approved;
-            const overlay: NarrativeOverlayDecision | null = e?.approved ? narrativeOverlayDecision(kind, segments, s, e.approved) : null;
-            const activeDecision = active ? narrativeOverlayDecision(kind, segments, s, active) : null;
-            const status: NarrativeRowStatus = activeDecision === "stale" ? "stale" : e?.draft ? "draft" : overlay === "apply-recheck" ? "recheck" : e?.approved ? "approved" : "unreviewed";
-            return { id, hash: s.hash, field: s.path, source: s.source, context, machine: machine.get(s.hash) ?? null, revision: e?.revision ?? 0, draft: e?.draft ?? null, approved: e?.approved ?? null,
-                overlay, status, usages: usages[s.hash] ?? null };
-        }) };
+    const rows = segments.map(s => {
+        const id = narrativeIdentity(kind, s), context = narrativeContext(kind, s, segments), e = entries.get(id), active = e?.draft ?? e?.approved;
+        const overlay: NarrativeOverlayDecision | null = e?.approved ? narrativeOverlayDecision(kind, segments, s, e.approved) : null;
+        const activeDecision = active ? narrativeOverlayDecision(kind, segments, s, active) : null;
+        const status: NarrativeRowStatus = activeDecision === "stale" ? "stale" : e?.draft ? "draft" : overlay === "apply-recheck" ? "recheck" : e?.approved ? "approved" : "unreviewed";
+        return { id, hash: s.hash, field: s.path, source: s.source, context, machine: machine.get(s.hash) ?? null, revision: e?.revision ?? 0, draft: e?.draft ?? null, approved: e?.approved ?? null,
+            overlay, status, usages: usages[s.hash] ?? null };
+    });
+    // Only an approval that applies without re-check counts; apply-recheck still awaits a person.
+    const tally = { humanApproved: rows.filter(r => r.overlay === "apply").length, total: rows.length };
+    return { locale, kind, slug: canonicalSlug, sourceVersion, rows, tally };
 }
 export type NarrativeMutation = {
     locale: string;
