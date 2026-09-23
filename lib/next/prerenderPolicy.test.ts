@@ -25,9 +25,16 @@ describe("resolvePrerenderPolicy", () => {
     expect(resolvePrerenderPolicy("xx" as never, PUBLIC_DOSEWIKI)).toEqual([]);
   });
 
-  it("still prerenders every tier for the editor and Effect Index artifacts (until ticket 06 lands)", () => {
-    for (const build of [EDITOR_DOSEWIKI, PUBLIC_EFFECTINDEX]) {
-      expect(resolvePrerenderPolicy("en", build)).toEqual(["high", "normal", "low"]);
+  it("prerenders nothing on the editor surface, for any locale", () => {
+    for (const locale of LOCALE_CODES) {
+      expect(resolvePrerenderPolicy(locale, EDITOR_DOSEWIKI)).toEqual([]);
+    }
+  });
+
+  it("prerenders nothing for the Effect Index flavor, for any locale", () => {
+    for (const locale of LOCALE_CODES) {
+      expect(resolvePrerenderPolicy(locale, PUBLIC_EFFECTINDEX)).toEqual([]);
+      expect(resolvePrerenderPolicy(locale, { surface: "editor", flavor: "effectindex" })).toEqual([]);
     }
   });
 

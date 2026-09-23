@@ -10,6 +10,13 @@ This is the current authority for Vercel project routing, build separation, requ
 | Editor DoseWiki | `dosewiki-admin`     | `dev.dose.wiki`, `dosewiki-admin.vercel.app` | `DOSEWIKI_BUILD_SURFACE=editor`, DoseWiki flavor       | Only project allowed to carry the general admin and editorial write credential tier |
 | Effect Index    | Effect Index project | `effectindex.com`                            | public artifact, `NEXT_PUBLIC_SITE_FLAVOR=effectindex` | Credential-free and read-only                                                       |
 
+Only the public DoseWiki build prerenders substance articles, and only the
+English high and normal tiers (`lib/next/prerenderPolicy.ts`). The editor
+build, the Effect Index build, and every locale mirror render substance
+articles on first request and hold them in the hourly ISR cache; the
+required post-deploy warm below is what makes that first request cheap for a
+reader. Record each artifact's actual page count with `bun run build:census`.
+
 Public hosts redirect `/dev`, `/review`, `/sign-in`, and `/unauthorized` to `dev.dose.wiki`. Credentialed APIs stay unavailable on public origins. Editor hosts remain `noindex`, return private/no-store caching directives, and must never receive a public alias. `src/config/siteFlavor.ts`, `lib/next/flavorGatedRoutes.ts`, and `src/middleware.ts` own route and host behavior.
 
 `vercel.json` disables Git-triggered deployments for `main`. This keeps

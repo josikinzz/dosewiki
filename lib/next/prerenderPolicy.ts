@@ -20,8 +20,6 @@ export type PrerenderBuild = {
 
 export type PrerenderPolicy = readonly SubstancePrerenderPriority[];
 
-const ALL_TIERS: PrerenderPolicy = Object.freeze(["high", "normal", "low"]);
-
 /**
  * English on the public dose.wiki artifact: the high and normal tiers. The
  * low tier is the URL-only long tail; most of it receives no visit between
@@ -53,8 +51,12 @@ const PUBLIC_DOSEWIKI_POLICY: Readonly<Record<LocaleCode, PrerenderPolicy>> = Ob
 });
 
 export function resolvePrerenderPolicy(locale: LocaleCode, build: PrerenderBuild): PrerenderPolicy {
+  // Only the public dose.wiki artifact prerenders substances. The editor's
+  // readers are editors who tolerate a cold render with their chrome; Effect
+  // Index serves the substance routes but its audience arrives for effects,
+  // and the hourly warm cron plus the post-deploy warm cover the rest.
   if (build.surface === "editor" || build.flavor === "effectindex") {
-    return ALL_TIERS;
+    return ON_DEMAND;
   }
   // A locale the table does not name (a registry entry added without a
   // decision here would fail typecheck first) renders on demand.
