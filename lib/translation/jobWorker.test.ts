@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 const seam = vi.hoisted(() => ({
   publish: vi.fn(), enqueue: vi.fn(), completeCache: vi.fn(), readCache: vi.fn(),
-  claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), record: vi.fn(), acquire: vi.fn(), refresh: vi.fn(),
+  claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), record: vi.fn(), acquire: vi.fn(), release: vi.fn(), refresh: vi.fn(),
 }));
 vi.mock("../data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
 vi.mock("../data/serverWriteCapability", () => ({
@@ -13,7 +13,7 @@ vi.mock("../next/publishPublicCache", () => ({ publishPublicCache: seam.publish 
 vi.mock("./segmentStore", () => ({
   MAX_TRANSLATION_JOB_ATTEMPTS: 5,
   acquireTranslationWorkerLease: seam.acquire,
-  releaseTranslationWorkerLease: async () => {},
+  releaseTranslationWorkerLease: seam.release,
   readTranslationCacheJobs: seam.readCache,
   completeTranslationCacheJob: seam.completeCache,
   claimTranslationJobs: seam.claim,
@@ -49,6 +49,7 @@ beforeEach(() => {
   seam.fail.mockReset().mockResolvedValue(true);
   seam.record.mockReset().mockResolvedValue(undefined);
   seam.acquire.mockReset().mockResolvedValue(true);
+  seam.release.mockReset().mockResolvedValue(undefined);
   seam.refresh.mockReset();
 });
 afterEach(() => { vi.restoreAllMocks(); });
@@ -176,6 +177,86 @@ describe("translation job budget abort", () => {
     abortDuring(0);
     await runTranslationJobs("model-key", config);
     expect(seam.fail).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), "run budget reached", { progressed: false });
+  });
+});
+
+describe("per-lane leases and request quotas", () => {
+  type Options = { requestPool: { run<T>(task: () => Promise<T>): Promise<T> } };
+  const leases = new Map<string, string>();
+  let release!: () => void;
+  let gate: Promise<void>;
+
+  beforeEach(() => {
+    leases.clear();
+    gate = new Promise<void>((resolve) => { release = resolve; });
+    seam.readCache.mockResolvedValue([]);
+    seam.acquire.mockImplementation(async (lane: string, owner: string) => {
+      if (leases.has(lane)) return false;
+      leases.set(lane, owner);
+      return true;
+    });
+    seam.release.mockImplementation(async (lane: string, owner: string) => {
+      if (leases.get(lane) === owner) leases.delete(lane);
+    });
+    seam.claim.mockImplementation(async (_limit: number, mode: string) => {
+      const claimed = seam.claim.mock.calls.filter(([, callMode]) => callMode === mode).length;
+      return claimed === 1 ? [{ ...job(mode === "bulk" ? "bulk-record" : "editorial-record"), mode }] : [];
+    });
+  });
+
+  it("lets an incremental run take its own lease and complete jobs while bulk holds its lease", async () => {
+    seam.refresh.mockImplementation(async (record: { slug: string }) => {
+      if (record.slug === "bulk-record") await gate;
+      return outcome(record.slug);
+    });
+    const bulk = runTranslationJobs("model-key", { mode: "bulk", jobsPerRun: 1, requestConcurrency: 90 });
+    await vi.waitFor(() => expect(leases.size).toBe(1));
+
+    const incremental = await runTranslationJobs("model-key", config);
+    expect(incremental).toMatchObject({ leaseHeld: true, completed: 1 });
+    expect(leases.size).toBe(1);
+
+    release();
+    expect(await bulk).toMatchObject({ leaseHeld: true, completed: 1 });
+    expect(leases.size).toBe(0);
+  });
+
+  it("denies a second run of the same lane and records the lease outcome", async () => {
+    seam.refresh.mockImplementation(async (record: { slug: string }) => {
+      await gate;
+      return outcome(record.slug);
+    });
+    const first = runTranslationJobs("model-key", { mode: "bulk", jobsPerRun: 1, requestConcurrency: 90 });
+    await vi.waitFor(() => expect(leases.size).toBe(1));
+    const second = await runTranslationJobs("model-key", { mode: "bulk", jobsPerRun: 1, requestConcurrency: 90 });
+    expect(second).toMatchObject({ leaseHeld: false, claimed: 0 });
+    expect(seam.record).toHaveBeenCalledWith(expect.objectContaining({ mode: "bulk", leaseHeld: false }));
+    release();
+    await first;
+  });
+
+  it("never runs more than 100 model requests across both lanes", async () => {
+    let active = 0;
+    let peak = 0;
+    seam.refresh.mockImplementation(async (record: { slug: string }, _context, _kind, _key, options: Options) => {
+      await Promise.all(Array.from({ length: 150 }, () => options.requestPool.run(async () => {
+        active += 1;
+        peak = Math.max(peak, active);
+        await gate;
+        active -= 1;
+      })));
+      return outcome(record.slug);
+    });
+    // Both lanes ask for the whole ceiling; each is held to its quota.
+    const runs = Promise.all([
+      runTranslationJobs("model-key", { mode: "bulk", jobsPerRun: 1, requestConcurrency: 100 }),
+      runTranslationJobs("model-key", { mode: "incremental", jobsPerRun: 1, requestConcurrency: 100 }),
+    ]);
+    await vi.waitFor(() => expect(active).toBe(100));
+    release();
+    expect((await runs).map((run) => [run.mode, run.leaseHeld, run.completed]))
+      .toEqual([["bulk", true, 1], ["incremental", true, 1]]);
+    expect(peak).toBe(100);
   });
 });
 

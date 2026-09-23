@@ -14,7 +14,7 @@ describe("bulk translation cron", () => {
   });
   afterEach(() => { vi.resetAllMocks(); vi.unstubAllEnvs(); });
 
-  it("runs only the bulk lane through one 100-request pool", async () => {
+  it("runs only the bulk lane within its share of the 100-request ceiling", async () => {
     const response = await GET(new Request("https://editor.dose.wiki/api/cron/translation-bulk", {
       headers: { authorization: "Bearer cron-fixture" },
     }));
@@ -22,7 +22,7 @@ describe("bulk translation cron", () => {
     expect(seams.refresh).toHaveBeenCalledWith("synthetic-fixture", {
       mode: "bulk",
       jobsPerRun: 100,
-      requestConcurrency: 100,
+      requestConcurrency: 90,
     });
   });
 });

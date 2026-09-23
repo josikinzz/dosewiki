@@ -15,7 +15,7 @@ import {
   type RefreshOutcome,
   type TranslationContext,
 } from "./liveTranslation";
-import { createTranslationRequestPool } from "./requestPool";
+import { TRANSLATION_REQUEST_QUOTA, createTranslationRequestPool } from "./requestPool";
 import {
   MAX_TRANSLATION_JOB_ATTEMPTS,
   claimTranslationJobs,
@@ -33,6 +33,8 @@ import {
 const RUN_BUDGET_MS = 200_000;
 const MIN_JOB_BUDGET_MS = 10_000;
 const MODEL_LEASE = "glm-5.3-flash";
+/** One lease per lane, so a bulk campaign never starves editorial refreshes. */
+const laneLease = (mode: TranslationJobMode) => `${MODEL_LEASE}:${mode}`;
 const CACHE_JOBS_PER_RUN = 200;
 const CACHE_DELIVERY_CONCURRENCY = 50;
 const enqueueCacheRetry = makeFunctionReference<"mutation", { targets: PublicationTarget[] }, void>("publicationRecovery:enqueueTranslationCacheRetry");
@@ -56,7 +58,10 @@ function errorMessage(error: unknown): string {
   }
 }
 
-/** Process one isolated queue lane through one shared model-request semaphore. */
+/**
+ * Process one queue lane under that lane's own lease. Model requests share one
+ * semaphore per run, held to the lane's quota of the shared request ceiling.
+ */
 export async function runTranslationJobs(
   apiKey: string,
   config: { mode: TranslationJobMode; jobsPerRun: number; requestConcurrency: number },
@@ -67,13 +72,14 @@ export async function runTranslationJobs(
     usage: { prompt: 0, completion: 0, requests: 0 }, firstError: null, outcomes: [],
   };
   const leaseOwner = crypto.randomUUID();
+  const lease = laneLease(config.mode);
   try {
-    run.leaseHeld = await acquireTranslationWorkerLease(MODEL_LEASE, leaseOwner, RUN_BUDGET_MS + 30_000);
+    run.leaseHeld = await acquireTranslationWorkerLease(lease, leaseOwner, RUN_BUDGET_MS + 30_000);
     if (run.leaseHeld) {
       try {
         await processTranslationJobs(apiKey, config, run, started);
       } finally {
-        await releaseTranslationWorkerLease(MODEL_LEASE, leaseOwner);
+        await releaseTranslationWorkerLease(lease, leaseOwner);
       }
     }
   } catch (error) {
@@ -103,7 +109,7 @@ async function processTranslationJobs(
 ): Promise<void> {
   const signal = AbortSignal.timeout(RUN_BUDGET_MS);
   const reads = getPublicDataReadAdapter();
-  const requestPool = createTranslationRequestPool(config.requestConcurrency);
+  const requestPool = createTranslationRequestPool(Math.min(config.requestConcurrency, TRANSLATION_REQUEST_QUOTA[config.mode]));
   const contexts: Record<string, Promise<TranslationContext>> = {};
   const contextFor = (locale: string) => (contexts[locale] ??= loadTranslationContext(locale));
   const onUsage = (used: { prompt: number; completion: number }) => {

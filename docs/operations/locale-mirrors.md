@@ -109,10 +109,15 @@ See [the publication boundary](../architecture/runtime-and-data.md#editor-save-a
 The five-minute translation-refresh cron remains the one-record incremental lane
 for editorial freshness. Operator-started main translations and glossary
 retranslations receive a stable `run_id` and `mode=bulk`; the separate
-translation-bulk cron claims up to 100 of those records every minute. Every bulk
-model batch crosses one request-pool seam capped at 100 concurrent GLM 5.3 Flash
-requests, including retries from all active records. A database-backed lane lease
-prevents scheduled invocations from overlapping, so the cap holds across processes.
+translation-bulk cron claims up to 100 of those records every minute. Each lane
+holds its own database lease (`glm-5.3-flash:bulk`, `glm-5.3-flash:incremental`),
+so invocations of one lane never overlap and editorial refreshes keep running
+while a bulk campaign holds the bulk lease. The 100-request GLM 5.3 Flash
+ceiling is split by `TRANSLATION_REQUEST_QUOTA` in
+`lib/translation/requestPool.ts`: 90 for bulk and 10 for incremental, including
+retries, so the cap holds across both lanes and processes. Workers from before
+the split used one shared lease key; drain them before rollout so old and new
+leases never run side by side.
 Both workers propagate
 cancellation through `lib/translation/liveTranslation.ts` and
 `scripts/translation/engine.mjs` to the provider request.
