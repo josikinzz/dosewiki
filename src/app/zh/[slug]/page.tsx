@@ -7,14 +7,14 @@
  * The mirror is unlisted: `noindex`, and its canonical is the English article.
  */
 import { notFound, redirect } from "next/navigation";
-import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { loadSubstanceMetadataRoute, loadSubstanceRoute } from "@server/next/routeLoaders.substances";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
-import { MachineTranslationNotice } from "./MachineTranslationNotice";
+import { MachineTranslationNotice } from "@/features/article/components/MachineTranslationNotice";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -62,6 +62,8 @@ export default async function LocalizedSubstancePage({ params }: LocalizedSubsta
     notFound();
   }
 
+  const englishUrl = buildSiteUrl(getPublicRoutePath({ family: "substance", params: { slug } }));
+
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
@@ -70,7 +72,7 @@ export default async function LocalizedSubstancePage({ params }: LocalizedSubsta
         )}
         <SubstanceArticlePage
           {...result.pageProps}
-          warningBannerNotice={<MachineTranslationNotice slug={slug} />}
+          warningBannerNotice={<MachineTranslationNotice locale={LOCALE.code} englishUrl={englishUrl} />}
         />
       </div>
     </UiLocaleProvider>

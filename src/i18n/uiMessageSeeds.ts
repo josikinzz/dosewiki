@@ -6,5 +6,9 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "appearance.dark": "深色",
     "gallery.replications": "体验再现",
     "gallery.replication": "体验再现",
+    "article.machineTranslationNotice": "本页由机器翻译，以[英文原文]({{englishUrl}})为准。尚未翻译的段落保留英文。",
+  },
+  ru: {
+    "article.machineTranslationNotice": "Эта страница переведена автоматически, приоритет имеет [английский оригинал]({{englishUrl}}). Ещё не переведённые абзацы остаются на английском.",
   },
 };

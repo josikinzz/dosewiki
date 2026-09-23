@@ -31,6 +31,12 @@ export const UI_MESSAGE_DEFINITIONS = {
     locations: ["src/features/replications"],
     glossaryTerms: ["Replication", "Replications"],
   },
+  "article.machineTranslationNotice": {
+    source: "This page was machine translated, and the [English original]({{englishUrl}}) is authoritative. Paragraphs not yet translated remain in English.",
+    context: "Standing notice above every localized substance article. Keep the Markdown link and the {{englishUrl}} placeholder exactly; translate only the link label and the prose. The link opens the English article.",
+    locations: ["src/features/article/components/MachineTranslationNotice.tsx"],
+    glossaryTerms: [],
+  },
 } as const satisfies Record<string, UiMessageDefinition>;
 
 export type UiMessageId = keyof typeof UI_MESSAGE_DEFINITIONS;
