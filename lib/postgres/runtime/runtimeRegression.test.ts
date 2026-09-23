@@ -28,7 +28,9 @@ describe("runtime ID resolution", () => {
     } as never)).rejects.toThrow(/id belongs to tripReports, expected contributorProfiles/);
     expect(query.mock.calls.some((call) => String(call[0]).includes('SELECT "_id", "table" FROM "documentIds"'))).toBe(true);
     expect(query.mock.calls.every((call) => !String(call[0]).endsWith('FROM "documentIds"'))).toBe(true);
-  });
+    // The first callable cold-loads the whole function registry, which can pass
+    // the default 5s budget when the full suite runs in parallel.
+  }, 30_000);
 
   it("runs an ID-free callable without querying documentIds", async () => {
     const query = vi.fn(async (_sql: string, _params?: unknown[]) => ({ rows: [], rowCount: 0 }));
