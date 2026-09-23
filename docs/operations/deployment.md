@@ -72,6 +72,19 @@ can make its font URLs disagree with HTML preloads, downloading the same font
 twice. Verify consecutive cached builds with different IDs. Do not clear
 `.next/cache` or disable preload/skew protection to hide the mismatch.
 
+Static generation concurrency defaults to four workers rendering one page
+each (`lib/next/buildConcurrency.ts`). `DOSEWIKI_BUILD_WORKERS` and
+`DOSEWIKI_BUILD_PAGES_PER_WORKER` raise those numbers for a build that runs
+next to the database. Raise in small steps and record every setting tried
+here, with the census elapsed time and the peak PlanetScale connection count
+observed during the build; a value this table does not support is not
+authorized.
+
+| Where                | Workers | Pages per worker | Elapsed | Peak connections | Recorded    |
+| -------------------- | ------- | ---------------- | ------- | ---------------- | ----------- |
+| Laptop (M1 Pro)      | 4       | 1                | not yet measured with `build:census` | not measured | pending |
+| GitHub-hosted runner | 4       | 1                | pending first remote build | pending | pending |
+
 Stage scheduler ownership in each isolated release tree before uploading it.
 The shared root `vercel.json` contains all seven jobs; it is not a surface-aware
 scheduler configuration. Each release tree keeps only the jobs its project owns:
