@@ -64,7 +64,7 @@ const catalogSectionPromptDescriptorsByKey = new Map<string, CatalogSectionPromp
 );
 
 export const promptRegistry = promptRegistryJson.map((descriptor) => {
-  if (descriptor.kind !== "section" || descriptor.sectionKey === "base") {
+  if (descriptor.kind !== "section" || !descriptor.sectionKey || descriptor.sectionKey === "base") {
     return descriptor;
   }
 

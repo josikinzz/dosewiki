@@ -60,7 +60,7 @@ const createRecord = (
     heroBadges: options.categories?.map((label) => ({ label, icon: "sparkles" })) ?? [],
     categoryKeys: [],
     categories: options.categories ?? [],
-    dosageUnitsNote: undefined,
+    dosageUnitsNote: "",
     routes: {},
     routeOrder: [],
     addictionSummary: "",

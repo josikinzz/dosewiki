@@ -127,8 +127,8 @@ function normalizeHarmPotential(data: unknown): HarmPotential {
   const harmPotential = (isRecord(data) ? data : {}) as NonNullable<HarmPotential>;
   const toxicity = isRecord(harmPotential.toxicity) ? harmPotential.toxicity : {};
   const lethalDosage = isRecord(toxicity.lethal_dosage) ? toxicity.lethal_dosage : {};
-  const carcinogenicity = isRecord(toxicity.carcinogenicity) ? toxicity.carcinogenicity : {};
-  const antibioticFunction = isRecord(toxicity.antibiotic_function) ? toxicity.antibiotic_function : {};
+  const carcinogenicity = isRecord(toxicity.carcinogenicity) ? toxicity.carcinogenicity : undefined;
+  const antibioticFunction = isRecord(toxicity.antibiotic_function) ? toxicity.antibiotic_function : undefined;
 
   return harmPotentialSchema.parse({
     addiction: {
@@ -154,13 +154,13 @@ function normalizeHarmPotential(data: unknown): HarmPotential {
       },
       organ_toxicity: Array.isArray(toxicity.organ_toxicity) ? toxicity.organ_toxicity : [],
       carcinogenicity: {
-        level: carcinogenicity.level ?? null,
-        evidence: carcinogenicity.evidence ?? null,
-        description: carcinogenicity.description ?? "",
+        level: carcinogenicity?.level ?? null,
+        evidence: carcinogenicity?.evidence ?? null,
+        description: carcinogenicity?.description ?? "",
       },
       antibiotic_function: {
-        level: antibioticFunction.level ?? null,
-        description: antibioticFunction.description ?? "",
+        level: antibioticFunction?.level ?? null,
+        description: antibioticFunction?.description ?? "",
       },
       other: typeof toxicity.other === "string" ? toxicity.other : "",
     },

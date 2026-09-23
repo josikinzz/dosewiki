@@ -284,17 +284,17 @@ function buildCitationSchemas(article: SubstanceArticle): CitationSchema[] | und
 function buildEffectCitationSchemas(effect: SubjectiveEffectArticle): CitationSchema[] | undefined {
   const citations = (effect.citations ?? [])
     .flatMap((citation) => {
-      const name = cleanText(citation.text) ?? cleanText(citation.from);
       const url = cleanText(citation.url);
+      const name = cleanText(citation.text) ?? cleanText(citation.from) ?? url;
 
-      if (!name && !url) {
+      if (!name) {
         return [];
       }
 
       return [
         {
           "@type": "CreativeWork" as const,
-          name: name ?? url,
+          name,
           url,
           publisher: citation.from
             ? {

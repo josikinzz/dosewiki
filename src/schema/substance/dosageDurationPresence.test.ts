@@ -9,8 +9,8 @@ import {
   routeIsBlank,
 } from "./dosageDurationPresence";
 
-const NULL_RANGE = { min: null, max: null, unit: "mg" };
-const NULL_STAGE = { min: null, max: null, unit: "hours" };
+const NULL_RANGE: { min: number | null; max: number | null; unit: string } = { min: null, max: null, unit: "mg" };
+const NULL_STAGE: { min: number | null; max: number | null; unit: string } = { min: null, max: null, unit: "hours" };
 
 /** The shape generators scaffold when a source merely mentions a route. */
 function hollowDosageRoute(route = "oral") {

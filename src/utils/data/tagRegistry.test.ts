@@ -23,7 +23,7 @@ describe("buildTagRegistry", () => {
       receptor_binding: {},
       metabolism: "",
       metabolites: [],
-    } as typeof article.pharmacology;
+    } as unknown as typeof article.pharmacology;
 
     const registry = buildTagRegistry([article]);
 

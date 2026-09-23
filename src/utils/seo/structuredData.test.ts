@@ -303,7 +303,7 @@ describe("structured data under the Effect Index flavor", () => {
       {
         slug: "drifting",
         name: "Drifting",
-        summary: undefined,
+        summary: "",
         tags: [],
         featured: false,
         description_raw: "",
