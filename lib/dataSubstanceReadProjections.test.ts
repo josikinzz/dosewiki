@@ -397,7 +397,7 @@ describe("substance read projections", () => {
     };
     const reviewerEmails = new Set(["oldhandle@local.dose.wiki"]);
 
-    it("returns only the article identity and timestamp — never the reviewer email", () => {
+    it("returns only the article identity and timestamp, never the reviewer email", () => {
       const projection = projectReviewedArticleForEmails(reviewed, reviewerEmails);
 
       expect(projection).toEqual({
@@ -466,7 +466,7 @@ describe("substance read projections", () => {
     };
     const emailToProfileKey = new Map([["oldhandle@local.dose.wiki", "LYREA"]]);
 
-    it("returns only the slug and the claiming profile key — never the reviewer email", () => {
+    it("returns only the slug and the claiming profile key, never the reviewer email", () => {
       const credit = projectReviewedArticleCredit(reviewed, emailToProfileKey);
 
       expect(credit).toEqual({ slug: "lsd", profileKey: "LYREA" });

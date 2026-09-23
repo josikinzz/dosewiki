@@ -120,7 +120,7 @@ export async function setArticleFieldHandler(
   }
   const after = validateArticleChange(before, { ...before, [result.topLevelKey]: result.topLevelValue });
   await ctx.db.patch(article._id, articleChangePatch(before, after));
-  const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: `Inline edit — ${args.path}` });
+  const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: `Inline edit \u2014 ${args.path}` });
   return {
     slug: args.slug,
     path: args.path,
