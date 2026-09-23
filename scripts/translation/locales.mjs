@@ -15,19 +15,21 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import translationLocaleNames from "../../src/i18n/translationLocaleNames.json" with { type: "json" };
 
+import { mentionsTerm, termMatcher } from "./term-match.mjs";
+
 /** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code) {
   return path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data/i18n/glossary", `${code}.json`);
 }
 
 /**
- * The one matcher for "this source mentions the term": whole word, case
- * insensitive. The prompt builder, the validator, the QA packet, and the
- * scoped stale replay all use it, so what gets injected is what gets checked
- * and what gets retranslated.
+ * The matcher for "this source mentions the term", as a RegExp. It delegates
+ * to the shared matcher in `term-match.mjs` (whole word, case insensitive,
+ * English inflections), so the prompt builder, the validator, the QA packet,
+ * and the scoped stale replay agree on what a mention is.
  */
 export function glossaryTermPattern(term) {
-  return new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+  return termMatcher(term);
 }
 
 const SHARED_RULES = `## Rules
@@ -209,14 +211,16 @@ export function kindInContext(kind, contexts) {
 /**
  * The batch instruction. Segments travel as a JSON object keyed by opaque ids
  * so the model cannot merge, split, or reorder them, and the reply parses
- * without heuristics. `glossary` is the approved `term -> target` map; only
- * the terms a segment in the batch mentions are injected, and of those only
- * the ones whose kind (`kinds`, `term -> kind`) belongs to the batch's
- * context (`kindInContext`). `glosses` is the locale-independent
+ * without heuristics. `glossary` is the approved `term -> target` map. Each
+ * segment lists, under its own id, only the terms it mentions (by the shared
+ * matcher, inflections included) whose kind (`kinds`, `term -> kind`) belongs
+ * to that segment's context (`kindInContext`), so a term never reaches an
+ * unrelated segment in the same batch. `glosses` is the locale-independent
  * `term -> gloss` map: an injected term that has one is printed as
- * `term -> target  (gloss)` so the model knows which sense it is rendering,
- * for at most `GLOSS_CAP` terms, longest terms first (a multi-word term
- * outranks a one-word homograph); past the cap the rendering stands alone.
+ * `term -> target  (gloss)` at its first listing so the model knows which
+ * sense it is rendering, for at most `GLOSS_CAP` terms, longest terms first
+ * (a multi-word term outranks a one-word homograph); past the cap, and at
+ * later listings, the rendering stands alone.
  */
 export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glosses = {}, kinds = {} } = {}) {
   const payload = Object.fromEntries(units.map((unit) => [unit.id, unit.source]));
@@ -264,21 +268,33 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
     );
   }
 
-  const contexts = new Set(units.map((unit) => unit.contextKind ?? "any"));
-  const injected = Object.entries(glossary)
-    .filter(([term]) => kindInContext(kinds[term] ?? "", contexts))
-    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.originalSource ?? unit.source)));
+  const entries = Object.entries(glossary);
+  const perUnit = units
+    .map((unit) => {
+      const contexts = new Set([unit.contextKind ?? "any"]);
+      const source = unit.originalSource ?? unit.source;
+      return { id: unit.id, terms: entries.filter(([term]) => kindInContext(kinds[term] ?? "", contexts) && mentionsTerm(source, term)) };
+    })
+    .filter((unit) => unit.terms.length > 0);
+  const injected = [...new Set(perUnit.flatMap((unit) => unit.terms.map(([term]) => term)))];
   const glossed = new Set(
     injected
-      .filter(([term]) => glosses[term])
-      .sort(([a], [b]) => b.length - a.length || a.localeCompare(b))
-      .slice(0, GLOSS_CAP)
-      .map(([term]) => term),
+      .filter((term) => glosses[term])
+      .sort((a, b) => b.length - a.length || a.localeCompare(b))
+      .slice(0, GLOSS_CAP),
   );
-  const glossaryTerms = injected.map(([term, expected]) => (glossed.has(term) ? `${term} -> ${expected}  (${glosses[term]})` : `${term} -> ${expected}`));
 
-  if (glossaryTerms.length > 0) {
-    lines.push("", "Use these fixed equivalents:", glossaryTerms.join("\n"));
+  if (perUnit.length > 0) {
+    const glossPrinted = new Set();
+    const listing = perUnit.flatMap((unit) => [
+      `[${unit.id}]`,
+      ...unit.terms.map(([term, expected]) => {
+        if (!glossed.has(term) || glossPrinted.has(term)) return `${term} -> ${expected}`;
+        glossPrinted.add(term);
+        return `${term} -> ${expected}  (${glosses[term]})`;
+      }),
+    ]);
+    lines.push("", "Use these fixed equivalents, each only in the segment it is listed under:", listing.join("\n"));
   }
 
   if (retryNote) {

@@ -104,7 +104,7 @@ describe("contextual UI catalog", () => {
     expect(result.pending).toContain(source);
     expect(result.pendingRefresh).toEqual([source]);
     expect(result.catalog[source]).toBe(existing[source]);
-    expect(result.glossaryMisses).toEqual([{ catalogKey: source, term: "Replications", expectedTarget: "体验再现", humanApproved: false }]);
+    expect(result.glossaryMisses).toEqual([{ catalogKey: source, term: "Replication", expectedTarget: "体验再现", humanApproved: false }]);
   });
 
   it.each(["Alkaloid (tropane)", "ALKALOID (TROPANE)"])("keeps whole approved phrase %s authoritative over nested terminology", (source) => {

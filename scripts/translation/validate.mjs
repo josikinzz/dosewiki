@@ -8,7 +8,7 @@
 
 import traditionalCharset from "./traditional-charset.json" with { type: "json" };
 
-import { glossaryTermPattern } from "./locales.mjs";
+import { mentionsTerm } from "./term-match.mjs";
 import { markupTokens } from "./markup.mjs";
 
 export const DEFECT_CODES = Object.freeze({
@@ -383,8 +383,7 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
 
   const glossaryMisses = [];
   for (const [term, expected] of Object.entries(glossary)) {
-    const termPattern = glossaryTermPattern(term);
-    if (termPattern.test(source) && !trimmed.includes(expected)) {
+    if (mentionsTerm(source, term) && !trimmed.includes(expected)) {
       glossaryMisses.push(term);
     }
   }

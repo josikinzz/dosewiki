@@ -14,7 +14,7 @@ export function resolveLocale(code: string): TranslationLocale;
 /** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code: string): string;
 
-/** Whole-word, case-insensitive matcher for one glossary term; shared by the prompt, the validator, and the scoped stale replay. */
+/** The shared term matcher (`termMatcher` in term-match.mjs) as a RegExp: whole word, case insensitive, English inflections. */
 export function glossaryTermPattern(term: string): RegExp;
 
 /** The surface a work unit's text comes from; "any" (the default) disables kind scoping for its batch. */

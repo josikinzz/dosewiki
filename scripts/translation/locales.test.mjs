@@ -8,6 +8,7 @@ test("a glossary term matches whole words, any case, with its punctuation taken 
   assert.equal(entactogen.test("MDMA is an entactogen."), true);
   assert.equal(entactogen.test("Classic ENTACTOGEN effects."), true);
   assert.equal(entactogen.test("Entactogenic effects."), false, "a longer word is not the term");
+  assert.equal(entactogen.test("Two entactogens."), true, "a plural is the term");
   assert.equal(entactogen.test("nonentactogen"), false);
 
   const comeUp = glossaryTermPattern("come-up");
@@ -31,12 +32,33 @@ test("a batch prompt injects only the glossary terms its segments mention", () =
     { glossary },
   );
 
-  assert.match(prompt, /comedown -> 退效/);
-  assert.match(prompt, /tolerance -> 耐受性/);
+  assert.match(prompt, /\[s0\]\ncomedown -> 退效/);
+  assert.match(prompt, /\[s1\]\ntolerance -> 耐受性/);
   assert.doesNotMatch(prompt, /stimulant/);
 
   const bare = buildBatchPrompt(locale, [{ id: "s0", source: "The comedown is gentle.", contextClass: "prose" }]);
   assert.doesNotMatch(bare, /fixed equivalents/, "no glossary, no equivalents block");
+});
+
+test("each unit carries only the glossary terms it mentions, inflected forms included", () => {
+  const locale = resolveLocale("zh-Hans");
+  const glossary = { Phenidate: "Phenidate", Replication: "体验再现", Light: "轻度" };
+  const prompt = buildBatchPrompt(
+    locale,
+    [
+      { id: "s0", source: "It is structurally related to the phenidates.", contextClass: "prose" },
+      { id: "s1", source: "2-Benzylpiperidine is a stimulant drug of the piperidine class.", contextClass: "prose" },
+      { id: "s2", source: "Some users feel lightheaded while replicating the visuals.", contextClass: "prose" },
+    ],
+    { glossary },
+  );
+  const equivalents = prompt.slice(prompt.indexOf("Use these fixed equivalents"));
+
+  assert.equal(
+    equivalents,
+    "Use these fixed equivalents, each only in the segment it is listed under:\n[s0]\nPhenidate -> Phenidate\n[s2]\nReplication -> 体验再现",
+    "the unrelated sentence gets no list, and Light does not match inside lightheaded",
+  );
 });
 
 test("a batch prompt prints a gloss beside an injected term, and only there", () => {
@@ -55,13 +77,24 @@ test("a batch prompt prints a gloss beside an injected term, and only there", ()
     { glossary, glosses },
   );
 
-  const equivalents = prompt.slice(prompt.indexOf("Use these fixed equivalents:"));
+  const equivalents = prompt.slice(prompt.indexOf("Use these fixed equivalents"));
   assert.equal(
     equivalents,
-    "Use these fixed equivalents:\ncomedown -> 退效  (Declining phase as effects fade · not withdrawal)\ntolerance -> 耐受性",
+    "Use these fixed equivalents, each only in the segment it is listed under:\n[s0]\ncomedown -> 退效  (Declining phase as effects fade · not withdrawal)\n[s1]\ntolerance -> 耐受性",
     "a glossed term carries its gloss in parentheses after two spaces; an unglossed term reads exactly as before",
   );
   assert.doesNotMatch(prompt, /stimulant|energy drink/, "a gloss for a term no segment mentions is not injected");
+
+  const repeated = buildBatchPrompt(
+    locale,
+    [
+      { id: "s0", source: "The comedown is gentle.", contextClass: "prose" },
+      { id: "s1", source: "Comedowns vary.", contextClass: "prose" },
+    ],
+    { glossary, glosses },
+  );
+  assert.equal(repeated.match(/not withdrawal/g).length, 1, "a gloss prints once per batch, at the first unit that mentions the term");
+  assert.match(repeated, /\[s1\]\ncomedown -> 退效$/);
 
   const withoutGlosses = buildBatchPrompt(locale, [{ id: "s0", source: "The comedown is gentle.", contextClass: "prose" }], { glossary });
   assert.match(withoutGlosses, /\ncomedown -> 退效$/, "no glosses at all leaves the line unchanged");
@@ -74,7 +107,7 @@ test("surface-specific kinds are injected only into batches from their surface",
   const source = "Offset was oral and frequent; see Dosage. The replicator felt euphoria.";
   const equivalentsFor = (contextKind) => {
     const prompt = buildBatchPrompt(locale, [{ id: "s0", source, contextClass: "prose", contextKind }], { glossary, kinds });
-    return prompt.slice(prompt.indexOf("Use these fixed equivalents:"));
+    return prompt.slice(prompt.indexOf("Use these fixed equivalents"));
   };
 
   const report = equivalentsFor("report");
@@ -103,7 +136,17 @@ test("surface-specific kinds are injected only into batches from their surface",
     ],
     { glossary, kinds },
   );
-  assert.match(mixed, /Offset -> 消退期/, "one article unit in the batch admits the article vocabulary");
+  assert.match(mixed, /\[s1\]\n(?:.+\n)*Offset -> 消退期/, "the article unit carries the article vocabulary");
+
+  const reportBesideArticle = buildBatchPrompt(
+    locale,
+    [
+      { id: "s0", source: "Offset came late.", contextClass: "prose", contextKind: "report" },
+      { id: "s1", source: "The comedown.", contextClass: "prose", contextKind: "article" },
+    ],
+    { glossary, kinds },
+  );
+  assert.doesNotMatch(reportBesideArticle, /Offset -> /, "an article unit in the batch no longer admits article vocabulary into a trip report");
 
   assert.equal(kindInContext("enum:legal", new Set(["library"])), false);
   assert.equal(kindInContext("chemical-class", new Set(["library"])), true, "an unlisted kind is mention-based");
@@ -127,7 +170,7 @@ test("at most GLOSS_CAP terms carry a gloss, the longest terms first; the rest p
   glossary["ungl"] = "无";
   const source = `${words.join(" ")} a much longer phrase ungl`;
   const prompt = buildBatchPrompt(locale, [{ id: "s0", source, contextClass: "prose" }], { glossary, glosses });
-  const lines = prompt.slice(prompt.indexOf("Use these fixed equivalents:\n") + "Use these fixed equivalents:\n".length).split("\n");
+  const lines = prompt.slice(prompt.indexOf("Use these fixed equivalents")).split("\n").slice(2);
 
   assert.equal(lines.length, GLOSS_CAP + 7, "every mentioned term is still injected");
   assert.equal(lines.filter((line) => / {2}\(.+\)$/.test(line)).length, GLOSS_CAP);

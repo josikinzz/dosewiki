@@ -43,6 +43,17 @@ The translator review UI and release checks are documented in the
   the locale. Review machine drafts in the editor and preserve reviewer identity.
   `lib/translation/glossary.ts` owns glossary loading, and the locale prompt owns
   Latin-script exceptions. An exported glossary is a diff artifact, not runtime truth.
+- **One term matcher.** `termMatcher` / `mentionsTerm` in
+  `scripts/translation/term-match.mjs` decide whether English text mentions a
+  glossary term: whole word, case insensitive, plus plurals and the -ing, -ed,
+  and -ion forms of each word ("phenidates" mentions Phenidate, "replicating"
+  mentions Replication, "lightheaded" does not mention Light). Synonyms are not
+  inflections. The batch prompt lists each segment's own matched terms under
+  its id, so a term never reaches an unrelated segment in the same batch;
+  `GLOSSARY_MISS`, the QA packet, coverage, the UI catalog compiler, and the
+  scoped stale replay use the same matcher. The batch layout and the matcher
+  are not part of `prompt_version`, which still covers model, system prompt,
+  approved glossary, and glosses.
 - **Source context.** Public/editor glossary links load on demand and are derived
   from canonical registries and public article content rather than stored alongside
   definitions. Counts describe unique source locations, not repeated mentions.

@@ -28,8 +28,12 @@ export function getUiCatalogGlossaryMisses(
   const misses: UiCatalogGlossaryMiss[] = [];
   for (const [key, target] of Object.entries(catalog)) {
     if (getUiMessageDefinition(key) || UI_MESSAGE_ALIASES[key]) continue;
+    // An alias the shared matcher already covers as an inflection ("Replications"
+    // beside "Replication") reports one miss per expected rendering, not two.
+    const reported = new Set<string>();
     for (const entry of patterns) {
-      if (entry.pattern.test(key) && !target.includes(entry.target)) {
+      if (entry.pattern.test(key) && !target.includes(entry.target) && !reported.has(entry.target)) {
+        reported.add(entry.target);
         misses.push({ catalogKey: key, term: entry.term, expectedTarget: entry.target, humanApproved: Boolean(approvedOverrides[key]) });
       }
     }

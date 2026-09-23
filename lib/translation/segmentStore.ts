@@ -10,7 +10,7 @@
 import "server-only";
 
 import { getPostgresClient } from "@server/postgres/runtime/backend";
-import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
+import { termFragments, termMatcher } from "../../scripts/translation/term-match.mjs";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 import type { TranslationQueueCoverage } from "./translationCoverageTypes";
 import { refreshLocalizedPublicationIndexes } from "./publicationIndexStore";
@@ -236,17 +236,19 @@ export async function translationJobCounts(locale: string): Promise<TranslationJ
 }
 
 /**
- * Stored rows whose English mentions any of `terms`, by the matcher the
- * prompt builder injects glossary lines with (whole word, case insensitive).
- * The database narrows by substring; the regex decides.
+ * Stored rows whose English mentions any of `terms`, by the shared matcher
+ * the prompt builder injects glossary lines with (whole word, case
+ * insensitive, inflections included). The database narrows by the term's
+ * literal fragments in order; the matcher decides.
  */
 export async function readTranslationsMentioning(locale: string, terms: readonly string[]): Promise<Array<{ hash: string; source: string }>> {
   const matched = new Map<string, { hash: string; source: string }>();
   for (const term of terms) {
-    const pattern = glossaryTermPattern(term);
+    const pattern = termMatcher(term);
+    const like = `%${termFragments(term).map((fragment) => fragment.replace(/[\\%_]/g, (char) => `\\${char}`)).join("%")}%`;
     const rows = await getPostgresClient().sql<{ hash: string; source: string }>(
       'SELECT "hash", "source" FROM "translationSegments" WHERE "locale" = $1 AND "source" ILIKE $2',
-      [locale, `%${term.replace(/[\\%_]/g, (char) => `\\${char}`)}%`],
+      [locale, like],
     );
     for (const row of rows) if (pattern.test(row.source)) matched.set(row.hash, row);
   }

@@ -68,8 +68,9 @@ Do not replace a reviewed production catalog with an offline artifact and claim
 that new human corrections were incorporated.
 
 Exact contextual labels can use the blocking `EXACT_TRANSLATION_MISMATCH` check.
-Prose glossary misses remain review findings because an inflected or contextual
-rendering is not necessarily wrong. Number, citation, markup, and placeholder
+Prose glossary misses remain review findings because a contextual rendering is
+not necessarily wrong. The miss check uses the same term matcher as the prompt,
+so plural and inflected English forms of a term count as mentions. Number, citation, markup, and placeholder
 integrity checks continue to apply. Automated QA does not certify linguistic
 or medical accuracy.
 

@@ -198,15 +198,19 @@ test("the unresolved citation placeholder counts as a marker", () => {
   );
 });
 
-test("glossary drift is reported without blocking, and only for terms the source mentions as whole words", () => {
+test("glossary drift is reported without blocking, for terms the source mentions as whole words or inflected forms", () => {
   const glossary = { comedown: "退效", tolerance: "耐受性" };
   const defects = validateSegment({ source: "The comedown is gentle.", target: "退坡很温和。", locale: zh, glossary });
 
   assert.ok(defects.defects.includes(DEFECT_CODES.GLOSSARY_MISS));
   assert.deepEqual(defects.details.glossaryMisses, ["comedown"]);
   assert.equal(isBlocking(defects.defects), false);
-  // "comedowns" is not "comedown", and a segment without a glossary never drifts.
-  assert.equal(validateSegment({ source: "The comedowns vary.", target: "退坡各异。", locale: zh, glossary }).defects.includes(DEFECT_CODES.GLOSSARY_MISS), false);
+  // "comedowns" mentions "comedown" by the shared matcher the prompt injects with;
+  // "comedowner" is a longer word, and a segment without a glossary never drifts.
+  assert.deepEqual(validateSegment({ source: "The comedowns vary.", target: "退坡各异。", locale: zh, glossary }).details.glossaryMisses, ["comedown"]);
+  assert.equal(validateSegment({ source: "The comedowner left.", target: "他走了。", locale: zh, glossary }).defects.includes(DEFECT_CODES.GLOSSARY_MISS), false);
+  const replication = { Replication: "体验再现", Light: "轻度" };
+  assert.deepEqual(validateSegment({ source: "Replicating the visuals made them lightheaded.", target: "复现视觉效果让他们头晕。", locale: zh, glossary: replication }).details.glossaryMisses, ["Replication"]);
   assert.equal(defectsFor("The comedown is gentle.", "退坡很温和。").includes(DEFECT_CODES.GLOSSARY_MISS), false);
 });
 
