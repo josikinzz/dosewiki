@@ -1,14 +1,14 @@
 // Rule 10 of AGENTS.md bans em dashes (U+2014) in all text. Reader-facing text
 // (content files, string literals, template text, and JSX text) must carry
 // none. Comments are older debt: their per-file counts live in a baseline that
-// may only shrink. Write "—" when code must match or emit the character.
+// may only shrink. Write "\u2014" when code must match or emit the character.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 
-export const EM_DASH = "—";
+export const EM_DASH = "\u2014";
 export const SCANNED_ROOTS = Object.freeze(["content", "src", "lib", "server"]);
 export const BASELINE_PATH = "scripts/lint/em-dash-comment-baseline.json";
 // The comment count when the baseline was cut. Lower it as comments are

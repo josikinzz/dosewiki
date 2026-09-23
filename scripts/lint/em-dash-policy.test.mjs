@@ -7,7 +7,7 @@ import { checkRepository, compareToBaseline, scanEmDashes } from "./em-dash-poli
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-const EM = "—";
+const EM = "\u2014";
 
 test("JSX text and string literals are reader-facing violations", () => {
   const source = `// setup ${EM} ok\nexport const label = "Dose ${EM} duration";\nexport function View() {\n  return <p>Onset ${EM} peak</p>;\n}\n`;
