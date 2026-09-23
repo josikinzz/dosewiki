@@ -67,3 +67,9 @@ test("CI fails on lineage, migration, and generated schema drift", () => {
     assert.match(packageJson.scripts["verify:workflow"], new RegExp(`npm run ${command}\\b`), `verify:workflow runs ${command}`);
   }
 });
+
+test("CI runs knip so dead files and dependencies fail the build", () => {
+  const packageJson = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+  assert.equal(packageJson.scripts.knip, "knip");
+  assert.match(workflow, /bun run knip\b/);
+});

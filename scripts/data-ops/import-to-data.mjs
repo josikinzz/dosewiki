@@ -171,29 +171,3 @@ importReplications().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
-{failed}`);
-  }
-  console.log(`Total: ${toImport.length}`);
-
-  if (errors.length > 0) {
-    console.log('\nErrors:');
-    errors.slice(0, 10).forEach(e => console.log(`  - ${e}`));
-    if (errors.length > 10) {
-      console.log(`  ... and ${errors.length - 10} more`);
-    }
-  }
-
-  console.log(`\n${'='.repeat(60)}\n`);
-
-  if (failed === 0) {
-    console.log('✅ All replications imported successfully!\n');
-    console.log('Next: Create gallery_order arrays in effect articles');
-    console.log('Run: node scripts/create-gallery-order.mjs\n');
-  }
-}
-
-// Run
-importReplications().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});

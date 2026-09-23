@@ -56,11 +56,11 @@ its coverage audit runs clean, the only one.
 
 ## Deferred GT inputs
 
-The `gt` and `gt-next` package dependencies plus tracked `gt.config.json` are
-intentionally deferred. The current locale mirrors do not import them or use GT
-at runtime. Keep them until their intended integration or retirement and
-source/provenance requirements are resolved. Their presence does not mean GT
-serves production.
+The `gt-next` package dependency is intentionally deferred (the `gt` package
+and `gt.config.json` are already gone). The current locale mirrors do not import
+it or use GT at runtime, and `knip.config.js` ignores it for that reason. Keep it
+until its intended integration or retirement and source/provenance requirements
+are resolved. Its presence does not mean GT serves production.
 
 ## Shape
 

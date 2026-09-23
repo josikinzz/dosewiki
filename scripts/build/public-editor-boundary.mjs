@@ -19,15 +19,13 @@ export function isEditorOnly(resource) {
 }
 
 /**
- * Reject accidental reintroduction of a browser Convex client into the public
- * artifact. Public reads use the server-owned Postgres path; reader bundles
- * must never establish their own database query or subscription channel.
+ * Reject a Postgres driver in the public browser artifact. Public reads use
+ * the server-owned Postgres path; reader bundles must never carry the code
+ * that opens a database connection.
  */
 export function isDataBrowserClient(resource) {
   const file = resource.replaceAll("\\", "/");
-  return /\/node_modules\/convex\/(?:dist\/[^/]+\/)?react(?:-[^/]+)?(?:\/|\.)/.test(
-    file,
-  );
+  return /\/node_modules\/(?:pg|pg-pool|pg-protocol|pg-cloudflare)\//.test(file);
 }
 
 /** Runs before SWC, so protected source never enters the public dependency graph. */
