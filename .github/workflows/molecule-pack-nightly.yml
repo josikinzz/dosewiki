@@ -53,4 +53,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/dosewiki-molecules.zip public/dosewiki-molecules.json
           git commit -m "chore: nightly molecule pack refresh"
+          # A human push can land while the pack builds; replay the pack commit once on top of it.
+          git pull --rebase origin main
           git push origin HEAD:main

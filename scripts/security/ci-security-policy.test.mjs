@@ -38,3 +38,22 @@ test("production and full dependency audits publish artifacts without blocking r
   assert.match(workflow, /continue-on-error:\s*true/);
   assert.match(workflow, /if:\s*always\(\)/);
 });
+
+const nightlyWorkflow = readFileSync(
+  path.join(repoRoot, ".github/workflows/molecule-pack-nightly.yml"),
+  "utf8",
+);
+
+test("the nightly molecule pack rebases once onto main before it pushes", () => {
+  const pushStep = nightlyWorkflow.slice(nightlyWorkflow.indexOf("- name: Commit and push the refreshed pack"));
+  const rebase = pushStep.indexOf("git pull --rebase origin main");
+  const push = pushStep.indexOf("git push origin HEAD:main");
+  assert.ok(rebase > 0, "the push step must rebase onto the current main");
+  assert.ok(push > rebase, "the rebase must run before the push");
+  assert.equal(pushStep.match(/git pull --rebase/g)?.length, 1, "the push step rebases exactly once");
+});
+
+test("pack-only commits to main do not start the policy workflow", () => {
+  const pushTrigger = workflow.slice(workflow.indexOf("  push:"), workflow.indexOf("  pull_request:"));
+  assert.match(pushTrigger, /paths-ignore:\n\s+- public\/dosewiki-molecules\.zip\n\s+- public\/dosewiki-molecules\.json/);
+});
