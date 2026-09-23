@@ -67,7 +67,7 @@ describe("runtime client transient retry", () => {
     const lost = new Error("Connection terminated unexpectedly");
     const { pool, sql, releases } = fakePool([{ on: handlerSql.statement, error: lost }]);
     const client = new PostgresClient(pool as never);
-    await expect(client.query("fixture:read" as never)).resolves.toBe("read");
+    await expect(client.query("fixture:read" as never, {} as never)).resolves.toBe("read");
     expect(pool.connect).toHaveBeenCalledTimes(2);
     expect(releases[0]).toHaveBeenCalledWith(lost);
     expect(releases[1]).toHaveBeenCalledWith(undefined);
@@ -85,7 +85,7 @@ describe("runtime client transient retry", () => {
   it("surfaces a read-only query error that is not connection loss", async () => {
     const { pool } = fakePool([{ on: handlerSql.statement, error: sqlStateError("57014") }]);
     const client = new PostgresClient(pool as never);
-    await expect(client.query("fixture:read" as never)).rejects.toThrow("SQLSTATE 57014");
+    await expect(client.query("fixture:read" as never, {} as never)).rejects.toThrow("SQLSTATE 57014");
     expect(pool.connect).toHaveBeenCalledTimes(1);
   });
 
