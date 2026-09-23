@@ -343,15 +343,16 @@ export function useReviewNavigation({
       const target = resolveTraversedLocation(event.state, window.location.href);
       // A traverse out of the workbench entirely — Next owns that entry and
       // will render whatever route it names. Nothing here to reconcile.
-      if (!target.slug) return;
+      const targetSlug = target.slug;
+      if (!targetSlug) return;
       const index = target.index ?? 0;
       if (formDirty && currentSlugRef.current) pushLocation(currentSlugRef.current, viewModeRef.current);
       guardNavigation(() => {
-      if (formDirty) pushLocation(target.slug, target.view, { replace: true });
-      const changedArticle = target.slug !== currentSlugRef.current;
+      if (formDirty) pushLocation(targetSlug, target.view, { replace: true });
+      const changedArticle = targetSlug !== currentSlugRef.current;
       entryIndexRef.current = index;
       clearTickError();
-      setCurrentSlug(target.slug);
+      setCurrentSlug(targetSlug);
       // Session state only, never `updateSettings`: a traverse restores what
       // the entry showed, it is not the reviewer choosing a new default.
       setSettings((previous) =>

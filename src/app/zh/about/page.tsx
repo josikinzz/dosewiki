@@ -76,7 +76,7 @@ export default async function LocalizedAboutPage() {
   ]);
 
   const previewSnapshots = buildAboutPreviewSnapshots(
-    substances.map(({ slug: _slug, ...article }) => article as SubstanceArticle),
+    substances.map(({ slug: _slug, ...article }) => article as unknown as SubstanceArticle),
   );
 
   const chemicalClassCount = chemicalLayout?.categories.length ?? 0;

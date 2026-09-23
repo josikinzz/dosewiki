@@ -17,7 +17,8 @@ import { isDirectUrlOnlySubstance } from "../schema";
 export interface SubstanceLookupEntry {
   slug: string;
   name: string;
-  priority: string;
+  /** Null reads as normal, the same as an article with no stored priority. */
+  priority: string | null;
 }
 
 /**

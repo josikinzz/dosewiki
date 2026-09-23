@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { VCodeRenderer } from "./VCodeRenderer";
 import { extractVCodeHeadings } from "./headings";
+import type { VCodeNode } from "./types";
 
 vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
@@ -224,7 +225,7 @@ describe("VCodeRenderer", () => {
   });
 
   it("anchors headings on the ids the table of contents derives", () => {
-    const content = [
+    const content: VCodeNode[] = [
       { name: "h2", properties: {}, children: ["Duration"] },
       { name: "markdown", properties: { text: "### Notes\n\nBody copy." }, children: [] },
       {

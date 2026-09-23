@@ -425,7 +425,7 @@ export function ThemeLab() {
       const elements =
         typeof document.elementsFromPoint === "function"
           ? document.elementsFromPoint(event.clientX, event.clientY)
-          : [document.elementFromPoint(event.clientX, event.clientY)].filter(Boolean);
+          : [document.elementFromPoint(event.clientX, event.clientY)].filter((element) => element !== null);
       return elements.filter((element) => !isOwn(element));
     };
 

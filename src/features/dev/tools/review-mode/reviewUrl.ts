@@ -57,6 +57,7 @@ export interface ReviewHistoryState {
 
 /** A workbench position as recorded in `history.state`. */
 export interface ReviewHistoryEntry extends ReviewLocation {
+  slug: string;
   index: number | null;
 }
 

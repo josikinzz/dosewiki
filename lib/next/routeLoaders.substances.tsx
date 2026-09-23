@@ -355,7 +355,7 @@ export const loadPsychoactiveSummaryMetadataRoute = cache((summaryPath: readonly
   const definition = getPsychoactiveSummaryDefinition(summaryPath);
   if (!definition) return { kind: "not-found" } as const;
   return {
-    kind: "ok",
+    kind: "ok" as const,
     metadata: {
       title: definition.metadataTitle,
       description: definition.metadataDescription,

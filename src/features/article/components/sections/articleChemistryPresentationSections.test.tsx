@@ -323,6 +323,7 @@ describe("article chemistry presentation sections", () => {
     article.identification.common_name = "Legacy Article";
     article.summary = "Opening summary for a reader who needs orientation.";
     article.identification.substitutive_name = "Legacy substitutive name";
+    if (!article.harm_potential) throw new Error("Expected the empty article to carry harm potential.");
     article.harm_potential.summary = "Risk summary.";
     article.interactions.dangerous = ["MAOIs"];
     article.legality.countries = {
@@ -381,7 +382,7 @@ describe("article chemistry presentation sections", () => {
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
-        moleculeAsset={null}
+        moleculeAsset={undefined}
         showPreviewBadge={false}
       />,
     );

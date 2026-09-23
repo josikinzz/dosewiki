@@ -8,7 +8,7 @@ import type {
 
 export const SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS = 3;
 
-export function hasEffects(category: EffectCategory | undefined): boolean {
+export function hasEffects(category: EffectCategory | null | undefined): boolean {
   if (!category || typeof category !== "object") return false;
   return Object.values(category).some(
     (subcategory) =>

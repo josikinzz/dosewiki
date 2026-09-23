@@ -30,7 +30,7 @@ function Harness({
   );
 }
 
-function renderInput(initial = { min: 10, max: 20, unit: "mg" }) {
+function renderInput(initial: { min: number | null; max: number | null; unit: string } = { min: 10, max: 20, unit: "mg" }) {
   const seen: unknown[] = [];
   render(<Harness initial={initial} onValue={(value) => seen.push(value)} />);
   return {

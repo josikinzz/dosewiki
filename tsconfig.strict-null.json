@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictNullChecks": true
   },
-  "include": ["next-env.d.ts", "src/types/next-auth.d.ts", "src/types/raw-modules.d.ts", "src/test/setup.ts", "src/data", "src/hooks", "src/lib", "src/schema", "src/utils", "lib", "server"]
+  "include": ["next-env.d.ts", "src", "lib", "server"]
 }

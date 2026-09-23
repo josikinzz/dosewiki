@@ -178,7 +178,7 @@ describe("content status", () => {
       makeArticle({
         dosage: { routes: [scaffoldDoseRoute("oral")] },
         duration: { routes: [] },
-      } as Partial<CoverageArticleInput>),
+      } as unknown as Partial<CoverageArticleInput>),
       columns,
     );
 

@@ -276,7 +276,7 @@ describe("public prose render", () => {
 
 describe("hero inline editing", () => {
   it("wires the title and the identification names", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(
       <HeroSection article={buildProseArticle()} showPreviewBadge={false} />,
       commit,
@@ -296,7 +296,7 @@ describe("hero inline editing", () => {
   });
 
   it("edits the summary as one field, first word included", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     const user = userEvent.setup();
     editingSurface(
       <HeroSection article={buildProseArticle()} showPreviewBadge={false} />,
@@ -323,7 +323,7 @@ describe("hero inline editing", () => {
   });
 
   it("offers a prompt for each hero field the article is missing", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(
       <HeroSection article={buildSparseArticle()} showPreviewBadge={false} />,
       commit,
@@ -351,7 +351,7 @@ describe("hero inline editing", () => {
 
 describe("tolerance inline editing", () => {
   it("keeps the three tolerance strings wired and adds the cross-tolerance entries", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<ToleranceSection article={buildProseArticle()} />, commit);
 
     await editField("Full Tolerance", "Four doses.");
@@ -364,7 +364,7 @@ describe("tolerance inline editing", () => {
   });
 
   it("prompts for the tolerance strings an article is missing", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<ToleranceSection article={buildSparseArticle()} />, commit);
 
     await editField("Half Tolerance", "Three days.");
@@ -379,7 +379,7 @@ describe("tolerance inline editing", () => {
 
 describe("subjective effects inline editing", () => {
   it("wires the family notes, the sense note, and the subcategory note", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<SubjectiveEffectsSection article={buildProseArticle()} />, commit);
 
     await editField("Subjective effects overview", "Dose dependent.");
@@ -402,7 +402,7 @@ describe("subjective effects inline editing", () => {
   });
 
   it("encodes a progressive-stage key that contains a dot", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<SubjectiveEffectsSection article={buildProseArticle()} />, commit);
 
     await editField("1. Taking Off note", "The first half hour.");
@@ -418,7 +418,7 @@ describe("subjective effects inline editing", () => {
 
   it("seeds the overview editor from the stored note, not the fallback sentence", async () => {
     const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     const { container } = editingSurface(
       <SubjectiveEffectsSection article={buildSparseArticle()} />,
       commit,
@@ -442,7 +442,7 @@ describe("subjective effects inline editing", () => {
   });
 
   it("prompts for the notes a rendered group is missing", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<SubjectiveEffectsSection article={buildSparseArticle()} />, commit);
 
     await editField("Physical effects note", "Sedating.");
@@ -457,7 +457,7 @@ describe("subjective effects inline editing", () => {
   });
 
   it("leaves the effect chips alone", () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     const { container } = editingSurface(
       <SubjectiveEffectsSection article={buildProseArticle()} />,
       commit,
@@ -481,7 +481,7 @@ describe("subjective effects inline editing", () => {
 describe("pharmacology inline editing", () => {
   it("edits pharmacodynamics as one block and pharmacokinetics one to one", async () => {
     const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<PharmacologySection article={buildProseArticle()} />, commit);
 
     await user.click(screen.getByRole("button", { name: "Edit Pharmacodynamics" }));
@@ -504,7 +504,7 @@ describe("pharmacology inline editing", () => {
   });
 
   it("never offers borrowed summary prose as a pharmacodynamics edit", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     const { container } = editingSurface(
       <PharmacologySection article={buildSparseArticle()} />,
       commit,
@@ -529,7 +529,7 @@ describe("pharmacology inline editing", () => {
   });
 
   it("prompts for pharmacokinetics when the text on screen is legacy metabolism", async () => {
-    const commit = vi.fn(async (_path: string, value: string, _expected?: string) => value);
+    const commit = vi.fn(async (_path: string, value: string, _expected: string) => value);
     editingSurface(<PharmacologySection article={buildSparseArticle()} />, commit);
 
     await editField("Pharmacokinetics", "Hepatic metabolism, renal excretion.");

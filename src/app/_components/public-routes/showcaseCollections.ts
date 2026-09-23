@@ -62,7 +62,7 @@ export const getSubstanceShowcaseWorks = cache(
     ]);
     if (!substance) return null;
     // Same projection the article view model applies before rendering.
-    const article = substance as SubstanceArticle;
+    const article = substance as unknown as SubstanceArticle;
 
     // Bylines link the Artist Page when the work proves one exists; the
     // profile resolver below is only the fallback for works withheld from

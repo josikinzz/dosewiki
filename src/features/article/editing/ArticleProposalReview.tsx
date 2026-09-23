@@ -49,8 +49,8 @@ export function ArticleProposalReview({ proposals, slug, canApprove, blocked, on
     catch (failure) { setError(failure instanceof Error ? failure.message : "The proposal operation was not confirmed. Refresh its status before retrying."); }
     finally { setPending(null); }
   };
-  const article = proposal?.targets.length === 1 && proposal.targets[0].kind === "article" && proposal.targets[0].key === slug && proposal.payload.articles?.length === 1
-    ? proposal.payload.articles[0] : proposal?.payload.articles?.find((item) => item.slug === slug);
+  const article = proposal?.targets.length === 1 && proposal.targets[0].kind === "article" && proposal.targets[0].key === slug && proposal.payload?.articles?.length === 1
+    ? proposal.payload.articles[0] : proposal?.payload?.articles?.find((item) => item.slug === slug);
   const singleArticle = !!article && proposal?.targets.length === 1 && proposal.targets[0].kind === "article";
   const reviewDecision = (action: "approve" | "reject" | "revert") => {
     if (!proposal || !canApprove || blocked || (action === "approve" && proposal.isAuthor)) return;

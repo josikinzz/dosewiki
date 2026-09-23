@@ -444,7 +444,7 @@ export default async function DocsHowPage() {
   ]);
   // Same sample-record preview the About page shows, narrowed to the substance file and molecule pack.
   const previewSnapshots = buildAboutPreviewSnapshots(
-    previewSubstances.map(({ slug: _slug, ...article }) => article as SubstanceArticle),
+    previewSubstances.map(({ slug: _slug, ...article }) => article as unknown as SubstanceArticle),
   );
   const toc = TOC.map((entry) => ({
     ...entry,

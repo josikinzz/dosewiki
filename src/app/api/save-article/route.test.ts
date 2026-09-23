@@ -68,7 +68,7 @@ function withBatch(client: { mutation: ReturnType<typeof vi.fn>; query: ReturnTy
     if (name !== "saveArticleBatch.save") return nested(name, args);
     const articleResult = Array.isArray(args.articles) && args.articles.length
       ? await nested("substanceIndex.saveSubstances", { apiKey: args.apiKey, actorEmail: args.actorEmail, articles: args.articles }) : null;
-    const layoutResults = [];
+    const layoutResults: Array<{ type: unknown; receipt: unknown }> = [];
     for (const layout of (args.indexLayouts ?? []) as Array<Record<string, unknown>>) {
       const receipt = await nested("indexLayouts.save", { apiKey: args.apiKey, actorEmail: args.actorEmail, ...layout });
       layoutResults.push({ type: layout.type, receipt });

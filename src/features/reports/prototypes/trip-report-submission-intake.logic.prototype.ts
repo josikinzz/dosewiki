@@ -310,7 +310,7 @@ function findSubmission(state: IntakeState, id: string): TripReportSubmissionRow
   return state.submissions.find((row) => row.id === id);
 }
 
-function normalizeInput(input: SubmissionFormInput): SubmissionFormInput {
+function normalizeInput(input: SubmissionFormInput): SubmissionFormInput & { honeypot: string } {
   return {
     ...input,
     contact_email: emptyToUndefined(trim(input.contact_email)),

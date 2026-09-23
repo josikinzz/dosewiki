@@ -293,7 +293,7 @@ function emptyRouteTally(): RouteTally {
 
 function tallyRoutes<T extends { route?: string | null }>(
   routes: readonly T[] | null | undefined,
-  hasContent: (route: T) => boolean,
+  hasContent: (route: NoInfer<T>) => boolean,
   side: keyof RouteTally,
   into: Map<string, RouteTally>,
 ): void {

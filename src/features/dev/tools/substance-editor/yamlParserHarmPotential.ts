@@ -139,7 +139,7 @@ function normalizeCarcinogenicityEvidence(
   raw: unknown,
 ): CarcinogenicityDetails["evidence"] {
   if (typeof raw === "string" && raw) {
-    return raw as CarcinogenicityDetails["evidence"];
+    return raw as unknown as CarcinogenicityDetails["evidence"];
   }
 
   const evidence = getObject(raw);
@@ -230,7 +230,7 @@ function normalizeDependenceField(raw: unknown): Addiction["psychological"] | un
   }
 
   return {
-    level: item.level as Addiction["psychological"]["level"],
+    level: item.level as NonNullable<Addiction["psychological"]>["level"],
     description: getString(item.description),
   };
 }

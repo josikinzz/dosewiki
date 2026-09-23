@@ -254,10 +254,11 @@ export function ReplicationViewerOverlay({
     session: ViewerSession;
   } | null>(null);
   const previousSessionHolder = sessionHolderRef.current;
+  let sessionHolder = previousSessionHolder;
   if (
-    !previousSessionHolder ||
-    previousSessionHolder.historyAdapter !== historyAdapter ||
-    previousSessionHolder.sourcePath !== sourceCollection.sourcePath
+    !sessionHolder ||
+    sessionHolder.historyAdapter !== historyAdapter ||
+    sessionHolder.sourcePath !== sourceCollection.sourcePath
   ) {
     const previousPosition = previousSessionHolder?.session.snapshot().position;
     const sessionInitialSlug = previousPosition
@@ -277,7 +278,7 @@ export function ReplicationViewerOverlay({
       viewerStateActive: () =>
         window.history.state?.replicationViewer === true,
     };
-    sessionHolderRef.current = {
+    sessionHolder = {
       collection: sourceCollection,
       historyAdapter,
       sourcePath: sourceCollection.sourcePath,
@@ -295,8 +296,9 @@ export function ReplicationViewerOverlay({
         },
       }),
     };
+    sessionHolderRef.current = sessionHolder;
   }
-  const session = sessionHolderRef.current.session;
+  const session = sessionHolder.session;
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
