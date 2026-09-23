@@ -16,7 +16,7 @@ type StatusBody = {
 type FeedbackStatusStore<Status extends string> = {
   transition(
     id: string,
-    options: { status: Status; reviewer: string; actorEmail: string; note?: string },
+    options: { status: Status; actorEmail: string; note?: string },
   ): Promise<unknown>;
 };
 
@@ -63,7 +63,6 @@ export function feedbackStatusRoute<Status extends string>(
       const store = await options.getStore();
       const feedback = await store.transition(id, {
         status,
-        reviewer: auth.session.user.email,
         actorEmail: auth.session.user.email,
         note,
       });

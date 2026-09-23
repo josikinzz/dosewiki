@@ -6,7 +6,6 @@ import {
   createTripReportSubmission,
   validateTripReportSubmission,
   type DataTripReportImportPayload,
-  type TransitionTripReportSubmissionOptions,
   type TripReportSubmissionInput,
   type TripReportSubmissionRow,
   type TripReportSubmissionStatus,
@@ -57,6 +56,12 @@ export type TripReportSubmissionPromotionResult = {
   suggestedOwner: { email: string; username?: string } | null;
 };
 
+/** A status change; Postgres stamps the reviewer from the resolved actor. */
+export type TripReportSubmissionStatusChange = {
+  status: TripReportSubmissionStatus;
+  notes?: string;
+};
+
 /** The signed-in member a route acts as; Postgres resolves their real role from it. */
 export type TripReportSubmissionActor = {
   actorEmail: string;
@@ -84,15 +89,15 @@ export interface TripReportSubmissionStore {
   get(id: string): Promise<TripReportSubmissionRow | null>;
   transition(
     id: string,
-    options: TransitionTripReportSubmissionOptions & TripReportSubmissionActor,
+    options: TripReportSubmissionStatusChange & TripReportSubmissionActor,
   ): Promise<TripReportSubmissionRow>;
   previewPromotion(
     id: string,
-    options?: TripReportSubmissionPromotionOptions & { reviewer?: string; actorEmail?: string },
+    options?: TripReportSubmissionPromotionOptions & { actorEmail?: string },
   ): Promise<TripReportSubmissionPromotionPreviewResult>;
   promote(
     id: string,
-    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions &
+    options: { notes?: string } & TripReportSubmissionPromotionOptions &
       TripReportSubmissionActor,
   ): Promise<TripReportSubmissionPromotionResult>;
 }
@@ -154,7 +159,6 @@ const transitionSubmissionRef = makeFunctionReference<
     actorEmail: string;
     id: string;
     status: TripReportSubmissionStatus;
-    reviewer: string;
     notes?: string;
   },
   TripReportSubmissionRow
@@ -167,7 +171,6 @@ const previewPromotionRef = makeFunctionReference<
     actorEmail?: string;
     id: string;
     profileKey?: string;
-    reviewer?: string;
     confirmAuthorNameClaim?: boolean;
   },
   TripReportSubmissionPromotionPreviewResult
@@ -179,7 +182,6 @@ const promoteSubmissionRef = makeFunctionReference<
     apiKey: string;
     actorEmail: string;
     id: string;
-    reviewer: string;
     notes?: string;
     profileKey?: string;
     confirmAuthorNameClaim?: boolean;
@@ -262,7 +264,7 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
 
   async transition(
     id: string,
-    options: TransitionTripReportSubmissionOptions & TripReportSubmissionActor,
+    options: TripReportSubmissionStatusChange & TripReportSubmissionActor,
   ): Promise<TripReportSubmissionRow> {
     try {
       return await this.options.client.mutation(transitionSubmissionRef, {
@@ -270,7 +272,6 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
         actorEmail: options.actorEmail,
         id,
         status: options.status,
-        reviewer: options.reviewer,
         ...(options.notes !== undefined ? { notes: options.notes } : {}),
       }) as TripReportSubmissionRow;
     } catch (error) {
@@ -280,7 +281,7 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
 
   async previewPromotion(
     id: string,
-    options: TripReportSubmissionPromotionOptions & { reviewer?: string; actorEmail?: string } = {},
+    options: TripReportSubmissionPromotionOptions & { actorEmail?: string } = {},
   ): Promise<TripReportSubmissionPromotionPreviewResult> {
     try {
       return await this.options.client.query(previewPromotionRef, {
@@ -288,7 +289,6 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
         ...(options.actorEmail ? { actorEmail: options.actorEmail } : {}),
         id,
         ...(options.profileKey ? { profileKey: options.profileKey } : {}),
-        ...(options.reviewer ? { reviewer: options.reviewer } : {}),
         ...(options.confirmAuthorNameClaim ? { confirmAuthorNameClaim: true } : {}),
       }) as TripReportSubmissionPromotionPreviewResult;
     } catch (error) {
@@ -298,7 +298,7 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
 
   async promote(
     id: string,
-    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions &
+    options: { notes?: string } & TripReportSubmissionPromotionOptions &
       TripReportSubmissionActor,
   ): Promise<TripReportSubmissionPromotionResult> {
     try {
@@ -306,7 +306,6 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
         apiKey: this.options.apiKey,
         actorEmail: options.actorEmail,
         id,
-        reviewer: options.reviewer,
         ...(options.notes !== undefined ? { notes: options.notes } : {}),
         ...(options.profileKey ? { profileKey: options.profileKey } : {}),
         ...(options.confirmAuthorNameClaim ? { confirmAuthorNameClaim: true } : {}),

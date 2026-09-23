@@ -87,7 +87,6 @@ describe("trip report submission promotion route", () => {
     expect(mocks.storePreviewPromotion).toHaveBeenCalledWith("submission-1", {
       profileKey: undefined,
       confirmAuthorNameClaim: false,
-      reviewer: "editor@example.com",
       actorEmail: "editor@example.com",
     });
     expect(mocks.storePromote).not.toHaveBeenCalled();
@@ -114,7 +113,6 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: undefined,
@@ -186,7 +184,6 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: "ada",
@@ -252,7 +249,6 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: undefined,

@@ -59,7 +59,6 @@ describe("trip report submission status route", () => {
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(mocks.storeTransition).toHaveBeenCalledWith("submission-1", {
       status: "accepted",
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Good candidate.",
     });

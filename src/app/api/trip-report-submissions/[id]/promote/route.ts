@@ -53,7 +53,6 @@ export async function POST(request: Request, context: PromoteRouteContext) {
       const result = await store.previewPromotion(id, {
         profileKey,
         confirmAuthorNameClaim,
-        reviewer: auth.session.user.email,
         actorEmail: auth.session.user.email,
       });
       return NextResponse.json({
@@ -69,7 +68,6 @@ export async function POST(request: Request, context: PromoteRouteContext) {
     }
 
     const result = await store.promote(id, {
-      reviewer: auth.session.user.email,
       actorEmail: auth.session.user.email,
       notes: "Published from accepted trip report submission.",
       profileKey,

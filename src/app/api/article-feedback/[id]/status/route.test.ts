@@ -56,7 +56,6 @@ describe("article feedback status route", () => {
     expect(mocks.getArticleFeedbackStore).toHaveBeenCalledTimes(1);
     expect(mocks.transition).toHaveBeenCalledWith("feedback-1", {
       status: "resolved",
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       note: "Fixed the duration table.",
     });

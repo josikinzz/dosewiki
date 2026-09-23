@@ -46,7 +46,6 @@ export async function POST(request: Request, context: StatusRouteContext) {
     const store = await getTripReportSubmissionStore();
     const submission = await store.transition(id, {
       status,
-      reviewer: auth.session.user.email,
       actorEmail: auth.session.user.email,
       notes,
     });

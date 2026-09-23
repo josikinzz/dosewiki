@@ -193,7 +193,6 @@ describe("DataTripReportSubmissionStore", () => {
     await expect(store.list({ status: "submitted", limit: 25 })).resolves.toHaveLength(1);
     await expect(
       store.previewPromotion("submission-1", {
-        reviewer: "editor@example.com",
         actorEmail: "editor@example.com",
       }),
     ).resolves.toMatchObject({
@@ -204,7 +203,6 @@ describe("DataTripReportSubmissionStore", () => {
     });
     await expect(
       store.promote("submission-1", {
-        reviewer: "admin@example.com",
         actorEmail: "admin@example.com",
         notes: "Published from accepted submission.",
         profileKey: "ADA",
@@ -217,7 +215,6 @@ describe("DataTripReportSubmissionStore", () => {
     await expect(
       store.transition("submission-1", {
         status: "accepted",
-        reviewer: "admin@example.com",
         actorEmail: "admin@example.com",
       }),
     ).resolves.toMatchObject({ id: "submission-1" });
@@ -231,7 +228,6 @@ describe("DataTripReportSubmissionStore", () => {
           apiKey: "test-key",
           actorEmail: "editor@example.com",
           id: "submission-1",
-          reviewer: "editor@example.com",
         },
       ],
       [
@@ -241,7 +237,6 @@ describe("DataTripReportSubmissionStore", () => {
           apiKey: "test-key",
           actorEmail: "admin@example.com",
           id: "submission-1",
-          reviewer: "admin@example.com",
           notes: "Published from accepted submission.",
           profileKey: "ADA",
           confirmAuthorNameClaim: true,
@@ -255,7 +250,6 @@ describe("DataTripReportSubmissionStore", () => {
           actorEmail: "admin@example.com",
           id: "submission-1",
           status: "accepted",
-          reviewer: "admin@example.com",
         },
       ],
     ]);

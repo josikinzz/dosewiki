@@ -192,7 +192,7 @@ describe("tripReportSubmissions.promote ownership", () => {
       tripReportSubmissions: [{ ...submission, contact_email: "Owner@Example.com " }],
     });
 
-    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin" });
+    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1" });
 
     expect(rowsOf("tripReports").get(result.reportId)).not.toHaveProperty("owner_email");
     expect(result.suggestedOwner).toEqual({ email: "owner@example.com", username: "nervewing" });
@@ -204,7 +204,7 @@ describe("tripReportSubmissions.promote ownership", () => {
       tripReportSubmissions: [{ ...submission, contact_email: "owner@example.com" }],
     });
 
-    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin" });
+    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1" });
     const assigned = await assignOwnerHandler(ctx, {
       ...as("admin@example.com"),
       slug: result.payload.slug,
@@ -224,8 +224,8 @@ describe("tripReportSubmissions.promote ownership", () => {
       ],
     });
 
-    const first = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin" });
-    const second = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-2", reviewer: "Admin" });
+    const first = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1" });
+    const second = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-2" });
 
     expect(rowsOf("tripReports").get(first.reportId)).not.toHaveProperty("owner_email");
     expect(rowsOf("tripReports").get(second.reportId)).not.toHaveProperty("owner_email");
@@ -410,7 +410,7 @@ describe("trip report attribution boundary", () => {
     const seed = () =>
       createCtx({ memberships: [admin], contributorProfiles: [profile], tripReportSubmissions: [submission] });
     const promote = (db: FakeDb, extra: Record<string, unknown> = {}) =>
-      promoteHandler(db.ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin", ...extra });
+      promoteHandler(db.ctx, { ...as("admin@example.com"), id: "sub-1", ...extra });
 
     await expect(promote(seed())).rejects.toThrow(/matches contributor profile "NERVEWING"/);
     await expect(promote(seed(), { profileKey: "UNKNOWN" })).rejects.toThrow(/Contributor profile "UNKNOWN" not found/);

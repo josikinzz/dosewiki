@@ -56,7 +56,6 @@ describe("site feedback status route", () => {
     expect(mocks.getSiteFeedbackStore).toHaveBeenCalledTimes(1);
     expect(mocks.transition).toHaveBeenCalledWith("feedback-1", {
       status: "resolved",
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       note: "Search focus bug shipped in 1.4.",
     });

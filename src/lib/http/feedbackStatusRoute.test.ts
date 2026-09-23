@@ -94,7 +94,6 @@ describe("feedbackStatusRoute", () => {
     });
     expect(transition).toHaveBeenCalledWith("feedback-1", {
       status: "resolved",
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       note: "Fixed.",
     });
@@ -109,7 +108,6 @@ describe("feedbackStatusRoute", () => {
     for (const call of transition.mock.calls) {
       expect(call[1]).toEqual({
         status: "reviewing",
-        reviewer: "admin@example.com",
         actorEmail: "admin@example.com",
         note: undefined,
       });

@@ -2,6 +2,7 @@ import { v } from "../lib/postgres/runtime/values";
 import { query, type MutationCtx, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
+import { auditStampFor } from "./lib/auditStamp";
 import {
   assertAuthorNameClaimAdjudicated,
   resolveEditorAssignedProfileKey,
@@ -306,12 +307,11 @@ export const transition = mutation({
     actorEmail: v.optional(v.string()),
     id: v.string(),
     status: statusValidator,
-    reviewer: v.string(),
     notes: v.optional(v.string()),
   },
   returns: submissionRowValidator,
   handler: async (ctx, args) => {
-    await requireRole(
+    const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
       "admin",
@@ -325,7 +325,8 @@ export const transition = mutation({
     const timestamp = new Date().toISOString();
     const patch = {
       status: args.status,
-      reviewed_by: args.reviewer,
+      // The resolved actor, never a caller-supplied name.
+      reviewed_by: auditStampFor(actor, undefined),
       reviewed_at: timestamp,
       updated_at: timestamp,
       ...(args.notes !== undefined ? { review_notes: args.notes } : {}),
@@ -344,12 +345,11 @@ export const previewPromotion = query({
     profileKey: v.optional(v.string()),
     // Preview runs the same attribution guard as promote, so an editor meets a
     // name collision before publishing rather than at the publish click.
-    reviewer: v.optional(v.string()),
     confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   returns: promotionPreviewValidator,
   handler: async (ctx, args) => {
-    await requireRole(
+    const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
       "editor",
@@ -358,7 +358,7 @@ export const previewPromotion = query({
     const doc = await requireSubmission(ctx, args.id);
     assertPromotable(doc);
     const payload = await buildPromotionPayload(ctx, doc, {
-      reviewer: args.reviewer ?? "",
+      reviewer: auditStampFor(actor, undefined),
       requestedProfileKey: args.profileKey,
       confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
     });
@@ -376,23 +376,24 @@ export async function promoteHandler(
     apiKey: string;
     actorEmail?: string;
     id: string;
-    reviewer: string;
     notes?: string;
     profileKey?: string;
     confirmAuthorNameClaim?: boolean;
   },
 ) {
-  await requireRole(
+  const actor = await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
     "admin",
   );
+  // The resolved actor, never a caller-supplied name.
+  const reviewer = auditStampFor(actor, undefined);
 
   const doc = await requireSubmission(ctx, args.id);
   assertPromotable(doc);
 
   const payload = await buildPromotionPayload(ctx, doc, {
-    reviewer: args.reviewer,
+    reviewer,
     requestedProfileKey: args.profileKey,
     confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
   });
@@ -404,7 +405,7 @@ export async function promoteHandler(
   const timestamp = new Date().toISOString();
   const patch = {
     status: "exported" as const,
-    reviewed_by: args.reviewer,
+    reviewed_by: reviewer,
     reviewed_at: timestamp,
     updated_at: timestamp,
     exported_at: timestamp,
@@ -428,7 +429,6 @@ export const promote = mutation({
     apiKey: v.string(),
     actorEmail: v.optional(v.string()),
     id: v.string(),
-    reviewer: v.string(),
     notes: v.optional(v.string()),
     // Contributor attribution is an editor decision made here, never something
     // the submission carries in from the public form.
