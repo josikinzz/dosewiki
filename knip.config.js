@@ -20,6 +20,7 @@ const lineageProducers = JSON.parse(readFileSync("data/lineage.json", "utf8"))
 const allowlistedScripts = [
   "scripts/security/scan-secrets.mjs", // CI and the pre-commit hook
   "scripts/deploy/check-build-command-wiring.mjs", // CI
+  "scripts/build/build-surface-cli.mjs", // remote-build.yml and vercel-policy-checks.yml
   "scripts/replications/archive-replication-masters.mjs", // docs/operations/replication-media-delivery.md
   "scripts/replications/transcode-videos.mjs", // docs/operations/replication-media-delivery.md
   "scripts/replications/build-local-r2-upload-plan.mjs", // tested local R2 upload tooling

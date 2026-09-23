@@ -6,7 +6,12 @@ import {
 } from "./scripts/build/editor-artifact-audit.mjs";
 // The legacy redirect table lives in its own module so application code (the Discord
 // page) can read the invite URL from it without importing this config.
-import { resolveBuildDirectory, resolveBuildSurface } from "./scripts/build/build-surface.mjs";
+import {
+  normalizeSiteFlavor,
+  resolveBuildDirectory,
+  resolveBuildSurface,
+  resolvePrebuiltDeploymentId,
+} from "./scripts/build/build-surface.mjs";
 import { resolveBuildConcurrency } from "./lib/next/buildConcurrency";
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
@@ -41,10 +46,10 @@ if (
  * live. The stylesheet alias also keeps each publication's inert, flavor-scoped CSS out of
  * the other publication's critical CSS payload.
  *
- * The flavor normalisation below mirrors `resolveSiteFlavor()` in
- * `src/config/siteFlavor.ts`, which is the source of truth everywhere else. This file
- * cannot import it: the config loader cannot resolve `next/navigation`, which that module
- * pulls in for its route guard. The two flavor builds exercise both branches.
+ * The flavor comes from `normalizeSiteFlavor()` in scripts/build/build-surface.mjs, the
+ * same normaliser `resolveSiteFlavor()` in `src/config/siteFlavor.ts` wraps. This file
+ * cannot import siteFlavor.ts itself: the config loader cannot resolve `next/navigation`,
+ * which that module pulls in for its route guard.
  */
 const SITE_FONT_MODULES = {
   dosewiki: "./src/app/_fonts/dosewiki.ts",
@@ -59,10 +64,7 @@ const SITE_STYLE_MODULES = {
 // The editor surface layers the dev tool chrome over the dose.wiki entry; see the module.
 const EDITOR_STYLE_MODULE = "./src/app/_styles/dosewiki-editor.ts";
 
-const siteFlavor =
-  process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() === "effectindex"
-    ? "effectindex"
-    : "dosewiki";
+const siteFlavor = normalizeSiteFlavor(process.env.NEXT_PUBLIC_SITE_FLAVOR);
 const siteFontModule = SITE_FONT_MODULES[siteFlavor];
 const siteStyleModule =
   editorBuild && siteFlavor === "dosewiki" ? EDITOR_STYLE_MODULE : SITE_STYLE_MODULES[siteFlavor];
@@ -99,7 +101,7 @@ const effectCategoryRouteAliases = {
 // at build time, so it names its own for skew protection. The server must keep
 // serving that ID at request time too: Vercel's runtime ID would stamp preload
 // links that disagree with the font URLs compiled into the CSS.
-const prebuiltDeploymentId = process.env.DOSEWIKI_PREBUILT_DEPLOYMENT_ID?.trim() || undefined;
+const prebuiltDeploymentId = resolvePrebuiltDeploymentId();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

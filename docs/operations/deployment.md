@@ -10,6 +10,14 @@ This is the current authority for Vercel project routing, build separation, requ
 | Editor DoseWiki | `dosewiki-admin`     | `dev.dose.wiki`, `dosewiki-admin.vercel.app` | `DOSEWIKI_BUILD_SURFACE=editor`, DoseWiki flavor       | Only project allowed to carry the general admin and editorial write credential tier |
 | Effect Index    | Effect Index project | `effectindex.com`                            | public artifact, `NEXT_PUBLIC_SITE_FLAVOR=effectindex` | Credential-free and read-only                                                       |
 
+The release artifact names `public`, `editor`, and `effectindex` map to these
+rows in `scripts/build/build-surface.mjs`, which derives every build fact from
+the name: surface, flavor, build directory, cron ownership, the build inputs a
+prebuilt upload keeps, its skew-protection ID, and its `.vercelignore` repair.
+`next.config.ts`, `src/config/siteFlavor.ts`, the deploy scripts, and both
+build workflows (through `scripts/build/build-surface-cli.mjs`) read it; change
+the mapping there, not in workflow shell.
+
 Only the public DoseWiki build prerenders substance articles, and only the
 English high and normal tiers (`lib/next/prerenderPolicy.ts`). The editor
 build, the Effect Index build, and every locale mirror render substance
@@ -110,12 +118,14 @@ Limits of the remote path, observed on its first runs:
 - A prebuilt upload drops function files `.vercelignore` excludes unless they
   sit under a default output path such as `.next`. The editor builds into
   `.next-editor`, so the workflow removes the `.next-*/` rule in its own
-  checkout before deploying; without that, Vercel fails with `ENOENT ...
+  checkout before deploying (`build-surface-cli.mjs
+  unignore-build-directories`); without that, Vercel fails with `ENOENT ...
   .next-editor/package.json`.
 - A prebuilt upload has no platform deployment ID at build time, so skew
   protection would be off: chunk URLs lose their `?dpl=` and a reader still
   on the previous version loads mismatched files after promotion. The
-  workflow sets `DOSEWIKI_PREBUILT_DEPLOYMENT_ID=gh-<run id>-<attempt>`, and
+  workflow sets `DOSEWIKI_PREBUILT_DEPLOYMENT_ID=gh-<run id>-<attempt>`
+  (named and adopted by `scripts/build/build-surface.mjs`), and
   `next.config.ts` uses it as a custom skew-protection ID at build and at
   request time. Setting `NEXT_DEPLOYMENT_ID` instead is not enough: pages
   rendered on request then take Vercel's own ID, so their font preloads miss

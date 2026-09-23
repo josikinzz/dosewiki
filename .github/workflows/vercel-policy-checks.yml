@@ -153,19 +153,18 @@ jobs:
       max-parallel: 1
       fail-fast: true
       matrix:
-        include:
-          - artifact: public
-            surface: public
-            flavor: dosewiki
-          - artifact: editor
-            surface: editor
-            flavor: dosewiki
-          - artifact: effectindex
-            surface: public
-            flavor: effectindex
+        artifact: [public, editor, effectindex]
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # scripts/build/build-surface.mjs derives the build surface and flavor
+      # from the artifact name, the same table the remote build workflow reads.
+      - name: Resolve the artifact's build surface and flavor
+        id: artifact
+        env:
+          ARTIFACT: ${{ matrix.artifact }}
+        run: node scripts/build/build-surface-cli.mjs outputs "$ARTIFACT" | tee -a "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
@@ -184,8 +183,8 @@ jobs:
           DATA_WRITES_FROZEN: "1"
           POSTGRES_POOLED_URL: ${{ secrets.POSTGRES_POOLED_READONLY_URL }}
           REPLICATION_MEDIA_BASE_URL: ${{ vars.REPLICATION_MEDIA_BASE_URL }}
-          DOSEWIKI_BUILD_SURFACE: ${{ matrix.surface }}
-          NEXT_PUBLIC_SITE_FLAVOR: ${{ matrix.flavor }}
+          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
+          NEXT_PUBLIC_SITE_FLAVOR: ${{ steps.artifact.outputs.flavor }}
           DOSEWIKI_BUILD_DIR: .next-release-${{ matrix.artifact }}
         run: |
           test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }

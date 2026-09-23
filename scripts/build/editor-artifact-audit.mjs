@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import nextEnv from "@next/env";
+import { resolveBuildDirectory, resolveBuildSurface } from "./build-surface.mjs";
 import { isDataBrowserClient, isEditorOnly } from "./public-editor-boundary.mjs";
 
 let serverRuntimeIncludes;
@@ -110,8 +111,7 @@ export function verifyCompletedArtifact(directory, surface) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   nextEnv.loadEnvConfig(process.cwd(), false);
-  const surface = process.env.DOSEWIKI_BUILD_SURFACE ?? "public";
-  if (surface !== "public" && surface !== "editor") throw new Error("Choose a public or editor build surface.");
-  const directory = process.env.DOSEWIKI_BUILD_DIR ?? (surface === "editor" ? ".next-editor" : ".next");
-  verifyCompletedArtifact(path.resolve(directory), surface);
+  // `next build` ran with NODE_ENV=production, so resolve as that build did.
+  const buildEnv = { ...process.env, NODE_ENV: "production" };
+  verifyCompletedArtifact(path.resolve(resolveBuildDirectory(buildEnv)), resolveBuildSurface(buildEnv));
 }

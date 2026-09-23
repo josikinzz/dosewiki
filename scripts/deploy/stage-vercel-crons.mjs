@@ -9,15 +9,13 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { resolveArtifact } from "../build/build-surface.mjs";
 
 const WRITER_CRON_PREFIX = "/api/cron/";
-const SURFACES = new Set(["public", "editor", "effectindex"]);
 
-export function stageCronsForSurface(config, surface) {
-  if (!SURFACES.has(surface)) {
-    throw new Error(`Unknown surface ${surface}; expected public, editor, or effectindex`);
-  }
-  const keepWriters = surface === "editor";
+export function stageCronsForArtifact(config, artifact) {
+  // Throws on an unknown artifact name; ownership comes from artifact identity.
+  const keepWriters = resolveArtifact(artifact).ownsWriterCrons;
   const crons = (config.crons ?? []).filter(
     (cron) => cron.path.startsWith(WRITER_CRON_PREFIX) === keepWriters,
   );
@@ -25,8 +23,8 @@ export function stageCronsForSurface(config, surface) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const [surface, file = "vercel.json"] = process.argv.slice(2);
-  const staged = stageCronsForSurface(JSON.parse(readFileSync(file, "utf8")), surface);
+  const [artifact, file = "vercel.json"] = process.argv.slice(2);
+  const staged = stageCronsForArtifact(JSON.parse(readFileSync(file, "utf8")), artifact);
   writeFileSync(file, `${JSON.stringify(staged, null, 2)}\n`);
   for (const cron of staged.crons) console.log(`${cron.schedule}\t${cron.path}`);
 }

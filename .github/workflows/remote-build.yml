@@ -89,22 +89,14 @@ jobs:
       - name: Check for secrets in codebase
         run: node scripts/security/scan-secrets.mjs --tracked
 
-      # The surface input names an artifact; the build surface and flavor are the
-      # two environment values next.config.ts reads, and the build directory
-      # comes from the same module next.config.ts uses to choose it.
+      # The surface input names an artifact. scripts/build/build-surface.mjs, the
+      # module next.config.ts reads, derives its build surface, flavor, build
+      # directory, and this run's skew-protection deployment ID from that name.
       - name: Resolve the artifact's build surface and flavor
         id: artifact
-        run: |
-          case "${{ inputs.surface }}" in
-            public)      surface=public; flavor=dosewiki ;;
-            editor)      surface=editor; flavor=dosewiki ;;
-            effectindex) surface=public; flavor=effectindex ;;
-            *) echo "::error::Unknown surface ${{ inputs.surface }}"; exit 1 ;;
-          esac
-          dir="$(DOSEWIKI_BUILD_SURFACE="$surface" node --input-type=module -e 'import { resolveBuildDirectory } from "./scripts/build/build-surface.mjs"; console.log(resolveBuildDirectory());')"
-          echo "surface=$surface" >> "$GITHUB_OUTPUT"
-          echo "flavor=$flavor" >> "$GITHUB_OUTPUT"
-          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+        env:
+          ARTIFACT: ${{ inputs.surface }}
+        run: node scripts/build/build-surface-cli.mjs outputs "$ARTIFACT" | tee -a "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
@@ -168,7 +160,7 @@ jobs:
           target="${{ inputs.target }}"
           bunx "$VERCEL_CLI" pull --yes --environment="$target" --token="$VERCEL_TOKEN"
           env_file=".vercel/.env.$target.local"
-          public_inputs="$(grep -E '^(NEXT_PUBLIC_[A-Z0-9_]+|NODE_OPTIONS)=' "$env_file" 2>/dev/null || true)"
+          public_inputs="$(node scripts/build/build-surface-cli.mjs public-build-inputs "$env_file")"
           rm -f .vercel/.env.*.local
           printf '%s\n' "$public_inputs" > "$env_file"
           echo "Build inputs kept from the $target environment:"
@@ -194,14 +186,15 @@ jobs:
           # A Vercel-hosted build gets its deployment ID from the platform, and
           # that ID is what skew protection routes a returning client by
           # (the ?dpl= on every chunk and font URL). A prebuilt upload has no ID
-          # yet, so name one per run. next.config.ts adopts it as deploymentId
-          # for build and request time alike, and vercel build records it in
-          # the output config.
-          DOSEWIKI_PREBUILT_DEPLOYMENT_ID: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # yet, so name one per run (gh-<run id>-<attempt>, resolved with the
+          # artifact). next.config.ts adopts it as deploymentId for build and
+          # request time alike, and vercel build records it in the output config.
+          DOSEWIKI_PREBUILT_DEPLOYMENT_ID: ${{ steps.artifact.outputs.deployment_id }}
         run: |
           test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
           test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
           test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL is required"; exit 1; }
+          test -n "$DOSEWIKI_PREBUILT_DEPLOYMENT_ID" || { echo "::error::The artifact step resolved no prebuilt deployment ID"; exit 1; }
           prod_flag=""
           if [ "${{ inputs.target }}" = "production" ]; then prod_flag="--prod"; fi
           bunx "$VERCEL_CLI" build --yes $prod_flag --token="$VERCEL_TOKEN"
@@ -223,12 +216,11 @@ jobs:
       # except under default output paths such as .next. The editor builds into
       # .next-editor, so its `.next-*/` rule would strip files the functions
       # reference. Drop that rule in this throwaway checkout only; the upload
-      # set is still .vercel/output plus the files its functions name.
+      # set is still .vercel/output plus the files its functions name. The CLI
+      # fails when the rule is gone.
       - name: Keep the build directory's function files in the upload
         if: ${{ !inputs.dry_run }}
-        run: |
-          grep -qxF '.next-*/' .vercelignore || { echo "::error::.vercelignore no longer carries the .next-*/ rule this step removes"; exit 1; }
-          sed -i '/^\.next-\*\/$/d' .vercelignore
+        run: node scripts/build/build-surface-cli.mjs unignore-build-directories .vercelignore
 
       # A preview, or an unaliased production deployment (--skip-domain). No
       # alias, no promotion: the deployment URL is printed for the release
