@@ -37,7 +37,9 @@ export type TranslationCacheJobRow = Pick<TranslationJobRow, "locale" | "slug" |
 
 /** A stale lease is retaken after this long; the cron's own budget is shorter. */
 const JOB_LEASE_MS = 10 * 60 * 1000;
-const MAX_JOB_ATTEMPTS = 5;
+export const MAX_TRANSLATION_JOB_ATTEMPTS = 5;
+/** Run rows older than this are pruned when the same lane records a new run. */
+const WORKER_RUN_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 
 /** `hash -> target` for every stored segment among `hashes`. */
 export async function readTranslations(locale: string, hashes: readonly string[]): Promise<Map<string, string>> {
@@ -196,7 +198,7 @@ export async function translationJobCounts(locale: string): Promise<TranslationJ
        FROM latest LEFT JOIN "translationJobs" j
          ON j."locale" = $1 AND j."run_id" = latest.run_id
       GROUP BY latest.run_id, latest.requested_at`,
-    [locale, MAX_JOB_ATTEMPTS],
+    [locale, MAX_TRANSLATION_JOB_ATTEMPTS],
   );
   return {
     runId: row?.run_id ?? null,
@@ -309,7 +311,7 @@ export async function claimTranslationJobs(limit: number, mode: TranslationJobMo
        ORDER BY "requested_at" ASC LIMIT $2::int FOR UPDATE SKIP LOCKED
      )
      RETURNING "locale", "slug", "attempts", "requested_at"::text, "claimed_at"::text, "mode", "run_id"`,
-    [now, limit, MAX_JOB_ATTEMPTS, JOB_LEASE_MS, mode],
+    [now, limit, MAX_TRANSLATION_JOB_ATTEMPTS, JOB_LEASE_MS, mode],
   );
 }
 
@@ -387,4 +389,70 @@ export async function completeTranslationCacheJob(job: TranslationCacheJobRow): 
     'DELETE FROM "translationCacheJobs" WHERE "locale" = $1 AND "slug" = $2 AND "mode" = $3',
     [job.locale, job.slug, job.mode],
   );
+}
+
+/** One worker invocation's summary, as `runTranslationJobs` returns it. */
+export type TranslationWorkerRunRecord = {
+  id: string;
+  mode: TranslationJobMode;
+  leaseHeld: boolean;
+  startedAt: number;
+  durationMs: number;
+  claimed: number;
+  completed: number;
+  failed: number;
+  exhausted: number;
+  cachePending: number;
+  usage: { prompt: number; completion: number; requests: number };
+  firstError: string | null;
+};
+
+/** Store one run row and prune this lane's rows past the retention window. */
+export async function recordTranslationWorkerRun(run: TranslationWorkerRunRecord): Promise<void> {
+  assertDataWritesNotFrozen("recordTranslationWorkerRun");
+  await getPostgresClient().sqlTransaction(async (client) => {
+    await client.query(
+      `INSERT INTO "translationWorkerRuns" ("id", "mode", "lease_held", "started_at", "duration_ms", "claimed", "completed",
+         "failed", "exhausted", "cache_pending", "prompt_tokens", "completion_tokens", "requests", "first_error")
+       VALUES ($1, $2, $3, $4::bigint, $5::int, $6::int, $7::int, $8::int, $9::int, $10::int, $11::bigint, $12::bigint, $13::int, $14)`,
+      [
+        run.id, run.mode, run.leaseHeld, run.startedAt, Math.round(run.durationMs), run.claimed, run.completed,
+        run.failed, run.exhausted, run.cachePending, run.usage.prompt, run.usage.completion, run.usage.requests,
+        run.firstError?.slice(0, 2000) ?? null,
+      ],
+    );
+    await client.query(
+      'DELETE FROM "translationWorkerRuns" WHERE "mode" = $1 AND "started_at" < $2::bigint',
+      [run.mode, run.startedAt - WORKER_RUN_RETENTION_MS],
+    );
+  });
+}
+
+type TranslationWorkerRunRow = {
+  id: string; mode: TranslationJobMode; lease_held: boolean; started_at: string; duration_ms: number;
+  claimed: number; completed: number; failed: number; exhausted: number; cache_pending: number;
+  prompt_tokens: string; completion_tokens: string; requests: number; first_error: string | null;
+};
+
+/** The newest run row of each lane, for operators asking whether a lane is moving. */
+export async function readLatestTranslationWorkerRuns(): Promise<TranslationWorkerRunRecord[]> {
+  const rows = await getPostgresClient().sql<TranslationWorkerRunRow>(
+    `SELECT DISTINCT ON ("mode") "id", "mode", "lease_held", "started_at"::text, "duration_ms", "claimed", "completed",
+       "failed", "exhausted", "cache_pending", "prompt_tokens"::text, "completion_tokens"::text, "requests", "first_error"
+     FROM "translationWorkerRuns" ORDER BY "mode", "started_at" DESC, "id"`,
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    mode: row.mode,
+    leaseHeld: row.lease_held,
+    startedAt: Number(row.started_at),
+    durationMs: row.duration_ms,
+    claimed: row.claimed,
+    completed: row.completed,
+    failed: row.failed,
+    exhausted: row.exhausted,
+    cachePending: row.cache_pending,
+    usage: { prompt: Number(row.prompt_tokens), completion: Number(row.completion_tokens), requests: row.requests },
+    firstError: row.first_error,
+  }));
 }

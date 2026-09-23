@@ -81,6 +81,33 @@ export const translationWorkerLeases = pgTable("translationWorkerLeases", {
   expires_at: bigint("expires_at", { mode: "number" }).notNull(),
 });
 
+/**
+ * One summary row per translation worker invocation, including a run that
+ * lost its lease, so a blocked or failing lane is visible from SQL. Owned by
+ * lib/translation/segmentStore.ts, which prunes rows past the retention window.
+ */
+export const translationWorkerRuns = pgTable(
+  "translationWorkerRuns",
+  {
+    id: text("id").primaryKey(),
+    mode: text("mode").notNull(),
+    lease_held: boolean("lease_held").notNull(),
+    started_at: bigint("started_at", { mode: "number" }).notNull(),
+    duration_ms: integer("duration_ms").notNull(),
+    claimed: integer("claimed").notNull(),
+    completed: integer("completed").notNull(),
+    failed: integer("failed").notNull(),
+    /** Failures that used the job's last attempt; the job leaves the queue until the record changes again. */
+    exhausted: integer("exhausted").notNull(),
+    cache_pending: integer("cache_pending").notNull(),
+    prompt_tokens: bigint("prompt_tokens", { mode: "number" }).notNull(),
+    completion_tokens: bigint("completion_tokens", { mode: "number" }).notNull(),
+    requests: integer("requests").notNull(),
+    first_error: text("first_error"),
+  },
+  (t) => [index("translationWorkerRuns_by_mode").on(t.mode, t.started_at)],
+);
+
 /** Durable cache work created atomically with translation completion. */
 export const translationCacheJobs = pgTable(
   "translationCacheJobs",

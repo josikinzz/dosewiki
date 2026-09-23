@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const seams = vi.hoisted(() => ({
   claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), refresh: vi.fn(), publish: vi.fn(), queueCache: vi.fn(),
   acquire: vi.fn(), release: vi.fn(),
-  readCache: vi.fn(), completeCache: vi.fn(),
+  readCache: vi.fn(), completeCache: vi.fn(), record: vi.fn(),
 }));
 vi.mock("@server/data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
 vi.mock("@server/data/serverWriteCapability", () => ({
@@ -15,6 +15,7 @@ vi.mock("@server/translation/segmentStore", () => ({
   claimTranslationJobs: seams.claim, completeTranslationJob: seams.complete, failTranslationJob: seams.fail,
   acquireTranslationWorkerLease: seams.acquire, releaseTranslationWorkerLease: seams.release,
   readTranslationCacheJobs: seams.readCache, completeTranslationCacheJob: seams.completeCache,
+  recordTranslationWorkerRun: seams.record, MAX_TRANSLATION_JOB_ATTEMPTS: 5,
 }));
 vi.mock("@server/translation/liveTranslation", () => ({
   parseTranslationJobSlug: (slug: string) => ({ kind: "article", slug }),
@@ -43,6 +44,7 @@ beforeEach(() => {
   seams.release.mockResolvedValue(undefined);
   seams.readCache.mockResolvedValue([]);
   seams.completeCache.mockResolvedValue(undefined);
+  seams.record.mockResolvedValue(undefined);
 });
 afterEach(() => { vi.resetAllMocks(); vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 

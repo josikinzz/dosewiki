@@ -112,6 +112,18 @@ publication-index lock at most once at a time. A segment hash that two jobs in
 the wave need, for the same locale, is requested once; the other job waits for
 that result. The incremental lane still writes each record's segments itself.
 
+Every worker invocation writes one `translationWorkerRuns` row (migration
+`0020`): lane, whether it held the lease, claimed, completed, failed and
+exhausted counts, token usage, duration and the first error. A run that lost
+the lease records `lease_held = false` instead of looking idle. Each lane prunes
+its own rows older than 14 days. `readLatestTranslationWorkerRuns()` returns the
+newest row per lane; the read-only SQL is
+`SELECT DISTINCT ON ("mode") * FROM "translationWorkerRuns" ORDER BY "mode", "started_at" DESC`.
+Job failures and cache delivery exceptions log `[translation-worker] job:failed`
+and `[translation-worker] cache:failed` with locale, slug, mode and message.
+Provider failures are `OpenRouterChatError` instances carrying `status` and
+`retryable`.
+
 Accepted segments complete their record job even if public-cache delivery is
 still pending. The same database transaction creates a translation-cache job;
 workers retry it until direct delivery succeeds or the publication outbox accepts

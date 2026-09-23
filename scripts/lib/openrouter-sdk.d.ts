@@ -9,7 +9,13 @@ export type OpenRouterChatResult = {
 };
 
 /** A failed call, normalized unless the caller signal aborted, in which case its reason is thrown. */
-export type OpenRouterChatError = { status: number | null; message: string; retryable: boolean; cause: unknown };
+export class OpenRouterChatError extends Error {
+  constructor(input: { status: number | null; message: string; retryable: boolean; cause?: unknown });
+  /** HTTP status, or null when no response arrived. */
+  readonly status: number | null;
+  /** Whether repeating the same request can succeed (429, 5xx, network). */
+  readonly retryable: boolean;
+}
 
 export function callOpenRouterChat(input: {
   apiKey: string;

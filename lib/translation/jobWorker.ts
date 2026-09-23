@@ -17,14 +17,17 @@ import {
 } from "./liveTranslation";
 import { createTranslationRequestPool } from "./requestPool";
 import {
+  MAX_TRANSLATION_JOB_ATTEMPTS,
   claimTranslationJobs,
   completeTranslationJob,
   failTranslationJob,
   acquireTranslationWorkerLease,
   completeTranslationCacheJob,
   readTranslationCacheJobs,
+  recordTranslationWorkerRun,
   releaseTranslationWorkerLease,
   type TranslationJobMode,
+  type TranslationWorkerRunRecord,
 } from "./segmentStore";
 
 const RUN_BUDGET_MS = 200_000;
@@ -34,13 +37,24 @@ const CACHE_JOBS_PER_RUN = 200;
 const CACHE_DELIVERY_CONCURRENCY = 50;
 const enqueueCacheRetry = makeFunctionReference<"mutation", { targets: PublicationTarget[] }, void>("publicationRecovery:enqueueTranslationCacheRetry");
 
-export type TranslationWorkerRun = {
-  claimed: number;
-  completed: number;
-  failed: number;
-  cachePending: number;
+export type TranslationWorkerRun = Omit<TranslationWorkerRunRecord, "id" | "startedAt"> & {
   outcomes: (RefreshOutcome | { slug: string; locale: string; error: string })[];
 };
+
+/**
+ * Readable text for anything thrown. Provider failures are `Error`s, but a
+ * rejected value can still be a plain object; it never logs as `[object Object]`.
+ */
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message || error.name;
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error) ?? String(error);
+  } catch {
+    return String(error);
+  }
+}
 
 /** Process one isolated queue lane through one shared model-request semaphore. */
 export async function runTranslationJobs(
@@ -48,44 +62,90 @@ export async function runTranslationJobs(
   config: { mode: TranslationJobMode; jobsPerRun: number; requestConcurrency: number },
 ): Promise<TranslationWorkerRun> {
   const started = Date.now();
-  const signal = AbortSignal.timeout(RUN_BUDGET_MS);
-  const run: TranslationWorkerRun = { claimed: 0, completed: 0, failed: 0, cachePending: 0, outcomes: [] };
+  const run: TranslationWorkerRun = {
+    mode: config.mode, leaseHeld: false, durationMs: 0, claimed: 0, completed: 0, failed: 0, exhausted: 0, cachePending: 0,
+    usage: { prompt: 0, completion: 0, requests: 0 }, firstError: null, outcomes: [],
+  };
   const leaseOwner = crypto.randomUUID();
-  if (!(await acquireTranslationWorkerLease(MODEL_LEASE, leaseOwner, RUN_BUDGET_MS + 30_000))) return run;
+  try {
+    run.leaseHeld = await acquireTranslationWorkerLease(MODEL_LEASE, leaseOwner, RUN_BUDGET_MS + 30_000);
+    if (run.leaseHeld) {
+      try {
+        await processTranslationJobs(apiKey, config, run, started);
+      } finally {
+        await releaseTranslationWorkerLease(MODEL_LEASE, leaseOwner);
+      }
+    }
+  } catch (error) {
+    run.firstError ??= errorMessage(error);
+    throw error;
+  } finally {
+    run.durationMs = Date.now() - started;
+    await recordRun(leaseOwner, started, run);
+  }
+  return run;
+}
+
+async function recordRun(id: string, startedAt: number, run: TranslationWorkerRun): Promise<void> {
+  const { outcomes: _outcomes, ...summary } = run;
+  try {
+    await recordTranslationWorkerRun({ id, startedAt, ...summary });
+  } catch (error) {
+    console.error("[translation-worker] run:unrecorded", { ...summary, message: errorMessage(error) });
+  }
+}
+
+async function processTranslationJobs(
+  apiKey: string,
+  config: { mode: TranslationJobMode; jobsPerRun: number; requestConcurrency: number },
+  run: TranslationWorkerRun,
+  started: number,
+): Promise<void> {
+  const signal = AbortSignal.timeout(RUN_BUDGET_MS);
   const reads = getPublicDataReadAdapter();
   const requestPool = createTranslationRequestPool(config.requestConcurrency);
   const contexts: Record<string, Promise<TranslationContext>> = {};
   const contextFor = (locale: string) => (contexts[locale] ??= loadTranslationContext(locale));
+  const onUsage = (used: { prompt: number; completion: number }) => {
+    run.usage.prompt += used.prompt;
+    run.usage.completion += used.completion;
+    run.usage.requests += 1;
+  };
 
-  try {
-    const deliverCache = async (cacheJob: { locale: string; slug: string; mode: TranslationJobMode; targets: string }) => {
-      try {
-        const targets = JSON.parse(cacheJob.targets) as PublicationTarget[];
-        const receipts = await publishPublicCache({ targets, source: "manual" });
-        if (receipts.length > 0 && receipts.every((receipt) => receipt.status === "accepted")) {
-          await completeTranslationCacheJob(cacheJob);
-          return true;
-        }
-        const capability = getServerDataWriteCapability();
-        if (capability.ok === false) return false;
-        await capability.capability.client.mutationAsPublicationRecovery(enqueueCacheRetry, { targets });
+  const deliverCache = async (cacheJob: { locale: string; slug: string; mode: TranslationJobMode; targets: string }) => {
+    try {
+      const targets = JSON.parse(cacheJob.targets) as PublicationTarget[];
+      const receipts = await publishPublicCache({ targets, source: "manual" });
+      if (receipts.length > 0 && receipts.every((receipt) => receipt.status === "accepted")) {
         await completeTranslationCacheJob(cacheJob);
-        return false;
-      } catch { return false; /* The durable cache row remains due for the next invocation. */ }
-    };
-    const cacheJobs = await readTranslationCacheJobs(CACHE_JOBS_PER_RUN);
-    let cacheCursor = 0;
-    await Promise.all(Array.from(
-      { length: Math.min(CACHE_DELIVERY_CONCURRENCY, cacheJobs.length) },
-      async () => {
-        while (cacheCursor < cacheJobs.length) {
-          const cacheJob = cacheJobs[cacheCursor];
-          cacheCursor += 1;
-          if (!(await deliverCache(cacheJob))) run.cachePending += 1;
-        }
-      },
-    ));
-    while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
+        return true;
+      }
+      const capability = getServerDataWriteCapability();
+      if (capability.ok === false) return false;
+      await capability.capability.client.mutationAsPublicationRecovery(enqueueCacheRetry, { targets });
+      await completeTranslationCacheJob(cacheJob);
+      return false;
+    } catch (error) {
+      // The durable cache row remains due for the next invocation.
+      console.error("[translation-worker] cache:failed", {
+        locale: cacheJob.locale, slug: cacheJob.slug, mode: cacheJob.mode, message: errorMessage(error),
+      });
+      return false;
+    }
+  };
+  const cacheJobs = await readTranslationCacheJobs(CACHE_JOBS_PER_RUN);
+  let cacheCursor = 0;
+  await Promise.all(Array.from(
+    { length: Math.min(CACHE_DELIVERY_CONCURRENCY, cacheJobs.length) },
+    async () => {
+      while (cacheCursor < cacheJobs.length) {
+        const cacheJob = cacheJobs[cacheCursor];
+        cacheCursor += 1;
+        if (!(await deliverCache(cacheJob))) run.cachePending += 1;
+      }
+    },
+  ));
+  while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
     const jobs = await claimTranslationJobs(config.jobsPerRun, config.mode);
     if (jobs.length === 0) break;
     run.claimed += jobs.length;
@@ -106,7 +166,7 @@ export async function runTranslationJobs(
           await contextFor(job.locale),
           kind,
           apiKey,
-          { signal, requestPool, wave },
+          { signal, requestPool, wave, onUsage },
         );
         signal.throwIfAborted();
         const terminalDetail = outcome.rejected.length > 0
@@ -129,15 +189,17 @@ export async function runTranslationJobs(
         }
         run.outcomes.push(outcome);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = errorMessage(error);
+        const exhausted = job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
+        console.error("[translation-worker] job:failed", {
+          locale: job.locale, slug: job.slug, mode: job.mode, attempts: job.attempts, exhausted, message,
+        });
         await failTranslationJob(job, message);
         run.failed += 1;
+        if (exhausted) run.exhausted += 1;
+        run.firstError ??= message;
         run.outcomes.push({ slug: job.slug, locale: job.locale, error: message });
       }
     }));
-    }
-    return run;
-  } finally {
-    await releaseTranslationWorkerLease(MODEL_LEASE, leaseOwner);
   }
 }

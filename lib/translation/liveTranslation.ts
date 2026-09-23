@@ -245,6 +245,8 @@ export type TranslationExecutionOptions = {
   requestPool?: TranslationRequestPool;
   /** Bulk only: the claimed wave this job belongs to. Incremental refreshes write and request on their own. */
   wave?: TranslationWave;
+  /** Called once per model request, including requests of a refresh that later fails. */
+  onUsage?: (usage: { prompt: number; completion: number }) => void;
 };
 
 /** What became of one segment the owning job in a wave translated. */
@@ -498,6 +500,7 @@ export async function translateUnits(
             usage.prompt += used.prompt;
             usage.completion += used.completion;
             usage.requests += 1;
+            options.onUsage?.(used);
           },
         }));
         for (const verdict of verdicts) {

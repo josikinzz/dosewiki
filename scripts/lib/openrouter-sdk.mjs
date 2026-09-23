@@ -135,32 +135,50 @@ function normalizeUsage(usage) {
   };
 }
 
+/**
+ * A failed chat call. An `Error`, so logs and stored job errors read as text,
+ * carrying the HTTP status (null for network failures) and whether a retry of
+ * the same request can succeed.
+ */
+export class OpenRouterChatError extends Error {
+  constructor({ status, message, retryable, cause }) {
+    super(message, { cause });
+    this.name = "OpenRouterChatError";
+    this.status = status;
+    this.retryable = retryable;
+  }
+}
+
 function normalizeError(error) {
+  if (error instanceof OpenRouterChatError) {
+    return error;
+  }
+
   if (error instanceof OpenRouterError) {
     const status = error.statusCode;
-    return {
+    return new OpenRouterChatError({
       status,
       message: ERROR_MESSAGES[status] || error.message || `API error: ${status}`,
       retryable: status === 429 || status >= 500,
       cause: error,
-    };
+    });
   }
 
   if (error instanceof Error) {
-    return {
+    return new OpenRouterChatError({
       status: null,
-      message: error.message,
+      message: error.message || error.name,
       retryable: true,
       cause: error,
-    };
+    });
   }
 
-  return {
+  return new OpenRouterChatError({
     status: null,
     message: String(error),
     retryable: true,
     cause: error,
-  };
+  });
 }
 
 export async function callOpenRouterChat({
