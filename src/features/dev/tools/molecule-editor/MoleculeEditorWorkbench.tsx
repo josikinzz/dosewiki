@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
@@ -312,30 +313,36 @@ export function MoleculeEditorWorkbench({
             }}
           >
             {hasCanvas ? (
-              <OclEditor
-                source={source}
-                sourceEpoch={sourceEpoch}
-                atomLabels={atomLabels}
-                onChange={onEditorChange}
-                onError={onCanvasError}
-                fineRotation={fineRotation}
-                mirrorDirection={mirrorDirection}
-                onMirrorComplete={() => onMirrorDirectionChange(null)}
-                snapRequest={snapRequest}
-                onSnapComplete={onSnapComplete}
-                onSelectedBondCountChange={onSelectedBondCountChange}
-                bondPickActive={bondPickActive}
-                onBondPickComplete={onBondPickComplete}
-                boldBonds={boldBonds}
-                boldToggleActive={boldToggleActive}
-                onBoldBondsChange={onBoldBondsChange}
-                onBoldToggleExit={() => onBoldToggleActiveChange(false)}
-                className={cn("absolute inset-3", coarsePointer && "invisible")}
+              <ErrorBoundary
+                name="molecule-editor-canvas"
+                resetKeys={[source, sourceEpoch]}
+                className="absolute inset-3 grid place-items-center overflow-auto"
               >
-                {drawingEnabled ? (
-                  <TracingOverlay layer={tracing} className="absolute inset-0 rounded-lg" />
-                ) : null}
-              </OclEditor>
+                <OclEditor
+                  source={source}
+                  sourceEpoch={sourceEpoch}
+                  atomLabels={atomLabels}
+                  onChange={onEditorChange}
+                  onError={onCanvasError}
+                  fineRotation={fineRotation}
+                  mirrorDirection={mirrorDirection}
+                  onMirrorComplete={() => onMirrorDirectionChange(null)}
+                  snapRequest={snapRequest}
+                  onSnapComplete={onSnapComplete}
+                  onSelectedBondCountChange={onSelectedBondCountChange}
+                  bondPickActive={bondPickActive}
+                  onBondPickComplete={onBondPickComplete}
+                  boldBonds={boldBonds}
+                  boldToggleActive={boldToggleActive}
+                  onBoldBondsChange={onBoldBondsChange}
+                  onBoldToggleExit={() => onBoldToggleActiveChange(false)}
+                  className={cn("absolute inset-3", coarsePointer && "invisible")}
+                >
+                  {drawingEnabled ? (
+                    <TracingOverlay layer={tracing} className="absolute inset-0 rounded-lg" />
+                  ) : null}
+                </OclEditor>
+              </ErrorBoundary>
             ) : null}
             {coarsePointer ? (
               <DesktopOnlyCanvas />

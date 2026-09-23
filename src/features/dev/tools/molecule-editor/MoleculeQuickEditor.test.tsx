@@ -33,6 +33,9 @@ vi.mock("./stereoGuard", () => ({
   compareCanonicalSmiles: vi.fn(),
 }));
 
+/** Makes the canvas throw on render, to exercise its boundary. */
+const canvasFailure = vi.hoisted(() => ({ active: false }));
+
 vi.mock("./OclEditor", () => ({
   OclEditor: ({
     source,
@@ -40,13 +43,16 @@ vi.mock("./OclEditor", () => ({
   }: {
     source: string | null;
     onChange: (molblock: string) => void;
-  }) => (
-    <div data-testid="ocl-editor" data-source={source ?? ""}>
-      <button type="button" onClick={() => onChange("rotated molblock")}>
-        Emit rotation
-      </button>
-    </div>
-  ),
+  }) => {
+    if (canvasFailure.active) throw new Error("drawing engine failed");
+    return (
+      <div data-testid="ocl-editor" data-source={source ?? ""}>
+        <button type="button" onClick={() => onChange("rotated molblock")}>
+          Emit rotation
+        </button>
+      </div>
+    );
+  },
 }));
 
 import { MoleculeQuickEditor } from "./MoleculeQuickEditor";
@@ -82,6 +88,7 @@ describe("MoleculeQuickEditor", () => {
   });
 
   afterEach(() => {
+    canvasFailure.active = false;
     cleanup();
     vi.restoreAllMocks();
     useMoleculeSourceReadMock.mockReset();
@@ -188,5 +195,24 @@ describe("MoleculeQuickEditor", () => {
 
     await waitFor(() => expect(screen.getByText("Couldn't load depiction")).toBeInTheDocument());
     expect(screen.getByText("Unauthorized")).toBeInTheDocument();
+  });
+
+  it("fails only the canvas when the drawing engine throws", async () => {
+    canvasFailure.active = true;
+    // React logs the caught render error itself.
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(overrideResponse()));
+
+    render(<MoleculeQuickEditor slug="example" />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("This part of the page could not load"),
+    );
+    expect(screen.queryByTestId("ocl-editor")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save depiction" })).toBeInTheDocument();
+
+    canvasFailure.active = false;
+    await userEvent.setup().click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.getByTestId("ocl-editor")).toBeInTheDocument();
   });
 });
