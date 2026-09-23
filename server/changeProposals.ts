@@ -15,7 +15,7 @@ import {
   validateArticleForIngestion,
 } from "./lib/validators";
 import { copyBlockDocumentValidator, type CopyBlockDocument } from "./copyBlocks";
-import { changeProposalStatusValidator } from "./schema";
+import { changeProposalStatusValidator } from "./lib/accessSchemaValidators";
 import { aboutDocumentValidator, type AboutDocument } from "./siteConfig";
 import { projectProposalComment, projectProposalDetail, projectProposalSummary } from "../lib/proposals/proposalPublic";
 import { articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
