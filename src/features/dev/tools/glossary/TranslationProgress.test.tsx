@@ -29,6 +29,16 @@ describe("durable language progress", () => {
     expect(screen.getByRole("heading", { name: "Translation finished with items to review" })).toBeVisible();
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
   });
+  it("offers a retry of stopped pages only once the run has settled and a handler is given", () => {
+    const onRetry = vi.fn();
+    const { rerender } = render(<TranslationProgress data={fixture({ completed: 90, active: 0, exhausted: 10 })} starting={false} error={null} onRefresh={vi.fn()} onRetryExhausted={onRetry} />);
+    screen.getByRole("button", { name: "Retry 10 failed pages" }).click();
+    expect(onRetry).toHaveBeenCalledOnce();
+    rerender(<TranslationProgress data={fixture({ completed: 90, active: 0, exhausted: 10 })} starting={false} error={null} onRefresh={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: /failed page/ })).toBeNull();
+    rerender(<TranslationProgress data={fixture({ exhausted: 10 })} starting={false} error={null} onRefresh={vi.fn()} onRetryExhausted={onRetry} />);
+    expect(screen.queryByRole("button", { name: /failed page/ })).toBeNull();
+  });
   it("keeps progress visible during refresh failures", () => {
     render(<TranslationProgress data={fixture()} starting={false} error="Connection unavailable" onRefresh={vi.fn()} />);
     expect(screen.getByRole("alert")).toHaveTextContent("Showing the last saved counts");

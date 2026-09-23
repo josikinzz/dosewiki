@@ -50,6 +50,7 @@ import {
   failTranslationJob,
   readLatestTranslationWorkerRuns,
   recordTranslationWorkerRun,
+  requeueExhaustedTranslationJobs,
   type TranslationWorkerRunRecord,
 } from "./segmentStore";
 
@@ -155,6 +156,31 @@ describe.runIf(serverUrl)("translation queue SQL on a scratch Postgres", () => {
       expect(await failTranslationJob(job, "run budget reached", { progressed: true })).toBe(true);
       expect(await jobRow("dmt")).toMatchObject({ attempts: 0, next_attempt_at: null });
       expect(await claimTranslationJobs(10)).toEqual([expect.objectContaining({ slug: "dmt", attempts: 1 })]);
+    });
+
+    it("requeues only one run's exhausted bulk jobs and keeps them in that run", async () => {
+      at(Date.UTC(2026, 8, 22, 12));
+      await enqueueTranslationJobs(["ru"], ["2c-p", "lsd"], { run: { id: "run-a", mode: "bulk" } });
+      await enqueueTranslationJobs(["es"], ["2c-p"], { run: { id: "run-b", mode: "bulk" } });
+      for (let attempt = 1; attempt <= MAX_TRANSLATION_JOB_ATTEMPTS; attempt += 1) {
+        for (const job of await claimTranslationJobs(10, "bulk")) {
+          if (job.slug === "lsd" && job.locale === "ru") await completeTranslationJob(job);
+          else await failTranslationJob(job, "The operation was aborted due to timeout");
+        }
+        at(Date.now() + 2 * 60 * 60 * 1000);
+      }
+      expect(await claimTranslationJobs(10, "bulk")).toEqual([]);
+
+      expect(await requeueExhaustedTranslationJobs("ru", "run-a")).toEqual(["2c-p"]);
+      const rows = (await scratch.pool!.query<{ locale: string; attempts: number; last_error: string | null; run_id: string }>(
+        'SELECT "locale", "attempts", "last_error", "run_id" FROM "translationJobs" WHERE "slug" = $1 ORDER BY "locale"', ["2c-p"],
+      )).rows;
+      expect(rows).toEqual([
+        { locale: "es", attempts: MAX_TRANSLATION_JOB_ATTEMPTS, last_error: "The operation was aborted due to timeout", run_id: "run-b" },
+        { locale: "ru", attempts: 0, last_error: null, run_id: "run-a" },
+      ]);
+      expect(await claimTranslationJobs(10, "bulk")).toEqual([expect.objectContaining({ locale: "ru", slug: "2c-p", attempts: 1, run_id: "run-a" })]);
+      expect(await requeueExhaustedTranslationJobs("ru", "run-a")).toEqual([]);
     });
 
     it("clears a pending delay when the record is enqueued again", async () => {

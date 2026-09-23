@@ -55,6 +55,7 @@ import {
   GlossaryReviewCollision,
   importGlossaryCsv,
   retranslateTerms,
+  retryExhaustedPages,
   saveGloss,
   startMainTranslation,
   STATE_WORD,
@@ -80,7 +81,7 @@ const STATUS_OPTIONS: { value: GlossaryStatusFilter; label: string }[] = [
 ];
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
-type Busy = "load" | "approve" | "draft" | "retranslate" | "start" | "import" | null;
+type Busy = "load" | "approve" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
 
 /** The one row a single-row write is locking, and which of its two editable fields is being written. */
 type Writing = { term: string; field: "rendering" | "definition" };
@@ -333,6 +334,17 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         }),
     });
 
+  const retryExhausted = () => {
+    const pages = data?.jobs.exhausted ?? 0;
+    confirm({
+      title: `Retry ${count(pages, "failed page")} for ${locale}?`,
+      description: "Pages in the latest run that stopped after repeated failures get a fresh set of attempts in the same run. Finished pages and saved translations are untouched.",
+      confirmLabel: "Retry failed pages",
+      onConfirm: () =>
+        void run("retry", async () => `Queued ${count(await retryExhaustedPages(locale!), "page")} for another attempt.`),
+    });
+  };
+
   /** Reads the chosen file here and sends it whole; the server writes all of it or none. */
   const importFile = async (file: File | undefined) => {
     if (!file) return;
@@ -378,7 +390,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           <StateCard loading compact title="Loading glossary" />
         ) : (
           <div className="space-y-4">
-            <TranslationProgress data={data} starting={busy === "start"} error={refreshError} onRefresh={() => void load(data.locale, true)} />
+            <TranslationProgress data={data} starting={busy === "start"} error={refreshError} onRefresh={() => void load(data.locale, true)}
+              onRetryExhausted={canAdmin ? retryExhausted : undefined} retryDisabled={locked} />
             <GlossaryReaderFeedback key={data.locale} locale={data.locale} />
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-full md:w-56">
@@ -618,5 +631,6 @@ const BUSY_LABEL: Record<Exclude<Busy, null>, string> = {
   draft: "Drafting with the model",
   retranslate: "Queueing the retranslation",
   start: "Queueing every page",
+  retry: "Queueing the failed pages",
   import: "Importing the file",
 };

@@ -232,6 +232,12 @@ export async function startMainTranslation(locale: string): Promise<{ total: num
   return { total: Number(payload.total ?? 0), jobs: (payload.jobs as Record<string, number>) ?? {} };
 }
 
+/** Gives the latest run's pages that stopped after repeated failures a fresh set of attempts; admin only. */
+export async function retryExhaustedPages(locale: string): Promise<number> {
+  const payload = await postJson("retry-exhausted", { locale }, "Unable to retry the failed pages.");
+  return Number(payload.requeued ?? 0);
+}
+
 export function glossaryExportUrl(locale: string): string {
   return `${BASE_PATH}/export?locale=${encodeURIComponent(locale)}`;
 }

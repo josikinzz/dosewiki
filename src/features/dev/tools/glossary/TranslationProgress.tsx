@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import type { GlossaryList } from "./glossaryModel";
 import styles from "./TranslationProgress.module.css";
 
-export function TranslationProgress({ data, starting, error, onRefresh }: {
+export function TranslationProgress({ data, starting, error, onRefresh, onRetryExhausted, retryDisabled = false }: {
   data: GlossaryList; starting: boolean; error: string | null; onRefresh: () => void;
+  /** Offered to admins once a run has settled with pages that stopped after repeated failures. */
+  onRetryExhausted?: () => void; retryDisabled?: boolean;
 }) {
   const { jobs } = data;
   if (!jobs.total && !starting) return null;
@@ -56,6 +58,9 @@ export function TranslationProgress({ data, starting, error, onRefresh }: {
       </p>
       <p className="theme-text-faint text-[0.6875rem] tabular-nums">Updated {new Date(data.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}</p>
       {issues > 0 && <p className="text-xs text-[color:var(--theme-warning-text)]">{number(jobs.completedWithRejections)} pages contain segments that failed validation and retain their previous wording or fall back to English. {jobs.exhausted > 0 ? `${number(jobs.exhausted)} pages stopped after repeated failures. ` : ""}Saved translations are preserved. Review these results before running translation again.</p>}
+      {!running && jobs.exhausted > 0 && onRetryExhausted ? <Button variant="outline" size="sm" disabled={retryDisabled} onClick={onRetryExhausted}>
+        <Icon icon="lucide:rotate-ccw" size={14} />Retry {number(jobs.exhausted)} failed {jobs.exhausted === 1 ? "page" : "pages"}
+      </Button> : null}
       {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--theme-warning-text)]"><span>Progress refresh failed. Showing the last saved counts. {error}</span><Button variant="outline" size="sm" onClick={onRefresh}>Retry refresh</Button></div>}
     </Surface>
   );

@@ -345,6 +345,23 @@ export async function enqueueTranslationJobs(
 }
 
 /**
+ * Give the exhausted jobs of one bulk run a fresh set of attempts. The run id
+ * and request time stay, so the workbench keeps counting them in the same run;
+ * a job still inside a live lease is left to its worker. Returns the slugs.
+ */
+export async function requeueExhaustedTranslationJobs(locale: string, runId: string): Promise<string[]> {
+  assertDataWritesNotFrozen("requeueExhaustedTranslationJobs");
+  const rows = await getPostgresClient().sql<{ slug: string }>(
+    `UPDATE "translationJobs" SET "attempts" = 0, "claimed_at" = NULL, "last_error" = NULL, "next_attempt_at" = NULL
+     WHERE "locale" = $1 AND "run_id" = $2 AND "mode" = 'bulk' AND "completed_at" IS NULL AND "attempts" >= $3::int
+       AND ("claimed_at" IS NULL OR "claimed_at" <= $4::bigint - $5::bigint)
+     RETURNING "slug"`,
+    [locale, runId, MAX_TRANSLATION_JOB_ATTEMPTS, Date.now(), JOB_LEASE_MS],
+  );
+  return rows.map((row) => row.slug);
+}
+
+/**
  * Lease up to `limit` due rows to this worker, optionally from one locale.
  * Atomic: concurrent crons never take the same row. A row waiting out a
  * failure backoff is not due.
