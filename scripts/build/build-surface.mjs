@@ -7,7 +7,7 @@
  * module means the census script reads the directory the build actually wrote.
  */
 
-export const BUILD_SURFACES = Object.freeze(["public", "editor"]);
+const BUILD_SURFACES = Object.freeze(["public", "editor"]);
 
 /**
  * `DOSEWIKI_BUILD_SURFACE`, defaulting to `editor` in development and `public`
