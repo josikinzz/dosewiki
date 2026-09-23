@@ -22,6 +22,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/effects/upgrade-embed-resolutions.mjs",
     "scripts/migrate/migrate-binding-sites.mjs",
     "scripts/migrate/migrate-pharmacology-schema.mjs",
+    "scripts/postgres/import-document-snapshot.ts",
     "scripts/remove-contributor.mjs",
     "scripts/replications/apply-artist-license.mjs",
     "scripts/replications/apply-date-research.mjs",
