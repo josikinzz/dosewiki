@@ -9,7 +9,7 @@ import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { NextResponse } from "next/server";
 import type { Doc, Id } from "@server/postgres/runtime/dataModel";
 import { getServerDataWriteCapability, type ServerDataWriteClient } from "@server/data/serverWriteCapability";
-import { authorizeCronRequest } from "@server/http/cronAuthorization";
+import { authorizeCronRequest, withCronWriteFreeze } from "@server/http/cronAuthorization";
 import { dispatchPublicationSignal, type PublicationReceipt } from "@server/next/publicationDispatch";
 import { isPublicationTarget } from "@server/next/publicationWire";
 import { getDataBackend } from "@server/postgres/runtime/backend";
@@ -37,7 +37,7 @@ export type PublicationDeliveryRun = {
   skipped: number;
 };
 
-export async function GET(request: Request) {
+export const GET = withCronWriteFreeze(async function GET(request: Request) {
   const decision = authorizeCronRequest(request.headers.get("authorization"), {
     CRON_SECRET: process.env.CRON_SECRET,
   });
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 
   const run = await reconcilePublications(capability.capability.client);
   return NextResponse.json(run, { headers: { "cache-control": "no-store" } });
-}
+});
 
 async function reconcilePublications(client: ServerDataWriteClient): Promise<PublicationDeliveryRun> {
   const rows = await client.mutationAsService(claimDue, {});

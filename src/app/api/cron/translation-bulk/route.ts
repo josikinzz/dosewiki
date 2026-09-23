@@ -6,7 +6,7 @@
  */
 import { NextResponse } from "next/server";
 
-import { authorizeCronRequest } from "@server/http/cronAuthorization";
+import { authorizeCronRequest, withCronWriteFreeze } from "@server/http/cronAuthorization";
 import { getDataBackend } from "@server/postgres/runtime/backend";
 import { MAX_TRANSLATION_REQUEST_CONCURRENCY, TRANSLATION_REQUEST_QUOTA } from "@server/translation/requestPool";
 import { runTranslationJobs } from "@server/translation/jobWorker";
@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-export async function GET(request: Request) {
+export const GET = withCronWriteFreeze(async function GET(request: Request) {
   const decision = authorizeCronRequest(request.headers.get("authorization"), {
     CRON_SECRET: process.env.CRON_SECRET,
   });
@@ -32,4 +32,4 @@ export async function GET(request: Request) {
     requestConcurrency: TRANSLATION_REQUEST_QUOTA.bulk,
   });
   return NextResponse.json(run, { headers: { "cache-control": "no-store" } });
-}
+});
