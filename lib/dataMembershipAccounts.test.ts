@@ -209,6 +209,20 @@ describe("memberships account functions", () => {
   });
 
   describe("setAdminAccount", () => {
+    it("advances the password revision when two rotations share a millisecond", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-09-01T12:00:00.000Z"));
+      try {
+        const { ctx, rows } = createCtx([josie]);
+        const args = { apiKey: SERVER_KEY, username: "josie", email: josie.email, name: "Josie", passwordHash: "scrypt$first" };
+        await setAdminHandler(ctx, args);
+        const firstRevision = rows.get("m1")?.passwordUpdatedAt;
+        await setAdminHandler(ctx, { ...args, passwordHash: "scrypt$second" });
+        expect(rows.get("m1")?.passwordUpdatedAt).not.toBe(firstRevision);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
     it("inserts a new admin row keyed by normalized username and email", async () => {
       const { ctx, rows } = createCtx([]);
 
@@ -485,6 +499,15 @@ describe("memberships account functions", () => {
       resetTokenHash: "deadbeef",
       resetTokenExpiresAt: new Date(expiresAt).toISOString(),
     };
+
+    it("advances the password revision across resets in the same millisecond", async () => {
+      const { ctx, rows } = createCtx([pending]);
+      await consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$first" });
+      const firstRevision = rows.get("m2")?.passwordUpdatedAt;
+      rows.set("m2", { ...rows.get("m2")!, resetTokenHash: "second", resetTokenExpiresAt: new Date(expiresAt).toISOString() });
+      await consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "second", passwordHash: "scrypt$second" });
+      expect(rows.get("m2")?.passwordUpdatedAt).not.toBe(firstRevision);
+    });
 
     it("rotates the password just before expiry and prevents reuse", async () => {
       vi.setSystemTime(expiresAt - 1);

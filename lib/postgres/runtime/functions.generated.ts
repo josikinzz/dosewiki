@@ -42,6 +42,7 @@ import * as replicationIdentitySocial from "../../../server/replicationIdentityS
 import * as replicationPlaylists from "../../../server/replicationPlaylists";
 import * as replicationTaxonomy from "../../../server/replicationTaxonomy";
 import * as replications from "../../../server/replications";
+import * as saveArticleBatch from "../../../server/saveArticleBatch";
 import * as siteConfig from "../../../server/siteConfig";
 import * as siteFeedback from "../../../server/siteFeedback";
 import * as subjectiveEffects from "../../../server/subjectiveEffects";
@@ -94,6 +95,7 @@ export const functionModules: Record<string, Record<string, unknown>> = {
   replicationPlaylists,
   replicationTaxonomy,
   replications,
+  saveArticleBatch,
   siteConfig,
   siteFeedback,
   subjectiveEffects,

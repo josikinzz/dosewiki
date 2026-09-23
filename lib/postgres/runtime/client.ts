@@ -9,8 +9,8 @@ import { getFunctionName, type ArgsAndOptions, type FunctionReference, type Func
 import type { RegisteredFunction, QueryCtx, MutationCtx } from "./server";
 import { Pool } from "pg";
 import { assertDeploymentEnv } from "./deploymentEnv";
-import { loadIdTableMap, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
-import { validateValue, validateReturn, type IdValidation } from "./validate";
+import { loadIdTableMap, taggedIdTable, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
+import { validateValue, validateReturn } from "./validate";
 import { POOL_ACQUISITION_TIMEOUT_MS, setTransactionTimeouts } from "../transactionTimeouts";
 import { withTransaction, type SqlClient } from "../documentStore";
 import { parsePostgresTarget } from "./target";
@@ -90,7 +90,6 @@ function poolTargetIdentity(pool: Pool): string | undefined {
 }
 
 export class PostgresClient {
-  private idMap: Promise<IdTableMap> | null = null;
   private readonly targetIdentity: string | undefined;
 
   constructor(private readonly pool: Pool) {
@@ -102,31 +101,32 @@ export class PostgresClient {
     });
   }
 
-  /** Imported ids carry no table tag; load their map once per process so `normalizeId` stays synchronous. */
-  private ensureIdMap(): Promise<IdTableMap> {
-    if (!this.idMap) {
-      this.idMap = (async () => {
-        const client = await this.pool.connect();
-        try {
-          await client.query("BEGIN READ ONLY");
-          try {
-            await setTransactionTimeouts(client);
-            const map = await loadIdTableMap(serialExecutor(client));
-            await client.query("COMMIT");
-            return map;
-          } catch (error) {
-            await client.query("ROLLBACK").catch(() => {});
-            throw error;
-          }
-        } finally {
-          client.release();
-        }
-      })();
-      this.idMap.catch(() => {
-        this.idMap = null;
-      });
-    }
-    return this.idMap;
+  /** Include opaque IDs in untyped handler arguments, since write proxies inspect them synchronously. */
+  private candidateIds(value: unknown): string[] {
+    const ids = new Set<string>();
+    const seen = new Set<object>();
+    const visit = (part: unknown): void => {
+      if (typeof part === "string") {
+        if (/^[a-z0-9]{32}$/.test(part)) ids.add(part);
+      } else if (part && typeof part === "object" && !seen.has(part)) {
+        seen.add(part);
+        if (Array.isArray(part)) part.forEach(visit);
+        else Object.values(part).forEach(visit);
+      }
+    };
+    visit(value);
+    return [...ids];
+  }
+
+  private async resolveArgumentIds(executor: SqlExecutor, args: Record<string, unknown>, idMap: IdTableMap): Promise<void> {
+    const ids = this.candidateIds(args).filter((id) => !idMap.has(id));
+    if (!ids.length) return;
+    const found = await loadIdTableMap(executor, ids);
+    for (const [id, table] of found) idMap.set(id, table);
+  }
+
+  private validateArgs(name: string, fn: Registered, args: Record<string, unknown>, idMap: IdTableMap): void {
+    validateValue(fn.args, args, `${name} args`, { idTable: (id) => idMap.get(id) ?? taggedIdTable(id) });
   }
 
   static fromUrl(connectionString: string, max = 4): PostgresClient {
@@ -167,10 +167,25 @@ export class PostgresClient {
   }
 
   private async prepareArguments(name: string, fn: Registered, args: Record<string, unknown>): Promise<IdTableMap> {
-    const ids: IdValidation[] = [];
-    validateValue(fn.args, args, `${name} args`, { ids });
-    const idMap = await this.ensureIdMap();
-    if (ids.length) validateValue(fn.args, args, `${name} args`, { idTable: (id) => idMap.get(id) });
+    validateValue(fn.args, args, `${name} args`);
+    const idMap: IdTableMap = new Map();
+    const ids = this.candidateIds(args);
+    if (ids.length) {
+      const client = await this.pool.connect();
+      try {
+        await client.query("BEGIN READ ONLY");
+        try {
+          await setTransactionTimeouts(client);
+          await this.resolveArgumentIds(serialExecutor(client), args, idMap);
+          await client.query("COMMIT");
+        } catch (error) {
+          await client.query("ROLLBACK").catch(() => {});
+          throw error;
+        }
+      }
+      finally { client.release(); }
+    }
+    this.validateArgs(name, fn, args, idMap);
     return idMap;
   }
 
@@ -245,12 +260,13 @@ export class PostgresClient {
       runQuery: async (reference: FunctionReference<"query"> | string, nested: Record<string, unknown> = {}) => {
         const target = await resolveFunction(reference);
         if (!target.fn.isQuery) throw new Error(`${target.name} is not a query`);
-        validateValue(target.fn.args, nested, `${target.name} args`, { idTable: (id) => idMap.get(id) });
+        await this.resolveArgumentIds(client, nested, idMap);
+        this.validateArgs(target.name, target.fn, nested, idMap);
         return this.runQueryOn(client, idMap, target.name, target.fn, nested);
       },
     };
     const result = await fn._handler(ctx as unknown as QueryCtx, args);
-    return validateReturn(fn.returns, result, `${name} return`, { idTable: (id) => idMap.get(id) });
+    return validateReturn(fn.returns, result, `${name} return`, { idTable: (id) => idMap.get(id) ?? taggedIdTable(id) });
   }
 
   private async runMutationOn(client: SqlExecutor, idMap: IdTableMap, name: string, fn: Registered, args: Record<string, unknown>): Promise<unknown> {
@@ -262,17 +278,19 @@ export class PostgresClient {
       runQuery: async (reference: FunctionReference<"query"> | string, nested: Record<string, unknown> = {}) => {
         const target = await resolveFunction(reference);
         if (!target.fn.isQuery) throw new Error(`${target.name} is not a query`);
-        validateValue(target.fn.args, nested, `${target.name} args`, { idTable: (id) => idMap.get(id) });
+        await this.resolveArgumentIds(client, nested, idMap);
+        this.validateArgs(target.name, target.fn, nested, idMap);
         return this.runQueryOn(client, idMap, target.name, target.fn, nested);
       },
       runMutation: async (reference: FunctionReference<"mutation"> | string, nested: Record<string, unknown> = {}) => {
         const target = await resolveFunction(reference);
         if (!target.fn.isMutation) throw new Error(`${target.name} is not a mutation`);
-        validateValue(target.fn.args, nested, `${target.name} args`, { idTable: (id) => idMap.get(id) });
+        await this.resolveArgumentIds(client, nested, idMap);
+        this.validateArgs(target.name, target.fn, nested, idMap);
         return this.runMutationOn(client, idMap, target.name, target.fn, nested);
       },
     };
     const result = await fn._handler(ctx as unknown as MutationCtx, args);
-    return validateReturn(fn.returns, result, `${name} return`, { idTable: (id) => idMap.get(id) });
+    return validateReturn(fn.returns, result, `${name} return`, { idTable: (id) => idMap.get(id) ?? taggedIdTable(id) });
   }
 }

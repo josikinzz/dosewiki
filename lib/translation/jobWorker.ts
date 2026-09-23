@@ -67,7 +67,7 @@ export async function runTranslationJobs(
         }
         const capability = getServerDataWriteCapability();
         if (capability.ok === false) return false;
-        await capability.capability.client.mutationAsService(enqueueCacheRetry, { targets });
+        await capability.capability.client.mutationAsPublicationRecovery(enqueueCacheRetry, { targets });
         await completeTranslationCacheJob(cacheJob);
         return false;
       } catch { return false; /* The durable cache row remains due for the next invocation. */ }

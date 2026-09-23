@@ -27,6 +27,12 @@
       "@/*": [
         "./src/*"
       ],
+      "@data/*": [
+        "./data/*"
+      ],
+      "@content/*": [
+        "./content/*"
+      ],
       "@lib/*": [
         "./lib/*"
       ],
@@ -42,7 +48,8 @@
     "../../scripts/**/*.ts"
   ],
   "files": [
-    "../../src/types/next-auth.d.ts"
+    "../../src/types/next-auth.d.ts",
+    "../../src/types/raw-modules.d.ts"
   ],
   "exclude": [
     "../../node_modules",

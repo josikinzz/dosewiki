@@ -22,15 +22,19 @@ function isRetryableQueryError(error: unknown): boolean {
   }
 
   const message = error.message.toLowerCase();
-  const cause = (error as Error & { cause?: { code?: string } }).cause;
-  const code = typeof cause?.code === "string" ? cause.code.toUpperCase() : "";
+  const connectionCodes = new Set([
+    "ECONNRESET", "ECONNREFUSED", "EPIPE", "ETIMEDOUT", "UND_ERR_CONNECT_TIMEOUT",
+    "08001", "08003", "08006", "08007",
+    "57P01", "57P02", "57P03",
+  ]);
+  let current: unknown = error;
+  for (let depth = 0; depth < 3 && current !== null && typeof current === "object"; depth += 1) {
+    const code = (current as { code?: unknown }).code;
+    if (typeof code === "string" && connectionCodes.has(code.toUpperCase())) return true;
+    current = (current as { cause?: unknown }).cause;
+  }
 
-  return (
-    message.includes("fetch failed") ||
-    code === "ETIMEDOUT" ||
-    code === "ECONNRESET" ||
-    code === "UND_ERR_CONNECT_TIMEOUT"
-  );
+  return message.includes("fetch failed");
 }
 
 async function wait(ms: number) {

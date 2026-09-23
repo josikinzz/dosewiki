@@ -43,6 +43,7 @@ import type * as replicationIdentitySocial from "../../../server/replicationIden
 import type * as replicationPlaylists from "../../../server/replicationPlaylists";
 import type * as replicationTaxonomy from "../../../server/replicationTaxonomy";
 import type * as replications from "../../../server/replications";
+import type * as saveArticleBatch from "../../../server/saveArticleBatch";
 import type * as siteConfig from "../../../server/siteConfig";
 import type * as siteFeedback from "../../../server/siteFeedback";
 import type * as subjectiveEffects from "../../../server/subjectiveEffects";
@@ -94,6 +95,7 @@ export type Api = ApiFromModules<{
   replicationPlaylists: typeof replicationPlaylists;
   replicationTaxonomy: typeof replicationTaxonomy;
   replications: typeof replications;
+  saveArticleBatch: typeof saveArticleBatch;
   siteConfig: typeof siteConfig;
   siteFeedback: typeof siteFeedback;
   subjectiveEffects: typeof subjectiveEffects;

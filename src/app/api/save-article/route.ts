@@ -14,8 +14,6 @@ import {
   countFieldsStrippedForDataMutation,
   sanitizeArticleForDataMutation,
   summarizeArticleForDebug,
-  type ArticleWriteOutcome,
-  type ChangelogArticle,
 } from "./saveArticleUtils";
 
 export const runtime = "nodejs";
@@ -169,25 +167,25 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
     });
 
     try {
-      let articleResult:
-        | {
-            created: number;
-            updated: number;
-            skipped?: number;
-            errors: string[];
-            outcomes?: ArticleWriteOutcome[];
-            affectedPaths?: string[];
-          }
-        | undefined;
-
-      if (articles.length > 0) {
-        phase = "article-mutation";
-        articleResult = await client.mutation(api.substanceIndex.saveSubstances, {
-          apiKey: editorArticleWriteToken,
-          actorEmail,
-          articles: articles as never,
-        });
-
+      const now = new Date();
+      const changelogInput = changelog ? {
+        entryId: buildEntryId(now),
+        createdAt: now.toISOString(),
+        message: `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+        markdown: truncateDiffMarkdown(changelog.markdown),
+        submittedBy,
+        articles: changelog.articles,
+      } : undefined;
+      phase = "article-mutation";
+      const batch = await client.mutation(api.saveArticleBatch.save, {
+        apiKey: editorArticleWriteToken,
+        actorEmail,
+        articles: articles as never,
+        indexLayouts: indexLayouts as never,
+        changelog: changelogInput,
+      });
+      const articleResult = batch.articleResult ?? undefined;
+      if (articleResult) {
         const savedArticleCount = articleResult.created + articleResult.updated;
         if (savedArticleCount > 0) {
           savedItems.push(`${savedArticleCount} article(s)`);
@@ -204,45 +202,20 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
       }
 
       if (indexLayouts.length > 0) {
-        phase = "index-layout-mutation";
-        let confirmed = 0;
-        for (const layout of indexLayouts) {
-          // indexLayouts.save mirrors psychoactive layouts into the
-          // categoryLayout table the public /substances page reads.
-          const receipt = await client.mutation(api.indexLayouts.save, {
-            apiKey: editorArticleWriteToken,
-            actorEmail,
-            type: layout.type,
-            version: layout.version,
-            categories: layout.categories,
-            expected: layout.expected,
-            expectedRevision: layout.expectedRevision, operationId: layout.operationId,
-          });
-          if (!receipt.unchanged) {
-            confirmed += 1;
-            publishedLayoutTypes.push(layout.type);
-          }
-        }
-
-        savedItems.push(confirmed ? `${confirmed} index layout publication receipt(s) confirmed` : "Index layouts unchanged; no publication needed");
+        for (const { type, receipt } of batch.layoutResults) if (!receipt.unchanged) publishedLayoutTypes.push(type);
+        const confirmedLayoutCount = publishedLayoutTypes.length;
+        savedItems.push(confirmedLayoutCount ? `${confirmedLayoutCount} index layout publication receipt(s) confirmed` : "Index layouts unchanged; no publication needed");
       }
 
-      let entry:
-        | {
-            id: string;
-            createdAt: string;
-            commit: {
-              sha: string;
-              url: string;
-              message: string;
-            };
-            articles: ChangelogArticle[];
-            markdown: string;
-            submittedBy: string | null;
-          }
-        | undefined;
+      const entry = batch.changelogSaved && changelogInput ? {
+        id: changelogInput.entryId,
+        createdAt: changelogInput.createdAt,
+        commit: { sha: "", url: "", message: changelogInput.message },
+        articles: changelogInput.articles,
+        markdown: changelogInput.markdown,
+        submittedBy,
+      } : undefined;
 
-      const savedArticleCount = articleResult ? articleResult.created + articleResult.updated : 0;
       const articleOutcomes = articleResult?.outcomes ?? [];
       const verification = articleOutcomes.map(buildArticleVerificationFromWriteOutcome);
 
@@ -262,39 +235,6 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
         publishedLayoutTypes as (typeof indexLayouts)[number]["type"][],
       ).filter((path) =>
         path !== "/substances" || hasMembershipChange || publishedLayoutTypes.length > 0);
-
-      if (savedArticleCount > 0 && changelog) {
-        phase = "changelog-mutation";
-        const now = new Date();
-        const createdAt = now.toISOString();
-        const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-        const markdown = truncateDiffMarkdown(changelog.markdown);
-        const entryId = buildEntryId(now);
-
-        await client.mutation(api.changelog.addEntry, {
-          apiKey: editorArticleWriteToken,
-          actorEmail,
-          entryId,
-          createdAt,
-          message,
-          markdown,
-          submittedBy,
-          articles: changelog.articles,
-        });
-
-        entry = {
-          id: entryId,
-          createdAt,
-          commit: {
-            sha: "",
-            url: "",
-            message,
-          },
-          articles: changelog.articles,
-          markdown,
-          submittedBy,
-        };
-      }
 
       phase = "revalidation";
       // The Postgres write is already durable here. A public deployment that

@@ -4,7 +4,7 @@
  * Handlers in `server/` use keyset SQL over the application tables. Documents
  * round-trip through `rowToDocument` / `documentToRow` and
  * `decodeDocumentValue` / `encodeDocumentValue`, preserving NaN, int64, and
- * bytes. `db.get(id)` resolves the table through the `documentIds` map.
+ * bytes. `db.get(id)` resolves untagged IDs through targeted `documentIds` reads.
  *
  * Queries run at REPEATABLE READ READ ONLY; mutations run at SERIALIZABLE
  * and retry the complete transaction on serialization or deadlock failure.
@@ -49,8 +49,8 @@ const ID_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 /**
  * Ids minted here start with a 4-character table tag so `normalizeId` can
- * resolve them synchronously without a lookup. Imported ids carry no runtime
- * tag and resolve through the id map loaded from `documentIds`.
+ * resolve them synchronously without a lookup. Imported and untagged ids
+ * entering a callable resolve through targeted `documentIds` lookups.
  */
 const TABLE_TAGS = new Map<string, TableName>();
 function tableTag(table: TableName): string {
@@ -69,15 +69,22 @@ export function mintDataId(table: TableName): string {
   return id;
 }
 
-/** Process-wide `_id -> table` map for ids that predate this runtime. */
+/** Per-call `_id -> table` map shared by nested handler contexts. */
 export type IdTableMap = Map<string, TableName>;
 
-export async function loadIdTableMap(executor: SqlExecutor): Promise<IdTableMap> {
-  const result = await executor.query('SELECT "_id", "table" FROM "documentIds"');
+export function taggedIdTable(id: string): TableName | undefined {
+  return /^[a-z0-9]{32}$/.test(id) ? TABLE_TAGS.get(id.slice(0, 4)) : undefined;
+}
+
+/** Resolve only IDs supplied to this call. The index on documentIds._id bounds this read. */
+export async function loadIdTableMap(executor: SqlExecutor, ids: readonly string[]): Promise<IdTableMap> {
   const map: IdTableMap = new Map();
-  for (const row of result.rows) {
-    const table = row.table as string;
-    if (isTableName(table)) map.set(row._id as string, table);
+  for (let offset = 0; offset < ids.length; offset += 256) {
+    const result = await executor.query('SELECT "_id", "table" FROM "documentIds" WHERE "_id" = ANY($1::text[])', [ids.slice(offset, offset + 256)]);
+    for (const row of result.rows) {
+      const table = row.table as string;
+      if (isTableName(table)) map.set(row._id as string, table);
+    }
   }
   return map;
 }
@@ -363,17 +370,40 @@ class Query implements AsyncIterable<Doc> {
     const direction = this.orderDirection === "asc" ? "ASC" : "DESC";
     const keys = this.orderKeys();
     if (startAfter) {
-      // Keyset continuation on the full ordering key; NULL keys fall back to offset paging below.
-      const values = keys.map((k) => startAfter[k]);
-      if (values.every((v) => v !== undefined && v !== null)) {
-        const placeholders = keys.map((k, i) => {
-          const column = columnExpr(this.table, k);
-          const value = column.nested && typeof values[i] !== "string" ? JSON.stringify(encodeDocumentValue(values[i])) : values[i];
+      const values = keys.map((key) => startAfter[key]);
+      if (values.every((value) => value !== undefined && value !== null)) {
+        const columns = keys.map((key) => columnExpr(this.table, key));
+        const placeholders = columns.map((column, index) => {
+          const value = column.nested && typeof values[index] !== "string" ? JSON.stringify(encodeDocumentValue(values[index])) : values[index];
           fetch.params.push(sqlParam({ kind: column.kind, optional: true }, value));
           return `$${fetch.params.length}::${SQL_TYPE[column.kind]}`;
         });
-        const columns = keys.map((k) => columnExpr(this.table, k).sql);
-        fetch.where.push(`(${columns.join(", ")}) ${this.orderDirection === "asc" ? ">" : "<"} (${placeholders.join(", ")})`);
+        const tuple = `(${columns.map((column) => column.sql).join(", ")}) ${this.orderDirection === "asc" ? ">" : "<"} (${placeholders.join(", ")})`;
+        const nullBranches = columns.slice(0, -1).map((column, index) =>
+          `(${columns.slice(0, index).map((prior, priorIndex) => `${prior.sql} = ${placeholders[priorIndex]}`).concat(`${column.sql} IS NULL`).join(" AND ")})`);
+        fetch.where.push(this.orderDirection === "asc" ? `(${tuple} OR ${nullBranches.join(" OR ")})` : tuple);
+      } else {
+        const terms: string[] = [];
+        const equal: string[] = [];
+        for (const key of keys) {
+          const column = columnExpr(this.table, key);
+          const value = startAfter[key];
+          const missing = value === undefined || value === null;
+          if (missing) {
+            if (this.orderDirection === "desc") terms.push([...equal, `${column.sql} IS NOT NULL`].join(" AND "));
+            equal.push(`${column.sql} IS NULL`);
+            continue;
+          }
+          const encoded = column.nested && typeof value !== "string" ? JSON.stringify(encodeDocumentValue(value)) : value;
+          fetch.params.push(sqlParam({ kind: column.kind, optional: true }, encoded));
+          const param = `$${fetch.params.length}::${SQL_TYPE[column.kind]}`;
+          const after = this.orderDirection === "asc"
+            ? `(${column.sql} > ${param} OR ${column.sql} IS NULL)`
+            : `${column.sql} < ${param}`;
+          terms.push([...equal, after].join(" AND "));
+          equal.push(`${column.sql} = ${param}`);
+        }
+        fetch.where.push(`(${terms.map((term) => `(${term})`).join(" OR ")})`);
       }
     }
     const orderBy = keys.map((k) => `${columnExpr(this.table, k).sql} ${direction}`).join(", ");
@@ -427,7 +457,18 @@ class Query implements AsyncIterable<Doc> {
 
   async paginate(options: { numItems: number; cursor: string | null }): Promise<PaginationResult> {
     const numItems = Math.max(1, options.numItems);
-    const startAfter = options.cursor ? (decodeDocumentValue(JSON.parse(options.cursor)) as Doc) : undefined;
+    let startAfter: Doc | undefined;
+    if (options.cursor) {
+      try {
+        const decoded = decodeDocumentValue(JSON.parse(options.cursor)) as Record<string, unknown>;
+        if (!decoded || typeof decoded !== "object" || Array.isArray(decoded) ||
+            typeof decoded._id !== "string" || !/^[a-z0-9]{32}$/.test(decoded._id) ||
+            typeof decoded._creationTime !== "number" || !Number.isFinite(decoded._creationTime)) {
+          throw new Error("Invalid pagination cursor");
+        }
+        startAfter = decoded as Doc;
+      } catch { throw new Error("Invalid pagination cursor"); }
+    }
     const page: Doc[] = [];
     let isDone = true;
     for await (const doc of this.rows(startAfter, numItems + 1)) {
@@ -487,14 +528,14 @@ export class PostgresDatabaseReader {
     private readonly knownIds: IdTableMap,
   ) {}
 
-  /** Synchronous resolution: transaction cache, then imported-id map, then minted-id tag. */
+  /** Synchronous resolution: transaction cache, then IDs resolved for this call, then minted-ID tag. */
   protected tableOfSync(id: string): TableName | null | undefined {
     const cached = this.idTables.get(id);
     if (cached !== undefined) return cached;
     const known = this.knownIds.get(id);
     if (known) return known;
-    const tagged = TABLE_TAGS.get(id.slice(0, 4));
-    if (tagged && /^[a-z0-9]{32}$/.test(id)) return tagged;
+    const tagged = taggedIdTable(id);
+    if (tagged) return tagged;
     return undefined;
   }
 
@@ -513,11 +554,14 @@ export class PostgresDatabaseReader {
     const table = result.rows[0]?.table as string | undefined;
     const resolved = table && isTableName(table) ? table : null;
     this.idTables.set(id, resolved);
+    if (resolved) this.knownIds.set(id, resolved);
     return resolved;
   }
 
   protected rememberTable(id: string, table: TableName | null): void {
     this.idTables.set(id, table);
+    if (table) this.knownIds.set(id, table);
+    else this.knownIds.delete(id);
   }
 
   async get(idOrTable: string, maybeId?: string): Promise<Doc | null> {
@@ -529,12 +573,12 @@ export class PostgresDatabaseReader {
       [id],
     );
     const row = result.rows[0] as Record<string, unknown> | undefined;
-    if (row) this.idTables.set(id, table);
+    if (row) this.rememberTable(id, table);
     return row ? fromRow(table, row) : null;
   }
 
   query(table: string) {
-    return new QueryInitializer(this.client, assertTable(table), (id, t) => this.idTables.set(id, t));
+    return new QueryInitializer(this.client, assertTable(table), (id, t) => this.rememberTable(id, t));
   }
 
   async getPublicCopyBlocksByKeys(keys: readonly string[]): Promise<Doc[]> {

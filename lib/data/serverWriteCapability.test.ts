@@ -15,6 +15,7 @@ vi.mock("../postgres/runtime/client", () => ({
 const originalEnv = process.env;
 const edit = makeFunctionReference<"mutation", { apiKey: string; actorEmail?: string; slug: string }, unknown>("substanceIndex:setArticleField");
 const intake = makeFunctionReference<"mutation", { apiKey: string }, unknown>("siteFeedback:create");
+const cacheRetry = makeFunctionReference<"mutation", { targets: unknown[] }, unknown>("publicationRecovery:enqueueTranslationCacheRetry");
 const action = makeFunctionReference<"action", { apiKey: string; actorEmail?: string }, unknown>("replications:sync");
 const query = makeFunctionReference<"query", { apiKey: string }, unknown>("substanceIndex:getBySlug");
 
@@ -105,6 +106,17 @@ describe("Postgres write capabilities", () => {
     expect(io.mutation).not.toHaveBeenCalled();
     expect(io.action).not.toHaveBeenCalled();
     await expect(client.mutationAsService(intake, { apiKey: "intake-secret" })).resolves.toEqual({ updated: 1 });
+  });
+
+  it("permits privileged translation cache recovery but not public intake recovery", async () => {
+    const module = await load();
+    const client = module.getServerDataWriteCapabilityOrThrow().client;
+    await expect(client.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
+    await expect(client.mutationAsPublicationRecovery(cacheRetry, { targets: [{ kind: "article", slug: "lsd" }] })).resolves.toEqual({ updated: 1 });
+    process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "intake-secret";
+    const publicClient = module.getPublicIntakeWriteCapability()!.client;
+    expect("mutationAsPublicationRecovery" in publicClient).toBe(false);
+    await expect(publicClient.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
   });
 
   it.each(["1", "mayebe"])("blocks every write while freeze is %s but preserves reads", async (freeze) => {

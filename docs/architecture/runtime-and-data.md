@@ -453,20 +453,22 @@ Postgres runtime under `DATA_BACKEND=postgres`:
 
 The preferred live-content save path, for an admin session, is:
 
-1. client collects article/about/changelog payload
+1. client collects article, index layout, and changelog payload
 2. client calls `POST /api/save-article`
 3. route enforces rate limit
 4. route requires an Auth.js admin session
 5. route requires `POSTGRES_POOLED_URL` and the editor credential tier on
    `dosewiki-admin`, with the global write freeze enforced
-6. each mutation uses its intent-scoped token when configured and otherwise uses
+6. the save mutation uses its intent-scoped token when configured and otherwise uses
    `DATA_ADMIN_KEY` only where the intent policy permits a general-key fallback
-7. route invokes authored Postgres mutations through generated callable references
-8. route optionally writes changelog entry
-9. route revalidates affected public paths and immediately expires tagged public
+7. route calls `saveArticleBatch.save`, which checks admin membership and invokes
+   the authored article, index layout, and optional changelog mutations in one
+   serializable Postgres transaction. A later error rolls back every earlier
+   write in that request, including the publication outbox.
+8. after commit, route revalidates affected public paths and immediately expires tagged public
    database-derived data
-10. route clears process-local library/search caches
-11. client receives verification/revalidation metadata
+9. route clears process-local library/search caches
+10. client receives verification/revalidation metadata
 
 This path preserves the native Postgres write, authorization, and publication boundaries.
 
@@ -629,6 +631,11 @@ Session model:
 - session user object enriched with role
 - role re-read from Postgres `memberships` on every JWT refresh; a banned member
   degrades to `viewer` on the next request
+- sign-in records the membership's password revision in the JWT. A password
+  reset or admin password rotation changes that revision. On the next JWT
+  refresh, an older session loses its role and glossary access.
+- existing sessions have no password revision until users sign in again after
+  this release. They resolve to `viewer` for accounts with a password revision.
 
 ### Membership lookup
 

@@ -14,6 +14,7 @@ type AuthorizedMember = {
   id: string;
   email: string;
   name: string;
+  passwordUpdatedAt?: string;
 };
 
 /**
@@ -44,7 +45,7 @@ export async function authorizeCredentials(
 
   await touchSignIn(member.email);
 
-  return { id: member.email, email: member.email, name: member.name ?? username };
+  return { id: member.email, email: member.email, name: member.name ?? username, passwordUpdatedAt: member.passwordUpdatedAt };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -71,6 +72,9 @@ export const authOptions: NextAuthOptions = {
       return safeAuthRedirect(url, baseUrl);
     },
     async jwt({ token, user }) {
+      if (user) {
+        token.passwordUpdatedAt = user.passwordUpdatedAt;
+      }
       const email = user?.email ?? token.email;
 
       if (!email) {
@@ -84,7 +88,7 @@ export const authOptions: NextAuthOptions = {
       // member cannot ride out an outage on their old role.
       try {
         const membership = await getMembershipByEmail(email);
-        token.role = membership?.bannedAt
+        token.role = membership?.bannedAt || membership?.passwordUpdatedAt !== token.passwordUpdatedAt
           ? "viewer"
           : (resolveSessionRole({ role: membership?.role }) ?? "viewer");
         token.glossaryLocales = approvedGlossaryLocales({ role: token.role, glossaryLocales: membership?.glossaryLocales });
