@@ -95,8 +95,15 @@ const effectCategoryRouteAliases = {
   "smell-and-taste": "smell-and-taste-effects",
 } as const;
 
+// A prebuilt upload (the remote build workflow) has no platform deployment ID
+// at build time, so it names its own for skew protection. The server must keep
+// serving that ID at request time too: Vercel's runtime ID would stamp preload
+// links that disagree with the font URLs compiled into the CSS.
+const prebuiltDeploymentId = process.env.DOSEWIKI_PREBUILT_DEPLOYMENT_ID?.trim() || undefined;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(prebuiltDeploymentId ? { deploymentId: prebuiltDeploymentId } : {}),
   distDir: buildDirectory,
   productionBrowserSourceMaps: false,
   // The translation cron reads the Traditional charset beside
@@ -117,6 +124,7 @@ const nextConfig: NextConfig = {
     // for a runner that sits next to the database; unset or invalid values
     // keep the defaults, and the ceilings are clamped there.
     ...resolveBuildConcurrency(),
+    ...(prebuiltDeploymentId ? { runtimeServerDeploymentId: false } : {}),
     optimizePackageImports: [
       "@dnd-kit/core",
       "@dnd-kit/sortable",
