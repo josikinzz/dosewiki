@@ -52,9 +52,12 @@ on:
 permissions:
   contents: read
 
-# One build per surface at a time so two runs never race for the same cache key.
+# One remote build at a time across all surfaces. Three builds in parallel
+# exhausted the read-only role's connections (connection terminated, connect
+# timeout) while one alone completes. GitHub keeps one queued run per group, so
+# dispatch surfaces one after another; a newer dispatch replaces a queued one.
 concurrency:
-  group: remote-build-${{ inputs.surface }}
+  group: remote-build
   cancel-in-progress: false
 
 jobs:
@@ -199,7 +202,8 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          url="$(bunx "$VERCEL_CLI" deploy --prebuilt --yes --token="$VERCEL_TOKEN")"
+          # --archive=tgz: the prebuilt output exceeds the 15000-file upload limit.
+          url="$(bunx "$VERCEL_CLI" deploy --prebuilt --archive=tgz --yes --token="$VERCEL_TOKEN")"
           test -n "$url" || { echo "::error::vercel deploy printed no deployment URL"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
 

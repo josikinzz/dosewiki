@@ -79,6 +79,16 @@ Two build paths produce the same artifact through the same command:
 - **Laptop (the fallback).** The isolated release trees and the commands in
   this section, exactly as before.
 
+Two limits of the remote path, both observed on its first runs:
+
+- Run one remote build at a time. Three in parallel exhausted the read-only
+  role's database connections; the workflow's shared concurrency group queues
+  them, and GitHub keeps only one queued run, so dispatch surfaces in turn.
+- Its preview deployment runs with the project's preview environment, which
+  holds no database URL, so pages rendered on demand fail there. Use it for
+  the census, the artifact audit, and timing; production artifacts still come
+  from `vercel deploy --prod --skip-domain` in each isolated release tree.
+
 The remote path becomes the default release path after two production
 releases have gone through it end to end with their census and elapsed time
 recorded in the concurrency table below. Until then the laptop path is the
