@@ -165,6 +165,20 @@ describe("bulk wave segment writer", () => {
     expect(second.stored).toBe(2);
   });
 
+  it("requests a shared segment again for a job under a newer prompt version", async () => {
+    seam.client = simulatedPostgres().client;
+    seam.latency = () => 50;
+    const wave = createTranslationWave();
+    const requestPool = createTranslationRequestPool(100);
+    const approved: TranslationContext = { ...context, promptVersion: "after-glossary-approval" };
+    await settle(Promise.all([
+      translateUnits([unit("shared")], context, "model-key", { requestPool, wave }),
+      translateUnits([unit("shared")], approved, "model-key", { requestPool, wave }),
+    ]));
+
+    expect(seam.requested).toEqual(["shared", "shared"]);
+  });
+
   it("fails a job whose shared segment failed in the owning job", async () => {
     seam.client = simulatedPostgres().client;
     const failing = { run: async () => { throw new Error("model unavailable"); }, limit: 1, inFlight: 0, pending: 0 };

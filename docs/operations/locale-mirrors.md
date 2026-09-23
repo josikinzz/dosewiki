@@ -127,12 +127,16 @@ Both workers propagate
 cancellation through `lib/translation/liveTranslation.ts` and
 `scripts/translation/engine.mjs` to the provider request.
 
-Each claimed bulk wave shares one segment writer. Its jobs queue accepted
-segments, and the writer commits them one transaction at a time, coalescing
-whatever queued meanwhile, so a wave holds one pool connection and the global
-publication-index lock at most once at a time. A segment hash that two jobs in
-the wave need, for the same locale, is requested once; the other job waits for
-that result. The incremental lane still writes each record's segments itself.
+Each bulk run shares one wave (`lib/translation/translationWave.ts`) and one
+segment writer. Its jobs queue accepted segments, and the writer commits them
+one transaction at a time, coalescing whatever queued meanwhile, so a wave
+holds one pool connection and the global publication-index lock at most once
+at a time. A segment hash that two jobs in the wave need, for the same locale
+and prompt version, is requested once; the other job waits for that result. A
+job loaded after a glossary approval carries a new prompt version, so it
+requests the segment itself rather than waiting on a translation made under
+the older prompt. The incremental lane still writes each record's segments
+itself.
 
 Every worker invocation writes one `translationWorkerRuns` row (migration
 `0022`): lane, whether it held the lease, claimed, completed, failed and
