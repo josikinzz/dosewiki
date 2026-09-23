@@ -150,7 +150,7 @@ function assertServiceMutation(reference: FunctionReference<"mutation">): void {
 export type ServerDataWriteCapability = {
   client: ServerDataWriteClient;
   adminKey: string;
-  getAdminIntentToken: (intent: AdminIntent) => string;
+  getAdminIntentToken: (intent: AdminIntent) => string | null;
   deployment: ServerDataDeploymentMetadata;
   health: ServerDataWriteHealth;
 };
@@ -288,7 +288,7 @@ export function getServerDataWriteCapability(): ServerDataWriteCapabilityResult 
     missing.push("writeUrl");
   }
 
-  if (missing.length > 0) {
+  if (missing.length > 0 || !adminKey || !writeUrl) {
     return {
       ok: false,
       failure: buildConfigurationFailure(missing, health),

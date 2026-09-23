@@ -116,8 +116,8 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
       new Set(args.baselines.map((entry) => `${entry.kind}:${entry.key}`)).size !== implied.length) {
     throw new PostgresError({ code: "PROPOSAL_BASELINE_REQUIRED", message: "Every change needs its loaded baseline. Your draft is preserved; reload the source and reapply your edits." });
   }
-  const targets = [];
-  const snapshots = [];
+  const targets: Array<(typeof implied)[number] & { baseHash: string }> = [];
+  const snapshots: Array<(typeof implied)[number] & { document: unknown }> = [];
   for (const target of implied) {
     const baseline = args.baselines.find((entry) => entry.kind === target.kind && entry.key === target.key);
     const document = await readProposalTarget(ctx, target, "stored");
@@ -350,8 +350,8 @@ export async function getHandler(
   }
   // The production hash of each target as it stands now: a reviewer sees a
   // target has drifted from `baseHash` before approve refuses it.
-  const liveHashes = [];
-  const baseline = [];
+  const liveHashes: Array<Pick<Doc<"changeProposals">["targets"][number], "kind" | "key"> & { hash: string }> = [];
+  const baseline: Array<Pick<Doc<"changeProposals">["targets"][number], "kind" | "key"> & { document: unknown }> = [];
   for (const target of row.targets) {
     const document = await readProposalTarget(ctx, target, "stored");
     baseline.push({ kind: target.kind, key: target.key, document });

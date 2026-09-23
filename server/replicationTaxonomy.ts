@@ -168,7 +168,17 @@ export const getArtistsByKeys = query({
       "admin",
     );
     if (args.keys.length > 200) throw new Error("Artist taxonomy read-back is limited to 200 rows.");
-    const rows = [];
+    const rows: Array<Pick<
+      Doc<"replicationArtistTaxonomy">,
+      | "key"
+      | "display_name"
+      | "primary_type"
+      | "artist_type_tags"
+      | "confidence"
+      | "review_required"
+      | "taxonomy_version"
+      | "taxonomy_source_digest"
+    >> = [];
     for (const rawKey of args.keys) {
       const key = rawKey.trim().toLowerCase();
       if (!key) continue;
@@ -232,7 +242,7 @@ export const getPublicArtistsByKeys = query({
       if (byKey.has(row.key)) throw new Error("Duplicate artist taxonomy key.");
       byKey.set(row.key, row);
     }
-    const rows = [];
+    const rows: Array<Pick<(typeof matches)[number], "key" | "primary_type" | "artist_type_tags">> = [];
     for (const key of requestedKeys) {
       const row = byKey.get(key);
       if (row) {

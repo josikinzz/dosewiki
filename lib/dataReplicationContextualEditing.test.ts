@@ -35,7 +35,7 @@ function articleFixture(count: number) {
     format: "jpg", created_at: "2026-01-01", url: `https://media.example/work-${index}.jpg`,
     effect_slug: "tracers", effect_tags: [],
     title_drugs: [{ slug: "lsd", name: "LSD", class: "psychedelics", matched_title_text: "LSD" }],
-  })) as Doc<"replications">[];
+  })) as unknown as Doc<"replications">[];
   const test = createCtx({
     memberships: [admin],
     replications: rows,
@@ -153,7 +153,7 @@ describe("contextual replication publication", () => {
             { slug: "ketamine", name: "Ketamine", class: "dissociatives", matched_title_text: "ketamine" },
           ],
         },
-      ] as Doc<"replications">[],
+      ] as unknown as Doc<"replications">[],
     });
 
     const effect = await baseline(ctx);

@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictNullChecks": true
   },
-  "include": ["next-env.d.ts", "lib/postgres/runtime", "lib/runtime"]
+  "include": ["next-env.d.ts", "src/types/next-auth.d.ts", "src/types/raw-modules.d.ts", "src/test/setup.ts", "lib", "server"]
 }

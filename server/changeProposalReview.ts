@@ -149,7 +149,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail, articleChangeId: `proposal-${proposal._id}`, articleSummary: proposal.summary };
   const revalidatePaths = await applyDocuments(ctx, auth, payloadDocuments(payload));
 
-  const appliedHashes = [];
+  const appliedHashes: Array<Pick<Doc<"changeProposals">["targets"][number], "kind" | "key"> & { hash: string }> = [];
   for (const target of proposal.targets) {
     appliedHashes.push({ kind: target.kind, key: target.key, hash: await hashProposalTarget(ctx, target) });
   }

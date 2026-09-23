@@ -1,6 +1,6 @@
 import { type Infer, v } from "../lib/postgres/runtime/values";
 import type { MutationCtx, QueryCtx } from "../lib/postgres/runtime/server";
-import type { Id } from "../lib/postgres/runtime/dataModel";
+import type { Doc, Id } from "../lib/postgres/runtime/dataModel";
 import { internalQuery, query } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRegisteredDelegatedEditorWrite } from "./lib/auth";
@@ -461,7 +461,7 @@ export async function applyIdentitySocialBatchHandler(ctx: MutationCtx, args: { 
     return { operation_id: operationId, payload_digest: payloadDigest, changed: prior.changed_count, unchanged: prior.unchanged_count, idempotent_replay: true, dry_run: false };
   }
   const now = Date.now();
-  const items = [];
+  const items: Array<{ entry: IdentitySocialBatchEntry; target: IdentitySocialTarget; existing: StoredRecord | null; before: IdentitySocialStoredValue | null; after: IdentitySocialStoredValue | null; recordChanged: boolean; profileBefore: ProfileProjectionState | undefined; profileAfter: ProfileProjectionState | undefined; profileChanged: boolean; changed: boolean }> = [];
   for (const entry of args.entries) {
     const used = await ctx.db.query("replicationIdentitySocialOperationItems").withIndex("by_item_operation_id", (q) => q.eq("item_operation_id", entry.item_operation_id)).unique();
     if (used) throw new Error("Item operation ID collision.");
@@ -505,7 +505,8 @@ export async function rollbackIdentitySocialOperationHandler(ctx: MutationCtx, a
   if (replay) { if (replay.payload_digest !== payloadDigest || replay.rollback_of !== rollbackOf) throw new Error("Rollback operation ID collision."); await verifyReplay(ctx, replay); return { operation_id: operationId, payload_digest: payloadDigest, changed: replay.changed_count, unchanged: replay.unchanged_count, idempotent_replay: true, dry_run: false }; }
   const original = await ctx.db.query("replicationIdentitySocialOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", rollbackOf)).unique();
   if (!original) throw new Error("Rollback target not found.");
-  const originals = await operationItems(ctx, rollbackOf, original.record_count); const now = Date.now(); const items = [];
+  const originals = await operationItems(ctx, rollbackOf, original.record_count); const now = Date.now();
+  const items: Array<{ source: (typeof originals)[number]; existing: StoredRecord | null; itemId: string; after: ReturnType<typeof restored> | (typeof originals)[number]["after"]; recordChanged: boolean; profileChanged: boolean; changed: boolean }> = [];
   for (const source of originals) {
     const existing = await existingByTarget(ctx, source.target);
     if (!equal(strip(existing), source.after)) throw new Error("Rollback target state drifted or was recreated.");
@@ -1013,7 +1014,7 @@ export const getOperationCompletionReceiptAuthenticated = query({
     const operation = await ctx.db.query("replicationIdentitySocialOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", args.operation_id)).unique();
     if (!operation) return null;
     const journal = await operationItems(ctx, operation.operation_id, operation.record_count);
-    const items = [];
+    const items: Array<{ item_operation_id: string; kind: (typeof journal)[number]["kind"]; changed: boolean; live_matches: boolean; expected_after_digest: string; current_digest: string; profile_live_matches?: boolean; verification_live_matches?: boolean; satisfied_item_operation_ids: string[]; error?: string }> = [];
     for (const item of journal) {
       try {
         let current: IdentitySocialStoredValue | null;
@@ -1137,7 +1138,7 @@ export const getProfileCurationReadbackAuthenticated = query({
   },
 });
 export const previewCanonicalBefore = internalQuery({ args: { entry: identitySocialBatchEntryValidator }, returns: v.object({ before: v.union(creatorExpectedBeforeValidator, verificationExpectedBeforeValidator, avatarExpectedBeforeValidator, aliasExpectedBeforeValidator, v.null()), digest: v.string() }), handler: async (ctx, args) => { const before = await canonicalBeforeForEntry(ctx, args.entry); return { before, digest: await canonicalDigest(before) }; } });
-export const getAttributionsByReplicationIds = internalQuery({ args: { replication_ids: v.array(v.id("replications")) }, returns: v.array(storedAttribution), handler: async (ctx, args) => { if (args.replication_ids.length > MAX_BATCH) throw new Error("Readback limited to 50."); const rows = []; for (const id of args.replication_ids) { const row = await ctx.db.query("replicationIdentityAttributions").withIndex("by_replication_id", (q) => q.eq("replication_id", id)).unique(); if (row) rows.push(row); } return rows; } });
+export const getAttributionsByReplicationIds = internalQuery({ args: { replication_ids: v.array(v.id("replications")) }, returns: v.array(storedAttribution), handler: async (ctx, args) => { if (args.replication_ids.length > MAX_BATCH) throw new Error("Readback limited to 50."); const rows: Doc<"replicationIdentityAttributions">[] = []; for (const id of args.replication_ids) { const row = await ctx.db.query("replicationIdentityAttributions").withIndex("by_replication_id", (q) => q.eq("replication_id", id)).unique(); if (row) rows.push(row); } return rows; } });
 const pageMeta = { cursor: v.union(v.string(), v.null()), isDone: v.boolean(), hasMore: v.boolean() };
 export const getProfileAliasesPage = internalQuery({ args: { profile_id: v.id("contributorProfiles"), cursor: v.optional(v.string()), limit: v.number() }, returns: v.object({ items: v.array(storedAlias), ...pageMeta }), handler: async (ctx, args) => { const page = await ctx.db.query("contributorAliasEvidence").withIndex("by_profile_id", (q) => q.eq("profile_id", args.profile_id)).paginate({ cursor: args.cursor ?? null, numItems: Math.min(Math.max(Math.floor(args.limit), 1), 50) }); return { items: page.page, cursor: page.isDone ? null : page.continueCursor, isDone: page.isDone, hasMore: !page.isDone }; } });
 export const getProfileAvatarsPage = internalQuery({ args: { profile_id: v.id("contributorProfiles"), cursor: v.optional(v.string()), limit: v.number() }, returns: v.object({ items: v.array(storedAvatar), ...pageMeta }), handler: async (ctx, args) => { const page = await ctx.db.query("contributorAvatarHistory").withIndex("by_profile_id", (q) => q.eq("profile_id", args.profile_id)).paginate({ cursor: args.cursor ?? null, numItems: Math.min(Math.max(Math.floor(args.limit), 1), 50) }); return { items: page.page, cursor: page.isDone ? null : page.continueCursor, isDone: page.isDone, hasMore: !page.isDone }; } });

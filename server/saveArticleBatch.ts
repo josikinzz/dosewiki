@@ -1,6 +1,6 @@
 import { mutation } from "../lib/postgres/runtime/server";
 import { v } from "../lib/postgres/runtime/values";
-import { api } from "../lib/postgres/runtime/api";
+import { api, type FunctionReturnType } from "../lib/postgres/runtime/api";
 import { indexLayoutValidator, substanceArticleLightValidator } from "./lib/validators";
 import { requireRole } from "./lib/auth";
 
@@ -35,7 +35,10 @@ export const save = mutation({
     if (articleResult?.errors.length) {
       throw new Error(`Article save failed: ${articleResult.errors.join("; ")}`);
     }
-    const layoutResults = [];
+    const layoutResults: Array<{
+      type: (typeof args.indexLayouts)[number]["type"];
+      receipt: FunctionReturnType<typeof api.indexLayouts.save>;
+    }> = [];
     for (const layout of args.indexLayouts) {
       const receipt = await ctx.runMutation(api.indexLayouts.save, {
         apiKey: args.apiKey, actorEmail: args.actorEmail, ...layout,

@@ -55,18 +55,18 @@ export async function resolveReplicationUrls(
   },
   opts?: { thumbnail?: boolean; preview?: boolean; motion?: boolean },
 ) {
-  let url = null;
-  let thumbnail_url = null;
-  let preview_url = null;
-  let motion_url = null;
-  let motion_poster_url = null;
+  let url: string | null = null;
+  let thumbnail_url: string | null = null;
+  let preview_url: string | null = null;
+  let motion_url: string | null = null;
+  let motion_poster_url: string | null = null;
 
   const base = replicationMediaBaseUrl();
   const fromR2 = (key?: string | null) =>
     base && isValidR2Key(key) ? `${base}/${key}` : null;
 
   url = fromR2(rep.r2_key);
-  if (!url && !isPlaceholderStorageId(rep.storage_id)) {
+  if (!url && rep.storage_id && !isPlaceholderStorageId(rep.storage_id)) {
     try {
       url = await ctx.storage.getUrl(rep.storage_id);
     } catch {

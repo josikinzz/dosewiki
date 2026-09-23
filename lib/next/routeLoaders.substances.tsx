@@ -159,7 +159,7 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     getMoleculeUpdatedAt(slug),
     // Slug set only: which wiki links resolve. The preview corpus would cost
     // 19 sequential round trips on a cold cache for the same answer.
-    getPublicSubstanceSlugsByCandidates(interactionCandidateSlugs(substance as SubstanceArticle)),
+    getPublicSubstanceSlugsByCandidates(interactionCandidateSlugs(substance as unknown as SubstanceArticle)),
     getPublicCategoryLayout(),
     getCachedReagentDataForArticle(substance, slug),
     // Banner membership and display metadata stay canonical. Locale routes
@@ -230,7 +230,7 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     moleculeOverrideUrl,
     externalReagentData,
     ...buildSubstanceSecondarySections({
-      article: substance as SubstanceArticle,
+      article: substance as unknown as SubstanceArticle,
       slug,
       data: secondaryData,
       externalReagentData,

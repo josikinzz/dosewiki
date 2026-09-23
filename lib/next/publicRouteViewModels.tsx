@@ -278,7 +278,7 @@ export function buildSubstanceArticleViewModel(input: {
   recentChanges?: ArticleRecentChange[];
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
-  const publicArticle = article as SubstanceArticle;
+  const publicArticle = article as unknown as SubstanceArticle;
 
   return {
     metadata: {

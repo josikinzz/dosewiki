@@ -138,7 +138,7 @@ describe("public persistent cache boundaries", () => {
     refresh.mode = "background";
     refresh.allKeys = true;
     const draining = (async () => {
-      const pages = [];
+      const pages: string[] = [];
       for (let page = 0; page < 8; page++) pages.push(await read(page));
       return pages;
     })();

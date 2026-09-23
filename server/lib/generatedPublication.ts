@@ -316,13 +316,13 @@ export type GeneratedPublicationDb = {
     (table: "generatedPublicationOperations"): {
       withIndex: (
         index: "by_proposal_id",
-        predicate: (query: IndexPredicate) => unknown,
+        predicate?: (query: IndexPredicate) => unknown,
       ) => { unique: () => Promise<GeneratedPublicationOperationRecord | null> };
     };
     (table: "substanceIndex"): {
       withIndex: (
         index: "by_slug",
-        predicate: (query: IndexPredicate) => unknown,
+        predicate?: (query: IndexPredicate) => unknown,
       ) => { take: (limit: number) => Promise<StoredArticle[]> };
     };
   };

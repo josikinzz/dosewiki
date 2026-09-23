@@ -33,7 +33,7 @@ type SubstanceDb = {
   query: (table: "substanceIndex") => {
     withIndex: (
       indexName: "by_article_id" | "by_slug",
-      callback: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
+      callback?: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
     ) => { first: () => Promise<StoredSubstance | null> };
   };
   patch: (id: unknown, value: Record<string, unknown>) => Promise<void>;

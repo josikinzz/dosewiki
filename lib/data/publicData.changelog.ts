@@ -204,7 +204,7 @@ function resolveContributors(
     }
     // Legacy stamps under a retired handle attribute to their current profile,
     // the same grouping the profile page uses in the other direction.
-    let profile = null;
+    let profile: ContributorDirectory[number] | null = null;
     for (const handle of expandLegacyContributorHandles([submittedBy])) {
       profile = findContributorProfileByKeyOrAlias(directory, handle);
       if (profile) break;

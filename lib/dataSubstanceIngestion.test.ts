@@ -248,7 +248,7 @@ describe("substance ingestion", () => {
       existing: [{ ...stored, _id: "stored-7" }],
     });
 
-    expect(replacement.prepared[0].references[0]).toMatchObject({
+    expect((replacement.prepared[0].references as Array<Record<string, unknown>>)[0]).toMatchObject({
       id: "doi-example",
       title: "Verified title",
     });

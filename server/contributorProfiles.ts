@@ -91,7 +91,7 @@ export const getPublicIdentities = query({
         key: row.key, displayName: row.displayName, aliases: row.aliases,
         avatarUrl: row.avatarUrl, avatarR2Key: row.avatarR2Key, avatarStorageId: row.avatarStorageId,
         exclude_from_gallery: row.exclude_from_gallery, approved_replicator: row.approved_replicator,
-        archival: row.archival, bio: "", links: [],
+        archival: row.archival, bio: "", links: [] as StoredProfile["links"],
       } as StoredProfile)));
     return profiles.sort((left, right) => left.displayName.localeCompare(right.displayName));
   },

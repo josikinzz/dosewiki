@@ -116,7 +116,7 @@ export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Pro
     for (const section of sections) {
       if (!section.public.visible && section.id !== "summary") continue;
       for (const field of section.articleFields) source[field] = substance[field as keyof typeof substance];
-      if (section.public.toc && section.articleFields.some((field) => present(source[field])) && (!section.public.isPresent || section.public.isPresent(substance as SubstanceArticle))) {
+      if (section.public.toc && section.articleFields.some((field) => present(source[field])) && (!section.public.isPresent || section.public.isPresent(substance as unknown as SubstanceArticle))) {
         add(`substance:${substance.slug}:heading:${section.id}`, `${href}#${section.id}`, title, `Section heading: ${section.label}`, section.label);
       }
     }

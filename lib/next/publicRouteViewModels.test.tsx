@@ -62,7 +62,7 @@ describe("public route view models", () => {
         common_name: "LSD",
         alternative_names: [],
       },
-    } as PublicSubstanceRecord;
+    } as unknown as PublicSubstanceRecord;
 
     const viewModel = buildSubstanceArticleViewModel({
       slug: "lsd",
@@ -98,7 +98,7 @@ describe("public route view models", () => {
         psychoactive_class: ["Psychedelic"],
         chemical_class: ["Tryptamine"],
       },
-    } as PublicSubstanceRecord;
+    } as unknown as PublicSubstanceRecord;
 
     const viewModel = buildSubstanceArticleViewModel({
       slug: "dmt",
@@ -128,7 +128,7 @@ describe("public route view models", () => {
         alternative_names: [],
         smiles: "CCN",
       },
-    } as PublicSubstanceRecord;
+    } as unknown as PublicSubstanceRecord;
 
     const viewModel = buildSubstanceArticleViewModel({
       slug: "fixtureamine",

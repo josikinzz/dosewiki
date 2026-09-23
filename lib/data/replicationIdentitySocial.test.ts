@@ -170,7 +170,7 @@ describe("replication identity/social Postgres contract", () => {
     const verification = { kind: "verification", item_operation_id: verifyP.operationId, expected_operation_id: null, projection: verifyP.value, value: { profile_id: PID, status: "verified", basis: "artist-sheet-review", work_count_reviewed: 2, rationale: "reviewed", evidence: [{ kind: "editorial-review", digest: DIGEST }], source_digest: DIGEST } } as IdentitySocialBatchEntry;
     expect(await canonicalBeforeForEntry(ctx, verification)).toMatchObject({ verificationStatus: "unverified", profileLinks: [{ label: "Reddit", url: PROFILE_URL }] });
     const avatarP = await projection("profile-avatar", { profileKey: "EXAMPLEPOSTER" }, { currentAvatarSha256: DIGEST, currentAvatarUrl: PROFILE_URL, currentAvatarProvenance: "profile-controlled" }, {}, "propose-reviewed-avatar");
-    const avatar = { kind: "avatar", item_operation_id: avatarP.operationId, expected_operation_id: null, projection: avatarP.value, value: { profile_id: PID, provenance: "profile-controlled", public_url: PROFILE_URL, source_url: PROFILE_URL, media_digest: OTHER, delivery_verification: "pending", evidence: [] } } as IdentitySocialBatchEntry;
+    const avatar = { kind: "avatar", item_operation_id: avatarP.operationId, expected_operation_id: null, projection: avatarP.value, value: { profile_id: PID, provenance: "profile-controlled", public_url: PROFILE_URL, source_url: PROFILE_URL, media_digest: OTHER, delivery_verification: "pending", evidence: [] } } as unknown as IdentitySocialBatchEntry;
     expect(await canonicalBeforeForEntry(ctx, avatar)).toEqual(avatarP.value.expectedBefore);
   });
 
@@ -214,7 +214,7 @@ describe("replication identity/social Postgres contract", () => {
     const verification = { status: "verified", basis: "artist-sheet-review", work_count_reviewed: 1, rationale: "Reviewed exact artist sheet.", evidence: [{ kind: "editorial-review", digest: DIGEST }], source_digest: DIGEST };
     const profile = { display_name: "New Artist", aliases: [], links: [] };
     const core = { schemaVersion: 1, projection: p.value, artist_id: "new-artist", decision: "create", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "NEWARTIST", existing_profile_id: null, profile, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null };
-    const entry = { kind: "profile-binding", item_operation_id: `identity-social-item:v1:${(await canonicalDigest(core)).slice(0, 24)}`, projection: p.value, artist_id: "new-artist", decision: "create", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "NEWARTIST", profile, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null } as ProfileBindingEntry;
+    const entry = { kind: "profile-binding", item_operation_id: `identity-social-item:v1:${(await canonicalDigest(core)).slice(0, 24)}`, projection: p.value, artist_id: "new-artist", decision: "create", snapshot_digest: FULL_ALIAS_SNAPSHOT, snapshot_profile_count: 2119, profile_key: "NEWARTIST", profile, verification, base_projection_digest: DIGEST, receipt_sidecar_digest: null } as unknown as ProfileBindingEntry;
     await expect(applyProfileBindingBatchHandler(ctx, { apiKey: TOKEN, actor_email: ACTOR, operation_id: "binding-create", dry_run: false, entries: [entry] })).resolves.toMatchObject({ changed: 1, unchanged: 0 });
     expect(tables.contributorProfiles.some((row) => row.key === "NEWARTIST")).toBe(true);
     expect(tables.replicationIdentityProfileBindings).toHaveLength(1);

@@ -169,8 +169,8 @@ function resolvePolicy(policyOrOptions?: RateLimitPolicyName | RateLimitOptions)
 
   return {
     name: "legacy",
-    windowMs: Number.isFinite(policyOrOptions?.windowMs) ? policyOrOptions.windowMs! : DEFAULT_WINDOW_MS,
-    max: Number.isFinite(policyOrOptions?.max) ? policyOrOptions.max! : DEFAULT_MAX,
+    windowMs: policyOrOptions?.windowMs !== undefined && Number.isFinite(policyOrOptions.windowMs) ? policyOrOptions.windowMs : DEFAULT_WINDOW_MS,
+    max: policyOrOptions?.max !== undefined && Number.isFinite(policyOrOptions.max) ? policyOrOptions.max : DEFAULT_MAX,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

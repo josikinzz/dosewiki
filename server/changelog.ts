@@ -98,7 +98,7 @@ export const getBySubmitter = query({
     );
 
     const seen = new Set<string>();
-    const merged = [];
+    const merged: (typeof perKey)[number] = [];
     for (const rows of perKey) {
       for (const row of rows) {
         if (seen.has(row.entryId)) continue;
@@ -135,7 +135,7 @@ export const getByArticleSlug = query({
     }
     const slug = args.slug;
 
-    const matches = [];
+    const matches: ReturnType<typeof projectPublicChangelog>[] = [];
     for await (const row of ctx.db.query("changelog").withIndex("by_created_at").order("desc")) {
       if (row.articles.some((article) => article.slug === slug)) {
         matches.push(projectPublicChangelog(row));

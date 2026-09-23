@@ -1,5 +1,5 @@
 import { v } from "../lib/postgres/runtime/values";
-import type { Id } from "../lib/postgres/runtime/dataModel";
+import type { Doc, Id } from "../lib/postgres/runtime/dataModel";
 import type { MutationCtx, QueryCtx } from "../lib/postgres/runtime/server";
 import { query } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
@@ -87,7 +87,7 @@ async function captureState(ctx: Ctx, input: ContributorProfileMergeInput) {
   const attributionMap = new Map<string, Row>();
   for (const row of [...posterSource, ...creatorSource, ...posterTarget, ...creatorTarget] as Row[]) attributionMap.set(row._id, row);
   const tokens = normalizeProfileAliases([source.key as string, source.displayName as string, ...((source.aliases as string[]) ?? []), target.key as string, target.displayName as string, ...((target.aliases as string[]) ?? [])]);
-  const identityTokens = [];
+  const identityTokens: Doc<"contributorIdentityTokenSnapshots">[] = [];
   for (const token of tokens) {
     const row = await ctx.db.query("contributorIdentityTokenSnapshots").withIndex("by_snapshot_digest_and_normalized_token", (q) => q.eq("snapshot_digest", PINNED_SNAPSHOT_DIGEST).eq("normalized_token", token)).unique();
     if (row) identityTokens.push(row);
