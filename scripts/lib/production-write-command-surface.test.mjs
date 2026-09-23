@@ -72,6 +72,22 @@ function postgresRehearsalWriters() {
     .sort();
 }
 
+/**
+ * Files whose raw SQL writes (`TRUNCATE`, `DELETE FROM`, `INSERT`, and the
+ * like, sent through `.query(`) carry no inventory classification.
+ */
+function unclassifiedRawSqlWriters(detections) {
+  const classified = new Set([
+    ...classifiedDirectProductionWriterPaths,
+    ...productionWriterClassifications.guardedIndirectEntrypoint,
+    ...productionWriterClassifications.localRehearsal,
+  ]);
+  return detections
+    .filter(({ path, detection }) => detection.kinds.includes("raw-sql-write") && !classified.has(path))
+    .map(({ path }) => path)
+    .sort();
+}
+
 function hasStrongBoundary(source) {
   return (
     (source.includes("production-write-command.mjs") &&
@@ -101,6 +117,21 @@ describe("production writer command surface", () => {
     expect(POSTGRES_GUARDED_WRITER_PATTERN.test(rebuild)).toBe(false);
     expect(activeDirectMutationWriters()).toContain(rebuild);
     expect(productionWriterClassifications.productionBoundary).toContain(rebuild);
+  });
+
+  it("classifies every active raw SQL writer", () => {
+    expect(unclassifiedRawSqlWriters(activeScriptDetections)).toEqual([]);
+  });
+
+  it("fails for a raw SQL writer that has no classification", () => {
+    const path = "scripts/fixture/unclassified-truncate.mjs";
+    const detection = detectProductionWriteSignals(`await client.query("TRUNCATE x")`, path);
+    expect(unclassifiedRawSqlWriters([...activeScriptDetections, { path, detection }])).toEqual([path]);
+  });
+
+  it.each(productionWriterClassifications.localRehearsal)("%s is a local rehearsal behind the Postgres target guard", (path) => {
+    expect(POSTGRES_GUARDED_WRITER_PATTERN.test(path)).toBe(true);
+    expect(readFileSync(resolve(repoRoot, path), "utf8")).toMatch(/guardTarget\(/);
   });
 
   it.each(postgresRehearsalWriters())("%s writes only behind the Postgres target guard", (path) => {

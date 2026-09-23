@@ -1,6 +1,10 @@
 import ts from "typescript";
 
 const HTTP_WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+// Statements that change rows, schema, or privileges. Detection is best
+// effort: SQL assembled at runtime from non-literal parts is not seen.
+const SQL_WRITE_STATEMENT =
+  /^\s*(?:INSERT|UPDATE|DELETE|TRUNCATE|MERGE|UPSERT|DROP|ALTER|CREATE|GRANT|REVOKE)\b/i;
 
 function propertyNameText(node) {
   if (!node) return null;
@@ -34,6 +38,53 @@ function evaluateStaticString(node, constants) {
     return value;
   }
   return null;
+}
+
+function collectInitializers(sourceFile) {
+  const initializers = new Map();
+  function visit(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      !initializers.has(node.name.text)
+    ) {
+      initializers.set(node.name.text, node.initializer);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return initializers;
+}
+
+/** The literal text a string expression starts with, following local names. */
+function leadingLiteralText(node, initializers, seen = new Set()) {
+  if (!node) return null;
+  if (ts.isStringLiteralLike(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return node.text;
+  }
+  if (ts.isTemplateExpression(node)) return node.head.text;
+  if (ts.isParenthesizedExpression(node)) {
+    return leadingLiteralText(node.expression, initializers, seen);
+  }
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    return leadingLiteralText(node.left, initializers, seen);
+  }
+  if (ts.isIdentifier(node) && !seen.has(node.text)) {
+    seen.add(node.text);
+    return leadingLiteralText(initializers.get(node.text), initializers, seen);
+  }
+  return null;
+}
+
+function isQueryMember(node, constants) {
+  if (ts.isPropertyAccessExpression(node)) {
+    return node.name.text === "query";
+  }
+  if (ts.isElementAccessExpression(node)) {
+    return evaluateStaticString(node.argumentExpression, constants) === "query";
+  }
+  return false;
 }
 
 function collectConstants(sourceFile) {
@@ -86,6 +137,7 @@ export function detectProductionWriteSignals(source, fileName = "script.mjs") {
     scriptKind,
   );
   const constants = collectConstants(sourceFile);
+  const initializers = collectInitializers(sourceFile);
   const mutationAliases = new Set();
 
   function collectAliases(node) {
@@ -114,6 +166,13 @@ export function detectProductionWriteSignals(source, fileName = "script.mjs") {
         (ts.isIdentifier(node.expression) && mutationAliases.has(node.expression.text))
       ) {
         add("data-mutation", node);
+      }
+
+      if (isQueryMember(node.expression, constants)) {
+        const statement = leadingLiteralText(node.arguments[0], initializers);
+        if (statement !== null && SQL_WRITE_STATEMENT.test(statement)) {
+          add("raw-sql-write", node);
+        }
       }
 
       for (const argument of node.arguments) {
