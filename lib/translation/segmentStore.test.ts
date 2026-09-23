@@ -6,7 +6,16 @@ vi.mock("@server/postgres/runtime/backend", () => ({
 }));
 vi.mock("../postgres/documentStore", () => ({ selectDocumentById: seams.select, patchDocument: seams.patch }));
 
-import { acquireTranslationWorkerLease, completeTranslationJob, enqueueTranslationJobs, failTranslationJob, releaseTranslationWorkerLease, type TranslationJobRow } from "./segmentStore";
+import {
+  MAX_TRANSLATION_JOB_ATTEMPTS,
+  acquireTranslationWorkerLease,
+  completeTranslationJob,
+  enqueueTranslationJobs,
+  failTranslationJob,
+  releaseTranslationWorkerLease,
+  translationJobRetryDelayMs,
+  type TranslationJobRow,
+} from "./segmentStore";
 
 const lease: TranslationJobRow = {
   locale: "zh-Hans", slug: "fixture", requested_at: "1000", claimed_at: "1001", attempts: 1, mode: "incremental",
@@ -97,5 +106,18 @@ describe("publication generation enqueue", () => {
     seams.query.mockRejectedValue(new Error("queue insert failed"));
     await expect(enqueueTranslationJobs(["zh-Hans"], ["fixture"], { publication: { id: "publication", generation: 2 } })).rejects.toThrow("queue insert failed");
     expect(seams.patch).not.toHaveBeenCalled();
+  });
+});
+
+describe("translation job retry schedule", () => {
+  it("grows with each failure so five consecutive failures span at least 30 minutes", () => {
+    const shortest = Array.from({ length: MAX_TRANSLATION_JOB_ATTEMPTS - 1 }, (_, index) => translationJobRetryDelayMs(index + 1, () => 0));
+    expect(shortest).toEqual([...shortest].sort((left, right) => left - right));
+    expect(shortest.reduce((sum, delay) => sum + delay, 0)).toBeGreaterThanOrEqual(30 * 60 * 1000);
+  });
+
+  it("jitters upward only and caps the delay at one hour", () => {
+    expect(translationJobRetryDelayMs(2, () => 1)).toBeGreaterThan(translationJobRetryDelayMs(2, () => 0));
+    expect(translationJobRetryDelayMs(40, () => 0)).toBe(60 * 60 * 1000);
   });
 });

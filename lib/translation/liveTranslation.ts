@@ -247,6 +247,8 @@ export type TranslationExecutionOptions = {
   wave?: TranslationWave;
   /** Called once per model request, including requests of a refresh that later fails. */
   onUsage?: (usage: { prompt: number; completion: number }) => void;
+  /** Called with the number of segments a refresh stored, even when it then fails. */
+  onStored?: (count: number) => void;
 };
 
 /** What became of one segment the owning job in a wave translated. */
@@ -528,6 +530,7 @@ export async function translateUnits(
     for (const { reject } of settle.values()) reject(error);
     throw error;
   }
+  if (rows.length > 0) options.onStored?.(rows.length);
   for (const row of rows) settle.get(row.hash)?.resolve({ stored: true, defects: [] });
   for (const entry of rejected) settle.get(entry.hash)?.resolve({ stored: false, defects: entry.defects });
   const unsettled = failure?.status === "rejected" ? failure.reason : new Error("Translation segment was never answered");

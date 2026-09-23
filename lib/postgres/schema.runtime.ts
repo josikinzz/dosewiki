@@ -66,6 +66,8 @@ export const translationJobs = pgTable(
     run_id: text("run_id"),
     /** null | rejected; machine-readable terminal outcome, separate from operator prose. */
     terminal_status: text("terminal_status"),
+    /** A failed job is not claimed again before this time; null means due now. */
+    next_attempt_at: bigint("next_attempt_at", { mode: "number" }),
   },
   (t) => [
     primaryKey({ columns: [t.locale, t.slug, t.mode] }),

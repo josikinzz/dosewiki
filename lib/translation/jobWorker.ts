@@ -153,6 +153,7 @@ async function processTranslationJobs(
     const wave = config.mode === "bulk" ? createTranslationWave() : undefined;
 
     await Promise.all(jobs.map(async (job) => {
+      let stored = 0;
       try {
         signal.throwIfAborted();
         const { kind, slug } = parseTranslationJobSlug(job.slug);
@@ -166,7 +167,7 @@ async function processTranslationJobs(
           await contextFor(job.locale),
           kind,
           apiKey,
-          { signal, requestPool, wave, onUsage },
+          { signal, requestPool, wave, onUsage, onStored: (count) => { stored += count; } },
         );
         signal.throwIfAborted();
         const terminalDetail = outcome.rejected.length > 0
@@ -190,11 +191,13 @@ async function processTranslationJobs(
         run.outcomes.push(outcome);
       } catch (error) {
         const message = errorMessage(error);
-        const exhausted = job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
+        // A budget abort after stored progress keeps its attempt; see failTranslationJob.
+        const progressed = signal.aborted && stored > 0;
+        const exhausted = !progressed && job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
         console.error("[translation-worker] job:failed", {
           locale: job.locale, slug: job.slug, mode: job.mode, attempts: job.attempts, exhausted, message,
         });
-        await failTranslationJob(job, message);
+        await failTranslationJob(job, message, { progressed });
         run.failed += 1;
         if (exhausted) run.exhausted += 1;
         run.firstError ??= message;

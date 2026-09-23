@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { Pool, type PoolClient } from "pg";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const serverUrl = process.env.TRANSLATION_QUEUE_TEST_POSTGRES_URL;
 const scratch = vi.hoisted(() => ({ pool: null as import("pg").Pool | null }));
@@ -40,6 +40,10 @@ vi.mock("@server/postgres/runtime/backend", () => ({
 }));
 
 import {
+  MAX_TRANSLATION_JOB_ATTEMPTS,
+  claimTranslationJobs,
+  enqueueTranslationJobs,
+  failTranslationJob,
   readLatestTranslationWorkerRuns,
   recordTranslationWorkerRun,
   type TranslationWorkerRunRecord,
@@ -88,6 +92,76 @@ describe.runIf(serverUrl)("translation queue SQL on a scratch Postgres", () => {
 
   beforeEach(() => {
     vi.stubEnv("DATA_WRITES_FROZEN", "0");
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
+
+  describe("translation job backoff", () => {
+    const at = (ms: number) => vi.setSystemTime(ms);
+    const jobRow = async (slug: string) => (await scratch.pool!.query<{ attempts: number; next_attempt_at: string | null }>(
+      'SELECT "attempts", "next_attempt_at"::text FROM "translationJobs" WHERE "slug" = $1', [slug],
+    )).rows[0];
+
+    beforeEach(async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      await scratch.pool!.query('DELETE FROM "translationJobs"');
+    });
+
+    it("keeps a failed job out of an immediate claim and returns it after its delay", async () => {
+      const start = Date.UTC(2026, 8, 22, 12);
+      at(start);
+      await enqueueTranslationJobs(["es"], ["lsd"]);
+      const [job] = await claimTranslationJobs(10);
+      expect(job).toMatchObject({ slug: "lsd", attempts: 1 });
+      expect(await failTranslationJob(job, "provider unavailable")).toBe(true);
+
+      expect(await claimTranslationJobs(10)).toEqual([]);
+      const due = Number((await jobRow("lsd")).next_attempt_at);
+      expect(due).toBeGreaterThan(start);
+      at(due - 1);
+      expect(await claimTranslationJobs(10)).toEqual([]);
+      at(due);
+      expect(await claimTranslationJobs(10)).toEqual([expect.objectContaining({ slug: "lsd", attempts: 2 })]);
+    });
+
+    it("spreads five consecutive failures over at least 30 minutes, then stops claiming", async () => {
+      const start = Date.UTC(2026, 8, 22, 12);
+      at(start);
+      await enqueueTranslationJobs(["es"], ["mdma"]);
+      const failures: number[] = [];
+      for (let attempt = 1; attempt <= MAX_TRANSLATION_JOB_ATTEMPTS; attempt += 1) {
+        const [job] = await claimTranslationJobs(10);
+        expect(job).toMatchObject({ slug: "mdma", attempts: attempt });
+        failures.push(Date.now());
+        await failTranslationJob(job, `failure ${attempt}`);
+        const next = (await jobRow("mdma")).next_attempt_at;
+        if (next !== null) at(Number(next));
+      }
+      expect(failures[failures.length - 1] - failures[0]).toBeGreaterThanOrEqual(30 * 60 * 1000);
+      at(Date.now() + 24 * 60 * 60 * 1000);
+      expect(await claimTranslationJobs(10)).toEqual([]);
+    });
+
+    it("keeps the attempt of a budget abort that stored progress and leaves it due at once", async () => {
+      at(Date.UTC(2026, 8, 22, 12));
+      await enqueueTranslationJobs(["es"], ["dmt"]);
+      const [job] = await claimTranslationJobs(10);
+      expect(await failTranslationJob(job, "run budget reached", { progressed: true })).toBe(true);
+      expect(await jobRow("dmt")).toMatchObject({ attempts: 0, next_attempt_at: null });
+      expect(await claimTranslationJobs(10)).toEqual([expect.objectContaining({ slug: "dmt", attempts: 1 })]);
+    });
+
+    it("clears a pending delay when the record is enqueued again", async () => {
+      at(Date.UTC(2026, 8, 22, 12));
+      await enqueueTranslationJobs(["es"], ["ketamine"]);
+      const [job] = await claimTranslationJobs(10);
+      await failTranslationJob(job, "provider unavailable");
+      await enqueueTranslationJobs(["es"], ["ketamine"]);
+      expect(await jobRow("ketamine")).toMatchObject({ attempts: 0, next_attempt_at: null });
+      expect(await claimTranslationJobs(10)).toHaveLength(1);
+    });
   });
 
   describe("worker run log", () => {

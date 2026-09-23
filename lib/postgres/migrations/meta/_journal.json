@@ -148,6 +148,13 @@
       "when": 1790131890509,
       "tag": "0020_translation_worker_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790132164767,
+      "tag": "0021_translation_job_backoff",
+      "breakpoints": true
     }
   ]
 }

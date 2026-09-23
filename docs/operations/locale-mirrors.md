@@ -88,6 +88,13 @@ is a monotonic bigint generation, not just a wall-clock timestamp: re-enqueue us
 `GREATEST(now, previous + 1)`. A claim binds generation, `claimed_at` and attempt;
 completion and failure compare all three under a row lock and reject stale workers.
 
+A failed job sets `next_attempt_at` (migration `0021`) and is not claimed again
+before it: the delay starts at 150 seconds, doubles per failure up to one hour,
+and gains up to 20% jitter, so the five attempts span more than 30 minutes and a
+short provider outage cannot exhaust a record. A run budget abort after the
+record stored segments gives back its attempt and stays due. Re-enqueueing a
+record clears the delay.
+
 Before signed publication dispatch, the publication-delivery cron atomically
 enqueues locale work and records a receipt for that publication generation.
 Replay preserves that receipt instead of resetting newer work; enqueue failure

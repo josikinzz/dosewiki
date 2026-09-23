@@ -120,7 +120,7 @@ describe("translation worker run record", () => {
     expect(error).toHaveBeenCalledWith("[translation-worker] job:failed", expect.objectContaining({
       locale: "es", slug: "lsd", mode: "incremental", message: "Insufficient credits",
     }));
-    expect(seam.fail).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), "Insufficient credits");
+    expect(seam.fail).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), "Insufficient credits", { progressed: false });
     for (const call of [...error.mock.calls, ...seam.fail.mock.calls, ...seam.record.mock.calls]) {
       expect(JSON.stringify(call)).not.toContain("[object Object]");
     }
@@ -145,5 +145,36 @@ describe("translation worker run record", () => {
     expect(error).toHaveBeenCalledWith("[translation-worker] run:unrecorded", expect.objectContaining({
       mode: "incremental", message: "run log unavailable",
     }));
+  });
+});
+
+describe("translation job budget abort", () => {
+  type Options = { signal: AbortSignal; onStored?: (count: number) => void };
+  beforeEach(() => {
+    seam.readCache.mockResolvedValue([]);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  const abortDuring = (stored: number) => {
+    const controller = new AbortController();
+    vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);
+    seam.claim.mockResolvedValueOnce([job("lsd")]).mockResolvedValue([]);
+    seam.refresh.mockImplementation(async (_record, _context, _kind, _key, options: Options) => {
+      if (stored > 0) options.onStored?.(stored);
+      controller.abort(new Error("run budget reached"));
+      options.signal.throwIfAborted();
+    });
+  };
+
+  it("keeps the attempt when the record stored segments before the budget ran out", async () => {
+    abortDuring(3);
+    await runTranslationJobs("model-key", config);
+    expect(seam.fail).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), "run budget reached", { progressed: true });
+  });
+
+  it("spends the attempt when the budget ran out before anything was stored", async () => {
+    abortDuring(0);
+    await runTranslationJobs("model-key", config);
+    expect(seam.fail).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), "run budget reached", { progressed: false });
   });
 });

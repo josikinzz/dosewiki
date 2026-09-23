@@ -38,6 +38,9 @@ export type TranslationCacheJobRow = Pick<TranslationJobRow, "locale" | "slug" |
 /** A stale lease is retaken after this long; the cron's own budget is shorter. */
 const JOB_LEASE_MS = 10 * 60 * 1000;
 export const MAX_TRANSLATION_JOB_ATTEMPTS = 5;
+/** First retry delay; each later failure doubles it, so five failures span over half an hour. */
+const JOB_RETRY_BASE_MS = 150_000;
+const JOB_RETRY_MAX_MS = 60 * 60 * 1000;
 /** Run rows older than this are pruned when the same lane records a new run. */
 const WORKER_RUN_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -278,7 +281,7 @@ export async function enqueueTranslationJobs(
        ON CONFLICT ("locale", "slug", "mode") DO UPDATE SET
          "requested_at" = GREATEST(EXCLUDED."requested_at", "translationJobs"."requested_at" + 1),
          "claimed_at" = NULL, "completed_at" = NULL, "attempts" = 0, "last_error" = NULL,
-         "run_id" = EXCLUDED."run_id", "terminal_status" = NULL`,
+         "run_id" = EXCLUDED."run_id", "terminal_status" = NULL, "next_attempt_at" = NULL`,
       [pairs.map((pair) => pair.locale), pairs.map((pair) => pair.slug), Date.now(), options.run?.mode ?? "incremental", options.run?.id ?? null],
     );
   };
@@ -299,7 +302,10 @@ export async function enqueueTranslationJobs(
   });
 }
 
-/** Lease up to `limit` due rows to this worker. Atomic: concurrent crons never take the same row. */
+/**
+ * Lease up to `limit` due rows to this worker. Atomic: concurrent crons never
+ * take the same row. A row waiting out a failure backoff is not due.
+ */
 export async function claimTranslationJobs(limit: number, mode: TranslationJobMode = "incremental"): Promise<TranslationJobRow[]> {
   assertDataWritesNotFrozen("claimTranslationJobs");
   const now = Date.now();
@@ -308,6 +314,7 @@ export async function claimTranslationJobs(limit: number, mode: TranslationJobMo
      WHERE ("locale", "slug", "mode") IN (
        SELECT "locale", "slug", "mode" FROM "translationJobs"
        WHERE "mode" = $5 AND "completed_at" IS NULL AND "attempts" < $3::int AND ("claimed_at" IS NULL OR "claimed_at" < $1::bigint - $4::bigint)
+         AND ("next_attempt_at" IS NULL OR "next_attempt_at" <= $1::bigint)
        ORDER BY "requested_at" ASC LIMIT $2::int FOR UPDATE SKIP LOCKED
      )
      RETURNING "locale", "slug", "attempts", "requested_at"::text, "claimed_at"::text, "mode", "run_id"`,
@@ -315,7 +322,16 @@ export async function claimTranslationJobs(limit: number, mode: TranslationJobMo
   );
 }
 
-async function finishTranslationJob(job: TranslationJobRow, error: string | null, completed: boolean, terminalStatus: "rejected" | null, cacheTargets: unknown[] = []): Promise<boolean> {
+type JobFinish = {
+  error: string | null;
+  completed: boolean;
+  terminalStatus: "rejected" | null;
+  nextAttemptAt: number | null;
+  /** Give back the attempt the claim spent. */
+  refundAttempt: boolean;
+};
+
+async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, cacheTargets: unknown[] = []): Promise<boolean> {
   return getPostgresClient().sqlTransaction(async (client) => {
     const current = await client.query<TranslationJobRow & { completed_at: string | null }>(
       `SELECT "locale", "slug", "requested_at"::text, "claimed_at"::text, "attempts", "completed_at"::text
@@ -326,11 +342,13 @@ async function finishTranslationJob(job: TranslationJobRow, error: string | null
     if (!row || row.completed_at !== null || row.requested_at !== job.requested_at ||
         row.claimed_at !== job.claimed_at || row.attempts !== job.attempts) return false;
     await client.query(
-      `UPDATE "translationJobs" SET "completed_at" = $3::bigint, "claimed_at" = NULL, "last_error" = $4, "terminal_status" = $5
+      `UPDATE "translationJobs" SET "completed_at" = $3::bigint, "claimed_at" = NULL, "last_error" = $4, "terminal_status" = $5,
+         "next_attempt_at" = $7::bigint, "attempts" = "attempts" - $8::int
        WHERE "locale" = $1 AND "slug" = $2 AND "mode" = $6`,
-      [job.locale, job.slug, completed ? Date.now() : null, error, terminalStatus, job.mode],
+      [job.locale, job.slug, finish.completed ? Date.now() : null, finish.error, finish.terminalStatus, job.mode,
+        finish.nextAttemptAt, finish.refundAttempt ? 1 : 0],
     );
-    if (completed && cacheTargets.length > 0) {
+    if (finish.completed && cacheTargets.length > 0) {
       await client.query(
         `INSERT INTO "translationCacheJobs" ("locale", "slug", "mode", "targets", "requested_at")
          VALUES ($1, $2, $3, $4, $5::bigint)
@@ -344,13 +362,37 @@ async function finishTranslationJob(job: TranslationJobRow, error: string | null
 
 export async function completeTranslationJob(job: TranslationJobRow, terminalDetail: string | null = null, cacheTargets: unknown[] = []): Promise<boolean> {
   assertDataWritesNotFrozen("completeTranslationJob");
-  return finishTranslationJob(job, terminalDetail, true, terminalDetail ? "rejected" : null, cacheTargets);
+  return finishTranslationJob(job, {
+    error: terminalDetail, completed: true, terminalStatus: terminalDetail ? "rejected" : null, nextAttemptAt: null, refundAttempt: false,
+  }, cacheTargets);
 }
 
-/** Release only this lease; the five-attempt cap leaves exhausted errors inspectable. */
-export async function failTranslationJob(job: TranslationJobRow, error: string): Promise<boolean> {
+/**
+ * Exponential backoff with upward jitter after the `attempts`-th failure:
+ * 150 s, 300 s, 600 s, 1200 s, capped at one hour, each stretched by up to 20%.
+ */
+export function translationJobRetryDelayMs(attempts: number, random: () => number = Math.random): number {
+  const base = Math.min(JOB_RETRY_MAX_MS, JOB_RETRY_BASE_MS * 2 ** Math.max(0, attempts - 1));
+  return Math.round(base * (1 + 0.2 * random()));
+}
+
+/**
+ * Release only this lease. A failure waits out its backoff before the next
+ * claim; the five-attempt cap leaves exhausted errors inspectable. A run
+ * budget abort after the record stored segments (`progressed`) gives back its
+ * attempt and stays due, so a large record that keeps making progress never
+ * exhausts.
+ */
+export async function failTranslationJob(job: TranslationJobRow, error: string, options: { progressed?: boolean } = {}): Promise<boolean> {
   assertDataWritesNotFrozen("failTranslationJob");
-  return finishTranslationJob(job, error.slice(0, 2000), false, null);
+  const progressed = options.progressed === true;
+  return finishTranslationJob(job, {
+    error: error.slice(0, 2000),
+    completed: false,
+    terminalStatus: null,
+    nextAttemptAt: progressed ? null : Date.now() + translationJobRetryDelayMs(job.attempts),
+    refundAttempt: progressed,
+  });
 }
 
 /** Acquire one cross-process lease for a worker lane. */
