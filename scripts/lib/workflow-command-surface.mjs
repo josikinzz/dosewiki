@@ -333,7 +333,7 @@ export const stableWorkflowCommands = [
     scriptPath: 'scripts/data-ops/sync-data-to-production.mjs',
     reads: [workflowAccessTargets.dataSource],
     writes: [workflowAccessTargets.dataTarget],
-    dryRun: workflowDryRunPolicies.none,
+    dryRun: workflowDryRunPolicies.supported,
     confirmationFlag: '--confirm-production-sync',
     dataOpsContext: workflowDataOpsContextPolicies.required,
     dataUrlPolicy: workflowDataUrlPolicies.sourceAndTarget,

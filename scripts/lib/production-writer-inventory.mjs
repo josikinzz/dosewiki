@@ -128,6 +128,10 @@ export const productionWriterClassifications = Object.freeze({
       ],
     },
     {
+      path: "scripts/data-ops/production-sync.mjs",
+      guardedEntrypoints: ["scripts/data-ops/sync-data-to-production.mjs"],
+    },
+    {
       path: "scripts/migrate/effects/persist.mjs",
       guardedEntrypoints: ["scripts/migrate/migrate-effects.mjs"],
     },
