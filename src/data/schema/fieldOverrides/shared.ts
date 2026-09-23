@@ -16,10 +16,10 @@ export function mergeFieldOverrideModules(
 ): FieldOverrideModule {
   const merged: FieldOverrideModule = {};
 
-  for (const module of modules) {
-    for (const [path, override] of Object.entries(module.overrides)) {
+  for (const overrideModule of modules) {
+    for (const [path, override] of Object.entries(overrideModule.overrides)) {
       if (merged[path]) {
-        throw new Error(`Duplicate field override for "${path}" detected in module "${module.name}"`);
+        throw new Error(`Duplicate field override for "${path}" detected in module "${overrideModule.name}"`);
       }
       merged[path] = override;
     }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { SmartLink } from "@/components/common/SmartLink";
 import { useTheme } from "@/context/ThemeContext";
 import { isAllowedReplicationEmbedParent } from "@server/next/replicationEmbedPolicy";
 import { ReplicationShowcase } from "../components/ReplicationShowcase";
@@ -220,7 +221,7 @@ export function ReplicationEmbed({ collection, parentOrigin, initialSlug = null,
               collectionLabel={collection.label} controller={controller} showHeading={chrome} priority />
             {chrome ? (
               <p className="theme-text-muted px-1 text-xs leading-5">
-                Replication media is credited to its creator; rights remain with the rightsholder. <a className="underline underline-offset-2" href="/docs/license#replication-media-terms">Media terms</a>
+                Replication media is credited to its creator; rights remain with the rightsholder. <SmartLink className="underline underline-offset-2" href="/docs/license#replication-media-terms">Media terms</SmartLink>
               </p>
             ) : null}
           </>

@@ -38,6 +38,7 @@ import {
 } from "@/components/common/docProseStyles";
 import { Icon } from "@/components/common/Icon";
 import { proseLinkClassName } from "@/components/common/ProseLink";
+import { SmartLink } from "@/components/common/SmartLink";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
@@ -482,7 +483,7 @@ export default async function DocsHowPage() {
             article has yet had a person re-check its citations claim by claim. Each article
             carries an Article Status panel recording which of those passes it has
             received, and the{" "}
-            <a href="/about" className={proseLinkClassName}>About page</a>{" "}
+            <SmartLink href="/about" className={proseLinkClassName}>About page</SmartLink>{" "}
             describes the project&apos;s history.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
@@ -492,7 +493,7 @@ export default async function DocsHowPage() {
             Coverage is still incomplete, and any given article can contain an error.
             Reader feedback is the main way errors reach a reviewer: the
             report-an-issue box at the bottom of each article and the{" "}
-            <a href="/about/feedback" className={proseLinkClassName}>feedback form</a>{" "}
+            <SmartLink href="/about/feedback" className={proseLinkClassName}>feedback form</SmartLink>{" "}
             both go directly to the review queue, where an editor reads each message and
             decides whether a correction is needed. Editors make corrections in the
             site&apos;s Wikipedia-style editor. Every correction fixes the article and
@@ -769,7 +770,7 @@ export default async function DocsHowPage() {
                   hand-curate each article&apos;s replication showcase. Each piece is
                   credited with a source link where known. Rights stay with the artists.
                   The{" "}
-                  <a href="/docs/license" className={proseLinkClassName}>license page</a>{" "}
+                  <SmartLink href="/docs/license" className={proseLinkClassName}>license page</SmartLink>{" "}
                   covers the hosting terms.
                 </td>
               </tr>
@@ -1839,7 +1840,7 @@ export default async function DocsHowPage() {
               required. Legacy trip
               reports, TripSit data, ProtestKit data, and media with separate rights
               keep their own terms. The{" "}
-              <a href="/docs/license" className={proseLinkClassName}>license page</a>{" "}
+              <SmartLink href="/docs/license" className={proseLinkClassName}>license page</SmartLink>{" "}
               lists those boundaries.
             </p>
           </div>
@@ -1860,7 +1861,7 @@ export default async function DocsHowPage() {
                 For a mistake in a specific article, use the report-an-issue form at
                 the bottom of that article. For anything broader, send a message
                 through the{" "}
-                <a href="/about/feedback" className={proseLinkClassName}>feedback form</a>{" "}
+                <SmartLink href="/about/feedback" className={proseLinkClassName}>feedback form</SmartLink>{" "}
                 or email{" "}
                 <a href="mailto:contact@dose.wiki" className={proseLinkClassName}>
                   contact@dose.wiki
@@ -1875,7 +1876,7 @@ export default async function DocsHowPage() {
               <p className={`${NOTE_CLASS} mt-2`}>
                 This page covers article production. For the codebase, architecture, data
                 layer, and public-site systems, read{" "}
-                <a href="/docs/code" className={proseLinkClassName}>How dose.wiki is built</a>.
+                <SmartLink href="/docs/code" className={proseLinkClassName}>How dose.wiki is built</SmartLink>.
               </p>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon } from "@/components/common/Icon";
+import { SmartLink } from "@/components/common/SmartLink";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -226,7 +227,7 @@ export function InviteRedeemForm({ initialCode, destination }: InviteRedeemFormP
       {accountCreated ? (
         !isSubmitting ? (
           <Button asChild variant="accent" className="min-h-11 w-full justify-center">
-            <a href="/sign-in">Continue to sign in</a>
+            <SmartLink href="/sign-in">Continue to sign in</SmartLink>
           </Button>
         ) : null
       ) : (
