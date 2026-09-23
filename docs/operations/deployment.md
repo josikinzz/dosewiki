@@ -103,8 +103,14 @@ Durable pending rows retry, so a staggered release delays a warm signal rather
 than losing it. The persisted outbox stores targets, not the wire version, so
 no data migration is involved.
 
-For prerender selection, inspect `lib/next/staticParams.ts` and the route's own
-static parameter function; verify actual output during an authorized build.
+For prerender selection, inspect `lib/next/prerenderPolicy.ts` (the tiers per
+locale and artifact) and `lib/next/staticParams.ts`; verify actual output
+during an authorized build. `bun run build:census -- <build directory>` is the
+step that records a release's page count: it reads the finished build's
+prerender manifest and prints prerendered pages per route family beside the
+wall-clock time `bun run build:vercel` recorded in `build-timing.json`. Paste
+that output into the release record; a page count copied from a previous
+release is not evidence.
 `scripts/deploy/warm-public-routes.mjs` verifies both HTML and complete
 `text/x-component` navigation responses on the public host. HTML success alone
 does not prove in-site navigation is warm.

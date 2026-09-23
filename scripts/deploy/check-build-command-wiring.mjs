@@ -56,6 +56,8 @@ if (build.includes(WRAPPER) || build.includes("build:vercel")) {
 const { default: createIgnoreMatcher } = await import("ignore");
 const WRAPPER_EXECUTION_CHAIN = [
   WRAPPER,
+  "scripts/build/build-surface.mjs",
+  "scripts/build/prerender-census.lib.mjs",
   "scripts/build/check-function-references.mjs",
   "scripts/lib/data-drift-report.mjs",
   "scripts/lib/data-app-callsites.mjs",

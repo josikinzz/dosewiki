@@ -13,15 +13,22 @@
  *   node scripts/deploy/vercel-build.mjs
  *   node scripts/deploy/vercel-build.mjs --plan   # print the decision, build nothing
  *
+ * A finished build leaves `build-timing.json` beside its output (wall-clock
+ * start, end, elapsed seconds, surface, flavor, exit status) so
+ * scripts/build/prerender-census.mjs can print the release's page count next
+ * to how long the build took.
+ *
  * Exit codes:
  *   0  build succeeded
  *   1  verification or build failed
  */
 
 import { spawnSync } from "node:child_process";
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveBuildDirectory, resolveBuildSurface } from "../build/build-surface.mjs";
+import { BUILD_TIMING_FILE } from "../build/prerender-census.lib.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -56,6 +63,37 @@ function banner(lines) {
  * covers the `api.*` form but not the untyped string form used for public reads,
  * so this is the only static coverage those names have.
  */
+/**
+ * Record how long the app build ran, beside its output. Skipped when the build
+ * directory does not exist (the build never started), never fatal: a timing
+ * record is evidence for the runbook, not a build step.
+ */
+function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
+  let buildDirectory;
+  try {
+    buildDirectory = path.resolve(REPO_ROOT, resolveBuildDirectory(process.env));
+  } catch (error) {
+    console.error(`[vercel-build] Not recording build timing: ${error.message}`);
+    return;
+  }
+  if (!existsSync(buildDirectory)) {
+    console.error(`[vercel-build] Not recording build timing: ${buildDirectory} does not exist.`);
+    return;
+  }
+  const record = {
+    command: APP_BUILD_COMMAND,
+    surface: resolveBuildSurface(process.env),
+    flavor: process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() || "dosewiki",
+    buildDirectory: path.relative(REPO_ROOT, buildDirectory),
+    startedAt: startedAt.toISOString(),
+    endedAt: endedAt.toISOString(),
+    elapsedSeconds: Math.round((endedAt.getTime() - startedAt.getTime()) / 100) / 10,
+    exitStatus,
+  };
+  writeFileSync(path.join(buildDirectory, BUILD_TIMING_FILE), `${JSON.stringify(record, null, 2)}\n`);
+  console.log(`[vercel-build] Build ran ${record.elapsedSeconds}s; timing recorded in ${record.buildDirectory}/${BUILD_TIMING_FILE}`);
+}
+
 function checkCallsitesResolve() {
   console.log("[vercel-build] Checking owned Postgres function references...");
   return run("node", ["scripts/build/check-function-references.mjs"]);
@@ -85,7 +123,9 @@ function main() {
       "no deployment was read or mutated.",
   );
   console.log(`[vercel-build] ${APP_BUILD_COMMAND}`);
+  const startedAt = new Date();
   const status = run("bun", ["run", "build"]);
+  writeBuildTiming({ startedAt, endedAt: new Date(), exitStatus: status });
   process.exit(status);
 }
 
