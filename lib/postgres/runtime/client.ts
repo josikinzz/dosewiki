@@ -12,7 +12,7 @@ import { Pool } from "pg";
 import { assertDeploymentEnv } from "./deploymentEnv";
 import { loadIdTableMap, taggedIdTable, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
 import { validateValue, validateReturn } from "./validate";
-import { POOL_ACQUISITION_TIMEOUT_MS, beginWithTimeouts } from "../transactionTimeouts";
+import { POOL_ACQUISITION_TIMEOUT_MS, QUERY_READ_TIMEOUT_MS, beginWithTimeouts } from "../transactionTimeouts";
 import { withTransaction, type SqlClient } from "../documentStore";
 import { parsePostgresTarget } from "./target";
 import { classifyPostgresError, isConnectionLoss } from "../postgresErrors";
@@ -146,7 +146,7 @@ export class PostgresClient {
 
   static fromUrl(connectionString: string, max = 4): PostgresClient {
     assertDeploymentEnv();
-    return new PostgresClient(new Pool({ connectionString, max, keepAlive: true, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
+    return new PostgresClient(new Pool({ connectionString, max, keepAlive: true, query_timeout: QUERY_READ_TIMEOUT_MS, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
   }
 
   async end(): Promise<void> {

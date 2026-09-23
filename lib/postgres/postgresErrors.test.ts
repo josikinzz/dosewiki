@@ -38,6 +38,7 @@ describe("Postgres connection loss", () => {
   it("recognizes a socket closed under an active query", () => {
     expect(isConnectionLoss(new Error("Connection terminated unexpectedly"))).toBe(true);
     expect(isConnectionLoss(new Error("Client has encountered a connection error and is not queryable"))).toBe(true);
+    expect(isConnectionLoss(new Error("Query read timeout"))).toBe(true);
     expect(isConnectionLoss(Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }))).toBe(true);
   });
 

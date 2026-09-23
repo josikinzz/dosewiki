@@ -31,9 +31,14 @@ const POOL_ACQUISITION_TIMEOUT_MESSAGES: ReadonlySet<string> = new Set([
 /** Server ended the session: admin shutdown, crash shutdown, cannot connect now, and class 08 connection exceptions. */
 const CONNECTION_LOSS_SQLSTATES: ReadonlySet<string> = new Set(["57P01", "57P02", "57P03", "08000", "08003", "08006"]);
 const CONNECTION_LOSS_SOCKET_CODES: ReadonlySet<string> = new Set(["ECONNRESET", "EPIPE", "ETIMEDOUT", "ECONNREFUSED"]);
-/** pg's messages for a socket that closed under an active query, and for reusing a client after that. */
+/**
+ * pg's messages for a socket that closed under an active query, for reusing a
+ * client after that, and for `query_timeout` firing on a socket that went
+ * silent without closing.
+ */
 const CONNECTION_LOSS_MESSAGES: ReadonlySet<string> = new Set([
   "Connection terminated unexpectedly",
+  "Query read timeout",
   "Connection terminated",
   "Client has encountered a connection error and is not queryable",
 ]);
