@@ -17,11 +17,11 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   // The ISR page cache does not survive a Vercel deployment, so articles that
   // are not prerendered pay a cold server render on the first request after
-  // every deploy. The high and normal priority tiers are prerendered here from
-  // one cached lookup read (see PRERENDERED_SUBSTANCE_PRIORITIES); the low
-  // priority long tail keeps `dynamicParams` on-demand rendering plus the
-  // hourly ISR cache so the build does not scale with the whole corpus.
-  return await getStaticSubstanceParams();
+  // every deploy. Which priority tiers this build prerenders is decided by
+  // resolvePrerenderPolicy (lib/next/prerenderPolicy.ts) for the English
+  // locale and the artifact being built; anything outside that list keeps
+  // `dynamicParams` on-demand rendering plus the hourly ISR cache.
+  return await getStaticSubstanceParams("en");
 }
 
 type SubstancePageProps = {

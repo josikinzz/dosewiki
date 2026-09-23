@@ -1,7 +1,15 @@
 import "server-only";
 
 import { cache } from "react";
+import { resolveBuildSurface } from "../../scripts/build/build-surface.mjs";
+import { resolveSiteFlavor } from "../../src/config/siteFlavor";
+import type { LocaleCode } from "../../src/i18n/localeRegistry.mjs";
 import { getPublicSubstanceLookup } from "../data/publicData";
+import {
+  resolvePrerenderPolicy,
+  type PrerenderBuild,
+  type SubstancePrerenderPriority,
+} from "./prerenderPolicy";
 import {
   getPublicRouteParams,
   getPublicRoutePlan,
@@ -19,18 +27,20 @@ export const getStaticEffectCategoryParams =
   getStaticParamsFor("effectCategories");
 export const getStaticReportParams = getStaticParamsFor("reports");
 
-export type SubstancePrerenderPriority = "high" | "normal" | "low";
+export type { SubstancePrerenderPriority } from "./prerenderPolicy";
 
 /**
- * Every public substance priority tier is prerendered at build time.
+ * The tiers the English public build prerenders: the default when a caller
+ * selects without naming a policy. Route files never pass tiers themselves;
+ * they go through {@link getStaticSubstanceParams} and the policy resolver.
  *
  * The compact public lookup already projects only directly reachable articles,
  * including URL-only low-priority entries while excluding hidden records.
- * `dynamicParams` remains enabled on the route so articles published after a
- * deployment still render on demand.
+ * `dynamicParams` remains enabled on every substance route so articles that
+ * are not prerendered, or are published after a deployment, render on demand.
  */
 export const PRERENDERED_SUBSTANCE_PRIORITIES: readonly SubstancePrerenderPriority[] =
-  ["high", "normal", "low"];
+  resolvePrerenderPolicy("en", { surface: "public", flavor: "dosewiki" });
 
 export type SubstancePrerenderCandidate = {
   slug: string;
@@ -63,15 +73,24 @@ export function selectPrerenderedSubstanceSlugs(
   return [...selected];
 }
 
+/** The artifact being built, from the same environment values `next.config.ts` reads. */
+function currentPrerenderBuild(): PrerenderBuild {
+  return { surface: resolveBuildSurface(), flavor: resolveSiteFlavor() };
+}
+
 /**
- * `generateStaticParams` input for `src/app/[slug]/page.tsx`.
+ * `generateStaticParams` input for `/[slug]` and every locale mirror of it.
  *
- * Reads the compact substance lookup (slug, name, priority) rather than the
- * full route plan: it is one `unstable_cache` entry shared across build
- * workers through the persistent data cache, so the selection costs the build
- * one paginated read instead of a corpus drain per worker.
+ * The tiers come from {@link resolvePrerenderPolicy} for the route's locale
+ * and the artifact being built. Reads the compact substance lookup (slug,
+ * name, priority) rather than the full route plan: it is one `unstable_cache`
+ * entry shared across build workers through the persistent data cache, so the
+ * selection costs the build one paginated read instead of a corpus drain per
+ * worker. An empty policy skips the read entirely.
  */
-export const getStaticSubstanceParams = cache(async () => {
+export const getStaticSubstanceParams = cache(async (locale: LocaleCode = "en") => {
+  const tiers = resolvePrerenderPolicy(locale, currentPrerenderBuild());
+  if (tiers.length === 0) return [];
   const lookup = await getPublicSubstanceLookup();
-  return selectPrerenderedSubstanceSlugs(lookup).map((slug) => ({ slug }));
+  return selectPrerenderedSubstanceSlugs(lookup, tiers).map((slug) => ({ slug }));
 });

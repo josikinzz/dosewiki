@@ -6,20 +6,16 @@ import {
 } from "./scripts/build/editor-artifact-audit.mjs";
 // The legacy redirect table lives in its own module so application code (the Discord
 // page) can read the invite URL from it without importing this config.
+import { resolveBuildDirectory, resolveBuildSurface } from "./scripts/build/build-surface.mjs";
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
 
 // Separate artifacts, never a host-conditional lazy import inside one public bundle.
-const buildSurface =
-  process.env.DOSEWIKI_BUILD_SURFACE ??
-  (process.env.NODE_ENV === "development" ? "editor" : "public");
-if (buildSurface !== "public" && buildSurface !== "editor") {
-  throw new Error("DOSEWIKI_BUILD_SURFACE must be public or editor.");
-}
+// The surface and directory rule lives in scripts/build/build-surface.mjs so the
+// prerender policy and the deploy scripts read the same answer.
+const buildSurface = resolveBuildSurface();
 const editorBuild = buildSurface === "editor";
-// `DOSEWIKI_BUILD_DIR` exists so a flavor or surface artifact can be built side by side without clobbering the directory a running server is serving; unset keeps the deployed paths byte-identical.
-const buildDirectory =
-  process.env.DOSEWIKI_BUILD_DIR ?? (editorBuild ? ".next-editor" : ".next");
+const buildDirectory = resolveBuildDirectory();
 if (
   process.env.NODE_ENV === "production" &&
   process.argv.includes("build") &&
