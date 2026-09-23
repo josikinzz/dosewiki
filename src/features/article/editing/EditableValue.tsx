@@ -13,8 +13,6 @@ import {
 } from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui/button";
-import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
@@ -26,6 +24,7 @@ import {
   type EditableValueInput,
 } from "./ArticleEditContext";
 import { CitePopover } from "./CitePopover";
+import { FieldConflictPanel, TouchFinishButtons } from "./EditableValueControls";
 import {
   parseCitationMarkers,
   type CitationMarkerSpan,
@@ -509,39 +508,12 @@ export function EditableValue<T extends EditableValueInput = string>({
                 disabled={isPending}
               />
             ) : null}
-            {/* Enter and Esc already do this on a keyboard. A touch editor has
-              neither, so the explicit pair renders only where it is the only
-              way to finish the field. */}
-            {!conflict ? (
-              <Button
-                type="button"
-                variant="glass"
-                size="quiet"
-                className="hidden [@media(pointer:coarse)]:inline-flex"
-                disabled={isPending}
-                onPointerDown={(event) => event.preventDefault()}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  commitDraft(draft);
-                }}
-              >
-                Apply locally
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="pill"
-              size="quiet"
-              className="hidden [@media(pointer:coarse)]:inline-flex"
-              disabled={isPending}
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={(event) => {
-                event.stopPropagation();
-                cancelEditing();
-              }}
-            >
-              Cancel
-            </Button>
+            <TouchFinishButtons
+              showApply={!conflict}
+              isPending={isPending}
+              onApply={() => commitDraft(draft)}
+              onCancel={cancelEditing}
+            />
           </span>
           {error ? (
             <span
@@ -553,64 +525,16 @@ export function EditableValue<T extends EditableValueInput = string>({
             </span>
           ) : null}
           {conflict ? (
-            /* Below the box rather than over it: the reviewer's own text stays
-             the thing in focus, and a phone keyboard is already covering the
-             bottom half of the screen. `asChild` keeps this a `span` so the
-             panel is still valid markup inside an inline field. */
-            <Surface
-              asChild
-              variant="subtle"
-              padding="xs"
-              radius="md"
-              className="mt-2"
-            >
-              <span className="block">
-                <span className="theme-text-faint block text-sm font-semibold">
-                  Current preview
-                </span>
-                {/* Capped and scrollable: a long note must not push the two
-                  choices below the fold on a phone. */}
-                <span className="theme-text-secondary mt-1 block max-h-24 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-snug">
-                  {conflict.storedText.trim() || (
-                    <span className="theme-text-faint italic">(empty)</span>
-                  )}
-                </span>
-                <span className="mt-2 flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="glass"
-                    size="quiet"
-                    className="h-auto max-w-full whitespace-normal text-left"
-                    onPointerDown={(event) => event.preventDefault()}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      commitDraft(draft);
-                    }}
-                    disabled={isPending}
-                  >
-                    <Icon icon="lucide:check" size={14} />
-                    Apply my text to preview
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="pill"
-                    size="quiet"
-                    className="h-auto max-w-full whitespace-normal text-left"
-                    onPointerDown={(event) => event.preventDefault()}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setDraft(conflict.storedText);
-                      setError(null);
-                      textareaRef.current?.focus();
-                    }}
-                    disabled={isPending}
-                  >
-                    <Icon icon="lucide:corner-down-left" size={14} />
-                    Use current preview text
-                  </Button>
-                </span>
-              </span>
-            </Surface>
+            <FieldConflictPanel
+              storedText={conflict.storedText}
+              isPending={isPending}
+              onApplyMine={() => commitDraft(draft)}
+              onUseStored={() => {
+                setDraft(conflict.storedText);
+                setError(null);
+                textareaRef.current?.focus();
+              }}
+            />
           ) : null}
         </Wrapper>
         {statusMessage}

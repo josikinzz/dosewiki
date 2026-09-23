@@ -28,14 +28,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   EditorNotice,
   EditorSection,
   EditorSegmentedControl,
   EditorSelect,
-  EditorStatusPill,
   LoadErrorState,
   useConfirm,
   type EditorNoticeMessage,
@@ -49,7 +46,6 @@ import {
   editTerm,
   fetchGlossary,
   filterRows,
-  glossaryExportUrl,
   groupRows,
   needsReview,
   GlossaryReviewCollision,
@@ -62,23 +58,16 @@ import {
   type GlossaryFilters,
   type GlossaryList,
   type GlossaryRow,
-  type GlossaryStatusFilter,
 } from "./glossaryModel";
+import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
 import { GlossaryGroupSection } from "./GlossaryReviewTable";
+import { GlossaryActionBar, GlossaryFilterBar } from "./GlossaryToolbar";
 import { PendingTermsList } from "./PendingTermsList";
 import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
 import { TranslationChanges } from "./TranslationChanges";
 import { NarrativeReview } from "./NarrativeReview";
 import { TranslationCoverage } from "./TranslationCoverage";
 import { TranslationProgress } from "./TranslationProgress";
-
-const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
-
-const STATUS_OPTIONS: { value: GlossaryStatusFilter; label: string }[] = [
-  { value: "draft", label: capitalize(STATE_WORD.draft) },
-  { value: "approved", label: capitalize(STATE_WORD.approved) },
-  { value: "all", label: "All" },
-];
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
@@ -129,7 +118,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const writingTerm = writing?.term ?? null;
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const handoff = useRef<Handoff | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
   const [collisionReview, setCollisionReview] = useState<CollisionReview | null>(null);
   const collisionReturnFocus = useRef<HTMLElement | null>(null);
   const actionVersion = useRef(0);
@@ -420,94 +408,31 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} /></div> : null}
             {visitedViews.changes ? <div hidden={view !== "changes"}><TranslationChanges key={data.locale} locale={data.locale} /></div> : null}
             <div hidden={view !== "glossary"} className="space-y-4">
-            <div className="flex flex-wrap items-end gap-3">
-              <EditorSegmentedControl
-                label="Status"
-                options={STATUS_OPTIONS.map((option) => ({
-                  ...option,
-                  badge: option.value === "draft" ? draftCount : undefined,
-                }))}
-                value={filters.status}
-                onChange={(value) => setFilters((current) => ({ ...current, status: value as GlossaryStatusFilter }))}
-              />
-              <div className="w-full md:w-64">
-                <Input
-                  type="search"
-                  inputSize="sm"
-                  aria-label="Search terms"
-                  placeholder="Search term or rendering"
-                  value={filters.search}
-                  onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-                />
-              </div>
-              {/* Sits with the filters it obeys, so "shown" reads as "what these controls show"; the count is the segmented control's badge. */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={locked || shownDrafts.length === 0}
-                aria-label={`Approve all ${count(shownDrafts.length, `${STATE_WORD.draft} term`)} shown`}
-                onClick={approveShown}
-              >
-                <Icon icon="lucide:check-check" size={14} />
-                Approve all shown
-              </Button>
-            </div>
+            <GlossaryFilterBar
+              filters={filters}
+              setFilters={setFilters}
+              draftCount={draftCount}
+              shownDraftCount={shownDrafts.length}
+              locked={locked}
+              onApproveShown={approveShown}
+            />
 
             <p className="theme-text-faint text-xs" data-testid="glossary-summary">
               {draftCount} {STATE_WORD.draft}, {data.rows.length - draftCount} {STATE_WORD.approved} · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
             </p>
 
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Glossary actions">
-              <Button asChild variant="outline" size="sm">
-                <a href={glossaryExportUrl(data.locale)} download={`glossary-${data.locale}.csv`}>
-                  <Icon icon="lucide:download" size={14} />
-                  Export CSV
-                </a>
-              </Button>
-              <input
-                ref={fileInput}
-                type="file"
-                accept=".csv,text/csv"
-                aria-label="Choose a glossary CSV"
-                className="sr-only"
-                disabled={locked}
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  void importFile(file);
-                }}
-              />
-              <Button type="button" variant="outline" size="sm" disabled={locked} onClick={() => fileInput.current?.click()}>
-                <Icon icon="lucide:upload" size={14} />
-                Import CSV
-              </Button>
-              {canAdmin ? (
-                <Button type="button" variant="outline" size="sm" disabled={locked} onClick={draft}>
-                  <Icon icon="lucide:sparkles" size={14} />
-                  Draft missing terms
-                </Button>
-              ) : null}
-              {/* Absent, not disabled, until something has been translated: there is nothing to redo. */}
-              {!canAdmin || nothingTranslatedYet ? null : (
-                <Button
-                  type="button"
-                  variant={pending.length > 0 ? "accent" : "outline"}
-                  size="sm"
-                  disabled={locked || pending.length === 0 || data.jobs.active > 0}
-                  aria-label={`Retranslate everything that mentions ${count(pending.length, "term")}`}
-                  onClick={retranslate}
-                >
-                  <Icon icon="lucide:languages" size={14} />
-                  Retranslate
-                </Button>
-              )}
-              {busy ? (
-                <EditorStatusPill tone="info" loading live>{BUSY_LABEL[busy]}</EditorStatusPill>
-              ) : writing ? (
-                <EditorStatusPill tone="info" loading live>{writing.field === "definition" ? "Saving definition" : `Saving "${writing.term}"`}</EditorStatusPill>
-              ) : null}
-            </div>
+            <GlossaryActionBar
+              locale={data.locale}
+              locked={locked}
+              canAdmin={canAdmin}
+              nothingTranslatedYet={nothingTranslatedYet}
+              pendingCount={pending.length}
+              jobsActive={data.jobs.active}
+              activity={busy ? BUSY_LABEL[busy] : writing ? (writing.field === "definition" ? "Saving definition" : `Saving "${writing.term}"`) : null}
+              onImport={(file) => void importFile(file)}
+              onDraft={draft}
+              onRetranslate={retranslate}
+            />
             {canDefine ? (
               <p className="theme-text-faint text-xs">
                 Definitions tell the translator and the model what each term means on this site; edit one by clicking it.
@@ -584,43 +509,17 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       </EditorSection>
 
       {dialog}
-      <Dialog open={collisionReview !== null} onOpenChange={(open) => { if (!open) setCollisionReview(null); }}>
-        <DialogContent
-          showClose={false}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault();
-            collisionReturnFocus.current?.focus({ preventScroll: true });
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Allow these terms to share a rendering?</DialogTitle>
-            <DialogDescription>
-              Nothing was written. These English terms would read the same in {collisionReview?.locale}.
-              Allow this only when the shared rendering is appropriate for every listed term.
-            </DialogDescription>
-          </DialogHeader>
-          <ul className="theme-text-secondary max-h-64 space-y-4 overflow-y-auto text-sm">
-            {collisionReview?.error.collisions.map((collision) => (
-              <li key={`${collision.kind}:${collision.target}`} className="space-y-1">
-                <p className="font-medium theme-text-primary">{collision.target}</p>
-                <p>{collision.kind} · {collisionReview.locale}</p>
-                <p>{collision.terms.join(", ")}</p>
-              </li>
-            ))}
-          </ul>
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => setCollisionReview(null)}>Cancel</Button>
-            <Button type="button" variant="accent" onClick={() => {
-              if (!collisionReview || collisionReview.locale !== locale) return;
-              const review = collisionReview;
-              setCollisionReview(null);
-              void run(review.kind, review.action, review.term, review.error.collisionConfirmation);
-            }}>
-              Allow shared rendering
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <GlossaryCollisionDialog
+        review={collisionReview}
+        returnFocus={collisionReturnFocus}
+        onCancel={() => setCollisionReview(null)}
+        onAllow={() => {
+          if (!collisionReview || collisionReview.locale !== locale) return;
+          const review = collisionReview;
+          setCollisionReview(null);
+          void run(review.kind, review.action, review.term, review.error.collisionConfirmation);
+        }}
+      />
     </div>
   );
 }
