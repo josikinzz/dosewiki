@@ -157,10 +157,18 @@ record kinds and independently produced publication indexes need separate rollou
 verification before they are enabled.
 
 Human corrections use scope `narrative` in the existing review tables. Their
-identity includes canonical record, field/span, exact source, and containing-field
-fingerprint. The reader overlays only applicable approvals over machine targets.
-A machine refresh cannot overwrite a correction. Changed source context makes an
-approval stale. Shared English in another record does not inherit a correction.
+identity includes canonical record, field/span, exact source, an own-source hash,
+and a separate neighbour version covering the other segments in the same field
+group. The reader overlays only applicable approvals over machine targets, and
+each approval gets one overlay decision: `apply`, `apply-recheck`, or `stale`.
+A machine refresh cannot overwrite a correction. Changing the approved sentence
+makes its approval stale. Changing only a neighbouring sentence keeps the approval
+on the page as `apply-recheck`, shown in the Narratives state marks as
+"Re-check: nearby English changed"; a re-check approval does not count as
+reviewed until someone saves and approves it again. Approvals stored before this
+split carry the old whole-group fingerprint and go stale on any change in their
+field group until their next approval. Shared English in another record does not
+inherit a correction.
 Approval returns cache publication receipts; failed propagation remains distinct
 from a successful saved approval. Verify the public result before claiming delivery.
 

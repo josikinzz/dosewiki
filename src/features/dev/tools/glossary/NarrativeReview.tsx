@@ -8,9 +8,12 @@ import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
 import { EditorSelect } from "@/features/dev/components";
 import type { PublicationReceipt } from "@lib/next/publicationDispatch";
-import type { ReviewHistoryEntry } from "@lib/translation/reviewTypes";
+import type { NarrativeRowStatus, ReviewHistoryEntry } from "@lib/translation/reviewTypes";
+import { narrativeOverlayApplies } from "../../../../../lib/translation/reviewTypes";
 import type { readNarrativeReview } from "@lib/translation/narrativeReview";
 type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
+/** State marks. A re-check approval still shows, but a neighbouring English sentence changed. */
+const narrativeStatusLabel = (status: NarrativeRowStatus) => status === "recheck" ? "Re-check: nearby English changed" : status;
 export function NarrativeReview({ locale }: {
     locale: string;
 }) {
@@ -114,14 +117,15 @@ export function NarrativeReview({ locale }: {
    <p className="theme-text-faint text-xs">Current stored wording in source order. This field preview does not certify the deployed page or its layout.</p>
    {packet.rows.map(item => <div key={item.id} className="space-y-1">
     <p className="theme-text-faint text-xs">{item.field}</p>
-    <p className="theme-text-primary whitespace-pre-wrap">{item.approved && item.approved.source === item.source && item.approved.context === item.context ? item.approved.target : item.machine?.target ?? item.source}</p>
+    <p className="theme-text-primary whitespace-pre-wrap">{item.approved && narrativeOverlayApplies(item.overlay) ? item.approved.target : item.machine?.target ?? item.source}</p>
+    {item.status === "recheck" ? <p className="theme-text-secondary text-xs">{narrativeStatusLabel(item.status)}</p> : null}
     <Button size="sm" variant="outline" disabled={busy} onClick={() => void load(item.id)}>Review {item.field}</Button>
    </div>)}
   </Surface> : null}
   {packet ? <label>Source field<EditorSelect value={selected} disabled={busy} onChange={e => { const id = e.target.value; setSelected(id); setHistory([]); if (id)
-        void load(id); }}><option value="">Choose a field</option>{packet.rows.map(r => <option key={r.id} value={r.id}>{r.field}: {r.status}</option>)}</EditorSelect></label> : null}
+        void load(id); }}><option value="">Choose a field</option>{packet.rows.map(r => <option key={r.id} value={r.id}>{r.field}: {narrativeStatusLabel(r.status)}</option>)}</EditorSelect></label> : null}
   {row ? <Surface variant="subtle" padding="sm" radius="lg" className="space-y-3">
-   <h3 className="theme-text-primary font-medium">{row.field} · {row.status} · revision {row.revision}</h3>
+   <h3 className="theme-text-primary font-medium">{row.field} · {narrativeStatusLabel(row.status)} · revision {row.revision}</h3>
    <p className="theme-text-primary whitespace-pre-wrap">{row.source}</p>
    <p className="theme-text-secondary text-sm">Machine target: {row.machine?.target ?? "Missing"}</p>
    <p className="theme-text-faint text-xs">Model {row.machine?.model ?? "unknown"} · prompt {row.machine?.prompt_version ?? "unknown"}</p>
@@ -130,7 +134,7 @@ export function NarrativeReview({ locale }: {
    <ul className="theme-text-secondary text-sm">{row.usages?.pages.map(p => <li key={`${p.kind}:${p.slug}`}><SmartLink className="underline" href={p.href}>{p.kind}: {p.label}</SmartLink></li>)}</ul>
    <label htmlFor={`${formId}-correction`}>Correction<Textarea id={`${formId}-correction`} ref={correctionRef} value={target} onChange={e => setTarget(e.target.value)} disabled={busy} maxLength={30000}/></label>
    <label htmlFor={`${formId}-reason`}>Reason<Input id={`${formId}-reason`} value={reason} onChange={e => setReason(e.target.value)} disabled={busy} maxLength={1000}/></label>
-   <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || target !== row.draft.target || !reason.trim()} onClick={() => void mutate("approve")}>Approve saved revision</Button></div>
+   <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.trim()} onClick={() => void mutate("approve")}>Approve saved revision</Button></div>
    <h4 className="theme-text-primary font-medium">Review history</h4>
    <ul className="space-y-2">{history.map(h => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {h.reason} <Button size="sm" variant="outline" disabled={busy || !reason.trim()} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
   </Surface> : null}

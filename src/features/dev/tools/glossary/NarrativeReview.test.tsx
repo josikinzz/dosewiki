@@ -38,6 +38,17 @@ it("reviews rendered field context and keeps an edited draft out of approval", a
     await user.type(correction, "新");
     expect(screen.getByRole("button", { name: "Approve saved revision" })).toBeDisabled();
 });
+it("keeps a re-check approval on the preview and marks it in the field states", async () => {
+ const approved={source:"2-Benzylpiperidine is a stimulant of the piperidine class.",target:"2-苄基哌啶是一种哌啶类兴奋剂。",context:"before neighbour edit"};
+ const row={id:"a".repeat(64),hash:"hash",field:"toxicity.0",source:approved.source,context:"after neighbour edit",machine:{target:"机器翻译"},revision:1,draft:null,approved,overlay:"apply-recheck",status:"recheck",usages:null};
+ vi.stubGlobal("fetch",vi.fn(async()=>Response.json({locale:"zh-Hans",kind:"article",slug:"sample",sourceVersion:"v",rows:[row],history:[]})));
+ const user=userEvent.setup();render(<NarrativeReview locale="zh-Hans"/>);
+ await user.type(screen.getByRole("textbox",{name:"Source slug"}),"sample");await user.click(screen.getByRole("button",{name:"Load source"}));
+ expect(await screen.findByText(approved.target)).toBeInTheDocument();
+ expect(screen.queryByText("机器翻译")).not.toBeInTheDocument();
+ expect(screen.getByText("Re-check: nearby English changed")).toBeInTheDocument();
+ expect(screen.getByRole("option",{name:"toxicity.0: Re-check: nearby English changed"})).toBeInTheDocument();
+});
 it("refuses to edit from a stale field preview", async () => {
  const row={id:"a".repeat(64),field:"summary",source:"Old source",context:"old",machine:{target:"旧译文"},revision:0,draft:null,approved:null,status:"unreviewed",usages:null};
  let calls=0;
