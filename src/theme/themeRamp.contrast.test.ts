@@ -257,7 +257,7 @@ function casesFor(states: AppearancePoint[], pairs: [string, string][], floor: n
   return states.flatMap((state) =>
     pairs.map(([ink, ground]) => ({
       state: state.label,
-      label: `${state.label} — ${ink} on ${ground}`,
+      label: `${state.label}: ${ink} on ${ground}`,
       tokens: state.tokens,
       ink,
       ground,
@@ -345,7 +345,7 @@ function proCases(inks: string[], floor: number): Case[] {
     inks.flatMap((ink) =>
       proGrounds(state.label).map((ground) => ({
         state: state.label,
-        label: `${state.label} — ${ink} on ${ground}`,
+        label: `${state.label}: ${ink} on ${ground}`,
         tokens: state.tokens,
         ink,
         ground,
@@ -449,7 +449,7 @@ function registerFloors(states: AppearancePoint[]) {
       expect(
         measured,
         `${label}: heading ${toHex(inkColour)} on ${toHex(groundColour)} measures ${ratio(measured)}, ` +
-          `below the ${floor} floor — the heading is small text in .theme-portal-group-heading, ` +
+          `below the ${floor} floor; the heading is small text in .theme-portal-group-heading, ` +
           `so the large-text allowance does not apply`,
       ).toBeGreaterThanOrEqual(floor);
     },
@@ -463,7 +463,7 @@ function registerFloors(states: AppearancePoint[]) {
       expect(
         measured,
         `${label}: accent ${toHex(inkColour)} on card ${toHex(groundColour)} measures ` +
-          `${ratio(measured)}, below the ${floor} floor — accents.contrast.test.ts covers this ` +
+          `${ratio(measured)}, below the ${floor} floor; accents.contrast.test.ts covers this ` +
           `family on the canvas only, and the card is the uncovered ground`,
       ).toBeGreaterThanOrEqual(floor);
     },

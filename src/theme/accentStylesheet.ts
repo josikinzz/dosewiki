@@ -37,12 +37,12 @@ function block(selector: string, declarations: Readonly<Record<string, string>>)
   return `${selector} {\n${body}\n}\n`;
 }
 
-const HEADER = `/* GENERATED FILE — do not edit by hand.
+const HEADER = `/* GENERATED FILE: do not edit by hand.
    Source: src/theme/accents.ts
    Regenerate: npm run generate:accent-css
 
    The base accent's Pro seeds, per colour scheme, so dose.wiki's Pro wears the publication's
-   own plum instead of pro-theme.css's authored teal — that sheet is Effect Index's
+   own plum instead of pro-theme.css's authored teal; that sheet is Effect Index's
    presentation, shared with dose.wiki's Pro style. The block is keyed on the absence of
    ${ACCENT_ATTRIBUTE} (the retired accent axis's attribute, which nothing writes any more):
    bare :not(), so it keeps the (0,3,1) that out-ranks the Pro palette it re-tints. The Fun
@@ -58,5 +58,5 @@ export function buildAccentStylesheetCss(): string {
   const body = (["dark", "light"] as const)
     .map((theme) => block(accentDefaultProBlockSelector(theme), BASE_ACCENT_PRO_SEEDS[theme]))
     .join("\n");
-  return `${HEADER}\n/* Default — Fun: authored; Pro: --ei-* seeds */\n${body}`;
+  return `${HEADER}\n/* Default. Fun: authored; Pro: --ei-* seeds */\n${body}`;
 }

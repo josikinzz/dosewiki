@@ -1,4 +1,4 @@
-/* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */
+/* GENERATED FILE. Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */
 
 /* Orchid */
 html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {

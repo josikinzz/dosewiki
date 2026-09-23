@@ -64,5 +64,5 @@ export function buildSurfaceStylesheetCss(): string {
     .map((theme) => schemeBlocks(surfaceBaseBlockSelector(theme), base[theme], fallbacks[theme]))
     .filter(Boolean)
     .join("\n");
-  return `/* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */\n\n/* Orchid */\n${body}`;
+  return `/* GENERATED FILE. Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */\n\n/* Orchid */\n${body}`;
 }
