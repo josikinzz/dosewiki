@@ -178,3 +178,24 @@ describe("translation job budget abort", () => {
     expect(seam.fail).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), "run budget reached", { progressed: false });
   });
 });
+
+describe("translation transport failures", () => {
+  it("fail the job and tag the log with the transport defect code", async () => {
+    seam.readCache.mockResolvedValue([]);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    seam.claim.mockResolvedValueOnce([job("lsd")]).mockResolvedValue([]);
+    seam.refresh.mockRejectedValue(Object.assign(new Error("Provider request failed: Insufficient credits"), {
+      code: "TRANSPORT_FAILURE", status: 402,
+    }));
+    const run = await runTranslationJobs("model-key", config);
+
+    expect(run).toMatchObject({ failed: 1, completed: 0 });
+    expect(seam.complete).not.toHaveBeenCalled();
+    expect(seam.fail).toHaveBeenCalledWith(
+      expect.objectContaining({ slug: "lsd" }), "Provider request failed: Insufficient credits", { progressed: false },
+    );
+    expect(error).toHaveBeenCalledWith("[translation-worker] job:failed", expect.objectContaining({
+      slug: "lsd", code: "TRANSPORT_FAILURE", status: 402,
+    }));
+  });
+});

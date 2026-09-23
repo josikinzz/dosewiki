@@ -23,6 +23,9 @@ export const DEFECT_CODES = Object.freeze({
   NUMBER_ADDED: "NUMBER_ADDED",
   MARKUP_LOSS: "MARKUP_LOSS",
   PLACEHOLDER_LOSS: "PLACEHOLDER_LOSS",
+  // Not a content defect: the provider never answered. It fails the job for a
+  // later retry and is never written as a rejection.
+  TRANSPORT_FAILURE: "TRANSPORT_FAILURE",
 });
 
 /**

@@ -80,6 +80,11 @@ A segment that fails a blocking check in `scripts/translation/validate.mjs` is n
 stored: English remains visible and the rejection stays explicit. That validator
 owns numeric, citation-marker, markup, script and placeholder rules. Rejection is
 not successful translation coverage; use the current worker's bounded retry contract.
+A provider failure is not a rejection. An authorization, credit or unknown-model
+refusal, or a retryable failure that outlasts the engine's transport retries,
+throws `TranslationTransportError` (defect code `TRANSPORT_FAILURE`) out of
+`translateBatchWithRetries()`. The job fails and retries under its backoff, no
+rejection row is written, and the worker log carries the code and status.
 
 ### Durable refresh and rollout
 

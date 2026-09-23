@@ -194,8 +194,12 @@ async function processTranslationJobs(
         // A budget abort after stored progress keeps its attempt; see failTranslationJob.
         const progressed = signal.aborted && stored > 0;
         const exhausted = !progressed && job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
+        // A transport failure carries its own defect code and provider status.
+        const tagged = error && typeof error === "object" ? error as { code?: unknown; status?: unknown } : {};
         console.error("[translation-worker] job:failed", {
           locale: job.locale, slug: job.slug, mode: job.mode, attempts: job.attempts, exhausted, message,
+          ...(typeof tagged.code === "string" ? { code: tagged.code } : {}),
+          ...(typeof tagged.status === "number" ? { status: tagged.status } : {}),
         });
         await failTranslationJob(job, message, { progressed });
         run.failed += 1;

@@ -18,6 +18,14 @@ export type WorkUnit = {
   contextKind?: PromptContextKind;
 };
 
+/** A provider request that failed for transport or authorization reasons; never a content defect. */
+export class TranslationTransportError extends Error {
+  constructor(cause: unknown);
+  readonly code: "TRANSPORT_FAILURE";
+  readonly status: number | null;
+  readonly retryable: boolean;
+}
+
 export type BatchUsage = { prompt: number; completion: number };
 
 export type SegmentVerdict = {

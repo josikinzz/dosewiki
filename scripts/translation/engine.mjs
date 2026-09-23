@@ -80,6 +80,23 @@ export function protectModelTokens(source) {
   };
 }
 
+/**
+ * A request the provider never answered: an authorization or credit refusal,
+ * an unknown model, or a retryable failure that outlasted the transport
+ * retries. It says nothing about the content, so it propagates out of the
+ * batch wrapper and fails the job instead of becoming a rejection.
+ */
+export class TranslationTransportError extends Error {
+  constructor(cause) {
+    const detail = cause instanceof Error ? cause.message : String(cause?.message ?? cause);
+    super(`Provider request failed: ${detail}`, { cause });
+    this.name = "TranslationTransportError";
+    this.code = DEFECT_CODES.TRANSPORT_FAILURE;
+    this.status = typeof cause?.status === "number" ? cause.status : null;
+    this.retryable = Boolean(cause?.retryable);
+  }
+}
+
 function sleep(ms, signal) {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
@@ -158,7 +175,9 @@ export function planBatches(units, batchChars = DEFAULT_BATCH_CHARS) {
 /**
  * One request carrying many segments. Rate limits and gateway errors are the
  * normal weather at this concurrency, so a retryable failure waits and repeats
- * the same request rather than degrading into per-segment retries.
+ * the same request rather than degrading into per-segment retries. A failure
+ * that survives those retries, or cannot be retried, throws a
+ * `TranslationTransportError`; cancellation throws the signal's reason.
  */
 export async function sendBatch({ locale, model, apiKey, userMessage, temperature = 0.2, signal }) {
   let lastError;
@@ -186,11 +205,11 @@ export async function sendBatch({ locale, model, apiKey, userMessage, temperatur
     } catch (error) {
       signal?.throwIfAborted();
       lastError = error;
-      if (!error?.retryable || attempt === TRANSPORT_ATTEMPTS) throw error;
+      if (!error?.retryable || attempt === TRANSPORT_ATTEMPTS) throw new TranslationTransportError(error);
       await sleep(1000 * 2 ** (attempt - 1) + Math.random() * 500, signal);
     }
   }
-  throw lastError;
+  throw new TranslationTransportError(lastError);
 }
 
 export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, temperature, signal }) {
@@ -270,6 +289,7 @@ export function retryNoteFor(defects) {
  * approved `term -> target` map, `glosses` the locale-independent
  * `term -> gloss` map, and `kinds` the approved `term -> kind` map, all
  * loaded by the caller; the engine never reads them from anywhere itself.
+ * A `TranslationTransportError` from any request rejects the whole batch.
  */
 export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage, signal }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
@@ -296,6 +316,7 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
     results = await attemptUnits(units, 1);
   } catch (error) {
     signal?.throwIfAborted();
+    if (error instanceof TranslationTransportError) throw error;
     results = units.map((unit) => ({ unit, target: null, parseCode: DEFECT_CODES.UNPARSABLE_OUTPUT, error }));
   }
 
@@ -317,8 +338,9 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
         evaluation = typeof target === "string"
           ? validateSegment({ source: unit.source, target, locale, glossary, markup: unit.markup })
           : { defects: [retry[0]?.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
-      } catch {
+      } catch (error) {
         signal?.throwIfAborted();
+        if (error instanceof TranslationTransportError) throw error;
         evaluation = { defects: [DEFECT_CODES.UNPARSABLE_OUTPUT], details: {} };
       }
     }
