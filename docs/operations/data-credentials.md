@@ -104,6 +104,18 @@ org id and the surface's project id. Provisioning it is a human step:
 | not yet provisioned | editor | | | first remote build pending |
 | not yet provisioned | effectindex | | | first remote build pending |
 
+Each environment the workflow can select must hold exactly these values and
+nothing that can write:
+
+| Name | Kind | Purpose |
+| ---- | ---- | ------- |
+| `VERCEL_TOKEN` | secret | Deploy token described above |
+| `VERCEL_ORG_ID` | secret | The Vercel team id |
+| `VERCEL_PROJECT_ID` | secret | The project id for this surface only |
+| `POSTGRES_POOLED_READONLY_URL` | secret | Read-only pooled Postgres URL the build reads from |
+| `RELEASE_BUILD_ENABLED` | variable | Must be `true`; the explicit gate shared with the policy workflow |
+| `REPLICATION_MEDIA_BASE_URL` | variable | Media base the build embeds; a missing value fails the build |
+
 No environment used by the workflow may hold `DATA_ADMIN_KEY`, any
 `DATA_ADMIN_TOKEN_*`, or a Postgres URL with write grants.
 

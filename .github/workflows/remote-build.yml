@@ -76,15 +76,22 @@ jobs:
       - name: Check for secrets in codebase
         run: node scripts/security/scan-secrets.mjs --tracked
 
+      # The surface input names an artifact; the build surface and flavor are the
+      # two environment values next.config.ts reads, and the build directory
+      # comes from the same module next.config.ts uses to choose it.
       - name: Resolve the artifact's build surface and flavor
         id: artifact
         run: |
           case "${{ inputs.surface }}" in
-            public)      echo "surface=public" >> "$GITHUB_OUTPUT"; echo "flavor=dosewiki"    >> "$GITHUB_OUTPUT"; echo "dir=.next"        >> "$GITHUB_OUTPUT" ;;
-            editor)      echo "surface=editor" >> "$GITHUB_OUTPUT"; echo "flavor=dosewiki"    >> "$GITHUB_OUTPUT"; echo "dir=.next-editor" >> "$GITHUB_OUTPUT" ;;
-            effectindex) echo "surface=public" >> "$GITHUB_OUTPUT"; echo "flavor=effectindex" >> "$GITHUB_OUTPUT"; echo "dir=.next"        >> "$GITHUB_OUTPUT" ;;
+            public)      surface=public; flavor=dosewiki ;;
+            editor)      surface=editor; flavor=dosewiki ;;
+            effectindex) surface=public; flavor=effectindex ;;
             *) echo "::error::Unknown surface ${{ inputs.surface }}"; exit 1 ;;
           esac
+          dir="$(DOSEWIKI_BUILD_SURFACE="$surface" node --input-type=module -e 'import { resolveBuildDirectory } from "./scripts/build/build-surface.mjs"; console.log(resolveBuildDirectory());')"
+          echo "surface=$surface" >> "$GITHUB_OUTPUT"
+          echo "flavor=$flavor" >> "$GITHUB_OUTPUT"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2

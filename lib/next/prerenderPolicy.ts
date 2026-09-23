@@ -22,9 +22,10 @@ export type PrerenderPolicy = readonly SubstancePrerenderPriority[];
 
 /**
  * English on the public dose.wiki artifact: the high and normal tiers. The
- * low tier is the URL-only long tail; most of it receives no visit between
- * deploys, so each of those pages renders on its first request and stays in
- * the hourly ISR cache instead of costing every build a render.
+ * low tier is the URL-only long tail, expected (not yet measured) to receive
+ * few visits between deploys; each of those pages renders on its first
+ * request and stays in the hourly ISR cache instead of costing every build a
+ * render.
  */
 const ENGLISH_PUBLIC_TIERS: PrerenderPolicy = Object.freeze(["high", "normal"]);
 
@@ -32,10 +33,11 @@ const ENGLISH_PUBLIC_TIERS: PrerenderPolicy = Object.freeze(["high", "normal"]);
  * Nothing prerendered: every substance page on this locale or artifact
  * renders on its first request and is then held by the hourly ISR cache.
  *
- * The locale mirrors are unlisted and low traffic, and a localized render is
- * the most expensive page in the build (the English work plus a translation
- * lookup for every leaf). The post-deploy warmer covers their first hit. A
- * new locale inherits this, so adding a language costs the build no pages.
+ * The locale mirrors are unlisted (noindex, canonical to English), and a
+ * localized render is the most expensive page in the build (the English work
+ * plus a translation lookup for every leaf). The required post-deploy warm
+ * covers their first hit. A new locale inherits this, so adding a language
+ * costs the build no pages.
  */
 const ON_DEMAND: PrerenderPolicy = Object.freeze([]);
 

@@ -59,11 +59,6 @@ function banner(lines) {
 }
 
 /**
- * Every owned function the app names must exist in this checkout. Typecheck
- * covers the `api.*` form but not the untyped string form used for public reads,
- * so this is the only static coverage those names have.
- */
-/**
  * Record how long the app build ran, beside its output. Skipped when the build
  * directory does not exist (the build never started), never fatal: a timing
  * record is evidence for the runbook, not a build step.
@@ -83,6 +78,8 @@ function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
   const record = {
     command: APP_BUILD_COMMAND,
     surface: resolveBuildSurface(process.env),
+    // The raw selector as the build saw it; src/config/siteFlavor.ts owns the
+    // resolution and is TypeScript, out of reach of this Node wrapper.
     flavor: process.env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() || "dosewiki",
     buildDirectory: path.relative(REPO_ROOT, buildDirectory),
     startedAt: startedAt.toISOString(),
@@ -94,6 +91,11 @@ function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
   console.log(`[vercel-build] Build ran ${record.elapsedSeconds}s; timing recorded in ${record.buildDirectory}/${BUILD_TIMING_FILE}`);
 }
 
+/**
+ * Every owned function the app names must exist in this checkout. Typecheck
+ * covers the `api.*` form but not the untyped string form used for public reads,
+ * so this is the only static coverage those names have.
+ */
 function checkCallsitesResolve() {
   console.log("[vercel-build] Checking owned Postgres function references...");
   return run("node", ["scripts/build/check-function-references.mjs"]);

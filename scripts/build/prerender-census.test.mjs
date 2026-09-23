@@ -47,7 +47,8 @@ test("censusFromManifest counts every route into exactly one family", () => {
       ["Russian substances", 2],
       ["Trip reports", 1],
       ["Substance categories", 1],
-      ["Everything else", 2],
+      ["Effect categories", 1],
+      ["Everything else", 1],
     ],
   );
   assert.equal(census.total, Object.keys(MANIFEST.routes).length);
@@ -57,7 +58,7 @@ test("buildRouteFamilies adds a row per public locale, falling back to the code 
   const families = buildRouteFamilies([...LOCALES, { code: "nl", pathPrefix: "/nl" }], NAMES);
   assert.deepEqual(
     families.map((family) => family.key),
-    ["substances:en", "substances:zh-Hans", "substances:ru", "substances:nl", "reports", "categories"],
+    ["substances:en", "substances:zh-Hans", "substances:ru", "substances:nl", "reports", "categories", "effectCategories"],
   );
   assert.equal(families[3].label, "nl substances");
 });

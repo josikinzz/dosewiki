@@ -11,8 +11,7 @@ function substanceRouteFor(pathPrefix) {
 
 /**
  * Route families in print order. `match` receives the manifest's `srcRoute`
- * (the page pattern for a dynamic route, `null` for a fully static page) and
- * the route path itself.
+ * (the page pattern for a dynamic route, `null` for a fully static page).
  */
 export function buildRouteFamilies(publicLocales, localeNames = {}) {
   const families = [
@@ -29,6 +28,11 @@ export function buildRouteFamilies(publicLocales, localeNames = {}) {
   families.push(
     { key: "reports", label: "Trip reports", match: (src) => src === "/reports/[slug]" },
     { key: "categories", label: "Substance categories", match: (src) => src === "/category/[categoryKey]" },
+    {
+      key: "effectCategories",
+      label: "Effect categories",
+      match: (src) => src === "/effects/category/[categorySlug]",
+    },
   );
   return families;
 }
@@ -42,9 +46,9 @@ export function censusFromManifest(manifest, families) {
   const routes = manifest && typeof manifest === "object" ? manifest.routes ?? {} : {};
   const counts = new Map(families.map((family) => [family.key, 0]));
   let other = 0;
-  for (const [route, entry] of Object.entries(routes)) {
+  for (const entry of Object.values(routes)) {
     const srcRoute = entry && typeof entry === "object" ? entry.srcRoute ?? null : null;
-    const family = families.find((candidate) => candidate.match(srcRoute, route));
+    const family = families.find((candidate) => candidate.match(srcRoute));
     if (family) counts.set(family.key, counts.get(family.key) + 1);
     else other += 1;
   }

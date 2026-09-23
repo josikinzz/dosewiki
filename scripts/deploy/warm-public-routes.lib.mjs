@@ -443,7 +443,6 @@ export function formatWarmSummary(summary) {
   return lines.join("\n");
 }
 
-/** Parse `--flag=value`, `--flag value`, and boolean `--flag` CLI arguments. */
 /** Split one `--base-url` value (or env value) on commas, trimmed, blanks dropped. */
 function splitBaseUrls(value) {
   return String(value ?? "")
@@ -474,6 +473,7 @@ export function rehostUrls(urls, baseUrl) {
   return Array.from(new Set(rehosted));
 }
 
+/** Parse `--flag=value`, `--flag value`, and boolean `--flag` CLI arguments. */
 export function parseWarmArgs(argv, env = {}) {
   const options = {
     baseUrls: splitBaseUrls(env.WARM_BASE_URL || env.PUBLIC_SITE_URL || ""),

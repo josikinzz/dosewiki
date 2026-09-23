@@ -63,6 +63,29 @@ bun install --frozen-lockfile
 bun run build:vercel
 ```
 
+### Where the build runs
+
+Two build paths produce the same artifact through the same command:
+
+- **Remote (preferred once proven).** Dispatch
+  `.github/workflows/remote-build.yml` with the surface, the ref, the runner
+  label, and the surface's GitHub environment. It runs `bun run build:vercel`
+  through `vercel build` next to the database, prints the census and elapsed
+  time as the job summary, and uploads a preview deployment. It assigns no
+  alias; the release order below continues from step 3 with that deployment.
+  Capabilities and limits: [security CI](security-ci.md#remote-build-workflow).
+  Provisioning the environments and running the first build is a human step
+  recorded in [data credentials](data-credentials.md#remote-build-deploy-token).
+- **Laptop (the fallback).** The isolated release trees and the commands in
+  this section, exactly as before.
+
+The remote path becomes the default release path after two production
+releases have gone through it end to end with their census and elapsed time
+recorded in the concurrency table below. Until then the laptop path is the
+default and the remote path is an option. Either way, record which path built
+each artifact in the release record; the two are not interchangeable
+evidence for each other.
+
 The build must use webpack and produce the surface-specific artifact audit. A public build is acceptable only when the audit reports no protected editorial browser modules. Do not set `NEXT_PUBLIC_EDITOR_BUILD` directly and do not treat dead-code elimination as artifact separation.
 
 The webpack filesystem cache version includes the resolved Next deployment ID.
