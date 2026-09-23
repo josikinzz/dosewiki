@@ -12,7 +12,7 @@ export type DataModel = {
     document: Doc<Table>;
     fieldPaths: (typeof schema.tables)[Table]["validator"]["fieldPaths"] | "_id" | "_creationTime";
     indexes: { [Name in keyof DeclaredIndexes<Table>]: readonly [...Extract<DeclaredIndexes<Table>[Name], readonly string[]>, "_creationTime"] } & { by_id: readonly ["_id"]; by_creation_time: readonly ["_creationTime"] };
-    searchIndexes: {};
-    vectorIndexes: {};
+    searchIndexes: Record<never, never>;
+    vectorIndexes: Record<never, never>;
   };
 };

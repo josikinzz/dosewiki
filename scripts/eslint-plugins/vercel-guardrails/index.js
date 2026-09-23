@@ -55,8 +55,24 @@ const noHardcodedSecrets = {
       /signing[-_]?(?:key|secret)/i,
     ];
 
+    const filename = getContextFilename(context).replaceAll('\\', '/');
+    const isTestFixture =
+      /(?:^|\/)__tests__\//.test(filename) ||
+      /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(filename);
+
+    // Connection strings for hosts that can never resolve to a real service
+    // (RFC 2606 and RFC 6761 names, plus loopback in tests) are fixtures.
+    const isPlaceholderConnectionString = (value) => {
+      const host = /^[a-z][a-z0-9+.-]*:\/\/[^@/]*@(\[[^\]]+\]|[^:/?#]+)/i.exec(value)?.[1]?.toLowerCase();
+      if (!host) return false;
+      if (/(?:^|\.)(?:example|test|invalid)$/.test(host)) return true;
+      if (/(?:^|\.)example\.(?:com|net|org)$/.test(host)) return true;
+      return isTestFixture && (host === 'localhost' || host === '127.0.0.1' || host === '[::1]');
+    };
+
     const isSecretLike = (value) => {
       if (typeof value !== 'string') return false;
+      if (isPlaceholderConnectionString(value)) return false;
       return secretPatterns.some(pattern => pattern.test(value));
     };
 

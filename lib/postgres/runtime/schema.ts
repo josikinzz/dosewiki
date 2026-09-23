@@ -3,7 +3,7 @@ import { v, type ObjectType, type PropertyValidators, type Validator } from "./v
 export type TableIndex = { indexDescriptor: string; fields: string[] };
 
 /** Document validators and ordered index keys shared by the runtime and SQL producer. */
-export class TableDefinition<Document, Indexes extends Record<string, readonly string[]> = {}> {
+export class TableDefinition<Document, Indexes extends Record<string, readonly string[]> = Record<never, never>> {
   readonly indexes: TableIndex[] = [];
   declare readonly indexTypes: Indexes;
 
