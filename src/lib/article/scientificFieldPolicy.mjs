@@ -8,7 +8,7 @@
  */
 
 const CITATION_TOKEN = /\[cite:[^\]]+\]/g;
-const SOURCE_QUANTITY = /(?:[<>~≈±]?\s*\d[\d.,]*(?:\s*(?:-|–|—|to)\s*\d[\d.,]*)?\s*(?:%|mg\/kg|mg|g|kg|ug|µg|mcg|ng|mL|ml|L|mol|nM|µM|uM|mM|hours?|hrs?|h|minutes?|mins?|seconds?|secs?|days?|weeks?|months?|years?))(?![A-Za-z])/gi;
+const SOURCE_QUANTITY = /(?:[<>~≈±]?\s*\d[\d.,]*(?:\s*(?:-|–|\u2014|to)\s*\d[\d.,]*)?\s*(?:%|mg\/kg|mg|g|kg|ug|µg|mcg|ng|mL|ml|L|mol|nM|µM|uM|mM|hours?|hrs?|h|minutes?|mins?|seconds?|secs?|days?|weeks?|months?|years?))(?![A-Za-z])/gi;
 const SCIENTIFIC_ACRONYM = /\b(?:[A-Z]{2,}[A-Z0-9-]*|[A-Z]+\d+[A-Z0-9-]*)\b/g;
 const METABOLITE_STATUS = /^(active|inactive)$/i;
 const ABBREVIATION = /^(?=.*[A-Z])[A-Z0-9α-ωΑ-Ω+.-]{2,}$/;

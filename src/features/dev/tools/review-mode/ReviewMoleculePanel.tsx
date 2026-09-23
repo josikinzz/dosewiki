@@ -73,10 +73,10 @@ export function ReviewMoleculePanel({
               id={headingId}
               className="theme-text-primary font-display min-w-0 truncate text-sm font-semibold leading-none"
             >
-              Molecule depiction — {name}
+              Molecule depiction: {name}
             </h2>
             <p className="theme-text-faint min-w-0 text-[11px] leading-tight">
-              Saves publish straight to the live article — no commit step.
+              Saves publish straight to the live article, with no commit step.
             </p>
           </div>
           <Button

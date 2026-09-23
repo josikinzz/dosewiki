@@ -745,7 +745,7 @@ const NarrativeSection = memo(function NarrativeSection({
       title="Your experience"
       description={
         mode === "simple"
-          ? "Write it your way — one text box is all you need."
+          ? "Write it your way. One text box is all you need."
           : "Introduction, phase notes, and conclusion."
       }
     >

@@ -91,8 +91,8 @@ export type ChangeDescription = Pick<
 >;
 
 const SECTION_HEADING = /^# (.+)$/;
-const INLINE_EDIT_MESSAGE = /^Inline edit — ([\w.[\]]+)$/;
-const SOURCE_MESSAGE = /^(Added|Removed) a source — (.+)$/;
+const INLINE_EDIT_MESSAGE = /^Inline edit \u2014 ([\w.[\]]+)$/;
+const SOURCE_MESSAGE = /^(Added|Removed) a source \u2014 (.+)$/;
 const BULK_MESSAGE = /^Dev editor update - (.+)$/;
 
 /**

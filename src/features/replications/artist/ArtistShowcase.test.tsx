@@ -262,7 +262,7 @@ describe("ArtistShowcase", () => {
     expect(window.location.pathname + window.location.search).toBe(SOURCE_PATH);
   });
 
-  it("hides per-stage creator lines — the identity header owns attribution", () => {
+  it("hides per-stage creator lines; the identity header owns attribution", () => {
     renderShowcase();
 
     expect(screen.queryByText("by Chelsea Morgan")).not.toBeInTheDocument();

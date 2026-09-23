@@ -172,15 +172,15 @@ function LethalCard({
                   {model.ld50.map((entry, index) => (
                     <tr key={index} className="theme-ld50-table-row transition">
                       <td className="px-4 py-2 font-medium theme-text-primary">
-                        {entry.species || "—"}
+                        {entry.species || "–"}
                       </td>
                       <td className="px-4 py-2 theme-text-muted">
-                        {entry.route || "—"}
+                        {entry.route || "–"}
                       </td>
                       <td className="px-4 py-2 text-right font-mono theme-text-primary">
                         {entry.value != null
                           ? `${entry.value} ${entry.unit}`
-                          : entry.unit || "—"}
+                          : entry.unit || "–"}
                       </td>
                     </tr>
                   ))}

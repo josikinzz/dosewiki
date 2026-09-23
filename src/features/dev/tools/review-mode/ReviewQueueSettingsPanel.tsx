@@ -65,7 +65,7 @@ export function ReviewQueueSettingsPanel({
         />
         {order === "sources" && statsState === "fallback" ? (
           <span className="theme-warning-text block text-[11px]">
-            Source stats unavailable — ordering by bibliography size instead.
+            Source stats unavailable; ordering by bibliography size instead.
           </span>
         ) : null}
       </label>

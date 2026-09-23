@@ -48,7 +48,7 @@ function conflictDiffText(conflict: GalleryConflict, mine: GalleryCurationState)
   ];
   for (const { label, theirs, ours } of blocks) {
     lines.push(
-      `# ${label} — server, saved ${conflict.updated_at.slice(0, 19).replace("T", " ")} by ${
+      `# ${label}: server, saved ${conflict.updated_at.slice(0, 19).replace("T", " ")} by ${
         conflict.updated_by ?? "unknown"
       }`,
     );
@@ -56,7 +56,7 @@ function conflictDiffText(conflict: GalleryConflict, mine: GalleryCurationState)
     theirs.forEach((slug, index) => {
       lines.push(`${ours[index] === slug ? " " : "-"}${String(index + 1).padStart(3)} ${slug}`);
     });
-    lines.push(`# ${label} — your unsaved draft`);
+    lines.push(`# ${label}: your unsaved draft`);
     if (ours.length === 0) lines.push("  (empty)");
     ours.forEach((slug, index) => {
       lines.push(`${theirs[index] === slug ? " " : "+"}${String(index + 1).padStart(3)} ${slug}`);
@@ -335,7 +335,7 @@ export function SubstanceGalleryPanel({
       {detail && unknownRightsOnStage > 0 ? (
         <ActionNotice tone="warning">
           {unknownRightsOnStage} of the {board.filledSlots} curated works the article will show
-          {unknownRightsOnStage === 1 ? " has" : " have"} unknown reuse terms. Advisory only — check the
+          {unknownRightsOnStage === 1 ? " has" : " have"} unknown reuse terms. Advisory only: check the
           rights before featuring them this prominently.
         </ActionNotice>
       ) : null}
@@ -434,7 +434,7 @@ export function SubstanceGalleryPanel({
               onClick={() => controller.setPreviewOpen((open) => !open)}
             >
               <Icon icon={previewOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-              Article preview — effective automatic and editorial order
+              Article preview: effective automatic and editorial order
             </Button>
             {previewOpen ? <GalleryStagePreview matches={effectiveOrder} /> : null}
           </div>
@@ -460,7 +460,7 @@ export function SubstanceGalleryPanel({
           <DialogHeader>
             <DialogTitle>Discard unsaved curation?</DialogTitle>
             <DialogDescription>
-              This gallery has changes that were never saved. Switching substances throws them away —
+              This gallery has changes that were never saved. Switching substances throws them away;
               the article keeps whatever the server already holds.
             </DialogDescription>
           </DialogHeader>

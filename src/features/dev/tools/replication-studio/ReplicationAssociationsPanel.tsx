@@ -192,7 +192,7 @@ function AssociationRow({
           >
             <Icon icon="lucide:triangle-alert" size={13} className="mt-0.5 shrink-0" />
             <span>
-              priority {row.curatedPosition} — unticking removes that position and excludes the work
+              priority {row.curatedPosition}: unticking removes that position and excludes the work
             </span>
           </p>
         ) : null}
@@ -301,27 +301,27 @@ function DirectPlacementEditor({
             if (result) {
               state =
                 result.status === "conflict"
-                  ? "Conflict — reload and try again"
+                  ? "Conflict: reload and try again"
                   : result.status === "error"
-                    ? `Error — ${result.message ?? "save failed"}`
+                    ? `Error: ${result.message ?? "save failed"}`
                     : result.added.includes(row.slug)
                       ? "Added"
                       : result.alreadyPresent.includes(row.slug)
                         ? "Already present"
                         : result.excluded.includes(row.slug)
-                          ? "Excluded — preserved"
+                          ? "Excluded (preserved)"
                           : result.ineligible.includes(row.slug)
                             ? "Ineligible for showcases"
                             : "No change";
             } else if (preview?.status === "error") {
-              state = `Error — ${preview.message}`;
+              state = `Error: ${preview.message}`;
             } else if (preview?.status === "ready") {
               state = !isShowcaseEligible(row)
                 ? "Ineligible for showcases"
                 : preview.preflight.alreadyPresent.includes(row.slug)
                   ? "Already present"
                   : preview.preflight.excluded.includes(row.slug)
-                    ? "Excluded — will stay excluded"
+                    ? "Excluded (will stay excluded)"
                     : "Ready to add";
             }
             return (

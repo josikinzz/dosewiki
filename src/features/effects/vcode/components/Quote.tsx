@@ -23,7 +23,7 @@ export function Quote({
       {(author || source) && (
         <footer className="theme-text-faint mt-2 text-[0.8125rem] leading-6">
           {author && <span className="theme-accent-emphasis font-medium">{author}</span>}
-          {author && source && <span> — </span>}
+          {author && source && <span>, </span>}
           {source && <cite className="not-italic">{source}</cite>}
         </footer>
       )}

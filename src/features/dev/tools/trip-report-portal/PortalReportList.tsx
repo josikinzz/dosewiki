@@ -122,7 +122,7 @@ function PortalRowButton({
         <span className="theme-text-faint col-start-1 flex flex-wrap items-center gap-1.5 text-xs">
           <span className="truncate">{row.subject.name}</span>
           <span className="text-dose-text-ghost">·</span>
-          <span className="text-dose-accent-soft truncate">{primary ? primary.name : "—"}</span>
+          <span className="text-dose-accent-soft truncate">{primary ? primary.name : "–"}</span>
           {primary?.dose ? (
             <span className="theme-text-muted font-mono text-[11px]">
               {primary.dose}

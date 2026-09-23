@@ -29,8 +29,8 @@ export type ApplyPlaylistToDrugsActionProps = {
 function resultLabel(result: PlacementTargetResult): string {
   if (result.status === "conflict") {
     return result.message
-      ? `Conflict — ${result.message}`
-      : "Conflict — gallery changed before this copy could save";
+      ? `Conflict: ${result.message}`
+      : "Conflict: gallery changed before this copy could save";
   }
   if (result.status === "error") return result.message ?? "Could not update this gallery";
   if (result.status === "unchanged") return "No change needed";

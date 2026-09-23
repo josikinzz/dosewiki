@@ -108,7 +108,7 @@ describe("renderMoleculeSvg (OpenChemLib)", () => {
     expect(svg).toContain('width="56px" height="56px"');
   });
 
-  it("renders class R-group labels — Greek included — as real text in the R violet", () => {
+  it("renders class R-group labels, Greek included, as real text in the R violet", () => {
     const molblock = `
   probe
 

@@ -394,7 +394,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         <ReviewToast tone="success">
           <Icon icon="lucide:sparkles" size={16} />
           <span>
-            <span className="font-semibold">{celebration.label}</span> complete —
+            <span className="font-semibold">{celebration.label}</span> complete,
             all {celebration.total} reviewed
           </span>
         </ReviewToast>

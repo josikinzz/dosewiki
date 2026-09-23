@@ -377,7 +377,7 @@ export function ReviewSubstancePicker({
           {/* `flex-1 text-left` pins the chevron to the trigger's right edge
               instead of letting a short name float it mid-box. */}
           <span className="theme-text-primary font-display min-w-[6ch] flex-1 truncate text-left text-base font-semibold leading-none">
-            {current?.name ?? "—"}
+            {current?.name ?? "–"}
           </span>
           <Icon
             icon="lucide:chevrons-up-down"

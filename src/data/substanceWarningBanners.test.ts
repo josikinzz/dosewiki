@@ -104,7 +104,7 @@ describe("resolveEnabledBanners", () => {
     expect(resolveEnabledBanners(presets, "   ")).toEqual([]);
   });
 
-  it("ignores classification entirely — a substance the search finds is still unbannered", () => {
+  it("ignores classification entirely; a substance the search finds is still unbannered", () => {
     const presets = [preset({ enabled: true, enabledSlugs: [] })];
     const targets: WarningBannerTarget[] = [
       {

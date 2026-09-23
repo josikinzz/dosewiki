@@ -76,7 +76,7 @@ function EffectBadge({
   };
 
   if (isExpanded && hasDescription) {
-    const parenMatch = effect.description.match(/^\(([^)]+)\)\s*[-–—]\s*/);
+    const parenMatch = effect.description.match(/^\(([^)]+)\)\s*[-–\u2014]\s*/);
     const subtitleBadge = parenMatch ? parenMatch[1] : null;
     const descriptionText = parenMatch
       ? effect.description.slice(parenMatch[0].length)

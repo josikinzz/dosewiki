@@ -62,7 +62,7 @@ export default async function CoveragePage() {
             <code className="font-mono">[cite:…]</code> markers and structured
             reference ids within each section&rsquo;s own fields. Dosage counts
             as written only when a route carries dose numbers, duration numbers,
-            bioavailability, half-life, or notes — a route object full of nulls
+            bioavailability, half-life, or notes; a route object full of nulls
             is generator scaffolding, and the ROA column reports how many of an
             article&rsquo;s routes are that on at least one side. The stub column
             is the same verdict the article page banners, so it weighs the seven
@@ -71,7 +71,7 @@ export default async function CoveragePage() {
             client-side external lookup; the bibliography is omitted as a column
             because it is the citation axis rather than a section within it.
             The review column is the public-safe completion flag derived from
-            the editor-only review status — it says a manual review finished,
+            the editor-only review status. It says a manual review finished,
             nothing more.
           </p>
         </Surface>

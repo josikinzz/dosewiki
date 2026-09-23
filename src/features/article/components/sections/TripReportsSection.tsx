@@ -188,7 +188,7 @@ const CompactReportRow = memo(function CompactReportRow({
           </span>
           <span className="theme-report-metadata-text mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
             {subject.trip_date ? <span>{t("on {{date}}", { date: subject.trip_date })}</span> : null}
-            <span className="italic">— {subject.name}</span>
+            <span className="italic">{t("by {{name}}", { name: subject.name })}</span>
           </span>
         </span>
       </SmartLink>
