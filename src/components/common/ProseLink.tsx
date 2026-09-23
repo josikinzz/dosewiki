@@ -13,9 +13,14 @@ import { cn } from "@/lib/utils";
  * its own href/target/rel and only need the styling; use the `ProseLink`
  * component for a plain inline anchor. The :hover is a Tailwind utility, so it
  * is auto-guarded under @media (hover: hover).
+ *
+ * `proseLinkUnderlineClassName` is the underline alone, for links that keep
+ * their own ink (the beta disclaimer's shimmer) but share the prose rhythm.
  */
-export const proseLinkClassName =
-  "theme-accent-emphasis theme-accent-underline font-medium underline decoration-dotted underline-offset-2 transition-colors hover:decoration-solid theme-focus-ring";
+export const proseLinkUnderlineClassName =
+  "underline decoration-dotted underline-offset-[0.18em] hover:decoration-solid";
+
+export const proseLinkClassName = `theme-accent-emphasis theme-accent-underline font-medium ${proseLinkUnderlineClassName} transition-colors theme-focus-ring`;
 
 /**
  * Links inside a quiet meta caption: the roadmap note under a section heading,
@@ -25,7 +30,7 @@ export const proseLinkClassName =
  * hairline underline that takes the accent on hover.
  */
 export const quietLinkClassName =
-  "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[3px] transition hover:text-dose-accent hover:decoration-dose-accent";
+  "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[0.18em] transition hover:text-dose-accent hover:decoration-dose-accent";
 
 export type ProseLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 

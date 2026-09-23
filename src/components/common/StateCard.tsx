@@ -90,7 +90,7 @@ export function StateCard({
       </div>
 
       {loading ? (
-        <div className="theme-loading-track h-0.5 w-48 overflow-hidden rounded-full" aria-hidden="true">
+        <div className="theme-loading-track h-1 w-48 overflow-hidden rounded-full" aria-hidden="true">
           <div className="theme-loading-bar motion-reduce:animate-none" />
         </div>
       ) : null}

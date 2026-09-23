@@ -137,6 +137,10 @@ html[data-visual-style="pro"][data-theme="dark"] {
      than #efeee9, so every one of them measures higher than the figures
      above. */
   --ei-ink: #333333;
+  /* Modal scrim: a dim of the ink on paper. A seed rather than a mix inside
+     the --theme-scrim binding, because the dark scheme cannot derive it from
+     its near-white ink and restates it below. */
+  --ei-scrim: rgb(51 51 51 / 0.34);
   --ei-ink-2: #444444;
   --ei-ink-3: #565656;
   --ei-ink-4: #696969;
@@ -336,6 +340,7 @@ html[data-visual-style="pro"][data-theme="dark"] {
      shadow by token rather than by `box-shadow: none` leaves the element's
      ring intact, which is why these were --tw-shadow-color patches before. */
   --theme-elevation-control-primary: 0 0 #0000;
+  --theme-elevation-control-active: 0 0 #0000;
   --theme-elevation-icon-tile: 0 0 #0000;
   --theme-elevation-mark-hairline: inset 0 0 0 1px color-mix(in srgb, var(--ei-accent) 34%, transparent);
 
@@ -347,6 +352,8 @@ html[data-visual-style="pro"][data-theme="dark"] {
   --theme-menu-surface: var(--ei-surface-raised);
   --theme-table-row-alt: var(--ei-surface-sunk);
   --theme-backdrop-safe: var(--ei-paper);
+  --theme-scrim: var(--ei-scrim);
+  --theme-menu-item-highlight-bg: color-mix(in srgb, var(--ei-ink) 7%, transparent);
   --theme-autofill-bg: var(--ei-surface-raised);
   --theme-autofill-text: var(--ei-ink);
 
@@ -584,6 +591,8 @@ html[data-visual-style="pro"][data-theme="dark"] {
      on a lit screen. Surfaces step UP from the canvas, so the sunk step is the
      one that has to move down instead. */
   --ei-paper: #131313;
+  /* --ei-ink flips to near-white here, so the scrim cannot derive from it. */
+  --ei-scrim: rgb(0 0 0 / 0.62);
   --ei-surface: #191919;
   --ei-surface-raised: #212121;
   --ei-surface-sunk: #0c0c0c;
@@ -777,8 +786,7 @@ html[data-visual-style="pro"] .theme-mobile-nav-panel {
 /* Borders pick up the accent on hover instead of lifting on a glow. */
 @media (hover: hover) {
   html[data-visual-style="pro"] .theme-public-card-interactive:hover,
-  html[data-visual-style="pro"] .theme-public-card-hover-quiet:hover,
-  html[data-visual-style="pro"] .theme-card-surface:hover {
+  html[data-visual-style="pro"] .theme-public-card-hover-quiet:hover {
     border-color: var(--ei-accent-edge);
     background-color: var(--ei-surface-raised);
     background-image: none;
@@ -806,11 +814,21 @@ html[data-visual-style="pro"] .theme-mobile-nav-panel {
    e.g. "Submit report") is painted with a brand gradient and glow shadow in
    utilities-theme.css; on Pro the fill is flat accent and the lift is removed.
    --------------------------------------------------------------------- */
+/* Flat, but still toned: severity must read from the fill, not only from the
+   icon colour, so each panel keeps its semantic card tint. */
 html[data-visual-style="pro"] .theme-interaction-danger,
 html[data-visual-style="pro"] .theme-interaction-unsafe,
 html[data-visual-style="pro"] .theme-interaction-caution {
-  background: var(--ei-surface);
   box-shadow: none;
+}
+html[data-visual-style="pro"] .theme-interaction-danger {
+  background: var(--theme-semantic-danger-card-bg);
+}
+html[data-visual-style="pro"] .theme-interaction-unsafe {
+  background: var(--theme-semantic-unsafe-card-bg);
+}
+html[data-visual-style="pro"] .theme-interaction-caution {
+  background: var(--theme-semantic-caution-card-bg);
 }
 
 html[data-visual-style="pro"] .theme-cta-accent {
@@ -818,8 +836,8 @@ html[data-visual-style="pro"] .theme-cta-accent {
   box-shadow: none;
 }
 
-html[data-visual-style="pro"] .theme-cta-accent:hover,
-html[data-visual-style="pro"] .theme-cta-accent:focus-visible {
+/* Hover only: keyboard focus shows the shared ring and keeps the fill. */
+html[data-visual-style="pro"] .theme-cta-accent:hover {
   background: var(--ei-accent);
   box-shadow: none;
   transform: none;
@@ -1585,6 +1603,15 @@ html[data-visual-style="pro"] .app-footer {
   --theme-frosted-control-hover-bg: #363636;
   --theme-frosted-control-hover-border: #4d4d4d;
   --theme-frosted-control-hover-shadow: 0 0 0 1px #4d4d4d;
+  /* The same rail values for the on-panel family, so a footer rendered inside
+     a card (the /dev/kit stage, an embed) keeps charcoal controls instead of
+     picking up the paper card's white on-panel fill. */
+  --theme-frosted-control-on-panel-bg: #2a2a2a;
+  --theme-frosted-control-on-panel-border: #3d3d3d;
+  --theme-frosted-control-on-panel-shadow: 0 0 0 1px #3d3d3d;
+  --theme-frosted-control-on-panel-hover-bg: #363636;
+  --theme-frosted-control-on-panel-hover-border: #4d4d4d;
+  --theme-frosted-control-on-panel-hover-shadow: 0 0 0 1px #4d4d4d;
   --theme-divider: #383838;
   --theme-border-subtle: #383838;
   --theme-toggle-pill-bg: var(--ei-chrome-sunk);
@@ -1609,7 +1636,7 @@ html[data-visual-style="pro"] .app-footer .theme-text-primary {
    real size step as the standalone ones: semibold, sentence case, a clear
    rung below the page title. The uppercase-tracked voice is reserved for
    the kicker/TOC/sub-label tier below. */
-html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2) {
+html[data-visual-style="pro"] .prose:is(.prose-fuchsia, .prose-accent) :is(h1, h2) {
   font-size: 1.375rem;
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -1617,7 +1644,7 @@ html[data-visual-style="pro"] .prose.prose-fuchsia :is(h1, h2) {
   text-transform: none;
 }
 
-html[data-visual-style="pro"] .prose.prose-fuchsia :is(h3, h4) {
+html[data-visual-style="pro"] .prose:is(.prose-fuchsia, .prose-accent) :is(h3, h4) {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -1819,7 +1846,8 @@ html[data-visual-style="pro"] .theme-index-card-title,
 html[data-visual-style="pro"] .theme-index-card-title-accent {
   font-size: 0.9375rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  /* Half the label tracking: 0.16em suits 11-12px labels, not a 15px title. */
+  letter-spacing: 0.08em;
   line-height: 1.5;
   text-transform: uppercase;
 }

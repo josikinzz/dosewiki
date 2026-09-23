@@ -42,8 +42,9 @@ html[data-font="lexend"][data-font][data-font] {
   --type-tracking-display: 0;
   --type-tracking-heading: 0;
   --type-tracking-body: 0;
-  --type-size-title: clamp(2.5rem, 2.125rem + 1.9vw, 3.8125rem);
-  --type-size-section: clamp(1.35rem, 1.15rem + 0.6vw, 1.75rem);
+  /* Multiplied by the reader text scale like the base.css clamps they replace. */
+  --type-size-title: calc(clamp(2rem, 0.5rem + 3.9vw, 3.8125rem) * var(--dw-reader-text-scale, 1));
+  --type-size-section: calc(clamp(1.35rem, 1.15rem + 0.6vw, 1.75rem) * var(--dw-reader-text-scale, 1));
 }
 
 html[data-font="inter"][data-font][data-font] {

@@ -12,6 +12,11 @@ const MIN_TITLE_FONT_PX = 20;
  * non-breaking-space tricks, no guessing where a long name wraps. The h1 is
  * rendered at its stylesheet size, the text run measured, and the font shrunk
  * by exactly the overflow ratio. Wider viewports keep the stylesheet size.
+ *
+ * The inline icon is em-sized, so it shrinks with the text. A title too long to
+ * fit even at the floor size wraps instead of running off the column, and the
+ * fit reruns once web fonts land: a wider display face (Titillium in Pro)
+ * swapping in after the first measure would otherwise overflow unnoticed.
  */
 function useFitTitleToWidth(enabled: boolean) {
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -25,22 +30,30 @@ function useFitTitleToWidth(enabled: boolean) {
 
     const fit = () => {
       title.style.fontSize = "";
+      run.style.whiteSpace = "";
       if (!enabled || !media.matches) return;
       const available = title.clientWidth;
       const needed = run.scrollWidth;
       if (needed <= available || available === 0) return;
       const base = parseFloat(getComputedStyle(title).fontSize);
+      const fitted = (base * available) / needed;
       title.style.setProperty(
         "font-size",
-        `${Math.max(MIN_TITLE_FONT_PX, (base * available) / needed)}px`,
+        `${Math.max(MIN_TITLE_FONT_PX, fitted)}px`,
         "important",
       );
+      if (fitted < MIN_TITLE_FONT_PX) run.style.whiteSpace = "normal";
     };
 
+    let cancelled = false;
     fit();
+    document.fonts?.ready.then(() => {
+      if (!cancelled) fit();
+    });
     window.addEventListener("resize", fit);
     media.addEventListener("change", fit);
     return () => {
+      cancelled = true;
       window.removeEventListener("resize", fit);
       media.removeEventListener("change", fit);
     };
@@ -91,7 +104,7 @@ export const PageHeader = memo(function PageHeader({
   const iconClassName =
     "theme-accent-heading mr-[0.2em] inline-block h-[0.72em] w-[0.72em] align-[0.02em] sm:absolute sm:right-full sm:top-1/2 sm:mr-[0.15em] sm:block sm:h-[1em] sm:w-[1em] sm:-translate-y-1/2";
   const titleClasses = cn(
-    "type-page-title theme-accent-heading block w-full max-w-[22ch] text-balance wrap-normal! max-sm:text-4xl sm:text-5xl md:text-6xl",
+    "type-page-title theme-accent-heading block w-full max-w-[22ch] text-balance wrap-normal!",
     icon ? (isLeft ? "sm:pl-[1.15em]" : "sm:px-[1.15em]") : undefined,
     isLeft ? undefined : "mx-auto",
     titleClassName,

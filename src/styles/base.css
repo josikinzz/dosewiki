@@ -33,11 +33,16 @@
        Consequence for the lab: "Default" is this sharp scale, and tapping
        "Sharp" again shrinks it a further 0.375x. That relativity is by design
        (see CORNER_STEPS in src/features/theme-lab/flatnessAxes.ts). Pills and
-       circles use rounded-full and never follow. */
-  --radius: 0.375rem;
-  --radius-xl: 0.2813rem;
-  --radius-2xl: 0.375rem;
-  --radius-3xl: 0.5625rem;
+       circles use rounded-full and never follow.
+
+       The scale is ordered: sm 1px < md 3px < lg 5px < xl 6px < 2xl 8px <
+       3xl 12px. The old baselines inherited lg (1rem) > xl (0.75rem), so an
+       item drawn with rounded-lg inside a rounded-xl panel came out rounder
+       than its container. md/sm derive from --radius in tailwind.config.mjs. */
+  --radius: 0.3125rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.75rem;
 
   /* Corner roles. Components ask for the role (rounded-control, rounded-chip,
      rounded-card, rounded-panel, rounded-pill via the Tailwind aliases in
@@ -45,10 +50,11 @@
      every card without touching a component: Fun maps the roles onto the
      scale above; pro-theme.css re-seats them. Pills and discs stay round in
      both styles. */
-  --radius-control: var(--radius-xl);
-  --radius-chip: var(--radius);
-  --radius-card: var(--radius-2xl);
-  --radius-panel: 2rem;
+  /* Nesting order holds in both styles: chip <= control <= card <= panel. */
+  --radius-control: var(--radius);
+  --radius-chip: calc(var(--radius) - 1px);
+  --radius-card: var(--radius-xl);
+  --radius-panel: var(--radius-3xl);
   --radius-pill: 9999px;
 
   /* Sticky chrome offsets. The app header measures 4.25rem; the replications
@@ -79,7 +85,9 @@
   --type-size-body: 1rem;
   --type-size-lead: 1.0625rem;
   --type-size-deck: clamp(1.1875rem, 1.11rem + 0.34vw, 1.375rem);
-  --type-size-title: clamp(3rem, 2.5rem + 2.25vw, 4.5rem);
+  /* Floor 2.25rem so a one-word title plus its icon fits a 360px phone in every
+     face; the steeper slope keeps the desktop size where it was (~68px at 1280). */
+  --type-size-title: clamp(2.25rem, 0.6rem + 4.6vw, 4.5rem);
   --type-size-section: clamp(1.5rem, 1.28rem + 0.7vw, 2rem);
   /* Docs pages (/docs/*) read at editorial scale, not the substance-article
        hero ramp: a Read surface where a dozen section titles share the page
@@ -97,6 +105,28 @@
   --type-tracking-label: 0.16em;
   --type-measure-reading: 68ch;
   --type-measure-deck: 54ch;
+
+  /* Motion. Three durations and one curve cover every non-looping UI
+     transition: fast for colour, border and opacity; base for transform,
+     shadow and surface lifts; slow for section entrances. Press is the
+     :active scale step only. The defaults below re-seat Tailwind's own, so a
+     bare `transition` utility lands on the same scale instead of Tailwind's
+     150ms. */
+  --motion-press: 120ms;
+  --motion-fast: 180ms;
+  --motion-base: 240ms;
+  --motion-slow: 420ms;
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-loop: cubic-bezier(0.45, 0, 0.55, 1);
+  --default-transition-duration: var(--motion-fast);
+  --default-transition-timing-function: var(--ease-out);
+
+  /* Frosted material blur: one strength for every frosted surface. */
+  --frost-blur: 14px;
+
+  /* Keyboard focus ring gap. One offset for every outset ring; inset rows
+     use a negative offset and the peer ring keeps its wider 4px. */
+  --theme-focus-offset: 2px;
 
   /* Color tokens live in site-colors.css, the single, annotated source of
        truth for both themes (page canvas, text, accent, surfaces, chrome,
@@ -244,6 +274,24 @@ samp {
   background-color: var(--theme-selection);
 }
 
+/* Browser-drawn parts carry the palette too: native checkboxes, radios and
+   ranges take the accent, the text caret follows it, and every placeholder
+   reads at the faint tier without a per-field opacity. */
+:root {
+  accent-color: var(--theme-accent-strong);
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  caret-color: var(--theme-accent-strong);
+}
+
+::placeholder {
+  color: var(--theme-text-faint);
+  opacity: 1;
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--theme-scroll-thumb) var(--theme-scroll-track);
@@ -346,7 +394,7 @@ input:-webkit-autofill:active {
       var(--dw-reader-text-scale, 1)
   );
   --type-size-title: calc(
-    clamp(3rem, 2.5rem + 2.25vw, 4.5rem) * var(--dw-reader-text-scale, 1)
+    clamp(2.25rem, 0.6rem + 4.6vw, 4.5rem) * var(--dw-reader-text-scale, 1)
   );
   --type-size-section: calc(
     clamp(1.5rem, 1.28rem + 0.7vw, 2rem) * var(--dw-reader-text-scale, 1)

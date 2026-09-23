@@ -42,7 +42,7 @@ export const publicPagePrimitivesStory: StoryDef = {
         <PublicContentShell
           as="section"
           width="narrow"
-          className="min-h-0 rounded-2xl border border-[var(--theme-border)] py-6"
+          className="min-h-0 rounded-card border border-[var(--theme-border)] py-6"
         >
           <p className="theme-text-secondary text-sm">
             Page body content sits inside the shell. The shell caps the max

@@ -175,7 +175,7 @@ export function StatusHeader({
             className={stateToneIconClassName[statusTone]}
           />
         ) : null}
-        <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="theme-accent-heading type-doc-title">
           {title}
         </h1>
         <p className="theme-text-secondary max-w-2xl text-base leading-7">
@@ -222,7 +222,7 @@ export function StatusFact({ label, value, tone = "boxed" }: StatusFactProps) {
   if (tone === "plain") {
     return (
       <div>
-        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+        <p className="theme-text-faint type-meta-label">
           {label}
         </p>
         <div className="theme-text-secondary mt-1.5 text-sm leading-6">
@@ -233,8 +233,8 @@ export function StatusFact({ label, value, tone = "boxed" }: StatusFactProps) {
   }
 
   return (
-    <div className="theme-public-card-subtle rounded-2xl border p-4">
-      <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+    <div className="theme-public-card-subtle rounded-card border p-4">
+      <p className="theme-text-faint type-meta-label">
         {label}
       </p>
       <div className="theme-text-secondary mt-2 text-sm leading-6">{value}</div>
@@ -263,7 +263,7 @@ export function MediaPlaceholder({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center bg-gradient-to-br from-[color-mix(in_srgb,#701a75_20%,var(--theme-surface-muted))] to-[color-mix(in_srgb,#4c1d95_20%,var(--theme-surface-muted))] px-3 text-center",
+        "flex h-full w-full items-center justify-center bg-dose-surface-muted bg-gradient-to-br from-dose-accent-muted/20 to-dose-accent-strong/20 px-3 text-center",
         className,
       )}
       role={kind === "loading" ? "status" : undefined}
@@ -329,7 +329,7 @@ export function MediaTile({
             width={width ?? 800}
             height={height ?? 800}
             sizes="(max-width: 639px) 50vw, (max-width: 1024px) 33vw, 320px"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-80 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            className="h-full w-full object-cover transition duration-[var(--motion-base)] ease-[var(--ease-out)] group-hover:scale-[1.03] group-hover:opacity-80 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
 
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 pb-2 pt-8">
@@ -368,7 +368,7 @@ export function MediaTile({
   );
 
   const tileClassName = cn(
-    "theme-public-card-subtle theme-public-card-hover-quiet theme-media-tile group relative block aspect-square overflow-hidden rounded-xl border text-left transition theme-focus-ring motion-reduce:transition-none",
+    "theme-public-card-subtle theme-public-card-hover-quiet theme-media-tile group relative block aspect-square overflow-hidden rounded-card border text-left transition theme-focus-ring motion-reduce:transition-none",
     className,
   );
 

@@ -5,9 +5,14 @@
      `prose` container) mark themselves `not-prose` and style themselves; without
      the guard they still collected prose heading margins, list padding and link
      underlines. The `:where()` wrapper keeps the guard at zero specificity, so
-     these rules keep cascading against the theme sheets exactly as before. */
+     these rules keep cascading against the theme sheets exactly as before.
+
+     .prose-accent is the neutral name for .prose-fuchsia (accent headings,
+     links and bold): the accent is a palette axis now, not fuchsia. Both names
+     share every rule; new call sites use .prose-accent. */
   .prose,
-  .prose-fuchsia {
+  .prose-fuchsia,
+  .prose-accent {
     color: var(--theme-text-secondary);
     font-size: var(--type-size-body);
     line-height: var(--type-leading-relaxed);
@@ -20,7 +25,8 @@
   }
 
   .prose :where(h1, h2, h3, h4):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(h1, h2, h3, h4):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(h1, h2, h3, h4):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(h1, h2, h3, h4):not(:where(.not-prose, .not-prose *)) {
     margin: 0 0 0.8em;
     color: var(--theme-text-primary);
     font-family: var(--font-family-display);
@@ -31,7 +37,8 @@
   }
 
   .prose :where(h1):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(h1):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(h1):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(h1):not(:where(.not-prose, .not-prose *)) {
     margin-top: 0;
     font-size: clamp(2rem, 1.84rem + 0.95vw, 2.7rem);
     line-height: 1.02;
@@ -39,30 +46,36 @@
   }
 
   .prose :where(h2):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(h2):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(h2):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(h2):not(:where(.not-prose, .not-prose *)) {
     margin-top: 1.8em;
     font-size: clamp(1.5rem, 1.4rem + 0.55vw, 1.9rem);
   }
 
   .prose :where(h3):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(h3):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(h3):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(h3):not(:where(.not-prose, .not-prose *)) {
     margin-top: 1.45em;
     font-size: 1.25rem;
   }
 
   .prose :where(h4):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(h4):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(h4):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(h4):not(:where(.not-prose, .not-prose *)) {
     margin-top: 1.3em;
     font-size: 1.0625rem;
   }
 
   .prose-fuchsia :where(h1, h2):not(:where(.not-prose, .not-prose *)),
-  .prose.prose-fuchsia :where(h1, h2):not(:where(.not-prose, .not-prose *)) {
+  .prose-accent :where(h1, h2):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-fuchsia :where(h1, h2):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-accent :where(h1, h2):not(:where(.not-prose, .not-prose *)) {
     color: var(--theme-accent-strong);
   }
 
   .prose :where(p, ul, ol, blockquote, pre, figure):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(p, ul, ol, blockquote, pre, figure):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(p, ul, ol, blockquote, pre, figure):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(p, ul, ol, blockquote, pre, figure):not(:where(.not-prose, .not-prose *)) {
     margin: 0 0 1.1rem;
   }
 
@@ -72,29 +85,36 @@
      rhythm never moves. Sits before the last-child zeroing below, which must keep
      winning the trailing edge. */
   .prose :where(p):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(p):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(p):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(p):not(:where(.not-prose, .not-prose *)) {
     margin-bottom: 2rem;
+    text-wrap: pretty;
   }
 
   .prose :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)) {
     margin-bottom: 0;
   }
 
   .prose :where(a):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(a):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(a):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(a):not(:where(.not-prose, .not-prose *)) {
     color: var(--theme-accent-strong);
     font-weight: inherit;
     text-decoration: underline;
     text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 45%, transparent);
     text-decoration-thickness: 0.08em;
     text-underline-offset: 0.18em;
-    transition: color 180ms ease, text-decoration-color 180ms ease;
+    transition:
+      color var(--motion-fast) var(--ease-out),
+      text-decoration-color var(--motion-fast) var(--ease-out);
   }
 
   @media (hover: hover) {
     .prose :where(a:hover):not(:where(.not-prose, .not-prose *)),
-    .prose-fuchsia :where(a:hover):not(:where(.not-prose, .not-prose *)) {
+    .prose-fuchsia :where(a:hover):not(:where(.not-prose, .not-prose *)),
+    .prose-accent :where(a:hover):not(:where(.not-prose, .not-prose *)) {
       color: var(--theme-accent-soft);
       text-decoration-color: color-mix(in srgb, var(--theme-accent-soft) 62%, transparent);
     }
@@ -106,31 +126,37 @@
   }
 
   .prose-fuchsia :where(strong, b):not(:where(.not-prose, .not-prose *)),
-  .prose.prose-fuchsia :where(strong, b):not(:where(.not-prose, .not-prose *)) {
+  .prose-accent :where(strong, b):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-fuchsia :where(strong, b):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-accent :where(strong, b):not(:where(.not-prose, .not-prose *)) {
     color: var(--theme-accent-strong);
     font-weight: 600;
   }
 
   .prose :where(ul, ol):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(ul, ol):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(ul, ol):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(ul, ol):not(:where(.not-prose, .not-prose *)) {
     padding-left: 1.2rem;
   }
 
   .prose :where(li):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(li):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(li):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(li):not(:where(.not-prose, .not-prose *)) {
     margin: 0.35rem 0;
     padding-left: 0.2rem;
   }
 
   .prose :where(blockquote):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(blockquote):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(blockquote):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(blockquote):not(:where(.not-prose, .not-prose *)) {
     border-left: 1px solid color-mix(in srgb, var(--theme-accent-strong) 38%, transparent);
     padding-left: 1rem;
     color: var(--theme-text-secondary);
   }
 
   .prose :where(code):not(:where(.not-prose, .not-prose *)),
-  .prose-fuchsia :where(code):not(:where(.not-prose, .not-prose *)) {
+  .prose-fuchsia :where(code):not(:where(.not-prose, .not-prose *)),
+  .prose-accent :where(code):not(:where(.not-prose, .not-prose *)) {
     font-size: 0.92em;
   }
 

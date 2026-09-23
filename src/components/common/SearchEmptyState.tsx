@@ -42,15 +42,15 @@ export function SearchEmptyState({
         className,
       )}
     >
-      <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-xl">
+      <span className="theme-search-suggestion-icon inline-flex h-10 w-10 items-center justify-center rounded-card">
         <Icon icon={icon} size={iconSize} />
       </span>
       <div className="space-y-1">
-        <Heading className="theme-search-suggestion-title text-lg font-semibold">
+        <Heading className="theme-search-suggestion-title font-display text-lg font-semibold tracking-tight">
           {title}
         </Heading>
         {description ? (
-          <p className="theme-search-suggestion-secondary max-w-md text-[0.8125rem] leading-5">
+          <p className="theme-search-suggestion-secondary max-w-md text-sm leading-6">
             {description}
           </p>
         ) : null}

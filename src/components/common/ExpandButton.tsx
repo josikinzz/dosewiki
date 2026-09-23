@@ -33,50 +33,62 @@ interface ExpandButtonProps {
   ariaControls?: string;
 }
 
-const BUTTON_VARIANT_CLASSES = {
+type CanonicalExpandButtonVariant = Exclude<ExpandButtonVariant, "pill" | "compact" | "badge">;
+
+// The chip variant shares PublicNameChip's 28px chip geometry, so an expander
+// sitting in a row of name chips lines up with them.
+const CANONICAL_VARIANT_CLASSES = {
   floating:
     "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   inline:
-    "inline-flex min-h-6 items-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-opacity hover:opacity-90",
+    "inline-flex min-h-6 items-center gap-0.5 rounded-control px-1 py-0.5 text-xs transition-opacity hover:opacity-90",
   count:
     "theme-control-pill theme-control-pill-expander inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
   chip:
-    "theme-control-pill inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium",
+    "theme-control-pill inline-flex min-h-7 items-center gap-1.5 rounded-chip px-3.5 py-1 text-xs font-medium",
   card:
-    "theme-control-pill-quiet inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-xs",
+    "theme-control-pill-quiet inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-xs",
   faint:
     "theme-control-pill-faint inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
-  pill:
-    "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
-  compact:
-    "inline-flex min-h-6 items-center gap-0.5 rounded-md px-1 py-0.5 text-xs transition-opacity hover:opacity-90",
-  badge:
-    "theme-control-pill inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium",
-} as const;
+} as const satisfies Record<CanonicalExpandButtonVariant, string>;
 
-const ICON_SIZES = {
+const BUTTON_VARIANT_CLASSES = {
+  ...CANONICAL_VARIANT_CLASSES,
+  pill: CANONICAL_VARIANT_CLASSES.floating,
+  compact: CANONICAL_VARIANT_CLASSES.inline,
+  badge: CANONICAL_VARIANT_CLASSES.chip,
+} as const satisfies Record<ExpandButtonVariant, string>;
+
+// Pill-shaped controls carry 14px glyphs; the chip and the in-row inline
+// indicator carry 12px ones, sized against their text-xs label.
+const CANONICAL_ICON_SIZES = {
   floating: 14,
-  inline: 13,
+  inline: 12,
   count: 14,
   chip: 12,
-  card: 13,
-  faint: 13,
-  pill: 14,
-  compact: 13,
-  badge: 12,
-} as const;
+  card: 14,
+  faint: 14,
+} as const satisfies Record<CanonicalExpandButtonVariant, number>;
+
+const ICON_SIZES = {
+  ...CANONICAL_ICON_SIZES,
+  pill: CANONICAL_ICON_SIZES.floating,
+  compact: CANONICAL_ICON_SIZES.inline,
+  badge: CANONICAL_ICON_SIZES.chip,
+} as const satisfies Record<ExpandButtonVariant, number>;
 
 export function ExpandIndicator({
   isExpanded,
   className,
   variant = "inline",
+  iconSize = ICON_SIZES[variant],
 }: {
   isExpanded: boolean;
   className?: string;
   variant?: Extract<ExpandButtonVariant, "floating" | "inline" | "card" | "pill" | "compact">;
+  /** Glyph size in px; defaults to the variant's size. */
+  iconSize?: number;
 }) {
-  const iconSize = ICON_SIZES[variant];
-
   return (
     <span
       aria-hidden="true"
@@ -86,7 +98,7 @@ export function ExpandIndicator({
         variant === "floating" || variant === "pill"
           ? "theme-control-pill rounded-full px-2.5 py-1"
           : undefined,
-        variant === "card" ? "theme-control-pill-quiet rounded-full px-2 py-1" : undefined,
+        variant === "card" ? "theme-control-pill-quiet rounded-full px-2.5 py-1" : undefined,
         className,
       )}
     >
@@ -94,7 +106,7 @@ export function ExpandIndicator({
       <Icon
         icon="lucide:chevron-down"
         size={iconSize}
-        className={cn("transition-transform duration-200 ease-out motion-reduce:transition-none", isExpanded && "rotate-180")}
+        className={cn("transition-transform duration-[var(--motion-base)] motion-reduce:transition-none", isExpanded && "rotate-180")}
       />
     </span>
   );
@@ -156,10 +168,10 @@ export function ExpandButton({
         <Icon
           icon="lucide:chevron-down"
           size={iconSize}
-          className={cn("transition-transform duration-200 ease-out motion-reduce:transition-none", isExpanded && "rotate-180")}
+          className={cn("transition-transform duration-[var(--motion-base)] motion-reduce:transition-none", isExpanded && "rotate-180")}
         />
       ) : (
-        <ExpandIndicator isExpanded={isExpanded} />
+        <ExpandIndicator isExpanded={isExpanded} iconSize={iconSize} />
       )}
     </button>
   );

@@ -29,7 +29,7 @@ export const externalSourcePillStory: StoryDef = {
     },
     {
       label: "With favicon",
-      note: "Pass faviconSrc to show a 20px source mark before the label.",
+      note: "Pass faviconSrc to show a 16px source mark before the label.",
       render: () => (
         <ExternalSourcePill
           label="Wikipedia"
@@ -120,7 +120,7 @@ export const externalSourcePillStory: StoryDef = {
     {
       name: "faviconSrc",
       type: "string",
-      description: "Optional 20px source mark rendered via AppImage before the label.",
+      description: "Optional 16px source mark rendered via AppImage before the label.",
     },
     {
       name: "faviconAlt",

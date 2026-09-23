@@ -156,12 +156,12 @@ export function ReferenceListItem({
       id={citation.anchorId}
       className={cn(
         "theme-navigation-target group grid max-w-full scroll-mt-20 grid-cols-[2rem_minmax(0,1fr)] gap-2.5",
-        "text-[0.8125rem] leading-[1.55] sm:text-[0.875rem]",
+        "text-[13px] leading-[1.55] sm:text-sm",
       )}
     >
       <span
         className={cn(
-          "inline-flex h-[1.35rem] min-w-[1.35rem] items-center justify-center justify-self-end rounded-[0.12rem] px-1 text-[0.72rem] font-semibold leading-none tabular-nums",
+          "inline-flex h-5 min-w-5 items-center justify-center justify-self-end rounded-chip px-1 text-[11px] font-semibold leading-none tabular-nums",
           "theme-reference-number",
           reveal && "theme-reveal-enter",
         )}

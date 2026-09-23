@@ -78,7 +78,7 @@ export function HighlightedText({
           <mark
             key={`${segment}-${index}`}
             className={cn(
-              "rounded-md bg-[var(--theme-search-highlight-bg)] px-1 py-0.5 text-[var(--theme-search-highlight-text)] shadow-[var(--theme-elevation-mark-hairline)]",
+              "rounded-chip bg-[var(--theme-search-highlight-bg)] px-1 py-0.5 text-[var(--theme-search-highlight-text)] shadow-[var(--theme-elevation-mark-hairline)]",
               markClassName,
             )}
           >

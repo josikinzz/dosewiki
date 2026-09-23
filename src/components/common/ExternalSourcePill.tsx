@@ -46,8 +46,8 @@ export function ExternalSourcePill({
         isCredit
           ? // Credit copy is a sentence: lay it out as wrapping inline text so
             // the attribution reads in flow instead of on its own row.
-            "block w-full max-w-full rounded-2xl px-3 py-2 leading-5 sm:w-auto"
-          : "flex items-center gap-2.5 rounded-full px-3 py-1.5 pr-4",
+            "block w-full max-w-full rounded-card px-3 py-2 leading-5 sm:w-auto"
+          : "flex h-7 items-center gap-1.5 rounded-full px-3",
         className,
       )}
       data-external-source-variant={variant}
@@ -65,9 +65,7 @@ export function ExternalSourcePill({
       <span
         className={cn(
           "theme-text-faint text-xs transition group-hover:opacity-90",
-          isCredit
-            ? "text-[0.73rem] font-medium [text-wrap:pretty] sm:text-xs"
-            : undefined,
+          isCredit && "font-medium [text-wrap:pretty]",
         )}
       >
         {prefix}
@@ -76,31 +74,22 @@ export function ExternalSourcePill({
         <AppImage
           src={faviconSrc}
           alt={faviconAlt}
-          width={20}
-          height={20}
+          width={16}
+          height={16}
           className={cn(
-            "h-5 w-5 rounded",
+            "h-4 w-4 shrink-0 rounded",
             isCredit && "mr-1 inline-block align-text-bottom",
           )}
         />
       ) : null}
-      <span
-        className={cn(
-          "min-w-0 text-xs font-semibold text-current transition",
-          isCredit
-            ? "text-[0.73rem] sm:text-xs"
-            : "-ml-1",
-        )}
-      >
+      <span className="min-w-0 text-xs font-semibold text-current transition">
         {label}
       </span>{" "}
       {suffix ? (
         <span
           className={cn(
             "theme-text-faint text-xs transition group-hover:opacity-90",
-            isCredit
-              ? "text-[0.73rem] font-medium sm:text-xs"
-              : "-ml-1",
+            isCredit && "font-medium",
           )}
         >
           {suffix}
@@ -111,7 +100,7 @@ export function ExternalSourcePill({
         size={12}
         className={cn(
           "theme-external-link-badge-icon shrink-0",
-          isCredit ? "mb-0.5 ml-1.5 inline-block align-middle" : "-ml-1",
+          isCredit && "mb-0.5 ml-1.5 inline-block align-middle",
         )}
       />
     </div>

@@ -52,6 +52,7 @@
     font-size: var(--type-size-lead);
     line-height: var(--type-leading-relaxed);
     letter-spacing: var(--type-tracking-body);
+    text-wrap: pretty;
   }
 
   /*
@@ -74,12 +75,14 @@
     font-size: var(--type-size-body);
     line-height: 1.68;
     letter-spacing: var(--type-tracking-body);
+    text-wrap: pretty;
   }
 
   .type-detail-copy {
     font-size: var(--type-size-sm);
     line-height: 1.62;
     letter-spacing: 0;
+    text-wrap: pretty;
   }
 
   .type-meta-label {
@@ -101,7 +104,7 @@
     font-size: var(--type-size-chip-label);
     font-weight: 600;
     line-height: 1.2;
-    letter-spacing: 0.16em;
+    letter-spacing: var(--type-tracking-label);
     text-transform: uppercase;
   }
 
@@ -139,13 +142,18 @@
     margin-top: 2rem;
   }
 
+  /* Alias. The data recipes (dose and plateau tier rows, pharmacology zebra
+     rows, LD50 heads, index counts) carry tabular figures themselves; this stays
+     for one-off numeric runs outside them. */
   .numeric-tabular {
     font-variant-numeric: tabular-nums;
   }
 
+  /* Alias of .theme-focus-ring (utilities-theme.css), kept for existing call
+     sites. New code uses .theme-focus-ring. */
   .focus-visible-ring:focus-visible {
     outline: 1px solid var(--theme-text-secondary);
-    outline-offset: 2px;
+    outline-offset: var(--theme-focus-offset);
   }
 
   .effect-vcode-card-body > :where(h1, h2, h3, h4, p, ul, ol, blockquote, pre, figure) {

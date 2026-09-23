@@ -80,7 +80,7 @@ export function IndexPanelGrid({ children, columns, gate = null, padded = true, 
       ) : null}
       <div
         ref={ref}
-        className={`${spacingClassName(padded)} grid justify-center grid-cols-[repeat(var(--index-panel-columns),minmax(0,var(--index-panel-column-width)))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-[minmax(0,var(--index-panel-column-width))] transition-opacity duration-200 ease-out`}
+        className={`${spacingClassName(padded)} grid justify-center grid-cols-[repeat(var(--index-panel-columns),minmax(0,var(--index-panel-column-width)))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-[minmax(0,var(--index-panel-column-width))] transition-opacity`}
         style={style}
         {...(gate !== null ? { [INDEX_PANEL_COLUMN_GATE_ATTRIBUTE]: gate } : null)}
       >

@@ -34,7 +34,7 @@ export function LoadingScreen() {
             {SITE_FLAVOR_CONFIG.name}
           </span>
           <span className="theme-text-muted text-sm">{SITE_FLAVOR_CONFIG.loadingScreen.statusLine}</span>
-          <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">
+          <span className="theme-text-faint type-meta-label">
             {SITE_FLAVOR_CONFIG.loadingScreen.captionLine}
           </span>
         </div>

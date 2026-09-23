@@ -20,8 +20,10 @@ export const SectionHeader = memo(function SectionHeader({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div className="relative shrink-0">
-        <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-[var(--theme-section-heading)] whitespace-nowrap sm:text-3xl">
-          <Icon icon={icon} className="h-8 w-8" />
+        {/* `type-section-title` is the recipe PublicSectionHeading's rule
+            variant uses too, so article and page section heads match. */}
+        <h2 className="type-section-title relative flex items-center gap-4 text-[var(--theme-section-heading)] whitespace-nowrap">
+          <Icon icon={icon} className="h-7 w-7 sm:h-8 sm:w-8" />
           {title}
         </h2>
       </div>

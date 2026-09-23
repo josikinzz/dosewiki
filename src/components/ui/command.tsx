@@ -24,8 +24,8 @@ Command.displayName = CommandPrimitive.displayName
 const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0 shadow-[var(--theme-elevation-lg)]">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+      <DialogContent className="overflow-hidden p-0">
+        <Command className="[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:min-h-11">
           {children}
         </Command>
       </DialogContent>
@@ -37,7 +37,7 @@ const CommandInput = React.forwardRef<
   React.ComponentRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="theme-divider flex items-center border-b px-3" cmdk-input-wrapper="">
+  <div className="theme-divider-border flex items-center border-b px-3" cmdk-input-wrapper="">
     <Icon icon="lucide:search" size={16} className="theme-text-faint mr-2 shrink-0" />
     <CommandPrimitive.Input
       ref={ref}
@@ -58,7 +58,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    className={cn("max-h-75 overflow-y-auto overflow-x-hidden", className)}
     {...props}
   />
 ))
@@ -85,7 +85,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "theme-text-primary overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-[var(--theme-text-faint)]",
+      "theme-text-primary overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[var(--type-tracking-label)] [&_[cmdk-group-heading]]:text-[var(--theme-text-faint)]",
       className
     )}
     {...props}
@@ -100,7 +100,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn("theme-gradient-divider -mx-1 h-px", className)}
+    className={cn("theme-gradient-divider -mx-1 my-1 h-px", className)}
     {...props}
   />
 ))
@@ -113,10 +113,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "theme-text-secondary relative flex cursor-pointer gap-2 select-none items-center rounded-control px-2 py-2 text-sm outline-none transition",
-      "hover:[background:var(--theme-frosted-control-on-panel-bg)]",
-      "data-[selected='true']:[background:var(--theme-frosted-control-on-panel-hover-bg)] data-[selected='true']:text-[var(--theme-text-primary)]",
-      "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+      "theme-menu-row relative flex cursor-pointer gap-2 select-none items-center px-2 py-1.5 text-sm outline-none",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className
     )}
@@ -133,7 +130,7 @@ const CommandShortcut = ({
   return (
     <span
       className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground",
+        "theme-text-faint ml-auto text-xs tracking-widest",
         className
       )}
       {...props}

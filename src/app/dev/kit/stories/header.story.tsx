@@ -34,7 +34,7 @@ function mockModel(activeId: string): RouteChromeModel {
     primaryNavItems: [
       navItem("substances", "Substances", "/substances", "substances", "substances", activeId === "substances"),
       navItem("effects", "Effects", "/effects", "effects", "effects", activeId === "effects"),
-      navItem("reports", "Trip reports", "/reports", "reports", "reports", activeId === "reports"),
+      navItem("reports", "Reports", "/reports", "reports", "reports", activeId === "reports"),
     ],
     secondaryNavItems: [
       { ...navItem("about", "About", "/about", "about", "about", activeId === "about"), mobileLabel: "About dose.wiki" },

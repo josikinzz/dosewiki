@@ -111,7 +111,7 @@
     position: absolute;
     inset: 8%;
     border: 1px solid color-mix(in oklch, var(--theme-accent-strong) 18%, transparent);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background:
       linear-gradient(color-mix(in oklch, var(--theme-text-primary) 6%, transparent) 1px, transparent 1px),
       linear-gradient(90deg, color-mix(in oklch, var(--theme-text-primary) 6%, transparent) 1px, transparent 1px);
@@ -390,7 +390,7 @@
     inset: 8vmin;
     z-index: -1;
     border: 1px solid oklch(84% 0.08 84 / 0.12);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background:
       radial-gradient(circle at 50% 50%, transparent 0 22%, oklch(78% 0.12 88 / 0.08) 22.2% 22.5%, transparent 23% 44%, oklch(74% 0.13 322 / 0.07) 44.2% 44.45%, transparent 45%),
       radial-gradient(circle at 50% 50%, oklch(68% 0.18 318 / 0.16), transparent 58%);
@@ -508,7 +508,7 @@
     position: absolute;
     inset: 7%;
     z-index: -1;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: radial-gradient(circle, oklch(70% 0.13 315 / 0.16), transparent 68%);
     content: "";
     pointer-events: none;

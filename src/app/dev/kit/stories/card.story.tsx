@@ -133,6 +133,6 @@ export const cardStory: StoryDef = {
   ],
   notes: [
     "Card is a thin wrapper over InteractiveSurface; the surface tokens (variant card, padding lg, radius xl) come from there.",
-    "CardTitle/CardDescription/CardHeader/CardFooter carry their own internal padding (p-6); compose them rather than re-padding the outer Card.",
+    "The outer Card owns the padding (p-6). CardHeader, CardContent and CardFooter only space themselves from each other, so compose them rather than re-padding either side.",
   ],
 };

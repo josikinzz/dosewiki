@@ -109,9 +109,11 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    `rounded-panel` (state and hero panels), `rounded-pill` (capsules). The
    roles are `--radius-*` tokens in `src/styles/base.css` with a value per
    visual style (`pro-theme.css` re-seats them), so Clinical squares every
-   card without touching a component. `src/components/ui/ownership.test.ts`
-   rejects a Tailwind radius size in the primitives tier; `rounded-full` and
-   `rounded-none` stay allowed.
+   card without touching a component. The roles nest in order in both
+   styles: chip <= control <= card <= panel (Vivid 4/5/6/12px, Clinical
+   3/4/4/6px), so an item never comes out rounder than its container.
+   `src/components/ui/ownership.test.ts` rejects a Tailwind radius size in
+   the primitives tier; `rounded-full` and `rounded-none` stay allowed.
 9. **Focus is quiet, not an accent frame.** Use `focusRingClassName` or
    `theme-focus-ring` for a 1px neutral keyboard-focus cue. Use
    `theme-field-focus` for text fields and selects, which emphasize their
@@ -119,6 +121,15 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    `ring-2`, or ring offsets for clicking, focusing, or loading states in any
    visual style or color variation. Preserve semantic validation borders and
    system high-contrast focus indicators.
+10. **One height ladder.** Controls that sit side by side share heights:
+   24 badge and metadata pill, 28 chip and name chip (`Button` `chip`/`xs`),
+   32 compact button, pill, quiet, toggle `sm`, and tab trigger, 36 menu
+   row, 40 `Button` default and `icon` and `Input`/`Select` `sm`, 44
+   `Button` `lg` and the default field, 48 the large field. Chips and pills
+   pin their height with `h-*`; a ring or a border never changes it.
+11. **Floating lists share one row.** `DropdownMenu`, `Select`, and
+   `Command` rows use `.theme-menu-row` (36px, `rounded-control`, an
+   instant highlight lift) and group headings use `.theme-menu-label`.
 
 ## Accent usage rules
 
@@ -246,7 +257,7 @@ Remove a row when its owning component absorbs the recipe. Do not add rows.
 
 ## Name Chip Policy
 
-Use `PublicNameChip` for compact badges that contain names of public entities or concepts: subjective effects, interaction substances or compound groups, classifications, index categories, source-page names, contributor names, and effect catalog links. It owns the subjective-effect badge treatment: `rounded-lg`, quiet translucent fill in dark mode, paper-white fill in light mode, `ring-1`, normal-case medium text, and the same hover/focus behavior across article and effects surfaces. Source-attribution pills such as TripSit and PROtestkit should use `theme-external-source-pill`, which draws from the same name-chip surface tokens while preserving its prefix/favicon layout.
+Use `PublicNameChip` for compact badges that contain names of public entities or concepts: subjective effects, interaction substances or compound groups, classifications, index categories, source-page names, contributor names, and effect catalog links. It owns the subjective-effect badge treatment: `rounded-chip` at 28px, quiet translucent fill in dark mode, paper-white fill in light mode, `ring-1`, normal-case medium text, and the same hover/focus behavior across article and effects surfaces. Source-attribution pills such as TripSit and PROtestkit should use `theme-external-source-pill`, which draws from the same name-chip surface tokens while preserving its prefix/favicon layout.
 
 `PublicNameChip` may render as a link, button, or span. When the chip itself expands content, render it as a button and place `ExpandIndicator` inside the chip. When a linked name has a separate expansion affordance, keep the linked text and use `ExpandButton` variant `inline` inside the same chip; do not add a nested control capsule.
 

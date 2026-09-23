@@ -36,19 +36,6 @@
   color: var(--theme-text-primary);
 }
 
-.theme-card-surface {
-  background-color: var(--theme-surface-soft);
-  border-color: var(--theme-border-subtle);
-  color: var(--theme-text-primary);
-}
-
-.theme-route-tabs-list {
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
-  --tw-ring-color: transparent;
-}
-
 :is(.theme-route-tabs-list, .theme-dosage-mode-tabs) {
   border-color: transparent !important;
   background: transparent !important;
@@ -63,11 +50,58 @@
   --tw-ring-color: var(--theme-dosage-mode-tabs-tw-ring-color) !important;
 }
 
-.theme-overlay-surface {
-  background-color: var(--theme-surface-strong);
-  border-color: var(--theme-border-subtle);
+/* The frosted compact-control fill for Button and Badge variants that sit on
+   the canvas, with its hover lift as a separate opt-in. */
+.theme-frosted-control {
+  background: var(--theme-frosted-control-bg);
+}
+@media (hover: hover) {
+  .theme-frosted-control-hover:hover {
+    border-color: var(--theme-frosted-control-hover-border);
+    background: var(--theme-frosted-control-hover-bg);
+  }
+}
+
+/* Recessed field shadow, shared by Input, Textarea and the Select trigger. */
+.theme-field-inset {
+  box-shadow: var(--theme-elevation-field-inset);
+}
+
+/* Modal scrim behind Dialog and CommandDialog: dims the page, never hides it. */
+.theme-scrim {
+  background-color: var(--theme-scrim);
+}
+
+/* One row recipe for every floating list: DropdownMenu items, Select items and
+   Command items share a height, a corner, and an instant highlight (a fading
+   highlight lags arrow-key travel). The highlight is a lift over the overlay
+   panel in every appearance, never a darker well. */
+.theme-menu-row {
+  min-height: 2.25rem;
+  border-radius: var(--radius-control);
+  color: var(--theme-text-secondary);
+  transition: none;
+}
+.theme-menu-row[data-highlighted],
+.theme-menu-row[data-selected="true"],
+.theme-menu-row[data-state="open"] {
+  background-color: var(--theme-menu-item-highlight-bg);
   color: var(--theme-text-primary);
-  box-shadow: 0 18px 40px -18px var(--theme-shadow-strong);
+}
+/* cmdk writes data-disabled="false" on enabled items; Radix omits it. */
+.theme-menu-row[data-disabled]:not([data-disabled="false"]) {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Group heading inside a floating list. */
+.theme-menu-label {
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  letter-spacing: var(--type-tracking-label);
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--theme-text-faint);
 }
 
 /* The appearance popover's stem. Filled with the same surface variable as the
@@ -77,41 +111,30 @@
   fill: var(--theme-surface-strong);
 }
 
-.theme-public-card {
-  border-color: var(--theme-card-border);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--theme-surface-muted) 34%, var(--theme-body-bg)),
-    color-mix(in srgb, var(--theme-surface-soft) 88%, var(--theme-body-bg))
-  );
-  color: var(--theme-text-primary);
-  box-shadow: 0 18px 42px -26px var(--theme-shadow-strong);
-}
-
 .theme-public-card-interactive {
   transition:
-    background-color 260ms cubic-bezier(0.25, 1, 0.5, 1),
-    border-color 260ms cubic-bezier(0.25, 1, 0.5, 1),
-    box-shadow 260ms cubic-bezier(0.25, 1, 0.5, 1),
-    transform 260ms cubic-bezier(0.25, 1, 0.5, 1),
-    scale 160ms ease,
-    color 260ms cubic-bezier(0.25, 1, 0.5, 1);
+    background-color var(--motion-base) var(--ease-out),
+    border-color var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out),
+    scale var(--motion-press) var(--ease-out),
+    color var(--motion-base) var(--ease-out);
 }
 
+/* No will-change: the forwards fill would hold the compositing layer for the
+   life of the page after a one-shot entrance. */
 .theme-section-card-enter {
   opacity: 0;
   transform: translate3d(0, 12px, 0);
-  animation: theme-section-card-enter 420ms cubic-bezier(0.22, 1, 0.36, 1)
-    forwards;
+  animation: theme-section-card-enter var(--motion-slow) var(--ease-out) forwards;
   animation-delay: var(--theme-section-card-delay, 0s);
-  will-change: opacity, transform;
 }
 
 /* A shorter version of the shared entrance for newly selected tab content.
    No forwards fill or will-change: release the compositing layer on completion. */
 .theme-tab-panel-enter {
   --theme-section-card-distance: 4px;
-  animation: theme-section-card-enter 240ms cubic-bezier(0.25, 1, 0.5, 1);
+  animation: theme-section-card-enter var(--motion-base) var(--ease-out);
 }
 
 /* Public interaction entrances share the section motion without retaining a
@@ -119,7 +142,7 @@
 .theme-reveal-enter,
 .theme-overlay-enter {
   --theme-section-card-distance: 2px;
-  animation: theme-section-card-enter 180ms cubic-bezier(0.25, 1, 0.5, 1);
+  animation: theme-section-card-enter var(--motion-fast) var(--ease-out);
 }
 
 .theme-overlay-enter {
@@ -127,12 +150,12 @@
 }
 
 .theme-feedback-enter {
-  animation: theme-feedback-enter 160ms ease-out;
+  animation: theme-feedback-enter var(--motion-fast) var(--ease-out);
 }
 
 .theme-navigation-target:target,
 .theme-navigation-target[data-navigation-highlight="true"] {
-  animation: theme-navigation-emphasis 700ms ease-out;
+  animation: theme-navigation-emphasis 700ms var(--ease-out);
 }
 
 @keyframes theme-feedback-enter {
@@ -164,7 +187,6 @@
     opacity: 1;
     transform: none;
     animation: none;
-    will-change: auto;
   }
 }
 
@@ -177,7 +199,7 @@
 a[data-nav-pending="true"] {
   cursor: progress;
   opacity: 0.65;
-  transition: opacity 200ms ease-out;
+  transition: opacity var(--motion-fast) var(--ease-out);
 }
 
 /* Index list links (IndexCard.tsx: Substance Index and Subjective Effect
@@ -264,7 +286,7 @@ a[data-nav-pending="true"] {
    header) recedes while a navigation is pending so the progress bar and the
    clicked link are the only things moving. */
 .theme-beta-disclaimer-shell {
-  transition: opacity 200ms ease-out;
+  transition: opacity var(--motion-fast) var(--ease-out);
 }
 
 html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
@@ -290,7 +312,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-nav-progress[data-phase="done"] {
-  animation: theme-nav-progress-finish 350ms ease-out forwards;
+  animation: theme-nav-progress-finish var(--motion-base) var(--ease-out) forwards;
 }
 
 @keyframes theme-nav-progress-advance {
@@ -332,19 +354,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     animation: none;
     transform: scaleX(1);
     opacity: 0;
-    transition: opacity 250ms ease-out;
-  }
-}
-
-@media (hover: hover) {
-  .theme-public-card-interactive:hover {
-    border-color: var(--theme-card-border-strong);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--theme-surface-strong) 56%, var(--theme-body-bg)),
-      color-mix(in srgb, var(--theme-surface-soft) 92%, var(--theme-body-bg))
-    );
-    box-shadow: 0 26px 54px -28px var(--theme-shadow-strong);
+    transition: opacity var(--motion-fast) var(--ease-out);
   }
 }
 
@@ -374,109 +384,23 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-semantic-danger-badge-text);
 }
 
-.theme-badge-surface {
-  border-color: color-mix(
-    in srgb,
-    var(--theme-accent) 26%,
-    var(--theme-border-subtle)
-  );
-  background-color: color-mix(
-    in srgb,
-    var(--theme-accent) 12%,
-    var(--theme-surface-muted)
-  );
-  color: var(--theme-accent-strong);
-  --tw-ring-color: color-mix(in srgb, var(--theme-accent) 22%, transparent);
-}
-
-.theme-name-chip {
-  background-color: var(--theme-name-chip-bg);
-  color: var(--theme-name-chip-text);
-  --tw-ring-color: var(--theme-name-chip-ring);
-}
-
-.theme-name-chip-interactive:focus-visible {
-  background-color: var(--theme-name-chip-bg-hover);
-  color: var(--theme-name-chip-text-hover);
-  --tw-ring-color: var(--theme-name-chip-ring-hover);
-}
-@media (hover: hover) {
-  .theme-name-chip-interactive:hover {
-    background-color: var(--theme-name-chip-bg-hover);
-    color: var(--theme-name-chip-text-hover);
-    --tw-ring-color: var(--theme-name-chip-ring-hover);
-  }
-}
-
+/* Surface, ink and ring for these pills come from the frosted control groups
+   further down; only the box, the timing and the focus ring live here. */
 .theme-control-pill,
 .theme-control-pill-quiet {
-  border: 1px solid var(--theme-border-subtle);
-  color: var(--theme-text-secondary);
+  border-width: 1px;
+  border-style: solid;
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease;
-  --tw-ring-color: var(--theme-ring-soft);
-}
-
-.theme-control-pill {
-  background-color: var(--theme-control-pill-background-color);
-  box-shadow: 0 10px 24px -22px var(--theme-shadow-soft);
-}
-
-.theme-control-pill-quiet {
-  background-color: transparent;
-}
-
-.theme-control-pill:focus-visible,
-.theme-control-pill[data-active="true"] {
-  border-color: color-mix(
-    in srgb,
-    var(--theme-accent) 28%,
-    var(--theme-border-strong)
-  );
-  background-color: var(--theme-control-pill-focus-visible-background-color);
-  color: var(--theme-text-primary);
-}
-@media (hover: hover) {
-  .theme-control-pill:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--theme-accent) 28%,
-      var(--theme-border-strong)
-    );
-    background-color: var(--theme-control-pill-hover-background-color);
-    color: var(--theme-text-primary);
-  }
-}
-
-.theme-control-pill-quiet:focus-visible,
-.theme-control-pill-quiet[data-active="true"] {
-  border-color: color-mix(
-    in srgb,
-    var(--theme-accent) 22%,
-    var(--theme-border-strong)
-  );
-  background-color: var(--theme-control-pill-quiet-focus-visible-background-color);
-  color: var(--theme-text-primary);
-}
-@media (hover: hover) {
-  .theme-control-pill-quiet:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--theme-accent) 22%,
-      var(--theme-border-strong)
-    );
-    background-color: var(--theme-control-pill-quiet-hover-background-color);
-    color: var(--theme-text-primary);
-  }
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
 }
 
 .theme-control-pill:focus-visible,
 .theme-control-pill-quiet:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 /* The hue and saturation sliders in the appearance panel — one recipe for
@@ -534,7 +458,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   );
   width: 2px;
   margin-left: -1px;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--theme-text-primary) 60%, transparent);
   pointer-events: none;
 }
@@ -558,7 +482,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-chroma-slider:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 .theme-chroma-slider::-webkit-slider-thumb {
@@ -569,7 +493,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-radius: 9999px;
   background: var(--theme-text-primary);
   border: 3px solid var(--theme-panel-base);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  box-shadow: 0 1px 4px var(--theme-shadow-soft);
 }
 
 .theme-chroma-slider::-moz-range-thumb {
@@ -578,7 +502,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-radius: 9999px;
   background: var(--theme-text-primary);
   border: 3px solid var(--theme-panel-base);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+  box-shadow: 0 1px 4px var(--theme-shadow-soft);
 }
 
 @media (pointer: coarse) {
@@ -593,12 +517,12 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
   .theme-chroma-slider::-webkit-slider-thumb {
     border-width: 4px;
-    box-shadow: 0 2px 7px rgb(0 0 0 / 0.4);
+    box-shadow: 0 2px 7px var(--theme-shadow-soft);
   }
 
   .theme-chroma-slider::-moz-range-thumb {
     border-width: 4px;
-    box-shadow: 0 2px 7px rgb(0 0 0 / 0.4);
+    box-shadow: 0 2px 7px var(--theme-shadow-soft);
   }
 }
 
@@ -616,10 +540,10 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-secondary);
   box-shadow: none;
   transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    color 160ms ease;
+    background var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
   --tw-ring-color: var(--theme-ring-soft);
 }
 
@@ -641,7 +565,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-control-pill-faint:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 /* The floating control bar's own material. `--theme-frosted-control-bg` holds
@@ -684,10 +608,10 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   );
   text-underline-offset: 0.18em;
   transition:
-    color 160ms ease,
-    text-decoration-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+    color var(--motion-fast) var(--ease-out),
+    text-decoration-color var(--motion-fast) var(--ease-out),
+    background-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
 }
 
 @media (hover: hover) {
@@ -704,9 +628,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-citation-marker:focus-visible {
-  border-radius: 0.12rem;
+  border-radius: var(--radius-chip);
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 /* Citation-needed marker: free-floating superscript-register annotation.
@@ -726,16 +650,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   content: "]";
 }
 
-.theme-public-card-subtle {
-  border-color: var(--theme-border-subtle);
-  background-color: color-mix(
-    in srgb,
-    var(--theme-surface-muted) 78%,
-    var(--theme-body-bg)
-  );
-  color: var(--theme-text-secondary);
-}
-
 .theme-chemistry-identifier-code {
   border-color: transparent !important;
   background: var(--theme-frosted-control-on-panel-bg) !important;
@@ -746,25 +660,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-public-card-hover-quiet {
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
-    box-shadow 180ms ease;
-}
-
-@media (hover: hover) {
-  .theme-public-card-hover-quiet:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--theme-card-border) 42%,
-      var(--theme-border-strong)
-    );
-    background-color: color-mix(
-      in srgb,
-      var(--theme-surface-muted) 72%,
-      var(--theme-body-bg)
-    );
-    box-shadow: 0 14px 30px -24px var(--theme-shadow-soft);
-  }
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
 }
 
 .theme-home-ambient {
@@ -805,7 +703,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
      carries the credit and the words "Supported by" only introduce it. */
 .theme-site-supporter {
   color: var(--theme-text-faint);
-  transition: color 200ms ease;
+  transition: color var(--motion-fast) var(--ease-out);
 }
 
 .theme-site-supporter:hover,
@@ -833,7 +731,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   display: block;
   flex-shrink: 0;
   background-color: var(--theme-text-muted);
-  transition: background-color 200ms ease;
+  transition: background-color var(--motion-fast) var(--ease-out);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -918,7 +816,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-home-nav-icon-search-border-color);
   background: var(--theme-home-nav-icon-search-background);
   box-shadow: var(--theme-home-nav-icon-search-box-shadow);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(var(--frost-blur));
+  backdrop-filter: blur(var(--frost-blur));
 }
 
 .theme-home-shell[data-search-mode="true"] .theme-home-nav-svg {
@@ -1173,8 +1072,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
   animation:
-    theme-home-logo-arrive 680ms cubic-bezier(0.16, 1, 0.3, 1) both,
-    theme-home-logo-breathe 7.5s ease-in-out 900ms infinite;
+    theme-home-logo-arrive var(--motion-slow) var(--ease-out) both,
+    theme-home-logo-breathe 7.5s var(--ease-loop) 900ms infinite;
   will-change: transform;
 }
 
@@ -1182,9 +1081,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
   transition:
-    filter 340ms cubic-bezier(0.25, 1, 0.5, 1),
-    transform 340ms cubic-bezier(0.25, 1, 0.5, 1);
-  will-change: transform, filter;
+    filter var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
 }
 
 @media (hover: hover) {
@@ -1204,7 +1102,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   .theme-home-logo-main {
     transition-duration: 0.01ms;
     transform: none;
-    will-change: auto;
   }
 
   @media (hover: hover) {
@@ -1226,7 +1123,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-secondary);
   --tw-ring-color: var(--theme-accent-strong);
   --tw-ring-offset-color: var(--theme-body-bg);
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-timing-function: var(--ease-out);
 }
 
 .theme-home-nav-link:focus-visible {
@@ -1245,15 +1142,16 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: transparent;
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
-  transition-duration: 300ms;
-  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-out);
   will-change: transform;
 }
 
-/* Press matches the index tile's `group-active:scale-[0.96]`. */
+/* A short press on the homepage icon alone; index tiles press the whole tile
+   (`active:scale-[0.98]`) instead. */
 .theme-home-nav-link:active .theme-home-nav-icon {
   transform: translate3d(0, 0, 0) scale(0.96);
-  transition-duration: 140ms;
+  transition-duration: var(--motion-press);
 }
 
 .theme-home-mock-button {
@@ -1263,7 +1161,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 .theme-home-mock-button[data-clicked="true"] .theme-home-nav-icon,
 .theme-home-mock-button[data-clicked="true"].theme-header-nav-link,
 .theme-home-mock-button[data-clicked="true"].theme-mobile-nav-link {
-  animation: theme-home-mock-nudge 520ms cubic-bezier(0.2, 1, 0.3, 1) both;
+  animation: theme-home-mock-nudge 520ms var(--ease-out) both;
 }
 
 .theme-home-mock-button[data-clicked="true"] .theme-home-soon-badge {
@@ -1280,7 +1178,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     var(--theme-body-bg)
   );
   box-shadow: 0 12px 22px -18px var(--theme-shadow-strong);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(var(--frost-blur));
+  backdrop-filter: blur(var(--frost-blur));
   white-space: nowrap;
 }
 
@@ -1315,8 +1214,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 .theme-home-nav-svg {
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
-  transition-duration: 300ms;
-  transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1357,12 +1256,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
 }
 
-.theme-global-search-input::placeholder {
-  color: var(--theme-text-faint);
-  font-style: italic;
-  opacity: 0.68;
-}
-
 @media (hover: hover) {
   .theme-global-search-input:hover {
     border-color: color-mix(
@@ -1394,13 +1287,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 /* The light search halo rings pull from the --c-plum-pink seed (exactly the
      old rgba(159, 33, 128) literal) so palette presets reach them; the
      desaturated rgba(84, 46, 112) drop shadow is neutral depth, not accent,
-     and stays literal like the other light-mode plum shadows. */
-
-.theme-home-search-input::placeholder {
-  color: var(--theme-text-faint);
-  font-style: italic;
-  opacity: 0.68;
-}
+     and stays literal like the other light-mode plum shadows. Placeholder ink
+     and opacity come from the global ::placeholder rule in base.css. */
 
 @media (hover: hover) {
   .theme-home-search-input:hover {
@@ -1421,10 +1309,10 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   background: transparent;
   box-shadow: none;
   transition:
-    background-color 200ms ease,
-    box-shadow 200ms ease,
-    color 200ms ease,
-    transform 200ms ease;
+    background-color var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    color var(--motion-base) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
 }
 
 .theme-home-search-button {
@@ -1469,12 +1357,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-search-result-divider {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--theme-divider) 72%, transparent),
-    transparent
-  );
+  background-image: var(--theme-horizontal-divider-image);
 }
 
 .theme-search-suggestion {
@@ -1571,7 +1454,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 @media (prefers-reduced-motion: no-preference) {
   .theme-searching-dots > span {
-    animation: theme-searching-dots 1.4s ease-in-out infinite;
+    animation: theme-searching-dots 1.4s var(--ease-loop) infinite;
   }
 
   .theme-searching-dots > span:nth-child(2) {
@@ -1658,13 +1541,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-reference-link:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 4px;
-}
-
-.theme-article-subsection-card {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: var(--theme-frosted-panel-shadow);
+  outline-offset: var(--theme-focus-offset);
 }
 
 /*
@@ -1690,29 +1567,12 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   background: transparent;
 }
 
-.theme-article-subsection-card-nested {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: var(--theme-frosted-panel-shadow);
-}
-
 .theme-article-subsection-card-interactive {
-  border-color: var(--theme-frosted-panel-border);
-  background: var(--theme-frosted-panel-bg);
-  box-shadow: var(--theme-frosted-panel-shadow);
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease;
-}
-
-@media (hover: hover) {
-  .theme-article-subsection-card-interactive:hover {
-    border-color: var(--theme-frosted-panel-hover-border);
-    background: var(--theme-frosted-panel-hover-bg);
-    box-shadow: var(--theme-frosted-panel-hover-shadow);
-  }
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
 }
 
 .theme-subjective-stub-panel {
@@ -1737,8 +1597,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
         var(--theme-semantic-caution-badge-glow) 72%,
         transparent
       );
-  -webkit-backdrop-filter: blur(14px) saturate(1.06);
-  backdrop-filter: blur(14px) saturate(1.06);
+  -webkit-backdrop-filter: blur(var(--frost-blur)) saturate(1.06);
+  backdrop-filter: blur(var(--frost-blur)) saturate(1.06);
 }
 
 .theme-subjective-stub-panel::before {
@@ -1777,21 +1637,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   font-kerning: normal;
 }
 
-.theme-external-source-pill {
-  background-color: var(--theme-name-chip-bg);
-  color: var(--theme-name-chip-text);
-  --tw-ring-color: var(--theme-name-chip-ring);
-}
-
 @media (hover: hover) {
   .theme-external-source-pill .theme-text-faint {
-  color: var(--theme-external-source-pill-faint-color);
-}
-
-.theme-external-source-pill:hover {
-    background-color: var(--theme-name-chip-bg-hover);
-    color: var(--theme-name-chip-text-hover);
-    --tw-ring-color: var(--theme-name-chip-ring-hover);
+    color: var(--theme-external-source-pill-faint-color);
   }
 }
 
@@ -1868,20 +1716,17 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   gap: 0.875rem;
   min-height: 9.5rem;
   overflow: hidden;
-  border: 1px solid
-    color-mix(in srgb, var(--theme-border-subtle) 54%, transparent);
-  border-radius: 1.25rem;
+  border: 1px solid var(--theme-frosted-panel-border);
+  border-radius: var(--radius-card);
   background:
     radial-gradient(
-      circle at 16% 12%,
+      circle at 12% 0%,
       color-mix(in srgb, var(--theme-accent) 8%, transparent),
       transparent 38%
     ),
     color-mix(in srgb, var(--theme-surface-muted) 34%, var(--theme-body-bg));
   padding: clamp(1rem, 2vw, 1.375rem);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--theme-text-primary) 5%, transparent),
-    0 18px 54px color-mix(in srgb, black 14%, transparent);
+  box-shadow: var(--theme-frosted-panel-shadow);
   opacity: 0.72;
 }
 
@@ -1897,7 +1742,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-loading-stalled-label {
   opacity: 0;
-  animation: theme-loading-stalled-label 900ms ease 4s forwards;
+  animation: theme-loading-stalled-label 900ms var(--ease-out) 4s forwards;
 }
 
 @keyframes theme-loading-stalled-label {
@@ -1914,7 +1759,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-loading-logo {
-  animation: theme-loading-logo-breathe 2.4s ease-in-out infinite;
+  animation: theme-loading-logo-breathe 2.4s var(--ease-loop) infinite;
 }
 
 @keyframes theme-loading-logo-breathe {
@@ -1938,7 +1783,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     var(--theme-accent),
     var(--theme-accent-strong)
   );
-  animation: theme-loading-bar 1.4s ease-in-out infinite;
+  animation: theme-loading-bar 1.4s var(--ease-loop) infinite;
 }
 
 /* The bar is half the track wide, so -100% parks it just off the left edge
@@ -2005,6 +1850,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-frosted-panel-border);
   background: var(--theme-chrome-rail-bg);
   box-shadow: var(--theme-header-shadow);
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
@@ -2012,12 +1858,13 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-frosted-panel-border);
   background: var(--theme-chrome-rail-bg);
   box-shadow: var(--theme-header-shadow);
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
 .theme-header-nav-link {
   color: var(--theme-text-muted);
-  transition: color 180ms ease;
+  transition: color var(--motion-fast) var(--ease-out);
 }
 
 @media (hover: hover) {
@@ -2051,8 +1898,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-faint);
   opacity: 0.9;
   transition:
-    color 180ms ease,
-    opacity 180ms ease;
+    color var(--motion-fast) var(--ease-out),
+    opacity var(--motion-fast) var(--ease-out);
 }
 
 .theme-header-nav-link:focus-visible .theme-header-nav-icon {
@@ -2076,7 +1923,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   background: transparent;
   color: var(--theme-text-muted);
   box-shadow: none;
-  transition: color 180ms ease;
+  transition: color var(--motion-fast) var(--ease-out);
 }
 
 .theme-header-icon-button:focus-visible {
@@ -2285,18 +2132,13 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     inset 0 -10px 18px -14px
       color-mix(in srgb, var(--theme-accent-strong) 45%, transparent);
   transition:
-    transform 240ms cubic-bezier(0.25, 1, 0.5, 1),
-    box-shadow 240ms cubic-bezier(0.25, 1, 0.5, 1),
-    filter 240ms cubic-bezier(0.25, 1, 0.5, 1);
+    transform var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    filter var(--motion-base) var(--ease-out);
 }
 
-.theme-cta-accent:focus-visible {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-  box-shadow:
-    0 16px 32px -14px color-mix(in srgb, var(--theme-accent) 72%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
-}
+/* Keyboard focus is the shared ring alone (theme-focus-ring at the call site):
+   a focused button that also lifts and brightens reads as hovered. */
 @media (hover: hover) {
   .theme-cta-accent:hover {
     transform: translateY(-1px);
@@ -2338,10 +2180,10 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 .theme-index-row-link,
 .theme-report-index-link {
   transition:
-    background-color 200ms ease,
-    box-shadow 200ms ease,
-    scale 160ms ease,
-    color 200ms ease;
+    background-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    scale var(--motion-press) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
 }
 
 /* Hover lifts the row into the shared frosted-control material (radial
@@ -2352,7 +2194,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   background: var(--theme-frosted-control-hover-bg);
   box-shadow: var(--theme-frosted-control-hover-shadow);
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 2px;
+  outline-offset: var(--theme-focus-offset);
 }
 @media (hover: hover) {
   .theme-index-row-link:hover,
@@ -2371,9 +2213,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 .theme-progressive-stage,
 .theme-progressive-stage-trigger {
   transition:
-    background-color 200ms ease,
-    box-shadow 200ms ease,
-    color 200ms ease;
+    background-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
 }
 
 .theme-progressive-stage + .theme-progressive-stage::before {
@@ -2382,7 +2224,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   height: 1px;
   margin: 0.3rem 0.75rem;
   background-image: var(--theme-horizontal-divider-image);
-  transition: opacity 200ms ease;
+  transition: opacity var(--motion-fast) var(--ease-out);
 }
 
 .theme-progressive-stage[data-expanded]::before,
@@ -2528,7 +2370,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   display: grid;
   place-items: center;
   transform: translate(0, -50%);
-  animation: theme-media-hint-sweep 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: theme-media-hint-sweep 2.4s var(--ease-loop) infinite;
 }
 
 @keyframes theme-media-hint-sweep {
@@ -2563,8 +2405,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   display: grid;
   place-items: center;
   transform: translate(-50%, 0);
-  animation: theme-media-hint-sweep-y 2.4s cubic-bezier(0.45, 0, 0.55, 1)
-    infinite;
+  animation: theme-media-hint-sweep-y 2.4s var(--ease-loop) infinite;
 }
 
 @keyframes theme-media-hint-sweep-y {
@@ -2634,7 +2475,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-media-tile:focus-visible {
-  outline-color: var(--theme-text-secondary);
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: var(--theme-focus-offset);
 }
 
 /* The speech-bubble tail on .theme-aside-panel: a rotated square sharing the
@@ -2742,6 +2584,12 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-divider);
 }
 
+/* Border colour only, for an element that carries its own fill (the Command
+   search row). .theme-divider also paints the background. */
+.theme-divider-border {
+  border-color: var(--theme-divider);
+}
+
 .theme-gradient-divider,
 .theme-horizontal-divider {
   background-image: var(--theme-horizontal-divider-image);
@@ -2810,7 +2658,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     color-mix(in srgb, var(--theme-accent) 9%, transparent),
     transparent
   );
-  box-shadow: 0 0 14px color-mix(in srgb, var(--theme-accent) 7%, transparent);
 }
 
 .theme-section-group-divider:first-child {
@@ -2838,7 +2685,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-link-muted:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
   border-radius: 9999px;
 }
 
@@ -2879,47 +2726,24 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-report-author-link:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
   border-radius: 9999px;
 }
 
-.theme-icon-button {
-  color: var(--theme-text-muted);
-}
-
-@media (hover: hover) {
-  .theme-icon-button:hover {
-    background-color: var(--theme-surface-muted);
-    color: var(--theme-text-primary);
-  }
-}
-
+/* Surfaces and ink come from the frosted control groups further down. */
 .theme-icon-button:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 .theme-toggle-pill {
-  border: 1px solid var(--theme-border-subtle);
-  background-color: transparent;
-  color: var(--theme-text-muted);
-}
-
-@media (hover: hover) {
-  .theme-toggle-pill:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--theme-accent) 20%,
-      var(--theme-border-subtle)
-    );
-    background-color: var(--theme-surface-muted);
-    color: var(--theme-text-primary);
-  }
+  border-width: 1px;
+  border-style: solid;
 }
 
 .theme-toggle-pill:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 3px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 .theme-toggle-icon-muted {
@@ -3062,9 +2886,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 .theme-interaction-caution {
   border: 1px solid transparent;
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
 }
 
 .theme-interaction-danger {
@@ -3125,13 +2949,13 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,)
     var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,)
     var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
-  transition: filter 180ms ease;
+  transition: filter var(--motion-fast) var(--ease-out);
 }
 
 /* The structure is visible by default. A completed image load gets one quiet
    fade-in, with no reserved-space shift or hidden content if JS is late. */
 .theme-hero-molecule-arrive {
-  animation: hero-molecule-arrive 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-molecule-arrive var(--motion-base) var(--ease-out) both;
 }
 
 @keyframes hero-molecule-arrive {
@@ -3162,15 +2986,16 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 .theme-accent-icon-scope .iconify,
 .theme-accent-icon-scope svg {
   filter: var(--theme-accent-icon-filter);
-  transition: filter 180ms ease;
+  transition: filter var(--motion-fast) var(--ease-out);
 }
 
+/* Material comes from the grouped frosted rule below. */
 .theme-inline-expanded-card {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: color-mix(in srgb, rgb(10 8 18) 34%, var(--theme-body-bg));
+  border-width: 1px;
+  border-style: solid;
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease;
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out);
 }
 
 /* Zebra rows in the pharmacology tables (receptor binding, metabolites) are
@@ -3180,6 +3005,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
      a 36%-white rectangle around every other row — an on-chrome control rim
      borrowed onto an inert data row, and the loudest edge in the section. */
 .theme-pharmacology-table-row-alt {
+  font-variant-numeric: tabular-nums;
   background: var(--theme-field-on-panel-surface-alt);
   box-shadow:
     inset 0 2px 3px
@@ -3222,15 +3048,15 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 
 .theme-status-badge,
 .theme-external-link-badge-icon {
-  transition: color 180ms ease;
+  transition: color var(--motion-fast) var(--ease-out);
 }
 
 .theme-external-link-badge-icon {
   color: var(--theme-external-link-badge-icon-color);
   opacity: var(--theme-external-link-badge-icon-opacity);
   transition:
-    color 180ms ease,
-    opacity 180ms ease;
+    color var(--motion-fast) var(--ease-out),
+    opacity var(--motion-fast) var(--ease-out);
 }
 
 @media (hover: hover) {
@@ -3246,7 +3072,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
     --theme-status-badge-shadow,
     var(--theme-frosted-control-on-panel-shadow)
   );
-  backdrop-filter: blur(8px) saturate(1.02);
+  -webkit-backdrop-filter: blur(var(--frost-blur));
+  backdrop-filter: blur(var(--frost-blur));
 }
 
 .theme-status-badge[data-badge-tone="red"],
@@ -3338,6 +3165,20 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 
 .theme-public-card-subtle {
   color: var(--theme-public-card-subtle-color);
+}
+
+/* Floating overlays (menus, selects, popovers, dialogs, the command palette)
+   cast one shadow, --theme-elevation-overlay. A surface repainted inside
+   another overlay (a sticky footer row, the command list inside its dialog)
+   and the feedback icon well are material, not a new floating layer, so they
+   keep the panel shadow. */
+.theme-overlay-surface {
+  box-shadow: var(--theme-elevation-overlay);
+}
+
+.theme-overlay-surface .theme-overlay-surface,
+.theme-overlay-surface.theme-feedback-icon-well {
+  box-shadow: var(--theme-frosted-panel-shadow);
 }
 
 .theme-article-toc-panel,
@@ -3570,7 +3411,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 
 .theme-selected-control:focus-visible {
   color: var(--theme-text-primary);
-  outline-color: var(--theme-text-secondary);
+  outline: 1px solid var(--theme-text-secondary);
+  outline-offset: var(--theme-focus-offset);
 }
 @media (hover: hover) {
   .theme-selected-control:hover {
@@ -3635,8 +3477,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
     opacity: 0;
     transform: scale(0.55);
     transition:
-      transform 240ms cubic-bezier(0.25, 1, 0.5, 1),
-      opacity 160ms ease-out;
+      transform var(--motion-base) var(--ease-out),
+      opacity var(--motion-fast) var(--ease-out);
   }
 
   .theme-route-tabs-list .theme-selected-control[data-state="active"] .theme-selected-control-icon::before {
@@ -3681,7 +3523,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 
 .theme-index-mobile-tab:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 4px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 @media (hover: hover) {
@@ -3698,7 +3540,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 .theme-home-nav-icon {
   background:
     radial-gradient(
-      circle at 30% 12%,
+      circle at 12% 0%,
       color-mix(in srgb, var(--theme-text-primary) 8%, transparent),
       transparent 38%
     ),
@@ -3775,10 +3617,12 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 
 .theme-dose-tier-row {
   background: var(--theme-dosage-row-background);
+  font-variant-numeric: tabular-nums;
 }
 
 .theme-plateau-tier-row {
   background: var(--theme-plateau-row-background);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Dose tier tints: dark-theme values for the tier scale; the light theme
@@ -3943,6 +3787,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 
 .theme-ld50-table-head {
   background: var(--theme-ld50-table-head-background);
+  font-variant-numeric: tabular-nums;
 }
 
 .theme-ld50-table-head th {
@@ -4030,6 +3875,21 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-accent-strong);
 }
 
+/* A warning entry keeps its tone through hover and scrollspy: the shared
+   neutral states above come later than the tone rule, so they restate it. */
+.theme-article-toc-item[data-tone="warning"][data-active="true"] {
+  border-color: var(--theme-warning-border-strong);
+  background: var(--theme-warning-bg-strong);
+  color: var(--theme-warning-text);
+}
+@media (hover: hover) {
+  .theme-article-toc-item[data-tone="warning"]:hover {
+    border-color: var(--theme-warning-border-strong);
+    background: var(--theme-warning-bg-strong);
+    color: var(--theme-warning-text);
+  }
+}
+
 .theme-dose-detail-expanded,
 .theme-plateau-tier-expanded {
   background: var(--theme-dose-detail-expanded-background);
@@ -4088,13 +3948,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   box-shadow: var(--theme-article-neutral-panel-shadow);
 }
 
-.theme-index-card-link:focus-visible {
-  background: var(--theme-frosted-control-on-panel-hover-bg) !important;
-  color: var(--theme-accent-strong) !important;
-  box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
-  --tw-ring-color: var(--theme-index-card-link-focus-visible-tw-ring-color);
-}
-
+/* Keyboard focus is the shared ring alone (theme-focus-ring at the call site);
+   the hover fill below is a pointer cue. */
 @media (hover: hover) {
   .theme-index-card-link:hover {
     background: var(--theme-frosted-control-on-panel-hover-bg) !important;
@@ -4102,10 +3957,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
     box-shadow: var(--theme-frosted-control-on-panel-hover-shadow) !important;
     --tw-ring-color: var(--theme-index-card-link-hover-tw-ring-color);
   }
-}
-
-.theme-index-card-link:focus-visible .theme-index-card-bullet {
-  background-color: var(--theme-accent-strong) !important;
 }
 
 @media (hover: hover) {
@@ -4132,7 +3983,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
      appearance hue/saturation axes rotate them with the rest of the accent
      family; site-colors.css carries the light equivalents. */
 .theme-index-card-count {
-  border-radius: 0.5rem;
+  border-radius: var(--radius-chip);
+  font-variant-numeric: tabular-nums;
   color: var(--theme-text-muted);
   background: var(--theme-index-card-count-bg);
   box-shadow: var(--theme-index-card-count-shadow);
@@ -4140,6 +3992,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-index-card-count-sm {
+  font-variant-numeric: tabular-nums;
   color: var(--theme-text-muted);
   background: var(--theme-index-card-count-bg);
   box-shadow: var(--theme-index-card-count-shadow);
@@ -4163,9 +4016,9 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 .theme-about-json-preview-header,
 .theme-about-json-preview-body {
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
+    background-color var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
 }
 
 .theme-skip-link {
@@ -4293,20 +4146,16 @@ html:not([data-visual-style="pro"])
      Pro's re-pointed on-dark values rim it too. */
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--theme-text-primary) 9%, transparent),
-    0 26px 64px -20px rgb(0 0 0 / 0.78),
-    0 10px 26px -18px rgb(0 0 0 / 0.72) !important;
+    var(--elev-4) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
+/* The field focus contract: the border takes the secondary ink, no outer ring. */
 .theme-appearance-popover [role="combobox"]:focus {
-  border-color: var(--theme-field-border);
+  border-color: var(--theme-text-secondary);
   box-shadow: var(--theme-elevation-inner);
-}
-
-.theme-appearance-popover [role="combobox"]:focus-visible {
-  outline: 1px solid var(--theme-text-muted);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .theme-appearance-popover .theme-popover-arrow {
@@ -4378,7 +4227,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
    Shared by focusRingClassName and the UI kit's focus utilities. */
 .theme-focus-ring:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 2px;
+  outline-offset: var(--theme-focus-offset);
 }
 
 /* Sibling target for visually hidden range inputs such as the audio scrubber. */
@@ -4647,8 +4496,8 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 
 .theme-beta-disclaimer:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline-offset: var(--theme-focus-offset);
+  border-radius: var(--radius-control);
 }
 
 /* ---------------------------------------------------------------------

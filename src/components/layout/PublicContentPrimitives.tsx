@@ -134,7 +134,7 @@ export function PublicFactTile({
 }: PublicFactTileProps) {
   const body = (
     <>
-      <span className="theme-text-faint flex min-w-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-wider">
+      <span className="theme-text-faint type-meta-label flex min-w-0 items-center gap-2">
         {icon ? <Icon icon={icon} className="theme-icon-accent h-3.5 w-3.5 shrink-0" /> : null}
         <span className="min-w-0 truncate">{label}</span>
       </span>
@@ -147,14 +147,16 @@ export function PublicFactTile({
     </>
   );
 
+  // Surface owns the border, corner (the card role) and inset; the tile adds only
+  // its hover treatment.
   const tileClassName = cn(
-    "theme-public-card-hover-quiet block rounded-xl border p-3 transition",
+    "theme-public-card-hover-quiet block transition",
     className,
   );
 
   if (href) {
     return (
-      <Surface asChild variant="subtle" padding="none" radius="lg">
+      <Surface asChild variant="subtle" padding="xs" radius="xl">
         <a
           href={href}
           target="_blank"
@@ -173,8 +175,8 @@ export function PublicFactTile({
   return (
     <Surface
       variant="subtle"
-      padding="none"
-      radius="lg"
+      padding="xs"
+      radius="xl"
       className={tileClassName}
       {...props}
     >
@@ -225,20 +227,20 @@ export function PublicAttributionSection({
       alt={avatarAlt}
       width={24}
       height={24}
-      className="h-6 w-6 rounded-full object-cover ring-1 ring-[rgb(var(--c-brand)/0.20)] transition group-hover:ring-[rgb(var(--c-brand)/0.50)]"
+      className="h-6 w-6 rounded-full object-cover ring-1 ring-dose-accent/20 transition group-hover:ring-dose-accent/50"
     />
   ) : null;
 
   return (
     <div className={cn("flex", attributionAlignClasses[align], className)} {...props}>
-      <div className="theme-public-card-subtle theme-public-card-hover-quiet group relative flex max-w-full flex-wrap items-center justify-end gap-2.5 overflow-hidden rounded-2xl border px-3 py-2 transition">
+      <div className="theme-public-card-subtle theme-public-card-hover-quiet group relative flex max-w-full flex-wrap items-center justify-end gap-2.5 overflow-hidden rounded-card border px-3 py-2 transition">
         {href ? (
           <a
             href={href}
             target={hrefTarget}
             rel={hrefRel}
             aria-label={hrefAriaLabel}
-            className="theme-focus-ring absolute inset-0 z-10 rounded-2xl"
+            className="theme-focus-ring absolute inset-0 z-10 rounded-card"
           />
         ) : null}
         {avatar && avatarHref ? (
@@ -300,11 +302,15 @@ export function PublicDetailHero({
         <div className={cn("relative flex flex-col gap-6", media ? "pr-0 md:pr-24" : undefined)}>
           <div className="flex flex-wrap items-start gap-4 sm:gap-5">
             {icon ? (
+              // A circle, not a rounded tile: IconBadge's `.theme-status-orb` sets an
+              // unlayered `border-radius: 9999px` that no corner utility here can beat.
+              // The translucent accent stops over the muted surface give the same tint
+              // the old colour-mix stops did, and follow the accent hue.
               <IconBadge
                 icon={icon}
                 label={iconLabel ?? (typeof title === "string" ? title : undefined)}
                 size={32}
-                className="h-14 w-14 shrink-0 rounded-[18px] bg-gradient-to-br from-[color-mix(in_srgb,rgb(var(--c-brand))_18%,var(--theme-surface-muted))] to-[color-mix(in_srgb,rgb(var(--c-violet))_18%,var(--theme-surface-muted))] shadow-[var(--theme-elevation-icon-tile)] ring-1 ring-[rgb(var(--c-brand)/0.22)]"
+                className="h-14 w-14 shrink-0 bg-dose-surface-muted bg-gradient-to-br from-dose-accent/18 to-dose-accent-strong/18 shadow-[var(--theme-elevation-icon-tile)] ring-1 ring-dose-accent/22"
               />
             ) : null}
 
@@ -312,7 +318,7 @@ export function PublicDetailHero({
               <div className="space-y-3">
                 <h1
                   className={cn(
-                    "theme-accent-heading font-display text-[2rem] font-bold tracking-tight sm:text-[2.5rem]",
+                    "theme-accent-heading type-doc-title",
                     badges ? "pr-16 md:pr-0" : undefined,
                     titleClassName,
                   )}

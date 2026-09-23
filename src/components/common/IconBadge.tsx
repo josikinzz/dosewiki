@@ -13,13 +13,13 @@ interface IconBadgeProps {
 }
 
 const badgeSizeClasses: Record<IconBadgeSize, string> = {
-  sm: "h-7 w-7 rounded-lg",
-  md: "h-8 w-8 rounded-xl",
+  sm: "h-7 w-7 rounded-control",
+  md: "h-8 w-8 rounded-card",
 };
 
 const iconSizes: Record<IconBadgeSize, number> = {
   sm: 16,
-  md: 20,
+  md: 18,
 };
 
 const toneClasses: Record<IconBadgeTone, string> = {

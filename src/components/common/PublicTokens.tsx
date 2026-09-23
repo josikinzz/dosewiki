@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { Icon, type IconName } from "./Icon";
 
@@ -12,9 +13,12 @@ type PolymorphicProps<TElement extends ElementType> = {
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<TElement>, "as" | "className" | "children">;
 
+// Accent is drawn with plain accent aliases rather than `theme-badge-surface`:
+// the frosted appearance rule repaints that class in body text on every
+// scheme, which left an accent pill indistinguishable from a neutral one.
 const toneClasses: Record<PublicTone, string> = {
-  accent: "theme-badge-surface",
-  neutral: "theme-public-card-subtle",
+  accent: "border-dose-accent/35 bg-dose-accent/10 text-dose-accent-strong",
+  neutral: "theme-badge-surface",
   success: "theme-badge-surface theme-status-badge",
   warning: "theme-badge-surface theme-status-badge",
   danger: "theme-badge-surface theme-status-badge",
@@ -29,8 +33,8 @@ const badgeToneAttrs: Record<PublicTone, string | undefined> = {
 };
 
 const sizeClasses: Record<PublicSize, string> = {
-  sm: "gap-1.5 px-2 py-0.5 text-[0.68rem]",
-  md: "gap-2 px-2.5 py-1 text-[0.72rem]",
+  sm: "h-5 gap-1 px-2",
+  md: "h-6 gap-1.5 px-2.5",
 };
 
 export type PublicOverlineProps<TElement extends ElementType = "span"> =
@@ -72,7 +76,7 @@ export function PublicPill<TElement extends ElementType = "span">({
   return (
     <Component
       className={cn(
-        "type-chip-label inline-flex items-center rounded-full border ring-1 ring-transparent transition-colors",
+        "type-chip-label inline-flex items-center rounded-full border transition-colors",
         sizeClasses[size],
         toneClasses[tone],
         className,
@@ -108,11 +112,9 @@ export function PublicNameChip<TElement extends ElementType = "span">({
   return (
     <Component
       className={cn(
-        "theme-name-chip inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium ring-1 ring-transparent transition",
+        "theme-name-chip inline-flex min-h-7 items-center gap-1.5 rounded-chip px-3.5 py-1 text-xs font-medium ring-1 ring-transparent transition",
         "theme-focus-ring",
-        hasElementHitTarget
-          ? "relative before:absolute before:inset-[-0.375rem] before:content-[''] [@media(pointer:fine)]:before:inset-0"
-          : undefined,
+        hasElementHitTarget ? TOUCH_HALO : undefined,
         interactive ? "theme-name-chip-interactive" : undefined,
         className,
       )}
@@ -152,11 +154,12 @@ export function PublicChipNav({
     <nav className={cn("flex flex-wrap gap-2", className)} aria-label={ariaLabel}>
       {items.map((item) => {
         const tone = item.active ? (item.tone ?? "accent") : (item.tone ?? "neutral");
+        // The accent tone alone reads as a tint in the light schemes, so the
+        // active chip also takes a full-strength accent stroke.
         const chipClassName = cn(
           "theme-focus-ring",
-          item.href || onSelect
-            ? "relative cursor-pointer hover:opacity-90 before:absolute before:inset-[-0.375rem] before:content-[''] [@media(pointer:fine)]:before:inset-0"
-            : undefined,
+          item.active && "border-dose-accent-strong",
+          item.href || onSelect ? cn(TOUCH_HALO, "cursor-pointer hover:opacity-90") : undefined,
         );
 
         return item.href ? (

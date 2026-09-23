@@ -63,9 +63,9 @@ export const statusBadgeStory: StoryDef = {
     },
     {
       label: "Compact override",
-      note: "Override padding/size via className; the base layout classes still apply.",
+      note: "Override padding or text size via className (keep text at 11px or above); the 20px height still applies.",
       render: () => (
-        <StatusBadge tone="gray" className="px-2 py-0.5 text-[10px]">
+        <StatusBadge tone="gray" className="px-1.5 text-[11px]">
           Unknown
         </StatusBadge>
       ),

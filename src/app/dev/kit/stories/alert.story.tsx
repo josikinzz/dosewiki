@@ -114,7 +114,7 @@ export const alertStory: StoryDef = {
     {
       name: "className",
       type: "string",
-      description: "Extra classes; the box stretches full width and rounds to 2xl by default.",
+      description: "Extra classes; the box stretches full width and takes the card corner role.",
     },
     {
       name: "children",

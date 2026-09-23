@@ -48,7 +48,7 @@ describe("CitationsSection", () => {
     expect(referenceLink).toHaveClass("hyphenate");
     expect(referenceLink?.closest("ol")).toHaveClass("max-w-full", "list-none", "p-0");
     expect(referenceLink?.closest("li")?.querySelector(".theme-reference-number")).toHaveClass(
-      "rounded-[0.12rem]",
+      "rounded-chip",
     );
   });
 
