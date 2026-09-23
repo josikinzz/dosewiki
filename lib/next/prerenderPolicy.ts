@@ -31,19 +31,32 @@ const ALL_TIERS: PrerenderPolicy = Object.freeze(["high", "normal", "low"]);
 const ENGLISH_PUBLIC_TIERS: PrerenderPolicy = Object.freeze(["high", "normal"]);
 
 /**
+ * Nothing prerendered: every substance page on this locale or artifact
+ * renders on its first request and is then held by the hourly ISR cache.
+ *
+ * The locale mirrors are unlisted and low traffic, and a localized render is
+ * the most expensive page in the build (the English work plus a translation
+ * lookup for every leaf). The post-deploy warmer covers their first hit. A
+ * new locale inherits this, so adding a language costs the build no pages.
+ */
+const ON_DEMAND: PrerenderPolicy = Object.freeze([]);
+
+/**
  * Substance tiers prerendered by the public dose.wiki artifact, per locale.
  * Every other artifact (editor, Effect Index) is decided below the table.
  */
 const PUBLIC_DOSEWIKI_POLICY: Readonly<Record<LocaleCode, PrerenderPolicy>> = Object.freeze({
   en: ENGLISH_PUBLIC_TIERS,
-  "zh-Hans": ALL_TIERS,
-  ru: ALL_TIERS,
-  nl: ALL_TIERS,
+  "zh-Hans": ON_DEMAND,
+  ru: ON_DEMAND,
+  nl: ON_DEMAND,
 });
 
 export function resolvePrerenderPolicy(locale: LocaleCode, build: PrerenderBuild): PrerenderPolicy {
   if (build.surface === "editor" || build.flavor === "effectindex") {
     return ALL_TIERS;
   }
-  return PUBLIC_DOSEWIKI_POLICY[locale] ?? ALL_TIERS;
+  // A locale the table does not name (a registry entry added without a
+  // decision here would fail typecheck first) renders on demand.
+  return PUBLIC_DOSEWIKI_POLICY[locale] ?? ON_DEMAND;
 }

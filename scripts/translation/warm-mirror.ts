@@ -3,10 +3,11 @@
  * mirror host so the long tail is rendered and edge-cached before a reader
  * arrives.
  *
- * The mirror prerenders the same tiers as English (`src/app/zh/[slug]` and
- * `src/app/zh/reports/[slug]`); everything else renders on first request and
- * starts cold again after every deploy because the ISR page cache does not
- * survive one. This walks the English sitemap exactly as `mirror-coverage.ts
+ * The mirror prerenders no substance articles (lib/next/prerenderPolicy.ts
+ * returns an empty tier list for every locale but English) and only the
+ * reports under `src/app/zh/reports/[slug]`; everything else renders on first
+ * request and starts cold again after every deploy because the ISR page
+ * cache does not survive one. This walks the English sitemap exactly as `mirror-coverage.ts
  * render` does (the mirror publishes no sitemap of its own), fetches each path
  * on the mirror with bounded concurrency through the shared warm helpers, and
  * prints status counts, cache hit/miss counts, and latency percentiles.
