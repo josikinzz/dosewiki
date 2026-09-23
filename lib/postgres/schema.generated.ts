@@ -601,6 +601,53 @@ export const generatedPublicationOperations = pgTable(
   ],
 );
 
+export const glossaryFeedback = pgTable(
+  "glossaryFeedback",
+  {
+    _id: text("_id").primaryKey(),
+    _creationTime: doublePrecision("_creationTime").notNull(),
+    "locale": text("locale").notNull(),
+    "term": text("term").notNull(),
+    "target": text("target").notNull(),
+    "version": text("version").notNull(),
+    "id": text("id").notNull(),
+    "visitor": text("visitor").notNull(),
+    "details": text("details").notNull(),
+    "alternative": text("alternative").notNull(),
+    "status": text("status").notNull(),
+    "created_at": text("created_at").notNull(),
+    "review_notes": text("review_notes"),
+    "reviewed_by": text("reviewed_by"),
+    "reviewed_at": text("reviewed_at"),
+  },
+  (t) => [
+    index("glossaryFeedback_by_creation_time").on(t._creationTime),
+    index("glossaryFeedback_by_locale_created").on(sql`${t["locale"]} COLLATE "C"`, sql`${t["created_at"]} COLLATE "C"`, t._creationTime),
+    index("glossaryFeedback_by_visitor_id").on(sql`${t["visitor"]} COLLATE "C"`, sql`${t["id"]} COLLATE "C"`, t._creationTime),
+  ],
+);
+
+export const glossaryReactionEvents = pgTable(
+  "glossaryReactionEvents",
+  {
+    _id: text("_id").primaryKey(),
+    _creationTime: doublePrecision("_creationTime").notNull(),
+    "locale": text("locale").notNull(),
+    "term": text("term").notNull(),
+    "target": text("target").notNull(),
+    "version": text("version").notNull(),
+    "id": text("id").notNull(),
+    "visitor": text("visitor").notNull(),
+    "choice": text("choice").notNull(),
+    "created_at": doublePrecision("created_at").notNull(),
+  },
+  (t) => [
+    index("glossaryReactionEvents_by_creation_time").on(t._creationTime),
+    index("glossaryReactionEvents_by_version_visitor").on(sql`${t["locale"]} COLLATE "C"`, sql`${t["term"]} COLLATE "C"`, sql`${t["version"]} COLLATE "C"`, sql`${t["visitor"]} COLLATE "C"`, t["created_at"], t._creationTime),
+    index("glossaryReactionEvents_by_visitor_id").on(sql`${t["visitor"]} COLLATE "C"`, sql`${t["id"]} COLLATE "C"`, t._creationTime),
+  ],
+);
+
 export const indexLayouts = pgTable(
   "indexLayouts",
   {
@@ -1618,6 +1665,8 @@ export const tableColumns = {
   effectIndexArchive: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "kind": { kind: "text", optional: false }, "key": { kind: "text", optional: false }, "payload": { kind: "jsonb", optional: false }, "importedAt": { kind: "double", optional: false } },
   effectIndexArticles: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "title": { kind: "text", optional: false }, "tags": { kind: "jsonb", optional: false }, "publication_status": { kind: "text", optional: true }, "featured": { kind: "boolean", optional: true }, "shortDescription": { kind: "text", optional: true }, "publicationDate": { kind: "text", optional: true }, "body_raw": { kind: "text", optional: false }, "body_ast": { kind: "jsonb", optional: true }, "authors": { kind: "jsonb", optional: true }, "citations": { kind: "jsonb", optional: true }, "kind": { kind: "text", optional: true }, "status": { kind: "text", optional: true }, "bodyFormat": { kind: "text", optional: true }, "authorProfileKeys": { kind: "jsonb", optional: true }, "coverImageUrl": { kind: "text", optional: true }, "teaser": { kind: "text", optional: true } },
   generatedPublicationOperations: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "proposalId": { kind: "text", optional: false }, "payloadDigest": { kind: "text", optional: false }, "artifactDigest": { kind: "text", optional: false }, "manifestDigest": { kind: "text", optional: false }, "rawResponseHash": { kind: "text", optional: false }, "targetDeploymentFingerprint": { kind: "text", optional: false }, "slug": { kind: "text", optional: false }, "profile": { kind: "text", optional: false }, "affectedPaths": { kind: "jsonb", optional: false }, "actorEmail": { kind: "text", optional: false }, "reviewedBy": { kind: "text", optional: false }, "reviewedAt": { kind: "text", optional: false }, "previousHash": { kind: "text", optional: false }, "nextHash": { kind: "text", optional: false }, "hashVersion": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false } },
+  glossaryFeedback: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "locale": { kind: "text", optional: false }, "term": { kind: "text", optional: false }, "target": { kind: "text", optional: false }, "version": { kind: "text", optional: false }, "id": { kind: "text", optional: false }, "visitor": { kind: "text", optional: false }, "details": { kind: "text", optional: false }, "alternative": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "text", optional: false }, "review_notes": { kind: "text", optional: true }, "reviewed_by": { kind: "text", optional: true }, "reviewed_at": { kind: "text", optional: true } },
+  glossaryReactionEvents: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "locale": { kind: "text", optional: false }, "term": { kind: "text", optional: false }, "target": { kind: "text", optional: false }, "version": { kind: "text", optional: false }, "id": { kind: "text", optional: false }, "visitor": { kind: "text", optional: false }, "choice": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false } },
   indexLayouts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "type": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "categories": { kind: "jsonb", optional: false } },
   inviteCodes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "codeHash": { kind: "text", optional: false }, "role": { kind: "text", optional: false }, "glossaryLocales": { kind: "jsonb", optional: true }, "createdBy": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "expiresAt": { kind: "text", optional: false }, "maxUses": { kind: "double", optional: false }, "redemptions": { kind: "jsonb", optional: false }, "revokedAt": { kind: "text", optional: true }, "note": { kind: "text", optional: true } },
   mailingListSubscribers: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "email": { kind: "text", optional: false }, "list": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false }, "ip_hash": { kind: "text", optional: true }, "user_agent": { kind: "text", optional: true }, "honeypot_triggered": { kind: "boolean", optional: false } },
@@ -1749,6 +1798,8 @@ export const tableIndexes = {
   effectIndexArchive: { "by_kind_key": ["kind","key"] },
   effectIndexArticles: { "by_slug": ["slug"], "by_kind_status_date": ["kind","status","publicationDate"], "by_featured": ["featured"] },
   generatedPublicationOperations: { "by_proposal_id": ["proposalId"], "by_slug_created": ["slug","createdAt"] },
+  glossaryFeedback: { "by_locale_created": ["locale","created_at"], "by_visitor_id": ["visitor","id"] },
+  glossaryReactionEvents: { "by_version_visitor": ["locale","term","version","visitor","created_at"], "by_visitor_id": ["visitor","id"] },
   indexLayouts: { "by_type": ["type"] },
   inviteCodes: { "by_code_hash": ["codeHash"], "by_created_at": ["createdAt"] },
   mailingListSubscribers: { "by_email_list": ["email","list"], "by_list_status": ["list","status"] },
@@ -1813,6 +1864,8 @@ export const tableNames = [
   "effectIndexArchive",
   "effectIndexArticles",
   "generatedPublicationOperations",
+  "glossaryFeedback",
+  "glossaryReactionEvents",
   "indexLayouts",
   "inviteCodes",
   "mailingListSubscribers",
@@ -1879,6 +1932,8 @@ export const tables = {
   effectIndexArchive,
   effectIndexArticles,
   generatedPublicationOperations,
+  glossaryFeedback,
+  glossaryReactionEvents,
   indexLayouts,
   inviteCodes,
   mailingListSubscribers,

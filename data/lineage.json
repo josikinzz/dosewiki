@@ -3,6 +3,91 @@
   "description": "Operational lineage for local data artifacts. PlanetScale Postgres is live runtime truth; dated inputs and deployment records are historical provenance, not authority to write production.",
   "artifacts": [
     {
+      "id": "translation-ui-catalog-digests",
+      "path": "src/i18n/catalogDigests.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/translation/ui-catalog.ts",
+      "consumers": [
+        "src/i18n/ChineseMessagesProvider.tsx"
+      ],
+      "inputs": [
+        "src/i18n/catalogPublication.json"
+      ],
+      "freshnessRule": "Regenerate with the UI catalog. Public digest-only projection excludes editorial QA details and source inventory.",
+      "sourceDeployment": "local compiled catalogs",
+      "targetDeployment": null,
+      "schemaVersion": "locale to SHA256 catalog digest map",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write"
+    },
+    {
+      "id": "translation-ui-workbench-inventory",
+      "path": "src/i18n/uiWorkbenchInventory.generated.json",
+      "role": "derived-manifest",
+      "producer": "scripts/translation/ui-catalog.ts",
+      "consumers": [
+        "lib/translation/uiWorkbenchDefinitions.ts"
+      ],
+      "inputs": [
+        "src/i18n/uiMessageDefinitions.ts",
+        "src and lib t()/msg() calls",
+        "local copy and index sources",
+        "Postgres glossary and live copy when explicitly requested"
+      ],
+      "freshnessRule": "Regenerate with the UI catalog. Server-only editorial source inventory; never import into public client bundles.",
+      "sourceDeployment": "local source plus selected read target for online mode",
+      "targetDeployment": null,
+      "schemaVersion": "lib/translation/uiWorkbenchDefinitions.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write"
+    },
+    {
+      "id": "translation-ui-catalog",
+      "path": "content/i18n/messages/*.json",
+      "role": "derived-manifest",
+      "producer": "scripts/translation/ui-catalog.ts",
+      "consumers": [
+        "src/i18n/serverMessages.ts",
+        "src/i18n/ChineseMessagesProvider.tsx"
+      ],
+      "inputs": [
+        "src/i18n/uiMessageDefinitions.ts",
+        "src/i18n/uiMessageSeeds.ts",
+        "src and lib t()/msg() source literals",
+        "Postgres approved translation glossary and UI translations (online mode only)",
+        "existing compiled catalog and local copy/index sources"
+      ],
+      "freshnessRule": "Regenerate after message, glossary or approved UI changes. Offline generation only refreshes local seeds and cannot verify current approvals or deployment. Compilation metadata is not deployment evidence.",
+      "sourceDeployment": "local source plus explicitly selected Postgres read target in online mode",
+      "targetDeployment": null,
+      "schemaVersion": "lib/translation/uiCatalogPublication.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write (local seeds only); use --live-copy --write with an explicitly authorized Postgres read target for complete publication"
+    },
+    {
+      "id": "translation-ui-catalog-publication",
+      "path": "src/i18n/catalogPublication.json",
+      "role": "derived-manifest",
+      "producer": "scripts/translation/ui-catalog.ts",
+      "consumers": [
+        "scripts/translation/ui-catalog.ts",
+        "lib/translation/uiCatalogPublication.ts"
+      ],
+      "inputs": [
+        "src/i18n/uiMessageDefinitions.ts",
+        "src/i18n/uiMessageSeeds.ts",
+        "src and lib t()/msg() source literals",
+        "Postgres approved translation glossary and UI translations (online mode only)",
+        "existing compiled catalog and local copy/index sources"
+      ],
+      "freshnessRule": "Regenerate after message, glossary or approved UI changes. Offline generation only refreshes local seeds and cannot verify current approvals or deployment. Compilation metadata is not deployment evidence.",
+      "sourceDeployment": "local source plus explicitly selected Postgres read target in online mode",
+      "targetDeployment": null,
+      "schemaVersion": "lib/translation/uiCatalogPublication.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write (local seeds only); use --live-copy --write with an explicitly authorized Postgres read target for complete publication"
+    },
+    {
       "id": "substance-index-export",
       "path": "src/data/SubstanceIndex.json",
       "role": "derived-export",

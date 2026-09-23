@@ -12,7 +12,6 @@ import {
   readTranslationRecord,
   refreshRecordTranslations,
   type RefreshOutcome,
-  type TranslationContext,
 } from "./liveTranslation";
 import { createTranslationRequestPool } from "./requestPool";
 import {
@@ -27,7 +26,7 @@ import {
 } from "./segmentStore";
 
 const RUN_BUDGET_MS = 200_000;
-const MIN_JOB_BUDGET_MS = 10_000;
+const MIN_JOB_BUDGET_MS = 60_000;
 const MODEL_LEASE = "glm-5.3-flash";
 const CACHE_JOBS_PER_RUN = 200;
 const CACHE_DELIVERY_CONCURRENCY = 50;
@@ -53,8 +52,6 @@ export async function runTranslationJobs(
   if (!(await acquireTranslationWorkerLease(MODEL_LEASE, leaseOwner, RUN_BUDGET_MS + 30_000))) return run;
   const reads = getPublicDataReadAdapter();
   const requestPool = createTranslationRequestPool(config.requestConcurrency);
-  const contexts: Record<string, Promise<TranslationContext>> = {};
-  const contextFor = (locale: string) => (contexts[locale] ??= loadTranslationContext(locale));
 
   try {
     const deliverCache = async (cacheJob: { locale: string; slug: string; mode: TranslationJobMode; targets: string }) => {
@@ -84,8 +81,11 @@ export async function runTranslationJobs(
         }
       },
     ));
+    // Each page worker refills independently, so one slow page cannot hold
+    // every other page behind a wave barrier. Leave time to drain at the end.
+    const workers = await Promise.allSettled(Array.from({ length: config.jobsPerRun }, async () => {
     while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
-    const jobs = await claimTranslationJobs(config.jobsPerRun, config.mode);
+    const jobs = await claimTranslationJobs(1, config.mode);
     if (jobs.length === 0) break;
     run.claimed += jobs.length;
 
@@ -100,7 +100,7 @@ export async function runTranslationJobs(
         }
         const outcome = await refreshRecordTranslations(
           { ...record, slug },
-          await contextFor(job.locale),
+          await loadTranslationContext(job.locale),
           kind,
           apiKey,
           { signal, requestPool },
@@ -133,6 +133,9 @@ export async function runTranslationJobs(
       }
     }));
     }
+    }));
+    const failure = workers.find((worker) => worker.status === "rejected");
+    if (failure?.status === "rejected") throw failure.reason;
     return run;
   } finally {
     await releaseTranslationWorkerLease(MODEL_LEASE, leaseOwner);

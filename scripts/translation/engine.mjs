@@ -65,12 +65,11 @@ export function protectModelTokens(source) {
   return {
     source: protectedSource,
     restore(target) {
-      // The model never receives source digits, so any digits it emits are
-      // inventions. Remove them before restoring the exact source values.
-      // GLM occasionally also changes placeholder case or brace width even
-      // under a strict retry, so accept those presentation-only variants.
-      let restored = target.replace(/[\uff10-\uff19\d]+(?:[.,][\uff10-\uff19\d]+)*/g, "");
-      for (const [token, value] of replacements) {
+      // Preserve unexpected output as evidence for numeric validation. Legitimate
+      // translated names can introduce digits, such as Chinese serotonin.
+      let restored = target;
+      // Later protections can wrap earlier tokens (a placeholder inside a URL).
+      for (const [token, value] of [...replacements].reverse()) {
         const label = token.slice(PROTECTED_TOKEN_PREFIX.length, -2);
         const variant = new RegExp(`(?:\\{\\{|｛｛)\\s*DWPROTECT\\s*${label}\\s*(?:\\}\\}|｝｝)`, "gi");
         restored = restored.replace(variant, value);
@@ -220,10 +219,10 @@ export async function translateBatch({ units, locale, glossary, glosses, kinds, 
     usage,
     results: payloadUnits.map((payloadUnit) => ({
       unit: units.find((unit) => unit.hash === payloadUnit.hash),
-      target: parsed.value[payloadUnit.id] === undefined
+      target: typeof parsed.value[payloadUnit.id] !== "string"
         ? null
         : protections.get(payloadUnit.hash).restore(parsed.value[payloadUnit.id]),
-      parseCode: parsed.value[payloadUnit.id] === undefined ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
+      parseCode: typeof parsed.value[payloadUnit.id] !== "string" ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
     })),
   };
 }

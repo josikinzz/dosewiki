@@ -1,3 +1,4 @@
+import { parseUiLocale } from "@/i18n/messages";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
@@ -166,7 +167,7 @@ export async function ReplicationsGalleryRoute({
   viewerSlug: string | null;
   locale?: LiveLocale | null;
 }) {
-  const language = locale?.code === "zh-Hans" ? "zh-Hans" : "en";
+  const language = parseUiLocale(locale?.code);
   if (!viewerSlug) {
     const index = await getGalleryBrowseIndex(language);
     const pagePromise = getGalleryBrowsePage(index, language, GALLERY_BROWSE_DEFAULTS);

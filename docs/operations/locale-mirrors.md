@@ -1,8 +1,12 @@
-# Locale mirrors (zh.dose.wiki)
+# Locale mirrors (zh.dose.wiki and ru.dose.wiki)
 
 Unlisted, machine-translated mirrors of dose.wiki for readers who share the
-language. One subdomain per locale; Simplified Chinese is the first and, until
-its coverage audit runs clean, the only one.
+language. One subdomain per locale. The route registry includes Simplified
+Chinese and Russian. A new mirror needs its catalog, compact publication index,
+production build, and verified domain binding before it can serve readers.
+
+The translator review UI and release checks are documented in the
+[translation workbench runbook](../workflows/translation-workbench.md).
 
 ## What it is and is not
 
@@ -13,7 +17,7 @@ its coverage audit runs clean, the only one.
   looks up the hashes, and splices the stored targets over a clone. A hash the
   store lacks renders in English. Identical English anywhere in the corpus is
   one row.
-- **English is the only baseline.** Nothing edits Chinese directly. An English
+- **English is the only baseline.** Article prose is translated from English; contextual UI wording and glossary terms can be edited directly in the review workbench. An English
   edit changes the hash of the edited leaf; only that leaf goes back to the
   model. Untouched leaves keep their stored translation.
 - **One engine and prompt contract.** `scripts/translation/locales.mjs` owns
@@ -25,8 +29,7 @@ its coverage audit runs clean, the only one.
   one row per locale and term with `target`, `kind`, `status` (`draft` |
   `approved`), `source` (`model` | `human`), and who reviewed it. Only
   approved rows reach a prompt or the digest. It is reviewed in
-  `/dev/glossary` by admins or Translators assigned that language: approve or
-  edit each rendering (editing approves). Editor and Translator are independent
+  `/dev/glossary` by admins or Translators assigned that language: save a draft, then explicitly approve the saved revision. Draft corrections retain the effective approved rendering. Editor and Translator are independent
   checkboxes; both are persisted as `editor_translator`, with `glossaryLocales`
   carrying the approved language codes. Editor alone grants no translated
   glossary access. Missing legacy scope grants no language until an admin
@@ -234,10 +237,11 @@ require the complete intent-scoped credential, explicit target, role, freeze,
 review, confirmation phrase, and `--write` ceremony documented in the
 credentials runbook. `--write` alone is not authorization.
 
-`stale --term` selects affected rows, marks them stale and restamps unaffected
-rows only when their prompt remains byte-identical. The editor's affected-segment
-action enqueues corresponding records. Review the actual selection and digest
-before authorizing either path; a historical row count is not scope evidence.
+`stale --term` prints the rows it selects (`Matched rows  29 mentioning
+"Entactogen"` on 2026-09-12), marks them stale and replays the marked rows. It does not restamp unrelated old digests without evidence of unchanged prompt dependencies. The `/dev/glossary` tab's "Retranslate affected segments" does
+the same marking and then enqueues the records that mention the term for the
+cron, which retranslates missing and stale hashes alike. The action records a
+request, not completion. Source coverage and queue state are reported separately.
 
 The semantic source-unit, concept-registry, artifact-generation, checkpoint,
 and semantic-store migration/import commands are deferred. Production has no
@@ -335,10 +339,14 @@ workflow; remote reads and provider/model calls retain their own authorization.
 - The pipeline's supported locales are owned by `scripts/translation/locales.mjs`;
   public activation is owned separately by `lib/next/localeHostPolicy.ts`. Inspect
   operator and coverage implementations for locale restrictions before expansion.
+- Russian uses the same stored overlays and English fallback as Chinese.
+  `live-mirror.ts`, `mirror-coverage.ts`, `ui-catalog.ts`, and
+  `backfill-publication-index.ts` accept `--locale`; their default remains
+  `zh-Hans`. Domain readiness is separate from completed translation jobs.
 
 ## Adding a locale
 
-Not before the zh coverage audit runs clean. Then:
+Run the coverage audits and review any remaining fallback before launch. Then:
 
 1. Add the locale to `LOCALES` in `scripts/translation/locales.mjs` with its script
    gate, length band and register notes. Prepare glossary drafts only through an
@@ -355,3 +363,19 @@ Not before the zh coverage audit runs clean. Then:
 4. Add the domain on Vercel, then either "Start main translation" in the tab
    (enqueues every record for the cron, slow but hands-free) or run
    `backfill` from a workstation, and run both coverage lenses.
+
+### Russian launch prerequisites
+
+The Russian route tree is `src/app/ru/`, with host `ru.dose.wiki` on the public
+project. Its UI catalog is `src/i18n/messages/ru.json`; the client loads only the
+active language catalog. Gallery API requests and cursor identities retain `ru`.
+
+Before promotion, run the guarded publication-index dry run with `--locale ru`.
+Apply the reviewed plan through the existing command and credential ceremony,
+then confirm `readLocalizedPublicationIndex` succeeds. Do not bypass its readiness
+error or replace the compact index with full narrative reads. Inspect failed
+translation jobs separately; a completed glossary does not establish corpus
+coverage. Build and verify host rewrites, Russian reading pages, Chinese About,
+and the public artifact audit before adding the new production domain. Release
+the matching locale registry to the editor as well so subsequent publications
+enqueue Russian translation jobs and expire Russian cache paths.

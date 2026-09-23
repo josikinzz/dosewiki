@@ -3,12 +3,14 @@
  * (`/api/dev/translation-glossary`).
  */
 
-import type { GlossaryCollision, GlossaryStatus, TranslationGlossaryRow } from "@server/translation/glossary";
+import type { GlossaryCollision, GlossaryStatus } from "@server/translation/glossary";
 import type { GlossaryGloss } from "@server/translation/glossaryGloss";
 import type { GlossaryListResponse } from "@/app/api/dev/translation-glossary/glossaryRoutes";
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
 
-export type GlossaryRow = TranslationGlossaryRow;
+export type GlossaryRow = GlossaryListResponse["rows"][number];
+
+export const needsReview = (row: GlossaryRow) => row.status === "draft" || row.review_provenance === "legacy_unverified";
 
 export type GlossaryList = GlossaryListResponse;
 
@@ -57,7 +59,7 @@ export function groupRows(rows: readonly GlossaryRow[]): GlossaryGroup[] {
     .filter((category) => category.id in buckets)
     .map((category) => {
       const grouped = buckets[category.id];
-      return { category, rows: grouped, draftCount: grouped.filter((row) => row.status === "draft").length };
+      return { category, rows: grouped, draftCount: grouped.filter(needsReview).length };
     });
 }
 
@@ -65,7 +67,8 @@ export function groupRows(rows: readonly GlossaryRow[]): GlossaryGroup[] {
 export function filterRows(rows: readonly GlossaryRow[], filters: GlossaryFilters): GlossaryRow[] {
   const needle = filters.search.trim().toLowerCase();
   return rows.filter((row) => {
-    if (filters.status !== "all" && row.status !== filters.status) return false;
+    if (filters.status === "draft" && !needsReview(row)) return false;
+    if (filters.status === "approved" && row.status !== "approved") return false;
     if (needle && !row.term.toLowerCase().includes(needle) && !row.target.toLowerCase().includes(needle)) return false;
     return true;
   });
@@ -174,9 +177,12 @@ export class GlossaryReviewCollision extends Error {
   }
 }
 
-export async function fetchGlossary(locale: string | null): Promise<GlossaryList> {
-  const url = locale ? `${BASE_PATH}?locale=${encodeURIComponent(locale)}` : BASE_PATH;
-  const payload = await requestJson(url, undefined, {
+export async function fetchGlossary(locale: string | null, includeUsage = true): Promise<GlossaryList> {
+  const params = new URLSearchParams();
+  if (locale) params.set("locale", locale);
+  if (!includeUsage) params.set("includeUsage", "0");
+  const url = `${BASE_PATH}${params.size ? `?${params}` : ""}`;
+  const payload = await requestJson(url, { cache: "no-store" }, {
     network: "Network error while loading the glossary.",
     failure: "Unable to load the glossary.",
   });
@@ -184,13 +190,13 @@ export async function fetchGlossary(locale: string | null): Promise<GlossaryList
 }
 
 /** Returns the terms whose status changed. */
-export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string): Promise<string[]> {
-  const payload = await postJson("approve", { locale, terms, collisionConfirmation }, "Unable to approve those terms.");
+export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string, expectedRevisions?: Record<string, string>): Promise<string[]> {
+  const payload = await postJson("approve", { locale, terms, collisionConfirmation, expectedRevisions }, "Unable to approve those terms.");
   return Array.isArray(payload.approved) ? (payload.approved as string[]) : [];
 }
 
-export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string): Promise<GlossaryRow> {
-  const payload = await postJson("edit", { locale, term, target, collisionConfirmation }, "Unable to save that term.");
+export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string, expectedRevision?: string): Promise<GlossaryRow> {
+  const payload = await postJson("edit", { locale, term, target, collisionConfirmation, expectedRevision, intent: "draft" }, "Unable to save that term.");
   return payload.row as GlossaryRow;
 }
 

@@ -16,6 +16,20 @@ import {
 const zh = resolveLocale("zh-Hans");
 const nl = resolveLocale("nl");
 
+test("an exact UI rendering rejects a fluent but wrong sense of Light", () => {
+  const result = validateSegment({ source: "Light", target: "轻度", locale: zh, exactTarget: "浅色" });
+  assert.ok(result.defects.includes("EXACT_TRANSLATION_MISMATCH"));
+  assert.equal(isBlocking(result.defects), true);
+  assert.deepEqual(result.details.exactTranslation, { expected: "浅色", actual: "轻度" });
+});
+
+test("exact rendering is context-specific and leaves prose glossary review advisory", () => {
+  assert.equal(isBlocking(validateSegment({ source: "Light", target: "轻度", locale: zh, exactTarget: "轻度" }).defects), false);
+  const prose = validateSegment({ source: "This replication shows visual effects.", target: "这段复现展示了视觉效应。", locale: zh, glossary: { replication: "体验再现" } });
+  assert.ok(prose.defects.includes("GLOSSARY_MISS"));
+  assert.equal(isBlocking(prose.defects), false);
+});
+
 function defectsFor(source, target, locale = zh) {
   return validateSegment({ source, target, locale }).defects;
 }
@@ -201,4 +215,35 @@ test("model replies survive fences and surrounding prose", () => {
   assert.deepEqual(parseModelJson('Here you go: {"s0":"甲"} done').value, { s0: "甲" });
   assert.equal(parseModelJson("no json here").code, DEFECT_CODES.UNPARSABLE_OUTPUT);
   assert.equal(parseModelJson("").code, DEFECT_CODES.EMPTY_OUTPUT);
+});
+
+
+test("the Simplified chemical stem 噁唑 is not Traditional-script drift", () => {
+  assert.deepEqual(defectsFor("Isoxazole", "异噁唑"), []);
+  const verdict = validateSegment({
+    source: "2-Amino-5-aryloxazoline (aminorexes)",
+    target: "2-氨基-5-芳基噁唑啉（aminorex 类）",
+    locale: zh,
+  });
+  assert.equal(verdict.defects.includes(DEFECT_CODES.SCRIPT_LEAK), false);
+  // English name-borne locants are excluded by the number extractor, while
+  // translated locants remain visible. Keep this advisory evidence intact.
+  assert.ok(verdict.defects.includes(DEFECT_CODES.NUMBER_ADDED));
+  assert.deepEqual(verdict.details.addedNumbers, ["2", "5"]);
+  assert.equal(isBlocking(verdict.defects), false);
+});
+
+test("the chemical stem exception does not permit Traditional prose", () => {
+  for (const [source, target] of [
+    ["Nausea", "噁心"],
+    ["Isoxazole", "異噁唑"],
+    ["The isoxazole is effective.", "噁唑有效，但會引起噁心。"],
+  ]) {
+    assert.ok(defectsFor(source, target).includes(DEFECT_CODES.SCRIPT_LEAK));
+  }
+});
+
+test("chemical labels do not exempt a changed or dropped dose", () => {
+  for (const target of ["异噁唑的剂量为200 mg。", "异噁唑的剂量。"])
+    assert.ok(defectsFor("The isoxazole dose is 20 mg.", target).includes(DEFECT_CODES.NUMBER_MISMATCH));
 });

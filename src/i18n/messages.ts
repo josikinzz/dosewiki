@@ -1,16 +1,16 @@
 /**
  * UI copy for the locale mirrors.
  *
- * Messages are keyed by their English source text. A missing key always renders
- * its English source, so ordinary locale additions remain safe before the
- * checked-in catalog catches up.
+ * Messages use English literals or meaning-specific IDs from uiMessageDefinitions.
+ * A missing key always renders its English source, so ordinary locale additions
+ * remain safe before the checked-in catalog catches up.
  */
 import { localeForPathPrefix } from "@server/next/localeHostPolicy";
 import { LOCALE_REGISTRY } from "./localeRegistry.mjs";
 
-export type UiLocale = "en" | "zh-Hans";
+export type UiLocale = "en" | "zh-Hans" | "ru";
 
-export const UI_LOCALES: readonly UiLocale[] = ["en", "zh-Hans"];
+export const UI_LOCALES: readonly UiLocale[] = ["en", "zh-Hans", "ru"];
 
 
 export type MessageValues = Readonly<Record<string, string | number>>;
@@ -37,7 +37,7 @@ export function localeForPathname(pathname: string | null | undefined): UiLocale
 
 /** A validated public locale query parameter, or the supplied fallback. */
 export function parseUiLocale(value: string | null | undefined, fallback: UiLocale = "en"): UiLocale {
-  return value === "en" || value === "zh-Hans" ? value : fallback;
+  return value === "en" || value === "zh-Hans" || value === "ru" ? value : fallback;
 }
 
 /** Locale identity used for reader-visible dates and numbers. */

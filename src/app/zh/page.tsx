@@ -1,3 +1,4 @@
+import { readPublicLanguageDirectory } from "@server/translation/publicGlossary";
 /**
  * The Simplified Chinese mirror of `/`, reached only through the middleware
  * rewrite from `zh.dose.wiki/`. Same homepage component; the mirror carries
@@ -72,6 +73,7 @@ export default async function LocalizedHomePage() {
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
         <HomeExperience
+          languages={await readPublicLanguageDirectory()}
           quickLinks={buildHomeQuickLinks().map((link) => ({ ...link, label: t(link.label) }))}
           copy={{
             tagline: t(flavoredCopyText(copy, "home-hero-tagline", SITE_FLAVOR_CONFIG.description)),

@@ -13,6 +13,7 @@ import { useUiLocale } from "@/i18n/client";
 const PublicDocumentRuntime = dynamic(() => import("./PublicDocumentRuntime"));
 // SSR-enabled: translated HTML waits for its active messages, not an English fallback.
 const ChineseMessagesProvider = dynamic(() => import("@/i18n/ChineseMessagesProvider"));
+const RussianMessagesProvider = dynamic(() => import("@/i18n/RussianMessagesProvider"));
 const initialAppearance = getInitialAppearance();
 
 export function DocumentRuntime({ children }: { children: ReactNode }) {
@@ -24,6 +25,8 @@ export function DocumentRuntime({ children }: { children: ReactNode }) {
       initialVisualStyle={initialAppearance.visualStyle} isColorSchemePersistent={!embed}>
       {locale === "zh-Hans" ? (
         <ChineseMessagesProvider>{content}</ChineseMessagesProvider>
+      ) : locale === "ru" ? (
+        <RussianMessagesProvider>{content}</RussianMessagesProvider>
       ) : content}
     </ThemeProvider>
   );

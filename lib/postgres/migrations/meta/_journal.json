@@ -141,6 +141,20 @@
       "when": 1790007480844,
       "tag": "0019_productive_zaladane",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790050239846,
+      "tag": "0020_translation_review_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790050354701,
+      "tag": "0021_public_language_feedback",
+      "breakpoints": true
     }
   ]
 }

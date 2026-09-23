@@ -1,3 +1,4 @@
+import { glossaryLanguage } from "../../src/features/language-glossary/languageGlossary";
 import manifest from "../../src/data/publicRouteAvailability.generated.json";
 import { PUBLIC_LOCALES } from "../../src/i18n/localeRegistry.mjs";
 
@@ -66,6 +67,10 @@ function decodeSegment(value: string): string | null {
 
 /** Reject dynamic page paths that are absent from the build's public corpus. */
 export function isUnavailablePublicDynamicPath(pathname: string): boolean {
+  const glossaryMatch = pathname.match(/^\/glossary\/([^/]+)\/?$/);
+  if (glossaryMatch && glossaryMatch[1] !== "languages") {
+    try { return !glossaryLanguage(decodeURIComponent(glossaryMatch[1])); } catch { return true; }
+  }
   const replicationMatch = pathname.match(/^\/replications\/([^/]+)\/?$/);
   if (replicationMatch) {
     const slug = decodeSegment(replicationMatch[1]);

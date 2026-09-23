@@ -4,6 +4,8 @@ import { publicHref } from "./publicHref";
 
 export function viewToPath(view: AppView): string {
   switch (view.type) {
+    case "glossary":
+      return view.directory ? "/glossary/languages" : view.locale ? `/glossary/${encodeURIComponent(view.locale)}` : "/glossary";
     case "home":
       return "/";
     case "substances":
@@ -111,6 +113,8 @@ export function parsePath(
     }
 
     switch (root) {
+      case "glossary":
+        return slug === "languages" ? { type: "glossary", directory: true } : { type: "glossary", ...(slug ? { locale: decodeURIComponent(slug) } : {}) };
       case "substances":
         return { type: "substances" };
       case "mantras":

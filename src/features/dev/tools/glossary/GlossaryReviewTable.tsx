@@ -26,6 +26,10 @@ import {
   type GlossaryStatusFilter,
 } from "./glossaryModel";
 
+import { TranslationHistory, translationRequest } from "./TranslationHistory";
+import type { ReviewHistoryEntry } from "@lib/translation/reviewTypes";
+import type { GlossaryUsageMap, GlossaryUsageResponse } from "@/lib/glossary/glossaryUsage";
+
 const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
 export type GlossaryGroupSectionProps = {
@@ -40,6 +44,8 @@ export type GlossaryGroupSectionProps = {
   writingTerm: string | null;
   /** Term to definition, locale-independent. */
   glosses: Readonly<Record<string, string>>;
+  /** Source locations computed with the glossary payload, before a disclosure opens. */
+  usages: GlossaryUsageMap;
   /** The viewer may write definitions (editor and up); otherwise they read as plain text. */
   canDefine: boolean;
   onToggle: () => void;
@@ -47,6 +53,7 @@ export type GlossaryGroupSectionProps = {
   onApprove: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
+  onRestored: () => Promise<void>;
 };
 
 /**
@@ -57,9 +64,10 @@ export type GlossaryGroupSectionProps = {
  * in one confirmed step; the confirm names the category, the button does not
  * have to.
  */
-export function GlossaryGroupSection({ group, totals, statusFilter, expanded, disabled, writingTerm, glosses, canDefine, onToggle, onApproveAll, onApprove, onSave, onSaveDefinition }: GlossaryGroupSectionProps) {
+export function GlossaryGroupSection({ group, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onApprove, onSave, onSaveDefinition, onRestored }: GlossaryGroupSectionProps) {
   const bodyId = useId();
-  const { category, rows, draftCount } = group;
+  const { category, rows } = group;
+  const draftCount = rows.filter((row) => row.status === "draft").length;
   const standing = totals.draft > 0
     ? `${totals.draft} of ${totals.total} ${STATE_WORD.draft}`
     : count(totals.total, "term");
@@ -93,7 +101,7 @@ export function GlossaryGroupSection({ group, totals, statusFilter, expanded, di
         ) : null}
       </div>
       <div id={bodyId} hidden={!expanded} className="px-3 pb-3">
-        <GlossaryTable rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} canDefine={canDefine} onApprove={onApprove} onSave={onSave} onSaveDefinition={onSaveDefinition} />
+        <GlossaryTable rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onSave={onSave} onSaveDefinition={onSaveDefinition} onRestored={onRestored} />
       </div>
     </Surface>
   );
@@ -104,13 +112,15 @@ type GlossaryTableProps = {
   disabled: boolean;
   writingTerm: string | null;
   glosses: Readonly<Record<string, string>>;
+  usages: GlossaryUsageMap;
   canDefine: boolean;
   onApprove: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
+  onRestored: () => Promise<void>;
 };
 
-function GlossaryTable({ rows, disabled, writingTerm, glosses, canDefine, onApprove, onSave, onSaveDefinition }: GlossaryTableProps) {
+function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine, onApprove, onSave, onSaveDefinition, onRestored }: GlossaryTableProps) {
   return (
     <EditorTable className="md:min-w-[56rem]">
       <EditorTableHead>
@@ -127,12 +137,13 @@ function GlossaryTable({ rows, disabled, writingTerm, glosses, canDefine, onAppr
             key={row.term}
             row={row}
             gloss={glosses[row.term]}
+            usage={usages[row.term]}
             canDefine={canDefine}
             disabled={disabled}
             writing={writingTerm === row.term}
             onApprove={onApprove}
             onSave={onSave}
-            onSaveDefinition={onSaveDefinition}
+            onSaveDefinition={onSaveDefinition} onRestored={onRestored}
           />
         ))}
       </EditorTableBody>
@@ -144,6 +155,7 @@ type GlossaryTableRowProps = {
   row: GlossaryRow;
   /** The term's definition, absent until an editor writes one. */
   gloss: string | undefined;
+  usage: GlossaryUsageResponse | undefined;
   canDefine: boolean;
   disabled: boolean;
   /** This row's own write is in flight: the input reads only, the buttons wait, focus stays. */
@@ -151,22 +163,23 @@ type GlossaryTableRowProps = {
   onApprove: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
+  onRestored: () => Promise<void>;
 };
 
-function GlossaryTableRow({ row, gloss, canDefine, disabled, writing, onApprove, onSave, onSaveDefinition }: GlossaryTableRowProps) {
+function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onApprove, onSave, onSaveDefinition, onRestored }: GlossaryTableRowProps) {
   const [draft, setDraft] = useState(row.target);
   useEffect(() => setDraft(row.target), [row.target]);
   const dirty = draft.trim() !== row.target && draft.trim().length > 0;
   const held = disabled || writing;
+  const canSave = draft.trim().length > 0 && (dirty || row.review_provenance === "legacy_unverified");
   const save = () => {
-    if (dirty) onSave(row, draft.trim());
+    if (canSave) onSave(row, draft.trim());
   };
-  // Enter is the keyboard review: a typed rendering saves, an untouched
-  // unreviewed row approves as it stands.
+  // Enter only saves drafts. Approval always uses the explicit review button.
   const submit = () => {
     if (held) return;
     if (dirty) save();
-    else if (row.status === "draft") onApprove(row);
+
   };
   return (
     <EditorTableRow data-term={row.term} data-status={row.status} aria-busy={writing || undefined}>
@@ -177,7 +190,13 @@ function GlossaryTableRow({ row, gloss, canDefine, disabled, writing, onApprove,
         ) : gloss ? (
           <span className="theme-text-secondary block text-xs">{gloss}</span>
         ) : null}
-        <GlossaryUsageDisclosure term={row.term} />
+        <GlossaryUsageDisclosure term={row.term} initialData={usage} />
+        <TranslationHistory revision={row.revision} name={row.term} disabled={held || dirty}
+          load={async () => (await translationRequest<{ history: ReviewHistoryEntry[] }>(`/api/dev/translation-glossary/history?locale=${encodeURIComponent(row.locale)}&term=${encodeURIComponent(row.term)}`)).history}
+          restore={async (restoreRevision) => {
+            await translationRequest("/api/dev/translation-glossary/history", { locale: row.locale, term: row.term, expectedRevision: row.revision, restoreRevision });
+            await onRestored();
+          }} />
       </EditorTableCell>
       <EditorTableCell label="Kind" className="theme-text-secondary text-xs">
         {kindLabel(row.kind)}
@@ -200,16 +219,18 @@ function GlossaryTableRow({ row, gloss, canDefine, disabled, writing, onApprove,
         />
       </EditorTableCell>
       <EditorTableCell label="Status">
-        <EditorStatusPill tone={row.status === "approved" ? "success" : "warning"}>{capitalize(STATE_WORD[row.status])}</EditorStatusPill>
+        {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Approved wording: {row.approved_target}</p> : null}
+        <EditorStatusPill tone={row.status === "approved" && row.review_provenance !== "legacy_unverified" ? "success" : "warning"}>{row.review_provenance === "legacy_unverified" && row.status === "approved" ? "Review unverified" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
+        {row.review_provenance === "legacy_unverified" && row.status === "approved" ? <p className="theme-text-faint mt-1 text-xs">Save as a draft to review this wording.</p> : null}
       </EditorTableCell>
       <EditorTableCell label="Source" className="theme-text-secondary text-xs">
-        {row.source === "human" ? (row.reviewed_by ?? "human") : "model"}
+        {row.review_provenance === "legacy_unverified" ? "Legacy import, review unverified" : row.source === "human" ? (row.reviewed_by ?? "human") : "model"}
       </EditorTableCell>
       <EditorTableCell>
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Actions for ${row.term}`}>
-          <Button type="button" variant="outline" size="sm" disabled={held || !dirty} onClick={save}>
+          <Button type="button" variant="outline" size="sm" disabled={held || !canSave} onClick={save}>
             <Icon icon="lucide:save" size={14} />
-            Save
+            Save draft
           </Button>
           {row.status === "draft" ? (
             <Button type="button" variant="outline" size="sm" disabled={held || dirty} onClick={() => onApprove(row)}>

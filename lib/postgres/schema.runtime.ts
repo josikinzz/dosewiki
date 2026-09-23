@@ -2,7 +2,7 @@
  * Runtime-owned tables alongside the generated application document tables.
  * Hand-written; `drizzle.config.ts` loads this next to `schema.generated.ts`.
  */
-import { bigint, boolean, doublePrecision, index, integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
+import { bigint, bigserial, boolean, doublePrecision, index, integer, jsonb, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 
 /** Resolve document ids to tables without depending on a particular id encoding. */
 export const documentIds = pgTable(
@@ -141,6 +141,7 @@ export const translationGlossary = pgTable(
      * a reload, a locale switch, and another reviewer's machine.
      */
     retranslated_at: bigint("retranslated_at", { mode: "number" }),
+    retranslation_requested_at: bigint("retranslation_requested_at", { mode: "number" }),
     updated_at: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.locale, t.term] }), index("translationGlossary_by_status").on(t.locale, t.status)],
@@ -200,3 +201,38 @@ export const subscribeRateLimitBuckets = pgTable(
     index("subscribeRateLimitBuckets_by_expiry").on(t.expires_at),
   ],
 );
+
+/** Review workspace: editing a draft never replaces the approved rendering. */
+export const translationReviewEntries = pgTable("translationReviewEntries", {
+  locale: text("locale").notNull(),
+  scope: text("scope").notNull(),
+  source_id: text("source_id").notNull(),
+  revision: integer("revision").notNull(),
+  draft: jsonb("draft"),
+  approved: jsonb("approved"),
+  updated_at: bigint("updated_at", { mode: "number" }).notNull(),
+}, (t) => [primaryKey({ columns: [t.locale, t.scope, t.source_id] })]);
+
+/** Append-only application history, atomically inserted beside every revision. */
+export const translationReviewHistory = pgTable("translationReviewHistory", {
+  locale: text("locale").notNull(),
+  scope: text("scope").notNull(),
+  source_id: text("source_id").notNull(),
+  revision: integer("revision").notNull(),
+  action: text("action").notNull(),
+  before_state: jsonb("before_state").notNull(),
+  after_state: jsonb("after_state").notNull(),
+  actor: text("actor").notNull(),
+  reason: text("reason").notNull(),
+  created_at: bigint("created_at", { mode: "number" }).notNull(),
+}, (t) => [primaryKey({ columns: [t.locale, t.scope, t.source_id, t.revision] })]);
+
+/** Automatic segment replacements, retained before the current overlay is updated. */
+export const translationSegmentHistory = pgTable("translationSegmentHistory", {
+  id: bigserial("id", { mode: "bigint" }).primaryKey(),
+  locale: text("locale").notNull(),
+  hash: text("hash").notNull(),
+  before_state: jsonb("before_state"),
+  after_state: jsonb("after_state").notNull(),
+  created_at: bigint("created_at", { mode: "number" }).notNull(),
+}, (t) => [index("translationSegmentHistory_by_locale").on(t.locale, t.id), index("translationSegmentHistory_by_hash").on(t.locale, t.hash, t.id)]);

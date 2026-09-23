@@ -10,6 +10,7 @@ import "server-only";
 import { getPostgresClient } from "@server/postgres/runtime/backend";
 import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
+import type { TranslationQueueCoverage } from "./translationCoverageTypes";
 import { refreshLocalizedPublicationIndexes } from "./publicationIndexStore";
 import { patchDocument, selectDocumentById, type SqlClient } from "../postgres/documentStore";
 
@@ -66,28 +67,36 @@ export async function pendingTranslationHashes(locale: string, hashes: readonly 
   return hashes.filter((hash) => !current.has(hash));
 }
 
-/** Insert or replace segments; a replaced row is a deliberate retranslation. */
+/** Record each actual text replacement atomically with its previous rendering. */
 export async function writeTranslations(rows: readonly TranslationSegmentRow[]): Promise<void> {
   if (rows.length === 0) return;
   assertDataWritesNotFrozen("writeTranslations");
   const now = Date.now();
+  // Canonical lock order and one final value per identity avoid intra-batch conflicts.
+  const unique = [...new Map(rows.map((row) => [JSON.stringify([row.locale, row.hash]), row])).values()]
+    .sort((a, b) => a.locale.localeCompare(b.locale) || a.hash.localeCompare(b.hash));
+  const values = [unique.map((r) => r.locale), unique.map((r) => r.hash), unique.map((r) => r.source), unique.map((r) => r.target), unique.map((r) => r.model), unique.map((r) => r.prompt_version), unique.map(() => now)];
+  const insert = `INSERT INTO "translationSegments" ("locale", "hash", "source", "target", "model", "prompt_version", "created_at")
+     SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::bigint[])`;
   await getPostgresClient().sqlTransaction(async (client) => {
-    await client.query(
-    `INSERT INTO "translationSegments" ("locale", "hash", "source", "target", "model", "prompt_version", "created_at")
-     SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::bigint[])
-     ON CONFLICT ("locale", "hash") DO UPDATE SET
-       "source" = EXCLUDED."source", "target" = EXCLUDED."target", "model" = EXCLUDED."model",
-       "prompt_version" = EXCLUDED."prompt_version", "created_at" = EXCLUDED."created_at"`,
-    [
-      rows.map((row) => row.locale),
-      rows.map((row) => row.hash),
-      rows.map((row) => row.source),
-      rows.map((row) => row.target),
-      rows.map((row) => row.model),
-      rows.map((row) => row.prompt_version),
-      rows.map(() => now),
-    ],
-  );
+    const inserted = await client.query(`${insert} ON CONFLICT ("locale", "hash") DO NOTHING RETURNING "locale", "hash"`, values);
+    const created = new Set(inserted.rows.map((row) => JSON.stringify([row.locale, row.hash])));
+    const previous = await client.query(`SELECT s.* FROM "translationSegments" s
+      JOIN UNNEST($1::text[], $2::text[]) AS wanted(locale, hash) ON s."locale"=wanted.locale AND s."hash"=wanted.hash
+      ORDER BY s."locale", s."hash" FOR UPDATE OF s`, values.slice(0, 2));
+    const oldRows = new Map(previous.rows.map((row) => [JSON.stringify([row.locale, row.hash]), row]));
+    const snapshot = (row: { source: unknown; target: unknown; model: unknown; prompt_version: unknown }) => ({ source: row.source, target: row.target, model: row.model, promptVersion: row.prompt_version });
+    const changes = unique.flatMap((row) => {
+      const key = JSON.stringify([row.locale, row.hash]);
+      const old = oldRows.get(key);
+      if (!created.has(key) && old?.target === row.target && old?.source === row.source) return [];
+      return [{ locale: row.locale, hash: row.hash, before: created.has(key) ? null : snapshot(old as TranslationSegmentRow), after: snapshot(row) }];
+    });
+    if (changes.length) await client.query(`INSERT INTO "translationSegmentHistory" ("locale","hash","before_state","after_state","created_at")
+      SELECT x.locale,x.hash,x.before,x.after,$2 FROM jsonb_to_recordset($1::jsonb) AS x(locale text,hash text,before jsonb,after jsonb)`, [JSON.stringify(changes), now]);
+    await client.query(`${insert} ON CONFLICT ("locale", "hash") DO UPDATE SET
+      "source"=EXCLUDED."source", "target"=EXCLUDED."target", "model"=EXCLUDED."model",
+      "prompt_version"=EXCLUDED."prompt_version", "created_at"=EXCLUDED."created_at"`, values);
     await refreshLocalizedPublicationIndexes(client);
   });
 }
@@ -161,6 +170,8 @@ export async function translationSegmentCounts(locale: string, promptVersion: st
 }
 
 export type TranslationJobCounts = {
+  inFlight?: number;
+  retrying?: number;
   runId: string | null;
   requestedAt: number | null;
   total: number;
@@ -180,6 +191,8 @@ export async function translationJobCounts(locale: string): Promise<TranslationJ
     completed: string;
     completed_with_rejections: string;
     exhausted: string;
+    in_flight: string;
+    retrying: string;
   }>(
     `WITH latest AS (
        SELECT "run_id", MAX("requested_at") AS requested_at
@@ -188,17 +201,21 @@ export async function translationJobCounts(locale: string): Promise<TranslationJ
         GROUP BY "run_id" ORDER BY MAX("requested_at") DESC LIMIT 1
      )
      SELECT latest.run_id, latest.requested_at::text,
+            COUNT(j.*) FILTER (WHERE j."completed_at" IS NULL AND j."claimed_at" > (EXTRACT(EPOCH FROM NOW()) * 1000 - $3))::text AS in_flight,
+            COUNT(j.*) FILTER (WHERE j."completed_at" IS NULL AND j."attempts" < $2 AND j."last_error" IS NOT NULL)::text AS retrying,
             COUNT(j.*)::text AS total,
-            COUNT(j.*) FILTER (WHERE j."completed_at" IS NULL AND j."attempts" < $2)::text AS active,
+            COUNT(j.*) FILTER (WHERE j."completed_at" IS NULL AND (j."attempts" < $2 OR j."claimed_at" > (EXTRACT(EPOCH FROM NOW()) * 1000 - $3)))::text AS active,
             COUNT(j.*) FILTER (WHERE j."completed_at" IS NOT NULL)::text AS completed,
             COUNT(j.*) FILTER (WHERE j."completed_at" IS NOT NULL AND j."terminal_status" = 'rejected')::text AS completed_with_rejections,
-            COUNT(j.*) FILTER (WHERE j."completed_at" IS NULL AND j."attempts" >= $2)::text AS exhausted
+            COUNT(j.*) FILTER (WHERE j."completed_at" IS NULL AND j."attempts" >= $2 AND (j."claimed_at" IS NULL OR j."claimed_at" <= (EXTRACT(EPOCH FROM NOW()) * 1000 - $3)))::text AS exhausted
        FROM latest LEFT JOIN "translationJobs" j
          ON j."locale" = $1 AND j."run_id" = latest.run_id
       GROUP BY latest.run_id, latest.requested_at`,
-    [locale, MAX_JOB_ATTEMPTS],
+    [locale, MAX_JOB_ATTEMPTS, JOB_LEASE_MS],
   );
   return {
+    inFlight: Number(row?.in_flight ?? 0),
+    retrying: Number(row?.retrying ?? 0),
     runId: row?.run_id ?? null,
     requestedAt: row?.requested_at === null || row?.requested_at === undefined ? null : Number(row.requested_at),
     total: Number(row?.total ?? 0),
@@ -230,28 +247,50 @@ export async function readTranslationsMentioning(locale: string, terms: readonly
 /** A digest no run ever produces; a row carrying it is stale whatever the current digest is. */
 const STALE_MARK = "stale";
 
-/**
- * Narrow "stale" to `hashes` after a glossary edit: those rows are marked for
- * replay, and every other row on an older digest is restamped with the
- * current one. The restamp is exact, not a shortcut: a glossary line is only
- * injected into a prompt whose segment mentions the term, so a segment that
- * does not mention it receives a byte-identical prompt under the new digest.
- */
+/** Mark only the selected hashes stale. Unrelated old digests are not proven current. */
 export async function scopeStaleTranslations(
   locale: string,
   hashes: readonly string[],
-  promptVersion: string,
+  _promptVersion: string,
 ): Promise<{ marked: number; restamped: number }> {
   assertDataWritesNotFrozen("scopeStaleTranslations");
   const marked = await getPostgresClient().sql<{ hash: string }>(
     'UPDATE "translationSegments" SET "prompt_version" = $3 WHERE "locale" = $1 AND "hash" = ANY($2::text[]) RETURNING "hash"',
     [locale, [...hashes], STALE_MARK],
   );
-  const restamped = await getPostgresClient().sql<{ hash: string }>(
-    'UPDATE "translationSegments" SET "prompt_version" = $2 WHERE "locale" = $1 AND "prompt_version" <> $2 AND "prompt_version" <> $3 RETURNING "hash"',
-    [locale, promptVersion, STALE_MARK],
+  // A different digest may reflect other unpropagated terms or a prompt change.
+  // Restamping it would hide that work without producing a new translation.
+  return { marked: marked.length, restamped: 0 };
+}
+
+/** Read-only coverage metadata for a bounded source-derived set of hashes. */
+export async function readTranslationCoverageRows(locale: string, hashes: readonly string[]): Promise<Array<{ hash: string; target: string; prompt_version: string; model: string }>> {
+  if (hashes.length === 0) return [];
+  return getPostgresClient().sql<{ hash: string; target: string; prompt_version: string; model: string }>(
+    'SELECT "hash", "target", "prompt_version", "model" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
+    [locale, [...hashes]],
   );
-  return { marked: marked.length, restamped: restamped.length };
+}
+
+/** A queue snapshot is separate from source coverage and publication evidence. */
+export async function translationQueueCoverage(locale: string): Promise<TranslationQueueCoverage> {
+  const [row] = await getPostgresClient().sql<Record<keyof TranslationQueueCoverage, string>>(
+    `WITH jobs AS (
+       SELECT *, ("claimed_at" IS NOT NULL AND "claimed_at" >= $2::bigint - $3::bigint) AS running
+       FROM "translationJobs" WHERE "locale" = $1
+     ) SELECT
+       COUNT(*) FILTER (WHERE "completed_at" IS NULL AND NOT running AND "attempts" < $4::int)::text AS queued,
+       COUNT(*) FILTER (WHERE "completed_at" IS NULL AND running)::text AS running,
+       COUNT(*) FILTER (WHERE "completed_at" IS NULL AND NOT running AND "attempts" >= $4::int)::text AS failed,
+       COUNT(*) FILTER (WHERE "completed_at" IS NOT NULL)::text AS completed,
+       COUNT(*) FILTER (WHERE "completed_at" IS NULL AND NOT running AND "attempts" < $4::int AND "last_error" IS NOT NULL)::text AS retrying
+     FROM jobs`,
+    [locale, Date.now(), JOB_LEASE_MS, MAX_JOB_ATTEMPTS],
+  );
+  return {
+    queued: Number(row?.queued ?? 0), running: Number(row?.running ?? 0), failed: Number(row?.failed ?? 0),
+    completed: Number(row?.completed ?? 0), retrying: Number(row?.retrying ?? 0),
+  };
 }
 
 /**
@@ -298,18 +337,18 @@ export async function enqueueTranslationJobs(
 }
 
 /** Lease up to `limit` due rows to this worker. Atomic: concurrent crons never take the same row. */
-export async function claimTranslationJobs(limit: number, mode: TranslationJobMode = "incremental"): Promise<TranslationJobRow[]> {
+export async function claimTranslationJobs(limit: number, mode: TranslationJobMode = "incremental", locale?: string): Promise<TranslationJobRow[]> {
   assertDataWritesNotFrozen("claimTranslationJobs");
   const now = Date.now();
   return await getPostgresClient().sql<TranslationJobRow>(
     `UPDATE "translationJobs" SET "claimed_at" = $1::bigint, "attempts" = "attempts" + 1
      WHERE ("locale", "slug", "mode") IN (
        SELECT "locale", "slug", "mode" FROM "translationJobs"
-       WHERE "mode" = $5 AND "completed_at" IS NULL AND "attempts" < $3::int AND ("claimed_at" IS NULL OR "claimed_at" < $1::bigint - $4::bigint)
+       WHERE "mode" = $5 AND ($6::text IS NULL OR "locale" = $6::text) AND "completed_at" IS NULL AND "attempts" < $3::int AND ("claimed_at" IS NULL OR "claimed_at" < $1::bigint - $4::bigint)
        ORDER BY "requested_at" ASC LIMIT $2::int FOR UPDATE SKIP LOCKED
      )
      RETURNING "locale", "slug", "attempts", "requested_at"::text, "claimed_at"::text, "mode", "run_id"`,
-    [now, limit, MAX_JOB_ATTEMPTS, JOB_LEASE_MS, mode],
+    [now, limit, MAX_JOB_ATTEMPTS, JOB_LEASE_MS, mode, locale ?? null],
   );
 }
 

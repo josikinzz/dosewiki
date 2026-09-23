@@ -66,10 +66,11 @@ twice. Verify consecutive cached builds with different IDs. Do not clear
 `.next/cache` or disable preload/skew protection to hide the mismatch.
 
 Stage scheduler ownership in each isolated release tree before uploading it.
-The shared root `vercel.json` contains all six jobs; it is not a surface-aware
+The shared root `vercel.json` contains all seven jobs; it is not a surface-aware
 scheduler configuration. Only the editor keeps `/api/cron/publication-delivery`
-and `/api/cron/translation-refresh`. Public DoseWiki and Effect Index keep the
-three `/open-data/` jobs and `/api/warm`, with both writer jobs removed.
+and `/api/cron/translation-refresh`, plus `/api/cron/translation-bulk`. Public
+DoseWiki and Effect Index keep the three `/open-data/` jobs and `/api/warm`,
+with all three writer jobs removed.
 The integrated release retains its exact inputs as
 `runs/postgres-import/2026-09-15T02-25-03Z-integrated-production-release/vercel-public-config.json`
 and `vercel-editor-config.json`. Preserve the rest of the routing and build

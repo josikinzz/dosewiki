@@ -24,12 +24,23 @@ test("each repeated protected value receives an independent token", () => {
   assert.equal(protectedValue.restore(protectedValue.source), source);
 });
 
-test("restoration removes invented digits and accepts harmless token variants", () => {
+test("restoration preserves unexpected digits and accepts harmless token variants", () => {
   const source = "Ambien 1 and experiment 2";
   const protectedValue = protectModelTokens(source);
 
   assert.equal(
     protectedValue.restore("安必恩 ｛｛ dwprotecta ｝｝ 与实验 {{dwprotectb}} 3"),
-    "安必恩 1 与实验 2 ",
+    "安必恩 1 与实验 2 3",
   );
+});
+
+test("restoration preserves translated serotonin terminology", () => {
+  assert.equal(protectModelTokens("serotonin").restore("5-羟色胺"), "5-羟色胺");
+});
+
+test("nested placeholders inside Markdown targets and VCode attributes restore exactly", () => {
+  for (const source of ["Join [here.]({{discordInvite}})", '[ext-link to="{{discordInvite}}"]Join[/ext-link]']) {
+    const protectedValue = protectModelTokens(source);
+    assert.equal(protectedValue.restore(protectedValue.source), source);
+  }
 });

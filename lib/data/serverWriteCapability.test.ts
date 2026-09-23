@@ -107,6 +107,16 @@ describe("Postgres write capabilities", () => {
     await expect(client.mutationAsService(intake, { apiKey: "intake-secret" })).resolves.toEqual({ updated: 1 });
   });
 
+  it("allows translation cache recovery while retaining the freeze boundary", async () => {
+    const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
+    const recovery = makeFunctionReference<"mutation", { targets: unknown[] }, unknown>("publicationRecovery:enqueueTranslationCacheRetry");
+    await expect(client.mutationAsService(recovery, { targets: [{ kind: "article-translation", slug: "fixture", locale: "zh-Hans" }] })).resolves.toEqual({ updated: 1 });
+    io.mutation.mockClear();
+    process.env.DATA_WRITES_FROZEN = "1";
+    await expect(client.mutationAsService(recovery, { targets: [] })).rejects.toMatchObject({ code: "DATA_WRITES_FROZEN" });
+    expect(io.mutation).not.toHaveBeenCalled();
+  });
+
   it.each(["1", "mayebe"])("blocks every write while freeze is %s but preserves reads", async (freeze) => {
     process.env.DATA_WRITES_FROZEN = freeze;
     const client = (await load()).getServerDataWriteCapabilityOrThrow().client;

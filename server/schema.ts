@@ -1,3 +1,4 @@
+import { glossaryFeedbackFields, glossaryReactionFields } from "./lib/glossaryFeedbackValidators";
 import { defineSchema, defineTable } from "../lib/postgres/runtime/schema";
 import { v } from "../lib/postgres/runtime/values";
 import { publicReadIndexTables } from "./lib/publicReadIndexSchema";
@@ -496,6 +497,14 @@ export default defineSchema({
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"])
     .index("by_substance", ["substance_slug", "created_at"]),
+
+  // Glossary submissions and append-only reaction choices never mutate translations.
+  glossaryFeedback: defineTable(glossaryFeedbackFields)
+    .index("by_locale_created", ["locale", "created_at"])
+    .index("by_visitor_id", ["visitor", "id"]),
+  glossaryReactionEvents: defineTable(glossaryReactionFields)
+    .index("by_version_visitor", ["locale", "term", "version", "visitor", "created_at"])
+    .index("by_visitor_id", ["visitor", "id"]),
 
   // Private site-wide general feedback intake. Editor-only; never rendered publicly.
   siteFeedback: defineTable(siteFeedback)

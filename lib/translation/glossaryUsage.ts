@@ -12,13 +12,14 @@ import { buildEffectArticleModel, EFFECT_ARTICLE_SECTION_TITLES, type Subjective
 import { FLAT_CATEGORIES, PARENT_CATEGORIES, TABS } from "../../src/features/effects/pages/effectsIndexConfig";
 import { buildGalleryBrowseUrl, type GalleryBrowseState } from "../../src/features/replications/galleryUrlState";
 import { MEDIA_LABEL, MEDIA_OPTIONS, TAXONOMY_FILTER_CHIP_LABELS, TAXONOMY_FILTER_LABELS, TAXONOMY_FILTER_OPTIONS } from "../../src/features/replications/replicationVocabulary";
-import type { GlossaryUsageNode, GlossaryUsageResponse } from "../../src/lib/glossary/glossaryUsage";
+import type { GlossaryUsageMap, GlossaryUsageNode, GlossaryUsageResponse } from "../../src/lib/glossary/glossaryUsage";
 import type { SubstanceArticle } from "../../src/schema/substance/article";
 import { getSubstanceSectionManifestEntries } from "../../src/schema/substance/sectionCatalog";
 import { effectIndexViewPath } from "../../src/utils/indexViewRoutes";
 import { publicHref } from "../../src/utils/publicHref";
 import { getPublicRoutePath } from "../../src/utils/publicRouteIdentity";
 import { getPublicDataReadAdapter, type PublicDataReadAdapter } from "../data/publicData.reads";
+import { PUBLIC_DATA_CACHE_TAGS, PUBLIC_SUBSTANCE_CONTENT_TAG, publicDataCache } from "../data/publicData.cache";
 import { resolveRuntimePostgresTarget } from "../postgres/runtime/target";
 
 const COVERAGE = "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.";
@@ -191,7 +192,7 @@ export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offs
 // Like publicLibrary's derived index, this stays process-local, not a multi-megabyte Next cache entry.
 // Share cold reads across every expanded term, and drop rejected snapshots so retry is real.
 let snapshot: { target: string; reads: PublicDataReadAdapter; expiresAt: number; promise: Promise<GlossaryUsageIndex> } | undefined;
-export async function getGlossaryUsage(term: string, offset = 0): Promise<GlossaryUsageResponse> {
+async function getGlossaryUsageIndex(): Promise<GlossaryUsageIndex> {
   const reads = getPublicDataReadAdapter();
   const target = resolveRuntimePostgresTarget().url;
   if (!snapshot || snapshot.target !== target || snapshot.reads !== reads || snapshot.expiresAt <= Date.now()) {
@@ -199,5 +200,37 @@ export async function getGlossaryUsage(term: string, offset = 0): Promise<Glossa
     snapshot = next;
     next.promise.then(() => { next.expiresAt = Date.now() + CACHE_TTL_MS; }, () => { if (snapshot === next) snapshot = undefined; });
   }
-  return queryGlossaryUsage(await snapshot.promise, term, offset);
+  return snapshot.promise;
 }
+
+export async function getGlossaryUsage(term: string, offset = 0): Promise<GlossaryUsageResponse> {
+  return queryGlossaryUsage(await getGlossaryUsageIndex(), term, offset);
+}
+
+/** Build the corpus index once, then project every disclosure before its page reaches the browser. */
+async function buildGlossaryUsages(terms: readonly string[]): Promise<GlossaryUsageMap> {
+  if (terms.length === 0) return {};
+  const index = await getGlossaryUsageIndex();
+  return Object.fromEntries([...new Set(terms)].map((term) => [term, queryGlossaryUsage(index, term)]));
+}
+
+/**
+ * Persist the bounded disclosure payload across server instances. Static public
+ * glossary builds warm this cache, so the editor and reader pages do not pay a
+ * corpus scan on first interaction after a serverless cold start.
+ */
+export const getGlossaryUsages = publicDataCache(
+  buildGlossaryUsages,
+  ["glossary-usage-disclosures-v1"],
+  {
+    revalidate: 300,
+    tags: [
+      PUBLIC_DATA_CACHE_TAGS.all,
+      PUBLIC_SUBSTANCE_CONTENT_TAG,
+      PUBLIC_DATA_CACHE_TAGS.effects,
+      PUBLIC_DATA_CACHE_TAGS.articles,
+      PUBLIC_DATA_CACHE_TAGS.replications,
+      PUBLIC_DATA_CACHE_TAGS.layouts,
+    ],
+  },
+);

@@ -8,13 +8,13 @@ import type { GlossaryUsageResponse } from "@/lib/glossary/glossaryUsage";
 
 const COMPACT_LINK_COUNT = 3;
 
-/** Public-safe and lazy on both the public glossary and the editor's review table. */
-export function GlossaryUsageDisclosure({ term }: { term: string }) {
+/** Public-safe, precomputed on glossary pages, with the API retained for pagination and retry. */
+export function GlossaryUsageDisclosure({ term, initialData = null }: { term: string; initialData?: GlossaryUsageResponse | null }) {
   const t = useT();
   const id = useId();
   const [expanded, setExpanded] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [data, setData] = useState<GlossaryUsageResponse | null>(null);
+  const [data, setData] = useState<GlossaryUsageResponse | null>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -41,7 +41,8 @@ export function GlossaryUsageDisclosure({ term }: { term: string }) {
   return (
     <div className="mt-1 w-full text-xs theme-text-secondary">
       <ExpandButton
-        variant="faint"
+        variant="inline"
+        className="-ml-1 text-current"
         isExpanded={expanded}
         ariaControls={id}
         ariaLabel={`${t("Where it is used")}: ${term}`}

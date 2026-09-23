@@ -2,9 +2,10 @@
  * Build `content/i18n/messages/<locale>.json` from the English literals in the app.
  *
  * Scans `src/` for `t("...")`, `t('...')`, `t(\`...\`)` (no `${}`) and
- * `msg("...")` calls, keeps every catalog entry whose key is still in the
- * source, translates the keys the catalog lacks with the same model and prompt
- * as the article segments, and writes the catalog back sorted by key.
+ * `msg("...")` calls and contextual message definitions. Approved human UI
+ * renderings take precedence over approved glossary terms, then prior catalog
+ * values and local seeds. Missing keys use the article translation engine.
+ * Writes the catalog, server-only workbench inventory and compilation metadata.
  *
  * Data sources add keys the scanner cannot see because they reach the page as
  * data rendered through `t()`: the approved glossary in Postgres (the UI-label
@@ -18,11 +19,15 @@
  *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts            # report only
  *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --write    # call the model, write the catalog
  *   ... --write --seed=notes-and-plans/exports/translation/zh-Hans/layout --live-copy
+ *   bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write
+ *     # local seeds only; retains all existing entries, no database/model access
  *
  * Set DATA_BACKEND and the Postgres URL exactly as the app would; `--live-copy`
- * reads the Copy Studio rows through the same adapter.
+ * reads the Copy Studio rows through the same adapter. Compilation is not
+ * publication; offline compilation does not verify current approved overrides.
  */
 import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -36,8 +41,14 @@ import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactiv
 import { readGlossaryRows } from "../../lib/translation/glossary";
 import * as live from "../../lib/translation/liveTranslation";
 import { planBatches, translateBatchWithRetries, type WorkUnit } from "./engine.mjs";
+import { acceptedCheckpointTarget, catalogCheckpointKey, catalogUsesVCode, readCatalogCheckpoint, writeCatalogCheckpoint } from "./ui-catalog-checkpoint.mjs";
 import { segmentHash } from "./segment-manifest.mjs";
-import { isBlocking } from "./validate.mjs";
+import { isBlocking, validateSegment } from "./validate.mjs";
+import { compileUiCatalog, expandUiGlossaryAliases, getUiCatalogGlossaryMisses } from "../../lib/translation/uiCatalogCompiler";
+import { getApprovedUiTranslationsDigest, type UiCatalogPublication } from "../../lib/translation/uiCatalogPublication";
+import { getUiMessageDefinition, UI_MESSAGE_ALIASES, UI_MESSAGE_DEFINITIONS } from "../../src/i18n/uiMessageDefinitions";
+import { UI_MESSAGE_SEEDS } from "../../src/i18n/uiMessageSeeds";
+import { guardTarget } from "../postgres/targetGuard";
 
 /** Glossary kinds whose terms can reach UI labels through `t()`. Classification
  * aliases and register terms are included because substance badges retain the
@@ -66,13 +77,35 @@ const { values } = parseArgs({
   options: {
     locale: { type: "string", default: "zh-Hans" },
     seed: { type: "string" },
+    checkpoint: { type: "string" },
     "live-copy": { type: "boolean", default: false },
     write: { type: "boolean", default: false },
+    "max-units": { type: "string" },
+    offline: { type: "boolean", default: false },
+    target: { type: "string" },
+    "allow-remote": { type: "boolean", default: false },
   },
 });
 
 const localeCode = values.locale as string;
+// Scratch-only destination prevents an accidental checkpoint overwriting a catalog.
+const checkpointPath = values.checkpoint ? path.resolve(repoRoot, values.checkpoint) : undefined;
+if (checkpointPath && !checkpointPath.startsWith(path.join(repoRoot, "tmp") + path.sep))
+  throw new Error("--checkpoint must be a path under this checkout's ignored tmp/ directory");
 const catalogPath = path.join(repoRoot, "content/i18n/messages", `${localeCode}.json`);
+const publicationPath = path.join(repoRoot, "src/i18n/catalogPublication.json");
+const digestPath = path.join(repoRoot, "src/i18n/catalogDigests.generated.json");
+const inventoryPath = path.join(repoRoot, "src/i18n/uiWorkbenchInventory.generated.json");
+if (!/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(localeCode)) throw new Error("Invalid locale code");
+if (values.offline && values["live-copy"]) throw new Error("--offline cannot read --live-copy");
+if (!values.offline) {
+  const target = values.target ?? process.env.TARGET_POSTGRES_URL;
+  if (!target) throw new Error("Online catalog builds require --target <postgres-url> or TARGET_POSTGRES_URL; use --offline for local seeds only");
+  guardTarget(target, values["allow-remote"]);
+  process.env.DATA_BACKEND = "postgres";
+  process.env.POSTGRES_POOLED_URL = target;
+  delete process.env.POSTGRES_DIRECT_URL;
+}
 
 /** `t("..")`, `t('..')`, `` t(`..`) `` without interpolation, and the `msg()` marker. Handles `\"` escapes. */
 const CALL = /\b(?:t|msg)\(\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|`((?:[^`\\$]|\\.)*)`)/g;
@@ -339,7 +372,7 @@ async function loadGlossaryKeys(): Promise<Map<string, string>> {
   for (const row of await readGlossaryRows(localeCode, { status: "approved" })) {
     if (GLOSSARY_KINDS.has(row.kind)) out.set(row.term, row.target);
   }
-  return out;
+  return expandUiGlossaryAliases(out);
 }
 
 /** Copy Studio bodies: the checked-in defaults, plus the live rows on request. */
@@ -364,6 +397,9 @@ async function loadCopyKeys(): Promise<Set<string>> {
 
 async function main() {
   const keys = await collectKeys();
+  for (const [id, definition] of Object.entries(UI_MESSAGE_DEFINITIONS)) {
+    keys.set(id, new Set(definition.locations));
+  }
   for (const body of await loadCopyKeys()) {
     if (!keys.has(body)) keys.set(body, new Set(["copyBlocks"]));
   }
@@ -392,7 +428,17 @@ async function main() {
   for (const label of await loadFieldLabelKeys()) {
     if (!keys.has(label)) keys.set(label, new Set(["fieldRegistry"]));
   }
-  const glossary = await loadGlossaryKeys();
+  // Offline checks use only authored baseline terminology, never a stale
+  // export masquerading as the current approved Postgres glossary.
+  const baselineGlossary = new Map(Object.entries(UI_MESSAGE_DEFINITIONS).flatMap(([id, definition]) => {
+    const target = UI_MESSAGE_SEEDS[localeCode]?.[id];
+    return target ? definition.glossaryTerms.map((term) => [term, target] as const) : [];
+  }));
+  const glossary = values.offline ? new Map<string, string>() : await loadGlossaryKeys();
+  const translationContext = values.offline ? undefined : await live.loadTranslationContext(localeCode);
+  const auditGlossary = values.offline ? baselineGlossary : new Map([
+    ...Object.entries(translationContext!.glossary), ...glossary,
+  ]);
   for (const term of glossary.keys()) {
     if (!keys.has(term)) keys.set(term, new Set(["glossary"]));
   }
@@ -406,34 +452,50 @@ async function main() {
   const existing: Record<string, string> = existsSync(catalogPath)
     ? JSON.parse(await readFile(catalogPath, "utf8"))
     : {};
-  const seed = new Map([...(await loadSeed()), ...glossary]);
-
-  const next: Record<string, string> = {};
-  const pending: WorkUnit[] = [];
-  let seeded = 0;
-  for (const key of keys.keys()) {
-    if (existing[key]) {
-      next[key] = existing[key];
-    } else if (seed.has(key)) {
-      next[key] = seed.get(key)!;
-      seeded += 1;
-    } else {
-      pending.push({
-        hash: segmentHash(key),
-        source: key,
-        contextClass: "prose",
-        group: "ui",
-        markup: false,
-        words: key.split(/\s+/).length,
-        occurrences: keys.get(key)!.size,
-      });
-    }
+  const inventory = Object.fromEntries([...keys].filter(([key]) => !UI_MESSAGE_ALIASES[key]).map(([key, locations]) => {
+    const definition = getUiMessageDefinition(key);
+    const id = definition ? key : `legacy.${createHash("sha256").update(key).digest("hex")}`;
+    return [id, {
+      catalogKey: key,
+      source: definition?.source ?? key,
+      context: definition?.context ?? (key === "Light"
+        ? "Dose intensity label: light. Appearance controls have a separate appearance.light message."
+        : "UI label or copy rendered through the translation catalog. Inspect source locations for its usage."),
+      locations: [...locations].sort(),
+      glossaryTerms: definition?.glossaryTerms ?? [key],
+    }];
+  }).sort(([a], [b]) => String(a).localeCompare(String(b))));
+  // Offline regeneration is limited to local seeds. It neither purports to
+  // read current approvals nor drops entries from an incomplete local inventory.
+  if (values.offline) for (const key of Object.keys(existing)) {
+    if (!keys.has(key)) keys.set(key, new Set(["existing catalog (offline)"]));
   }
+  const approvedOverrides = values.offline ? {} : await (
+    await import("../../lib/translation/uiTranslationStore")
+  ).readApprovedUiTranslations(localeCode);
+  const { catalog: next, pending: pendingKeys, pendingRefresh } = compileUiCatalog({
+    locale: localeCode, keys: keys.keys(), existing, glossary,
+    approvedOverrides, auditGlossary, seed: await loadSeed(),
+  });
+  const keyByHash = new Map<string, string>();
+  const pending: WorkUnit[] = pendingKeys.map((key) => {
+    const definition = getUiMessageDefinition(key);
+    const source = definition?.source ?? key;
+    const hash = segmentHash(key);
+    keyByHash.set(hash, key);
+    return {
+      hash, source, context: [definition?.context,
+        /\[[^\]]+\]\(/.test(source) ? "Markdown copy: preserve each link destination and every {{placeholder}} exactly; translate only the link label and prose." : undefined,
+      ].filter(Boolean).join("\n") || undefined, contextClass: "prose", group: "ui",
+      markup: catalogUsesVCode(source), words: source.split(/\s+/).length, occurrences: keys.get(key)?.size ?? 1,
+    };
+  });
   const dropped = Object.keys(existing).filter((key) => !keys.has(key)).length;
 
   console.log(`Locale   ${localeCode}`);
   console.log(`Keys     ${keys.size} in source, ${Object.keys(existing).length} in catalog`);
-  console.log(`Plan     ${Object.keys(next).length - seeded} kept, ${seeded} seeded, ${pending.length} to translate, ${dropped} dropped`);
+  console.log(`Plan     ${Object.keys(next).length} resolved, ${pending.length} to translate, ${dropped} dropped`);
+  console.log(`Refresh  ${pendingRefresh.length} existing entries disagree with ${values.offline ? "local baseline terminology (current approvals unverified, text preserved)" : "approved glossary (human overrides excluded)"}`);
 
   if (!values.write) {
     for (const unit of pending.slice(0, 40)) console.log(`  - ${JSON.stringify(unit.source)}`);
@@ -442,35 +504,109 @@ async function main() {
     return;
   }
 
-  if (pending.length > 0) {
+  const maxUnits = values["max-units"] === undefined ? Infinity : Number(values["max-units"]);
+  if (values["max-units"] !== undefined && (!Number.isSafeInteger(maxUnits) || maxUnits < 0)) throw new Error("--max-units must be a non-negative integer");
+  if (!values.offline && pending.length > maxUnits) throw new Error(`Catalog plan exceeds --max-units (${pending.length} > ${maxUnits}); no model calls or artifact writes performed`);
+
+  if (pending.length > 0 && !values.offline) {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is required to translate");
-    const context = await live.loadTranslationContext(localeCode);
+    const context = translationContext!;
     const rejected: string[] = [];
-    for (const batch of planBatches(pending)) {
+    // Keep contextual labels separate so dose-intensity terminology cannot
+    // leak into an appearance label that happens to share its English word.
+    const proseGlossary = Object.fromEntries(expandUiGlossaryAliases(new Map([...Object.entries(context.glossary), ...glossary])));
+    const glossaryFor = (key: string) => {
+      const definition = getUiMessageDefinition(key);
+      return definition ? Object.fromEntries(Object.entries(proseGlossary).filter(([term]) => definition.glossaryTerms.some((allowed) => allowed.toLowerCase() === term.toLowerCase()))) : proseGlossary;
+    };
+    const validateUnit = (unit: WorkUnit, target: string) => validateSegment({
+      source: unit.source, target, locale: context.locale, markup: unit.markup,
+      glossary: glossaryFor(keyByHash.get(unit.hash)!),
+    });
+    const implementation = await Promise.all(["ui-catalog.ts", "ui-catalog-checkpoint.mjs", "engine.mjs", "locales.mjs", "validate.mjs", "markup.mjs"].map(async (file) =>
+      createHash("sha256").update(await readFile(path.join(repoRoot, "scripts/translation", file))).digest("hex")));
+    const checkpointContext = { schema: 1, locale: context.locale, glossary: proseGlossary,
+      kinds: context.kinds, glosses: context.glosses, model: live.TRANSLATION_MODEL, approvedOverrides, implementation };
+    const checkpointKeyFor = (unit: WorkUnit) => catalogCheckpointKey({ ...checkpointContext, unit });
+    const saved = checkpointPath ? await readCatalogCheckpoint(checkpointPath) : {};
+    let resumed = 0;
+    const remaining = pending.filter((unit) => {
+      const target = acceptedCheckpointTarget(saved, checkpointKeyFor(unit), (candidate) => validateUnit(unit, candidate));
+      if (target === null) return true;
+      next[keyByHash.get(unit.hash)!] = target;
+      resumed += 1;
+      return false;
+    });
+    console.log(`Resume   ${resumed} accepted entries reused; ${remaining.length} require generation`);
+    const contextual = remaining.filter((unit) => getUiMessageDefinition(keyByHash.get(unit.hash)!));
+    const batches = [...planBatches(remaining.filter((unit) => !contextual.includes(unit))), ...contextual.map((unit) => [unit])];
+    let processed = resumed;
+    for (const [batchIndex, batch] of batches.entries()) {
+      const batchGlossary = glossaryFor(keyByHash.get(batch[0].hash)!);
+      console.log(`Batch    ${batchIndex + 1}/${batches.length} started (${batch.length} entries; ${processed}/${pending.length} processed)`);
       const verdicts = await translateBatchWithRetries({
         units: batch,
         locale: context.locale,
-        glossary: context.glossary,
+        glossary: batchGlossary,
         kinds: context.kinds,
         glosses: context.glosses,
         model: live.TRANSLATION_MODEL,
         apiKey,
       });
       for (const verdict of verdicts) {
-        if (isBlocking(verdict.defects) || verdict.target.length === 0) {
+        if (isBlocking(verdict.defects) || verdict.target.length === 0 || isBlocking(validateUnit(verdict.unit, verdict.target).defects)) {
           rejected.push(`${JSON.stringify(verdict.unit.source)} (${verdict.defects.join(", ")})`);
           continue;
         }
-        next[verdict.unit.source] = verdict.target;
+        next[keyByHash.get(verdict.unit.hash)!] = verdict.target;
+        saved[checkpointKeyFor(verdict.unit)] = verdict.target;
       }
+      processed += batch.length;
+      if (checkpointPath) await writeCatalogCheckpoint(checkpointPath, saved);
+      console.log(`Batch    ${batchIndex + 1}/${batches.length} finished (${processed}/${pending.length} processed; ${rejected.length} rejected)`);
     }
     console.log(`Model    ${pending.length - rejected.length} translated, ${rejected.length} rejected`);
     for (const line of rejected) console.log(`  ! ${line}`);
+    if (rejected.length > 0) throw new Error(`Catalog generation rejected ${rejected.length} entries; existing artifacts were preserved`);
   }
 
-  const sorted = Object.fromEntries(Object.entries(next).sort(([a], [b]) => a.localeCompare(b)));
+  if (!values.offline) {
+    const context = translationContext!;
+    for (const [key, target] of Object.entries(next)) {
+      const definition = getUiMessageDefinition(key);
+      const exactTarget = approvedOverrides[key] ?? definition?.glossaryTerms.map((term) => glossary.get(term)).find(Boolean) ?? glossary.get(key);
+      const expandedGlossary = expandUiGlossaryAliases(new Map([...Object.entries(context.glossary), ...glossary]));
+      const validationGlossary = definition ? Object.fromEntries([...expandedGlossary].filter(([term]) => definition.glossaryTerms.some((allowed) => allowed.toLowerCase() === term.toLowerCase()))) : Object.fromEntries(expandedGlossary);
+      const result = validateSegment({ source: definition?.source ?? key, target, locale: context.locale, markup: catalogUsesVCode(definition?.source ?? key), exactTarget, glossary: validationGlossary });
+      if (isBlocking(result.defects)) throw new Error(`Catalog validation failed for ${key}: ${result.defects.join(", ")}`);
+      if (result.defects.length) console.log(`  QA ${JSON.stringify(key)}: ${result.defects.join(", ")}`);
+    }
+  }
+
+  // Keep the exact English lookup keys; normalize target typography to the site's style.
+  const sorted = Object.fromEntries(Object.entries(next)
+    .map(([source, target]) => [source, target.replaceAll("\u2014", "\u2013")])
+    .sort(([a], [b]) => a.localeCompare(b)));
   await writeFile(catalogPath, `${JSON.stringify(sorted, null, 2)}\n`);
+  await writeFile(inventoryPath, `${JSON.stringify(inventory, null, 2)}\n`);
+  const publications: Record<string, UiCatalogPublication> = existsSync(publicationPath)
+    ? JSON.parse(await readFile(publicationPath, "utf8")) : {};
+  publications[localeCode] = {
+    compiledAt: new Date().toISOString(),
+    catalogDigest: getApprovedUiTranslationsDigest(sorted),
+    approvedUiDigest: values.offline ? null : getApprovedUiTranslationsDigest(approvedOverrides),
+    approvedUiSource: values.offline ? "offline-unverified" : "store",
+    sourceInventoryDigest: createHash("sha256").update(JSON.stringify(inventory)).digest("hex"),
+    pendingRefresh: values.offline ? pendingRefresh : [],
+    qaGlossaryMisses: getUiCatalogGlossaryMisses(sorted, auditGlossary, approvedOverrides),
+    exactLabels: Object.fromEntries([...new Set([...Object.keys(UI_MESSAGE_DEFINITIONS), ...Object.keys(approvedOverrides)])].filter((key) => sorted[key]).map((key) => [key, {
+      source: getUiMessageDefinition(key)?.source ?? key, target: sorted[key], targetDigest: createHash("sha256").update(sorted[key]).digest("hex"),
+    }])),
+  };
+  await writeFile(publicationPath, `${JSON.stringify(publications, null, 2)}\n`);
+  await writeFile(digestPath, `${JSON.stringify(Object.fromEntries(Object.entries(publications).map(([locale, publication]) => [locale, publication.catalogDigest])), null, 2)}\n`);
+  if (values.offline) console.log("Offline artifact: current human approvals and deployment have not been verified.");
   console.log(`Wrote    ${path.relative(repoRoot, catalogPath)} (${Object.keys(sorted).length} entries)`);
 }
 

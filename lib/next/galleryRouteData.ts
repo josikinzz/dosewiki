@@ -1,3 +1,4 @@
+import { parseUiLocale } from "@/i18n/messages";
 import "server-only";
 
 import { groupByArtist } from "@/features/effects/gallery/galleryModel";
@@ -35,7 +36,7 @@ export async function getGalleryRouteBootstrap(
   viewerSlug: string,
   locale: LiveLocale | null,
 ): Promise<GalleryRouteBootstrap> {
-  const language = locale?.code === "zh-Hans" ? "zh-Hans" : "en";
+  const language = parseUiLocale(locale?.code);
   const [index, selectedRecord] = await Promise.all([
     getGalleryBrowseIndex(language),
     locale

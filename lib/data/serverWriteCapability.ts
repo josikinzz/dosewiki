@@ -50,8 +50,11 @@ const SERVICE_MUTATION_NAMES: Record<string, true> = {
   "articleFeedback:create": true,
   "mailingList:subscribe": true,
   "publicationRecovery:claimDue": true,
+  "publicationRecovery:enqueueTranslationCacheRetry": true,
   "publicationRecovery:recordDelivery": true,
   "siteFeedback:create": true,
+  "glossaryFeedback:create": true,
+  "glossaryFeedback:createReaction": true,
   "tripReportSubmissions:create": true,
 };
 
