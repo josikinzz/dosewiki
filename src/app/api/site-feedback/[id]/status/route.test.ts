@@ -28,7 +28,7 @@ import { POST } from "./route";
 function statusRequest(body: unknown): Request {
   return new Request("https://dose.wiki/api/site-feedback/feedback-1/status", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -78,5 +78,19 @@ describe("site feedback status route", () => {
     const failed = await POST(statusRequest({ status: "resolved" }), context);
     expect(failed.status).toBe(500);
     await expect(failed.json()).resolves.toEqual({ error: "Unable to update site feedback right now." });
+  });
+
+  it("refuses a cross-origin POST with 403 before touching the store", async () => {
+    const response = await POST(
+      new Request("https://dose.wiki/api/site-feedback/feedback-1/status", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://evil.example" },
+        body: JSON.stringify({ status: "resolved" }),
+      }),
+      context,
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.getSiteFeedbackStore).not.toHaveBeenCalled();
   });
 });

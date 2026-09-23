@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { requireRoleSession } from "@/lib/auth/requireEditorSession";
 import { canApprove } from "@/lib/auth/roles";
-import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
 import {
   getTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError,
 } from "@/features/reports/submissions/tripReportSubmissionStore.server";
 import { TripReportSubmissionNotFoundError } from "@/features/reports/submissions/dataTripReportSubmissionStore";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";
 
@@ -28,63 +27,69 @@ type PromoteBody = {
 
 const MAX_PROMOTE_BODY_BYTES = 8 * 1024;
 
+type ParsedPromoteBody = {
+  shouldPublish: boolean;
+  profileKey: string | undefined;
+  confirmAuthorNameClaim: boolean;
+};
+
 export async function POST(request: Request, context: PromoteRouteContext) {
-  const rateLimited = await enforceRateLimit(request, "editorSmallWrite");
-  if (rateLimited) {
-    return rateLimited;
-  }
+  return protectedRouteOperation<PromoteBody, ParsedPromoteBody>({
+    // Previewing the promotion payload is an editor read; publishing it is an
+    // admin decision, checked once the body says which one this is.
+    auth: "editor",
+    rateLimit: "editorSmallWrite",
+    body: {
+      maxBytes: MAX_PROMOTE_BODY_BYTES,
+      parse: (body) => ({
+        shouldPublish: asBoolean(body.publish),
+        profileKey: asTrimmedString(body.profile_key),
+        confirmAuthorNameClaim: asBoolean(body.confirm_author_name_claim),
+      }),
+    },
+    unexpectedErrorLabel: "Failed to promote trip report submission:",
+    // Total, so every failure keeps this route's own response shape.
+    mapError: mapPromoteRouteError,
+    operation: async ({ auth, actorEmail, body }) => {
+      const { id } = await Promise.resolve(context.params);
+      const { shouldPublish, profileKey, confirmAuthorNameClaim } = body;
+      const store = await getTripReportSubmissionStore();
 
-  // Previewing the promotion payload is an editor read; publishing it is an
-  // admin decision, checked once the body says which one this is.
-  const auth = await requireRoleSession("editor");
-  if (auth.ok === false) {
-    return auth.response;
-  }
+      if (!shouldPublish) {
+        const result = await store.previewPromotion(id, {
+          profileKey,
+          confirmAuthorNameClaim,
+          actorEmail,
+        });
+        return NextResponse.json({
+          ok: true,
+          published: false,
+          submission: result.row,
+          payload: result.payload,
+        });
+      }
 
-  try {
-    const { id } = await Promise.resolve(context.params);
-    const body = await readJsonBody<PromoteBody>(request, { maxBytes: MAX_PROMOTE_BODY_BYTES });
-    const shouldPublish = asBoolean(body.publish);
-    const profileKey = asTrimmedString(body.profile_key);
-    const confirmAuthorNameClaim = asBoolean(body.confirm_author_name_claim);
-    const store = await getTripReportSubmissionStore();
+      if (!canApprove(auth.role)) {
+        return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+      }
 
-    if (!shouldPublish) {
-      const result = await store.previewPromotion(id, {
+      const result = await store.promote(id, {
+        actorEmail,
+        notes: "Published from accepted trip report submission.",
         profileKey,
         confirmAuthorNameClaim,
-        actorEmail: auth.session.user.email,
       });
+
       return NextResponse.json({
         ok: true,
-        published: false,
-        submission: result.row,
+        published: true,
+        submission: result.submission,
+        reportId: result.reportId,
         payload: result.payload,
+        suggestedOwner: result.suggestedOwner ?? null,
       });
-    }
-
-    if (!canApprove(auth.role)) {
-      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-    }
-
-    const result = await store.promote(id, {
-      actorEmail: auth.session.user.email,
-      notes: "Published from accepted trip report submission.",
-      profileKey,
-      confirmAuthorNameClaim,
-    });
-
-    return NextResponse.json({
-      ok: true,
-      published: true,
-      submission: result.submission,
-      reportId: result.reportId,
-      payload: result.payload,
-      suggestedOwner: result.suggestedOwner ?? null,
-    });
-  } catch (error) {
-    return mapPromoteRouteError(error);
-  }
+    },
+  })(request);
 }
 
 function asBoolean(value: unknown): boolean {

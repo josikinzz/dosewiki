@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireRoleSession } from "@/lib/auth/requireEditorSession";
-import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
 import {
   getTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError,
@@ -11,7 +11,6 @@ import {
   isTripReportSubmissionStatus,
   type TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";
 
@@ -27,33 +26,32 @@ type StatusBody = {
 const MAX_STATUS_BODY_BYTES = 16 * 1024;
 
 export async function POST(request: Request, context: StatusRouteContext) {
-  const rateLimited = await enforceRateLimit(request, "editorSmallWrite");
-  if (rateLimited) {
-    return rateLimited;
-  }
+  return protectedRouteOperation<StatusBody, { status: TripReportSubmissionStatus; notes?: string }>({
+    // Triage decisions move a submission through the queue; that is an admin call.
+    auth: "admin",
+    rateLimit: "editorSmallWrite",
+    body: {
+      maxBytes: MAX_STATUS_BODY_BYTES,
+      parse: (body) => ({
+        status: parseStatus(body.status),
+        notes: typeof body.notes === "string" ? body.notes : undefined,
+      }),
+    },
+    unexpectedErrorLabel: "Failed to update trip report submission status:",
+    // Total, so every failure keeps this route's own response shape.
+    mapError: mapStatusRouteError,
+    operation: async ({ actorEmail, body }) => {
+      const { id } = await Promise.resolve(context.params);
+      const store = await getTripReportSubmissionStore();
+      const submission = await store.transition(id, {
+        status: body.status,
+        actorEmail,
+        notes: body.notes,
+      });
 
-  // Triage decisions move a submission through the queue; that is an admin call.
-  const auth = await requireRoleSession("admin");
-  if (auth.ok === false) {
-    return auth.response;
-  }
-
-  try {
-    const { id } = await Promise.resolve(context.params);
-    const body = await readJsonBody<StatusBody>(request, { maxBytes: MAX_STATUS_BODY_BYTES });
-    const status = parseStatus(body.status);
-    const notes = typeof body.notes === "string" ? body.notes : undefined;
-    const store = await getTripReportSubmissionStore();
-    const submission = await store.transition(id, {
-      status,
-      actorEmail: auth.session.user.email,
-      notes,
-    });
-
-    return NextResponse.json({ ok: true, submission });
-  } catch (error) {
-    return mapStatusRouteError(error);
-  }
+      return NextResponse.json({ ok: true, submission });
+    },
+  })(request);
 }
 
 function parseStatus(value: unknown): TripReportSubmissionStatus {

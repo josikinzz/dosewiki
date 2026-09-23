@@ -37,7 +37,7 @@ const POST = feedbackStatusRoute<Status>({
 function statusRequest(body: unknown): Request {
   return new Request("https://dose.wiki/api/thing/feedback-1/status", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", origin: "https://dose.wiki" },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -51,6 +51,34 @@ describe("feedbackStatusRoute", () => {
     authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", ADMIN));
     transition.mockReset().mockResolvedValue({ id: "feedback-1", status: "resolved" });
     getStore.mockReset().mockResolvedValue({ transition });
+  });
+
+  it.each([
+    ["a foreign Origin", { origin: "https://evil.example" }],
+    ["no Origin", {}],
+    ["a cross-site fetch", { origin: "https://dose.wiki", "sec-fetch-site": "cross-site" }],
+  ])("refuses %s with 403 before the limiter, session, or store", async (_label, headers) => {
+    const response = await POST(
+      new Request("https://dose.wiki/api/thing/feedback-1/status", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...headers },
+        body: JSON.stringify({ status: "resolved" }),
+      }),
+      context,
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({ code: "ORIGIN_REQUIRED" });
+    expect(authMocks.enforceRateLimit).not.toHaveBeenCalled();
+    expect(authMocks.requireRoleSession).not.toHaveBeenCalled();
+    expect(getStore).not.toHaveBeenCalled();
+  });
+
+  it("keeps its success response for a same-origin admin", async () => {
+    const response = await POST(statusRequest({ status: "resolved" }), context);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ ok: true, feedback: { id: "feedback-1", status: "resolved" } });
   });
 
   it("returns the rate limiter's response before checking the session", async () => {

@@ -27,6 +27,7 @@ const ADMIN = { email: "admin@example.com", name: "Admin" };
 const statusRequest = (body: unknown = { status: "accepted", notes: "Good candidate." }) =>
   new Request("https://dose.wiki/api/trip-report-submissions/submission-1/status", {
     method: "POST",
+    headers: { origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 
@@ -115,5 +116,22 @@ describe("trip report submission status route", () => {
     }
     expect(mocks.getTripReportSubmissionStore).not.toHaveBeenCalled();
     expect(mocks.storeTransition).not.toHaveBeenCalled();
+  });
+
+  it("refuses a cross-origin POST with 403 before the session or store", async () => {
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/trip-report-submissions/submission-1/status", {
+        method: "POST",
+        headers: { origin: "https://evil.example" },
+        body: JSON.stringify({ status: "accepted" }),
+      }),
+      context,
+    );
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).not.toHaveBeenCalled();
+    expect(mocks.getTripReportSubmissionStore).not.toHaveBeenCalled();
   });
 });
