@@ -7,6 +7,7 @@ import type { PublicationTarget } from "../next/publicationWire";
 import { makeFunctionReference } from "../postgres/runtime/api";
 import { isPublicLocaleCode } from "../../src/i18n/localeRegistry.mjs";
 import {
+  createTranslationWave,
   loadTranslationContext,
   parseTranslationJobSlug,
   readTranslationRecord,
@@ -88,6 +89,8 @@ export async function runTranslationJobs(
     const jobs = await claimTranslationJobs(config.jobsPerRun, config.mode);
     if (jobs.length === 0) break;
     run.claimed += jobs.length;
+    // A bulk wave writes through one pool-sized writer and requests a shared segment once.
+    const wave = config.mode === "bulk" ? createTranslationWave() : undefined;
 
     await Promise.all(jobs.map(async (job) => {
       try {
@@ -103,7 +106,7 @@ export async function runTranslationJobs(
           await contextFor(job.locale),
           kind,
           apiKey,
-          { signal, requestPool },
+          { signal, requestPool, wave },
         );
         signal.throwIfAborted();
         const terminalDetail = outcome.rejected.length > 0
