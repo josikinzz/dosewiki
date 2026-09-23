@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* global console, process */
 /**
  * Read-only campaign dashboard for Pi-native citation run artifacts.
  * It never launches workers, rewrites a run, applies a draft, or contacts Postgres.

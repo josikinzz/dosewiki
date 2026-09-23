@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* global console, process */
 /**
  * Copy the RDKit.js MinimalLib runtime (loader + WASM) from the installed
  * `@rdkit/rdkit` package into `public/rdkit/` so it can be served as a static
