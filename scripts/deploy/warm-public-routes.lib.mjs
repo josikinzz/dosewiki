@@ -444,9 +444,39 @@ export function formatWarmSummary(summary) {
 }
 
 /** Parse `--flag=value`, `--flag value`, and boolean `--flag` CLI arguments. */
+/** Split one `--base-url` value (or env value) on commas, trimmed, blanks dropped. */
+function splitBaseUrls(value) {
+  return String(value ?? "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/**
+ * The locations of one sitemap, moved onto the origin being warmed. A locale
+ * mirror publishes no sitemap of its own (its `/sitemap.xml` is the English
+ * list with the English origin), so without this every mirror location would
+ * fail the same-origin filter and the mirror would warm nothing. A malformed
+ * location is dropped; duplicates after rehosting collapse.
+ */
+export function rehostUrls(urls, baseUrl) {
+  const origin = new URL(baseUrl).origin;
+  const rehosted = [];
+  for (const url of urls) {
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      continue;
+    }
+    rehosted.push(`${origin}${parsed.pathname}${parsed.search}`);
+  }
+  return Array.from(new Set(rehosted));
+}
+
 export function parseWarmArgs(argv, env = {}) {
   const options = {
-    baseUrl: env.WARM_BASE_URL || env.PUBLIC_SITE_URL || null,
+    baseUrls: splitBaseUrls(env.WARM_BASE_URL || env.PUBLIC_SITE_URL || ""),
     all: false,
     concurrency: 4,
     timeoutMs: 20000,
@@ -455,6 +485,7 @@ export function parseWarmArgs(argv, env = {}) {
     help: false,
   };
   const args = Array.from(argv);
+  let explicitBaseUrls = false;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (!arg.startsWith("--")) continue;
@@ -467,7 +498,13 @@ export function parseWarmArgs(argv, env = {}) {
     };
     switch (name) {
       case "base-url":
-        options.baseUrl = takeValue();
+        // Repeatable and comma-separable: one run covers every public host.
+        // The first flag replaces the env fallback rather than adding to it.
+        if (!explicitBaseUrls) {
+          options.baseUrls = [];
+          explicitBaseUrls = true;
+        }
+        options.baseUrls.push(...splitBaseUrls(takeValue()));
         break;
       case "all":
         options.all = true;
@@ -502,6 +539,18 @@ export function parseWarmArgs(argv, env = {}) {
     }
   }
   if (options.concurrency < 1) options.concurrency = 1;
+  const origins = [];
+  for (const baseUrl of options.baseUrls) {
+    let origin;
+    try {
+      origin = new URL(baseUrl).origin;
+    } catch {
+      throw new Error(`--base-url must be an absolute URL, got ${JSON.stringify(baseUrl)}`);
+    }
+    if (origin === "null") throw new Error(`--base-url must be an absolute URL, got ${JSON.stringify(baseUrl)}`);
+    if (!origins.includes(origin)) origins.push(origin);
+  }
+  options.baseUrls = origins;
   return options;
 }
 

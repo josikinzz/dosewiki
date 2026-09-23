@@ -95,7 +95,21 @@ Release order:
 2. Deploy without changing aliases.
 3. Inspect the deployment result and its artifact audit.
 4. Assign only the authorized aliases to the matching artifact.
-5. Check public reading, editor anonymous redirects and private headers, Effect Index route gating, and the exact changed behavior.
+5. Warm every public host immediately after the aliases move. Required, not
+   optional: the substance articles a build does not prerender (see
+   `lib/next/prerenderPolicy.ts`) render on their first request, and the ISR
+   page cache did not survive the deploy.
+
+   ```bash
+   bun run warm:public-routes -- \
+     --base-url https://dose.wiki,https://ru.dose.wiki,https://zh.dose.wiki,https://effectindex.com
+   ```
+
+   One invocation prints one summary per host and exits non-zero when any
+   host exceeds the failure threshold. A host that lists nothing to warm is
+   named in a warning; check it is a public host. Add every new locale mirror
+   to the list when it launches.
+6. Check public reading, editor anonymous redirects and private headers, Effect Index route gating, and the exact changed behavior.
 
 Publication signals are wire version 2. A version 2 sender is rejected by a
 version 1 receiver, so deploy the public receivers before the editor sender.
@@ -112,8 +126,10 @@ wall-clock time `bun run build:vercel` recorded in `build-timing.json`. Paste
 that output into the release record; a page count copied from a previous
 release is not evidence.
 `scripts/deploy/warm-public-routes.mjs` verifies both HTML and complete
-`text/x-component` navigation responses on the public host. HTML success alone
-does not prove in-site navigation is warm.
+`text/x-component` navigation responses on every public host it is given,
+mirrors included (it rehosts the English sitemap onto each mirror, since
+mirrors publish no sitemap of their own). HTML success alone does not prove
+in-site navigation is warm.
 
 For scheduled warming, `src/app/api/warm/route.ts` owns bounds, priority selection,
 timeouts and query overrides; `vercel.json` owns scheduling. Keep the canonical
