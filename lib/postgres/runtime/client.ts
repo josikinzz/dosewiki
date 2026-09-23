@@ -15,7 +15,7 @@ import { validateValue, validateReturn } from "./validate";
 import { POOL_ACQUISITION_TIMEOUT_MS, beginWithTimeouts } from "../transactionTimeouts";
 import { withTransaction, type SqlClient } from "../documentStore";
 import { parsePostgresTarget } from "./target";
-import { classifyPostgresError } from "../postgresErrors";
+import { classifyPostgresError, isConnectionLoss } from "../postgresErrors";
 import { assertDataWritesNotFrozen, isDataWriteFreezeActive } from "../../runtime/dataWriteFreeze";
 
 type Registered = RegisteredFunction;
@@ -56,12 +56,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * checkout and transaction, so a rerun never sees the failed attempt's
  * writes. Frozen and permanent failures surface on the first attempt.
  */
-async function retryTransient<T>(attempt: (attempt: number) => Promise<T>): Promise<T> {
+async function retryTransient<T>(attempt: (attempt: number) => Promise<T>, retryConnectionLoss = false): Promise<T> {
   for (let count = 1; ; count += 1) {
     try {
       return await attempt(count);
     } catch (error) {
-      if (classifyPostgresError(error) !== "transient" || count >= MAX_TRANSIENT_ATTEMPTS) throw error;
+      const retryable = classifyPostgresError(error) === "transient" || (retryConnectionLoss && isConnectionLoss(error));
+      if (!retryable || count >= MAX_TRANSIENT_ATTEMPTS) throw error;
       await sleep(10 * 2 ** count + Math.random() * 20);
     }
   }
@@ -144,7 +145,7 @@ export class PostgresClient {
 
   static fromUrl(connectionString: string, max = 4): PostgresClient {
     assertDeploymentEnv();
-    return new PostgresClient(new Pool({ connectionString, max, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
+    return new PostgresClient(new Pool({ connectionString, max, keepAlive: true, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
   }
 
   async end(): Promise<void> {
@@ -197,24 +198,31 @@ export class PostgresClient {
     const { name, fn } = await resolveFunction(reference);
     if (!fn.isQuery) throw new Error(`${name} is not a query`);
     validateValue(fn.args, args, `${name} args`);
-    const client = await this.pool.connect();
-    try {
-      await client.query(beginWithTimeouts("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY"));
+    // A read-only transaction has no effect to duplicate, so a connection the
+    // server or network dropped mid-query reruns on a fresh checkout.
+    return retryTransient(async (attempt) => {
+      const client = await this.pool.connect();
+      let lost: Error | undefined;
       try {
-        const executor = serialExecutor(client);
-        const startedAt = performance.now();
-        const idMap = await this.prepareArguments(executor, name, fn, args);
-        const result = await this.runQueryOn(executor, idMap, name, fn, args);
-        await client.query("COMMIT");
-        trace("query", name, executor, startedAt);
-        return result as FunctionReturnType<Query>;
-      } catch (error) {
-        await client.query("ROLLBACK").catch(() => {});
-        throw error;
+        await client.query(beginWithTimeouts("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY"));
+        try {
+          const executor = serialExecutor(client);
+          const startedAt = performance.now();
+          const idMap = await this.prepareArguments(executor, name, fn, args);
+          const result = await this.runQueryOn(executor, idMap, name, fn, args);
+          await client.query("COMMIT");
+          trace("query", name, executor, startedAt, attempt);
+          return result as FunctionReturnType<Query>;
+        } catch (error) {
+          if (isConnectionLoss(error)) lost = error as Error;
+          else await client.query("ROLLBACK").catch(() => {});
+          throw error;
+        }
+      } finally {
+        // Passing the error destroys the client instead of returning it to the pool.
+        client.release(lost);
       }
-    } finally {
-      client.release();
-    }
+    }, true);
   }
 
   async mutation<Mutation extends FunctionReference<"mutation">>(reference: Mutation, ...rest: ArgsAndOptions<Mutation, HttpMutationOptions>): Promise<FunctionReturnType<Mutation>> {

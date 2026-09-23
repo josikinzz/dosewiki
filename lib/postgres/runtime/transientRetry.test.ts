@@ -7,7 +7,7 @@ vi.mock("server-only", () => ({}));
 const handlerSql = vi.hoisted(() => ({ statement: 'SELECT "url" FROM "storageObjects"' }));
 
 vi.mock("./functions.generated", async () => {
-  const { mutation } = await import("./server");
+  const { mutation, query } = await import("./server");
   const { v } = await import("./values");
   return { functionModules: {
     fixture: {
@@ -17,6 +17,14 @@ vi.mock("./functions.generated", async () => {
         handler: async (ctx: { storage: { getUrl(id: string): Promise<string | null> } }) => {
           await ctx.storage.getUrl("fixture-storage-id");
           return "committed";
+        },
+      }),
+      read: query({
+        args: {},
+        returns: v.string(),
+        handler: async (ctx: { storage: { getUrl(id: string): Promise<string | null> } }) => {
+          await ctx.storage.getUrl("fixture-storage-id");
+          return "read";
         },
       }),
     },
@@ -42,9 +50,12 @@ function fakePool(failures: Array<{ on: string; error: Error } | { connect: Erro
       failures.shift();
       throw next.connect;
     }
-    return { query, release: vi.fn() };
+    const release = vi.fn();
+    releases.push(release);
+    return { query, release };
   });
-  return { pool: { on: vi.fn(), connect }, sql };
+  const releases: Array<ReturnType<typeof vi.fn>> = [];
+  return { pool: { on: vi.fn(), connect }, sql, releases };
 }
 
 // CI runs with the freeze on; each case opens writes unless it tests the freeze.
@@ -52,6 +63,32 @@ beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
 afterEach(() => { vi.unstubAllEnvs(); });
 
 describe("runtime client transient retry", () => {
+  it("reruns a read-only query whose connection dropped and discards that client", async () => {
+    const lost = new Error("Connection terminated unexpectedly");
+    const { pool, sql, releases } = fakePool([{ on: handlerSql.statement, error: lost }]);
+    const client = new PostgresClient(pool as never);
+    await expect(client.query("fixture:read" as never)).resolves.toBe("read");
+    expect(pool.connect).toHaveBeenCalledTimes(2);
+    expect(releases[0]).toHaveBeenCalledWith(lost);
+    expect(releases[1]).toHaveBeenCalledWith(undefined);
+    expect(sql.filter((statement) => statement === "ROLLBACK")).toHaveLength(0);
+    expect(sql.filter((statement) => statement === "COMMIT")).toHaveLength(1);
+  });
+
+  it("never reruns a mutation whose connection dropped", async () => {
+    const { pool } = fakePool([{ on: "COMMIT", error: new Error("Connection terminated unexpectedly") }]);
+    const client = new PostgresClient(pool as never);
+    await expect(client.mutation("fixture:touch" as never, { actorEmail: "editor@example.com" } as never)).rejects.toThrow("Connection terminated unexpectedly");
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces a read-only query error that is not connection loss", async () => {
+    const { pool } = fakePool([{ on: handlerSql.statement, error: sqlStateError("57014") }]);
+    const client = new PostgresClient(pool as never);
+    await expect(client.query("fixture:read" as never)).rejects.toThrow("SQLSTATE 57014");
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+  });
+
   it("retries a mutation that hits a lock timeout and commits", async () => {
     const { pool, sql } = fakePool([{ on: handlerSql.statement, error: sqlStateError("55P03") }]);
     const client = new PostgresClient(pool as never);
