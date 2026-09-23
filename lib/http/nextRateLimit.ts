@@ -27,7 +27,7 @@ type RateLimitKeyOptions = {
   clientIp?: string;
 };
 
-type LegacyRateLimitPolicy =Omit<RateLimitPolicy, "name"> & {
+type LegacyRateLimitPolicy = Omit<RateLimitPolicy, "name"> & {
   name: "legacy";
 };
 
