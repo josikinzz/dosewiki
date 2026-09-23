@@ -87,11 +87,10 @@ export function IndexCardCountBadge({
       className={cn(
         // 0.62rem computed to 9.92px, under any legible floor for functional
         // text; these are the only numbers three public indexes print, so
-        // both sizes now sit at or above 11px and the box grows with them.
-        "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold tabular-nums tracking-normal",
-        size === "sm"
-          ? "theme-index-card-count-sm h-[1.25rem] min-w-[1.5rem] px-1.5 text-[0.6875rem] leading-[1.25rem]"
-          : "h-[1.3rem] min-w-[1.55rem] px-1.5 text-[0.69rem] leading-[1.3rem]",
+        // both sizes share one 11px face in one 20px box, and `sm` differs
+        // only by its quieter fill.
+        "theme-index-card-count inline-flex h-5 min-w-6 shrink-0 items-center justify-center rounded-chip px-1.5 text-[11px] font-semibold leading-5 tabular-nums tracking-normal",
+        size === "sm" && "theme-index-card-count-sm",
       )}
       aria-label={`${count} item${count === 1 ? "" : "s"}`}
     >
@@ -145,7 +144,7 @@ export const IndexCard = memo(function IndexCard({
   }, [expanded, isExpanded, onExpandedChange]);
 
   const iconClassName = cn(
-    "theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.85rem] ring-1 ring-dose-ring outline-none transition-colors duration-200",
+    "theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-control ring-1 ring-dose-ring outline-none transition-colors",
     onIconClick
       ? "theme-focus-ring cursor-pointer"
       : undefined,
@@ -157,7 +156,7 @@ export const IndexCard = memo(function IndexCard({
       size={28}
       className={
         iconActiveState
-          ? "text-emerald-400"
+          ? "text-dose-success"
           : "theme-index-card-icon-glyph transition-colors"
       }
     />
@@ -222,7 +221,7 @@ export const IndexCard = memo(function IndexCard({
             {titleHref ? (
               <SmartLink
                 href={titleHref}
-                className="theme-focus-ring block min-w-0 text-left transition-opacity hover:opacity-80"
+                className="theme-focus-ring block min-w-0 text-left transition-opacity hover:opacity-90"
               >
                 {titleElement}
               </SmartLink>
@@ -230,7 +229,7 @@ export const IndexCard = memo(function IndexCard({
               <button
                 type="button"
                 onClick={onTitleClick}
-                className="theme-focus-ring min-w-0 text-left transition-opacity hover:opacity-80"
+                className="theme-focus-ring min-w-0 text-left transition-opacity hover:opacity-90"
               >
                 {titleElement}
               </button>
@@ -248,7 +247,7 @@ export const IndexCard = memo(function IndexCard({
             aria-expanded={isExpanded}
             aria-controls={resolvedContentId}
             aria-label={resolvedToggleLabel}
-            className={cn("theme-index-card-toggle theme-focus-ring flex h-8 min-w-10 shrink-0 items-center justify-center rounded-lg outline-none transition-colors motion-reduce:transition-none", TOUCH_HALO)}
+            className={cn("theme-index-card-toggle theme-focus-ring flex h-8 min-w-10 shrink-0 items-center justify-center rounded-control outline-none transition-colors motion-reduce:transition-none", TOUCH_HALO)}
           >
             <ExpandIndicator isExpanded={isExpanded} />
           </button>
@@ -259,7 +258,7 @@ export const IndexCard = memo(function IndexCard({
           aria-hidden={!isExpanded}
           inert={!isExpanded}
           className={cn(
-            "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+            "grid transition-[grid-template-rows,opacity] duration-[var(--motion-base)] motion-reduce:transition-none",
             isExpanded
               ? "grid-rows-[1fr] opacity-100"
               : "grid-rows-[0fr] opacity-0",
@@ -318,14 +317,14 @@ export const IndexCardSection = memo(function IndexCardSection({
       )}
     >
       {title && (
-        <p className="theme-index-card-section-label mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
+        <p className="theme-index-card-section-label type-meta-label mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1">
           {icon && (
             <Icon icon={icon} size={16} className="theme-icon-accent" />
           )}
           {titleHref ? (
             <SmartLink
               href={titleHref}
-              className="theme-focus-ring rounded-sm transition-opacity hover:opacity-80"
+              className="theme-focus-ring rounded-chip transition-opacity hover:opacity-90"
             >
               {title}
             </SmartLink>
@@ -411,8 +410,8 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   }, [onClick, slug, onSelect]);
 
   const className = cn(
-    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl py-2.5 pr-3 text-left text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text theme-focus-ring",
-    depth === 1 ? "pl-8 text-[0.875rem]" : "pl-3",
+    "theme-index-card-link theme-text-secondary group/item mx-1 flex w-[calc(100%-1rem)] items-center rounded-control py-2.5 pr-3 text-left text-sm transition-[background-color,color] hover:bg-dose-surface-muted hover:text-dose-text theme-focus-ring",
+    depth === 1 ? "pl-8 text-[13px]" : "pl-3",
   );
 
   const content = (
@@ -425,7 +424,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
       />
       <span className="theme-index-card-label min-w-0">{label}</span>
       {meta ? (
-        <span className="theme-text-faint ml-auto shrink-0 pl-3 text-[0.8125rem] tabular-nums">
+        <span className="theme-text-faint ml-auto shrink-0 pl-3 text-[13px] tabular-nums">
           {meta}
         </span>
       ) : null}

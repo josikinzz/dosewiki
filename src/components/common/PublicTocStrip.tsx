@@ -183,7 +183,7 @@ export const PublicTocStrip = memo(function PublicTocStrip({
       {/* Bar chrome and scroller are separate layers: the edge-fade mask
           lives on the scroller so overflowing chips dissolve at the edges
           while the bar's bottom border stays crisp. */}
-      <div className="theme-toc-strip-bar backdrop-blur-sm backdrop-safe">
+      <div className="theme-toc-strip-bar backdrop-blur-[var(--frost-blur)] backdrop-safe">
         <div
           ref={scrollerRef}
           data-fade-start="false"
@@ -206,17 +206,19 @@ export const PublicTocStrip = memo(function PublicTocStrip({
                     data-tone={item.tone}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "theme-article-toc-item flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium transition-[background-color,color] duration-[180ms] ease-out motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+                      // Every chip carries the border, transparent unless a tone
+                      // paints it, so toned and plain chips share one box height.
+                      "theme-article-toc-item flex items-center gap-1.5 whitespace-nowrap rounded-chip border border-transparent px-2.5 py-1.5 text-[13px] font-medium transition-[background-color,color] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       isWarning
-                        ? "border"
+                        ? undefined
                         : isAccent
-                          ? "theme-badge-surface border"
+                          ? "theme-badge-surface"
                           : "theme-text-secondary",
                     )}
                   >
                     <span
                       className={cn(
-                        "theme-article-toc-item-icon flex h-4 w-4 shrink-0 items-center justify-center transition-colors duration-[180ms] ease-out motion-reduce:transition-none",
+                        "theme-article-toc-item-icon flex h-4 w-4 shrink-0 items-center justify-center transition-colors motion-reduce:transition-none",
                         isAccent
                           ? "theme-accent-emphasis"
                           : isWarning

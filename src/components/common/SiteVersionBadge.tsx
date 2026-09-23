@@ -65,7 +65,7 @@ export function SiteVersionBadge({
     return (
       <span
         aria-hidden="true"
-        className="theme-accent-heading hidden items-center font-display text-[9px] font-semibold uppercase leading-none tracking-widest xl:inline-flex"
+        className="theme-accent-heading hidden items-center font-display text-[9px] font-semibold uppercase leading-none tracking-[var(--type-tracking-label)] xl:inline-flex"
       >
         {badge.version} {t(badge.label)}
       </span>
@@ -75,7 +75,7 @@ export function SiteVersionBadge({
   return (
     <span
       aria-label={accessibleName}
-      className="theme-accent-heading inline-flex items-center font-display text-xs font-semibold uppercase leading-none tracking-[0.2em]"
+      className="theme-accent-heading type-meta-label inline-flex items-center font-display"
     >
       <span aria-hidden="true">
         {badge.version}

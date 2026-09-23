@@ -95,11 +95,11 @@ export function PublicSectionHeading({
         <div className="relative min-w-0">
           <Heading
             className={cn(
-              "theme-accent-heading relative flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight",
+              "theme-accent-heading type-section-title relative flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2",
               titleClassName,
             )}
           >
-            {icon ? <Icon icon={icon} className="h-8 w-8 shrink-0" /> : null}
+            {icon ? <Icon icon={icon} className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" /> : null}
             <span className="min-w-0 break-words">{title}</span>
           </Heading>
         </div>
@@ -191,7 +191,7 @@ export function ContributorAvatar({
     <div className={cn("relative shrink-0", className)}>
       <div
         className={cn(
-          "theme-public-card-subtle theme-contributor-avatar relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-[var(--theme-elevation-avatar-inner)] transition duration-300",
+          "theme-public-card-subtle theme-contributor-avatar relative overflow-hidden rounded-full border bg-gradient-to-br from-[var(--theme-avatar-gradient-from)] to-[var(--theme-avatar-gradient-to)] text-center font-semibold shadow-[var(--theme-elevation-avatar-inner)] transition duration-[var(--motion-base)] ease-[var(--ease-out)]",
           lifted ? "shadow-[var(--theme-elevation-avatar-glow)]" : undefined,
           sizeConfig.frame,
         )}
@@ -202,13 +202,13 @@ export function ContributorAvatar({
             alt={`${name} avatar`}
             width={sizeConfig.imageSize}
             height={sizeConfig.imageSize}
-            className="h-full w-full object-cover transition duration-[360ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            className="h-full w-full object-cover transition duration-[var(--motion-base)] ease-[var(--ease-out)] group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
             draggable={false}
           />
         ) : (
           <span
             className={cn(
-              "flex h-full w-full items-center justify-center transition duration-[360ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
+              "flex h-full w-full items-center justify-center transition duration-[var(--motion-base)] ease-[var(--ease-out)] group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
               sizeConfig.text,
             )}
           >
@@ -244,7 +244,7 @@ export function ContributorCard({
     <SmartLink
       href={href}
       className={cn(
-        "theme-public-card theme-public-card-interactive group relative flex items-center gap-4 overflow-hidden rounded-2xl border p-4 theme-focus-ring",
+        "theme-public-card theme-public-card-interactive group relative flex items-center gap-4 overflow-hidden rounded-card border p-4 theme-focus-ring",
         className,
       )}
     >
@@ -257,13 +257,13 @@ export function ContributorCard({
         <p className="theme-text-primary truncate text-base font-semibold transition">
           {contributor.displayName}
         </p>
-        <p className="theme-accent-heading mt-0.5 truncate text-xs font-bold uppercase tracking-[0.15em] transition">
+        <p className="theme-accent-heading type-meta-label mt-0.5 truncate transition">
           {subtitle}
         </p>
       </div>
       <Icon
         icon="lucide:arrow-right"
-        className="theme-text-faint h-5 w-5 -translate-x-1 opacity-0 transition-[opacity,translate,color] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
+        className="theme-text-faint h-5 w-5 -translate-x-1 opacity-0 transition-[opacity,translate,color] duration-[var(--motion-base)] ease-[var(--ease-out)] group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
       />
     </SmartLink>
   );
@@ -513,7 +513,7 @@ export function SearchResultCard({
             highlightedQuery={highlightedQuery}
           />
         </div>
-        <span className="theme-text-muted mt-1 hidden shrink-0 text-sm font-semibold uppercase tracking-wide transition-transform duration-200 group-hover:translate-x-0.5 sm:inline-flex">
+        <span className="theme-text-muted type-meta-label mt-1 hidden shrink-0 transition-transform duration-[var(--motion-base)] ease-[var(--ease-out)] group-hover:translate-x-0.5 sm:inline-flex">
           View
         </span>
       </SmartLink>

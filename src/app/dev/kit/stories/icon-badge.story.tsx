@@ -20,7 +20,7 @@ export const iconBadgeStory: StoryDef = {
     },
     {
       label: "Sizes",
-      note: 'sm is 28px (16px icon), md is 32px (20px icon).',
+      note: 'sm is 28px (16px icon), md is 32px (18px icon).',
       render: () => (
         <div className="flex items-center gap-3">
           <IconBadge icon="lucide:search" size="sm" label="Small" />

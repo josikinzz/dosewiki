@@ -159,7 +159,7 @@ const SafetyBannerTitle = React.forwardRef<HTMLParagraphElement, SafetyBannerTit
     <p
       ref={ref}
       className={cn(
-        "flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 font-display text-[15px] font-semibold leading-snug text-dose-text",
+        "flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 font-display text-base font-semibold leading-snug text-dose-text",
         className,
       )}
       {...props}
@@ -167,7 +167,7 @@ const SafetyBannerTitle = React.forwardRef<HTMLParagraphElement, SafetyBannerTit
       {severityLabel ? (
         <span
           className={cn(
-            "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.14em]",
+            "type-chip-label inline-flex h-5 items-center rounded-full px-2 leading-none",
             TONE_CHIP_CLASS[tone],
           )}
         >
@@ -185,7 +185,7 @@ export type SafetyBannerPointsProps = {
   className?: string;
 };
 
-const POINT_TEXT_CLASS = "text-[13px] leading-relaxed text-dose-text-secondary";
+const POINT_TEXT_CLASS = "text-sm leading-relaxed text-dose-text-secondary";
 
 /**
  * The mechanism text.

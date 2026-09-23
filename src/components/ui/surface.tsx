@@ -16,13 +16,13 @@ const surfaceVariants = cva("relative border", {
   variants: {
     variant: {
       card:
-        "theme-card-surface border-[color:var(--theme-card-border)] shadow-[var(--theme-elevation-card)] backdrop-blur backdrop-safe",
-      public: "theme-public-card backdrop-blur-sm backdrop-safe",
+        "theme-card-surface border-[color:var(--theme-card-border)] shadow-[var(--theme-elevation-card)] backdrop-blur-[var(--frost-blur)] backdrop-safe",
+      public: "theme-public-card backdrop-blur-[var(--frost-blur)] backdrop-safe",
       subtle: "theme-public-card-subtle",
       index:
-        "theme-public-card-subtle shadow-[var(--theme-elevation-card-subtle)] backdrop-blur-md backdrop-safe",
+        "theme-public-card-subtle shadow-[var(--theme-elevation-card-subtle)] backdrop-blur-[var(--frost-blur)] backdrop-safe",
       indexDim:
-        "theme-index-card-dim shadow-[var(--theme-elevation-card-subtle)] backdrop-blur-md backdrop-safe",
+        "theme-index-card-dim shadow-[var(--theme-elevation-card-subtle)] backdrop-blur-[var(--frost-blur)] backdrop-safe",
       state: "theme-state-card theme-card-surface overflow-hidden",
       muted:
         "theme-public-card-subtle",
@@ -62,7 +62,7 @@ const surfaceVariants = cva("relative border", {
 
 const interactiveSurfaceVariants = cva(
   cn(
-    "transition-[transform,border-color,background-color,box-shadow,color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+    "transition-[transform,border-color,background-color,box-shadow,color] duration-[var(--motion-base)] ease-[var(--ease-out)] motion-reduce:transition-none motion-reduce:hover:translate-y-0",
     focusRingClassName,
   ),
   {
@@ -151,9 +151,10 @@ export type EmptyStateSurfaceProps = SurfaceProps & {
 };
 
 export const EmptyStateSurface = React.forwardRef<HTMLDivElement, EmptyStateSurfaceProps>(
-  ({ className, tone = "neutral", variant, ...props }, ref) => (
+  ({ className, tone = "neutral", variant, radius = "state", ...props }, ref) => (
     <Surface
       ref={ref}
+      radius={radius}
       variant={variant ?? (tone === "danger" ? "danger" : "state")}
       className={cn("text-center", className)}
       {...props}

@@ -2,6 +2,7 @@
 
 import { SmartLink } from "@/components/common/SmartLink";
 import { Icon } from "@/components/common/Icon";
+import { proseLinkUnderlineClassName } from "@/components/common/ProseLink";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
 
@@ -46,7 +47,7 @@ export function BetaDisclaimer({ className }: { className?: string }) {
         {t("dose.wiki is still in beta. Entries may contain inaccuracies and/or lack citations. See")}{" "}
         <SmartLink
           href="/docs/how"
-          className="theme-beta-disclaimer underline decoration-dotted underline-offset-2 hover:decoration-solid"
+          className={cn("theme-beta-disclaimer", proseLinkUnderlineClassName)}
         >
           {t("our docs")}
         </SmartLink>{" "}

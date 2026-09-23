@@ -64,7 +64,7 @@ export function SearchingIndicator({
         className,
       )}
     >
-      <span className="theme-search-suggestion-icon theme-searching-icon relative inline-flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl">
+      <span className="theme-search-suggestion-icon theme-searching-icon relative inline-flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-panel">
         <Icon
           key={prefersReducedMotion ? "reduced" : replayKey}
           icon={prefersReducedMotion ? "lucide:search" : "line-md:search"}
@@ -72,7 +72,7 @@ export function SearchingIndicator({
         />
       </span>
       <div className="space-y-1">
-        <h1 className="theme-search-suggestion-title text-lg font-semibold">
+        <h1 className="theme-search-suggestion-title font-display text-lg font-semibold tracking-tight">
           {resolvedTitle}
           <span className="theme-searching-dots" aria-hidden="true">
             <span>.</span>
@@ -81,7 +81,7 @@ export function SearchingIndicator({
           </span>
         </h1>
         {resolvedDescription ? (
-          <p className="theme-search-suggestion-secondary max-w-md text-[0.8125rem] leading-5">
+          <p className="theme-search-suggestion-secondary max-w-md text-sm leading-6">
             {resolvedDescription}
           </p>
         ) : null}

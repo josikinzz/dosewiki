@@ -58,7 +58,7 @@ export const publicContentPrimitivesStory: StoryDef = {
       render: () => (
         <div className="grid w-full gap-6 lg:grid-cols-2">
           <div className="space-y-2">
-            <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-wider">
+            <p className="theme-text-faint type-meta-label">
               layout=&quot;grid&quot;
             </p>
             <PublicMetadataList
@@ -73,7 +73,7 @@ export const publicContentPrimitivesStory: StoryDef = {
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
-              <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-wider">
+              <p className="theme-text-faint type-meta-label">
                 layout=&quot;stack&quot;
               </p>
               <PublicMetadataList
@@ -85,7 +85,7 @@ export const publicContentPrimitivesStory: StoryDef = {
               />
             </div>
             <div className="space-y-2">
-              <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-wider">
+              <p className="theme-text-faint type-meta-label">
                 layout=&quot;inline&quot;
               </p>
               <PublicMetadataList

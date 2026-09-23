@@ -116,7 +116,7 @@ export const ArticleSubsectionCard = forwardRef<
     <Comp
       ref={ref}
       className={cn(
-        "rounded-xl border",
+        "rounded-card border",
         subsectionVariantClasses[variant],
         subsectionPadding[padding],
         className,
@@ -167,7 +167,7 @@ export const ArticleSubsectionHeader = memo(function ArticleSubsectionHeader({
             className={cn("theme-icon-accent", iconClassName)}
           />
         ) : null}
-        <Heading className={cn("theme-article-subsection-heading theme-text-primary font-semibold", headingClassName)}>
+        <Heading className={cn("theme-article-subsection-heading theme-text-primary text-lg font-semibold tracking-tight", headingClassName)}>
           {heading}
         </Heading>
       </div>
@@ -244,22 +244,22 @@ const articleInfoCardToneClasses = {
     title: "theme-text-primary",
   },
   accent: {
-    card: "ring-1 ring-[rgb(var(--c-brand)/0.10)]",
+    card: "ring-1 ring-dose-accent/10",
     icon: "theme-icon-accent",
     title: "theme-text-primary",
   },
   success: {
-    card: "ring-1 ring-emerald-400/10",
+    card: "ring-1 ring-dose-success/10",
     icon: "text-[color:var(--theme-semantic-success-badge-text)]",
     title: "text-[color:var(--theme-semantic-success-badge-text)]",
   },
   warning: {
-    card: "ring-1 ring-amber-400/15",
+    card: "ring-1 ring-dose-warning/15",
     icon: "text-[color:var(--theme-semantic-caution-badge-text)]",
     title: "text-[color:var(--theme-semantic-caution-badge-text)]",
   },
   danger: {
-    card: "ring-1 ring-rose-400/15",
+    card: "ring-1 ring-dose-danger/15",
     icon: "text-[color:var(--theme-semantic-danger-badge-text)]",
     title: "text-[color:var(--theme-semantic-danger-badge-text)]",
   },
@@ -319,7 +319,7 @@ export const ArticleInfoCard = forwardRef<HTMLDivElement, ArticleInfoCardProps>(
         <div className="flex min-w-0 items-center justify-between gap-3">
           <span
             className={cn(
-              "flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-wide",
+              "type-meta-label flex min-w-0 items-center gap-2",
               toneClasses.title,
               titleClassName,
             )}
@@ -493,7 +493,7 @@ export function ArticleSectionState({
     <ArticleSubsectionCard
       className={cn(
         "flex items-start gap-3 p-4",
-        kind === "error" && "ring-1 ring-rose-400/15",
+        kind === "error" && "ring-1 ring-dose-danger/15",
         className,
       )}
       data-state-kind={kind}

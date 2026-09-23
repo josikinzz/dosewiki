@@ -198,7 +198,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      whenever the recipe or its base changes (the test in
      `siteColorsFallbacks.test.ts` measures the drift). */
   --theme-text-primary: #ffffff;
-  --theme-text-secondary: #dcdcdc;
+  /* White 86% over the canvas: tints with the surface like the tiers below
+     it, instead of a neutral grey that ignored the palette. */
+  --theme-text-secondary: color-mix(in srgb, rgb(var(--c-white)) 86%, var(--theme-body-bg));
   --theme-text-muted: #bcb9be; /* paints the supporter mark; recipe below */
   --theme-text-faint: color-mix(in srgb, rgb(var(--c-white)) 56%, var(--theme-body-bg));
   /* Ghost is the decorative/divider step, not a prose step, so it is held to
@@ -240,8 +242,10 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   /* Dark mode borders and ambient shadows */
   --theme-border-subtle: rgb(var(--c-white) / 0.1);
   --theme-border-strong: rgb(var(--c-white) / 0.18);
-  --theme-card-border: rgb(var(--c-brand) / 0.16);
-  --theme-card-border-strong: rgb(var(--c-brand) / 0.24);
+  /* Same rim as the frosted panels, named once there (the light block keeps
+     its own card values). */
+  --theme-card-border: var(--theme-frosted-panel-border);
+  --theme-card-border-strong: var(--theme-frosted-panel-hover-border);
   --theme-divider: rgb(var(--c-white) / 0.14);
   --theme-ring-soft: rgb(var(--c-white) / 0.12);
   --theme-shadow-soft: rgb(var(--c-black) / 0.42);
@@ -275,10 +279,10 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   /* Cards, panels and overlays. */
   --theme-elevation-card: 0 10px 30px -12px var(--theme-shadow-soft);
   --theme-elevation-card-subtle: 0 16px 34px -22px var(--theme-shadow-soft);
-  --theme-elevation-overlay: 0 18px 50px -12px var(--theme-shadow-strong);
-  --theme-elevation-panel: 0 18px 40px -24px var(--theme-shadow-strong);
+  --theme-elevation-overlay: var(--elev-3);
+  --theme-elevation-panel: var(--elev-2);
   --theme-elevation-panel-deep: 0 18px 45px -20px rgb(var(--c-black) / 0.6);
-  --theme-elevation-tile-hover: 0 18px 36px -26px var(--theme-shadow-strong);
+  --theme-elevation-tile-hover: var(--elev-2);
   --theme-elevation-motion-card: 0 10px 24px -14px rgb(var(--c-black) / 0.28);
   --theme-elevation-motion-card-hover: 0 16px 36px -18px rgb(var(--c-black) / 0.36);
   --theme-elevation-swatch: 0 2px 8px -2px var(--theme-shadow-soft);
@@ -287,8 +291,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-elevation-accent-ring: 0 0 0 1px var(--theme-accent);
   --theme-elevation-danger: 0 14px 36px -22px var(--theme-danger-ring);
   --theme-elevation-danger-hover: 0 18px 46px -25px var(--theme-danger-ring);
-  --theme-elevation-control-active: 0 10px 30px -12px oklch(62.7% 0.233 var(--h-violet) / 0.65);
-  --theme-elevation-control-primary: 0 18px 40px -24px oklch(59.6% 0.261 var(--h-violet) / 0.6);
+  /* Active-control glows follow the Accent control, like every other accented pixel. */
+  --theme-elevation-control-active: 0 10px 30px -12px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+  --theme-elevation-control-primary: 0 18px 40px -24px color-mix(in srgb, var(--theme-accent) 50%, transparent);
   /* Was `shadow-lg shadow-fuchsia-500/8`. The glow keeps the old gradient
      stop's identity (Tailwind fuchsia-500, #d946ef) re-expressed off --h-brand
      at that literal's own lightness and chroma — not --c-brand, which is
@@ -310,6 +315,19 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-elevation-mark-hairline: inset 0 0 0 1px oklch(72.5% 0.175 var(--h-brand) / 0.18);
   --theme-elevation-avatar-inner: inset 0 2px 4px 0 rgb(var(--c-black) / 0.2);
   --theme-elevation-avatar-glow: 0 25px 50px -12px rgb(var(--c-black) / 0.5);
+
+  /* Ambient depth steps. Five geometries every neutral cast should land on:
+     contact under small controls, 1 for a card at rest, 2 for a lifted or
+     hovered card, 3 for a floating overlay (menus, popovers, dialogs), 4 for
+     the heaviest chrome panel. They read --theme-shadow-*, so the light block
+     retints them without restating a geometry. Accent glows stay separate. */
+  --elev-contact: 0 1px 2px var(--theme-shadow-soft);
+  --elev-1: 0 16px 32px -28px var(--theme-shadow-strong);
+  --elev-2: 0 18px 36px -26px var(--theme-shadow-strong);
+  --elev-3: 0 18px 44px -18px var(--theme-shadow-strong);
+  --elev-4:
+    0 26px 64px -20px var(--theme-shadow-strong),
+    0 10px 26px -18px var(--theme-shadow-strong);
 
   /* Dark mode general surfaces */
   --theme-surface-soft: color-mix(in srgb, rgb(31 22 51) 72%, var(--theme-body-bg));
@@ -367,7 +385,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-article-neutral-panel-primary: color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg));
   --theme-article-neutral-panel-secondary: #16001e;
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, var(--theme-article-neutral-panel-highlight), transparent 38%),
+    radial-gradient(circle at 12% 0%, var(--theme-article-neutral-panel-highlight), transparent 38%),
     linear-gradient(135deg, var(--theme-article-neutral-panel-primary), var(--theme-article-neutral-panel-secondary));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px rgb(var(--c-black) / 0.66),
@@ -475,7 +493,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
     inset 0 1px 0 rgb(var(--c-white) / 0.1);
 
   /* Dark mode controls placed on frosted panels */
-  --theme-frosted-control-on-panel-border: rgb(var(--c-white) / 0.1);
+  --theme-frosted-control-on-panel-border: var(--theme-border-subtle);
   --theme-frosted-control-on-panel-bg:
     radial-gradient(circle at 12% 0%, oklch(17% 0.03 var(--h-plum)), oklch(12% 0.022 var(--h-plum)) 38%),
     linear-gradient(135deg, oklch(12% 0.022 var(--h-plum)), oklch(16% 0.028 var(--h-plum)));
@@ -705,6 +723,12 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      (rgba(12, 7, 26, 0.9) is oklch(14.9% 0.04 293.6)), so each palette tints
      the dim with its own violet instead of inheriting Orchid's. */
   --theme-backdrop-safe: oklch(14.9% 0.04 var(--h-violet) / 0.9);
+  /* Modal scrim. Separate from --theme-backdrop-safe (the no-blur fallback
+     fill for frosted surfaces): a dialog dims the page, it does not replace it. */
+  --theme-scrim: oklch(14.9% 0.04 var(--h-violet) / 0.66);
+  /* Highlighted row inside a floating menu, select, or command list. A lift
+     over the overlay panel, never a darker well. */
+  --theme-menu-item-highlight-bg: color-mix(in srgb, rgb(var(--c-white)) 8%, transparent);
   --theme-table-row-alt: color-mix(in srgb, rgb(var(--c-white)) 4%, var(--theme-body-bg));
   --theme-flag-ring: rgb(var(--c-brand) / 0.25);
   --theme-flag-shadow: 0 2px 8px -2px rgb(var(--c-black) / 0.5);
@@ -718,12 +742,13 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
     0 1px 0 rgb(var(--c-white) / 0.06);
   --theme-profile-markdown-quote-bg: color-mix(in srgb, rgb(var(--c-brand)) 8%, var(--theme-body-bg));
   --theme-profile-markdown-quote-border: rgb(var(--c-brand) / 0.18);
+  /* Plain separator: fades in, holds the divider tone, fades out. Section
+     groups add their own accent lead-in on top (.theme-section-group-divider). */
   --theme-horizontal-divider-image: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--theme-accent) 12%, transparent) 12%,
-    color-mix(in srgb, var(--theme-divider) 48%, transparent) 42%,
-    color-mix(in srgb, var(--theme-divider) 34%, transparent) 72%,
+    var(--theme-divider) 16%,
+    var(--theme-divider) 84%,
     transparent 100%
   );
 
@@ -778,7 +803,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   /* == scheme-swapped component tokens (dark) == */
   --theme-search-page-card-border-color: var(--theme-border-subtle);
   --theme-search-page-card-background: var(--theme-frosted-control-on-panel-bg);
-  --theme-search-page-card-box-shadow: 0 18px 42px -26px var(--theme-shadow-strong), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --theme-search-page-card-box-shadow: var(--elev-2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --theme-search-page-chip-background: var(--theme-plum-chip-bg);
   --theme-search-page-chip-box-shadow: var(--theme-plum-chip-shadow);
   --theme-toggle-pill-box-shadow: var(--theme-frosted-control-on-panel-shadow);
@@ -806,7 +831,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-index-card-dim-border-color: var(--theme-article-neutral-panel-border);
   --theme-index-card-dim-background: var(--theme-article-neutral-panel-bg);
   --theme-index-card-dim-color: inherit;
-  --theme-article-hero-summary-divider: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 4%, rgba(255, 255, 255, 0.12) 16%, rgba(255, 255, 255, 0.12) 84%, rgba(255, 255, 255, 0.05) 96%, transparent 100%);
+  --theme-article-hero-summary-divider: var(--theme-horizontal-divider-image);
   --theme-footer-hairline-width: 0;
   --theme-panel-hairline-width: 0;
   --theme-external-source-pill-faint-color: var(--theme-text-faint);
@@ -840,13 +865,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-interaction-caution-border-color: var(--theme-semantic-caution-card-border);
   --theme-interaction-caution-background: var(--theme-semantic-caution-card-bg);
   --theme-interaction-caution-box-shadow: var(--theme-semantic-caution-card-shadow);
-  --theme-control-pill-background-color: color-mix(in srgb, var(--theme-surface-muted) 78%, var(--theme-body-bg));
-  --theme-control-pill-focus-visible-background-color: color-mix(in srgb, var(--theme-surface-strong) 82%, var(--theme-accent) 8%);
-  --theme-control-pill-quiet-focus-visible-background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, var(--theme-body-bg));
-  --theme-control-pill-hover-background-color: color-mix(in srgb, var(--theme-surface-strong) 82%, var(--theme-accent) 8%);
-  --theme-control-pill-quiet-hover-background-color: color-mix(in srgb, var(--theme-surface-muted) 72%, var(--theme-body-bg));
   --theme-evidence-surface-background-color: var(--theme-evidence-bg);
-  --theme-index-card-link-focus-visible-tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
   --theme-index-card-link-hover-tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
   --theme-index-card-toggle-color: color-mix(in srgb, var(--theme-text-faint) 78%, var(--theme-body-bg));
   --theme-dosage-row-box-shadow: var(--theme-frosted-control-on-panel-shadow);
@@ -895,7 +914,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-search-suggestion-secondary-color: color-mix(in srgb, var(--theme-text-muted) 88%, var(--theme-text-faint));
   --theme-search-suggestion-highlighted-true-border-color: var(--theme-card-border-strong);
   --theme-search-suggestion-highlighted-true-box-shadow: inset 0 1px 0 color-mix(in srgb, var(--theme-surface-muted) 60%, transparent);
-  --theme-report-dossier-box-shadow: 0 14px 30px -26px var(--theme-shadow-strong), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --theme-report-dossier-box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --theme-toggle-pill-focus-visible-background: var(--theme-frosted-control-on-panel-hover-bg);
   --theme-toggle-pill-hover-background: var(--theme-frosted-control-on-panel-hover-bg);
   --theme-reagent-swatch-label-overlay: linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 0%, transparent 40%, rgba(0, 0, 0, 0.2) 100%);
@@ -949,7 +968,10 @@ html[data-theme="light"] {
   --theme-text-ghost: oklch(57% 0.03 var(--h-text));
 
   /* Light mode accent text, icon, and ring colors */
-  --theme-accent-strong: oklch(49% 0.205 var(--h-brand)); /* 6.94:1 on #fefdfe; 43% ran 8.88:1 and read as black */
+  /* One visible step below --theme-accent (49%): #890f8e, 8.2:1 on the canvas.
+     At 49% the two measured deltaE 1.5 and read as the same ink. 43% (8.88:1)
+     read as black, so the step stops two points short of it. */
+  --theme-accent-strong: oklch(45% 0.2 var(--h-brand));
   --theme-accent: oklch(49% 0.19 var(--h-brand));
   --theme-accent-soft: oklch(58% 0.155 var(--h-brand));
   --theme-accent-muted: oklch(46% 0.135 var(--h-brand));
@@ -996,6 +1018,10 @@ html[data-theme="light"] {
      as a deliberate design change. */
   --theme-elevation-avatar-inner: 0 0 #0000;
   --theme-elevation-avatar-glow: 0 0 #0000;
+  /* Plum-tinted casts; the dark values are raw black, which reads as soot on paper. */
+  --theme-elevation-panel-deep: 0 18px 45px -20px var(--theme-shadow-strong);
+  --theme-elevation-motion-card: 0 10px 24px -14px var(--theme-shadow-soft);
+  --theme-elevation-motion-card-hover: var(--elev-2);
 
   /* Light mode general surfaces */
   --theme-surface-soft: color-mix(in srgb, oklch(97% 0.014 var(--h-brand)) 86%, var(--theme-body-bg));
@@ -1043,15 +1069,15 @@ html[data-theme="light"] {
   --theme-article-neutral-panel-primary: color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg));
   --theme-article-neutral-panel-secondary: #ede7ee;
   --theme-article-neutral-panel-bg:
-    radial-gradient(circle at 14% 0%, var(--theme-article-neutral-panel-highlight), transparent 38%),
+    radial-gradient(circle at 12% 0%, var(--theme-article-neutral-panel-highlight), transparent 38%),
     linear-gradient(135deg, var(--theme-article-neutral-panel-primary), var(--theme-article-neutral-panel-secondary));
   --theme-article-neutral-panel-shadow:
     0 16px 32px -28px oklch(38% 0.04 var(--h-plum) / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
   /* Light selected controls keep the same Accent ownership with a brighter
      Surface mix. Pro replaces the treatment, not the owner. */
-  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent-soft) 10%, var(--theme-control-base));
-  --theme-selected-control-border: transparent;
+  --theme-selected-control-base: color-mix(in srgb, var(--theme-accent-soft) 18%, var(--theme-control-base));
+  --theme-selected-control-border: color-mix(in srgb, var(--theme-accent-strong) 22%, transparent);
   --theme-selected-control-highlight: color-mix(in srgb, oklch(100% 0 0) 78%, var(--theme-selected-control-base));
   --theme-selected-control-primary: var(--theme-selected-control-base);
   --theme-selected-control-secondary: color-mix(in srgb, var(--theme-accent-muted) 8%, var(--theme-body-bg));
@@ -1093,11 +1119,11 @@ html[data-theme="light"] {
 
   /* Light mode frosted panels. Same single-base derivation as the dark block:
      --theme-panel-base drives the fill; per-stop frosted alpha is preserved. */
-  --theme-panel-base: oklch(95.5% 0.026 var(--h-brand));
+  --theme-panel-base: oklch(97% 0.026 var(--h-brand));
   --theme-frosted-panel-border: oklch(58% 0.105 var(--h-brand) / 0.14);
-  --theme-frosted-panel-highlight: #fdf1fd; /* recipes in the @supports section */
-  --theme-frosted-panel-primary: #faedfa;
-  --theme-frosted-panel-secondary: #f0dcf0;
+  --theme-frosted-panel-highlight: #fff5ff; /* recipes in the @supports section */
+  --theme-frosted-panel-primary: #fff1ff;
+  --theme-frosted-panel-secondary: #fde8fd;
   --theme-frosted-panel-bg:
     radial-gradient(circle at 12% 0%, var(--theme-frosted-panel-highlight), transparent 38%), linear-gradient(135deg, var(--theme-frosted-panel-primary), var(--theme-frosted-panel-secondary));
   --theme-frosted-panel-shadow:
@@ -1105,7 +1131,7 @@ html[data-theme="light"] {
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-panel-hover-border: oklch(50% 0.13 var(--h-brand) / 0.2);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, #fdf2fd, transparent 38%), linear-gradient(135deg, #ffeeff, #f5ddf5);
+    radial-gradient(circle at 12% 0%, #fff6ff, transparent 38%), linear-gradient(135deg, #fff3ff, #ffe7ff);
   --theme-frosted-panel-hover-shadow:
     0 18px 36px -28px oklch(48% 0.1 var(--h-plum) / 0.22),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.8);
@@ -1343,6 +1369,8 @@ html[data-theme="light"] {
   --theme-autofill-bg: oklch(96% 0.018 var(--h-brand));
   --theme-autofill-text: var(--theme-text-primary);
   --theme-backdrop-safe: oklch(96% 0.018 var(--h-brand) / 0.9);
+  --theme-scrim: oklch(24% 0.03 var(--h-text) / 0.3);
+  --theme-menu-item-highlight-bg: color-mix(in srgb, var(--theme-accent-strong) 9%, transparent);
   --theme-table-row-alt: color-mix(in srgb, oklch(96% 0.012 var(--h-brand)) 72%, var(--theme-body-bg));
   --theme-flag-ring: oklch(58% 0.1 var(--h-brand) / 0.16);
   --theme-flag-shadow: 0 2px 8px -2px oklch(42% 0.1 var(--h-text) / 0.14);
@@ -1563,13 +1591,7 @@ html[data-theme="light"] {
   --theme-interaction-caution-border-color: oklch(64% 0.1 82 / 0.18);
   --theme-interaction-caution-background: radial-gradient(circle at 12% 0%, oklch(99% 0.02 82 / 0.46), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.026 82) 94%, var(--theme-body-bg)), color-mix(in srgb, oklch(93% 0.046 82) 95%, var(--theme-body-bg)));
   --theme-interaction-caution-box-shadow: 0 16px 32px -28px oklch(52% 0.11 82 / 0.16), inset 0 1px 0 oklch(99% 0.01 82 / 0.66);
-  --theme-control-pill-background-color: color-mix(in srgb, var(--theme-surface-muted) 88%, var(--theme-body-bg));
-  --theme-control-pill-focus-visible-background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%);
-  --theme-control-pill-quiet-focus-visible-background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%);
-  --theme-control-pill-hover-background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%);
-  --theme-control-pill-quiet-hover-background-color: color-mix(in srgb, var(--theme-surface-strong) 92%, var(--theme-accent) 6%);
   --theme-evidence-surface-background-color: color-mix(in srgb, var(--theme-evidence-bg) 78%, var(--theme-surface-strong));
-  --theme-index-card-link-focus-visible-tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
   --theme-index-card-link-hover-tw-ring-color: var(--theme-frosted-control-on-panel-hover-border);
   --theme-index-card-toggle-color: color-mix(in srgb, var(--theme-accent-strong) 58%, var(--theme-body-bg));
   --theme-dosage-row-box-shadow: var(--theme-frosted-control-shadow);
@@ -1602,7 +1624,7 @@ html[data-theme="light"] {
   --theme-home-logo-frame-hover-home-logo-main-filter: drop-shadow(0 20px 30px rgba(84, 46, 112, 0.2)) drop-shadow(0 0 24px var(--theme-logo-shadow-hover));
   --theme-home-intro-color: var(--theme-text-faint);
   --theme-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 246 255 / 0.64), transparent 34%), radial-gradient(circle at 78% 88%, rgb(207 146 209 / 0.16), transparent 42%), linear-gradient(135deg, #f8cbf8 0%, #f2b9f2 54%, #e6a5e7 100%);
-  --theme-home-nav-icon-color: #5c0860;
+  --theme-home-nav-icon-color: #5b0b5f;
   --theme-home-nav-icon-box-shadow: inset 0 1px 0 rgb(255 249 255 / 0.76), 0 18px 34px -28px rgb(132 60 135 / 0.3);
   --theme-home-nav-link-hover-home-nav-icon-border-color: rgb(149 87 151 / 0.18);
   --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 245 255 / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, rgb(206 135 208 / 0.2), transparent 42%), linear-gradient(135deg, #f9c5fa 0%, #efaff0 54%, #e098e1 100%);
@@ -1618,7 +1640,7 @@ html[data-theme="light"] {
   --theme-search-suggestion-secondary-color: var(--theme-search-suggestion-secondary-text);
   --theme-search-suggestion-highlighted-true-border-color: var(--theme-search-suggestion-active-border);
   --theme-search-suggestion-highlighted-true-box-shadow: var(--theme-search-suggestion-active-shadow);
-  --theme-report-dossier-box-shadow: 0 14px 30px -26px var(--theme-shadow-strong), inset 0 1px 0 oklch(99% 0.01 333 / 0.7);
+  --theme-report-dossier-box-shadow: var(--elev-1), inset 0 1px 0 oklch(99% 0.01 333 / 0.7);
   --theme-toggle-pill-focus-visible-background: var(--theme-toggle-pill-bg);
   --theme-toggle-pill-hover-background: var(--theme-toggle-pill-bg);
   --theme-reagent-swatch-label-overlay: linear-gradient(to bottom, color-mix(in srgb, var(--theme-surface-strong) 18%, transparent) 0%, transparent 42%, rgba(0, 0, 0, 0.16) 100%);
@@ -1682,9 +1704,9 @@ html[data-theme="light"] {
     --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.04) calc(c + 0.006) h) 92%, var(--theme-body-bg));
     --theme-frosted-panel-highlight: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 58%, var(--theme-panel-base));
     --theme-frosted-panel-primary: color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg));
-    --theme-frosted-panel-secondary: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg));
+    --theme-frosted-panel-secondary: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.02) calc(c + 0.012) h) 92%, var(--theme-body-bg));
     --theme-frosted-panel-hover-bg:
-      radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 64%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.035) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 64%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.018) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
     --theme-frosted-control-highlight: color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.01) h) 56%, var(--theme-control-base));
     --theme-frosted-control-secondary: oklch(from var(--theme-control-base) calc(l - 0.05) calc(c + 0.018) h);
     --theme-frosted-control-hover-bg:

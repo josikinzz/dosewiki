@@ -173,10 +173,10 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
       full: true,
       render: () => (
         <div className="grid w-full gap-3 sm:grid-cols-2">
-          <div className="aspect-square overflow-hidden rounded-xl border [border-color:var(--theme-border)]">
+          <div className="aspect-square overflow-hidden rounded-card border [border-color:var(--theme-border)]">
             <MediaPlaceholder kind="empty" title="Media unavailable" description="No image on file" />
           </div>
-          <div className="aspect-square overflow-hidden rounded-xl border [border-color:var(--theme-border)]">
+          <div className="aspect-square overflow-hidden rounded-card border [border-color:var(--theme-border)]">
             <MediaPlaceholder kind="loading" />
           </div>
         </div>

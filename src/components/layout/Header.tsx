@@ -88,7 +88,29 @@ function NavChildLink({
 }
 
 const DESKTOP_SUBMENU_LINK_CLASS =
-  "theme-header-nav-link theme-focus-ring flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium";
+  "theme-header-nav-link theme-focus-ring flex min-h-10 items-center gap-2 rounded-control border border-transparent px-3 py-2 text-sm font-medium";
+
+/** A top-level link in the desktop bar; the About item at the end of the row shares it. */
+const DESKTOP_NAV_LINK_CLASS =
+  "theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-3 py-2 text-sm font-medium";
+
+/**
+ * The header's two floating panels, the desktop dropdown and the mobile sheet, are one
+ * surface: same corner, inset and single hairline. Only the width differs, because the
+ * sheet also carries section icons and disclosure chevrons.
+ *
+ * theme-mobile-nav-panel is what paints a panel as part of the dark Effect Index chrome
+ * rather than as a light popover; it is the header's panel surface, not a mobile-only
+ * class.
+ */
+const NAV_PANEL_CLASS =
+  "theme-overlay-surface theme-mobile-nav-panel theme-overlay-enter absolute top-[calc(100%+0.5rem)] rounded-card border p-2 shadow-[var(--theme-elevation-xl)] backdrop-blur-[var(--frost-blur)]";
+
+/** One glyph size for the whole chrome: nav, menu and appearance here, and the footer icons. */
+const CHROME_ICON_SIZE = 20;
+
+const CHEVRON_TRANSITION_CLASS =
+  "transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] motion-reduce:transition-none";
 
 /**
  * The chevron's own hit target. A real button, sized 36×44 so it clears the 24px minimum on
@@ -167,7 +189,7 @@ function DesktopNavItem({
         className={className}
         aria-current={item.active ? "page" : undefined}
       >
-        <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
+        <Icon icon={navIcon} size={CHROME_ICON_SIZE} className="theme-header-nav-icon shrink-0" />
         <span>{t(item.label)}</span>
       </SmartLink>
     );
@@ -290,7 +312,7 @@ function DesktopNavItem({
         aria-current={item.active ? "page" : undefined}
         onKeyDown={handleLabelKeyDown}
       >
-        <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
+        <Icon icon={navIcon} size={CHROME_ICON_SIZE} className="theme-header-nav-icon shrink-0" />
         <span id={labelId}>{t(item.label)}</span>
       </SmartLink>
 
@@ -313,7 +335,7 @@ function DesktopNavItem({
         <Icon
           icon={icons.chevronDown}
           size={14}
-          className={`theme-header-nav-icon shrink-0 transition-transform duration-[180ms] ease-out motion-reduce:transition-none ${
+          className={`theme-header-nav-icon shrink-0 ${CHEVRON_TRANSITION_CLASS} ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -331,10 +353,7 @@ function DesktopNavItem({
           // better than "Show Effects submenu".
           aria-labelledby={labelId}
           onKeyDown={handlePanelKeyDown}
-          // theme-mobile-nav-panel is what paints a panel as part of the dark Effect Index
-          // chrome rather than as a light popover; it is the header's panel surface, not a
-          // mobile-only class.
-          className={`theme-overlay-surface theme-mobile-nav-panel theme-overlay-enter absolute top-[calc(100%+0.5rem)] z-50 flex w-56 flex-col gap-0.5 rounded-2xl border p-2 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm ${
+          className={`${NAV_PANEL_CLASS} z-50 flex w-56 flex-col gap-0.5 ${
             align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left"
           }`}
         >
@@ -355,11 +374,18 @@ function DesktopNavItem({
 }
 
 const MOBILE_SUBMENU_LINK_CLASS =
-  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-10 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium";
+  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-10 items-center gap-2 rounded-control border border-transparent px-3 py-2 text-sm font-medium";
+
+/**
+ * A top-level row in the mobile sheet: the desktop bar's icon-label gap and weight, on a
+ * full 44px touch row with the dropdown's corner.
+ */
+const MOBILE_NAV_LINK_CLASS =
+  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-2.5 rounded-control border border-transparent px-3 py-2 text-sm font-medium";
 
 /** The mobile chevron's hit target: a full 44×44 square at the right edge of the row. */
 const MOBILE_DISCLOSURE_CLASS =
-  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-transparent";
+  "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-transparent";
 
 /**
  * A top-level item in the mobile sheet, split the same way as the desktop bar: the label
@@ -444,7 +470,7 @@ function MobileNavItem({
           <Icon
             icon={icons.chevronDown}
             size={16}
-            className={`theme-header-nav-icon shrink-0 transition-transform duration-[180ms] ease-out motion-reduce:transition-none ${
+            className={`theme-header-nav-icon shrink-0 ${CHEVRON_TRANSITION_CLASS} ${
               isExpanded ? "rotate-180" : ""
             }`}
           />
@@ -454,7 +480,7 @@ function MobileNavItem({
       {isExpanded && (
         <div
           id={submenuId}
-          className="ml-6 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-dose-divider pl-2"
+          className="ml-5 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-dose-divider pl-2"
         >
           {submenu.map((child) => (
             <NavChildLink
@@ -469,6 +495,12 @@ function MobileNavItem({
     </div>
   );
 }
+
+const BRAND_LIFT_CLASS =
+  "transition-transform duration-[var(--motion-base)] ease-[var(--ease-out)] group-hover/brand:scale-[1.03] group-focus-visible/brand:scale-[1.03] motion-reduce:transition-none";
+
+const MENU_GLYPH_TRANSITION_CLASS =
+  "transition-opacity duration-[var(--motion-fast)] ease-[var(--ease-out)] motion-reduce:transition-none";
 
 interface HeaderProps {
   model: RouteChromeModel;
@@ -569,7 +601,7 @@ export function Header({
   // treatment, generalised. Nothing in the header portals out, so the one class
   // covers the nav panels, the mobile sheet and the search field.
   return (
-    <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-sm backdrop-safe">
+    <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-[var(--frost-blur)] backdrop-safe">
       <div
         data-nosnippet
         className={
@@ -584,7 +616,9 @@ export function Header({
           className="group/brand flex h-11 w-auto items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:pl-0"
         >
           <SmartLink href={model.headerLogo.href} scroll={false} eager>
-          <span className="relative inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
+          {/* Logo and wordmark lift by the same amount on hover, so the brand grows as
+              one mark rather than two pieces at different rates. */}
+          <span className={`relative inline-flex items-center justify-center ${BRAND_LIFT_CLASS}`}>
             <DoseWikiLogo
               width={40}
               height={40}
@@ -596,8 +630,8 @@ export function Header({
           {/* From xl the brand text is a two-row column beside the logo: wordmark on
               top, compact version pill underneath. Tight leading and a 9px pill keep
               the column inside the button's height so the header never grows. */}
-          <span className="hidden flex-col items-start justify-center gap-[3px] xl:flex">
-            <span className="theme-text-primary inline-flex items-center text-2xl font-display font-bold leading-none tracking-tight transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
+          <span className="hidden flex-col items-start justify-center gap-0.5 xl:flex">
+            <span className={`theme-text-primary inline-flex items-center text-2xl font-display font-bold leading-none tracking-tight ${BRAND_LIFT_CLASS}`}>
               <SiteWordmark />
             </span>
             <SiteVersionBadge variant="header" />
@@ -608,8 +642,8 @@ export function Header({
         <div
           className={
             forceMobileNav
-              ? "flex min-h-[44px] min-w-0 flex-1 items-center"
-              : "flex min-h-[44px] min-w-0 flex-1 items-center lg:w-full lg:max-w-none"
+              ? "flex min-h-11 min-w-0 flex-1 items-center"
+              : "flex min-h-11 min-w-0 flex-1 items-center lg:w-full lg:max-w-none"
           }
         >
           <GlobalSearch
@@ -628,7 +662,7 @@ export function Header({
           ref={desktopNavRef}
           className={forceMobileNav ? "hidden" : "ml-auto hidden flex-shrink-0 items-center gap-2 lg:ml-0 lg:flex"}
         >
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-0.5">
             {model.primaryNavItems.map((item) => (
               <DesktopNavItem
                 key={item.id}
@@ -636,7 +670,7 @@ export function Header({
                 align="left"
                 isOpen={openMenuId === item.id}
                 onOpenChange={setOpenMenuId}
-                className="theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
+                className={DESKTOP_NAV_LINK_CLASS}
               />
             ))}
           </nav>
@@ -649,24 +683,24 @@ export function Header({
               align="right"
               isOpen={openMenuId === aboutItem.id}
               onOpenChange={setOpenMenuId}
-              className="theme-header-nav-link theme-focus-ring flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-4 py-2 text-sm font-medium"
+              className={DESKTOP_NAV_LINK_CLASS}
             />
           )}
 
           <div className="theme-divider mx-2 h-6 w-px" />
 
-          {/* Desktop settings is a flat 22px glyph, matching the adjacent navigation
-              icons; the divider alone marks the boundary after About. */}
-          <AppearanceControls iconSize={22} />
+          {/* Desktop settings is a flat glyph at the chrome size, matching the adjacent
+              navigation icons; the divider alone marks the boundary after About. */}
+          <AppearanceControls iconSize={CHROME_ICON_SIZE} />
         </div>
 
         <div className={forceMobileNav ? "ml-auto flex flex-shrink-0 items-center gap-2" : "ml-auto flex flex-shrink-0 items-center gap-2 lg:hidden"}>
           {/* Appearance settings stays left of the mobile menu so the familiar hamburger
-              owns the top-right corner. This mount keeps the larger touch-context glyph,
-              and lands its panel on the same insets the mobile nav sheet reaches: one
-              button + one gap right (the sheet is right-0 inside the hamburger's
-              wrapper), and the header's own 16px edge padding below the bar. */}
-          <AppearanceControls alignOffset={-52} sideOffset={20} />
+              owns the top-right corner. Its glyph matches the hamburger's; the 44px hit
+              area is what serves touch. The panel lands on the same insets the mobile nav
+              sheet reaches: one button + one gap right (the sheet is right-0 inside the
+              hamburger's wrapper), and the header's own 16px edge padding below the bar. */}
+          <AppearanceControls iconSize={CHROME_ICON_SIZE} alignOffset={-52} sideOffset={20} />
           <div className="relative">
             <Button
               ref={menuButtonRef}
@@ -674,21 +708,22 @@ export function Header({
               size="icon"
               onClick={() => setIsMenuOpen((prev) => !prev)}
               data-open={isMenuOpen}
-              className="theme-header-icon-button h-11 w-11 rounded-xl"
+              // The Button base pins every svg at 16px; the menu glyph takes the chrome size.
+              className="theme-header-icon-button h-11 w-11 rounded-xl [&_svg]:size-5"
               aria-haspopup="true"
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav"
             >
-              <span aria-hidden="true" className="relative h-7 w-7">
+              <span aria-hidden="true" className="relative h-5 w-5">
                 <Icon
                   icon="lucide:menu"
-                  size={28}
-                  className={`absolute inset-0 !h-7 !w-7 transition-opacity duration-[180ms] ease-out motion-reduce:transition-none ${isMenuOpen ? "opacity-0" : "opacity-100"}`}
+                  size={CHROME_ICON_SIZE}
+                  className={`absolute inset-0 ${MENU_GLYPH_TRANSITION_CLASS} ${isMenuOpen ? "opacity-0" : "opacity-100"}`}
                 />
                 <Icon
                   icon="lucide:x"
-                  size={28}
-                  className={`absolute inset-0 !h-7 !w-7 transition-opacity duration-[180ms] ease-out motion-reduce:transition-none ${isMenuOpen ? "opacity-100" : "opacity-0"}`}
+                  size={CHROME_ICON_SIZE}
+                  className={`absolute inset-0 ${MENU_GLYPH_TRANSITION_CLASS} ${isMenuOpen ? "opacity-100" : "opacity-0"}`}
                 />
               </span>
               <span className="sr-only">{t("Toggle navigation")}</span>
@@ -698,19 +733,19 @@ export function Header({
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="theme-overlay-surface theme-mobile-nav-panel theme-overlay-enter absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2.5 shadow-[var(--theme-elevation-xl)] ring-1 ring-dose-divider backdrop-blur-sm"
+              className={`${NAV_PANEL_CLASS} right-0 w-64 origin-top-right`}
             >
-              <nav className="flex flex-col gap-1">
+              <nav className="flex flex-col gap-0.5">
                 {model.primaryNavItems.map((item) => (
                   <MobileNavItem
                     key={item.id}
                     item={item}
-                    iconSize={24}
+                    iconSize={CHROME_ICON_SIZE}
                     showActiveIndicator
                     isExpanded={expandedMobileIds.includes(item.id)}
                     onToggle={toggleMobileGroup}
                     onNavigate={() => setIsMenuOpen(false)}
-                    className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
+                    className={MOBILE_NAV_LINK_CLASS}
                   />
                 ))}
               </nav>
@@ -720,11 +755,11 @@ export function Header({
               {aboutItem && (
                 <MobileNavItem
                   item={aboutItem}
-                  iconSize={24}
+                  iconSize={CHROME_ICON_SIZE}
                   isExpanded={expandedMobileIds.includes(aboutItem.id)}
                   onToggle={toggleMobileGroup}
                   onNavigate={() => setIsMenuOpen(false)}
-                  className="theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-3.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold"
+                  className={MOBILE_NAV_LINK_CLASS}
                 />
               )}
             </div>

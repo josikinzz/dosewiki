@@ -7,6 +7,10 @@ import { getRouteChromeModel } from "@/utils/routeChrome";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { useT } from "@/i18n/client";
 
+/** Shared by the internal and external footer links: a bare 20px glyph in a 44px hit area. */
+const FOOTER_ICON_LINK_CLASS =
+  "theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors";
+
 interface FooterProps {
   model?: RouteChromeModel;
 }
@@ -22,8 +26,9 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
     <footer className="app-footer theme-chrome-dark theme-footer-surface py-6">
       {/* Full-bleed on purpose, unlike the header: no `mx-auto max-w-7xl` here, so the
           disclaimer and the appearance controls sit against the viewport edges rather
-          than the page column. The gutter is the only inset. */}
-      <div className="flex w-full flex-col gap-4 px-6" data-nosnippet>
+          than the page column. The gutter is the only inset, and it matches the header's
+          so the disclaimer's left edge lines up with the logo above. */}
+      <div className="flex w-full flex-col gap-4 px-4 min-[1600px]:px-6" data-nosnippet>
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
           {/* No brand mark here. The header already carries the logo and wordmark on every
               page that renders this footer, so repeating them below the fold was pure echo;
@@ -45,7 +50,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
 
           {/* Right rail: the appearance/nav controls. */}
           <div className="flex w-full items-end justify-between gap-4 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end">
-            <nav className="theme-text-muted flex items-center gap-2 text-sm font-medium">
+            <nav className="theme-text-muted flex items-center gap-2">
             {model.footerNavItems.map((item) => {
               const footerIcon = resolveRouteChromeIcon(item.icon);
 
@@ -56,9 +61,9 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   scroll={false}
                   aria-label={t(item.label)}
                   title={t(item.label)}
-                  className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
+                  className={FOOTER_ICON_LINK_CLASS}
                 >
-                  <Icon icon={footerIcon} size={18} />
+                  <Icon icon={footerIcon} size={20} />
                 </SmartLink>
               );
             })}
@@ -72,9 +77,9 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t(item.label)}
-                  className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
+                  className={FOOTER_ICON_LINK_CLASS}
                 >
-                  <Icon icon={footerIcon} size={18} />
+                  <Icon icon={footerIcon} size={20} />
                 </a>
               );
             })}

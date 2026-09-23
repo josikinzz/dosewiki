@@ -12,9 +12,9 @@ const textareaVariants = cva(
         error: "border-[color:var(--theme-danger-border-strong)] ring-1 ring-inset ring-[var(--theme-danger-border-strong)] focus:border-[color:var(--theme-danger-text)]",
       },
       textareaSize: {
-        default: "min-h-[80px] px-3 py-3 text-[16px] md:text-sm",
-        sm: "min-h-[60px] px-3 py-2 text-[16px] md:text-sm",
-        lg: "min-h-[120px] px-4 py-4 text-base",
+        default: "min-h-20 px-3 py-3 text-[16px] md:text-sm",
+        sm: "min-h-15 px-3 py-2 text-[16px] md:text-sm",
+        lg: "min-h-30 px-4 py-4 text-base",
       },
     },
     defaultVariants: {

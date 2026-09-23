@@ -172,18 +172,18 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                 : undefined
             }
             className={cn(
-              "theme-selected-control group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border border-transparent px-3 py-1.5 text-sm transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+              "theme-selected-control group relative isolate h-9 gap-1.5 overflow-hidden rounded-full border border-transparent px-3 text-sm transition-[transform,background-color,color,box-shadow,border-color] duration-[var(--motion-base)] ease-[var(--ease-out)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
               item.prominence === "major" ? "font-semibold" : "font-medium",
             )}
           >
             {item.icon ? (
               <span
                 className={cn(
-                  "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                  "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-[var(--motion-base)] ease-[var(--ease-out)] motion-reduce:transition-none",
                   item.id !== value && "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
                 )}
               >
-                <Icon icon={item.icon} size={17} />
+                <Icon icon={item.icon} size={16} />
               </span>
             ) : null}
             {item.label}
@@ -234,11 +234,11 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                   onItemSelect?.(item, { wasActive });
                 }}
                 className={cn(
-                  "theme-index-mobile-tab group col-span-2 flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
+                  "theme-index-mobile-tab group col-span-2 flex min-w-0 flex-col items-center gap-1.5 rounded-2xl px-0 py-1 text-center transition-[color,transform] duration-[var(--motion-base)] ease-[var(--ease-out)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
                   getMobileFilterItemPositionClassName(index, items.length),
                 )}
               >
-                <span className="theme-index-mobile-tab-icon flex h-[3.5rem] w-[3.5rem] shrink-0 items-center justify-center rounded-[1.2rem] transition-[background,color,box-shadow,transform] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100">
+                <span className="theme-index-mobile-tab-icon flex h-[3.5rem] w-[3.5rem] shrink-0 items-center justify-center rounded-[1.2rem] transition-[background,color,box-shadow] duration-[var(--motion-base)] ease-[var(--ease-out)] motion-reduce:transition-none">
                   {item.icon ? <Icon icon={item.icon} size={38} /> : null}
                 </span>
                 {renderMobileFilterLabel(item.label)}

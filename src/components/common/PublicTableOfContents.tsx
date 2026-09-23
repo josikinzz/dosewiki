@@ -138,9 +138,9 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
 
   return (
     <div className={cn("w-full", isBare ? null : "max-w-xs", className)} data-nosnippet>
-      <div className={cn(isBare ? "px-1" : "theme-article-toc-panel rounded-xl border p-4")}>
+      <div className={cn(isBare ? "px-1" : "theme-article-toc-panel rounded-card border p-4")}>
         <div className={cn("space-y-2.5", isBare ? "mb-2 px-1" : "mb-3")}>
-          <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-widest">
+          <h2 className="theme-text-faint type-meta-label">
             {t(title)}
           </h2>
         </div>
@@ -157,19 +157,22 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                     href={`#${item.id}`}
                     onClick={(event) => handleClick(item.id, event)}
                     data-active={isActive ? "true" : undefined}
+                    data-tone={item.tone}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm transition-[background-color,color,border-color,box-shadow] duration-[180ms] ease-out motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+                      // Every item carries the border, transparent unless a tone
+                      // paints it, so toned and plain rows share one box height.
+                      "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-control border border-transparent px-2 py-2 text-left text-sm transition-[background-color,color,border-color,box-shadow] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       isWarning
-                        ? "border border-[color:var(--theme-warning-border)] bg-[color:var(--theme-warning-bg)] text-[color:var(--theme-warning-text)] hover:bg-[color:var(--theme-warning-bg-strong)]"
+                        ? undefined
                         : isAccent
-                          ? "theme-badge-surface border"
+                          ? "theme-badge-surface"
                           : "theme-text-secondary",
                     )}
                   >
                     <span
                       className={cn(
-                        "theme-article-toc-item-icon flex h-5 w-5 shrink-0 items-center justify-center transition-colors duration-[180ms] ease-out motion-reduce:transition-none",
+                        "theme-article-toc-item-icon flex h-4 w-4 shrink-0 items-center justify-center transition-colors motion-reduce:transition-none",
                         isWarning
                           ? "text-[var(--theme-warning-text)]"
                         : isAccent

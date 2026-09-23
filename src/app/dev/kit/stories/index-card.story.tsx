@@ -13,7 +13,7 @@ function MockList({ items }: { items: string[] }) {
     <ul className="-mb-1 space-y-1.5 pb-1">
       {items.map((label) => (
         <li key={label}>
-          <span className="theme-index-card-link theme-text-secondary mx-1 flex w-[calc(100%-1rem)] items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem]">
+          <span className="theme-index-card-link theme-text-secondary mx-1 flex w-[calc(100%-1rem)] items-center rounded-control px-3 py-2.5 text-left text-sm">
             <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
             {label}
           </span>

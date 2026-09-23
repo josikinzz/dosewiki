@@ -5,13 +5,14 @@ _Visual language reference for dose.wiki. Use the [UI kit](ui-kit.md) and `/dev/
 ## 1. Design Principles
 - **Data-first clarity**: Every surface should foreground structured measurements, timelines, or definitions. Use typography and spacing to keep complex datasets scannable.
 - **Mirrored theme system ("reverso")**: Every shared color has a dark value on `:root` and a light value on `html[data-theme="light"]`, defined side by side in `src/styles/site-colors.css`. New UI consumes these `--theme-*` variables directly, through `theme-*` utilities, or through the `dose-*` Tailwind aliases generated from `src/theme/theme-token-interface.json`.
-- **Independent surfaces**: The Surfaces control selects canvas and component materials. Orchid is the default Fun surface. Pro uses restrained material tints.
-- **Independent accents**: The Accent control selects brand and interactive emphasis. Default uses fuchsia in Fun and muted plum in Pro.
+- **Independent surfaces**: The Surfaces control selects canvas and component materials. Unsaved, every combination rests on neutral surfaces (saturation 0); Pro uses restrained material tints.
+- **Independent accents**: The Accent control selects brand and interactive emphasis.
+- **The brand color differs by theme, on purpose**: each unsaved Fun/Pro by dark/light combination has its own resting accent in `DEFAULT_APPEARANCE_COLORS` (`src/theme/appearanceChroma.ts`). Vivid dark rests on orchid; Vivid light and Clinical rest on teal. Toggling the scheme changes the brand hue by design. Anything accented must read from `--theme-accent*` so it follows whichever accent is live, never from a fixed hue.
 - **Semantic color**: Success, information, caution, unsafe, and danger colors do not follow the Accent control. This separation preserves their meanings.
-- **One lighting model**: Light comes from the upper left. Frosted surfaces place their radial highlight at `circle at 12% 0%`, use 14px backdrop blur, and take inset top highlights from the `--theme-frosted-*` recipes.
+- **One lighting model**: Light comes from the upper left. Frosted surfaces place their radial highlight at `circle at 12% 0%`, use the `--frost-blur` (14px) backdrop blur, and take inset top highlights from the `--theme-frosted-*` recipes. Drop shadows cast straight down (no x offset), which reads calmer than a diagonal cast and keeps every elevation on one axis.
 - **Measured motion**: Reuse the kit's motion patterns, including `theme-section-card-enter` through `SectionCard`. Add shared motion only when the existing patterns cannot express the state change, and keep reduced-motion behavior intact.
 
-> **Legacy utilities note**: Existing markup still contains raw `white/*` and `fuchsia-*` utilities supported by remaps in `src/styles/theme-light-mode.css`. Treat those classes as migration sites. New shared and public UI starts with theme tokens and UI Kit components.
+> **Legacy utilities**: the raw `white/*` and `fuchsia-*` migration is complete, and `src/styles/theme-light-mode.css` no longer carries remaps. Raw `black/*` remains only for media scrims over imagery. New shared and public UI starts with theme tokens and UI Kit components.
 
 ## 2. Color System
 
@@ -48,7 +49,8 @@ definitions rather than introducing a raw color recipe.
 - **Display typeface**: the active site face exposed by `--font-family-display` and `font-display`. The current dose.wiki module is `src/app/_fonts/dosewiki.ts`; follow `font-swap-howto.md` when changing it.
 - **Hierarchy**: Use the type roles and sizes already demonstrated in `/dev/kit`. Page and section headings use accent/text tokens; body and metadata step down the `--theme-text-*` tiers.
 - **Display scope**: Reserve `font-display` for the wordmark, hero moments, and top-level headings. Body copy, subsection titles, and dense data stay on the body stack.
-- **Microcopy**: Short labels and metadata may use uppercase tracking when the shared component recipe does.
+- **Microcopy**: Uppercase microcopy has exactly two recipes, both tracked at `--type-tracking-label` (0.16em): `type-meta-label` (12px) for standalone labels and group headings, and `type-chip-label` (11px) for text inside chips, pills, and badges. Do not add another letter-spacing value.
+- **Reader text size**: Sizes come from `--text-*` and `--type-size-*`, which follow the reader's Text size setting. An arbitrary `text-[13px]` does not scale; reserve literal pixel sizes for the 16px field text that stops iOS zooming.
 - **Monospace**: Code and structured editor surfaces use the editor-owned monospace treatment.
 - **Links**: Reuse the link treatment owned by the surrounding shared or feature component. Preserve visible hover and focus states; long-form content keeps a visible text affordance.
 - **Tone**: Concise, instructional copy that mirrors dataset language (e.g., “Dosage & Duration”, “Mechanism of action”).
@@ -58,8 +60,11 @@ definitions rather than introducing a raw color recipe.
 - **Page rhythm**: Follow the existing page shell's container width and gutters. Group related content tightly and separate sections more generously.
 - **Responsive layout**: Use grid, flex, or columns according to content order and reading behavior. Preserve logical DOM order and confirm the layout at narrow and wide viewports.
 - **Geometry**: Reuse component radius and spacing variants rather than copying one route's class string.
+- **Corner roles**: `rounded-chip` <= `rounded-control` <= `rounded-card` <= `rounded-panel` in both styles (Vivid 4 / 5 / 6 / 12px, Clinical 3 / 4 / 4 / 6px). The Vivid size scale is ordered too: sm 1, md 3, lg 5, xl 6, 2xl 8, 3xl 12px. An inner corner never exceeds its container's.
+- **Control heights**: one ladder across Button, fields, Toggle, Tabs, and chips: 20 (small pill), 24 (badge, metadata pill), 28 (chip, name chip), 32 (compact button, tab), 36 (menu row), 40 (default button, small field), 44 (large button, default field, coarse-pointer floor), 48 (large field). Pin chip and pill heights with `h-*` rather than letting padding and line height decide.
 - **Frosted material**: Use the `--theme-frosted-panel-*` family or the shared surface utility/component that consumes it. Compact controls use `--theme-frosted-control-*`; nested controls use `--theme-frosted-control-on-panel-*`.
-- **Lighting**: Frosted surfaces share the upper-left highlight at `circle at 12% 0%`, 14px backdrop blur where blur is appropriate, and tokenized inset highlights. Both themes keep the same material structure while color values change.
+- **Lighting**: Frosted surfaces share the upper-left highlight at `circle at 12% 0%`, `backdrop-blur-[var(--frost-blur)]` where blur is appropriate, and tokenized inset highlights. Gradients run top-left to bottom-right (`135deg`, `to-br`). Both themes keep the same material structure while color values change.
+- **Floating panels**: Popover, DropdownMenu, Select, Dialog, and Command share `rounded-card`, `--theme-elevation-overlay`, and the `.theme-menu-row` row recipe (36px rows, instant `--theme-menu-item-highlight-bg` lift). Dialogs dim the page with `.theme-scrim`; they never hide it.
 - **Light theme hierarchy**: Titles use dark aubergine text through `--theme-accent-strong` or `--theme-text-primary`; body and metadata step down the text tokens. Keep text tinted toward the brand hue on pink and lilac surfaces.
 
 ## 5. Core Surfaces
@@ -94,7 +99,7 @@ definitions rather than introducing a raw color recipe.
 - **Dosage and duration**: Use the article-owned tier and route components. Preserve the semantic tier ramp and projected data; do not reproduce their styling inline.
 - **Interactions and warnings**: Use the semantic safety tokens and shared safety surfaces. Severity and harm-reduction meaning outrank decorative consistency.
 - **Search**: Use the search result and metadata primitives demonstrated in the kit; the dark results surface uses the chrome-rail tone.
-- **Tier tints**: The current dose/plateau definitions live in `src/styles/utilities-theme.css` and `src/styles/theme-light-mode.css`. Change both themes together.
+- **Tier tints**: The current dose/plateau definitions live in `src/styles/utilities-theme.css`, reading per-scheme tokens from `src/styles/site-colors.css`. Change both themes together. Data rows carry `tabular-nums` in their recipes.
 - **Index lists**: Homogeneous link collections prefer open, separated rows; use the shared divider and hover tokens rather than per-row slab cards.
 - **Long-form notes**: Keep semantic lists and links intact. Avoid an extra card when the parent section already supplies the surface.
 
@@ -105,7 +110,8 @@ definitions rather than introducing a raw color recipe.
 
 ## 11. Interaction States & Accessibility
 - **Keyboard focus**: Use the shared 1px neutral `:focus-visible` cue, not a thick accent outline. Text fields and selects emphasize their existing border with `theme-field-focus`; ordinary pointer clicks do not add an outside focus ring. This contract applies to Vivid, Pro, light, dark, and custom color variations. Keep system high-contrast focus indicators and semantic validation borders.
-- **Hover and active states**: Keep state changes restrained and do not rely on color alone.
+- **Hover and active states**: Keep state changes restrained and do not rely on color alone. `Button` settles 1px on press (reduced motion keeps it still); a label never changes weight between states, so it does not shift when it activates.
+- **Browser surfaces**: `accent-color`, the text caret, `::selection`, `::placeholder` (faint tier, full opacity), and scrollbars all read the palette from `src/styles/base.css`. Do not dim a placeholder with opacity.
 - **Reduced motion**: Preserve the reduced-motion behavior of shared animation utilities and avoid making motion necessary to understand a state change.
 - **Pointer and touch**: Links and buttons need correct semantics, a visible state change, and adequate target size.
 - **Contrast**: Check text, icons, controls, and safety states in both themes. Use the text and semantic token tiers rather than estimating contrast from opacity utilities.
@@ -116,10 +122,11 @@ definitions rather than introducing a raw color recipe.
 - **Imagery**: Keep molecule and replication media legible, attributed where required, and subordinate to safety-critical text.
 
 ## 13. Motion & Feedback
+- **Motion scale**: three durations and one curve, tokenized in `src/styles/base.css`: `--motion-fast` (180ms) for color, border, and opacity; `--motion-base` (240ms) for transform, shadow, and surface lifts; `--motion-slow` (420ms) for section entrances; `--ease-out` for all of them (`--ease-loop` only for infinite loops). A bare `transition` utility already lands on `--motion-fast` with `--ease-out`. Menu highlights are instant so they keep pace with arrow keys.
 - **Entry animations**: `SectionCard` uses the reduced-motion-safe `theme-section-card-enter` utility and a tokenized delay. Reuse it instead of adding page-local entrance choreography.
-- **Tab selection**: At desktop widths (768px and above), public route pills use a canvas-colored circle behind the selected icon. The circle scales from 0.55 to 1 over 240ms and fades over 160ms; the glyph stays fixed. Mobile index tiles retain a filled, rounded-square app-icon treatment without a circular cutout. Keep this in the shared CSS state hooks, without timers or animation dependencies. Reduced motion disables the transition.
+- **Tab selection**: At desktop widths (768px and above), public route pills use a canvas-colored circle behind the selected icon. The circle scales from 0.55 to 1 over `--motion-base` (240ms) and fades over `--motion-fast` (180ms); the glyph stays fixed. Mobile index tiles retain a filled, rounded-square app-icon treatment without a circular cutout. Keep this in the shared CSS state hooks, without timers or animation dependencies. Reduced motion disables the transition.
 - **Tab panels**: Substance and effect index panels and ROA content use `theme-tab-panel-enter`, a 240ms fade with a 4px upward settle based on the shared section entrance. Key the content boundary by the selected view, not the tab controls. Do not delay new content behind an exit animation or retain `will-change` after entry. Reduced motion shows the content immediately.
-- **Small reveals and overlays**: Use `theme-reveal-enter` for a 180ms, 2px content entrance and `theme-overlay-enter` for a 180ms, 4px anchored panel entrance. Fade-only feedback uses `theme-feedback-enter` at 160ms. Keep glyphs stationary; disclosure indicators transition between ellipsis and chevron without moving the control.
+- **Small reveals and overlays**: Use `theme-reveal-enter` for a 180ms, 2px content entrance and `theme-overlay-enter` for a 180ms, 4px anchored panel entrance. Fade-only feedback uses `theme-feedback-enter` at `--motion-fast` (180ms). Keep glyphs stationary; disclosure indicators transition between ellipsis and chevron without moving the control.
 - **Retained state**: Keep drafts, expanded detail rows, media players, and settled results intact through presentation changes. Hidden retained content must be inaccessible immediately. Reveal only newly appended rows, not the existing collection; never delay safety labels, focus, seeking, or new results behind exit choreography.
 - **Navigation destinations**: Citation and report-phase targets use `theme-navigation-target` for a brief neutral background emphasis without an outline or layout movement. Preserve native anchors and legality's `hidden="until-found"` behavior.
 - **Media and touch**: Poster handoffs wait for a usable video frame. Rails retain native scrolling, and thumbnail selection uses border and opacity rather than scaling. Touch capability does not disable transitions; `prefers-reduced-motion` does.

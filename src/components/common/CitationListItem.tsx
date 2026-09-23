@@ -39,7 +39,7 @@ export function CitationListItem({
       ) : (
         <span
           aria-hidden="true"
-          className="theme-reference-number flex h-[1.125rem] min-w-[1.125rem] shrink-0 items-center justify-center rounded-full px-1 text-[0.625rem] font-medium leading-none"
+          className="theme-reference-number flex h-5 min-w-5 shrink-0 items-center justify-center rounded-chip px-1 text-[11px] font-semibold leading-none tabular-nums"
         >
           {number}
         </span>

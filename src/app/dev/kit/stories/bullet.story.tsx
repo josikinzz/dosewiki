@@ -18,16 +18,16 @@ export const bulletStory: StoryDef = {
   examples: [
     {
       label: "Colors",
-      note: "Fuchsia (accent) is the default; rose is the alternate tone.",
+      note: "Accent is the default; danger is the alternate tone. The old fuchsia and rose names remain as deprecated aliases.",
       render: () => (
         <div className="flex items-center gap-6">
           <span className="flex items-center gap-2">
-            <Bullet color="fuchsia" />
-            <span className="text-sm text-[var(--theme-text-secondary)]">fuchsia (default)</span>
+            <Bullet color="accent" />
+            <span className="text-sm text-[var(--theme-text-secondary)]">accent (default)</span>
           </span>
           <span className="flex items-center gap-2">
-            <Bullet color="rose" />
-            <span className="text-sm text-[var(--theme-text-secondary)]">rose</span>
+            <Bullet color="danger" />
+            <span className="text-sm text-[var(--theme-text-secondary)]">danger</span>
           </span>
         </div>
       ),
@@ -53,9 +53,9 @@ export const bulletStory: StoryDef = {
       render: () => (
         <div className="flex items-center gap-2 text-sm text-[var(--theme-text-secondary)]">
           <span>Stimulant</span>
-          <Bullet color="rose" />
+          <Bullet color="danger" />
           <span>Phenethylamine</span>
-          <Bullet color="rose" />
+          <Bullet color="danger" />
           <span>Schedule I</span>
         </div>
       ),
@@ -75,9 +75,9 @@ export const bulletStory: StoryDef = {
   props: [
     {
       name: "color",
-      type: '"fuchsia" | "rose"',
-      default: '"fuchsia"',
-      description: "Dot tone. fuchsia maps to the dose accent token; rose to bg-rose-400.",
+      type: '"accent" | "danger" | "fuchsia" | "rose"',
+      default: '"accent"',
+      description: "Dot tone. accent maps to the dose accent token; danger to the dose danger token. fuchsia and rose are deprecated aliases of accent and danger.",
     },
     {
       name: "className",
