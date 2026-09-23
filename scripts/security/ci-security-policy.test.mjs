@@ -57,3 +57,13 @@ test("pack-only commits to main do not start the policy workflow", () => {
   const pushTrigger = workflow.slice(workflow.indexOf("  push:"), workflow.indexOf("  pull_request:"));
   assert.match(pushTrigger, /paths-ignore:\n\s+- public\/dosewiki-molecules\.zip\n\s+- public\/dosewiki-molecules\.json/);
 });
+
+test("CI fails on lineage, migration, and generated schema drift", () => {
+  const packageJson = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+  assert.match(packageJson.scripts["provenance:check"], /--strict\b/);
+  assert.match(packageJson.scripts["postgres:check-schema"], /generateDrizzleSchema\.ts --check$/);
+  for (const command of ["provenance:check", "postgres:verify-migrations", "postgres:check-schema"]) {
+    assert.match(workflow, new RegExp(`bun run ${command}\\b`), `CI runs ${command}`);
+    assert.match(packageJson.scripts["verify:workflow"], new RegExp(`npm run ${command}\\b`), `verify:workflow runs ${command}`);
+  }
+});

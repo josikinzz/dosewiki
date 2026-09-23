@@ -58,6 +58,11 @@ jobs:
           bun run provenance:check
           bun run cleanup:metrics --check
 
+      - name: Check generated schema and migrations for drift
+        run: |
+          bun run postgres:verify-migrations
+          bun run postgres:check-schema
+
       - name: Check owned Postgres function references
         run: node scripts/build/check-function-references.mjs
 

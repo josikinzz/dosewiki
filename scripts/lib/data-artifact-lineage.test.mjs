@@ -1,5 +1,6 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -63,6 +64,59 @@ describe("data artifact lineage", () => {
     const report = collectArtifactLineageVerification({ rootDir: repoRoot });
     expect(report.errors).toEqual([]);
     expect(report.generatedExports.unclassified).toEqual([]);
+  });
+
+  it("reports no warnings for the current tree, so strict provenance passes", () => {
+    const report = collectArtifactLineageVerification({ rootDir: repoRoot });
+    expect(report.warnings).toEqual([]);
+  });
+
+  it("does not warn that a gitignored local-only output is absent", async () => {
+    const root = await makeTmpRoot();
+    execFileSync("git", ["init", "-q"], { cwd: root });
+    await writeFile(path.join(root, ".gitignore"), "/snapshots/\n");
+    const entry = (id, artifactPath) => ({
+      id,
+      path: artifactPath,
+      role: "derived-api-snapshot",
+      producer: "manual",
+      consumers: ["operator"],
+      inputs: ["remote API"],
+      freshnessRule: "local only",
+      editPolicy: "generated",
+      refreshCommand: "manual",
+    });
+    const report = collectArtifactLineageVerification({
+      rootDir: root,
+      manifest: { artifacts: [entry("ignored-snapshot", "snapshots/data.json"), entry("tracked-output", "data/out.json")] },
+      docsPaths: [],
+      trackedGeneratedExports: [],
+    });
+    expect(report.warnings).toEqual(["tracked-output output path has no current match: data/out.json"]);
+  });
+
+  it("does not treat a documented data README as a data artifact", async () => {
+    const root = await makeTmpRoot();
+    await writeFile(path.join(root, "guide.md"), "See data/README.md and data/catalog.json.\n");
+    const report = collectArtifactLineageVerification({
+      rootDir: root,
+      manifest: { artifacts: [] },
+      docsPaths: ["guide.md"],
+      trackedGeneratedExports: [],
+    });
+    expect(report.warnings).toEqual(["documented data artifact is not represented in lineage manifest: data/catalog.json"]);
+  });
+
+  it("fails the provenance command when the manifest has an error", async () => {
+    const root = await makeTmpRoot();
+    await mkdir(path.join(root, "data"), { recursive: true });
+    await writeFile(path.join(root, "data/lineage.json"), JSON.stringify({ artifacts: [{ id: "no-retention", path: "data/lineage.json" }] }));
+    const result = spawnSync(process.execPath, [path.join(repoRoot, "scripts/data/verifyGeneratedDataProvenance.mjs"), "--strict"], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    expect(result.stdout).toContain("no-retention is missing role");
+    expect(result.status).toBe(1);
   });
 
   it("does not treat published remote asset URLs as missing local outputs", () => {

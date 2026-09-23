@@ -263,11 +263,23 @@ for (const docsPath of docsPaths) {
 
   const contents = readFileSync(absoluteDocsPath, "utf-8");
   for (const match of contents.matchAll(dataArtifactPattern)) {
-    paths.add(match[0].replaceAll("\\", "/"));
+    const documentedPath = match[0].replaceAll("\\", "/");
+    // A directory README documents the data; it is not itself a data artifact.
+    if (documentedPath.endsWith("/README.md")) continue;
+    paths.add(documentedPath);
   }
 }
 
 return Array.from(paths).sort((left, right) => left.localeCompare(right)); }
+
+function isGitIgnored(artifactPath, rootDir) {
+  try {
+    execFileSync("git", ["check-ignore", "-q", "--", artifactPath], { cwd: rootDir, stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function collectTrackedGeneratedExportPaths({ rootDir = process.cwd() } = {}) { try {
   return execFileSync("git", ["ls-files", "notes-and-plans/exports"], {
@@ -300,7 +312,8 @@ export function collectArtifactLineageVerification({
       continue;
     }
     const matches = listArtifactLineagePathMatches(entry.path, { rootDir });
-    if (matches.length === 0) {
+    // Gitignored outputs are local-only by policy, so a clean checkout lacks them.
+    if (matches.length === 0 && !isGitIgnored(entry.path, rootDir)) {
       warnings.push(`${entry.id} output path has no current match: ${entry.path}`);
     }
   }
