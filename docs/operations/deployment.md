@@ -90,12 +90,23 @@ Limits of the remote path, observed on its first runs:
 - Run one remote build at a time. Three in parallel exhausted the read-only
   role's database connections; the workflow's shared concurrency group queues
   them, and GitHub keeps only one queued run, so dispatch surfaces in turn.
-- The runner's connections to the pooler drop now and then during page
-  generation ("Connection terminated unexpectedly"). The read-only role has
-  no timeouts or connection cap of its own; the runtime client reruns a
-  read-only query on a fresh connection and logs `postgres: connection lost,
-  rerunning read-only query`. A build that still fails on this error has
-  exhausted six attempts on one query; report it instead of raising workers.
+- On a standard GitHub-hosted runner, public builds are not reliable yet.
+  The cause, from the PlanetScale logs of 2026-09-23: `FATAL: terminating
+  connection due to idle-in-transaction timeout`. A CPU-starved build worker
+  holds a read transaction open without sending for more than the 30s
+  `idle_in_transaction_session_timeout` the runtime sets, and Postgres ends
+  the session ("Connection terminated unexpectedly" in the build). The
+  database itself answers quickly (p99 29 ms that day); the read-only role
+  shares a PgBouncer pool of 8 server connections (`default_pool_size`, and
+  `max_db_connections` 20 across all roles) on a PS-5 cluster (1/16 vCPU).
+  The runtime client reruns a read-only query on a fresh connection, logging
+  `postgres: connection lost, rerunning read-only query`, and a 45s client
+  `query_timeout` turns a silent socket into a rerun; that carried most
+  runs, but two public production runs still failed after six attempts on
+  one query, at four and at two workers. Vercel's 8-core builders did not
+  hit this. Before the remote path can be the default, give it a larger
+  runner (the `runner` input) or a larger database, and record the result
+  here. Do not lengthen the transaction timeouts to hide it.
 - A prebuilt upload drops function files `.vercelignore` excludes unless they
   sit under a default output path such as `.next`. The editor builds into
   `.next-editor`, so the workflow removes the `.next-*/` rule in its own
@@ -147,10 +158,13 @@ authorized.
 | Vercel builder (iad1), public DoseWiki | 4 | 1 | 11.3 min (1426 pages; 19.3 min before the diet) | not measured | 2026-09-23 |
 | Vercel builder (iad1), editor | 4 | 1 | 12.8 min (1158 pages; 19.7 min before) | not measured | 2026-09-23 |
 | Vercel builder (iad1), Effect Index | 4 | 1 | 5.4 min (1160 pages; 22.6 min before) | not measured | 2026-09-23 |
+| Vercel builder (iad1), all three, second release | 4 | 1 | public 10.6 min, editor 12.3 min, Effect Index 4.6 min (`build-timing.json`) | not measured | 2026-09-23 |
 | GitHub-hosted runner, Effect Index | 4 | 1 | 5m 52s build, 8 min run (census total 1055) | not measured | 2026-09-23 |
 | GitHub-hosted runner, public and editor, before the read retry | 4, then 2 | 1 | failed: read-only connection terminated mid-build | not measured | 2026-09-23 |
 | GitHub-hosted runner, public DoseWiki | 4 | 1 | 11m 06s build, 13.6 min run (census total 1321; one dropped connection rerun) | not measured | 2026-09-23 |
 | GitHub-hosted runner, editor | 4 | 1 | 5m 38s build, 8 min run (census total 1053; one dropped connection rerun) | not measured | 2026-09-23 |
+| GitHub-hosted runner, public DoseWiki, production target | 4 | 1 | 9m 31s and 15m 47s on two runs (census total 1321; up to 14 reruns); a third run failed after six attempts on one query | not measured | 2026-09-23 |
+| GitHub-hosted runner, public DoseWiki, production target | 2 | 1 | failed: idle-in-transaction termination, then six query read timeouts on `/ru` | not measured | 2026-09-23 |
 
 Stage scheduler ownership in each isolated release tree before uploading it.
 `node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
