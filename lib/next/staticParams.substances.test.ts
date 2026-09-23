@@ -8,8 +8,8 @@ import { substanceRouteAliases } from "./substanceRouteAliases";
 const aliasSlug = Object.keys(substanceRouteAliases)[0];
 
 describe("selectPrerenderedSubstanceSlugs", () => {
-  it("prerenders every directly reachable priority tier", () => {
-    expect(PRERENDERED_SUBSTANCE_PRIORITIES).toEqual(["high", "normal", "low"]);
+  it("defaults to the English public policy: high and normal, never the low long tail", () => {
+    expect(PRERENDERED_SUBSTANCE_PRIORITIES).toEqual(["high", "normal"]);
 
     const slugs = selectPrerenderedSubstanceSlugs([
       { slug: "lsd", priority: "high" },
@@ -17,7 +17,7 @@ describe("selectPrerenderedSubstanceSlugs", () => {
       { slug: "obscure-rc", priority: "low" },
     ]);
 
-    expect(slugs).toEqual(["lsd", "2c-b", "obscure-rc"]);
+    expect(slugs).toEqual(["lsd", "2c-b"]);
   });
 
   it("honours an explicit tier list", () => {

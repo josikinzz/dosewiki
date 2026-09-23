@@ -8,11 +8,17 @@ const EDITOR_DOSEWIKI: PrerenderBuild = { surface: "editor", flavor: "dosewiki" 
 const PUBLIC_EFFECTINDEX: PrerenderBuild = { surface: "public", flavor: "effectindex" };
 
 describe("resolvePrerenderPolicy", () => {
-  it("prerenders every tier for every locale on every surface (prefactor, no behaviour change)", () => {
+  it("prerenders the high and normal tiers for English on the public dose.wiki build", () => {
+    expect(resolvePrerenderPolicy("en", PUBLIC_DOSEWIKI)).toEqual(["high", "normal"]);
+  });
+
+  it("still prerenders every tier for the mirrors and the other artifacts (until their tickets land)", () => {
     for (const locale of LOCALE_CODES) {
-      for (const build of [PUBLIC_DOSEWIKI, EDITOR_DOSEWIKI, PUBLIC_EFFECTINDEX]) {
-        expect(resolvePrerenderPolicy(locale, build)).toEqual(["high", "normal", "low"]);
-      }
+      if (locale === "en") continue;
+      expect(resolvePrerenderPolicy(locale, PUBLIC_DOSEWIKI)).toEqual(["high", "normal", "low"]);
+    }
+    for (const build of [EDITOR_DOSEWIKI, PUBLIC_EFFECTINDEX]) {
+      expect(resolvePrerenderPolicy("en", build)).toEqual(["high", "normal", "low"]);
     }
   });
 

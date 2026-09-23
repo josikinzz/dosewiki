@@ -23,11 +23,19 @@ export type PrerenderPolicy = readonly SubstancePrerenderPriority[];
 const ALL_TIERS: PrerenderPolicy = Object.freeze(["high", "normal", "low"]);
 
 /**
+ * English on the public dose.wiki artifact: the high and normal tiers. The
+ * low tier is the URL-only long tail; most of it receives no visit between
+ * deploys, so each of those pages renders on its first request and stays in
+ * the hourly ISR cache instead of costing every build a render.
+ */
+const ENGLISH_PUBLIC_TIERS: PrerenderPolicy = Object.freeze(["high", "normal"]);
+
+/**
  * Substance tiers prerendered by the public dose.wiki artifact, per locale.
  * Every other artifact (editor, Effect Index) is decided below the table.
  */
 const PUBLIC_DOSEWIKI_POLICY: Readonly<Record<LocaleCode, PrerenderPolicy>> = Object.freeze({
-  en: ALL_TIERS,
+  en: ENGLISH_PUBLIC_TIERS,
   "zh-Hans": ALL_TIERS,
   ru: ALL_TIERS,
   nl: ALL_TIERS,

@@ -19,7 +19,8 @@ import { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
 // Only build-enumerated families have loaders here. Demand-rendered pages return
 // [] from generateStaticParams and rely on ISR; the route plan still feeds their
-// sitemap entries. Every directly reachable substance is build-enumerated.
+// sitemap entries. Substances are enumerated per locale and artifact by the
+// prerender policy below; whatever it leaves out renders on demand.
 const getStaticParamsFor = (family: PublicRouteFamily) =>
   cache(async () => getPublicRouteParams(await getPublicRoutePlan(), family));
 
@@ -34,10 +35,11 @@ export type { SubstancePrerenderPriority } from "./prerenderPolicy";
  * selects without naming a policy. Route files never pass tiers themselves;
  * they go through {@link getStaticSubstanceParams} and the policy resolver.
  *
- * The compact public lookup already projects only directly reachable articles,
- * including URL-only low-priority entries while excluding hidden records.
- * `dynamicParams` remains enabled on every substance route so articles that
- * are not prerendered, or are published after a deployment, render on demand.
+ * The compact public lookup projects every directly reachable article,
+ * including URL-only low-priority entries, while excluding hidden records; the
+ * policy decides which of those tiers a build renders. `dynamicParams` remains
+ * enabled on every substance route so articles that are not prerendered, or
+ * are published after a deployment, render on demand.
  */
 export const PRERENDERED_SUBSTANCE_PRIORITIES: readonly SubstancePrerenderPriority[] =
   resolvePrerenderPolicy("en", { surface: "public", flavor: "dosewiki" });
