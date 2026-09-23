@@ -100,16 +100,19 @@ org id and the surface's project id. Provisioning it is a human step:
 
 | Environment | Surface | Token scope | Created | Notes |
 | ----------- | ------- | ----------- | ------- | ----- |
-| `remote-build-public` | public | project `dosewiki-public` only, no expiry | 2026-09-23 | token `github-remote-build-public` |
-| `remote-build-editor` | editor | project `dosewiki-admin` only, no expiry | 2026-09-23 | token `github-remote-build-editor` |
-| `remote-build-effectindex` | effectindex | project `effectindex` only, no expiry | 2026-09-23 | token `github-remote-build-effectindex` |
+| `remote-build-public` | public | team `josies-projects`, no expiry | 2026-09-23 | token `github-remote-build-public`; `VERCEL_PROJECT_ID` is `dosewiki-public` |
+| `remote-build-editor` | editor | team `josies-projects`, no expiry | 2026-09-23 | token `github-remote-build-editor`; `VERCEL_PROJECT_ID` is `dosewiki-admin` |
+| `remote-build-effectindex` | effectindex | team `josies-projects`, no expiry | 2026-09-23 | token `github-remote-build-effectindex`; `VERCEL_PROJECT_ID` is `effectindex` |
 
 Each environment holds `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and
 `RELEASE_BUILD_ENABLED=true`. `POSTGRES_POOLED_READONLY_URL` and
 `REPLICATION_MEDIA_BASE_URL` are inherited from the repository level, where the
-policy workflow already reads them. Each `VERCEL_TOKEN` is scoped to its one
-project in the Vercel dashboard (the API refuses to mint tokens from a CLI
-login session) and has no expiry by owner decision, so rotation is manual:
+policy workflow already reads them. Each `VERCEL_TOKEN` is created in the Vercel
+dashboard (the API refuses to mint tokens from a CLI login session) and scoped
+to the team, not one project: the CLI reads the user and team before any
+project call, and a project-scoped token is refused both, so `vercel pull`
+fails with "Could not retrieve Project Settings". The token has no expiry by
+owner decision, so rotation is manual:
 revoke it under Account Settings, Tokens, create a replacement with the same
 name and scope, and set it with `gh secret set VERCEL_TOKEN --env <environment>`. The repository's
 GitHub plan does not support the required-reviewer rule on a private repository,

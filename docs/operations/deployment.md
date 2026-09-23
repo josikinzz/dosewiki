@@ -79,6 +79,21 @@ Two build paths produce the same artifact through the same command:
 - **Laptop (the fallback).** The isolated release trees and the commands in
   this section, exactly as before.
 
+Two limits of the remote path, both observed on its first runs:
+
+- Run one remote build at a time. Three in parallel exhausted the read-only
+  role's database connections; the workflow's shared concurrency group queues
+  them, and GitHub keeps only one queued run, so dispatch surfaces in turn.
+- Public and editor builds do not yet finish on it: the read-only role's
+  connection is terminated partway through page generation, even alone and
+  at two workers, while the same builds finish on Vercel with the production
+  pooled URL. Check the read-only role's connection and statement limits in
+  PlanetScale before relying on the remote path for those two surfaces.
+- Its preview deployment runs with the project's preview environment, which
+  holds no database URL, so pages rendered on demand fail there. Use it for
+  the census, the artifact audit, and timing; production artifacts still come
+  from `vercel deploy --prod --skip-domain` in each isolated release tree.
+
 The remote path becomes the default release path after two production
 releases have gone through it end to end with their census and elapsed time
 recorded in the concurrency table below. Until then the laptop path is the
@@ -106,7 +121,11 @@ authorized.
 | Where                | Workers | Pages per worker | Elapsed | Peak connections | Recorded    |
 | -------------------- | ------- | ---------------- | ------- | ---------------- | ----------- |
 | Laptop (M1 Pro)      | 4       | 1                | not yet measured with `build:census` | not measured | pending |
-| GitHub-hosted runner | 4       | 1                | pending first remote build | pending | pending |
+| Vercel builder (iad1), public DoseWiki | 4 | 1 | 11.3 min (1426 pages; 19.3 min before the diet) | not measured | 2026-09-23 |
+| Vercel builder (iad1), editor | 4 | 1 | 12.8 min (1158 pages; 19.7 min before) | not measured | 2026-09-23 |
+| Vercel builder (iad1), Effect Index | 4 | 1 | 5.4 min (1160 pages; 22.6 min before) | not measured | 2026-09-23 |
+| GitHub-hosted runner, Effect Index | 4 | 1 | 5m 52s build, 8 min run (census total 1055) | not measured | 2026-09-23 |
+| GitHub-hosted runner, public and editor | 4, then 2 | 1 | failed: read-only connection terminated mid-build | not measured | 2026-09-23 |
 
 Stage scheduler ownership in each isolated release tree before uploading it.
 `node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
