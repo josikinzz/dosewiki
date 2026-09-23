@@ -7,7 +7,7 @@ const seams = vi.hoisted(() => ({
 }));
 vi.mock("@server/data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
 vi.mock("@server/data/serverWriteCapability", () => ({
-  getServerDataWriteCapability: () => ({ ok: true, capability: { client: { mutationAsService: seams.queueCache } } }),
+  getServerDataWriteCapability: () => ({ ok: true, capability: { client: { mutationAsPublicationRecovery: seams.queueCache } } }),
 }));
 vi.mock("@server/postgres/runtime/api", () => ({ makeFunctionReference: (name: string) => name }));
 vi.mock("@server/postgres/runtime/backend", () => ({ getDataBackend: () => "postgres" }));
