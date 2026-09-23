@@ -478,7 +478,14 @@ cache expiry. `src/app/api/cron/publication-delivery/route.ts` awaits
 The enqueue and publication-generation receipt commit atomically; replay neither
 resets newer locale work nor loses the receipt when `server/publicationRecovery.ts`
 records delivery. Enqueue failure keeps the outbox pending. Cache-only refresh
-retains its existing behavior without translation enqueueing. Locale lease,
+retains its existing behavior without translation enqueueing. `claimDue` takes
+never-attempted rows ahead of retries, so failing rows cannot fill the 18 claim
+slots. After `PUBLICATION_OUTBOX_MAX_ATTEMPTS` (10, in
+`server/lib/publicationOutbox.ts`) failed deliveries, or at once for a stored
+target that is not a known publication identity (recorded as a `rejected`
+receipt), a row stops retrying: `pending` is false and `deadLetteredAt` is set,
+with its receipts kept for inspection. The next commit for that identity
+re-pends it and clears the mark. Locale lease,
 bounded failure and old-worker drain requirements are owned by
 [Durable refresh and rollout](../operations/locale-mirrors.md#durable-refresh-and-rollout).
 

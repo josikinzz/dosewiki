@@ -33,7 +33,7 @@ export type TranslationJobRow = {
 };
 
 export type TranslationJobMode = "incremental" | "bulk";
-export type TranslationCacheJobRow = Pick<TranslationJobRow, "locale" | "slug" | "mode"> & { targets: string };
+export type TranslationCacheJobRow = Pick<TranslationJobRow, "locale" | "slug" | "mode"> & { targets: string; attempts?: number };
 
 /** A stale lease is retaken after this long; the cron's own budget is shorter. */
 const JOB_LEASE_MS = 10 * 60 * 1000;
@@ -41,6 +41,9 @@ export const MAX_TRANSLATION_JOB_ATTEMPTS = 5;
 /** First retry delay; each later failure doubles it, so five failures span over half an hour. */
 const JOB_RETRY_BASE_MS = 150_000;
 const JOB_RETRY_MAX_MS = 60 * 60 * 1000;
+/** Cache delivery claims before a cache job is left as a dead letter; the backoff spreads them over about two hours. */
+export const MAX_TRANSLATION_CACHE_JOB_ATTEMPTS = 8;
+const CACHE_RETRY_BASE_MS = 60_000;
 /** Run rows older than this are pruned when the same lane records a new run. */
 const WORKER_RUN_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -352,7 +355,8 @@ async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, c
       await client.query(
         `INSERT INTO "translationCacheJobs" ("locale", "slug", "mode", "targets", "requested_at")
          VALUES ($1, $2, $3, $4, $5::bigint)
-         ON CONFLICT ("locale", "slug", "mode") DO UPDATE SET "targets" = EXCLUDED."targets", "requested_at" = EXCLUDED."requested_at"`,
+         ON CONFLICT ("locale", "slug", "mode") DO UPDATE SET "targets" = EXCLUDED."targets", "requested_at" = EXCLUDED."requested_at",
+           "attempts" = 0, "next_attempt_at" = NULL, "last_error" = NULL`,
         [job.locale, job.slug, job.mode, JSON.stringify(cacheTargets), Date.now()],
       );
     }
@@ -418,10 +422,34 @@ export async function releaseTranslationWorkerLease(lane: string, owner: string)
   );
 }
 
-export async function readTranslationCacheJobs(limit = 100): Promise<TranslationCacheJobRow[]> {
+/**
+ * Lease up to `limit` due cache jobs: fresh rows first, then retries, oldest
+ * first within each. A claim spends an attempt and leases the row until its
+ * backoff, so a crash or a failed delivery leaves it due later. Rows at the
+ * attempt cap are dead letters: never claimed, kept with their last error.
+ */
+export async function claimTranslationCacheJobs(limit = 100): Promise<TranslationCacheJobRow[]> {
+  assertDataWritesNotFrozen("claimTranslationCacheJobs");
+  const now = Date.now();
   return getPostgresClient().sql<TranslationCacheJobRow>(
-    'SELECT "locale", "slug", "mode", "targets" FROM "translationCacheJobs" ORDER BY "requested_at" ASC LIMIT $1::int',
-    [limit],
+    `UPDATE "translationCacheJobs" SET "attempts" = "attempts" + 1,
+       "next_attempt_at" = $1::bigint + LEAST($4::bigint, $5::bigint * POWER(2, "attempts")::bigint)
+     WHERE ("locale", "slug", "mode") IN (
+       SELECT "locale", "slug", "mode" FROM "translationCacheJobs"
+       WHERE "attempts" < $3::int AND ("next_attempt_at" IS NULL OR "next_attempt_at" <= $1::bigint)
+       ORDER BY ("attempts" > 0), "requested_at" ASC LIMIT $2::int FOR UPDATE SKIP LOCKED
+     )
+     RETURNING "locale", "slug", "mode", "targets", "attempts"`,
+    [now, limit, MAX_TRANSLATION_CACHE_JOB_ATTEMPTS, JOB_RETRY_MAX_MS, CACHE_RETRY_BASE_MS],
+  );
+}
+
+/** Keep the reason a delivery failed; the claim already scheduled the retry. */
+export async function failTranslationCacheJob(job: TranslationCacheJobRow, error: string): Promise<void> {
+  assertDataWritesNotFrozen("failTranslationCacheJob");
+  await getPostgresClient().sql(
+    'UPDATE "translationCacheJobs" SET "last_error" = $4 WHERE "locale" = $1 AND "slug" = $2 AND "mode" = $3',
+    [job.locale, job.slug, job.mode, error.slice(0, 2000)],
   );
 }
 

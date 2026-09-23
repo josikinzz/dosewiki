@@ -14,7 +14,8 @@ vi.mock("@server/postgres/runtime/backend", () => ({ getDataBackend: () => "post
 vi.mock("@server/translation/segmentStore", () => ({
   claimTranslationJobs: seams.claim, completeTranslationJob: seams.complete, failTranslationJob: seams.fail,
   acquireTranslationWorkerLease: seams.acquire, releaseTranslationWorkerLease: seams.release,
-  readTranslationCacheJobs: seams.readCache, completeTranslationCacheJob: seams.completeCache,
+  claimTranslationCacheJobs: seams.readCache, completeTranslationCacheJob: seams.completeCache,
+  failTranslationCacheJob: async () => {},
   recordTranslationWorkerRun: seams.record, MAX_TRANSLATION_JOB_ATTEMPTS: 5,
 }));
 vi.mock("@server/translation/liveTranslation", () => ({

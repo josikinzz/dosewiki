@@ -14,6 +14,12 @@ import {
 // archives other than public blog posts, playlists and unpublished molecule templates are absent.
 const tables = ["substanceIndex", "subjectiveEffects", "effectIndexArticles", "effectIndexArchive", "tripReports", "replications", "substanceGalleries", "contributorProfiles", "replicationArtistTaxonomy", "replicationIdentityAttributions", "replicationIdentityProfileBindings", "replicationSocialAssets", "replicationSourceAttribution", "replicationDateResearch", "reagentTests", "moleculeOverrides", "changelog", "copyBlocks", "siteConfig", "categoryLayout", "indexLayouts", "warningBannerPresets"] as const;
 type Table = typeof tables[number];
+
+/**
+ * Delivery attempts before an outbox row stops retrying and is kept as a
+ * dead letter. With the 300-second backoff ceiling this is about half an hour.
+ */
+export const PUBLICATION_OUTBOX_MAX_ATTEMPTS = 10;
 type Row = Record<string, unknown>;
 
 
@@ -171,7 +177,8 @@ export function withPublicationOutbox(ctx: MutationCtx) {
           .withIndex("by_slug", (q) => q.eq("slug", target.slug)).first() : null;
         const revision = knownRevision ?? (article ? projectPublicArticle(article).publicRevision : target.kind === "article" ? null : undefined);
         const value = { key, target, revision, generation: (current?.generation ?? 0) + 1, pending: true, nextAttemptAt: Date.now(), attempts: 0, receipts: [], committedAt: Date.now() };
-        if (current) await ctx.db.patch(current._id, value);
+        // A new commit re-pends a dead-lettered identity.
+        if (current) await ctx.db.patch(current._id, { ...value, deadLetteredAt: undefined });
         else await ctx.db.insert("publicCachePublications", value);
       }
     },

@@ -110,7 +110,11 @@ export const translationWorkerRuns = pgTable(
   (t) => [index("translationWorkerRuns_by_mode").on(t.mode, t.started_at)],
 );
 
-/** Durable cache work created atomically with translation completion. */
+/**
+ * Durable cache work created atomically with translation completion. A claim
+ * spends an attempt and leases the row until `next_attempt_at`; a row that
+ * reaches the attempt cap is no longer claimed and stays for inspection.
+ */
 export const translationCacheJobs = pgTable(
   "translationCacheJobs",
   {
@@ -119,6 +123,9 @@ export const translationCacheJobs = pgTable(
     mode: text("mode").notNull(),
     targets: text("targets").notNull(),
     requested_at: bigint("requested_at", { mode: "number" }).notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    next_attempt_at: bigint("next_attempt_at", { mode: "number" }),
+    last_error: text("last_error"),
   },
   (t) => [primaryKey({ columns: [t.locale, t.slug, t.mode] }), index("translationCacheJobs_due").on(t.requested_at)],
 );

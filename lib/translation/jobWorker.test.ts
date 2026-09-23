@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const seam = vi.hoisted(() => ({
-  publish: vi.fn(), enqueue: vi.fn(), completeCache: vi.fn(), readCache: vi.fn(),
+  publish: vi.fn(), enqueue: vi.fn(), completeCache: vi.fn(), readCache: vi.fn(), failCache: vi.fn(),
   claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), record: vi.fn(), acquire: vi.fn(), release: vi.fn(), refresh: vi.fn(),
 }));
 vi.mock("../data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
@@ -14,7 +14,8 @@ vi.mock("./segmentStore", () => ({
   MAX_TRANSLATION_JOB_ATTEMPTS: 5,
   acquireTranslationWorkerLease: seam.acquire,
   releaseTranslationWorkerLease: seam.release,
-  readTranslationCacheJobs: seam.readCache,
+  claimTranslationCacheJobs: seam.readCache,
+  failTranslationCacheJob: seam.failCache,
   completeTranslationCacheJob: seam.completeCache,
   claimTranslationJobs: seam.claim,
   completeTranslationJob: seam.complete,
@@ -43,6 +44,7 @@ beforeEach(() => {
   seam.publish.mockReset().mockResolvedValue([{ status: "failed" }]);
   seam.enqueue.mockReset().mockResolvedValue(undefined);
   seam.completeCache.mockReset().mockResolvedValue(undefined);
+  seam.failCache.mockReset().mockResolvedValue(undefined);
   seam.readCache.mockReset().mockResolvedValue([{ locale: "es", slug: "article:lsd", mode: "incremental", targets: '[{"kind":"article-translation","slug":"lsd","locale":"es"}]' }]);
   seam.claim.mockReset().mockResolvedValue([]);
   seam.complete.mockReset().mockResolvedValue(true);
@@ -72,6 +74,17 @@ describe("translation cache recovery", () => {
     expect(error).toHaveBeenCalledWith("[translation-worker] cache:failed", expect.objectContaining({
       locale: "es", slug: "article:lsd", mode: "incremental", message: "database unavailable",
     }));
+    expect(seam.failCache).toHaveBeenCalledWith(expect.objectContaining({ slug: "article:lsd" }), "database unavailable");
+  });
+
+  it("keeps the parse error of a cache job with unparseable targets", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    seam.readCache.mockResolvedValue([{ locale: "es", slug: "article:lsd", mode: "incremental", targets: "not json", attempts: 1 }]);
+    const run = await runTranslationJobs("model-key", config);
+    expect(run.cachePending).toBe(1);
+    expect(seam.publish).not.toHaveBeenCalled();
+    expect(seam.completeCache).not.toHaveBeenCalled();
+    expect(seam.failCache).toHaveBeenCalledWith(expect.objectContaining({ slug: "article:lsd" }), expect.stringContaining("JSON"));
   });
 });
 

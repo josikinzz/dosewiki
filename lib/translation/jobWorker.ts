@@ -22,8 +22,9 @@ import {
   completeTranslationJob,
   failTranslationJob,
   acquireTranslationWorkerLease,
+  claimTranslationCacheJobs,
   completeTranslationCacheJob,
-  readTranslationCacheJobs,
+  failTranslationCacheJob,
   recordTranslationWorkerRun,
   releaseTranslationWorkerLease,
   type TranslationJobMode,
@@ -127,19 +128,26 @@ async function processTranslationJobs(
         return true;
       }
       const capability = getServerDataWriteCapability();
-      if (capability.ok === false) return false;
+      if (capability.ok === false) throw new Error(`Public cache publication incomplete: ${capability.failure.message}`);
       await capability.capability.client.mutationAsPublicationRecovery(enqueueCacheRetry, { targets });
       await completeTranslationCacheJob(cacheJob);
       return false;
     } catch (error) {
-      // The durable cache row remains due for the next invocation.
+      // The durable cache row stays leased until its backoff and keeps the
+      // reason; after the attempt cap it is a dead letter.
+      const message = errorMessage(error);
       console.error("[translation-worker] cache:failed", {
-        locale: cacheJob.locale, slug: cacheJob.slug, mode: cacheJob.mode, message: errorMessage(error),
+        locale: cacheJob.locale, slug: cacheJob.slug, mode: cacheJob.mode, message,
+      });
+      await failTranslationCacheJob(cacheJob, message).catch((recordError: unknown) => {
+        console.error("[translation-worker] cache:unrecorded", {
+          locale: cacheJob.locale, slug: cacheJob.slug, mode: cacheJob.mode, message: errorMessage(recordError),
+        });
       });
       return false;
     }
   };
-  const cacheJobs = await readTranslationCacheJobs(CACHE_JOBS_PER_RUN);
+  const cacheJobs = await claimTranslationCacheJobs(CACHE_JOBS_PER_RUN);
   let cacheCursor = 0;
   await Promise.all(Array.from(
     { length: Math.min(CACHE_DELIVERY_CONCURRENCY, cacheJobs.length) },

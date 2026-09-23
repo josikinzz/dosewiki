@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
 import { claimDue, recordDelivery } from "../../../../../server/publicationRecovery";
+import { PUBLICATION_OUTBOX_MAX_ATTEMPTS } from "../../../../../server/lib/publicationOutbox";
 
 const seams = vi.hoisted(() => ({
   client: null as { mutationAsService: (reference: unknown, args: Record<string, unknown>) => Promise<unknown> } | null,
@@ -31,6 +32,7 @@ type PublicationRow = {
   attempts: number;
   receipts: unknown[];
   committedAt: number;
+  deadLetteredAt?: number;
 };
 
 function publicationDatabase(rows: PublicationRow[]) {
@@ -207,5 +209,70 @@ describe("durable locale intent before public delivery", () => {
     release();
     expect(await (await delivery).json()).toMatchObject({ completed: 1, retried: 0 });
     expect(row.pending).toBe(false);
+  });
+});
+
+describe("poison outbox rows", () => {
+  const request = () => new Request("https://editor.dose.wiki/api/cron/publication-delivery", {
+    headers: { authorization: "Bearer poison-fixture" },
+  });
+  const publication = (index: number, overrides: Partial<PublicationRow> = {}): PublicationRow => ({
+    _id: `publicCachePublications:${index}`, _creationTime: index, key: `article-${index}`,
+    target: { kind: "article", slug: `article-${index}` }, revision: `revision-${index}`, generation: 1,
+    pending: true, nextAttemptAt: 0, attempts: 0, receipts: [], committedAt: 1, ...overrides,
+  });
+  const connect = (rows: PublicationRow[]) => {
+    const { ctx } = publicationDatabase(rows);
+    seams.client = { mutationAsService: async (_reference, args) =>
+      invoke("id" in args ? recordDelivery : claimDue, ctx, args) };
+    return ctx;
+  };
+
+  it("dispatches a fresh row in the next cycle even when 18 failing rows are due first", async () => {
+    process.env.CRON_SECRET = "poison-fixture";
+    const now = Date.now();
+    const poison = Array.from({ length: 18 }, (_, index) => publication(index + 1, { attempts: 3, nextAttemptAt: now - 60_000 }));
+    const fresh = publication(19, { nextAttemptAt: now });
+    connect([...poison, fresh]);
+    seams.enqueue.mockResolvedValue(undefined);
+    seams.dispatch.mockImplementation(async ([target]: Array<{ slug: string }>) => target.slug === "article-19"
+      ? [{ target: "public", status: "accepted", attempts: 1, verification: "verified" }]
+      : [{ target: "public", status: "unreachable", attempts: 1 }]);
+
+    const run = await (await GET(request())).json();
+    expect(seams.dispatch.mock.calls.map(([[target]]) => target.slug)).toContain("article-19");
+    expect(run).toMatchObject({ claimed: 18 });
+    expect(fresh).toMatchObject({ pending: false, attempts: 1 });
+  });
+
+  it("moves a row that keeps failing to the terminal state after the cap and stops claiming it", async () => {
+    process.env.CRON_SECRET = "poison-fixture";
+    const row = publication(1);
+    const ctx = connect([row]);
+    seams.enqueue.mockResolvedValue(undefined);
+    seams.dispatch.mockResolvedValue([{ target: "public", status: "unreachable", attempts: 1 }]);
+
+    for (let cycle = 1; cycle <= PUBLICATION_OUTBOX_MAX_ATTEMPTS; cycle += 1) {
+      expect(row.pending).toBe(true);
+      row.nextAttemptAt = 0;
+      await GET(request());
+    }
+    expect(row).toMatchObject({ pending: false, attempts: PUBLICATION_OUTBOX_MAX_ATTEMPTS, deadLetteredAt: expect.any(Number) });
+    expect(row.receipts).toEqual(expect.arrayContaining([expect.objectContaining({ status: "unreachable" })]));
+    row.nextAttemptAt = 0;
+    expect(await invoke(claimDue, ctx)).toEqual([]);
+  });
+
+  it("records a rejection for an unclassifiable target and stops retrying it", async () => {
+    process.env.CRON_SECRET = "poison-fixture";
+    const row = publication(1, { target: { kind: "not-a-target", slug: "x" } as unknown as PublicationRow["target"] });
+    const ctx = connect([row]);
+
+    expect(await (await GET(request())).json()).toMatchObject({ claimed: 1, skipped: 1 });
+    expect(seams.dispatch).not.toHaveBeenCalled();
+    expect(row).toMatchObject({ pending: false, deadLetteredAt: expect.any(Number) });
+    expect(row.receipts).toEqual([expect.objectContaining({ status: "rejected" })]);
+    row.nextAttemptAt = 0;
+    expect(await invoke(claimDue, ctx)).toEqual([]);
   });
 });

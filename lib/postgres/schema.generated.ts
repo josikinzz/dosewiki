@@ -792,12 +792,14 @@ export const publicCachePublications = pgTable(
     "nextAttemptAt": doublePrecision("nextAttemptAt").notNull(),
     "attempts": doublePrecision("attempts").notNull(),
     "receipts": jsonb("receipts").notNull(),
+    "deadLetteredAt": doublePrecision("deadLetteredAt"),
   },
   (t) => [
     index("publicCachePublications_by_creation_time").on(t._creationTime),
     uniqueIndex("publicCachePublications_by_key_unique").on(sql`${t["key"]} COLLATE "C"`),
     index("publicCachePublications_by_key").on(sql`${t["key"]} COLLATE "C"`, t._creationTime),
     index("publicCachePublications_by_due").on(t["pending"], t["nextAttemptAt"], t._creationTime),
+    index("publicCachePublications_by_fresh").on(t["pending"], t["attempts"], t["nextAttemptAt"], t._creationTime),
   ],
 );
 
@@ -1626,7 +1628,7 @@ export const tableColumns = {
   moleculeOverrides: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "svg": { kind: "text", optional: false }, "molblock": { kind: "text", optional: false }, "smiles": { kind: "text", optional: true }, "boldBonds": { kind: "jsonb", optional: true }, "source": { kind: "text", optional: true }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
   narrativeRevisions: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "kind": { kind: "text", optional: false }, "key": { kind: "text", optional: false }, "documentId": { kind: "text", optional: false }, "operationId": { kind: "text", optional: false }, "actorEmail": { kind: "text", optional: false }, "actorRole": { kind: "text", optional: false }, "before": { kind: "jsonb", optional: false }, "after": { kind: "jsonb", optional: false }, "baseRevision": { kind: "text", optional: false }, "revision": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "requestHash": { kind: "text", optional: true }, "publications": { kind: "jsonb", optional: true } },
   prompts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "key": { kind: "text", optional: false }, "content": { kind: "text", optional: false }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
-  publicCachePublications: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "key": { kind: "text", optional: false }, "target": { kind: "jsonb", optional: false }, "revision": { kind: "jsonb", optional: true }, "generation": { kind: "double", optional: false }, "pending": { kind: "boolean", optional: false }, "committedAt": { kind: "double", optional: false }, "nextAttemptAt": { kind: "double", optional: false }, "attempts": { kind: "double", optional: false }, "receipts": { kind: "jsonb", optional: false } },
+  publicCachePublications: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "key": { kind: "text", optional: false }, "target": { kind: "jsonb", optional: false }, "revision": { kind: "jsonb", optional: true }, "generation": { kind: "double", optional: false }, "pending": { kind: "boolean", optional: false }, "committedAt": { kind: "double", optional: false }, "nextAttemptAt": { kind: "double", optional: false }, "attempts": { kind: "double", optional: false }, "receipts": { kind: "jsonb", optional: false }, "deadLetteredAt": { kind: "double", optional: true } },
   publicReadIndexState: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "name": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "cursor": { kind: "text", optional: false }, "ready": { kind: "boolean", optional: false }, "processed": { kind: "double", optional: false } },
   quotes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "section": { kind: "text", optional: false }, "content": { kind: "text", optional: false }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
   reagentTests: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "data": { kind: "jsonb", optional: false }, "source": { kind: "text", optional: false }, "snapshotHash": { kind: "text", optional: false }, "importedAt": { kind: "double", optional: false } },
@@ -1757,7 +1759,7 @@ export const tableIndexes = {
   moleculeOverrides: { "by_slug": ["slug"] },
   narrativeRevisions: { "by_target": ["kind","key"], "by_document": ["kind","documentId"], "by_operation": ["kind","operationId"] },
   prompts: { "by_key": ["key"] },
-  publicCachePublications: { "by_key": ["key"], "by_due": ["pending","nextAttemptAt"] },
+  publicCachePublications: { "by_key": ["key"], "by_due": ["pending","nextAttemptAt"], "by_fresh": ["pending","attempts","nextAttemptAt"] },
   publicReadIndexState: { "by_name": ["name"] },
   quotes: { "by_slug_section": ["slug","section"], "by_section": ["section"] },
   reagentTests: { "by_slug": ["slug"], "by_snapshot_hash": ["snapshotHash"] },

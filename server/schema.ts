@@ -329,7 +329,9 @@ export default defineSchema({
     nextAttemptAt: v.number(),
     attempts: v.number(),
     receipts: v.array(v.any()),
-  }).index("by_key", ["key"]).index("by_due", ["pending", "nextAttemptAt"]),
+    /** Set when delivery stopped after the attempt cap or a permanent rejection; the row stays for inspection until the next commit re-pends it. */
+    deadLetteredAt: v.optional(v.number()),
+  }).index("by_key", ["key"]).index("by_due", ["pending", "nextAttemptAt"]).index("by_fresh", ["pending", "attempts", "nextAttemptAt"]),
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])

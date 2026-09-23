@@ -40,9 +40,13 @@ vi.mock("@server/postgres/runtime/backend", () => ({
 }));
 
 import {
+  MAX_TRANSLATION_CACHE_JOB_ATTEMPTS,
   MAX_TRANSLATION_JOB_ATTEMPTS,
+  claimTranslationCacheJobs,
   claimTranslationJobs,
+  completeTranslationJob,
   enqueueTranslationJobs,
+  failTranslationCacheJob,
   failTranslationJob,
   readLatestTranslationWorkerRuns,
   recordTranslationWorkerRun,
@@ -161,6 +165,68 @@ describe.runIf(serverUrl)("translation queue SQL on a scratch Postgres", () => {
       await enqueueTranslationJobs(["es"], ["ketamine"]);
       expect(await jobRow("ketamine")).toMatchObject({ attempts: 0, next_attempt_at: null });
       expect(await claimTranslationJobs(10)).toHaveLength(1);
+    });
+  });
+
+  describe("translation cache job dead letters", () => {
+    const insertCacheJob = (slug: string, overrides: { attempts?: number; requestedAt?: number; targets?: string } = {}) =>
+      scratch.pool!.query(
+        `INSERT INTO "translationCacheJobs" ("locale", "slug", "mode", "targets", "requested_at", "attempts")
+         VALUES ('es', $1, 'incremental', $2, $3::bigint, $4::int)`,
+        [slug, overrides.targets ?? "[]", overrides.requestedAt ?? Date.now(), overrides.attempts ?? 0],
+      );
+    const cacheRow = async (slug: string) => (await scratch.pool!.query<{ attempts: number; next_attempt_at: string | null; last_error: string | null }>(
+      'SELECT "attempts", "next_attempt_at"::text, "last_error" FROM "translationCacheJobs" WHERE "slug" = $1', [slug],
+    )).rows[0];
+
+    beforeEach(async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(Date.UTC(2026, 8, 22, 12));
+      await scratch.pool!.query('DELETE FROM "translationCacheJobs"');
+    });
+
+    it("claims fresh cache jobs ahead of older retries", async () => {
+      const now = Date.now();
+      for (let index = 0; index < 3; index += 1) await insertCacheJob(`retry-${index}`, { attempts: 2, requestedAt: now - 60_000 });
+      await insertCacheJob("fresh", { requestedAt: now });
+      expect((await claimTranslationCacheJobs(1)).map((job) => job.slug)).toEqual(["fresh"]);
+    });
+
+    it("leases a claimed job until its backoff and never hands it to a concurrent claim", async () => {
+      await insertCacheJob("lsd");
+      expect(await claimTranslationCacheJobs(10)).toHaveLength(1);
+      expect(await claimTranslationCacheJobs(10)).toEqual([]);
+      vi.setSystemTime(Number((await cacheRow("lsd")).next_attempt_at));
+      expect(await claimTranslationCacheJobs(10)).toEqual([expect.objectContaining({ slug: "lsd", attempts: 2 })]);
+    });
+
+    it("stops claiming a job with unparseable targets once it reaches the cap, keeping its error", async () => {
+      await insertCacheJob("broken", { targets: "not json" });
+      let claims = 0;
+      for (;;) {
+        const [job] = await claimTranslationCacheJobs(10);
+        if (!job) break;
+        claims += 1;
+        await failTranslationCacheJob(job, "Unexpected token 'o', \"not json\" is not valid JSON");
+        const next = (await cacheRow("broken")).next_attempt_at;
+        vi.setSystemTime(Number(next));
+        expect(claims).toBeLessThanOrEqual(MAX_TRANSLATION_CACHE_JOB_ATTEMPTS);
+      }
+      expect(claims).toBe(MAX_TRANSLATION_CACHE_JOB_ATTEMPTS);
+      vi.setSystemTime(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      expect(await claimTranslationCacheJobs(10)).toEqual([]);
+      expect(await cacheRow("broken")).toMatchObject({
+        attempts: MAX_TRANSLATION_CACHE_JOB_ATTEMPTS, last_error: expect.stringContaining("not valid JSON"),
+      });
+    });
+
+    it("resets a dead cache job when its translation completes again", async () => {
+      await insertCacheJob("fixture", { attempts: MAX_TRANSLATION_CACHE_JOB_ATTEMPTS });
+      await scratch.pool!.query('DELETE FROM "translationJobs"');
+      await enqueueTranslationJobs(["es"], ["fixture"]);
+      const [job] = await claimTranslationJobs(10);
+      expect(await completeTranslationJob(job, null, [{ kind: "article-translation", slug: "fixture", locale: "es" }])).toBe(true);
+      expect(await cacheRow("fixture")).toMatchObject({ attempts: 0, next_attempt_at: null, last_error: null });
     });
   });
 

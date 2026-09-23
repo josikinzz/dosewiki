@@ -144,7 +144,12 @@ Provider failures are `OpenRouterChatError` instances carrying `status` and
 Accepted segments complete their record job even if public-cache delivery is
 still pending. The same database transaction creates a translation-cache job;
 workers retry it until direct delivery succeeds or the publication outbox accepts
-it. Cache delivery never consumes a model attempt. A segment that remains
+it. Cache delivery never consumes a model attempt. A worker claims cache jobs
+fresh-first; each claim spends a cache attempt and leases the row until its
+backoff (one minute, doubling to one hour). After eight attempts the row is a
+dead letter: never claimed again, kept with `attempts` and `last_error` for
+inspection, and reset when the record's translation completes again
+(migration `0022`). A segment that remains
 rejected after the engine's bounded retries stays English and is recorded, while
 the record completes with terminal rejection detail instead of becoming an
 unclaimable pending job. The Glossary tab polls the newest enqueue generation

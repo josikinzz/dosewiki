@@ -155,6 +155,13 @@
       "when": 1790132164767,
       "tag": "0021_translation_job_backoff",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790133261380,
+      "tag": "0022_translation_queue_dead_letters",
+      "breakpoints": true
     }
   ]
 }
