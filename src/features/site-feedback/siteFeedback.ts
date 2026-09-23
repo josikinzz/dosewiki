@@ -45,13 +45,13 @@ export const SITE_FEEDBACK_CATEGORY_PLACEHOLDERS: Record<SiteFeedbackCategory, s
     "What currently isn't working as intended? Please list any technical issues, performance problems, or broken functionality such as hyperlinks or glitches. Providing detail like operating system, browser, and steps to replicate the issue will greatly aid in solving the problem.",
   ),
   "ui-design": msg(
-    "Layout, navigation, mobile or desktop experience, visual design — what would you change, and where?",
+    "Layout, navigation, mobile or desktop experience, visual design: what would you change, and where?",
   ),
   performance: msg(
-    "What feels slow? Page loading, search speed, media loading — the page and rough timings help a lot.",
+    "What feels slow? Page loading, search speed, media loading? The page and rough timings help a lot.",
   ),
   accessibility: msg(
-    "Screen readers, keyboard navigation, contrast, motion — what got in your way, and what technology were you using?",
+    "Screen readers, keyboard navigation, contrast, motion: what got in your way, and what technology were you using?",
   ),
   misc: msg(
     "None of the other categories suit the type of feedback? Feel free to write it here. For collaboration, legal or media inquiries, or takedown requests, please email contact@dose.wiki instead.",
@@ -68,10 +68,10 @@ export const SITE_FEEDBACK_URGENCIES = [
 export type SiteFeedbackUrgency = (typeof SITE_FEEDBACK_URGENCIES)[number];
 
 export const SITE_FEEDBACK_URGENCY_LABELS: Record<SiteFeedbackUrgency, string> = {
-  critical: msg("Critical — safety or data issue"),
-  high: msg("High — degrades the site"),
-  normal: msg("Normal — worth fixing"),
-  low: msg("Low — cosmetic"),
+  critical: msg("Critical: safety or data issue"),
+  high: msg("High: degrades the site"),
+  normal: msg("Normal: worth fixing"),
+  low: msg("Low: cosmetic"),
 };
 
 /** Categories where the urgency dropdown applies (bug-like categories). */
@@ -200,7 +200,7 @@ export function validateSiteFeedback(
   }
 
   if (!normalized.details) {
-    errors.push("Details are required — tell us what should change.");
+    errors.push("Details are required. Tell us what should change.");
   } else if (normalized.details.length > SITE_FEEDBACK_DETAILS_MAX_LENGTH) {
     errors.push(`Details must stay under ${SITE_FEEDBACK_DETAILS_MAX_LENGTH} characters.`);
   }

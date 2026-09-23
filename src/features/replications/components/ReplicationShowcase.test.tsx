@@ -89,7 +89,7 @@ describe("ReplicationShowcase", () => {
     const still = work({ thumbnailUrl: "https://cdn.test/drifting-thumb.webp" });
     render(<ReplicationShowcase works={[still, secondWork]} />);
     expect(screen.getByRole("img", { name: still.title })).toHaveAttribute("src", still.thumbnailUrl);
-    expect(screen.getByRole("tab", { name: /Drifting.*demonstrates/ }).querySelector("img")).toHaveAttribute("src", still.thumbnailUrl);
+    expect(screen.getByRole("tab", { name: /Drifting.*demonstrating/ }).querySelector("img")).toHaveAttribute("src", still.thumbnailUrl);
     expect(screen.getByRole("link", { name: /Drifting \(wood grain\)/ })).toHaveAttribute("href", "/replications?viewer=drifting-wood-grain");
   });
 

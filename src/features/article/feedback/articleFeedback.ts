@@ -40,10 +40,10 @@ export const ARTICLE_FEEDBACK_IMPORTANCES = [
 export type ArticleFeedbackImportance = (typeof ARTICLE_FEEDBACK_IMPORTANCES)[number];
 
 export const ARTICLE_FEEDBACK_IMPORTANCE_LABELS: Record<ArticleFeedbackImportance, string> = {
-  critical: msg("Critical — a safety issue"),
-  high: msg("High — clearly wrong"),
-  normal: msg("Normal — worth fixing"),
-  low: msg("Low — minor or cosmetic"),
+  critical: msg("Critical: a safety issue"),
+  high: msg("High: clearly wrong"),
+  normal: msg("Normal: worth fixing"),
+  low: msg("Low: minor or cosmetic"),
 };
 
 const ARTICLE_FEEDBACK_STATUSES = [
@@ -172,7 +172,7 @@ export function validateArticleFeedback(
   }
 
   if (!normalized.details) {
-    errors.push(msg("Details are required — tell us what should change."));
+    errors.push(msg("Details are required. Tell us what should change."));
   } else if (normalized.details.length > ARTICLE_FEEDBACK_DETAILS_MAX_LENGTH) {
     errors.push(`Details must stay under ${ARTICLE_FEEDBACK_DETAILS_MAX_LENGTH} characters.`);
   }

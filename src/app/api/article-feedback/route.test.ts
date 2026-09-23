@@ -114,7 +114,7 @@ describe("article feedback public route", () => {
       "@/features/article/feedback/articleFeedbackStore.server"
     );
     mocks.storeCreate.mockRejectedValue(
-      new ArticleFeedbackValidationError(["Details are required — tell us what should change."]),
+      new ArticleFeedbackValidationError(["Details are required. Tell us what should change."]),
     );
     const { POST } = await import("./route");
 
@@ -129,7 +129,7 @@ describe("article feedback public route", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Feedback validation failed.",
-      errors: ["Details are required — tell us what should change."],
+      errors: ["Details are required. Tell us what should change."],
     });
   });
 });
