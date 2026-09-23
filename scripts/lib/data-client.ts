@@ -163,7 +163,7 @@ class LazyPostgresDataClient implements DataClient {
           import("pg"),
         ]);
         // allowExitOnIdle: scripts that fall off the end must not wait for the pool.
-        return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
+        return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true, keepAlive: true, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
       })();
     }
     return this.#loading;

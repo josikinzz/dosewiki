@@ -9,6 +9,10 @@
  *   `DataWriteFrozenError`, or Postgres refusing a write inside the
  *   `BEGIN READ ONLY` transaction a frozen writer opens (25006). Never retried.
  * - `permanent`: everything else. Retrying cannot change the outcome.
+ *
+ * `isConnectionLoss` is a separate question: the socket or the session ended
+ * under the statement. A read-only transaction can rerun on a fresh
+ * connection; a write cannot, because its COMMIT may already have landed.
  */
 
 import { isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
@@ -23,6 +27,32 @@ const POOL_ACQUISITION_TIMEOUT_MESSAGES: ReadonlySet<string> = new Set([
   "timeout exceeded when trying to connect",
   "Connection terminated due to connection timeout",
 ]);
+
+/** Server ended the session: admin shutdown, crash shutdown, cannot connect now, and class 08 connection exceptions. */
+const CONNECTION_LOSS_SQLSTATES: ReadonlySet<string> = new Set(["57P01", "57P02", "57P03", "08000", "08003", "08006"]);
+const CONNECTION_LOSS_SOCKET_CODES: ReadonlySet<string> = new Set(["ECONNRESET", "EPIPE", "ETIMEDOUT", "ECONNREFUSED"]);
+/** pg's messages for a socket that closed under an active query, and for reusing a client after that. */
+const CONNECTION_LOSS_MESSAGES: ReadonlySet<string> = new Set([
+  "Connection terminated unexpectedly",
+  "Connection terminated",
+  "Client has encountered a connection error and is not queryable",
+]);
+
+function isConnectionLossOne(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = (error as { code?: unknown }).code;
+  if (typeof code === "string" && (CONNECTION_LOSS_SQLSTATES.has(code) || CONNECTION_LOSS_SOCKET_CODES.has(code))) return true;
+  return error instanceof Error && CONNECTION_LOSS_MESSAGES.has(error.message);
+}
+
+export function isConnectionLoss(error: unknown): boolean {
+  const seen = new Set<unknown>();
+  for (let current = error; current && typeof current === "object" && !seen.has(current); current = (current as { cause?: unknown }).cause) {
+    seen.add(current);
+    if (isConnectionLossOne(current)) return true;
+  }
+  return false;
+}
 
 function classifyOne(error: unknown): PostgresErrorClass | null {
   if (isDataWriteFrozenError(error)) return "frozen";

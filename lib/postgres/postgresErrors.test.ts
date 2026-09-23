@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DataWriteFrozenError } from "../runtime/dataWriteFreeze";
-import { classifyPostgresError } from "./postgresErrors";
+import { classifyPostgresError, isConnectionLoss } from "./postgresErrors";
 
 const sqlState = (code: string) => Object.assign(new Error(`SQLSTATE ${code}`), { code });
 
@@ -31,5 +31,32 @@ describe("Postgres error classification", () => {
     expect(classifyPostgresError(new Error("layout write failed"))).toBe("permanent");
     expect(classifyPostgresError("not an error")).toBe("permanent");
     expect(classifyPostgresError(null)).toBe("permanent");
+  });
+});
+
+describe("Postgres connection loss", () => {
+  it("recognizes a socket closed under an active query", () => {
+    expect(isConnectionLoss(new Error("Connection terminated unexpectedly"))).toBe(true);
+    expect(isConnectionLoss(new Error("Client has encountered a connection error and is not queryable"))).toBe(true);
+    expect(isConnectionLoss(Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }))).toBe(true);
+  });
+
+  it.each(["57P01", "08006"])("recognizes SQLSTATE %s", (code) => {
+    expect(isConnectionLoss(sqlState(code))).toBe(true);
+  });
+
+  it("finds connection loss behind a wrapping cause", () => {
+    expect(isConnectionLoss(Object.assign(new Error("render failed"), { cause: new Error("Connection terminated unexpectedly") }))).toBe(true);
+  });
+
+  it("does not treat query errors or timeouts as connection loss", () => {
+    expect(isConnectionLoss(sqlState("57014"))).toBe(false);
+    expect(isConnectionLoss(sqlState("40001"))).toBe(false);
+    expect(isConnectionLoss(new Error("layout write failed"))).toBe(false);
+    expect(isConnectionLoss(null)).toBe(false);
+  });
+
+  it("leaves connection loss permanent for writers", () => {
+    expect(classifyPostgresError(new Error("Connection terminated unexpectedly"))).toBe("permanent");
   });
 });

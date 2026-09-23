@@ -79,16 +79,22 @@ Two build paths produce the same artifact through the same command:
 - **Laptop (the fallback).** The isolated release trees and the commands in
   this section, exactly as before.
 
-Two limits of the remote path, both observed on its first runs:
+Limits of the remote path, observed on its first runs:
 
 - Run one remote build at a time. Three in parallel exhausted the read-only
   role's database connections; the workflow's shared concurrency group queues
   them, and GitHub keeps only one queued run, so dispatch surfaces in turn.
-- Public and editor builds do not yet finish on it: the read-only role's
-  connection is terminated partway through page generation, even alone and
-  at two workers, while the same builds finish on Vercel with the production
-  pooled URL. Check the read-only role's connection and statement limits in
-  PlanetScale before relying on the remote path for those two surfaces.
+- The runner's connections to the pooler drop now and then during page
+  generation ("Connection terminated unexpectedly"). The read-only role has
+  no timeouts or connection cap of its own; the runtime client reruns a
+  read-only query on a fresh connection and logs `postgres: connection lost,
+  rerunning read-only query`. A build that still fails on this error has
+  exhausted six attempts on one query; report it instead of raising workers.
+- A prebuilt upload drops function files `.vercelignore` excludes unless they
+  sit under a default output path such as `.next`. The editor builds into
+  `.next-editor`, so the workflow removes the `.next-*/` rule in its own
+  checkout before deploying; without that, Vercel fails with `ENOENT ...
+  .next-editor/package.json`.
 - Its preview deployment runs with the project's preview environment, which
   holds no database URL, so pages rendered on demand fail there. Use it for
   the census, the artifact audit, and timing; production artifacts still come
@@ -125,7 +131,9 @@ authorized.
 | Vercel builder (iad1), editor | 4 | 1 | 12.8 min (1158 pages; 19.7 min before) | not measured | 2026-09-23 |
 | Vercel builder (iad1), Effect Index | 4 | 1 | 5.4 min (1160 pages; 22.6 min before) | not measured | 2026-09-23 |
 | GitHub-hosted runner, Effect Index | 4 | 1 | 5m 52s build, 8 min run (census total 1055) | not measured | 2026-09-23 |
-| GitHub-hosted runner, public and editor | 4, then 2 | 1 | failed: read-only connection terminated mid-build | not measured | 2026-09-23 |
+| GitHub-hosted runner, public and editor, before the read retry | 4, then 2 | 1 | failed: read-only connection terminated mid-build | not measured | 2026-09-23 |
+| GitHub-hosted runner, public DoseWiki | 4 | 1 | 11m 06s build, 13.6 min run (census total 1321; one dropped connection rerun) | not measured | 2026-09-23 |
+| GitHub-hosted runner, editor | 4 | 1 | 5m 38s build, 8 min run (census total 1053; one dropped connection rerun) | not measured | 2026-09-23 |
 
 Stage scheduler ownership in each isolated release tree before uploading it.
 `node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
