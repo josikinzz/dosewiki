@@ -96,12 +96,14 @@ is a monotonic bigint generation, not just a wall-clock timestamp: re-enqueue us
 `GREATEST(now, previous + 1)`. A claim binds generation, `claimed_at` and attempt;
 completion and failure compare all three under a row lock and reject stale workers.
 
-A failed job sets `next_attempt_at` (migration `0021`) and is not claimed again
+A failed job sets `next_attempt_at` (migration `0023`) and is not claimed again
 before it: the delay starts at 150 seconds, doubles per failure up to one hour,
 and gains up to 20% jitter, so the five attempts span more than 30 minutes and a
 short provider outage cannot exhaust a record. A run budget abort after the
 record stored segments gives back its attempt and stays due. Re-enqueueing a
-record clears the delay.
+record clears the delay. Once a bulk run settles, an admin can press "Retry
+failed pages" on the Glossary tab's progress card: the run's exhausted jobs get
+fresh attempts in the same run, and nothing else in the queue changes.
 
 Before signed publication dispatch, the publication-delivery cron atomically
 enqueues locale work and records a receipt for that publication generation.
@@ -133,7 +135,7 @@ the wave need, for the same locale, is requested once; the other job waits for
 that result. The incremental lane still writes each record's segments itself.
 
 Every worker invocation writes one `translationWorkerRuns` row (migration
-`0020`): lane, whether it held the lease, claimed, completed, failed and
+`0022`): lane, whether it held the lease, claimed, completed, failed and
 exhausted counts, token usage, duration and the first error. A run that lost
 the lease records `lease_held = false` instead of looking idle. Each lane prunes
 its own rows older than 14 days. `readLatestTranslationWorkerRuns()` returns the
@@ -152,7 +154,7 @@ fresh-first; each claim spends a cache attempt and leases the row until its
 backoff (one minute, doubling to one hour). After eight attempts the row is a
 dead letter: never claimed again, kept with `attempts` and `last_error` for
 inspection, and reset when the record's translation completes again
-(migration `0022`). A segment that remains
+(migration `0024`). A segment that remains
 rejected after the engine's bounded retries stays English and is recorded, while
 the record completes with terminal rejection detail instead of becoming an
 unclaimable pending job. The Glossary tab polls the newest enqueue generation
