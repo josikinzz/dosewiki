@@ -27,7 +27,7 @@ export const publicTocStripStory: StoryDef = {
     {
       label: "Bar",
       note:
-        "Swipeable chip row on the frosted bar surface, normally full-bleed and flush under the sticky site header. Edge fades appear only while chips remain hidden beyond that edge. (Sticky pinning, the full-bleed breakout, and scrollspy need a real article page — at catalog width above 1200px the bar hides itself, so this story pins it open in place.)",
+        "Swipeable chip row on the frosted bar surface, normally full-bleed and flush under the sticky site header. Edge fades appear only while chips remain hidden beyond that edge. (Sticky pinning, the full-bleed breakout, and scrollspy need a real article page. At catalog width above 1200px the bar hides itself, so this story pins it open in place.)",
       background: "subtle",
       render: () => (
         <div className="max-w-sm">
@@ -41,7 +41,7 @@ export const publicTocStripStory: StoryDef = {
       name: "items",
       type: "PublicTableOfContentsItem[]",
       description:
-        "Sections to link — the same item shape as PublicTableOfContents (id, label, icon, optional tone).",
+        "Sections to link, in the same item shape as PublicTableOfContents (id, label, icon, optional tone).",
     },
     { name: "className", type: "string", description: "Extra classes merged onto the sticky nav wrapper." },
   ],
@@ -50,11 +50,11 @@ export const publicTocStripStory: StoryDef = {
     "Any page that renders it must add theme-toc-strip-scope to its layout root so anchor targets scroll clear of the header + strip.",
   ],
   whenNotToUse: [
-    "Wide screens — at >=1200px it renders display:none; use the bare PublicTableOfContents gutter rail.",
-    "Short pages with fewer than two sections — render nothing instead.",
+    "Wide screens: at >=1200px it renders display:none; use the bare PublicTableOfContents gutter rail.",
+    "Short pages with fewer than two sections: render nothing instead.",
   ],
   notes: [
     "Sticky offset comes from --public-toc-strip-top, defaulting to the site header height; the review workbench overrides it with its command-bar height.",
-    "When scrollspy flips to a new section, the bar centers that chip with one native smooth scroll (instant under prefers-reduced-motion) — no per-frame scroll work. It stands down while a finger is on the strip.",
+    "When scrollspy flips to a new section, the bar centers that chip with one native smooth scroll (instant under prefers-reduced-motion), with no per-frame scroll work. It stands down while a finger is on the strip.",
   ],
 };

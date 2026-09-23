@@ -93,8 +93,8 @@ export const statusBadgeStory: StoryDef = {
     "Any small inline label that needs one of the nine semantic tones.",
   ],
   whenNotToUse: [
-    "Large emphasis labels — reach for a Badge primitive instead.",
-    "Interactive triggers — this is a plain span with no button semantics.",
+    "Large emphasis labels: reach for a Badge primitive instead.",
+    "Interactive triggers: this is a plain span with no button semantics.",
   ],
   notes: [
     "Color comes from the theme-status-badge CSS plus the data-badge-tone attribute; light/dark are handled by tokens.",

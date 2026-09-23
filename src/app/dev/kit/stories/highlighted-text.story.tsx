@@ -111,8 +111,8 @@ export const highlightedTextStory: StoryDef = {
     "Any list where you want to show why a row matched the user's search.",
   ],
   whenNotToUse: [
-    "Rich-text or HTML content — this renders plain string segments only.",
-    "Highlighting structural emphasis unrelated to a search query — use semantic markup instead.",
+    "Rich-text or HTML content: this renders plain string segments only.",
+    "Highlighting structural emphasis unrelated to a search query: use semantic markup instead.",
   ],
   notes: [
     "Query terms are regex-escaped before matching, so punctuation in the query is safe.",

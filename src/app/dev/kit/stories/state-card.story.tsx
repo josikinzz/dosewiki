@@ -68,7 +68,7 @@ export const stateCardStory: StoryDef = {
             icon="lucide:inbox"
             badge="Nothing here"
             title="No results found"
-            description="Try widening your filters — neutral tone keeps the orb on the accent colour."
+            description="Try widening your filters. Neutral tone keeps the orb on the accent colour."
           />
         </div>
       ),
@@ -163,7 +163,7 @@ export const stateCardStory: StoryDef = {
   ],
   whenNotToUse: [
     "Inline or compact status: a Badge or EditorStatusPill alone.",
-    "Dense content cards — use ContentCard / NestedContentCard from the Surface recipes.",
+    "Dense content cards: use ContentCard / NestedContentCard from the Surface recipes.",
   ],
   notes: [
     "Built on Badge and Icon plus the theme-loading-track / theme-loading-bar utilities; purely presentational, no providers needed.",

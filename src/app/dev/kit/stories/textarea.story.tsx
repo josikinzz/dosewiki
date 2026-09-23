@@ -8,7 +8,7 @@ export const textareaStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "Multi-line text input primitive — tokenised border/surface with focus ring, plus variant (default/error) and size scales for forms and editor fields.",
+    "Multi-line text input primitive: tokenised border/surface with focus ring, plus variant (default/error) and size scales for forms and editor fields.",
   source: "src/components/ui/textarea.tsx",
   importLine: 'import { Textarea } from "@/components/ui/textarea";',
   exports: ["Textarea", "textareaVariants"],
@@ -90,11 +90,11 @@ export const textareaStory: StoryDef = {
     },
   ],
   whenToUse: [
-    "Any multi-line free-text input — notes, descriptions, longform editor fields.",
+    "Any multi-line free-text input: notes, descriptions, longform editor fields.",
     "Form fields that need an invalid state (variant=\"error\").",
   ],
   whenNotToUse: [
-    "Single-line input — use the Input primitive instead.",
+    "Single-line input: use the Input primitive instead.",
     "Rich text / markdown editing surfaces with their own toolbar and rendering.",
   ],
   notes: [

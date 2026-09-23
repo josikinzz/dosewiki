@@ -8,7 +8,7 @@ export const labelStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "The form field label primitive — a Radix Label styled as a faint, uppercase, tracked caption that pairs with an input via htmlFor.",
+    "The form field label primitive: a Radix Label styled as a faint, uppercase, tracked caption that pairs with an input via htmlFor.",
   source: "src/components/ui/label.tsx",
   importLine: 'import { Label } from "@/components/ui/label";',
   exports: ["Label"],
@@ -81,8 +81,8 @@ export const labelStory: StoryDef = {
     "Short caption-style field titles that should read as quiet uppercase metadata.",
   ],
   whenNotToUse: [
-    "Body copy or headings — this primitive is locked to a small uppercase caption style.",
-    "Status or severity chips — use Badge instead.",
+    "Body copy or headings: this primitive is locked to a small uppercase caption style.",
+    "Status or severity chips: use Badge instead.",
   ],
   notes: [
     "Always pair with the control via htmlFor (or by nesting the control) so it stays accessible.",

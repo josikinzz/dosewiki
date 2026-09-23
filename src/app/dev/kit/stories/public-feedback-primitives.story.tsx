@@ -65,7 +65,7 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Loading, status, media, and attribution building blocks for public pages — skeletons, status headers/facts/actions, media tiles, and contributor credit.",
+    "Loading, status, media, and attribution building blocks for public pages: skeletons, status headers/facts/actions, media tiles, and contributor credit.",
   source: "src/components/layout/PublicFeedbackPrimitives.tsx",
   importLine:
     'import { PublicSkeletonSurface, StatusHeader, StatusFact, StatusActions, MediaTile, MediaPlaceholder, ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";',
@@ -269,8 +269,8 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
     "Public media galleries and the original-contributor credit pill.",
   ],
   whenNotToUse: [
-    "Dev editor loading or status chrome — those use editor-owned primitives.",
-    "Generic spinners or toasts — these are page-shaped feedback blocks, not transient notices.",
+    "Dev editor loading or status chrome: those use editor-owned primitives.",
+    "Generic spinners or toasts: these are page-shaped feedback blocks, not transient notices.",
   ],
   notes: [
     "Skeletons honor motion-reduce and expose polite aria-live status text for assistive tech.",

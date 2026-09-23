@@ -33,7 +33,7 @@ const CITATIONS: ProjectedCitation[] = [
   {
     role: "reference",
     label:
-      "TripSit Factsheet — review of subjective effects and harm-reduction guidance. https://tripsit.me",
+      "TripSit Factsheet: review of subjective effects and harm-reduction guidance. https://tripsit.me",
     url: "https://tripsit.me",
     favicon: null,
     number: 3,
@@ -164,8 +164,8 @@ export const referenceListStory: StoryDef = {
     "Anywhere you render projected citations and want consistent numbering + backlinks.",
   ],
   whenNotToUse: [
-    "Inline citation markers within prose — those are rendered by the article body, not here.",
-    "Compact source chips — use CitationListItem instead.",
+    "Inline citation markers within prose: those are rendered by the article body, not here.",
+    "Compact source chips: use CitationListItem instead.",
   ],
   notes: [
     "Client component ('use client'). scrollToReferenceUse touches document/window, so only call it from event handlers, never during render.",

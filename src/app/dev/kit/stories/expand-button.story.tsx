@@ -95,7 +95,7 @@ export const expandButtonStory: StoryDef = {
       default: '"floating"',
       description: "Visual treatment. pill, compact, and badge are deprecated aliases of floating, inline, and chip.",
     },
-    { name: "count", type: "number", description: "For the count variant — rendered as a signed +/- value." },
+    { name: "count", type: "number", description: "For the count variant, rendered as a signed +/- value." },
     { name: "label", type: "string", description: "Descriptive label shown instead of the ellipsis icon." },
     { name: "children", type: "ReactNode", description: "Custom content; for count it sits before the +/- value." },
     { name: "ariaLabel", type: "string", default: '"Expand/Collapse section"', description: "Accessible label override." },
@@ -107,12 +107,12 @@ export const expandButtonStory: StoryDef = {
     "Count-style expanders that surface how many extra items are hidden (count variant).",
   ],
   whenNotToUse: [
-    "Primary page actions — use Button.",
-    "Static non-interactive disclosure markers — use ExpandIndicator alone.",
+    "Primary page actions: use Button.",
+    "Static non-interactive disclosure markers: use ExpandIndicator alone.",
   ],
   notes: [
     "ExpandButton renders a real <button> with aria-expanded; pass ariaControls to wire it to the region it toggles.",
     "ExpandIndicator is the non-interactive span (ellipsis + rotating chevron) used internally and reusable for custom triggers; it supports floating, inline, card, pill, and compact variants only.",
-    "pill, compact, and badge variants are deprecated — prefer floating, inline, and chip respectively.",
+    "pill, compact, and badge variants are deprecated; prefer floating, inline, and chip respectively.",
   ],
 };

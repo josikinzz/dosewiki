@@ -8,7 +8,7 @@ export const citationListItemStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "A single citation/reference chip rendered as an <li> — numbered badge or favicon, label, and an optional external-link affordance.",
+    "A single citation/reference chip rendered as an <li>: numbered badge or favicon, label, and an optional external-link affordance.",
   source: "src/components/common/CitationListItem.tsx",
   importLine: 'import { CitationListItem } from "@/components/common/CitationListItem";',
   exports: ["CitationListItem"],
@@ -19,7 +19,7 @@ export const citationListItemStory: StoryDef = {
       background: "card",
       render: () => (
         <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-          <CitationListItem number={1} label="PsychonautWiki — 2C-B" />
+          <CitationListItem number={1} label="PsychonautWiki: 2C-B" />
           <CitationListItem number={2} label="Erowid Experience Vaults" />
         </ul>
       ),
@@ -67,7 +67,7 @@ export const citationListItemStory: StoryDef = {
     },
     {
       label: "Reference list",
-      note: "Several items flow inline as wrapping chips — the typical footnote/reference cluster.",
+      note: "Several items flow inline as wrapping chips, the typical footnote/reference cluster.",
       background: "subtle",
       full: true,
       render: () => (
@@ -113,8 +113,8 @@ export const citationListItemStory: StoryDef = {
     "Showing a linked source with its favicon as a compact pill.",
   ],
   whenNotToUse: [
-    "Full citation cards with metadata blocks — use a ContentCard recipe instead.",
-    "Standalone navigation links outside a reference list — reach for a plain anchor or PublicNameChip.",
+    "Full citation cards with metadata blocks: use a ContentCard recipe instead.",
+    "Standalone navigation links outside a reference list: reach for a plain anchor or PublicNameChip.",
   ],
   notes: [
     "Renders an <li>, so mount it inside a <ul>/<ol> for valid markup.",

@@ -72,7 +72,7 @@ export const sectionHeaderStory: StoryDef = {
     "Anywhere a tokenised, full-width section heading is needed across public pages.",
   ],
   whenNotToUse: [
-    "Sub-headings inside a section — this is a top-level <h2> with a heavy divider.",
+    "Sub-headings inside a section: this is a top-level <h2> with a heavy divider.",
     "Standalone labels with no divider; use a plain heading or Badge instead.",
   ],
   notes: [

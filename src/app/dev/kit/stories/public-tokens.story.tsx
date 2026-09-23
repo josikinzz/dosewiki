@@ -38,7 +38,7 @@ export const publicTokensStory: StoryDef = {
       ),
     },
     {
-      label: "PublicPill — tones",
+      label: "PublicPill: tones",
       note: "Static metadata pills across the tone scale.",
       background: "card",
       render: () => (
@@ -52,7 +52,7 @@ export const publicTokensStory: StoryDef = {
       ),
     },
     {
-      label: "PublicPill — sizes & icon",
+      label: "PublicPill: sizes & icon",
       note: "sm vs md, with an optional leading Icon.",
       background: "card",
       render: () => (
@@ -97,7 +97,7 @@ export const publicTokensStory: StoryDef = {
       ),
     },
     {
-      label: "PublicChipNav — button mode",
+      label: "PublicChipNav: button mode",
       note: "Without href, items render as buttons (aria-pressed) and fire onSelect.",
       background: "card",
       full: true,
@@ -164,14 +164,14 @@ export const publicTokensStory: StoryDef = {
   ],
   whenToUse: [
     "Eyebrow/overline labels above public section headings (PublicOverline).",
-    "Compact static metadata pills — class, schedule, duration (PublicPill).",
+    "Compact static metadata pills: class, schedule, duration (PublicPill).",
     "Inline name/alias chips, optionally linked (PublicNameChip).",
     "Public filter or category navigation rendered as chips (PublicChipNav).",
   ],
   whenNotToUse: [
-    "Editor/dev chrome — these are tuned for public page surfaces.",
-    "Primary status badges in dense tables — use the Badge primitive instead.",
-    "Long-form or multi-line content — these tokens are single-line.",
+    "Editor/dev chrome: these are tuned for public page surfaces.",
+    "Primary status badges in dense tables: use the Badge primitive instead.",
+    "Long-form or multi-line content: these tokens are single-line.",
   ],
   notes: [
     "PublicPill, PublicNameChip, and PublicOverline are polymorphic via `as`; pass href/onClick props through to the chosen element.",

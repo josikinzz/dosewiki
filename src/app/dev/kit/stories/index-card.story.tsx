@@ -166,7 +166,7 @@ export const indexCardStory: StoryDef = {
     { name: "title", type: "string", description: "Card heading; also feeds default toggle and action aria-labels." },
     { name: "icon", type: "IconName", description: "Leading glyph (Iconify name, e.g. \"lucide:zap\"). Doubles as the optional copy-list control." },
     { name: "count", type: "number", description: "Item count shown in the badge beside the title." },
-    { name: "children", type: "ReactNode", description: "Collapsible body content — typically an item list." },
+    { name: "children", type: "ReactNode", description: "Collapsible body content, typically an item list." },
     { name: "defaultExpanded", type: "boolean", default: "true", description: "Initial open state in uncontrolled mode." },
     { name: "expanded", type: "boolean", description: "Controlled open state; pair with onExpandedChange." },
     { name: "onExpandedChange", type: "(expanded: boolean) => void", description: "Fired when the toggle changes." },
@@ -189,8 +189,8 @@ export const indexCardStory: StoryDef = {
     "Any counted, expandable list grouping that should match index-page chrome.",
   ],
   whenNotToUse: [
-    "Non-collapsible content cards — reach for ContentCard / Surface recipes instead.",
-    "Prose sections in an article body — this is index chrome, not prose layout. The exception is index content that happens to sit inside an article: the Effect Index intensity-scale articles embed effect roundups, and those are the same panel.",
+    "Non-collapsible content cards: reach for ContentCard / Surface recipes instead.",
+    "Prose sections in an article body: this is index chrome, not prose layout. The exception is index content that happens to sit inside an article: the Effect Index intensity-scale articles embed effect roundups, and those are the same panel.",
   ],
   notes: [
     "Built on InteractiveSurface (variant=\"index\"); tone=\"dim\" switches to the indexDim surface variant.",

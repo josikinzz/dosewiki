@@ -16,7 +16,7 @@ export const popoverStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "A Radix popover with the themed overlay surface preset — a floating panel anchored to a trigger for menus, filters, or small forms.",
+    "A Radix popover with the themed overlay surface preset: a floating panel anchored to a trigger for menus, filters, or small forms.",
   source: "src/components/ui/popover.tsx",
   importLine:
     'import { Popover, PopoverArrow, PopoverTrigger, PopoverContent } from "@/components/ui/popover";',
@@ -146,9 +146,9 @@ export const popoverStory: StoryDef = {
     "Lightweight floating content that should close on outside click or Escape.",
   ],
   whenNotToUse: [
-    "A list of commands or actions to pick from — use DropdownMenu.",
-    "Blocking, focus-trapping flows or large content — use Dialog.",
-    "Passive hover hints — use a tooltip.",
+    "A list of commands or actions to pick from: use DropdownMenu.",
+    "Blocking, focus-trapping flows or large content: use Dialog.",
+    "Passive hover hints: use a tooltip.",
   ],
   notes: [
     "PopoverContent renders in a portal and presets the themed overlay surface (rounded, bordered, shadowed) plus open/close animations.",

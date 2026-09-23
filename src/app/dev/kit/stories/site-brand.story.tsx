@@ -70,13 +70,13 @@ export const siteBrandStory: StoryDef = {
       name: "accentClassName",
       type: "string",
       default: '"theme-accent-heading"',
-      description: "SiteWordmark only — classes for the accented run.",
+      description: "SiteWordmark only: classes for the accented run.",
     },
     {
       name: "className",
       type: "string",
       default: '"theme-text-faint text-xs leading-5"',
-      description: "SiteLicenceNotice only — classes for the paragraph.",
+      description: "SiteLicenceNotice only: classes for the paragraph.",
     },
     {
       name: "config",
@@ -87,7 +87,7 @@ export const siteBrandStory: StoryDef = {
     {
       name: "variant",
       type: '"hero" | "header"',
-      description: "SiteVersionBadge only — full version pill vs. stage-only micro-pill.",
+      description: "SiteVersionBadge only: full version pill vs. stage-only micro-pill.",
     },
   ],
   whenToUse: [
@@ -95,7 +95,7 @@ export const siteBrandStory: StoryDef = {
     "The footer's reuse-rights line, which must follow the publication's actual licence.",
   ],
   whenNotToUse: [
-    "Page titles and metadata — those read the flavor config directly, not a component.",
+    "Page titles and metadata: those read the flavor config directly, not a component.",
     "Anywhere you need the plain display name as a string; use the flavor config's `name`.",
   ],
   notes: [

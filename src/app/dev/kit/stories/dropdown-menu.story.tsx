@@ -131,7 +131,7 @@ export const dropdownMenuStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "Radix dropdown menu styled with theme overlay tokens — a trigger that opens a floating menu of items, checkboxes, radios, and nested submenus.",
+    "Radix dropdown menu styled with theme overlay tokens: a trigger that opens a floating menu of items, checkboxes, radios, and nested submenus.",
   source: "src/components/ui/dropdown-menu.tsx",
   importLine:
     'import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";',
@@ -220,9 +220,9 @@ export const dropdownMenuStory: StoryDef = {
     "Toggling boolean view options with checkbox items.",
   ],
   whenNotToUse: [
-    "Selecting a value within a form — use Select for an accessible combobox.",
-    "Right-click context actions — use a context menu primitive instead.",
-    "Primary navigation — use real links and nav chrome.",
+    "Selecting a value within a form: use Select for an accessible combobox.",
+    "Right-click context actions: use a context menu primitive instead.",
+    "Primary navigation: use real links and nav chrome.",
   ],
   notes: [
     "DropdownMenuContent renders in a portal and uses theme-overlay-surface tokens; the trigger and content live under one DropdownMenu root.",

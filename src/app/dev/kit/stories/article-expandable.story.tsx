@@ -36,7 +36,7 @@ export const articleExpandableStory: StoryDef = {
   ],
   examples: [
     {
-      label: "ExpandableList — renderItem",
+      label: "ExpandableList: renderItem",
       note: "collapsedCount hides the tail; the count toggle reveals the rest.",
       background: "card",
       render: () => (
@@ -52,7 +52,7 @@ export const articleExpandableStory: StoryDef = {
       ),
     },
     {
-      label: "ExpandableList — custom children render",
+      label: "ExpandableList: custom children render",
       note: "The children render-prop receives list state for fully custom layouts.",
       background: "card",
       render: () => (
@@ -77,7 +77,7 @@ export const articleExpandableStory: StoryDef = {
       ),
     },
     {
-      label: "ExpandableList — collapsed toggle content",
+      label: "ExpandableList: collapsed toggle content",
       note: "collapsedToggleContent labels the +N toggle; defaultExpanded starts open.",
       background: "card",
       render: () => (
@@ -105,7 +105,7 @@ export const articleExpandableStory: StoryDef = {
       ),
     },
     {
-      label: "ExpandableText — expanded by default",
+      label: "ExpandableText: expanded by default",
       note: "defaultExpanded renders the full body up front; toggle collapses it.",
       background: "card",
       render: () => (
@@ -135,7 +135,7 @@ export const articleExpandableStory: StoryDef = {
     {
       name: "visibleItems (ExpandableList)",
       type: "readonly T[]",
-      description: "Alternative to collapsedCount — supply the exact collapsed slice yourself.",
+      description: "Alternative to collapsedCount: supply the exact collapsed slice yourself.",
     },
     {
       name: "renderItem / children (ExpandableList)",
@@ -171,8 +171,8 @@ export const articleExpandableStory: StoryDef = {
     "Line-clamping multi-paragraph article copy with a show-more affordance.",
   ],
   whenNotToUse: [
-    "Generic disclosure panels with a heading — use an Accordion/Collapsible primitive.",
-    "Short lists that already fit — collapsing nothing just adds a dead toggle.",
+    "Generic disclosure panels with a heading: use an Accordion/Collapsible primitive.",
+    "Short lists that already fit: collapsing nothing just adds a dead toggle.",
   ],
   notes: [
     "Both manage their own open/closed state and stay self-contained.",

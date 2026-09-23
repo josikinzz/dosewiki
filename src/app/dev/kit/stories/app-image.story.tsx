@@ -142,8 +142,8 @@ export const appImageStory: StoryDef = {
     "Article and content imagery where remote hosts aren't in the next/image allowlist.",
   ],
   whenNotToUse: [
-    "Pure local assets with a known import — call next/image directly if you don't need the remote fallback.",
-    "Decorative CSS backgrounds — use a background-image utility instead.",
+    "Pure local assets with a known import: call next/image directly if you don't need the remote fallback.",
+    "Decorative CSS backgrounds: use a background-image utility instead.",
   ],
   notes: [
     "Local sources are StaticImageData or root-relative paths, excluding protocol-relative URLs. Only local images use Next's optimizer.",

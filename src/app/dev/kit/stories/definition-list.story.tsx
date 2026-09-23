@@ -14,7 +14,7 @@ export const definitionListStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Hairline-separated term/definition rows for flat reference surfaces — a fixed-width label/title column on the left, body prose beside it. Replaces homogeneous two-up card grids.",
+    "Hairline-separated term/definition rows for flat reference surfaces: a fixed-width label/title column on the left, body prose beside it. Replaces homogeneous two-up card grids.",
   source: "src/components/common/DefinitionList.tsx",
   importLine: 'import { DefinitionList, DefinitionRow } from "@/components/common";',
   exports: ["DefinitionList", "DefinitionRow"],
@@ -95,12 +95,12 @@ export const definitionListStory: StoryDef = {
     {
       name: "term",
       type: "ReactNode",
-      description: "Left column — a label and/or title node (DefinitionRow).",
+      description: "Left column: a label and/or title node (DefinitionRow).",
     },
     {
       name: "children",
       type: "ReactNode",
-      description: "Right column — the definition body (DefinitionRow).",
+      description: "Right column: the definition body (DefinitionRow).",
     },
     {
       name: "semantic",
@@ -117,7 +117,7 @@ export const definitionListStory: StoryDef = {
     {
       name: "className",
       type: "string",
-      description: "Merged after the grid row classes via cn — use --theme-* utilities only.",
+      description: "Merged after the grid row classes via cn. Use --theme-* utilities only.",
     },
   ],
   whenToUse: [
@@ -125,7 +125,7 @@ export const definitionListStory: StoryDef = {
     "Replacing a homogeneous two-up card grid with a calmer single surface.",
   ],
   whenNotToUse: [
-    "Distinct, individually emphasized cards — use Card / ContentCard per item.",
-    "Tabular data with many columns — use a real table.",
+    "Distinct, individually emphasized cards: use Card / ContentCard per item.",
+    "Tabular data with many columns: use a real table.",
   ],
 };

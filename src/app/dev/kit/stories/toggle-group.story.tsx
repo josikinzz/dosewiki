@@ -10,14 +10,14 @@ export const toggleGroupStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "A set of two-state toggle buttons that behave as one control — single-select for mutually exclusive choices, multiple-select for independent on/off flags.",
+    "A set of two-state toggle buttons that behave as one control: single-select for mutually exclusive choices, multiple-select for independent on/off flags.",
   source: "src/components/ui/toggle-group.tsx",
   importLine: 'import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";',
   exports: ["ToggleGroup", "ToggleGroupItem"],
   examples: [
     {
       label: "Single select",
-      note: "type=\"single\" — one item active at a time (alignment, view mode, etc.).",
+      note: "type=\"single\": one item active at a time (alignment, view mode, etc.).",
       render: () => (
         <ToggleGroup type="single" defaultValue="center" aria-label="Text alignment">
           <ToggleGroupItem value="left" aria-label="Align left">
@@ -34,7 +34,7 @@ export const toggleGroupStory: StoryDef = {
     },
     {
       label: "Multiple select",
-      note: "type=\"multiple\" — independent flags, several can be on at once.",
+      note: "type=\"multiple\": independent flags, several can be on at once.",
       render: () => (
         <ToggleGroup type="multiple" defaultValue={["bold"]} aria-label="Text formatting">
           <ToggleGroupItem value="bold" aria-label="Bold">
@@ -156,13 +156,13 @@ export const toggleGroupStory: StoryDef = {
     "A row of independent on/off formatting flags (bold/italic/underline) with type=\"multiple\".",
   ],
   whenNotToUse: [
-    "A single standalone on/off control — use Toggle instead.",
-    "Many options or options that should collapse on mobile — use Select or Tabs.",
-    "Navigation between page sections — use Tabs.",
+    "A single standalone on/off control: use Toggle instead.",
+    "Many options or options that should collapse on mobile: use Select or Tabs.",
+    "Navigation between page sections: use Tabs.",
   ],
   notes: [
     "Built on @radix-ui/react-toggle-group; shares toggleVariants with the Toggle primitive.",
-    "Set variant/size on the group, not per item — the group provides them through context.",
+    "Set variant/size on the group, not per item; the group provides them through context.",
     "Always give the group an aria-label and each item an accessible label (text or aria-label) for icon-only items.",
   ],
 };

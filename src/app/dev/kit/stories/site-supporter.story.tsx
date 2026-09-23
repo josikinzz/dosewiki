@@ -21,7 +21,7 @@ export const siteSupporterStory: StoryDef = {
       render: () => <SiteSupporter config={SITE_FLAVOR_CONFIGS.dosewiki} />,
     },
     {
-      label: "About page — larger, centred mark",
+      label: "About page: larger, centred mark",
       note: "The About page centres the credit under the contributor roster at a 36px mark; this example uses a 28px mark to fit the card.",
       background: "card",
       render: () => (
@@ -30,7 +30,7 @@ export const siteSupporterStory: StoryDef = {
     },
     {
       label: "Flavor with no supporter",
-      note: "Effect Index sets `footer.supporter: null`, so the component returns null — nothing renders between the rules below.",
+      note: "Effect Index sets `footer.supporter: null`, so the component returns null and nothing renders between the rules below.",
       background: "card",
       full: true,
       render: () => (
@@ -53,7 +53,7 @@ export const siteSupporterStory: StoryDef = {
     {
       name: "className",
       type: "string",
-      default: "—",
+      default: "–",
       description: "Extra classes on the anchor. Callers use it for outer spacing in the footer and for the homepage's fixed corner placement.",
     },
     {
@@ -73,7 +73,7 @@ export const siteSupporterStory: StoryDef = {
     "Chrome that credits whoever pays the bills: the site footer, and the homepage hero on routes that suppress the footer.",
   ],
   whenNotToUse: [
-    "Source or citation attribution — that is ExternalSourcePill.",
+    "Source or citation attribution: that is ExternalSourcePill.",
     "A paid ad placement. That needs `rel=\"sponsored\"` and different wording; this component deliberately carries neither.",
     "Any surface where the credit would read as editorial endorsement of the page's content.",
   ],

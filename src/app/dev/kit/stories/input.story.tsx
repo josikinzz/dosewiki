@@ -10,7 +10,7 @@ export const inputStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "The single text-field primitive. Variants describe validation state and size only — wire labels, hints, and form logic outside the input.",
+    "The single text-field primitive. Variants describe validation state and size only; wire labels, hints, and form logic outside the input.",
   source: "src/components/ui/input.tsx",
   importLine: 'import { Input } from "@/components/ui/input";',
   exports: ["Input", "inputVariants"],
@@ -49,7 +49,7 @@ export const inputStory: StoryDef = {
     },
     {
       label: "Disabled",
-      note: "Native disabled — dims and blocks input.",
+      note: "Native disabled: dims and blocks input.",
       render: () => (
         <Input className="max-w-xs" disabled defaultValue="Read-only value" />
       ),
@@ -68,7 +68,7 @@ export const inputStory: StoryDef = {
     },
     {
       label: "With leading icon",
-      note: "Icons are not built in — position one over a padded input in your wrapper.",
+      note: "Icons are not built in. Position one over a padded input in your wrapper.",
       render: () => (
         <div className="relative max-w-xs">
           <Search
@@ -106,16 +106,16 @@ export const inputStory: StoryDef = {
     },
   ],
   whenToUse: [
-    "Any single-line text entry — search boxes, form fields, filters.",
+    "Any single-line text entry: search boxes, form fields, filters.",
     "Fields that need a validation error treatment (variant=\"error\").",
   ],
   whenNotToUse: [
-    "Multi-line text — use a textarea primitive instead.",
-    "Choice from a fixed set — use Select.",
-    "Toggle/boolean state — use Checkbox or Switch.",
+    "Multi-line text: use a textarea primitive instead.",
+    "Choice from a fixed set: use Select.",
+    "Toggle/boolean state: use Checkbox or Switch.",
   ],
   notes: [
     "The native size attribute is omitted; use inputSize for the height scale.",
-    "Labels, hint text, and error messages live outside Input — compose them with Label.",
+    "Labels, hint text, and error messages live outside Input; compose them with Label.",
   ],
 };

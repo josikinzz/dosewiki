@@ -73,7 +73,7 @@ export const motionCardStory: StoryDef = {
       name: "variant",
       type: '"default" | "accent" | "danger"',
       default: '"default"',
-      description: "Surface tone — subtle public card, frosted accent panel, or danger callout.",
+      description: "Surface tone: subtle public card, frosted accent panel, or danger callout.",
     },
     {
       name: "delay",
@@ -90,11 +90,11 @@ export const motionCardStory: StoryDef = {
   ],
   whenToUse: [
     "Cards that should animate into a list, grid, or page section on mount.",
-    "Staggered reveals — pass an increasing delay per item.",
+    "Staggered reveals: pass an increasing delay per item.",
   ],
   whenNotToUse: [
-    "Static cards with no entrance animation — use ContentCard / Surface instead.",
-    "Clickable cards needing hover/selected affordances — use InteractiveContentCard.",
+    "Static cards with no entrance animation: use ContentCard / Surface instead.",
+    "Clickable cards needing hover/selected affordances: use InteractiveContentCard.",
   ],
   notes: [
     "Renders a <motion.section> and respects prefers-reduced-motion (no transform/opacity animation when reduced).",

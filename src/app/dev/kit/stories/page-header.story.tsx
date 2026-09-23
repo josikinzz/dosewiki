@@ -42,7 +42,7 @@ export const pageHeaderStory: StoryDef = {
     },
     {
       label: "Title only",
-      note: "Description is optional — omit it for a bare heading.",
+      note: "Description is optional; omit it for a bare heading.",
       background: "subtle",
       full: true,
       render: () => (
@@ -55,7 +55,7 @@ export const pageHeaderStory: StoryDef = {
     },
     {
       label: "Left aligned",
-      note: 'align="left" for pages that read as articles — a contents rail or left-aligned prose below gives the title an edge to share.',
+      note: 'align="left" for pages that read as articles. A contents rail or left-aligned prose below gives the title an edge to share.',
       background: "subtle",
       full: true,
       render: () => (
@@ -123,12 +123,12 @@ export const pageHeaderStory: StoryDef = {
     "Any centered page heading that wants a balanced title, optional accent icon, and lead description.",
   ],
   whenNotToUse: [
-    "Section or card headings inside a page — this owns the page <h1> and large display type.",
-    "Editor/dev chrome — those surfaces use their own dev-owned header primitives.",
+    "Section or card headings inside a page: this owns the page <h1> and large display type.",
+    "Editor/dev chrome: those surfaces use their own dev-owned header primitives.",
   ],
   notes: [
     "Renders a semantic <header> containing the page <h1>; use one per route.",
-    "Ships mb-16 by default — override via className when you need tighter spacing.",
+    "Ships mb-16 by default; override via className when you need tighter spacing.",
     "The icon is decorative (aria-hidden) and uses accent-heading theme tokens.",
   ],
 };

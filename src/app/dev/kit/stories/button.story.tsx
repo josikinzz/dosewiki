@@ -10,7 +10,7 @@ export const buttonStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "The single button primitive. Variants describe visual behaviour (tone, emphasis, shape, icon affordance) — never a feature or route.",
+    "The single button primitive. Variants describe visual behaviour (tone, emphasis, shape, icon affordance), never a feature or route.",
   source: "src/components/ui/button.tsx",
   importLine: 'import { Button } from "@/components/ui/button";',
   exports: ["Button", "buttonVariants"],
@@ -110,7 +110,7 @@ export const buttonStory: StoryDef = {
     },
     {
       label: "Legacy recipe variants",
-      note: "Rendered for reference only — do not use in new code. Tracked for migration into owning components.",
+      note: "Rendered for reference only. Do not use in new code. Tracked for migration into owning components.",
       background: "card",
       full: true,
       render: () => (
@@ -144,13 +144,13 @@ export const buttonStory: StoryDef = {
     },
   ],
   whenToUse: [
-    "Any clickable action — primary, secondary, ghost, or icon-only.",
+    "Any clickable action: primary, secondary, ghost, or icon-only.",
     "Links that should look like buttons (pass asChild and wrap a Link).",
   ],
   whenNotToUse: [
-    "Feature-specific recipes — wrap Button in an owning component instead of adding a variant.",
-    "Status/severity labels — use Badge.",
-    "Show-more affordances — use ExpandButton.",
+    "Feature-specific recipes: wrap Button in an owning component instead of adding a variant.",
+    "Status/severity labels: use Badge.",
+    "Show-more affordances: use ExpandButton.",
   ],
   notes: [
     "Variant names must stay primitive; ownership.test.ts blocks feature-named variants.",

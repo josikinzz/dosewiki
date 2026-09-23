@@ -59,7 +59,7 @@ export const cardStory: StoryDef = {
     },
     {
       label: "Header only",
-      note: "Title and description with no body — useful for compact summaries.",
+      note: "Title and description with no body, useful for compact summaries.",
       background: "plain",
       render: () => (
         <Card className="w-full max-w-md">
@@ -80,7 +80,7 @@ export const cardStory: StoryDef = {
         <Card className="w-full max-w-md">
           <CardContent className="p-0">
             <span className="text-sm text-[var(--theme-text-primary)]">
-              Card is just a styled surface — you can drop arbitrary children in
+              Card is just a styled surface; you can drop arbitrary children in
               directly when you don&apos;t need the slots.
             </span>
           </CardContent>
@@ -128,7 +128,7 @@ export const cardStory: StoryDef = {
     "shadcn-shaped layouts where you want the header/content/footer slots.",
   ],
   whenNotToUse: [
-    "Public article content cards — reach for the Surface recipes (ContentCard, NestedContentCard).",
+    "Public article content cards: reach for the Surface recipes (ContentCard, NestedContentCard).",
     "Plain text groupings that need no container.",
   ],
   notes: [

@@ -157,8 +157,8 @@ export const externalSourcePillStory: StoryDef = {
     "Linking out to a source homepage or factsheet as a compact attribution chip.",
   ],
   whenNotToUse: [
-    "Primary navigation or actions — this is attribution chrome, use Button or a link.",
-    "Inline prose citations — use the citation/reference components instead.",
+    "Primary navigation or actions: this is attribution chrome, use Button or a link.",
+    "Inline prose citations: use the citation/reference components instead.",
   ],
   notes: [
     'Defaults target="_blank" with rel="noopener noreferrer"; the overlay anchor covers the full pill and shows a focus-visible ring.',

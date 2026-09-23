@@ -31,14 +31,14 @@ export const footerStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Public site footer chrome: harm-reduction disclaimer, license link, optional icon nav, and the reader appearance controls. It carries no brand mark — the header already has one on every page that renders this footer.",
+    "Public site footer chrome: harm-reduction disclaimer, license link, optional icon nav, and the reader appearance controls. It carries no brand mark; the header already has one on every page that renders this footer.",
   source: "src/components/layout/Footer.tsx",
   importLine: 'import { Footer } from "@/components/layout/Footer";',
   exports: ["Footer"],
   examples: [
     {
       label: "Default",
-      note: "No footer nav items — disclaimer, license link, and the appearance cog only. This is the shipped public default.",
+      note: "No footer nav items: disclaimer, license link, and the appearance cog only. This is the shipped public default.",
       background: "plain",
       full: true,
       render: () => <Footer model={mockFooterModel({})} />,
@@ -96,13 +96,13 @@ export const footerStory: StoryDef = {
     "Surfacing the harm-reduction disclaimer, CC0 license link, and the appearance controls.",
   ],
   whenNotToUse: [
-    "Dev editor or admin surfaces — those use their own chrome, not the public footer.",
-    "Inside content cards or sections — this is page-level chrome and owns a semantic <footer> landmark.",
+    "Dev editor or admin surfaces: those use their own chrome, not the public footer.",
+    "Inside content cards or sections: this is page-level chrome and owns a semantic <footer> landmark.",
   ],
   notes: [
     "Defaults its model from getRouteChromeModel(\"/\"), so it renders standalone without props.",
     "footerNavItems use internal next/link; footerExternalNavItems render <a> with target=_blank rel=noopener.",
     "The appearance cog is publication policy, not a prop: day/night follows showColorSchemeToggle, and the Fun/Pro row is omitted entirely on a publication whose style is locked.",
-    "Appearance state comes from the root ThemeProvider — the cog holds none of its own, so the footer's and the homepage's always agree.",
+    "Appearance state comes from the root ThemeProvider. The cog holds none of its own, so the footer's and the homepage's always agree.",
   ],
 };
