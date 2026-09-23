@@ -12,6 +12,11 @@ function row(term: string, status: GlossaryRow["status"], target = `${term}-de`)
   return { locale: LOCALE, term, target, kind: "effect-name", status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1, revision: "1:0", approved_target: status === "approved" ? target : null, review_provenance: status === "approved" ? "human_review" : "unreviewed" };
 }
 
+/** Approved before review tracking existed: live, and never checked by a person. */
+function legacy(term: string, target = `${term}-de`): GlossaryRow {
+  return { ...row(term, "approved", target), review_provenance: "legacy_unverified" };
+}
+
 type Call = { path: string; body: Record<string, unknown> | string };
 
 /**
@@ -62,6 +67,11 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
         const terms = body.terms as string[];
         for (const r of rows) if (terms.includes(r.term)) r.status = "approved";
         return Response.json({ ok: true, approved: terms });
+      }
+      if (path.endsWith("/confirm")) {
+        const terms = body.terms as string[];
+        for (const r of rows) if (terms.includes(r.term)) r.review_provenance = "human_review";
+        return Response.json({ ok: true, confirmed: terms });
       }
       if (path.endsWith("/edit")) {
         const target = rows.find((r) => r.term === body.term)!;
@@ -147,17 +157,86 @@ describe("GlossaryTab", () => {
     expect(rowFor("anxiety").getByText("Unreviewed")).toBeInTheDocument();
   });
 
-  it("surfaces legacy approvals for rereview and can save unchanged wording as a draft", async () => {
-    const imported = { ...row("anxiety", "approved"), review_provenance: "legacy_unverified" as const };
-    const api = stubGlossaryApi([imported]);
+  it("labels legacy approvals as live and never checked, apart from drafts, and can save unchanged wording as a draft", async () => {
+    const imported = legacy("anxiety");
+    const api = stubGlossaryApi([imported, row("euphoria", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await screen.findByText("Review unverified");
-    expect(screen.queryByText(/All 1 term.*reviewed/)).not.toBeInTheDocument();
+    await screen.findByText("euphoria");
+    // The default drafts view no longer lists live wording.
+    expect(document.querySelector('tr[data-term="anxiety"]')).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Live, never checked/ }));
+    await waitFor(() => expect(rowFor("anxiety").getByText("Live, never checked")).toBeInTheDocument());
+    expect(document.querySelector('tr[data-term="euphoria"]')).toBeNull();
+    expect(screen.queryByText(/All 2 terms.*reviewed/)).not.toBeInTheDocument();
     await user.click(rowFor("anxiety").getByRole("button", { name: "Save draft" }));
     await screen.findByText('Saved "anxiety" as anxiety-de; awaiting approval.');
     expect(api.calls[0].body).toMatchObject({ intent: "draft", expectedRevision: "1:0" });
-    expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toBeEnabled();
+    // Now a draft: it moves to the drafts view, where it is approved like any other.
+    await user.click(screen.getByRole("button", { name: /Unreviewed/ }));
+    await waitFor(() => expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toBeEnabled());
+    expect(rowFor("anxiety").queryByRole("button", { name: "Confirm" })).toBeNull();
+  });
+
+  it("confirms one live, never checked row at the revision shown", async () => {
+    const api = stubGlossaryApi([legacy("anxiety"), legacy("euphoria")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByTestId("glossary-summary");
+    expect(screen.getByTestId("glossary-summary")).toHaveTextContent("0 drafts, 2 live never checked, 0 human approved");
+    await user.click(screen.getByRole("button", { name: /Live, never checked/ }));
+    await user.click(rowFor("anxiety").getByRole("button", { name: "Confirm" }));
+    await screen.findByText('Confirmed "anxiety".');
+    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } }]);
+    expect(document.querySelector('tr[data-term="anxiety"]')).toBeNull();
+    expect(screen.getByTestId("glossary-summary")).toHaveTextContent("0 drafts, 1 live never checked, 1 human approved");
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for euphoria" })).toHaveFocus());
+  });
+
+  it("counts drafts and never-checked rows apart per category, and each bulk action touches exactly its own count", async () => {
+    const api = stubGlossaryApi([
+      row("anxiety", "draft"), row("calm", "draft"), row("euphoria", "draft"),
+      legacy("focus"), legacy("joy"),
+      row("sedation", "approved"),
+    ]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("anxiety");
+    await user.click(screen.getByRole("button", { name: "All" }));
+    const group = within(await screen.findByTestId("glossary-group-effects"));
+    expect(group.getByText(/3 drafts, 2 never checked/)).toBeInTheDocument();
+    expect(screen.getByTestId("glossary-summary")).toHaveTextContent("3 drafts, 2 live never checked, 1 human approved");
+
+    await user.click(group.getByRole("button", { name: /Approve all 3 unreviewed terms in/ }));
+    const approveDialog = within(await screen.findByRole("dialog"));
+    expect(approveDialog.getByText(/Approve the 3 unreviewed terms/)).toBeInTheDocument();
+    await user.click(approveDialog.getByRole("button", { name: /^Approve / }));
+    await screen.findByText("Approved 3 terms.");
+    expect(api.calls[0]).toMatchObject({ path: "/api/dev/translation-glossary/approve", body: { terms: ["anxiety", "calm", "euphoria"] } });
+
+    await user.click(within(screen.getByTestId("glossary-group-effects")).getByRole("button", { name: /Confirm all 2 live, never checked terms in/ }));
+    const confirmDialog = within(await screen.findByRole("dialog"));
+    expect(confirmDialog.getByText(/Confirm the 2 live, never checked terms/)).toBeInTheDocument();
+    await user.click(confirmDialog.getByRole("button", { name: /^Confirm / }));
+    await screen.findByText("Confirmed 2 terms.");
+    expect(api.calls[1]).toEqual({ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["focus", "joy"], expectedRevisions: { focus: "1:0", joy: "1:0" } } });
+    expect(screen.getByTestId("glossary-summary")).toHaveTextContent("0 drafts, 0 live never checked, 6 human approved");
+  });
+
+  it("confirms every never-checked row the filters show after naming the exact count", async () => {
+    const api = stubGlossaryApi([legacy("anxiety"), legacy("euphoria"), legacy("focus", "Fokus-de")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByTestId("glossary-summary");
+    await user.click(screen.getByRole("button", { name: /Live, never checked/ }));
+    await user.type(screen.getByRole("searchbox", { name: "Search terms" }), "a");
+    await user.click(await screen.findByRole("button", { name: "Confirm all 2 live, never checked terms shown" }));
+    const dialog = within(await screen.findByRole("dialog"));
+    expect(dialog.getByText("Confirm the 2 live, never checked terms shown?")).toBeInTheDocument();
+    expect(api.calls).toHaveLength(0);
+    await user.click(dialog.getByRole("button", { name: "Confirm all shown" }));
+    await screen.findByText("Confirmed 2 terms.");
+    expect(api.calls[0].body).toMatchObject({ terms: ["anxiety", "euphoria"] });
   });
 
   it("preserves typed glossary wording when switching workbench views", async () => {

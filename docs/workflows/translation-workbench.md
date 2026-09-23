@@ -14,11 +14,36 @@ publishes an old revision immediately.
 
 `translationReviewEntries` holds the latest draft and approved snapshots.
 `translationReviewHistory` appends the action, before/after snapshots, actor,
-reason, and revision in the same transaction. Legacy glossary approval metadata
-is labeled unverified until the explicit review workflow records an approval.
-CSV imports create drafts even when a CSV status says approved. Machine drafting
+reason, and revision in the same transaction. CSV imports create drafts even
+when a CSV status says approved. Machine drafting
 cannot overwrite human drafts or reviewed entries. The effective glossary table
 continues to supply approved terminology to article translation.
+
+### Glossary review states
+
+Every glossary row is in exactly one of three states. The summary line counts
+each one, and each has its own status filter.
+
+- **Draft** (filter *Unreviewed*): a proposed rendering. It reaches no prompt,
+  catalog, or public glossary until a person approves that exact revision.
+- **Live, never checked**: approved before review tracking existed (projected
+  as `legacy_unverified`). The wording is live: it already drives prompts,
+  validation, the UI catalog, and the public glossary. **Confirm** records a
+  human approval of the wording exactly as it stands, at the revision the
+  reviewer saw, with the actor and a reason in review history. To change it
+  instead, edit the rendering and **Save draft**; it becomes a draft and the
+  live wording stays until the draft is approved.
+- **Approved** (human approved): the newest approval in review history matches
+  the live wording and its reviewer.
+
+Confirm writes through the same review mutation as Approve: a stale revision
+is refused and writes nothing, the shared-rendering check applies, and the
+write freeze, locale assignment, and Translator role all hold. Confirming
+leaves the wording, the prompt digest, and the retranslation queue unchanged.
+Bulk **Confirm all** (per category) and **Confirm all shown** (per filter) name
+the exact count and terms in a dialog first. A category header reads, for
+example, "3 drafts, 2 never checked"; its **Approve all** approves the drafts
+only, and its **Confirm all** confirms the never-checked rows only.
 
 The Changes view reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the

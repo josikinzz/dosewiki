@@ -18,6 +18,7 @@ const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1
 
 const STATUS_OPTIONS: { value: GlossaryStatusFilter; label: string }[] = [
   { value: "draft", label: capitalize(STATE_WORD.draft) },
+  { value: "unchecked", label: "Live, never checked" },
   { value: "approved", label: capitalize(STATE_WORD.approved) },
   { value: "all", label: "All" },
 ];
@@ -25,22 +26,27 @@ const STATUS_OPTIONS: { value: GlossaryStatusFilter; label: string }[] = [
 type GlossaryFilterBarProps = {
   filters: GlossaryFilters;
   setFilters: Dispatch<SetStateAction<GlossaryFilters>>;
-  /** Unreviewed rows across the whole locale, shown as the draft filter's badge. */
+  /** Drafts across the whole locale, shown as the draft filter's badge. */
   draftCount: number;
-  /** Unreviewed rows the current filters list, which "Approve all shown" approves. */
+  /** Live rows nobody has checked across the whole locale, shown as that filter's badge. */
+  uncheckedCount: number;
+  /** Drafts the current filters list, which "Approve all shown" approves. */
   shownDraftCount: number;
+  /** Live, never checked rows the current filters list, which "Confirm all shown" confirms. */
+  shownUncheckedCount: number;
   locked: boolean;
   onApproveShown: () => void;
+  onConfirmShown: () => void;
 };
 
-export function GlossaryFilterBar({ filters, setFilters, draftCount, shownDraftCount, locked, onApproveShown }: GlossaryFilterBarProps) {
+export function GlossaryFilterBar({ filters, setFilters, draftCount, uncheckedCount, shownDraftCount, shownUncheckedCount, locked, onApproveShown, onConfirmShown }: GlossaryFilterBarProps) {
   return (
     <div className="flex flex-wrap items-end gap-3">
       <EditorSegmentedControl
         label="Status"
         options={STATUS_OPTIONS.map((option) => ({
           ...option,
-          badge: option.value === "draft" ? draftCount : undefined,
+          badge: option.value === "draft" ? draftCount : option.value === "unchecked" ? uncheckedCount : undefined,
         }))}
         value={filters.status}
         onChange={(value) => setFilters((current) => ({ ...current, status: value as GlossaryStatusFilter }))}
@@ -67,6 +73,20 @@ export function GlossaryFilterBar({ filters, setFilters, draftCount, shownDraftC
         <Icon icon="lucide:check-check" size={14} />
         Approve all shown
       </Button>
+      {/* Only where the filters list live, never checked rows, so the drafts view keeps one bulk action. */}
+      {shownUncheckedCount > 0 ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={locked}
+          aria-label={`Confirm all ${count(shownUncheckedCount, "live, never checked term")} shown`}
+          onClick={onConfirmShown}
+        >
+          <Icon icon="lucide:badge-check" size={14} />
+          Confirm all shown
+        </Button>
+      ) : null}
     </div>
   );
 }

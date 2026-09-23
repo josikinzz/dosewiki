@@ -40,6 +40,7 @@ import {
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import {
   approveTerms,
+  confirmTerms,
   count,
   DEFAULT_FILTERS,
   draftMissingTerms,
@@ -47,7 +48,9 @@ import {
   fetchGlossary,
   filterRows,
   groupRows,
+  isLiveUnchecked,
   needsReview,
+  reviewCounts,
   GlossaryReviewCollision,
   importGlossaryCsv,
   retranslateTerms,
@@ -70,7 +73,7 @@ import { TranslationCoverage } from "./TranslationCoverage";
 import { TranslationProgress } from "./TranslationProgress";
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
-type Busy = "load" | "approve" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
+type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
 
 /** The one row a single-row write is locking, and which of its two editable fields is being written. */
 type Writing = { term: string; field: "rendering" | "definition" };
@@ -169,7 +172,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     handoff.current = null;
     const rows: Record<string, HTMLElement> = {};
     for (const row of document.querySelectorAll<HTMLElement>("tr[data-term]")) rows[row.dataset.term ?? ""] = row;
-    const next = order.slice(index + 1).find((term) => rows[term]?.dataset.status === "draft");
+    const next = order.slice(index + 1).find((term) => rows[term]?.dataset.needsReview === "true");
     rows[next ?? order[index]]?.querySelector("input")?.focus();
   }, [writingTerm]);
 
@@ -178,12 +181,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   // Header numerics come from the unfiltered rows, so "34 of 120 unreviewed"
   // keeps meaning the same thing while a search narrows what is listed below.
   const totals = useMemo(() => {
-    const byCategory: Record<string, { total: number; draft: number }> = {};
-    if (data) for (const group of groupRows(data.rows)) byCategory[group.category.id] = { total: group.rows.length, draft: group.draftCount };
+    const byCategory: Record<string, { total: number; draft: number; unchecked: number }> = {};
+    if (data) for (const group of groupRows(data.rows)) byCategory[group.category.id] = { total: group.rows.length, draft: group.draftCount, unchecked: group.uncheckedCount };
     return byCategory;
   }, [data]);
+  const counts = reviewCounts(data?.rows ?? []);
   const draftCount = data ? data.rows.filter(needsReview).length : 0;
   const shownDrafts = rows.filter((row) => row.status === "draft");
+  const shownUnchecked = rows.filter(isLiveUnchecked);
   const reviewComplete = !!data && data.rows.length > 0 && draftCount === 0;
   const nothingTranslatedYet = !!data && data.segments.total === 0;
   const canRetranslate = pending.length > 0 && !nothingTranslatedYet;
@@ -250,6 +255,33 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       confirmLabel: where === "shown" ? "Approve all shown" : `Approve ${where}`,
       affected: [...terms],
       onConfirm: () => void approveMany(terms),
+    });
+  };
+
+  const revisionsOf = (terms: readonly string[]) =>
+    Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision]));
+
+  /** Records a person's check of live wording exactly as readers see it; nothing on the site changes. */
+  const confirmOne = (row: GlossaryRow) =>
+    run("confirm", async (collisionConfirmation) => {
+      await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation);
+      return `Confirmed "${row.term}".`;
+    }, row.term);
+
+  const confirmMany = (terms: readonly string[]) =>
+    run("confirm", async (collisionConfirmation) => {
+      const confirmed = await confirmTerms(locale!, terms, revisionsOf(terms), collisionConfirmation);
+      return `Confirmed ${count(confirmed.length, "term")}.`;
+    });
+
+  /** Bulk confirm always names the exact number it will record, and the terms, before anything is written. */
+  const confirmLive = (terms: readonly string[], where: string) => {
+    confirm({
+      title: `Confirm the ${count(terms.length, "live, never checked term")} ${where === "shown" ? "shown" : `in ${where}`}?`,
+      description: "Each rendering is recorded as checked by you, exactly as readers see it now. The wording on the site does not change. Edit any you disagree with instead.",
+      confirmLabel: where === "shown" ? "Confirm all shown" : `Confirm ${where}`,
+      affected: [...terms],
+      onConfirm: () => void confirmMany(terms),
     });
   };
 
@@ -411,14 +443,17 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             <GlossaryFilterBar
               filters={filters}
               setFilters={setFilters}
-              draftCount={draftCount}
+              draftCount={counts.drafts}
+              uncheckedCount={counts.unchecked}
               shownDraftCount={shownDrafts.length}
+              shownUncheckedCount={shownUnchecked.length}
               locked={locked}
               onApproveShown={approveShown}
+              onConfirmShown={() => confirmLive(shownUnchecked.map((row) => row.term), "shown")}
             />
 
             <p className="theme-text-faint text-xs" data-testid="glossary-summary">
-              {draftCount} {STATE_WORD.draft}, {data.rows.length - draftCount} {STATE_WORD.approved} · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
+              {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
             </p>
 
             <GlossaryActionBar
@@ -485,7 +520,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   <GlossaryGroupSection
                     key={group.category.id}
                     group={group}
-                    totals={totals[group.category.id] ?? { total: group.rows.length, draft: group.draftCount }}
+                    totals={totals[group.category.id] ?? { total: group.rows.length, draft: group.draftCount, unchecked: group.uncheckedCount }}
                     statusFilter={filters.status}
                     expanded={!collapsed[group.category.id]}
                     disabled={busy !== null}
@@ -495,7 +530,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     canDefine={canDefine}
                     onToggle={() => toggleGroup(group.category.id)}
                     onApproveAll={() => confirmApprove(group.rows.filter((row) => row.status === "draft").map((row) => row.term), group.category.label)}
+                    onConfirmAll={() => confirmLive(group.rows.filter(isLiveUnchecked).map((row) => row.term), group.category.label)}
                     onApprove={(row) => void approveOne(row)}
+                    onConfirm={(row) => void confirmOne(row)}
                     onSave={saveTarget}
                     onSaveDefinition={(row, gloss) => void saveDefinition(row, gloss)}
                     onRestored={() => load(locale)}
@@ -527,6 +564,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 const BUSY_LABEL: Record<Exclude<Busy, null>, string> = {
   load: "Loading",
   approve: "Approving",
+  confirm: "Confirming",
   draft: "Drafting with the model",
   retranslate: "Queueing the retranslation",
   start: "Queueing every page",

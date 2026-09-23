@@ -19,7 +19,9 @@ import {
 } from "@/features/dev/components";
 import {
   count,
+  isLiveUnchecked,
   kindLabel,
+  standingLabel,
   STATE_WORD,
   type GlossaryGroup,
   type GlossaryRow,
@@ -35,7 +37,7 @@ const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1
 export type GlossaryGroupSectionProps = {
   group: GlossaryGroup;
   /** Category counts from the unfiltered rows, so the header keeps its meaning while a search narrows the list. */
-  totals: { total: number; draft: number };
+  totals: { total: number; draft: number; unchecked: number };
   statusFilter: GlossaryStatusFilter;
   expanded: boolean;
   /** A whole-tab write is in flight; every row locks. */
@@ -50,7 +52,9 @@ export type GlossaryGroupSectionProps = {
   canDefine: boolean;
   onToggle: () => void;
   onApproveAll: () => void;
+  onConfirmAll: () => void;
   onApprove: (row: GlossaryRow) => void;
+  onConfirm: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
@@ -64,13 +68,11 @@ export type GlossaryGroupSectionProps = {
  * in one confirmed step; the confirm names the category, the button does not
  * have to.
  */
-export function GlossaryGroupSection({ group, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onApprove, onSave, onSaveDefinition, onRestored }: GlossaryGroupSectionProps) {
+export function GlossaryGroupSection({ group, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryGroupSectionProps) {
   const bodyId = useId();
-  const { category, rows } = group;
-  const draftCount = rows.filter((row) => row.status === "draft").length;
-  const standing = totals.draft > 0
-    ? `${totals.draft} of ${totals.total} ${STATE_WORD.draft}`
-    : count(totals.total, "term");
+  const { category, rows, draftCount, uncheckedCount } = group;
+  const open = standingLabel({ drafts: totals.draft, unchecked: totals.unchecked });
+  const standing = open ? `${open} · ${count(totals.total, "term")}` : count(totals.total, "term");
   return (
     <Surface variant="subtle" padding="none" radius="lg" data-testid={`glossary-group-${category.id}`}>
       <div className="flex flex-wrap items-center gap-3 px-4 py-3">
@@ -85,7 +87,7 @@ export function GlossaryGroupSection({ group, totals, statusFilter, expanded, di
         />
         <span className="theme-text-faint flex-1 text-xs tabular-nums">{standing}</span>
         {/* A "Reviewed" pill only where a reviewed category can be seen at all; under Unreviewed it can never appear. */}
-        {totals.draft === 0 && statusFilter === "all" ? <EditorStatusPill tone="success">Reviewed</EditorStatusPill> : null}
+        {!open && statusFilter === "all" ? <EditorStatusPill tone="success">Reviewed</EditorStatusPill> : null}
         {draftCount > 0 ? (
           <Button
             type="button"
@@ -99,9 +101,22 @@ export function GlossaryGroupSection({ group, totals, statusFilter, expanded, di
             Approve all
           </Button>
         ) : null}
+        {uncheckedCount > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled || writingTerm !== null}
+            aria-label={`Confirm all ${count(uncheckedCount, "live, never checked term")} in ${category.label}`}
+            onClick={onConfirmAll}
+          >
+            <Icon icon="lucide:badge-check" size={14} />
+            Confirm all
+          </Button>
+        ) : null}
       </div>
       <div id={bodyId} hidden={!expanded} className="px-3 pb-3">
-        <GlossaryTable rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onSave={onSave} onSaveDefinition={onSaveDefinition} onRestored={onRestored} />
+        <GlossaryTable rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onConfirm={onConfirm} onSave={onSave} onSaveDefinition={onSaveDefinition} onRestored={onRestored} />
       </div>
     </Surface>
   );
@@ -115,12 +130,13 @@ type GlossaryTableProps = {
   usages: GlossaryUsageMap;
   canDefine: boolean;
   onApprove: (row: GlossaryRow) => void;
+  onConfirm: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
 };
 
-function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine, onApprove, onSave, onSaveDefinition, onRestored }: GlossaryTableProps) {
+function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableProps) {
   return (
     <EditorTable className="md:min-w-[56rem]">
       <EditorTableHead>
@@ -142,6 +158,7 @@ function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine
             disabled={disabled}
             writing={writingTerm === row.term}
             onApprove={onApprove}
+            onConfirm={onConfirm}
             onSave={onSave}
             onSaveDefinition={onSaveDefinition} onRestored={onRestored}
           />
@@ -161,17 +178,19 @@ type GlossaryTableRowProps = {
   /** This row's own write is in flight: the input reads only, the buttons wait, focus stays. */
   writing: boolean;
   onApprove: (row: GlossaryRow) => void;
+  onConfirm: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
 };
 
-function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onApprove, onSave, onSaveDefinition, onRestored }: GlossaryTableRowProps) {
+function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableRowProps) {
   const [draft, setDraft] = useState(row.target);
   useEffect(() => setDraft(row.target), [row.target]);
   const dirty = draft.trim() !== row.target && draft.trim().length > 0;
   const held = disabled || writing;
-  const canSave = draft.trim().length > 0 && (dirty || row.review_provenance === "legacy_unverified");
+  const unchecked = isLiveUnchecked(row);
+  const canSave = draft.trim().length > 0 && (dirty || unchecked);
   const save = () => {
     if (canSave) onSave(row, draft.trim());
   };
@@ -182,7 +201,7 @@ function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onA
 
   };
   return (
-    <EditorTableRow data-term={row.term} data-status={row.status} aria-busy={writing || undefined}>
+    <EditorTableRow data-term={row.term} data-status={row.status} data-needs-review={row.status === "draft" || unchecked || undefined} aria-busy={writing || undefined}>
       <EditorTableCell wide>
         <span className="block font-medium theme-text-primary">{row.term}</span>
         {canDefine ? (
@@ -220,11 +239,11 @@ function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onA
       </EditorTableCell>
       <EditorTableCell label="Status">
         {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Approved wording: {row.approved_target}</p> : null}
-        <EditorStatusPill tone={row.status === "approved" && row.review_provenance !== "legacy_unverified" ? "success" : "warning"}>{row.review_provenance === "legacy_unverified" && row.status === "approved" ? "Review unverified" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
-        {row.review_provenance === "legacy_unverified" && row.status === "approved" ? <p className="theme-text-faint mt-1 text-xs">Save as a draft to review this wording.</p> : null}
+        <EditorStatusPill tone={row.status === "approved" && !unchecked ? "success" : "warning"}>{unchecked ? "Live, never checked" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
+        {unchecked ? <p className="theme-text-faint mt-1 text-xs">Readers already see this wording. Confirm it as it stands, or edit it and save a draft.</p> : null}
       </EditorTableCell>
       <EditorTableCell label="Source" className="theme-text-secondary text-xs">
-        {row.review_provenance === "legacy_unverified" ? "Legacy import, review unverified" : row.source === "human" ? (row.reviewed_by ?? "human") : "model"}
+        {row.review_provenance === "legacy_unverified" ? "Legacy import, never checked by a person" : row.source === "human" ? (row.reviewed_by ?? "human") : "model"}
       </EditorTableCell>
       <EditorTableCell>
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Actions for ${row.term}`}>
@@ -236,6 +255,12 @@ function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onA
             <Button type="button" variant="outline" size="sm" disabled={held || dirty} onClick={() => onApprove(row)}>
               <Icon icon="lucide:check" size={14} />
               Approve
+            </Button>
+          ) : null}
+          {unchecked ? (
+            <Button type="button" variant="outline" size="sm" disabled={held || dirty} onClick={() => onConfirm(row)}>
+              <Icon icon="lucide:badge-check" size={14} />
+              Confirm
             </Button>
           ) : null}
         </div>

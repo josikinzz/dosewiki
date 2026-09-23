@@ -13,8 +13,9 @@ import {
   readReviewEntries,
   readReviewHistory,
   TranslationReviewConflictError,
+  TranslationReviewError,
 } from "./reviewStore";
-import type { ReviewTransaction } from "./reviewStore";
+import type { ReviewMutationOptions, ReviewTransaction } from "./reviewStore";
 import type {
   ReviewEntry,
   ReviewMutation,
@@ -74,6 +75,20 @@ export async function readGlossaryReviewRows(
     baseRows ?? readGlossaryRows(locale),
     readReviewEntries(locale, "glossary"),
   ]);
+  return projectGlossaryReviewRows(
+    rows,
+    entries,
+    await humanApprovedTerms(locale, rows),
+  );
+}
+/**
+ * Terms whose current effective row matches the newest recorded human
+ * approval: same target, approved by the actor the row names.
+ */
+async function humanApprovedTerms(
+  locale: string,
+  rows: readonly TranslationGlossaryRow[],
+): Promise<Set<string>> {
   const approvals = await getPostgresClient().sql<{
     source_id: string;
     target: string;
@@ -82,30 +97,44 @@ export async function readGlossaryReviewRows(
     `SELECT DISTINCT ON ("source_id") "source_id", "after_state"->'approved'->>'target' AS "target", "actor" FROM "translationReviewHistory" WHERE "locale" = $1 AND "scope" = 'glossary' AND "action" = 'approve' ORDER BY "source_id", "revision" DESC`,
     [locale],
   );
-  const approved = new Set(
+  const byTerm = new Map(rows.map((row) => [row.term, row]));
+  return new Set(
     approvals
-      .filter((a) =>
-        rows.some(
-          (r) =>
-            r.term === a.source_id &&
-            r.target === a.target &&
-            r.reviewed_by === a.actor,
-        ),
-      )
+      .filter((a) => {
+        const row = byTerm.get(a.source_id);
+        return row?.target === a.target && row.reviewed_by === a.actor;
+      })
       .map((a) => a.source_id),
   );
-  return projectGlossaryReviewRows(rows, entries, approved);
 }
 export { readReviewHistory as readGlossaryReviewHistory };
 
 type GlossaryMutation = {
   term: string;
   expectedRevision: string;
-  action: "save" | "approve" | "restore";
+  /**
+   * `confirm` records a human approval of live wording nobody has checked
+   * (`legacy_unverified`), exactly as it stands. It takes no target.
+   */
+  action: "save" | "approve" | "restore" | "confirm";
   target?: string;
   restoreRevision?: number;
   kind?: string;
+  /** This change's history reason, when it differs from the batch reason. */
+  reason?: string;
 };
+
+/** Confirm reached a row that is a draft, already checked, or not live. */
+export class GlossaryNotUncheckedError extends TranslationReviewError {
+  constructor(term: string) {
+    super(
+      `"${term}" is not live wording waiting for a check. Reload the glossary and review the latest revision.`,
+      409,
+      "GLOSSARY_NOT_UNCHECKED",
+    );
+  }
+}
+
 export async function mutateGlossaryReview(
   locale: string,
   changes: GlossaryMutation[],
@@ -120,6 +149,9 @@ export async function mutateGlossaryReview(
   ]);
   const base = new Map(baseRows.map((row) => [row.term, row]));
   const reviews = new Map(entries.map((row) => [row.sourceId, row]));
+  const checked = changes.some((change) => change.action === "confirm")
+    ? await humanApprovedTerms(locale, baseRows)
+    : new Set<string>();
   const candidates: GlossaryDraft[] = [];
   for (const change of changes) {
     const row = base.get(change.term);
@@ -129,7 +161,15 @@ export async function mutateGlossaryReview(
         change.expectedRevision
     )
       throw new TranslationReviewConflictError();
-    if (change.action === "approve")
+    if (
+      change.action === "confirm" &&
+      (row.status !== "approved" ||
+        reviews.get(row.term)?.draft ||
+        checked.has(row.term))
+    )
+      throw new GlossaryNotUncheckedError(row.term);
+    // Confirm passes the same shared-rendering guard as Approve.
+    if (change.action === "approve" || change.action === "confirm")
       candidates.push({
         term: row.term,
         target: reviews.get(row.term)?.draft?.target ?? row.target,
@@ -138,24 +178,57 @@ export async function mutateGlossaryReview(
   }
   if (candidates.length)
     await assertNoCollisions(locale, candidates, collisionConfirmation);
-  const inputs: ReviewMutation[] = changes.map((change) => {
+  const inputs = changes.map((change): ReviewMutation => {
     const row = base.get(change.term)!;
+    const confirm = change.action === "confirm";
     return {
       locale,
       scope: "glossary",
       sourceId: row.term,
       source: row.term,
-      context: change.kind ?? reviews.get(row.term)?.draft?.context ?? row.kind,
+      context: confirm
+        ? row.kind
+        : (change.kind ?? reviews.get(row.term)?.draft?.context ?? row.kind),
       expectedRevision: reviews.get(row.term)?.revision ?? 0,
-      action: change.action,
-      target: change.target,
+      action: change.action === "confirm" ? "approve" : change.action,
+      target: confirm ? undefined : change.target,
       restoreRevision: change.restoreRevision,
       actor,
-      reason,
+      reason: change.reason ?? reason,
     };
   });
-  const options = changes.map((change) => {
+  const lockRow =
+    (row: TranslationGlossaryRow) => async (tx: ReviewTransaction) => {
+      const result = await tx.query(
+        'SELECT "updated_at" FROM "translationGlossary" WHERE "locale" = $1 AND "term" = $2 FOR UPDATE',
+        [locale, row.term],
+      );
+      if (
+        !result.rows[0] ||
+        Number(result.rows[0].updated_at) !== row.updated_at
+      )
+        throw new TranslationReviewConflictError();
+    };
+  const options: ReviewMutationOptions[] = changes.map((change) => {
     const row = base.get(change.term)!;
+    if (change.action === "confirm")
+      return {
+        seedApproved: snapshot(row),
+        seedDraft: snapshot(row),
+        beforeTransition: lockRow(row),
+        // The wording and kind are unchanged, so the prompt digest is too.
+        // Only the reviewer is recorded: `reviewed_at` keeps meaning "this
+        // rendering last changed", so a confirmation never queues a
+        // retranslation.
+        onApprove: async (tx, approved) => {
+          if (approved.target !== row.target || approved.context !== row.kind)
+            throw new TranslationReviewConflictError();
+          await tx.query(
+            `UPDATE "translationGlossary" SET "source" = 'human', "reviewed_by" = $3, "updated_at" = $4 WHERE "locale" = $1 AND "term" = $2`,
+            [locale, row.term, actor, Math.max(Date.now(), row.updated_at + 1)],
+          );
+        },
+      };
     return {
       ...(row.status === "approved"
         ? {
@@ -165,17 +238,7 @@ export async function mutateGlossaryReview(
               : {}),
           }
         : { seedDraft: snapshot(row) }),
-      beforeTransition: async (tx: ReviewTransaction) => {
-        const result = await tx.query(
-          'SELECT "updated_at" FROM "translationGlossary" WHERE "locale" = $1 AND "term" = $2 FOR UPDATE',
-          [locale, row.term],
-        );
-        if (
-          !result.rows[0] ||
-          Number(result.rows[0].updated_at) !== row.updated_at
-        )
-          throw new TranslationReviewConflictError();
-      },
+      beforeTransition: lockRow(row),
       onApprove: async (tx: ReviewTransaction, approved: ReviewSnapshot) => {
         const now = Math.max(Date.now(), row.updated_at + 1);
         await tx.query(
@@ -193,10 +256,55 @@ export async function mutateGlossaryReview(
       await assertNoCollisions(locale, candidates, collisionConfirmation, tx);
     for (const i of inputs
       .map((_, i) => i)
-      .sort((a, b) => inputs[a].sourceId.localeCompare(inputs[b].sourceId)))
-      await mutateReviewEntryInTransaction(tx, inputs[i], options[i]);
+      .sort((a, b) => inputs[a].sourceId.localeCompare(inputs[b].sourceId))) {
+      const review = reviews.get(inputs[i].sourceId);
+      // An existing review entry without a draft has nothing to approve, so
+      // confirming first saves the live wording as the draft it approves.
+      if (changes[i].action === "confirm" && review) {
+        await mutateReviewEntryInTransaction(
+          tx,
+          { ...inputs[i], action: "save", target: base.get(changes[i].term)!.target },
+          { beforeTransition: options[i].beforeTransition },
+        );
+        await mutateReviewEntryInTransaction(
+          tx,
+          { ...inputs[i], expectedRevision: review.revision + 1 },
+          options[i],
+        );
+      } else await mutateReviewEntryInTransaction(tx, inputs[i], options[i]);
+    }
   });
   return readGlossaryReviewRows(locale);
+}
+
+/**
+ * Confirms live glossary wording nobody has checked (`legacy_unverified`),
+ * each at the revision the reviewer saw: one human approval per term, recorded
+ * in review history with the actor, the reason, and that revision. The whole
+ * batch fails, writing nothing, on a stale revision
+ * (`TranslationReviewConflictError`), on a row that is a draft or already
+ * checked (`GlossaryNotUncheckedError`), under the write freeze, and on a
+ * shared rendering (`GlossaryCollisionError`) until the caller passes that
+ * error's acknowledgement back.
+ */
+export async function confirmLegacyGlossaryRows(
+  locale: string,
+  confirmations: readonly { term: string; expectedRevision: string }[],
+  actor: string,
+  options: { collisionConfirmation?: string; reason?: string } = {},
+): Promise<GlossaryReviewRow[]> {
+  const why = options.reason?.trim() || "Confirmed live wording";
+  return mutateGlossaryReview(
+    locale,
+    confirmations.map(({ term, expectedRevision }) => ({
+      term,
+      expectedRevision,
+      action: "confirm" as const,
+      reason: `${why} (revision ${expectedRevision})`,
+    })),
+    actor,
+    options.collisionConfirmation,
+  );
 }
 
 /** CSV status is advisory input only. Every changed rendering enters human review. */

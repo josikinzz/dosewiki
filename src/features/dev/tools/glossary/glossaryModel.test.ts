@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GLOSSARY_CATEGORIES, GlossaryCsvError, STATE_WORD, count, filterRows, glossaryToCsv, groupRows, parseGlossaryCsv, type GlossaryRow } from "./glossaryModel";
+import { GLOSSARY_CATEGORIES, GlossaryCsvError, STATE_WORD, count, filterRows, glossaryToCsv, groupRows, parseGlossaryCsv, reviewCounts, standingLabel, type GlossaryRow, type GlossaryStatusFilter } from "./glossaryModel";
 
 const row = (term: string, kind: string, status: GlossaryRow["status"] = "draft"): GlossaryRow => ({
   locale: "zh-Hans", term, target: "", kind, status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1, revision: "1:0", approved_target: null, review_provenance: status === "approved" ? "human_review" : "unreviewed",
@@ -54,6 +54,28 @@ describe("filterRows", () => {
     expect(filterRows(rows, { status: "all", search: "欣" }).map((entry) => entry.term)).toEqual(["Euphoria"]);
     expect(filterRows(rows, { status: "draft", search: "" }).map((entry) => entry.term)).toEqual(["Anxiety"]);
     expect(filterRows(rows, { status: "approved", search: "anx" })).toEqual([]);
+  });
+
+  it("keeps drafts, live never-checked rows, and human approvals in separate filters", () => {
+    const legacy = { ...row("Calm", "effect-name", "approved"), review_provenance: "legacy_unverified" as const };
+    const legacyWithDraft = { ...row("Focus", "effect-name", "draft"), review_provenance: "legacy_unverified" as const };
+    const rows = [row("Euphoria", "effect-name", "approved"), row("Anxiety", "effect-name"), legacy, legacyWithDraft];
+    const terms = (status: GlossaryStatusFilter) => filterRows(rows, { status, search: "" }).map((entry) => entry.term);
+
+    expect(terms("draft")).toEqual(["Anxiety", "Focus"]);
+    expect(terms("unchecked")).toEqual(["Calm"]);
+    expect(terms("approved")).toEqual(["Euphoria"]);
+    expect(reviewCounts(rows)).toEqual({ drafts: 2, unchecked: 1, approved: 1 });
+    expect(groupRows(rows)[0]).toMatchObject({ draftCount: 2, uncheckedCount: 1 });
+  });
+});
+
+describe("standingLabel", () => {
+  it("names what is left in each state and drops empty parts", () => {
+    expect(standingLabel({ drafts: 3, unchecked: 2 })).toBe("3 drafts, 2 never checked");
+    expect(standingLabel({ drafts: 1, unchecked: 0 })).toBe("1 draft");
+    expect(standingLabel({ drafts: 0, unchecked: 4 })).toBe("4 never checked");
+    expect(standingLabel({ drafts: 0, unchecked: 0 })).toBeNull();
   });
 });
 

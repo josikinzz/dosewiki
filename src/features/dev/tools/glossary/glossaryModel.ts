@@ -10,11 +10,38 @@ import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/ret
 
 export type GlossaryRow = GlossaryListResponse["rows"][number];
 
-export const needsReview = (row: GlossaryRow) => row.status === "draft" || row.review_provenance === "legacy_unverified";
+/**
+ * Live wording nobody has checked: approved before review tracking existed,
+ * so it already reaches prompts, the UI catalog, and the public glossary. A
+ * pending draft over such a row is a draft first.
+ */
+export const isLiveUnchecked = (row: GlossaryRow) => row.status === "approved" && row.review_provenance === "legacy_unverified";
+
+/** A row that still wants a person: a draft to approve, or live wording to confirm. */
+export const needsReview = (row: GlossaryRow) => row.status === "draft" || isLiveUnchecked(row);
+
+/** The three review states. Each row is in exactly one. */
+export type ReviewCounts = { drafts: number; unchecked: number; approved: number };
+
+export function reviewCounts(rows: readonly GlossaryRow[]): ReviewCounts {
+  const counts: ReviewCounts = { drafts: 0, unchecked: 0, approved: 0 };
+  for (const row of rows) {
+    if (row.status === "draft") counts.drafts += 1;
+    else if (isLiveUnchecked(row)) counts.unchecked += 1;
+    else counts.approved += 1;
+  }
+  return counts;
+}
+
+/** "3 drafts, 2 never checked"; either part drops out at zero, and `null` means nothing is left. */
+export function standingLabel({ drafts, unchecked }: Pick<ReviewCounts, "drafts" | "unchecked">): string | null {
+  const parts = [drafts > 0 ? count(drafts, "draft") : null, unchecked > 0 ? `${unchecked} never checked` : null].filter((part): part is string => part !== null);
+  return parts.length > 0 ? parts.join(", ") : null;
+}
 
 export type GlossaryList = GlossaryListResponse;
 
-export type GlossaryStatusFilter = "all" | "draft" | "approved";
+export type GlossaryStatusFilter = "all" | "draft" | "unchecked" | "approved";
 
 export type GlossaryFilters = {
   status: GlossaryStatusFilter;
@@ -42,7 +69,8 @@ export function count(n: number, noun: string, plural = noun + "s"): string {
 export { GLOSSARY_CATEGORIES, kindLabel } from "@/lib/glossary/glossaryCategories";
 import { GLOSSARY_CATEGORIES, OTHER_CATEGORY, categoryForKind, type GlossaryCategory } from "@/lib/glossary/glossaryCategories";
 
-export type GlossaryGroup = { category: GlossaryCategory; rows: GlossaryRow[]; draftCount: number };
+/** `draftCount` is exactly what the group's "Approve all" approves; `uncheckedCount` what "Confirm all" confirms. */
+export type GlossaryGroup = { category: GlossaryCategory; rows: GlossaryRow[]; draftCount: number; uncheckedCount: number };
 
 /**
  * Rows folded into their categories, in category order, empty categories
@@ -59,7 +87,8 @@ export function groupRows(rows: readonly GlossaryRow[]): GlossaryGroup[] {
     .filter((category) => category.id in buckets)
     .map((category) => {
       const grouped = buckets[category.id];
-      return { category, rows: grouped, draftCount: grouped.filter(needsReview).length };
+      const counts = reviewCounts(grouped);
+      return { category, rows: grouped, draftCount: counts.drafts, uncheckedCount: counts.unchecked };
     });
 }
 
@@ -67,8 +96,9 @@ export function groupRows(rows: readonly GlossaryRow[]): GlossaryGroup[] {
 export function filterRows(rows: readonly GlossaryRow[], filters: GlossaryFilters): GlossaryRow[] {
   const needle = filters.search.trim().toLowerCase();
   return rows.filter((row) => {
-    if (filters.status === "draft" && !needsReview(row)) return false;
-    if (filters.status === "approved" && row.status !== "approved") return false;
+    if (filters.status === "draft" && row.status !== "draft") return false;
+    if (filters.status === "unchecked" && !isLiveUnchecked(row)) return false;
+    if (filters.status === "approved" && (row.status !== "approved" || isLiveUnchecked(row))) return false;
     if (needle && !row.term.toLowerCase().includes(needle) && !row.target.toLowerCase().includes(needle)) return false;
     return true;
   });
@@ -193,6 +223,12 @@ export async function fetchGlossary(locale: string | null, includeUsage = true):
 export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string, expectedRevisions?: Record<string, string>): Promise<string[]> {
   const payload = await postJson("approve", { locale, terms, collisionConfirmation, expectedRevisions }, "Unable to approve those terms.");
   return Array.isArray(payload.approved) ? (payload.approved as string[]) : [];
+}
+
+/** Confirms live wording nobody has checked, unchanged, at the revisions shown; returns the confirmed terms. */
+export async function confirmTerms(locale: string, terms: readonly string[], expectedRevisions: Record<string, string>, collisionConfirmation?: string): Promise<string[]> {
+  const payload = await postJson("confirm", { locale, terms, expectedRevisions, collisionConfirmation }, "Unable to confirm those terms.");
+  return Array.isArray(payload.confirmed) ? (payload.confirmed as string[]) : [];
 }
 
 export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string, expectedRevision?: string): Promise<GlossaryRow> {
