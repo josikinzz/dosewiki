@@ -9,6 +9,7 @@ import { mergeReferenceCollections } from "../../lib/citations/referenceIdentity
 import type { Reference } from "../../src/schema/substance/shared";
 import { slugify } from "../../src/utils/slug";
 import { validateArticleForIngestion } from "./validators";
+import { bulkRowFailure } from "./bulkImportFailures";
 
 // Re-exported so other server modules keep a single import site for the
 // canonical substance slug algorithm (src/utils/slug.ts).
@@ -330,6 +331,19 @@ export function prepareSubstanceReplacementArticles({
   return { prepared, skipped };
 }
 
+function invalidArticleOutcome(
+  article: SubstanceArticleLike & Record<string, unknown>,
+  index: number,
+  validation: { issues: string[]; message: string },
+): SubstanceIngestionOutcome {
+  return buildSkippedOutcome({
+    article,
+    index,
+    validationErrors: validation.issues,
+    error: `Article ${article.title}: Invalid structure: ${validation.message}`,
+  });
+}
+
 export async function ingestSubstanceArticle({
   db,
   article,
@@ -340,14 +354,7 @@ export async function ingestSubstanceArticle({
   index?: number;
 }): Promise<SubstanceIngestionOutcome> {
   const validation = validateArticleForIngestion(article);
-  if (validation.ok === false) {
-    return buildSkippedOutcome({
-      article,
-      index,
-      validationErrors: validation.issues,
-      error: `Article ${article.title}: Invalid structure: ${validation.message}`,
-    });
-  }
+  if (validation.ok === false) return invalidArticleOutcome(article, index, validation);
 
   const articleForStorage = {
     ...validation.article,
@@ -453,20 +460,25 @@ export async function ingestSubstanceArticles({
   db: SubstanceDb;
   articles: Array<SubstanceArticleLike & Record<string, unknown>>;
 }): Promise<SubstanceIngestionResult> {
-  const outcomes: SubstanceIngestionOutcome[] = [];
+  // Structural validation runs before any SQL. One invalid article leaves the
+  // whole batch unwritten, so the counts never describe a partial batch.
+  const invalid = articles.map((article, index) => {
+    const validation = validateArticleForIngestion(article);
+    return validation.ok === false ? invalidArticleOutcome(article, index, validation) : null;
+  });
+  const outcomes: SubstanceIngestionOutcome[] = invalid.some(Boolean)
+    ? invalid.map((outcome, index) => outcome ?? buildSkippedOutcome({ article: articles[index], index, validationErrors: [], error: null }))
+    : [];
 
-  for (const [index, article] of articles.entries()) {
-    try {
-      outcomes.push(await ingestSubstanceArticle({ db, article, index }));
-    } catch (error) {
-      outcomes.push(
-        buildSkippedOutcome({
-          article,
-          index,
-          validationErrors: [],
-          error: `Substance ${article.title}: ${error}`,
-        }),
-      );
+  if (outcomes.length === 0) {
+    for (const [index, article] of articles.entries()) {
+      try {
+        outcomes.push(await ingestSubstanceArticle({ db, article, index }));
+      } catch (error) {
+        // The runtime issues no savepoints: a failed statement aborts the
+        // transaction, so the batch fails as a whole (see bulkImportFailures).
+        throw bulkRowFailure(`Substance ${article.title}`, error);
+      }
     }
   }
 

@@ -3,6 +3,7 @@ import { query, internalQuery } from "../lib/postgres/runtime/server";
 import type { Doc } from "../lib/postgres/runtime/dataModel";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
+import { bulkRowFailure, duplicateSlugErrors } from "./lib/bulkImportFailures";
 import { recordRevision } from "./lib/contentRevisions";
 import {
   timelineEntryValidator,
@@ -387,7 +388,8 @@ export const assignOwner = mutation({
 
 /**
  * Internal mutation: Bulk import trip reports (for migration).
- * Not exposed to clients.
+ * Not exposed to clients. Validation errors return with nothing written; the
+ * first SQL failure rejects the whole batch (see `bulkImportFailures`).
  */
 export const bulkImport = internalMutation({
   args: {
@@ -397,12 +399,12 @@ export const bulkImport = internalMutation({
     const results = {
       created: 0,
       updated: 0,
-      errors: [] as string[],
+      errors: duplicateSlugErrors(args.reports.map((report) => report.slug), (slug) => `Report ${slug}`),
     };
+    if (results.errors.length > 0) return results;
 
     for (const report of args.reports) {
       try {
-        // Check if report with this slug already exists
         const existing = await ctx.db
           .query("tripReports")
           .withIndex("by_slug", (q) => q.eq("slug", report.slug))
@@ -416,7 +418,7 @@ export const bulkImport = internalMutation({
           results.created++;
         }
       } catch (error) {
-        results.errors.push(`Report ${report.slug}: ${error}`);
+        throw bulkRowFailure(`Report ${report.slug}`, error);
       }
     }
 

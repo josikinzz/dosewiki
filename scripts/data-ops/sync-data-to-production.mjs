@@ -408,7 +408,9 @@ async function main() {
   });
 
   if (totalErrors > 0) {
+    // A rejected batch wrote none of its rows (each mutation is one transaction).
     console.log("\n⚠️  Some errors occurred. Check output above for details.");
+    process.exitCode = 1;
   } else {
     console.log("\n✨ All data synced successfully!");
   }

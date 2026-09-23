@@ -9,6 +9,7 @@ import {
   normalizeEffectTags,
 } from "./replicationPolicy";
 import { isPlaceholderStorageId, isValidR2Key } from "./replicationUrls";
+import { bulkRowFailure, duplicateSlugErrors } from "./bulkImportFailures";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { assertMediaPublicationReceipt, type R2MediaObject } from "../../lib/runtime/r2MediaStorage";
 import { REPLICATION_MEDIA_KEY_FIELDS } from "../../lib/runtime/replicationMediaIdentity.mjs";
@@ -592,8 +593,14 @@ export async function insertMediaAssetHandler(
   return { inserted: true, id, slug: row.slug, role: row.role };
 }
 
+/** Validation errors return with nothing written; the first SQL failure rejects the batch. */
 export async function bulkImportHandler(ctx: MutationCtx, args: BulkImportArgs) {
-  const results = { created: 0, updated: 0, errors: [] as string[] };
+  const results = {
+    created: 0,
+    updated: 0,
+    errors: duplicateSlugErrors(args.replications.map((replication) => replication.slug), (slug) => `Failed to import ${slug}`),
+  };
+  if (results.errors.length > 0) return results;
   for (const replication of args.replications) {
     try {
       const existing = await ctx.db
@@ -614,9 +621,7 @@ export async function bulkImportHandler(ctx: MutationCtx, args: BulkImportArgs) 
         results.created++;
       }
     } catch (error) {
-      results.errors.push(
-        `Failed to import ${replication.slug}: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      throw bulkRowFailure(`Failed to import ${replication.slug}`, error);
     }
   }
   return results;

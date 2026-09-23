@@ -528,8 +528,27 @@ describe("substance ingestion", () => {
     expect(docs).toHaveLength(0);
   });
 
-  it("returns mixed batch partial success results", async () => {
+  it("creates and updates a valid batch", async () => {
     const { db } = createFakeDb([article({ id: 5, title: "Existing", slug: "existing" })]);
+
+    const result = await ingestSubstanceArticles({
+      db,
+      articles: [
+        article({ id: 6, title: "Created", slug: "created" }),
+        article({ id: 5, title: "Updated", slug: "updated" }),
+      ],
+    });
+
+    expect(result.created).toBe(1);
+    expect(result.updated).toBe(1);
+    expect(result.errors).toEqual([]);
+    expect(result.outcomes.map((outcome) => outcome.action)).toEqual(["created", "updated"]);
+    expect(result.affectedPaths).toEqual(["/created", "/existing", "/substances", "/updated"]);
+  });
+
+  it("writes nothing from a batch with an invalid article and reports its errors", async () => {
+    const { db, docs } = createFakeDb([article({ id: 5, title: "Existing", slug: "existing" })]);
+    const before = structuredClone(docs);
 
     const result = await ingestSubstanceArticles({
       db,
@@ -540,11 +559,37 @@ describe("substance ingestion", () => {
       ],
     });
 
-    expect(result.created).toBe(1);
-    expect(result.updated).toBe(1);
-    expect(result.skipped).toBe(1);
+    expect(result.created).toBe(0);
+    expect(result.updated).toBe(0);
+    expect(result.skipped).toBe(3);
     expect(result.errors).toHaveLength(1);
-    expect(result.outcomes.map((outcome) => outcome.action)).toEqual(["created", "updated", "skipped"]);
-    expect(result.affectedPaths).toEqual(["/created", "/existing", "/substances", "/updated"]);
+    expect(result.errors[0]).toContain("Article Invalid: Invalid structure");
+    expect(result.affectedPaths).toEqual([]);
+    expect(docs).toEqual(before);
+  });
+
+  it("fails the whole batch, naming the article, when a write throws", async () => {
+    const { db } = createFakeDb();
+    let inserts = 0;
+    const failing = {
+      ...db,
+      async insert(table: "substanceIndex", value: Record<string, unknown>) {
+        inserts += 1;
+        if (inserts === 2) throw Object.assign(new Error("duplicate key value violates unique constraint"), { code: "23505" });
+        return db.insert(table, value);
+      },
+    };
+
+    const rejection = ingestSubstanceArticles({
+      db: failing,
+      articles: [
+        article({ id: 6, title: "First", slug: "first" }),
+        article({ id: 7, title: "Second", slug: "second" }),
+        article({ id: 8, title: "Third", slug: "third" }),
+      ],
+    });
+    await expect(rejection).rejects.toThrow("Substance Second: duplicate key value violates unique constraint");
+    await expect(rejection).rejects.toMatchObject({ code: "23505" });
+    expect(inserts).toBe(2);
   });
 });

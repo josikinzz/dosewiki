@@ -226,7 +226,15 @@ async function main() {
     }
   }
 
+  // A rejected batch wrote none of its rows (the mutation is one transaction).
+  if (result.failed) {
+    process.exitCode = 1;
+    return;
+  }
   console.log("\n✨ Done!");
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
