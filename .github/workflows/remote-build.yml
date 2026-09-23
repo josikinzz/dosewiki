@@ -192,6 +192,17 @@ jobs:
           DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
         run: bun run build:census -- "${{ steps.artifact.outputs.dir }}" | tee census.txt
 
+      # A prebuilt upload drops every function file .vercelignore excludes,
+      # except under default output paths such as .next. The editor builds into
+      # .next-editor, so its `.next-*/` rule would strip files the functions
+      # reference. Drop that rule in this throwaway checkout only; the upload
+      # set is still .vercel/output plus the files its functions name.
+      - name: Keep the build directory's function files in the upload
+        if: ${{ !inputs.dry_run }}
+        run: |
+          grep -qxF '.next-*/' .vercelignore || { echo "::error::.vercelignore no longer carries the .next-*/ rule this step removes"; exit 1; }
+          sed -i '/^\.next-\*\/$/d' .vercelignore
+
       # A preview deployment only. No --prod, no alias, no promotion: the
       # deployment URL is printed for the release ceremony to inspect.
       - name: Deploy the prebuilt output to a preview URL
