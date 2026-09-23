@@ -104,9 +104,14 @@ Limits of the remote path, observed on its first runs:
 - A prebuilt upload has no platform deployment ID at build time, so skew
   protection would be off: chunk URLs lose their `?dpl=` and a reader still
   on the previous version loads mismatched files after promotion. The
-  workflow sets `NEXT_DEPLOYMENT_ID=gh-<run id>-<attempt>`, a custom
-  skew-protection ID. Before promoting a runner-built artifact, confirm its
-  HTML chunk URLs carry `?dpl=gh-`.
+  workflow sets `DOSEWIKI_PREBUILT_DEPLOYMENT_ID=gh-<run id>-<attempt>`, and
+  `next.config.ts` uses it as a custom skew-protection ID at build and at
+  request time. Setting `NEXT_DEPLOYMENT_ID` instead is not enough: pages
+  rendered on request then take Vercel's own ID, so their font preloads miss
+  the CSS font URLs and every font downloads twice. Before promoting a
+  runner-built artifact, confirm that a prerendered page (`/lsd`) and a page
+  rendered on request (`/effects/drifting`) both carry only `?dpl=gh-`, and
+  that the stylesheet's font URLs use the same ID.
 - A `target: preview` deployment runs with the project's preview
   environment, which holds no database URL, so pages rendered on demand fail
   there. Use it for the census, the artifact audit, and timing only; a
