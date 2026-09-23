@@ -48,6 +48,9 @@
       "--theme-toc-strip-bar-background": "radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0)",
       "--theme-dosage-mode-tabs-background": "radial-gradient(circle at 12% 0%, #fbeffb, transparent 36%), linear-gradient(135deg, oklch(94% 0.03 326), #ecd0ec)",
       "--theme-reagent-results-panel-background": "radial-gradient(circle at 14% 0%, #fdfcfd, transparent 38%),\n    linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), #ede7ee)",
+      "--theme-home-nav-icon-background": "radial-gradient(circle at 28% 18%, rgb(255 246 255 / 0.64), transparent 34%), radial-gradient(circle at 78% 88%, rgb(207 146 209 / 0.16), transparent 42%), linear-gradient(135deg, #f8cbf8 0%, #f2b9f2 54%, #e6a5e7 100%)",
+      "--theme-home-nav-icon-color": "#5c0860",
+      "--theme-home-nav-icon-box-shadow": "inset 0 1px 0 rgb(255 249 255 / 0.76), 0 18px 34px -28px rgb(132 60 135 / 0.3)",
       "--theme-home-nav-link-hover-home-nav-icon-border-color": "rgb(149 87 151 / 0.18)",
       "--theme-home-nav-link-hover-home-nav-icon-background": "radial-gradient(circle at 28% 18%, rgb(255 245 255 / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, rgb(206 135 208 / 0.2), transparent 42%), linear-gradient(135deg, #f9c5fa 0%, #efaff0 54%, #e098e1 100%)",
       "--theme-home-nav-link-hover-home-nav-icon-box-shadow": "inset 0 1px 0 rgb(255 249 255 / 0.82), 0 20px 36px -28px rgb(131 45 135 / 0.36)"

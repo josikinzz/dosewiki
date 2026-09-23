@@ -25,7 +25,7 @@ html[data-visual-style="pro"]:not([data-accent])[data-theme="dark"] {
 
 html[data-visual-style="pro"]:not([data-accent])[data-theme="light"] {
   --ei-accent: #8f618f;
-  --ei-accent-strong: #573957;
+  --ei-accent-strong: #684968;
   --ei-accent-soft: #a87ba9;
   --ei-accent-muted: #785178;
   --ei-accent-on-dark: #cfa0cf;
