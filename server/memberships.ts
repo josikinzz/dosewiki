@@ -3,7 +3,7 @@ import { mutation } from "./lib/indexedMutation";
 import { PostgresError, v } from "../lib/postgres/runtime/values";
 import { requireRole } from "./lib/auth";
 
-import { membershipRoleValidator as roleValidator } from "./schema";
+import { membershipRoleValidator as roleValidator } from "./lib/accessSchemaValidators";
 import { parseGlossaryLocaleGrant } from "../src/lib/auth/roles";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();

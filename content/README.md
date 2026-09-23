@@ -40,8 +40,8 @@ directly.
 | File | Loaded by |
 | --- | --- |
 | `taxonomy/effect-categories.json` | `src/data/effectCategoryDefinitions.ts` (`EFFECT_CATEGORY_DEFINITIONS`) |
-| `taxonomy/drug-classes.json` | `src/data/drugClassContent.ts` (`DRUG_CLASS_CONTENT`); `scripts/translation/ui-catalog.ts` walks it for message keys |
-| `taxonomy/psychoactive-summaries.json` | `src/features/psychoactive-summaries/summaryDefinitions.ts` (`PSYCHOACTIVE_SUMMARY_DEFINITIONS`); `scripts/translation/ui-catalog.ts` walks it for message keys; `scripts/translation/corpora.mjs` through the loader |
+| `taxonomy/drug-classes.json` | `src/data/drugClassContent.ts` (`DRUG_CLASS_CONTENT`); `scripts/translation/ui-catalog-sources.ts` walks it for message keys |
+| `taxonomy/psychoactive-summaries.json` | `src/features/psychoactive-summaries/summaryDefinitions.ts` (`PSYCHOACTIVE_SUMMARY_DEFINITIONS`); `scripts/translation/ui-catalog-sources.ts` walks it for message keys; `scripts/translation/corpora.mjs` through the loader |
 
 ## UI translation
 

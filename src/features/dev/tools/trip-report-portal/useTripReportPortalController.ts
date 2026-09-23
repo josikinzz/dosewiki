@@ -7,10 +7,6 @@ import type {
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
-import type {
-  TripReportSubmissionPortalIndex,
-  TripReportSubmissionPortalSummary,
-} from "@/features/reports/submissions/dataTripReportSubmissionStore";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
@@ -23,27 +19,15 @@ import {
   toPortalRowFromReport,
   toPortalRowFromSubmission,
   type PortalBucket,
-  type PortalContributorOption,
   type PortalFacets,
   type PortalGroupBy,
   type PortalRow,
   type PortalSort,
-  type PublishedReportPayload,
 } from "./tripReportPortalModel";
+import { readError, useTripReportPortalCorpus } from "./useTripReportPortalCorpus";
 
-const CORPUS_API = "/api/dev/trip-reports";
 const RECORD_API = "/api/dev/trip-reports/record";
-const SUBMISSION_INDEX_API = "/api/trip-report-submissions/queue?scope=portal";
 const SUBMISSION_DETAIL_API = "/api/trip-report-submissions/queue";
-
-type CorpusPayload = {
-  reports: PublishedReportPayload[];
-  contributors: PortalContributorOption[];
-  submissions: TripReportSubmissionPortalSummary[];
-};
-
-type DatasetState = { status: "loading" | "ready" } | { status: "error"; message: string };
-type LoadState = { corpus: DatasetState; submissions: DatasetState };
 
 type ReportDetail = { id: string; fields: TripReportEditableFields; revision: string };
 
@@ -54,25 +38,9 @@ type DetailState =
 
 type Feedback = { tone: "success" | "danger"; message: string };
 
-/**
- * Last corpus this tab saw, kept outside React so leaving and re-entering the
- * tab paints the previous rows immediately instead of replaying the loading
- * state. The refetch still runs on every mount; it just happens behind the
- * already-rendered list.
- */
-let cachedPublished: Pick<CorpusPayload, "reports" | "contributors"> | null = null;
-let cachedSubmissions: TripReportSubmissionPortalSummary[] | null = null;
-
 export function useTripReportPortalController() {
-  const [corpus, setCorpus] = useState<CorpusPayload>(() => ({
-    reports: cachedPublished?.reports ?? [],
-    contributors: cachedPublished?.contributors ?? [],
-    submissions: cachedSubmissions ?? [],
-  }));
-  const [load, setLoad] = useState<LoadState>({
-    corpus: cachedPublished ? { status: "ready" } : { status: "loading" },
-    submissions: cachedSubmissions ? { status: "ready" } : { status: "loading" },
-  });
+  const { corpus, load, loadPublished, loadSubmissionIndex, updateReports, replaceSubmission } =
+    useTripReportPortalCorpus();
 
   const [bucket, setBucket] = useState<PortalBucket>("needs");
   const [query, setQuery] = useState("");
@@ -159,68 +127,6 @@ export function useTripReportPortalController() {
       if (openReportRef.current === id) {
         setDetailState({ status: "error", message: "Network error while loading the submission." });
       }
-    }
-  }, []);
-
-  const loadPublished = useCallback(async () => {
-    setLoad((current) => ({
-      ...current,
-      corpus: cachedPublished ? current.corpus : { status: "loading" },
-    }));
-    try {
-      const response = await fetch(CORPUS_API);
-      if (!response.ok) {
-        const message = await readError(response, "Failed to load the corpus.");
-        setLoad((current) => ({
-          ...current,
-          corpus: { status: "error", message },
-        }));
-        return;
-      }
-      const payload = await response.json();
-      const next = {
-        reports: Array.isArray(payload.reports) ? payload.reports : [],
-        contributors: Array.isArray(payload.contributors) ? payload.contributors : [],
-      };
-      cachedPublished = next;
-      setCorpus((current) => ({ ...current, ...next }));
-      setLoad((current) => ({ ...current, corpus: { status: "ready" } }));
-    } catch {
-      setLoad((current) => ({
-        ...current,
-        corpus: { status: "error", message: "Failed to reach the trip report corpus endpoint." },
-      }));
-    }
-  }, []);
-
-  const loadSubmissionIndex = useCallback(async () => {
-    setLoad((current) => ({
-      ...current,
-      submissions: cachedSubmissions ? current.submissions : { status: "loading" },
-    }));
-    try {
-      const response = await fetch(SUBMISSION_INDEX_API);
-      if (!response.ok) {
-        const message = await readError(response, "Failed to load the submission queue.");
-        setLoad((current) => ({
-          ...current,
-          submissions: { status: "error", message },
-        }));
-        return;
-      }
-      const payload = await response.json() as Partial<TripReportSubmissionPortalIndex>;
-      const next = [
-        ...(Array.isArray(payload.needsReview) ? payload.needsReview : []),
-        ...(Array.isArray(payload.history) ? payload.history : []),
-      ];
-      cachedSubmissions = next;
-      setCorpus((current) => ({ ...current, submissions: next }));
-      setLoad((current) => ({ ...current, submissions: { status: "ready" } }));
-    } catch {
-      setLoad((current) => ({
-        ...current,
-        submissions: { status: "error", message: "Failed to reach the submission queue endpoint." },
-      }));
     }
   }, []);
 
@@ -359,13 +265,8 @@ export function useTripReportPortalController() {
   }, [closeEditor]);
 
   function patchSubmission(submission: TripReportSubmissionRow) {
-    const summary = submissionSummaryOf(submission);
     setSubmissionDetail(submission);
-    setCorpus((current) => {
-      const submissions = current.submissions.map((row) => row.id === summary.id ? summary : row);
-      cachedSubmissions = submissions;
-      return { ...current, submissions };
-    });
+    replaceSubmission(submission);
   }
 
   async function saveReport(request: EditorSaveRequest) {
@@ -409,8 +310,8 @@ export function useTripReportPortalController() {
 
       setDetail({ id: selected.id, fields, revision });
       setDraft(structuredClone(fields));
-      setCorpus((current) => {
-        const reports = current.reports.map((report) =>
+      updateReports((reports) =>
+        reports.map((report) =>
           report.id === selected.id
             ? {
                 ...report,
@@ -420,10 +321,8 @@ export function useTripReportPortalController() {
                 tags: fields.tags,
               }
             : report,
-        );
-        cachedPublished = { reports, contributors: current.contributors };
-        return { ...current, reports };
-      });
+        ),
+      );
       setFeedback({ tone: "success", message: `Saved "${fields.title}".` });
       void loadPublished();
     } catch {
@@ -456,11 +355,7 @@ export function useTripReportPortalController() {
         return;
       }
 
-      setCorpus((current) => {
-        const reports = current.reports.filter((report) => report.id !== selected.id);
-        cachedPublished = { reports, contributors: current.contributors };
-        return { ...current, reports };
-      });
+      updateReports((reports) => reports.filter((report) => report.id !== selected.id));
       closeEditor();
       void loadPublished();
     } catch {
@@ -620,23 +515,3 @@ const STATUS_FEEDBACK: Record<TripReportSubmissionStatus, (title: string) => str
   spam: (title) => `Marked "${title}" as spam.`,
   exported: (title) => `Published "${title}".`,
 };
-
-async function readError(response: Response, fallback: string): Promise<string> {
-  const payload = await response.json().catch(() => ({}));
-  return typeof payload.error === "string" ? payload.error : fallback;
-}
-
-function submissionSummaryOf(submission: TripReportSubmissionRow): TripReportSubmissionPortalSummary {
-  return {
-    id: submission.id,
-    status: submission.status,
-    title: submission.title,
-    author_name: submission.author_name,
-    created_at: submission.created_at,
-    report: {
-      subject: submission.report.subject,
-      substances: submission.report.substances,
-      tags: submission.report.tags,
-    },
-  };
-}
