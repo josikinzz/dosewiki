@@ -32,7 +32,7 @@ import { tableColumns, tableNames, tableReferences, type TableName } from "../..
 import { documentHash, documentToRow, losslessSelectList, rowToDocument, type DataDocument } from "../../lib/postgres/documentCodec";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { assertProductionWriteAllowed, createProductionWriteCommand } from "../lib/production-write-command.mjs";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { assertTargetMatchesConfirmedDeployment, guardTarget, resolveTarget } from "./targetGuard";
 import { Connection, resilientPool } from "./resilientConnection";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -104,6 +104,7 @@ function authorizeWrite(command: ImportCommand, args: Args, argv: string[], env:
   assertDataWritesNotFrozen(command.operation, env);
   const target = resolveTarget(argv, env);
   assertProductionWriteAllowed(command);
+  assertTargetMatchesConfirmedDeployment(target, command.deploymentFingerprint);
   guardTarget(target, args.allowRemote, env);
   return target;
 }

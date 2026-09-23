@@ -17,7 +17,7 @@ import { makeFunctionReference } from "../../lib/postgres/runtime/api";
 import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { assertProductionWriteAllowed, createProductionWriteCommand, executeProductionWrite } from "../lib/production-write-command.mjs";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { assertTargetMatchesConfirmedDeployment, guardTarget, resolveTarget } from "./targetGuard";
 
 const OPERATION = "postgres-rebuild-derived";
 const PUBLIC_READ_INDEXES = ["gallery", "history", "reviews"] as const;
@@ -65,6 +65,7 @@ async function main(): Promise<void> {
   assertDataWritesNotFrozen(OPERATION);
   const target = resolveTarget(argv);
   assertProductionWriteAllowed(command);
+  assertTargetMatchesConfirmedDeployment(target, command.deploymentFingerprint);
   guardTarget(target, argv.includes("--allow-remote"));
   await executeProductionWrite(command, async () => {
     const client = PostgresClient.fromUrl(target);

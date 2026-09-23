@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { guardTarget, resolveTarget, assertTargetMatchesConfirmedDeployment } from "./targetGuard";
 
 const LOCAL = "postgres://localhost:5432/dosewiki";
 const REMOTE = "postgres://db.example.test:5432/dosewiki";
@@ -40,5 +40,17 @@ describe("guardTarget", () => {
     expect(() => guardTarget(REMOTE, false, {})).toThrow(/Refusing non-local target db\.example\.test/);
     expect(() => guardTarget(REMOTE, true, { POSTGRES_IMPORT_CONFIRM: "other.example.test" })).toThrow(/POSTGRES_IMPORT_CONFIRM must equal/);
     expect(() => guardTarget(REMOTE, true, { POSTGRES_IMPORT_CONFIRM: "db.example.test" })).not.toThrow();
+  });
+});
+
+describe("assertTargetMatchesConfirmedDeployment", () => {
+  it("accepts the target whose deployment the operator confirmed", () => {
+    expect(() => assertTargetMatchesConfirmedDeployment(" postgres://db.example:6432/dosewiki ", "db.example/dosewiki")).not.toThrow();
+  });
+
+  it("refuses a write target that differs from the confirmed deployment", () => {
+    expect(() => assertTargetMatchesConfirmedDeployment("postgres://other.example/dosewiki", "db.example/dosewiki"))
+      .toThrow(/other\.example\/dosewiki.*db\.example\/dosewiki/);
+    expect(() => assertTargetMatchesConfirmedDeployment("postgres://db.example/dosewiki", null)).toThrow(/confirmed deployment/);
   });
 });

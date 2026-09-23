@@ -7,6 +7,8 @@
  * so a stray env var cannot point a rehearsal at PlanetScale.
  */
 
+import { parsePostgresTarget } from "../../lib/postgres/runtime/target.ts";
+
 const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 
 export const MISSING_TARGET_MESSAGE =
@@ -38,5 +40,16 @@ export function guardTarget(target: string, allowRemote: boolean, env: Record<st
   if (!allowRemote) throw new Error(`Refusing non-local target ${hostname}; pass --allow-remote and POSTGRES_IMPORT_CONFIRM=${hostname}`);
   if (env.POSTGRES_IMPORT_CONFIRM !== hostname) {
     throw new Error(`POSTGRES_IMPORT_CONFIRM must equal ${hostname} to write to a remote target`);
+  }
+}
+
+/**
+ * The write command confirms a deployment fingerprint before the script opens
+ * its own pool. Refuse unless the URL the pool will use names that deployment.
+ */
+export function assertTargetMatchesConfirmedDeployment(target: string, confirmed: string | null): void {
+  const identity = parsePostgresTarget(target.trim()).identity;
+  if (!confirmed || identity !== confirmed) {
+    throw new Error(`Write target ${identity} does not match the confirmed deployment ${confirmed ?? "(none)"}.`);
   }
 }
