@@ -14,7 +14,7 @@ export async function generateMetadata() {
     description: flavoredCopyText(
       copy,
       "seo-about-feedback-description",
-      `Send the ${SITE_FLAVOR_CONFIG.name} editors private feedback about the site — an article request, a technical issue, design, performance, or accessibility.`,
+      `Send the ${SITE_FLAVOR_CONFIG.name} editors private feedback about the site: an article request, a technical issue, design, performance, or accessibility.`,
     ),
     pathname: "/about/feedback",
   });
@@ -27,7 +27,7 @@ export default function SiteFeedbackPage() {
         title="General feedback"
         icon="lucide:message-circle"
         align="left"
-        description={`Feedback about ${SITE_FLAVOR_CONFIG.name} as a whole — the site, its features, its design. For corrections to a specific article, use the \u201CSuggest an edit\u201D box at the bottom of that article.`}
+        description={`Feedback about ${SITE_FLAVOR_CONFIG.name} as a whole: the site, its features, its design. For corrections to a specific article, use the \u201CSuggest an edit\u201D box at the bottom of that article.`}
       />
 
       <Surface variant="subtle" padding="lg" radius="xl">

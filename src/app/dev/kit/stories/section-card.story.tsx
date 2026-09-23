@@ -68,7 +68,7 @@ export const sectionCardStory: StoryDef = {
             <SectionCard key={s.title} delay={s.delay} className="w-full">
               <SectionBody
                 title={s.title}
-                body={`delay=${s.delay}s — sequential sections fade in slightly after one another on scroll.`}
+                body={`delay=${s.delay}s: sequential sections fade in slightly after one another on scroll.`}
               />
             </SectionCard>
           ))}
@@ -105,9 +105,9 @@ export const sectionCardStory: StoryDef = {
     "Any stacked block that needs the consistent section chrome plus the scroll-in entrance.",
   ],
   whenNotToUse: [
-    "Inner/nested panels — use NestedContentCard from the surface recipes instead.",
-    "Clickable navigation cards — use InteractiveContentCard directly; SectionCard is a layout container, not an action.",
-    "Dev editor panels — those use dev-owned editor primitives.",
+    "Inner/nested panels: use NestedContentCard from the surface recipes instead.",
+    "Clickable navigation cards: use InteractiveContentCard directly; SectionCard is a layout container, not an action.",
+    "Dev editor panels: those use dev-owned editor primitives.",
   ],
   notes: [
     "Built on InteractiveContentCard (padding=\"lg\", radius=\"xl\") and rendered via asChild onto a <section>.",

@@ -90,8 +90,8 @@ export const iconBadgeStory: StoryDef = {
     "Status-orb chips where the icon conveys meaning and an sr-only label provides the text.",
   ],
   whenNotToUse: [
-    "Clickable actions — IconBadge renders a non-interactive <span>; use Button or an icon button.",
-    "Standalone inline icons without a framed orb — use Icon directly.",
+    "Clickable actions: IconBadge renders a non-interactive <span>; use Button or an icon button.",
+    "Standalone inline icons without a framed orb: use Icon directly.",
   ],
   notes: [
     "Renders a <span> with theme-status-orb classes, so it has no button semantics.",

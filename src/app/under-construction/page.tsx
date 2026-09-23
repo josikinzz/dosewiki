@@ -3,7 +3,7 @@ import { ConstructionLanding } from "../_components/ConstructionLanding";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const metadata: Metadata = {
-  title: `${SITE_FLAVOR_CONFIG.name} — construction preview`,
+  title: `${SITE_FLAVOR_CONFIG.name}: construction preview`,
   description: `Archived construction-state preview for ${SITE_FLAVOR_CONFIG.name}.`,
   robots: {
     index: false,

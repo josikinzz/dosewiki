@@ -77,6 +77,7 @@ describe("trip report submission promotion route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: false }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
@@ -87,7 +88,6 @@ describe("trip report submission promotion route", () => {
     expect(mocks.storePreviewPromotion).toHaveBeenCalledWith("submission-1", {
       profileKey: undefined,
       confirmAuthorNameClaim: false,
-      reviewer: "editor@example.com",
       actorEmail: "editor@example.com",
     });
     expect(mocks.storePromote).not.toHaveBeenCalled();
@@ -108,13 +108,13 @@ describe("trip report submission promotion route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: true }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: undefined,
@@ -133,6 +133,49 @@ describe("trip report submission promotion route", () => {
     });
   });
 
+  it("names the suggested owner without granting ownership", async () => {
+    mocks.storePromote.mockResolvedValueOnce({
+      submission: { id: "submission-1", status: "exported" },
+      reportId: "trip-report-id",
+      payload: { slug: "careful-low-dose-museum-walk" },
+      suggestedOwner: { email: "owner@example.com", username: "nervewing" },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
+        method: "POST",
+        headers: { origin: "https://dose.wiki" },
+        body: JSON.stringify({ publish: true }),
+      }),
+      { params: Promise.resolve({ id: "submission-1" }) },
+    );
+
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      published: true,
+      suggestedOwner: { email: "owner@example.com", username: "nervewing" },
+    });
+  });
+
+  it.each([true, false])("refuses a cross-origin POST (publish %s) with 403 before the session or store", async (publish) => {
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
+        method: "POST",
+        headers: { origin: "https://evil.example" },
+        body: JSON.stringify({ publish }),
+      }),
+      { params: Promise.resolve({ id: "submission-1" }) },
+    );
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).not.toHaveBeenCalled();
+    expect(mocks.storePromote).not.toHaveBeenCalled();
+    expect(mocks.storePreviewPromotion).not.toHaveBeenCalled();
+  });
+
   it("refuses to publish for an editor without calling the store", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");
@@ -140,6 +183,7 @@ describe("trip report submission promotion route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: true }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
@@ -156,13 +200,13 @@ describe("trip report submission promotion route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: true, profile_key: " ada " }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: "ada",
@@ -178,6 +222,7 @@ describe("trip report submission promotion route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: true, profile_key: "GHOST" }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
@@ -203,6 +248,7 @@ describe("trip report submission promotion route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: true }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
@@ -222,13 +268,13 @@ describe("trip report submission promotion route", () => {
     await POST(
       new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
         method: "POST",
+        headers: { origin: "https://dose.wiki" },
         body: JSON.stringify({ publish: true, confirm_author_name_claim: true }),
       }),
       { params: Promise.resolve({ id: "submission-1" }) },
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: undefined,

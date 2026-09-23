@@ -17,7 +17,7 @@ const article = {
     { name: "Reading 3", url: "https://example.com/3" },
     { name: "Reading 4", url: "https://example.com/4" },
   ],
-} as SubstanceArticle;
+} as unknown as SubstanceArticle;
 
 describe("CitationsSection", () => {
   it("renders projected substance sources before collapsed further reading", () => {

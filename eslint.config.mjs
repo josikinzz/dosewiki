@@ -1,6 +1,8 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import reactHooks from 'eslint-plugin-react-hooks';
+import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 
@@ -83,6 +85,27 @@ export default tseslint.config(
       'vercel-guardrails/no-hardcoded-secrets': 'error',
       'vercel-guardrails/enforce-env-prefix': ['warn', { framework: 'next' }],
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
+    },
+  },
+  // Hook order and effect dependencies across client components. Only the two
+  // classic rules: the React Compiler rules in the plugin's preset are not adopted.
+  {
+    files: ['src/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
+    plugins: {
+      'react-hooks': reactHooks,
+    },
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    // Page and document rules describe rendered routes, not unit test fixtures.
+    ignores: ['src/**/*.test.{ts,tsx}'],
+    ...nextPlugin.configs['core-web-vitals'],
+    settings: {
+      next: { rootDir: '.' },
     },
   },
   // Server-side JavaScript helpers under /lib run in Node.

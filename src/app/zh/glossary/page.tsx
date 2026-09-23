@@ -14,6 +14,7 @@ import { buildGlossaryGroups, GLOSSARY_INTRO, GlossaryPage as GlossaryContentPag
 import { UiLocaleProvider } from "@/i18n/client";
 import { msg } from "@/i18n/messages";
 import { setRequestLocale, t } from "@/i18n/server";
+import { getGlossaryUsages } from "@server/translation/glossaryUsage";
 
 export const revalidate = 3600;
 
@@ -33,11 +34,13 @@ export default async function LocalizedGlossaryPage() {
   setRequestLocale(LOCALE.code);
   getDataBackend();
   const [glosses, renderings] = await Promise.all([readGlosses(), readGlossaryRows(LOCALE.code, { status: "approved" })]);
+  const groups = buildGlossaryGroups(glosses, renderings);
+  const usages = await getGlossaryUsages(groups.flatMap((group) => group.entries.map((entry) => entry.term)));
 
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
-        <GlossaryContentPage groups={buildGlossaryGroups(glosses, renderings)} renderingLang={LOCALE.htmlLang} />
+        <GlossaryContentPage groups={groups} usages={usages} renderingLang={LOCALE.htmlLang} />
       </div>
     </UiLocaleProvider>
   );

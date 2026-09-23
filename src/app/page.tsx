@@ -1,3 +1,4 @@
+import { readPublicLanguageDirectory } from "@server/translation/publicGlossary";
 import type { Metadata } from "next";
 import { loadEffectIndexHomeData } from "@server/next/effectIndexHome";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
@@ -127,6 +128,7 @@ export default async function HomePage() {
   return (
     <HomeExperience
       quickLinks={quickLinks}
+      languages={await readPublicLanguageDirectory()}
       copy={{
         tagline: flavoredCopyText(
           copy,

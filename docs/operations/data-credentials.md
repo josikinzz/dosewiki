@@ -56,7 +56,7 @@ Release must atomically pair the approved native artifacts and matching scoped c
 
 `DATA_WRITES_FROZEN=1` is authoritative across editor routes, sessionless auth writes, service writes, and operator clients. A frozen result is expected safety behavior. Only an explicitly authorized operational decision may reopen writes.
 
-The Postgres runtime needs `REPLICATION_MEDIA_BASE_URL` for correct replication reads. Read-only public and Effect Index processes must not receive `DATA_ADMIN_KEY` merely to satisfy runtime startup. `lib/postgres/runtime/deploymentEnv.ts` owns this split. A signup receiver additionally requires `MAILING_LIST_IP_HASH_SECRET` and the shared limiter table from migration `0015_shared_signup_rate_limits`; missing storage or hashing configuration fails closed, not to a process-local allowance.
+The Postgres runtime needs `REPLICATION_MEDIA_BASE_URL` for correct replication reads. Read-only public and Effect Index processes must not receive `DATA_ADMIN_KEY` merely to satisfy runtime startup. `lib/postgres/runtime/deploymentEnv.ts` owns this split. A signup receiver additionally requires `MAILING_LIST_IP_HASH_SECRET` and the shared limiter table from migration `0015_shared_signup_rate_limits`; missing storage or hashing configuration fails closed, not to a process-local allowance. An Effect Index relay and its receiver share `MAILING_LIST_RELAY_SECRET` so the receiver limits each relayed reader by a signed client address; without it the receiver limits the relay's own address.
 
 ## Schema migrations
 
@@ -91,7 +91,7 @@ Application rollback restores a previous compatible Postgres artifact and config
 - Executable commands: `package.json`
 - Script catalog: [scripts README](../../scripts/README.md)
 - Backend and target selection: `scripts/lib/data-client.ts`
-- Remote Postgres guard: `scripts/postgres/targetGuard.ts`
+- Remote Postgres guard: `scripts/postgres/targetGuard.ts` (explicit `--target` or `TARGET_POSTGRES_URL` only; guarded writer package entries run with `bun --no-env-file`)
 - Write confirmation boundary: `scripts/lib/production-write-command.mjs`
 - Operator-write inventory: `scripts/lib/production-writer-inventory.mjs`
 - Global freeze: `lib/runtime/dataWriteFreeze.ts`

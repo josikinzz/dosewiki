@@ -1,3 +1,4 @@
+import { glossaryFeedbackFields, glossaryReactionFields } from "./lib/glossaryFeedbackValidators";
 import { defineSchema, defineTable } from "../lib/postgres/runtime/schema";
 import { v } from "../lib/postgres/runtime/values";
 import { publicReadIndexTables } from "./lib/publicReadIndexSchema";
@@ -315,6 +316,7 @@ export default defineSchema({
     target: v.object({
       kind: v.string(),
       slug: v.optional(v.string()),
+      locale: v.optional(v.string()),
       dependency: v.optional(v.union(
         v.literal("detail"),
         v.literal("content"),
@@ -328,7 +330,9 @@ export default defineSchema({
     nextAttemptAt: v.number(),
     attempts: v.number(),
     receipts: v.array(v.any()),
-  }).index("by_key", ["key"]).index("by_due", ["pending", "nextAttemptAt"]),
+    /** Set when delivery stopped after the attempt cap or a permanent rejection; the row stays for inspection until the next commit re-pends it. */
+    deadLetteredAt: v.optional(v.number()),
+  }).index("by_key", ["key"]).index("by_due", ["pending", "nextAttemptAt"]).index("by_fresh", ["pending", "attempts", "nextAttemptAt"]),
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])
@@ -495,6 +499,14 @@ export default defineSchema({
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"])
     .index("by_substance", ["substance_slug", "created_at"]),
+
+  // Glossary submissions and append-only reaction choices never mutate translations.
+  glossaryFeedback: defineTable(glossaryFeedbackFields)
+    .index("by_locale_created", ["locale", "created_at"])
+    .index("by_visitor_id", ["visitor", "id"]),
+  glossaryReactionEvents: defineTable(glossaryReactionFields)
+    .index("by_version_visitor", ["locale", "term", "version", "visitor", "created_at"])
+    .index("by_visitor_id", ["visitor", "id"]),
 
   // Private site-wide general feedback intake. Editor-only; never rendered publicly.
   siteFeedback: defineTable(siteFeedback)

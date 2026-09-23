@@ -3,7 +3,7 @@
  * Postgres-backed budgets, and keyed client-IP hashing. Public response and
  * list contracts retain the former Postgres HTTP action's behavior.
  */
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import type { PostgresClient } from "../../../../lib/postgres/runtime/client";
 import { assertDataWritesNotFrozen } from "../../../../lib/runtime/dataWriteFreeze";
 
@@ -80,6 +80,57 @@ export function hashClientIp(clientIp: string, secret: string | undefined): stri
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
+
+/**
+ * A relay (Effect Index) reaches the receiver from its own egress address, so
+ * the receiver's per-IP bucket would otherwise hold every relayed reader at
+ * once. The relay forwards the reader's platform-observed address with an HMAC
+ * over it and a timestamp; the receiver uses that address only when the
+ * signature verifies under the shared `MAILING_LIST_RELAY_SECRET` and the
+ * timestamp is fresh, and falls back to the relay's own address otherwise.
+ */
+export const RELAY_CLIENT_IP_HEADER = "x-dosewiki-relay-client-ip";
+export const RELAY_CLIENT_IP_SIGNATURE_HEADER = "x-dosewiki-relay-client-ip-signature";
+
+/** Under this length a shared secret is a typo, not a key. */
+const MIN_RELAY_SECRET_LENGTH = 32;
+/** A signed address older or newer than this is refused as a replay. */
+const RELAY_SIGNATURE_MAX_SKEW_MS = 5 * MINUTE;
+
+export function getRelaySecret(env: Partial<Record<string, string | undefined>> = process.env): string | null {
+  const secret = env.MAILING_LIST_RELAY_SECRET?.trim();
+  return secret && secret.length >= MIN_RELAY_SECRET_LENGTH ? secret : null;
+}
+
+function relaySignature(clientIp: string, issuedAt: number, secret: string): string {
+  return createHmac("sha256", secret).update(`subscribe-relay:v1\n${clientIp}\n${issuedAt}`, "utf8").digest("hex");
+}
+
+/** Headers a relay adds so the receiver can limit the reader, not the relay. */
+export function signRelayedClientIp(clientIp: string, secret: string, now = Date.now()): Record<string, string> {
+  return {
+    [RELAY_CLIENT_IP_HEADER]: clientIp,
+    [RELAY_CLIENT_IP_SIGNATURE_HEADER]: `${now}.${relaySignature(clientIp, now, secret)}`,
+  };
+}
+
+/**
+ * The relayed reader address when its signature verifies, else `null`. The
+ * caller validates the address shape; this only proves who vouched for it.
+ */
+export function readRelayedClientIp(headers: Headers, secret: string | null, now = Date.now()): string | null {
+  if (!secret) return null;
+  const clientIp = headers.get(RELAY_CLIENT_IP_HEADER)?.trim();
+  const presented = headers.get(RELAY_CLIENT_IP_SIGNATURE_HEADER)?.trim();
+  if (!clientIp || !presented) return null;
+  const match = /^(\d{1,15})\.([0-9a-f]{64})$/.exec(presented);
+  if (!match) return null;
+  const issuedAt = Number(match[1]);
+  if (Math.abs(now - issuedAt) > RELAY_SIGNATURE_MAX_SKEW_MS) return null;
+  const expected = Buffer.from(relaySignature(clientIp, issuedAt, secret), "utf8");
+  const received = Buffer.from(match[2], "utf8");
+  return expected.length === received.length && timingSafeEqual(expected, received) ? clientIp : null;
+}
 
 type TokenBucketConfig = { kind: "token bucket"; rate: number; period: number; capacity: number }
 type FixedWindowConfig = { kind: "fixed window"; rate: number; period: number; capacity?: number; start?: number }

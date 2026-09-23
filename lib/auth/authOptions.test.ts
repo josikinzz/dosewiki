@@ -136,6 +136,46 @@ describe("jwt callback", () => {
     memberships.getMembershipByEmail.mockReset();
   });
 
+  it("revokes a session after its password revision changes", async () => {
+    memberships.getMembershipByEmail.mockResolvedValue({
+      email: "josie@example.com", role: "editor_translator", glossaryLocales: ["nl"],
+      passwordUpdatedAt: "2026-09-22T10:00:00.001Z",
+    });
+    await expect(call({ email: "josie@example.com", passwordUpdatedAt: "2026-09-22T10:00:00.000Z" })).resolves.toMatchObject({
+      role: "viewer", glossaryLocales: [],
+    });
+    await expect(call({ email: "josie@example.com" })).resolves.toMatchObject({
+      role: "viewer", glossaryLocales: [],
+    });
+  });
+
+  it("grants a newly signed-in session at the current password revision", async () => {
+    const passwordUpdatedAt = new Date(Date.UTC(2026, 8, 22, 10, 0, 0, 1)).toISOString();
+    memberships.getMembershipByEmail.mockResolvedValue({
+      email: "josie@example.com", role: "editor", passwordUpdatedAt,
+    });
+    const token = await jwt({
+      token: { email: "josie@example.com" },
+      user: { id: "josie@example.com", email: "josie@example.com", passwordUpdatedAt },
+      account: null, profile: undefined, trigger: "signIn", isNewUser: false, session: undefined,
+    });
+    expect(token).toMatchObject({ role: "editor", passwordUpdatedAt });
+    await expect(call(token)).resolves.toMatchObject({ role: "editor", passwordUpdatedAt });
+  });
+
+  it("keeps the sign-in revision when a reset races with the membership read", async () => {
+    memberships.getMembershipByEmail.mockResolvedValue({
+      email: "josie@example.com", role: "admin", passwordUpdatedAt: "2026-09-22T10:00:00.001Z",
+    });
+    const token = await jwt({
+      token: { email: "josie@example.com" },
+      user: { id: "josie@example.com", email: "josie@example.com", passwordUpdatedAt: "2026-09-22T10:00:00.000Z" },
+      account: null, profile: undefined, trigger: "signIn", isNewUser: false, session: undefined,
+    });
+    expect(token).toMatchObject({ role: "viewer", passwordUpdatedAt: "2026-09-22T10:00:00.000Z" });
+    await expect(call(token)).resolves.toMatchObject({ role: "viewer", passwordUpdatedAt: "2026-09-22T10:00:00.000Z" });
+  });
+
   it("replaces both capabilities and glossary scope on every refresh", async () => {
     memberships.getMembershipByEmail.mockResolvedValue({ email: "josie@example.com", role: "editor_translator", glossaryLocales: ["nl"] });
     const granted = await call({ email: "josie@example.com", role: "admin", glossaryLocales: ["zh-Hans"] });

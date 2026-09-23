@@ -9,7 +9,10 @@
  * environments in which only the browser / app fallback variables point at a
  * production-shaped host, with the full write ceremony on argv, and requires
  * every one of them to refuse. It then proves the explicit path still works so
- * the refusals are not a broken ceremony. Exits non-zero on any leak.
+ * the refusals are not a broken ceremony. Finally it runs every script that
+ * takes its target from `targetGuard.resolveTarget` as a child process with
+ * env-file loading off and only the app URLs set, and requires each to exit
+ * nonzero naming the missing explicit target. Exits non-zero on any leak.
  *
  * Privileged writes require --target or TARGET_POSTGRES_URL. App read URLs never
  * select a write target. Remote access additionally requires --allow-remote and
@@ -17,6 +20,7 @@
  * never select a normal backend, even when paired with a valid write ceremony.
  */
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,6 +33,7 @@ import {
   createDataOpsRunContext,
 } from "../lib/data-ops-run-context.mjs";
 import { createDataClient } from "../lib/data-client.ts";
+import { guardTarget, resolveTarget } from "./targetGuard.ts";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const RETIRED_SOURCE = "https://retired.example.invalid";
@@ -78,6 +83,9 @@ const previewPostgresEnv: NodeJS.ProcessEnv = {
   DATA_ADMIN_KEY: "leaked-admin-key",
 };
 
+/** The delivery origin `assertDeploymentEnv` requires of every Postgres client; placeholder host. */
+const deliveryEnv = { REPLICATION_MEDIA_BASE_URL: "https://media.example.invalid" };
+
 const postgresCeremony = ["--write", "--execute", `--confirm-write=${OPERATION}`, `--expected-deployment=${POSTGRES_PROD_FINGERPRINT}`];
 
 refuses("postgres", "production writer refuses missing backend even with legacy selectors", () => {
@@ -123,7 +131,7 @@ refuses("postgres", "a wrong --expected-deployment is refused even with an expli
 }, /Expected deployment localhost\/dosewiki does not match target deployment db\.example\.planetscale\.internal\/dosewiki/);
 
 allows("postgres", "explicit TARGET_POSTGRES_URL, confirm var, and fingerprint still pass the guards", () => {
-  const env = { ...previewPostgresEnv, TARGET_POSTGRES_URL: POSTGRES_PROD, POSTGRES_IMPORT_CONFIRM: "db.example.planetscale.internal" };
+  const env = { ...previewPostgresEnv, ...deliveryEnv, TARGET_POSTGRES_URL: POSTGRES_PROD, POSTGRES_IMPORT_CONFIRM: "db.example.planetscale.internal" };
   assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: postgresCeremony, env, loadsEnvLocal: false }));
   assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: postgresCeremony, env, loadsEnvLocal: false, requiresExecute: true }));
   // Construction only; the lazy client opens no connection until first use.
@@ -132,8 +140,64 @@ allows("postgres", "explicit TARGET_POSTGRES_URL, confirm var, and fingerprint s
 });
 
 allows("postgres", "a loopback target needs neither --allow-remote nor POSTGRES_IMPORT_CONFIRM", () => {
-  createDataClient({ argv: ["--target", "postgres://localhost:5432/dosewiki"], env: { NODE_ENV: "test", DATA_BACKEND: "postgres" } });
+  createDataClient({ argv: ["--target", "postgres://localhost:5432/dosewiki"], env: { NODE_ENV: "test", DATA_BACKEND: "postgres", ...deliveryEnv } });
 });
+
+// The shared resolver behind guarded scripts: the app URLs Bun loads from
+// `.env.local` never select a target, and bracketed IPv6 loopback is local.
+refuses("postgres", "resolveTarget ignores POSTGRES_POOLED_URL/POSTGRES_DIRECT_URL", () => {
+  resolveTarget(postgresCeremony, previewPostgresEnv);
+}, /Postgres target is required: pass --target <url> or set TARGET_POSTGRES_URL/);
+
+allows("postgres", "guardTarget treats bracketed IPv6 loopback as local", () => {
+  guardTarget("postgres://[::1]:5432/dosewiki", false, {});
+});
+
+/** Scripts that need an argument before they reach target resolution. */
+const RESOLVER_SCRIPT_ARGS: Record<string, string[]> = {
+  "scripts/postgres/import-document-snapshot.ts": ["--export", path.join(ROOT, "runs", "env-isolation-missing-export")],
+};
+
+function resolverScripts(): string[] {
+  const found: string[] = [];
+  const walk = (directory: string) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== "node_modules" && entry.name !== "deprecated") walk(full);
+        continue;
+      }
+      if (!/\.(?:ts|mjs)$/.test(entry.name) || /\.(?:test|spec)\./.test(entry.name)) continue;
+      if (entry.name.startsWith("targetGuard.") || full === fileURLToPath(import.meta.url)) continue;
+      const source = fs.readFileSync(full, "utf8");
+      if (/from "[./]+(?:postgres\/)?targetGuard(?:\.ts)?"/.test(source) && /\bresolveTarget\(/.test(source)) {
+        found.push(path.relative(ROOT, full));
+      }
+    }
+  };
+  walk(path.join(ROOT, "scripts"));
+  return found.sort();
+}
+
+// Every script that uses the resolver, run as its own process with Bun's env
+// file loading off and only the app URLs pointing at a production-shaped host.
+// Each must exit nonzero and name the missing explicit target before it opens a
+// connection; the placeholder host does not resolve, so a leak surfaces as a
+// different error rather than a write.
+const scriptEnv: NodeJS.ProcessEnv = { PATH: process.env.PATH, HOME: process.env.HOME, ...previewPostgresEnv };
+for (const script of resolverScripts()) {
+  const result = spawnSync(process.execPath, ["--no-env-file", script, ...(RESOLVER_SCRIPT_ARGS[script] ?? []), ...postgresCeremony], {
+    cwd: ROOT, env: scriptEnv, encoding: "utf8", timeout: 60_000,
+  });
+  const output = `${result.stdout}${result.stderr}`;
+  const pass = result.status !== null && result.status !== 0 && /Postgres target is required/.test(output);
+  checks.push({
+    backend: "postgres",
+    check: `${script} refuses the app URLs without an explicit target`,
+    pass,
+    ...(pass ? {} : { detail: `exit ${result.status}: ${output.trim().split("\n").slice(-3).join(" | ")}` }),
+  });
+}
 
 for (const check of checks) {
   console.log(`${check.pass ? "ok  " : "FAIL"} ${check.backend}: ${check.check}${check.detail ? ` (${check.detail})` : ""}`);

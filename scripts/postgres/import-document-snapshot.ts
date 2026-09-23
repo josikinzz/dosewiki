@@ -1,17 +1,23 @@
 /**
- * Rehearse a protected snapshot import.
+ * Import a protected document snapshot.
  *
  * Loads a document snapshot ZIP (or its extracted directory) into Postgres through
  * the generated Drizzle schema, then reconciles counts, content hashes,
  * duplicate IDs, and reference edges. Resumable: rows upsert by `_id`, so a
  * rerun converges instead of duplicating.
  *
- *   bun scripts/postgres/import-document-snapshot.ts --export <zip|dir> [--target <url>]
- *       [--tables a,b] [--truncate] [--dry-run] [--skip-verify] [--allow-remote]
+ *   bun scripts/postgres/import-document-snapshot.ts --export <zip|dir> [--tables a,b] [--truncate]
+ *       [--skip-verify] [--target <url>]
+ *   ... --write --confirm-write=<operation> --expected-deployment=<host/database> [--allow-remote]
  *
- * Target defaults to the project-local cluster. Any non-localhost host is
- * refused unless `--allow-remote` is present AND POSTGRES_IMPORT_CONFIRM equals
- * that hostname, so a stray env var cannot point a rehearsal at PlanetScale.
+ * Runs through the production write command. Without `--write` it prints a
+ * plan (per-table export counts and the exact write flags) and opens no
+ * connection. A write needs DATA_BACKEND=postgres, an explicit `--target` or
+ * TARGET_POSTGRES_URL, `--confirm-write` with the derived operation name
+ * (`postgres-import`, or `postgres-import-truncate` with `--truncate`), and the
+ * expected `<host>/<database>` fingerprint. `DATA_WRITES_FROZEN=1` refuses a
+ * write before any pool exists. Any non-loopback host additionally needs
+ * `--allow-remote` AND POSTGRES_IMPORT_CONFIRM equal to that hostname.
  * The report lands in runs/postgres-import/<timestamp>/ (gitignored).
  */
 
@@ -24,7 +30,9 @@ import { fileURLToPath } from "node:url";
 import type { PoolClient } from "pg";
 import { tableColumns, tableNames, tableReferences, type TableName } from "../../lib/postgres/schema.generated";
 import { documentHash, documentToRow, losslessSelectList, rowToDocument, type DataDocument } from "../../lib/postgres/documentCodec";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
+import { assertProductionWriteAllowed, createProductionWriteCommand } from "../lib/production-write-command.mjs";
+import { assertTargetMatchesConfirmedDeployment, guardTarget, resolveTarget } from "./targetGuard";
 import { Connection, resilientPool } from "./resilientConnection";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -35,13 +43,13 @@ const BATCH_BYTES = 1024 * 1024;
 
 type Args = {
   exportPath: string;
-  target: string;
   tables: TableName[];
   truncate: boolean;
-  dryRun: boolean;
   verify: boolean;
   allowRemote: boolean;
 };
+
+type ImportCommand = ReturnType<typeof createProductionWriteCommand>;
 
 type TableReport = {
   table: TableName;
@@ -73,13 +81,40 @@ function parseArgs(argv: string[]): Args {
   }
   return {
     exportPath: path.resolve(exportPath),
-    target: resolveTarget(argv),
     tables: tables as TableName[],
     truncate: flag("truncate"),
-    dryRun: flag("dry-run"),
     verify: !flag("skip-verify"),
     allowRemote: flag("allow-remote"),
   };
+}
+
+/** Truncation is a separate operation so its confirmation names the destructive step. */
+function importOperationName(truncate: boolean): string {
+  return truncate ? "postgres-import-truncate" : "postgres-import";
+}
+
+/**
+ * Every write gate, in order, before anything opens a pool: the freeze, the
+ * explicit target, the operation-named confirmation and deployment
+ * fingerprint, then the remote-host guard. Returns the target for a write and
+ * null for a plan.
+ */
+function authorizeWrite(command: ImportCommand, args: Args, argv: string[], env: NodeJS.ProcessEnv): string | null {
+  if (!command.writeRequested) return null;
+  assertDataWritesNotFrozen(command.operation, env);
+  const target = resolveTarget(argv, env);
+  assertProductionWriteAllowed(command);
+  assertTargetMatchesConfirmedDeployment(target, command.deploymentFingerprint);
+  guardTarget(target, args.allowRemote, env);
+  return target;
+}
+
+function printPlan(command: ImportCommand, args: Args): void {
+  const deployment = command.deploymentFingerprint ?? "<host/database>";
+  console.log(`Plan only: no connection opened and nothing written. Operation ${command.operation}.`);
+  console.log(`Target deployment: ${command.deploymentFingerprint ? `${command.deploymentFingerprint} (${command.targetSource})` : "none; pass --target or set TARGET_POSTGRES_URL"}`);
+  console.log(`Tables: ${args.tables.length}${args.truncate ? ", each truncated before load" : ""}`);
+  console.log(`To write, repeat with: --write --confirm-write=${command.operation} --expected-deployment=${deployment}`);
 }
 
 function resolveExportDirectory(exportPath: string): string {
@@ -232,15 +267,18 @@ async function checkReferences(client: PoolClient, tables: Set<string>): Promise
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  guardTarget(args.target, args.allowRemote);
+  const argv = process.argv.slice(2);
+  const args = parseArgs(argv);
+  const command = createProductionWriteCommand({ operation: importOperationName(args.truncate), argv, loadsEnvLocal: false });
+  const target = authorizeWrite(command, args, argv, process.env);
+  if (!target) printPlan(command, args);
   const exportDirectory = resolveExportDirectory(args.exportPath);
   const runDirectory = path.join(ROOT, "runs/postgres-import", new Date().toISOString().replace(/[:.]/g, "-"));
   fs.mkdirSync(runDirectory, { recursive: true });
   const rejects = fs.createWriteStream(path.join(runDirectory, "rejects.jsonl"));
   const mismatches = fs.createWriteStream(path.join(runDirectory, "hash-mismatches.jsonl"));
 
-  const pool = args.dryRun ? null : resilientPool(args.target);
+  const pool = target ? resilientPool(target) : null;
   const conn = pool ? new Connection(pool) : null;
   const started = performance.now();
   const reports: TableReport[] = [];
@@ -261,9 +299,11 @@ async function main() {
     }
     const references = conn ? await conn.run("references", (client) => checkReferences(client, new Set(args.tables))) : [];
     const summary = {
-      target: args.target.replace(/\/\/[^@]*@/, "//<redacted>@"),
+      target: command.targetUrl?.replace(/\/\/[^@]*@/, "//<redacted>@") ?? null,
+      operation: command.operation,
+      deployment: command.deploymentFingerprint,
       exportPath: args.exportPath,
-      dryRun: args.dryRun,
+      dryRun: !target,
       truncate: args.truncate,
       elapsedMs: Math.round(performance.now() - started),
       tables: reports,

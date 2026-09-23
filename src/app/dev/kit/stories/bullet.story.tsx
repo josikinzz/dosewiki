@@ -82,7 +82,7 @@ export const bulletStory: StoryDef = {
     {
       name: "className",
       type: "string",
-      description: "Extra classes merged via cn — override size, spacing, or color.",
+      description: "Extra classes merged via cn to override size, spacing, or color.",
     },
   ],
   whenToUse: [
@@ -90,8 +90,8 @@ export const bulletStory: StoryDef = {
     "Compact visual separators between inline metadata items.",
   ],
   whenNotToUse: [
-    "Status or severity meaning — use Badge, which carries a label.",
-    "Interactive targets — Bullet is aria-hidden and has no semantics.",
+    "Status or severity meaning: use Badge, which carries a label.",
+    "Interactive targets: Bullet is aria-hidden and has no semantics.",
   ],
   notes: [
     "Renders a 1.5×1.5 rounded span with flex-shrink-0 and aria-hidden=\"true\", so it never collapses or reaches assistive tech.",

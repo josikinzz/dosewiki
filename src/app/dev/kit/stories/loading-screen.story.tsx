@@ -26,7 +26,7 @@ export const loadingScreenStory: StoryDef = {
     },
     {
       label: "Compact frame",
-      note: "Same component in a shorter frame — content stays centered and the logo/progress bar keep animating.",
+      note: "Same component in a shorter frame. Content stays centered and the logo/progress bar keep animating.",
       background: "plain",
       full: true,
       render: () => (
@@ -39,7 +39,7 @@ export const loadingScreenStory: StoryDef = {
   props: [
     {
       name: "(none)",
-      type: "—",
+      type: "–",
       description: "Takes no props; renders a fixed full-screen overlay with its own copy and animations.",
     },
   ],
@@ -47,9 +47,9 @@ export const loadingScreenStory: StoryDef = {
     "A genuine full-screen, branded boot hold with no page chrome to keep up.",
   ],
   whenNotToUse: [
-    "Inline or in-card loading — use a Skeleton or a small spinner, not a full-screen overlay.",
-    "Section loads where the shell can stay up — use RouteLoading / PublicSkeletonSurface so the load reads as the page assembling. Route navigations show no skeleton at all; NavigationProgress carries them.",
-    "Editor/dev surfaces — this carries public-facing copy and branding.",
+    "Inline or in-card loading: use a Skeleton or a small spinner, not a full-screen overlay.",
+    "Section loads where the shell can stay up: use RouteLoading / PublicSkeletonSurface so the load reads as the page assembling. Route navigations show no skeleton at all; NavigationProgress carries them.",
+    "Editor/dev surfaces: this carries public-facing copy and branding.",
   ],
   notes: [
     "Renders fixed inset-0 with theme-page-shell, so in real use it covers the entire viewport; the previews wrap it in a relative overflow-hidden frame to scope that positioning.",

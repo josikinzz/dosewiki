@@ -191,7 +191,7 @@ export const saveFeaturedReplications = mutation({
       );
     }
 
-    const requested = [];
+    const requested: string[] = [];
     const seen = new Set();
     for (const raw of args.slugs) {
       const slug = raw.trim();
@@ -202,8 +202,8 @@ export const saveFeaturedReplications = mutation({
       requested.push(slug);
     }
 
-    const kept = [];
-    const pruned = [];
+    const kept: string[] = [];
+    const pruned: string[] = [];
     for (const slug of requested) {
       const row = await ctx.db
         .query("replications")

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StateCard } from "@/components/common/StateCard";
 import { Icon } from "@/components/common/Icon";
+import { SmartLink } from "@/components/common/SmartLink";
 import {
   EditorNotice,
   LoadErrorState,
@@ -211,10 +212,10 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           }}
           secondary={(
             <Button asChild variant="quiet" size="quiet">
-              <a href="/review">
+              <SmartLink href="/review">
                 Open Review portal
                 <Icon icon="lucide:arrow-up-right" size={14} />
-              </a>
+              </SmartLink>
             </Button>
           )}
         />

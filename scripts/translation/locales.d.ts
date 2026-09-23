@@ -28,7 +28,7 @@ export function kindInContext(kind: string, contexts: ReadonlySet<string>): bool
 
 export function buildBatchPrompt(
   locale: TranslationLocale,
-  units: readonly { id: string; source: string; contextClass: string; markup?: boolean; contextKind?: PromptContextKind }[],
+  units: readonly { id: string; source: string; contextClass: string; markup?: boolean; contextKind?: PromptContextKind; context?: string }[],
   options?: {
     retryNote?: string;
     glossary?: Readonly<Record<string, string>>;

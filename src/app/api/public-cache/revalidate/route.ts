@@ -52,38 +52,52 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" } as const;
 
-export async function POST(request: Request) {
+/**
+ * Refuses a request that has not proven the shared secret. It is charged to the
+ * public IP limit first, so unverified traffic keeps its old ceiling while it
+ * can never spend the bucket that signed editor fan-out uses.
+ */
+async function refuseUnverified(
+  request: Request,
+  error: string,
+  status: number,
+) {
   const rateLimited = await enforceRateLimit(request, "publicProxyRead");
   if (rateLimited) return rateLimited;
+  return NextResponse.json(
+    { ok: false, error },
+    { status, headers: PRIVATE_HEADERS },
+  );
+}
 
+export async function POST(request: Request) {
   const secret = getPublicationSecret();
   if (!secret) {
     // Fail closed: an unconfigured deployment must not accept unsigned refreshes.
-    return NextResponse.json(
-      { ok: false, error: "publication_unconfigured" },
-      { status: 503, headers: PRIVATE_HEADERS },
-    );
+    return refuseUnverified(request, "publication_unconfigured", 503);
+  }
+
+  const signature = request.headers.get(PUBLICATION_SIGNATURE_HEADER);
+  if (!signature) {
+    return refuseUnverified(request, "invalid_signature", 401);
   }
 
   const body = await request.text();
   if (body.length > PUBLICATION_SIGNAL_MAX_BODY_BYTES) {
-    return NextResponse.json(
-      { ok: false, error: "body_too_large" },
-      { status: 413, headers: PRIVATE_HEADERS },
-    );
+    return refuseUnverified(request, "body_too_large", 413);
   }
-  if (
-    !verifyPublicationSignature(
-      body,
-      request.headers.get(PUBLICATION_SIGNATURE_HEADER),
-      secret,
-    )
-  ) {
-    return NextResponse.json(
-      { ok: false, error: "invalid_signature" },
-      { status: 401, headers: PRIVATE_HEADERS },
-    );
+  if (!verifyPublicationSignature(body, signature, secret)) {
+    return refuseUnverified(request, "invalid_signature", 401);
   }
+
+  // Verified before limited: editor fan-out sends one signed request per
+  // outbox row, which the public IP limit would otherwise refuse as abuse.
+  const rateLimited = await enforceRateLimit(
+    request,
+    "publicationSignalVerified",
+    { keySuffix: `${new URL(request.url).pathname}:verified` },
+  );
+  if (rateLimited) return rateLimited;
 
   let parsedBody: unknown;
   try {

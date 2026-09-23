@@ -26,7 +26,7 @@ export const indexPanelLayoutStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "The column scaffolds behind the substances / effects / reports index panels — a balanced masonry (CSS columns) and a fixed responsive grid — plus the shared spacing constants.",
+    "The column scaffolds behind the substances / effects / reports index panels (a balanced masonry of CSS columns, and a fixed responsive grid) plus the shared spacing constants.",
   source: "src/components/common/IndexPanelLayout.tsx",
   importLine:
     'import { IndexPanelGrid, IndexPanelMasonry } from "@/components/common/IndexPanelLayout";',
@@ -99,7 +99,7 @@ export const indexPanelLayoutStory: StoryDef = {
     "Any index-style page that needs masonry or a fixed responsive grid with the shared spacing.",
   ],
   whenNotToUse: [
-    "General page content — use the layout/ public content primitives or a plain grid.",
+    "General page content: use the layout/ public content primitives or a plain grid.",
     "Single cards or detail pages.",
   ],
   notes: [

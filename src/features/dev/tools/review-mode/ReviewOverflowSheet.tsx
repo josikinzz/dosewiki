@@ -123,7 +123,7 @@ export function ReviewOverflowSheet({
         >
           <Icon icon="lucide:flag" size={15} />
           {isCurrentFlagged
-            ? "Flagged as in progress — tap to clear"
+            ? "Flagged as in progress: tap to clear"
             : "Flag as in progress"}
         </Button>
 

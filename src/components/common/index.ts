@@ -11,6 +11,8 @@ export type { DefinitionListProps, DefinitionRowProps } from "./DefinitionList";
 export { DisclosureCard } from "./DisclosureCard";
 export type { DisclosureCardProps } from "./DisclosureCard";
 export { DoseWikiLogo } from "./DoseWikiLogo";
+export { ErrorBoundary, ErrorBoundaryFallback } from "./ErrorBoundary";
+export type { ErrorBoundaryFallbackProps, ErrorBoundaryProps } from "./ErrorBoundary";
 export { ExpandButton, ExpandIndicator } from "./ExpandButton";
 export * from "./ExternalSourcePill";
 export { GlobalSearch } from "./GlobalSearch";

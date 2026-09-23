@@ -116,7 +116,7 @@ describe('buildSubstanceRecord', () => {
       );
     });
 
-    it('emits no molecule assets — depictions come only from Postgres overrides', () => {
+    it('emits no molecule assets; depictions come only from Postgres overrides', () => {
       const result = buildSubstanceRecord(fullArticleWithDosage);
 
       expect(result?.content.moleculeAsset).toBeUndefined();

@@ -167,7 +167,7 @@ async function renderLens() {
               const actual = await page.locator(expectation.selector).allTextContents();
               checks.push({ ...expectation, passed: actual.some((text) => text.trim() === expectation.text) });
             }
-            const untranslated = snapshot.candidates.filter((entry) => !entry.canonical && /[A-Za-z]{3}/.test(entry.text) && (locale.coveragePolicy.script !== "simplified-han" || !/\p{Script=Han}/u.test(entry.text)));
+            const untranslated = snapshot.candidates.filter((entry) => !entry.canonical && /[A-Za-z]{3}/.test(entry.text) && (locale.coveragePolicy.script !== "simplified-han" || !/\p{Script=Han}/u.test(entry.text)) && (locale.coveragePolicy.script !== "cyrillic" || !/\p{Script=Cyrillic}/u.test(entry.text)));
             const status = response?.status() ?? 0;
             // Script ratio is diagnostic only. No page is approved without exact surface evidence.
             const verdict = status !== 200 ? "error" : !snapshot.languages.includes(locale.htmlLanguage) || checks.some((check) => !check.passed) || snapshot.overflow ? "failed" : checks.length === 0 || untranslated.length > 0 ? "review-required" : "verified-surfaces";

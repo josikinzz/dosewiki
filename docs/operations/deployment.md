@@ -66,15 +66,28 @@ twice. Verify consecutive cached builds with different IDs. Do not clear
 `.next/cache` or disable preload/skew protection to hide the mismatch.
 
 Stage scheduler ownership in each isolated release tree before uploading it.
-The shared root `vercel.json` contains all six jobs; it is not a surface-aware
-scheduler configuration. Only the editor keeps `/api/cron/publication-delivery`
-and `/api/cron/translation-refresh`. Public DoseWiki and Effect Index keep the
-three `/open-data/` jobs and `/api/warm`, with both writer jobs removed.
+The shared root `vercel.json` contains all seven jobs; it is not a surface-aware
+scheduler configuration. Each release tree keeps only the jobs its project owns:
+
+| Cron path                           | Schedule      | Owning project                            | Job                                            |
+| ----------------------------------- | ------------- | ----------------------------------------- | ---------------------------------------------- |
+| `/open-data/SubstanceIndex.json`    | `0 9 * * *`   | `dosewiki-public`, Effect Index project   | Daily open-data export                         |
+| `/open-data/EffectIndex.json`       | `0 9 * * *`   | `dosewiki-public`, Effect Index project   | Daily open-data export                         |
+| `/open-data/TripReports.json`       | `0 9 * * *`   | `dosewiki-public`, Effect Index project   | Daily open-data export                         |
+| `/api/warm`                         | `0 * * * *`   | `dosewiki-public`, Effect Index project   | Hourly public route warming                    |
+| `/api/cron/publication-delivery`    | `* * * * *`   | `dosewiki-admin` only                     | Publication outbox delivery (writer)           |
+| `/api/cron/translation-bulk`        | `* * * * *`   | `dosewiki-admin` only                     | Bulk translation lane (writer)                 |
+| `/api/cron/translation-refresh`     | `*/5 * * * *` | `dosewiki-admin` only                     | Incremental translation lane (writer)          |
+
+Remove all three writer jobs from the public DoseWiki and Effect Index trees.
 The integrated release retains its exact inputs as
 `runs/postgres-import/2026-09-15T02-25-03Z-integrated-production-release/vercel-public-config.json`
-and `vercel-editor-config.json`. Preserve the rest of the routing and build
-configuration. After promotion, verify the provider's cron definitions and
-their deployment ID, not just the local JSON.
+and `vercel-editor-config.json`. A restaged editor config must carry all three
+writer jobs, including `/api/cron/translation-bulk`, even if a retained input
+lacks it.
+Preserve the rest of the routing and build configuration. After promotion,
+verify the provider's cron definitions and their deployment ID, not just the
+local JSON.
 
 Release order:
 
@@ -133,6 +146,13 @@ When releasing the compact localized reader or its producers, follow
 [localized cutover](locale-mirrors.md#localized-publication-index-cutover).
 That producer-before-reader dependency and reversed rollback order are additional
 gates, not a replacement for public-receiver-before-editor-sender ordering above.
+
+Before a localization release, run `npm run deploy:localization-preflight -- --target <runtime-url>`
+once per surface with `DOSEWIKI_BUILD_SURFACE` set and the staged environment exported (the entry
+loads no env file; remote targets also need `--allow-remote` and `POSTGRES_IMPORT_CONFIRM`). It checks the deployment env contract, the applied migrations against the
+journal and latest snapshot, and the runtime role's grants on every runtime schema table, inside a
+rolled-back read-only transaction. A passing preflight is evidence about that credential only; it
+authorizes no release.
 
 
 

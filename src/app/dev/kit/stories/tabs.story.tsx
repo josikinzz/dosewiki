@@ -120,11 +120,11 @@ export const tabsStory: StoryDef = {
   ],
   whenToUse: [
     "Switching between a small set of sibling views in the same place (overview / dosage / effects).",
-    "Content that should not change the URL or reload — tabs keep state local.",
+    "Content that should not change the URL or reload; tabs keep state local.",
   ],
   whenNotToUse: [
-    "Primary navigation between routes — use links, not tabs.",
-    "More than a handful of sections, or sections that need their own URL — prefer pages or an accordion.",
+    "Primary navigation between routes: use links, not tabs.",
+    "More than a handful of sections, or sections that need their own URL: prefer pages or an accordion.",
   ],
   notes: [
     "TabsList renders as a frosted pill row; the active TabsTrigger gets the raised control background automatically.",

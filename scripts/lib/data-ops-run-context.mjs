@@ -153,7 +153,7 @@ function confirmationPresent(argv, flagName) {
   return argv.includes(flagName) || (typeof value === "string" && value.length > 0);
 }
 
-function productionOperationName(operation) {
+export function productionOperationName(operation) {
   return operation
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")

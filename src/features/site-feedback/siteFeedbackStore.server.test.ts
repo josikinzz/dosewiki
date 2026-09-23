@@ -33,7 +33,6 @@ describe("DataSiteFeedbackStore", () => {
     await expect(
       store.transition("feedback-1", {
         status: "resolved",
-        reviewer: "admin@example.com",
         actorEmail: "admin@example.com",
         note: "Fixed.",
       }),
@@ -49,7 +48,6 @@ describe("DataSiteFeedbackStore", () => {
           actorEmail: "admin@example.com",
           id: "feedback-1",
           status: "resolved",
-          reviewer: "admin@example.com",
           note: "Fixed.",
         },
       },

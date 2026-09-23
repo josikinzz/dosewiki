@@ -93,7 +93,7 @@ export function AngleField({ initial, spec, onChange }: AngleFieldProps) {
         ))}
       </div>
       <label className={styles.fieldCaption} htmlFor={sliderId}>
-        Hue — all the way around{" "}
+        Hue, all the way around{" "}
         <span className={styles.alphaValue}>{formatAngle(degrees)}°</span>
       </label>
       <input

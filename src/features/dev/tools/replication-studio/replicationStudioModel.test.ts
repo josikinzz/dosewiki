@@ -152,7 +152,7 @@ describe("buildReplicationSlug", () => {
   });
 
   it("only produces slugs Postgres will accept", () => {
-    for (const [title, artist] of [["Untitled", "Zdzisław Beksiński"], ["  ", "//"], ["A—B", "C"]]) {
+    for (const [title, artist] of [["Untitled", "Zdzisław Beksiński"], ["  ", "//"], ["A\u2014B", "C"]]) {
       expect(isValidReplicationSlug(buildReplicationSlug(title, artist, []))).toBe(true);
     }
   });
@@ -182,6 +182,6 @@ describe("upload helpers", () => {
   });
 
   it("kebabs to the same shape the slug builder uses", () => {
-    expect(kebab("  Mixed Case — Text ")).toBe("mixed-case-text");
+    expect(kebab("  Mixed Case \u2014 Text ")).toBe("mixed-case-text");
   });
 });

@@ -149,7 +149,7 @@ export function SiteFeedbackForm() {
           <AlertTitle>{t("Feedback received")}</AlertTitle>
           <AlertDescription>
             {t(
-              "Thanks — your feedback landed in the moderation queue. It is never shown on the site.",
+              "Thanks! Your feedback landed in the moderation queue. It is never shown on the site.",
             )}
           </AlertDescription>
         </Alert>

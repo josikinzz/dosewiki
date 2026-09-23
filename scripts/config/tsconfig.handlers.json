@@ -20,6 +20,8 @@
     "baseUrl": "../..",
     "paths": {
       "@/*": ["./src/*"],
+      "@data/*": ["./data/*"],
+      "@content/*": ["./content/*"],
       "@lib/*": ["./lib/*"],
       "@auth": ["./lib/auth/authOptions.ts"],
       "@server/*": ["./lib/*"]

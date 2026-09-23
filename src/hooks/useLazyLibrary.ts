@@ -82,7 +82,7 @@ export function useLazyLibrary(enabled: boolean) {
     setCorpusSettled(false);
 
     void fetch(EDITOR_LIBRARY_ENDPOINT, { signal: controller.signal })
-      .then(async (response) => {
+      .then(async (response): Promise<EditorLibraryEntry[]> => {
         const payload = await response.json().catch(() => null) as EditorLibraryPayload | { error?: unknown } | null;
         if (!response.ok) {
           const message = payload && "error" in payload && typeof payload.error === "string"
@@ -93,11 +93,11 @@ export function useLazyLibrary(enabled: boolean) {
         if (!payload || !("articles" in payload) || !Array.isArray(payload.articles)) {
           throw new Error("The editor library response is incomplete.");
         }
-        return payload;
+        return payload.articles;
       })
-      .then((payload) => {
+      .then((articles) => {
         if (cancelled) return;
-        setDataArticles(payload.articles.map(expandEditorLibraryEntry));
+        setDataArticles(articles.map(expandEditorLibraryEntry));
         setDataIdentity(readerIdentity);
         setCorpusSettled(true);
       })

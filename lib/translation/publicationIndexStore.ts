@@ -18,12 +18,36 @@ export async function lockLocalizedPublicationIndexes(client: IndexSqlClient): P
   if (result.rowCount !== 1) throw new Error("Localized publication index producer state is not initialized");
 }
 
+/**
+ * Which dirty rows one refresh materializes. A producer refreshes exactly what
+ * its own write dirtied, so an editorial save never pays for the backlog:
+ * - `publicationId`: every locale of one effect article the write touched.
+ * - `segments`: rows whose dependency hashes include a written segment.
+ * - `backlog`: every dirty row, optionally in one locale. Only the approved
+ *   backfill command asks for this.
+ */
+export type LocalizedPublicationIndexScope =
+  | { publicationId: string }
+  | { segments: readonly { locale: string; hash: string }[] }
+  | { backlog: true; locale?: string };
+
 /** Call inside the producer's transaction, never from a public read. */
-export async function refreshLocalizedPublicationIndexes(client: IndexSqlClient, locale?: string): Promise<number> {
+export async function refreshLocalizedPublicationIndexes(client: IndexSqlClient, scope: LocalizedPublicationIndexScope): Promise<number> {
+  if ("segments" in scope && scope.segments.length === 0) return 0;
   await lockLocalizedPublicationIndexes(client);
   const pending = await client.query(
-    'SELECT "locale", "publication_id", "source_revision" FROM "localizedPublicationIndexes" WHERE "dirty" AND ($1::text IS NULL OR "locale" = $1) ORDER BY "publication_id", "locale" FOR UPDATE',
-    [locale ?? null],
+    `SELECT "locale", "publication_id", "source_revision" FROM "localizedPublicationIndexes" i
+     WHERE "dirty" AND ($1::text IS NULL OR "publication_id" = $1) AND ($2::text IS NULL OR "locale" = $2)
+       AND ($3::text[] IS NULL OR EXISTS (
+         SELECT 1 FROM UNNEST($3::text[], $4::text[]) AS written("locale", "hash")
+         WHERE written."locale" = i."locale" AND written."hash" = ANY(i."dependency_hashes")))
+     ORDER BY "publication_id", "locale" FOR UPDATE OF i`,
+    [
+      "publicationId" in scope ? scope.publicationId : null,
+      "backlog" in scope ? scope.locale ?? null : null,
+      "segments" in scope ? scope.segments.map((segment) => segment.locale) : null,
+      "segments" in scope ? scope.segments.map((segment) => segment.hash) : null,
+    ],
   );
   for (const row of pending.rows as PendingIndex[]) {
     const source = await client.query(`SELECT ${losslessSelectList("effectIndexArticles")} FROM "effectIndexArticles" WHERE "_id" = $1`, [row.publication_id]);

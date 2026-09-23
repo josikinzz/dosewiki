@@ -112,8 +112,8 @@ function isReplicationRow(row: { role?: MediaRole }): boolean {
  * decision, which is why it does not live here.
  *
  * Keyed membership rather than an `!== 'audio'` comparison, so a kind added to
- * the union later is withheld until a surface can present it. `strictNullChecks`
- * is off in both tsconfigs, so a row is not proof of its own shape; an absent or
+ * the union later is withheld until a surface can present it. Rows come from
+ * the database, so a row is not proof of its own shape; an absent or
  * unrecognised `type` is not in the table and is withheld too.
  */
 const PRESENTABLE_REPLICATION_TYPES: Partial<Record<ReplicationType, true>> = {

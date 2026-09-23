@@ -3128,6 +3128,27 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   transition: filter 180ms ease;
 }
 
+/* The structure is visible by default. A completed image load gets one quiet
+   fade-in, with no reserved-space shift or hidden content if JS is late. */
+.theme-hero-molecule-arrive {
+  animation: hero-molecule-arrive 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hero-molecule-arrive {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-hero-molecule-arrive {
+    animation: none;
+  }
+}
+
 /* Molecule bytes are scheme-keyed, so MoleculeImage renders both colourways and
    the root's pre-painted data-theme picks one here. The first paint is right
    for a reader on either scheme, with no src swap after hydration; the hidden
@@ -4681,4 +4702,3 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 .theme-cutout-glow {
   filter: var(--theme-cutout-glow-filter);
 }
-

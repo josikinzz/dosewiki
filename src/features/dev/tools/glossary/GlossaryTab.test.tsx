@@ -6,9 +6,10 @@ import { GlossaryTab } from "./GlossaryTab";
 import type { GlossaryList, GlossaryRow } from "./glossaryModel";
 
 const LOCALE = "de";
+const NO_JOBS = { runId: null, requestedAt: null, total: 0, active: 0, completed: 0, completedWithRejections: 0, exhausted: 0 };
 
 function row(term: string, status: GlossaryRow["status"], target = `${term}-de`): GlossaryRow {
-  return { locale: LOCALE, term, target, kind: "effect-name", status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1 };
+  return { locale: LOCALE, term, target, kind: "effect-name", status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1, revision: "1:0", approved_target: status === "approved" ? target : null, review_provenance: status === "approved" ? "human_review" : "unreviewed" };
 }
 
 type Call = { path: string; body: Record<string, unknown> | string };
@@ -20,7 +21,7 @@ type Call = { path: string; body: Record<string, unknown> | string };
  * import route answers; `glosses` is the definition map the list carries and
  * the gloss route writes to.
  */
-function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResponse: Response = Response.json({ ok: true, approved: 2, drafts: 1 }), glosses: Record<string, string> = {}) {
+function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResponse: Response = Response.json({ ok: true, approved: 0, drafts: 3 }), glosses: Record<string, string> = {}) {
   const calls: Call[] = [];
   let release: (() => void) | null = null;
   const gate = () => new Promise<void>((resolve) => { release = resolve; });
@@ -33,9 +34,11 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
       if (path === "/api/dev/translation-glossary") {
         const list: GlossaryList = {
           ok: true,
+          generatedAt: 1,
           locale: LOCALE,
           promptVersion: "v1",
           segments: { total: 10, current: 10 },
+          jobs: NO_JOBS,
           locales: [{ locale: LOCALE, live: true, draft: rows.filter((r) => r.status === "draft").length, approved: rows.filter((r) => r.status === "approved").length }],
           rows: rows.map((r) => ({ ...r })),
           pending,
@@ -63,7 +66,8 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
       if (path.endsWith("/edit")) {
         const target = rows.find((r) => r.term === body.term)!;
         target.target = String(body.target);
-        target.status = "approved";
+        target.status = "draft";
+        target.revision = "1:1";
         return Response.json({ ok: true, row: target });
       }
       if (path.endsWith("/gloss")) {
@@ -100,7 +104,7 @@ describe("GlossaryTab", () => {
     vi.unstubAllGlobals();
   });
 
-  it("approves an unchanged unreviewed row on Enter, locks only that row, and hands focus to the next unreviewed row after the reload", async () => {
+  it("approves an unchanged unreviewed row explicitly, locks only that row, and hands focus to the next unreviewed row after the reload", async () => {
     const api = stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="admin" />);
@@ -110,15 +114,15 @@ describe("GlossaryTab", () => {
     const second = screen.getByRole("textbox", { name: "Rendering for euphoria" });
     api.holdNextWrite();
     first.focus();
-    await user.keyboard("{Enter}");
+    await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
 
     await waitFor(() => expect(api.calls).toHaveLength(1));
-    expect(api.calls[0]).toEqual({ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"] } });
+    expect(api.calls[0]).toEqual({ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } });
 
     // Mid-write: the written row is held, the other row is fully live.
     expect(first).toHaveAttribute("readonly");
     expect(first).toHaveAttribute("aria-busy", "true");
-    expect(first).toHaveFocus();
+    expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toHaveFocus();
     expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toBeDisabled();
     expect(second).toBeEnabled();
     expect(second).not.toHaveAttribute("readonly");
@@ -132,6 +136,42 @@ describe("GlossaryTab", () => {
     expect(rowFor("euphoria").getByText("Unreviewed")).toBeTruthy();
   });
 
+  it("does not implicitly approve an unchanged rendering on Enter", async () => {
+    const api = stubGlossaryApi([row("anxiety", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    input.focus();
+    await user.keyboard("{Enter}");
+    expect(api.calls).toHaveLength(0);
+    expect(rowFor("anxiety").getByText("Unreviewed")).toBeInTheDocument();
+  });
+
+  it("surfaces legacy approvals for rereview and can save unchanged wording as a draft", async () => {
+    const imported = { ...row("anxiety", "approved"), review_provenance: "legacy_unverified" as const };
+    const api = stubGlossaryApi([imported]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("Review unverified");
+    expect(screen.queryByText(/All 1 term.*reviewed/)).not.toBeInTheDocument();
+    await user.click(rowFor("anxiety").getByRole("button", { name: "Save draft" }));
+    await screen.findByText('Saved "anxiety" as anxiety-de; awaiting approval.');
+    expect(api.calls[0].body).toMatchObject({ intent: "draft", expectedRevision: "1:0" });
+    expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toBeEnabled();
+  });
+
+  it("preserves typed glossary wording when switching workbench views", async () => {
+    stubGlossaryApi([row("anxiety", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    await user.clear(input);
+    await user.type(input, "Unsaved correction");
+    await user.click(screen.getByRole("button", { name: "Coverage" }));
+    await user.click(screen.getByRole("button", { name: "Glossary" }));
+    expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Unsaved correction");
+  });
+
   it("returns focus to the written row when no unreviewed row follows it", async () => {
     const api = stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "approved")]);
     const user = userEvent.setup();
@@ -140,8 +180,7 @@ describe("GlossaryTab", () => {
     await user.click(screen.getByRole("button", { name: "All" }));
     await screen.findByText("euphoria");
 
-    screen.getByRole("textbox", { name: "Rendering for anxiety" }).focus();
-    await user.keyboard("{Enter}");
+    await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
     await screen.findByText('Approved "anxiety".');
 
     const written = screen.getByRole("textbox", { name: "Rendering for anxiety" });
@@ -162,7 +201,7 @@ describe("GlossaryTab", () => {
     await user.paste("Angst");
     await user.keyboard("{Enter}");
     await user.click(screen.getByRole("button", { name: "All" }));
-    await waitFor(() => expect(rowFor("anxiety").getByText("Approved")).toBeInTheDocument());
+    await waitFor(() => expect(rowFor("anxiety").getByText("Unreviewed")).toBeInTheDocument());
 
     unmount();
     render(<GlossaryTab viewerRole="admin" />);
@@ -191,7 +230,7 @@ describe("GlossaryTab", () => {
 
   it("hides Start main translation from a translator once the review is complete", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({
-      ok: true, locale: LOCALE, promptVersion: "v1", segments: { total: 0, current: 0 },
+      ok: true, generatedAt: 1, locale: LOCALE, promptVersion: "v1", segments: { total: 0, current: 0 }, jobs: NO_JOBS,
       locales: [{ locale: LOCALE, live: true, draft: 0, approved: 1 }], rows: [row("anxiety", "approved")], pending: [], glosses: {},
     } satisfies GlossaryList)));
     render(<GlossaryTab viewerRole="translator" />);
@@ -208,7 +247,7 @@ describe("GlossaryTab", () => {
     const csv = "term,target,status\nanxiety,Angst,approved\n";
     await user.upload(screen.getByLabelText("Choose a glossary CSV"), new File([csv], "glossary-de.csv", { type: "text/csv" }));
 
-    await screen.findByText("Imported 2 approved and 1 unreviewed renderings.");
+    await screen.findByText("Imported 3 drafts; each requires explicit approval.");
     expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/import", body: csv }]);
     const fetchMock = vi.mocked(fetch);
     expect(fetchMock.mock.calls[fetchMock.mock.calls.length - 1][0]).toBe("/api/dev/translation-glossary?locale=de");
@@ -324,35 +363,20 @@ describe("GlossaryTab", () => {
     expect(screen.getByRole("button", { name: "Edit definition for anxiety" })).toHaveTextContent("No definition yet");
   });
 
-  it("cancels a collision without retrying or losing the edited rendering, then explicitly retries the captured edit", async () => {
-    const api = stubGlossaryApi([row("Artist", "draft"), row("Replicator", "approved", "Künstler")]);
+  it("saving a changed rendering leaves it unreviewed and approval uses the saved revision", async () => {
+    const api = stubGlossaryApi([row("Artist", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
     const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
     await user.clear(input);
     await user.type(input, "Künstler");
-    api.refuseNextWrite();
-    await user.keyboard("{Enter}");
-    const warning = await screen.findByRole("dialog");
-    expect(within(warning).getByText("Künstler")).toBeInTheDocument();
-    expect(within(warning).getByText("Artist, Replicator")).toBeInTheDocument();
-    expect(within(warning).getByText(`replication · ${LOCALE}`)).toBeInTheDocument();
-    expect(api.calls).toHaveLength(1);
-    await user.click(within(warning).getByRole("button", { name: "Cancel" }));
-    await waitFor(() => expect(input).toHaveFocus());
-    expect(input).toHaveValue("Künstler");
-    expect(api.calls).toHaveLength(1);
-    api.refuseNextWrite();
-    await user.keyboard("{Enter}");
-    await screen.findByRole("dialog");
-    expect(api.calls).toHaveLength(2);
-    expect(api.calls[1].body).toEqual({ locale: LOCALE, term: "Artist", target: "Künstler" });
-    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
-    await screen.findByText('Saved "Artist" as Künstler; it is approved.');
-    expect(api.calls[2]).toEqual({
-      path: "/api/dev/translation-glossary/edit",
-      body: { locale: LOCALE, term: "Artist", target: "Künstler", collisionConfirmation: "a".repeat(64) },
-    });
+    await user.click(rowFor("Artist").getByRole("button", { name: "Save draft" }));
+    await screen.findByText('Saved "Artist" as Künstler; awaiting approval.');
+    expect(api.calls[0].body).toEqual({ locale: LOCALE, term: "Artist", target: "Künstler", intent: "draft", expectedRevision: "1:0" });
+    expect(rowFor("Artist").getByText("Unreviewed")).toBeInTheDocument();
+    await user.click(rowFor("Artist").getByRole("button", { name: "Approve" }));
+    await screen.findByText('Approved "Artist".');
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
   });
 
   it("asks again for changed collisions during individual approval and hands focus forward only after success", async () => {
@@ -362,8 +386,7 @@ describe("GlossaryTab", () => {
     const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
     api.refuseNextWrite();
     api.refuseNextWrite(["Artist", "Creator", "Replicator"], "b".repeat(64));
-    input.focus();
-    await user.keyboard("{Enter}");
+    await user.click(rowFor("Artist").getByRole("button", { name: "Approve" }));
     await screen.findByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
     await screen.findByText("Artist, Creator, Replicator");
@@ -371,7 +394,7 @@ describe("GlossaryTab", () => {
     expect(input).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
     await screen.findByText('Approved "Artist".');
-    expect(api.calls[2].body).toEqual({ locale: LOCALE, terms: ["Artist"], collisionConfirmation: "b".repeat(64) });
+    expect(api.calls[2].body).toEqual({ locale: LOCALE, terms: ["Artist"], expectedRevisions: { Artist: "1:0" }, collisionConfirmation: "b".repeat(64) });
     await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for Next" })).toHaveFocus());
   });
 
@@ -387,7 +410,7 @@ describe("GlossaryTab", () => {
     expect(api.calls).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
     await screen.findByText("Approved 2 terms.");
-    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist", "Replicator"], collisionConfirmation: "a".repeat(64) });
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
   });
 
   it("retries the same CSV with a bounded acknowledgement header only after explicit confirmation", async () => {
@@ -403,7 +426,7 @@ describe("GlossaryTab", () => {
     await screen.findByRole("dialog");
     expect(api.calls).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
-    await screen.findByText("Imported 2 approved and 1 unreviewed renderings.");
+    await screen.findByText("Imported 3 drafts; each requires explicit approval.");
     expect(api.calls.map((call) => call.body)).toEqual([csv, csv]);
     const requests = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/import?"));
     expect(new Headers(requests[0][1]?.headers).has("X-Glossary-Collision-Confirmation")).toBe(false);

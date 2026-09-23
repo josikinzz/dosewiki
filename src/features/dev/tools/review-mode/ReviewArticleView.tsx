@@ -216,7 +216,7 @@ function FinishedState({
       </h2>
       <p className="theme-text-secondary mt-3 text-sm">
         The entire launch corpus has been through manual review. That was the
-        bottleneck — it isn&rsquo;t anymore.
+        bottleneck. It isn&rsquo;t anymore.
       </p>
       <div className="mt-6 flex justify-center gap-3">
         <Button variant="glass" size="pill" onClick={showAll}>

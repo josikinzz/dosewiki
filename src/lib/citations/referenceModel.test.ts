@@ -46,7 +46,7 @@ describe("reference model", () => {
         { id: "a", type: "webpage", title: "A", authors: [], url: "https://example.com/a" },
         { id: "b", type: "webpage", title: "B", authors: [], url: "https://example.com/b" },
       ],
-    } as SubstanceArticle;
+    } as unknown as SubstanceArticle;
     const original = getArticleCitationModel(article);
     expect(renderCitationTokenText("Expanded [cite:a].", getArticleCitationModel(article))).toBe("Expanded [2].");
     const edited = getArticleCitationModel({

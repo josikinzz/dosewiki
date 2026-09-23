@@ -39,7 +39,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnabled, mode, onModeChange }: Props) {
   const session = useSession();
   const modeHintId = useId();
-  const role = session.status === "authenticated" ? session.data.user?.role : null;
+  const role = session.status === "authenticated" ? session.data.user?.role ?? null : null;
   const eligible = canAccessDev(role);
 
   // Synchronize the homepage corner before paint, including logout and gate unmount.

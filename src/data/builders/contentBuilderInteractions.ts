@@ -40,7 +40,7 @@ function extractInteractionDetails(value: string): { base: string; rationale?: s
 
 function normalizeInteractionLabel(value: string): string {
   return value
-    .replace(/[‒–—−]+/g, "-")
+    .replace(/[‒–\u2014−]+/g, "-")
     .replace(/\s+/g, " ")
     .replace(/\s*([/,&])\s*/g, " $1 ")
     .trim();

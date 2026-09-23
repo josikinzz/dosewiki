@@ -47,7 +47,7 @@ export type FeedbackQueueItem = {
 };
 
 export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
-  source: "article" | "site";
+  source: "article" | "site" | "glossary";
   /** The newest rows of every status, at most `FEEDBACK_QUEUE_WINDOW` of them. */
   fetchList: () => Promise<Item[]>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;

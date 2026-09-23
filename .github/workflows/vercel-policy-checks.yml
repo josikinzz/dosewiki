@@ -3,6 +3,10 @@ name: Vercel Policy Checks
 on:
   push:
     branches: [main, develop]
+    # The nightly pack commit touches only these generated outputs.
+    paths-ignore:
+      - public/dosewiki-molecules.zip
+      - public/dosewiki-molecules.json
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
@@ -49,10 +53,16 @@ jobs:
           bun run typecheck
           bun run lint:all
           bun run lint:api
+          bun run knip
           bun run typecheck:scripts
           bun run typecheck:handlers
           bun run provenance:check
           bun run cleanup:metrics --check
+
+      - name: Check generated schema and migrations for drift
+        run: |
+          bun run postgres:verify-migrations
+          bun run postgres:check-schema
 
       - name: Check owned Postgres function references
         run: node scripts/build/check-function-references.mjs

@@ -48,7 +48,7 @@ export const ANGLE_NUDGE = 15;
 
 /** Stated at the control, because a seed moves derived families only. */
 export const ANGLE_CAVEAT =
-  "Re-hues every color the theme derives from this seed. A few hand-pinned colors (some gradient stops, the logo, avatars) are literals and will not follow — expect a small number of stragglers to keep their old hue.";
+  "Re-hues every color the theme derives from this seed. A few hand-pinned colors (some gradient stops, the logo, avatars) are literals and will not follow, so expect a small number of stragglers to keep their old hue.";
 
 const angle = (id: string, label: string, hint?: string): PaletteToken => ({
   id,
@@ -100,19 +100,19 @@ const SEEDS: { id: string; label: string; hint: string; fallback: number }[] = [
   {
     id: "--h-gold",
     label: "Caution",
-    hint: "The caution family — callouts, badges, and the use-caution interaction card.",
+    hint: "The caution family: callouts, badges, and the use-caution interaction card.",
     fallback: 68,
   },
   {
     id: "--h-orange",
     label: "Unsafe",
-    hint: "The unsafe family — avoid badges and the avoid interaction card.",
+    hint: "The unsafe family: avoid badges and the avoid interaction card.",
     fallback: 48,
   },
   {
     id: "--h-rose",
     label: "Danger",
-    hint: "The danger family — highest-risk cards, danger callouts and badges.",
+    hint: "The danger family: highest-risk cards, danger callouts and badges.",
     fallback: 14,
   },
   {
@@ -123,13 +123,13 @@ const SEEDS: { id: string; label: string; hint: string; fallback: number }[] = [
   },
   {
     id: "--h-yellow",
-    label: "Code — booleans",
+    label: "Code: booleans",
     hint: "Booleans and warning windows in the JSON / code viewer.",
     fallback: 82,
   },
   {
     id: "--h-cyan",
-    label: "Code — numbers",
+    label: "Code: numbers",
     hint: "Numeric values in the JSON / code viewer.",
     fallback: 232,
   },
@@ -147,7 +147,7 @@ export const HUE_GROUP: PaletteGroup = {
   // while collapsed.
   major: true,
   blurb:
-    "The angles the palette is derived from. Nudging one turns every color the theme builds from it — the brand seed alone drives roughly eighty declarations. A few hand-pinned colors are literals and keep their own hue.",
+    "The angles the palette is derived from. Nudging one turns every color the theme builds from it; the brand seed alone drives roughly eighty declarations. A few hand-pinned colors are literals and keep their own hue.",
   tokens: SEEDS.map((seed) => angle(seed.id, seed.label, seed.hint)),
 };
 
@@ -164,7 +164,7 @@ export const HUE_ESSENTIALS: EssentialGroup = {
     {
       id: "--h-brand",
       label: "Brand hue",
-      hint: "Turns the signature pink — links, rims, glows, the scrollbar, and the light-mode page — to any other color.",
+      hint: "Turns the signature pink (links, rims, glows, the scrollbar, and the light-mode page) to any other color.",
     },
     {
       id: "--h-plum",

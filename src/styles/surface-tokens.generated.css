@@ -1,4 +1,4 @@
-/* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */
+/* GENERATED FILE. Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */
 
 /* Orchid */
 html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {
@@ -84,6 +84,13 @@ html:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"]
     linear-gradient(135deg, color-mix(in srgb, oklch(22.9% 0.076 318) 84%, #110617), #16001e);
   --theme-article-neutral-panel-shadow: 0 16px 32px -28px rgb(0 0 0 / 0.66),
     inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --theme-route-tab-shadow: 0 1px 3px rgb(0 0 0 / 0.45),
+    inset 0 1px 1px -1px rgb(255 255 255 / 0.16),
+    inset 0 -2px 4px -2px rgb(0 0 0 / 0.4);
+  --theme-route-tab-well-shadow: 0 -1px 2px rgb(0 0 0 / 0.3),
+    0 1px 2px rgb(255 255 255 / 0.08),
+    inset 0 1px 3px rgb(0 0 0 / 0.55),
+    inset 0 -1px 1px rgb(255 255 255 / 0.05);
   --theme-json-string: oklch(77% 0.15 160);
   --theme-json-number: oklch(76% 0.13 232);
   --theme-json-boolean: oklch(78% 0.14 82);
@@ -435,6 +442,13 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
     linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), #ede7ee);
   --theme-article-neutral-panel-shadow: 0 16px 32px -28px oklch(38% 0.04 318 / 0.18),
     inset 0 1px 0 oklch(100% 0 0 / 0.74);
+  --theme-route-tab-shadow: 0 1px 3px oklch(48% 0.08 316 / 0.12),
+    inset 0 1px 1px -1px oklch(100% 0 0 / 0.8),
+    inset 0 -2px 4px -2px oklch(40% 0.08 326 / 0.1);
+  --theme-route-tab-well-shadow: 0 -1px 2px oklch(40% 0.08 326 / 0.12),
+    0 1px 2px oklch(100% 0 0 / 0.8),
+    inset 0 1px 3px oklch(42% 0.09 316 / 0.16),
+    inset 0 -1px 1px oklch(100% 0 0 / 0.6);
   --theme-json-string: oklch(44% 0.118 160);
   --theme-json-number: oklch(46% 0.12 232);
   --theme-json-boolean: oklch(48% 0.12 82);
@@ -508,7 +522,7 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   --theme-name-chip-bg: color-mix(in srgb, oklch(96% 0.016 326) 94%, oklch(99.4% 0.002 326));
   --theme-name-chip-bg-hover: oklch(98% 0.012 326);
   --theme-name-chip-text: oklch(31% 0.07 316);
-  --theme-name-chip-text-hover: oklch(43% 0.205 326);
+  --theme-name-chip-text-hover: oklch(49% 0.205 326);
   --theme-name-chip-ring: oklch(54% 0.064 316 / 0.18);
   --theme-name-chip-ring-hover: oklch(46% 0.16 326 / 0.34);
   --theme-skip-link-bg: #a21caf;
@@ -555,7 +569,7 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
     inset 0 1px 0 oklch(99% 0.01 326 / 0.82);
   --theme-toggle-pill-active-tw-ring-color: oklch(47% 0.14 326 / 0.24);
   --theme-index-card-icon-border-color: transparent;
-  --theme-index-card-icon-color: oklch(43% 0.205 326);
+  --theme-index-card-icon-color: oklch(49% 0.205 326);
   --theme-article-side-panel-border-color: oklch(58% 0.105 326 / 0.14);
   --theme-article-side-panel-background: radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0);
   --theme-article-side-panel-box-shadow: 0 16px 32px -28px oklch(48% 0.1 318 / 0.18),
@@ -578,11 +592,11 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   --theme-footer-hairline-width: 1px;
   --theme-panel-hairline-width: 1px;
   --theme-external-source-pill-faint-color: oklch(43% 0.045 316);
-  --theme-index-card-title-accent-color: oklch(43% 0.205 326);
+  --theme-index-card-title-accent-color: oklch(49% 0.205 326);
   --theme-index-card-icon-background: #fff;
   --theme-external-link-badge-icon-color: oklch(27% 0.082 316);
   --theme-external-link-badge-icon-opacity: 0.82;
-  --theme-external-link-badge-icon-hover-color: oklch(43% 0.205 326);
+  --theme-external-link-badge-icon-hover-color: oklch(49% 0.205 326);
   --theme-external-link-badge-icon-hover-opacity: 1;
   --theme-toc-strip-bar-background: radial-gradient(circle at 12% 0%, #fdf1fd, transparent 38%), linear-gradient(135deg, #faedfa, #f0dcf0);
   --theme-toc-strip-bar-border-color: oklch(58% 0.105 326 / 0.14);
@@ -607,7 +621,7 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   --theme-control-pill-quiet-hover-background-color: color-mix(in srgb, color-mix(in srgb, oklch(98% 0.012 326) 98%, oklch(99.4% 0.002 326)) 92%, oklch(49% 0.19 326) 6%);
   --theme-index-card-link-focus-visible-tw-ring-color: oklch(48% 0.13 326 / 0.22);
   --theme-index-card-link-hover-tw-ring-color: oklch(48% 0.13 326 / 0.22);
-  --theme-index-card-toggle-color: color-mix(in srgb, oklch(43% 0.205 326) 58%, oklch(99.4% 0.002 326));
+  --theme-index-card-toggle-color: color-mix(in srgb, oklch(49% 0.205 326) 58%, oklch(99.4% 0.002 326));
   --theme-dosage-row-box-shadow: 0 0 0 1px oklch(58% 0.105 326 / 0.16),
     inset 0 1px 0 oklch(99% 0.01 326 / 0.72);
   --theme-dosage-row-ring-color: oklch(58% 0.105 326 / 0.16);
@@ -637,7 +651,7 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   --theme-home-logo-frame-hover-home-logo-main-filter: drop-shadow(0 20px 30px rgba(84, 46, 112, 0.2)) drop-shadow(0 0 24px oklch(48% 0.14 318 / 0.28));
   --theme-home-intro-color: oklch(49% 0.04 316);
   --theme-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 246 255 / 0.64), transparent 34%), radial-gradient(circle at 78% 88%, rgb(207 146 209 / 0.16), transparent 42%), linear-gradient(135deg, #f8cbf8 0%, #f2b9f2 54%, #e6a5e7 100%);
-  --theme-home-nav-icon-color: #5b0a5f;
+  --theme-home-nav-icon-color: #5c0860;
   --theme-home-nav-icon-box-shadow: inset 0 1px 0 rgb(255 249 255 / 0.76), 0 18px 34px -28px rgb(132 60 135 / 0.3);
   --theme-home-nav-link-hover-home-nav-icon-border-color: rgb(149 87 151 / 0.18);
   --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, rgb(255 245 255 / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, rgb(206 135 208 / 0.2), transparent 42%), linear-gradient(135deg, #f9c5fa 0%, #efaff0 54%, #e098e1 100%);
@@ -699,7 +713,10 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
     --theme-dosage-mode-tabs-background: radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from oklch(94% 0.03 326) calc(l + 0.05) calc(c - 0.01) h) 56%, oklch(94% 0.03 326)), transparent 36%), linear-gradient(135deg, oklch(94% 0.03 326), oklch(from oklch(94% 0.03 326) calc(l - 0.05) calc(c + 0.018) h));
     --theme-reagent-results-panel-background: radial-gradient(circle at 14% 0%, color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326))), transparent 38%),
     linear-gradient(135deg, color-mix(in srgb, oklch(97% 0.006 318) 90%, oklch(99.4% 0.002 326)), color-mix(in srgb, oklch(from oklch(97% 0.006 318) calc(l - 0.04) calc(c + 0.006) h) 92%, oklch(99.4% 0.002 326)));
-    --theme-home-nav-link-hover-home-nav-icon-border-color: oklch(from oklch(43% 0.205 326) 55% calc(c * 0.59) h / 0.18);
+    --theme-home-nav-icon-background: radial-gradient( circle at 28% 18%, oklch(from oklch(95.5% 0.026 326) 99% calc(c * 1) h / 0.64), transparent 34% ), radial-gradient( circle at 78% 88%, oklch(from oklch(95.5% 0.026 326) 74% calc(c * 4.3) h / 0.16), transparent 42% ), linear-gradient( 135deg, oklch(from oklch(95.5% 0.026 326) 89.5% calc(c * 3) h) 0%, oklch(from oklch(95.5% 0.026 326) 85.5% calc(c * 3.8) h) 54%, oklch(from oklch(95.5% 0.026 326) 80.5% calc(c * 4.4) h) 100% );
+    --theme-home-nav-icon-color: oklch(from oklch(49% 0.205 326) 34% calc(c * 0.73) h);
+    --theme-home-nav-icon-box-shadow: inset 0 1px 0 oklch(from oklch(95.5% 0.026 326) 99% calc(c * 0.4) h / 0.76), 0 18px 34px -28px oklch(from oklch(95.5% 0.026 326) 48% calc(c * 5.4) h / 0.3);
+    --theme-home-nav-link-hover-home-nav-icon-border-color: oklch(from oklch(49% 0.205 326) 55% calc(c * 0.59) h / 0.18);
     --theme-home-nav-link-hover-home-nav-icon-background: radial-gradient(circle at 28% 18%, oklch(from oklch(95.5% 0.026 326) 99% calc(c * 1.15) h / 0.68), transparent 34%), radial-gradient(circle at 78% 88%, oklch(from oklch(95.5% 0.026 326) 72% calc(c * 5) h / 0.2), transparent 42%), linear-gradient(135deg, oklch(from oklch(95.5% 0.026 326) 88.5% calc(c * 3.5) h) 0%, oklch(from oklch(95.5% 0.026 326) 83.5% calc(c * 4.3) h) 54%, oklch(from oklch(95.5% 0.026 326) 77.5% calc(c * 4.9) h) 100%);
     --theme-home-nav-link-hover-home-nav-icon-box-shadow: inset 0 1px 0 oklch(from oklch(95.5% 0.026 326) 99% calc(c * 0.45) h / 0.82), 0 20px 36px -28px oklch(from oklch(95.5% 0.026 326) 46% calc(c * 6.2) h / 0.36);
   }

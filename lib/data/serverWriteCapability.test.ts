@@ -15,6 +15,7 @@ vi.mock("../postgres/runtime/client", () => ({
 const originalEnv = process.env;
 const edit = makeFunctionReference<"mutation", { apiKey: string; actorEmail?: string; slug: string }, unknown>("substanceIndex:setArticleField");
 const intake = makeFunctionReference<"mutation", { apiKey: string }, unknown>("siteFeedback:create");
+const cacheRetry = makeFunctionReference<"mutation", { targets: unknown[] }, unknown>("publicationRecovery:enqueueTranslationCacheRetry");
 const action = makeFunctionReference<"action", { apiKey: string; actorEmail?: string }, unknown>("replications:sync");
 const query = makeFunctionReference<"query", { apiKey: string }, unknown>("substanceIndex:getBySlug");
 
@@ -107,6 +108,24 @@ describe("Postgres write capabilities", () => {
     await expect(client.mutationAsService(intake, { apiKey: "intake-secret" })).resolves.toEqual({ updated: 1 });
   });
 
+  it("permits privileged translation cache recovery but not public intake recovery", async () => {
+    const module = await load();
+    const client = module.getServerDataWriteCapabilityOrThrow().client;
+    await expect(client.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
+    await expect(client.mutationAsPublicationRecovery(cacheRetry, { targets: [{ kind: "article", slug: "lsd" }] })).resolves.toEqual({ updated: 1 });
+    process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "intake-secret";
+    const publicClient = module.getPublicIntakeWriteCapability()!.client;
+    expect("mutationAsPublicationRecovery" in publicClient).toBe(false);
+    await expect(publicClient.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
+  });
+
+  it("keeps translation cache recovery behind the write freeze", async () => {
+    const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
+    process.env.DATA_WRITES_FROZEN = "1";
+    await expect(client.mutationAsPublicationRecovery(cacheRetry, { targets: [] })).rejects.toMatchObject({ code: "DATA_WRITES_FROZEN" });
+    expect(io.mutation).not.toHaveBeenCalled();
+  });
+
   it.each(["1", "mayebe"])("blocks every write while freeze is %s but preserves reads", async (freeze) => {
     process.env.DATA_WRITES_FROZEN = freeze;
     const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
@@ -118,5 +137,16 @@ describe("Postgres write capabilities", () => {
     expect(io.mutation).not.toHaveBeenCalled();
     expect(io.action).not.toHaveBeenCalled();
     await expect(client.query(query, { apiKey: "editorial-secret" })).resolves.toEqual({ slug: "lsd" });
+  });
+
+  it("reports a database read-only refusal as the freeze refusal and leaves other failures alone", async () => {
+    const readOnly = Object.assign(new Error("cannot execute UPDATE in a read-only transaction"), { code: "25006" });
+    const lockTimeout = Object.assign(new Error("canceling statement due to lock timeout"), { code: "55P03" });
+    io.mutation.mockRejectedValueOnce(readOnly).mockRejectedValueOnce(lockTimeout);
+    const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
+    const refused = await client.mutation(edit, { apiKey: "editorial-secret", actorEmail: "editor@example.com", slug: "lsd" }).catch((error: unknown) => error);
+    expect(refused).toMatchObject({ code: "DATA_WRITES_FROZEN", functionName: "substanceIndex:setArticleField", cause: readOnly });
+    await expect(client.mutation(edit, { apiKey: "editorial-secret", actorEmail: "editor@example.com", slug: "lsd" })).rejects.toBe(lockTimeout);
+    expect(io.mutation).toHaveBeenCalledTimes(2);
   });
 });

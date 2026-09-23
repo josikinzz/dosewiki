@@ -203,6 +203,11 @@ describe("article chemistry presentation sections", () => {
       expect(
         document.querySelector('[data-hero-molecule-layout="below-title"]'),
       ).not.toBeNull();
+      const desktopMolecule = document.querySelector('[data-hero-molecule-layout="below-title"] img');
+      expect(document.querySelector('[data-hero-molecule-layout="below-title"]')).toHaveStyle({ marginTop: "91px" });
+      fireEvent.load(desktopMolecule!);
+      expect(desktopMolecule).toHaveClass("theme-hero-molecule-arrive");
+      expect(document.querySelectorAll('[data-hero-molecule-layout="below-title"] img')[1]).not.toHaveClass("theme-hero-molecule-arrive");
       expect(
         document.querySelector('[data-hero-molecule-layout="top"]'),
       ).toBeNull();
@@ -223,6 +228,7 @@ describe("article chemistry presentation sections", () => {
       expect(
         document.querySelector('[data-hero-molecule-layout="top"]'),
       ).not.toBeNull();
+      expect(document.querySelector('[data-hero-molecule-layout="top"] img')).toBe(desktopMolecule);
       expect(
         document.querySelector('[data-hero-molecule-layout="below-title"]'),
       ).toBeNull();
@@ -317,6 +323,7 @@ describe("article chemistry presentation sections", () => {
     article.identification.common_name = "Legacy Article";
     article.summary = "Opening summary for a reader who needs orientation.";
     article.identification.substitutive_name = "Legacy substitutive name";
+    if (!article.harm_potential) throw new Error("Expected the empty article to carry harm potential.");
     article.harm_potential.summary = "Risk summary.";
     article.interactions.dangerous = ["MAOIs"];
     article.legality.countries = {
@@ -375,7 +382,7 @@ describe("article chemistry presentation sections", () => {
       <HeroSection
         article={article}
         chemistryPresentation={chemistryPresentation}
-        moleculeAsset={null}
+        moleculeAsset={undefined}
         showPreviewBadge={false}
       />,
     );

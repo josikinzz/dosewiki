@@ -12,7 +12,7 @@ import { randomBytes } from "node:crypto";
 import { Pool, type PoolClient } from "pg";
 import { documentToRow, encodeField, losslessSelectList, rowToDocument, type DataDocument } from "./documentCodec";
 import { tableColumns, type TableName } from "./schema.generated";
-import { setTransactionTimeouts } from "./transactionTimeouts";
+import { beginWithTimeouts } from "./transactionTimeouts";
 import { lockLocalizedPublicationIndexes, refreshLocalizedPublicationIndexes } from "../translation/publicationIndexStore";
 import { isDataWriteFreezeActive } from "../runtime/dataWriteFreeze";
 
@@ -79,7 +79,7 @@ export async function insertDocument(client: SqlClient, table: TableName, value:
   await client.query(sql, columns.map((column) => encoded.row[column]));
   await client.query('INSERT INTO "documentIds" ("_id", "table") VALUES ($1, $2)', [document._id, table]);
   if (table === "effectIndexArticles") {
-    await refreshLocalizedPublicationIndexes(client);
+    await refreshLocalizedPublicationIndexes(client, { publicationId: document._id as string });
   }
   return document._id as string;
 }
@@ -111,7 +111,7 @@ export async function patchDocument(client: SqlClient, table: TableName, id: str
   params.push(id);
   const result = await client.query(`UPDATE ${quoteIdentifier(table)} SET ${assignments.join(", ")} WHERE "_id" = $${params.length}`, params);
   if (table === "effectIndexArticles" && result.rowCount) {
-    await refreshLocalizedPublicationIndexes(client);
+    await refreshLocalizedPublicationIndexes(client, { publicationId: id });
   }
   return (result.rowCount ?? 0) === 1;
 }
@@ -126,9 +126,8 @@ export async function deleteDocument(client: SqlClient, table: TableName, id: st
 export async function withTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
+    await client.query(beginWithTimeouts(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN"));
     try {
-      await setTransactionTimeouts(client);
       const result = await fn(client);
       await client.query("COMMIT");
       return result;

@@ -15,7 +15,7 @@ function Filler({ label }: { label: string }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-sm font-medium text-[var(--theme-text-primary)]">{label}</span>
-      <span className="text-xs text-[var(--theme-text-muted)]">Tokenised surface — no raw card shells.</span>
+      <span className="text-xs text-[var(--theme-text-muted)]">Tokenised surface, no raw card shells.</span>
     </div>
   );
 }
@@ -155,8 +155,8 @@ export const surfaceStory: StoryDef = {
     "Clickable cards (InteractiveContentCard) and danger callouts (DangerCallout).",
   ],
   whenNotToUse: [
-    "Plain text groupings that need no container — don't wrap everything in a card.",
-    "Dev editor panels — those use dev-owned editor primitives.",
+    "Plain text groupings that need no container: don't wrap everything in a card.",
+    "Dev editor panels: those use dev-owned editor primitives.",
   ],
   notes: ["Recipes (ContentCard etc.) are the front door; reach for raw Surface variants only when a recipe doesn't fit."],
 };

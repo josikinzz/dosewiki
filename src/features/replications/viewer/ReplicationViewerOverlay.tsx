@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Icon } from "@/components/common/Icon";
 import {
   Dialog,
@@ -253,10 +254,11 @@ export function ReplicationViewerOverlay({
     session: ViewerSession;
   } | null>(null);
   const previousSessionHolder = sessionHolderRef.current;
+  let sessionHolder = previousSessionHolder;
   if (
-    !previousSessionHolder ||
-    previousSessionHolder.historyAdapter !== historyAdapter ||
-    previousSessionHolder.sourcePath !== sourceCollection.sourcePath
+    !sessionHolder ||
+    sessionHolder.historyAdapter !== historyAdapter ||
+    sessionHolder.sourcePath !== sourceCollection.sourcePath
   ) {
     const previousPosition = previousSessionHolder?.session.snapshot().position;
     const sessionInitialSlug = previousPosition
@@ -276,7 +278,7 @@ export function ReplicationViewerOverlay({
       viewerStateActive: () =>
         window.history.state?.replicationViewer === true,
     };
-    sessionHolderRef.current = {
+    sessionHolder = {
       collection: sourceCollection,
       historyAdapter,
       sourcePath: sourceCollection.sourcePath,
@@ -294,8 +296,9 @@ export function ReplicationViewerOverlay({
         },
       }),
     };
+    sessionHolderRef.current = sessionHolder;
   }
-  const session = sessionHolderRef.current.session;
+  const session = sessionHolder.session;
 
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
@@ -597,20 +600,6 @@ export function ReplicationViewerOverlay({
         ? moveViewerGroup(collection, position, 1)
         : null;
 
-  /**
-   * One work over, with the track's slide animation when it can run it.
-   * The track owns busy/endpoint decisions; there is deliberately no
-   * direct-navigate fallback here — a second command during the ~200ms
-   * commit window is dropped instead of double-stepping.
-   */
-  const slideWork = useCallback((direction: 1 | -1) => {
-    trackRef.current?.slide(direction);
-  }, []);
-
-  const slideGroup = useCallback((direction: 1 | -1) => {
-    trackRef.current?.slideGroup(direction);
-  }, []);
-
   /** A completed track commit: the pool already rotated; land the position. */
   const commitWork = useCallback(
     (direction: 1 | -1) => {
@@ -628,6 +617,32 @@ export function ReplicationViewerOverlay({
       setDetails(null);
     },
     [session],
+  );
+
+  /**
+   * One work over, with the track's slide animation when it can run it.
+   * The track owns busy/endpoint decisions; while it is mounted there is
+   * deliberately no direct-navigate fallback, so a second command during the
+   * ~200ms commit window is dropped instead of double-stepping. Only a stage
+   * that failed to render (no track at all) lands the move directly, so the
+   * reader can still leave a broken work.
+   */
+  const slideWork = useCallback(
+    (direction: 1 | -1) => {
+      const track = trackRef.current;
+      if (track) track.slide(direction);
+      else commitWork(direction);
+    },
+    [commitWork],
+  );
+
+  const slideGroup = useCallback(
+    (direction: 1 | -1) => {
+      const track = trackRef.current;
+      if (track) track.slideGroup(direction);
+      else commitGroup(direction);
+    },
+    [commitGroup],
   );
 
   const surfaceTap = useCallback(() => {
@@ -1238,77 +1253,108 @@ export function ReplicationViewerOverlay({
             )}
           >
             <div className="relative h-full min-h-0 min-w-0 overflow-hidden bg-black [container-type:size]">
-              <div ref={trackPaneRef} className="h-full w-full">
-                <ViewerMediaTrack
-                  ref={trackRef}
-                  previousItem={
-                    previousWork ? group.items[previousWork.itemIndex] : null
-                  }
-                  activeItem={active}
-                  nextItem={nextWork ? group.items[nextWork.itemIndex] : null}
-                  positionKey={positionKey}
-                  previousGroupItem={
-                    previousGroup
-                      ? collection.groups[previousGroup.groupIndex].items[previousGroup.itemIndex]
-                      : null
-                  }
-                  nextGroupItem={
-                    nextGroup
-                      ? collection.groups[nextGroup.groupIndex].items[nextGroup.itemIndex]
-                      : null
-                  }
-                  autoplayAllowed
-                  allowNeighborPreload={allowNeighborPreload}
+              <ErrorBoundary
+                name="replication-viewer-stage"
+                resetKeys={[positionKey]}
+                fallback={({ reset }) => (
+                  <div
+                    role="alert"
+                    className="theme-media-tile-title absolute inset-0 grid place-items-center p-6 text-center"
+                  >
+                    <div className="flex max-w-sm flex-col items-center gap-3">
+                      <Icon icon="lucide:triangle-alert" className="size-6 opacity-70" />
+                      <p className="text-sm font-semibold">
+                        {t("This work could not be displayed")}
+                      </p>
+                      <p className="theme-media-tile-creator text-xs">
+                        {t("Move to another work, or try this one again.")}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={reset}
+                        className={cn(
+                          "theme-media-control-raised min-h-11 rounded-full px-4 text-xs font-semibold",
+                          focusRingClassName,
+                        )}
+                      >
+                        {t("Try again")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              >
+                <div ref={trackPaneRef} className="h-full w-full">
+                  <ViewerMediaTrack
+                    ref={trackRef}
+                    previousItem={
+                      previousWork ? group.items[previousWork.itemIndex] : null
+                    }
+                    activeItem={active}
+                    nextItem={nextWork ? group.items[nextWork.itemIndex] : null}
+                    positionKey={positionKey}
+                    previousGroupItem={
+                      previousGroup
+                        ? collection.groups[previousGroup.groupIndex].items[previousGroup.itemIndex]
+                        : null
+                    }
+                    nextGroupItem={
+                      nextGroup
+                        ? collection.groups[nextGroup.groupIndex].items[nextGroup.itemIndex]
+                        : null
+                    }
+                    autoplayAllowed
+                    allowNeighborPreload={allowNeighborPreload}
+                    rotateMode={rotateMode}
+                    onActiveVideoChange={setActiveVideo}
+                    onNavigateWork={commitWork}
+                    onNavigateGroup={commitGroup}
+                    onSurfaceTap={surfaceTap}
+                    onProbeAspect={probeAspect}
+                    controlsVisible={chromeVisible}
+                  />
+                </div>
+                <ViewerTransport
+                  item={active}
+                  video={activeVideo}
+                  muted={muted}
+                  volume={volume}
+                  onMutedChange={handleMutedChange}
+                  onVolumeChange={setVolume}
+                  onPrevious={previousWork ? () => slideWork(-1) : undefined}
+                  onNext={nextWork ? () => slideWork(1) : undefined}
                   rotateMode={rotateMode}
-                  onActiveVideoChange={setActiveVideo}
-                  onNavigateWork={commitWork}
-                  onNavigateGroup={commitGroup}
-                  onSurfaceTap={surfaceTap}
-                  onProbeAspect={probeAspect}
-                  controlsVisible={chromeVisible}
+                  rotated={rotated}
+                  onBufferHealthChange={handleBufferHealthChange}
+                  onRotateModeChange={handleRotateModeChange}
+                  canRotate={canRotate}
+                  onTransportVisibleChange={setChromeVisible}
+                  onTransportHandle={handleTransportHandle}
+                  onInfo={openInfo}
+                  infoOpen={infoOpen}
+                  infoControls={infoPanelId}
+                  onFullscreen={requestFullscreen}
+                  fullscreenSupported={fullscreenSupported}
+                  previousLabel={
+                    collectionPending
+                      ? t("Loading gallery results…")
+                      : previousWork
+                        ? t("Previous: {{title}}", {
+                            title:
+                              group.items[previousWork.itemIndex].replication.title,
+                          })
+                        : t("First work")
+                  }
+                  nextLabel={
+                    collectionPending
+                      ? t("Loading gallery results…")
+                      : nextWork
+                        ? t("Next: {{title}}", {
+                            title: group.items[nextWork.itemIndex].replication.title,
+                          })
+                        : t("Final work")
+                  }
                 />
-              </div>
-              <ViewerTransport
-                item={active}
-                video={activeVideo}
-                muted={muted}
-                volume={volume}
-                onMutedChange={handleMutedChange}
-                onVolumeChange={setVolume}
-                onPrevious={previousWork ? () => slideWork(-1) : undefined}
-                onNext={nextWork ? () => slideWork(1) : undefined}
-                rotateMode={rotateMode}
-                rotated={rotated}
-                onBufferHealthChange={handleBufferHealthChange}
-                onRotateModeChange={handleRotateModeChange}
-                canRotate={canRotate}
-                onTransportVisibleChange={setChromeVisible}
-                onTransportHandle={handleTransportHandle}
-                onInfo={openInfo}
-                infoOpen={infoOpen}
-                infoControls={infoPanelId}
-                onFullscreen={requestFullscreen}
-                fullscreenSupported={fullscreenSupported}
-                previousLabel={
-                  collectionPending
-                    ? t("Loading gallery results…")
-                    : previousWork
-                      ? t("Previous: {{title}}", {
-                          title:
-                            group.items[previousWork.itemIndex].replication.title,
-                        })
-                      : t("First work")
-                }
-                nextLabel={
-                  collectionPending
-                    ? t("Loading gallery results…")
-                    : nextWork
-                      ? t("Next: {{title}}", {
-                          title: group.items[nextWork.itemIndex].replication.title,
-                        })
-                      : t("Final work")
-                }
-              />
+              </ErrorBoundary>
               {fullscreenNotice ? (
                 <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex justify-center">
                   <p

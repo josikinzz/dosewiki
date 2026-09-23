@@ -37,7 +37,7 @@ export const commandStory: StoryDef = {
   examples: [
     {
       label: "Searchable palette",
-      note: "Full composition — type to fuzzy-filter the grouped items.",
+      note: "Full composition. Type to fuzzy-filter the grouped items.",
       background: "plain",
       full: true,
       render: () => (
@@ -156,7 +156,7 @@ export const commandStory: StoryDef = {
     {
       name: "open / onOpenChange (CommandDialog)",
       type: "boolean / (open: boolean) => void",
-      description: "Dialog open state — CommandDialog wraps Command inside the shared Dialog modal.",
+      description: "Dialog open state. CommandDialog wraps Command inside the shared Dialog modal.",
     },
   ],
   whenToUse: [
@@ -165,9 +165,9 @@ export const commandStory: StoryDef = {
     "Use CommandDialog when the palette should appear as a modal overlay.",
   ],
   whenNotToUse: [
-    "Simple form dropdowns — use Select instead.",
-    "Static menus without search — use DropdownMenu.",
-    "Free-text inputs that do not filter a fixed list — use a plain Input.",
+    "Simple form dropdowns: use Select instead.",
+    "Static menus without search: use DropdownMenu.",
+    "Free-text inputs that do not filter a fixed list: use a plain Input.",
   ],
   notes: [
     "Built on cmdk; Command provides the search context, so Input/List/Group/Item must live inside a Command.",

@@ -304,7 +304,7 @@ export async function retargetTripReportsToContributorHandler(
   const targetKey = normalizeProfileKey(args.contributorKey);
   const existing = await getStoredContributorProfile(ctx, targetKey);
   const existingProfile = existing as StoredProfile | null;
-  if (!existingProfile) throw new Error(`Profile "${targetKey}" not found.`);
+  if (!existing || !existingProfile) throw new Error(`Profile "${targetKey}" not found.`);
   if (
     !canEditContributorProfile({
       actorEmail: actor.email,

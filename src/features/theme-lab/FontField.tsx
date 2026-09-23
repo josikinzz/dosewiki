@@ -45,12 +45,12 @@ export function FontField({ initial, label, onChange }: FontFieldProps) {
         className="theme-text-secondary m-0 truncate text-[0.9375rem] leading-snug"
         style={{ fontFamily: selected.stack || "inherit" }}
       >
-        Handbook of Psychoactive Substances — 25 mg, oral
+        Handbook of Psychoactive Substances: 25 mg, oral
       </p>
       <p className={styles.fieldCaption}>
         Face <span className={styles.alphaValue}>{selected.label}</span>
       </p>
-      <div className="flex flex-col gap-1" role="group" aria-label={`${label} — face`}>
+      <div className="flex flex-col gap-1" role="group" aria-label={`${label}: face`}>
         {FONT_CHOICES.map((choice) => {
           const active = choice.id === selected.id;
           return (

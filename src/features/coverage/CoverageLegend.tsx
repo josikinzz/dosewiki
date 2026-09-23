@@ -86,9 +86,9 @@ export function CoverageLegend() {
               </span>{" "}
               <span className="theme-text-faint text-sm">
                 Routes carrying an empty table, over routes the article claims.
-                Counts both a route that renders nothing at all — dropped from
+                Counts both a route that renders nothing at all (dropped from
                 the tab strip, so the ROA is claimed in the data and shown
-                nowhere — and one whose dosage or duration half is an all-null
+                nowhere) and one whose dosage or duration half is an all-null
                 scaffold behind a populated other half. A dosage section counted
                 as written can still be mostly hollow.
               </span>

@@ -104,7 +104,7 @@ export const dialogStory: StoryDef = {
             <DialogHeader>
               <DialogTitle>Pick an option</DialogTitle>
               <DialogDescription>
-                No corner close button — dismissal happens through the footer.
+                No corner close button; dismissal happens through the footer.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -167,7 +167,7 @@ export const dialogStory: StoryDef = {
       name: "asChild",
       type: "boolean",
       default: "false",
-      description: "On DialogTrigger / DialogClose — merge props onto the child (e.g. a Button) instead of rendering an extra element.",
+      description: "On DialogTrigger / DialogClose, merge props onto the child (e.g. a Button) instead of rendering an extra element.",
     },
     {
       name: "className",
@@ -180,12 +180,12 @@ export const dialogStory: StoryDef = {
     "Destructive confirmations where the user must explicitly proceed or cancel.",
   ],
   whenNotToUse: [
-    "Non-blocking, transient feedback — use a toast.",
-    "Lightweight contextual menus or pickers — use DropdownMenu, Popover, or Select.",
+    "Non-blocking, transient feedback: use a toast.",
+    "Lightweight contextual menus or pickers: use DropdownMenu, Popover, or Select.",
     "Large multi-step flows that deserve their own route or page.",
   ],
   notes: [
     "DialogContent renders through a portal with a themed overlay (theme-overlay-surface); focus is trapped automatically by Radix.",
-    "Always include a DialogTitle (visually or via sr-only) for accessibility — Radix warns if it is missing.",
+    "Always include a DialogTitle (visually or via sr-only) for accessibility; Radix warns if it is missing.",
   ],
 };

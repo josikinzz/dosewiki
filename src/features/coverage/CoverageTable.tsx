@@ -174,7 +174,7 @@ function stubCellLabel(row: CoverageRow): string {
   const reasons = row.stub.reasons
     .map((reason) => COVERAGE_STUB_REASON_LABEL[reason])
     .join("; ");
-  return reasons ? `Stub — ${reasons}` : COVERAGE_STUB_DISPLAY.stub.label;
+  return reasons ? `Stub: ${reasons}` : COVERAGE_STUB_DISPLAY.stub.label;
 }
 
 /** A footer tally, coloured only when there is something to act on. */
@@ -242,7 +242,7 @@ function ReviewDeadlineBanner({ rows }: { rows: CoverageRow[] }) {
           value={
             <span suppressHydrationWarning>
               {countdown.perDay === null
-                ? "—"
+                ? "–"
                 : `${Math.ceil(countdown.perDay)}/day`}
             </span>
           }
@@ -628,7 +628,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                         <td
                           key={column.id}
                           className={CELL_CLASS}
-                          title={`${row.name} — ${column.label}: ${display.label}`}
+                          title={`${row.name}, ${column.label}: ${display.label}`}
                           aria-label={`${column.label}: ${display.label}`}
                         >
                           <StatusMark display={display} />
@@ -637,14 +637,14 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                     })}
                     <td
                       className={cn(CELL_CLASS, ARTICLE_COLUMN_EDGE_CLASS)}
-                      title={`${row.name} — ${roaCellLabel(row.roa)}`}
+                      title={`${row.name}: ${roaCellLabel(row.roa)}`}
                       aria-label={roaCellLabel(row.roa)}
                     >
                       <RoaMark roa={row.roa} />
                     </td>
                     <td
                       className={CELL_CLASS}
-                      title={`${row.name} — ${stubCellLabel(row)}`}
+                      title={`${row.name}: ${stubCellLabel(row)}`}
                       aria-label={stubCellLabel(row)}
                     >
                       <StatusMark
@@ -657,7 +657,7 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
                     </td>
                     <td
                       className={CELL_CLASS}
-                      title={`${row.name} — ${
+                      title={`${row.name}: ${
                         COVERAGE_REVIEW_DISPLAY[
                           row.reviewed ? "reviewed" : "unreviewed"
                         ].label

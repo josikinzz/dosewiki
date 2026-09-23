@@ -72,7 +72,7 @@ export const alertStory: StoryDef = {
     },
     {
       label: "Without icon",
-      note: "Title and description only — the icon is optional.",
+      note: "Title and description only; the icon is optional.",
       background: "plain",
       render: () => (
         <Alert className="w-full">
@@ -91,7 +91,7 @@ export const alertStory: StoryDef = {
         <Alert variant="warning" className="w-full">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Rate limit reached — please wait a moment before retrying.
+            Rate limit reached. Please wait a moment before retrying.
           </AlertDescription>
         </Alert>
       ),
@@ -128,8 +128,8 @@ export const alertStory: StoryDef = {
     "Surfacing errors, warnings, or success confirmations near the relevant content.",
   ],
   whenNotToUse: [
-    "Transient, dismissable notifications — use a toast instead.",
-    "Safety-critical article callouts on public pages — use Surface's DangerCallout recipe.",
+    "Transient, dismissable notifications: use a toast instead.",
+    "Safety-critical article callouts on public pages: use Surface's DangerCallout recipe.",
   ],
   notes: [
     "A single leading <svg> child is absolutely positioned top-left; the title and description indent to clear it automatically.",

@@ -53,7 +53,7 @@ export const publicPagePrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "PublicSectionHeading — rule",
+      label: "PublicSectionHeading: rule",
       note: "Default top-level heading with an icon and a trailing divider rule.",
       background: "card",
       full: true,
@@ -70,7 +70,7 @@ export const publicPagePrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "PublicSectionHeading — card & action",
+      label: "PublicSectionHeading: card & action",
       note: "card uses an IconBadge for in-card headers; action right-aligns its actions.",
       background: "card",
       full: true,
@@ -95,7 +95,7 @@ export const publicPagePrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "ContributorAvatar — sizes & initials",
+      label: "ContributorAvatar: sizes & initials",
       note: "Falls back to initials when no image URL is supplied. xs / sm / md / lg.",
       background: "card",
       render: () => (
@@ -148,7 +148,7 @@ export const publicPagePrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "TaxonomyGroupSection — list",
+      label: "TaxonomyGroupSection: list",
       note: "Groups of linked items inside section cards; default list layout.",
       background: "subtle",
       full: true,
@@ -170,7 +170,7 @@ export const publicPagePrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "TaxonomyGroupSection — grid & empty",
+      label: "TaxonomyGroupSection: grid & empty",
       note: "Grid layout for wider lists; empty groups render the emptyText fallback.",
       background: "subtle",
       full: true,
@@ -318,8 +318,8 @@ export const publicPagePrimitivesStory: StoryDef = {
     "Search and taxonomy listings that need consistent cards, chips, and highlighting.",
   ],
   whenNotToUse: [
-    "Dev editor surfaces — those use editor-owned primitives, not the public shell.",
-    "Interactive, stateful search UIs — these are presentational; wire data/state at the page level.",
+    "Dev editor surfaces: those use editor-owned primitives, not the public shell.",
+    "Interactive, stateful search UIs: these are presentational; wire data/state at the page level.",
   ],
   notes: [
     "All pieces are presentational and mount with plain props; the live examples above use inline mock data.",

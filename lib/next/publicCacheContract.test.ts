@@ -29,7 +29,7 @@ describe("publication targets", () => {
       { kind: "article", slug: "2c-b" },
     ]);
 
-    expect(effect.paths).toEqual([{ path: "/2c-b" }, { path: "/zh/2c-b" }]);
+    expect(effect.paths).toEqual([{ path: "/2c-b" }, { path: "/zh/2c-b" }, { path: "/ru/2c-b" }]);
     expect(effect.tags).toEqual([
       "data-public:substances:2c-b",
       "data-public:changelog:article:2c-b",
@@ -46,7 +46,7 @@ describe("publication targets", () => {
       { kind: "article", slug: "2c-b", dependency: "detail" },
     ]);
 
-    expect(effect.paths).toEqual([{ path: "/2c-b" }, { path: "/zh/2c-b" }]);
+    expect(effect.paths).toEqual([{ path: "/2c-b" }, { path: "/zh/2c-b" }, { path: "/ru/2c-b" }]);
     expect(effect.tags).toEqual([
       "data-public:substances:2c-b",
       "data-public:changelog:article:2c-b",
@@ -100,8 +100,8 @@ describe("publication targets", () => {
     expect(effect.paths).toEqual([
       { path: "/articles/dxm" },
       { path: "/articles" },
-      { path: "/zh/articles/dxm" },
-      { path: "/zh/articles" },
+      { path: "/zh/articles/dxm" }, { path: "/ru/articles/dxm" },
+      { path: "/zh/articles" }, { path: "/ru/articles" },
     ]);
     expect(effect.tags).toEqual(["data-public:articles"]);
   });
@@ -115,9 +115,9 @@ describe("publication targets", () => {
       { path: "/replications/infinite_torus-space" },
       { path: "/replications/viewer/infinite_torus-space" },
       { path: "/replications" },
-      { path: "/zh/replications/infinite_torus-space" },
-      { path: "/zh/replications/viewer/infinite_torus-space" },
-      { path: "/zh/replications" },
+      { path: "/zh/replications/infinite_torus-space" }, { path: "/ru/replications/infinite_torus-space" },
+      { path: "/zh/replications/viewer/infinite_torus-space" }, { path: "/ru/replications/viewer/infinite_torus-space" },
+      { path: "/zh/replications" }, { path: "/ru/replications" },
     ]);
     expect(effect.tags).toEqual(["data-public:replications"]);
     expect(
@@ -148,9 +148,9 @@ describe("publication targets", () => {
 
     expect(effect.paths).toEqual([
       { path: "/lsd" },
-      { path: "/zh/lsd" },
+      { path: "/zh/lsd" }, { path: "/ru/lsd" },
       { path: "/substances" },
-      { path: "/zh/substances" },
+      { path: "/zh/substances" }, { path: "/ru/substances" },
     ]);
     expect(
       effect.tags.filter((tag) => tag === "data-public:substance-lists"),

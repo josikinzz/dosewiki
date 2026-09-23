@@ -242,7 +242,7 @@ export const articleSectionStory: StoryDef = {
     {
       name: "ArticleKeyValueRows.rows / density",
       type: 'ArticleKeyValueRow[] / "compact" | "comfortable"',
-      default: '— / "compact"',
+      default: '– / "compact"',
       description: "Rows render as a <dl>; rows with empty values are dropped automatically.",
     },
     {
@@ -254,7 +254,7 @@ export const articleSectionStory: StoryDef = {
     {
       name: "ArticleSourceFooter.align / source",
       type: '"start" | "center" | "end" / ExternalSourcePillProps',
-      default: '"end" / —',
+      default: '"end" / –',
       description: "Footer alignment and the attribution pill config (or fall back to children).",
     },
   ],
@@ -264,9 +264,9 @@ export const articleSectionStory: StoryDef = {
     "Standardised loading/empty/error placeholders and source attribution footers.",
   ],
   whenNotToUse: [
-    "Non-article page chrome — use layout-tier shells instead.",
-    "Generic clickable cards outside article context — reach for the Surface recipes.",
-    "Dev editor panels — those use dev-owned editor primitives.",
+    "Non-article page chrome: use layout-tier shells instead.",
+    "Generic clickable cards outside article context: reach for the Surface recipes.",
+    "Dev editor panels: those use dev-owned editor primitives.",
   ],
   notes: [
     "ArticleSection is the root export with Group, InfoCard, KeyValueRows, State, SourceFooter, SubsectionCard, and SubsectionHeader attached as static members, so a single import covers the whole namespace.",

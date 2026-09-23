@@ -48,8 +48,8 @@ describe("UI Kit catalog completeness", () => {
       expect(
         undocumented,
         `These ${label} barrel exports have no /dev/kit story. Add them to an ` +
-          `existing story's \`exports\` array (and show them), or — if intentionally ` +
-          `hidden — to UNDOCUMENTED_ALLOWLIST with a reason.\n  ${undocumented.join("\n  ")}`,
+          `existing story's \`exports\` array (and show them), or, if intentionally ` +
+          `hidden, to UNDOCUMENTED_ALLOWLIST with a reason.\n  ${undocumented.join("\n  ")}`,
       ).toEqual([]);
     });
   }

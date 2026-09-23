@@ -12,9 +12,8 @@ export type { EditableFieldValue } from "../../../../server/lib/articleFieldWrit
  * What a call site may hand an editable field.
  *
  * Looser than `EditableFieldValue` on purpose. The wire contract spells a range
- * as `{min: number | null, max: number | null, unit: string}`, but this project
- * compiles with `strictNullChecks` off, so the schema's own `DoseRange` and
- * `DurationStage` infer their bounds as optional instead. The two describe the
+ * as `{min: number | null, max: number | null, unit: string}`, but the schema's
+ * own `DoseRange` and `DurationStage` infer their bounds as optional instead. The two describe the
  * same runtime object; only the compiler disagrees, and a render site should
  * not have to cast its own schema type to hand it over.
  */

@@ -90,7 +90,7 @@ export function RiskLevelSelect({
 }: {
   id: string;
   onChange: (value: RiskLevel | null) => void;
-  value: RiskLevel | null;
+  value: RiskLevel | null | undefined;
 }) {
   return (
     <Select

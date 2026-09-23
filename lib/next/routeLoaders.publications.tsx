@@ -181,7 +181,7 @@ export const loadBlogPostRoute = cache(async (slug: string): Promise<BlogPostRou
       title: viewModel.title,
       description:
         buildBlogPostExcerpt(viewModel.body, 160) ||
-        `${viewModel.title} — a post from the ${SITE_FLAVOR_CONFIG.name} archive.`,
+        `${viewModel.title}: a post from the ${SITE_FLAVOR_CONFIG.name} archive.`,
     },
     canonicalRoute: { family: "blogPost", params: { slug: viewModel.slug } },
   };
@@ -243,7 +243,7 @@ export const loadWritingBlogPostRoute = cache(
         title: post.title,
         description:
           writingBlogPostSummary(post, 160) ||
-          `${post.title} — a post from ${SITE_FLAVOR_CONFIG.name}.`,
+          `${post.title}: a post from ${SITE_FLAVOR_CONFIG.name}.`,
       },
       canonicalRoute: { family: "blogPost", params: { slug: post.slug } },
     };

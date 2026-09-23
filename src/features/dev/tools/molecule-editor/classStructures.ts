@@ -17,7 +17,7 @@ interface ManualChemicalClass {
 }
 
 export const CLASS_STRUCTURES: ClassStructureItem[] = (
-  chemicalIndexManual.classes as ManualChemicalClass[]
+  chemicalIndexManual.classes as unknown as ManualChemicalClass[]
 )
   .filter((cls) => typeof cls.structure?.smiles === "string" && cls.structure.smiles.trim().length > 0)
   .map((cls) => ({

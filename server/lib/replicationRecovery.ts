@@ -334,7 +334,7 @@ export async function mergeUnknownTwinHandler(
     || keeper.effect_slug !== args.expectedKeeperEffectSlug
     || duplicate.effect_slug !== "unknown"
     || duplicate.storage_id !== args.expectedDuplicateStorageId
-    || !keeper.storage_id.startsWith("placeholder-")
+    || !keeper.storage_id?.startsWith("placeholder-")
   ) {
     throw new Error(`Replication merge precondition failed: ${args.expectedSlug}`);
   }

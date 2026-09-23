@@ -334,8 +334,8 @@ export function ReviewCommandBar({
             aria-pressed={isCurrentFlagged}
             title={
               isCurrentFlagged
-                ? "Flagged as in progress — click to clear (F)"
-                : "Flag as in progress — can't finish it now (F)"
+                ? "Flagged as in progress: click to clear (F)"
+                : "Flag as in progress if you can't finish it now (F)"
             }
           >
             <Icon icon="lucide:flag" size={15} />
@@ -424,7 +424,7 @@ export function ReviewCommandBar({
                 : viewMode !== "webpage"
                   ? "Inline editing applies to the Webpage view"
                   : inlineEditActive
-                    ? "Inline editing is on — clicking article text edits it (E)"
+                    ? "Inline editing is on: clicking article text edits it (E)"
                     : "Edit article text inline (E)"
             }
           >
@@ -440,7 +440,7 @@ export function ReviewCommandBar({
                 className={cn("relative hidden 2xl:inline-flex", TOUCH_ICON)}
                 title={
                   settingsChanged
-                    ? "Queue settings — some are off their defaults"
+                    ? "Queue settings (some are off their defaults)"
                     : "Queue settings"
                 }
                 aria-label="Queue settings"
@@ -517,7 +517,7 @@ export function ReviewCommandBar({
       {inlineEditActive ? (
         <div className="theme-review-inline-edit-banner px-3 pb-1.5 text-[11px] sm:hidden">
           <Icon icon="lucide:pencil-line" size={11} className="mr-1 inline" />
-          Inline editing is on — tapping article text edits it.
+          Inline editing is on: tapping article text edits it.
         </div>
       ) : null}
 

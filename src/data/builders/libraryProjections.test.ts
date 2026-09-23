@@ -58,8 +58,6 @@ const makeArticle = (
   overrides: Partial<SubstanceArticle> & Pick<SubstanceArticle, "id" | "title">,
 ): SubstanceArticle => ({
   ...createEmptyArticle(),
-  id: overrides.id,
-  title: overrides.title,
   identification: {
     ...createEmptyArticle().identification,
     common_name: overrides.title,
@@ -162,7 +160,11 @@ describe("library projection modules", () => {
       throw new Error("Expected article normalization to create a record.");
     }
 
-    record.content.infoSections = record.content.infoSections.map((section) => ({
+    const infoSections = record.content.infoSections;
+    if (!infoSections) {
+      throw new Error("Expected the normalized record to carry info sections.");
+    }
+    record.content.infoSections = infoSections.map((section) => ({
       ...section,
       items: section.items.map((item) =>
         item.label === "Mechanism of Action"

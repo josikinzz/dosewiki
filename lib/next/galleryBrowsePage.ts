@@ -1,3 +1,4 @@
+import type { UiLocale } from "@/i18n/messages";
 import { createHash } from "node:crypto";
 import type { GalleryBrowseIndex } from "./galleryBrowseIndex";
 import { hydrateGalleryPage } from "./galleryBrowseIndex";
@@ -60,7 +61,7 @@ function selectMembership(index: GalleryBrowseIndex, browse: GalleryBrowseState,
 export class StaleGalleryCursorError extends Error {}
 
 /** Artist browsing pages rail previews, while focused/search grids page every work. */
-export async function getGalleryBrowsePage(index: GalleryBrowseIndex, locale: "en" | "zh-Hans", browse: GalleryBrowseState,
+export async function getGalleryBrowsePage(index: GalleryBrowseIndex, locale: UiLocale, browse: GalleryBrowseState,
   focus: GalleryFocus | null = null, cursor: string | null = null, viewerSlug: string | null = null): Promise<GalleryPagePayload> {
   const queryIdentity = galleryQueryIdentity(locale, browse, focus);
   const key = createHash("sha256").update(queryIdentity).digest("hex");

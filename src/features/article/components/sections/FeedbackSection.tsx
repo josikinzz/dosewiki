@@ -145,7 +145,7 @@ export function FeedbackSection({
           <Icon icon="lucide:check" size={18} />
           <AlertTitle>{t("Feedback received")}</AlertTitle>
           <AlertDescription>
-            {t("Thanks — your note is in the private editor queue.")}
+            {t("Thanks! Your note is in the private editor queue.")}
           </AlertDescription>
         </Alert>
       ) : null}

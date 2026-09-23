@@ -177,7 +177,7 @@ describe("changeProposals.submit", () => {
     });
     expect(stored.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(stored.updatedAt).toBe(stored.createdAt);
-    expect(stored.targets[0].baseHash).not.toBe(contentHash(proposedLsd));
+    expect((stored.targets as Array<{ baseHash: string }>)[0].baseHash).not.toBe(contentHash(proposedLsd));
   });
 
   it("submits one country addition without rewriting legacy sections and keeps it discoverable to its author", async () => {

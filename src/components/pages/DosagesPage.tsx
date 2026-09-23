@@ -268,12 +268,12 @@ export function DosagesPage({
     if (superTab) {
       const content = definitions?.[superTab.id] ?? superTab.content;
       return content
-        ? { ...content, definition: t(content.definition), warning: content.warning ? t(content.warning) : content.warning }
+        ? { ...content, definition: content.definition ? t(content.definition) : content.definition, warning: content.warning ? t(content.warning) : content.warning }
         : undefined;
     }
     const content = definitions?.[activeTab];
     return content
-      ? { ...content, definition: t(content.definition), warning: content.warning ? t(content.warning) : content.warning }
+      ? { ...content, definition: content.definition ? t(content.definition) : content.definition, warning: content.warning ? t(content.warning) : content.warning }
       : undefined;
   }, [activeTab, definitions, t]);
 

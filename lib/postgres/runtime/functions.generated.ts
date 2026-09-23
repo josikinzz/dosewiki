@@ -18,6 +18,7 @@ import * as contributorProfiles from "../../../server/contributorProfiles";
 import * as copyBlocks from "../../../server/copyBlocks";
 import * as effectIndexArchive from "../../../server/effectIndexArchive";
 import * as effectIndexArticles from "../../../server/effectIndexArticles";
+import * as glossaryFeedback from "../../../server/glossaryFeedback";
 import * as indexLayouts from "../../../server/indexLayouts";
 import * as inviteCodes from "../../../server/inviteCodes";
 import * as mailingList from "../../../server/mailingList";
@@ -42,6 +43,7 @@ import * as replicationIdentitySocial from "../../../server/replicationIdentityS
 import * as replicationPlaylists from "../../../server/replicationPlaylists";
 import * as replicationTaxonomy from "../../../server/replicationTaxonomy";
 import * as replications from "../../../server/replications";
+import * as saveArticleBatch from "../../../server/saveArticleBatch";
 import * as siteConfig from "../../../server/siteConfig";
 import * as siteFeedback from "../../../server/siteFeedback";
 import * as subjectiveEffects from "../../../server/subjectiveEffects";
@@ -70,6 +72,7 @@ export const functionModules: Record<string, Record<string, unknown>> = {
   copyBlocks,
   effectIndexArchive,
   effectIndexArticles,
+  glossaryFeedback,
   indexLayouts,
   inviteCodes,
   mailingList,
@@ -94,6 +97,7 @@ export const functionModules: Record<string, Record<string, unknown>> = {
   replicationPlaylists,
   replicationTaxonomy,
   replications,
+  saveArticleBatch,
   siteConfig,
   siteFeedback,
   subjectiveEffects,

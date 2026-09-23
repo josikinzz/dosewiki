@@ -1,3 +1,4 @@
+import type { UiLocale } from "@/i18n/messages";
 import "server-only";
 
 import { createHash, randomUUID } from "node:crypto";
@@ -65,7 +66,7 @@ async function translationRevision(locale: string, hashes: string[]): Promise<st
   return rows[0]?.revision ?? "empty";
 }
 
-export async function getGalleryBrowseIndex(locale: "en" | "zh-Hans"): Promise<GalleryBrowseIndex> {
+export async function getGalleryBrowseIndex(locale: UiLocale): Promise<GalleryBrowseIndex> {
   const revision = await sourceRevision();
   if (canonicalCache?.revision !== revision) {
     const value = buildCanonicalIndex();
@@ -95,7 +96,7 @@ export async function getGalleryBrowseIndex(locale: "en" | "zh-Hans"): Promise<G
 }
 
 /** Selected identities alone hydrate; never fall back to a complete corpus. */
-export async function hydrateGalleryPage(rows: readonly PublicGalleryReplicationPreview[], locale: "en" | "zh-Hans") {
+export async function hydrateGalleryPage(rows: readonly PublicGalleryReplicationPreview[], locale: UiLocale) {
   const resolved = await getPublicGalleryReplicationsBySlugs(rows.map((row) => row.slug));
   const bySlug = new Map(resolved.map((row) => [row.slug, row]));
   const page = rows.flatMap((member) => {

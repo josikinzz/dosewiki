@@ -77,7 +77,7 @@ describe("private article session boundaries", () => {
       ...createEmptyArticle(), slug: "fixture", title: "Fixture",
       dosage: { routes: [createEmptyDosageRoute("Inhalation")] },
       duration: { routes: [createEmptyDurationRoute("Inhalation")] },
-    } as SubstanceArticle;
+    } as unknown as SubstanceArticle;
     const writes: Array<{ action: string; article: SubstanceArticle }> = [];
     vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
       if (init?.method === "POST") {
@@ -111,7 +111,7 @@ describe("private article session boundaries", () => {
       ...createEmptyArticle(), slug: "fixture", title: "Fixture",
       dosage: { routes: [createEmptyDosageRoute("Oral")] },
       duration: { routes: [createEmptyDurationRoute("Oral")] },
-    } as SubstanceArticle;
+    } as unknown as SubstanceArticle;
     const request = vi.fn().mockResolvedValue(Response.json({
       article: initial, baseHash: "revision", history: [], draftVersion: 0, draft: null,
     }));

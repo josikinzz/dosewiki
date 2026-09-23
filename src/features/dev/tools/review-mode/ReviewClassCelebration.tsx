@@ -231,7 +231,7 @@ export function ReviewClassCelebration({
             </div>
             <p className="font-display text-xl font-bold">{label} complete!</p>
             <p className="theme-text-secondary mt-1 text-sm">
-              All {total.toLocaleString()} articles reviewed — the whole class is
+              All {total.toLocaleString()} articles reviewed; the whole class is
               green.
             </p>
           </div>

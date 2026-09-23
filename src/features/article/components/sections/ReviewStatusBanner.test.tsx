@@ -36,12 +36,12 @@ describe("ReviewStatusBanner", () => {
       <ReviewStatusBanner
         article={baseArticle}
         profileHref="/contributors/lyrea"
-        copy="Awaiting sign-off from {{reviewer}} — details may change."
+        copy="Awaiting sign-off from {{reviewer}}; details may change."
       />,
     );
 
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Awaiting sign-off from Lyrea — details may change.",
+      "Awaiting sign-off from Lyrea; details may change.",
     );
     expect(screen.getByText("Lyrea").closest("a")).toHaveAttribute(
       "href",

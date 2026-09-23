@@ -120,6 +120,62 @@
       "when": 1789450983390,
       "tag": "0016_member_glossary_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790006535946,
+      "tag": "0017_odd_silver_sable",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790007280201,
+      "tag": "0018_useful_guardsmen",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790007480844,
+      "tag": "0019_productive_zaladane",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790050239846,
+      "tag": "0020_translation_review_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790050354701,
+      "tag": "0021_public_language_feedback",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790131890509,
+      "tag": "0022_translation_worker_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790132164767,
+      "tag": "0023_translation_job_backoff",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790133261380,
+      "tag": "0024_translation_queue_dead_letters",
+      "breakpoints": true
     }
   ]
 }

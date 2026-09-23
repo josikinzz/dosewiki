@@ -75,7 +75,7 @@ export function GalleryStagePreview({
               radius="lg"
               className="theme-text-muted text-sm"
             >
-              Nothing is curated yet, so the article shows no showcase — this is
+              Nothing is curated yet, so the article shows no showcase. This is
               where every substance starts. Curate a matched work and the stage
               appears here as soon as one image or video is on it.
             </EmptyStateSurface>

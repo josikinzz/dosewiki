@@ -1,5 +1,6 @@
 import { v } from "../lib/postgres/runtime/values";
 import { query } from "../lib/postgres/runtime/server";
+import type { Doc, Id } from "../lib/postgres/runtime/dataModel";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import {
@@ -57,7 +58,7 @@ export const getByReplicationIds = query({
     if (args.replication_ids.length > 100) {
       throw new Error("Attribution read-back is limited to 100 rows.");
     }
-    const rows = [];
+    const rows: Doc<"replicationSourceAttribution">[] = [];
     for (const id of args.replication_ids) {
       const row = await ctx.db
         .query("replicationSourceAttribution")
@@ -88,7 +89,17 @@ export const getRepairReadback = query({
     if (ids.size !== args.replication_ids.length) {
       throw new Error("Attribution repair read-back cannot repeat replication IDs.");
     }
-    const rows = [];
+    const rows: Array<{
+      id: Id<"replications">;
+      slug: string;
+      artist: string;
+      artist_url: string | null;
+      credit_line: string | null;
+      rightsholder: string | null;
+      source_catalog_id: string | null;
+      source_sha256: string | null;
+      attribution: Doc<"replicationSourceAttribution"> | null;
+    }> = [];
     for (const id of args.replication_ids) {
       const replication = await ctx.db.get(id);
       if (!replication) continue;

@@ -36,20 +36,23 @@ test("traced server runtime loads its router context without the workstation's d
   }
 });
 
-test("public artifact audit separates the browser Convex client from the server transport", () => {
+test("public artifact audit flags the Postgres driver and nothing else", () => {
   for (const resource of [
-    "/repo/node_modules/convex/dist/esm/react/index.js",
-    "/repo/node_modules/convex/dist/cjs/react/client.js",
-    "/repo/node_modules/convex/react.js",
-    "C:\\repo\\node_modules\\convex\\dist\\esm\\react\\index.js",
+    "/repo/node_modules/pg/lib/index.js",
+    "/repo/node_modules/pg/esm/index.mjs",
+    "/repo/node_modules/pg-pool/index.js",
+    "/repo/node_modules/pg-protocol/dist/index.js",
+    "/repo/node_modules/pg-cloudflare/dist/index.js",
+    "C:\\repo\\node_modules\\pg\\lib\\client.js",
   ]) {
     assert.equal(isDataBrowserClient(resource), true, resource);
   }
   for (const resource of [
-    "/repo/node_modules/convex/dist/esm/browser/http_client.js",
-    "/repo/node_modules/convex/dist/esm/values/index.js",
+    "/repo/node_modules/pg-types/index.js",
+    "/repo/node_modules/pgpass/lib/index.js",
     "/repo/node_modules/react/index.js",
     "/repo/src/features/dev/context/DevModeContext.tsx",
+    "/repo/lib/postgres/runtime/values.ts",
   ]) {
     assert.equal(isDataBrowserClient(resource), false, resource);
   }

@@ -120,7 +120,7 @@ function UseArticleFormHarness({
 describe("useArticleForm", () => {
   it("preserves references and route reference_ids while syncing duration routes", async () => {
     const article = createArticle();
-    let latestForm: UseArticleFormReturn | null = null;
+    let latestForm = null as UseArticleFormReturn | null;
 
     render(
       <UseArticleFormHarness
@@ -154,7 +154,7 @@ describe("useArticleForm", () => {
 
   it("moves dosage and duration routes together without relabeling their data", async () => {
     const article = createTwoRouteArticle();
-    let latestForm: UseArticleFormReturn | null = null;
+    let latestForm = null as UseArticleFormReturn | null;
 
     render(
       <UseArticleFormHarness
@@ -211,7 +211,7 @@ describe("useArticleForm", () => {
   describe("mutation reporting", () => {
     async function mountWithMutationSpy(article: SubstanceArticle) {
       const onMutate = vi.fn();
-      let latestForm: UseArticleFormReturn | null = null;
+      let latestForm = null as UseArticleFormReturn | null;
 
       render(
         <UseArticleFormHarness
@@ -311,7 +311,7 @@ describe("useArticleForm", () => {
 
   it("ignores out-of-range route moves", async () => {
     const article = createTwoRouteArticle();
-    let latestForm: UseArticleFormReturn | null = null;
+    let latestForm = null as UseArticleFormReturn | null;
 
     render(
       <UseArticleFormHarness
@@ -435,7 +435,7 @@ describe("useArticleForm route reconciliation", () => {
         ],
       },
     };
-    let latestForm: UseArticleFormReturn | null = null;
+    let latestForm = null as UseArticleFormReturn | null;
 
     render(
       <UseArticleFormHarness
@@ -475,7 +475,7 @@ describe("useArticleForm route reconciliation", () => {
         ],
       },
     };
-    let latestForm: UseArticleFormReturn | null = null;
+    let latestForm = null as UseArticleFormReturn | null;
 
     render(
       <UseArticleFormHarness
@@ -512,7 +512,7 @@ describe("useArticleForm route reconciliation", () => {
       ...base,
       duration: { routes: [base.duration.routes[1], base.duration.routes[0]] },
     };
-    let latestForm: UseArticleFormReturn | null = null;
+    let latestForm = null as UseArticleFormReturn | null;
 
     render(
       <UseArticleFormHarness

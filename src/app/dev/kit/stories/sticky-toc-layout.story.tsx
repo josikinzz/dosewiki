@@ -47,7 +47,7 @@ export const stickyTocLayoutStory: StoryDef = {
   examples: [
     {
       label: "Article with gutter TOC",
-      note: "Pass the bare TOC as `toc` and the article as children. The gutter only appears at >=1200px — in this narrower catalog stage it renders as the single-column fallback.",
+      note: "Pass the bare TOC as `toc` and the article as children. The gutter only appears at >=1200px; in this narrower catalog stage it renders as the single-column fallback.",
       background: "subtle",
       full: true,
       render: () => (
@@ -77,11 +77,11 @@ export const stickyTocLayoutStory: StoryDef = {
   ],
   whenToUse: [
     "Long-form article pages that need a sticky table of contents on wide screens.",
-    "Substance, effect, and trip-report detail pages — keep them visually consistent.",
+    "Substance, effect, and trip-report detail pages, to keep them visually consistent.",
   ],
   whenNotToUse: [
-    "Index/grid pages — use IndexPanelLayout.",
-    "Short pages with no TOC — a plain mx-auto max-w container is enough.",
+    "Index/grid pages: use IndexPanelLayout.",
+    "Short pages with no TOC: a plain mx-auto max-w container is enough.",
   ],
   notes: [
     "The two-column pair only engages at >=1200px (the earliest a 896px article plus a gutter rail fit); below that it is an unchanged single centered column.",

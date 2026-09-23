@@ -49,7 +49,7 @@ describe("contributor profile identity", () => {
         bio: "",
         links: [],
       }),
-    ].filter(Boolean);
+    ].filter((profile) => profile !== null);
 
     expect(findContributorProfileByKeyOrAlias(profiles, "editor")?.key).toBe("EDITOR");
     expect(findContributorProfileByKeyOrAlias(profiles, "OLD-EDITOR")?.key).toBe("EDITOR");

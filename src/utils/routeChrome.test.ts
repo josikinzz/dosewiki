@@ -280,3 +280,9 @@ describe("route chrome model", () => {
     expect(substances?.active).toBe(false);
   });
 });
+
+it("identifies language glossaries without announcing a substance profile", () => {
+  const model = getRouteChromeModel("/glossary/ar");
+  expect(model.pageTitle).toBe("Arabic glossary");
+  expect(model.activeGroup).toBe("none");
+});

@@ -15,3 +15,5 @@ export type GlossaryUsageResponse = {
   /** Coverage is deliberately partial, even when every matching node is returned. */
   coverage: string;
 };
+
+export type GlossaryUsageMap = Record<string, GlossaryUsageResponse>;

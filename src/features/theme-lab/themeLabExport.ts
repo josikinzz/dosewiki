@@ -53,8 +53,8 @@ export type ParsedThemeImport = {
   overrides: Partial<PaletteOverrides>;
 };
 
-/** One shape rather than a discriminated union: this repo compiles with
- *  `strictNullChecks` off, where union narrowing on a boolean tag is not
+/** One shape rather than a discriminated union, chosen while the repo compiled
+ *  without strict null checks, where union narrowing on a boolean tag was not
  *  reliable. A parse either yields a payload or an explanation. */
 export type ThemeImportResult = { value: ParsedThemeImport | null; error: string | null };
 

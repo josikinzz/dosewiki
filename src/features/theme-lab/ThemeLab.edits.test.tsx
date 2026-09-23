@@ -43,7 +43,7 @@ describe("ThemeLab token edits and persistence", { timeout: 15_000 }, () => {
     const panel = await openPanel();
     await switchToSections(panel);
 
-    await userEvent.click(within(panel).getByRole("button", { name: /Primary — headings/ }));
+    await userEvent.click(within(panel).getByRole("button", { name: /Primary: headings/ }));
 
     expect(within(panel).getByText("--theme-text-primary")).toBeInTheDocument();
     expect(within(panel).getByRole("slider", { name: "Hue" })).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe("ThemeLab token edits and persistence", { timeout: 15_000 }, () => {
     await switchToSections(panel);
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await userEvent.click(within(panel).getByRole("button", { name: /Primary — headings/ }));
+    await userEvent.click(within(panel).getByRole("button", { name: /Primary: headings/ }));
     const svSquare = panel.querySelector(`.${styles.svSquare}`) as HTMLDivElement | null;
     expect(svSquare).toBeInTheDocument();
     vi.spyOn(svSquare!, "getBoundingClientRect").mockReturnValue({
@@ -145,7 +145,7 @@ describe("ThemeLab token edits and persistence", { timeout: 15_000 }, () => {
     it("files a panel edit under the look it was made on", async () => {
       const panel = await openPanel();
       await switchToSections(panel);
-      await userEvent.click(within(panel).getByRole("button", { name: /Accent — base/ }));
+      await userEvent.click(within(panel).getByRole("button", { name: /Accent: base/ }));
       fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
         target: { value: "#fedcba" },
       });
@@ -162,7 +162,7 @@ describe("ThemeLab token edits and persistence", { timeout: 15_000 }, () => {
     it("resets to what the site's own stylesheets resolve, leaving no layer behind", async () => {
       const panel = await openPanel();
       await switchToSections(panel);
-      await userEvent.click(within(panel).getByRole("button", { name: /Primary — headings/ }));
+      await userEvent.click(within(panel).getByRole("button", { name: /Primary: headings/ }));
       fireEvent.change(within(panel).getByRole("textbox", { name: /Hex/ }), {
         target: { value: "#fedcba" },
       });

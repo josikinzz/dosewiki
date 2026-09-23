@@ -47,6 +47,7 @@ import { revalidateSavedPaths } from "../../src/app/api/save-article/revalidateS
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import { getPublicReplicationsForSubstance } from "./publicData.replications";
 import { getPublicFullSubstanceDocuments } from "./publicData.substances";
+import { getPublicHistoryDiff } from "./publicData.changelog";
 
 beforeEach(() => {
   vi.stubEnv("DATA_BACKEND", "postgres");
@@ -137,7 +138,7 @@ describe("public persistent cache boundaries", () => {
     refresh.mode = "background";
     refresh.allKeys = true;
     const draining = (async () => {
-      const pages = [];
+      const pages: string[] = [];
       for (let page = 0; page < 8; page++) pages.push(await read(page));
       return pages;
     })();
@@ -302,4 +303,30 @@ it("persists library and mechanism input pages across compositions and refreshes
   await revalidateSavedPaths(["/lsd"], "manual");
   expect((await adapter.getRawSubstances())[0].priority).toBe("low");
   expect((await adapter.getPublicMechanismRouteInput())[0].priority).toBe("low");
+});
+
+it("serves a repeated history diff from the tagged cache until that article's history expires", async () => {
+  let markdown = "+ first wording";
+  sourceQuery.mockImplementation(async (name: string, args: { entryId?: string }) => {
+    if (name !== "changelog:getByEntryId") throw new Error(`unexpected read ${name}`);
+    return {
+      entryId: args.entryId,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      message: "Clarify duration",
+      markdown,
+      submittedBy: "TESTKEY",
+      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+    };
+  });
+  const historyReads = () => sourceQuery.mock.calls.filter(([name]) => name === "changelog:getByEntryId").length;
+
+  expect(await getPublicHistoryDiff("20260101-000000-abcdef00", "lsd")).toContain("first wording");
+  markdown = "+ second wording";
+  expect(await getPublicHistoryDiff("20260101-000000-abcdef00", "lsd")).toContain("first wording");
+  expect(historyReads()).toBe(1);
+  expect([...stored.values()].some((entry) => entry.tags.includes(publicArticleHistoryTag("lsd")))).toBe(true);
+
+  await revalidateSavedPaths(["/lsd"], "manual");
+  expect(await getPublicHistoryDiff("20260101-000000-abcdef00", "lsd")).toContain("second wording");
+  expect(historyReads()).toBe(2);
 });

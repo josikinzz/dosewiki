@@ -6,7 +6,7 @@ const sampleCitations = [
   {
     number: 1,
     anchorId: "ref-shulgin-pihkal",
-    label: "Shulgin, A. & Shulgin, A. — PiHKAL: A Chemical Love Story",
+    label: "Shulgin, A. & Shulgin, A., PiHKAL: A Chemical Love Story",
     href: "https://example.org/pihkal",
   },
   {
@@ -135,7 +135,7 @@ export const articleCitationListStory: StoryDef = {
     "Surfacing citations that mix linked sources and label-only notes in one flow.",
   ],
   whenNotToUse: [
-    "Single inline citation markers in running prose — use the per-item citation token instead.",
+    "Single inline citation markers in running prose: use the per-item citation token instead.",
     "Editor-side citation management UIs, which have their own dev-owned controls.",
   ],
   notes: [

@@ -124,6 +124,7 @@ describe("POST /api/invite/redeem", () => {
     ["INVITE_EXHAUSTED", 410],
     ["USERNAME_TAKEN", 409],
     ["EMAIL_TAKEN", 409],
+    ["EMAIL_RESERVED", 400],
   ])("maps the %s refusal to %i with route-owned copy", async (code, status) => {
     mocks.redeemInviteCode.mockRejectedValueOnce(new PostgresError({ code, message: "internal diagnostic" }));
 

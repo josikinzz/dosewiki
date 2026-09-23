@@ -231,6 +231,11 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
     `Return ONLY a JSON object with the same keys and translated values. No preamble, no notes, no markdown fences.`,
   ];
 
+  const labelContexts = Object.fromEntries(units.filter((unit) => unit.context).map((unit) => [unit.id, unit.context]));
+  if (Object.keys(labelContexts).length > 0) {
+    lines.push("", "Meaning and usage for these UI labels (context only, do not translate this metadata):", JSON.stringify(labelContexts));
+  }
+
   if (safety) {
     lines.push(
       "",
@@ -252,10 +257,17 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
     );
   }
 
+  if (units.some((unit) => unit.source.includes("{{DWPROTECT"))) {
+    lines.push(
+      "",
+      "Opaque {{DWPROTECT...}} tokens represent exact source syntax or digits. Copy every token exactly once and place it where the translated sentence needs it. Never alter, translate, duplicate, or omit a token.",
+    );
+  }
+
   const contexts = new Set(units.map((unit) => unit.contextKind ?? "any"));
   const injected = Object.entries(glossary)
     .filter(([term]) => kindInContext(kinds[term] ?? "", contexts))
-    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.source)));
+    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.originalSource ?? unit.source)));
   const glossed = new Set(
     injected
       .filter(([term]) => glosses[term])

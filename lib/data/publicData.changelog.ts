@@ -204,7 +204,7 @@ function resolveContributors(
     }
     // Legacy stamps under a retired handle attribute to their current profile,
     // the same grouping the profile page uses in the other direction.
-    let profile = null;
+    let profile: ContributorDirectory[number] | null = null;
     for (const handle of expandLegacyContributorHandles([submittedBy])) {
       profile = findContributorProfileByKeyOrAlias(directory, handle);
       if (profile) break;
@@ -266,12 +266,35 @@ export const getPublicRecentChanges = cache(
   },
 );
 
+/**
+ * One changelog entry by id, persisted per entry and article scope. The scope
+ * only chooses the tag: an edit to that article expires its history tag, and
+ * any publication expires the changelog list tag, which also covers an entry
+ * first read before it existed.
+ */
+const readChangelogEntry = cache(
+  publicDataCache(
+    async (entryId: string, _slug: string | null): Promise<PublicChangelogRow | null> =>
+      getPublicDataReadAdapter().getPublicChangelogById(entryId),
+    ["data-public-changelog-entry", "v1"],
+    {
+      revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+      tags: (_entryId, slug) => [
+        PUBLIC_DATA_CACHE_TAGS.all,
+        PUBLIC_DATA_CACHE_TAGS.changelog,
+        PUBLIC_CHANGELOG_LISTS_TAG,
+        ...(slug ? [publicArticleHistoryTag(slug)] : []),
+      ],
+    },
+  ),
+);
+
 /** Addressable diff read. An article scope must actually belong to the entry. */
 export const getPublicHistoryDiff = cache(async (entryId: string, slug: string | null = null, wholeEntry = false): Promise<string | null> => {
   const fallback = initialChangeLogEntries.find((entry) => entry.id === entryId);
   let live: PublicChangelogRow | null;
   try {
-    live = await getPublicDataReadAdapter().getPublicChangelogById(entryId);
+    live = await readChangelogEntry(entryId, slug);
   } catch (error) {
     if (!fallback) throw error;
     live = null;

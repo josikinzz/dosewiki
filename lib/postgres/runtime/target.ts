@@ -19,7 +19,7 @@ export function parsePostgresTarget(value: string): { displayUrl: string; identi
   try {
     const url = new URL(value);
     const database = decodeURIComponent(url.pathname.slice(1));
-    if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || !database || database.includes("/") || /[\u0000-\u001f\u007f]/.test(database) || url.hash || url.port === "0") {
+    if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || !database || database.includes("/") || /\p{Cc}/u.test(database) || url.hash || url.port === "0") {
       throw new Error();
     }
     // libpq options must not silently redirect the URL to another destination.

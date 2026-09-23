@@ -208,7 +208,7 @@ const assemblePublicSubstanceGalleryFromCorpus = cache(async (
 ): Promise<PublicSubstanceGallery> => {
   const [corpus, curation] = await Promise.all([
     getPublicMatchableReplicationCorpus(),
-    getPublicSubstanceGalleryCuration(substance.slug),
+    substance.slug ? getPublicSubstanceGalleryCuration(substance.slug) : null,
   ]);
 
   const target = substanceGalleryTargetOf(substance);

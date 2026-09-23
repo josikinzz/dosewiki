@@ -94,8 +94,8 @@ export const customIconsStory: StoryDef = {
     "Through the shared Icon component, which looks these up by key for safe fallback.",
   ],
   whenNotToUse: [
-    "Anything Lucide or Iconify already covers — use those before adding a bespoke SVG.",
-    "Substance molecule structures — those are RDKit-generated assets in public/molecules, not registry glyphs.",
+    "Anything Lucide or Iconify already covers: use those before adding a bespoke SVG.",
+    "Substance molecule structures: those are RDKit-generated assets in public/molecules, not registry glyphs.",
   ],
   notes: [
     "customIcons is a Record, not a component; consumers pick a key then render the returned component.",

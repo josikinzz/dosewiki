@@ -11,3 +11,8 @@ const TRANSACTION_TIMEOUTS_SQL = `
 export async function setTransactionTimeouts(client: Pick<PoolClient, "query">): Promise<void> {
   await client.query(TRANSACTION_TIMEOUTS_SQL);
 }
+
+/** `begin` and the bounded timeouts in one round trip. Parameterless, so pg sends it as one simple query. */
+export function beginWithTimeouts(begin: string): string {
+  return `${begin};${TRANSACTION_TIMEOUTS_SQL}`;
+}

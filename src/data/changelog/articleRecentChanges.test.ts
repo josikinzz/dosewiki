@@ -56,7 +56,7 @@ describe("describeChange", () => {
   it("names a sourced claim when a citation-needed flag becomes a citation", () => {
     const diff = "@@ harm_potential.psychosis.description @@\n- Occurs in users[citation-needed] and more.\n+ Occurs in users[cite:doi-1] and more.";
 
-    expect(describeChange("Inline edit — harm_potential.psychosis.description", diff)).toEqual({
+    expect(describeChange("Inline edit \u2014 harm_potential.psychosis.description", diff)).toEqual({
       kind: "prose",
       message: "Sourced a claim",
       detail: null,
@@ -68,7 +68,7 @@ describe("describeChange", () => {
   it("counts citations and reworded words separately, with no link for an unanchored section", () => {
     const diff = "- The dose is 5 mg and safe.\n+ The dose is 4 mg and risky.[cite:a][cite:b]";
 
-    expect(describeChange("Inline edit — summary", diff)).toMatchObject({
+    expect(describeChange("Inline edit \u2014 summary", diff)).toMatchObject({
       message: "Added 2 citations and reworded 2 words",
       section: null,
       field: [{ label: "Summary", index: null }],
@@ -76,7 +76,7 @@ describe("describeChange", () => {
   });
 
   it("keeps an unmapped field path as words without a section link", () => {
-    expect(describeChange("Inline edit — mystery.thing", "- a\n+ b")).toMatchObject({
+    expect(describeChange("Inline edit \u2014 mystery.thing", "- a\n+ b")).toMatchObject({
       message: "Changed a word",
       section: null,
       field: [{ label: "Mystery", index: null }, { label: "Thing", index: null }],
@@ -84,7 +84,7 @@ describe("describeChange", () => {
   });
 
   it("splits a source message into verb and title", () => {
-    expect(describeChange("Added a source — Some paper title", "")).toEqual({
+    expect(describeChange("Added a source \u2014 Some paper title", "")).toEqual({
       kind: "source",
       message: "Added a source",
       detail: "Some paper title",
@@ -152,7 +152,7 @@ describe("mergeSourceChurn", () => {
 });
 describe("describeChange legacy paths", () => {
   it("reads an indexed field path as words", () => {
-    expect(describeChange("Inline edit — dosage.routes[0].dose_ranges.heavy", "- 1\n+ 2")).toMatchObject({
+    expect(describeChange("Inline edit \u2014 dosage.routes[0].dose_ranges.heavy", "- 1\n+ 2")).toMatchObject({
       kind: "prose",
       section: { id: "dosage-duration", label: "Dosage & Duration" },
       field: [{ label: "Routes", index: 1 }, { label: "Dose ranges", index: null }, { label: "Heavy", index: null }],

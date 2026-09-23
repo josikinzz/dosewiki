@@ -66,7 +66,7 @@ export const headerStory: StoryDef = {
     },
     {
       label: "Effects active",
-      note: "data-active is wired from the model — here the Effects nav item carries the active ring.",
+      note: "data-active is wired from the model; here the Effects nav item carries the active ring.",
       background: "card",
       full: true,
       render: () => (
@@ -123,12 +123,12 @@ export const headerStory: StoryDef = {
     "When you already have a RouteChromeModel and want consistent brand, search, and nav.",
   ],
   whenNotToUse: [
-    "Dev/editor surfaces — those have their own chrome and do not use the public RouteChromeModel.",
-    "Section sub-headers inside an article — use SectionHeader instead.",
+    "Dev/editor surfaces: those have their own chrome and do not use the public RouteChromeModel.",
+    "Section sub-headers inside an article: use SectionHeader instead.",
   ],
   notes: [
     "Client component: tracks the mobile menu via useState and closes it on outside-click, Escape, or route change.",
     "GlobalSearch is loaded with next/dynamic (ssr:false), so the server build renders a skeleton placeholder and the live field hydrates on the client.",
-    "Active state, labels, hrefs, and the mobile-only About label all come from the model — the component renders no hardcoded routes beyond the brand link.",
+    "Active state, labels, hrefs, and the mobile-only About label all come from the model; the component renders no hardcoded routes beyond the brand link.",
   ],
 };

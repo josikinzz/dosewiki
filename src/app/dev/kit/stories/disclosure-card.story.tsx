@@ -24,10 +24,10 @@ export const disclosureCardStory: StoryDef = {
       background: "plain",
       full: true,
       render: () => (
-        <DisclosureCard summary="CC0 1.0 Universal — the covered material" className="w-full">
+        <DisclosureCard summary="CC0 1.0 Universal: the covered material" className="w-full">
           <p className={BODY_TEXT_CLASS}>
-            Expanded content sits 20px from every card edge — flush with the summary label above
-            it and equal to ContentCard padding=&quot;md&quot; — so long prose never hugs the
+            Expanded content sits 20px from every card edge, flush with the summary label above
+            it and equal to ContentCard padding=&quot;md&quot;, so long prose never hugs the
             frame.
           </p>
         </DisclosureCard>
@@ -40,7 +40,7 @@ export const disclosureCardStory: StoryDef = {
       full: true,
       render: () => (
         <DisclosureCard
-          summary="Replication media — creator and rightsholder terms"
+          summary="Replication media: creator and rightsholder terms"
           defaultOpen
           className="w-full"
         >
@@ -62,7 +62,7 @@ export const disclosureCardStory: StoryDef = {
       full: true,
       render: () => (
         <div className="flex w-full flex-col gap-3">
-          {["Extraction prompt — summary (12 KB)", "Extraction prompt — dosage (9 KB)"].map(
+          {["Extraction prompt: summary (12 KB)", "Extraction prompt: dosage (9 KB)"].map(
             (label) => (
               <DisclosureCard key={label} summary={label} variant="subtle" className="w-full">
                 <pre className="theme-text-secondary overflow-x-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap">
@@ -91,7 +91,7 @@ export const disclosureCardStory: StoryDef = {
       type: "boolean",
       default: "false",
       description:
-        "Sets the native open attribute on first render. Uncontrolled after that — the browser toggles it.",
+        "Sets the native open attribute on first render. Uncontrolled after that; the browser toggles it.",
     },
     {
       name: "variant",
@@ -126,9 +126,9 @@ export const disclosureCardStory: StoryDef = {
     "Server-rendered doc pages where the toggle must work with zero client JS.",
   ],
   whenNotToUse: [
-    "Truncating a list or paragraph in place — use ExpandableList / ExpandableText.",
-    "Always-visible content sections — use ContentCard; a disclosure hides content behind a click.",
-    "Stateful editor panels that need controlled open state — build on real state, not native <details>.",
+    "Truncating a list or paragraph in place: use ExpandableList / ExpandableText.",
+    "Always-visible content sections: use ContentCard; a disclosure hides content behind a click.",
+    "Stateful editor panels that need controlled open state: build on real state, not native <details>.",
   ],
   notes: [
     "Body content lands 20px from every card edge (card p-2 + body px-3 pb-3), aligned with the summary label and equal to ContentCard padding=\"md\".",

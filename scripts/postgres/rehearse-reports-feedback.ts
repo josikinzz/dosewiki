@@ -345,17 +345,17 @@ async function main() {
     expect("route", "refused creates wrote nothing", (await count("tripReportSubmissions", '"id" = $1', [`${tag}-wrong-key`])) === 0);
 
     // ---------------------------------------------------------------- d. publish (promote)
-    const editorTransition = await rejection(() => client.mutation(api.tripReportSubmissions.transition, { ...editorArgs, id: submissionId, status: "accepted", reviewer: members.editor }));
+    const editorTransition = await rejection(() => client.mutation(api.tripReportSubmissions.transition, { ...editorArgs, id: submissionId, status: "accepted" }));
     expect("publish", "editor cannot transition a submission (admin floor)", messageOf(editorTransition) === "Admin access required", messageOf(editorTransition));
-    const illegal = await rejection(() => client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: submissionId, status: "exported", reviewer: members.admin }));
+    const illegal = await rejection(() => client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: submissionId, status: "exported" }));
     expect("publish", "submitted -> exported is refused", messageOf(illegal) === "Illegal transition: submitted -> exported.", messageOf(illegal));
-    const acceptedRow = await client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: submissionId, status: "accepted", reviewer: members.admin, notes: "looks fine" });
+    const acceptedRow = await client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: submissionId, status: "accepted", notes: "looks fine" });
     expect("publish", "admin moves the submission to accepted", acceptedRow.status === "accepted" && acceptedRow.reviewed_by === members.admin && acceptedRow.review_notes === "looks fine" && (await submissionRow(submissionId))?.status === "accepted");
-    const preview = await client.query(api.tripReportSubmissions.previewPromotion, { ...editorArgs, id: submissionId, reviewer: members.editor });
+    const preview = await client.query(api.tripReportSubmissions.previewPromotion, { ...editorArgs, id: submissionId });
     const expectedSlug = slugify(title);
     expect("publish", "editor previews the promotion payload", preview.payload.slug === expectedSlug && preview.payload.license === "public-domain" && preview.row.id === submissionId, preview.payload.slug);
 
-    const promoted = await client.mutation(api.tripReportSubmissions.promote, { ...adminArgs, id: submissionId, reviewer: members.admin });
+    const promoted = await client.mutation(api.tripReportSubmissions.promote, { ...adminArgs, id: submissionId });
     const reportId = promoted.reportId as string;
     scratch.reportIds.push(reportId);
     scratch.reportSlugs.push(expectedSlug);
@@ -423,9 +423,9 @@ async function main() {
     const failingRow = createTripReportSubmission({ ...failingInput, report: { ...failingInput.report, substances: [{ name: hugeName }] } }, { id: `${tag}-never-published` });
     scratch.submissionIds.push(failingRow.id);
     await client.mutation(api.tripReportSubmissions.create, { apiKey: intakeToken, submission: asSubmissionArg(failingRow) });
-    await client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: failingRow.id, status: "accepted", reviewer: members.admin });
+    await client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: failingRow.id, status: "accepted" });
     const failingSlug = slugify(failingTitle);
-    const promoteFailure = await rejection(() => client.mutation(api.tripReportSubmissions.promote, { ...adminArgs, id: failingRow.id, reviewer: members.admin }));
+    const promoteFailure = await rejection(() => client.mutation(api.tripReportSubmissions.promote, { ...adminArgs, id: failingRow.id }));
     const failingSubmission = await submissionRow(failingRow.id);
     expect("publish", "promote whose association write fails surfaces the SQL error", sqlCodeOf(promoteFailure) === "54000", messageOf(promoteFailure).slice(0, 120));
     expect("publish", "failed promote left no report, no associations, no outbox row, and an unexported submission",
@@ -520,9 +520,9 @@ async function main() {
       expect(scenario, "intake token cannot list the queue", messageOf(intakeList) === "Authentication failed: Invalid API key", messageOf(intakeList));
       const viewerList = await rejection(() => client.query(feedback.refs.list, { ...viewerArgs }));
       expect(scenario, "viewer cannot list the queue", messageOf(viewerList) === "Editor access required", messageOf(viewerList));
-      const viewerReview = await rejection(() => client.mutation(feedback.refs.transition, { ...viewerArgs, id: rows[0].id, status: "reviewing", reviewer: members.viewer }));
+      const viewerReview = await rejection(() => client.mutation(feedback.refs.transition, { ...viewerArgs, id: rows[0].id, status: "reviewing" }));
       expect(scenario, "viewer cannot review", messageOf(viewerReview) === "Admin access required", messageOf(viewerReview));
-      const editorReview = await rejection(() => client.mutation(feedback.refs.transition, { ...editorArgs, id: rows[0].id, status: "reviewing", reviewer: members.editor }));
+      const editorReview = await rejection(() => client.mutation(feedback.refs.transition, { ...editorArgs, id: rows[0].id, status: "reviewing" }));
       expect(scenario, "editor cannot review (admin floor)", messageOf(editorReview) === "Admin access required", messageOf(editorReview));
       const editorRows = (await client.query(feedback.refs.list, { ...editorArgs, status: "new", limit: 250 })) as { id: string }[];
       expect(scenario, "editor lists the queue (positive control)", rows.every((row) => editorRows.some((listed) => listed.id === row.id)));
@@ -545,20 +545,20 @@ async function main() {
 
       // Transitions: enumerated from VALID_TRANSITIONS in the module.
       const newBefore = await client.query(feedback.refs.countByStatus, { ...adminArgs, statuses: ["new"] });
-      const reviewing = await client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "reviewing", reviewer: members.admin, note: "taking a look" });
-      const resolved = await client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "resolved", reviewer: members.admin });
+      const reviewing = await client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "reviewing", note: "taking a look" });
+      const resolved = await client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "resolved" });
       expect(scenario, "new -> reviewing -> resolved is allowed and keeps the note", reviewing.status === "reviewing" && resolved.status === "resolved" && resolved.review_notes === "taking a look" && resolved.reviewed_by === members.admin);
-      const backToNew = await rejection(() => client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "new", reviewer: members.admin }));
+      const backToNew = await rejection(() => client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "new" }));
       const storedStatus = (await pool.query(`SELECT "status" FROM "${feedback.module}" WHERE "id" = $1`, [rows[0].id])).rows[0]?.status;
       expect(scenario, "resolved -> new is refused and the row stays resolved", messageOf(backToNew) === "Illegal transition: resolved -> new." && storedStatus === "resolved", { error: messageOf(backToNew), storedStatus });
       const newAfter = await client.query(feedback.refs.countByStatus, { ...adminArgs, statuses: ["new"] });
       expect(scenario, "countByStatus reflects the transition", newAfter === newBefore - 1, { newBefore, newAfter });
       const spamRow = feedback.row(4, new Date(base + 4000).toISOString(), true);
       await client.mutation(feedback.refs.create, { apiKey: intakeToken, feedback: spamRow });
-      const spamToResolved = await rejection(() => client.mutation(feedback.refs.transition, { ...adminArgs, id: spamRow.id, status: "resolved", reviewer: members.admin }));
-      const spamToReviewing = await client.mutation(feedback.refs.transition, { ...adminArgs, id: spamRow.id, status: "reviewing", reviewer: members.admin });
+      const spamToResolved = await rejection(() => client.mutation(feedback.refs.transition, { ...adminArgs, id: spamRow.id, status: "resolved" }));
+      const spamToReviewing = await client.mutation(feedback.refs.transition, { ...adminArgs, id: spamRow.id, status: "reviewing" });
       expect(scenario, "spam -> resolved is refused while spam -> reviewing is allowed", messageOf(spamToResolved) === "Illegal transition: spam -> resolved." && spamToReviewing.status === "reviewing", messageOf(spamToResolved));
-      const missing = await rejection(() => client.mutation(feedback.refs.transition, { ...adminArgs, id: `${tag}-missing`, status: "reviewing", reviewer: members.admin }));
+      const missing = await rejection(() => client.mutation(feedback.refs.transition, { ...adminArgs, id: `${tag}-missing`, status: "reviewing" }));
       expect(scenario, "transition of an unknown id is refused", /not found\.$/.test(messageOf(missing)), messageOf(missing));
     }
 

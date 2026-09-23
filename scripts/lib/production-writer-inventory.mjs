@@ -22,6 +22,8 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/effects/upgrade-embed-resolutions.mjs",
     "scripts/migrate/migrate-binding-sites.mjs",
     "scripts/migrate/migrate-pharmacology-schema.mjs",
+    "scripts/postgres/import-document-snapshot.ts",
+    "scripts/postgres/rebuild-derived-tables.ts",
     "scripts/remove-contributor.mjs",
     "scripts/replications/apply-artist-license.mjs",
     "scripts/replications/apply-date-research.mjs",
@@ -126,6 +128,10 @@ export const productionWriterClassifications = Object.freeze({
       ],
     },
     {
+      path: "scripts/data-ops/production-sync.mjs",
+      guardedEntrypoints: ["scripts/data-ops/sync-data-to-production.mjs"],
+    },
+    {
       path: "scripts/migrate/effects/persist.mjs",
       guardedEntrypoints: ["scripts/migrate/migrate-effects.mjs"],
     },
@@ -155,6 +161,19 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/create-gallery-order.mjs",
     "scripts/replications/repoint-renditions.mjs",
     "scripts/translation/import-glossary-drafts.ts",
+  ]),
+  // Local rehearsals that write scratch rows with raw SQL. They are held to
+  // targetGuard (loopback only unless --allow-remote plus
+  // POSTGRES_IMPORT_CONFIRM), not to the production write ceremony.
+  localRehearsal: Object.freeze([
+    "scripts/postgres/rehearse-article-lifecycle.ts",
+    "scripts/postgres/rehearse-auth.ts",
+    "scripts/postgres/rehearse-content-tools.ts",
+    "scripts/postgres/rehearse-http-surface.ts",
+    "scripts/postgres/rehearse-release.ts",
+    "scripts/postgres/rehearse-replications-identity.ts",
+    "scripts/postgres/rehearse-reports-feedback.ts",
+    "scripts/postgres/rehearse-storage-fallbacks.ts",
   ]),
   detectorExemption: Object.freeze([
     {

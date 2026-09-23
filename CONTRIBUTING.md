@@ -42,8 +42,8 @@ aggregate before opening a pull request:
 | --- | --- |
 | `npm run test` | Vitest for `src/**` and `lib/**` |
 | `npm run test -- <path>` | One test file |
-| `npm run typecheck` | Application type check |
-| `npm run lint` | ESLint for `src/` and `lib/` |
+| `npm run typecheck` | Application type check, with strict null checks on |
+| `npm run lint` | ESLint for `src/` and `lib/`, then the em dash check (`scripts/lint/check-em-dashes.mjs`) |
 | `npm run verify:fast` | `test` plus `typecheck` |
 | `npm run verify:app` | OpenChemLib fork check, tests, lint, and build |
 | `npm run test:workflow` | Script and tool tests under `scripts/**` |

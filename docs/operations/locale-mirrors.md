@@ -1,8 +1,12 @@
-# Locale mirrors (zh.dose.wiki)
+# Locale mirrors (zh.dose.wiki and ru.dose.wiki)
 
 Unlisted, machine-translated mirrors of dose.wiki for readers who share the
-language. One subdomain per locale; Simplified Chinese is the first and, until
-its coverage audit runs clean, the only one.
+language. One subdomain per locale. The route registry includes Simplified
+Chinese and Russian. A new mirror needs its catalog, compact publication index,
+production build, and verified domain binding before it can serve readers.
+
+The translator review UI and release checks are documented in the
+[translation workbench runbook](../workflows/translation-workbench.md).
 
 ## What it is and is not
 
@@ -13,7 +17,7 @@ its coverage audit runs clean, the only one.
   looks up the hashes, and splices the stored targets over a clone. A hash the
   store lacks renders in English. Identical English anywhere in the corpus is
   one row.
-- **English is the only baseline.** Nothing edits Chinese directly. An English
+- **English is the only baseline.** Article prose is translated from English; contextual UI wording and glossary terms can be edited directly in the review workbench. An English
   edit changes the hash of the edited leaf; only that leaf goes back to the
   model. Untouched leaves keep their stored translation.
 - **One engine and prompt contract.** `scripts/translation/locales.mjs` owns
@@ -25,8 +29,7 @@ its coverage audit runs clean, the only one.
   one row per locale and term with `target`, `kind`, `status` (`draft` |
   `approved`), `source` (`model` | `human`), and who reviewed it. Only
   approved rows reach a prompt or the digest. It is reviewed in
-  `/dev/glossary` by admins or Translators assigned that language: approve or
-  edit each rendering (editing approves). Editor and Translator are independent
+  `/dev/glossary` by admins or Translators assigned that language: save a draft, then explicitly approve the saved revision. Draft corrections retain the effective approved rendering. Editor and Translator are independent
   checkboxes; both are persisted as `editor_translator`, with `glossaryLocales`
   carrying the approved language codes. Editor alone grants no translated
   glossary access. Missing legacy scope grants no language until an admin
@@ -56,11 +59,11 @@ its coverage audit runs clean, the only one.
 
 ## Deferred GT inputs
 
-The `gt` and `gt-next` package dependencies plus tracked `gt.config.json` are
-intentionally deferred. The current locale mirrors do not import them or use GT
-at runtime. Keep them until their intended integration or retirement and
-source/provenance requirements are resolved. Their presence does not mean GT
-serves production.
+The `gt-next` package dependency is intentionally deferred (the `gt` package
+and `gt.config.json` are already gone). The current locale mirrors do not import
+it or use GT at runtime, and `knip.config.js` ignores it for that reason. Keep it
+until its intended integration or retirement and source/provenance requirements
+are resolved. Its presence does not mean GT serves production.
 
 ## Shape
 
@@ -80,6 +83,11 @@ A segment that fails a blocking check in `scripts/translation/validate.mjs` is n
 stored: English remains visible and the rejection stays explicit. That validator
 owns numeric, citation-marker, markup, script and placeholder rules. Rejection is
 not successful translation coverage; use the current worker's bounded retry contract.
+A provider failure is not a rejection. An authorization, credit or unknown-model
+refusal, or a retryable failure that outlasts the engine's transport retries,
+throws `TranslationTransportError` (defect code `TRANSPORT_FAILURE`) out of
+`translateBatchWithRetries()`. The job fails and retries under its backoff, no
+rejection row is written, and the worker log carries the code and status.
 
 ### Durable refresh and rollout
 
@@ -88,23 +96,78 @@ is a monotonic bigint generation, not just a wall-clock timestamp: re-enqueue us
 `GREATEST(now, previous + 1)`. A claim binds generation, `claimed_at` and attempt;
 completion and failure compare all three under a row lock and reject stale workers.
 
+A failed job sets `next_attempt_at` (migration `0023`) and is not claimed again
+before it: the delay starts at 150 seconds, doubles per failure up to one hour,
+and gains up to 20% jitter, so the five attempts span more than 30 minutes and a
+short provider outage cannot exhaust a record. A run budget abort after the
+record stored segments gives back its attempt and stays due. Re-enqueueing a
+record clears the delay. Once a bulk run settles, an admin can press "Retry
+failed pages" on the Glossary tab's progress card: the run's exhausted jobs get
+fresh attempts in the same run, and nothing else in the queue changes.
+
 Before signed publication dispatch, the publication-delivery cron atomically
 enqueues locale work and records a receipt for that publication generation.
 Replay preserves that receipt instead of resetting newer work; enqueue failure
 leaves delivery pending. Cache-only refresh does not enqueue new translation work.
 See [the publication boundary](../architecture/runtime-and-data.md#editor-save-article-flow).
 
-The translation-refresh cron processes one job at a time under a shared abort
-signal and an admission reserve. `src/app/api/cron/translation-refresh/route.ts`
-owns those limits; `lib/translation/liveTranslation.ts` and
-`scripts/translation/engine.mjs` propagate cancellation to the provider request.
-Rejected segments or missing/failed cache-delivery receipts leave the job pending
-under the store's bounded attempt limit, not completed or retried indefinitely.
+The five-minute translation-refresh cron remains the one-record incremental lane
+for editorial freshness. Operator-started main translations and glossary
+retranslations receive a stable `run_id` and `mode=bulk`; the separate
+translation-bulk cron claims up to 100 of those records every minute. Each lane
+holds its own database lease (`glm-5.3-flash:bulk`, `glm-5.3-flash:incremental`),
+so invocations of one lane never overlap and editorial refreshes keep running
+while a bulk campaign holds the bulk lease. The 100-request GLM 5.3 Flash
+ceiling is split by `TRANSLATION_REQUEST_QUOTA` in
+`lib/translation/requestPool.ts`: 90 for bulk and 10 for incremental, including
+retries, so the cap holds across both lanes and processes. Workers from before
+the split used one shared lease key; drain them before rollout so old and new
+leases never run side by side.
+Both workers propagate
+cancellation through `lib/translation/liveTranslation.ts` and
+`scripts/translation/engine.mjs` to the provider request.
 
-This generation/receipt change needs no schema migration. Drain old requests,
-cron workers and operator binaries before rollout: an old worker can complete
-unconditionally and defeat the new lease check. Preserve job/outbox history;
-repair of already-missed work requires its own bounded approved plan.
+Each claimed bulk wave shares one segment writer. Its jobs queue accepted
+segments, and the writer commits them one transaction at a time, coalescing
+whatever queued meanwhile, so a wave holds one pool connection and the global
+publication-index lock at most once at a time. A segment hash that two jobs in
+the wave need, for the same locale, is requested once; the other job waits for
+that result. The incremental lane still writes each record's segments itself.
+
+Every worker invocation writes one `translationWorkerRuns` row (migration
+`0022`): lane, whether it held the lease, claimed, completed, failed and
+exhausted counts, token usage, duration and the first error. A run that lost
+the lease records `lease_held = false` instead of looking idle. Each lane prunes
+its own rows older than 14 days. `readLatestTranslationWorkerRuns()` returns the
+newest row per lane; the read-only SQL is
+`SELECT DISTINCT ON ("mode") * FROM "translationWorkerRuns" ORDER BY "mode", "started_at" DESC`.
+Job failures and cache delivery exceptions log `[translation-worker] job:failed`
+and `[translation-worker] cache:failed` with locale, slug, mode and message.
+Provider failures are `OpenRouterChatError` instances carrying `status` and
+`retryable`.
+
+Accepted segments complete their record job even if public-cache delivery is
+still pending. The same database transaction creates a translation-cache job;
+workers retry it until direct delivery succeeds or the publication outbox accepts
+it. Cache delivery never consumes a model attempt. A worker claims cache jobs
+fresh-first; each claim spends a cache attempt and leases the row until its
+backoff (one minute, doubling to one hour). After eight attempts the row is a
+dead letter: never claimed again, kept with `attempts` and `last_error` for
+inspection, and reset when the record's translation completes again
+(migration `0024`). A segment that remains
+rejected after the engine's bounded retries stays English and is recorded, while
+the record completes with terminal rejection detail instead of becoming an
+unclaimable pending job. The Glossary tab polls the newest enqueue generation
+and separates active, completed, completed-with-rejections and legacy exhausted
+counts.
+
+Migrations `0017` through `0019` add run identity and terminal status, lane-safe
+job keys, the shared worker lease, and durable translation-cache jobs. Apply all
+three in order before releasing either worker or the progress reader. Drain old
+requests, cron workers and operator binaries
+before rollout: an old worker can complete unconditionally and defeat the new
+lease check. Preserve job/outbox history; repair of already-missed work requires
+its own bounded approved plan.
 
 ## Finding what is still English
 
@@ -148,8 +211,11 @@ as article details, including English fallback for missing translations.
 
 Migrations `0012` and `0013` add the projection, producer state and invalidation
 triggers. Publication writes and `writeTranslations` rebuild affected metadata
-inside their transaction. Missing or dirty metadata is an explicit readiness
-error, not permission to hide an article or load full bodies in an index read.
+inside their transaction: a publication write rebuilds only that publication's
+rows, and a segment write rebuilds only the rows whose dependency hashes include
+a written segment. Only the backfill command rebuilds the whole dirty backlog.
+Missing or dirty metadata is an explicit readiness error, not permission to hide
+an article or load full bodies in an index read.
 
 `bun run translate:publication-index -- --dry-run` prepares the bounded
 `zh-Hans` non-blog backfill with the explicit target and remote guards from the
@@ -217,10 +283,11 @@ require the complete intent-scoped credential, explicit target, role, freeze,
 review, confirmation phrase, and `--write` ceremony documented in the
 credentials runbook. `--write` alone is not authorization.
 
-`stale --term` selects affected rows, marks them stale and restamps unaffected
-rows only when their prompt remains byte-identical. The editor's affected-segment
-action enqueues corresponding records. Review the actual selection and digest
-before authorizing either path; a historical row count is not scope evidence.
+`stale --term` prints the rows it selects (`Matched rows  29 mentioning
+"Entactogen"` on 2026-09-12), marks them stale and replays the marked rows. It does not restamp unrelated old digests without evidence of unchanged prompt dependencies. The `/dev/glossary` tab's "Retranslate affected segments" does
+the same marking and then enqueues the records that mention the term for the
+cron, which retranslates missing and stale hashes alike. The action records a
+request, not completion. Source coverage and queue state are reported separately.
 
 The semantic source-unit, concept-registry, artifact-generation, checkpoint,
 and semantic-store migration/import commands are deferred. Production has no
@@ -318,10 +385,14 @@ workflow; remote reads and provider/model calls retain their own authorization.
 - The pipeline's supported locales are owned by `scripts/translation/locales.mjs`;
   public activation is owned separately by `lib/next/localeHostPolicy.ts`. Inspect
   operator and coverage implementations for locale restrictions before expansion.
+- Russian uses the same stored overlays and English fallback as Chinese.
+  `live-mirror.ts`, `mirror-coverage.ts`, `ui-catalog.ts`, and
+  `backfill-publication-index.ts` accept `--locale`; their default remains
+  `zh-Hans`. Domain readiness is separate from completed translation jobs.
 
 ## Adding a locale
 
-Not before the zh coverage audit runs clean. Then:
+Run the coverage audits and review any remaining fallback before launch. Then:
 
 1. Add the locale to `LOCALES` in `scripts/translation/locales.mjs` with its script
    gate, length band and register notes. Prepare glossary drafts only through an
@@ -338,3 +409,19 @@ Not before the zh coverage audit runs clean. Then:
 4. Add the domain on Vercel, then either "Start main translation" in the tab
    (enqueues every record for the cron, slow but hands-free) or run
    `backfill` from a workstation, and run both coverage lenses.
+
+### Russian launch prerequisites
+
+The Russian route tree is `src/app/ru/`, with host `ru.dose.wiki` on the public
+project. Its UI catalog is `src/i18n/messages/ru.json`; the client loads only the
+active language catalog. Gallery API requests and cursor identities retain `ru`.
+
+Before promotion, run the guarded publication-index dry run with `--locale ru`.
+Apply the reviewed plan through the existing command and credential ceremony,
+then confirm `readLocalizedPublicationIndex` succeeds. Do not bypass its readiness
+error or replace the compact index with full narrative reads. Inspect failed
+translation jobs separately; a completed glossary does not establish corpus
+coverage. Build and verify host rewrites, Russian reading pages, Chinese About,
+and the public artifact audit before adding the new production domain. Release
+the matching locale registry to the editor as well so subsequent publications
+enqueue Russian translation jobs and expire Russian cache paths.

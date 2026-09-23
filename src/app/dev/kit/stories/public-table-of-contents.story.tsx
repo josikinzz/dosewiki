@@ -66,7 +66,7 @@ export const publicTableOfContentsStory: StoryDef = {
     },
     {
       label: "Empty (renders nothing)",
-      note: "With no items the component returns null — there is no empty shell to show.",
+      note: "With no items the component returns null; there is no empty shell to show.",
       background: "plain",
       render: () => (
         <div className="text-sm text-[var(--theme-text-muted)]">
@@ -103,8 +103,8 @@ export const publicTableOfContentsStory: StoryDef = {
     "The sticky wide-screen contents rail (bare) and the inline hero contents card (panel).",
   ],
   whenNotToUse: [
-    "Cross-page navigation — these are same-page #hash links, not router links.",
-    "Dev/editor surfaces — this is tuned for public article chrome.",
+    "Cross-page navigation: these are same-page #hash links, not router links.",
+    "Dev/editor surfaces: this is tuned for public article chrome.",
   ],
   notes: [
     "Click is intercepted only for plain left-clicks; modifier/middle clicks fall back to the native #hash anchor.",

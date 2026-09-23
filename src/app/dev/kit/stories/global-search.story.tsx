@@ -34,7 +34,7 @@ export const globalSearchStory: StoryDef = {
     },
     {
       label: "Compact header",
-      note: "compact pill with a trailing submit button — the form factor in the route header.",
+      note: "compact pill with a trailing submit button, the form factor in the route header.",
       background: "card",
       full: true,
       render: () => (
@@ -49,7 +49,7 @@ export const globalSearchStory: StoryDef = {
     },
     {
       label: "Home hero",
-      note: 'variant="home" — the oversized rounded search on the landing hero.',
+      note: 'variant="home": the oversized rounded search on the landing hero.',
       background: "subtle",
       full: true,
       render: () => (
@@ -122,8 +122,8 @@ export const globalSearchStory: StoryDef = {
     "Anywhere you need a search entry point for substances, effects, reports, and profiles.",
   ],
   whenNotToUse: [
-    "Filtering a local list in place — use a plain Input plus your own filter state.",
-    "Forms that submit elsewhere — this component owns navigation via onNavigate.",
+    "Filtering a local list in place: use a plain Input plus your own filter state.",
+    "Forms that submit elsewhere: this component owns navigation via onNavigate.",
   ],
   notes: [
     "The input does not fetch or render local suggestions; results live on the search page.",

@@ -19,6 +19,7 @@ import type * as contributorProfiles from "../../../server/contributorProfiles";
 import type * as copyBlocks from "../../../server/copyBlocks";
 import type * as effectIndexArchive from "../../../server/effectIndexArchive";
 import type * as effectIndexArticles from "../../../server/effectIndexArticles";
+import type * as glossaryFeedback from "../../../server/glossaryFeedback";
 import type * as indexLayouts from "../../../server/indexLayouts";
 import type * as inviteCodes from "../../../server/inviteCodes";
 import type * as mailingList from "../../../server/mailingList";
@@ -43,6 +44,7 @@ import type * as replicationIdentitySocial from "../../../server/replicationIden
 import type * as replicationPlaylists from "../../../server/replicationPlaylists";
 import type * as replicationTaxonomy from "../../../server/replicationTaxonomy";
 import type * as replications from "../../../server/replications";
+import type * as saveArticleBatch from "../../../server/saveArticleBatch";
 import type * as siteConfig from "../../../server/siteConfig";
 import type * as siteFeedback from "../../../server/siteFeedback";
 import type * as subjectiveEffects from "../../../server/subjectiveEffects";
@@ -70,6 +72,7 @@ export type Api = ApiFromModules<{
   copyBlocks: typeof copyBlocks;
   effectIndexArchive: typeof effectIndexArchive;
   effectIndexArticles: typeof effectIndexArticles;
+  glossaryFeedback: typeof glossaryFeedback;
   indexLayouts: typeof indexLayouts;
   inviteCodes: typeof inviteCodes;
   mailingList: typeof mailingList;
@@ -94,6 +97,7 @@ export type Api = ApiFromModules<{
   replicationPlaylists: typeof replicationPlaylists;
   replicationTaxonomy: typeof replicationTaxonomy;
   replications: typeof replications;
+  saveArticleBatch: typeof saveArticleBatch;
   siteConfig: typeof siteConfig;
   siteFeedback: typeof siteFeedback;
   subjectiveEffects: typeof subjectiveEffects;

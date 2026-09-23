@@ -62,7 +62,7 @@ export const safetyBannerStory: StoryDef = {
     },
     {
       label: "Caution",
-      note: "Amber surface. Copy is the gabaergic-withdrawal preset, re-toned here so the third surface is visible — the shipped preset stores danger.",
+      note: "Amber surface. Copy is the gabaergic-withdrawal preset, re-toned here so the third surface is visible; the shipped preset stores danger.",
       background: "plain",
       render: () => (
         <SafetyBanner variant="caution" icon="lucide:activity">
@@ -80,7 +80,7 @@ export const safetyBannerStory: StoryDef = {
     },
     {
       label: "Bullets are opt-in",
-      note: "The same two sentences twice. Plain lines render as paragraphs; the same lines opened with a markdown `- ` render as a list. Nothing about the count changes the shape — only the marker does, so an editor who wants prose gets prose.",
+      note: "The same two sentences twice. Plain lines render as paragraphs; the same lines opened with a markdown `- ` render as a list. Nothing about the count changes the shape. Only the marker does, so an editor who wants prose gets prose.",
       background: "plain",
       render: () => (
         <div className="flex flex-col gap-4">
@@ -120,7 +120,7 @@ export const safetyBannerStory: StoryDef = {
           </SafetyBannerTitle>
           <SafetyBannerPoints
             points={[
-              "Produces true hallucinations indistinguishable from reality — people hold conversations with people who are not there.",
+              "Produces true hallucinations indistinguishable from reality; people hold conversations with people who are not there.",
               "- Insight and recall are absent. You cannot talk yourself down.",
               "- Anticholinergic toxidrome: hyperthermia, tachycardia, urinary retention.",
             ]}
@@ -135,7 +135,7 @@ export const safetyBannerStory: StoryDef = {
       type: '"danger" | "unsafe" | "caution"',
       default: '"danger"',
       description:
-        "Severity tone. Drives the theme-interaction-* card surface, the severity chip's paired badge class, and the root ink colour that the glyph and bullet dots inherit. Tonal only — it says how bad the risk is, never which feature is rendering.",
+        "Severity tone. Drives the theme-interaction-* card surface, the severity chip's paired badge class, and the root ink colour that the glyph and bullet dots inherit. Tonal only: it says how bad the risk is, never which feature is rendering.",
     },
     {
       name: "icon",
@@ -147,7 +147,7 @@ export const safetyBannerStory: StoryDef = {
       name: "severityLabel (SafetyBannerTitle)",
       type: "string",
       description:
-        'The word in the dark chip, e.g. "Danger". A stored field, not derived from the tone — an editor may write "Fatal risk" over a danger-tone banner. It lives on the title rather than the banner so the chip and the headline share one row structurally.',
+        'The word in the dark chip, e.g. "Danger". A stored field, not derived from the tone; an editor may write "Fatal risk" over a danger-tone banner. It lives on the title rather than the banner so the chip and the headline share one row structurally.',
     },
     {
       name: "tone (SafetyBannerTitle)",
@@ -177,20 +177,20 @@ export const safetyBannerStory: StoryDef = {
   ],
   whenToUse: [
     "Editor-enabled warnings at the very top of a substance article, above the H1.",
-    "The Banner Studio preview of a preset an editor is authoring — at full strength, never faded: the state belongs in a status pill, not in the legibility of the thing being previewed.",
+    "The Banner Studio preview of a preset an editor is authoring, at full strength, never faded: the state belongs in a status pill, not in the legibility of the thing being previewed.",
   ],
   whenNotToUse: [
-    "Article status chips such as ArticleStubBanner or ReviewStatusBanner — those report the state of the page, not a drug risk.",
-    "Safety callouts inside an article section — use Surface's DangerCallout recipe.",
-    "Form, save, or inline feedback in the editor — use Alert.",
+    "Article status chips such as ArticleStubBanner or ReviewStatusBanner: those report the state of the page, not a drug risk.",
+    "Safety callouts inside an article section: use Surface's DangerCallout recipe.",
+    "Form, save, or inline feedback in the editor: use Alert.",
   ],
   notes: [
     "The component never decides whether it appears. Enablement is editorial: a preset must be enabled and target either an explicit slug list or all substance articles. `resolveEnabledBanners` owns that rule; classification never assigns a banner.",
-    "SafetyBannerTitle is a <p>, not a heading — the banner sits above the article <h1> and must not enter the document outline or a screen reader's heading list.",
+    "SafetyBannerTitle is a <p>, not a heading. The banner sits above the article <h1> and must not enter the document outline or a screen reader's heading list.",
     "Bullets are a consequence, not a requirement. SafetyBannerPoints renders a single point as a paragraph, so an editor with one thing to say never ships a list of one.",
     "There is no divider between the glyph and the body. The tone surface already groups them; the hairline the first cut drew only chopped the card in half.",
     "The severity chip reuses theme-interaction-severity-badge-*, the same class the interactions table uses. Nested inside the root's theme-interaction-<tone> it drops to the deeper field surface in both themes, which is what makes it read as a chip rather than as loose small caps.",
     "The two columns stack below 560px. The glyph column is `auto`, so a resize widens the column rather than overflowing a rail.",
-    "The glyph size is one site-wide editor setting, not a per-banner prop. It is stored on the `safety-banner-display` siteConfig document, edited once in the Banner Studio toolbar, and threaded to every banner on the site so no two warnings are drawn at different weights — which is why it is `iconSize` and not a cva variant. Every example below renders at the shipped default (44px).",
+    "The glyph size is one site-wide editor setting, not a per-banner prop. It is stored on the `safety-banner-display` siteConfig document, edited once in the Banner Studio toolbar, and threaded to every banner on the site so no two warnings are drawn at different weights, which is why it is `iconSize` and not a cva variant. Every example below renders at the shipped default (44px).",
   ],
 };

@@ -601,6 +601,53 @@ export const generatedPublicationOperations = pgTable(
   ],
 );
 
+export const glossaryFeedback = pgTable(
+  "glossaryFeedback",
+  {
+    _id: text("_id").primaryKey(),
+    _creationTime: doublePrecision("_creationTime").notNull(),
+    "locale": text("locale").notNull(),
+    "term": text("term").notNull(),
+    "target": text("target").notNull(),
+    "version": text("version").notNull(),
+    "id": text("id").notNull(),
+    "visitor": text("visitor").notNull(),
+    "details": text("details").notNull(),
+    "alternative": text("alternative").notNull(),
+    "status": text("status").notNull(),
+    "created_at": text("created_at").notNull(),
+    "review_notes": text("review_notes"),
+    "reviewed_by": text("reviewed_by"),
+    "reviewed_at": text("reviewed_at"),
+  },
+  (t) => [
+    index("glossaryFeedback_by_creation_time").on(t._creationTime),
+    index("glossaryFeedback_by_locale_created").on(sql`${t["locale"]} COLLATE "C"`, sql`${t["created_at"]} COLLATE "C"`, t._creationTime),
+    index("glossaryFeedback_by_visitor_id").on(sql`${t["visitor"]} COLLATE "C"`, sql`${t["id"]} COLLATE "C"`, t._creationTime),
+  ],
+);
+
+export const glossaryReactionEvents = pgTable(
+  "glossaryReactionEvents",
+  {
+    _id: text("_id").primaryKey(),
+    _creationTime: doublePrecision("_creationTime").notNull(),
+    "locale": text("locale").notNull(),
+    "term": text("term").notNull(),
+    "target": text("target").notNull(),
+    "version": text("version").notNull(),
+    "id": text("id").notNull(),
+    "visitor": text("visitor").notNull(),
+    "choice": text("choice").notNull(),
+    "created_at": doublePrecision("created_at").notNull(),
+  },
+  (t) => [
+    index("glossaryReactionEvents_by_creation_time").on(t._creationTime),
+    index("glossaryReactionEvents_by_version_visitor").on(sql`${t["locale"]} COLLATE "C"`, sql`${t["term"]} COLLATE "C"`, sql`${t["version"]} COLLATE "C"`, sql`${t["visitor"]} COLLATE "C"`, t["created_at"], t._creationTime),
+    index("glossaryReactionEvents_by_visitor_id").on(sql`${t["visitor"]} COLLATE "C"`, sql`${t["id"]} COLLATE "C"`, t._creationTime),
+  ],
+);
+
 export const indexLayouts = pgTable(
   "indexLayouts",
   {
@@ -792,12 +839,14 @@ export const publicCachePublications = pgTable(
     "nextAttemptAt": doublePrecision("nextAttemptAt").notNull(),
     "attempts": doublePrecision("attempts").notNull(),
     "receipts": jsonb("receipts").notNull(),
+    "deadLetteredAt": doublePrecision("deadLetteredAt"),
   },
   (t) => [
     index("publicCachePublications_by_creation_time").on(t._creationTime),
     uniqueIndex("publicCachePublications_by_key_unique").on(sql`${t["key"]} COLLATE "C"`),
     index("publicCachePublications_by_key").on(sql`${t["key"]} COLLATE "C"`, t._creationTime),
     index("publicCachePublications_by_due").on(t["pending"], t["nextAttemptAt"], t._creationTime),
+    index("publicCachePublications_by_fresh").on(t["pending"], t["attempts"], t["nextAttemptAt"], t._creationTime),
   ],
 );
 
@@ -1618,6 +1667,8 @@ export const tableColumns = {
   effectIndexArchive: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "kind": { kind: "text", optional: false }, "key": { kind: "text", optional: false }, "payload": { kind: "jsonb", optional: false }, "importedAt": { kind: "double", optional: false } },
   effectIndexArticles: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "title": { kind: "text", optional: false }, "tags": { kind: "jsonb", optional: false }, "publication_status": { kind: "text", optional: true }, "featured": { kind: "boolean", optional: true }, "shortDescription": { kind: "text", optional: true }, "publicationDate": { kind: "text", optional: true }, "body_raw": { kind: "text", optional: false }, "body_ast": { kind: "jsonb", optional: true }, "authors": { kind: "jsonb", optional: true }, "citations": { kind: "jsonb", optional: true }, "kind": { kind: "text", optional: true }, "status": { kind: "text", optional: true }, "bodyFormat": { kind: "text", optional: true }, "authorProfileKeys": { kind: "jsonb", optional: true }, "coverImageUrl": { kind: "text", optional: true }, "teaser": { kind: "text", optional: true } },
   generatedPublicationOperations: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "proposalId": { kind: "text", optional: false }, "payloadDigest": { kind: "text", optional: false }, "artifactDigest": { kind: "text", optional: false }, "manifestDigest": { kind: "text", optional: false }, "rawResponseHash": { kind: "text", optional: false }, "targetDeploymentFingerprint": { kind: "text", optional: false }, "slug": { kind: "text", optional: false }, "profile": { kind: "text", optional: false }, "affectedPaths": { kind: "jsonb", optional: false }, "actorEmail": { kind: "text", optional: false }, "reviewedBy": { kind: "text", optional: false }, "reviewedAt": { kind: "text", optional: false }, "previousHash": { kind: "text", optional: false }, "nextHash": { kind: "text", optional: false }, "hashVersion": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false } },
+  glossaryFeedback: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "locale": { kind: "text", optional: false }, "term": { kind: "text", optional: false }, "target": { kind: "text", optional: false }, "version": { kind: "text", optional: false }, "id": { kind: "text", optional: false }, "visitor": { kind: "text", optional: false }, "details": { kind: "text", optional: false }, "alternative": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "text", optional: false }, "review_notes": { kind: "text", optional: true }, "reviewed_by": { kind: "text", optional: true }, "reviewed_at": { kind: "text", optional: true } },
+  glossaryReactionEvents: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "locale": { kind: "text", optional: false }, "term": { kind: "text", optional: false }, "target": { kind: "text", optional: false }, "version": { kind: "text", optional: false }, "id": { kind: "text", optional: false }, "visitor": { kind: "text", optional: false }, "choice": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false } },
   indexLayouts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "type": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "categories": { kind: "jsonb", optional: false } },
   inviteCodes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "codeHash": { kind: "text", optional: false }, "role": { kind: "text", optional: false }, "glossaryLocales": { kind: "jsonb", optional: true }, "createdBy": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "expiresAt": { kind: "text", optional: false }, "maxUses": { kind: "double", optional: false }, "redemptions": { kind: "jsonb", optional: false }, "revokedAt": { kind: "text", optional: true }, "note": { kind: "text", optional: true } },
   mailingListSubscribers: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "email": { kind: "text", optional: false }, "list": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false }, "ip_hash": { kind: "text", optional: true }, "user_agent": { kind: "text", optional: true }, "honeypot_triggered": { kind: "boolean", optional: false } },
@@ -1626,7 +1677,7 @@ export const tableColumns = {
   moleculeOverrides: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "svg": { kind: "text", optional: false }, "molblock": { kind: "text", optional: false }, "smiles": { kind: "text", optional: true }, "boldBonds": { kind: "jsonb", optional: true }, "source": { kind: "text", optional: true }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
   narrativeRevisions: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "kind": { kind: "text", optional: false }, "key": { kind: "text", optional: false }, "documentId": { kind: "text", optional: false }, "operationId": { kind: "text", optional: false }, "actorEmail": { kind: "text", optional: false }, "actorRole": { kind: "text", optional: false }, "before": { kind: "jsonb", optional: false }, "after": { kind: "jsonb", optional: false }, "baseRevision": { kind: "text", optional: false }, "revision": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "requestHash": { kind: "text", optional: true }, "publications": { kind: "jsonb", optional: true } },
   prompts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "key": { kind: "text", optional: false }, "content": { kind: "text", optional: false }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
-  publicCachePublications: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "key": { kind: "text", optional: false }, "target": { kind: "jsonb", optional: false }, "revision": { kind: "jsonb", optional: true }, "generation": { kind: "double", optional: false }, "pending": { kind: "boolean", optional: false }, "committedAt": { kind: "double", optional: false }, "nextAttemptAt": { kind: "double", optional: false }, "attempts": { kind: "double", optional: false }, "receipts": { kind: "jsonb", optional: false } },
+  publicCachePublications: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "key": { kind: "text", optional: false }, "target": { kind: "jsonb", optional: false }, "revision": { kind: "jsonb", optional: true }, "generation": { kind: "double", optional: false }, "pending": { kind: "boolean", optional: false }, "committedAt": { kind: "double", optional: false }, "nextAttemptAt": { kind: "double", optional: false }, "attempts": { kind: "double", optional: false }, "receipts": { kind: "jsonb", optional: false }, "deadLetteredAt": { kind: "double", optional: true } },
   publicReadIndexState: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "name": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "cursor": { kind: "text", optional: false }, "ready": { kind: "boolean", optional: false }, "processed": { kind: "double", optional: false } },
   quotes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "section": { kind: "text", optional: false }, "content": { kind: "text", optional: false }, "updatedAt": { kind: "text", optional: false }, "updatedBy": { kind: "text", optional: true } },
   reagentTests: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "data": { kind: "jsonb", optional: false }, "source": { kind: "text", optional: false }, "snapshotHash": { kind: "text", optional: false }, "importedAt": { kind: "double", optional: false } },
@@ -1749,6 +1800,8 @@ export const tableIndexes = {
   effectIndexArchive: { "by_kind_key": ["kind","key"] },
   effectIndexArticles: { "by_slug": ["slug"], "by_kind_status_date": ["kind","status","publicationDate"], "by_featured": ["featured"] },
   generatedPublicationOperations: { "by_proposal_id": ["proposalId"], "by_slug_created": ["slug","createdAt"] },
+  glossaryFeedback: { "by_locale_created": ["locale","created_at"], "by_visitor_id": ["visitor","id"] },
+  glossaryReactionEvents: { "by_version_visitor": ["locale","term","version","visitor","created_at"], "by_visitor_id": ["visitor","id"] },
   indexLayouts: { "by_type": ["type"] },
   inviteCodes: { "by_code_hash": ["codeHash"], "by_created_at": ["createdAt"] },
   mailingListSubscribers: { "by_email_list": ["email","list"], "by_list_status": ["list","status"] },
@@ -1757,7 +1810,7 @@ export const tableIndexes = {
   moleculeOverrides: { "by_slug": ["slug"] },
   narrativeRevisions: { "by_target": ["kind","key"], "by_document": ["kind","documentId"], "by_operation": ["kind","operationId"] },
   prompts: { "by_key": ["key"] },
-  publicCachePublications: { "by_key": ["key"], "by_due": ["pending","nextAttemptAt"] },
+  publicCachePublications: { "by_key": ["key"], "by_due": ["pending","nextAttemptAt"], "by_fresh": ["pending","attempts","nextAttemptAt"] },
   publicReadIndexState: { "by_name": ["name"] },
   quotes: { "by_slug_section": ["slug","section"], "by_section": ["section"] },
   reagentTests: { "by_slug": ["slug"], "by_snapshot_hash": ["snapshotHash"] },
@@ -1813,6 +1866,8 @@ export const tableNames = [
   "effectIndexArchive",
   "effectIndexArticles",
   "generatedPublicationOperations",
+  "glossaryFeedback",
+  "glossaryReactionEvents",
   "indexLayouts",
   "inviteCodes",
   "mailingListSubscribers",
@@ -1879,6 +1934,8 @@ export const tables = {
   effectIndexArchive,
   effectIndexArticles,
   generatedPublicationOperations,
+  glossaryFeedback,
+  glossaryReactionEvents,
   indexLayouts,
   inviteCodes,
   mailingListSubscribers,

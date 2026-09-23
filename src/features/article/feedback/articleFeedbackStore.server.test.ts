@@ -33,7 +33,6 @@ describe("DataArticleFeedbackStore", () => {
     await expect(
       store.transition("feedback-1", {
         status: "resolved",
-        reviewer: "admin@example.com",
         actorEmail: "admin@example.com",
       }),
     ).resolves.toEqual({ id: "feedback-1", status: "resolved" });
@@ -48,7 +47,6 @@ describe("DataArticleFeedbackStore", () => {
           actorEmail: "admin@example.com",
           id: "feedback-1",
           status: "resolved",
-          reviewer: "admin@example.com",
         },
       },
     ]);

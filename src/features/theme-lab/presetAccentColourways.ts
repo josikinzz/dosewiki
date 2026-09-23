@@ -112,7 +112,7 @@ export const abyss: PalettePreset = {
 export const graphite: PalettePreset = {
   id: "graphite",
   name: "Graphite",
-  tagline: "Achromatic moon-silver — safety colors carry all the chroma.",
+  tagline: "Achromatic moon-silver; safety colors carry all the chroma.",
   achromatic: true,
   swatch: {
     dark: ["#08090b", "#16181d", "#f4f5f7", "#9aa7b8", "#cdd6e0"],

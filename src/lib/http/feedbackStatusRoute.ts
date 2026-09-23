@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireRoleSession } from "@/lib/auth/requireEditorSession";
-import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
 
 export type FeedbackStatusRouteContext = {
   params: Promise<{ id: string }>;
@@ -16,7 +15,7 @@ type StatusBody = {
 type FeedbackStatusStore<Status extends string> = {
   transition(
     id: string,
-    options: { status: Status; reviewer: string; actorEmail: string; note?: string },
+    options: { status: Status; actorEmail: string; note?: string },
   ): Promise<unknown>;
 };
 
@@ -37,41 +36,37 @@ const MAX_STATUS_BODY_BYTES = 16 * 1024;
 
 /**
  * Admin-only status transition for a feedback queue. Article feedback and site
- * feedback share every rule (rate limit, admin floor, body grammar, error
- * mapping); only the store and its error vocabulary differ.
+ * feedback share every rule (origin gate, rate limit, admin floor, body
+ * grammar, error mapping); only the store and its error vocabulary differ.
  */
 export function feedbackStatusRoute<Status extends string>(
   options: FeedbackStatusRouteOptions<Status>,
 ) {
   return async function POST(request: Request, context: FeedbackStatusRouteContext) {
-    const rateLimited = await enforceRateLimit(request, "editorSmallWrite");
-    if (rateLimited) {
-      return rateLimited;
-    }
+    return protectedRouteOperation<StatusBody, { status: Status; note?: string }>({
+      // Triage moves feedback through the queue; that is an admin decision.
+      auth: "admin",
+      rateLimit: "editorSmallWrite",
+      body: {
+        maxBytes: MAX_STATUS_BODY_BYTES,
+        parse: (body) => ({ status: parseStatus(body.status, options.isStatus), note: parseNote(body.note) }),
+      },
+      unexpectedErrorLabel: options.unexpectedErrorLabel,
+      unexpectedErrorMessage: options.unexpectedErrorMessage,
+      // Total, so every failure keeps this route's own response shape.
+      mapError: (error) => mapStatusRouteError(error, options),
+      operation: async ({ actorEmail, body }) => {
+        const { id } = await Promise.resolve(context.params);
+        const store = await options.getStore();
+        const feedback = await store.transition(id, {
+          status: body.status,
+          actorEmail,
+          note: body.note,
+        });
 
-    // Triage moves feedback through the queue; that is an admin decision.
-    const auth = await requireRoleSession("admin");
-    if (auth.ok === false) {
-      return auth.response;
-    }
-
-    try {
-      const { id } = await Promise.resolve(context.params);
-      const body = await readJsonBody<StatusBody>(request, { maxBytes: MAX_STATUS_BODY_BYTES });
-      const status = parseStatus(body.status, options.isStatus);
-      const note = parseNote(body.note);
-      const store = await options.getStore();
-      const feedback = await store.transition(id, {
-        status,
-        reviewer: auth.session.user.email,
-        actorEmail: auth.session.user.email,
-        note,
-      });
-
-      return NextResponse.json({ ok: true, feedback });
-    } catch (error) {
-      return mapStatusRouteError(error, options);
-    }
+        return NextResponse.json({ ok: true, feedback });
+      },
+    })(request);
   };
 }
 

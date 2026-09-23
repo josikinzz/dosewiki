@@ -5,7 +5,9 @@ export type RateLimitPolicyName =
   | "publicTripReportSubmit"
   | "publicArticleFeedbackSubmit"
   | "publicSiteFeedbackSubmit"
+  | "publicSubscribeRelay"
   | "publicProxyRead"
+  | "publicationSignalVerified"
   | "diagnosticRead"
   | "editorPolledRead"
   | "publicSearchRead"
@@ -76,10 +78,38 @@ const rateLimitPolicies = {
     fallbackMode: "inMemory",
     responseShape: "jsonError",
   },
+  /**
+   * Signups a credential-free relay (Effect Index) forwards to the list owner.
+   * The relay holds no database limiter, so it spends this local per-reader
+   * budget, matching the receiver's `subscribePerIp` refill of five per ten
+   * minutes, before it forwards anything.
+   */
+  publicSubscribeRelay: {
+    name: "publicSubscribeRelay",
+    windowMs: 10 * ONE_MINUTE_MS,
+    max: 5,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
   publicProxyRead: {
     name: "publicProxyRead",
     windowMs: ONE_MINUTE_MS,
     max: 30,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  /**
+   * Publication signals whose HMAC signature already verified. The editor sends
+   * one signed request per outbox row and cache fan-out sends up to 200 at a
+   * time, all from the editor's egress address, so this bucket is sized for
+   * that burst and kept apart from the unverified public limit.
+   */
+  publicationSignalVerified: {
+    name: "publicationSignalVerified",
+    windowMs: ONE_MINUTE_MS,
+    max: 600,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

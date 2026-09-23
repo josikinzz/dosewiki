@@ -15,7 +15,7 @@ export const iconStory: StoryDef = {
   examples: [
     {
       label: "Lucide icons",
-      note: "Bundled Lucide set — reference any glyph as lucide:<name>.",
+      note: "Bundled Lucide set. Reference any glyph as lucide:<name>.",
       render: () => (
         <div className="flex items-center gap-4 text-[var(--theme-text-primary)]">
           <Icon icon="lucide:search" />
@@ -62,7 +62,7 @@ export const iconStory: StoryDef = {
     },
     {
       label: "Inherits color via className",
-      note: "Icons paint with currentColor — set text color on the icon or a parent.",
+      note: "Icons paint with currentColor, so set text color on the icon or a parent.",
       background: "card",
       render: () => (
         <div className="flex items-center gap-4">
@@ -114,12 +114,12 @@ export const iconStory: StoryDef = {
     },
   ],
   whenToUse: [
-    "Any single inline icon — nav, buttons, badges, headings, metadata.",
+    "Any single inline icon: nav, buttons, badges, headings, metadata.",
     'Custom project glyphs registered in customIcons, referenced as "custom:<key>".',
   ],
   whenNotToUse: [
-    "Decorative icons that need their own label — Icon is always aria-hidden.",
-    "Large illustrative artwork or molecule renders — use a dedicated SVG asset.",
+    "Decorative icons that need their own label: Icon is always aria-hidden.",
+    "Large illustrative artwork or molecule renders: use a dedicated SVG asset.",
   ],
   notes: [
     'Always rendered aria-hidden="true"; add visible text or an aria-label on the interactive wrapper for meaning.',

@@ -24,7 +24,7 @@ export const OPEN_DATA_CACHE_CONTROL = "public, s-maxage=86400, stale-while-reva
  * authoritative. A blanket CC0 claim on this dataset would be false.
  */
 export const OPEN_DATA_SUBSTANCE_INDEX_LICENSE =
-  "Mixed — CC0 except the interactions field, which keeps TripSit's non-commercial attribution terms";
+  "Mixed: CC0 except the interactions field, which keeps TripSit's non-commercial attribution terms";
 
 /**
  * Effect prose and the index structure are CC0, but the records reference
@@ -33,7 +33,7 @@ export const OPEN_DATA_SUBSTANCE_INDEX_LICENSE =
  * retain their rights, so this dataset cannot be dedicated wholesale either.
  */
 export const OPEN_DATA_EFFECT_INDEX_LICENSE =
-  "Mixed — CC0 except the replication media it references, whose rights remain with the credited creator or rightsholder";
+  "Mixed: CC0 except the replication media it references, whose rights remain with the credited creator or rightsholder";
 
 /**
  * dose.wiki-authored trip report prose is CC0, but legacy report rights remain
@@ -42,7 +42,7 @@ export const OPEN_DATA_EFFECT_INDEX_LICENSE =
  * dataset would be false.
  */
 export const OPEN_DATA_TRIP_REPORT_LICENSE =
-  "Mixed — rights to legacy trip reports remain with their authors unless marked otherwise";
+  "Mixed: rights to legacy trip reports remain with their authors unless marked otherwise";
 
 export const OPEN_DATA_LICENSE_URL = "https://dose.wiki/docs/license";
 

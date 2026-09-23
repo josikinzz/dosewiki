@@ -149,7 +149,7 @@ export function GalleryLibraryAdd({
           <Icon icon="lucide:library-big" size={18} className="theme-text-faint shrink-0" />
           <p className="theme-text-muted min-w-0 flex-1 text-xs">
             This is the whole corpus in default order. Search and filter it in the Library, then come
-            back—the list below follows the rail.
+            back. The list below follows the rail.
           </p>
           <Button type="button" variant="secondary" size="sm" className="shrink-0" onClick={onOpenLibrary}>
             <Icon icon="lucide:search" size={14} />

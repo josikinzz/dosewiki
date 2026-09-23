@@ -2,6 +2,9 @@ import { vi } from "vitest";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { PublicGalleryReplicationPreview, ReplicationWithUrl } from "../../src/types/replications";
 import type { PublicEffectSummary } from "../data/publicData";
+import type * as PublicDataModule from "../data/publicData";
+
+type Resolved<K extends keyof typeof PublicDataModule> = Awaited<ReturnType<(typeof PublicDataModule)[K]>>;
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", async () => {
@@ -14,31 +17,31 @@ vi.mock("react", async () => {
 });
 
 const publicData = vi.hoisted(() => ({
-  getEffectArticlesByContributor: vi.fn(() => Promise.resolve([])),
+  getEffectArticlesByContributor: vi.fn(() => Promise.resolve([] as Resolved<"getEffectArticlesByContributor">)),
   getPublishedEffectIndexArticles: vi.fn(),
   getPublishedPublicationIndex: vi.fn(),
   getPublicCategoryLayout: vi.fn(),
   getPublicContributorByKey: vi.fn(),
-  getPublicContributorIdentity: vi.fn(() => Promise.resolve(null)),
-  getPublicContributorDirectory: vi.fn(() => Promise.resolve([])),
+  getPublicContributorIdentity: vi.fn(() => Promise.resolve(null as Resolved<"getPublicContributorIdentity">)),
+  getPublicContributorDirectory: vi.fn(() => Promise.resolve([] as Resolved<"getPublicContributorDirectory">)),
   getPublicGalleryReplications: vi.fn(() => Promise.resolve([])),
-  getPublicContributorProfiles: vi.fn(() => Promise.resolve([])),
-  getPublicContributorIdentities: vi.fn(() => Promise.resolve([])),
+  getPublicContributorProfiles: vi.fn(() => Promise.resolve([] as Resolved<"getPublicContributorProfiles">)),
+  getPublicContributorIdentities: vi.fn(() => Promise.resolve([] as Resolved<"getPublicContributorIdentities">)),
   getPublicProfileHistory: vi.fn(() => Promise.resolve([])),
   getPublicDataOverview: vi.fn(),
   getPublicEffectArticles: vi.fn(),
   getPublicEffectSummariesBySlugs: vi.fn((_slugs: string[]) => Promise.resolve([] as PublicEffectSummary[])),
   getPublicEffectSlugs: vi.fn(() => Promise.resolve([] as string[])),
-  getPublicArtistCreditRows: vi.fn(() => Promise.resolve([])),
+  getPublicArtistCreditRows: vi.fn(() => Promise.resolve([] as Resolved<"getPublicArtistCreditRows">)),
   getPublicEffectAudioIndex: vi.fn(() => Promise.resolve([])),
   getPublicEffectContributorCredits: vi.fn(() => Promise.resolve([])),
   getPublicChangelogById: vi.fn(() => Promise.resolve(null)),
   getPublicEffectIndexArticleBySlug: vi.fn(),
   getPublicEffectBySlug: vi.fn(),
   getPublicEffects: vi.fn(),
-  getPublicEffectIndex: vi.fn(() => Promise.resolve([])),
+  getPublicEffectIndex: vi.fn(() => Promise.resolve([] as Resolved<"getPublicEffectIndex">)),
   getPublicReplicationBySlug: vi.fn(),
-  getPublicReplicationIdentityAttribution: vi.fn(() => Promise.resolve(null)),
+  getPublicReplicationIdentityAttribution: vi.fn(() => Promise.resolve(null as Resolved<"getPublicReplicationIdentityAttribution">)),
   getPublicReplications: vi.fn(() => Promise.resolve([])),
   getPublicReplicationsByEffect: vi.fn(() => Promise.resolve([])),
   getPublicReplicationsForSubstance: vi.fn((_substanceSlug: string) =>
@@ -52,8 +55,8 @@ const publicData = vi.hoisted(() => ({
   getPublicSubstanceLookup: vi.fn(),
   getPublicSubstanceSlugs: vi.fn(() => Promise.resolve([] as string[])),
   getPublicSubstances: vi.fn(() => Promise.resolve([])),
-  getReplicationsByContributor: vi.fn(() => Promise.resolve([])),
-  getReviewedArticlesByContributor: vi.fn(() => Promise.resolve([])),
+  getReplicationsByContributor: vi.fn(() => Promise.resolve([] as Resolved<"getReplicationsByContributor">)),
+  getReviewedArticlesByContributor: vi.fn(() => Promise.resolve([] as Resolved<"getReviewedArticlesByContributor">)),
   getReportsByContributor: vi.fn(),
 }));
 

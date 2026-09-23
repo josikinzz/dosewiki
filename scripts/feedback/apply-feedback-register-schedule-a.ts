@@ -31,7 +31,6 @@ resolveAdminIntentToken,  } from "../lib/data-ops-run-context.mjs"; import { wri
 
 const OPERATION = "apply-feedback-register-schedule-a";
 const CONFIRMATION_FLAG = "--confirm-feedback-register";
-const REVIEWER = "feedback-register@local.dose.wiki";
 
 /** The Internet Archive item for the Extended Edition, verified live 2026-09-08. */
 const DUB_EXTENDED_EDITION = "https://archive.org/details/drug-users-bible_202401";
@@ -397,7 +396,6 @@ export async function runApplyScheduleA(
           apiKey: token.token,
           id: transition.id,
           status: transition.status,
-          reviewer: REVIEWER,
           note: transition.note,
         }),
       );

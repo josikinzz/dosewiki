@@ -247,7 +247,7 @@ export function TripReportsExplorer({
               // Names its own corpus: the site-wide field sits 330px above
               // this one and leaves the page, and nothing else told a reader
               // which of the two they were typing into.
-              placeholder={t("Search {{count}} reports", { count: total })}
+              placeholder={t("Search reports…")}
               aria-label={t("Search these reports")}
               className="h-10 pl-9 pr-11 [@media(pointer:coarse)]:h-11 md:h-9"
             />
@@ -437,4 +437,3 @@ export function TripReportsExplorer({
     </>
   );
 }
-

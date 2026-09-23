@@ -51,7 +51,7 @@ export function LengthField({ initial, spec, onChange }: LengthFieldProps) {
       {/* The caption carries the ends of the range as words, so "sharp" and
           "round" are stated rather than inferred from the track. */}
       <label className={styles.fieldCaption} htmlFor={sliderId}>
-        Roundness — sharp to round{" "}
+        Roundness, sharp to round{" "}
         <span className={styles.alphaValue}>{formatRem(rem)}</span>
       </label>
       <input

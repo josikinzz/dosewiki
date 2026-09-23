@@ -99,7 +99,6 @@ const transitionFeedbackRef = makeFunctionReference<
     actorEmail: string;
     id: string;
     status: SiteFeedbackStatus;
-    reviewer: string;
     note?: string;
   },
   SiteFeedbackQueueItem
@@ -165,7 +164,7 @@ export class DataSiteFeedbackStore {
 
   async transition(
     id: string,
-    options: { status: SiteFeedbackStatus; reviewer: string; actorEmail: string; note?: string },
+    options: { status: SiteFeedbackStatus; actorEmail: string; note?: string },
   ): Promise<SiteFeedbackQueueItem> {
     try {
       return await this.options.client.mutation(transitionFeedbackRef, {
@@ -173,7 +172,6 @@ export class DataSiteFeedbackStore {
         actorEmail: options.actorEmail,
         id,
         status: options.status,
-        reviewer: options.reviewer,
         ...(options.note !== undefined ? { note: options.note } : {}),
       }) as SiteFeedbackQueueItem;
     } catch (error) {

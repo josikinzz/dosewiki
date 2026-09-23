@@ -1,3 +1,4 @@
+import { parseUiLocale } from "@/i18n/messages";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
@@ -235,7 +236,7 @@ export async function ReplicationArtistRoute({
   // Only the opening strip crosses the server/client boundary. The same
   // focused collection resolves on viewer intent, including distant deep links.
   const group = buildArtistShowcaseGroup(focus.group.items, t);
-  const openingItems = await hydrateGalleryPage(group.items.slice(0, SHOWCASE_WORK_CAP), locale?.code === "zh-Hans" ? "zh-Hans" : "en");
+  const openingItems = await hydrateGalleryPage(group.items.slice(0, SHOWCASE_WORK_CAP), parseUiLocale(locale?.code));
   const collectionLabel = attributed
     ? t("Works by {{name}}", { name: focus.label })
     : t("Unattributed works");

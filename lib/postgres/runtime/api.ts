@@ -12,8 +12,8 @@ export type FunctionReference<Kind extends FunctionKind = FunctionKind, Visibili
 };
 export type FunctionArgs<F extends FunctionReference<any, any>> = F["_args"];
 export type FunctionReturnType<F extends FunctionReference<any, any>> = F["_returnType"];
-export type OptionalRestArgs<F extends FunctionReference<any, any>> = {} extends FunctionArgs<F> ? [args?: FunctionArgs<F>] : [args: FunctionArgs<F>];
-export type ArgsAndOptions<F extends FunctionReference<any, any>, Options> = {} extends FunctionArgs<F> ? [args?: FunctionArgs<F>, options?: Options] : [args: FunctionArgs<F>, options?: Options];
+export type OptionalRestArgs<F extends FunctionReference<any, any>> = Record<never, never> extends FunctionArgs<F> ? [args?: FunctionArgs<F>] : [args: FunctionArgs<F>];
+export type ArgsAndOptions<F extends FunctionReference<any, any>, Options> = Record<never, never> extends FunctionArgs<F> ? [args?: FunctionArgs<F>, options?: Options] : [args: FunctionArgs<F>, options?: Options];
 export type HttpMutationOptions = { skipQueue?: boolean };
 
 const FUNCTION_NAME = Symbol.for("functionName");

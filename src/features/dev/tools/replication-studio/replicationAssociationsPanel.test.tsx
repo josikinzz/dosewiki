@@ -258,7 +258,7 @@ describe("ReplicationAssociationsPanel", () => {
 
     await user.click(screen.getByRole("checkbox", { name: "LSD" }));
     expect(screen.getByTestId("curated-warning-lsd")).toHaveTextContent(
-      "priority 2 — unticking removes that position and excludes the work",
+      "priority 2: unticking removes that position and excludes the work",
     );
     expect(
       screen.getByText(/Saving will drop 1 curated position: LSD \(position 2\)\./),

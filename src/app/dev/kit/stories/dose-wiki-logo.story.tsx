@@ -15,7 +15,7 @@ export const doseWikiLogoStory: StoryDef = {
   examples: [
     {
       label: "Sizes",
-      note: "width and height are required (they annotate the box); set the rendered size via style — the class does not size itself.",
+      note: "width and height are required (they annotate the box); set the rendered size via style. The class does not size itself.",
       render: () => (
         <div className="flex items-end gap-6">
           <DoseWikiLogo width={96} height={24} style={{ width: 96, height: 24 }} />
@@ -26,7 +26,7 @@ export const doseWikiLogoStory: StoryDef = {
     },
     {
       label: "Theme-driven fill",
-      note: "The mark is filled with --theme-logo-fill, so it flips automatically with the light/dark toggle above — no per-use color needed.",
+      note: "The mark is filled with --theme-logo-fill, so it flips automatically with the light/dark toggle above, so no per-use color is needed.",
       background: "card",
       render: () => (
         <DoseWikiLogo width={180} height={46} style={{ width: 180, height: 46 }} />
@@ -54,7 +54,7 @@ export const doseWikiLogoStory: StoryDef = {
     "Anywhere the logo should track the theme automatically (it fills with --theme-logo-fill).",
   ],
   whenNotToUse: [
-    "As a generic image — it is a single-color masked mark, not a full-color asset.",
+    "As a generic image: it is a single-color masked mark, not a full-color asset.",
     "When you need a link; wrap it in a Link/anchor yourself.",
   ],
   notes: [

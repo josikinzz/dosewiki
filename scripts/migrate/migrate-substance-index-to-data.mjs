@@ -229,12 +229,17 @@ async function main() {
     console.log(`  Skipped: ${totalSkipped}`);
   }
   if (totalErrors.length > 0) {
+    // A rejected or invalid batch wrote none of its articles.
     console.log(`  Errors: ${totalErrors.length}`);
     totalErrors.slice(0, 10).forEach((e) => console.log(`    - ${e}`));
     if (totalErrors.length > 10) {
       console.log(`    ... and ${totalErrors.length - 10} more`);
     }
+    process.exitCode = 1;
   }
 }
 
-main();
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});

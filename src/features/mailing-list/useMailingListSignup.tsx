@@ -25,8 +25,8 @@ export function useMailingListSignup(list: MailingList) {
     if (status === "pending") return;
     setStatus("pending");
     const result = await postMailingListSignup(email, list, website);
-    // Explicit discriminant comparison: with this repo's strictNullChecks off,
-    // a truthiness `else` branch does not narrow the result union.
+    // Explicit discriminant comparison, written while strict null checks were
+    // off and a truthiness `else` branch did not narrow the result union.
     if (result.ok === false) {
       setError(result.message);
       setStatus("error");

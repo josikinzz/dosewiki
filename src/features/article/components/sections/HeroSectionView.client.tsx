@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type SyntheticEvent,
 } from "react";
 import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
@@ -54,23 +55,28 @@ const TITLE_MOLECULE_GAP_PX = 16;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+function revealLoadedMolecule(event: SyntheticEvent<HTMLImageElement>) {
+  event.currentTarget.classList.add("theme-hero-molecule-arrive");
+}
+
 interface DesktopMoleculeImageProps {
   alt: string;
   placement: "top" | "below-title";
+  topOffset: number;
   src: string;
 }
 
 function DesktopMoleculeImage({
   alt,
   placement,
+  topOffset,
   src,
 }: DesktopMoleculeImageProps) {
   return (
     <div
       data-hero-molecule-layout={placement}
-      className={`mb-3 hidden w-48 md:float-right md:block md:w-64${
-        placement === "below-title" ? " md:mt-4" : ""
-      }`}
+      className="mb-3 hidden w-48 md:float-right md:block md:w-64"
+      style={placement === "below-title" ? { marginTop: topOffset } : undefined}
     >
       <MoleculeImage
         src={src}
@@ -79,7 +85,25 @@ function DesktopMoleculeImage({
         height={256}
         priority
         sizes="(min-width: 768px) 16rem, 0px"
+        onLoad={revealLoadedMolecule}
         className="theme-molecule-image h-48 w-48 object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)] md:h-64 md:w-64"
+      />
+    </div>
+  );
+}
+
+function MobileMoleculeImage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="flex justify-center my-5 md:hidden">
+      <MoleculeImage
+        src={src}
+        alt={alt}
+        width={288}
+        height={288}
+        priority
+        sizes="(max-width: 767px) min(85vw, 18rem), 0px"
+        onLoad={revealLoadedMolecule}
+        className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)]"
       />
     </div>
   );
@@ -134,6 +158,7 @@ export const HeroSectionView = memo(function HeroSectionView({
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
   const [moleculeBelowTitle, setMoleculeBelowTitle] = useState(false);
+  const [moleculeTopOffset, setMoleculeTopOffset] = useState(0);
   const [titleFitPx, setTitleFitPx] = useState<number | null>(null);
   const alternativeNamesPanelId = "hero-alternative-names";
   const chemistryDetailsPanelId = "hero-chemistry-details";
@@ -199,6 +224,12 @@ export const HeroSectionView = memo(function HeroSectionView({
         setMoleculeBelowTitle((current) =>
           current === nextBelowTitle ? current : nextBelowTitle,
         );
+        if (nextBelowTitle) {
+          const nextOffset = titleElement.getBoundingClientRect().height + 16;
+          setMoleculeTopOffset((current) =>
+            current === nextOffset ? current : nextOffset,
+          );
+        }
       }
 
       const isDesktop =
@@ -304,7 +335,7 @@ export const HeroSectionView = memo(function HeroSectionView({
       document.fonts?.removeEventListener("loadingdone", scheduleMeasurement);
       if (frameId !== null) window.cancelAnimationFrame(frameId);
     };
-  }, [moleculeUrl, title]);
+  }, [moleculeUrl, moleculeBelowTitle, title]);
 
   if (!hasTitle && !hasIdentification && !hasClassification && !hasSummary) {
     return null;
@@ -323,12 +354,14 @@ export const HeroSectionView = memo(function HeroSectionView({
           {t("Preview")}
         </div>
       )}
-      {/* Molecule SVG - floated right on md+, moved below a title that needs its row */}
-      {moleculeUrl && (!hasTitle || !moleculeBelowTitle) && (
+      {/* Keep the same image mounted when the title needs the molecule below it. */}
+      {moleculeUrl && (
         <DesktopMoleculeImage
+          key={`desktop:${moleculeUrl}`}
           src={moleculeUrl}
           alt={moleculeAlt}
-          placement="top"
+          placement={hasTitle && moleculeBelowTitle ? "below-title" : "top"}
+          topOffset={moleculeTopOffset}
         />
       )}
 
@@ -355,29 +388,11 @@ export const HeroSectionView = memo(function HeroSectionView({
           value={title ?? ""}
         />
       )}
-      {moleculeUrl && hasTitle && moleculeBelowTitle && (
-        <DesktopMoleculeImage
-          src={moleculeUrl}
-          alt={moleculeAlt}
-          placement="below-title"
-        />
-      )}
-
       {stubBanner}
 
       {/* Molecule SVG - centered below title on mobile only */}
       {moleculeUrl && (
-        <div className="flex justify-center my-5 md:hidden">
-          <MoleculeImage
-            src={moleculeUrl}
-            alt={moleculeAlt}
-            width={288}
-            height={288}
-            priority
-            sizes="(max-width: 767px) min(85vw, 18rem), 0px"
-            className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)]"
-          />
-        </div>
+        <MobileMoleculeImage key={`mobile:${moleculeUrl}`} src={moleculeUrl} alt={moleculeAlt} />
       )}
 
       {/* Substitutive name */}

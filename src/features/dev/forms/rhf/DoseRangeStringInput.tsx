@@ -12,7 +12,7 @@ import type { SubstanceArticle, DoseRange } from "@/schema";
 
 /** Shown when the typed text is not a dose at all. */
 const UNPARSEABLE_MESSAGE =
-  "Not a dose range. Use a form like 10-20 mg, 10+ mg, ~10 mg, or <20 mg — or clear the field.";
+  "Not a dose range. Use a form like 10-20 mg, 10+ mg, ~10 mg, or <20 mg, or clear the field.";
 
 type DoseRangeFieldPath = FieldPath<SubstanceArticle> & (
   | `dosage.routes.${number}.dose_ranges.threshold`

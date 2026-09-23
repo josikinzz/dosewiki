@@ -46,7 +46,7 @@ export function ThemeLabWorkbench() {
         <header className="flex flex-col gap-3">
           <h1 className="text-2xl font-semibold text-dose-text">Theme Lab</h1>
           <p className="text-sm text-dose-text-secondary">
-            Recolor the site live — the Fun palette or Pro’s accent seeds — and save it to this
+            Recolor the site live (the Fun palette or Pro’s accent seeds) and save it to this
             browser.
           </p>
         </header>
@@ -64,14 +64,14 @@ export function ThemeLabWorkbench() {
             included, so an edit lands on the page in front of you either way.
           </p>
           <p className="text-sm text-dose-text-secondary">
-            Pro’s structure — its typography, geometry and selectors — stays authored in{" "}
+            Pro’s structure (its typography, geometry and selectors) stays authored in{" "}
             <code className="text-dose-accent-strong">src/styles/pro-theme.css</code>, and an
             accent’s shipped seeds in{" "}
             <code className="text-dose-accent-strong">src/theme/accents.ts</code>. The lab writes
             neither file; use Share → accent entry to copy a tuned accent back out.
           </p>
           <p className="text-sm text-dose-text-secondary">
-            Day, night, Fun, Pro and the accent all stay switchable while you work — the lab edits
+            Day, night, Fun, Pro and the accent all stay switchable while you work. The lab edits
             whichever combination you are looking at, and leaves your choice alone when you go.
           </p>
           <p className="text-sm text-dose-text-secondary">

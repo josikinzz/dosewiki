@@ -8,7 +8,7 @@ export const proseLinkStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Inline link treatment for long-form prose — accent text, dotted underline that solidifies on hover, visible focus ring. Ships as a component and a className token.",
+    "Inline link treatment for long-form prose: accent text, dotted underline that solidifies on hover, visible focus ring. Ships as a component and a className token.",
   source: "src/components/common/ProseLink.tsx",
   importLine: 'import { ProseLink, proseLinkClassName } from "@/components/common/ProseLink";',
   exports: ["ProseLink", "proseLinkClassName"],
@@ -38,6 +38,8 @@ export const proseLinkStory: StoryDef = {
       label: "Token on an existing anchor",
       note: "Use proseLinkClassName when the <a>/<Link> already exists.",
       render: () => (
+        // The story demonstrates the class on a plain anchor, so it keeps one on purpose.
+        // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a href="/docs/code" target="_top" className={proseLinkClassName}>
           Read the architecture overview
         </a>
@@ -53,15 +55,15 @@ export const proseLinkStory: StoryDef = {
     {
       name: "className",
       type: "string",
-      description: "Merged after the prose treatment via cn — use --theme-* utilities only.",
+      description: "Merged after the prose treatment via cn. Use --theme-* utilities only.",
     },
   ],
   whenToUse: [
     "Links embedded in paragraphs of long-form prose (docs, license, narrative pages).",
-    "Styling an existing <a> or Next <Link> in prose — apply proseLinkClassName.",
+    "Styling an existing <a> or Next <Link> in prose: apply proseLinkClassName.",
   ],
   whenNotToUse: [
-    "Links that should look like buttons — use Button with asChild.",
-    "Navigation/menu links with their own chrome — use the relevant nav primitive.",
+    "Links that should look like buttons: use Button with asChild.",
+    "Navigation/menu links with their own chrome: use the relevant nav primitive.",
   ],
 };

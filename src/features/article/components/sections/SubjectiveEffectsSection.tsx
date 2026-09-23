@@ -181,7 +181,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       {comparisons.map((item, index) => (
         <li key={index} className="text-sm leading-relaxed">
           <span className="theme-accent-heading font-medium">{item.drug}</span>
-          <span className="theme-text-faint"> — </span>
+          <span className="theme-text-faint">: </span>
           <span className="theme-text-secondary">{item.comparison}</span>
         </li>
       ))}

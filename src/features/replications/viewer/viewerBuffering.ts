@@ -194,7 +194,7 @@ export function createViewerBuffering({
       return;
     }
     blocked = false;
-    if (video.requestVideoFrameCallback) watchFrame();
+    if (typeof video.requestVideoFrameCallback === "function") watchFrame();
     else if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) finishFrame();
     report();
   };

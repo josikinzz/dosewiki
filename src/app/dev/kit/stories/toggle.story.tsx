@@ -10,7 +10,7 @@ export const toggleStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "A two-state on/off button built on Radix Toggle — pressing it flips a single boolean and reflects the state visually via data-[state=on].",
+    "A two-state on/off button built on Radix Toggle. Pressing it flips a single boolean and reflects the state visually via data-[state=on].",
   source: "src/components/ui/toggle.tsx",
   importLine: 'import { Toggle } from "@/components/ui/toggle";',
   exports: ["Toggle", "toggleVariants"],
@@ -123,12 +123,12 @@ export const toggleStory: StoryDef = {
   ],
   whenToUse: [
     "A single binary on/off control, e.g. a formatting button or a view filter.",
-    "Icon-only affordances that need a clear pressed state — pass an aria-label.",
+    "Icon-only affordances that need a clear pressed state (pass an aria-label).",
   ],
   whenNotToUse: [
-    "Mutually-exclusive choices in a row — reach for a toggle group / segmented control instead.",
-    "A form field labelled on/off in settings — use Switch.",
-    "A clickable action that does not retain a pressed state — use Button.",
+    "Mutually-exclusive choices in a row: reach for a toggle group / segmented control instead.",
+    "A form field labelled on/off in settings: use Switch.",
+    "A clickable action that does not retain a pressed state: use Button.",
   ],
   notes: [
     "Always provide an aria-label for icon-only toggles so the state is announced.",

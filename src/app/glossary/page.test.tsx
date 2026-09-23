@@ -17,6 +17,9 @@ vi.mock("@server/translation/glossaryGloss", () => ({
 vi.mock("@server/translation/glossary", () => ({
   readGlossaryRows: vi.fn(),
 }));
+vi.mock("@server/translation/glossaryUsage", () => ({
+  getGlossaryUsages: vi.fn(async () => ({})),
+}));
 
 import GlossaryPage, { generateMetadata } from "./page";
 import { generateMetadata as generateMirrorMetadata } from "../zh/glossary/page";
@@ -87,6 +90,7 @@ describe("zh mirror of /glossary", () => {
     render(
       <GlossaryContentPage
         groups={buildGlossaryGroups(glosses, renderings)}
+        usages={{}}
         renderingLang="zh-Hans"
       />,
     );

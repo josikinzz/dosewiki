@@ -85,7 +85,9 @@ async function main() {
   console.log(`  ✅ Created: ${totalCreated}`);
   console.log(`  🔄 Updated: ${totalUpdated}`);
   if (allErrors.length > 0) {
+    // A rejected batch wrote none of its rows (the mutation is one transaction).
     console.log(`  ❌ Errors: ${allErrors.length}`);
+    process.exitCode = 1;
   } else {
     console.log("  🎉 No errors");
   }

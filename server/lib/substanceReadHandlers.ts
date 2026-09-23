@@ -93,7 +93,7 @@ export async function getPublicReviewedArticlesPageHandler(
     cursor: args.cursor ?? null,
     numItems: args.numItems,
   });
-  const items = [];
+  const items: NonNullable<ReturnType<typeof projectReviewedArticleForEmails>>[] = [];
   for (const article of result.page) {
     const reviewed = projectReviewedArticleForEmails(article, reviewerEmails);
     if (reviewed) items.push(reviewed);
@@ -151,7 +151,7 @@ export async function getPublicReviewedArticleCreditsPageHandler(
     cursor: args.cursor ?? null,
     numItems: args.numItems,
   });
-  const items = [];
+  const items: NonNullable<ReturnType<typeof projectReviewedArticleCredit>>[] = [];
   for (const article of result.page) {
     const credit = projectReviewedArticleCredit(article, emailToProfileKey);
     if (credit) items.push(credit);

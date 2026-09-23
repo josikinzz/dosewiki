@@ -157,7 +157,7 @@ export function EditorialReviewFieldsRHF({ idPrefix, slug }: EditorialReviewFiel
                     </div>
                     <dl className="theme-text-muted mt-3 grid gap-x-4 gap-y-1 text-xs sm:grid-cols-2">
                       <div><dt className="inline font-semibold">Source: </dt><dd className="inline">{flag.source}</dd></div>
-                      <div><dt className="inline font-semibold">Run id: </dt><dd className="inline">{flag.run_id ?? "—"}</dd></div>
+                      <div><dt className="inline font-semibold">Run id: </dt><dd className="inline">{flag.run_id ?? "–"}</dd></div>
                     </dl>
                     <p className="theme-text-secondary mt-3 whitespace-pre-wrap text-sm">
                       {flag.note || "No note provided."}

@@ -15,7 +15,7 @@ export const publicContentPrimitivesStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Public-article building blocks — fact tiles, metadata lists, attribution chips, detail heroes, and content section shells used across effect and trip-report pages.",
+    "Public-article building blocks: fact tiles, metadata lists, attribution chips, detail heroes, and content section shells used across effect and trip-report pages.",
   source: "src/components/layout/PublicContentPrimitives.tsx",
   importLine:
     'import { PublicDetailHero, PublicContentSection, PublicMetadataList, PublicFactTile, PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";',
@@ -51,7 +51,7 @@ export const publicContentPrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "PublicMetadataList — layouts",
+      label: "PublicMetadataList: layouts",
       note: "grid (default), stack, and inline. grid/stack render PublicFactTiles; inline is a single muted row.",
       background: "plain",
       full: true,
@@ -134,7 +134,7 @@ export const publicContentPrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "PublicDetailHero — effect",
+      label: "PublicDetailHero: effect",
       note: "Page header for effect/report detail pages: icon badge, title, inline metadata, summary, and tag pills.",
       background: "plain",
       full: true,
@@ -157,7 +157,7 @@ export const publicContentPrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "PublicDetailHero — report with attribution + badges",
+      label: "PublicDetailHero: report with attribution + badges",
       note: "Trip-report variant with badges (top-right) and an attribution chip under the title.",
       background: "plain",
       full: true,
@@ -180,7 +180,7 @@ export const publicContentPrimitivesStory: StoryDef = {
       ),
     },
     {
-      label: "PublicContentSection — layouts",
+      label: "PublicContentSection: layouts",
       note: "plain (rule heading), card (SectionCard shell), and article (scroll-anchored ArticleSection). article needs id + heading + icon.",
       background: "plain",
       full: true,
@@ -188,7 +188,7 @@ export const publicContentPrimitivesStory: StoryDef = {
         <div className="w-full space-y-8">
           <PublicContentSection layout="plain" heading="Overview" icon="lucide:info">
             <p className="theme-text-secondary text-sm leading-7">
-              Plain layout renders a rule-style section heading above its children — the default
+              Plain layout renders a rule-style section heading above its children, the default
               for lightweight public sections.
             </p>
           </PublicContentSection>
@@ -280,12 +280,12 @@ export const publicContentPrimitivesStory: StoryDef = {
     "Wrapping a public page header (PublicDetailHero) or body section (PublicContentSection).",
   ],
   whenNotToUse: [
-    "Dev editor surfaces — these are public-rendering primitives, not editor chrome.",
-    "Generic cards or callouts with no public-article semantics — use Surface recipes instead.",
-    "Article subsection cards/headers/info cards — reach for ArticleSection.* directly.",
+    "Dev editor surfaces: these are public-rendering primitives, not editor chrome.",
+    "Generic cards or callouts with no public-article semantics: use Surface recipes instead.",
+    "Article subsection cards/headers/info cards: reach for ArticleSection.* directly.",
   ],
   notes: [
-    "PublicMetadataList hides empty/false/nullish values and renders null when no items remain — safe to pass partial data.",
+    "PublicMetadataList hides empty/false/nullish values and renders null when no items remain, so it is safe to pass partial data.",
     'PublicContentSection only mounts the ArticleSection path when layout="article" and id, heading, and icon are all present; otherwise it renders the plain rule-heading section.',
     "PublicDetailHero embeds PublicMetadataList (inline) and PublicPill internally, so it stays visually consistent with the standalone primitives.",
   ],

@@ -17,17 +17,20 @@ import { createProductionWriteCommand, assertProductionWriteAllowed } from "../l
 import { productionWriterClassifications } from "../lib/production-writer-inventory.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 
+import { resolveLocale } from "./locales.mjs";
+
 const OPERATION = "backfill-localized-publication-index";
 const SCRIPT = "scripts/translation/backfill-publication-index.ts";
-const LOCALE = "zh-Hans";
 
 async function main() {
   const { values } = parseArgs({ strict: true, options: {
+    locale: { type: "string", default: "zh-Hans" },
     target: { type: "string" }, "allow-remote": { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false }, write: { type: "boolean", default: false },
     "confirm-write": { type: "string" }, "expected-deployment": { type: "string" },
     "confirm-plan": { type: "string" }, "actor-email": { type: "string" }, "recovery-out": { type: "string" },
   } });
+  const LOCALE = resolveLocale(values.locale).code;
   const command = createProductionWriteCommand({ operation: OPERATION, loadsEnvLocal: false });
   if (command.backend !== "postgres" || !command.targetUrl) throw new Error("Set DATA_BACKEND=postgres and an explicit --target or TARGET_POSTGRES_URL");
   const target = new URL(command.targetUrl);
@@ -98,7 +101,7 @@ async function main() {
         SELECT $1, p."_id", md5(to_jsonb(p)::text), true FROM "effectIndexArticles" p
         WHERE p."status" IS DISTINCT FROM 'draft' AND p."publication_status" = 'published' AND p."kind" IS DISTINCT FROM 'blog'
         ON CONFLICT ("locale", "publication_id") DO UPDATE SET "source_revision" = EXCLUDED."source_revision", "dirty" = true`, [LOCALE]);
-      await refreshLocalizedPublicationIndexes(client, LOCALE);
+      await refreshLocalizedPublicationIndexes(client, { backlog: true, locale: LOCALE });
       const actual = await readLocalizedPublicationIndex(client, LOCALE);
       if (JSON.stringify(actual) !== JSON.stringify(compact)) throw new Error("Materialized index differs from the reviewed projection");
       const after = (await client.query('SELECT * FROM "localizedPublicationIndexes" WHERE "locale" = $1 ORDER BY "publication_id"', [LOCALE])).rows;

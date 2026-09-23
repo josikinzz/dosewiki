@@ -8,7 +8,7 @@ export const publicSegmentedTabsStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "Shared pill-style segmented control for public index pages — the single 'pick one of N views' tab object used across substance, effects, and report indexes.",
+    "Shared pill-style segmented control for public index pages: the single 'pick one of N views' tab object used across substance, effects, and report indexes.",
   source: "src/components/layout/PublicSegmentedTabs.tsx",
   importLine:
     'import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";',
@@ -16,7 +16,7 @@ export const publicSegmentedTabsStory: StoryDef = {
   examples: [
     {
       label: "Basic segmented tabs",
-      note: "Controlled control — the active item is whatever matches `value`.",
+      note: "Controlled control: the active item is whatever matches `value`.",
       background: "card",
       render: () => (
         <PublicSegmentedTabs
@@ -80,7 +80,7 @@ export const publicSegmentedTabsStory: StoryDef = {
     },
     {
       label: "Disabled item",
-      note: "`disabled` forwards to the Radix trigger — dimmed and non-interactive.",
+      note: "`disabled` forwards to the Radix trigger: dimmed and non-interactive.",
       background: "card",
       render: () => (
         <PublicSegmentedTabs
@@ -140,7 +140,7 @@ export const publicSegmentedTabsStory: StoryDef = {
     {
       name: "value",
       type: "TValue",
-      description: "Controlled active item id. Required — match it against the chosen item's id.",
+      description: "Controlled active item id. Required; match it against the chosen item's id.",
     },
     {
       name: "items",
@@ -178,7 +178,7 @@ export const publicSegmentedTabsStory: StoryDef = {
       name: "mobileVariant",
       type: '"default" | "appGrid"',
       description:
-        '"appGrid" renders an app-style icon grid below `sm` and the pill row from `sm` up — the shared substance/effects index control. Defaults to "default".',
+        '"appGrid" renders an app-style icon grid below `sm` and the pill row from `sm` up: the shared substance/effects index control. Defaults to "default".',
     },
     {
       name: "mobileClassName",
@@ -192,11 +192,11 @@ export const publicSegmentedTabsStory: StoryDef = {
     "Filter or sort toggles that should match the site's route-tab pill styling.",
   ],
   whenNotToUse: [
-    "Navigation between distinct pages — use links, not tab state.",
+    "Navigation between distinct pages: use links, not tab state.",
     "Dev editor chrome with bespoke behavior beyond the shared item contract.",
   ],
   notes: [
-    "Controlled only — it holds no internal state. Drive `value` from your own state and update it in onValueChange.",
+    "Controlled only: it holds no internal state. Drive `value` from your own state and update it in onValueChange.",
     "Built on the shared Radix Tabs primitive (src/components/ui/tabs.tsx), so the same keyboard semantics apply.",
     "Generic over TValue, so item ids can be a narrow string union for type-safe handlers.",
   ],

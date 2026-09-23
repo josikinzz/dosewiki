@@ -1,14 +1,19 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 
 import { PAGE_SOCIAL_CARD_KEYS } from "../../src/data/mappings/pageSocialCardUrl";
-import { renderPageSocialCardPng } from "./pageSocialCard";
+import { readChinaDatasetCounts, renderPageSocialCardPng } from "./pageSocialCard";
 
 const replicationCounts = { total: 6634, artists: 1539, effects: 103, images: 5786, videos: 848 };
+const chinaDatasetCounts = { substances: 412, effects: 318, reports: 97, articles: 1234 };
+const inputs = { replicationCounts, chinaDatasetCounts };
 
 describe("renderPageSocialCardPng", () => {
   it.each(PAGE_SOCIAL_CARD_KEYS)("renders the %s card as a populated square PNG", async (key) => {
-    const png = await renderPageSocialCardPng(key, replicationCounts);
+    const png = await renderPageSocialCardPng(key, inputs);
     const { data, info } = await sharp(png)
       .raw()
       .toBuffer({ resolveWithObject: true });
@@ -28,7 +33,7 @@ describe("renderPageSocialCardPng", () => {
   it.each(PAGE_SOCIAL_CARD_KEYS)(
     "brands the %s card in the top-left corner",
     async (key) => {
-      const png = await renderPageSocialCardPng(key, replicationCounts);
+      const png = await renderPageSocialCardPng(key, inputs);
       const { data, info } = await sharp(png)
         .extract({ left: 54, top: 45, width: 230, height: 58 })
         .raw()
@@ -54,7 +59,7 @@ describe("renderPageSocialCardPng", () => {
   );
 
   it("features the selected replication above its compact navigation", async () => {
-    const png = await renderPageSocialCardPng("replications", replicationCounts);
+    const png = await renderPageSocialCardPng("replications", inputs);
     const { data, info } = await sharp(png)
       .extract({ left: 108, top: 308, width: 984, height: 553 })
       .raw()
@@ -104,5 +109,35 @@ describe("renderPageSocialCardPng", () => {
     expect(sums[1] / logoPixels).toBeLessThan(128);
     expect(sums[2] / logoPixels).toBeGreaterThan(224);
     expect(sums[2] / logoPixels).toBeLessThan(230);
+  });
+});
+
+describe("readChinaDatasetCounts", () => {
+  it("reads each dataset's zh-Hans item count from the pack manifest", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "china-card-"));
+    try {
+      const manifestPath = path.join(dir, "manifest.json");
+      await writeFile(manifestPath, JSON.stringify({
+        datasets: Object.entries(chinaDatasetCounts).map(([id, items]) => ({ id, packs: { "zh-Hans": { items } } })),
+      }));
+      await expect(readChinaDatasetCounts(manifestPath)).resolves.toEqual(chinaDatasetCounts);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("names the pack build command when the manifest is missing", async () => {
+    await expect(readChinaDatasetCounts("/nonexistent/zh-Hans/manifest.json")).rejects.toThrow(/translate:packs/);
+  });
+
+  it("rejects a manifest that lacks a dataset", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "china-card-"));
+    try {
+      const manifestPath = path.join(dir, "manifest.json");
+      await writeFile(manifestPath, JSON.stringify({ datasets: [] }));
+      await expect(readChinaDatasetCounts(manifestPath)).rejects.toThrow(/substances missing/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

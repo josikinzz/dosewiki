@@ -26,6 +26,9 @@ vi.mock("next/navigation", () => ({
   useSelectedLayoutSegments: () => [],
 }));
 
+/** Names a work whose stage render throws, to exercise the stage boundary. */
+const stageFailure = vi.hoisted(() => ({ title: null as string | null }));
+
 const transportVerbs = vi.hoisted(() => ({
   togglePlayback: vi.fn(),
   toggleMuted: vi.fn(),
@@ -77,6 +80,9 @@ vi.mock("./ViewerTransport", () => ({
       } | null,
     ) => void;
   }) => {
+    if (item.replication.title === stageFailure.title) {
+      throw new Error(`stage failed for ${item.replication.title}`);
+    }
     // Render-time registration mirrors the real transport's effect closely
     // enough for shortcut plumbing tests: video works get verbs, stills none.
     onTransportHandle?.(
@@ -267,6 +273,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  stageFailure.title = null;
   window.history.replaceState(
     {},
     "",
@@ -861,6 +868,46 @@ describe("ReplicationViewerOverlay", () => {
     );
     expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
+  });
+
+  it("fails only the stage when a work cannot render and keeps gallery navigation usable", () => {
+    stageFailure.title = "Work One";
+    // React logs the caught render error itself; the report is asserted elsewhere.
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      render(
+        <ReplicationViewerOverlay
+          collection={collection}
+          initialSlug="work-one"
+          open
+          onOpenChange={vi.fn()}
+        />,
+      );
+
+      const dialog = screen.getByRole("dialog", { name: /Chelsea Morgan.*Work One/ });
+      expect(screen.getByRole("alert")).toHaveTextContent("This work could not be displayed");
+      expect(screen.queryByTestId("viewer-transport")).not.toBeInTheDocument();
+      expect(dialog.querySelector("header")).toHaveTextContent("Work 1/2");
+
+      // Keys still walk works with the track gone.
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      expect(screen.getByTestId("viewer-transport")).toHaveAttribute("data-title", "Work Two");
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(window.location.search).toContain("viewer=work-two");
+
+      // Back onto the broken work, then out through the header group control.
+      fireEvent.click(screen.getByRole("button", { name: "Show Work One" }));
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Next artist: Aria" }));
+      expect(screen.getByTestId("viewer-transport")).toHaveAttribute("data-title", "Work Three");
+
+      // Close still works from a failed stage.
+      fireEvent.keyDown(window, { key: "ArrowUp" });
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Close replication viewer" })).toBeEnabled();
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it("drives playback with Space, K, and M while Space keeps its meaning on controls", () => {

@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const limited = await enforceRateLimit(request, "publicContentApiRead");
   if (limited) return limited;
   const url = new URL(request.url);
-  const locale = parseUiLocale(url.searchParams.get("locale")) === "zh-Hans" ? "zh-Hans" : "en";
+  const locale = parseUiLocale(url.searchParams.get("locale"));
   const browse = parseGalleryBrowseState(url.searchParams);
   const viewerSlug = parseReplicationViewerSlug(url.searchParams);
   const focusKind = url.searchParams.get("focusKind");

@@ -11,7 +11,9 @@ import sharp from "sharp";
 
 import {
   PAGE_SOCIAL_CARD_RENDER_VERSION,
+  readChinaDatasetCounts,
   renderPageSocialCardPng,
+  type PageSocialCardInputs,
 } from "../../lib/og/pageSocialCard";
 import { PAGE_SOCIAL_CARD_KEYS } from "../../src/data/mappings/pageSocialCardUrl";
 import { countGallery } from "../../src/features/effects/gallery/galleryModel";
@@ -111,6 +113,8 @@ async function main(): Promise<void> {
     ));
     console.log("[page-social-cards] Live gallery counts:", replicationCounts);
   }
+  // Every digest hashes the pack manifest, so a missing manifest fails here with the build command.
+  const chinaDatasetCounts = await readChinaDatasetCounts();
   const expectedFiles = new Set<string>();
   let rendered = 0;
   let reused = 0;
@@ -128,7 +132,8 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const png = await renderPageSocialCardPng(key, counts);
+    const inputs: PageSocialCardInputs = { replicationCounts: counts, chinaDatasetCounts };
+    const png = await renderPageSocialCardPng(key, inputs);
     const jpeg = await sharp(png)
       .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
       .toBuffer();

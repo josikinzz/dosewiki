@@ -8,6 +8,8 @@ import { parseGlossaryLocaleGrant } from "../src/lib/auth/roles";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 const normalizeUsername = (username: string) => username.trim().toLowerCase();
+const nextPasswordUpdatedAt = (previous?: string) =>
+  new Date(Math.max(Date.now(), (Date.parse(previous ?? "") || 0) + 1)).toISOString();
 
 // Every function here takes only the server key (no `actorEmail`), which
 // `requireRole` resolves to admin: the Auth.js server callback and the seed
@@ -33,6 +35,7 @@ export const getByEmail = query({
       name: v.optional(v.string()),
       image: v.optional(v.string()),
       bannedAt: v.optional(v.string()),
+      passwordUpdatedAt: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -55,6 +58,7 @@ export const getByEmail = query({
       name: membership.name,
       image: membership.image,
       bannedAt: membership.bannedAt,
+      passwordUpdatedAt: membership.passwordUpdatedAt,
     };
   },
 });
@@ -76,6 +80,7 @@ export const getCredentialsByUsername = query({
       name: v.optional(v.string()),
       passwordHash: v.optional(v.string()),
       bannedAt: v.optional(v.string()),
+      passwordUpdatedAt: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -96,6 +101,7 @@ export const getCredentialsByUsername = query({
       name: membership.name,
       passwordHash: membership.passwordHash,
       bannedAt: membership.bannedAt,
+      passwordUpdatedAt: membership.passwordUpdatedAt,
     };
   },
 });
@@ -170,7 +176,7 @@ export const setAdminAccount = mutation({
       name,
       role: "admin" as const,
       passwordHash: args.passwordHash,
-      passwordUpdatedAt: now,
+      passwordUpdatedAt: nextPasswordUpdatedAt(existing?.passwordUpdatedAt),
       updatedAt: now,
     };
 
@@ -401,7 +407,7 @@ export const consumePasswordReset = mutation({
       });
     }
 
-    const now = new Date().toISOString();
+    const now = nextPasswordUpdatedAt(membership.passwordUpdatedAt);
     await ctx.db.patch(membership._id, {
       passwordHash: args.passwordHash,
       passwordUpdatedAt: now,

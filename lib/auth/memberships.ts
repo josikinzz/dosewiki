@@ -12,6 +12,7 @@ export type MembershipRecord = {
   name?: string;
   image?: string;
   bannedAt?: string;
+  passwordUpdatedAt?: string;
 };
 
 export type MembershipCredentials = {
@@ -20,6 +21,7 @@ export type MembershipCredentials = {
   name?: string;
   passwordHash?: string;
   bannedAt?: string;
+  passwordUpdatedAt?: string;
 };
 
 const getMembershipByEmailQuery = makeFunctionReference<
@@ -116,6 +118,7 @@ export async function getMembershipByEmail(email: string): Promise<MembershipRec
     name: membership.name,
     image: membership.image,
     bannedAt: membership.bannedAt,
+    passwordUpdatedAt: membership.passwordUpdatedAt,
   };
 }
 

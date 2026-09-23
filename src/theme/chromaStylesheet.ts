@@ -463,17 +463,17 @@ function round4(value: number): number {
   return Math.round(value * 10000) / 10000;
 }
 
-const HEADER = `/* GENERATED FILE — do not edit by hand.
+const HEADER = `/* GENERATED FILE: do not edit by hand.
    Source: src/theme/chromaStylesheet.ts
    Regenerate: npm run generate:chroma-css
 
    The saturation and hue appearance axes. Loaded ONLY by the pre-paint
-   bootstrap — never imported by the application bundle — on every page whose
+   bootstrap (never imported by the application bundle) on every page whose
    build leaves a colour axis unlocked: the bootstrap paints the reader's
    saved values or the site defaults. Every block requires html[${CHROMA_ATTRIBUTE}]
    and computes one gain, level ÷ authored-level, applied to the chroma of
    every chromatic literal in the base palette's tokens through relative
-   colour syntax, while each literal's hue slot gains + var(--dw-*-hue, 0) —
+   colour syntax, while each literal's hue slot gains + var(--dw-*-hue, 0),
    a bare number of degrees, since the h channel is a number inside calc().
    Lightness is never touched, and hue is periodic in oklch() so plain
    addition needs no wrap-around. Unset properties fall back to the authored
@@ -493,10 +493,10 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    surface-material seeds. Fun blocks carry the same :where() Pro guard as
    the base sheets; the Pro blocks are keyed [data-visual-style="pro"]. The
    Pro accent's gain denominator is the Pro ramp's own --ei-accent level per
-   scheme; the Pro surface family is authored (near-)achromatic — no level to
-   divide by — so its blocks ADD chroma, calc(c + K * var(--dw-surface-level, 0)),
+   scheme; the Pro surface family is authored (near-)achromatic, with no level to
+   divide by, so its blocks ADD chroma, calc(c + K * var(--dw-surface-level, 0)),
    and an unset level or Pro's own default level 0 resolves the authored
-   charcoal exactly. Only the base colourways exist now — every other look is
+   charcoal exactly. Only the base colourways exist now; every other look is
    a (hue, level) point. */
 `;
 

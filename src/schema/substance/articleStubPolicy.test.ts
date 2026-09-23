@@ -100,7 +100,7 @@ function withHarmPotential(article: SubstanceArticle): SubstanceArticle {
 function withHistoryCulture(article: SubstanceArticle): SubstanceArticle {
   return {
     ...article,
-    history_culture: { ...article.history_culture, content: "First synthesised in 1974." },
+    history_culture: { sections: [], ...article.history_culture, content: "First synthesised in 1974." },
   };
 }
 

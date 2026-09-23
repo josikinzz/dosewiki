@@ -12,8 +12,8 @@ import type { ReplicationViewerCollection } from "../viewerModel";
 
 // Deliberate chunk boundary: the public viewer must never eagerly receive editor code.
 const LazyEditorPanel = lazy(async () => {
-  const module = await import("./ReplicationViewerEditorPanel");
-  return { default: module.ReplicationViewerEditorPanel };
+  const panelModule = await import("./ReplicationViewerEditorPanel");
+  return { default: panelModule.ReplicationViewerEditorPanel };
 });
 
 export interface ReplicationViewerEditorGateProps {

@@ -9,7 +9,7 @@ import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { NextResponse } from "next/server";
 import type { Doc, Id } from "@server/postgres/runtime/dataModel";
 import { getServerDataWriteCapability, type ServerDataWriteClient } from "@server/data/serverWriteCapability";
-import { authorizeCronRequest } from "@server/http/cronAuthorization";
+import { authorizeCronRequest, withCronWriteFreeze } from "@server/http/cronAuthorization";
 import { dispatchPublicationSignal, type PublicationReceipt } from "@server/next/publicationDispatch";
 import { isPublicationTarget } from "@server/next/publicationWire";
 import { getDataBackend } from "@server/postgres/runtime/backend";
@@ -19,7 +19,7 @@ import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 /** The same by-name references `server/publicationDelivery.ts` uses for its internal mutations. */
 const claimDue = makeFunctionReference<"mutation", Record<string, never>, Doc<"publicCachePublications">[]>("publicationRecovery:claimDue");
 const recordDelivery = makeFunctionReference<"mutation", {
-  id: Id<"publicCachePublications">; generation: number; complete: boolean; receipts: PublicationReceipt[];
+  id: Id<"publicCachePublications">; generation: number; complete: boolean; receipts: PublicationReceipt[]; permanent?: boolean;
 }, void>("publicationRecovery:recordDelivery");
 
 export const runtime = "nodejs";
@@ -33,11 +33,11 @@ export type PublicationDeliveryRun = {
   claimed: number;
   completed: number;
   retried: number;
-  /** Rows whose stored target is not a known publication identity; left retryable. */
+  /** Rows whose stored target is not a known publication identity; recorded as rejected dead letters. */
   skipped: number;
 };
 
-export async function GET(request: Request) {
+export const GET = withCronWriteFreeze(async function GET(request: Request) {
   const decision = authorizeCronRequest(request.headers.get("authorization"), {
     CRON_SECRET: process.env.CRON_SECRET,
   });
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 
   const run = await reconcilePublications(capability.capability.client);
   return NextResponse.json(run, { headers: { "cache-control": "no-store" } });
-}
+});
 
 async function reconcilePublications(client: ServerDataWriteClient): Promise<PublicationDeliveryRun> {
   const rows = await client.mutationAsService(claimDue, {});
@@ -62,6 +62,12 @@ async function reconcilePublications(client: ServerDataWriteClient): Promise<Pub
   for (let start = 0; start < rows.length; start += DELIVERY_CONCURRENCY) {
     await Promise.all(rows.slice(start, start + DELIVERY_CONCURRENCY).map(async (row) => {
       if (!isPublicationTarget(row.target)) {
+        // No retry can classify it; record why and stop retrying.
+        await client.mutationAsService(recordDelivery, {
+          id: row._id, generation: row.generation, complete: false, permanent: true,
+          receipts: [{ target: "publication-target", status: "rejected", attempts: 1,
+            detail: "Stored target is not a known publication identity" }],
+        });
         run.skipped += 1;
         return;
       }
@@ -73,7 +79,7 @@ async function reconcilePublications(client: ServerDataWriteClient): Promise<Pub
           ? `${target.kind}/${target.slug}` : null;
       if (jobSlug) {
         try {
-          await enqueueTranslationJobs(LIVE_LOCALE_CODES, [jobSlug], { id: row._id, generation: row.generation });
+          await enqueueTranslationJobs(LIVE_LOCALE_CODES, [jobSlug], { publication: { id: row._id, generation: row.generation } });
         } catch (error) {
           await client.mutationAsService(recordDelivery, {
             id: row._id, generation: row.generation, complete: false,

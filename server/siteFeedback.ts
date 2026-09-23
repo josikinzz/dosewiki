@@ -2,6 +2,7 @@ import { v } from "../lib/postgres/runtime/values";
 import { query, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
+import { auditStampFor } from "./lib/auditStamp";
 
 const statusValidator = v.union(
   v.literal("new"),
@@ -164,12 +165,11 @@ export const transition = mutation({
     actorEmail: v.optional(v.string()),
     id: v.string(),
     status: statusValidator,
-    reviewer: v.string(),
     note: v.optional(v.string()),
   },
   returns: feedbackQueueItemValidator,
   handler: async (ctx, args) => {
-    await requireRole(
+    const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
       "admin",
@@ -187,7 +187,8 @@ export const transition = mutation({
     const timestamp = new Date().toISOString();
     const patch = {
       status: args.status,
-      reviewed_by: args.reviewer,
+      // The resolved actor, never a caller-supplied name.
+      reviewed_by: auditStampFor(actor, undefined),
       reviewed_at: timestamp,
       updated_at: timestamp,
       review_notes: args.note ?? doc.review_notes,

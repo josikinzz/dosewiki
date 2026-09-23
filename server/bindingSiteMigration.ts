@@ -153,8 +153,8 @@ export const migrateArticlesPage = mutation({
     });
     let migrated = 0;
     let alreadyCanonical = 0;
-    const skipped = [];
-    const suspiciousTargets = [];
+    const skipped: Array<{ title: string; slug: string | null; status: string; reasons: string[] }> = [];
+    const suspiciousTargets: Array<{ slug: string | null } & ReturnType<typeof planBindingSiteMigration>["suspiciousTargets"][number]> = [];
 
     for (const article of page.page) {
       const plan = planBindingSiteMigration(article.pharmacology);
@@ -256,8 +256,8 @@ export const auditEvidencePage = query({
       cursor: args.cursor ?? null,
       numItems: boundedLimit(args.limit, DEFAULT_EVIDENCE_PAGE_SIZE, MAX_EVIDENCE_PAGE_SIZE),
     });
-    const remappable = [];
-    const unmappable = [];
+    const remappable: Array<{ slug: string; fieldPath: string; nextFieldPath: string }> = [];
+    const unmappable: Array<{ slug: string; fieldPath: string; reason: string }> = [];
 
     for (const row of page.page) {
       const result = remapBindingSiteEvidencePath({
@@ -319,7 +319,7 @@ export const migrateEvidencePage = mutation({
     });
     const now = new Date().toISOString();
     let migrated = 0;
-    const unmappable = [];
+    const unmappable: Array<{ slug: string; fieldPath: string; reason: string }> = [];
 
     for (const row of page.page) {
       const result = remapBindingSiteEvidencePath({

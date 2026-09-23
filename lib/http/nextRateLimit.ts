@@ -17,6 +17,16 @@ type RateLimitOptions = {
   keySuffix?: string;
 };
 
+type RateLimitKeyOptions = {
+  /** Separates the bucket of a named policy from other policies on the same path. */
+  keySuffix?: string;
+  /**
+   * The caller's address when the route resolved it from a trusted source
+   * (a platform header) rather than the default forwarding headers.
+   */
+  clientIp?: string;
+};
+
 type LegacyRateLimitPolicy = Omit<RateLimitPolicy, "name"> & {
   name: "legacy";
 };
@@ -159,15 +169,22 @@ function resolvePolicy(policyOrOptions?: RateLimitPolicyName | RateLimitOptions)
 
   return {
     name: "legacy",
-    windowMs: Number.isFinite(policyOrOptions?.windowMs) ? policyOrOptions.windowMs! : DEFAULT_WINDOW_MS,
-    max: Number.isFinite(policyOrOptions?.max) ? policyOrOptions.max! : DEFAULT_MAX,
+    windowMs: policyOrOptions?.windowMs !== undefined && Number.isFinite(policyOrOptions.windowMs) ? policyOrOptions.windowMs : DEFAULT_WINDOW_MS,
+    max: policyOrOptions?.max !== undefined && Number.isFinite(policyOrOptions.max) ? policyOrOptions.max : DEFAULT_MAX,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",
   };
 }
 
-function resolveKeySuffix(request: Request, policyOrOptions?: RateLimitPolicyName | RateLimitOptions) {
+function resolveKeySuffix(
+  request: Request,
+  policyOrOptions?: RateLimitPolicyName | RateLimitOptions,
+  keyOptions?: RateLimitKeyOptions,
+) {
+  if (keyOptions?.keySuffix) {
+    return keyOptions.keySuffix;
+  }
   if (typeof policyOrOptions === "object" && policyOrOptions?.keySuffix) {
     return policyOrOptions.keySuffix;
   }
@@ -175,9 +192,9 @@ function resolveKeySuffix(request: Request, policyOrOptions?: RateLimitPolicyNam
   return new URL(request.url).pathname;
 }
 
-function buildRateLimitKey(request: Request, keySuffix: string) {
+function buildRateLimitKey(request: Request, keySuffix: string, clientIp?: string) {
   return {
-    key: getWindowKey(getClientIp(request), keySuffix),
+    key: getWindowKey(clientIp ?? getClientIp(request), keySuffix),
     keyType: "ip" as const,
   };
 }
@@ -201,10 +218,14 @@ async function limitWithFallback(
   }
 }
 
-export async function enforceRateLimit(request: Request, policyOrOptions?: RateLimitPolicyName | RateLimitOptions) {
+export async function enforceRateLimit(
+  request: Request,
+  policyOrOptions?: RateLimitPolicyName | RateLimitOptions,
+  keyOptions?: RateLimitKeyOptions,
+) {
   const policy = resolvePolicy(policyOrOptions);
-  const keySuffix = resolveKeySuffix(request, policyOrOptions);
-  const { key, keyType } = buildRateLimitKey(request, keySuffix);
+  const keySuffix = resolveKeySuffix(request, policyOrOptions, keyOptions);
+  const { key, keyType } = buildRateLimitKey(request, keySuffix, keyOptions?.clientIp);
   const result = await limitWithFallback(key, policy);
 
   if (result.success) {

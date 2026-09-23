@@ -51,9 +51,11 @@ const SHARED_CLIENT_LIBRARIES = new Set([
 // Local-Postgres rehearsals and parity harnesses write scratch rows through
 // the runtime and are gated by targetGuard (loopback only unless
 // --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Postgres deployment
-// ceremony. The `it.each` below holds them to that guard.
+// ceremony. The `it.each` below holds them to that guard. Operator commands
+// that write shared tables, such as the derived-table rebuild and the snapshot
+// importer, are production boundaries instead and never match this pattern.
 const POSTGRES_GUARDED_WRITER_PATTERN =
-  /^scripts\/postgres\/(?:(?:rehearse-[^/]+|parity[^/]*)|rebuild-derived-tables)\.ts$/;
+  /^scripts\/postgres\/(?:rehearse-[^/]+|parity[^/]*)\.ts$/;
 
 function activeDirectMutationWriters() {
   return activeScriptDetections
@@ -66,6 +68,22 @@ function activeDirectMutationWriters() {
 function postgresRehearsalWriters() {
   return activeScriptDetections
     .filter(({ path, detection }) => POSTGRES_GUARDED_WRITER_PATTERN.test(path) && detection.kinds.includes("data-mutation"))
+    .map(({ path }) => path)
+    .sort();
+}
+
+/**
+ * Files whose raw SQL writes (`TRUNCATE`, `DELETE FROM`, `INSERT`, and the
+ * like, sent through `.query(`) carry no inventory classification.
+ */
+function unclassifiedRawSqlWriters(detections) {
+  const classified = new Set([
+    ...classifiedDirectProductionWriterPaths,
+    ...productionWriterClassifications.guardedIndirectEntrypoint,
+    ...productionWriterClassifications.localRehearsal,
+  ]);
+  return detections
+    .filter(({ path, detection }) => detection.kinds.includes("raw-sql-write") && !classified.has(path))
     .map(({ path }) => path)
     .sort();
 }
@@ -92,6 +110,28 @@ function sourceWithoutGuardedDryRunReadFallbacks(source) {
 describe("production writer command surface", () => {
   it("classifies every active direct Postgres mutation file", () => {
     expect(activeDirectMutationWriters().filter((path) => !classifiedDirectProductionWriterPaths.includes(path))).toEqual([]);
+  });
+
+  it("holds the derived-table rebuild to the production boundary, not the rehearsal exemption", () => {
+    const rebuild = "scripts/postgres/rebuild-derived-tables.ts";
+    expect(POSTGRES_GUARDED_WRITER_PATTERN.test(rebuild)).toBe(false);
+    expect(activeDirectMutationWriters()).toContain(rebuild);
+    expect(productionWriterClassifications.productionBoundary).toContain(rebuild);
+  });
+
+  it("classifies every active raw SQL writer", () => {
+    expect(unclassifiedRawSqlWriters(activeScriptDetections)).toEqual([]);
+  });
+
+  it("fails for a raw SQL writer that has no classification", () => {
+    const path = "scripts/fixture/unclassified-truncate.mjs";
+    const detection = detectProductionWriteSignals(`await client.query("TRUNCATE x")`, path);
+    expect(unclassifiedRawSqlWriters([...activeScriptDetections, { path, detection }])).toEqual([path]);
+  });
+
+  it.each(productionWriterClassifications.localRehearsal)("%s is a local rehearsal behind the Postgres target guard", (path) => {
+    expect(POSTGRES_GUARDED_WRITER_PATTERN.test(path)).toBe(true);
+    expect(readFileSync(resolve(repoRoot, path), "utf8")).toMatch(/guardTarget\(/);
   });
 
   it.each(postgresRehearsalWriters())("%s writes only behind the Postgres target guard", (path) => {

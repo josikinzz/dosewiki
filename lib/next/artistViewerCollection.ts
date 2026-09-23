@@ -1,3 +1,4 @@
+import { parseUiLocale } from "@/i18n/messages";
 import "server-only";
 
 import { resolveGalleryFocus } from "@/features/replications/galleryFocus";
@@ -10,7 +11,7 @@ import { getLocalizedEffectNames } from "@server/translation/localizedRecords";
 
 /** The same focused membership and curated ordering as the Artist Page. */
 export async function getArtistViewerGroups(key: string, locale: string) {
-  const language = locale === "zh-Hans" ? "zh-Hans" : "en";
+  const language = parseUiLocale(locale);
   // Artist keys and membership are canonical. Resolve the one requested group
   // first; translating the complete gallery cannot change that identity and
   // only delays a direct viewer request.
@@ -32,7 +33,7 @@ export async function getArtistViewerGroups(key: string, locale: string) {
   const canonicalEffects = index.effects.filter((effect) =>
     effectSlugs.has(effect.slug),
   );
-  const localizedNames = language === "zh-Hans"
+  const localizedNames = language !== "en"
     ? await getLocalizedEffectNames(
         canonicalEffects.map((effect) => effect.name),
         language,

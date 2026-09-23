@@ -28,5 +28,15 @@
     "catalogIdentity": "nl",
     "direction": "ltr",
     "coveragePolicy": { "script": "latin", "numerals": "arabic" }
+  },
+  "ru": {
+    "code": "ru",
+    "publicHost": "ru.dose.wiki",
+    "pathPrefix": "/ru",
+    "htmlLanguage": "ru",
+    "formattingLocale": "ru-RU",
+    "catalogIdentity": "ru",
+    "direction": "ltr",
+    "coveragePolicy": { "script": "cyrillic", "numerals": "arabic" }
   }
 }

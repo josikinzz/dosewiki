@@ -482,7 +482,7 @@ export function ReplicationShowcase({
   // One key for the whole footnote; the link is spliced back in at its
   // placeholder so a translation can move it.
   const [rightsBefore, rightsAfter] = t(
-    "Replication media is credited to its creator; rights remain with the rightsholder — see the {{terms}} to correct a credit or request removal.",
+    "Replication media is credited to its creator; rights remain with the rightsholder. See the {{terms}} to correct a credit or request removal.",
   ).split("{{terms}}");
 
   return (
@@ -760,7 +760,7 @@ export function ReplicationShowcase({
                         id={`${tabId}-${index}`}
                         aria-selected={selected}
                         aria-controls={stageId}
-                        aria-label={t("{{title}} — demonstrates {{effect}}, {{byline}}", {
+                        aria-label={t("{{title}}, demonstrating {{effect}}, {{byline}}", {
                           title: work.title,
                           effect: work.effectName,
                           byline: work.artistName && hasKnownCreator(work.artistName)

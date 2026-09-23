@@ -251,7 +251,7 @@ export function normalizeTolerance(raw: unknown): SubstanceArticle["tolerance"] 
 
 function normalizeHistoryCultureSubsection(
   raw: unknown,
-): SubstanceArticle["history_culture"]["sections"][number]["subsections"][number] {
+): NonNullable<SubstanceArticle["history_culture"]>["sections"][number]["subsections"][number] {
   const item = getObject(raw);
   return {
     heading: getString(item.heading),
@@ -262,7 +262,7 @@ function normalizeHistoryCultureSubsection(
 
 function normalizeHistoryCultureSection(
   raw: unknown,
-): SubstanceArticle["history_culture"]["sections"][number] {
+): NonNullable<SubstanceArticle["history_culture"]>["sections"][number] {
   const item = getObject(raw);
   return {
     heading: getString(item.heading),

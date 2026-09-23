@@ -544,10 +544,16 @@ export function useTripReportPortalController() {
       }
       patchSubmission(updated);
       setPromotionPayload(payload.payload ?? null);
+      const suggestedOwner =
+        typeof payload.suggestedOwner?.email === "string" ? payload.suggestedOwner.email : null;
       setFeedback({
         tone: "success",
         message: publish
-          ? `Published "${selectedSubmission.title}" to the public trip reports.`
+          ? `Published "${selectedSubmission.title}" to the public trip reports.${
+              suggestedOwner
+                ? ` The contact email matches the member ${suggestedOwner}; ownership was not granted. Assign it from My reports if that member wrote it.`
+                : ""
+            }`
           : "Preview ready below. Nothing has been published yet.",
       });
 

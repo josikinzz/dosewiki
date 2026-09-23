@@ -140,7 +140,7 @@ export const FONT_CHOICES: readonly FontChoice[] = [
   {
     id: "blinker",
     label: "Blinker",
-    hint: "dose.wiki's own display face — geometric, wide-apertured, the headings you already know.",
+    hint: "dose.wiki's own display face: geometric, wide-apertured, the headings you already know.",
     stack: `var(--font-display), Inter, ${SYSTEM_SANS}`,
   },
   {
@@ -159,7 +159,7 @@ export const FONT_CHOICES: readonly FontChoice[] = [
   {
     id: "serif",
     label: "Serif",
-    hint: "Your system's book serif — Georgia or Times. Nothing to download.",
+    hint: "Your system's book serif (Georgia or Times). Nothing to download.",
     stack: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
   },
   {
@@ -239,12 +239,12 @@ export const FONT_GROUP: PaletteGroup = {
   // lab offers, and a collapsed pair of rows reads as one more color group.
   major: true,
   blurb:
-    "The two faces the whole site is set in. Body is the reading text; display is headings, the wordmark, and the site's louder labels. Picking Titillium Web downloads it the first time — every other choice is already on your machine.",
+    "The two faces the whole site is set in. Body is the reading text; display is headings, the wordmark, and the site's louder labels. Picking Titillium Web downloads it the first time; every other choice is already on your machine.",
   tokens: [
     font(
       "--font-family-body",
       "Body text face",
-      "Paragraphs, tables, captions — everything you read rather than scan.",
+      "Paragraphs, tables, captions: everything you read rather than scan.",
     ),
     font(
       "--font-family-display",

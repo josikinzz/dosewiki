@@ -58,11 +58,12 @@ export function hasPublicDifferentCreatorProof(value: AttributionForPublicProjec
   ) {
     return false;
   }
+  const posterPostedAt = value.poster_posted_at;
   return value.evidence.some((item) =>
     (item.kind === "explicit-credit" || item.kind === "earlier-exact-source") &&
     typeof item.reference_url === "string" &&
     typeof item.published_at === "number" &&
-    item.published_at < value.poster_posted_at &&
+    item.published_at < posterPostedAt &&
     item.supports_source_digest === value.source_digest
   );
 }

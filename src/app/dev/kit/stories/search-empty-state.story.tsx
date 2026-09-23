@@ -93,7 +93,7 @@ export const searchEmptyStateStory: StoryDef = {
     "Any centered icon + title + secondary message inside a search/results surface.",
   ],
   whenNotToUse: [
-    "Full-page empty states with card chrome — use EmptyStateSurface / StatusState.",
+    "Full-page empty states with card chrome: use EmptyStateSurface / StatusState.",
     "Standalone status stacks: use StateCard.",
   ],
   notes: [

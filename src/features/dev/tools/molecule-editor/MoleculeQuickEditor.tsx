@@ -17,6 +17,7 @@
  *
  * The host must provide a DataProvider and an authenticated editor session.
  */
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
@@ -150,15 +151,21 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
             <>
               {/* inset so OpenChemLib's white canvas reads as matted artwork inside
                   the dark frame rather than an edge-to-edge white slab */}
-              <OclEditor
-                source={source}
-                onChange={setEdited}
-                onError={setCanvasError}
-                fineRotation
-                boldBonds={boldBonds}
-                onBoldBondsChange={setBoldBonds}
-                className="absolute inset-3 overflow-hidden rounded-lg"
-              />
+              <ErrorBoundary
+                name="molecule-editor-canvas"
+                resetKeys={[source]}
+                className="absolute inset-3 grid place-items-center overflow-auto"
+              >
+                <OclEditor
+                  source={source}
+                  onChange={setEdited}
+                  onError={setCanvasError}
+                  fineRotation
+                  boldBonds={boldBonds}
+                  onBoldBondsChange={setBoldBonds}
+                  className="absolute inset-3 overflow-hidden rounded-lg"
+                />
+              </ErrorBoundary>
               {computing ? (
                 <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 p-4 text-center text-sm">
                   {loadTimedOut ? (

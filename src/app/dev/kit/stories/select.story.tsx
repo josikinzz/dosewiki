@@ -215,8 +215,8 @@ export const selectStory: StoryDef = {
     "Form fields where a native-feeling dropdown with grouping/labels is wanted.",
   ],
   whenNotToUse: [
-    "Multi-select or free-text search — reach for a command/combobox pattern instead.",
-    "Two or three mutually exclusive toggles — use buttons, tabs, or a radio group.",
+    "Multi-select or free-text search: reach for a command/combobox pattern instead.",
+    "Two or three mutually exclusive toggles: use buttons, tabs, or a radio group.",
     "Very long, searchable datasets where typeahead filtering is needed.",
   ],
   notes: [

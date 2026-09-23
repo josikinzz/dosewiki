@@ -130,9 +130,9 @@ describe("banner display route", () => {
     expect(response.status).toBe(200);
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
     expect(cacheMocks.revalidatePath.mock.calls).toEqual([
-      ["/heroin"], ["/zh/heroin"],
-      ["/fentanyl"], ["/zh/fentanyl"],
-      ["/diazepam"], ["/zh/diazepam"],
+      ["/heroin"], ["/zh/heroin"], ["/ru/heroin"],
+      ["/fentanyl"], ["/zh/fentanyl"], ["/ru/fentanyl"],
+      ["/diazepam"], ["/zh/diazepam"], ["/ru/diazepam"],
     ]);
   });
 

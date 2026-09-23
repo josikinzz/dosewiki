@@ -9,11 +9,12 @@
  * that mentions it.
  */
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
 import { getDataBackend } from "@server/postgres/runtime/backend";
-import { glossaryLocales, markRetranslated } from "@server/translation/glossary";
+import { glossaryLocales, markRetranslationRequested } from "@server/translation/glossary";
 import { publicRecordSlugs, translationJobSlug, TRANSLATION_RECORD_KINDS, type TranslationRecordKind } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 import { GLOSSARY_BODY_MAX_BYTES, glossaryLocaleAccess, parseLocale } from "../glossaryRoutes";
@@ -31,6 +32,7 @@ export const POST = protectedRouteOperation<EnqueueAllBody, ParsedEnqueueAll>({
   unexpectedErrorLabel: "Failed to enqueue the main translation via Next route:",
   unexpectedErrorMessage: "Unable to enqueue the main translation right now.",
   operation: async ({ body, auth }) => {
+    const requestedThrough = Date.now();
     getDataBackend();
     const denied = glossaryLocaleAccess(auth, body.locale);
     if (denied) return denied;
@@ -51,8 +53,9 @@ export const POST = protectedRouteOperation<EnqueueAllBody, ParsedEnqueueAll>({
       jobs[kind] = bare.length;
       for (const slug of bare) slugs.push(translationJobSlug(kind, slug));
     }
-    await enqueueTranslationJobs([body.locale], slugs);
-    await markRetranslated(body.locale);
-    return NextResponse.json({ ok: true, locale: body.locale, jobs, total: slugs.length });
+    const runId = randomUUID();
+    await enqueueTranslationJobs([body.locale], slugs, { run: { id: runId, mode: "bulk" } });
+    await markRetranslationRequested(body.locale, undefined, requestedThrough);
+    return NextResponse.json({ ok: true, locale: body.locale, runId, status: "queued", requestedAt: requestedThrough, jobs, total: slugs.length });
   },
 });

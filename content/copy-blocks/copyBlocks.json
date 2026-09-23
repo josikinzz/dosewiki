@@ -2217,196 +2217,196 @@
   {
     "key": "docs-how-toc-made",
     "kind": "plain",
-    "label": "TOC — What's in an article",
+    "label": "TOC: What's in an article",
     "group": "Docs · How",
     "body": "What's in an article"
   },
   {
     "key": "docs-how-toc-sources",
     "kind": "plain",
-    "label": "TOC — The sources",
+    "label": "TOC: The sources",
     "group": "Docs · How",
     "body": "The sources"
   },
   {
     "key": "docs-how-toc-pipeline",
     "kind": "plain",
-    "label": "TOC — The pipeline",
+    "label": "TOC: The pipeline",
     "group": "Docs · How",
     "body": "The pipeline"
   },
   {
     "key": "docs-how-toc-parsing",
     "kind": "plain",
-    "label": "TOC — Scraping & parsing",
+    "label": "TOC: Scraping & parsing",
     "group": "Docs · How",
     "body": "Scraping & parsing"
   },
   {
     "key": "docs-how-toc-excerpts",
     "kind": "plain",
-    "label": "TOC — Verbatim excerpts",
+    "label": "TOC: Verbatim excerpts",
     "group": "Docs · How",
     "body": "Verbatim excerpts"
   },
   {
     "key": "docs-how-toc-synthesis",
     "kind": "plain",
-    "label": "TOC — AI synthesis",
+    "label": "TOC: AI synthesis",
     "group": "Docs · How",
     "body": "AI synthesis"
   },
   {
     "key": "docs-how-toc-citations",
     "kind": "plain",
-    "label": "TOC — Citations & legality",
+    "label": "TOC: Citations & legality",
     "group": "Docs · How",
     "body": "Citations & legality"
   },
   {
     "key": "docs-how-toc-review",
     "kind": "plain",
-    "label": "TOC — Human review",
+    "label": "TOC: Human review",
     "group": "Docs · How",
     "body": "Human review"
   },
   {
     "key": "docs-how-toc-limits",
     "kind": "plain",
-    "label": "TOC — What can go wrong",
+    "label": "TOC: What can go wrong",
     "group": "Docs · How",
     "body": "What can go wrong"
   },
   {
     "key": "docs-how-toc-status",
     "kind": "plain",
-    "label": "TOC — Status & roadmap",
+    "label": "TOC: Status & roadmap",
     "group": "Docs · How",
     "body": "Status & roadmap"
   },
   {
     "key": "docs-how-toc-dataset",
     "kind": "plain",
-    "label": "TOC — The open dataset",
+    "label": "TOC: The open dataset",
     "group": "Docs · How",
     "body": "The open dataset"
   },
   {
     "key": "docs-license-header-updated",
     "kind": "plain",
-    "label": "Header — last-updated line",
+    "label": "Header: last-updated line",
     "group": "Docs · License",
     "body": "Last updated August 15, 2026"
   },
   {
     "key": "docs-license-header-title",
     "kind": "plain",
-    "label": "Header — page title",
+    "label": "Header: page title",
     "group": "Docs · License",
     "body": "Licensing and reuse"
   },
   {
     "key": "docs-license-header-tagline",
     "kind": "markdown",
-    "label": "Header — tagline",
+    "label": "Header: tagline",
     "group": "Docs · License",
     "body": "What you can reuse, what needs attribution, and what dose.wiki does not license."
   },
   {
     "key": "docs-license-header-intro",
     "kind": "markdown",
-    "label": "Header — CC0 intro paragraph",
+    "label": "Header: CC0 intro paragraph",
     "group": "Docs · License",
     "body": "Most dose.wiki-authored material is released under **CC0 1.0 Universal**. You can copy, modify, redistribute, and use that material commercially without asking permission or giving attribution."
   },
   {
     "key": "docs-license-header-terms-note",
     "kind": "markdown",
-    "label": "Header — own-terms paragraph",
+    "label": "Header: own-terms paragraph",
     "group": "Docs · License",
     "body": "The source code and several kinds of contributor and third-party material keep their own terms. The reuse matrix in section 2 is the authoritative inventory. Before you republish anything, check the matrix."
   },
   {
     "key": "docs-license-toc-quick-answer",
     "kind": "plain",
-    "label": "TOC — 1. Quick answer",
+    "label": "TOC: 1. Quick answer",
     "group": "Docs · License",
     "body": "1. Quick answer"
   },
   {
     "key": "docs-license-toc-reuse-matrix",
     "kind": "plain",
-    "label": "TOC — 2. Reuse matrix",
+    "label": "TOC: 2. Reuse matrix",
     "group": "Docs · License",
     "body": "2. Reuse matrix"
   },
   {
     "key": "docs-license-toc-cc0-scope",
     "kind": "plain",
-    "label": "TOC — 3. CC0 scope",
+    "label": "TOC: 3. CC0 scope",
     "group": "Docs · License",
     "body": "3. CC0 scope"
   },
   {
     "key": "docs-license-toc-exceptions",
     "kind": "plain",
-    "label": "TOC — 4. Important exceptions",
+    "label": "TOC: 4. Important exceptions",
     "group": "Docs · License",
     "body": "4. Important exceptions"
   },
   {
     "key": "docs-license-toc-provenance",
     "kind": "plain",
-    "label": "TOC — 5. Subjective effects provenance",
+    "label": "TOC: 5. Subjective effects provenance",
     "group": "Docs · License",
     "body": "5. Subjective effects provenance"
   },
   {
     "key": "docs-license-toc-source-code",
     "kind": "plain",
-    "label": "TOC — 6. Source code",
+    "label": "TOC: 6. Source code",
     "group": "Docs · License",
     "body": "6. Source code"
   },
   {
     "key": "docs-license-toc-attribution",
     "kind": "plain",
-    "label": "TOC — 7. Attribution examples",
+    "label": "TOC: 7. Attribution examples",
     "group": "Docs · License",
     "body": "7. Attribution examples"
   },
   {
     "key": "docs-license-toc-full-terms",
     "kind": "plain",
-    "label": "TOC — 8. Full terms",
+    "label": "TOC: 8. Full terms",
     "group": "Docs · License",
     "body": "8. Full terms"
   },
   {
     "key": "docs-license-s1-heading",
     "kind": "plain",
-    "label": "01 · Quick answer — heading",
+    "label": "01 · Quick answer: heading",
     "group": "Docs · License",
     "body": "Quick answer"
   },
   {
     "key": "docs-license-s1-cc0-alert",
     "kind": "markdown",
-    "label": "01 · Quick answer — CC0 callout",
+    "label": "01 · Quick answer: CC0 callout",
     "group": "Docs · License",
     "body": "dose.wiki's own article text, structured dataset, schema, and generated molecule assets are CC0 unless a page or data field says otherwise."
   },
   {
     "key": "docs-license-s1-freely-label",
     "kind": "plain",
-    "label": "01 · Quick answer — freely-reusable label",
+    "label": "01 · Quick answer: freely-reusable label",
     "group": "Docs · License",
     "body": "Freely reusable"
   },
   {
     "key": "docs-license-s1-freely-items",
     "kind": "list",
-    "label": "01 · Quick answer — freely-reusable list",
+    "label": "01 · Quick answer: freely-reusable list",
     "group": "Docs · License",
     "items": [
       "dose.wiki-authored article prose and structured fields.",
@@ -2418,14 +2418,14 @@
   {
     "key": "docs-license-s1-check-label",
     "kind": "plain",
-    "label": "01 · Quick answer — check-before-reuse label",
+    "label": "01 · Quick answer: check-before-reuse label",
     "group": "Docs · License",
     "body": "Check before reuse"
   },
   {
     "key": "docs-license-s1-check-items",
     "kind": "list",
-    "label": "01 · Quick answer — check-before-reuse list",
+    "label": "01 · Quick answer: check-before-reuse list",
     "group": "Docs · License",
     "items": [
       "Legacy trip reports, where rights remain with the author.",
@@ -2438,252 +2438,252 @@
   {
     "key": "docs-license-s1-disclaimer",
     "kind": "markdown",
-    "label": "01 · Quick answer — not-legal-advice note",
+    "label": "01 · Quick answer: not-legal-advice note",
     "group": "Docs · License",
     "body": "**Not legal advice.** This page describes dose.wiki's licensing intent and the reuse terms we apply to our own material. If your use is sensitive, commercial, or jurisdiction-specific, check the relevant terms yourself."
   },
   {
     "key": "docs-license-s2-heading",
     "kind": "plain",
-    "label": "02 · Reuse matrix — heading",
+    "label": "02 · Reuse matrix: heading",
     "group": "Docs · License",
     "body": "Reuse matrix"
   },
   {
     "key": "docs-license-s2-intro",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — intro",
+    "label": "02 · Reuse matrix: intro",
     "group": "Docs · License",
     "body": "This table separates material dose.wiki can license from material that belongs to contributors or third-party projects."
   },
   {
     "key": "docs-license-s2-col-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — column: Material",
+    "label": "02 · Reuse matrix, column: Material",
     "group": "Docs · License",
     "body": "Material"
   },
   {
     "key": "docs-license-s2-col-terms",
     "kind": "plain",
-    "label": "02 · Reuse matrix — column: Terms",
+    "label": "02 · Reuse matrix, column: Terms",
     "group": "Docs · License",
     "body": "Terms"
   },
   {
     "key": "docs-license-s2-col-attribution",
     "kind": "plain",
-    "label": "02 · Reuse matrix — column: Attribution",
+    "label": "02 · Reuse matrix, column: Attribution",
     "group": "Docs · License",
     "body": "Attribution"
   },
   {
     "key": "docs-license-s2-col-commercial",
     "kind": "plain",
-    "label": "02 · Reuse matrix — column: Commercial use",
+    "label": "02 · Reuse matrix, column: Commercial use",
     "group": "Docs · License",
     "body": "Commercial use"
   },
   {
     "key": "docs-license-s2-col-notes",
     "kind": "plain",
-    "label": "02 · Reuse matrix — column: Notes",
+    "label": "02 · Reuse matrix, column: Notes",
     "group": "Docs · License",
     "body": "Notes"
   },
   {
     "key": "docs-license-s2-articles-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — article content row title",
+    "label": "02 · Reuse matrix: article content row title",
     "group": "Docs · License",
     "body": "dose.wiki-authored article content"
   },
   {
     "key": "docs-license-s2-articles-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — article content notes",
+    "label": "02 · Reuse matrix: article content notes",
     "group": "Docs · License",
     "body": "CC0 covers dose.wiki's own copyrightable contributions to summaries, pharmacology, tolerance, harm potential, history, legality, dosage, duration, and related article fields."
   },
   {
     "key": "docs-license-s2-dataset-material",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — dataset row title",
+    "label": "02 · Reuse matrix: dataset row title",
     "group": "Docs · License",
     "body": "Structured dataset `SubstanceIndex.json`"
   },
   {
     "key": "docs-license-s2-dataset-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — dataset notes",
+    "label": "02 · Reuse matrix: dataset notes",
     "group": "Docs · License",
     "body": "CC0 covers the downloadable snapshot, the dose.wiki schema, and the normalization work. Every article document also carries an `interactions` object built from TripSit combination guidance, which keeps TripSit's terms (section 4). Strip or separately license that field before commercial reuse. CC0 grants no rights to external sources cited by articles."
   },
   {
     "key": "docs-license-s2-molecules-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — molecule SVG row title",
+    "label": "02 · Reuse matrix: molecule SVG row title",
     "group": "Docs · License",
     "body": "Molecule SVG pack and manifest"
   },
   {
     "key": "docs-license-s2-molecules-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — molecule SVG notes",
+    "label": "02 · Reuse matrix: molecule SVG notes",
     "group": "Docs · License",
     "body": "Structure SVGs made by dose.wiki: an automatic layout from SMILES, then redrawn by hand or aligned to a class template, rendered with a dose.wiki fork of OpenChemLib. Includes the molecule metadata manifest."
   },
   {
     "key": "docs-license-s2-replication-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — replication media row title",
+    "label": "02 · Reuse matrix: replication media row title",
     "group": "Docs · License",
     "body": "Subjective-effect replication media"
   },
   {
     "key": "docs-license-s2-replication-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — replication media notes",
+    "label": "02 · Reuse matrix: replication media notes",
     "group": "Docs · License",
     "body": "Images, videos, and audio that recreate subjective effects remain owned by their original creators or rightsholders. No open license covers them and none is CC0; reuse is the artist's call unless an individual item states its own license. dose.wiki displays and credits them; it does not relicense them."
   },
   {
     "key": "docs-license-s2-code-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — source code row title",
+    "label": "02 · Reuse matrix: source code row title",
     "group": "Docs · License",
     "body": "Website source code"
   },
   {
     "key": "docs-license-s2-code-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — source code notes",
+    "label": "02 · Reuse matrix: source code notes",
     "group": "Docs · License",
     "body": "MIT covers the application code and tooling only (section 6)."
   },
   {
     "key": "docs-license-s2-legacy-reports-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — legacy reports row title",
+    "label": "02 · Reuse matrix: legacy reports row title",
     "group": "Docs · License",
     "body": "Legacy trip reports"
   },
   {
     "key": "docs-license-s2-legacy-reports-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — legacy reports notes",
+    "label": "02 · Reuse matrix: legacy reports notes",
     "group": "Docs · License",
     "body": "Reports already on the site are contributor-authored personal accounts. Reuse outside ordinary linking or quotation depends on the report's marker or the author's permission."
   },
   {
     "key": "docs-license-s2-new-reports-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — new submissions row title",
+    "label": "02 · Reuse matrix: new submissions row title",
     "group": "Docs · License",
     "body": "New report-form submissions"
   },
   {
     "key": "docs-license-s2-new-reports-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — new submissions notes",
+    "label": "02 · Reuse matrix: new submissions notes",
     "group": "Docs · License",
     "body": "CC0 applies when the submitter accepts the report form's CC0 terms before they send the report."
   },
   {
     "key": "docs-license-s2-interactions-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — interaction ratings row title",
+    "label": "02 · Reuse matrix: interaction ratings row title",
     "group": "Docs · License",
     "body": "Interaction ratings"
   },
   {
     "key": "docs-license-s2-interactions-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — interaction ratings notes",
+    "label": "02 · Reuse matrix: interaction ratings notes",
     "group": "Docs · License",
     "body": "Combination data comes from TripSit. Reuse follows TripSit's own terms (section 4)."
   },
   {
     "key": "docs-license-s2-reagent-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — reagent data row title",
+    "label": "02 · Reuse matrix: reagent data row title",
     "group": "Docs · License",
     "body": "Reagent-test data"
   },
   {
     "key": "docs-license-s2-reagent-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — reagent data notes",
+    "label": "02 · Reuse matrix: reagent data notes",
     "group": "Docs · License",
     "body": "dose.wiki fetches reagent results from protestkit.eu when you view an article. The downloadable dataset does not contain them."
   },
   {
     "key": "docs-license-s2-fonts-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — bundled fonts row title",
+    "label": "02 · Reuse matrix: bundled fonts row title",
     "group": "Docs · License",
     "body": "Bundled fonts"
   },
   {
     "key": "docs-license-s2-fonts-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — bundled fonts notes",
+    "label": "02 · Reuse matrix: bundled fonts notes",
     "group": "Docs · License",
     "body": "Inter, Lexend, Titillium Web, Blinker, and a Noto Sans CJK subset ship with the site under the SIL Open Font License 1.1. Each family carries its OFL text beside the font files in `public/fonts/`. Fonts are not part of the CC0 release or the MIT license."
   },
   {
     "key": "docs-license-s2-openchemlib-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — OpenChemLib row title",
+    "label": "02 · Reuse matrix: OpenChemLib row title",
     "group": "Docs · License",
     "body": "OpenChemLib fork"
   },
   {
     "key": "docs-license-s2-openchemlib-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — OpenChemLib notes",
+    "label": "02 · Reuse matrix: OpenChemLib notes",
     "group": "Docs · License",
     "body": "The molecule renderer is a dose.wiki fork of [OpenChemLib](https://github.com/cheminfo/openchemlib-js) by cheminfo, redistributed under its BSD 3-Clause license in `vendor/openchemlib/`. The MIT license covers dose.wiki's own code only."
   },
   {
     "key": "docs-license-s2-pw-captures-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — PsychonautWiki captures row title",
+    "label": "02 · Reuse matrix: PsychonautWiki captures row title",
     "group": "Docs · License",
     "body": "Archived PsychonautWiki captures"
   },
   {
     "key": "docs-license-s2-pw-captures-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — PsychonautWiki captures notes",
+    "label": "02 · Reuse matrix: PsychonautWiki captures notes",
     "group": "Docs · License",
     "body": "The source repository keeps Internet Archive captures of 2015 to August 2016 PsychonautWiki subjective-effects sections as research staging (section 5). That archived text stays PsychonautWiki's under CC BY-SA 4.0 and is not CC0; the attribution file sits beside it in the repository."
   },
   {
     "key": "docs-license-s2-avatars-material",
     "kind": "plain",
-    "label": "02 · Reuse matrix — contributor avatars row title",
+    "label": "02 · Reuse matrix: contributor avatars row title",
     "group": "Docs · License",
     "body": "Contributor avatars"
   },
   {
     "key": "docs-license-s2-avatars-notes",
     "kind": "markdown",
-    "label": "02 · Reuse matrix — contributor avatars notes",
+    "label": "02 · Reuse matrix: contributor avatars notes",
     "group": "Docs · License",
     "body": "Profile avatars are crops of each contributor's own replication artwork or published self-portrait. Rights stay with the artist, the same as replication media (section 4)."
   },
   {
     "key": "docs-license-s3-heading",
     "kind": "plain",
-    "label": "03 · CC0 scope — heading",
+    "label": "03 · CC0 scope: heading",
     "group": "Docs · License",
     "body": "CC0 scope"
   },
   {
     "key": "docs-license-s3-intro",
     "kind": "markdown",
-    "label": "03 · CC0 scope — intro",
+    "label": "03 · CC0 scope: intro",
     "group": "Docs · License",
     "body": "Published facts and the writing used to explain them are different things. In U.S. copyright law, copyright generally does not protect the underlying facts, but it can protect an author's wording and original selection or arrangement."
   },
@@ -2697,14 +2697,14 @@
   {
     "key": "docs-license-s3-covered-label",
     "kind": "plain",
-    "label": "03 · CC0 scope — covered material label",
+    "label": "03 · CC0 scope: covered material label",
     "group": "Docs · License",
     "body": "Covered material"
   },
   {
     "key": "docs-license-s3-covered-items",
     "kind": "list",
-    "label": "03 · CC0 scope — covered material list",
+    "label": "03 · CC0 scope: covered material list",
     "group": "Docs · License",
     "items": [
       "Original article prose.",
@@ -2717,14 +2717,14 @@
   {
     "key": "docs-license-s3-you-can-label",
     "kind": "plain",
-    "label": "03 · CC0 scope — you-can label",
+    "label": "03 · CC0 scope: you-can label",
     "group": "Docs · License",
     "body": "You can"
   },
   {
     "key": "docs-license-s3-you-can-items",
     "kind": "list",
-    "label": "03 · CC0 scope — you-can list",
+    "label": "03 · CC0 scope: you-can list",
     "group": "Docs · License",
     "items": [
       "Copy and redistribute the covered material in any format.",
@@ -2736,441 +2736,441 @@
   {
     "key": "docs-license-s3-not-covered-label",
     "kind": "plain",
-    "label": "03 · CC0 scope — does-not-cover label",
+    "label": "03 · CC0 scope: does-not-cover label",
     "group": "Docs · License",
     "body": "This does not cover"
   },
   {
     "key": "docs-license-s3-not-covered-body",
     "kind": "markdown",
-    "label": "03 · CC0 scope — does-not-cover body",
+    "label": "03 · CC0 scope: does-not-cover body",
     "group": "Docs · License",
     "body": "The carve-outs detailed in section 4, external sources cited or linked from articles, and third-party names, trademarks, logos, and site identities."
   },
   {
     "key": "docs-license-s3-attribution",
     "kind": "markdown",
-    "label": "03 · CC0 scope — attribution note",
+    "label": "03 · CC0 scope: attribution note",
     "group": "Docs · License",
     "body": "**Attribution is appreciated, not required.** A link to dose.wiki helps other people find the source dataset, but CC0 does not require credit."
   },
   {
     "key": "docs-license-s3-trademark",
     "kind": "markdown",
-    "label": "03 · CC0 scope — trademark note",
+    "label": "03 · CC0 scope: trademark note",
     "group": "Docs · License",
     "body": "**CC0 waives copyright, not trademark.** Forks can use the covered material and the source code freely, including commercially. A fork must not use the \"dose.wiki\" name or logo to present itself as the official site or to claim endorsement."
   },
   {
     "key": "docs-license-s4-heading",
     "kind": "plain",
-    "label": "04 · Important exceptions — heading",
+    "label": "04 · Important exceptions: heading",
     "group": "Docs · License",
     "body": "Important exceptions"
   },
   {
     "key": "docs-license-s4-intro",
     "kind": "markdown",
-    "label": "04 · Important exceptions — intro",
+    "label": "04 · Important exceptions: intro",
     "group": "Docs · License",
     "body": "Five **carve-outs** do not inherit the blanket CC0 release. This section is the authoritative statement of their terms."
   },
   {
     "key": "docs-license-s4-legacy-label",
     "kind": "plain",
-    "label": "04 · Important exceptions — legacy reports label",
+    "label": "04 · Important exceptions: legacy reports label",
     "group": "Docs · License",
     "body": "Legacy trip reports"
   },
   {
     "key": "docs-license-s4-legacy-title",
     "kind": "plain",
-    "label": "04 · Important exceptions — legacy reports title",
+    "label": "04 · Important exceptions: legacy reports title",
     "group": "Docs · License",
     "body": "Rights remain with the author unless marked otherwise."
   },
   {
     "key": "docs-license-s4-legacy-body",
     "kind": "markdown",
-    "label": "04 · Important exceptions — legacy reports body",
+    "label": "04 · Important exceptions: legacy reports body",
     "group": "Docs · License",
     "body": "Trip reports are contributor-authored personal accounts. dose.wiki publishes legacy reports with permission, but they are not part of the covered material. Link to them freely. If the report's license marker permits it, or if the author agrees, you can republish or commercially use a report."
   },
   {
     "key": "docs-license-s4-new-reports-label",
     "kind": "plain",
-    "label": "04 · Important exceptions — new submissions label",
+    "label": "04 · Important exceptions: new submissions label",
     "group": "Docs · License",
     "body": "New report-form submissions"
   },
   {
     "key": "docs-license-s4-new-reports-title",
     "kind": "plain",
-    "label": "04 · Important exceptions — new submissions title",
+    "label": "04 · Important exceptions: new submissions title",
     "group": "Docs · License",
     "body": "CC0 applies when the submitter accepted the form terms."
   },
   {
     "key": "docs-license-s4-new-reports-body",
     "kind": "markdown",
-    "label": "04 · Important exceptions — new submissions body",
+    "label": "04 · Important exceptions: new submissions body",
     "group": "Docs · License",
     "body": "The submitter dedicates the report to the public domain before the form sends it. A CC0 dedication cannot be revoked after a report is public. dose.wiki honors good-faith requests to correct attribution, to update identifying details, or to remove a report from dose.wiki. dose.wiki cannot retract copies that other sites already made."
   },
   {
     "key": "docs-license-s4-replication-label",
     "kind": "plain",
-    "label": "04 · Important exceptions — replication media label",
+    "label": "04 · Important exceptions: replication media label",
     "group": "Docs · License",
     "body": "Subjective-effect replication media"
   },
   {
     "key": "docs-license-s4-replication-title",
     "kind": "plain",
-    "label": "04 · Important exceptions — replication media title",
+    "label": "04 · Important exceptions: replication media title",
     "group": "Docs · License",
     "body": "Rights stay with the creator or rightsholder."
   },
   {
     "key": "docs-license-s4-replication-body",
     "kind": "markdown",
-    "label": "04 · Important exceptions — replication media body",
+    "label": "04 · Important exceptions: replication media body",
     "group": "Docs · License",
     "body": "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all; treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms)."
   },
   {
     "key": "docs-license-s4-interactions-label",
     "kind": "plain",
-    "label": "04 · Important exceptions — interaction ratings label",
+    "label": "04 · Important exceptions: interaction ratings label",
     "group": "Docs · License",
     "body": "Interaction ratings"
   },
   {
     "key": "docs-license-s4-interactions-body",
     "kind": "markdown",
-    "label": "04 · Important exceptions — interaction ratings body",
+    "label": "04 · Important exceptions: interaction ratings body",
     "group": "Docs · License",
     "body": "The combination ratings shown on dose.wiki come from [TripSit's drug-combination guidance](https://wiki.tripsit.me/wiki/Drug_combinations). dose.wiki does not place that data under CC0. Reuse must follow TripSit's terms: non-commercial use, attribution, a link back to TripSit or [combo.tripsit.me](https://combo.tripsit.me), and a note that the information is only a quick reference. Commercial use needs TripSit permission."
   },
   {
     "key": "docs-license-s4-reagent-label",
     "kind": "plain",
-    "label": "04 · Important exceptions — reagent data label",
+    "label": "04 · Important exceptions: reagent data label",
     "group": "Docs · License",
     "body": "Reagent-test data"
   },
   {
     "key": "docs-license-s4-reagent-body",
     "kind": "markdown",
-    "label": "04 · Important exceptions — reagent data body",
+    "label": "04 · Important exceptions: reagent data body",
     "group": "Docs · License",
     "body": "Reagent color reactions are fetched from [protestkit.eu](https://protestkit.eu) when an article is viewed. They are not included in the downloadable dataset, and dose.wiki does not grant reuse rights for them. Consult ProtestKit directly before republishing reagent-test data."
   },
   {
     "key": "docs-license-s4-datasets-alert",
     "kind": "markdown",
-    "label": "04 · Important exceptions — datasets warning",
+    "label": "04 · Important exceptions: datasets warning",
     "group": "Docs · License",
     "body": "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references, the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references, credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms."
   },
   {
     "key": "docs-license-s5-heading",
     "kind": "plain",
-    "label": "05 · Provenance — heading",
+    "label": "05 · Provenance: heading",
     "group": "Docs · License",
     "body": "Subjective effects provenance"
   },
   {
     "key": "docs-license-s5-intro",
     "kind": "markdown",
-    "label": "05 · Provenance — intro",
+    "label": "05 · Provenance: intro",
     "group": "Docs · License",
     "body": "Subjective-effects material has a longer and more distributed publication history than the rest of the dataset, and it reaches dose.wiki by several separate paths. This section covers text and index material. Replication media stays creator-retained, as section 4 states."
   },
   {
     "key": "docs-license-s5-index-authorship",
     "kind": "markdown",
-    "label": "05 · Provenance — index authorship",
+    "label": "05 · Provenance: index authorship",
     "group": "Docs · License",
     "body": "The Subjective Effect Index is a work authored by [Josie Kins](https://en.wikipedia.org/wiki/Josie_Kins). She created it on her blog Disregard Everything I Say in 2011, before PsychonautWiki existed, and continued to develop it independently afterwards, including through Effect Index. dose.wiki includes this index material in its CC0 release to the extent it reflects Josie Kins / dose.wiki authorship."
   },
   {
     "key": "docs-license-s5-restored-sections",
     "kind": "markdown",
-    "label": "05 · Provenance — restored sections",
+    "label": "05 · Provenance: restored sections",
     "group": "Docs · License",
     "body": "dose.wiki handles substance-article \"Subjective effects\" sections separately, and they are currently a mixture of two paths. Where an earlier Josie Kins version exists, dose.wiki restores it, working only from Internet Archive captures dated on or before August 31, 2016, and including only material it has a good-faith basis to treat as her own authorship. It excludes contributions made after that boundary, and edits by others that it does not have the right to dedicate. The date is a rights boundary, not a measure of how current the information is. dose.wiki reviews and updates substance content independently of the boundary."
   },
   {
     "key": "docs-license-s5-synthesized-sections",
     "kind": "markdown",
-    "label": "05 · Provenance — synthesized sections",
+    "label": "05 · Provenance: synthesized sections",
     "group": "Docs · License",
     "body": "Where no such section exists, dose.wiki synthesizes one from source material gathered across the internet, the same way it writes the other article sections. Those runs exclude every project Josie Kins was involved in, Disregard Everything I Say, PsychonautWiki, and Effect Index, to avoid a conflict of interest. Synthesized sections are dose.wiki's own authorship and fall under the covered material. dose.wiki intends to replace these sections entirely with Mindstate Design Labs data."
   },
   {
     "key": "docs-license-s5-boundary-note",
     "kind": "markdown",
-    "label": "05 · Provenance — boundary note",
+    "label": "05 · Provenance: boundary note",
     "group": "Docs · License",
     "body": "Most of the recovered sections on substance pages are dated well before the boundary, not clustered against it."
   },
   {
     "key": "docs-license-s5-badges-label",
     "kind": "plain",
-    "label": "05 · Provenance — date badges label",
+    "label": "05 · Provenance: date badges label",
     "group": "Docs · License",
     "body": "Recovered date badges"
   },
   {
     "key": "docs-license-s5-timeline-origin-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: origin label",
+    "label": "05 · Provenance, timeline: origin label",
     "group": "Docs · License",
     "body": "Origin"
   },
   {
     "key": "docs-license-s5-timeline-origin-year-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: origin year label",
+    "label": "05 · Provenance, timeline: origin year label",
     "group": "Docs · License",
     "body": "Founded"
   },
   {
     "key": "docs-license-s5-timeline-origin-title",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: origin title",
+    "label": "05 · Provenance, timeline: origin title",
     "group": "Docs · License",
     "body": "Disregard Everything I Say"
   },
   {
     "key": "docs-license-s5-timeline-origin-desc",
     "kind": "markdown",
-    "label": "05 · Provenance — timeline: origin description",
+    "label": "05 · Provenance, timeline: origin description",
     "group": "Docs · License",
     "body": "Where the Subjective Effect Index began."
   },
   {
     "key": "docs-license-s5-timeline-expanded-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: expanded label",
+    "label": "05 · Provenance, timeline: expanded label",
     "group": "Docs · License",
     "body": "Expanded"
   },
   {
     "key": "docs-license-s5-timeline-expanded-year-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: expanded year label",
+    "label": "05 · Provenance, timeline: expanded year label",
     "group": "Docs · License",
     "body": "Launched"
   },
   {
     "key": "docs-license-s5-timeline-expanded-title",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: expanded title",
+    "label": "05 · Provenance, timeline: expanded title",
     "group": "Docs · License",
     "body": "PsychonautWiki"
   },
   {
     "key": "docs-license-s5-timeline-expanded-desc",
     "kind": "markdown",
-    "label": "05 · Provenance — timeline: expanded description",
+    "label": "05 · Provenance, timeline: expanded description",
     "group": "Docs · License",
     "body": "Structured collaborative reference."
   },
   {
     "key": "docs-license-s5-timeline-formalized-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: formalized label",
+    "label": "05 · Provenance, timeline: formalized label",
     "group": "Docs · License",
     "body": "Formalized"
   },
   {
     "key": "docs-license-s5-timeline-formalized-year-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: formalized year label",
+    "label": "05 · Provenance, timeline: formalized year label",
     "group": "Docs · License",
     "body": "Launched"
   },
   {
     "key": "docs-license-s5-timeline-formalized-title",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: formalized title",
+    "label": "05 · Provenance, timeline: formalized title",
     "group": "Docs · License",
     "body": "Effect Index"
   },
   {
     "key": "docs-license-s5-timeline-formalized-desc",
     "kind": "markdown",
-    "label": "05 · Provenance — timeline: formalized description",
+    "label": "05 · Provenance, timeline: formalized description",
     "group": "Docs · License",
     "body": "Dedicated subjective-effect index."
   },
   {
     "key": "docs-license-s5-timeline-current-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: current label",
+    "label": "05 · Provenance, timeline: current label",
     "group": "Docs · License",
     "body": "Current"
   },
   {
     "key": "docs-license-s5-timeline-current-year-label",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: current year label",
+    "label": "05 · Provenance, timeline: current year label",
     "group": "Docs · License",
     "body": "Maintained since"
   },
   {
     "key": "docs-license-s5-timeline-current-title",
     "kind": "plain",
-    "label": "05 · Provenance — timeline: current title",
+    "label": "05 · Provenance, timeline: current title",
     "group": "Docs · License",
     "body": "dose.wiki"
   },
   {
     "key": "docs-license-s5-timeline-current-desc",
     "kind": "markdown",
-    "label": "05 · Provenance — timeline: current description",
+    "label": "05 · Provenance, timeline: current description",
     "group": "Docs · License",
     "body": "Current maintained corpus."
   },
   {
     "key": "docs-license-s5-scope-alert",
     "kind": "markdown",
-    "label": "05 · Provenance — licensing-scope note",
+    "label": "05 · Provenance: licensing-scope note",
     "group": "Docs · License",
     "body": "This provenance note is about licensing scope, not authorship credit requirements. Subjective-effect text and index material inside the boundary follows the same CC0 terms as the rest of the covered material."
   },
   {
     "key": "docs-license-s6-heading",
     "kind": "plain",
-    "label": "06 · Source code — heading",
+    "label": "06 · Source code: heading",
     "group": "Docs · License",
     "body": "Source code"
   },
   {
     "key": "docs-license-s6-intro",
     "kind": "markdown",
-    "label": "06 · Source code — intro",
+    "label": "06 · Source code: intro",
     "group": "Docs · License",
     "body": "The website source code and tooling are released under the **MIT License**. MIT lets you use, copy, modify, distribute, sublicense, or sell copies of the software, including in commercial and closed-source projects."
   },
   {
     "key": "docs-license-s6-condition-label",
     "kind": "plain",
-    "label": "06 · Source code — condition label",
+    "label": "06 · Source code: condition label",
     "group": "Docs · License",
     "body": "Condition"
   },
   {
     "key": "docs-license-s6-condition-body",
     "kind": "markdown",
-    "label": "06 · Source code — condition body",
+    "label": "06 · Source code: condition body",
     "group": "Docs · License",
     "body": "Keep the MIT copyright and permission notice in copies or substantial portions of the code."
   },
   {
     "key": "docs-license-s6-boundary-label",
     "kind": "plain",
-    "label": "06 · Source code — boundary label",
+    "label": "06 · Source code: boundary label",
     "group": "Docs · License",
     "body": "Boundary"
   },
   {
     "key": "docs-license-s6-boundary-body",
     "kind": "markdown",
-    "label": "06 · Source code — boundary body",
+    "label": "06 · Source code: boundary body",
     "group": "Docs · License",
     "body": "MIT applies to the software only. The covered material is CC0 (section 3), and the carve-outs keep the terms in section 4."
   },
   {
     "key": "docs-license-s6-third-party-body",
     "kind": "markdown",
-    "label": "06 · Source code — third-party notices",
+    "label": "06 · Source code: third-party notices",
     "group": "Docs · License",
     "body": "Third-party software, fonts, and datasets bundled with the code keep their own licenses. The repository's `NOTICE.md` lists each one with its source, license, and any modifications."
   },
   {
     "key": "docs-license-s7-heading",
     "kind": "plain",
-    "label": "07 · Attribution examples — heading",
+    "label": "07 · Attribution examples: heading",
     "group": "Docs · License",
     "body": "Attribution examples"
   },
   {
     "key": "docs-license-s7-intro",
     "kind": "markdown",
-    "label": "07 · Attribution examples — intro",
+    "label": "07 · Attribution examples: intro",
     "group": "Docs · License",
     "body": "If you choose to credit dose.wiki, or need to keep third-party data and media labels clear, these examples are ready to copy."
   },
   {
     "key": "docs-license-s7-dataset-label",
     "kind": "plain",
-    "label": "07 · Attribution examples — dataset label",
+    "label": "07 · Attribution examples: dataset label",
     "group": "Docs · License",
     "body": "Dataset or article text only"
   },
   {
     "key": "docs-license-s7-interactions-label",
     "kind": "plain",
-    "label": "07 · Attribution examples — interactions label",
+    "label": "07 · Attribution examples: interactions label",
     "group": "Docs · License",
     "body": "If you also display interactions"
   },
   {
     "key": "docs-license-s7-replication-label",
     "kind": "plain",
-    "label": "07 · Attribution examples — replication label",
+    "label": "07 · Attribution examples: replication label",
     "group": "Docs · License",
     "body": "If you display replication media"
   },
   {
     "key": "docs-license-s8-heading",
     "kind": "plain",
-    "label": "08 · Full terms — heading",
+    "label": "08 · Full terms: heading",
     "group": "Docs · License",
     "body": "Full terms"
   },
   {
     "key": "docs-license-s8-intro",
     "kind": "markdown",
-    "label": "08 · Full terms — intro",
+    "label": "08 · Full terms: intro",
     "group": "Docs · License",
     "body": "Canonical license texts, the replication-media terms, and the rights contact. The carve-out terms themselves live in section 4."
   },
   {
     "key": "docs-license-s8-cc0-summary",
     "kind": "plain",
-    "label": "08 · Full terms — CC0 card summary",
+    "label": "08 · Full terms: CC0 card summary",
     "group": "Docs · License",
     "body": "CC0 1.0 Universal - the covered material"
   },
   {
     "key": "docs-license-s8-cc0-body",
     "kind": "markdown",
-    "label": "08 · Full terms — CC0 explanation",
+    "label": "08 · Full terms: CC0 explanation",
     "group": "Docs · License",
     "body": "CC0 places a work as completely as possible into the public domain. The person who associates a work with CC0 waives copyright and related rights worldwide to the extent allowed by law. You can copy, modify, distribute, and commercially use the covered material without permission or attribution. It comes without warranties."
   },
   {
     "key": "docs-license-s8-cc0-links",
     "kind": "markdown",
-    "label": "08 · Full terms — CC0 links",
+    "label": "08 · Full terms: CC0 links",
     "group": "Docs · License",
     "body": "Summary and legal code: [creativecommons.org/publicdomain/zero/1.0](https://creativecommons.org/publicdomain/zero/1.0/) ([legal code](https://creativecommons.org/publicdomain/zero/1.0/legalcode))."
   },
   {
     "key": "docs-license-s8-mit-summary",
     "kind": "plain",
-    "label": "08 · Full terms — MIT card summary",
+    "label": "08 · Full terms: MIT card summary",
     "group": "Docs · License",
     "body": "MIT License - source code"
   },
   {
     "key": "docs-license-s8-replication-summary",
     "kind": "plain",
-    "label": "08 · Full terms — replication card summary",
+    "label": "08 · Full terms: replication card summary",
     "group": "Docs · License",
     "body": "Replication media - creator and rightsholder terms"
   },
@@ -3184,42 +3184,42 @@
   {
     "key": "docs-license-s8-replication-policy",
     "kind": "markdown",
-    "label": "08 · Full terms — replication policy",
+    "label": "08 · Full terms: replication policy",
     "group": "Docs · License",
     "body": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item, explicit license, creator-retained, or unknown, so check the item itself rather than assuming any dataset's terms carry over."
   },
   {
     "key": "docs-license-s8-replication-provenance",
     "kind": "markdown",
-    "label": "08 · Full terms — replication provenance",
+    "label": "08 · Full terms: replication provenance",
     "group": "Docs · License",
     "body": "Much of this library was originally published on **Effect Index**, and reaches dose.wiki through the Effect Index archive. Recovered files keep the creator credit and source link recorded for them there. Some original hosting services shut down, and their attribution did not survive. dose.wiki shows those items as creator unknown. It does not credit them to dose.wiki. These items are the most likely to need correction."
   },
   {
     "key": "docs-license-s8-replication-corrections",
     "kind": "markdown",
-    "label": "08 · Full terms — replication corrections",
+    "label": "08 · Full terms: replication corrections",
     "group": "Docs · License",
     "body": "If a replication file is miscredited, has no source link, or must be removed, email [contact@dose.wiki](mailto:contact@dose.wiki) with the item title, creator name, and preferred correction."
   },
   {
     "key": "docs-license-s8-contact-label",
     "kind": "plain",
-    "label": "08 · Full terms — contact label",
+    "label": "08 · Full terms: contact label",
     "group": "Docs · License",
     "body": "Rights and takedown contact"
   },
   {
     "key": "docs-license-s8-contact-body",
     "kind": "markdown",
-    "label": "08 · Full terms — contact body",
+    "label": "08 · Full terms: contact body",
     "group": "Docs · License",
     "body": "For miscredited or disputed replication media, report-removal requests, trademark or name-use concerns, or any other rights question about material on dose.wiki, email [contact@dose.wiki](mailto:contact@dose.wiki). Include the article or item, and what you want changed."
   },
   {
     "key": "docs-license-s8-crosslinks",
     "kind": "markdown",
-    "label": "08 · Full terms — cross links",
+    "label": "08 · Full terms: cross links",
     "group": "Docs · License",
     "body": "For content-generation provenance, see [how dose.wiki substance articles are made](/docs/how). For the application architecture and data flow, see [how dose.wiki is built](/docs/code)."
   },
@@ -3235,6 +3235,6 @@
     "kind": "markdown",
     "label": "Statement to FreeODwiki (Simplified Chinese)",
     "group": "China",
-    "body": "大家好，我是 [Josie Kins](https://josiekins.xyz)。\n\n最近我才知道，中国最大的精神活性物质百科数据库，是 [PsychonautWiki](https://psychonautwiki.rip) 的翻译版，而那个网站是我 2013 年创办的。这些年我已经不参与 [PsychonautWiki](https://psychonautwiki.rip) 了；2017 年我离开之后，它就慢慢没落了。\n\n你们把它翻译成中文，我觉得非常棒。作为一份礼物，我想把整个 dose.wiki 数据集完整翻译成简体中文，送给中国的朋友们和 [FreeODwiki](https://freeodwiki.org/)，随你们使用。数据是 JSON 格式，方便机器读取。我还看了你们平台的 [GitHub 仓库](https://github.com/SalviaSWC/FreeODwiki)，顺手把它转成了兼容 FreeODwiki Markdown 的格式。\n\n里面包括：\n\n- 完整的物质索引，我认为它比 [PsychonautWiki](https://psychonautwiki.rip) 的更全面。\n- 完整的主观效应索引，它肯定比 [PsychonautWiki](https://psychonautwiki.rip) 上的更新，因为我一直在继续维护它。\n- 几套 SVG 分子结构图。\n- 我这些年写的各种文章，关于梦、清醒梦、迷幻效应、物质效应，还有很多类似的小东西。\n\n我把网站上所有的文字都整理成了方便下载的数据包给你们。\n\n我觉得这些资料很适合用来补充你们已有的内容。[PsychonautWiki](https://psychonautwiki.rip) 上有很多东西是这些专门的数据库之外的，比如神经递质和大脑机制的文章、化学文章、减害文章，dose.wiki 目前还没有对应的内容。但 dose.wiki 上已有的物质条目，比 PsychonautWiki 的要全面和规范得多。我基本上做了一条流水线，把网上关于某种精神活性物质的所有实际资料汇总起来。拿 4-AcO-DMT 来说，大概有十家主要的英文精神活性物质百科各写了一篇，流水线会把它们合成为一篇。这就是为什么 dose.wiki 上每种物质的信息更多，而且规范得多。\n\n里面还有不少 PsychonautWiki 从来没有的东西：试剂检测信息、主观效应信息、更广的物质范围、更详细的历史与文化章节、TripSit 的相互作用与合用数据（方便查询和避开危险组合），还有比老 PsychonautWiki 上任何内容都全面得多的法律地位章节。顺带一提，这还是 0.9 测试版，后面还会有很多。\n\n我考虑过很久要不要在 dose.wiki 上直接提供翻译版本，但真到了做决定的时候，我觉得由我来为一个国家、一种文化维护物质信息的网络基础设施并不明智——作为一个傻乎乎的西方人，说实话这对我来说太陌生了。所以我想，不如把数据集按现在的样子分叉一份，直接送过来。\n\n这次翻译用的是 GLM 5.3 Flash，只花了一美元左右。如果你们更想要繁体中文版，告诉我就行。我们还有 250 篇物质条目在路上，但还没做人工审核，所以先等一等；我可不想给你们 AI 垃圾。等它们完成了我会更新这份数据。\n\n大概就是这样。请享用。你们不用也没关系，我不会介意，只是觉得也许能派上用场。我当然不会中文，不过有在线翻译嘛。有任何问题，随时在 Twitter 上找我。很高兴能和你们合作。 :) <3"
+    "body": "大家好，我是 [Josie Kins](https://josiekins.xyz)。\n\n最近我才知道，中国最大的精神活性物质百科数据库，是 [PsychonautWiki](https://psychonautwiki.rip) 的翻译版，而那个网站是我 2013 年创办的。这些年我已经不参与 [PsychonautWiki](https://psychonautwiki.rip) 了；2017 年我离开之后，它就慢慢没落了。\n\n你们把它翻译成中文，我觉得非常棒。作为一份礼物，我想把整个 dose.wiki 数据集完整翻译成简体中文，送给中国的朋友们和 [FreeODwiki](https://freeodwiki.org/)，随你们使用。数据是 JSON 格式，方便机器读取。我还看了你们平台的 [GitHub 仓库](https://github.com/SalviaSWC/FreeODwiki)，顺手把它转成了兼容 FreeODwiki Markdown 的格式。\n\n里面包括：\n\n- 完整的物质索引，我认为它比 [PsychonautWiki](https://psychonautwiki.rip) 的更全面。\n- 完整的主观效应索引，它肯定比 [PsychonautWiki](https://psychonautwiki.rip) 上的更新，因为我一直在继续维护它。\n- 几套 SVG 分子结构图。\n- 我这些年写的各种文章，关于梦、清醒梦、迷幻效应、物质效应，还有很多类似的小东西。\n\n我把网站上所有的文字都整理成了方便下载的数据包给你们。\n\n我觉得这些资料很适合用来补充你们已有的内容。[PsychonautWiki](https://psychonautwiki.rip) 上有很多东西是这些专门的数据库之外的，比如神经递质和大脑机制的文章、化学文章、减害文章，dose.wiki 目前还没有对应的内容。但 dose.wiki 上已有的物质条目，比 PsychonautWiki 的要全面和规范得多。我基本上做了一条流水线，把网上关于某种精神活性物质的所有实际资料汇总起来。拿 4-AcO-DMT 来说，大概有十家主要的英文精神活性物质百科各写了一篇，流水线会把它们合成为一篇。这就是为什么 dose.wiki 上每种物质的信息更多，而且规范得多。\n\n里面还有不少 PsychonautWiki 从来没有的东西：试剂检测信息、主观效应信息、更广的物质范围、更详细的历史与文化章节、TripSit 的相互作用与合用数据（方便查询和避开危险组合），还有比老 PsychonautWiki 上任何内容都全面得多的法律地位章节。顺带一提，这还是 0.9 测试版，后面还会有很多。\n\n我考虑过很久要不要在 dose.wiki 上直接提供翻译版本，但真到了做决定的时候，我觉得由我来为一个国家、一种文化维护物质信息的网络基础设施并不明智：作为一个傻乎乎的西方人，说实话这对我来说太陌生了。所以我想，不如把数据集按现在的样子分叉一份，直接送过来。\n\n这次翻译用的是 GLM 5.3 Flash，只花了一美元左右。如果你们更想要繁体中文版，告诉我就行。我们还有 250 篇物质条目在路上，但还没做人工审核，所以先等一等；我可不想给你们 AI 垃圾。等它们完成了我会更新这份数据。\n\n大概就是这样。请享用。你们不用也没关系，我不会介意，只是觉得也许能派上用场。我当然不会中文，不过有在线翻译嘛。有任何问题，随时在 Twitter 上找我。很高兴能和你们合作。 :) <3"
   }
 ]

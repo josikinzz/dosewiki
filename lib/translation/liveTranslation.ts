@@ -18,7 +18,7 @@ import { createHash } from "node:crypto";
 
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize";
 import { CORPORA } from "../../scripts/translation/corpora.mjs";
-import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type WorkUnit } from "../../scripts/translation/engine.mjs";
+import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type SegmentVerdict, type WorkUnit } from "../../scripts/translation/engine.mjs";
 import { LOCALES, glossaryTermPattern, resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
@@ -34,7 +34,9 @@ import {
 } from "./segmentStore";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { LIBRARY_TRANSLATION_CORPUS } from "./publicationIndexProjection";
+import { approvedNarrativeOverlay } from "./narrativeOverlay";
 import { isPublishableReplication } from "../../src/types/replications";
+import { createTranslationRequestPool, type TranslationRequestPool } from "./requestPool";
 
 /** Which runtime record corpus a translation job addresses. */
 export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication" | "profile";
@@ -239,6 +241,72 @@ export const TRANSLATION_LOCALE_CODES: readonly string[] = Object.keys(LOCALES);
 /** Requests in flight per refresh; a refresh runs inside one cron invocation, not a 100-wide batch run. */
 const REFRESH_CONCURRENCY = 8;
 
+export type TranslationExecutionOptions = {
+  signal?: AbortSignal;
+  requestPool?: TranslationRequestPool;
+  /** Bulk only: the claimed wave this job belongs to. Incremental refreshes write and request on their own. */
+  wave?: TranslationWave;
+  /** Called once per model request, including requests of a refresh that later fails. */
+  onUsage?: (usage: { prompt: number; completion: number }) => void;
+  /** Called with the number of segments a refresh stored, even when it then fails. */
+  onStored?: (count: number) => void;
+};
+
+/** What became of one segment the owning job in a wave translated. */
+type SegmentFate = { stored: boolean; defects: string[] };
+
+/**
+ * State shared by the jobs of one bulk wave. Every segment write goes through
+ * one writer, and a segment another job in the wave already owns is awaited
+ * rather than requested again.
+ */
+export type TranslationWave = {
+  write(rows: readonly TranslationSegmentRow[]): Promise<void>;
+  /** `locale \u0000 hash -> the owning job's outcome for it`, settled after that job's rows are written. */
+  readonly pending: Map<string, Promise<SegmentFate>>;
+};
+
+/**
+ * Rows per segment transaction. Each write locks the one localized
+ * publication producer row until commit, so the wave writes serially and
+ * coalesces whatever queued behind the running transaction.
+ */
+const WAVE_WRITE_ROWS = 2000;
+
+export function createTranslationWave(): TranslationWave {
+  type Queued = { rows: readonly TranslationSegmentRow[]; resolve: () => void; reject: (error: unknown) => void };
+  const queue: Queued[] = [];
+  let draining = false;
+  const drain = async () => {
+    draining = true;
+    while (queue.length > 0) {
+      let count = 1;
+      let size = queue[0].rows.length;
+      while (count < queue.length && size + queue[count].rows.length <= WAVE_WRITE_ROWS) size += queue[count++].rows.length;
+      const flush = queue.splice(0, count);
+      const rows = new Map<string, TranslationSegmentRow>();
+      for (const entry of flush) for (const row of entry.rows) rows.set(`${row.locale}\u0000${row.hash}`, row);
+      try {
+        await writeTranslations([...rows.values()]);
+        for (const entry of flush) entry.resolve();
+      } catch (error) {
+        for (const entry of flush) entry.reject(error);
+      }
+    }
+    draining = false;
+  };
+  return {
+    pending: new Map(),
+    write(rows) {
+      if (rows.length === 0) return Promise.resolve();
+      return new Promise<void>((resolve, reject) => {
+        queue.push({ rows, resolve, reject });
+        if (!draining) void drain();
+      });
+    },
+  };
+}
+
 /**
  * Everything a translation run needs to agree on: the locale's prompt, the
  * approved glossary it injects, the kind of each approved term (so the
@@ -312,7 +380,8 @@ export async function localizeRecord<T extends { slug: string }>(
   const corpus = LIVE_CORPORA[kind];
   const segments = segmentsOf(record, kind);
   const translations = await readTranslations(localeCode, [...new Set(segments.map((segment) => segment.hash))]);
-  const assembled = assembleLocaleDataset({ items: [record] }, segments, translations, {
+  const reviewed = await approvedNarrativeOverlay(localeCode, kind, segments, translations);
+  const assembled = assembleLocaleDataset({ items: [record] }, reviewed.segments, reviewed.translations, {
     locale: localeCode,
     corpus,
     parse: CORPUS_PARSE[kind] ?? null,
@@ -330,7 +399,8 @@ export async function localizeRecords<T extends { slug: string }>(
   const items = records as unknown as Record<string, unknown>[];
   const segments = extractSegments({ items }, corpus).segments;
   const translations = await readTranslations(localeCode, [...new Set<string>(segments.map((segment: Segment) => segment.hash))]);
-  const assembled = assembleLocaleDataset({ items }, segments, translations, {
+  const reviewed = await approvedNarrativeOverlay(localeCode, kind, segments, translations);
+  const assembled = assembleLocaleDataset({ items }, reviewed.segments, reviewed.translations, {
     locale: localeCode,
     corpus,
     parse: CORPUS_PARSE[kind] ?? null,
@@ -385,23 +455,44 @@ export async function translateUnits(
   units: readonly WorkUnit[],
   context: TranslationContext,
   apiKey: string,
-  signal?: AbortSignal,
+  options: TranslationExecutionOptions = {},
 ): Promise<Pick<RefreshOutcome, "stored" | "rejected" | "usage">> {
+  const { signal, wave } = options;
+  const requestPool = options.requestPool ?? createTranslationRequestPool(REFRESH_CONCURRENCY);
   const { locale, glossary, kinds, glosses, promptVersion } = context;
   const localeCode = locale.code;
   const usage = { prompt: 0, completion: 0, requests: 0 };
   const rows: TranslationSegmentRow[] = [];
   const rejected: RefreshOutcome["rejected"] = [];
 
-  const batches = planBatches(units);
+  // Claim this job's segments in the wave before the first await, so a job
+  // started later in the same tick sees them as owned.
+  const owned: WorkUnit[] = [];
+  const shared: { hash: string; fate: Promise<SegmentFate> }[] = [];
+  const settle = new Map<string, { resolve: (fate: SegmentFate) => void; reject: (error: unknown) => void }>();
+  for (const unit of units) {
+    const key = `${localeCode}\u0000${unit.hash}`;
+    const existing = wave?.pending.get(key);
+    if (existing) {
+      shared.push({ hash: unit.hash, fate: existing });
+      continue;
+    }
+    owned.push(unit);
+    if (!wave) continue;
+    const fate = new Promise<SegmentFate>((resolve, reject) => settle.set(unit.hash, { resolve, reject }));
+    fate.catch(() => {});
+    wave.pending.set(key, fate);
+  }
+
+  const batches = planBatches(owned);
   let cursor = 0;
   const results = await Promise.allSettled(
-    Array.from({ length: Math.min(REFRESH_CONCURRENCY, batches.length) }, async () => {
+    Array.from({ length: Math.min(requestPool.limit, batches.length) }, async () => {
       while (cursor < batches.length) {
         signal?.throwIfAborted();
         const batch = batches[cursor];
         cursor += 1;
-        const verdicts = await translateBatchWithRetries({
+        const verdicts = await requestPool.run<SegmentVerdict[]>(() => translateBatchWithRetries({
           units: batch,
           locale,
           glossary,
@@ -414,14 +505,17 @@ export async function translateUnits(
             usage.prompt += used.prompt;
             usage.completion += used.completion;
             usage.requests += 1;
+            options.onUsage?.(used);
           },
-        });
+        }));
+        const batchRows: TranslationSegmentRow[] = [];
+        const batchRejected: RefreshOutcome["rejected"] = [];
         for (const verdict of verdicts) {
           if (isBlocking(verdict.defects) || verdict.target.length === 0) {
-            rejected.push({ hash: verdict.unit.hash, defects: verdict.defects });
+            batchRejected.push({ hash: verdict.unit.hash, defects: verdict.defects });
             continue;
           }
-          rows.push({
+          batchRows.push({
             locale: localeCode,
             hash: verdict.unit.hash,
             source: verdict.unit.source,
@@ -430,24 +524,47 @@ export async function translateUnits(
             prompt_version: promptVersion,
           });
         }
+        // Persist accepted work before another model batch can time out. A
+        // bulk wave sends it through its one writer.
+        try {
+          await (wave ? wave.write(batchRows) : writeTranslations(batchRows));
+        } catch (error) {
+          for (const row of batchRows) settle.get(row.hash)?.reject(error);
+          throw error;
+        }
+        if (batchRows.length > 0) options.onStored?.(batchRows.length);
+        for (const row of batchRows) settle.get(row.hash)?.resolve({ stored: true, defects: [] });
+        for (const entry of batchRejected) settle.get(entry.hash)?.resolve({ stored: false, defects: entry.defects });
+        await Promise.all([
+          clearTranslationRejections(localeCode, batchRows.map((row) => row.hash)),
+          writeTranslationRejections(batchRejected.map((entry) => ({
+            locale: localeCode,
+            hash: entry.hash,
+            source: batch.find((unit) => unit.hash === entry.hash)?.source ?? "",
+            defects: entry.defects,
+          }))),
+        ]);
+        rows.push(...batchRows);
+        rejected.push(...batchRejected);
       }
     }),
   );
 
-  await writeTranslations(rows);
-  await Promise.all([
-    clearTranslationRejections(localeCode, rows.map((row) => row.hash)),
-    writeTranslationRejections(rejected.map((entry) => ({
-      locale: localeCode,
-      hash: entry.hash,
-      source: units.find((unit) => unit.hash === entry.hash)?.source ?? "",
-      defects: entry.defects,
-    }))),
-  ]);
   const failure = results.find((result) => result.status === "rejected");
+  // A settled promise ignores this; only segments no batch answered are rejected.
+  const unsettled = failure?.status === "rejected" ? failure.reason : new Error("Translation segment was never answered");
+  for (const { reject } of settle.values()) reject(unsettled);
   if (failure?.status === "rejected") throw failure.reason;
   signal?.throwIfAborted();
-  return { stored: rows.length, rejected, usage };
+  // Segments another job in the wave owned: stored or rejected there, never requested here.
+  let sharedStored = 0;
+  const sharedRejected: RefreshOutcome["rejected"] = [];
+  for (const { hash, fate } of shared) {
+    const outcome = await fate;
+    if (outcome.stored) sharedStored += 1;
+    else sharedRejected.push({ hash, defects: outcome.defects });
+  }
+  return { stored: rows.length + sharedStored, rejected: [...rejected, ...sharedRejected], usage };
 }
 
 /** Bring one record's locale up to date with its current English and the current prompt digest. */
@@ -456,8 +573,9 @@ export async function refreshRecordTranslations(
   context: TranslationContext,
   kind: TranslationRecordKind,
   apiKey: string,
-  signal?: AbortSignal,
+  options: TranslationExecutionOptions = {},
 ): Promise<RefreshOutcome> {
+  const { signal } = options;
   signal?.throwIfAborted();
   const localeCode = context.locale.code;
   const segments = segmentsOf(record, kind);
@@ -468,7 +586,7 @@ export async function refreshRecordTranslations(
   const pending = new Set(await pendingTranslationHashes(localeCode, units.map((unit) => unit.hash), context.promptVersion));
   const due = units.filter((unit) => pending.has(unit.hash));
   const result = due.length > 0
-    ? await translateUnits(due, context, apiKey, signal)
+    ? await translateUnits(due, context, apiKey, options)
     : { stored: 0, rejected: [], usage: { prompt: 0, completion: 0, requests: 0 } };
   return { slug: record.slug, locale: localeCode, segments: segments.length, requested: due.length, ...result };
 }

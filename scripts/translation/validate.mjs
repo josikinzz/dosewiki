@@ -19,10 +19,14 @@ export const DEFECT_CODES = Object.freeze({
   UNTRANSLATED: "UNTRANSLATED",
   LENGTH_BAND: "LENGTH_BAND",
   GLOSSARY_MISS: "GLOSSARY_MISS",
+  EXACT_TRANSLATION_MISMATCH: "EXACT_TRANSLATION_MISMATCH",
   CITATION_LOSS: "CITATION_LOSS",
   NUMBER_ADDED: "NUMBER_ADDED",
   MARKUP_LOSS: "MARKUP_LOSS",
   PLACEHOLDER_LOSS: "PLACEHOLDER_LOSS",
+  // Not a content defect: the provider never answered. It fails the job for a
+  // later retry and is never written as a rejection.
+  TRANSPORT_FAILURE: "TRANSPORT_FAILURE",
 });
 
 /**
@@ -74,7 +78,11 @@ function stripNonMeasurementDigits(text) {
     .replace(CITE_MARKER, " ")
     .replace(UNIT_SUFFIX, "$1 $2 ")
     .replace(LOCANT_SET, " ")
-    .replace(/(?<![:\d])\d+[.,]?\d*\s*-\s*(?=\p{Script=Han})/gu, " ")
+    // Serotonin is conventionally rendered as 5-羟色胺 in Chinese even when
+    // the English source says only "serotonin". Do not generalize this to
+    // every digit before Han text: that hid real title numbers (`1 - 标题`)
+    // and chemical locants translated as `3-和 6-葡萄糖醛酸苷`.
+    .replace(/(?<![:\d])5-(?=羟色胺)/gu, " ")
     .replace(/\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ")
     .replace(/[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ");
 }
@@ -224,7 +232,15 @@ const TRADITIONAL_CHARSET = new Set(traditionalCharset.characters);
  * are quoted verbatim and must stay that way.
  */
 export function findTraditionalCharacter(text, source = "") {
-  for (const character of text) {
+  const characters = Array.from(text);
+  for (let index = 0; index < characters.length; index += 1) {
+    const character = characters[index];
+    // OpenCC maps 噁 to 恶 in ordinary prose, but Mainland chemical names
+    // retain the 噁唑 stem, including 异噁唑 and 噁唑啉. Only exempt this stem;
+    // 噁心 and surrounding Traditional characters must still fail.
+    // Primary usage: Ministry of Agriculture detection standards, entries36/50:
+    // https://xmsyj.moa.gov.cn/zcjd/202403/t20240321_6452006.htm
+    if (character === "噁" && characters[index + 1] === "唑") continue;
     if (TRADITIONAL_CHARSET.has(character) && !source.includes(character)) return character;
   }
   return null;
@@ -267,9 +283,10 @@ function latinWordRatio(source, target) {
  * @param {string} input.target - model output
  * @param {object} input.locale - locale config (script gate, length band)
  * @param {Record<string, string>} [input.glossary] - approved `term -> target` map to hold the segment to
+ * @param {string} [input.exactTarget] - approved rendering for this exact contextual label, never inferred from a prose mention
  * @returns {{defects: string[], details: object}}
  */
-export function validateSegment({ source, target, locale, glossary = {}, markup = false }) {
+export function validateSegment({ source, target, locale, glossary = {}, markup = false, exactTarget }) {
   const defects = [];
   const details = {};
 
@@ -280,6 +297,11 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
   const trimmed = target.trim();
   if (trimmed.length === 0) {
     return { defects: [DEFECT_CODES.EMPTY_OUTPUT], details: {} };
+  }
+
+  if (exactTarget !== undefined && trimmed !== exactTarget.trim()) {
+    defects.push(DEFECT_CODES.EXACT_TRANSLATION_MISMATCH);
+    details.exactTranslation = { expected: exactTarget, actual: trimmed };
   }
 
   const numbers = compareNumbers(source, trimmed);
@@ -376,6 +398,7 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
 
 /** Defects that must never survive into a published artifact. */
 export const BLOCKING_DEFECTS = Object.freeze([
+  DEFECT_CODES.EXACT_TRANSLATION_MISMATCH,
   DEFECT_CODES.EMPTY_OUTPUT,
   DEFECT_CODES.UNPARSABLE_OUTPUT,
   DEFECT_CODES.NUMBER_MISMATCH,

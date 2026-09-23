@@ -411,7 +411,7 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   try {
     // The Fun look inherits the pre-look-global keys exactly once: those keys were
     // written before per-look storage existed, and Fun is the look the reader was
-    // almost certainly wearing. Clinical starts fresh — the looks are independent
+    // almost certainly wearing. Clinical starts fresh; the looks are independent
     // from this build on, while light and dark share a look's coordinates. The
     // provider removes the global keys on hydration, so this fallback answers for
     // one page load only.

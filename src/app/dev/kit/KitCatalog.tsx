@@ -43,7 +43,7 @@ function TokenShowcase() {
         <h3 className="text-lg font-semibold text-[var(--theme-text-primary)]">Tokens</h3>
         <p className="max-w-[70ch] text-sm text-[var(--theme-text-secondary)]">
           The token system is the source of truth. Consume <code>--theme-*</code> variables or the{" "}
-          <code>dose-*</code> Tailwind aliases — not raw hex or <code>fuchsia-*</code> utilities. Light mode
+          <code>dose-*</code> Tailwind aliases, not raw hex or <code>fuchsia-*</code> utilities. Light mode
           largely mirrors dark (reverso) as a guideline; toggle the theme to check both.
         </p>
       </header>
@@ -176,12 +176,12 @@ export function KitCatalog() {
               <div className="flex flex-col gap-2">
                 <h1 className="text-2xl font-semibold text-[var(--theme-text-primary)]">UI Kit</h1>
                 <p className="max-w-[70ch] text-sm text-[var(--theme-text-secondary)]">
-                  The shared component catalog. Every primitive renders live here — use these before building new
+                  The shared component catalog. Every primitive renders live here; use these before building new
                   UI. Ownership rules live in <code>docs/design/ui-kit.md</code>.
                 </p>
                 <p className="max-w-[70ch] text-sm text-[var(--theme-text-muted)]">
                   The appearance controls dress the whole document, so every story below is the parity harness for
-                  all four Fun/Pro × day/night combinations. There is one kit — a story that only passes in one
+                  all four Fun/Pro × day/night combinations. There is one kit: a story that only passes in one
                   combination is a token or call-site defect, never a reason to fork the component.
                 </p>
               </div>

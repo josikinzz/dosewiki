@@ -4,6 +4,8 @@
  * Source of truth: `server/schema.ts`, composed with owned definitions.
  * SQL columns, indexes, and document types are generated from the same validators.
  * Run `npm run generate:postgres-schema` after a document schema change.
+ * `npm run generate:postgres-schema -- --check` writes nothing and fails when
+ * either output is stale.
  *
  * Mapping (migration decision D1):
  * - Table and column identifiers are kept verbatim so import needs no renames.
@@ -287,9 +289,7 @@ function main() {
   if (!output.includes("uniqueIndex(")) output = output.replace(", uniqueIndex", "");
   if (!output.includes("bigint(")) output = output.replace("bigint, ", "");
 
-  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-  fs.writeFileSync(OUTPUT_PATH, output);
-  fs.writeFileSync(MODEL_PATH, `// GENERATED FILE. Do not edit by hand.
+  const model = `// GENERATED FILE. Do not edit by hand.
 // Producer: scripts/postgres/generateDrizzleSchema.ts (npm run generate:postgres-schema)
 import type schema from "../../../server/schema";
 import type { Id as DocumentId } from "./values";
@@ -303,11 +303,25 @@ export type DataModel = {
     document: Doc<Table>;
     fieldPaths: (typeof schema.tables)[Table]["validator"]["fieldPaths"] | "_id" | "_creationTime";
     indexes: { [Name in keyof DeclaredIndexes<Table>]: readonly [...Extract<DeclaredIndexes<Table>[Name], readonly string[]>, "_creationTime"] } & { by_id: readonly ["_id"]; by_creation_time: readonly ["_creationTime"] };
-    searchIndexes: {};
-    vectorIndexes: {};
+    searchIndexes: Record<never, never>;
+    vectorIndexes: Record<never, never>;
   };
 };
-`);
+`;
+  if (process.argv.includes("--check")) {
+    const stale = [[OUTPUT_PATH, output], [MODEL_PATH, model]]
+      .filter(([target, next]) => !fs.existsSync(target) || fs.readFileSync(target, "utf8") !== next)
+      .map(([target]) => path.relative(process.cwd(), target));
+    if (stale.length > 0) {
+      console.error(`Stale generated Postgres schema: ${stale.join(", ")}. Run: npm run generate:postgres-schema`);
+      process.exit(1);
+    }
+    console.log("Generated Postgres schema is up to date.");
+    return;
+  }
+  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+  fs.writeFileSync(OUTPUT_PATH, output);
+  fs.writeFileSync(MODEL_PATH, model);
   console.log(`Wrote ${path.relative(process.cwd(), OUTPUT_PATH)}: ${tables.length} tables, ${tables.reduce((n, t) => n + t.indexes.length + 1, 0)} indexes`);
   console.log(`Wrote ${path.relative(process.cwd(), MODEL_PATH)}: native document and index types`);
 }

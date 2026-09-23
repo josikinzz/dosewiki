@@ -81,7 +81,7 @@ function requireKey(raw: unknown): string {
   if (!WARNING_BANNER_KEY_PATTERN.test(key)) {
     throw new JsonBodyError(
       400,
-      "The preset key is missing or malformed. A key is the stable id the Studio and the article read path share, so it must be lower-case letters, digits, and hyphens, starting with a letter or digit — for example `serotonergic-stack`.",
+      "The preset key is missing or malformed. A key is the stable id the Studio and the article read path share, so it must be lower-case letters, digits, and hyphens, starting with a letter or digit, for example `serotonergic-stack`.",
     );
   }
   return key;
@@ -102,13 +102,13 @@ function requireText(raw: unknown, field: string, maxLength: number): string {
   if (!value) {
     throw new JsonBodyError(
       400,
-      `${field} is empty. Every string a reader sees is stored on the preset, so there is nothing to fall back to — type the wording you want.`,
+      `${field} is empty. Every string a reader sees is stored on the preset, so there is nothing to fall back to. Type the wording you want.`,
     );
   }
   if (value.length > maxLength) {
     throw new JsonBodyError(
       400,
-      `${field} is ${value.length} characters; the limit is ${maxLength}. Shorten it — a banner that overflows its box on a phone is unreadable.`,
+      `${field} is ${value.length} characters; the limit is ${maxLength}. Shorten it; a banner that overflows its box on a phone is unreadable.`,
     );
   }
   return value;
@@ -171,7 +171,7 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
   if (!WARNING_BANNER_ICON_PATTERN.test(icon)) {
     throw new JsonBodyError(
       400,
-      `The icon "${icon}" is not an Iconify id. An unknown id renders nothing at all, which on a safety banner is an invisible regression — use \`collection:name\` (for example \`lucide:wind\`) or one of this repo's \`custom:\` glyphs.`,
+      `The icon "${icon}" is not an Iconify id. An unknown id renders nothing at all, which on a safety banner is an invisible regression. Use \`collection:name\` (for example \`lucide:wind\`) or one of this repo's \`custom:\` glyphs.`,
     );
   }
 

@@ -7,6 +7,7 @@
  */
 import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import { buildBatchPrompt } from "./locales.mjs";
+import { markupTokens } from "./markup.mjs";
 import { validateSegment, isBlocking, parseModelJson, DEFECT_CODES } from "./validate.mjs";
 
 export const DEFAULT_MODEL = "z-ai/glm-5.3-flash";
@@ -14,7 +15,7 @@ export const APP_TITLE = "dose.wiki locale translation";
 export const DEFAULT_BATCH_CHARS = 6000;
 
 /** Validation retries per segment, including the first attempt. */
-export const MAX_ATTEMPTS = 3;
+export const MAX_ATTEMPTS = 12;
 const TRANSPORT_ATTEMPTS = 4;
 
 /**
@@ -23,6 +24,77 @@ const TRANSPORT_ATTEMPTS = 4;
  * Node and Bun both honour it. Each timed-out attempt is aborted before retry.
  */
 const ATTEMPT_TIMEOUT_MS = 180_000;
+
+const PROTECTED_TOKEN_PREFIX = "{{DWPROTECT";
+
+function alphabeticIndex(index) {
+  let value = index + 1;
+  let label = "";
+  while (value > 0) {
+    value -= 1;
+    label = String.fromCharCode(97 + (value % 26)) + label;
+    value = Math.floor(value / 26);
+  }
+  return label;
+}
+
+/**
+ * Keep syntax and digits out of the model's editing surface. Long legal text,
+ * chemistry names, citation ids, and Markdown URLs otherwise invite tiny
+ * punctuation or digit changes even after a strict retry. The opaque tokens
+ * contain no digits, so the number validator still checks the restored text.
+ */
+export function protectModelTokens(source) {
+  const replacements = [];
+  const protect = (value) => {
+    const token = `${PROTECTED_TOKEN_PREFIX}${alphabeticIndex(replacements.length).toUpperCase()}}}`;
+    replacements.push([token, value]);
+    return token;
+  };
+
+  let protectedSource = source
+    .replace(/\{\{\s*[A-Za-z0-9_]+\s*\}\}/g, protect)
+    .replace(/\[cite:[^\]]+\]|\[citation-needed\]/g, protect)
+    .replace(/(?<=\])\([^\s)]+(?:\s+"[^"]*")?\)/g, protect);
+
+  for (const token of [...new Set(markupTokens(protectedSource))].sort((a, b) => b.length - a.length)) {
+    protectedSource = protectedSource.replaceAll(token, () => protect(token));
+  }
+  protectedSource = protectedSource.replace(/[\uff10-\uff19\d]+(?:[.,][\uff10-\uff19\d]+)*/g, protect);
+
+  return {
+    source: protectedSource,
+    restore(target) {
+      // Preserve unexpected output as evidence for numeric validation. Legitimate
+      // translated names can introduce digits, such as Chinese serotonin.
+      let restored = target;
+      // Later protections can wrap earlier tokens (a placeholder inside a URL).
+      for (const [token, value] of [...replacements].reverse()) {
+        const label = token.slice(PROTECTED_TOKEN_PREFIX.length, -2);
+        const variant = new RegExp(`(?:\\{\\{|｛｛)\\s*DWPROTECT\\s*${label}\\s*(?:\\}\\}|｝｝)`, "gi");
+        restored = restored.replace(variant, value);
+      }
+      return restored;
+    },
+  };
+}
+
+/**
+ * A request the provider never answered: an authorization or credit refusal,
+ * an unknown model, or a retryable failure that outlasted the transport
+ * retries. It says nothing about the content, so it propagates out of the
+ * batch wrapper and fails the job instead of becoming a rejection.
+ */
+export class TranslationTransportError extends Error {
+  constructor(cause) {
+    const detail = cause instanceof Error ? cause.message : String(cause?.message ?? cause);
+    super(`Provider request failed: ${detail}`, { cause });
+    this.name = "TranslationTransportError";
+    this.code = DEFECT_CODES.TRANSPORT_FAILURE;
+    this.status = typeof cause?.status === "number" ? cause.status : null;
+    this.retryable = Boolean(cause?.retryable);
+  }
+}
 
 function sleep(ms, signal) {
   signal?.throwIfAborted();
@@ -102,9 +174,11 @@ export function planBatches(units, batchChars = DEFAULT_BATCH_CHARS) {
 /**
  * One request carrying many segments. Rate limits and gateway errors are the
  * normal weather at this concurrency, so a retryable failure waits and repeats
- * the same request rather than degrading into per-segment retries.
+ * the same request rather than degrading into per-segment retries. A failure
+ * that survives those retries, or cannot be retried, throws a
+ * `TranslationTransportError`; cancellation throws the signal's reason.
  */
-export async function sendBatch({ locale, model, apiKey, userMessage, signal }) {
+export async function sendBatch({ locale, model, apiKey, userMessage, temperature = 0.2, signal }) {
   let lastError;
   for (let attempt = 1; attempt <= TRANSPORT_ATTEMPTS; attempt += 1) {
     signal?.throwIfAborted();
@@ -116,7 +190,7 @@ export async function sendBatch({ locale, model, apiKey, userMessage, signal }) 
           model,
           systemPrompt: locale.systemPrompt,
           userMessage,
-          temperature: 0.2,
+          temperature,
           maxTokens: 16384,
           // This endpoint reasons unconditionally. Lowest effort with the trace
           // excluded keeps a 6k-character batch near two seconds instead of fifty.
@@ -130,19 +204,25 @@ export async function sendBatch({ locale, model, apiKey, userMessage, signal }) 
     } catch (error) {
       signal?.throwIfAborted();
       lastError = error;
-      if (!error?.retryable || attempt === TRANSPORT_ATTEMPTS) throw error;
+      if (!error?.retryable || attempt === TRANSPORT_ATTEMPTS) throw new TranslationTransportError(error);
       await sleep(1000 * 2 ** (attempt - 1) + Math.random() * 500, signal);
     }
   }
-  throw lastError;
+  throw new TranslationTransportError(lastError);
 }
 
-export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, signal }) {
+export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, temperature, signal }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
-  const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
+  const protections = new Map(units.map((unit) => [unit.hash, protectModelTokens(unit.source)]));
+  const payloadUnits = units.map((unit) => ({
+    ...unit,
+    originalSource: unit.source,
+    source: protections.get(unit.hash).source,
+    id: idByHash.get(unit.hash),
+  }));
   const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds });
 
-  const response = await sendBatch({ locale, model, apiKey, userMessage, signal });
+  const response = await sendBatch({ locale, model, apiKey, userMessage, temperature, signal });
 
   const usage = {
     prompt: response.usage.promptTokens,
@@ -156,10 +236,12 @@ export async function translateBatch({ units, locale, glossary, glosses, kinds, 
 
   return {
     usage,
-    results: payloadUnits.map((unit) => ({
-      unit,
-      target: parsed.value[unit.id] ?? null,
-      parseCode: parsed.value[unit.id] === undefined ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
+    results: payloadUnits.map((payloadUnit) => ({
+      unit: units.find((unit) => unit.hash === payloadUnit.hash),
+      target: typeof parsed.value[payloadUnit.id] !== "string"
+        ? null
+        : protections.get(payloadUnit.hash).restore(parsed.value[payloadUnit.id]),
+      parseCode: typeof parsed.value[payloadUnit.id] !== "string" ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
     })),
   };
 }
@@ -169,6 +251,9 @@ export function retryNoteFor(defects) {
   if (defects.includes(DEFECT_CODES.NUMBER_MISMATCH)) {
     notes.push("a number, dose, or unit changed; copy every digit and unit exactly");
   }
+  if (defects.includes(DEFECT_CODES.NUMBER_ADDED)) {
+    notes.push("the translation introduced a number that is not in the source; do not add any digits, list numbers, dates, doses, or units");
+  }
   if (defects.includes(DEFECT_CODES.SCRIPT_LEAK)) {
     notes.push("a Traditional character appeared; emit Simplified characters only");
   }
@@ -177,6 +262,9 @@ export function retryNoteFor(defects) {
   }
   if (defects.includes(DEFECT_CODES.MARKUP_LOSS)) {
     notes.push("an inline [tag] was dropped, added, or altered; reproduce every bracket tag exactly");
+  }
+  if (defects.includes(DEFECT_CODES.GLOSSARY_MISS)) {
+    notes.push("an approved glossary rendering was missed; use each required glossary target exactly as provided, without synonyms or spelling changes");
   }
   if (defects.includes(DEFECT_CODES.PLACEHOLDER_LOSS)) {
     notes.push("a {{token}} was dropped or altered; copy every token exactly, braces included");
@@ -200,11 +288,23 @@ export function retryNoteFor(defects) {
  * approved `term -> target` map, `glosses` the locale-independent
  * `term -> gloss` map, and `kinds` the approved `term -> kind` map, all
  * loaded by the caller; the engine never reads them from anywhere itself.
+ * A `TranslationTransportError` from any request rejects the whole batch.
  */
 export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage, signal }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
     signal?.throwIfAborted();
-    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, glosses, kinds, model, apiKey, retryNote, signal });
+    const { usage, results } = await translateBatch({
+      units: unitsToRun,
+      locale,
+      glossary,
+      glosses,
+      kinds,
+      model,
+      apiKey,
+      retryNote,
+      temperature: attempt === 1 ? 0.2 : 0,
+      signal,
+    });
     signal?.throwIfAborted();
     onUsage?.(usage, attempt);
     return results;
@@ -215,6 +315,7 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
     results = await attemptUnits(units, 1);
   } catch (error) {
     signal?.throwIfAborted();
+    if (error instanceof TranslationTransportError) throw error;
     results = units.map((unit) => ({ unit, target: null, parseCode: DEFECT_CODES.UNPARSABLE_OUTPUT, error }));
   }
 
@@ -236,8 +337,9 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
         evaluation = typeof target === "string"
           ? validateSegment({ source: unit.source, target, locale, glossary, markup: unit.markup })
           : { defects: [retry[0]?.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
-      } catch {
+      } catch (error) {
         signal?.throwIfAborted();
+        if (error instanceof TranslationTransportError) throw error;
         evaluation = { defects: [DEFECT_CODES.UNPARSABLE_OUTPUT], details: {} };
       }
     }

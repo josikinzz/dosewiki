@@ -8,7 +8,7 @@ export const badgeStory: StoryDef = {
   tier: "primitive",
   status: "stable",
   summary:
-    "Small static label primitive for status, severity, and metadata tags — pill-shaped, uppercase, theme-driven tones.",
+    "Small static label primitive for status, severity, and metadata tags: pill-shaped, uppercase, theme-driven tones.",
   source: "src/components/ui/badge.tsx",
   importLine: 'import { Badge } from "@/components/ui/badge";',
   exports: ["Badge", "badgeVariants"],
@@ -29,7 +29,7 @@ export const badgeStory: StoryDef = {
     },
     {
       label: "Status tones",
-      note: "Use these to signal severity or success — not as buttons.",
+      note: "Use these to signal severity or success, not as buttons.",
       render: () => (
         <>
           <Badge variant="success">Verified</Badge>
@@ -60,7 +60,7 @@ export const badgeStory: StoryDef = {
     },
     {
       label: "Inside phrasing content (asChild)",
-      note: "Render as the child element when a div would be invalid — inside a label, caption, or button row.",
+      note: "Render as the child element when a div would be invalid: inside a label, caption, or button row.",
       render: () => (
         <span>
           Accent{" "}
@@ -72,7 +72,7 @@ export const badgeStory: StoryDef = {
     },
     {
       label: "Custom content",
-      note: "Badges accept any children — combine with inline icons or counts.",
+      note: "Badges accept any children; combine with inline icons or counts.",
       render: () => (
         <>
           <Badge variant="secondary">12 reports</Badge>
@@ -101,7 +101,7 @@ export const badgeStory: StoryDef = {
     {
       name: "className",
       type: "string",
-      description: "Extra classes merged via cn — use --theme-* utilities only for any overrides.",
+      description: "Extra classes merged via cn. Use --theme-* utilities only for any overrides.",
     },
   ],
   whenToUse: [
@@ -109,8 +109,8 @@ export const badgeStory: StoryDef = {
     "Compact metadata tags and effect chips beside content.",
   ],
   whenNotToUse: [
-    "Clickable actions — use Button (interactive/effectInteractive are styling only, wrap a real control for a11y).",
-    "Long-form text or anything needing wrapping — badges are single-line pills.",
+    "Clickable actions: use Button (interactive/effectInteractive are styling only, wrap a real control for a11y).",
+    "Long-form text or anything needing wrapping: badges are single-line pills.",
   ],
   notes: [
     "Renders a plain <div>, so it carries no button semantics; the interactive variants only add hover/focus styling.",

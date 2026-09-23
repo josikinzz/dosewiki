@@ -121,6 +121,11 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
         ...(body.reportOrder === undefined ? {} : { reportOrder: body.reportOrder }),
       },
     );
+    // This route never sends an expected order, so the handler's conflict
+    // receipt cannot come back here.
+    if (result.status !== "ok") {
+      throw new Error("Unexpected contributor ordering conflict receipt.");
+    }
 
     await revalidateContributorSurfaces({
       contributorKeys: result.revalidate?.contributorKeys ?? [result.key],

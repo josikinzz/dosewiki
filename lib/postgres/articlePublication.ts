@@ -157,7 +157,8 @@ async function upsertArticleOutbox(client: SqlClient, before: DataDocument | nul
       receipts: [],
       committedAt: now,
     };
-    if (current) await patchDocument(client, "publicCachePublications", current._id as string, value);
+    // A new commit re-pends a dead-lettered identity.
+    if (current) await patchDocument(client, "publicCachePublications", current._id as string, { ...value, deadLetteredAt: undefined });
     else await insertDocument(client, "publicCachePublications", value);
   }
   return true;

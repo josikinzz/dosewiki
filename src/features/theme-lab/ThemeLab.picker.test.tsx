@@ -44,9 +44,9 @@ describe("ThemeLab page picker", { timeout: 15_000 }, () => {
 
     const menu = await screen.findByRole("menu", { name: "Edit which color" });
     expect(within(menu).getByRole("menuitem", { name: /TextHeading text/ })).toBeInTheDocument();
-    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — highlight/ })).toBeInTheDocument();
-    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — primary/ })).toBeInTheDocument();
-    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — secondary/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient: highlight/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient: primary/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient: secondary/ })).toBeInTheDocument();
   });
 
   it("applies a stacked picker menu item instead of picking the page below it", async () => {
@@ -75,9 +75,9 @@ describe("ThemeLab page picker", { timeout: 15_000 }, () => {
     fireEvent.click(document.body, { clientX: 24, clientY: 34 });
     const menu = await screen.findByRole("menu", { name: "Edit which color" });
 
-    await userEvent.click(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient — primary/ }));
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /BackgroundPanel gradient: primary/ }));
 
     expect(screen.queryByRole("menu", { name: "Edit which color" })).not.toBeInTheDocument();
-    expect(within(panel).getAllByText("Panel gradient — primary").length).toBeGreaterThan(0);
+    expect(within(panel).getAllByText("Panel gradient: primary").length).toBeGreaterThan(0);
   });
 });

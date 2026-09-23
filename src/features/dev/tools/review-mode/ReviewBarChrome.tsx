@@ -88,7 +88,7 @@ export function ProgressStrip({
       // overflow sheet (and its labelled numbers) is gone. Hover fills in.
       title={
         variant === "hairline"
-          ? `${reviewed.toLocaleString()} of ${total.toLocaleString()} reviewed — ${(total - reviewed).toLocaleString()} to go`
+          ? `${reviewed.toLocaleString()} of ${total.toLocaleString()} reviewed, ${(total - reviewed).toLocaleString()} to go`
           : undefined
       }
     >
@@ -251,8 +251,8 @@ export function MarkReviewedControl({
         )}
         onClick={toggleReviewed}
         disabled={isTicking}
-        aria-label="Reviewed — undo"
-        title="Reviewed — click to undo (R)"
+        aria-label="Reviewed: undo"
+        title="Reviewed: click to undo (R)"
       >
         {justTicked ? (
           <TickedBadgeCheck />
@@ -296,7 +296,7 @@ export function MarkReviewedControl({
 }
 
 const REVIEW_CRITERIA = [
-  "Facts match the cited sources — nothing invented or overstated.",
+  "Facts match the cited sources, with nothing invented or overstated.",
   "Dosage and duration tables are sane and agree with the source material.",
   "Safety-critical sections (interactions, harm potential) read correctly.",
   "Tone and formatting match the site; no generation artifacts left behind.",
@@ -336,7 +336,7 @@ export function ReviewHelpPanel() {
         </ul>
         <p className="theme-text-faint mt-2 text-[12px]">
           Can&rsquo;t finish one? Flag it{" "}
-          <Icon icon="lucide:flag" size={12} className="inline" /> and move on —
+          <Icon icon="lucide:flag" size={12} className="inline" /> and move on;
           it stays in the queue.
         </p>
       </div>

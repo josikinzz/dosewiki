@@ -94,7 +94,7 @@ function PropsTable({ props }: { props: PropDoc[] }) {
             <tr key={prop.name} className="align-top">
               <td className="px-3 py-2 font-mono text-[var(--theme-accent-strong)]">{prop.name}</td>
               <td className="px-3 py-2 font-mono text-[var(--theme-text-secondary)]">{prop.type}</td>
-              <td className="px-3 py-2 font-mono text-[var(--theme-text-muted)]">{prop.default ?? "—"}</td>
+              <td className="px-3 py-2 font-mono text-[var(--theme-text-muted)]">{prop.default ?? "–"}</td>
               <td className="px-3 py-2 text-[var(--theme-text-secondary)]">{prop.description}</td>
             </tr>
           ))}

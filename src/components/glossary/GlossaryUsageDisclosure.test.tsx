@@ -5,7 +5,7 @@ import { GlossaryUsageDisclosure } from "./GlossaryUsageDisclosure";
 
 const source = {
   term: "Taking Off",
-  nodes: [{ id: "dmt:stage", href: "/dmt#subjective-effects", title: "DMT", context: "Subjective Effects > 1. Taking Off", kind: "label" }],
+  nodes: [{ id: "dmt:stage", href: "/dmt#subjective-effects", title: "DMT", context: "Subjective Effects > 1. Taking Off", kind: "label" as const }],
   totalSourceNodes: 1,
   nextOffset: null,
   coverage: "Source locations, not pages. Partial source coverage.",
@@ -14,6 +14,21 @@ const source = {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("GlossaryUsageDisclosure", () => {
+  it("reveals precomputed usage immediately without an open-time request", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<GlossaryUsageDisclosure term="Taking Off" initialData={source} />);
+
+    const control = screen.getByRole("button", { name: "Where it is used: Taking Off" });
+    expect(control).not.toHaveClass("theme-control-pill-faint");
+    await user.click(control);
+
+    expect(screen.getByRole("link", { name: "DMT" })).toBeVisible();
+    expect(screen.queryByText("Loading usage sources...")).not.toBeInTheDocument();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("does not fetch until expanded and retains accessible results across collapse", async () => {
     const fetcher = vi.fn(async () => Response.json(source));
     vi.stubGlobal("fetch", fetcher);

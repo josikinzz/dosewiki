@@ -627,7 +627,7 @@ export const ARTICLE_SECTION_CATALOG = [
         return (
           legality.international?.length > 0 ||
           (legality.countries && Object.keys(legality.countries).length > 0) ||
-          (legality.usStates && Object.keys(legality.usStates).length > 0)
+          (!!legality.usStates && Object.keys(legality.usStates).length > 0)
         );
       },
     },

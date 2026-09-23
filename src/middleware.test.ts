@@ -95,10 +95,14 @@ describe("middleware role policy adapter", () => {
     expect((await middleware(new NextRequest(
       `https://${host}/api/cron/translation-refresh`, { method: "GET", headers: { host } },
     ))).headers.get("x-middleware-next")).toBe("1");
+    expect((await middleware(new NextRequest(
+      `https://${host}/api/cron/translation-bulk`, { method: "GET", headers: { host } },
+    ))).headers.get("x-middleware-next")).toBe("1");
     for (const [path, method] of [
       ["/api/cron/publication-delivery", "POST"],
       ["/api/cron/publication-delivery/extra", "GET"],
       ["/api/cron/translation-refresh", "POST"],
+      ["/api/cron/translation-bulk", "POST"],
       ["/api/cron/other", "GET"],
     ]) {
       expect((await middleware(new NextRequest(
@@ -130,7 +134,7 @@ describe("middleware role policy adapter", () => {
     const { middleware } = await import("./middleware");
     makeRequest("/");
     const host = "dosewiki-admin-abc123-team.vercel.app";
-    for (const path of ["/api/cron/translation-refresh", "/api/cron/publication-delivery"]) {
+    for (const path of ["/api/cron/translation-refresh", "/api/cron/translation-bulk", "/api/cron/publication-delivery"]) {
       const response = await middleware(new NextRequest(`https://${host}${path}`, { headers: { host } }));
       expect(response.status).toBe(200);
     }
@@ -418,6 +422,19 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("x-middleware-rewrite")).toBe(
       "https://dose.wiki/_flavor-gated/not-found",
     );
+  });
+
+  it("routes the Russian mirror without exposing its internal prefix on English hosts", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "ru.dose.wiki";
+    for (const path of ["/about", "/articles", "/fentanyl", "/search?q=test"]) {
+      const response = await middleware(new NextRequest(`https://${host}${path}`, { headers: { host } }));
+      expect(response.headers.get("x-middleware-rewrite")).toBe(`https://${host}/ru${path}`);
+      expect(response.headers.get("location")).toBeNull();
+    }
+    const internal = await middleware(makePublicRequest("/ru/about"));
+    expect(internal.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/_flavor-gated/not-found");
   });
 
   it("serves a locale host's substance article from the mirror route", async () => {

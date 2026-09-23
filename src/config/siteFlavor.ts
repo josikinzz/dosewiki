@@ -592,7 +592,7 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
         icon: "lucide:heart",
         title: msg("Donate"),
         description: msg(
-          "Patreon, merchandise, PayPal and Ethereum — what the funds pay for, and how to give.",
+          "Patreon, merchandise, PayPal and Ethereum: what the funds pay for, and how to give.",
         ),
       },
     ],

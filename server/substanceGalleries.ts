@@ -695,9 +695,12 @@ export const getReplicationAssociationsPage = query({
 
     const items: ReplicationAssociation[] = [];
     for (const substance of page.page) {
+      const substanceSlug = substance.slug;
+      // A slugless article has no gallery row and no match target.
+      if (!substanceSlug) continue;
       const gallery = await ctx.db
         .query("substanceGalleries")
-        .withIndex("by_substance", (q) => q.eq("substance_slug", substance.slug))
+        .withIndex("by_substance", (q) => q.eq("substance_slug", substanceSlug))
         .first();
       const derivedProvenance = associationProvenance(replication, substance);
       const directProvenance = directGalleryAssociationProvenance(replication, gallery);
@@ -708,7 +711,7 @@ export const getReplicationAssociationsPage = query({
         provenance.matchedVia === "specific_drug"
           ? substance.title
           : provenance.matchedVia === "drug_class"
-            ? provenance.drugClass
+            ? provenance.drugClass ?? provenance.effectSlug
             : provenance.matchedVia === "visual_disconnection"
               ? "Visual Disconnection"
               : provenance.effectSlug;
@@ -716,7 +719,7 @@ export const getReplicationAssociationsPage = query({
       const curatedIndex = gallery ? gallery.curated_slugs.indexOf(args.replicationSlug) : -1;
 
       items.push({
-        slug: substance.slug,
+        slug: substanceSlug,
         title: substance.title,
         matchedVia: provenance.matchedVia,
         effectSlug: provenance.effectSlug,

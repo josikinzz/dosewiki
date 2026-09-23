@@ -2,7 +2,7 @@
  * Runtime-owned tables alongside the generated application document tables.
  * Hand-written; `drizzle.config.ts` loads this next to `schema.generated.ts`.
  */
-import { bigint, boolean, doublePrecision, index, integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
+import { bigint, bigserial, boolean, doublePrecision, index, integer, jsonb, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 
 /** Resolve document ids to tables without depending on a particular id encoding. */
 export const documentIds = pgTable(
@@ -60,8 +60,74 @@ export const translationJobs = pgTable(
     completed_at: bigint("completed_at", { mode: "number" }),
     attempts: integer("attempts").notNull().default(0),
     last_error: text("last_error"),
+    /** incremental for editorial freshness, bulk for an operator-started corpus run. */
+    mode: text("mode").notNull().default("incremental"),
+    /** Stable identity shared by every record in one operator-started bulk run. */
+    run_id: text("run_id"),
+    /** null | rejected; machine-readable terminal outcome, separate from operator prose. */
+    terminal_status: text("terminal_status"),
+    /** A failed job is not claimed again before this time; null means due now. */
+    next_attempt_at: bigint("next_attempt_at", { mode: "number" }),
   },
-  (t) => [primaryKey({ columns: [t.locale, t.slug] }), index("translationJobs_due").on(t.locale, t.completed_at, t.claimed_at)],
+  (t) => [
+    primaryKey({ columns: [t.locale, t.slug, t.mode] }),
+    index("translationJobs_due").on(t.mode, t.locale, t.completed_at, t.claimed_at),
+    index("translationJobs_run").on(t.run_id, t.completed_at),
+  ],
+);
+
+/** One database lease per model prevents overlapping cron invocations. */
+export const translationWorkerLeases = pgTable("translationWorkerLeases", {
+  mode: text("mode").primaryKey(),
+  owner: text("owner").notNull(),
+  expires_at: bigint("expires_at", { mode: "number" }).notNull(),
+});
+
+/**
+ * One summary row per translation worker invocation, including a run that
+ * lost its lease, so a blocked or failing lane is visible from SQL. Owned by
+ * lib/translation/segmentStore.ts, which prunes rows past the retention window.
+ */
+export const translationWorkerRuns = pgTable(
+  "translationWorkerRuns",
+  {
+    id: text("id").primaryKey(),
+    mode: text("mode").notNull(),
+    lease_held: boolean("lease_held").notNull(),
+    started_at: bigint("started_at", { mode: "number" }).notNull(),
+    duration_ms: integer("duration_ms").notNull(),
+    claimed: integer("claimed").notNull(),
+    completed: integer("completed").notNull(),
+    failed: integer("failed").notNull(),
+    /** Failures that used the job's last attempt; the job leaves the queue until the record changes again. */
+    exhausted: integer("exhausted").notNull(),
+    cache_pending: integer("cache_pending").notNull(),
+    prompt_tokens: bigint("prompt_tokens", { mode: "number" }).notNull(),
+    completion_tokens: bigint("completion_tokens", { mode: "number" }).notNull(),
+    requests: integer("requests").notNull(),
+    first_error: text("first_error"),
+  },
+  (t) => [index("translationWorkerRuns_by_mode").on(t.mode, t.started_at)],
+);
+
+/**
+ * Durable cache work created atomically with translation completion. A claim
+ * spends an attempt and leases the row until `next_attempt_at`; a row that
+ * reaches the attempt cap is no longer claimed and stays for inspection.
+ */
+export const translationCacheJobs = pgTable(
+  "translationCacheJobs",
+  {
+    locale: text("locale").notNull(),
+    slug: text("slug").notNull(),
+    mode: text("mode").notNull(),
+    targets: text("targets").notNull(),
+    requested_at: bigint("requested_at", { mode: "number" }).notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    next_attempt_at: bigint("next_attempt_at", { mode: "number" }),
+    last_error: text("last_error"),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.slug, t.mode] }), index("translationCacheJobs_due").on(t.requested_at)],
 );
 
 /**
@@ -111,6 +177,7 @@ export const translationGlossary = pgTable(
      * a reload, a locale switch, and another reviewer's machine.
      */
     retranslated_at: bigint("retranslated_at", { mode: "number" }),
+    retranslation_requested_at: bigint("retranslation_requested_at", { mode: "number" }),
     updated_at: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.locale, t.term] }), index("translationGlossary_by_status").on(t.locale, t.status)],
@@ -170,3 +237,38 @@ export const subscribeRateLimitBuckets = pgTable(
     index("subscribeRateLimitBuckets_by_expiry").on(t.expires_at),
   ],
 );
+
+/** Review workspace: editing a draft never replaces the approved rendering. */
+export const translationReviewEntries = pgTable("translationReviewEntries", {
+  locale: text("locale").notNull(),
+  scope: text("scope").notNull(),
+  source_id: text("source_id").notNull(),
+  revision: integer("revision").notNull(),
+  draft: jsonb("draft"),
+  approved: jsonb("approved"),
+  updated_at: bigint("updated_at", { mode: "number" }).notNull(),
+}, (t) => [primaryKey({ columns: [t.locale, t.scope, t.source_id] })]);
+
+/** Append-only application history, atomically inserted beside every revision. */
+export const translationReviewHistory = pgTable("translationReviewHistory", {
+  locale: text("locale").notNull(),
+  scope: text("scope").notNull(),
+  source_id: text("source_id").notNull(),
+  revision: integer("revision").notNull(),
+  action: text("action").notNull(),
+  before_state: jsonb("before_state").notNull(),
+  after_state: jsonb("after_state").notNull(),
+  actor: text("actor").notNull(),
+  reason: text("reason").notNull(),
+  created_at: bigint("created_at", { mode: "number" }).notNull(),
+}, (t) => [primaryKey({ columns: [t.locale, t.scope, t.source_id, t.revision] })]);
+
+/** Automatic segment replacements, retained before the current overlay is updated. */
+export const translationSegmentHistory = pgTable("translationSegmentHistory", {
+  id: bigserial("id", { mode: "bigint" }).primaryKey(),
+  locale: text("locale").notNull(),
+  hash: text("hash").notNull(),
+  before_state: jsonb("before_state"),
+  after_state: jsonb("after_state").notNull(),
+  created_at: bigint("created_at", { mode: "number" }).notNull(),
+}, (t) => [index("translationSegmentHistory_by_locale").on(t.locale, t.id), index("translationSegmentHistory_by_hash").on(t.locale, t.hash, t.id)]);

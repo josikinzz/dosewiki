@@ -13,9 +13,19 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
+const rateLimitMode = vi.hoisted(() => ({ real: false }));
+
+vi.mock("@server/http/nextRateLimit", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("@server/http/nextRateLimit")>();
+  return {
+    ...original,
+    enforceRateLimit: vi.fn(
+      (...args: Parameters<typeof original.enforceRateLimit>) =>
+        rateLimitMode.real ? original.enforceRateLimit(...args) : null,
+    ),
+  };
+});
 
 const warmMocks = vi.hoisted(() => ({
   lookup: vi.fn(async () => [{ slug: "2c-b", name: "2C-B", priority: "high" }]),
@@ -72,7 +82,12 @@ const SECRET = "publication-secret-that-is-long-enough";
 
 async function signedRequest(
   body: unknown,
-  options: { secret?: string | null; signature?: string; url?: string } = {},
+  options: {
+    secret?: string | null;
+    signature?: string;
+    url?: string;
+    ip?: string;
+  } = {},
 ) {
   const serialized = typeof body === "string" ? body : JSON.stringify(body);
   const signature =
@@ -85,6 +100,7 @@ async function signedRequest(
       headers: {
         "Content-Type": "application/json",
         "x-dosewiki-publication-signature": signature,
+        ...(options.ip ? { "x-forwarded-for": options.ip } : {}),
       },
       body: serialized,
     },
@@ -112,6 +128,7 @@ describe("public cache publication receiver", () => {
     ]);
     warmMocks.warmUrls.mockClear();
     warmMocks.background.length = 0;
+    rateLimitMode.real = false;
   });
 
   it("refuses every request when no shared secret is configured", async () => {
@@ -158,10 +175,11 @@ describe("public cache publication receiver", () => {
     expect(await response.json()).toMatchObject({
       ok: true,
       dispatchId: "dispatch-0001",
-      applied: { paths: ["/2c-b", "/zh/2c-b"] },
+      applied: { paths: ["/2c-b", "/zh/2c-b", "/ru/2c-b"] },
     });
     expect(revalidatePath).toHaveBeenCalledWith("/2c-b");
     expect(revalidatePath).toHaveBeenCalledWith("/zh/2c-b");
+    expect(revalidatePath).toHaveBeenCalledWith("/ru/2c-b");
     const expired = vi.mocked(revalidateTag).mock.calls.map(([tag]) => tag);
     expect(expired).toContain("data-public:substances:2c-b");
     expect(expired).not.toContain("data-public");
@@ -286,5 +304,62 @@ describe("public cache publication receiver", () => {
     const response = await POST(await signedRequest(signal()));
 
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  describe("rate limiting", () => {
+    beforeEach(() => {
+      rateLimitMode.real = true;
+    });
+
+    it("never refuses validly signed editor fan-out with the public IP limit", async () => {
+      const ip = "198.51.100.21";
+      const statuses: number[] = [];
+      for (let index = 0; index < 60; index += 1) {
+        const response = await POST(
+          await signedRequest(
+            signal({ dispatchId: `dispatch-${String(index).padStart(4, "0")}` }),
+            { ip },
+          ),
+        );
+        statuses.push(response.status);
+      }
+
+      expect(statuses.every((status) => status >= 200 && status < 300)).toBe(
+        true,
+      );
+    });
+
+    it("keeps the public IP limit for unsigned requests", async () => {
+      const ip = "198.51.100.22";
+      const statuses: number[] = [];
+      for (let index = 0; index < 31; index += 1) {
+        const response = await POST(
+          await signedRequest(signal(), { signature: "", ip }),
+        );
+        statuses.push(response.status);
+      }
+
+      expect(statuses.slice(0, 30).every((status) => status === 401)).toBe(
+        true,
+      );
+      expect(statuses[30]).toBe(429);
+      expect(revalidateTag).not.toHaveBeenCalled();
+    });
+
+    it("keeps accepting signed signals after unsigned traffic exhausts the IP limit", async () => {
+      const ip = "198.51.100.23";
+      for (let index = 0; index < 31; index += 1) {
+        await POST(
+          await signedRequest(signal(), {
+            secret: "a-different-shared-secret-value",
+            ip,
+          }),
+        );
+      }
+
+      const response = await POST(await signedRequest(signal(), { ip }));
+
+      expect(response.status).toBe(200);
+    });
   });
 });

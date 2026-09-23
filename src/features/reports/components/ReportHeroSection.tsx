@@ -47,7 +47,7 @@ export const ReportHeroSection = memo(function ReportHeroSection(
   const licenseIcon = isPublicDomain ? "lucide:globe" : "lucide:copyright";
   const licenseTitle = isPublicDomain
     ? t("Dedicated to the public domain (CC0) by its submitter. See the license page for reuse terms.")
-    : t("Rights to this report are retained by its author — reuse is up to them. See the license page.");
+    : t("Rights to this report are retained by its author, and reuse is up to them. See the license page.");
 
   return (
     <header className="space-y-4 pt-2">

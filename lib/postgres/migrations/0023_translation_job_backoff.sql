@@ -1,0 +1,1 @@
+ALTER TABLE "translationJobs" ADD COLUMN "next_attempt_at" bigint;

@@ -5,7 +5,7 @@
  * prompts are held to, one row per (locale, term) in Postgres.
  *
  * The workflow for a locale: draft the missing terms by machine, review each
- * one (approve it as it stands, or type the rendering, which approves it),
+ * one (save a proposed rendering as a draft, then approve that exact revision),
  * then start the main translation once nothing is left unreviewed. Afterwards,
  * editing any rendering and pressing "Retranslate" redoes only the stored
  * translations that mention the edited terms; the background job does the
@@ -14,7 +14,7 @@
  *
  * A single-row write locks only its own row, so a reviewer can keep typing in
  * the next one; after the reload, focus moves to the next unreviewed row so
- * Enter, Enter, Enter walks the list.
+ * the reviewer can continue through the list with explicit approval buttons.
  *
  * Under each term sits its definition (gloss): the one-line English meaning
  * the prompt injects beside the approved rendering and the public /glossary
@@ -22,6 +22,7 @@
  * editor writes them in place here and a translator reads them.
  */
 
+import { GlossaryReaderFeedback } from "./GlossaryReaderFeedback";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -50,9 +51,11 @@ import {
   filterRows,
   glossaryExportUrl,
   groupRows,
+  needsReview,
   GlossaryReviewCollision,
   importGlossaryCsv,
   retranslateTerms,
+  retryExhaustedPages,
   saveGloss,
   startMainTranslation,
   STATE_WORD,
@@ -63,6 +66,11 @@ import {
 } from "./glossaryModel";
 import { GlossaryGroupSection } from "./GlossaryReviewTable";
 import { PendingTermsList } from "./PendingTermsList";
+import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
+import { TranslationChanges } from "./TranslationChanges";
+import { NarrativeReview } from "./NarrativeReview";
+import { TranslationCoverage } from "./TranslationCoverage";
+import { TranslationProgress } from "./TranslationProgress";
 
 const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
@@ -73,7 +81,7 @@ const STATUS_OPTIONS: { value: GlossaryStatusFilter; label: string }[] = [
 ];
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
-type Busy = "load" | "approve" | "draft" | "retranslate" | "start" | "import" | null;
+type Busy = "load" | "approve" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
 
 /** The one row a single-row write is locking, and which of its two editable fields is being written. */
 type Writing = { term: string; field: "rendering" | "definition" };
@@ -95,11 +103,25 @@ type GlossaryTabProps = {
 };
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
+  const [view, setView] = useState("glossary");
+  const [visitedViews, setVisitedViews] = useState({ labels: false, coverage: false, changes: false, narrative: false });
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("translationReview") !== "article") return;
+    setView("narrative");
+    setVisitedViews((visited) => ({ ...visited, narrative: true }));
+    const requestedLocale = params.get("translationLocale");
+    if (requestedLocale) setLocale(requestedLocale);
+  }, []);
+  const uiEditDrafts = useRef<UiEditDrafts>(new Map());
   const canAdmin = roleMeetsFloor(viewerRole, "admin");
   const canDefine = roleMeetsFloor(viewerRole, "editor");
   const [locale, setLocale] = useState<string | null>(null);
   const [data, setData] = useState<GlossaryList | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
+  const refreshInFlight = useRef(false);
   const [filters, setFilters] = useState<GlossaryFilters>(DEFAULT_FILTERS);
   const [busy, setBusy] = useState<Busy>(null);
   /** The one row an approve or save is writing; every other row stays editable. */
@@ -116,21 +138,39 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const { confirm, dialog } = useConfirm();
   const locked = busy !== null || writingTerm !== null || collisionReview !== null;
 
-  const load = useCallback(async (code: string | null) => {
+  const load = useCallback(async (code: string | null, background = false) => {
+    if (background && refreshInFlight.current) return;
+    const version = ++loadVersion.current;
+    if (background) refreshInFlight.current = true;
     setLoadError(null);
     try {
-      const next = await fetchGlossary(code);
-      setData(next);
+      const next = await fetchGlossary(code, !background);
+      if (version !== loadVersion.current) return;
+      setRefreshError(null);
+      setData((current) => background && current ? { ...next, usages: current.usages } : next);
       setLocale(next.locale);
     } catch (error) {
+      if (version !== loadVersion.current) return;
+      if (background) {
+        setRefreshError(error instanceof Error ? error.message : "Unable to refresh progress.");
+        return;
+      }
       setData(null);
       setLoadError(error instanceof Error ? error.message : "Unable to load the glossary.");
+    } finally {
+      if (background) refreshInFlight.current = false;
     }
   }, []);
 
   useEffect(() => {
-    void load(null);
+    void load(new URL(window.location.href).searchParams.get("locale"));
   }, [load]);
+
+  useEffect(() => {
+    if (!data || data.jobs.active === 0 || locked) return;
+    const timer = window.setInterval(() => void load(data.locale, true), 5000);
+    return () => window.clearInterval(timer);
+  }, [data, load, locked]);
 
   // Runs once the written row is unlocked and the reload has rendered: the
   // next unreviewed row after the written one takes focus, or the written row
@@ -154,7 +194,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     if (data) for (const group of groupRows(data.rows)) byCategory[group.category.id] = { total: group.rows.length, draft: group.draftCount };
     return byCategory;
   }, [data]);
-  const draftCount = data ? data.rows.filter((row) => row.status === "draft").length : 0;
+  const draftCount = data ? data.rows.filter(needsReview).length : 0;
   const shownDrafts = rows.filter((row) => row.status === "draft");
   const reviewComplete = !!data && data.rows.length > 0 && draftCount === 0;
   const nothingTranslatedYet = !!data && data.segments.total === 0;
@@ -202,13 +242,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const approveOne = (row: GlossaryRow) =>
     run("approve", async (collisionConfirmation) => {
-      await approveTerms(locale!, [row.term], collisionConfirmation);
+      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
       return `Approved "${row.term}".`;
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
     run("approve", async (collisionConfirmation) => {
-      const approved = await approveTerms(locale!, terms, collisionConfirmation);
+      const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])));
       return `Approved ${count(approved.length, "term")}.`;
     });
 
@@ -227,8 +267,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const saveTarget = (row: GlossaryRow, target: string) =>
     run("approve", async (collisionConfirmation) => {
-      const saved = await editTerm(locale!, row.term, target, collisionConfirmation);
-      return `Saved "${saved.term}" as ${saved.target}; it is approved.`;
+      const saved = await editTerm(locale!, row.term, target, collisionConfirmation, row.revision);
+      return `Saved "${saved.term}" as ${saved.target}; awaiting approval.`;
     }, row.term);
 
   /** Locks the row like a rendering save, but the definition is locale-independent, so the map updates in place and nothing reloads. */
@@ -252,7 +292,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     const terms = [...pending];
     confirm({
       title: `Retranslate everything that mentions ${count(terms.length, "term")}?`,
-      description: "Translations that mention these terms will be redone by the background job within about five minutes; everything else keeps its current translation.",
+      description: "Request background updates for translations that mention these terms. Use Coverage to track processing; publication is verified separately.",
       confirmLabel: "Retranslate",
       affected: terms,
       onConfirm: () =>
@@ -285,7 +325,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const startMain = () =>
     confirm({
       title: `Start the main translation for ${locale}?`,
-      description: "Every public page will be translated for this locale in the background, a few at a time.",
+      description: "Every public page will be translated in the background through one shared pool capped at 100 simultaneous GLM 5.3 Flash requests.",
       confirmLabel: "Start translation",
       onConfirm: () =>
         void run("start", async () => {
@@ -294,18 +334,32 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         }),
     });
 
+  const retryExhausted = () => {
+    const pages = data?.jobs.exhausted ?? 0;
+    confirm({
+      title: `Retry ${count(pages, "failed page")} for ${locale}?`,
+      description: "Pages in the latest run that stopped after repeated failures get a fresh set of attempts in the same run. Finished pages and saved translations are untouched.",
+      confirmLabel: "Retry failed pages",
+      onConfirm: () =>
+        void run("retry", async () => `Queued ${count(await retryExhaustedPages(locale!), "page")} for another attempt.`),
+    });
+  };
+
   /** Reads the chosen file here and sends it whole; the server writes all of it or none. */
   const importFile = async (file: File | undefined) => {
     if (!file) return;
     const csv = file.text();
     await run("import", async (collisionConfirmation) => {
       const summary = await importGlossaryCsv(locale!, await csv, collisionConfirmation);
-      const total = summary.approved + summary.drafts;
-      return `Imported ${summary.approved} approved and ${summary.drafts} ${STATE_WORD.draft} ${total === 1 ? "rendering" : "renderings"}.`;
+      return `Imported ${count(summary.drafts, "draft")}; each requires explicit approval.`;
     });
   };
 
   const changeLocale = (code: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("locale", code);
+    window.history.replaceState(window.history.state, "", url);
+    setRefreshError(null);
     ++actionVersion.current;
     setCollisionReview(null);
     setLocale(code);
@@ -319,8 +373,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     <div className="space-y-10">
       <EditorSection
         icon="lucide:book-a"
-        title="Glossary"
-        description="The reviewed term list each locale mirror's prompts are held to. Only approved rows reach a prompt; editing a rendering approves it."
+        title="Translation workbench"
+        description="Review terminology, set exact UI wording, and check translation coverage. Saving a draft and approving it are separate actions."
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={() => void load(locale)} disabled={locked}>
             <Icon icon="lucide:refresh-cw" size={14} />
@@ -336,6 +390,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           <StateCard loading compact title="Loading glossary" />
         ) : (
           <div className="space-y-4">
+            <TranslationProgress data={data} starting={busy === "start"} error={refreshError} onRefresh={() => void load(data.locale, true)}
+              onRetryExhausted={canAdmin ? retryExhausted : undefined} retryDisabled={locked} />
+            <GlossaryReaderFeedback key={data.locale} locale={data.locale} />
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-full md:w-56">
                 <EditorSelect
@@ -350,6 +407,20 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   onChange={(event) => changeLocale(event.target.value)}
                 />
               </div>
+              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => { setView(next); if (next === "labels" || next === "coverage" || next === "changes") setVisitedViews((current) => ({ ...current, [next]: true })); }} options={[
+                { value: "glossary", label: "Glossary", disabled: locked },
+                { value: "labels", label: "UI labels", disabled: locked },
+                { value: "coverage", label: "Coverage", disabled: locked },
+                { value: "changes", label: "Changes", disabled: locked },
+                { value: "narrative", label: "Narratives", disabled: locked },
+              ]} />
+            </div>
+            {visitedViews.labels ? <div hidden={view !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} /></div> : null}
+            {visitedViews.coverage ? <div hidden={view !== "coverage"}><TranslationCoverage key={data.locale} locale={data.locale} /></div> : null}
+            {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} /></div> : null}
+            {visitedViews.changes ? <div hidden={view !== "changes"}><TranslationChanges key={data.locale} locale={data.locale} /></div> : null}
+            <div hidden={view !== "glossary"} className="space-y-4">
+            <div className="flex flex-wrap items-end gap-3">
               <EditorSegmentedControl
                 label="Status"
                 options={STATUS_OPTIONS.map((option) => ({
@@ -423,7 +494,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   type="button"
                   variant={pending.length > 0 ? "accent" : "outline"}
                   size="sm"
-                  disabled={locked || pending.length === 0}
+                  disabled={locked || pending.length === 0 || data.jobs.active > 0}
                   aria-label={`Retranslate everything that mentions ${count(pending.length, "term")}`}
                   onClick={retranslate}
                 >
@@ -450,20 +521,20 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                 icon={canRetranslate ? "lucide:languages" : "lucide:check-check"}
                 title={`All ${count(data.rows.length, "term")} for ${data.locale} are reviewed`}
                 description={nothingTranslatedYet
-                  ? "Nothing has been translated under these terms yet. Starting the main translation translates every public page in the background, a few at a time."
+                  ? "Nothing has been translated under these terms yet. Starting the main translation uses the shared worker pool, capped at 100 simultaneous GLM 5.3 Flash requests."
                   : pending.length > 0
-                    ? `${count(pending.length, "approved rendering")} ${pending.length === 1 ? "has" : "have"} not reached the stored translations yet. Retranslating redoes only the translations that mention ${pending.length === 1 ? "it" : "them"}.`
-                    : "The stored translations already follow these terms. Editing a rendering queues it for a retranslate."}
+                    ? `${count(pending.length, "approved rendering")} ${pending.length === 1 ? "has" : "have"} not been queued for propagation yet. Retranslating redoes only the translations that mention ${pending.length === 1 ? "it" : "them"}.`
+                    : "No reviewed term changes are waiting to be requested. Use Coverage to check stored content and processing; public publication is verified separately."}
                 compact
                 actions={!canAdmin ? undefined : canRetranslate ? (
-                  <Button type="button" variant="accent" size="sm" disabled={locked} onClick={retranslate}>
+                  <Button type="button" variant="accent" size="sm" disabled={locked || data.jobs.active > 0} onClick={retranslate}>
                     <Icon icon="lucide:languages" size={14} />
                     Retranslate
                   </Button>
                 ) : (
-                  <Button type="button" variant={nothingTranslatedYet ? "accent" : "outline"} size="sm" disabled={locked} onClick={startMain}>
+                  <Button type="button" variant={nothingTranslatedYet ? "accent" : "outline"} size="sm" disabled={locked || data.jobs.active > 0} onClick={startMain}>
                     <Icon icon="lucide:play" size={14} />
-                    {nothingTranslatedYet ? "Start main translation" : "Run the main translation again"}
+                    {data.jobs.active > 0 ? "Translation running" : nothingTranslatedYet ? "Start main translation" : "Run the main translation again"}
                   </Button>
                 )}
               />
@@ -495,16 +566,19 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     disabled={busy !== null}
                     writingTerm={writingTerm}
                     glosses={data.glosses}
+                    usages={data.usages ?? {}}
                     canDefine={canDefine}
                     onToggle={() => toggleGroup(group.category.id)}
                     onApproveAll={() => confirmApprove(group.rows.filter((row) => row.status === "draft").map((row) => row.term), group.category.label)}
                     onApprove={(row) => void approveOne(row)}
                     onSave={saveTarget}
                     onSaveDefinition={(row, gloss) => void saveDefinition(row, gloss)}
+                    onRestored={() => load(locale)}
                   />
                 ))}
               </div>
             )}
+            </div>
           </div>
         )}
       </EditorSection>
@@ -557,5 +631,6 @@ const BUSY_LABEL: Record<Exclude<Busy, null>, string> = {
   draft: "Drafting with the model",
   retranslate: "Queueing the retranslation",
   start: "Queueing every page",
+  retry: "Queueing the failed pages",
   import: "Importing the file",
 };

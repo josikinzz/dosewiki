@@ -369,8 +369,48 @@ function renderAboutCard(): Buffer {
   );
 }
 
+export type ChinaDatasetCounts = {
+  substances: number;
+  effects: number;
+  reports: number;
+  articles: number;
+};
+
+export type PageSocialCardInputs = {
+  replicationCounts?: GalleryCounts;
+  chinaDatasetCounts?: ChinaDatasetCounts;
+};
+
+const CHINA_PACK_MANIFEST_PATH = path.join(process.cwd(), "public/downloads/zh-Hans/manifest.json");
+
+/** Counts come from the published pack manifest so the card never drifts from the download page. */
+export async function readChinaDatasetCounts(
+  manifestPath: string = CHINA_PACK_MANIFEST_PATH,
+): Promise<ChinaDatasetCounts> {
+  let raw: string;
+  try {
+    raw = await readFile(manifestPath, "utf8");
+  } catch {
+    throw new Error(
+      `China card: the zh-Hans pack manifest is missing at ${manifestPath}. Build it with \`bun run translate:packs\` first.`,
+    );
+  }
+  const manifest = JSON.parse(raw) as { datasets: { id: string; packs: Record<string, { items: number }> }[] };
+  const countOf = (id: keyof ChinaDatasetCounts): number => {
+    const dataset = manifest.datasets.find((entry) => entry.id === id);
+    if (!dataset) throw new Error(`China card: dataset ${id} missing from the pack manifest`);
+    return dataset.packs["zh-Hans"].items;
+  };
+  return {
+    substances: countOf("substances"),
+    effects: countOf("effects"),
+    reports: countOf("reports"),
+    articles: countOf("articles"),
+  };
+}
+
 /** The /china gift page: the arm-wrestle banner free-floating on the black canvas, captioned in both languages. */
-async function renderChinaCard(): Promise<Buffer> {
+async function renderChinaCard(counts: ChinaDatasetCounts): Promise<Buffer> {
   const banner = await sharp(
     path.join(process.cwd(), "public/images/downloads/dosewiki-freeodwiki-banner.webp"),
   )
@@ -378,23 +418,14 @@ async function renderChinaCard(): Promise<Buffer> {
     .toBuffer();
   const bannerDataUri = `data:image/png;base64,${banner.toString("base64")}`;
   const cjk = SOCIAL_CARD_CJK_FONT_FAMILY;
-  // Counts come from the published pack manifest so the card never drifts from the download page.
-  const manifest = JSON.parse(
-    await readFile(path.join(process.cwd(), "public/downloads/zh-Hans/manifest.json"), "utf8"),
-  ) as { datasets: { id: string; packs: Record<string, { items: number }> }[] };
-  const countOf = (id: string): number => {
-    const dataset = manifest.datasets.find((entry) => entry.id === id);
-    if (!dataset) throw new Error(`China card: dataset ${id} missing from the pack manifest`);
-    return dataset.packs["zh-Hans"].items;
-  };
   const molecules = JSON.parse(
     await readFile(path.join(process.cwd(), "public/dosewiki-molecules.json"), "utf8"),
   ) as { count: number };
   const stats = [
-    ["Substances", "物质", countOf("substances")],
-    ["Effects", "效应", countOf("effects")],
-    ["Reports", "报告", countOf("reports")],
-    ["Articles", "文章", countOf("articles")],
+    ["Substances", "物质", counts.substances],
+    ["Effects", "效应", counts.effects],
+    ["Reports", "报告", counts.reports],
+    ["Articles", "文章", counts.articles],
     ["Molecules", "分子", molecules.count],
   ] as const;
   const statsMarkup = stats.map(([label, labelZh, count], index) => {
@@ -453,7 +484,7 @@ async function renderLanguagesCard(): Promise<Buffer> {
 
 export async function renderPageSocialCardPng(
   key: PageSocialCardKey,
-  replicationCounts?: GalleryCounts,
+  { replicationCounts, chinaDatasetCounts }: PageSocialCardInputs = {},
 ): Promise<Buffer> {
   switch (key) {
     case "home":
@@ -472,7 +503,10 @@ export async function renderPageSocialCardPng(
     case "about":
       return renderAboutCard();
     case "china":
-      return await renderChinaCard();
+      if (!chinaDatasetCounts) {
+        throw new Error("The china social card requires the zh-Hans pack dataset counts.");
+      }
+      return await renderChinaCard(chinaDatasetCounts);
     case "languages":
       return await renderLanguagesCard();
   }

@@ -18,7 +18,7 @@ import type { DoseRange, DurationStage } from "./shared";
  * for instance). A route counts as present when it has anything a reader sees.
  */
 
-type MaybeBounded = Pick<DoseRange | DurationStage, "min" | "max"> | null | undefined;
+type MaybeBounded = Partial<Pick<DoseRange | DurationStage, "min" | "max">> | null | undefined;
 
 function hasNumericBound(value: MaybeBounded): boolean {
   if (!value) return false;

@@ -106,7 +106,7 @@ describe("useStageFit", () => {
     vi.unstubAllGlobals();
   });
 
-  it("rotates catalogued landscape work on the very first render — no post-mount flip", () => {
+  it("rotates catalogued landscape work on the very first render, with no post-mount flip", () => {
     const rotations: boolean[] = [];
     renderHook(() => {
       const fit = useStageFit({
