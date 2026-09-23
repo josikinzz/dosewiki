@@ -116,6 +116,9 @@
     "translate:glosses": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/load-glosses.ts",
     "translate:charset": "node scripts/translation/build-traditional-charset.mjs",
     "translate:audit": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/glossary-audit.mjs",
+    "translate:ui": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts",
+    "translate:evaluation-candidates": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/evaluation-candidates.ts",
+    "translate:verify-release": "bun scripts/translation/verify-release.ts",
     "translate:registry": "bun scripts/translation/export-registry.ts",
     "translate:packs": "bun scripts/translation/build-packs.mjs",
     "translate:freeodwiki": "bun scripts/translation/export-freeodwiki.mjs && bun scripts/translation/export-freeodwiki.mjs --locale en --root notes-and-plans/exports/translation/zh-Hans --out notes-and-plans/exports/translation/zh-Hans/freeodwiki-en",
@@ -250,6 +253,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@eslint/js": "^10.0.1",
     "@iconify-json/bi": "^1.2.7",
     "@iconify-json/carbon": "^1.2.14",

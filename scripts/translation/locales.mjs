@@ -231,6 +231,11 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
     `Return ONLY a JSON object with the same keys and translated values. No preamble, no notes, no markdown fences.`,
   ];
 
+  const labelContexts = Object.fromEntries(units.filter((unit) => unit.context).map((unit) => [unit.id, unit.context]));
+  if (Object.keys(labelContexts).length > 0) {
+    lines.push("", "Meaning and usage for these UI labels (context only, do not translate this metadata):", JSON.stringify(labelContexts));
+  }
+
   if (safety) {
     lines.push(
       "",

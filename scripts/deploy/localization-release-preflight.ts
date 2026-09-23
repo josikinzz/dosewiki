@@ -66,13 +66,19 @@ const EDITOR_EXCEPTIONS: Record<string, Privilege[]> = {
   translationGlossaryTerms: ["SELECT", "INSERT", "UPDATE"],
   translationSegments: ["SELECT", "INSERT", "UPDATE"],
   translationJobs: ["SELECT", "INSERT", "UPDATE"],
+  // Review and segment history are append-only; feedback is triaged, never deleted.
+  translationReviewEntries: ["SELECT", "INSERT", "UPDATE"],
+  translationReviewHistory: ["SELECT", "INSERT"],
+  translationSegmentHistory: ["SELECT", "INSERT"],
+  glossaryFeedback: ["SELECT", "INSERT", "UPDATE"],
+  glossaryReactionEvents: ["SELECT", "INSERT"],
   localizedPublicationIndexState: ["SELECT", "UPDATE"],
   publicCachePublications: ["SELECT", "INSERT", "UPDATE"],
   // Document deletion also removes its ID mapping; mappings never change.
   documentIds: ["SELECT", "INSERT", "DELETE"],
 };
 
-/** Public reader grants required for create-only intake and glossary reads; other grants are not checked. */
+/** Public reader grants required for create-only intake, glossary reads and glossary feedback; other grants are not checked. */
 const PUBLIC_GRANTS: Record<string, Privilege[]> = {
   articleFeedback: ["SELECT", "INSERT"],
   siteFeedback: ["SELECT", "INSERT"],
@@ -81,6 +87,9 @@ const PUBLIC_GRANTS: Record<string, Privilege[]> = {
   subscribeRateLimitBuckets: FULL_DML,
   translationGlossary: ["SELECT"],
   translationGlossaryTerms: ["SELECT"],
+  translationReviewEntries: ["SELECT"],
+  glossaryFeedback: ["SELECT", "INSERT"],
+  glossaryReactionEvents: ["SELECT", "INSERT"],
   documentIds: ["SELECT", "INSERT"],
 };
 

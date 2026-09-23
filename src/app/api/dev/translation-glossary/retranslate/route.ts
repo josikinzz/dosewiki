@@ -3,10 +3,9 @@
  *
  * Admin only. The scoped stale replay after a glossary edit, through the job
  * outbox instead of a workstation: stored segments whose English mentions a
- * term are marked stale, every other segment on an older digest is restamped
- * with the current one (a segment without the term receives a byte-identical
- * prompt), and every public record mentioning a term is enqueued. The
- * five-minute cron then retranslates exactly the marked segments.
+ * term are marked stale and every public record mentioning a term is enqueued.
+ * Other old digests remain stale until actually refreshed. Submission records
+ * a request timestamp only; the coverage audit checks stored outcomes.
  *
  * Reads the whole corpus to find those records, like `live-mirror.ts stale`.
  */
@@ -16,7 +15,7 @@ import { randomUUID } from "node:crypto";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
 import { getDataBackend } from "@server/postgres/runtime/backend";
-import { markRetranslated } from "@server/translation/glossary";
+import { markRetranslationRequested } from "@server/translation/glossary";
 import { loadTranslationContext, recordsMentioning, translationJobSlug, type TranslationRecordKind } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs, readTranslationsMentioning, scopeStaleTranslations } from "@server/translation/segmentStore";
 import { GLOSSARY_BODY_MAX_BYTES, glossaryLocaleAccess, parseLocale, parseTerms } from "../glossaryRoutes";
@@ -29,12 +28,14 @@ type ParsedRetranslate = { locale: string; terms: string[] };
 
 export type RetranslateResponse = {
   ok: true;
+  status: "queued";
+  requestedAt: number;
   locale: string;
   terms: string[];
   promptVersion: string;
   /** Stored segments mentioning a term, now marked stale. */
   segments: number;
-  /** Segments on an older digest that mention no term, restamped with the current one. */
+  /** Always zero: unrelated old digests are not proven current. */
   restamped: number;
   runId: string;
   /** Records enqueued, by kind. */
@@ -48,6 +49,7 @@ export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>(
   unexpectedErrorLabel: "Failed to enqueue a scoped retranslation via Next route:",
   unexpectedErrorMessage: "Unable to enqueue the retranslation right now.",
   operation: async ({ body, auth }) => {
+    const requestedThrough = Date.now();
     getDataBackend();
     const denied = glossaryLocaleAccess(auth, body.locale);
     if (denied) return denied;
@@ -58,12 +60,14 @@ export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>(
     const records = await recordsMentioning(getPublicDataReadAdapter(), body.terms);
     const runId = randomUUID();
     await enqueueTranslationJobs([body.locale], records.map((record) => translationJobSlug(record.kind, record.slug)), { run: { id: runId, mode: "bulk" } });
-    await markRetranslated(body.locale, body.terms);
+    await markRetranslationRequested(body.locale, body.terms, requestedThrough);
 
     const jobs: RetranslateResponse["jobs"] = {};
     for (const record of records) jobs[record.kind] = (jobs[record.kind] ?? 0) + 1;
     const response: RetranslateResponse = {
       ok: true,
+      status: "queued",
+      requestedAt: requestedThrough,
       locale: body.locale,
       terms: body.terms,
       promptVersion: context.promptVersion,

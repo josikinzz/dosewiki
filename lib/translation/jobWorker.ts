@@ -13,7 +13,6 @@ import {
   readTranslationRecord,
   refreshRecordTranslations,
   type RefreshOutcome,
-  type TranslationContext,
 } from "./liveTranslation";
 import { TRANSLATION_REQUEST_QUOTA, createTranslationRequestPool } from "./requestPool";
 import {
@@ -28,11 +27,12 @@ import {
   recordTranslationWorkerRun,
   releaseTranslationWorkerLease,
   type TranslationJobMode,
+  type TranslationJobRow,
   type TranslationWorkerRunRecord,
 } from "./segmentStore";
 
 const RUN_BUDGET_MS = 200_000;
-const MIN_JOB_BUDGET_MS = 10_000;
+const MIN_JOB_BUDGET_MS = 60_000;
 const MODEL_LEASE = "glm-5.3-flash";
 /** One lease per lane, so a bulk campaign never starves editorial refreshes. */
 const laneLease = (mode: TranslationJobMode) => `${MODEL_LEASE}:${mode}`;
@@ -111,8 +111,6 @@ async function processTranslationJobs(
   const signal = AbortSignal.timeout(RUN_BUDGET_MS);
   const reads = getPublicDataReadAdapter();
   const requestPool = createTranslationRequestPool(Math.min(config.requestConcurrency, TRANSLATION_REQUEST_QUOTA[config.mode]));
-  const contexts: Record<string, Promise<TranslationContext>> = {};
-  const contextFor = (locale: string) => (contexts[locale] ??= loadTranslationContext(locale));
   const onUsage = (used: { prompt: number; completion: number }) => {
     run.usage.prompt += used.prompt;
     run.usage.completion += used.completion;
@@ -159,68 +157,78 @@ async function processTranslationJobs(
       }
     },
   ));
-  while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
-    const jobs = await claimTranslationJobs(config.jobsPerRun, config.mode);
-    if (jobs.length === 0) break;
-    run.claimed += jobs.length;
-    // A bulk wave writes through one pool-sized writer and requests a shared segment once.
-    const wave = config.mode === "bulk" ? createTranslationWave() : undefined;
 
-    await Promise.all(jobs.map(async (job) => {
-      let stored = 0;
-      try {
-        signal.throwIfAborted();
-        const { kind, slug } = parseTranslationJobSlug(job.slug);
-        const record = await readTranslationRecord(reads, kind, slug);
-        if (!record) {
-          if (await completeTranslationJob(job)) run.completed += 1;
-          return;
-        }
-        const outcome = await refreshRecordTranslations(
-          { ...record, slug },
-          await contextFor(job.locale),
-          kind,
-          apiKey,
-          { signal, requestPool, wave, onUsage, onStored: (count) => { stored += count; } },
-        );
-        signal.throwIfAborted();
-        const terminalDetail = outcome.rejected.length > 0
-          ? `Translation completed with ${outcome.rejected.length} rejected ${outcome.rejected.length === 1 ? "segment" : "segments"}`
-          : null;
-        const targets = kind === "profile"
-          ? [{ kind: "contributor" as const, slug }, { kind: "about" as const }]
-          : kind === "article"
-            ? isPublicLocaleCode(job.locale)
-              ? [{ kind: "article-translation" as const, slug, locale: job.locale }]
-              : []
-            : [{ kind, slug }];
-        if (await completeTranslationJob(job, terminalDetail, targets)) {
-          run.completed += 1;
-          if (targets.length > 0) {
-            if (!(await deliverCache({ locale: job.locale, slug: job.slug, mode: job.mode, targets: JSON.stringify(targets) }))) {
-              run.cachePending += 1;
-            }
+  // A bulk run writes through one writer and requests a segment shared by
+  // several pages once.
+  const wave = config.mode === "bulk" ? createTranslationWave() : undefined;
+  const processJob = async (job: TranslationJobRow) => {
+    let stored = 0;
+    try {
+      signal.throwIfAborted();
+      const { kind, slug } = parseTranslationJobSlug(job.slug);
+      const record = await readTranslationRecord(reads, kind, slug);
+      if (!record) {
+        if (await completeTranslationJob(job)) run.completed += 1;
+        return;
+      }
+      // Loaded per page, so a glossary approval reaches the next page claimed.
+      const outcome = await refreshRecordTranslations(
+        { ...record, slug },
+        await loadTranslationContext(job.locale),
+        kind,
+        apiKey,
+        { signal, requestPool, wave, onUsage, onStored: (count) => { stored += count; } },
+      );
+      signal.throwIfAborted();
+      const terminalDetail = outcome.rejected.length > 0
+        ? `Translation completed with ${outcome.rejected.length} rejected ${outcome.rejected.length === 1 ? "segment" : "segments"}`
+        : null;
+      const targets = kind === "profile"
+        ? [{ kind: "contributor" as const, slug }, { kind: "about" as const }]
+        : kind === "article"
+          ? isPublicLocaleCode(job.locale)
+            ? [{ kind: "article-translation" as const, slug, locale: job.locale }]
+            : []
+          : [{ kind, slug }];
+      if (await completeTranslationJob(job, terminalDetail, targets)) {
+        run.completed += 1;
+        if (targets.length > 0) {
+          if (!(await deliverCache({ locale: job.locale, slug: job.slug, mode: job.mode, targets: JSON.stringify(targets) }))) {
+            run.cachePending += 1;
           }
         }
-        run.outcomes.push(outcome);
-      } catch (error) {
-        const message = errorMessage(error);
-        // A budget abort after stored progress keeps its attempt; see failTranslationJob.
-        const progressed = signal.aborted && stored > 0;
-        const exhausted = !progressed && job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
-        // A transport failure carries its own defect code and provider status.
-        const tagged = error && typeof error === "object" ? error as { code?: unknown; status?: unknown } : {};
-        console.error("[translation-worker] job:failed", {
-          locale: job.locale, slug: job.slug, mode: job.mode, attempts: job.attempts, exhausted, message,
-          ...(typeof tagged.code === "string" ? { code: tagged.code } : {}),
-          ...(typeof tagged.status === "number" ? { status: tagged.status } : {}),
-        });
-        await failTranslationJob(job, message, { progressed });
-        run.failed += 1;
-        if (exhausted) run.exhausted += 1;
-        run.firstError ??= message;
-        run.outcomes.push({ slug: job.slug, locale: job.locale, error: message });
       }
-    }));
-  }
+      run.outcomes.push(outcome);
+    } catch (error) {
+      const message = errorMessage(error);
+      // A budget abort after stored progress keeps its attempt; see failTranslationJob.
+      const progressed = signal.aborted && stored > 0;
+      const exhausted = !progressed && job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
+      // A transport failure carries its own defect code and provider status.
+      const tagged = error && typeof error === "object" ? error as { code?: unknown; status?: unknown } : {};
+      console.error("[translation-worker] job:failed", {
+        locale: job.locale, slug: job.slug, mode: job.mode, attempts: job.attempts, exhausted, message,
+        ...(typeof tagged.code === "string" ? { code: tagged.code } : {}),
+        ...(typeof tagged.status === "number" ? { status: tagged.status } : {}),
+      });
+      await failTranslationJob(job, message, { progressed });
+      run.failed += 1;
+      if (exhausted) run.exhausted += 1;
+      run.firstError ??= message;
+      run.outcomes.push({ slug: job.slug, locale: job.locale, error: message });
+    }
+  };
+
+  // Each page worker refills independently, so one slow page cannot hold
+  // every other page behind a batch barrier. Leave time to drain at the end.
+  const workers = await Promise.allSettled(Array.from({ length: config.jobsPerRun }, async () => {
+    while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
+      const [job] = await claimTranslationJobs(1, config.mode);
+      if (!job) break;
+      run.claimed += 1;
+      await processJob(job);
+    }
+  }));
+  const failure = workers.find((worker) => worker.status === "rejected");
+  if (failure?.status === "rejected") throw failure.reason;
 }

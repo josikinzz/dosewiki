@@ -1,6 +1,8 @@
 import { SmartLink } from "@/components/common/SmartLink";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon } from "@/components/common/Icon";
+import { HomeLanguageMenu } from "@/features/language-glossary/HomeLanguageMenu";
+import type { LanguageDestination } from "@/features/language-glossary/languageGlossary";
 import { SiteVersionBadge } from "@/components/common/SiteVersionBadge";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -13,6 +15,7 @@ import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
+  languages?: readonly LanguageDestination[];
   isConstructionMode?: boolean;
   /** Editable hero copy resolved on the server, with the shipped flavor copy as fallback. */
   copy?: {
@@ -22,6 +25,7 @@ interface HomeExperienceProps {
 
 export function HomeExperience({
   quickLinks,
+  languages = [],
   isConstructionMode = false,
   copy,
 }: HomeExperienceProps) {
@@ -93,6 +97,8 @@ export function HomeExperience({
             </nav>
           )}
         </section>
+
+        <HomeLanguageMenu languages={languages} />
 
         <HomeMailingListCorner />
       </main>

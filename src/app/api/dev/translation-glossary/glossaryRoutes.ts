@@ -6,9 +6,17 @@
 import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
-import { approvedGlossaryLocales, canAccessGlossaryLocale } from "@/lib/auth/roles";
+import {
+  approvedGlossaryLocales,
+  canAccessGlossaryLocale,
+} from "@/lib/auth/roles";
 import type { RoleSessionGranted } from "@/lib/auth/requireEditorSession";
-import { GlossaryCollisionError, type GlossaryLocaleSummary, type TranslationGlossaryRow } from "@server/translation/glossary";
+import {
+  GlossaryCollisionError,
+  type GlossaryLocaleSummary,
+} from "@server/translation/glossary";
+import { TranslationReviewError } from "@server/translation/reviewStore";
+import type { GlossaryReviewRow } from "@server/translation/glossaryReview";
 import { TRANSLATION_LOCALE_CODES } from "@server/translation/liveTranslation";
 import type { TranslationJobCounts } from "@server/translation/segmentStore";
 
@@ -21,18 +29,38 @@ const MAX_TERMS_PER_REQUEST = 1000;
 export function parseLocale(raw: unknown): string {
   const locale = typeof raw === "string" ? raw.trim() : "";
   if (!TRANSLATION_LOCALE_CODES.includes(locale)) {
-    throw new JsonBodyError(400, `Unknown locale. Known: ${TRANSLATION_LOCALE_CODES.join(", ")}.`);
+    throw new JsonBodyError(
+      400,
+      `Unknown locale. Known: ${TRANSLATION_LOCALE_CODES.join(", ")}.`,
+    );
   }
   return locale;
 }
 
-export function glossaryLocaleAccess(auth: RoleSessionGranted, locale: string): NextResponse | null {
-  if (canAccessGlossaryLocale({ role: auth.role, glossaryLocales: auth.session.user.glossaryLocales }, locale)) return null;
-  return NextResponse.json({ error: `You are not approved to access the ${locale} translation glossary. Ask an admin to assign this language.` }, { status: 403 });
+export function glossaryLocaleAccess(
+  auth: RoleSessionGranted,
+  locale: string,
+): NextResponse | null {
+  if (
+    canAccessGlossaryLocale(
+      { role: auth.role, glossaryLocales: auth.session.user.glossaryLocales },
+      locale,
+    )
+  )
+    return null;
+  return NextResponse.json(
+    {
+      error: `You are not approved to access the ${locale} translation glossary. Ask an admin to assign this language.`,
+    },
+    { status: 403 },
+  );
 }
 
 export function glossaryAccessibleLocales(auth: RoleSessionGranted): string[] {
-  return approvedGlossaryLocales({ role: auth.role, glossaryLocales: auth.session.user.glossaryLocales });
+  return approvedGlossaryLocales({
+    role: auth.role,
+    glossaryLocales: auth.session.user.glossaryLocales,
+  });
 }
 
 export function parseTerm(raw: unknown): string {
@@ -44,7 +72,11 @@ export function parseTerm(raw: unknown): string {
 }
 
 export function parseTerms(raw: unknown): string[] {
-  if (!Array.isArray(raw) || raw.length === 0 || raw.length > MAX_TERMS_PER_REQUEST) {
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    raw.length > MAX_TERMS_PER_REQUEST
+  ) {
     throw new JsonBodyError(400, `Pass 1 to ${MAX_TERMS_PER_REQUEST} terms.`);
   }
   return [...new Set(raw.map(parseTerm))];
@@ -67,13 +99,44 @@ export function parseCollisionConfirmation(raw: unknown): string | undefined {
   return raw;
 }
 
+export function parseExpectedRevision(raw: unknown): string {
+  if (typeof raw !== "string" || !/^\d+:\d+$/.test(raw))
+    throw new JsonBodyError(
+      400,
+      "Reload the glossary before saving or approving this revision.",
+    );
+  return raw;
+}
+
+export function parseExpectedRevisions(
+  raw: unknown,
+  terms: string[],
+): Record<string, string> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw))
+    throw new JsonBodyError(400, "Expected revisions are required.");
+  return Object.fromEntries(
+    terms.map((term) => [
+      term,
+      parseExpectedRevision((raw as Record<string, unknown>)[term]),
+    ]),
+  );
+}
+
 export function glossaryCollisionResponse(error: unknown): NextResponse | null {
+  if (error instanceof TranslationReviewError)
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      { status: error.status },
+    );
   if (!(error instanceof GlossaryCollisionError)) return null;
-  return NextResponse.json({
-    error: error.message,
-    collisions: error.collisions,
-    collisionConfirmation: error.collisionConfirmation,
-  }, { status: 409 });
+  return NextResponse.json(
+    {
+      error: error.message,
+      collisions: error.collisions,
+      collisionConfirmation: error.collisionConfirmation,
+    },
+    { status: 409 },
+  );
 }
 
 /** One locale in the picker: the live mirrors always, plus any locale with rows. */
@@ -81,6 +144,7 @@ export type GlossaryLocaleOption = GlossaryLocaleSummary & { live: boolean };
 
 export type GlossaryListResponse = {
   ok: true;
+  generatedAt: number;
   locale: string;
   /** The prompt digest the approved set currently produces; segments stamped otherwise are stale. */
   promptVersion: string;
@@ -89,7 +153,9 @@ export type GlossaryListResponse = {
   /** Newest translation enqueue generation, with terminal rejections separated from actionable work. */
   jobs: TranslationJobCounts;
   locales: GlossaryLocaleOption[];
-  rows: TranslationGlossaryRow[];
+  rows: GlossaryReviewRow[];
+  /** First-page source locations computed before row disclosures render. Omitted from background progress polls. */
+  usages?: import("@/lib/glossary/glossaryUsage").GlossaryUsageMap;
   /** Approved terms whose rendering changed since it last reached stored segments: what a retranslate sends. */
   pending: string[];
   /** `term -> gloss`, the locale-independent English definitions; shown under each row and injected into every prompt. */

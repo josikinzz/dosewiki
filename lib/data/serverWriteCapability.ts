@@ -44,8 +44,8 @@ export type ServerDataDeploymentMetadata = {
  * authenticated identity to delegate. Keep this allowlist narrow so ordinary
  * route writes cannot bypass the actor gate.
  *
- * `mailingList` and `publicationRecovery` are invoked without a user actor by
- * the same-origin subscription and authenticated cron routes.
+ * `mailingList`, `glossaryFeedback`, and `publicationRecovery` are invoked
+ * without a user actor by the same-origin intake and authenticated cron routes.
  */
 const SERVICE_MUTATION_NAMES: Record<string, true> = {
   "articleFeedback:create": true,
@@ -53,6 +53,8 @@ const SERVICE_MUTATION_NAMES: Record<string, true> = {
   "publicationRecovery:claimDue": true,
   "publicationRecovery:recordDelivery": true,
   "siteFeedback:create": true,
+  "glossaryFeedback:create": true,
+  "glossaryFeedback:createReaction": true,
   "tripReportSubmissions:create": true,
 };
 

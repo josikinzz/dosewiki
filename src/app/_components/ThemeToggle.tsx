@@ -24,7 +24,7 @@ export function ThemeToggle() {
       options={[
         {
           value: "dark",
-          label: t("Dark"),
+          label: t("appearance.dark"),
           icon: <Icon icon="lucide:moon" size={16} />,
         },
         {
@@ -34,7 +34,7 @@ export function ThemeToggle() {
         },
         {
           value: "light",
-          label: t("Light"),
+          label: t("appearance.light"),
           icon: <Icon icon="lucide:sun" size={16} />,
         },
       ]}

@@ -4,7 +4,7 @@ export type LocaleCode = keyof typeof registry;
 export type TranslationLocaleCode = Exclude<LocaleCode, "en">;
 export type LocaleDirection = "ltr" | "rtl";
 export type LocaleCoveragePolicy = Readonly<{
-  script: "latin" | "simplified-han";
+  script: "latin" | "simplified-han" | "cyrillic";
   numerals: "arabic" | "arabic-or-chinese-small";
 }>;
 

@@ -50,7 +50,7 @@ describe("contributor surface publication", () => {
       { kind: "about" },
     ]);
     expect(translationMocks.enqueueTranslationJobs).toHaveBeenCalledWith(
-      ["zh-Hans"],
+      ["zh-Hans", "ru"],
       ["profile/ada", "profile/ada-two"],
     );
   });

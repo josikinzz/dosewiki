@@ -16,6 +16,8 @@ export type WorkUnit = {
   occurrences: number;
   /** The surface the text comes from, so the prompt can scope glossary kinds; absent means "any". */
   contextKind?: PromptContextKind;
+  /** Meaning of a contextual UI label, kept separate from translatable text. */
+  context?: string;
 };
 
 /** A provider request that failed for transport or authorization reasons; never a content defect. */
@@ -43,6 +45,7 @@ export function sendBatch(input: {
   model: string;
   apiKey: string;
   userMessage: string;
+  temperature?: number;
   signal?: AbortSignal;
 }): Promise<OpenRouterChatResult>;
 
@@ -63,3 +66,18 @@ export function translateBatchWithRetries(input: {
 }): Promise<SegmentVerdict[]>;
 
 export function retryNoteFor(defects: readonly string[]): string;
+
+
+export function protectModelTokens(source: string): { source: string; restore(target: string): string };
+export function translateBatch(input: {
+  units: readonly WorkUnit[];
+  locale: TranslationLocale;
+  glossary: Readonly<Record<string, string>>;
+  glosses: Readonly<Record<string, string>>;
+  kinds: Readonly<Record<string, string>>;
+  model: string;
+  apiKey: string;
+  retryNote?: string;
+  temperature?: number;
+  signal?: AbortSignal;
+}): Promise<{ usage: BatchUsage; results: Array<{ unit: WorkUnit; target: string | null; parseCode: string | null }> }>;

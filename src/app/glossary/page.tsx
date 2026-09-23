@@ -9,6 +9,7 @@ import { readGlosses } from "@server/translation/glossaryGloss";
 import { buildGlossaryGroups, GLOSSARY_INTRO, GlossaryPage as GlossaryContentPage } from "@/components/pages/GlossaryPage";
 import { msg } from "@/i18n/messages";
 import { t } from "@/i18n/server";
+import { getGlossaryUsages } from "@server/translation/glossaryUsage";
 
 export const revalidate = 3600;
 
@@ -23,5 +24,7 @@ export async function generateMetadata() {
 export default async function GlossaryPage() {
   getDataBackend();
   const glosses = await readGlosses();
-  return <GlossaryContentPage groups={buildGlossaryGroups(glosses)} renderingLang={null} />;
+  const groups = buildGlossaryGroups(glosses);
+  const usages = await getGlossaryUsages(groups.flatMap((group) => group.entries.map((entry) => entry.term)));
+  return <GlossaryContentPage groups={groups} usages={usages} renderingLang={null} />;
 }

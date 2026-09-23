@@ -9,5 +9,7 @@ export function validateSegment(input: {
   locale: TranslationLocale;
   glossary?: Readonly<Record<string, string>>;
   markup?: boolean;
+  /** Approved rendering for this contextual label; prose leaves this unset. */
+  exactTarget?: string;
 }): { defects: string[]; details: Record<string, unknown> };
 export function parseModelJson(raw: unknown): { ok: boolean; code: string | null; value: Record<string, unknown> | null };

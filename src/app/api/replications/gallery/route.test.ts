@@ -27,6 +27,15 @@ beforeEach(() => {
 });
 
 describe("bounded replication gallery pages", () => {
+  it("keeps Russian localization through API pagination and hydration", async () => {
+    const response = await GET(new Request("https://ru.dose.wiki/api/replications/gallery?locale=ru&q=drifting"));
+    const payload = await response.json();
+    expect(response.status).toBe(200);
+    expect(mocks.index).toHaveBeenCalledWith("ru");
+    expect(mocks.hydrate).toHaveBeenCalledWith(expect.any(Array), "ru");
+    expect(JSON.parse(payload.queryIdentity)[0]).toBe("ru");
+  });
+
   it("reaches every search identity once using the returned opaque cursor", async () => {
     const rows = Array.from({ length: 140 }, (_, index) => ({ ...preview, _id: `id-${index}`, slug: `work-${index}`, title: `Work ${String(index).padStart(3, "0")}` }));
     setIndex(rows);

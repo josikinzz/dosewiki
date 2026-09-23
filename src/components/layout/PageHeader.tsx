@@ -13,7 +13,7 @@ const MIN_TITLE_FONT_PX = 20;
  * rendered at its stylesheet size, the text run measured, and the font shrunk
  * by exactly the overflow ratio. Wider viewports keep the stylesheet size.
  */
-function useFitTitleToWidth() {
+function useFitTitleToWidth(enabled: boolean) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const runRef = useRef<HTMLSpanElement>(null);
 
@@ -25,7 +25,7 @@ function useFitTitleToWidth() {
 
     const fit = () => {
       title.style.fontSize = "";
-      if (!media.matches) return;
+      if (!enabled || !media.matches) return;
       const available = title.clientWidth;
       const needed = run.scrollWidth;
       if (needed <= available || available === 0) return;
@@ -44,7 +44,7 @@ function useFitTitleToWidth() {
       window.removeEventListener("resize", fit);
       media.removeEventListener("change", fit);
     };
-  }, []);
+  }, [enabled]);
 
   return { titleRef, runRef };
 }
@@ -57,6 +57,8 @@ interface PageHeaderProps {
   descriptionClassName?: string;
   /** Extra classes merged onto the `h1`, e.g. a page that wants a smaller title. */
   titleClassName?: string;
+  /** Allow descriptive multiword titles to wrap on phones instead of shrinking. */
+  mobileTitleLayout?: "fit" | "wrap";
   /**
    * Horizontal alignment of the whole header.
    *
@@ -76,10 +78,11 @@ export const PageHeader = memo(function PageHeader({
   icon,
   descriptionClassName,
   titleClassName,
+  mobileTitleLayout = "fit",
   align = "center",
 }: PageHeaderProps) {
   const isLeft = align === "left";
-  const { titleRef, runRef } = useFitTitleToWidth();
+  const { titleRef, runRef } = useFitTitleToWidth(mobileTitleLayout === "fit");
   // On phones the icon is inline, capital-letter sized, leading the text. From
   // `sm` up it hangs out of flow off the left edge of the text run, so the
   // title centres on its letters alone and the glyph does not shift the
@@ -105,7 +108,7 @@ export const PageHeader = memo(function PageHeader({
       <h1 ref={titleRef} className={titleClasses}>
         {/* Phone nowrap lives on the run, not the h1: `.type-page-title`'s
             `text-wrap: balance` reopens the `white-space` shorthand there. */}
-        <span ref={runRef} className="relative inline-block max-sm:whitespace-nowrap">
+        <span ref={runRef} className={cn("relative inline-block", mobileTitleLayout === "fit" ? "max-sm:whitespace-nowrap" : "max-sm:max-w-full max-sm:whitespace-normal")}>
           {icon ? <IconComponent icon={icon} size="1em" className={iconClassName} /> : null}
           {title}
         </span>

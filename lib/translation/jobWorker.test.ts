@@ -4,6 +4,7 @@ vi.mock("server-only", () => ({}));
 const seam = vi.hoisted(() => ({
   publish: vi.fn(), enqueue: vi.fn(), completeCache: vi.fn(), readCache: vi.fn(), failCache: vi.fn(),
   claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), record: vi.fn(), acquire: vi.fn(), release: vi.fn(), refresh: vi.fn(),
+  context: vi.fn(),
 }));
 vi.mock("../data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
 vi.mock("../data/serverWriteCapability", () => ({
@@ -25,7 +26,7 @@ vi.mock("./segmentStore", () => ({
 vi.mock("./liveTranslation", () => ({
   parseTranslationJobSlug: (slug: string) => ({ kind: "article", slug }),
   readTranslationRecord: async () => ({ slug: "fixture" }),
-  loadTranslationContext: async () => ({}),
+  loadTranslationContext: seam.context,
   refreshRecordTranslations: seam.refresh,
   createTranslationWave: () => ({ pending: new Map(), write: async () => undefined }),
 }));
@@ -54,6 +55,7 @@ beforeEach(() => {
   seam.acquire.mockReset().mockResolvedValue(true);
   seam.release.mockReset().mockResolvedValue(undefined);
   seam.refresh.mockReset();
+  seam.context.mockReset().mockResolvedValue({});
 });
 afterEach(() => { vi.restoreAllMocks(); });
 
@@ -97,7 +99,8 @@ describe("translation worker run record", () => {
   it("writes exactly one run row whose counts match the returned result", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     seam.claim
-      .mockResolvedValueOnce([job("lsd"), job("dmt", 5)])
+      .mockResolvedValueOnce([job("lsd")])
+      .mockResolvedValueOnce([job("dmt", 5)])
       .mockResolvedValueOnce([job("mdma")])
       .mockResolvedValue([]);
     type Options = { onUsage?: (used: { prompt: number; completion: number }) => void };
@@ -292,5 +295,43 @@ describe("translation transport failures", () => {
     expect(error).toHaveBeenCalledWith("[translation-worker] job:failed", expect.objectContaining({
       slug: "lsd", code: "TRANSPORT_FAILURE", status: 402,
     }));
+  });
+});
+
+describe("independent page workers", () => {
+  it("starts the next page while an earlier slow page is still running", async () => {
+    let release!: () => void;
+    const slow = new Promise<void>((resolve) => { release = resolve; });
+    const started: string[] = [];
+    const slugs = ["slow", "fast", "next"];
+    seam.readCache.mockResolvedValue([]);
+    seam.claim.mockImplementation(async () => {
+      const slug = slugs.shift();
+      return slug ? [{ ...job(slug), mode: "bulk" as const }] : [];
+    });
+    seam.refresh.mockImplementation(async ({ slug }: { slug: string }) => {
+      started.push(slug);
+      if (slug === "slow") await slow;
+      return outcome(slug);
+    });
+    const run = runTranslationJobs("model-key", { mode: "bulk", jobsPerRun: 2, requestConcurrency: 2 });
+    try {
+      await vi.waitFor(() => expect(started).toContain("next"));
+    } finally {
+      release();
+    }
+    expect((await run).completed).toBe(3);
+    expect(seam.claim).toHaveBeenCalledWith(1, "bulk");
+  });
+
+  it("loads the current glossary for every newly claimed page", async () => {
+    seam.readCache.mockResolvedValue([]);
+    seam.claim.mockResolvedValueOnce([job("one")]).mockResolvedValueOnce([job("two")]).mockResolvedValue([]);
+    seam.context.mockResolvedValueOnce({ glossary: { term: "before" } }).mockResolvedValueOnce({ glossary: { term: "after" } });
+    seam.refresh.mockImplementation(async ({ slug }: { slug: string }) => outcome(slug));
+    await runTranslationJobs("model-key", config);
+    expect(seam.refresh.mock.calls.map((call) => call[1])).toEqual([
+      { glossary: { term: "before" } }, { glossary: { term: "after" } },
+    ]);
   });
 });

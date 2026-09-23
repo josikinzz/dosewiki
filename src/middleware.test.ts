@@ -424,6 +424,19 @@ describe("middleware role policy adapter", () => {
     );
   });
 
+  it("routes the Russian mirror without exposing its internal prefix on English hosts", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "ru.dose.wiki";
+    for (const path of ["/about", "/articles", "/fentanyl", "/search?q=test"]) {
+      const response = await middleware(new NextRequest(`https://${host}${path}`, { headers: { host } }));
+      expect(response.headers.get("x-middleware-rewrite")).toBe(`https://${host}/ru${path}`);
+      expect(response.headers.get("location")).toBeNull();
+    }
+    const internal = await middleware(makePublicRequest("/ru/about"));
+    expect(internal.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/_flavor-gated/not-found");
+  });
+
   it("serves a locale host's substance article from the mirror route", async () => {
     const { middleware } = await import("./middleware");
     makePublicRequest("/");

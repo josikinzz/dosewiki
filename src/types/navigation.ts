@@ -2,6 +2,7 @@ import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 
 export type AppView =
   | { type: "home" }
+  | { type: "glossary"; locale?: string; directory?: boolean }
   | { type: "substances" }
   | { type: "substance"; slug: string }
   | { type: "category"; categoryKey: string }

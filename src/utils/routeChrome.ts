@@ -1,3 +1,4 @@
+import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteNavId } from "@/config/siteFlavor";
 import { formatMessage, msg, type Translate } from "@/i18n/messages";
 import type {
@@ -31,6 +32,8 @@ export function getRouteChromePageTitle(
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): string {
   switch (view.type) {
+    case "glossary":
+      return view.directory ? t("Language glossaries") : view.locale ? `${glossaryLanguage(view.locale)?.name ?? view.locale} ${t("glossary")}` : t("Glossary");
     case "home":
       return t(config.homeTitle);
     case "substances":

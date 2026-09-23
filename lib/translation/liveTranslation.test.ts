@@ -62,11 +62,16 @@ function simulatedPostgres({ max = 4, acquireTimeoutMs = 10_000, lockTimeoutMs =
   const connection = () => {
     const owner = {};
     return {
-      async query(sql: string) {
+      async query(sql: string, params: unknown[] = []) {
         await sleep(statementMs);
         if (sql === "COMMIT" || sql === "ROLLBACK") releaseLock(owner);
         if (sql.startsWith('INSERT INTO "translationSegments"')) {
           await acquireLock(owner);
+          // A write first claims new identities, then upserts every row; count the upserts.
+          if (sql.includes("DO NOTHING RETURNING")) {
+            const [locales, hashes] = params as [string[], string[]];
+            return { rows: locales.map((locale, index) => ({ locale, hash: hashes[index] })), rowCount: locales.length };
+          }
           stats.segmentInserts += 1;
           await sleep(lockedWriteMs);
         }

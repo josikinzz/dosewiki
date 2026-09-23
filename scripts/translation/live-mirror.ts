@@ -28,7 +28,8 @@
  *            --kind selects the corpus: article (substances, the default),
  *            effect, report, library (the long-form /articles archive), or
  *            replication (published gallery media; only titles translate).
- *   run      Claim and process due jobs, like the cron, until --limit or none.
+ *   run      Claim and process due zh-Hans jobs until --limit or none.
+ *            Rejected units leave a retryable failure; five failed claims exhaust a job.
  *   backfill Translate every unit the store lacks across all public records of
  *            --kind (or every kind) in bulk: units dedupe across records and
  *            travel in full batches, so a new kind or corpus field lands in
@@ -36,10 +37,10 @@
  *   stale    Retranslate stored rows whose prompt digest differs from today's.
  *            With --term (repeatable), after a glossary edit: only rows whose
  *            English mentions a term (whole word, case insensitive, the
- *            prompt's own matcher) are marked and replayed; every other row
- *            on an older digest is restamped with the current one, since a
- *            segment without the term gets a byte-identical prompt. Use the
- *            plain form after a system prompt change.
+ *            prompt's own matcher) are marked and replayed. Other old digests
+ *            remain stale until refreshed, since their unchanged dependencies
+ *            are not recorded. Use the plain form for all remaining old digests
+ *            or after a system prompt change.
  *   status   Counts only; never writes.
  *
  * Without --write every command reports what it would do and exits.
@@ -59,7 +60,7 @@ import { guardTarget } from "../postgres/targetGuard";
 import { extractSegments, buildWorkUnits, type Segment } from "./segment-manifest.mjs";
 import { isBlocking } from "./validate.mjs";
 
-const LOCALE = "zh-Hans";
+
 /** Units per translateUnits call and calls in flight during a stale replay: 6 x 8 requests at most. */
 const STALE_CHUNK = 200;
 const STALE_CONCURRENCY = 6;
@@ -68,6 +69,7 @@ const { values, positionals } = parseArgs({
   args: process.argv.slice(2),
   allowPositionals: true,
   options: {
+    locale: { type: "string", default: "zh-Hans" },
     run: { type: "string" },
     slug: { type: "string" },
     all: { type: "boolean", default: false },
@@ -81,6 +83,7 @@ const { values, positionals } = parseArgs({
   },
 });
 
+const LOCALE = values.locale;
 const command = positionals[0];
 const target = values.target ?? process.env.TARGET_POSTGRES_URL;
 if (!command || !["import", "enqueue", "run", "backfill", "stale", "status"].includes(command)) {
@@ -194,14 +197,15 @@ async function runQueue() {
   let processed = 0;
   if (!write) {
     const due = await getPostgresClient().sql<{ n: string }>(
-      'SELECT COUNT(*)::text AS n FROM "translationJobs" WHERE "completed_at" IS NULL',
+      'SELECT COUNT(*)::text AS n FROM "translationJobs" WHERE "completed_at" IS NULL AND "locale" = $1',
+      [LOCALE],
     );
     console.log(`Due jobs      ${due[0]?.n ?? 0}`);
     console.log("Dry run: pass --write to process them.");
     return;
   }
   while (processed < limit) {
-    const jobs = await store.claimTranslationJobs(Math.min(3, limit - processed));
+    const jobs = await store.claimTranslationJobs(Math.min(3, limit - processed), "incremental", LOCALE);
     if (jobs.length === 0) break;
     for (const job of jobs) {
       processed += 1;
@@ -213,9 +217,13 @@ async function runQueue() {
           console.log(`  ${job.slug}: ${completed ? "not public, cleared" : "superseded lease, left pending"}`);
           continue;
         }
-        const outcome = await live.refreshRecordTranslations({ ...record, slug }, context, kind, apiKey);
-        if (outcome.rejected.length > 0) throw new Error(`Translation refresh rejected ${outcome.rejected.length} segments`);
-        if (!await store.completeTranslationJob(job)) throw new Error("Translation lease was superseded");
+        const outcome = await live.refreshRecordTranslations({ ...record, slug }, await live.loadTranslationContext(job.locale), kind, apiKey);
+        if (outcome.rejected.length > 0) {
+          const defects = [...new Set(outcome.rejected.flatMap((entry) => entry.defects))].join(", ");
+          await store.failTranslationJob(job, `Rejected ${outcome.rejected.length} translation unit(s): ${defects}`);
+        } else {
+          await store.completeTranslationJob(job);
+        }
         console.log(
           `  ${job.slug}: ${outcome.segments} segments, ${outcome.requested} requested, ${outcome.stored} stored, ${outcome.rejected.length} rejected, ${outcome.usage.requests} requests`,
         );
@@ -276,7 +284,7 @@ async function retranslateStale() {
     console.log(`Matched rows  ${mentioning.length} mentioning ${terms.map((term) => JSON.stringify(term)).join(", ")}`);
     if (mentioning.length === 0) return;
     if (!write) {
-      console.log("Dry run: pass --write to mark them stale, restamp the rest, and retranslate.");
+      console.log("Dry run: pass --write to mark matched rows stale and retranslate. Other old digests remain stale.");
       return;
     }
     const scoped = await store.scopeStaleTranslations(LOCALE, mentioning.map((row) => row.hash), promptVersion);

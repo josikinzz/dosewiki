@@ -17,17 +17,20 @@ import { createProductionWriteCommand, assertProductionWriteAllowed } from "../l
 import { productionWriterClassifications } from "../lib/production-writer-inventory.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 
+import { resolveLocale } from "./locales.mjs";
+
 const OPERATION = "backfill-localized-publication-index";
 const SCRIPT = "scripts/translation/backfill-publication-index.ts";
-const LOCALE = "zh-Hans";
 
 async function main() {
   const { values } = parseArgs({ strict: true, options: {
+    locale: { type: "string", default: "zh-Hans" },
     target: { type: "string" }, "allow-remote": { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false }, write: { type: "boolean", default: false },
     "confirm-write": { type: "string" }, "expected-deployment": { type: "string" },
     "confirm-plan": { type: "string" }, "actor-email": { type: "string" }, "recovery-out": { type: "string" },
   } });
+  const LOCALE = resolveLocale(values.locale).code;
   const command = createProductionWriteCommand({ operation: OPERATION, loadsEnvLocal: false });
   if (command.backend !== "postgres" || !command.targetUrl) throw new Error("Set DATA_BACKEND=postgres and an explicit --target or TARGET_POSTGRES_URL");
   const target = new URL(command.targetUrl);

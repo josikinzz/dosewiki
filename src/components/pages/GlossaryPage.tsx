@@ -13,6 +13,7 @@ import {
   kindLabel,
   type GlossaryCategory,
 } from "@/lib/glossary/glossaryCategories";
+import type { GlossaryUsageMap } from "@/lib/glossary/glossaryUsage";
 
 /** One term as the page shows it: the gloss when one is written, the mirror's rendering when on a mirror. */
 export type GlossaryPageEntry = {
@@ -71,6 +72,7 @@ export function buildGlossaryGroups(
 
 interface GlossaryPageProps {
   groups: readonly GlossaryPageGroup[];
+  usages: GlossaryUsageMap;
   /** The mirror's `lang` for its renderings; null on the English page. */
   renderingLang: string | null;
 }
@@ -80,7 +82,7 @@ interface GlossaryPageProps {
  * where it comes from on the site, with its one-line English definition and,
  * on a locale mirror, the rendering the mirror uses for it.
  */
-export function GlossaryPage({ groups, renderingLang }: GlossaryPageProps) {
+export function GlossaryPage({ groups, usages, renderingLang }: GlossaryPageProps) {
   return (
     <PublicContentShell focusTarget width="standard">
       <PageHeader icon="lucide:book-open-text" title={t(msg("Glossary"))} description={t(GLOSSARY_INTRO)} />
@@ -121,7 +123,7 @@ export function GlossaryPage({ groups, renderingLang }: GlossaryPageProps) {
                       <span lang="en" className="theme-text-secondary text-sm leading-6">{entry.gloss}</span>
                     ) : null}
                     <PublicPill size="sm">{t(kindLabel(entry.kind))}</PublicPill>
-                    <GlossaryUsageDisclosure term={entry.term} />
+                    <GlossaryUsageDisclosure term={entry.term} initialData={usages[entry.term]} />
                   </DefinitionRow>
                 ))}
               </DefinitionList>

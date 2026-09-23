@@ -1,0 +1,684 @@
+{
+  "zh-Hans": {
+    "compiledAt": "2026-09-23T04:46:52.806Z",
+    "catalogDigest": "1d78566dbb764fd0a7b9a7a121fd8ac61b7dfddbf6aaf9764f5f6c5431984014",
+    "approvedUiDigest": null,
+    "approvedUiSource": "offline-unverified",
+    "sourceInventoryDigest": "0b031e8098a17c90e16ceb52568fa21b5532a569e3408687123de13f933e3f74",
+    "pendingRefresh": [
+      "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
+      "Open in {{name}} replications",
+      "Replications by {{artist}}",
+      "Next replication by {{artist}}",
+      "Previous replication by {{artist}}",
+      "Image replications sorted by artist",
+      "Image replications sorted by effect",
+      "Image replications sorted by year",
+      "Video replications sorted by artist",
+      "Video replications sorted by effect",
+      "Video replications sorted by year",
+      "{{effect}} replications",
+      "Image {{effect}} replications",
+      "Video {{effect}} replications",
+      "Replications gallery",
+      "No replications yet",
+      "Replication media has not been published yet. Check back soon.",
+      "The linked replication is no longer available in this collection.",
+      "Search replications",
+      "Search replications (/)",
+      "Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the",
+      "Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the {{terms}} to correct a credit or request removal.",
+      "Replication media is credited to its creator; rights remain with the rightsholder. See the {{terms}} to correct a credit or request removal.",
+      "{{count}} more replications in this substance's playlist",
+      "{{count}} more replications in this effect's playlist",
+      "{{count}} more replications in this collection",
+      "{{count}} more replications in the gallery",
+      "Replications sections",
+      "Substance replications",
+      "{{name}} replications",
+      ", with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
+      "Back to replications",
+      "{{name}} Replications",
+      "Browse all {count, plural, =0 {# replications} one {# replication} other {# replications}}",
+      "Loading replications",
+      "Indexing subjective effects, replications, and reports…",
+      "Writing by dose.wiki editors, data schemas, and data normalization efforts are licensed [CC0](/docs/license): they are in the public domain. You are free to use and improve CC0 content without permission or attribution. Our code is [MIT licensed](/docs/license).\n\nThird-party content such as quoted text, [reagent test data](https://protestkit.eu), [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), legacy trip reports, or replications may be subject to other terms. Datasets downloaded from dose.wiki are not necessarily licensed CC0.\n\nYou can use our datasets on effects, substances, and/or trip reports in your own datasets, harm reduction efforts, or to build your own encyclopedia as described [here](/docs/license).",
+      "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
+      "Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.\n\nWe believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.\n\nEffect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.\n\nIf you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord).",
+      "These effects are organised into categories based on the sense affected and their behaviour. Many of these are further broken down into levels, subcomponents, and variations in style, which can occur across different substances. Detailed [replications](/replications) are included whenever possible to supplement the text descriptions in the form of images, audio clips, and animations.",
+      "09 · Replications platform",
+      "The replications media platform",
+      "Scrapers and AI workflows supply content; readers submit reports and feedback. Shared server functions connect these inputs and the editor to the database. The public site serves published records, with replication files delivered separately from Cloudflare R2.",
+      "R2 stores replication files. Turnstile adds a CAPTCHA to site feedback; [other intake controls](#s7) and [media handling](#s9) are described below.",
+      "`/replications`, with `audio`, `tutorials`, `artist/[key]`, and `[slug]` routes: gallery browsing and playback.",
+      "`/dev`: a catch-all page (`src/app/dev/[[...segments]]`) dispatches ~17 tabs: articles, writing, citations, trip-report submissions, article and site feedback, replications, molecules, copy, banners, contributors, tags, index layout, change log, and profiles.",
+      "**`replications/`**: gallery exploration, media viewing, and artist showcases.",
+      "**`tools/`**: ~14 tools, including substance, replication, copy, molecule, and banner editors; citation review; three intake queues; contributors; writing; and index layout.",
+      "Replication gallery metadata for videos, images, and audio, plus Effect Index methodology articles. R2 holds the media files.",
+      "Per-substance Replication Showcase curation: a pinned first item and suppressed `replications` slugs.",
+      "Named, ordered replication sets applied to gallery drafts. Saving a playlist does not publish it.",
+      "About 17 `replication*` and `contributor*` tables retain source attribution, artist/contributor identity bindings, alias and taxonomy evidence, duplicate reconciliation, date research, and reversible merge/social operations. Separate display records keep gallery reads small.",
+      "**Licensing varies by dataset.** Base data is CC0, but exports include exceptions: TripSit's terms on substance `interactions`, third-party replication media in the effect index, and authors' rights on legacy trip reports. See [License & reuse](/docs/license).",
+      "`scripts/replications/`: media intake and R2 migration, the largest family.",
+      "Replications are artist-made videos, images, and audio recreations of subjective effects. **Postgres stores metadata; Cloudflare R2 stores files** under content-addressed keys derived from their contents. `server/lib/replicationUrls.ts` constructs public URLs using `REPLICATION_MEDIA_BASE_URL`, required in every deployment.",
+      "`scripts/replications/` uploads and verifies reviewed media before importing metadata, taxonomy, and attribution into Postgres. The Reddit archive follows `docs/workflows/replication-intake.md`. In Replication Studio, editors curate carousels, substance showcases, and playlists, and reconcile duplicates. Separate provenance and identity records preserve the source history.",
+      "`substanceGalleries` controls pinned and suppressed showcase items; `replicationPlaylists` supplies ordered sets to gallery drafts; `siteConfig` stores the Effect Index homepage carousel order. These database edits need no deploy. Public reads use `lib/data/publicData.replications.ts`, `/api/replications/gallery`, and `/api/replications/showcase`; both JSON endpoints are cacheable.",
+      "Known artists are credited; unidentified creators are shown as Unattributed. Rights default to `unknown`, independently of artist attribution. Source posts and posters are retained losslessly. The gallery's fair-use position appears in `src/features/replications/replicationsFairUseCopy.ts` and [License & reuse](/docs/license).",
+      "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points.",
+      "Subjective-effect replication images, videos, and audio.",
+      "Subjective-effect replication media",
+      "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all; treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms).",
+      "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references, the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references, credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms.",
+      "Subjective-effects material has a longer and more distributed publication history than the rest of the dataset, and it reaches dose.wiki by several separate paths. This section covers text and index material. Replication media stays creator-retained, as section 4 states.",
+      "If you display replication media",
+      "Canonical license texts, the replication-media terms, and the rights contact. The carve-out terms themselves live in section 4.",
+      "Replication media - creator and rightsholder terms",
+      "Replications accompany the effect descriptions as visual and auditory examples. They give readers another way to understand experiences that can be difficult to describe in words. Creator credits and source links, where known, let readers find the work in its original context.",
+      "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item, explicit license, creator-retained, or unknown, so check the item itself rather than assuming any dataset's terms carry over.",
+      "If a replication file is miscredited, has no source link, or must be removed, email [contact@dose.wiki](mailto:contact@dose.wiki) with the item title, creator name, and preferred correction.",
+      "For miscredited or disputed replication media, report-removal requests, trademark or name-use concerns, or any other rights question about material on dose.wiki, email [contact@dose.wiki](mailto:contact@dose.wiki). Include the article or item, and what you want changed.",
+      "This article breaks down the subjective effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphors, analogies, or personal trip reports.",
+      "This article breaks down the subjective visual effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphors, analogies, or personal trip reports.",
+      "This article breaks down the subjective cognitive effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+      "This article breaks down the subjective miscellaneous effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+      "This article breaks down the subjective effects of the dissociative experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+      "This article breaks down the subjective effects of the deliriant experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+      "**dose.wiki** synthesizes factual knowledge about psychoactive substances from harm-reduction and reference sources into a single open dataset. It aims to establish an open standard for psychopharmacology datasets, supporting research and education.\n\n- **[{{compoundCount}} substance articles](/substances):** dose, duration, effects, interactions, chemistry, and legality by country.\n- **[{{effectCount}} subjective effect articles](/effects):** individual components of altered states, from [visual drifting](/effects/drifting) to [ego death](/effects/ego-death).\n- **[{{replicationCount}} replications](/replications):** images, videos, and audio that recreate subjective effects.\n- **[{{reportCount}} trip reports](/reports):** first-person accounts of individual experiences.",
+      "The factual knowledge within substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference resources](/docs/how#sources). Each article links to the source pages that informed it.\n\nSubstance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](/docs/how) explains the process in depth.\n\nSo, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of psychonautwiki took an entire community of people from 2011-2016. With incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday.\n\nThis is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single beautifully machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.\n\n**dose.wiki is in beta.** Each article’s **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article!\n\nThe other collections are entirely human-created:\n\n- **Effect articles** form the [Subjective Effect Index](/effects), written over more than a decade across several websites.\n- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit’s [r/replications](https://reddit.com/r/replications) community.\n- **Trip reports** are written by their authors and reviewed by an editor before publication.\n\nThe site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](#contact).",
+      "Browse image and video replications alongside the effects they recreate.",
+      "For 15+ years now, on a variety of platforms, the Subjective Effect Documentation community has created and hosted replications and psychedelic artwork for educational and archival purposes. Many of these are submitted directly by artists and replicators within our community, providing explicit permission to do so. However, a substantial portion are sourced by our staff and were uploaded by us, without explicit permission. The reason we do this is out of a genuine love of the medium of visionary/psychedelic art, and because of their immense utility as a phenomenological learning tool. We do our absolute best to credit every artist, linking to their own webpages, so you can find and support them directly. **Rights always remain with the original creator or rightsholder unless an individual item states otherwise**. \n\nWe believe this non-commercial and educational use constitutes fair use. However, if your art/replication appears here and you want it taken down, please do not hesitate to email [contact@dose.wiki](mailto:contact@dose.wiki) and we will be happy to remove it for you as soon as possible. Use the same address to correct a misattribution, help us credit unknown artists, ask a question, or share more of your work. \n\nFor more information about dose.wiki licenseing, see our <u>***[licensing terms doc](/docs/license#replication-media-terms)***</u>.\n\n",
+      "The community where replications are shared, critiqued and requested.",
+      "The factual knowledge within substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference resources](/docs/how#sources). Each article links to the source pages that informed it.\n\nSubstance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](/docs/how) explains the process in depth. \n\nSo, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of psychonautwiki took an entire community of people from 2011-2016. With incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday. \n\nThis is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single beautifully machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.\n\n**dose.wiki is in beta.** Each article’s **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article!\n\nThe other collections are entirely human-created:\n\n- **Effect articles** form the [Subjective Effect Index](/effects), written over more than a decade across several websites.\n- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit’s [r/replications](https://reddit.com/r/replications) community.\n- **Trip reports** are written by their authors and reviewed by an editor before publication.\n\nThe site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](#contact).",
+      "r/replications"
+    ],
+    "qaGlossaryMisses": [
+      {
+        "catalogKey": ", with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{count}} more replications in the gallery",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{count}} more replications in this collection",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{count}} more replications in this effect's playlist",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{count}} more replications in this substance's playlist",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{effect}} replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{name}} replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "{{name}} Replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**`replications/`**: gallery exploration, media viewing, and artist showcases.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**`tools/`**: ~14 tools, including substance, replication, copy, molecule, and banner editors; citation review; three intake queues; contributors; writing; and index layout.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**dose.wiki** synthesizes factual knowledge about psychoactive substances from harm-reduction and reference sources into a single open dataset. It aims to establish an open standard for psychopharmacology datasets, supporting research and education.\n\n- **[{{compoundCount}} substance articles](/substances):** dose, duration, effects, interactions, chemistry, and legality by country.\n- **[{{effectCount}} subjective effect articles](/effects):** individual components of altered states, from [visual drifting](/effects/drifting) to [ego death](/effects/ego-death).\n- **[{{replicationCount}} replications](/replications):** images, videos, and audio that recreate subjective effects.\n- **[{{reportCount}} trip reports](/reports):** first-person accounts of individual experiences.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**Licensing varies by dataset.** Base data is CC0, but exports include exceptions: TripSit's terms on substance `interactions`, third-party replication media in the effect index, and authors' rights on legacy trip reports. See [License & reuse](/docs/license).",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "`/dev`: a catch-all page (`src/app/dev/[[...segments]]`) dispatches ~17 tabs: articles, writing, citations, trip-report submissions, article and site feedback, replications, molecules, copy, banners, contributors, tags, index layout, change log, and profiles.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "`/replications`, with `audio`, `tutorials`, `artist/[key]`, and `[slug]` routes: gallery browsing and playback.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "`scripts/replications/` uploads and verifies reviewed media before importing metadata, taxonomy, and attribution into Postgres. The Reddit archive follows `docs/workflows/replication-intake.md`. In Replication Studio, editors curate carousels, substance showcases, and playlists, and reconcile duplicates. Separate provenance and identity records preserve the source history.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "`scripts/replications/` uploads and verifies reviewed media before importing metadata, taxonomy, and attribution into Postgres. The Reddit archive follows `docs/workflows/replication-intake.md`. In Replication Studio, editors curate carousels, substance showcases, and playlists, and reconcile duplicates. Separate provenance and identity records preserve the source history.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "`scripts/replications/`: media intake and R2 migration, the largest family.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "`substanceGalleries` controls pinned and suppressed showcase items; `replicationPlaylists` supplies ordered sets to gallery drafts; `siteConfig` stores the Effect Index homepage carousel order. These database edits need no deploy. Public reads use `lib/data/publicData.replications.ts`, `/api/replications/gallery`, and `/api/replications/showcase`; both JSON endpoints are cacheable.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "09 · Replications platform",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "About 17 `replication*` and `contributor*` tables retain source attribution, artist/contributor identity bindings, alias and taxonomy evidence, duplicate reconciliation, date research, and reversible merge/social operations. Separate display records keep gallery reads small.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Back to replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Browse all {count, plural, =0 {# replications} one {# replication} other {# replications}}",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Browse all {count, plural, =0 {# replications} one {# replication} other {# replications}}",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Browse image and video replications alongside the effects they recreate.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Canonical license texts, the replication-media terms, and the rights contact. The carve-out terms themselves live in section 4.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.\n\nWe believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.\n\nEffect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.\n\nIf you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord).",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "For 15+ years now, on a variety of platforms, the Subjective Effect Documentation community has created and hosted replications and psychedelic artwork for educational and archival purposes. Many of these are submitted directly by artists and replicators within our community, providing explicit permission to do so. However, a substantial portion are sourced by our staff and were uploaded by us, without explicit permission. The reason we do this is out of a genuine love of the medium of visionary/psychedelic art, and because of their immense utility as a phenomenological learning tool. We do our absolute best to credit every artist, linking to their own webpages, so you can find and support them directly. **Rights always remain with the original creator or rightsholder unless an individual item states otherwise**. \n\nWe believe this non-commercial and educational use constitutes fair use. However, if your art/replication appears here and you want it taken down, please do not hesitate to email [contact@dose.wiki](mailto:contact@dose.wiki) and we will be happy to remove it for you as soon as possible. Use the same address to correct a misattribution, help us credit unknown artists, ask a question, or share more of your work. \n\nFor more information about dose.wiki licenseing, see our <u>***[licensing terms doc](/docs/license#replication-media-terms)***</u>.\n\n",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "For 15+ years now, on a variety of platforms, the Subjective Effect Documentation community has created and hosted replications and psychedelic artwork for educational and archival purposes. Many of these are submitted directly by artists and replicators within our community, providing explicit permission to do so. However, a substantial portion are sourced by our staff and were uploaded by us, without explicit permission. The reason we do this is out of a genuine love of the medium of visionary/psychedelic art, and because of their immense utility as a phenomenological learning tool. We do our absolute best to credit every artist, linking to their own webpages, so you can find and support them directly. **Rights always remain with the original creator or rightsholder unless an individual item states otherwise**. \n\nWe believe this non-commercial and educational use constitutes fair use. However, if your art/replication appears here and you want it taken down, please do not hesitate to email [contact@dose.wiki](mailto:contact@dose.wiki) and we will be happy to remove it for you as soon as possible. Use the same address to correct a misattribution, help us credit unknown artists, ask a question, or share more of your work. \n\nFor more information about dose.wiki licenseing, see our <u>***[licensing terms doc](/docs/license#replication-media-terms)***</u>.\n\n",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "For miscredited or disputed replication media, report-removal requests, trademark or name-use concerns, or any other rights question about material on dose.wiki, email [contact@dose.wiki](mailto:contact@dose.wiki). Include the article or item, and what you want changed.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "If a replication file is miscredited, has no source link, or must be removed, email [contact@dose.wiki](mailto:contact@dose.wiki) with the item title, creator name, and preferred correction.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "If you display replication media",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Image {{effect}} replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Image replications sorted by artist",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Image replications sorted by effect",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Image replications sorted by year",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Indexing subjective effects, replications, and reports…",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Known artists are credited; unidentified creators are shown as Unattributed. Rights default to `unknown`, independently of artist attribution. Source posts and posters are retained losslessly. The gallery's fair-use position appears in `src/features/replications/replicationsFairUseCopy.ts` and [License & reuse](/docs/license).",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Loading replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Named, ordered replication sets applied to gallery drafts. Saving a playlist does not publish it.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Next replication by {{artist}}",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "No replications yet",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all; treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms).",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Open in {{name}} replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Per-substance Replication Showcase curation: a pinned first item and suppressed `replications` slugs.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Per-substance Replication Showcase curation: a pinned first item and suppressed `replications` slugs.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Previous replication by {{artist}}",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "r/replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "R2 stores replication files. Turnstile adds a CAPTCHA to site feedback; [other intake controls](#s7) and [media handling](#s9) are described below.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replication gallery metadata for videos, images, and audio, plus Effect Index methodology articles. R2 holds the media files.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replication media - creator and rightsholder terms",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replication media has not been published yet. Check back soon.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the {{terms}} to correct a credit or request removal.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replication media is credited to its creator; rights remain with the rightsholder. See the {{terms}} to correct a credit or request removal.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replications accompany the effect descriptions as visual and auditory examples. They give readers another way to understand experiences that can be difficult to describe in words. Creator credits and source links, where known, let readers find the work in its original context.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replications are artist-made videos, images, and audio recreations of subjective effects. **Postgres stores metadata; Cloudflare R2 stores files** under content-addressed keys derived from their contents. `server/lib/replicationUrls.ts` constructs public URLs using `REPLICATION_MEDIA_BASE_URL`, required in every deployment.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replications by {{artist}}",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replications gallery",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Replications sections",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Scrapers and AI workflows supply content; readers submit reports and feedback. Shared server functions connect these inputs and the editor to the database. The public site serves published records, with replication files delivered separately from Cloudflare R2.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Search replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Search replications (/)",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item, explicit license, creator-retained, or unknown, so check the item itself rather than assuming any dataset's terms carry over.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item, explicit license, creator-retained, or unknown, so check the item itself rather than assuming any dataset's terms carry over.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Subjective-effect replication images, videos, and audio.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Subjective-effect replication media",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Subjective-effects material has a longer and more distributed publication history than the rest of the dataset, and it reaches dose.wiki by several separate paths. This section covers text and index material. Replication media stays creator-retained, as section 4 states.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Substance replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The community where replications are shared, critiqued and requested.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references, the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references, credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The factual knowledge within substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference resources](/docs/how#sources). Each article links to the source pages that informed it.\n\nSubstance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](/docs/how) explains the process in depth.\n\nSo, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of psychonautwiki took an entire community of people from 2011-2016. With incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday.\n\nThis is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single beautifully machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.\n\n**dose.wiki is in beta.** Each article’s **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article!\n\nThe other collections are entirely human-created:\n\n- **Effect articles** form the [Subjective Effect Index](/effects), written over more than a decade across several websites.\n- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit’s [r/replications](https://reddit.com/r/replications) community.\n- **Trip reports** are written by their authors and reviewed by an editor before publication.\n\nThe site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](#contact).",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The factual knowledge within substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference resources](/docs/how#sources). Each article links to the source pages that informed it.\n\nSubstance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](/docs/how) explains the process in depth. \n\nSo, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of psychonautwiki took an entire community of people from 2011-2016. With incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday. \n\nThis is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single beautifully machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.\n\n**dose.wiki is in beta.** Each article’s **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article!\n\nThe other collections are entirely human-created:\n\n- **Effect articles** form the [Subjective Effect Index](/effects), written over more than a decade across several websites.\n- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit’s [r/replications](https://reddit.com/r/replications) community.\n- **Trip reports** are written by their authors and reviewed by an editor before publication.\n\nThe site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](#contact).",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The linked replication is no longer available in this collection.",
+        "term": "Replication",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "The replications media platform",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "These effects are organised into categories based on the sense affected and their behaviour. Many of these are further broken down into levels, subcomponents, and variations in style, which can occur across different substances. Detailed [replications](/replications) are included whenever possible to supplement the text descriptions in the form of images, audio clips, and animations.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "This article breaks down the subjective cognitive effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "This article breaks down the subjective effects of the deliriant experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "This article breaks down the subjective effects of the dissociative experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "This article breaks down the subjective effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphors, analogies, or personal trip reports.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "This article breaks down the subjective miscellaneous effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphor, analogy, or personal trip reports.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "This article breaks down the subjective visual effects of the psychedelic experience into simple and easy to understand descriptions with accompanying image replications. This is done without resorting to metaphors, analogies, or personal trip reports.",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Video {{effect}} replications",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Video replications sorted by artist",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Video replications sorted by effect",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Video replications sorted by year",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "Writing by dose.wiki editors, data schemas, and data normalization efforts are licensed [CC0](/docs/license): they are in the public domain. You are free to use and improve CC0 content without permission or attribution. Our code is [MIT licensed](/docs/license).\n\nThird-party content such as quoted text, [reagent test data](https://protestkit.eu), [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), legacy trip reports, or replications may be subject to other terms. Datasets downloaded from dose.wiki are not necessarily licensed CC0.\n\nYou can use our datasets on effects, substances, and/or trip reports in your own datasets, harm reduction efforts, or to build your own encyclopedia as described [here](/docs/license).",
+        "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      }
+    ],
+    "exactLabels": {
+      "appearance.light": {
+        "source": "Light",
+        "target": "浅色",
+        "targetDigest": "aa0819dfc4d8d78280b8c7605b008bfc9df42b585f9106feaa3c8d5bdfda711e"
+      },
+      "appearance.dark": {
+        "source": "Dark",
+        "target": "深色",
+        "targetDigest": "a6b75d0680322a61f4d46185dfb28c875fea97ad8868217b4cbfee3de639f2c1"
+      },
+      "gallery.replications": {
+        "source": "Replications",
+        "target": "再现作品",
+        "targetDigest": "e9cb08adcaa400bcb7a794968c031c99183b42da7a5dde958ca3b82e6895d8df"
+      },
+      "gallery.replication": {
+        "source": "Replication",
+        "target": "体验再现",
+        "targetDigest": "8ca760031ff8aa730d1357d2c6cc70e9d4639bd110db62741a595ca54271562e"
+      }
+    }
+  },
+  "ru": {
+    "compiledAt": "2026-09-23T04:47:06.360Z",
+    "catalogDigest": "f1c72dc39804f0fdd7e2d7632d0971b15492ecddeb1464979f23a6a66ce59b39",
+    "approvedUiDigest": null,
+    "approvedUiSource": "offline-unverified",
+    "sourceInventoryDigest": "0b031e8098a17c90e16ceb52568fa21b5532a569e3408687123de13f933e3f74",
+    "pendingRefresh": [],
+    "qaGlossaryMisses": [],
+    "exactLabels": {
+      "appearance.light": {
+        "source": "Light",
+        "target": "Светлая",
+        "targetDigest": "f0cd3a6033724d440a2ff1059d729da14367d1d985508fdf017bdf44f569b2f2"
+      },
+      "appearance.dark": {
+        "source": "Dark",
+        "target": "Тёмная",
+        "targetDigest": "1eecfcaa7bdb1269175440b36a706d202324b7de1221ca6c3b7839dbcce76287"
+      },
+      "gallery.replications": {
+        "source": "Replications",
+        "target": "Репликации",
+        "targetDigest": "f1e1315837d18fe17303cbac21298502eb37c2f85b3a7923dea7a89e0e3971de"
+      },
+      "gallery.replication": {
+        "source": "Replication",
+        "target": "Репликация",
+        "targetDigest": "1dd60b24a1070d95e8f6c9432c7051ff950b580be2477fe40dfb5c18b072a7c5"
+      }
+    }
+  }
+}

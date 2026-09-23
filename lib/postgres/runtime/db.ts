@@ -10,6 +10,7 @@
  * and retry the complete transaction on serialization or deadlock failure.
  */
 
+import { PUBLIC_GLOSSARY_RENDERING_SELECT, publicGlossaryRendering } from "../../translation/publicGlossaryRendering";
 import { createHash, randomInt } from "node:crypto";
 import type { PoolClient } from "pg";
 import { decodeDocumentValue, encodeDocumentValue, encodeField, documentToRow, losslessSelectList, rowToDocument, type DataDocument } from "../documentCodec";
@@ -1164,6 +1165,26 @@ export class PostgresDatabaseReader {
         : (cursor ?? ""),
       isDone: result.rows.length <= limit,
     };
+  }
+
+  /** Snapshot reads share the mutation transaction, so concurrent glossary edits conflict. */
+  async getGlossaryRendering(locale: string, term: string) {
+    const result = await this.client.query(
+      `${PUBLIC_GLOSSARY_RENDERING_SELECT} WHERE g."locale" = $1 AND g."term" = $2`, [locale, term],
+    );
+    const row = result.rows[0];
+    return row ? publicGlossaryRendering(row) : null;
+  }
+
+  async getGlossaryReactionTotals(locale: string) {
+    const result = await this.client.query(
+      `SELECT "term", "target", "version", count(*) FILTER (WHERE "choice" = 'right')::int AS "right", count(*) FILTER (WHERE "choice" = 'improve')::int AS "improve"
+       FROM (SELECT DISTINCT ON ("term", "version", "visitor") "term", "target", "version", "choice"
+         FROM "glossaryReactionEvents" WHERE "locale" = $1
+         ORDER BY "term", "version", "visitor", "created_at" DESC) latest
+       GROUP BY "term", "target", "version" ORDER BY "term", "version"`, [locale],
+    );
+    return result.rows as Array<{ term: string; target: string; version: string; right: number; improve: number }>;
   }
 
   async getFeedbackCountByStatuses(

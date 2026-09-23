@@ -34,6 +34,7 @@ import {
 } from "./segmentStore";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { LIBRARY_TRANSLATION_CORPUS } from "./publicationIndexProjection";
+import { approvedNarrativeOverlay } from "./narrativeOverlay";
 import { isPublishableReplication } from "../../src/types/replications";
 import { createTranslationRequestPool, type TranslationRequestPool } from "./requestPool";
 
@@ -379,7 +380,8 @@ export async function localizeRecord<T extends { slug: string }>(
   const corpus = LIVE_CORPORA[kind];
   const segments = segmentsOf(record, kind);
   const translations = await readTranslations(localeCode, [...new Set(segments.map((segment) => segment.hash))]);
-  const assembled = assembleLocaleDataset({ items: [record] }, segments, translations, {
+  const reviewed = await approvedNarrativeOverlay(localeCode, kind, segments, translations);
+  const assembled = assembleLocaleDataset({ items: [record] }, reviewed.segments, reviewed.translations, {
     locale: localeCode,
     corpus,
     parse: CORPUS_PARSE[kind] ?? null,
@@ -397,7 +399,8 @@ export async function localizeRecords<T extends { slug: string }>(
   const items = records as unknown as Record<string, unknown>[];
   const segments = extractSegments({ items }, corpus).segments;
   const translations = await readTranslations(localeCode, [...new Set<string>(segments.map((segment: Segment) => segment.hash))]);
-  const assembled = assembleLocaleDataset({ items }, segments, translations, {
+  const reviewed = await approvedNarrativeOverlay(localeCode, kind, segments, translations);
+  const assembled = assembleLocaleDataset({ items }, reviewed.segments, reviewed.translations, {
     locale: localeCode,
     corpus,
     parse: CORPUS_PARSE[kind] ?? null,
@@ -505,12 +508,14 @@ export async function translateUnits(
             options.onUsage?.(used);
           },
         }));
+        const batchRows: TranslationSegmentRow[] = [];
+        const batchRejected: RefreshOutcome["rejected"] = [];
         for (const verdict of verdicts) {
           if (isBlocking(verdict.defects) || verdict.target.length === 0) {
-            rejected.push({ hash: verdict.unit.hash, defects: verdict.defects });
+            batchRejected.push({ hash: verdict.unit.hash, defects: verdict.defects });
             continue;
           }
-          rows.push({
+          batchRows.push({
             locale: localeCode,
             hash: verdict.unit.hash,
             source: verdict.unit.source,
@@ -519,31 +524,36 @@ export async function translateUnits(
             prompt_version: promptVersion,
           });
         }
+        // Persist accepted work before another model batch can time out. A
+        // bulk wave sends it through its one writer.
+        try {
+          await (wave ? wave.write(batchRows) : writeTranslations(batchRows));
+        } catch (error) {
+          for (const row of batchRows) settle.get(row.hash)?.reject(error);
+          throw error;
+        }
+        if (batchRows.length > 0) options.onStored?.(batchRows.length);
+        for (const row of batchRows) settle.get(row.hash)?.resolve({ stored: true, defects: [] });
+        for (const entry of batchRejected) settle.get(entry.hash)?.resolve({ stored: false, defects: entry.defects });
+        await Promise.all([
+          clearTranslationRejections(localeCode, batchRows.map((row) => row.hash)),
+          writeTranslationRejections(batchRejected.map((entry) => ({
+            locale: localeCode,
+            hash: entry.hash,
+            source: batch.find((unit) => unit.hash === entry.hash)?.source ?? "",
+            defects: entry.defects,
+          }))),
+        ]);
+        rows.push(...batchRows);
+        rejected.push(...batchRejected);
       }
     }),
   );
 
   const failure = results.find((result) => result.status === "rejected");
-  try {
-    await (wave ? wave.write(rows) : writeTranslations(rows));
-  } catch (error) {
-    for (const { reject } of settle.values()) reject(error);
-    throw error;
-  }
-  if (rows.length > 0) options.onStored?.(rows.length);
-  for (const row of rows) settle.get(row.hash)?.resolve({ stored: true, defects: [] });
-  for (const entry of rejected) settle.get(entry.hash)?.resolve({ stored: false, defects: entry.defects });
+  // A settled promise ignores this; only segments no batch answered are rejected.
   const unsettled = failure?.status === "rejected" ? failure.reason : new Error("Translation segment was never answered");
   for (const { reject } of settle.values()) reject(unsettled);
-  await Promise.all([
-    clearTranslationRejections(localeCode, rows.map((row) => row.hash)),
-    writeTranslationRejections(rejected.map((entry) => ({
-      locale: localeCode,
-      hash: entry.hash,
-      source: units.find((unit) => unit.hash === entry.hash)?.source ?? "",
-      defects: entry.defects,
-    }))),
-  ]);
   if (failure?.status === "rejected") throw failure.reason;
   signal?.throwIfAborted();
   // Segments another job in the wave owned: stored or rejected there, never requested here.

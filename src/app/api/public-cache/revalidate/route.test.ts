@@ -175,10 +175,11 @@ describe("public cache publication receiver", () => {
     expect(await response.json()).toMatchObject({
       ok: true,
       dispatchId: "dispatch-0001",
-      applied: { paths: ["/2c-b", "/zh/2c-b"] },
+      applied: { paths: ["/2c-b", "/zh/2c-b", "/ru/2c-b"] },
     });
     expect(revalidatePath).toHaveBeenCalledWith("/2c-b");
     expect(revalidatePath).toHaveBeenCalledWith("/zh/2c-b");
+    expect(revalidatePath).toHaveBeenCalledWith("/ru/2c-b");
     const expired = vi.mocked(revalidateTag).mock.calls.map(([tag]) => tag);
     expect(expired).toContain("data-public:substances:2c-b");
     expect(expired).not.toContain("data-public");

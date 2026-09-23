@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { GLOSSARY_CATEGORIES, GlossaryCsvError, STATE_WORD, count, filterRows, glossaryToCsv, groupRows, parseGlossaryCsv, type GlossaryRow } from "./glossaryModel";
 
 const row = (term: string, kind: string, status: GlossaryRow["status"] = "draft"): GlossaryRow => ({
-  locale: "zh-Hans", term, target: "", kind, status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1,
+  locale: "zh-Hans", term, target: "", kind, status, source: "model", reviewed_at: null, reviewed_by: null, retranslated_at: null, updated_at: 1, revision: "1:0", approved_target: null, review_provenance: status === "approved" ? "human_review" : "unreviewed",
 });
 
 describe("groupRows", () => {
