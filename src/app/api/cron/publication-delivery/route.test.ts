@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
 import { claimDue, recordDelivery } from "../../../../../server/publicationRecovery";
-import { PUBLICATION_OUTBOX_MAX_ATTEMPTS } from "../../../../../server/lib/publicationOutbox";
+import { PUBLICATION_OUTBOX_MAX_ATTEMPTS } from "@server/next/publicationOutbox";
 
 const seams = vi.hoisted(() => ({
   client: null as { mutationAsService: (reference: unknown, args: Record<string, unknown>) => Promise<unknown> } | null,

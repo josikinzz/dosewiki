@@ -473,15 +473,25 @@ The preferred live-content save path, for an admin session, is:
 This path preserves the native Postgres write, authorization, and publication boundaries.
 
 Cross-project publication is owned by the durable outbox, not a direct editor
-cache expiry. `src/app/api/cron/publication-delivery/route.ts` awaits
-`enqueueTranslationJobs` in `lib/translation/segmentStore.ts` before dispatch.
+cache expiry. `lib/next/publicationOutbox.ts` is the one delivery module: it owns
+the identity key, the attempt cap, the claim lease, the backoff, the dead letter
+and re-pend, behind a store port and a transport port. Its callers enqueue in
+their own transaction: `withPublicationOutbox` in
+`server/lib/publicationOutbox.ts` for runtime writes,
+`lib/postgres/publicationOutboxStore.ts` for reviewed-section publication and
+for translation completion, which enqueues with its `translation-queue` receipt
+already recorded. `server/publicationRecovery.ts` is the runtime store adapter;
+`lib/next/publicationOutbox.memory.ts` is the in-memory adapter tests use.
+`src/app/api/cron/publication-delivery/route.ts` drives delivery with the signed
+HTTP transport and awaits `enqueueTranslationJobs` in
+`lib/translation/segmentStore.ts` before dispatch.
 The enqueue and publication-generation receipt commit atomically; replay neither
 resets newer locale work nor loses the receipt when `server/publicationRecovery.ts`
 records delivery. Enqueue failure keeps the outbox pending. Cache-only refresh
 retains its existing behavior without translation enqueueing. `claimDue` takes
 never-attempted rows ahead of retries, so failing rows cannot fill the 18 claim
 slots. After `PUBLICATION_OUTBOX_MAX_ATTEMPTS` (10, in
-`server/lib/publicationOutbox.ts`) failed deliveries, or at once for a stored
+`lib/next/publicationOutbox.ts`) failed deliveries, or at once for a stored
 target that is not a known publication identity (recorded as a `rejected`
 receipt), a row stops retrying: `pending` is false and `deadLetteredAt` is set,
 with its receipts kept for inspection. The next commit for that identity

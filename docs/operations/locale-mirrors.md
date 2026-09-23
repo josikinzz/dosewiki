@@ -145,20 +145,26 @@ the lease records `lease_held = false` instead of looking idle. Each lane prunes
 its own rows older than 14 days. `readLatestTranslationWorkerRuns()` returns the
 newest row per lane; the read-only SQL is
 `SELECT DISTINCT ON ("mode") * FROM "translationWorkerRuns" ORDER BY "mode", "started_at" DESC`.
-Job failures and cache delivery exceptions log `[translation-worker] job:failed`
-and `[translation-worker] cache:failed` with locale, slug, mode and message.
+`cache_pending` counts completed records whose public delivery was handed to the
+publication outbox. Job failures log `[translation-worker] job:failed` and a
+failed local cache expiry logs `[translation-worker] cache:local-failed`, each
+with locale, slug, mode and message.
 Provider failures are `OpenRouterChatError` instances carrying `status` and
 `retryable`.
 
-Accepted segments complete their record job even if public-cache delivery is
-still pending. The same database transaction creates a translation-cache job;
-workers retry it until direct delivery succeeds or the publication outbox accepts
-it. Cache delivery never consumes a model attempt. A worker claims cache jobs
-fresh-first; each claim spends a cache attempt and leases the row until its
-backoff (one minute, doubling to one hour). After eight attempts the row is a
-dead letter: never claimed again, kept with `attempts` and `last_error` for
-inspection, and reset when the record's translation completes again
-(migration `0024`). A segment that remains
+Accepted segments complete their record job without waiting for public
+delivery. The completion transaction enqueues the record's public surfaces into
+the publication outbox (`lib/next/publicationOutbox.ts`), the same queue
+editorial writes use, and `/api/cron/publication-delivery` dispatches them under
+the outbox's one attempt cap, lease, backoff and dead letter. The row already
+carries its `translation-queue` receipt, so delivery never asks for the
+translation it came from; it lands on a pending editorial row without one only
+when that commit's locale work is still owed. Public delivery never consumes a
+model attempt. The worker itself only expires the editor deployment's caches.
+The `translationCacheJobs` table (migrations `0019`, `0024`) is retired: nothing
+reads or writes it. Before rollout, drain it with the old worker or note its
+remaining rows; after rollout they are inert, and a record they named reaches
+the Public Hosts on its next completion or editorial write. A segment that remains
 rejected after the engine's bounded retries stays English and is recorded, while
 the record completes with terminal rejection detail instead of becoming an
 unclaimable pending job. The Glossary tab polls the newest enqueue generation
@@ -166,7 +172,7 @@ and separates active, completed, completed-with-rejections and legacy exhausted
 counts.
 
 Migrations `0017` through `0019` add run identity and terminal status, lane-safe
-job keys, the shared worker lease, and durable translation-cache jobs. Apply all
+job keys, the shared worker lease, and the since-retired translation-cache jobs. Apply all
 three in order before releasing either worker or the progress reader. Drain old
 requests, cron workers and operator binaries
 before rollout: an old worker can complete unconditionally and defeat the new

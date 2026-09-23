@@ -2,22 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const seam = vi.hoisted(() => ({
-  publish: vi.fn(), enqueue: vi.fn(), completeCache: vi.fn(), readCache: vi.fn(), failCache: vi.fn(),
+  applyLocally: vi.fn(),
   claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), record: vi.fn(), acquire: vi.fn(), release: vi.fn(), refresh: vi.fn(),
   context: vi.fn(),
 }));
 vi.mock("../data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
-vi.mock("../data/serverWriteCapability", () => ({
-  getServerDataWriteCapability: () => ({ ok: true, capability: { client: { mutationAsPublicationRecovery: seam.enqueue } } }),
-}));
-vi.mock("../next/publishPublicCache", () => ({ publishPublicCache: seam.publish }));
+vi.mock("../next/publishPublicCache", () => ({ applyPublicCacheLocally: seam.applyLocally }));
 vi.mock("./segmentStore", () => ({
   MAX_TRANSLATION_JOB_ATTEMPTS: 5,
   acquireTranslationWorkerLease: seam.acquire,
   releaseTranslationWorkerLease: seam.release,
-  claimTranslationCacheJobs: seam.readCache,
-  failTranslationCacheJob: seam.failCache,
-  completeTranslationCacheJob: seam.completeCache,
   claimTranslationJobs: seam.claim,
   completeTranslationJob: seam.complete,
   failTranslationJob: seam.fail,
@@ -43,11 +37,7 @@ const outcome = (slug: string) => ({
 });
 
 beforeEach(() => {
-  seam.publish.mockReset().mockResolvedValue([{ status: "failed" }]);
-  seam.enqueue.mockReset().mockResolvedValue(undefined);
-  seam.completeCache.mockReset().mockResolvedValue(undefined);
-  seam.failCache.mockReset().mockResolvedValue(undefined);
-  seam.readCache.mockReset().mockResolvedValue([{ locale: "es", slug: "article:lsd", mode: "incremental", targets: '[{"kind":"article-translation","slug":"lsd","locale":"es"}]' }]);
+  seam.applyLocally.mockReset();
   seam.claim.mockReset().mockResolvedValue([]);
   seam.complete.mockReset().mockResolvedValue(true);
   seam.fail.mockReset().mockResolvedValue(true);
@@ -59,43 +49,38 @@ beforeEach(() => {
 });
 afterEach(() => { vi.restoreAllMocks(); });
 
-describe("translation cache recovery", () => {
-  it("queues failed cache publication before clearing its durable job", async () => {
+describe("public delivery after completion", () => {
+  it("hands the record's public surfaces to the outbox with the completion and expires local caches", async () => {
+    seam.claim.mockResolvedValueOnce([{ ...job("lsd"), locale: "zh-Hans" }]).mockResolvedValue([]);
+    seam.refresh.mockImplementation(async (record: { slug: string }) => outcome(record.slug));
     const run = await runTranslationJobs("model-key", config);
-    expect(run.cachePending).toBe(1);
-    expect(seam.enqueue).toHaveBeenCalledTimes(1);
-    expect(seam.completeCache).toHaveBeenCalledTimes(1);
-    expect(seam.enqueue.mock.invocationCallOrder[0]).toBeLessThan(seam.completeCache.mock.invocationCallOrder[0]);
+    const targets = [{ kind: "article-translation", slug: "lsd", locale: "zh-Hans" }];
+    expect(seam.complete).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), null, targets);
+    expect(seam.applyLocally).toHaveBeenCalledWith({ targets, source: "manual" });
+    expect(run).toMatchObject({ completed: 1, cachePending: 1 });
   });
 
-  it("retains the durable job when recovery enqueue fails", async () => {
-    seam.enqueue.mockRejectedValue(new Error("database unavailable"));
+  it("keeps the completion when local cache expiry fails", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    seam.claim.mockResolvedValueOnce([{ ...job("lsd"), locale: "zh-Hans" }]).mockResolvedValue([]);
+    seam.refresh.mockImplementation(async (record: { slug: string }) => outcome(record.slug));
+    seam.applyLocally.mockImplementation(() => { throw new Error("revalidate unavailable"); });
     const run = await runTranslationJobs("model-key", config);
-    expect(run.cachePending).toBe(1);
-    expect(seam.completeCache).not.toHaveBeenCalled();
-    expect(error).toHaveBeenCalledWith("[translation-worker] cache:failed", expect.objectContaining({
-      locale: "es", slug: "article:lsd", mode: "incremental", message: "database unavailable",
-    }));
-    expect(seam.failCache).toHaveBeenCalledWith(expect.objectContaining({ slug: "article:lsd" }), "database unavailable");
+    expect(run).toMatchObject({ completed: 1, failed: 0 });
+    expect(error).toHaveBeenCalledWith("[translation-worker] cache:local-failed", expect.objectContaining({ slug: "lsd", message: "revalidate unavailable" }));
   });
 
-  it("keeps the parse error of a cache job with unparseable targets", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    seam.readCache.mockResolvedValue([{ locale: "es", slug: "article:lsd", mode: "incremental", targets: "not json", attempts: 1 }]);
+  it("names no public surface for a locale without a public host", async () => {
+    seam.claim.mockResolvedValueOnce([job("lsd")]).mockResolvedValue([]);
+    seam.refresh.mockImplementation(async (record: { slug: string }) => outcome(record.slug));
     const run = await runTranslationJobs("model-key", config);
-    expect(run.cachePending).toBe(1);
-    expect(seam.publish).not.toHaveBeenCalled();
-    expect(seam.completeCache).not.toHaveBeenCalled();
-    expect(seam.failCache).toHaveBeenCalledWith(expect.objectContaining({ slug: "article:lsd" }), expect.stringContaining("JSON"));
+    expect(seam.complete).toHaveBeenCalledWith(expect.objectContaining({ slug: "lsd" }), null, []);
+    expect(seam.applyLocally).not.toHaveBeenCalled();
+    expect(run.cachePending).toBe(0);
   });
 });
 
 describe("translation worker run record", () => {
-  beforeEach(() => {
-    seam.readCache.mockResolvedValue([]);
-  });
-
   it("writes exactly one run row whose counts match the returned result", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     seam.claim
@@ -169,7 +154,6 @@ describe("translation worker run record", () => {
 describe("translation job budget abort", () => {
   type Options = { signal: AbortSignal; onStored?: (count: number) => void };
   beforeEach(() => {
-    seam.readCache.mockResolvedValue([]);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -206,7 +190,6 @@ describe("per-lane leases and request quotas", () => {
   beforeEach(() => {
     leases.clear();
     gate = new Promise<void>((resolve) => { release = resolve; });
-    seam.readCache.mockResolvedValue([]);
     seam.acquire.mockImplementation(async (lane: string, owner: string) => {
       if (leases.has(lane)) return false;
       leases.set(lane, owner);
@@ -279,7 +262,6 @@ describe("per-lane leases and request quotas", () => {
 
 describe("translation transport failures", () => {
   it("fail the job and tag the log with the transport defect code", async () => {
-    seam.readCache.mockResolvedValue([]);
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     seam.claim.mockResolvedValueOnce([job("lsd")]).mockResolvedValue([]);
     seam.refresh.mockRejectedValue(Object.assign(new Error("Provider request failed: Insufficient credits"), {
@@ -304,7 +286,6 @@ describe("independent page workers", () => {
     const slow = new Promise<void>((resolve) => { release = resolve; });
     const started: string[] = [];
     const slugs = ["slow", "fast", "next"];
-    seam.readCache.mockResolvedValue([]);
     seam.claim.mockImplementation(async () => {
       const slug = slugs.shift();
       return slug ? [{ ...job(slug), mode: "bulk" as const }] : [];
@@ -325,7 +306,6 @@ describe("independent page workers", () => {
   });
 
   it("loads the current glossary for every newly claimed page", async () => {
-    seam.readCache.mockResolvedValue([]);
     seam.claim.mockResolvedValueOnce([job("one")]).mockResolvedValueOnce([job("two")]).mockResolvedValue([]);
     seam.context.mockResolvedValueOnce({ glossary: { term: "before" } }).mockResolvedValueOnce({ glossary: { term: "after" } });
     seam.refresh.mockImplementation(async ({ slug }: { slug: string }) => outcome(slug));

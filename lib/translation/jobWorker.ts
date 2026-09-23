@@ -1,10 +1,8 @@
 import "server-only";
 
 import { getPublicDataReadAdapter } from "../data/publicData.reads";
-import { getServerDataWriteCapability } from "../data/serverWriteCapability";
-import { publishPublicCache } from "../next/publishPublicCache";
+import { applyPublicCacheLocally } from "../next/publishPublicCache";
 import type { PublicationTarget } from "../next/publicationWire";
-import { makeFunctionReference } from "../postgres/runtime/api";
 import { isPublicLocaleCode } from "../../src/i18n/localeRegistry.mjs";
 import {
   createTranslationWave,
@@ -21,9 +19,6 @@ import {
   completeTranslationJob,
   failTranslationJob,
   acquireTranslationWorkerLease,
-  claimTranslationCacheJobs,
-  completeTranslationCacheJob,
-  failTranslationCacheJob,
   recordTranslationWorkerRun,
   releaseTranslationWorkerLease,
   type TranslationJobMode,
@@ -36,9 +31,6 @@ const MIN_JOB_BUDGET_MS = 60_000;
 const MODEL_LEASE = "glm-5.3-flash";
 /** One lease per lane, so a bulk campaign never starves editorial refreshes. */
 const laneLease = (mode: TranslationJobMode) => `${MODEL_LEASE}:${mode}`;
-const CACHE_JOBS_PER_RUN = 200;
-const CACHE_DELIVERY_CONCURRENCY = 50;
-const enqueueCacheRetry = makeFunctionReference<"mutation", { targets: PublicationTarget[] }, void>("publicationRecovery:enqueueTranslationCacheRetry");
 
 export type TranslationWorkerRun = Omit<TranslationWorkerRunRecord, "id" | "startedAt"> & {
   outcomes: (RefreshOutcome | { slug: string; locale: string; error: string })[];
@@ -117,46 +109,18 @@ async function processTranslationJobs(
     run.usage.requests += 1;
   };
 
-  const deliverCache = async (cacheJob: { locale: string; slug: string; mode: TranslationJobMode; targets: string }) => {
+  // Public delivery belongs to the publication outbox: completion enqueues the
+  // targets in its own transaction and publication-delivery dispatches them.
+  // Only this deployment's own caches are expired here, best effort.
+  const expireLocally = (job: TranslationJobRow, targets: PublicationTarget[]) => {
     try {
-      const targets = JSON.parse(cacheJob.targets) as PublicationTarget[];
-      const receipts = await publishPublicCache({ targets, source: "manual" });
-      if (receipts.length > 0 && receipts.every((receipt) => receipt.status === "accepted")) {
-        await completeTranslationCacheJob(cacheJob);
-        return true;
-      }
-      const capability = getServerDataWriteCapability();
-      if (capability.ok === false) throw new Error(`Public cache publication incomplete: ${capability.failure.message}`);
-      await capability.capability.client.mutationAsPublicationRecovery(enqueueCacheRetry, { targets });
-      await completeTranslationCacheJob(cacheJob);
-      return false;
+      applyPublicCacheLocally({ targets, source: "manual" });
     } catch (error) {
-      // The durable cache row stays leased until its backoff and keeps the
-      // reason; after the attempt cap it is a dead letter.
-      const message = errorMessage(error);
-      console.error("[translation-worker] cache:failed", {
-        locale: cacheJob.locale, slug: cacheJob.slug, mode: cacheJob.mode, message,
+      console.error("[translation-worker] cache:local-failed", {
+        locale: job.locale, slug: job.slug, mode: job.mode, message: errorMessage(error),
       });
-      await failTranslationCacheJob(cacheJob, message).catch((recordError: unknown) => {
-        console.error("[translation-worker] cache:unrecorded", {
-          locale: cacheJob.locale, slug: cacheJob.slug, mode: cacheJob.mode, message: errorMessage(recordError),
-        });
-      });
-      return false;
     }
   };
-  const cacheJobs = await claimTranslationCacheJobs(CACHE_JOBS_PER_RUN);
-  let cacheCursor = 0;
-  await Promise.all(Array.from(
-    { length: Math.min(CACHE_DELIVERY_CONCURRENCY, cacheJobs.length) },
-    async () => {
-      while (cacheCursor < cacheJobs.length) {
-        const cacheJob = cacheJobs[cacheCursor];
-        cacheCursor += 1;
-        if (!(await deliverCache(cacheJob))) run.cachePending += 1;
-      }
-    },
-  ));
 
   // A bulk run writes through one writer and requests a segment shared by
   // several pages once.
@@ -183,7 +147,7 @@ async function processTranslationJobs(
       const terminalDetail = outcome.rejected.length > 0
         ? `Translation completed with ${outcome.rejected.length} rejected ${outcome.rejected.length === 1 ? "segment" : "segments"}`
         : null;
-      const targets = kind === "profile"
+      const targets: PublicationTarget[] = kind === "profile"
         ? [{ kind: "contributor" as const, slug }, { kind: "about" as const }]
         : kind === "article"
           ? isPublicLocaleCode(job.locale)
@@ -193,9 +157,8 @@ async function processTranslationJobs(
       if (await completeTranslationJob(job, terminalDetail, targets)) {
         run.completed += 1;
         if (targets.length > 0) {
-          if (!(await deliverCache({ locale: job.locale, slug: job.slug, mode: job.mode, targets: JSON.stringify(targets) }))) {
-            run.cachePending += 1;
-          }
+          run.cachePending += 1;
+          expireLocally(job, targets);
         }
       }
       run.outcomes.push(outcome);

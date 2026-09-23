@@ -1,21 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const seams = vi.hoisted(() => ({
-  claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), refresh: vi.fn(), publish: vi.fn(), queueCache: vi.fn(),
-  acquire: vi.fn(), release: vi.fn(),
-  readCache: vi.fn(), completeCache: vi.fn(), record: vi.fn(),
+  claim: vi.fn(), complete: vi.fn(), fail: vi.fn(), refresh: vi.fn(), applyLocally: vi.fn(),
+  acquire: vi.fn(), release: vi.fn(), record: vi.fn(),
 }));
 vi.mock("@server/data/publicData.reads", () => ({ getPublicDataReadAdapter: () => ({}) }));
-vi.mock("@server/data/serverWriteCapability", () => ({
-  getServerDataWriteCapability: () => ({ ok: true, capability: { client: { mutationAsPublicationRecovery: seams.queueCache } } }),
-}));
-vi.mock("@server/postgres/runtime/api", () => ({ makeFunctionReference: (name: string) => name }));
 vi.mock("@server/postgres/runtime/backend", () => ({ getDataBackend: () => "postgres" }));
 vi.mock("@server/translation/segmentStore", () => ({
   claimTranslationJobs: seams.claim, completeTranslationJob: seams.complete, failTranslationJob: seams.fail,
   acquireTranslationWorkerLease: seams.acquire, releaseTranslationWorkerLease: seams.release,
-  claimTranslationCacheJobs: seams.readCache, completeTranslationCacheJob: seams.completeCache,
-  failTranslationCacheJob: async () => {},
   recordTranslationWorkerRun: seams.record, MAX_TRANSLATION_JOB_ATTEMPTS: 5,
 }));
 vi.mock("@server/translation/liveTranslation", () => ({
@@ -24,7 +17,7 @@ vi.mock("@server/translation/liveTranslation", () => ({
   loadTranslationContext: async () => ({}),
   refreshRecordTranslations: seams.refresh,
 }));
-vi.mock("@server/next/publishPublicCache", () => ({ publishPublicCache: seams.publish }));
+vi.mock("@server/next/publishPublicCache", () => ({ applyPublicCacheLocally: seams.applyLocally }));
 
 import { GET } from "./route";
 
@@ -39,12 +32,8 @@ beforeEach(() => {
   vi.stubEnv("OPENROUTER_API_KEY", "synthetic-fixture");
   seams.complete.mockResolvedValue(true);
   seams.fail.mockResolvedValue(true);
-  seams.publish.mockResolvedValue([{ status: "accepted" }]);
-  seams.queueCache.mockResolvedValue(undefined);
   seams.acquire.mockResolvedValue(true);
   seams.release.mockResolvedValue(undefined);
-  seams.readCache.mockResolvedValue([]);
-  seams.completeCache.mockResolvedValue(undefined);
   seams.record.mockResolvedValue(undefined);
 });
 afterEach(() => { vi.resetAllMocks(); vi.restoreAllMocks(); vi.unstubAllEnvs(); });
@@ -62,15 +51,13 @@ describe("translation completion", () => {
     expect(seams.claim).toHaveBeenCalledWith(1, "incremental");
   });
 
-  it("completes translation when cache delivery remains pending", async () => {
+  it("completes translation and leaves public delivery to the publication outbox", async () => {
     seams.claim.mockResolvedValueOnce([job]).mockResolvedValue([]);
     seams.refresh.mockResolvedValue(outcome);
-    seams.publish.mockResolvedValue([{ status: "unreachable" }]);
     const response = await GET(request());
     expect(await response.json()).toMatchObject({ claimed: 1, failed: 0, completed: 1, cachePending: 1 });
-    expect(seams.publish).toHaveBeenCalledTimes(1);
-    expect(seams.complete).toHaveBeenCalledTimes(1);
-    expect(seams.queueCache).toHaveBeenCalledTimes(1);
+    expect(seams.complete).toHaveBeenCalledWith(job, null, [{ kind: "article-translation", slug: "fixture", locale: "zh-Hans" }]);
+    expect(seams.applyLocally).toHaveBeenCalledTimes(1);
     expect(seams.fail).not.toHaveBeenCalled();
   });
 
@@ -86,6 +73,6 @@ describe("translation completion", () => {
     expect(await response.json()).toMatchObject({ claimed: 1, failed: 1, completed: 0 });
     expect(seams.claim).toHaveBeenCalledTimes(1);
     expect(seams.complete).not.toHaveBeenCalled();
-    expect(seams.publish).not.toHaveBeenCalled();
+    expect(seams.applyLocally).not.toHaveBeenCalled();
   });
 });
