@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  },
+  "include": ["next-env.d.ts", "lib/postgres/runtime", "lib/runtime"]
+}

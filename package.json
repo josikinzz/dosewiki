@@ -180,7 +180,7 @@
     "theme:classes:check": "bun src/theme/classUsageAudit.ts --check",
     "knip": "knip",
     "perf:replications": "node scripts/perf/replications.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && node scripts/build/typecheck-strict-null.mjs",
     "typecheck:scripts": "tsc --noEmit -p scripts/config/tsconfig.scripts.json",
     "typecheck:handlers": "tsc --noEmit -p scripts/config/tsconfig.handlers.json",
     "lint": "eslint src/ lib/",
