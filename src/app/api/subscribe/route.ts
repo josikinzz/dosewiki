@@ -7,10 +7,14 @@
  *
  * The intake mutation runs only on Postgres. A credential-free deployment
  * (Effect Index) forwards to `MAILING_LIST_FORWARD_URL`, the route owning the
- * list. The receiver limits the relay's platform-observed IP, not an unsigned
- * end-user IP header. `next.config.ts` rewrites `/subscribe` here.
+ * list, after spending a local per-reader budget. It forwards the reader's
+ * platform-observed IP in an HMAC-signed header; the receiver limits that IP
+ * only when the signature verifies, and the relay's own platform-observed IP
+ * otherwise, never an unsigned end-user IP header. `next.config.ts` rewrites
+ * `/subscribe` here.
  */
 import { isIP } from "node:net";
+import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { isDataWriteFreezeActive } from "@server/runtime/dataWriteFreeze";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { getPublicIntakeWriteCapability } from "@server/data/serverWriteCapability";
@@ -20,9 +24,12 @@ import {
   corsPreflightHeaders,
   corsResponseHeaders,
   createSubscribeRateLimiter,
+  getRelaySecret,
   hashClientIp,
   isAllowedOrigin,
   parseSubscribeBody,
+  readRelayedClientIp,
+  signRelayedClientIp,
   type MailingList,
 } from "./subscribePolicy";
 
@@ -78,8 +85,20 @@ export async function POST(request: Request) {
   // mutation in-process; it relays to the deployment that owns the list.
   const forwardUrl = process.env.MAILING_LIST_FORWARD_URL?.trim();
   if (forwardUrl && /^https:\/\/\S+$/.test(forwardUrl)) {
-    return forwardSignup(forwardUrl, origin, parsed, userAgent);
+    // The receiver sees only the relay's address unless the signed header
+    // below verifies, so the relay limits each reader itself first.
+    if (await enforceRateLimit(request, "publicSubscribeRelay", { clientIp })) {
+      return respond(origin, false, 429);
+    }
+    const relaySecret = getRelaySecret();
+    const relayHeaders = relaySecret && clientIp !== "unknown" ? signRelayedClientIp(clientIp, relaySecret) : {};
+    return forwardSignup(forwardUrl, origin, parsed, userAgent, relayHeaders);
   }
+
+  // A relayed reader's address counts only when the relay's signature over it
+  // verifies; otherwise the caller's own platform-observed address is limited.
+  const relayedIp = readRelayedClientIp(request.headers, getRelaySecret());
+  const limitedIp = relayedIp && isIP(relayedIp) ? relayedIp : clientIp;
 
   try {
     const capability = getPublicIntakeWriteCapability();
@@ -89,14 +108,14 @@ export async function POST(request: Request) {
       getPostgresClient(),
       process.env.MAILING_LIST_IP_HASH_SECRET ?? "",
     );
-    if (!(await rateLimiter.limit("subscribePerIp", clientIp)).ok) return respond(origin, false, 429);
+    if (!(await rateLimiter.limit("subscribePerIp", limitedIp)).ok) return respond(origin, false, 429);
     if (!(await rateLimiter.limit("subscribeGlobal")).ok) return respond(origin, false, 429);
 
     const outcome = await capability.client.mutationAsService(subscribeMutation, {
       email: parsed.email,
       list: parsed.list,
       honeypotTriggered: typeof parsed.website === "string" && parsed.website.trim().length > 0,
-      ipHash: hashClientIp(clientIp, process.env.MAILING_LIST_IP_HASH_SECRET),
+      ipHash: hashClientIp(limitedIp, process.env.MAILING_LIST_IP_HASH_SECRET),
       userAgent,
     });
 
@@ -113,6 +132,7 @@ async function forwardSignup(
   origin: string,
   parsed: { email: string; list: string; website: unknown },
   userAgent: string | undefined,
+  relayHeaders: Record<string, string>,
 ): Promise<Response> {
   let upstream: Response;
   try {
@@ -122,6 +142,7 @@ async function forwardSignup(
         ...JSON_HEADERS,
         Origin: origin,
         ...(userAgent ? { "User-Agent": userAgent } : {}),
+        ...relayHeaders,
       },
       body: JSON.stringify({ email: parsed.email, list: parsed.list, website: parsed.website }),
       cache: "no-store",

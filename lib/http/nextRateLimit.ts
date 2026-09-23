@@ -17,9 +17,14 @@ type RateLimitOptions = {
   keySuffix?: string;
 };
 
-/** Separates the bucket of a named policy from other policies on the same path. */
 type RateLimitKeyOptions = {
+  /** Separates the bucket of a named policy from other policies on the same path. */
   keySuffix?: string;
+  /**
+   * The caller's address when the route resolved it from a trusted source
+   * (a platform header) rather than the default forwarding headers.
+   */
+  clientIp?: string;
 };
 
 type LegacyRateLimitPolicy =Omit<RateLimitPolicy, "name"> & {
@@ -187,9 +192,9 @@ function resolveKeySuffix(
   return new URL(request.url).pathname;
 }
 
-function buildRateLimitKey(request: Request, keySuffix: string) {
+function buildRateLimitKey(request: Request, keySuffix: string, clientIp?: string) {
   return {
-    key: getWindowKey(getClientIp(request), keySuffix),
+    key: getWindowKey(clientIp ?? getClientIp(request), keySuffix),
     keyType: "ip" as const,
   };
 }
@@ -220,7 +225,7 @@ export async function enforceRateLimit(
 ) {
   const policy = resolvePolicy(policyOrOptions);
   const keySuffix = resolveKeySuffix(request, policyOrOptions, keyOptions);
-  const { key, keyType } = buildRateLimitKey(request, keySuffix);
+  const { key, keyType } = buildRateLimitKey(request, keySuffix, keyOptions?.clientIp);
   const result = await limitWithFallback(key, policy);
 
   if (result.success) {

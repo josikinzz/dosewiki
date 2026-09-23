@@ -5,6 +5,7 @@ export type RateLimitPolicyName =
   | "publicTripReportSubmit"
   | "publicArticleFeedbackSubmit"
   | "publicSiteFeedbackSubmit"
+  | "publicSubscribeRelay"
   | "publicProxyRead"
   | "publicationSignalVerified"
   | "diagnosticRead"
@@ -73,6 +74,20 @@ const rateLimitPolicies = {
     name: "publicSiteFeedbackSubmit",
     windowMs: ONE_MINUTE_MS,
     max: 3,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  /**
+   * Signups a credential-free relay (Effect Index) forwards to the list owner.
+   * The relay holds no database limiter, so it spends this local per-reader
+   * budget, matching the receiver's `subscribePerIp` refill of five per ten
+   * minutes, before it forwards anything.
+   */
+  publicSubscribeRelay: {
+    name: "publicSubscribeRelay",
+    windowMs: 10 * ONE_MINUTE_MS,
+    max: 5,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",
