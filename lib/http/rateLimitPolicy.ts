@@ -44,9 +44,9 @@ const rateLimitPolicies = {
   publicProxyRead: { windowMs: ONE_MINUTE_MS, max: 30 },
   /**
    * Publication signals whose HMAC signature already verified. The editor sends
-   * one signed request per outbox row and cache fan-out sends up to 200 at a
-   * time, all from the editor's egress address, so this bucket is sized for
-   * that burst and kept apart from the unverified public limit.
+   * one signed request per outbox row, six rows in flight at a time, all from
+   * the editor's egress address, so this bucket is sized for that burst and
+   * kept apart from the unverified public limit.
    */
   publicationSignalVerified: { windowMs: ONE_MINUTE_MS, max: 600 },
   diagnosticRead: { windowMs: ONE_MINUTE_MS, max: 30 },

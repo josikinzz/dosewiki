@@ -17,7 +17,6 @@ const tables = ["substanceIndex", "subjectiveEffects", "effectIndexArticles", "e
 type Table = typeof tables[number];
 
 type Row = Record<string, unknown>;
-const publicationIdentity = publicationOutboxKey;
 
 function targetsFor(
   table: Table,
@@ -124,13 +123,13 @@ export function withPublicationOutbox(ctx: MutationCtx) {
         const afterTargets = targetsFor(table, after, dependency);
         const beforeTargets = targetsFor(table, before, dependency);
         for (const target of beforeTargets) {
-          const key = publicationIdentity(target);
-          if (!afterTargets.some((candidate) => publicationIdentity(candidate) === key)) {
+          const key = publicationOutboxKey(target);
+          if (!afterTargets.some((candidate) => publicationOutboxKey(candidate) === key)) {
             targets.set(key, { target, revision: null });
           }
         }
         for (const target of afterTargets) {
-          const key = publicationIdentity(target);
+          const key = publicationOutboxKey(target);
           const current = targets.get(key);
           const preferredTarget = current?.target.kind === "article" && target.kind === "article"
             ? {

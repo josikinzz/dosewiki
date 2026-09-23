@@ -8,14 +8,13 @@ import { PostgresDatabaseReader, serialExecutor } from "../../lib/postgres/runti
 import { losslessSelectList, rowToDocument } from "../../lib/postgres/documentCodec";
 import { normalizePublicEffectIndexArticle } from "../../lib/data/publicData.publicationProjection";
 import { POOL_ACQUISITION_TIMEOUT_MS, setTransactionTimeouts } from "../../lib/postgres/transactionTimeouts";
-import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { lockLocalizedPublicationIndexes, refreshLocalizedPublicationIndexes, readLocalizedPublicationIndex } from "../../lib/translation/publicationIndexStore";
 import { LIBRARY_TRANSLATION_CORPUS, projectLocalizedPublicationIndex } from "../../lib/translation/publicationIndexProjection";
 import { extractSegments } from "./segment-manifest.mjs";
 import { requireAdminIntentToken } from "../lib/data-ops-run-context.mjs";
-import { createProductionWriteCommand, assertProductionWriteAllowed } from "../lib/production-write-command.mjs";
+import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
 import { productionWriterClassifications } from "../lib/production-writer-inventory.mjs";
-import { guardTarget } from "../postgres/targetGuard";
+import { guardTarget, isLoopbackHostname } from "../postgres/targetGuard";
 
 import { resolveLocale } from "./locales.mjs";
 
@@ -35,12 +34,12 @@ async function main() {
   if (command.backend !== "postgres" || !command.targetUrl) throw new Error("Set DATA_BACKEND=postgres and an explicit --target or TARGET_POSTGRES_URL");
   const target = new URL(command.targetUrl);
   if ([...target.searchParams.keys()].some((key) => key !== "sslmode")) throw new Error("Only sslmode target URL parameters are permitted");
-  guardTarget(command.targetUrl, values["allow-remote"]);
   const actorEmail = values["actor-email"]?.trim().toLowerCase();
+  // A read-only plan still needs the host guard; a write runs the whole ordered ceremony.
+  if (!values.write) guardTarget(command.targetUrl, values["allow-remote"]);
   if (values.write) {
-    assertProductionWriteAllowed(command);
-    assertDataWritesNotFrozen(OPERATION);
-    if (!["localhost", "127.0.0.1", "[::1]"].includes(target.hostname) &&
+    authorizeProductionWrite(command);
+    if (!isLoopbackHostname(target.hostname) &&
       !(productionWriterClassifications.productionBoundary as readonly string[]).includes(SCRIPT)) {
       throw new Error("This operation is not in the production writer allowlist. Owner approval and a separately reviewed classification change are required");
     }
@@ -107,8 +106,8 @@ async function main() {
       const after = (await client.query('SELECT * FROM "localizedPublicationIndexes" WHERE "locale" = $1 ORDER BY "publication_id"', [LOCALE])).rows;
       await journal.writeFile(`${JSON.stringify({ state: "written-uncommitted", after })}\n`);
       await journal.sync();
-      assertProductionWriteAllowed(command);
-      assertDataWritesNotFrozen(OPERATION);
+      // Re-check at the commit point: a freeze set mid-run still refuses.
+      authorizeProductionWrite(command);
       await client.query("COMMIT");
       await journal.writeFile(`${JSON.stringify({ state: "committed", count: actual.length })}\n`);
       await journal.sync();
