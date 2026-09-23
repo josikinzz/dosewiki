@@ -82,6 +82,31 @@ publication is a separate Git mutation behind the repository deployment guard.
 
 Before initial activation or any configuration or source-revision change, verify both GitHub values and prove that the dedicated reader authenticates without write or admin privileges. Configuration alone does not publish the Postgres-capable producer and its dependencies: review the exact source revision present on the workflow branch before authorizing a run. Workflow publication and dispatch require owner approval because the job can commit and push public pack outputs. Expected result is a read-only database run with the freeze engaged. Recovery is to disable the schedule and inspect its report; it has no database-write rollback.
 
+## Remote build deploy token
+
+The remote build workflow (see [security CI](security-ci.md#remote-build-workflow))
+authenticates to Vercel with one token per GitHub environment, beside the
+org id and the surface's project id. Provisioning it is a human step:
+
+- Create the token in Vercel with the narrowest scope the account offers (the
+  team that owns the three projects, nothing wider). Vercel tokens cannot be
+  restricted to "deploy but never alias"; the workflow's lack of an alias or
+  `--prod` step is the control, so the token is production-capable and the
+  environment must require a reviewer.
+- Store it only as `VERCEL_TOKEN` in the GitHub environment for that surface,
+  never in `.env.local`, argv, logs, or this file.
+- Record here the token's scope, the environment it lives in, and the date it
+  was created, without the value. Rotate it with the same record.
+
+| Environment | Surface | Token scope | Created | Notes |
+| ----------- | ------- | ----------- | ------- | ----- |
+| not yet provisioned | public | | | first remote build pending |
+| not yet provisioned | editor | | | first remote build pending |
+| not yet provisioned | effectindex | | | first remote build pending |
+
+No environment used by the workflow may hold `DATA_ADMIN_KEY`, any
+`DATA_ADMIN_TOKEN_*`, or a Postgres URL with write grants.
+
 ## Application rollback
 
 Application rollback restores a previous compatible Postgres artifact and configuration while retaining current data. There is no alternate-backend rollback command in this checkout; PlanetScale Postgres is the only runtime. Any exceptional database recovery requires fresh owner authorization and all target, freeze, role and confirmation gates.

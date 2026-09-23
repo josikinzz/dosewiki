@@ -1,0 +1,215 @@
+name: Remote Build
+
+# Build one surface on a runner near the database and upload it to Vercel as a
+# prebuilt preview deployment. Stops there: no step assigns an alias, no step
+# passes --prod, and no database write credential is available to the job.
+# Promotion stays in the manual release ceremony in docs/operations/deployment.md.
+#
+# Capabilities and limits are described in docs/operations/security-ci.md
+# under "Remote build workflow".
+
+on:
+  workflow_dispatch:
+    inputs:
+      surface:
+        description: Artifact to build
+        type: choice
+        required: true
+        options:
+          - public
+          - editor
+          - effectindex
+      ref:
+        description: Git ref to build (empty builds the ref this run was dispatched from)
+        type: string
+        required: false
+        default: ""
+      runner:
+        description: Runner label for runs-on (GitHub-hosted by default; a Blacksmith label is a drop-in swap)
+        type: string
+        required: false
+        default: ubuntu-latest
+      environment:
+        description: GitHub environment holding the surface's Vercel deploy token and project id
+        type: environment
+        required: true
+      dry_run:
+        description: Only print the build wrapper's plan; no build, no deploy
+        type: boolean
+        required: false
+        default: false
+      build_workers:
+        description: DOSEWIKI_BUILD_WORKERS (static generation workers, 1 to 16)
+        type: string
+        required: false
+        default: "4"
+      pages_per_worker:
+        description: DOSEWIKI_BUILD_PAGES_PER_WORKER (pages in flight per worker, 1 to 8)
+        type: string
+        required: false
+        default: "1"
+
+permissions:
+  contents: read
+
+# One build per surface at a time so two runs never race for the same cache key.
+concurrency:
+  group: remote-build-${{ inputs.surface }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ inputs.surface }} on ${{ inputs.runner }}
+    runs-on: ${{ inputs.runner }}
+    environment: ${{ inputs.environment }}
+    env:
+      DATA_BACKEND: postgres
+      DATA_WRITES_FROZEN: "1"
+      VERCEL_CLI: vercel@59.25.4
+
+    steps:
+      - name: Checkout the requested ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Check for secrets in codebase
+        run: node scripts/security/scan-secrets.mjs --tracked
+
+      - name: Resolve the artifact's build surface and flavor
+        id: artifact
+        run: |
+          case "${{ inputs.surface }}" in
+            public)      echo "surface=public" >> "$GITHUB_OUTPUT"; echo "flavor=dosewiki"    >> "$GITHUB_OUTPUT"; echo "dir=.next"        >> "$GITHUB_OUTPUT" ;;
+            editor)      echo "surface=editor" >> "$GITHUB_OUTPUT"; echo "flavor=dosewiki"    >> "$GITHUB_OUTPUT"; echo "dir=.next-editor" >> "$GITHUB_OUTPUT" ;;
+            effectindex) echo "surface=public" >> "$GITHUB_OUTPUT"; echo "flavor=effectindex" >> "$GITHUB_OUTPUT"; echo "dir=.next"        >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Unknown surface ${{ inputs.surface }}"; exit 1 ;;
+          esac
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Print the build wrapper's plan (dry run)
+        if: ${{ inputs.dry_run }}
+        env:
+          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
+          NEXT_PUBLIC_SITE_FLAVOR: ${{ steps.artifact.outputs.flavor }}
+        run: |
+          node scripts/deploy/vercel-build.mjs --plan | tee plan.txt
+          {
+            echo "## Dry run: ${{ inputs.surface }} on ${{ inputs.runner }}"
+            echo
+            echo '```'
+            cat plan.txt
+            echo '```'
+            echo
+            echo "No build ran and nothing was deployed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The webpack filesystem cache is versioned with the Next deployment ID
+      # inside next.config.ts; this key only decides which snapshot to restore.
+      - name: Restore the Next build cache
+        if: ${{ !inputs.dry_run }}
+        id: cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.artifact.outputs.dir }}/cache
+          key: next-cache-${{ inputs.surface }}-${{ hashFiles('bun.lock') }}-${{ github.sha }}
+          restore-keys: |
+            next-cache-${{ inputs.surface }}-${{ hashFiles('bun.lock') }}-
+            next-cache-${{ inputs.surface }}-
+
+      # Pulls the project settings the CLI needs to run the package-owned build
+      # command. The pulled environment file is deleted before anything reads
+      # it: this job builds with the variables named below and nothing else.
+      - name: Link the Vercel project for this surface
+        if: ${{ !inputs.dry_run }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo "::error::VERCEL_TOKEN is required in the selected environment"; exit 1; }
+          test -n "$VERCEL_ORG_ID" || { echo "::error::VERCEL_ORG_ID is required in the selected environment"; exit 1; }
+          test -n "$VERCEL_PROJECT_ID" || { echo "::error::VERCEL_PROJECT_ID is required in the selected environment"; exit 1; }
+          bunx "$VERCEL_CLI" pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          rm -f .vercel/.env.*.local
+
+      # vercel build runs vercel.json's buildCommand (bun run build:vercel), so
+      # the function-reference check and the artifact audit run exactly as they
+      # do on a laptop. Configure the values in the selected environment;
+      # RELEASE_BUILD_ENABLED is the same explicit gate the policy workflow uses.
+      - name: Build with explicitly approved read-only configuration
+        if: ${{ !inputs.dry_run }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          RELEASE_BUILD_ENABLED: ${{ vars.RELEASE_BUILD_ENABLED }}
+          POSTGRES_POOLED_URL: ${{ secrets.POSTGRES_POOLED_READONLY_URL }}
+          REPLICATION_MEDIA_BASE_URL: ${{ vars.REPLICATION_MEDIA_BASE_URL }}
+          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
+          NEXT_PUBLIC_SITE_FLAVOR: ${{ steps.artifact.outputs.flavor }}
+          DOSEWIKI_BUILD_WORKERS: ${{ inputs.build_workers }}
+          DOSEWIKI_BUILD_PAGES_PER_WORKER: ${{ inputs.pages_per_worker }}
+        run: |
+          test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
+          test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
+          test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL is required"; exit 1; }
+          bunx "$VERCEL_CLI" build --yes --token="$VERCEL_TOKEN"
+
+      - name: Save the Next build cache
+        if: ${{ !inputs.dry_run && always() }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.artifact.outputs.dir }}/cache
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+
+      - name: Prerender census
+        if: ${{ !inputs.dry_run }}
+        env:
+          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
+        run: bun run build:census -- "${{ steps.artifact.outputs.dir }}" | tee census.txt
+
+      # A preview deployment only. No --prod, no alias, no promotion: the
+      # deployment URL is printed for the release ceremony to inspect.
+      - name: Deploy the prebuilt output to a preview URL
+        if: ${{ !inputs.dry_run }}
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          url="$(bunx "$VERCEL_CLI" deploy --prebuilt --yes --token="$VERCEL_TOKEN")"
+          test -n "$url" || { echo "::error::vercel deploy printed no deployment URL"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the job summary
+        if: ${{ !inputs.dry_run && always() }}
+        run: |
+          case "${{ steps.cache.outputs.cache-hit }}" in
+            true) cache="hit (exact key)";;
+            *) if [ -n "${{ steps.cache.outputs.cache-matched-key }}" ]; then cache="partial hit (${{ steps.cache.outputs.cache-matched-key }})"; else cache="miss"; fi;;
+          esac
+          {
+            echo "## Remote build: ${{ inputs.surface }} on ${{ inputs.runner }}"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Ref | \`${{ inputs.ref || github.ref }}\` at \`${{ github.sha }}\` |"
+            echo "| Next cache | $cache |"
+            echo "| Workers x pages per worker | ${{ inputs.build_workers }} x ${{ inputs.pages_per_worker }} |"
+            echo "| Preview deployment | ${{ steps.deploy.outputs.url || 'not deployed (see the failed step)' }} |"
+            echo
+            echo "No alias was assigned. Promotion is a separate, manual step."
+            echo
+            echo '```'
+            cat census.txt 2>/dev/null || echo "census unavailable: the build did not finish"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
