@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
-import { compareToBaseline, scanEmDashes } from "./em-dash-policy.mjs";
+import { checkRepository, compareToBaseline, scanEmDashes } from "./em-dash-policy.mjs";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 const EM = "—";
 
@@ -38,4 +42,10 @@ test("the comment baseline is a ratchet that fails when it grows or goes stale",
   assert.match(compareToBaseline({ "src/a.ts": 2, "src/b.ts": 1, "src/c.ts": 1 }, baseline, 3).join("\n"), /src\/c\.ts has 1 comment em dash; the baseline allows 0/);
   assert.match(compareToBaseline({ "src/a.ts": 1, "src/b.ts": 1 }, baseline, 3).join("\n"), /src\/a\.ts now has 1.*shrink/);
   assert.match(compareToBaseline({ "src/a.ts": 2, "src/b.ts": 1 }, { ...baseline, "src/c.ts": 1 }, 3).join("\n"), /baseline allows 4 comment em dashes, above its ceiling of 3/);
+});
+
+test("the repository carries no reader-facing em dashes and matches its comment baseline", () => {
+  const { violations, baselineProblems } = checkRepository(repoRoot);
+  assert.deepEqual(violations, []);
+  assert.deepEqual(baselineProblems, []);
 });

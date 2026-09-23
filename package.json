@@ -184,7 +184,7 @@
     "typecheck": "tsc --noEmit && node scripts/build/typecheck-strict-null.mjs",
     "typecheck:scripts": "tsc --noEmit -p scripts/config/tsconfig.scripts.json",
     "typecheck:handlers": "tsc --noEmit -p scripts/config/tsconfig.handlers.json",
-    "lint": "eslint src/ lib/",
+    "lint": "eslint src/ lib/ && node scripts/lint/check-em-dashes.mjs",
     "lint:fix": "eslint src/ lib/ --fix",
     "lint:api": "eslint src/app/api/",
     "audit:effect-links": "bun scripts/analyze/audit-effect-name-links.mjs",
