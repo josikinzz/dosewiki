@@ -98,7 +98,10 @@ export function HomeExperience({
           )}
         </section>
 
-        <HomeLanguageMenu languages={languages} />
+        {/* Editor build only until the translations are ready for the Public Hosts. */}
+        {process.env.NEXT_PUBLIC_EDITOR_BUILD === "true" ? (
+          <HomeLanguageMenu languages={languages} />
+        ) : null}
 
         <HomeMailingListCorner />
       </main>
