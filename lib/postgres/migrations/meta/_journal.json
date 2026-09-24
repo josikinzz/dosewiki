@@ -176,6 +176,13 @@
       "when": 1790133261380,
       "tag": "0024_translation_queue_dead_letters",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790221408785,
+      "tag": "0025_site_config_translation_credits",
+      "breakpoints": true
     }
   ]
 }

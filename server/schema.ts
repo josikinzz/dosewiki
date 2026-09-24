@@ -637,7 +637,7 @@ export default defineSchema({
   // One document per well-known `key`; every payload field is optional because
   // a document only carries the fields its own key means.
   //
-  //   "about"                              → aboutMarkdown / aboutSubtitle / founderProfileKeys
+  //   "about"                              → aboutMarkdown / aboutSubtitle / founderProfileKeys / translationCredits
   //   "effect-index-featured-replications" → featuredReplicationSlugs
   //   "safety-banner-display"              → bannerIconSize
   //
@@ -651,6 +651,13 @@ export default defineSchema({
     aboutMarkdown: v.optional(v.string()),
     aboutSubtitle: v.optional(v.string()),
     founderProfileKeys: v.optional(v.array(v.string())),
+    // Per translation locale, the contributor profiles credited on that
+    // language's public glossary and About mirror, each with one line saying
+    // what they contributed. Validated at the HTTP boundary (translationCredits.ts).
+    translationCredits: v.optional(v.record(v.string(), v.array(v.object({
+      profileKey: v.string(),
+      contribution: v.string(),
+    })))),
     featuredReplicationSlugs: v.optional(v.array(v.string())),
     bannerIconSize: v.optional(v.number()),
     updatedAt: v.string(),
