@@ -8,6 +8,7 @@ import { Surface } from "@/components/ui/surface";
 import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
 import { ExpandButton } from "@/components/common/ExpandButton";
+import { count } from "./glossaryModel";
 import { loadSearchManifestIndex } from "@/hooks/useSearchManifest";
 import { parseUiLocale } from "@/i18n/messages";
 import type { SearchManifestIndex } from "@/data/builders/searchManifest";
@@ -237,15 +238,14 @@ export function NarrativeReview({ locale, canAdmin = false }: {
         }
     }
     const editor = row ? <Surface variant="subtle" padding="sm" radius="lg" className="min-w-0 space-y-3 break-words">
-   <h4 className="theme-text-primary font-medium">{row.field} · {MARKS[row.status]?.label ?? row.status} · revision {row.revision}</h4>
-   <p className="theme-text-secondary text-sm">Machine target: {row.machine?.target ?? "Missing"}</p>
-   <p className="theme-text-faint text-xs">Model {row.machine?.model ?? "unknown"} · prompt {row.machine?.prompt_version ?? "unknown"}</p>
-   <p className="theme-text-secondary text-sm">Approved target: {row.approved?.target ?? "Not reviewed"}</p>
-   <p className="theme-text-secondary text-sm">{row.usages ? `${row.usages.total} current records share this English hash; showing ${row.usages.pages.length}.` : "Shared-hash usage was not included in this bounded inventory."} This correction affects only {packet?.slug}, {row.field}.</p>
+   <h4 className="theme-text-primary font-medium">{row.field} · {MARKS[row.status]?.label ?? row.status}</h4>
+   <p className="theme-text-secondary text-sm" title={`Model ${row.machine?.model ?? "unknown"} · prompt ${row.machine?.prompt_version ?? "unknown"}`}>Machine translation: {row.machine?.target ?? "Missing"}</p>
+   <p className="theme-text-secondary text-sm">Approved translation: {row.approved?.target ?? "Not reviewed"}</p>
+   <p className="theme-text-secondary text-sm">{row.usages ? `The same English appears in ${count(row.usages.total, "place")}; showing ${row.usages.pages.length}.` : "Other places with the same English were not checked."} This correction changes only {packet?.slug}, {row.field}.</p>
    <ul className="theme-text-secondary text-sm">{row.usages?.pages.map(p => <li key={`${p.kind}:${p.slug}`}><SmartLink className="underline" href={p.href}>{p.kind}: {p.label}</SmartLink></li>)}</ul>
    <label htmlFor={`${formId}-correction`} className="block">Correction<Textarea id={`${formId}-correction`} ref={correctionRef} lang={locale} value={target} onChange={e => setTarget(e.target.value)} disabled={busy} maxLength={30000}/></label>
    <CorrectionReasonFields value={reason} onChange={setReason} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy}/>
-   <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.kind || openConflicts(row.source, target, row.glossary, exceptionsFor(reason, row.id)).length > 0} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.kind} onClick={() => void mutate("approve")}>Approve saved revision</Button><Button variant="ghost" disabled={busy} onClick={closeEditor}>Close editor</Button></div>
+   <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.kind || openConflicts(row.source, target, row.glossary, exceptionsFor(reason, row.id)).length > 0} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.kind} onClick={() => void mutate("approve")}>Approve saved draft</Button><Button variant="ghost" disabled={busy} onClick={closeEditor}>Close editor</Button></div>
    <ExpandButton variant="inline" className="-ml-1 text-current" isExpanded={historyOpen} ariaLabel={`History for ${row.field}`} onToggle={() => setHistoryOpen(!historyOpen)}>History</ExpandButton>
    {historyOpen ? history.length === 0 ? <p className="theme-text-faint text-xs">No recorded review history for this paragraph.</p> : <ul className="space-y-2" aria-label="Review history">{history.map(h => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)}{h.glossaryExceptions?.length ? ` Kept out on purpose: ${h.glossaryExceptions.join(", ")}.` : ""} <Button size="sm" variant="outline" disabled={busy || !reason.kind} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button>{h.action === "save" && h.reason.kind === "fluency" && packet ? <PromoteToStyleGuide locale={locale} slug={packet.slug} segment={row.id} revision={h.revision} disabled={busy}/> : null}</li>)}</ul> : null}
   </Surface> : null;
@@ -253,8 +253,8 @@ export function NarrativeReview({ locale, canAdmin = false }: {
   <p className="theme-text-secondary text-sm">Review one public substance article. Corrections apply only to the selected paragraph and source context. Other uses of identical English retain their own wording.</p>
   <div className="flex flex-wrap items-end gap-3">
    <ArticlePicker locale={locale} disabled={busy} onChoose={choose}/>
-   <label htmlFor={`${formId}-slug`}>Source slug<Input id={`${formId}-slug`} value={slug} disabled={busy} onChange={e => { setSlug(e.target.value); setPacket(null); setHistory([]); }}/></label>
-   <Button disabled={busy || !slug.trim()} onClick={() => void load()}>Load source</Button>
+   <label htmlFor={`${formId}-slug`}>Article slug<Input id={`${formId}-slug`} value={slug} disabled={busy} onChange={e => { setSlug(e.target.value); setPacket(null); setHistory([]); }}/></label>
+   <Button disabled={busy || !slug.trim()} onClick={() => void load()}>Open article</Button>
   </div>
   {error ? <StateCard compact tone="danger" title="Review failed" description={error}/> : null}
   {publication.length > 0 ? <ul className="theme-text-secondary text-sm">{publication.map((receipt, index) => <li key={index}>{receipt.target}: {receipt.status} ({receipt.attempts} attempts). {receipt.detail}</li>)}</ul> : null}

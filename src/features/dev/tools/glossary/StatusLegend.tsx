@@ -10,9 +10,9 @@ import { ExpandIndicator } from "@/components/common/ExpandButton";
  */
 export const STATUS_LEGEND: readonly { state: string; meaning: string }[] = [
   { state: "Machine", meaning: "Stored model wording. No person has checked it." },
-  { state: "Draft", meaning: "Saved wording waiting for someone to approve that exact revision. Readers do not see it." },
+  { state: "Draft (unreviewed)", meaning: "Saved wording waiting for someone to approve it. Readers do not see it yet." },
   { state: "Live, never checked", meaning: "Wording approved before review tracking existed. It is live; Confirm records a person's check." },
-  { state: "Human approved", meaning: "A person approved this revision in its current English and context." },
+  { state: "Human approved", meaning: "A person approved this wording for the current English and context." },
   { state: "Source changed", meaning: "The English or its context changed after approval, so the approval no longer applies until someone reviews it again." },
   { state: "Re-check", meaning: "The approved wording still shows, but nearby English changed. Check that it still fits." },
 ];

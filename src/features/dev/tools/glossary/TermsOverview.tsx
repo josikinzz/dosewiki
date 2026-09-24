@@ -33,7 +33,7 @@ export function TermsOverview({ counts, next, canAdmin, pendingCount, nothingTra
     ? `Nothing has been translated with these terms yet.${canAdmin ? " Start the main translation from Runs in Articles." : ""}`
     : pendingCount > 0
       ? canAdmin
-        ? `${count(pendingCount, "approved rendering")} ${pendingCount === 1 ? "has" : "have"} not reached the article translations yet. Retranslate from Runs in Articles.`
+        ? `${count(pendingCount, "approved translation")} ${pendingCount === 1 ? "has" : "have"} not reached the article translations yet. Retranslate from Runs in Articles.`
         : "Approved changes reach the article translations when an admin retranslates."
       : null;
 

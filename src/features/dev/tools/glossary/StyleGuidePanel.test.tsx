@@ -40,7 +40,7 @@ it("drafts rules and examples, then approves the saved revision", async () => {
   await user.type(screen.getByRole("textbox", { name: "Why" }), "A gallery label is a noun.");
   await user.click(screen.getByRole("button", { name: "Add example to draft" }));
   await user.type(screen.getByRole("textbox", { name: "Reason" }), "House style");
-  expect(screen.getByRole("button", { name: "Approve saved revision" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
 
   await user.click(screen.getByRole("button", { name: "Save draft" }));
   await screen.findByText("Draft saved. Prompts still read the approved guide.");
@@ -49,7 +49,7 @@ it("drafts rules and examples, then approves the saved revision", async () => {
     guide: { rules: ["用“服用”描述剂量。"], examples: [EXAMPLE, { before: "返回复现", after: "复现作品", why: "A gallery label is a noun." }] },
   });
 
-  await user.click(screen.getByRole("button", { name: "Approve saved revision" }));
+  await user.click(screen.getByRole("button", { name: "Approve saved draft" }));
   await screen.findByText(/Approved\. The next translation run reads this guide/);
   expect(writes[1]).toMatchObject({ action: "approve", expectedRevision: 3 });
 });
@@ -77,8 +77,8 @@ it("offers Promote to style guide on a saved Fluency correction only, and sends 
   }));
   const user = userEvent.setup();
   render(<NarrativeReview locale="zh-Hans" />);
-  await user.type(screen.getByRole("textbox", { name: "Source slug" }), "sample");
-  await user.click(screen.getByRole("button", { name: "Load source" }));
+  await user.type(screen.getByRole("textbox", { name: "Article slug" }), "sample");
+  await user.click(screen.getByRole("button", { name: "Open article" }));
   await user.click(await screen.findByRole("button", { name: "Review summary" }));
   await user.click(await screen.findByRole("button", { name: "History for summary" }));
 

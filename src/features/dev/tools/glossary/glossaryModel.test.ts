@@ -72,9 +72,9 @@ describe("filterRows", () => {
 
 describe("standingLabel", () => {
   it("names what is left in each state and drops empty parts", () => {
-    expect(standingLabel({ drafts: 3, unchecked: 2 })).toBe("3 drafts, 2 never checked");
-    expect(standingLabel({ drafts: 1, unchecked: 0 })).toBe("1 draft");
-    expect(standingLabel({ drafts: 0, unchecked: 4 })).toBe("4 never checked");
+    expect(standingLabel({ drafts: 3, unchecked: 2 })).toBe("3 unreviewed · 2 live, never checked");
+    expect(standingLabel({ drafts: 1, unchecked: 0 })).toBe("1 unreviewed");
+    expect(standingLabel({ drafts: 0, unchecked: 4 })).toBe("4 live, never checked");
     expect(standingLabel({ drafts: 0, unchecked: 0 })).toBeNull();
   });
 });

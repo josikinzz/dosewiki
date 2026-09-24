@@ -8,6 +8,7 @@ import type { GlossaryGloss } from "@server/translation/glossaryGloss";
 import type { ReviewReason } from "@server/translation/reviewReason";
 import type { GlossaryListResponse } from "@/app/api/dev/translation-glossary/glossaryRoutes";
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
+import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 
 export type GlossaryRow = GlossaryListResponse["rows"][number];
 
@@ -34,10 +35,10 @@ export function reviewCounts(rows: readonly GlossaryRow[]): ReviewCounts {
   return counts;
 }
 
-/** "3 drafts, 2 never checked"; either part drops out at zero, and `null` means nothing is left. */
+/** "3 unreviewed · 2 live, never checked"; either part drops out at zero, and `null` means nothing is left. */
 export function standingLabel({ drafts, unchecked }: Pick<ReviewCounts, "drafts" | "unchecked">): string | null {
-  const parts = [drafts > 0 ? count(drafts, "draft") : null, unchecked > 0 ? `${unchecked} never checked` : null].filter((part): part is string => part !== null);
-  return parts.length > 0 ? parts.join(", ") : null;
+  const parts = [drafts > 0 ? `${drafts} ${STATE_WORD.draft}` : null, unchecked > 0 ? `${unchecked} live, never checked` : null].filter((part): part is string => part !== null);
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 export type GlossaryList = GlossaryListResponse;
@@ -56,6 +57,13 @@ export const DEFAULT_FILTERS: GlossaryFilters = { status: "all", search: "" };
  * value; "unreviewed" is the only word the tab shows for it.
  */
 export const STATE_WORD: Record<GlossaryStatus, string> = { draft: "unreviewed", approved: "approved" };
+
+/** "Deutsch (German)" where the site knows the language's own name, else the code. */
+export function languageLabel(code: string): string {
+  const language = glossaryLanguage(code);
+  if (!language) return code;
+  return language.nativeName && language.nativeName !== language.name ? `${language.nativeName} (${language.name})` : language.name;
+}
 
 /** "1 term", "3 terms"; pass the plural for an irregular noun. */
 export function count(n: number, noun: string, plural = noun + "s"): string {

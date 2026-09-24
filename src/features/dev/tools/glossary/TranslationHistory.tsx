@@ -28,7 +28,7 @@ function HistorySnapshot({ state, title }: { state: ReviewState; title: string }
       <div><dt className="theme-text-faint">English source</dt><dd className="theme-text-secondary whitespace-pre-wrap">{snapshot.source}</dd></div>
       <div><dt className="theme-text-faint">Context</dt><dd className="theme-text-secondary whitespace-pre-wrap">{snapshot.context || "No context recorded"}</dd></div>
       <div><dt className="theme-text-faint">Translation</dt><dd className="theme-text-primary whitespace-pre-wrap">{snapshot.target}</dd></div>
-    </dl> : <p className="theme-text-secondary">No rendering</p>}
+    </dl> : <p className="theme-text-secondary">No translation</p>}
   </div>;
 }
 

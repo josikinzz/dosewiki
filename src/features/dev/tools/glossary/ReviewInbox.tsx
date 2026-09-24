@@ -124,7 +124,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   const fineHere = (item: InboxItem) => {
     const exception = item.exception;
     if (!exception) return;
-    void act(item, () => markFineHere(locale, exception), "Marked fine here. It returns if the English, the rendering, or the translation changes.");
+    void act(item, () => markFineHere(locale, exception), "Marked fine here. It comes back if the English, the term's translation, or this translation changes.");
   };
 
   const skip = (item: InboxItem) => {
@@ -222,8 +222,8 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
                   <dl className="grid gap-1 text-sm md:grid-cols-[8rem_1fr]">
                     <dt className="theme-text-faint">English</dt>
                     <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.english}</dd>
-                    <dt className="theme-text-faint">Live</dt>
-                    <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.live ?? <span className="theme-text-faint">Readers see English</span>}</dd>
+                    <dt className="theme-text-faint">Readers see</dt>
+                    <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.live ?? <span className="theme-text-faint">English (not translated yet)</span>}</dd>
                     {item.previous ? <>
                       <dt className="theme-text-faint">Approved for</dt>
                       <dd className="theme-text-secondary whitespace-pre-wrap break-words">{item.previous.english} → {item.previous.target}</dd>
@@ -233,8 +233,8 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
                       <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.suggestion}</dd>
                     </> : null}
                     {item.origin ? <>
-                      <dt className="theme-text-faint">Model</dt>
-                      <dd className="theme-text-secondary break-words">{item.origin.model} · run {item.origin.runId.slice(0, 8)} · prompt {item.origin.promptVersion}</dd>
+                      <dt className="theme-text-faint">Written by</dt>
+                      <dd className="theme-text-secondary break-words" title={`${item.origin.model} · run ${item.origin.runId.slice(0, 8)} · prompt ${item.origin.promptVersion}`}>Machine</dd>
                     </> : null}
                     {item.detail ? <>
                       <dt className="theme-text-faint">Found</dt>
@@ -254,7 +254,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
                     </Button>
                     {item.exception ? <Button type="button" variant="outline" size="sm" disabled={accepting !== null} onClick={() => fineHere(item)}>Fine here</Button> : null}
                     <Button type="button" variant="ghost" size="sm" onClick={() => skip(item)}>Skip</Button>
-                    <span className="theme-text-faint text-xs">Revision {item.revision}{item.accept || item.exception ? "" : " · nothing to accept; edit instead"}</span>
+                    {item.accept || item.exception ? null : <span className="theme-text-faint text-xs">Nothing to accept here; use Edit.</span>}
                   </div>
                 </Surface>
               </li>

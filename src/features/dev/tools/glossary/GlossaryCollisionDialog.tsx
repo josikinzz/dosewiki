@@ -4,7 +4,7 @@ import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { GlossaryReviewCollision } from "./glossaryModel";
+import { kindLabel, languageLabel, type GlossaryReviewCollision } from "./glossaryModel";
 
 type GlossaryCollisionDialogProps = {
   /** The refused write waiting on a decision; `null` keeps the dialog closed. */
@@ -27,17 +27,17 @@ export function GlossaryCollisionDialog({ review, returnFocus, onCancel, onAllow
         }}
       >
         <DialogHeader>
-          <DialogTitle>Allow these terms to share a rendering?</DialogTitle>
+          <DialogTitle>Allow these terms to share one translation?</DialogTitle>
           <DialogDescription>
-            Nothing was written. These English terms would read the same in {review?.locale}.
-            Allow this only when the shared rendering is appropriate for every listed term.
+            Nothing was saved yet. These different English terms would read the same in {review ? languageLabel(review.locale) : ""}.
+            Allow this only when that one translation is right for every term listed.
           </DialogDescription>
         </DialogHeader>
         <ul className="theme-text-secondary max-h-64 space-y-4 overflow-y-auto text-sm">
           {review?.error.collisions.map((collision) => (
             <li key={`${collision.kind}:${collision.target}`} className="space-y-1">
               <p className="font-medium theme-text-primary">{collision.target}</p>
-              <p>{collision.kind} · {review.locale}</p>
+              <p>{kindLabel(collision.kind)}</p>
               <p>{collision.terms.join(", ")}</p>
             </li>
           ))}
@@ -45,7 +45,7 @@ export function GlossaryCollisionDialog({ review, returnFocus, onCancel, onAllow
         <DialogFooter className="gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
           <Button type="button" variant="accent" onClick={onAllow}>
-            Allow shared rendering
+            Allow shared translation
           </Button>
         </DialogFooter>
       </DialogContent>

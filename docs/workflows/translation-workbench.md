@@ -79,6 +79,17 @@ latter two; `translationReview=article` (with `translationSlug`,
 article reader in Articles. `parseWorkbenchDeepLink` in
 `lib/translation/reviewInboxTypes.ts` owns the mapping.
 
+### Words the workbench uses
+
+Translators see one vocabulary. A glossary row's columns are **Term**,
+**Type**, **Translation**, **Status**, and **Written by** (Machine, A person,
+or Older import). Reviewer names stay in History. The review states are **Unreviewed**
+(a saved draft, "Draft (unreviewed)" in the legend), **Live, never checked**,
+and **Approved**, and every count uses those words. Languages are named in
+their own script with the English name beside it. Model, run, prompt, and
+revision numbers stay out of the Inbox and the article editor; hovering the
+Machine label shows them.
+
 ## Review and history
 
 Glossary terms and interface text keep drafts and approval apart. On a glossary
@@ -432,7 +443,7 @@ language translation.
 
 The article reader in Articles shows one public substance article side by side. Find article
 searches substance titles and aliases in the public search manifests for English
-and, for a UI locale, the reviewed locale; Source slug remains as an exact fallback.
+and, for a UI locale, the reviewed locale; **Article slug** with **Open article** remains as an exact fallback.
 English and the wording a reader sees now sit in two columns, paragraph by
 paragraph, and stack as pairs below 768px. Each translated paragraph carries one
 mark: Machine, Draft, Human approved, Re-check: nearby English changed, or Source
@@ -442,7 +453,7 @@ still shows the human wording but is not counted. Clicking a translated paragrap
 correction editor in place and focuses it. The URL records `translationSlug`, and
 for an open paragraph `translationSegment` and `translationVersion`, so a link
 reopens that paragraph; a link to an older source version shows the refreshed text
-without opening the editor. Save draft, Approve saved revision,
+without opening the editor. Save draft, Approve saved draft,
 and Restore as draft use the same locale capability and revision history as the
 other workbench scopes. The initial HTTP surface accepts `article` only; other
 record kinds and independently produced publication indexes need separate rollout
@@ -477,7 +488,7 @@ through Legality) the reader offers **Add translator's note**. A note is short
 text for local readers, written in the locale only; it is never a translation
 of English. It uses scope `note` in the review tables, one entry per locale,
 article, and section anchor (the public section id, such as `history-culture`),
-with the same **Save draft**, **Approve saved revision**, and **Restore as
+with the same **Save draft**, **Approve saved draft**, and **Restore as
 draft** history, revision check, write freeze, and locale assignment as
 corrections. Approval runs the blocking validators against an empty English
 source, so doubled punctuation, script leaks, citation markers, links, and
@@ -504,7 +515,7 @@ The **Style guide** list under Words holds each locale's rules and example corre
 the translation prompt. It is one document per locale in scope `style-guide` of
 the review tables: `rules` (one per line, at most 40) and `examples`
 (`{ before, after, why }`, with the English they translate when known). The
-whole document goes through **Save draft**, **Approve saved revision**, and
+whole document goes through **Save draft**, **Approve saved draft**, and
 **Restore as draft** with the revision check, write freeze, and locale
 assignment. Drafting and approving both need Translator access to that locale.
 

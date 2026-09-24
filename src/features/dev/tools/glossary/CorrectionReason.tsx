@@ -111,9 +111,9 @@ function GlossaryProposal({ locale, mentions, initialTerm, disabled, onClose }: 
       <EditorSelect id={`${id}-term`} selectSize="sm" value={term} disabled={disabled || busy} options={mentions.map((entry) => ({ value: entry.term, label: entry.term }))}
         onChange={(event) => { setTerm(event.target.value); setTarget(mentions.find((entry) => entry.term === event.target.value)?.target ?? ""); setMessage(null); }} />
     </div> : <p className="theme-text-secondary text-xs">Term: {row?.term}</p>}
-    {row ? <p className="theme-text-faint text-xs">{row.approved ? `Approved rendering: ${row.target}` : `Unreviewed rendering: ${row.target}`}</p> : null}
+    {row ? <p className="theme-text-faint text-xs">{row.approved ? `Approved translation: ${row.target}` : `Unreviewed translation: ${row.target}`}</p> : null}
     <div className="space-y-1">
-      <label htmlFor={`${id}-target`} className="theme-text-secondary text-xs">Proposed rendering</label>
+      <label htmlFor={`${id}-target`} className="theme-text-secondary text-xs">Proposed translation</label>
       <Input id={`${id}-target`} inputSize="sm" lang={locale} value={target} maxLength={400} disabled={disabled || busy} onChange={(event) => setTarget(event.target.value)} />
     </div>
     <div className="flex flex-wrap gap-2">

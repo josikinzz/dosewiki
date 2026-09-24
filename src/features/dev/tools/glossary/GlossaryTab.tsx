@@ -54,6 +54,7 @@ import {
   filterRows,
   groupRows,
   isLiveUnchecked,
+  languageLabel,
   needsReview,
   reviewCounts,
   GlossaryReviewCollision,
@@ -84,7 +85,6 @@ import { WorkbenchDrawer } from "./WorkbenchDrawer";
 import { Input } from "@/components/ui/input";
 import { TermsOverview, type NextCategory } from "./TermsOverview";
 import { CORRECTION_REASON_KINDS, CORRECTION_REASON_LABEL, type CorrectionReasonKind, type ReviewReason } from "../../../../../lib/translation/reviewReason";
-import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
@@ -119,13 +119,6 @@ const SECTIONS: readonly { value: WorkbenchSection; label: string }[] = [
   { value: "inbox", label: "Inbox" },
   { value: "style", label: "Style guide" },
 ];
-
-/** "Deutsch (German)" where the site knows the language's own name, else the code. */
-function languageLabel(code: string): string {
-  const language = glossaryLanguage(code);
-  if (!language) return code;
-  return language.nativeName && language.nativeName !== language.name ? `${language.nativeName} (${language.name})` : language.name;
-}
 
 type GlossaryTabProps = {
   /** Drafting, retranslating, and the main translation call the model, so they are admin-only; definitions are editor and up; everything else is open to a translator. */
@@ -386,7 +379,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const confirmApprove = (terms: readonly string[], where: string) => {
     confirm({
       title: `Approve the ${count(terms.length, `${STATE_WORD.draft} term`)} ${where === "shown" ? "shown" : `in ${where}`}?`,
-      description: "Each rendering is approved as it stands and will be used wherever the term appears. Rows already approved are unchanged.",
+      description: "Each translation is approved as it stands and will be used wherever the term appears. Terms already approved are unchanged.",
       confirmLabel: where === "shown" ? "Approve all shown" : `Approve ${where}`,
       affected: [...terms],
       onConfirm: () => void approveMany(terms),
@@ -413,7 +406,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const confirmLive = (terms: readonly string[], where: string) => {
     confirm({
       title: `Confirm the ${count(terms.length, "live, never checked term")} ${where === "shown" ? "shown" : `in ${where}`}?`,
-      description: "Each rendering is recorded as checked by you, exactly as readers see it now. The wording on the site does not change. Edit any you disagree with instead.",
+      description: "Each translation is recorded as checked by you, exactly as readers see it now. The wording on the site does not change. Edit any you disagree with instead.",
       confirmLabel: where === "shown" ? "Confirm all shown" : `Confirm ${where}`,
       affected: [...terms],
       onConfirm: () => void confirmMany(terms),
@@ -479,7 +472,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const draft = () =>
     confirm({
-      title: `Draft the missing terms for ${locale}?`,
+      title: `Draft the missing terms for ${languageLabel(locale!)}?`,
       description: `Every term the site publishes that this locale has no row for is rendered by the model and added as ${STATE_WORD.draft}. Existing rows are never touched. This calls the model a few hundred times for a new locale.`,
       confirmLabel: "Draft missing terms",
       onConfirm: () =>
@@ -488,7 +481,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           setFilters((current) => ({ ...current, status: "draft" }));
           const caveats = [
             summary.flagged > 0 ? `${summary.flagged} need a closer look` : null,
-            summary.shared > 0 ? `${summary.shared} share a rendering with another term` : null,
+            summary.shared > 0 ? `${summary.shared} share a translation with another term` : null,
             summary.failed > 0 ? `${summary.failed} could not be drafted` : null,
           ].filter((part): part is string => part !== null);
           return `Drafted ${count(summary.drafted, "term")} for review${caveats.length > 0 ? `; ${caveats.join(", ")}` : ""}.`;
@@ -497,7 +490,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const startMain = () =>
     confirm({
-      title: `Start the main translation for ${locale}?`,
+      title: `Start the main translation for ${languageLabel(locale!)}?`,
       description: "Every public page will be translated in the background through one shared pool capped at 100 simultaneous GLM 5.3 Flash requests.",
       confirmLabel: "Start translation",
       onConfirm: () =>
@@ -510,7 +503,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const retryExhausted = () => {
     const pages = data?.jobs.exhausted ?? 0;
     confirm({
-      title: `Retry ${count(pages, "failed page")} for ${locale}?`,
+      title: `Retry ${count(pages, "failed page")} for ${languageLabel(locale!)}?`,
       description: "Pages in the latest run that stopped after repeated failures get a fresh set of attempts in the same run. Finished pages and saved translations are untouched.",
       confirmLabel: "Retry failed pages",
       onConfirm: () =>

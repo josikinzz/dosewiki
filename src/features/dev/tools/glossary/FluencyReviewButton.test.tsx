@@ -23,8 +23,8 @@ async function open(canAdmin: boolean) {
   }));
   const user = userEvent.setup();
   render(<NarrativeReview locale="zh-Hans" canAdmin={canAdmin}/>);
-  await user.type(screen.getByRole("textbox", { name: "Source slug" }), "sample");
-  await user.click(screen.getByRole("button", { name: "Load source" }));
+  await user.type(screen.getByRole("textbox", { name: "Article slug" }), "sample");
+  await user.click(screen.getByRole("button", { name: "Open article" }));
   await screen.findByText("机器翻译");
   return { user, posts };
 }

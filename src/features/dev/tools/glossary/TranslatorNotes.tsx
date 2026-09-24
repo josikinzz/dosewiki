@@ -2,7 +2,7 @@
 /**
  * Translator's notes in the article reader: under each section, a translator
  * adds a note for local readers, written in the locale only. Save draft,
- * Approve saved revision, and Restore as draft work like corrections. Readers
+ * Approve saved draft, and Restore as draft work like corrections. Readers
  * see approved notes in a labelled box; a note whose section left the English
  * is orphaned, hidden from readers, and listed in the Review Inbox.
  */
@@ -116,7 +116,7 @@ function NoteEditor({ state, row, onClose }: { state: TranslatorNotesState; row:
       {notice ? <p role="status" className="theme-text-secondary text-sm">{notice}</p> : null}
       <div className="flex flex-wrap gap-2">
         <Button disabled={busy || !body.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button>
-        <Button variant="outline" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved revision</Button>
+        <Button variant="outline" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
         <Button variant="ghost" disabled={busy} onClick={onClose}>Close note</Button>
       </div>
       {history.length ? <>

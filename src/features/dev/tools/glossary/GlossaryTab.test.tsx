@@ -133,20 +133,20 @@ describe("GlossaryTab", () => {
     stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     await user.clear(input);
     await user.type(input, "my unsaved correction");
     const search = screen.getByRole("searchbox", { name: "Search words" });
     await user.type(search, "euphoria");
-    expect(screen.queryByRole("textbox", { name: "Rendering for anxiety" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Translation for anxiety" })).not.toBeInTheDocument();
     await user.clear(search);
-    expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("my unsaved correction");
+    expect(screen.getByRole("textbox", { name: "Translation for anxiety" })).toHaveValue("my unsaved correction");
   });
   it("updates the URL when changing workbench views", async () => {
     stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    await screen.findByRole("textbox", { name: "Translation for anxiety" });
     await user.click(viewButton("Inbox"));
     expect(new URLSearchParams(window.location.search).get("translationView")).toBe("inbox");
   });
@@ -157,8 +157,8 @@ describe("GlossaryTab", () => {
     render(<GlossaryTab viewerRole="admin" />);
     await screen.findByText("anxiety");
 
-    const first = screen.getByRole("textbox", { name: "Rendering for anxiety" });
-    const second = screen.getByRole("textbox", { name: "Rendering for euphoria" });
+    const first = screen.getByRole("textbox", { name: "Translation for anxiety" });
+    const second = screen.getByRole("textbox", { name: "Translation for euphoria" });
     api.holdNextWrite();
     first.focus();
     await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
@@ -179,7 +179,7 @@ describe("GlossaryTab", () => {
     await screen.findByText('Approved "anxiety".');
     // The approved row leaves the Unreviewed list; the next unreviewed row takes focus.
     expect(document.querySelector('tr[data-term="anxiety"]')).toBeNull();
-    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for euphoria" })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Translation for euphoria" })).toHaveFocus());
     expect(rowFor("euphoria").getByText("Unreviewed")).toBeTruthy();
   });
 
@@ -187,7 +187,7 @@ describe("GlossaryTab", () => {
     const api = stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     input.focus();
     await user.keyboard("{Enter}");
     expect(api.calls).toHaveLength(0);
@@ -229,7 +229,7 @@ describe("GlossaryTab", () => {
     expect(document.querySelector('tr[data-term="anxiety"]')).toBeNull();
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("1 of 2 terms approved");
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("1 live, never checked");
-    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for euphoria" })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Translation for euphoria" })).toHaveFocus());
   });
 
   it("counts drafts and never-checked rows apart per category, and each bulk action touches exactly its own count", async () => {
@@ -243,7 +243,7 @@ describe("GlossaryTab", () => {
     await screen.findByText("anxiety");
     await user.click(screen.getByRole("button", { name: "All" }));
     const group = within(await screen.findByTestId("glossary-group-effects"));
-    expect(group.getByText(/3 drafts, 2 never checked/)).toBeInTheDocument();
+    expect(group.getByText(/3 unreviewed · 2 live, never checked/)).toBeInTheDocument();
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("1 of 6 terms approved");
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("3 unreviewed · 2 live, never checked");
 
@@ -284,12 +284,12 @@ describe("GlossaryTab", () => {
     stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     await user.clear(input);
     await user.type(input, "Unsaved correction");
     await user.click(viewButton("Articles"));
     await user.click(viewButton("Terms"));
-    expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Unsaved correction");
+    expect(screen.getByRole("textbox", { name: "Translation for anxiety" })).toHaveValue("Unsaved correction");
   });
 
   it("returns focus to the written row when no unreviewed row follows it", async () => {
@@ -303,7 +303,7 @@ describe("GlossaryTab", () => {
     await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
     await screen.findByText('Approved "anxiety".');
 
-    const written = screen.getByRole("textbox", { name: "Rendering for anxiety" });
+    const written = screen.getByRole("textbox", { name: "Translation for anxiety" });
     await waitFor(() => expect(written).toHaveFocus());
     expect(api.calls).toHaveLength(1);
     expect(rowFor("anxiety").getByText("Approved")).toBeTruthy();
@@ -316,7 +316,7 @@ describe("GlossaryTab", () => {
     const { unmount } = render(<GlossaryTab viewerRole="admin" />);
     await screen.findByText("anxiety");
 
-    const input = screen.getByRole("textbox", { name: "Rendering for anxiety" });
+    const input = screen.getByRole("textbox", { name: "Translation for anxiety" });
     await user.clear(input);
     await user.paste("Angst");
     await user.keyboard("{Enter}");
@@ -326,7 +326,7 @@ describe("GlossaryTab", () => {
     unmount();
     render(<GlossaryTab viewerRole="admin" />);
     await user.click(await screen.findByRole("button", { name: "All" }));
-    expect(await screen.findByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Angst");
+    expect(await screen.findByRole("textbox", { name: "Translation for anxiety" })).toHaveValue("Angst");
   });
 
   it("shows an admin the actions that call the model and hides them from a translator", async () => {
@@ -454,7 +454,7 @@ describe("GlossaryTab", () => {
 
     await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
     await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), " changed");
-    await user.click(screen.getByRole("textbox", { name: "Rendering for anxiety" }));
+    await user.click(screen.getByRole("textbox", { name: "Translation for anxiety" }));
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
@@ -496,7 +496,7 @@ describe("GlossaryTab", () => {
     const api = stubGlossaryApi([row("Artist", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    const input = await screen.findByRole("textbox", { name: "Translation for Artist" });
     await user.clear(input);
     await user.type(input, "Künstler");
     await user.click(rowFor("Artist").getByRole("button", { name: "Save draft" }));
@@ -512,19 +512,19 @@ describe("GlossaryTab", () => {
     const api = stubGlossaryApi([row("Artist", "draft", "Künstler"), row("Next", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    const input = await screen.findByRole("textbox", { name: "Translation for Artist" });
     api.refuseNextWrite();
     api.refuseNextWrite(["Artist", "Creator", "Replicator"], "b".repeat(64));
     await user.click(rowFor("Artist").getByRole("button", { name: "Approve" }));
     await screen.findByRole("dialog");
-    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await user.click(screen.getByRole("button", { name: "Allow shared translation" }));
     await screen.findByText("Artist, Creator, Replicator");
     expect(api.calls).toHaveLength(2);
     expect(input).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await user.click(screen.getByRole("button", { name: "Allow shared translation" }));
     await screen.findByText('Approved "Artist".');
     expect(api.calls[2].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist"], expectedRevisions: { Artist: "1:0" }, collisionConfirmation: "b".repeat(64) });
-    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for Next" })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Translation for Next" })).toHaveFocus());
   });
 
   it("preserves the full bulk selection through the shared-rendering confirmation", async () => {
@@ -535,9 +535,9 @@ describe("GlossaryTab", () => {
     api.refuseNextWrite();
     await user.click(screen.getByRole("button", { name: /^Approve all 2 unreviewed terms in/ }));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /^Approve / }));
-    await screen.findByRole("button", { name: "Allow shared rendering" });
+    await screen.findByRole("button", { name: "Allow shared translation" });
     expect(api.calls).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await user.click(screen.getByRole("button", { name: "Allow shared translation" }));
     await screen.findByText("Approved 2 terms.");
     expect(api.calls[1].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
   });
@@ -546,7 +546,7 @@ describe("GlossaryTab", () => {
     const api = stubGlossaryApi([row("Artist", "draft"), row("Next", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    const input = await screen.findByRole("textbox", { name: "Translation for Artist" });
     expect(rowFor("Artist").queryByRole("button", { name: "Save and approve" })).toBeNull();
     await user.clear(input);
     await user.type(input, "Künstler");
@@ -556,7 +556,7 @@ describe("GlossaryTab", () => {
     expect(api.calls.map((call) => call.path)).toEqual(["/api/dev/translation-glossary/edit", "/api/dev/translation-glossary/approve"]);
     expect(api.calls[0].body).toMatchObject({ term: "Artist", target: "Künstler", expectedRevision: "1:0", intent: "draft" });
     expect(api.calls[1].body).toMatchObject({ terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
-    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for Next" })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Translation for Next" })).toHaveFocus());
   });
 
   it("keeps focus on a saved row's Approve and reports the save on that row", async () => {
@@ -564,7 +564,7 @@ describe("GlossaryTab", () => {
     stubGlossaryApi([row("Artist", "draft"), row("Next", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    const input = await screen.findByRole("textbox", { name: "Translation for Artist" });
     await user.clear(input);
     await user.type(input, "Künstler");
     await user.click(rowFor("Artist").getByRole("button", { name: "Save draft" }));
@@ -576,7 +576,7 @@ describe("GlossaryTab", () => {
     stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     const clean = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(clean);
     expect(clean.defaultPrevented).toBe(false);
@@ -594,7 +594,7 @@ describe("GlossaryTab", () => {
       : base(input, init)));
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     await user.clear(input);
     await user.type(input, "Kept correction");
     await user.click(viewButton("Inbox"));
@@ -604,7 +604,7 @@ describe("GlossaryTab", () => {
     expect(new URLSearchParams(window.location.search).get("translationTerm")).toBe("euphoria");
     await user.clear(screen.getByRole("searchbox", { name: "Search words" }));
     await user.click(screen.getByRole("button", { name: /^Subjective Effect Index:/ }));
-    expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Kept correction");
+    expect(screen.getByRole("textbox", { name: "Translation for anxiety" })).toHaveValue("Kept correction");
   });
 
   it("retries the same CSV with a bounded acknowledgement header only after explicit confirmation", async () => {
@@ -619,7 +619,7 @@ describe("GlossaryTab", () => {
     await user.upload(screen.getByLabelText("Choose a glossary CSV"), file);
     await screen.findByRole("dialog");
     expect(api.calls).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
+    await user.click(screen.getByRole("button", { name: "Allow shared translation" }));
     await screen.findByText("Imported 3 drafts; each requires explicit approval.");
     expect(api.calls.map((call) => call.body)).toEqual([csv, csv]);
     const requests = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/import?"));
@@ -642,7 +642,7 @@ describe("workbench views", () => {
     expect(views.map((button) => button.textContent)).toEqual(["Terms", "Interface text", "Articles", "Inbox", "Style guide"]);
     expect(viewButton("Terms")).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: /^Subjective Effect Index:/ })).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("textbox", { name: "Rendering for anxiety" })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "Translation for anxiety" })).toBeNull();
     expect(screen.queryByRole("region", { name: "Review inbox" })).toBeNull();
     const requests = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
     expect(requests.some((url) => url.includes("translation-inbox"))).toBe(false);
@@ -656,7 +656,7 @@ describe("workbench views", () => {
     const summary = within(await screen.findByTestId("glossary-summary"));
     expect(summary.getByText("Next: Subjective Effect Index, 1 left")).toBeInTheDocument();
     await user.click(summary.getByRole("button", { name: "Continue reviewing" }));
-    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for euphoria" })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Translation for euphoria" })).toHaveFocus());
     expect(screen.getByRole("button", { name: /^Subjective Effect Index:/ })).toHaveAttribute("aria-expanded", "true");
     expect(new URLSearchParams(window.location.search).get("translationCategory")).toBe("effects");
   });
@@ -666,15 +666,15 @@ describe("workbench views", () => {
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
     await user.click(await screen.findByRole("button", { name: /^Subjective Effect Index:/ }));
-    const input = screen.getByRole("textbox", { name: "Rendering for anxiety" });
+    const input = screen.getByRole("textbox", { name: "Translation for anxiety" });
     await user.clear(input);
     await user.type(input, "Keep this correction");
     await user.click(screen.getByRole("button", { name: /^Replications:/ }));
-    expect(screen.queryByRole("textbox", { name: "Rendering for anxiety" })).toBeNull();
-    expect(screen.getByRole("textbox", { name: "Rendering for Replication" })).toBeVisible();
+    expect(screen.queryByRole("textbox", { name: "Translation for anxiety" })).toBeNull();
+    expect(screen.getByRole("textbox", { name: "Translation for Replication" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: /^Subjective Effect Index:/ }));
-    expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Keep this correction");
-    expect(screen.queryByRole("textbox", { name: "Rendering for Replication" })).toBeNull();
+    expect(screen.getByRole("textbox", { name: "Translation for anxiety" })).toHaveValue("Keep this correction");
+    expect(screen.queryByRole("textbox", { name: "Translation for Replication" })).toBeNull();
     expect(new URLSearchParams(window.location.search).get("translationCategory")).toBe("effects");
   });
 
@@ -686,7 +686,7 @@ describe("workbench views", () => {
     await user.click(screen.getByRole("button", { name: "Status legend" }));
     expect(screen.getAllByText("Approved here is not yet deployed; Coverage in Articles shows what has been released.")).toHaveLength(1);
     const legend = within(screen.getByRole("list", { name: "Status legend" }));
-    for (const state of ["Machine", "Draft", "Live, never checked", "Human approved", "Source changed", "Re-check"]) expect(legend.getByText(state)).toBeInTheDocument();
+    for (const state of ["Machine", "Draft (unreviewed)", "Live, never checked", "Human approved", "Source changed", "Re-check"]) expect(legend.getByText(state)).toBeInTheDocument();
   });
 
   type Expectation = { view: "Inbox" | "Terms" | "Interface text" | "Style guide" | "Articles"; region: string; search?: string };

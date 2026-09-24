@@ -159,10 +159,10 @@ function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usage
     <EditorTable className="md:min-w-[56rem]">
       <EditorTableHead>
         <EditorTableHeading>Term</EditorTableHeading>
-        <EditorTableHeading>Kind</EditorTableHeading>
-        <EditorTableHeading>Rendering</EditorTableHeading>
+        <EditorTableHeading>Type</EditorTableHeading>
+        <EditorTableHeading>Translation</EditorTableHeading>
         <EditorTableHeading>Status</EditorTableHeading>
-        <EditorTableHeading>Source</EditorTableHeading>
+        <EditorTableHeading>Written by</EditorTableHeading>
         <EditorTableHeading>Actions</EditorTableHeading>
       </EditorTableHead>
       <EditorTableBody>
@@ -247,13 +247,13 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
             await onRestored();
           }} />
       </EditorTableCell>
-      <EditorTableCell label="Kind" className="theme-text-secondary text-xs">
+      <EditorTableCell label="Type" className="theme-text-secondary text-xs">
         {kindLabel(row.kind)}
       </EditorTableCell>
-      <EditorTableCell label="Rendering" wide>
+      <EditorTableCell label="Translation" wide>
         <Input
           inputSize="sm"
-          aria-label={`Rendering for ${row.term}`}
+          aria-label={`Translation for ${row.term}`}
           aria-busy={writing || undefined}
           value={draft}
           disabled={disabled}
@@ -273,12 +273,13 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
         />
       </EditorTableCell>
       <EditorTableCell label="Status">
-        {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Approved wording: {row.approved_target}</p> : null}
+        {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Readers see: {row.approved_target}</p> : null}
         <EditorStatusPill tone={row.status === "approved" && !unchecked ? "success" : "warning"}>{unchecked ? "Live, never checked" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
         {unchecked ? <p className="theme-text-faint mt-1 text-xs">Readers already see this wording. Confirm it as it stands, or edit it and save a draft.</p> : null}
       </EditorTableCell>
-      <EditorTableCell label="Source" className="theme-text-secondary text-xs">
-        {row.review_provenance === "legacy_unverified" ? "Legacy import, never checked by a person" : row.source === "human" ? (row.reviewed_by ?? "human") : "model"}
+      <EditorTableCell label="Written by" className="theme-text-secondary text-xs">
+        {/* Who wrote the wording, not who reviewed it; names stay in History. */}
+        {row.review_provenance === "legacy_unverified" ? "Older import" : row.source === "human" ? "A person" : "Machine"}
       </EditorTableCell>
       <EditorTableCell>
         {/*
