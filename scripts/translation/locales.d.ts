@@ -1,3 +1,5 @@
+import type { PromptStyleGuide } from "./style-guide.mjs";
+
 export type TranslationLocale = {
   code: string;
   label: string;
@@ -37,5 +39,7 @@ export function buildBatchPrompt(
     glossary?: Readonly<Record<string, string>>;
     glosses?: Readonly<Record<string, string>>;
     kinds?: Readonly<Record<string, string>>;
+    /** The locale's approved style guide; see style-guide.mjs. */
+    styleGuide?: PromptStyleGuide | null;
   },
 ): string;

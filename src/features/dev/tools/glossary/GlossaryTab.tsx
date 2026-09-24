@@ -70,6 +70,7 @@ import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbe
 import { TranslationChanges } from "./TranslationChanges";
 import { NarrativeReview } from "./NarrativeReview";
 import { ReviewInbox } from "./ReviewInbox";
+import { StyleGuidePanel } from "./StyleGuidePanel";
 import { parseWorkbenchDeepLink } from "../../../../../lib/translation/reviewInboxTypes";
 import { TranslationCoverage } from "./TranslationCoverage";
 import { TranslationProgress } from "./TranslationProgress";
@@ -100,7 +101,7 @@ type GlossaryTabProps = {
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [view, setView] = useState("glossary");
-  const [visitedViews, setVisitedViews] = useState({ inbox: false, labels: false, coverage: false, changes: false, narrative: false });
+  const [visitedViews, setVisitedViews] = useState({ inbox: false, labels: false, coverage: false, changes: false, narrative: false, style: false });
   /** A UI label deep link (from the Inbox) opens the labels view searched to that label. */
   const [labelSearch, setLabelSearch] = useState("");
   useEffect(() => {
@@ -439,13 +440,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   onChange={(event) => changeLocale(event.target.value)}
                 />
               </div>
-              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => { setView(next); if (next === "inbox" || next === "labels" || next === "coverage" || next === "changes") setVisitedViews((current) => ({ ...current, [next]: true })); }} options={[
+              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => { setView(next); if (next === "inbox" || next === "labels" || next === "coverage" || next === "changes" || next === "style") setVisitedViews((current) => ({ ...current, [next]: true })); }} options={[
                 { value: "inbox", label: "Inbox", disabled: locked },
                 { value: "glossary", label: "Glossary", disabled: locked },
                 { value: "labels", label: "UI labels", disabled: locked },
                 { value: "coverage", label: "Coverage", disabled: locked },
                 { value: "changes", label: "Changes", disabled: locked },
                 { value: "narrative", label: "Narratives", disabled: locked },
+                { value: "style", label: "Style guide", disabled: locked },
               ]} />
             </div>
             {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} /></div> : null}
@@ -453,6 +455,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             {visitedViews.coverage ? <div hidden={view !== "coverage"}><TranslationCoverage key={data.locale} locale={data.locale} /></div> : null}
             {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} canAdmin={canAdmin} /></div> : null}
             {visitedViews.changes ? <div hidden={view !== "changes"}><TranslationChanges key={data.locale} locale={data.locale} /></div> : null}
+            {visitedViews.style ? <div hidden={view !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
             <div hidden={view !== "glossary"} className="space-y-4">
             <GlossaryFilterBar
               filters={filters}

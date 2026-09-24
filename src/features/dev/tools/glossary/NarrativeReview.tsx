@@ -18,6 +18,7 @@ import { formatReviewReason } from "../../../../../lib/translation/reviewReason"
 import { CorrectionReasonFields, correctionReason, EMPTY_CORRECTION, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
 import { TranslatorNoteSlot, useTranslatorNotes } from "./TranslatorNotes";
 import { FluencyReviewButton } from "./FluencyReviewButton";
+import { PromoteToStyleGuide } from "./StyleGuidePanel";
 type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
 type Row = Packet["rows"][number];
 /** One mark per paragraph; the workbench legend owns the wider definitions. */
@@ -243,7 +244,7 @@ export function NarrativeReview({ locale, canAdmin = false }: {
    <CorrectionReasonFields value={reason} onChange={setReason} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy}/>
    <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.kind || openConflicts(row.source, target, row.glossary, exceptionsFor(reason, row.id)).length > 0} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.kind} onClick={() => void mutate("approve")}>Approve saved revision</Button><Button variant="ghost" disabled={busy} onClick={closeEditor}>Close editor</Button></div>
    <h5 className="theme-text-primary font-medium">Review history</h5>
-   <ul className="space-y-2">{history.map(h => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)}{h.glossaryExceptions?.length ? ` Kept out on purpose: ${h.glossaryExceptions.join(", ")}.` : ""} <Button size="sm" variant="outline" disabled={busy || !reason.kind} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
+   <ul className="space-y-2">{history.map(h => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)}{h.glossaryExceptions?.length ? ` Kept out on purpose: ${h.glossaryExceptions.join(", ")}.` : ""} <Button size="sm" variant="outline" disabled={busy || !reason.kind} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button>{h.action === "save" && h.reason.kind === "fluency" && packet ? <PromoteToStyleGuide locale={locale} slug={packet.slug} segment={row.id} revision={h.revision} disabled={busy}/> : null}</li>)}</ul>
   </Surface> : null;
     return <section aria-label="Narrative review" className="min-w-0 space-y-4">
   <p className="theme-text-secondary text-sm">Review one public substance article. Corrections apply only to the selected paragraph and source context. Other uses of identical English retain their own wording.</p>

@@ -378,7 +378,9 @@ async function main() {
     const implementation = await Promise.all(["ui-catalog.ts", "ui-catalog-checkpoint.mjs", "engine.mjs", "locales.mjs", "validate.mjs", "markup.mjs"].map(async (file) =>
       createHash("sha256").update(await readFile(path.join(repoRoot, "scripts/translation", file))).digest("hex")));
     const checkpointContext = { schema: 1, locale: context.locale, glossary: proseGlossary,
-      kinds: context.kinds, glosses: context.glosses, model: live.TRANSLATION_MODEL, approvedOverrides, implementation };
+      kinds: context.kinds, glosses: context.glosses, model: live.TRANSLATION_MODEL, approvedOverrides, implementation,
+      // Only an approved style guide changes the key, so checkpoints written before style guides still resume.
+      ...(context.styleGuide ? { styleGuide: context.styleGuide.revision } : {}) };
     const checkpointKeyFor = (unit: WorkUnit) => catalogCheckpointKey({ ...checkpointContext, unit });
     const saved = checkpointPath ? await readCatalogCheckpoint(checkpointPath) : {};
     let resumed = 0;
@@ -402,6 +404,7 @@ async function main() {
         glossary: batchGlossary,
         kinds: context.kinds,
         glosses: context.glosses,
+        styleGuide: context.styleGuide,
         model: live.TRANSLATION_MODEL,
         apiKey,
       });

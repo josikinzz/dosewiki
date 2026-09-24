@@ -8,8 +8,9 @@
  * QA packet.
  *
  * Nothing here writes Postgres or Postgres. The input is the published export,
- * the glossary and its glosses are read from Postgres (`translationGlossary`
- * approved rows, `translationGlossaryTerms`), and the output is a local
+ * the glossary, its glosses, and the approved style guide are read from
+ * Postgres (`translationGlossary` approved rows, `translationGlossaryTerms`,
+ * the `style-guide` review scope), and the output is a local
  * artifact under notes-and-plans/exports.
  *
  * Usage:
@@ -45,6 +46,7 @@ import { buildQaPacket } from "./qa-packet.mjs";
 import { DEFAULT_MODEL, planBatches, translateBatchWithRetries } from "./engine.mjs";
 import { readGlossaryRows } from "../../lib/translation/glossary.ts";
 import { loadGlosses } from "../../lib/translation/glossaryGloss.ts";
+import { loadApprovedStyleGuide } from "../../lib/translation/approvedStyleGuide.ts";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 
 /**
@@ -182,7 +184,11 @@ async function main() {
   }
 
   const locale = resolveLocale(options.locale);
-  const [approvedRows, glosses] = await Promise.all([readGlossaryRows(options.locale, { status: "approved" }), loadGlosses()]);
+  const [approvedRows, glosses, styleGuide] = await Promise.all([
+    readGlossaryRows(options.locale, { status: "approved" }),
+    loadGlosses(),
+    loadApprovedStyleGuide(options.locale),
+  ]);
   const glossary = Object.fromEntries(approvedRows.map((row) => [row.term, row.target]));
   const kinds = Object.fromEntries(approvedRows.map((row) => [row.term, row.kind]));
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -315,6 +321,7 @@ async function main() {
         glossary,
         kinds,
         glosses,
+        styleGuide,
         model: options.model,
         apiKey,
         onUsage: (usage, attempt) => {

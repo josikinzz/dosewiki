@@ -415,6 +415,40 @@ article its note is orphaned: it stops rendering, the reader shows it without an
 editor, and the Inbox lists it as "Note's section removed" with Edit only. If
 the section returns, the note shows again. There is no delete action yet.
 
+### Style guide
+
+The **Style guide** view holds each locale's rules and example corrections for
+the translation prompt. It is one document per locale in scope `style-guide` of
+the review tables: `rules` (one per line, at most 40) and `examples`
+(`{ before, after, why }`, with the English they translate when known). The
+whole document goes through **Save draft**, **Approve saved revision**, and
+**Restore as draft** with the revision check, write freeze, and locale
+assignment. Drafting and approving both need Translator access to that locale.
+
+In the article reader, a saved correction whose reason is **Fluency** shows
+**Promote to style guide** in its review history. It appends the correction to
+the style guide draft as an example: before is the wording it replaced (the
+earlier draft or approval, else the machine target), after is the corrected
+wording, and why is the correction's note. A correction is promoted once.
+Promotion never approves; the draft waits in the Style guide view.
+
+Only the approved document reaches prompts. `loadTranslationContext` (and
+`translate:locale`) load it beside the approved glossary, and
+`buildBatchPrompt` prints every approved rule and up to five examples. Examples
+are chosen per batch in a fixed order: the most words shared with the batch's
+English (through the shared term matcher, so inflections count), then the most
+recent, then id, within a 2,400-character cap
+(`scripts/translation/style-guide.mjs`). The approved revision, a digest of the
+approved document, joins `promptVersionFor`. Approving a change therefore makes
+stored translations read as stale, but it enqueues nothing; a later run or
+retranslation picks it up. A draft changes neither the prompt nor the digest,
+and a locale with no approved guide keeps its previous digest.
+
+`GET /api/dev/translation-style-guide?locale=<code>[&history=1]` returns
+`{ revision, draft, approved, approvedRevision, history? }`; `POST` takes
+`{ locale, action, expectedRevision, guide?, reason, restoreRevision? }`, or
+`{ locale, action: "promote", correction: { kind: "article", slug, segment, revision } }`.
+
 Coverage can import a bounded `translate:verify-release` JSON report and export a
 combined snapshot. It shows unique source hashes separately from per-record units,
 retains observation targets and dates, and marks unvisited routes unverified. An

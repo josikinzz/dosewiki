@@ -30,6 +30,9 @@ vi.mock("@server/translation/glossaryReview", () => review);
 vi.mock("@server/translation/glossaryGloss", () => ({
   loadGlosses: async () => ({}),
 }));
+vi.mock("@server/translation/approvedStyleGuide", () => ({
+  loadApprovedStyleGuide: async () => null,
+}));
 const usage = vi.hoisted(() => ({ getGlossaryUsages: vi.fn(async () => ({})) }));
 vi.mock("@server/translation/glossaryUsage", () => usage);
 const context = vi.hoisted(() =>
@@ -203,7 +206,7 @@ describe("glossary draft and approval routes", () => {
       ),
     );
     expect(response.status).toBe(200);
-    expect(context).toHaveBeenCalledWith("zh-Hans", base, {});
+    expect(context).toHaveBeenCalledWith("zh-Hans", base, {}, null);
     expect(await response.json()).toMatchObject({
       rows: drafts,
       segments: { total: 2, current: 1 },

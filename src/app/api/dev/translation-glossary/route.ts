@@ -1,7 +1,7 @@
 /**
  * GET /api/dev/translation-glossary?locale=zh-Hans: every glossary row for one
  * locale plus the locale picker (live mirrors and any locale with rows), the
- * prompt digest the approved set produces, and the locale-independent glosses.
+ * prompt digest the approved set and approved style guide produce, and the locale-independent glosses.
  * Translator and up.
  */
 import { NextResponse } from "next/server";
@@ -17,6 +17,7 @@ import {
 } from "@server/translation/glossary";
 import { readGlossaryReviewRows } from "@server/translation/glossaryReview";
 import { loadGlosses } from "@server/translation/glossaryGloss";
+import { loadApprovedStyleGuide } from "@server/translation/approvedStyleGuide";
 import { translationContextFromRows } from "@server/translation/liveTranslation";
 import { translationJobCounts, translationSegmentCounts } from "@server/translation/segmentStore";
 import { getGlossaryUsages } from "@server/translation/glossaryUsage";
@@ -59,12 +60,13 @@ export const GET = protectedRouteOperation({
     const denied = glossaryLocaleAccess(auth, locale);
     if (denied) return denied;
 
-    const [summaries, rows, glosses] = await Promise.all([
+    const [summaries, rows, glosses, styleGuide] = await Promise.all([
       glossaryLocales(allowedLocales),
       readGlossaryRows(locale),
       loadGlosses(),
+      loadApprovedStyleGuide(locale),
     ]);
-    const context = translationContextFromRows(locale, rows, glosses);
+    const context = translationContextFromRows(locale, rows, glosses, styleGuide);
     const [segments, jobs] = await Promise.all([
       translationSegmentCounts(locale, context.promptVersion),
       translationJobCounts(locale),

@@ -213,7 +213,7 @@ export async function sendBatch({ locale, model, apiKey, userMessage, temperatur
   throw new TranslationTransportError(lastError);
 }
 
-export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote, temperature, signal }) {
+export async function translateBatch({ units, locale, glossary, glosses, kinds, styleGuide = null, model, apiKey, retryNote, temperature, signal }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
   const protections = new Map(units.map((unit) => [unit.hash, protectModelTokens(unit.source)]));
   const payloadUnits = units.map((unit) => ({
@@ -222,7 +222,7 @@ export async function translateBatch({ units, locale, glossary, glosses, kinds, 
     source: protections.get(unit.hash).source,
     id: idByHash.get(unit.hash),
   }));
-  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds });
+  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds, styleGuide });
 
   const response = await sendBatch({ locale, model, apiKey, userMessage, temperature, signal });
 
@@ -291,11 +291,11 @@ export function retryNoteFor(defects) {
  * and every unit that fails a blocking check goes back alone with a note
  * about what went wrong, up to MAX_ATTEMPTS. `glossary` is the locale's
  * approved `term -> target` map, `glosses` the locale-independent
- * `term -> gloss` map, and `kinds` the approved `term -> kind` map, all
- * loaded by the caller; the engine never reads them from anywhere itself.
+ * `term -> gloss` map, `kinds` the approved `term -> kind` map, and
+ * `styleGuide` the approved style guide (or null), all loaded by the caller; the engine never reads them from anywhere itself.
  * A `TranslationTransportError` from any request rejects the whole batch.
  */
-export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage, signal }) {
+export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, styleGuide = null, model, apiKey, onUsage, signal }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
     signal?.throwIfAborted();
     const { usage, results } = await translateBatch({
@@ -304,6 +304,7 @@ export async function translateBatchWithRetries({ units, locale, glossary, gloss
       glossary,
       glosses,
       kinds,
+      styleGuide,
       model,
       apiKey,
       retryNote,

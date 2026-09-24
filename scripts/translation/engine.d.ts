@@ -1,5 +1,6 @@
 import type { PromptContextKind, TranslationLocale } from "./locales";
 import type { OpenRouterChatResult } from "../lib/openrouter-sdk.mjs";
+import type { PromptStyleGuide } from "./style-guide.mjs";
 
 export const DEFAULT_MODEL: string;
 export const APP_TITLE: string;
@@ -62,6 +63,8 @@ export function translateBatchWithRetries(input: {
   glosses: Readonly<Record<string, string>>;
   /** `term -> kind` for the approved rows, so the prompt can confine surface-specific kinds to their surface. */
   kinds: Readonly<Record<string, string>>;
+  /** The locale's approved style guide, loaded by the caller; null or absent prints no style block. */
+  styleGuide?: PromptStyleGuide | null;
   model: string;
   apiKey: string;
   /** Cancels in-flight requests and stops transport and validation retries. */
@@ -79,6 +82,7 @@ export function translateBatch(input: {
   glossary: Readonly<Record<string, string>>;
   glosses: Readonly<Record<string, string>>;
   kinds: Readonly<Record<string, string>>;
+  styleGuide?: PromptStyleGuide | null;
   model: string;
   apiKey: string;
   retryNote?: string;

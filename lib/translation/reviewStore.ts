@@ -36,12 +36,14 @@ export type ReviewMutationOptions = {
   beforeTransition?: (tx: ReviewTransaction, current: ReviewEntry) => Promise<void>;
   onApprove?: (tx: ReviewTransaction, snapshot: ReviewSnapshot) => Promise<void>;
 };
+/** Characters a saved target may hold. A style guide is one JSON document of rules and examples. */
+const TARGET_LIMIT: Record<ReviewScope, number> = { ui: 2000, glossary: 2000, note: 2000, narrative: 30000, "qa-exception": 30000, "model-suggestion": 30000, "style-guide": 250000 };
 function validateInput(input: ReviewMutation): void {
   if (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0) throw new TranslationReviewError("An expected revision is required.");
   if (!input.actor?.trim() || !parseReviewReason(input.reason)) throw new TranslationReviewError("An actor and a reason of up to 1000 characters are required.");
-  if (!["ui", "glossary", "narrative", "qa-exception", "note", "model-suggestion"].includes(input.scope) || !input.locale || !input.sourceId || !input.source || !input.context) throw new TranslationReviewError("A declared translation source and context are required.");
+  if (!["ui", "glossary", "narrative", "qa-exception", "note", "model-suggestion", "style-guide"].includes(input.scope) || !input.locale || !input.sourceId || !input.source || !input.context) throw new TranslationReviewError("A declared translation source and context are required.");
   if (!["save", "approve", "restore"].includes(input.action)) throw new TranslationReviewError("Unknown review action.");
-  if (input.action === "save" && (typeof input.target !== "string" || !input.target.trim() || input.target.length > (input.scope === "narrative" || input.scope === "qa-exception" || input.scope === "model-suggestion" ? 30000 : 2000))) throw new TranslationReviewError("Enter a translation within the scope character limit.");
+  if (input.action === "save" && (typeof input.target !== "string" || !input.target.trim() || input.target.length > TARGET_LIMIT[input.scope])) throw new TranslationReviewError("Enter a translation within the scope character limit.");
   if (input.action === "restore" && (input.restoreRevision === undefined || !Number.isSafeInteger(input.restoreRevision) || input.restoreRevision < 0)) throw new TranslationReviewError("Choose a valid revision to restore.");
 }
 /** Call inside one transaction to read the row a compound transition will change; null before its first write. */

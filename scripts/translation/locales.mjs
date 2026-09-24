@@ -15,6 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import translationLocaleNames from "../../src/i18n/translationLocaleNames.json" with { type: "json" };
 
+import { styleGuidePromptLines } from "./style-guide.mjs";
 import { mentionsTerm, termMatcher } from "./term-match.mjs";
 
 /** Where `build-glossary.mjs --export` writes a locale's snapshot. */
@@ -235,9 +236,12 @@ export function kindInContext(kind, contexts) {
  * `term -> target  (gloss)` at its first listing so the model knows which
  * sense it is rendering, for at most `GLOSS_CAP` terms, longest terms first
  * (a multi-word term outranks a one-word homograph); past the cap, and at
- * later listings, the rendering stands alone.
+ * later listings, the rendering stands alone. `styleGuide` is the locale's
+ * approved style guide (`{ rules, examples, revision }`, or null): every rule
+ * is printed, with the examples `selectStyleExamples` picks for this batch's
+ * English (see style-guide.mjs).
  */
-export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glosses = {}, kinds = {} } = {}) {
+export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glosses = {}, kinds = {}, styleGuide = null } = {}) {
   const payload = Object.fromEntries(units.map((unit) => [unit.id, unit.source]));
   const safety = units.some((unit) => unit.contextClass === "safety");
 
@@ -282,6 +286,8 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glos
       "Opaque {{DWPROTECT...}} tokens represent exact source syntax or digits. Copy every token exactly once and place it where the translated sentence needs it. Never alter, translate, duplicate, or omit a token.",
     );
   }
+
+  lines.push(...styleGuidePromptLines(locale, styleGuide, units.map((unit) => unit.originalSource ?? unit.source).join("\n")));
 
   const entries = Object.entries(glossary);
   const perUnit = units

@@ -11,7 +11,8 @@ import type { ReviewReason } from "./reviewReason";
  * draft; it never approves a translation.
  */
 /** `note` holds translator's notes: locale-only text under an article section, never a translation of English. */
-export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception" | "note" | "model-suggestion";
+/** `style-guide` holds one document per locale: translator rules and example corrections the prompt reads once approved. */
+export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception" | "note" | "model-suggestion" | "style-guide";
 export type ReviewSnapshot = { source: string; target: string; context: string; provenance?: "compiled" | "human" };
 export type ReviewState = { revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null };
 export type ReviewEntry = ReviewState & { locale: string; scope: ReviewScope; sourceId: string; updatedAt: number };

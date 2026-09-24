@@ -24,6 +24,8 @@ import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } 
 import { isBlocking } from "../../scripts/translation/validate.mjs";
 import { glossaryDigestInput, readGlossaryRows, type Glossary, type TranslationGlossaryRow } from "./glossary";
 import { glossDigestInput, loadGlosses } from "./glossaryGloss";
+import { loadApprovedStyleGuide } from "./approvedStyleGuide";
+import type { StyleGuide } from "./styleGuideTypes";
 import {
   clearTranslationRejections,
   pendingTranslationHashes,
@@ -270,21 +272,33 @@ export type TranslationContext = {
   kinds: Readonly<Record<string, string>>;
   /** `term -> gloss`, locale-independent; injected beside the rendering of any term a batch mentions. */
   glosses: Readonly<Record<string, string>>;
+  /** The locale's approved style guide (rules and examples the prompt prints); null when none is approved. */
+  styleGuide?: StyleGuide | null;
   promptVersion: string;
 };
 
-/** Digest of everything that shapes an answer besides the segment itself: model, system prompt, approved glossary, glosses. */
-export function promptVersionFor(locale: TranslationLocale, glossary: Glossary, glosses: Readonly<Record<string, string>>): string {
-  return createHash("sha256")
+/**
+ * Digest of everything that shapes an answer besides the segment itself:
+ * model, system prompt, approved glossary, glosses, and the approved style
+ * guide revision. A locale with no approved guide keeps the digest it had
+ * before style guides existed, so introducing them marks nothing stale.
+ */
+export function promptVersionFor(
+  locale: TranslationLocale,
+  glossary: Glossary,
+  glosses: Readonly<Record<string, string>>,
+  styleGuide: Pick<StyleGuide, "revision"> | null = null,
+): string {
+  const hash = createHash("sha256")
     .update(TRANSLATION_MODEL)
     .update("\u0000")
     .update(locale.systemPrompt)
     .update("\u0000")
     .update(glossaryDigestInput(glossary))
     .update("\u0000")
-    .update(glossDigestInput(glosses))
-    .digest("hex")
-    .slice(0, 16);
+    .update(glossDigestInput(glosses));
+  if (styleGuide?.revision) hash.update("\u0000style-guide\u0000").update(styleGuide.revision);
+  return hash.digest("hex").slice(0, 16);
 }
 
 /** Build a prompt context from glossary data a request already fetched. */
@@ -292,20 +306,22 @@ export function translationContextFromRows(
   localeCode: string,
   rows: readonly Pick<TranslationGlossaryRow, "term" | "target" | "kind" | "status">[],
   glosses: Readonly<Record<string, string>>,
+  styleGuide: StyleGuide | null = null,
 ): TranslationContext {
   const locale = resolveLocale(localeCode);
   const approved = rows.filter((row) => row.status === "approved");
   const glossary: Glossary = Object.fromEntries(approved.map((row) => [row.term, row.target]));
   const kinds = Object.fromEntries(approved.map((row) => [row.term, row.kind]));
-  return { locale, glossary, kinds, glosses, promptVersion: promptVersionFor(locale, glossary, glosses) };
+  return { locale, glossary, kinds, glosses, styleGuide, promptVersion: promptVersionFor(locale, glossary, glosses, styleGuide) };
 }
 
 export async function loadTranslationContext(localeCode: string): Promise<TranslationContext> {
-  const [rows, glosses] = await Promise.all([
+  const [rows, glosses, styleGuide] = await Promise.all([
     readGlossaryRows(localeCode, { status: "approved" }),
     loadGlosses(),
+    loadApprovedStyleGuide(localeCode),
   ]);
-  return translationContextFromRows(localeCode, rows, glosses);
+  return translationContextFromRows(localeCode, rows, glosses, styleGuide);
 }
 
 export function segmentsOf(record: { slug: string }, kind: TranslationRecordKind = "article"): Segment[] {
@@ -413,7 +429,7 @@ export async function translateUnits(
 ): Promise<Pick<RefreshOutcome, "stored" | "rejected" | "usage">> {
   const { signal, wave } = options;
   const requestPool = options.requestPool ?? createTranslationRequestPool(REFRESH_CONCURRENCY);
-  const { locale, glossary, kinds, glosses, promptVersion } = context;
+  const { locale, glossary, kinds, glosses, styleGuide, promptVersion } = context;
   const localeCode = locale.code;
   const usage = { prompt: 0, completion: 0, requests: 0 };
   const rows: TranslationSegmentRow[] = [];
@@ -436,6 +452,7 @@ export async function translateUnits(
           glossary,
           kinds,
           glosses,
+          styleGuide,
           model: TRANSLATION_MODEL,
           apiKey,
           signal,
