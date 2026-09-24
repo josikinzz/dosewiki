@@ -14,6 +14,8 @@ import type { PublicationReceipt } from "@lib/next/publicationDispatch";
 import type { NarrativeRowStatus, ReviewHistoryEntry } from "@lib/translation/reviewTypes";
 import { narrativeOverlayApplies } from "../../../../../lib/translation/reviewTypes";
 import type { readNarrativeReview } from "@lib/translation/narrativeReview";
+import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
+import { CorrectionReasonFields, correctionReason, EMPTY_CORRECTION, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
 type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
 type Row = Packet["rows"][number];
 /** One mark per paragraph; the workbench legend owns the wider definitions. */
@@ -124,7 +126,7 @@ export function NarrativeReview({ locale }: {
     const kind = "article";
     const [slug, setSlug] = useState("");
     const [packet, setPacket] = useState<Packet | null>(null), [selected, setSelected] = useState("");
-    const [target, setTarget] = useState(""), [reason, setReason] = useState("");
+    const [target, setTarget] = useState(""), [reason, setReason] = useState<CorrectionDraft>(EMPTY_CORRECTION);
     const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState("");
     const [publication, setPublication] = useState<PublicationReceipt[]>([]);
     const [history, setHistory] = useState<ReviewHistoryEntry[]>([]);
@@ -206,7 +208,7 @@ export function NarrativeReview({ locale }: {
         setError(null);
         setNotice("");
         try {
-            const response = await fetch("/api/dev/translation-narrative", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ locale, kind: packet.kind, slug: packet.slug, id: row.id, sourceVersion: packet.sourceVersion, expectedRevision: row.revision, action, target, reason, restoreRevision }) });
+            const response = await fetch("/api/dev/translation-narrative", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ locale, kind: packet.kind, slug: packet.slug, id: row.id, sourceVersion: packet.sourceVersion, expectedRevision: row.revision, action, target, reason: correctionReason(reason), glossaryExceptions: action === "save" ? exceptionsFor(reason, row.id) : undefined, restoreRevision }) });
             const result = await response.json();
             if (!response.ok)
                 throw new Error(result.error ?? "Unable to save review.");
@@ -233,10 +235,10 @@ export function NarrativeReview({ locale }: {
    <p className="theme-text-secondary text-sm">{row.usages ? `${row.usages.total} current records share this English hash; showing ${row.usages.pages.length}.` : "Shared-hash usage was not included in this bounded inventory."} This correction affects only {packet?.slug}, {row.field}.</p>
    <ul className="theme-text-secondary text-sm">{row.usages?.pages.map(p => <li key={`${p.kind}:${p.slug}`}><SmartLink className="underline" href={p.href}>{p.kind}: {p.label}</SmartLink></li>)}</ul>
    <label htmlFor={`${formId}-correction`} className="block">Correction<Textarea id={`${formId}-correction`} ref={correctionRef} lang={locale} value={target} onChange={e => setTarget(e.target.value)} disabled={busy} maxLength={30000}/></label>
-   <label htmlFor={`${formId}-reason`} className="block">Reason<Input id={`${formId}-reason`} value={reason} onChange={e => setReason(e.target.value)} disabled={busy} maxLength={1000}/></label>
-   <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.trim()} onClick={() => void mutate("approve")}>Approve saved revision</Button><Button variant="ghost" disabled={busy} onClick={closeEditor}>Close editor</Button></div>
+   <CorrectionReasonFields value={reason} onChange={setReason} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy}/>
+   <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.kind || openConflicts(row.source, target, row.glossary, exceptionsFor(reason, row.id)).length > 0} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.kind} onClick={() => void mutate("approve")}>Approve saved revision</Button><Button variant="ghost" disabled={busy} onClick={closeEditor}>Close editor</Button></div>
    <h5 className="theme-text-primary font-medium">Review history</h5>
-   <ul className="space-y-2">{history.map(h => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {h.reason} <Button size="sm" variant="outline" disabled={busy || !reason.trim()} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
+   <ul className="space-y-2">{history.map(h => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)}{h.glossaryExceptions?.length ? ` Kept out on purpose: ${h.glossaryExceptions.join(", ")}.` : ""} <Button size="sm" variant="outline" disabled={busy || !reason.kind} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
   </Surface> : null;
     return <section aria-label="Narrative review" className="min-w-0 space-y-4">
   <p className="theme-text-secondary text-sm">Review one public substance article. Corrections apply only to the selected paragraph and source context. Other uses of identical English retain their own wording.</p>

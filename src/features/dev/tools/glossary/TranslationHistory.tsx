@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ReviewHistoryEntry, ReviewState } from "@lib/translation/reviewTypes";
+import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,8 @@ export function TranslationHistory({ name, revision, load, restore, disabled = f
         <p className="theme-text-primary font-medium">Revision {entry.revision} · {entry.action === "approve" ? "Approved" : entry.action === "restore" ? "Restored as draft" : "Draft saved"}</p>
         <p className="theme-text-secondary">{entry.actor} · {new Date(entry.createdAt).toLocaleString()}</p>
         <div className="grid gap-3 sm:grid-cols-2"><HistorySnapshot title="Before" state={entry.before} /><HistorySnapshot title="After" state={entry.after} /></div>
-        <p className="theme-text-secondary">{entry.reason}</p>
+        <p className="theme-text-secondary">{formatReviewReason(entry.reason)}</p>
+        {entry.glossaryExceptions?.length ? <p className="theme-text-faint">Kept out on purpose: {entry.glossaryExceptions.join(", ")}</p> : null}
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" disabled={disabled || busy} onClick={() => void restoreSnapshot(entry.revision)}>Restore revision {entry.revision} as draft</Button>
           {entry.before.revision === 0 && entry.before.draft?.provenance === "compiled" ? <Button type="button" variant="outline" size="sm" disabled={disabled || busy} onClick={() => void restoreSnapshot(0)}>Restore original compiled wording as draft</Button> : null}

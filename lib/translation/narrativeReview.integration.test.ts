@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { HeroSummaryContent } from "@/features/article/components/sections/HeroSummaryContent";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, afterAll, beforeEach, expect, it, vi } from "vitest";
 import { readNarrativeReview, writeNarrativeReview } from "./narrativeReview";
@@ -17,15 +17,12 @@ const record = { slug: "sample", summary: "This is a long source sentence about 
 const reads = { getPublicSubstanceBySlug: async () => record, getPublicSubstanceSlugs: async () => [record.slug], getPublicEffects: async () => [], getPublicTripReportRecords: async () => [], getPublishedEffectIndexArticles: async () => [], getPublicReplications: async () => [], getPublicContributorProfiles: async () => [] } as unknown as PublicDataReadAdapter;
 beforeAll(async () => {
     db = new PGlite();
-    for (const migration of ["0006_translation_segments", "0007_translation_rejections", "0020_translation_review_workspace"]) {
-        // Review migration also alters the glossary table.
-        if (migration === "0020_translation_review_workspace")
-            await db.exec(await readFile(new URL("../postgres/migrations/0008_translation_glossary.sql", import.meta.url), "utf8"));
-        await db.exec(await readFile(new URL(`../postgres/migrations/${migration}.sql`, import.meta.url), "utf8"));
-    }
+    // Every migration: the read now lists the glossary rows each paragraph mentions.
+    for (const file of (await readdir(new URL("../postgres/migrations/", import.meta.url))).filter(name => name.endsWith(".sql")).sort())
+        await db.exec(await readFile(new URL(`../postgres/migrations/${file}`, import.meta.url), "utf8"));
     transport.sql.mockImplementation(async (q: string, p: unknown[] = []) => (await db.query(q, p)).rows);
     transport.sqlTransaction.mockImplementation((op: (tx: unknown) => Promise<unknown>) => db.transaction(tx => op({ query: tx.query.bind(tx) })));
-}, 30000);
+}, 120000);
 beforeEach(async () => { process.env.DATA_WRITES_FROZEN = "0"; await db.exec('TRUNCATE "translationReviewEntries", "translationReviewHistory", "translationSegments"'); });
 afterAll(async () => { delete process.env.DATA_WRITES_FROZEN; await db?.close(); });
 it("publishes only an approved contextual revision and preserves it over machine refresh", async () => {

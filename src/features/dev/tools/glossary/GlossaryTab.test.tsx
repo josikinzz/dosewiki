@@ -127,7 +127,7 @@ describe("GlossaryTab", () => {
     await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
 
     await waitFor(() => expect(api.calls).toHaveLength(1));
-    expect(api.calls[0]).toEqual({ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } });
+    expect(api.calls[0]).toEqual({ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" }, reason: { kind: "terminology", note: "" } } });
 
     // Mid-write: the written row is held, the other row is fully live.
     expect(first).toHaveAttribute("readonly");
@@ -187,7 +187,7 @@ describe("GlossaryTab", () => {
     await user.click(screen.getByRole("button", { name: /Live, never checked/ }));
     await user.click(rowFor("anxiety").getByRole("button", { name: "Confirm" }));
     await screen.findByText('Confirmed "anxiety".');
-    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } }]);
+    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" }, reason: { kind: "terminology", note: "" } } }]);
     expect(document.querySelector('tr[data-term="anxiety"]')).toBeNull();
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("0 drafts, 1 live never checked, 1 human approved");
     await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for euphoria" })).toHaveFocus());
@@ -219,7 +219,7 @@ describe("GlossaryTab", () => {
     expect(confirmDialog.getByText(/Confirm the 2 live, never checked terms/)).toBeInTheDocument();
     await user.click(confirmDialog.getByRole("button", { name: /^Confirm / }));
     await screen.findByText("Confirmed 2 terms.");
-    expect(api.calls[1]).toEqual({ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["focus", "joy"], expectedRevisions: { focus: "1:0", joy: "1:0" } } });
+    expect(api.calls[1]).toEqual({ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["focus", "joy"], expectedRevisions: { focus: "1:0", joy: "1:0" }, reason: { kind: "terminology", note: "" } } });
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("0 drafts, 0 live never checked, 6 human approved");
   });
 
@@ -455,7 +455,7 @@ describe("GlossaryTab", () => {
     expect(rowFor("Artist").getByText("Unreviewed")).toBeInTheDocument();
     await user.click(rowFor("Artist").getByRole("button", { name: "Approve" }));
     await screen.findByText('Approved "Artist".');
-    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
   });
 
   it("asks again for changed collisions during individual approval and hands focus forward only after success", async () => {
@@ -473,7 +473,7 @@ describe("GlossaryTab", () => {
     expect(input).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
     await screen.findByText('Approved "Artist".');
-    expect(api.calls[2].body).toEqual({ locale: LOCALE, terms: ["Artist"], expectedRevisions: { Artist: "1:0" }, collisionConfirmation: "b".repeat(64) });
+    expect(api.calls[2].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist"], expectedRevisions: { Artist: "1:0" }, collisionConfirmation: "b".repeat(64) });
     await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for Next" })).toHaveFocus());
   });
 
@@ -489,7 +489,7 @@ describe("GlossaryTab", () => {
     expect(api.calls).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Allow shared rendering" }));
     await screen.findByText("Approved 2 terms.");
-    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
   });
 
   it("retries the same CSV with a bounded acknowledgement header only after explicit confirmation", async () => {

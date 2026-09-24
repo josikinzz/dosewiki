@@ -8,7 +8,7 @@ import { type TranslationRecordKind } from "@server/translation/liveTranslation"
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { isPublicLocaleCode } from "@/i18n/localeRegistry.mjs";
 import { glossaryLocaleAccess, parseLocale } from "../translation-glossary/glossaryRoutes";
-import { workbenchError } from "../translation-workbench/workbenchRoutes";
+import { parseReasonFields, workbenchError } from "../translation-workbench/workbenchRoutes";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 function location(raw: Record<string, unknown>) {
@@ -23,13 +23,12 @@ function mutation(raw: Record<string, unknown>): Omit<NarrativeMutation, "actor"
         throw new JsonBodyError(400, "Reload the source segment before reviewing.");
     if (!["save", "approve", "restore"].includes(String(raw.action)) || !Number.isSafeInteger(raw.expectedRevision) || Number(raw.expectedRevision) < 0)
         throw new JsonBodyError(400, "Choose an action and expected revision.");
-    if (typeof raw.reason !== "string" || !raw.reason.trim() || raw.reason.length > 1000)
-        throw new JsonBodyError(400, "Explain this change in up to 1000 characters.");
+    const { reason, glossaryExceptions } = parseReasonFields(raw);
     if (raw.action === "save" && (typeof raw.target !== "string" || !raw.target.trim() || raw.target.length > 30000))
         throw new JsonBodyError(400, "Enter a translation of up to 30000 characters.");
     if (raw.action === "restore" && (!Number.isSafeInteger(raw.restoreRevision) || Number(raw.restoreRevision) < 0))
         throw new JsonBodyError(400, "Choose a revision to restore.");
-    return { ...source, id: raw.id, sourceVersion: raw.sourceVersion, action: raw.action as NarrativeMutation["action"], expectedRevision: Number(raw.expectedRevision), reason: raw.reason, target: typeof raw.target === "string" ? raw.target : undefined, restoreRevision: raw.restoreRevision as number | undefined };
+    return { ...source, id: raw.id, sourceVersion: raw.sourceVersion, action: raw.action as NarrativeMutation["action"], expectedRevision: Number(raw.expectedRevision), reason, glossaryExceptions, target: typeof raw.target === "string" ? raw.target : undefined, restoreRevision: raw.restoreRevision as number | undefined };
 }
 export const GET = protectedRouteOperation({ auth: "translator", rateLimit: "editorPolledRead", mapError: workbenchError, unexpectedErrorLabel: "Narrative review read failed", unexpectedErrorMessage: "Unable to read narrative review.", operation: async ({ request, auth }) => {
         const params = new URL(request.url).searchParams;

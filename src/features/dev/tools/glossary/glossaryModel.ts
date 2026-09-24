@@ -5,6 +5,7 @@
 
 import type { GlossaryCollision, GlossaryStatus } from "@server/translation/glossary";
 import type { GlossaryGloss } from "@server/translation/glossaryGloss";
+import type { ReviewReason } from "@server/translation/reviewReason";
 import type { GlossaryListResponse } from "@/app/api/dev/translation-glossary/glossaryRoutes";
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
 
@@ -220,19 +221,20 @@ export async function fetchGlossary(locale: string | null, includeUsage = true):
 }
 
 /** Returns the terms whose status changed. */
-export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string, expectedRevisions?: Record<string, string>): Promise<string[]> {
-  const payload = await postJson("approve", { locale, terms, collisionConfirmation, expectedRevisions }, "Unable to approve those terms.");
+export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string, expectedRevisions?: Record<string, string>, reason?: ReviewReason): Promise<string[]> {
+  const payload = await postJson("approve", { locale, terms, collisionConfirmation, expectedRevisions, reason }, "Unable to approve those terms.");
   return Array.isArray(payload.approved) ? (payload.approved as string[]) : [];
 }
 
 /** Confirms live wording nobody has checked, unchanged, at the revisions shown; returns the confirmed terms. */
-export async function confirmTerms(locale: string, terms: readonly string[], expectedRevisions: Record<string, string>, collisionConfirmation?: string): Promise<string[]> {
-  const payload = await postJson("confirm", { locale, terms, expectedRevisions, collisionConfirmation }, "Unable to confirm those terms.");
+export async function confirmTerms(locale: string, terms: readonly string[], expectedRevisions: Record<string, string>, collisionConfirmation?: string, reason?: ReviewReason): Promise<string[]> {
+  const payload = await postJson("confirm", { locale, terms, expectedRevisions, collisionConfirmation, reason }, "Unable to confirm those terms.");
   return Array.isArray(payload.confirmed) ? (payload.confirmed as string[]) : [];
 }
 
-export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string, expectedRevision?: string): Promise<GlossaryRow> {
-  const payload = await postJson("edit", { locale, term, target, collisionConfirmation, expectedRevision, intent: "draft" }, "Unable to save that term.");
+/** Saves a draft rendering; never approves it. */
+export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string, expectedRevision?: string, reason?: ReviewReason): Promise<GlossaryRow> {
+  const payload = await postJson("edit", { locale, term, target, collisionConfirmation, expectedRevision, intent: "draft", reason }, "Unable to save that term.");
   return payload.row as GlossaryRow;
 }
 

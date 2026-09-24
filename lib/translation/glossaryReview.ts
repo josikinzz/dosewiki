@@ -21,6 +21,7 @@ import type {
   ReviewMutation,
   ReviewSnapshot,
 } from "./reviewTypes";
+import type { ReviewReason } from "./reviewReason";
 
 export type GlossaryReviewRow = TranslationGlossaryRow & {
   revision: string;
@@ -121,7 +122,7 @@ type GlossaryMutation = {
   restoreRevision?: number;
   kind?: string;
   /** This change's history reason, when it differs from the batch reason. */
-  reason?: string;
+  reason?: ReviewReason | string;
 };
 
 /** Confirm reached a row that is a draft, already checked, or not live. */
@@ -140,7 +141,8 @@ export async function mutateGlossaryReview(
   changes: GlossaryMutation[],
   actor: string,
   collisionConfirmation?: string,
-  reason = "Glossary review",
+  /** The reviewer's chosen reason; callers that offer no choice keep the old default. */
+  reason: ReviewReason | string = "Glossary review",
 ): Promise<GlossaryReviewRow[]> {
   assertDataWritesNotFrozen("mutateGlossaryReview");
   const [baseRows, entries] = await Promise.all([
@@ -291,16 +293,18 @@ export async function confirmLegacyGlossaryRows(
   locale: string,
   confirmations: readonly { term: string; expectedRevision: string }[],
   actor: string,
-  options: { collisionConfirmation?: string; reason?: string } = {},
+  options: { collisionConfirmation?: string; reason?: ReviewReason | string } = {},
 ): Promise<GlossaryReviewRow[]> {
-  const why = options.reason?.trim() || "Confirmed live wording";
+  const chosen = typeof options.reason === "string" ? undefined : options.reason;
+  const why = (typeof options.reason === "string" ? options.reason : options.reason?.note)?.trim() || "Confirmed live wording";
   return mutateGlossaryReview(
     locale,
     confirmations.map(({ term, expectedRevision }) => ({
       term,
       expectedRevision,
       action: "confirm" as const,
-      reason: `${why} (revision ${expectedRevision})`,
+      // A chosen kind is kept; the revision always joins the note.
+      reason: chosen ? { kind: chosen.kind, note: `${why} (revision ${expectedRevision})` } : `${why} (revision ${expectedRevision})`,
     })),
     actor,
     options.collisionConfirmation,

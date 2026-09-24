@@ -11,8 +11,11 @@ import { EditorNotice, EditorStatusPill, type EditorNoticeMessage } from "@/feat
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
 import { ShortLabelGrid } from "./ShortLabelGrid";
 import { PendingRefreshList } from "./PendingRefreshList";
+import { CorrectionReasonFields, correctionReason, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
+import type { CorrectionReasonKind } from "@lib/translation/reviewReason";
 
-export type UiEditDrafts = Map<string, { target: string; reason: string }>;
+/** Unsaved work per label, kept across search and pagination: wording, note, reason kind, and "Fine here" choices. */
+export type UiEditDrafts = Map<string, { target: string; reason: string; kind?: CorrectionReasonKind | null; exceptions?: string[] }>;
 
 const endpoint = "/api/dev/translation-workbench";
 
@@ -63,13 +66,17 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
   const inputId = useId();
   const editKey = `${locale}:${row.id}`;
   const [target, setTarget] = useState(edits.get(editKey)?.target ?? row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "");
-  const [reason, setReason] = useState(edits.get(editKey)?.reason ?? "");
+  const correctionOf = (): CorrectionDraft => { const saved = edits.get(editKey); return { kind: saved?.kind ?? null, note: saved?.reason ?? "", segment: row.id, exceptions: saved?.exceptions ?? [] }; };
+  const [correction, setCorrection] = useState<CorrectionDraft>(correctionOf);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const inFlight = useRef(false);
-  useEffect(() => { setTarget(edits.get(editKey)?.target ?? row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? ""); setReason(edits.get(editKey)?.reason ?? ""); }, [row, edits, editKey]);
-  const editTarget = (value: string) => { edits.set(editKey, { target: value, reason }); setTarget(value); };
-  const editReason = (value: string) => { edits.set(editKey, { target, reason: value }); setReason(value); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- correctionOf reads the same edits entry keyed by editKey.
+  useEffect(() => { setTarget(edits.get(editKey)?.target ?? row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? ""); setCorrection(correctionOf()); }, [row, edits, editKey]);
+  const remember = (nextTarget: string, next: CorrectionDraft) => edits.set(editKey, { target: nextTarget, reason: next.note, kind: next.kind, exceptions: next.exceptions });
+  const editTarget = (value: string) => { remember(value, correction); setTarget(value); };
+  const editCorrection = (next: CorrectionDraft) => { remember(target, next); setCorrection(next); };
+  const conflicts = openConflicts(row.source, target, row.glossary, exceptionsFor(correction, row.id));
   const savedTarget = row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "";
   const dirty = target.trim() !== savedTarget;
   const write = async (action: "save" | "approve" | "restore", restoreRevision?: number) => {
@@ -80,10 +87,11 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
         locale, id: row.id, action, expectedRevision: row.revision,
         ...(action === "save" ? { target: target.trim() } : {}),
         ...(restoreRevision === undefined ? {} : { restoreRevision }),
-        reason: reason.trim() || (action === "approve" ? "Reviewed wording in its UI context." : action === "restore" ? `Restore revision ${restoreRevision} for review.` : "Correct UI wording."),
+        ...(action === "save" ? { glossaryExceptions: exceptionsFor(correction, row.id) } : {}),
+        reason: correctionReason(correction) ?? (correction.note.trim() || (action === "approve" ? "Reviewed wording in its UI context." : `Restore revision ${restoreRevision} for review.`)),
       });
       edits.delete(editKey);
-      update(result.row); setReason("");
+      update(result.row); setCorrection({ kind: null, note: "", segment: row.id, exceptions: [] });
       setNotice({ tone: "success", message: action === "approve" ? "Approved. Awaiting a UI catalog build, deployment, and public verification." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
     } catch (cause) {
       setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change was not saved." });
@@ -98,9 +106,9 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
     {row.compiledTarget ? <p className="theme-text-secondary text-sm">Compiled wording (not verified live): <span className="theme-text-primary">{row.compiledTarget}</span></p> : null}
     {row.approved ? <p className="theme-text-secondary text-sm">Approved wording: <span className="theme-text-primary">{row.approved.target}</span></p> : <p className="theme-text-faint text-xs">No human-approved wording is recorded for this context.</p>}
     <div className="space-y-1"><label htmlFor={inputId} className="theme-text-secondary text-xs">Translation</label>{row.source.length > 100 || row.source.includes("\n") || target.length > 100 || target.includes("\n") ? <Textarea id={inputId} textareaSize="sm" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} /> : <Input id={inputId} inputSize="sm" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} />}</div>
-    <div className="space-y-1"><label htmlFor={`${inputId}-note`} className="theme-text-secondary text-xs">Review note (optional)</label><Input id={`${inputId}-note`} inputSize="sm" aria-label={`Review note for ${row.id}`} placeholder="Explain the wording or correction" value={reason} onChange={(event) => editReason(event.target.value)} disabled={busy} /></div>
+    <CorrectionReasonFields value={correction} onChange={editCorrection} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy} noteLabel="Review note (optional)" noteAriaLabel={`Review note for ${row.id}`} />
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" variant="outline" size="sm" disabled={busy || !target.trim() || (!dirty && row.status !== "stale" && row.status !== "unreviewed")} onClick={() => void write("save").catch(() => {})}>Save draft</Button>
+      <Button type="button" variant="outline" size="sm" disabled={busy || !target.trim() || !correction.kind || conflicts.length > 0 || (!dirty && row.status !== "stale" && row.status !== "unreviewed")} onClick={() => void write("save").catch(() => {})}>Save draft</Button>
       <Button type="button" variant="accent" size="sm" disabled={busy || dirty || !row.draft || row.draft.source !== row.source || row.draft.context !== row.context} onClick={() => void write("approve").catch(() => {})}>Approve saved draft</Button>
       <span className="theme-text-faint text-xs">Revision {row.revision}</span>
     </div>

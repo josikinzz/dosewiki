@@ -3,6 +3,8 @@ import { getPostgresClient } from "@server/postgres/runtime/backend";
 import type { SqlExecutor } from "../postgres/runtime/db";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 import type { ReviewEntry, ReviewHistoryEntry, ReviewMutation, ReviewScope, ReviewSnapshot, ReviewState } from "./reviewTypes";
+import { decodeReviewReason, encodeReviewReason, parseReviewReason } from "./reviewReason";
+import { glossaryConflictMessage, type GlossaryRendering } from "./glossaryConflicts";
 
 export type ReviewTransaction = Pick<SqlExecutor, "query">;
 export class TranslationReviewError extends Error {
@@ -11,7 +13,11 @@ export class TranslationReviewError extends Error {
 export class TranslationReviewConflictError extends TranslationReviewError {
   constructor() { super("This translation changed since you opened it. Reload and review the latest revision.", 409, "TRANSLATION_REVIEW_CONFLICT"); }
 }
-type StoredEntry = { locale: string; scope: ReviewScope; source_id: string; revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null; updated_at: number };
+/** A correction leaves out approved glossary renderings its English mentions, and the reviewer did not mark them "Fine here". */
+export class GlossaryConflictError extends TranslationReviewError {
+  constructor(readonly conflicts: GlossaryRendering[]) { super(conflicts.map(glossaryConflictMessage).join(" "), 409, "GLOSSARY_CONFLICT"); }
+}
+type StoredEntry ={ locale: string; scope: ReviewScope; source_id: string; revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null; updated_at: number };
 function entry(row: StoredEntry): ReviewEntry {
   return { locale: row.locale, scope: row.scope, sourceId: row.source_id, revision: Number(row.revision), draft: row.draft, approved: row.approved, updatedAt: Number(row.updated_at) };
 }
@@ -22,7 +28,7 @@ export async function readReviewEntries(locale: string, scope: ReviewScope): Pro
 export async function readReviewHistory(locale: string, scope: ReviewScope, sourceId: string): Promise<ReviewHistoryEntry[]> {
   const rows = await getPostgresClient().sql<{ revision: number; action: ReviewHistoryEntry["action"]; before_state: ReviewState; after_state: ReviewState; actor: string; reason: string; created_at: number }>(
     'SELECT "revision", "action", "before_state", "after_state", "actor", "reason", "created_at" FROM "translationReviewHistory" WHERE "locale" = $1 AND "scope" = $2 AND "source_id" = $3 ORDER BY "revision" DESC', [locale, scope, sourceId]);
-  return rows.map((row) => ({ revision: Number(row.revision), action: row.action, before: row.before_state, after: row.after_state, actor: row.actor, reason: row.reason, createdAt: Number(row.created_at) }));
+  return rows.map((row) => ({ revision: Number(row.revision), action: row.action, before: row.before_state, after: row.after_state, actor: row.actor, ...decodeReviewReason(row.reason), createdAt: Number(row.created_at) }));
 }
 export type ReviewMutationOptions = {
   seedApproved?: ReviewSnapshot | null;
@@ -32,7 +38,7 @@ export type ReviewMutationOptions = {
 };
 function validateInput(input: ReviewMutation): void {
   if (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0) throw new TranslationReviewError("An expected revision is required.");
-  if (!input.actor?.trim() || !input.reason?.trim() || input.reason.length > 1000) throw new TranslationReviewError("An actor and a reason of up to 1000 characters are required.");
+  if (!input.actor?.trim() || !parseReviewReason(input.reason)) throw new TranslationReviewError("An actor and a reason of up to 1000 characters are required.");
   if (!["ui", "glossary", "narrative", "qa-exception"].includes(input.scope) || !input.locale || !input.sourceId || !input.source || !input.context) throw new TranslationReviewError("A declared translation source and context are required.");
   if (!["save", "approve", "restore"].includes(input.action)) throw new TranslationReviewError("Unknown review action.");
   if (input.action === "save" && (typeof input.target !== "string" || !input.target.trim() || input.target.length > (input.scope === "narrative" || input.scope === "qa-exception" ? 30000 : 2000))) throw new TranslationReviewError("Enter a translation within the scope character limit.");
@@ -75,7 +81,7 @@ export async function mutateReviewEntryInTransaction(tx: ReviewTransaction, inpu
   }
   const now = Date.now();
   await tx.query('UPDATE "translationReviewEntries" SET "revision"=$4,"draft"=$5::jsonb,"approved"=$6::jsonb,"updated_at"=$7 WHERE "locale"=$1 AND "scope"=$2 AND "source_id"=$3', [...keys, after.revision, JSON.stringify(after.draft), JSON.stringify(after.approved), now]);
-  await tx.query('INSERT INTO "translationReviewHistory" ("locale","scope","source_id","revision","action","before_state","after_state","actor","reason","created_at") VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8,$9,$10)', [...keys, after.revision, input.action, JSON.stringify(before), JSON.stringify(after), input.actor, input.reason.trim(), now]);
+  await tx.query('INSERT INTO "translationReviewHistory" ("locale","scope","source_id","revision","action","before_state","after_state","actor","reason","created_at") VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8,$9,$10)', [...keys, after.revision, input.action, JSON.stringify(before), JSON.stringify(after), input.actor, encodeReviewReason(parseReviewReason(input.reason)!, input.glossaryExceptions), now]);
   return { ...current, ...after, updatedAt: now };
 }
 export async function mutateReviewEntry(input: ReviewMutation, options: ReviewMutationOptions = {}): Promise<ReviewEntry> {

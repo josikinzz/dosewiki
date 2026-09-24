@@ -19,6 +19,39 @@ when a CSV status says approved. Machine drafting
 cannot overwrite human drafts or reviewed entries. The effective glossary table
 continues to supply approved terminology to article translation.
 
+### Correction reasons and the glossary check
+
+The Narratives and UI labels editors ask why a correction was made. Save draft
+needs one of four reason chips, **Fluency**, **Terminology**, **Accuracy**, or
+**Local addition**, plus an optional note. History stores the reason as
+`{ kind, note }` (kind `fluency`, `terminology`, `accuracy`, or `local`) in the
+`reason` column as a versioned JSON object. Rows written before this change hold
+free text and read as `{ kind: "unspecified", note }`. A plain-text reason from
+an older caller, such as Inbox Accept or batch label approval, is still accepted
+and stored as plain text. The Glossary view's **Approval reason** chips
+(Terminology by default) are recorded with every Approve and Confirm made there,
+in place of the fixed "Glossary review".
+
+Every correction save runs a glossary check on the server, through the shared
+term matcher (`scripts/translation/term-match.mjs`). If the English mentions an
+approved term and the correction does not contain its rendering, the save is
+refused with `409 GLOSSARY_CONFLICT` and a `conflicts` list naming each term. The
+editor runs the same check while the reviewer types and shows, for example,
+"This sentence mentions Replication (体验再现). Your wording does not use it."
+with two choices:
+
+- **Fine here** adds the term to the save's `glossaryExceptions`. The server
+  saves and records the exception in that history row. It applies to that
+  segment or label only.
+- **Update the glossary** opens a glossary draft prefilled with the term and its
+  current rendering. **Save glossary draft** goes through the glossary's own
+  draft save (`/api/dev/translation-glossary/edit`). It never approves. The new
+  rendering waits in Words like any other draft.
+
+With the Terminology chip chosen, **Propose glossary change** opens the same
+draft form for any glossary term the sentence mentions. Batch approval of short
+labels does not run the check; its grid has no place to record an exception.
+
 ### Glossary review states
 
 Every glossary row is in exactly one of three states. The summary line counts

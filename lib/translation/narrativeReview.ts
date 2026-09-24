@@ -6,6 +6,8 @@ import { readTranslationCoverageRows } from "./segmentStore";
 import { getTranslationHashUsages } from "./translationCoverage";
 import { mutateReviewEntry, readReviewEntries, readReviewHistory, TranslationReviewError } from "./reviewStore";
 import type { NarrativeOverlayDecision, NarrativeRowStatus, ReviewAction } from "./reviewTypes";
+import type { ReviewReason } from "./reviewReason";
+import { assertCorrectionKeepsGlossary, glossaryMentionsFor, readGlossaryMentionIndex } from "./glossaryConflictCheck";
 import { resolveLocale } from "../../scripts/translation/locales.mjs";
 import { validateSegment, BLOCKING_DEFECTS } from "../../scripts/translation/validate.mjs";
 async function sourceRecord(reads: PublicDataReadAdapter, kind: TranslationRecordKind, slug: string) {
@@ -23,13 +25,16 @@ export async function readNarrativeReview(reads: PublicDataReadAdapter, locale: 
     const hashes = [...new Set(segments.map(s => s.hash))];
     const machine = new Map((await readTranslationCoverageRows(locale, hashes)).map(s => [s.hash, s]));
     const usages = await getTranslationHashUsages(reads, hashes.slice(0, 200), 50);
+    const glossary = await readGlossaryMentionIndex(locale);
     const rows = segments.map(s => {
         const id = narrativeIdentity(kind, s), context = narrativeContext(kind, s, segments), e = entries.get(id), active = e?.draft ?? e?.approved;
         const overlay: NarrativeOverlayDecision | null = e?.approved ? narrativeOverlayDecision(kind, segments, s, e.approved) : null;
         const activeDecision = active ? narrativeOverlayDecision(kind, segments, s, active) : null;
         const status: NarrativeRowStatus = activeDecision === "stale" ? "stale" : e?.draft ? "draft" : overlay === "apply-recheck" ? "recheck" : e?.approved ? "approved" : "unreviewed";
         return { id, hash: s.hash, field: s.path, source: s.source, context, machine: machine.get(s.hash) ?? null, revision: e?.revision ?? 0, draft: e?.draft ?? null, approved: e?.approved ?? null,
-            overlay, status, usages: usages[s.hash] ?? null };
+            overlay, status, usages: usages[s.hash] ?? null,
+            // The glossary rows this English mentions: the editor checks approved ones while typing and offers any for a proposal.
+            glossary: glossaryMentionsFor(s.source, glossary) };
     });
     // Only an approval that applies without re-check counts; apply-recheck still awaits a person.
     const tally = { humanApproved: rows.filter(r => r.overlay === "apply").length, total: rows.length };
@@ -46,7 +51,9 @@ export type NarrativeMutation = {
     target?: string;
     restoreRevision?: number;
     actor: string;
-    reason: string;
+    reason: ReviewReason | string;
+    /** Approved terms the reviewer marked "Fine here" for this correction. */
+    glossaryExceptions?: string[];
 };
 export async function writeNarrativeReview(reads: PublicDataReadAdapter, input: NarrativeMutation) {
     const locale = resolveLocale(input.locale);
@@ -56,7 +63,11 @@ export async function writeNarrativeReview(reads: PublicDataReadAdapter, input: 
     const segment = current.segments.find(s => narrativeIdentity(input.kind, s) === input.id);
     if (!segment)
         throw new TranslationReviewError("This source segment no longer exists.", 409);
-    return mutateReviewEntry({ ...input, scope: "narrative", sourceId: input.id, source: segment.source, context: narrativeContext(input.kind, segment, current.segments) }, {
+    // A correction that drops an approved term needs the reviewer's explicit exception.
+    const glossaryExceptions = input.action === "save" && typeof input.target === "string"
+        ? await assertCorrectionKeepsGlossary(input.locale, segment.source, input.target, input.glossaryExceptions)
+        : [];
+    return mutateReviewEntry({ ...input, glossaryExceptions, scope: "narrative", sourceId: input.id, source: segment.source, context: narrativeContext(input.kind, segment, current.segments) }, {
         beforeTransition: async () => {
             if ((await sourceRecord(reads, input.kind, input.slug)).sourceVersion !== input.sourceVersion)
                 throw new TranslationReviewError("Source context changed. Reload before reviewing.", 409);

@@ -16,6 +16,7 @@ import {
   type GlossaryLocaleSummary,
 } from "@server/translation/glossary";
 import { TranslationReviewError } from "@server/translation/reviewStore";
+import { parseReviewReason, type ReviewReason } from "@server/translation/reviewReason";
 import type { GlossaryReviewRow } from "@server/translation/glossaryReview";
 import { TRANSLATION_LOCALE_CODES } from "@server/translation/liveTranslation";
 import type { TranslationJobCounts } from "@server/translation/segmentStore";
@@ -88,6 +89,18 @@ export function parseTarget(raw: unknown): string {
     throw new JsonBodyError(400, "A non-empty target rendering is required.");
   }
   return target;
+}
+
+/**
+ * The reviewer's reason for a glossary write: `{ kind, note }` or legacy text.
+ * Absent means the route's default wording; malformed is refused.
+ */
+export function parseGlossaryReason(raw: unknown, maxNote = 1000): ReviewReason | undefined {
+  if (raw === undefined || (typeof raw === "string" && !raw.trim())) return undefined;
+  const reason = parseReviewReason(raw);
+  if (!reason || reason.note.length > maxNote)
+    throw new JsonBodyError(400, `Choose a reason kind; a note is at most ${maxNote} characters.`);
+  return reason;
 }
 
 /** A fixed-size acknowledgement, never a blanket override or a body in a query. */

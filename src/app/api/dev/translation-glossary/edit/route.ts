@@ -11,7 +11,9 @@ import {
   parseLocale,
   parseTarget,
   parseTerm,
+  parseGlossaryReason,
 } from "../glossaryRoutes";
+import type { ReviewReason } from "@server/translation/reviewReason";
 
 export const runtime = "nodejs";
 
@@ -20,12 +22,15 @@ type EditBody = {
   term?: unknown;
   target?: unknown;
   expectedRevision?: unknown;
+  reason?: unknown;
 };
 type ParsedEdit = {
   locale: string;
   term: string;
   target: string;
   expectedRevision: string;
+  /** Why the draft was proposed, e.g. from a correction; defaults to the glossary review wording. */
+  reason?: ReviewReason;
 };
 
 export const POST = protectedRouteOperation<EditBody, ParsedEdit>({
@@ -38,6 +43,7 @@ export const POST = protectedRouteOperation<EditBody, ParsedEdit>({
       term: parseTerm(raw.term),
       target: parseTarget(raw.target),
       expectedRevision: parseExpectedRevision(raw.expectedRevision),
+      reason: parseGlossaryReason(raw.reason),
     }),
   },
   mapError: glossaryCollisionResponse,
@@ -58,6 +64,8 @@ export const POST = protectedRouteOperation<EditBody, ParsedEdit>({
         },
       ],
       actorEmail,
+      undefined,
+      body.reason,
     );
     const row = rows.find((entry) => entry.term === body.term);
     if (!row) {

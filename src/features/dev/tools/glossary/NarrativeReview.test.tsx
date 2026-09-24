@@ -30,7 +30,7 @@ it("reviews rendered field context and keeps an edited draft out of approval", a
     const correction = await screen.findByRole("textbox", { name: "Correction" });
     await user.clear(correction);
     await user.type(correction, "审阅后的内容");
-    await user.type(screen.getByRole("textbox", { name: "Reason" }), "Meaning");
+    await user.click(screen.getByRole("button", { name: "Accuracy" }));
     expect(screen.getByRole("button", { name: "Approve saved revision" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("Draft saved. Published wording is unchanged.");
@@ -59,7 +59,7 @@ it("keeps Approve disabled while the saved draft belongs to older source context
  await user.type(screen.getByRole("textbox",{name:"Source slug"}),"sample");await user.click(screen.getByRole("button",{name:"Load source"}));
  await user.click(await screen.findByRole("button",{name:"Review toxicity.0"}));
  await waitFor(()=>expect(screen.getByRole("textbox",{name:"Correction"})).toHaveFocus());
- await user.type(screen.getByRole("textbox",{name:"Reason"}),"Meaning");
+ await user.click(screen.getByRole("button",{name:"Accuracy"}));
  expect(screen.getByRole("textbox",{name:"Correction"})).toHaveValue(draft.target);
  expect(screen.getByRole("button",{name:"Approve saved revision"})).toBeDisabled();
 });
@@ -158,4 +158,68 @@ it("opens the paragraph named by a translationSegment deep link", async () => {
  await waitFor(() => expect(correction).toHaveFocus());
  expect(correction).toHaveValue("2C-B 是一种迷幻苯乙胺。");
  expect(within(screen.getAllByRole("listitem")[0]).getByRole("textbox", { name: "Correction" })).toBe(correction);
+});
+const replicationRow = () => ({ id: "f".repeat(64), hash: "hash", field: "summary", source: "Replications of visual effects help readers.", context: "context", machine: { target: "视觉效果的体验再现帮助读者。" }, revision: 0, draft: null, approved: null, overlay: null, status: "unreviewed", usages: null,
+ glossary: [{ term: "Replication", target: "体验再现", approved: true, revision: "10:0" }, { term: "Visual effect", target: "视觉效果", approved: false, revision: "11:0" }] });
+const replicationPacket = () => ({ locale: "zh-Hans", kind: "article", slug: "sample", sourceVersion: "c".repeat(64), rows: [replicationRow()], history: [] });
+async function openReplication(user: ReturnType<typeof userEvent.setup>) {
+ render(<NarrativeReview locale="zh-Hans"/>);
+ await user.type(screen.getByRole("textbox", { name: "Source slug" }), "sample");
+ await user.click(screen.getByRole("button", { name: "Load source" }));
+ await user.click(await screen.findByRole("button", { name: "Review summary" }));
+ return screen.findByRole("textbox", { name: "Correction" });
+}
+it("warns while typing when the wording drops an approved term, and records Fine here with the save", async () => {
+ const writes: Record<string, unknown>[] = [];
+ vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
+  if (!init) return Response.json(replicationPacket());
+  writes.push(JSON.parse(String(init.body)));
+  return Response.json({ entry: { revision: 1 }, publication: [] });
+ }));
+ const user = userEvent.setup();
+ const correction = await openReplication(user);
+ await user.click(screen.getByRole("button", { name: "Fluency" }));
+ expect(screen.queryByText("This sentence mentions Replication (体验再现). Your wording does not use it.")).not.toBeInTheDocument();
+ await user.clear(correction);
+ await user.type(correction, "视觉效果的再现作品帮助读者。");
+ expect(screen.getByText("This sentence mentions Replication (体验再现). Your wording does not use it.")).toBeInTheDocument();
+ expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
+ await user.click(screen.getByRole("button", { name: "Fine here" }));
+ expect(screen.queryByText("This sentence mentions Replication (体验再现). Your wording does not use it.")).not.toBeInTheDocument();
+ await user.click(screen.getByRole("button", { name: "Save draft" }));
+ await screen.findByText("Draft saved. Published wording is unchanged.");
+ expect(writes[0]).toMatchObject({ action: "save", reason: { kind: "fluency", note: "" }, glossaryExceptions: ["Replication"] });
+});
+it("Terminology plus Propose glossary change saves a glossary draft and never approves it", async () => {
+ const requests: { url: string; body: Record<string, unknown> }[] = [];
+ vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+  if (!init) return Response.json(replicationPacket());
+  requests.push({ url, body: JSON.parse(String(init.body)) });
+  return Response.json({ ok: true, row: { term: "Replication", target: "再现作品", status: "draft" } });
+ }));
+ const user = userEvent.setup();
+ await openReplication(user);
+ expect(screen.queryByRole("button", { name: "Propose glossary change" })).not.toBeInTheDocument();
+ await user.click(screen.getByRole("button", { name: "Terminology" }));
+ await user.click(screen.getByRole("button", { name: "Propose glossary change" }));
+ const proposal = screen.getByRole("region", { name: "Glossary proposal" });
+ const rendering = within(proposal).getByRole("textbox", { name: "Proposed rendering" });
+ expect(rendering).toHaveValue("体验再现");
+ await user.clear(rendering);
+ await user.type(rendering, "再现作品");
+ await user.click(within(proposal).getByRole("button", { name: "Save glossary draft" }));
+ await within(proposal).findByText("Glossary draft saved for Replication. It waits for approval in Words.");
+ expect(requests).toEqual([{ url: "/api/dev/translation-glossary/edit", body: expect.objectContaining({ locale: "zh-Hans", term: "Replication", target: "再现作品", expectedRevision: "10:0", reason: { kind: "terminology", note: "Proposed from a correction" } }) }]);
+ expect(requests.some(r => r.url.includes("/approve") || r.url.includes("translation-narrative"))).toBe(false);
+});
+it("Update the glossary opens a draft prefilled with the conflicting term", async () => {
+ vi.stubGlobal("fetch", vi.fn(async () => Response.json(replicationPacket())));
+ const user = userEvent.setup();
+ const correction = await openReplication(user);
+ await user.clear(correction);
+ await user.type(correction, "视觉效果的再现作品。");
+ await user.click(screen.getByRole("button", { name: "Update the glossary" }));
+ const proposal = screen.getByRole("region", { name: "Glossary proposal" });
+ expect(within(proposal).getByRole("combobox", { name: "Term" })).toHaveValue("Replication");
+ expect(within(proposal).getByRole("textbox", { name: "Proposed rendering" })).toHaveValue("体验再现");
 });

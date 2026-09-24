@@ -1,8 +1,8 @@
 /**
- * POST /api/dev/translation-glossary/approve  { locale, terms: string[], collisionConfirmation? }
+ * POST /api/dev/translation-glossary/approve  { locale, terms: string[], reason?, collisionConfirmation? }
  *
  * Translator and up. Marks the rows approved as they stand, stamped with the
- * reviewer. Approving changes the prompt digest, so the caller follows up
+ * reviewer. `reason` is `{ kind, note }` and joins each term's review history. Approving changes the prompt digest, so the caller follows up
  * with /retranslate for the terms whose rendering changed.
  */
 import { NextResponse } from "next/server";
@@ -18,7 +18,9 @@ import {
   parseLocale,
   parseTerms,
   parseExpectedRevisions,
+  parseGlossaryReason,
 } from "../glossaryRoutes";
+import type { ReviewReason } from "@server/translation/reviewReason";
 
 export const runtime = "nodejs";
 
@@ -26,12 +28,14 @@ type ApproveBody = {
   locale?: unknown;
   terms?: unknown;
   expectedRevisions?: unknown;
+  reason?: unknown;
   collisionConfirmation?: unknown;
 };
 type ParsedApprove = {
   locale: string;
   terms: string[];
   expectedRevisions: Record<string, string>;
+  reason?: ReviewReason;
   collisionConfirmation?: string;
 };
 
@@ -47,6 +51,7 @@ export const POST = protectedRouteOperation<ApproveBody, ParsedApprove>({
         raw.expectedRevisions,
         parseTerms(raw.terms),
       ),
+      reason: parseGlossaryReason(raw.reason),
       collisionConfirmation: parseCollisionConfirmation(
         raw.collisionConfirmation,
       ),
@@ -68,6 +73,7 @@ export const POST = protectedRouteOperation<ApproveBody, ParsedApprove>({
       })),
       actorEmail,
       body.collisionConfirmation,
+      body.reason,
     );
     const approved = body.terms;
     return NextResponse.json({ ok: true, locale: body.locale, approved });

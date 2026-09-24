@@ -1,4 +1,5 @@
 /** Shared, browser-safe contracts for human translation review. */
+import type { ReviewReason } from "./reviewReason";
 /**
  * `qa-exception` holds a reviewer's "Fine here" on an Inbox QA finding: an
  * approved snapshot keyed by the finding, segment hash, term, and glossary
@@ -27,7 +28,10 @@ export type ReviewHistoryEntry = {
   before: ReviewState;
   after: ReviewState;
   actor: string;
-  reason: string;
+  /** Legacy free-text reasons read as `{ kind: "unspecified", note }`. */
+  reason: ReviewReason;
+  /** Approved glossary terms the reviewer kept out of this wording on purpose ("Fine here"). */
+  glossaryExceptions: string[];
   createdAt: number;
 };
 export type ReviewMutation = {
@@ -41,5 +45,8 @@ export type ReviewMutation = {
   target?: string;
   restoreRevision?: number;
   actor: string;
-  reason: string;
+  /** A plain string is recorded as an unspecified reason, as before. */
+  reason: ReviewReason | string;
+  /** Recorded with the reason; the caller has already run the glossary check. */
+  glossaryExceptions?: readonly string[];
 };

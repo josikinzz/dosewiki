@@ -27,9 +27,12 @@ describe("UI translation review", () => {
     const input = await screen.findByRole("textbox", { name: "Translation for appearance.light" });
     await user.type(input, "浅色");
     expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    // A correction names its reason before it is saved.
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("Draft saved. The approved wording is unchanged.");
-    expect(writes[0]).toMatchObject({ action: "save", expectedRevision: 0, target: "浅色" });
+    expect(writes[0]).toMatchObject({ action: "save", expectedRevision: 0, target: "浅色", reason: { kind: "fluency", note: "" }, glossaryExceptions: [] });
     expect(writes).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Approve saved draft" }));
     await screen.findByText("Approved. Awaiting a UI catalog build, deployment, and public verification.");
@@ -51,6 +54,7 @@ describe("UI translation review", () => {
     expect(screen.getByText("No human review")).toBeInTheDocument();
     expect(screen.getByText("Compiled wording (not verified live):")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("Draft saved. The approved wording is unchanged.");
     expect(writes[0]).toMatchObject({ action: "save", target: "浅色", expectedRevision: 0 });
@@ -63,6 +67,7 @@ describe("UI translation review", () => {
     render(<UiTranslationWorkbench locale="zh-Hans" />);
     const input = await screen.findByRole("textbox", { name: "Translation for appearance.light" });
     await user.type(input, "浅色");
+    await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("This translation changed. Reload before reviewing.");
     expect(input).toHaveValue("浅色");
@@ -74,7 +79,7 @@ describe("UI translation review", () => {
     const writes: Record<string, unknown>[] = [];
     const row = { ...label(), revision: 2, approved: source, status: "approved" as const };
     vi.stubGlobal("fetch", vi.fn(async (url, init) => {
-      if (String(url).includes("/history")) return Response.json({ history: [{ revision: 1, action: "save", before: { revision: 0, draft: null, approved: null }, after: { revision: 1, draft: source, approved: null }, actor: "reviewer", reason: "Appearance, not dose intensity", createdAt: 1 }] });
+      if (String(url).includes("/history")) return Response.json({ history: [{ revision: 1, action: "save", before: { revision: 0, draft: null, approved: null }, after: { revision: 1, draft: source, approved: null }, actor: "reviewer", reason: { kind: "unspecified", note: "Appearance, not dose intensity" }, glossaryExceptions: [], createdAt: 1 }] });
       if (!init) return Response.json({ rows: [row] });
       writes.push(JSON.parse(init.body));
       return Response.json({ row: { ...row, revision: 3, draft: source, status: "draft" } });
@@ -140,7 +145,7 @@ it("checks source coverage on demand and never equates completed jobs with publi
 it("shows historical English/context and refreshes open history after a revision changes", async () => {
   const oldSource = { source: "Old English", context: "Old appearance context", target: "Older wording" };
   const newSource = { source: "New English", context: "New appearance context", target: "Newer wording" };
-  const entry = { revision: 1, action: "save" as const, before: { revision: 0, draft: oldSource, approved: null }, after: { revision: 1, draft: newSource, approved: null }, actor: "reviewer", reason: "Source changed", createdAt: 1 };
+  const entry = { revision: 1, action: "save" as const, before: { revision: 0, draft: oldSource, approved: null }, after: { revision: 1, draft: newSource, approved: null }, actor: "reviewer", reason: { kind: "unspecified" as const, note: "Source changed" }, glossaryExceptions: [], createdAt: 1 };
   const load = vi.fn(async () => [entry]);
   const user = userEvent.setup();
   const { rerender } = render(<TranslationHistory name="example" revision={1} load={load} restore={async () => {}} />);
@@ -150,7 +155,7 @@ it("shows historical English/context and refreshes open history after a revision
   await screen.findByText("Old English");
   expect(within(screen.getByLabelText("Before")).getByText("Old appearance context")).toBeInTheDocument();
   expect(within(screen.getByLabelText("After")).getByText("New English")).toBeInTheDocument();
-  load.mockResolvedValue([{ ...entry, revision: 2, reason: "Newest approval" }]);
+  load.mockResolvedValue([{ ...entry, revision: 2, reason: { kind: "unspecified" as const, note: "Newest approval" } }]);
   rerender(<TranslationHistory name="example" revision={2} load={load} restore={async () => {}} />);
   await screen.findByText("Newest approval");
   expect(load).toHaveBeenCalledTimes(2);
@@ -181,7 +186,7 @@ it("offers restoring the immutable original compiled snapshot as a draft", async
   const compiled = { source: "Light", context: "Appearance", target: "Old compiled wording", provenance: "compiled" as const };
   const corrected = { ...compiled, target: "Reviewed wording", provenance: "human" as const };
   const restore = vi.fn(async () => {});
-  const load = vi.fn(async () => [{ revision: 1, action: "save" as const, before: { revision: 0, draft: compiled, approved: null }, after: { revision: 1, draft: corrected, approved: null }, actor: "reviewer", reason: "Correction", createdAt: 1 }]);
+  const load = vi.fn(async () => [{ revision: 1, action: "save" as const, before: { revision: 0, draft: compiled, approved: null }, after: { revision: 1, draft: corrected, approved: null }, actor: "reviewer", reason: { kind: "fluency" as const, note: "Correction" }, glossaryExceptions: [], createdAt: 1 }]);
   const user = userEvent.setup();
   render(<TranslationHistory name="example" revision={1} load={load} restore={restore} />);
   await user.click(screen.getByRole("button", { name: "History for example" }));

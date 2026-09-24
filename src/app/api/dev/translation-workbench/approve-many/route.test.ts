@@ -67,7 +67,7 @@ describe("batch approval of short UI labels", () => {
     for (const id of ["appearance.light", "appearance.dark"]) {
       const approvals = (await readReviewHistory("zh-Hans", "ui", id)).filter((entry) => entry.action === "approve");
       expect(approvals).toHaveLength(1);
-      expect(approvals[0]).toMatchObject({ actor: "sin@example.test", reason: UI_BATCH_APPROVAL_REASON });
+      expect(approvals[0]).toMatchObject({ actor: "sin@example.test", reason: { kind: "unspecified", note: UI_BATCH_APPROVAL_REASON } });
     }
     expect((await readReviewHistory("zh-Hans", "ui", "appearance.dark")).map((entry) => entry.action)).toEqual(["approve", "save"]);
   });

@@ -7,6 +7,8 @@ import { assertDataWritesNotFrozen, isDataWriteFrozenError } from "../runtime/da
 import { lockReviewEntry, mutateReviewEntry, mutateReviewEntryInTransaction, readReviewEntries, readReviewHistory, TranslationReviewConflictError, TranslationReviewError, type ReviewMutationOptions } from "./reviewStore";
 import type { ReviewAction, ReviewEntry, ReviewMutation } from "./reviewTypes";
 import { getCompiledUiCatalog, getUiCatalogPendingRefresh } from "./uiCatalogs";
+import { assertCorrectionKeepsGlossary, glossaryMentionsFor, readGlossaryMentionIndex } from "./glossaryConflictCheck";
+import type { GlossaryMention } from "./glossaryConflicts";
 import { isShortUiLabel, UI_BATCH_APPROVAL_REASON, type UiBatchApprovalItem, type UiBatchApprovalResult, type UiTranslationRow } from "./uiTranslationTypes";
 
 function declared(id: string) {
@@ -14,7 +16,7 @@ function declared(id: string) {
   if (!definition) throw new TranslationReviewError("Unknown UI message. Only declared messages can be edited.");
   return definition;
 }
-function rowFor(locale: string, id: string, entry?: ReviewEntry): UiTranslationRow {
+function rowFor(locale: string, id: string, entry?: ReviewEntry, glossary?: readonly GlossaryMention[]): UiTranslationRow {
   const definition = declared(id);
   const compiledTarget = getCompiledUiCatalog(locale)[definition.catalogKey] ?? null;
   const approved = entry?.approved ?? null;
@@ -24,15 +26,17 @@ function rowFor(locale: string, id: string, entry?: ReviewEntry): UiTranslationR
   // Human approval outranks the glossary, so an approved row never waits for a refresh.
   const waiting = status === "approved" ? undefined : getUiCatalogPendingRefresh(locale).entries.get(definition.catalogKey);
   return { id, ...definition, compiledTarget, revision: entry?.revision ?? 0, draft, approved, updatedAt: entry?.updatedAt ?? null, status,
-    pendingRefresh: waiting ? { term: waiting.term, expectedTarget: waiting.expectedTarget } : null };
+    pendingRefresh: waiting ? { term: waiting.term, expectedTarget: waiting.expectedTarget } : null,
+    ...(glossary ? { glossary: glossaryMentionsFor(definition.source, glossary) } : {}) };
 }
 export function isUiCatalogRefreshed(locale: string): boolean {
   return getUiCatalogPendingRefresh(locale).refreshed;
 }
 export async function readUiTranslations(locale: string): Promise<UiTranslationRow[]> {
   resolveLocale(locale);
-  const rows = new Map((await readReviewEntries(locale, "ui")).map((row) => [row.sourceId, row]));
-  return Object.keys(UI_MESSAGE_INVENTORY).map((id) => rowFor(locale, id, rows.get(id)));
+  const [entries, glossary] = await Promise.all([readReviewEntries(locale, "ui"), readGlossaryMentionIndex(locale)]);
+  const rows = new Map(entries.map((row) => [row.sourceId, row]));
+  return Object.keys(UI_MESSAGE_INVENTORY).map((id) => rowFor(locale, id, rows.get(id), glossary));
 }
 /** Only explicit human approvals for the current English meaning reach a build. */
 export async function readApprovedUiTranslations(locale: string): Promise<Record<string, string>> {
@@ -61,8 +65,13 @@ function mutationOptions(localeCode: string, definition: ReturnType<typeof decla
 }
 export async function writeUiTranslation(input: Omit<ReviewMutation, "scope" | "sourceId" | "source" | "context"> & { id: string }): Promise<UiTranslationRow> {
   const definition = declared(input.id);
-  const row = await mutateReviewEntry({ ...input, ...definition, sourceId: input.id, scope: "ui" }, mutationOptions(input.locale, definition, input.action));
-  return rowFor(input.locale, input.id, row);
+  resolveLocale(input.locale);
+  // A correction that drops an approved term needs the reviewer's explicit exception.
+  const glossaryExceptions = input.action === "save" && typeof input.target === "string"
+    ? await assertCorrectionKeepsGlossary(input.locale, definition.source, input.target, input.glossaryExceptions)
+    : [];
+  const row = await mutateReviewEntry({ ...input, ...definition, glossaryExceptions, sourceId: input.id, scope: "ui" }, mutationOptions(input.locale, definition, input.action));
+  return rowFor(input.locale, input.id, row, await readGlossaryMentionIndex(input.locale));
 }
 /** Draft the reviewed wording when it is not already the saved human draft, then approve that exact revision, in one transaction. */
 async function approveReviewedLabel(locale: string, actor: string, item: UiBatchApprovalItem): Promise<UiTranslationRow> {

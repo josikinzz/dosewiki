@@ -73,6 +73,8 @@ import { ReviewInbox } from "./ReviewInbox";
 import { parseWorkbenchDeepLink } from "../../../../../lib/translation/reviewInboxTypes";
 import { TranslationCoverage } from "./TranslationCoverage";
 import { TranslationProgress } from "./TranslationProgress";
+import { ReasonKindChips } from "./CorrectionReason";
+import type { CorrectionReasonKind, ReviewReason } from "@lib/translation/reviewReason";
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
@@ -134,6 +136,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** What "Retranslate" sends: derived on the server from review and retranslate stamps, so it is the same list after a reload or on another machine. */
   const pending = data?.pending ?? [];
   const { confirm, dialog } = useConfirm();
+  /** Recorded in review history with every approval and confirmation made from this view. */
+  const [approvalKind, setApprovalKind] = useState<CorrectionReasonKind>("terminology");
+  const approvalReason: ReviewReason = { kind: approvalKind, note: "" };
   const locked = busy !== null || writingTerm !== null || collisionReview !== null;
 
   const load = useCallback(async (code: string | null, background = false) => {
@@ -242,13 +247,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const approveOne = (row: GlossaryRow) =>
     run("approve", async (collisionConfirmation) => {
-      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
+      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision }, approvalReason);
       return `Approved "${row.term}".`;
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
     run("approve", async (collisionConfirmation) => {
-      const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])));
+      const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])), approvalReason);
       return `Approved ${count(approved.length, "term")}.`;
     });
 
@@ -271,13 +276,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** Records a person's check of live wording exactly as readers see it; nothing on the site changes. */
   const confirmOne = (row: GlossaryRow) =>
     run("confirm", async (collisionConfirmation) => {
-      await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation);
+      await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation, approvalReason);
       return `Confirmed "${row.term}".`;
     }, row.term);
 
   const confirmMany = (terms: readonly string[]) =>
     run("confirm", async (collisionConfirmation) => {
-      const confirmed = await confirmTerms(locale!, terms, revisionsOf(terms), collisionConfirmation);
+      const confirmed = await confirmTerms(locale!, terms, revisionsOf(terms), collisionConfirmation, approvalReason);
       return `Confirmed ${count(confirmed.length, "term")}.`;
     });
 
@@ -464,6 +469,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             <p className="theme-text-faint text-xs" data-testid="glossary-summary">
               {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
             </p>
+
+            <ReasonKindChips label="Approval reason" value={approvalKind} disabled={locked} onChange={setApprovalKind} />
 
             <GlossaryActionBar
               locale={data.locale}

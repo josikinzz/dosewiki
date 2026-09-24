@@ -9,7 +9,6 @@
  */
 import { NextResponse } from "next/server";
 
-import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getDataBackend } from "@server/postgres/runtime/backend";
 import { isDataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
@@ -21,8 +20,10 @@ import {
   parseCollisionConfirmation,
   parseExpectedRevisions,
   parseLocale,
+  parseGlossaryReason,
   parseTerms,
 } from "../glossaryRoutes";
+import type { ReviewReason } from "@server/translation/reviewReason";
 
 export const runtime = "nodejs";
 
@@ -39,16 +40,9 @@ type ParsedConfirm = {
   locale: string;
   terms: string[];
   expectedRevisions: Record<string, string>;
-  reason?: string;
+  reason?: ReviewReason;
   collisionConfirmation?: string;
 };
-
-function parseReason(raw: unknown): string | undefined {
-  if (raw === undefined) return undefined;
-  if (typeof raw !== "string" || raw.trim().length > MAX_REASON_LENGTH)
-    throw new JsonBodyError(400, `A reason is at most ${MAX_REASON_LENGTH} characters.`);
-  return raw.trim() || undefined;
-}
 
 export const POST = protectedRouteOperation<ConfirmBody, ParsedConfirm>({
   auth: "translator",
@@ -61,7 +55,7 @@ export const POST = protectedRouteOperation<ConfirmBody, ParsedConfirm>({
         locale: parseLocale(raw.locale),
         terms,
         expectedRevisions: parseExpectedRevisions(raw.expectedRevisions, terms),
-        reason: parseReason(raw.reason),
+        reason: parseGlossaryReason(raw.reason, MAX_REASON_LENGTH),
         collisionConfirmation: parseCollisionConfirmation(raw.collisionConfirmation),
       };
     },

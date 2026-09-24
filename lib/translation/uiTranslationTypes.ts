@@ -1,4 +1,5 @@
 import type { ReviewEntry, ReviewHistoryEntry } from "./reviewTypes";
+import type { GlossaryMention } from "./glossaryConflicts";
 export type UiTranslationRow = Pick<ReviewEntry, "revision" | "draft" | "approved"> & {
   id: string;
   source: string;
@@ -13,6 +14,8 @@ export type UiTranslationRow = Pick<ReviewEntry, "revision" | "draft" | "approve
    * the next online catalog build. `term` is null on records compiled before the
    * term was recorded. Absent or null when nothing waits, and for approved rows. */
   pendingRefresh?: { term: string | null; expectedTarget: string | null } | null;
+  /** Glossary rows the English mentions; the editor checks the approved ones while the reviewer types. */
+  glossary?: GlossaryMention[];
 };
 export type UiTranslationListResponse = {
   ok: true; locale: string; locales: string[]; rows: UiTranslationRow[];

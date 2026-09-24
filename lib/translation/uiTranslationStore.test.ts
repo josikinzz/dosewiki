@@ -5,6 +5,8 @@ vi.mock("server-only", () => ({}));
 const mutate = vi.hoisted(() => vi.fn());
 const entries = vi.hoisted(() => vi.fn(async (): Promise<unknown[]> => []));
 vi.mock("./reviewStore", async (actual) => ({ ...await actual<typeof import("./reviewStore")>(), mutateReviewEntry: mutate, readReviewEntries: entries }));
+// The glossary check reads Postgres; route tests cover it over PGlite.
+vi.mock("./glossaryConflictCheck", () => ({ readGlossaryMentionIndex: async () => [], glossaryMentionsFor: () => [], assertCorrectionKeepsGlossary: async () => [] }));
 vi.mock("./uiWorkbenchDefinitions", () => {
   const definition = { source: "Read [About](/about) for {{name}}.", context: "Copy Studio Markdown", locations: [], glossaryTerms: [], catalogKey: "link" };
   const back = { source: "Back to replications", context: "Gallery link", locations: [], glossaryTerms: [], catalogKey: "Back to replications" };
