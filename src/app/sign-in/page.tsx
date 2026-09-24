@@ -9,6 +9,7 @@ import {
 } from "@server/next/statusRedirectPolicy";
 import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { authRuntimePolicy } from "@server/auth/runtimePolicy";
+import { canAccessDev, resolveSessionRole } from "@/lib/auth/roles";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon } from "@/components/common/Icon";
 import { CredentialsSignInForm } from "../_components/CredentialsSignInForm";
@@ -38,7 +39,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const inlineCodeClassName =
     "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,var(--theme-body-bg))] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
-  if (session?.user) {
+  // A session without editor access (never granted, or degraded to viewer by a
+  // password revision) must still reach the form, or redirecting it back to the
+  // protected route loops through /unauthorized with no way to sign in again.
+  if (session?.user && canAccessDev(resolveSessionRole({ role: session.user.role }))) {
     redirect(callbackUrl);
   }
 
