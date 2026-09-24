@@ -2,7 +2,7 @@
 /**
  * Terminology consistency audit for translated corpora.
  *
- * Answers three questions about a locale artifact without requiring the
+ * Answers these questions about a locale artifact without requiring the
  * reader to understand the target language. Every finding is stated as a
  * relationship between SOURCE strings, so an English-only reviewer can judge
  * it.
@@ -26,7 +26,10 @@
  *                 homonyms ("respiratory depression" against the mood effect)
  *                 legitimately take different renderings.
  *
- *   4. DISAGREE   with --glossary: a term whose approved rendering in the
+ *   4. OUTPUT     prose with doubled full-width punctuation (blocking in new
+ *                 runs) or English words left in the Chinese (a finding).
+ *
+ *   5. DISAGREE   with --glossary: a term whose approved rendering in the
  *                 Postgres glossary (lib/translation/glossary.ts) is not the
  *                 rendering the corpus pinned. Either the corpus predates the
  *                 approval (run a scoped `live-mirror.ts stale --term`) or
@@ -45,7 +48,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
-import { looksTranslatable } from "./validate.mjs";
+import { findLeftoverLatin, findRepeatedPunctuation, looksTranslatable } from "./validate.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -249,6 +252,25 @@ export function findGlossaryDisagreements(terms, glossary) {
     .sort((a, b) => b.occurrences - a.occurrences);
 }
 
+/**
+ * Prose whose translation carries the validator's two output checks: doubled
+ * full-width punctuation (REPEATED_PUNCTUATION, blocking in new runs) and
+ * English words left in Chinese (LEFTOVER_LATIN, a review finding). A corpus
+ * translated before either check existed can hold both.
+ */
+export function findOutputDefects(prose, { glossary = {} } = {}) {
+  const repeatedPunctuation = [];
+  const leftoverLatin = [];
+  for (const segment of prose) {
+    const runs = findRepeatedPunctuation(segment.source, segment.target);
+    if (runs.length > 0) repeatedPunctuation.push({ label: segment.label, runs, source: segment.source.slice(0, 160), target: segment.target.slice(0, 160) });
+    if (!CJK.test(segment.target)) continue;
+    const words = findLeftoverLatin({ source: segment.source, target: segment.target, glossary });
+    if (words.length > 0) leftoverLatin.push({ label: segment.label, words, source: segment.source.slice(0, 160), target: segment.target.slice(0, 160) });
+  }
+  return { repeatedPunctuation, leftoverLatin };
+}
+
 /** The one artifact a reviewer who reads the target language actually opens. */
 export function reviewSheet(terms) {
   return [...terms.values()]
@@ -352,6 +374,7 @@ async function main() {
     : terms;
   const unpinned = findUnpinned(scoped, prose, { excludedSenses });
   const disagreements = glossary ? findGlossaryDisagreements(terms, glossary) : [];
+  const output = findOutputDefects(prose, { glossary: glossary ?? {} });
   const maxRows = Number(values["max-rows"]);
 
   console.log(`Corpora   ${corpora.map((corpus) => corpus.label).join(", ")}`);
@@ -374,6 +397,11 @@ async function main() {
     for (const sample of item.samples) console.log(`      e.g. ${sample}`);
   }
 
+  console.log(`\nPUNCTUATION ${output.repeatedPunctuation.length} prose segments with doubled full-width punctuation (REPEATED_PUNCTUATION, blocking)`);
+  for (const item of output.repeatedPunctuation.slice(0, maxRows)) console.log(`  ${item.runs.join(" ")}  ${item.target}`);
+  console.log(`\nENGLISH    ${output.leftoverLatin.length} prose segments with leftover English words (LEFTOVER_LATIN, a review finding)`);
+  for (const item of output.leftoverLatin.slice(0, maxRows)) console.log(`  ${item.words.join(", ")}  ${item.target}`);
+
   if (glossary) {
     console.log(`\nDISAGREE   ${disagreements.length} approved glossary terms the corpus pins differently (${Object.keys(glossary).length} approved terms read)`);
     for (const item of disagreements.slice(0, maxRows)) {
@@ -382,7 +410,7 @@ async function main() {
   }
 
   if (values.out) {
-    const report = { generatedAt: new Date().toISOString(), corpora: corpora.map((c) => c.label), termCount: terms.size, collisions, drift, unpinned, disagreements };
+    const report = { generatedAt: new Date().toISOString(), corpora: corpora.map((c) => c.label), termCount: terms.size, collisions, drift, unpinned, disagreements, output };
     writeFileSync(values.out, `${JSON.stringify(report, null, 2)}\n`);
     const sheetPath = values.out.replace(/\.json$/, "") + ".review.tsv";
     writeFileSync(sheetPath, `source\tpinned\toccurrences\tvariants\n${reviewSheet(terms).join("\n")}\n`);

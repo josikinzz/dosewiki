@@ -166,9 +166,12 @@ export function buildQaPacket({
       })),
     },
     glossaryDrift,
+    // Blocking: these units kept their English and sit in the failure queue.
+    repeatedPunctuation: defectCounts[DEFECT_CODES.REPEATED_PUNCTUATION] ?? 0,
     nonBlockingNotes: {
       lengthBand: defectCounts[DEFECT_CODES.LENGTH_BAND] ?? 0,
       glossaryMiss: defectCounts[DEFECT_CODES.GLOSSARY_MISS] ?? 0,
+      leftoverLatin: defectCounts[DEFECT_CODES.LEFTOVER_LATIN] ?? 0,
     },
   };
 }

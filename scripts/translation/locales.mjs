@@ -177,6 +177,21 @@ ${SHARED_RULES}
   },
 });
 
+/**
+ * Whether a Latin word in translated output is a name rule 2 keeps in Latin
+ * script. `word` is spelled as the output has it. An acronym or a word with
+ * inner capitals (MDMA, LSD, MeO, NBOMe, publicData) is an identifier. A capitalized word
+ * the source also capitalizes (Ibogaine, Anton, Drug Enforcement
+ * Administration) is a proper noun carried over. A lowercase English word is
+ * never a name by this rule; substance names written in lowercase prose reach
+ * the validator as `latinNames` from a caller that knows the corpus.
+ */
+export function isLatinName(word, source) {
+  if (/[A-Z].*[A-Z]|[a-z][A-Z]/.test(word)) return true;
+  if (!/^[A-Z]/.test(word)) return false;
+  return new RegExp(`(?<![A-Za-z])${word}(?![A-Za-z])`).test(source);
+}
+
 export function resolveLocale(code) {
   const locale = Object.hasOwn(LOCALES, code) ? LOCALES[code] : null;
   if (!locale) {

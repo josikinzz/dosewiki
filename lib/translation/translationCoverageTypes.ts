@@ -10,6 +10,10 @@ export type CoverageCounts = {
   rejected: number;
   /** Advisory glossary disagreements, overlapping the four storage states. */
   glossaryMisses: number;
+  /** Stored targets with doubled full-width punctuation (REPEATED_PUNCTUATION), overlapping storage states. */
+  repeatedPunctuation: number;
+  /** Stored Chinese targets with leftover English words (LEFTOVER_LATIN), a review finding. */
+  leftoverLatin: number;
 };
 export type TranslationQueueCoverage = {
   queued: number;

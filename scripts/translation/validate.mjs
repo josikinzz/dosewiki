@@ -8,8 +8,9 @@
 
 import traditionalCharset from "./traditional-charset.json" with { type: "json" };
 
+import { isLatinName } from "./locales.mjs";
 import { mentionsTerm } from "./term-match.mjs";
-import { markupTokens } from "./markup.mjs";
+import { markupTokens, stripMarkup } from "./markup.mjs";
 
 export const DEFECT_CODES = Object.freeze({
   EMPTY_OUTPUT: "EMPTY_OUTPUT",
@@ -24,6 +25,10 @@ export const DEFECT_CODES = Object.freeze({
   NUMBER_ADDED: "NUMBER_ADDED",
   MARKUP_LOSS: "MARKUP_LOSS",
   PLACEHOLDER_LOSS: "PLACEHOLDER_LOSS",
+  // Two adjacent full-width marks ("，，") the source does not repeat. Blocking.
+  REPEATED_PUNCTUATION: "REPEATED_PUNCTUATION",
+  // An English word left in Chinese output. A review finding, not a retry.
+  LEFTOVER_LATIN: "LEFTOVER_LATIN",
   // Not a content defect: the provider never answered. It fails the job for a
   // later retry and is never written as a rejection.
   TRANSPORT_FAILURE: "TRANSPORT_FAILURE",
@@ -269,6 +274,83 @@ export function hasChinese(text) {
   return HAN.test(text);
 }
 
+/** Full-width marks and the ASCII mark each one renders. */
+const FULL_WIDTH_MARKS = { "，": ",", "。": ".", "、": ",", "；": ";", "：": ":", "！": "!", "？": "?" };
+const REPEATED_MARKS = /[，。、；：！？](?:\s*[，。、；：！？])+/gu;
+
+/**
+ * Runs of two or more adjacent full-width marks ("，，", "，。"), each once.
+ * A run the source already carries, in full width or as its ASCII marks
+ * ("?!" rendered "？！"), is faithful rather than broken.
+ */
+export function findRepeatedPunctuation(source, target) {
+  const runs = new Set();
+  for (const [match] of target.matchAll(REPEATED_MARKS)) {
+    const run = match.replace(/\s+/g, "");
+    const ascii = Array.from(run, (mark) => FULL_WIDTH_MARKS[mark]).join("");
+    if (source.includes(run) || source.includes(ascii)) continue;
+    runs.add(run);
+  }
+  return [...runs];
+}
+
+/**
+ * Latin letter runs split into words. A token carrying a digit ("2C-B",
+ * "5-MeO-DMT", "EC50") is an identifier as a whole and yields no words.
+ */
+const LATIN_TOKEN = /[A-Za-z0-9À-ɏ]+(?:['’.-][A-Za-z0-9À-ɏ]+)*/gu;
+const LEFTOVER_MIN_LETTERS = 4;
+
+/** Latin words of a rendering or a name, the forms a kept term may take. */
+function latinWords(text) {
+  return text.match(/[A-Za-z]{3,}/g) ?? [];
+}
+
+/**
+ * English words of four or more letters left in Chinese output, in order and
+ * once each (as the output spells them). Not a leftover:
+ * - protected syntax: citation markers, `{{placeholders}}`, Markdown link
+ *   targets, URLs, email addresses, file paths, code spans, HTML tags, identifiers with a
+ *   digit or an inner dot, and inline tags when `markup` is set;
+ * - a parenthetical gloss, which the zh-Hans prompt asks for on the first
+ *   mention of a medical term without a standard rendering;
+ * - an approved glossary rendering kept in Latin ("Phenidate -> Phenidate"
+ *   covers "phenidates"), by the shared term matcher;
+ * - a name the locale rules keep in Latin (`isLatinName`), or one of
+ *   `latinNames`, the caller's names known to stay in Latin (substance slugs).
+ * Pure, so the Inbox and coverage can run it over stored targets.
+ */
+export function findLeftoverLatin({ source, target, glossary = {}, latinNames = [], markup = false }) {
+  let text = target
+    .replace(CITE_MARKER, " ")
+    .replace(PLACEHOLDER, " ")
+    .replace(/\]\([^)]*\)/g, "] ")
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/<\/?[A-Za-z][^>]*>/g, " ")
+    .replace(/[\w.*[\]-]*\/[\w.*[\]/-]*/g, " ")
+    .replace(/（[^（）]*）|\([^()]*\)/g, " ");
+  if (markup) text = stripMarkup(text);
+
+  const kept = [
+    ...Object.values(glossary).flatMap(latinWords),
+    ...[...latinNames].flatMap(latinWords),
+  ];
+  const found = [];
+  for (const [token] of text.matchAll(LATIN_TOKEN)) {
+    // Digits or an inner dot mark an identifier: "2C-B", "EC50", "dose.wiki".
+    if (/\d|[A-Za-z]\.[A-Za-z]/.test(token)) continue;
+    for (const word of token.match(/[A-Za-zÀ-ɏ]+/gu) ?? []) {
+      if (word.length < LEFTOVER_MIN_LETTERS || found.includes(word)) continue;
+      if (isLatinName(word, source)) continue;
+      if (kept.some((form) => mentionsTerm(word, form))) continue;
+      found.push(word);
+    }
+  }
+  return found;
+}
+
 function latinWordRatio(source, target) {
   const sourceWords = source.match(LATIN_WORD) ?? [];
   if (sourceWords.length === 0) return 0;
@@ -284,9 +366,10 @@ function latinWordRatio(source, target) {
  * @param {object} input.locale - locale config (script gate, length band)
  * @param {Record<string, string>} [input.glossary] - approved `term -> target` map to hold the segment to
  * @param {string} [input.exactTarget] - approved rendering for this exact contextual label, never inferred from a prose mention
+ * @param {Iterable<string>} [input.latinNames] - names known to stay in Latin script, such as substance slugs, for the leftover-Latin finding
  * @returns {{defects: string[], details: object}}
  */
-export function validateSegment({ source, target, locale, glossary = {}, markup = false, exactTarget }) {
+export function validateSegment({ source, target, locale, glossary = {}, markup = false, exactTarget, latinNames = [] }) {
   const defects = [];
   const details = {};
 
@@ -366,6 +449,18 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
     if (translatable && !hasChinese(trimmed)) {
       defects.push(DEFECT_CODES.UNTRANSLATED);
     }
+    // Output with no Chinese at all is either a name kept whole or UNTRANSLATED.
+    const leftover = hasChinese(trimmed) ? findLeftoverLatin({ source, target: trimmed, glossary, latinNames, markup }) : [];
+    if (leftover.length > 0) {
+      defects.push(DEFECT_CODES.LEFTOVER_LATIN);
+      details.leftoverLatin = leftover;
+    }
+  }
+
+  const repeatedPunctuation = findRepeatedPunctuation(source, trimmed);
+  if (repeatedPunctuation.length > 0) {
+    defects.push(DEFECT_CODES.REPEATED_PUNCTUATION);
+    details.repeatedPunctuation = repeatedPunctuation;
   }
 
   if (locale.scriptGate !== "simplified" && translatable && latinWordRatio(source, trimmed) > 0.9 && source.length > 40) {
@@ -406,6 +501,7 @@ export const BLOCKING_DEFECTS = Object.freeze([
   DEFECT_CODES.CITATION_LOSS,
   DEFECT_CODES.MARKUP_LOSS,
   DEFECT_CODES.PLACEHOLDER_LOSS,
+  DEFECT_CODES.REPEATED_PUNCTUATION,
 ]);
 
 export function isBlocking(defects) {

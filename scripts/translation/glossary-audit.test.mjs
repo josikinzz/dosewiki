@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildTermIndex, findCollisions, findDrift, findGlossaryDisagreements, findUnpinned } from "./glossary-audit.mjs";
+import { buildTermIndex, findCollisions, findDrift, findGlossaryDisagreements, findOutputDefects, findUnpinned } from "./glossary-audit.mjs";
 
 /** A corpus pair shaped like the real artifacts: same structure, translated leaves. */
 const corpus = (label, pairs) => ({
@@ -114,4 +114,17 @@ test("an approved gloss the corpus pins differently is a disagreement; agreement
   ]);
   const findings = findGlossaryDisagreements(terms, { euphoria: "愉悦", Anxiety: "焦虑", Sedation: "镇静" });
   assert.deepEqual(findings, [{ source: "euphoria", approved: "愉悦", pinned: "欣快", occurrences: 2 }]);
+});
+
+test("prose with doubled punctuation or leftover English is counted per check", () => {
+  const { prose } = buildTermIndex([
+    corpus("classes", [
+      ["The phenidates, esters built on this scaffold, are the best-known branch of the family.", "以这一骨架构建的酯类，，phenidates，，是该家族最知名的分支。"],
+      ["MDMA is the best-known member of this chemical family of empathogens.", "MDMA 是这一共情剂化学家族中最知名的成员。"],
+    ]),
+  ]);
+  const output = findOutputDefects(prose, { glossary: { Phenidate: "哌醋甲酯类" } });
+  assert.deepEqual(output.repeatedPunctuation.map((item) => item.runs), [["，，"]]);
+  assert.deepEqual(output.leftoverLatin.map((item) => item.words), [["phenidates"]]);
+  assert.deepEqual(findOutputDefects(prose, { glossary: { Phenidate: "Phenidate" } }).leftoverLatin, []);
 });

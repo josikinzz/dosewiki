@@ -122,7 +122,7 @@ describe("UI translation review", () => {
 });
 
 it("checks source coverage on demand and never equates completed jobs with publication", async () => {
-  const counts = { records: 5, units: 20, current: 2, missing: 17, stale: 1, rejected: 0, glossaryMisses: 0 };
+  const counts = { records: 5, units: 20, current: 2, missing: 17, stale: 1, rejected: 0, glossaryMisses: 0, repeatedPunctuation: 1, leftoverLatin: 3 };
   const fetcher = vi.fn(async () => Response.json({ locale: "zh-Hans", summary: counts, byKind: [{ ...counts, kind: "article" }], pages: [], affectedPagesTotal: 0, generatedAt: 1, inventoryGeneratedAt: 1, queue: { queued: 0, running: 0, failed: 0, completed: 2, retrying: 0 }, exclusions: ["Interactive controls are checked separately."], publication: { status: "unverified", message: "Public deployment has not been verified." } }));
   vi.stubGlobal("fetch", fetcher);
   const user = userEvent.setup();
@@ -132,6 +132,7 @@ it("checks source coverage on demand and never equates completed jobs with publi
   await screen.findByText("2 of 20 source units current across 5 records");
   expect(screen.getByText("Publication not verified")).toBeInTheDocument();
   expect(screen.getByText(/2 completed jobs/)).toBeInTheDocument();
+  expect(screen.getByText(/1 doubled punctuation · 3 leftover English/)).toBeInTheDocument();
   expect(screen.queryByText("Translation complete")).not.toBeInTheDocument();
 });
 

@@ -3,10 +3,13 @@ import test from "node:test";
 
 import { resolveLocale } from "./locales.mjs";
 import {
+  BLOCKING_DEFECTS,
   DEFECT_CODES,
   compareNumbers,
   extractCiteMarkers,
   extractNumbers,
+  findLeftoverLatin,
+  findRepeatedPunctuation,
   isBlocking,
   looksTranslatable,
   parseModelJson,
@@ -250,4 +253,92 @@ test("the chemical stem exception does not permit Traditional prose", () => {
 test("chemical labels do not exempt a changed or dropped dose", () => {
   for (const target of ["异噁唑的剂量为200 mg。", "异噁唑的剂量。"])
     assert.ok(defectsFor("The isoxazole dose is 20 mg.", target).includes(DEFECT_CODES.NUMBER_MISMATCH));
+});
+
+// The live zh-Hans catalog entry a reviewer reported: doubled commas around a
+// class name the model left in English (content/i18n/messages/zh-Hans.json).
+const BENZYLPIPERIDINE_SOURCE =
+  "2-Benzylpiperidines are a chemical class of organic compounds derived from the core amphetamine structure in which the amine nitrogen is incorporated into a piperidine ring attached at the benzylic position. Members differ by ring substituents and by the groups attached to the piperidine. Most act as stimulants through inhibition of dopamine and noradrenaline reuptake. The phenidates, esters built on this scaffold, are the best-known branch of the family.";
+const BENZYLPIPERIDINE_TARGET =
+  "2-苄基哌啶类是一类由苯丙胺核心结构衍生而来的有机化合物，其中胺氮并入一个连接在苄位的哌啶环中。各成员的差异在于环上取代基以及连接于哌啶环的基团。大多数成员通过抑制多巴胺和去甲肾上腺素再摄取而发挥兴奋作用。以这一骨架构建的酯类，，phenidates，，是该家族最知名的分支。";
+
+test("doubled full-width punctuation blocks the published 2-benzylpiperidine entry", () => {
+  const verdict = validateSegment({
+    source: BENZYLPIPERIDINE_SOURCE,
+    target: BENZYLPIPERIDINE_TARGET,
+    locale: zh,
+    glossary: { Phenidate: "Phenidate" },
+  });
+  assert.ok(verdict.defects.includes(DEFECT_CODES.REPEATED_PUNCTUATION));
+  assert.deepEqual(verdict.details.repeatedPunctuation, ["，，"]);
+  assert.equal(isBlocking(verdict.defects), true);
+  assert.ok(BLOCKING_DEFECTS.includes(DEFECT_CODES.REPEATED_PUNCTUATION));
+  assert.deepEqual(findRepeatedPunctuation(BENZYLPIPERIDINE_SOURCE, BENZYLPIPERIDINE_TARGET), ["，，"]);
+});
+
+test("adjacent full-width marks of any kind count, and a repetition the source carries does not", () => {
+  assert.ok(defectsFor("It is mild, and short.", "它很温和，。而且短暂。").includes(DEFECT_CODES.REPEATED_PUNCTUATION));
+  assert.ok(defectsFor("It is mild, and short.", "它很温和， ，而且短暂。").includes(DEFECT_CODES.REPEATED_PUNCTUATION));
+  assert.equal(defectsFor("Is it really safe?!", "它真的安全吗？！").includes(DEFECT_CODES.REPEATED_PUNCTUATION), false);
+  assert.equal(defectsFor("It is mild, and short.", "它很温和，而且短暂。").includes(DEFECT_CODES.REPEATED_PUNCTUATION), false);
+});
+
+test("a class name left in English passes while its glossary entry keeps it in Latin, and is a finding once it has a Chinese rendering", () => {
+  const kept = validateSegment({ source: BENZYLPIPERIDINE_SOURCE, target: BENZYLPIPERIDINE_TARGET, locale: zh, glossary: { Phenidate: "Phenidate" } });
+  assert.equal(kept.defects.includes(DEFECT_CODES.LEFTOVER_LATIN), false);
+
+  const rendered = validateSegment({ source: BENZYLPIPERIDINE_SOURCE, target: BENZYLPIPERIDINE_TARGET, locale: zh, glossary: { Phenidate: "哌醋甲酯类" } });
+  assert.ok(rendered.defects.includes(DEFECT_CODES.LEFTOVER_LATIN));
+  assert.deepEqual(rendered.details.leftoverLatin, ["phenidates"]);
+  assert.equal(BLOCKING_DEFECTS.includes(DEFECT_CODES.LEFTOVER_LATIN), false);
+
+  const clean = "以这一骨架构建的酯类是该家族最知名的分支，例如哌醋甲酯。";
+  assert.equal(defectsFor("The phenidates are the best-known branch.", clean).includes(DEFECT_CODES.LEFTOVER_LATIN), false);
+});
+
+test("acronyms, identifiers, substance names, and proper nouns kept in Latin are not leftovers", () => {
+  for (const [source, target] of [
+    ["MDMA releases serotonin in the brain.", "MDMA 会在大脑中释放血清素。"],
+    ["Combining 2C-B with 5-MeO-DMT is risky.", "将 2C-B 与 5-MeO-DMT 合用存在风险。"],
+    ["Ibogaine is an alkaloid found in iboga.", "Ibogaine 是一种存在于伊博格中的生物碱。"],
+    ["The drug was scheduled by the Drug Enforcement Administration in 1985.", "该药物于 1985 年被 Drug Enforcement Administration 列管。"],
+    ["It can cause serotonin syndrome.", "它可能引起血清素综合征（serotonin syndrome）。"],
+  ]) {
+    const verdict = validateSegment({ source, target, locale: zh });
+    assert.equal(verdict.defects.includes(DEFECT_CODES.LEFTOVER_LATIN), false, `${target}: ${verdict.details.leftoverLatin}`);
+  }
+  assert.deepEqual(
+    findLeftoverLatin({ source: "Many users combine ibogaine with fasting.", target: "许多使用者将 ibogaine 与禁食结合。", latinNames: ["Ibogaine"] }),
+    [],
+  );
+  assert.deepEqual(
+    findLeftoverLatin({ source: "Many users combine ibogaine with fasting.", target: "许多使用者将 ibogaine 与禁食结合。" }),
+    ["ibogaine"],
+  );
+});
+
+test("protected syntax and short words are not leftovers, while ordinary English words are, even ones the source has", () => {
+  assert.deepEqual(
+    findLeftoverLatin({
+      source: "Read the [notice]({{englishUrl}}) or see [drifting](/effects/drifting).[cite:smith-2020]",
+      target: "阅读[说明]({{englishUrl}})或参见[漂移](/effects/drifting)。[cite:smith-2020] 详见 https://example.org/guide",
+    }),
+    [],
+  );
+  assert.deepEqual(
+    findLeftoverLatin({
+      source: "<strong>Auditory effects</strong> are traced from `src/app/[slug]/page.tsx` through publicData on dose.wiki.",
+      target: "<strong>听觉效应</strong>从 `src/app/[slug]/page.tsx` 经 lib/data/publicData.* 与 publicData 追踪，见 dose.wiki 或致信 contact@dose.wiki。",
+    }),
+    [],
+  );
+  assert.deepEqual(findLeftoverLatin({ source: "It lasts long.", target: "它持续时间 long 且 very 长，也 is 如此。" }), ["long", "very"]);
+});
+
+test("leftover Latin applies to Chinese output only, so Russian results do not change", () => {
+  const ru = resolveLocale("ru");
+  const verdict = validateSegment({ source: "The phenidates are stimulants.", target: "Phenidates являются стимуляторами.", locale: ru });
+  assert.equal(verdict.defects.includes(DEFECT_CODES.LEFTOVER_LATIN), false);
+  assert.equal(verdict.defects.includes(DEFECT_CODES.REPEATED_PUNCTUATION), false);
+  assert.equal(validateSegment({ source: "Anton Köllisch", target: "Anton Köllisch", locale: zh }).defects.includes(DEFECT_CODES.LEFTOVER_LATIN), false);
 });

@@ -11,6 +11,9 @@ export const LOCALES: Readonly<Record<string, TranslationLocale>>;
 /** The locale configuration. Throws on an unknown code. */
 export function resolveLocale(code: string): TranslationLocale;
 
+/** Whether a Latin word in translated output is a name the locale rules keep in Latin script (acronym, or a proper noun the source capitalizes). */
+export function isLatinName(word: string, source: string): boolean;
+
 /** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code: string): string;
 

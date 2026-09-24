@@ -45,12 +45,12 @@ export function TranslationCoverage({ locale }: { locale: string }) {
       {!data ? <StateCard compact loading={busy} title={busy ? "Reading source inventory" : "Coverage has not been checked"} description="Run a check to see source coverage and queue progress for this locale." /> : <>
         <Surface variant="subtle" padding="sm" radius="lg" className="space-y-2">
           <p className="theme-text-primary font-medium">{data.summary.current} of {data.summary.units} source units current across {data.summary.records} records</p>
-          <p className="theme-text-secondary text-sm">{data.summary.missing} missing · {data.summary.stale} outdated · {data.summary.rejected} rejected · {data.summary.glossaryMisses} glossary disagreements</p>
+          <p className="theme-text-secondary text-sm">{data.summary.missing} missing · {data.summary.stale} outdated · {data.summary.rejected} rejected · {data.summary.glossaryMisses} glossary disagreements · {data.summary.repeatedPunctuation} doubled punctuation · {data.summary.leftoverLatin} leftover English</p>
           <p className="theme-text-faint text-xs">Current means stored against the current source and translation instructions. It does not mean human approved or verified on the public site. Counts are source units within each record, not translated pages. {data.uniqueHashes} unique source hashes across the inventory.</p>
           <p className="theme-text-faint text-xs">Checked {new Date(data.generatedAt).toLocaleString()}. Source inventory from {new Date(data.inventoryGeneratedAt).toLocaleString()}.</p>
         </Surface>
         <EditorTable>
-          <EditorTableHead>{["Content", "Records", "Current / required", "Missing", "Outdated", "Rejected", "Glossary"].map((label) => <EditorTableHeading key={label}>{label}</EditorTableHeading>)}</EditorTableHead>
+          <EditorTableHead>{["Content", "Records", "Current / required", "Missing", "Outdated", "Rejected", "Glossary", "Punctuation", "English"].map((label) => <EditorTableHeading key={label}>{label}</EditorTableHeading>)}</EditorTableHead>
           <EditorTableBody>{data.byKind.map((kind) => <EditorTableRow key={kind.kind}>
             <EditorTableCell wide>{kind.kind}</EditorTableCell>
             <EditorTableCell label="Records">{kind.records}</EditorTableCell>
@@ -59,6 +59,8 @@ export function TranslationCoverage({ locale }: { locale: string }) {
             <EditorTableCell label="Outdated">{kind.stale}</EditorTableCell>
             <EditorTableCell label="Rejected">{kind.rejected}</EditorTableCell>
             <EditorTableCell label="Glossary">{kind.glossaryMisses}</EditorTableCell>
+            <EditorTableCell label="Punctuation">{kind.repeatedPunctuation}</EditorTableCell>
+            <EditorTableCell label="English">{kind.leftoverLatin}</EditorTableCell>
           </EditorTableRow>)}</EditorTableBody>
         </EditorTable>
         <Surface variant="subtle" padding="sm" radius="lg" className="space-y-2">
@@ -98,10 +100,10 @@ export function TranslationCoverage({ locale }: { locale: string }) {
           <h3 className="theme-text-primary font-medium">Pages needing attention ({data.affectedPagesTotal})</h3>
           {data.pages.length === 0 ? <p className="theme-text-secondary text-sm">No missing or outdated units were found within this inventory.</p> : <>
             <p className="theme-text-faint text-xs">Showing {data.pages.length} of {data.affectedPagesTotal} affected pages. Links open the source page.</p>
-            <EditorTable><EditorTableHead><EditorTableHeading>Page</EditorTableHeading><EditorTableHeading>Missing</EditorTableHeading><EditorTableHeading>Outdated</EditorTableHeading><EditorTableHeading>Rejected</EditorTableHeading><EditorTableHeading>Glossary</EditorTableHeading></EditorTableHead>
+            <EditorTable><EditorTableHead><EditorTableHeading>Page</EditorTableHeading><EditorTableHeading>Missing</EditorTableHeading><EditorTableHeading>Outdated</EditorTableHeading><EditorTableHeading>Rejected</EditorTableHeading><EditorTableHeading>Glossary</EditorTableHeading><EditorTableHeading>Punctuation</EditorTableHeading><EditorTableHeading>English</EditorTableHeading></EditorTableHead>
               <EditorTableBody>{data.pages.map((page) => <EditorTableRow key={`${page.kind}:${page.slug}`}>
                 <EditorTableCell wide><a className="theme-accent-underline underline" href={page.href}>{page.slug || "Homepage"}</a><p className="theme-text-faint text-xs">{page.kind}</p></EditorTableCell>
-                <EditorTableCell label="Missing">{page.missing}</EditorTableCell><EditorTableCell label="Outdated">{page.stale}</EditorTableCell><EditorTableCell label="Rejected">{page.rejected}</EditorTableCell><EditorTableCell label="Glossary">{page.glossaryMisses}</EditorTableCell>
+                <EditorTableCell label="Missing">{page.missing}</EditorTableCell><EditorTableCell label="Outdated">{page.stale}</EditorTableCell><EditorTableCell label="Rejected">{page.rejected}</EditorTableCell><EditorTableCell label="Glossary">{page.glossaryMisses}</EditorTableCell><EditorTableCell label="Punctuation">{page.repeatedPunctuation}</EditorTableCell><EditorTableCell label="English">{page.leftoverLatin}</EditorTableCell>
               </EditorTableRow>)}</EditorTableBody>
             </EditorTable>
           </>}

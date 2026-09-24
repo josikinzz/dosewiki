@@ -3,6 +3,7 @@ import "server-only";
 
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { glossaryTermPattern, kindInContext } from "../../scripts/translation/locales.mjs";
+import { findLeftoverLatin, findRepeatedPunctuation } from "../../scripts/translation/validate.mjs";
 import {
   publicRecords, segmentsOf, workUnitsOf, TRANSLATION_RECORD_KINDS,
   type TranslationContext, type TranslationRecordKind,
@@ -88,7 +89,7 @@ export async function getTranslationHashUsages(
   return result;
 }
 
-const emptyCounts = (): CoverageCounts => ({ records: 0, units: 0, current: 0, missing: 0, stale: 0, rejected: 0, glossaryMisses: 0 });
+const emptyCounts = (): CoverageCounts => ({ records: 0, units: 0, current: 0, missing: 0, stale: 0, rejected: 0, glossaryMisses: 0, repeatedPunctuation: 0, leftoverLatin: 0 });
 
 export function summarizeTranslationCoverage(input: {
   inventory: CoverageInventory;
@@ -99,6 +100,9 @@ export function summarizeTranslationCoverage(input: {
 }): TranslationCoverageResponse {
   const { inventory, context, stored, rejections, queue } = input;
   const terms = Object.entries(context.glossary).map(([term, target]) => ({ term, target, pattern: glossaryTermPattern(term) }));
+  // Substance article slugs are the names rule 2 keeps in Latin in lowercase prose.
+  const latinNames = inventory.records.filter((record) => record.kind === "article").map((record) => record.slug);
+  const chinese = context.locale.scriptGate === "simplified";
   const summary = emptyCounts();
   const byKind = TRANSLATION_RECORD_KINDS.map((kind) => ({ kind, ...emptyCounts() }));
   const pages: TranslationCoverageResponse["pages"] = [];
@@ -117,10 +121,12 @@ export function summarizeTranslationCoverage(input: {
       else if (row.prompt_version !== context.promptVersion) counts.stale += 1;
       else counts.current += 1;
       if (row && scopedTerms.some(({ pattern, target }) => pattern.test(unit.source) && !row.target.includes(target))) counts.glossaryMisses += 1;
+      if (row?.target.trim() && findRepeatedPunctuation(unit.source, row.target).length > 0) counts.repeatedPunctuation += 1;
+      if (chinese && row?.target.trim() && findLeftoverLatin({ source: unit.source, target: row.target, glossary: context.glossary, latinNames }).length > 0) counts.leftoverLatin += 1;
     }
     const kindCounts = byKind.find((entry) => entry.kind === record.kind)!;
     for (const key of Object.keys(counts) as Array<keyof CoverageCounts>) { summary[key] += counts[key]; kindCounts[key] += counts[key]; }
-    if (counts.missing + counts.stale + counts.rejected + counts.glossaryMisses > 0) {
+    if (counts.missing + counts.stale + counts.rejected + counts.glossaryMisses + counts.repeatedPunctuation + counts.leftoverLatin > 0) {
       affectedPagesTotal += 1;
       if (pages.length < PAGES_LIMIT) pages.push({ ...counts, kind: record.kind, slug: record.slug, href: coveragePagePath(record.kind, record.slug) });
     }
@@ -135,6 +141,7 @@ export function summarizeTranslationCoverage(input: {
       "Copy blocks, About content, warning datasets, UI catalogs, and generated labels need separate catalog or rendered-page verification.",
       "Current means stored under the current prompt digest. It does not mean human-reviewed, linguistically correct, or verified live.",
       "Glossary disagreements are advisory and may need a contextual exception; they overlap storage states.",
+      "Doubled punctuation and leftover English count stored targets and overlap storage states. Doubled punctuation blocks new output; leftover English is a review finding.",
     ],
     publication: { status: "unverified", message: "Stored coverage and completed jobs do not establish what is deployed or rendered. Verify the public mirror separately." },
   };

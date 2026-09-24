@@ -266,6 +266,9 @@ export function retryNoteFor(defects) {
   if (defects.includes(DEFECT_CODES.GLOSSARY_MISS)) {
     notes.push("an approved glossary rendering was missed; use each required glossary target exactly as provided, without synonyms or spelling changes");
   }
+  if (defects.includes(DEFECT_CODES.REPEATED_PUNCTUATION)) {
+    notes.push("a punctuation mark was doubled (such as ，，); write each full-width mark once");
+  }
   if (defects.includes(DEFECT_CODES.PLACEHOLDER_LOSS)) {
     notes.push("a {{token}} was dropped or altered; copy every token exactly, braces included");
   }

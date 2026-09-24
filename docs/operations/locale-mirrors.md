@@ -93,8 +93,33 @@ are resolved. Its presence does not mean GT serves production.
 
 A segment that fails a blocking check in `scripts/translation/validate.mjs` is not
 stored: English remains visible and the rejection stays explicit. That validator
-owns numeric, citation-marker, markup, script and placeholder rules. Rejection is
+owns numeric, citation-marker, markup, script, placeholder and punctuation rules. Rejection is
 not successful translation coverage; use the current worker's bounded retry contract.
+Two output checks target Chinese copy:
+
+- `REPEATED_PUNCTUATION` **blocks**. It fires on two or more adjacent full-width
+  marks from `，。、；：！？` (such as `，，`) unless the source carries the same
+  repetition (`?!` rendered `？！`). The unit retries with a note and, if it
+  still fails, keeps its English. Existing stored or catalog text is not
+  rewritten: an online `ui-catalog.ts` compile stops on a catalog entry that
+  fails it (the current 2-benzylpiperidine entry does) until a retranslation
+  replaces it.
+- `LEFTOVER_LATIN` is a **non-blocking** review finding for zh-Hans. It lists
+  English words of four or more letters left in output that has Chinese in it
+  (`details.leftoverLatin`). It skips protected syntax (citation markers,
+  placeholders, link targets, URLs, email addresses, file paths, code spans,
+  HTML tags, identifiers with a digit or an inner dot), parenthetical glosses
+  (prompt rule 11), approved glossary renderings kept in Latin (matched with
+  the shared term matcher, so `Phenidate -> Phenidate` covers "phenidates"),
+  names the locale rules keep in Latin (`isLatinName` in `locales.mjs`:
+  acronyms, inner capitals, and capitalized words the source also
+  capitalizes), and caller-supplied `latinNames` such as substance slugs.
+  `findLeftoverLatin` and `findRepeatedPunctuation` are exported for
+  review surfaces that scan stored targets.
+
+The QA packet (`repeatedPunctuation`, `nonBlockingNotes.leftoverLatin`), the
+coverage report (per record kind and page, over stored targets), and
+`glossary-audit.mjs` (PUNCTUATION and ENGLISH sections) count both codes.
 A provider failure is not a rejection. An authorization, credit or unknown-model
 refusal, or a retryable failure that outlasts the engine's transport retries,
 throws `TranslationTransportError` (defect code `TRANSPORT_FAILURE`) out of

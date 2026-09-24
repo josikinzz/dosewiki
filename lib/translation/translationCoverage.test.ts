@@ -79,8 +79,30 @@ describe("source-derived translation coverage", () => {
       queue: { queued: 2, running: 1, failed: 1, completed: 20, retrying: 1 },
     });
     expect(report.uniqueHashes).toBe(4);
-    expect(report.summary).toEqual({ records: 2, units: 5, current: 2, missing: 1, stale: 1, rejected: 1, glossaryMisses: 1 });
+    expect(report.summary).toEqual({ records: 2, units: 5, current: 2, missing: 1, stale: 1, rejected: 1, glossaryMisses: 1, repeatedPunctuation: 0, leftoverLatin: 0 });
     expect(report.affectedPagesTotal).toBe(1);
     expect(report.byKind.find(({ kind }) => kind === "report")?.glossaryMisses).toBe(0);
+  });
+
+  it("counts stored doubled punctuation and leftover English, keeping substance names and Latin glossary renderings", () => {
+    const report = summarizeTranslationCoverage({
+      inventory: { generatedAt: 1, records: [
+        { kind: "article", slug: "ibogaine", units: [{ hash: "a", source: "Ibogaine is an alkaloid." }] },
+        { kind: "report", slug: "trip", units: [
+          { hash: "b", source: "The phenidates, esters, are known." },
+          { hash: "c", source: "Many users combine ibogaine with scalines." },
+        ] },
+      ] },
+      context: { ...context, glossary: { Phenidate: "哌醋甲酯类", "3,5-Dimethoxyphenethylamine (scalines)": "3,5-二甲氧基苯乙胺（scaline类）" } },
+      stored: new Map([
+        ["a", { hash: "a", target: "ibogaine 是一种生物碱。", prompt_version: "now" }],
+        ["b", { hash: "b", target: "酯类，，phenidates，，最知名。", prompt_version: "now" }],
+        ["c", { hash: "c", target: "许多使用者将 ibogaine 与 scalines 合用。", prompt_version: "now" }],
+      ]),
+      rejections: new Map(),
+      queue: { queued: 0, running: 0, failed: 0, completed: 0, retrying: 0 },
+    });
+    expect(report.summary).toMatchObject({ current: 3, repeatedPunctuation: 1, leftoverLatin: 1 });
+    expect(report.pages.map(({ slug }) => slug)).toEqual(["trip"]);
   });
 });
