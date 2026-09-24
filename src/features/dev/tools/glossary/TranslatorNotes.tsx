@@ -115,8 +115,8 @@ function NoteEditor({ state, row, onClose }: { state: TranslatorNotesState; row:
       {error ? <p role="alert" className="text-sm text-[color:var(--theme-danger-text)]">{error}</p> : null}
       {notice ? <p role="status" className="theme-text-secondary text-sm">{notice}</p> : null}
       <div className="flex flex-wrap gap-2">
-        <Button disabled={busy || !body.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button>
-        <Button variant="outline" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
+        <Button variant="outline" disabled={busy || !body.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button>
+        <Button variant="accent" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
         <Button variant="ghost" disabled={busy} onClick={onClose}>Close note</Button>
       </div>
       {history.length ? <>

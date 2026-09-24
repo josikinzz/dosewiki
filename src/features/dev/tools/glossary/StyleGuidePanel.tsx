@@ -146,8 +146,8 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
 
         <label htmlFor={`${formId}-reason`} className="block">Reason<Input id={`${formId}-reason`} value={reason} maxLength={1000} disabled={busy} onChange={(e) => setReason(e.target.value)} /></label>
         <div className="flex flex-wrap gap-2">
-          <Button disabled={busy || !reason.trim() || !unsaved} onClick={() => void mutate("save")}>Save draft</Button>
-          <Button variant="outline" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
+          <Button variant="outline" disabled={busy || !reason.trim() || !unsaved} onClick={() => void mutate("save")}>Save draft</Button>
+          <Button variant="accent" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
         </div>
       </Surface>
 

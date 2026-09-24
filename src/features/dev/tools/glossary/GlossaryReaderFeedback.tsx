@@ -7,6 +7,7 @@ import {
 import { glossaryFeedbackAdapter } from "../feedback/glossaryFeedbackAdapter";
 import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
+import { WorkbenchDrawer } from "./WorkbenchDrawer";
 import type { LanguageRelease } from "@server/translation/languageReadiness";
 
 type ReactionTotals = {
@@ -17,15 +18,10 @@ type ReactionTotals = {
   improve: number;
 };
 export function GlossaryReaderFeedback({ locale }: { locale: string }) {
-  const [open, setOpen] = useState(false);
   return (
-    <details onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary className="theme-text-primary flex cursor-pointer list-none items-center gap-2 py-3 font-semibold">
-        Reader feedback and website readiness
-        <ExpandIndicator isExpanded={open} />
-      </summary>
-      {open ? <ReviewContent key={locale} locale={locale} /> : null}
-    </details>
+    <WorkbenchDrawer title="Reader feedback and website readiness">
+      <ReviewContent key={locale} locale={locale} />
+    </WorkbenchDrawer>
   );
 }
 function ReviewContent({ locale }: { locale: string }) {
@@ -98,15 +94,15 @@ function ReviewContent({ locale }: { locale: string }) {
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <caption className="pb-3 text-left">
+              <caption className="theme-text-muted pb-3 text-left text-xs">
                 Reactions by reviewed term version. Browser identities are not
                 unique people.
               </caption>
-              <thead>
-                <tr>
-                  <th>Term and translation</th>
-                  <th>Looks right</th>
-                  <th>Needs improvement</th>
+              <thead className="theme-text-faint text-xs">
+                <tr className="border-b border-dose-border">
+                  <th className="py-2 pr-3 font-medium">Term and translation</th>
+                  <th className="py-2 pr-3 font-medium">Looks right</th>
+                  <th className="py-2 font-medium">Needs improvement</th>
                 </tr>
               </thead>
               <tbody>
@@ -115,15 +111,15 @@ function ReviewContent({ locale }: { locale: string }) {
                     key={`${row.term}:${row.version}`}
                     className="border-b border-dose-border"
                   >
-                    <td className="py-3">
+                    <td className="py-3 pr-3">
                       {row.term} ·{" "}
                       <bdi lang={locale} dir="auto">
                         {row.target}
                       </bdi>
                       <VersionDisclosure version={row.version} />
                     </td>
-                    <td>{row.right}</td>
-                    <td>{row.improve}</td>
+                    <td className="py-3 pr-3 tabular-nums">{row.right}</td>
+                    <td className="py-3 tabular-nums">{row.improve}</td>
                   </tr>
                 ))}
               </tbody>

@@ -276,7 +276,7 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
       </EditorTableCell>
       <EditorTableCell label="Status">
         {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Readers see: <span lang={row.locale} dir="auto">{row.approved_target}</span></p> : null}
-        <EditorStatusPill tone={row.status === "approved" && !unchecked ? "success" : "warning"}>{unchecked ? "Live, never checked" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
+        <EditorStatusPill tone={unchecked ? "info" : row.status === "approved" ? "success" : "warning"}>{unchecked ? "Live, never checked" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
         {unchecked ? <p className="theme-text-faint mt-1 text-xs">Readers already see this wording. Confirm it as it stands, or edit it and save a draft.</p> : null}
       </EditorTableCell>
       <EditorTableCell label="Written by" className="theme-text-secondary text-xs">
