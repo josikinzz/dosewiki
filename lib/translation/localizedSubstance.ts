@@ -6,6 +6,8 @@
  *
  * The page review state rides along so the article notice is computed with
  * the page and cached with it; an approval's cache receipt refreshes both.
+ * Approved translator's notes ride along the same way, read against the
+ * English record so a note whose section left the English stays hidden.
  */
 import "server-only";
 
@@ -16,8 +18,10 @@ import { getPublicSubstanceBySlug } from "@server/data/publicData.substances";
 
 import { localizeRecord } from "./liveTranslation";
 import type { PageReviewState } from "./pageReview";
+import { readApprovedTranslatorNotes } from "./translatorNotes";
+import type { ApprovedTranslatorNotes } from "./translatorNoteTypes";
 
-export type LocalizedPublicSubstance = { substance: PublicSubstanceRecord; review: PageReviewState };
+export type LocalizedPublicSubstance = { substance: PublicSubstanceRecord; review: PageReviewState; notes: ApprovedTranslatorNotes };
 
 export const getLocalizedPublicSubstanceBySlug = cache(async (
   slug: string,
@@ -25,6 +29,11 @@ export const getLocalizedPublicSubstanceBySlug = cache(async (
 ): Promise<LocalizedPublicSubstance | null> => {
   const substance = await getPublicSubstanceBySlug(slug);
   if (!substance) return null;
-  const localized = await localizeRecord({ ...substance, slug }, locale, "article");
-  return { substance: localized.record, review: localized.review };
+  // Notes are keyed by the slug the article reader writes: the record's own, else the requested one.
+  const noteSlug = "slug" in substance && typeof substance.slug === "string" ? substance.slug : slug;
+  const [localized, notes] = await Promise.all([
+    localizeRecord({ ...substance, slug }, locale, "article"),
+    readApprovedTranslatorNotes(locale, noteSlug, substance),
+  ]);
+  return { substance: localized.record, review: localized.review, notes };
 });

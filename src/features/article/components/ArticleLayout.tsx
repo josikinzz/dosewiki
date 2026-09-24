@@ -39,6 +39,7 @@ import { reportMatchesSubstance } from "@/features/reports/domain/tripReportInde
 import { ReviewStatusBanner } from "./sections/ReviewStatusBanner";
 import { SubstanceWarningBanners } from "./sections/SubstanceWarningBanners";
 import { ArticleTableOfContents } from "./sections/ArticleTableOfContents";
+import type { TranslatorNoteSection } from "@server/translation/translatorNoteTypes";
 import ArticleSectionEditor from "../editing/ArticleSectionEditor.editor";
 import WarningContextualEditor from "../editing/WarningContextualEditor.editor";
 
@@ -129,6 +130,11 @@ export interface ArticleLayoutProps {
    * by the substance route loader. Absent on preview surfaces.
    */
   recentChanges?: ArticleRecentChange[];
+  /**
+   * Locale mirrors only: approved translator's notes, already rendered by the
+   * route, placed at the end of their section. Absent on English pages.
+   */
+  translatorNotes?: Partial<Record<TranslatorNoteSection, ReactNode>>;
 }
 
 interface DeferredSectionProps {
@@ -182,6 +188,7 @@ export function ArticleLayout({
   reviewStatusCopy,
   expertReviewCredit,
   recentChanges,
+  translatorNotes,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -336,6 +343,7 @@ export function ArticleLayout({
                 article={article}
                 dosageDisclaimer={dosageDisclaimer}
               />
+              {translatorNotes?.["dosage-duration"]}
             </DeferredSection>
             <DeferredSection>
               <div className="flex flex-wrap items-center gap-2 empty:hidden">
@@ -357,6 +365,7 @@ export function ArticleLayout({
                 }
                 replicationShowcaseSection={replicationShowcaseSection}
               />
+              {translatorNotes?.["subjective-effects"]}
             </DeferredSection>
             <DeferredSection>
               <ArticleSectionEditor
@@ -369,6 +378,7 @@ export function ArticleLayout({
                 substanceSlug={fromSubstanceSlug}
                 externalReagentData={externalReagentData}
               />
+              {translatorNotes?.["reagent-testing"]}
             </DeferredSection>
           </div>
 
@@ -377,6 +387,7 @@ export function ArticleLayout({
             <DeferredSection>
               <ArticleSectionEditor section="pharmacology" />
               <PharmacologySection article={article} />
+              {translatorNotes?.pharmacology}
             </DeferredSection>
             <DeferredSection>
               <ArticleSectionEditor section="interactions" />
@@ -384,6 +395,7 @@ export function ArticleLayout({
                 article={article}
                 linkableSubstanceSlugs={linkableSubstanceSlugs}
               />
+              {translatorNotes?.interactions}
             </DeferredSection>
             <DeferredSection>
               <ArticleSectionEditor section="tolerance" />
@@ -391,6 +403,7 @@ export function ArticleLayout({
                 article={article}
                 disclaimer={toleranceDisclaimer}
               />
+              {translatorNotes?.tolerance}
             </DeferredSection>
           </div>
 
@@ -399,6 +412,7 @@ export function ArticleLayout({
             <DeferredSection>
               <ArticleSectionEditor section="harm_potential" />
               <HarmPotentialSection article={article} />
+              {translatorNotes?.["harm-potential"]}
             </DeferredSection>
             <DeferredSection>
               <ArticleSectionEditor
@@ -406,6 +420,7 @@ export function ArticleLayout({
                 missing={!article.history_culture}
               />
               <HistoryCultureSection article={article} />
+              {translatorNotes?.["history-culture"]}
             </DeferredSection>
             <DeferredSection>
               {tripReportsSection ?? (
@@ -421,6 +436,7 @@ export function ArticleLayout({
                 missing={!Object.keys(article.legality.countries ?? {}).length}
               />
               <LegalitySection article={article} />
+              {translatorNotes?.legality}
             </DeferredSection>
           </div>
 

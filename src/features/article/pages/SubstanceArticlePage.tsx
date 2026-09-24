@@ -11,7 +11,7 @@ import type { SubstanceContent } from "@/types/content";
 import type { TripReport } from "@/types/tripReport";
 import type { NormalizedReagentData } from "@/lib/reagentTesting";
 import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
-import { ArticleLayout, type ArticleSecondarySections } from "../components/ArticleLayout";
+import { ArticleLayout, type ArticleLayoutProps, type ArticleSecondarySections } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
@@ -62,6 +62,8 @@ interface SubstanceArticlePageProps {
   recentChanges?: ArticleRecentChange[];
   /** Rendered in the banner slot above the safety banners; the locale mirrors' machine-translation notice. */
   warningBannerNotice?: ReactNode;
+  /** Locale mirrors only: approved translator's notes rendered by the route, by section. */
+  translatorNotes?: ArticleLayoutProps["translatorNotes"];
 }
 
 export function SubstanceArticlePage({
@@ -87,6 +89,7 @@ export function SubstanceArticlePage({
   expertReviewCredit,
   recentChanges,
   warningBannerNotice,
+  translatorNotes,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -106,7 +109,7 @@ export function SubstanceArticlePage({
           tripReportsSection, hasRelatedTripReports, replicationShowcaseSection,
           contributorAvatars, externalReagentData, warningBanners, warningBannerIconSize,
           showBetaDisclaimer, dosageDisclaimer, toleranceDisclaimer, reviewStatusCopy,
-          expertReviewCredit, recentChanges,
+          expertReviewCredit, recentChanges, translatorNotes,
         }}
       >
       <ArticleLayout
@@ -132,6 +135,7 @@ export function SubstanceArticlePage({
         reviewStatusCopy={reviewStatusCopy}
         expertReviewCredit={expertReviewCredit}
         recentChanges={recentChanges}
+        translatorNotes={translatorNotes}
       />
       </ArticleContextBridge>
     </main>

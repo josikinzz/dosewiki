@@ -355,6 +355,34 @@ partly reviewed article keeps the notice and adds "N of M paragraphs reviewed".
 Approval returns cache publication receipts; failed propagation remains distinct
 from a successful saved approval. Verify the public result before claiming delivery.
 
+### Translator's notes
+
+Under the last paragraph of each article body section (Dosage & Duration
+through Legality) the reader offers **Add translator's note**. A note is short
+text for local readers, written in the locale only; it is never a translation
+of English. It uses scope `note` in the review tables, one entry per locale,
+article, and section anchor (the public section id, such as `history-culture`),
+with the same **Save draft**, **Approve saved revision**, and **Restore as
+draft** history, revision check, write freeze, and locale assignment as
+corrections. Approval runs the blocking validators against an empty English
+source, so doubled punctuation, script leaks, citation markers, links, and
+placeholders are refused; a Simplified Chinese note must contain Chinese.
+
+`GET /api/dev/translation-note?locale=<code>&kind=article&slug=<slug>` lists
+the present sections and any orphaned notes; `POST` takes
+`{ locale, kind, slug, section, expectedRevision, action, body?, reason, restoreRevision? }`.
+An approval publishes the article's locale cache like a correction.
+
+Readers of the localized article see an approved note at the end of its section
+in a box labelled "译者注" (catalog messages `article.translatorNote.label` and
+`article.translatorNote.disclaimer`) that says the note is not in the English
+original. Drafts never render. The English page is unchanged, and no prompt,
+glossary, or other locale reads this scope. A section counts as present by the
+same rule as the public table of contents. When a section leaves the English
+article its note is orphaned: it stops rendering, the reader shows it without an
+editor, and the Inbox lists it as "Note's section removed" with Edit only. If
+the section returns, the note shows again. There is no delete action yet.
+
 Coverage can import a bounded `translate:verify-release` JSON report and export a
 combined snapshot. It shows unique source hashes separately from per-record units,
 retains observation targets and dates, and marks unvisited routes unverified. An

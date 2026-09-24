@@ -49,6 +49,18 @@ export const UI_MESSAGE_DEFINITIONS = {
     locations: ["src/features/article/components/MachineTranslationNotice.tsx"],
     glossaryTerms: [],
   },
+  "article.translatorNote.label": {
+    source: "Translator's note",
+    context: "Heading of a boxed note a translator wrote for local readers under one section of a localized substance article. A conventional label, like 译者注 in Chinese.",
+    locations: ["src/features/article/components/TranslatorNote.tsx"],
+    glossaryTerms: [],
+  },
+  "article.translatorNote.disclaimer": {
+    source: "Added by a translator for readers of this language. It is not in the English original.",
+    context: "Line inside a translator's note box on a localized substance article, stating that the note is a local addition and does not appear in the English article.",
+    locations: ["src/features/article/components/TranslatorNote.tsx"],
+    glossaryTerms: [],
+  },
   "languageGlossary.status.filter": {
     source: "Status",
     context: "Label of the public language glossary filter that narrows terms by who checked the translation.",

@@ -15,6 +15,7 @@ import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticleP
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { MachineTranslationNotice } from "@/features/article/components/MachineTranslationNotice";
+import { translatorNoteNodes } from "@/features/article/components/TranslatorNote";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -73,6 +74,7 @@ export default async function LocalizedSubstancePage({ params }: LocalizedSubsta
         <SubstanceArticlePage
           {...result.pageProps}
           warningBannerNotice={<MachineTranslationNotice locale={LOCALE.code} englishUrl={englishUrl} review={result.review} />}
+          translatorNotes={translatorNoteNodes(LOCALE.code, result.translatorNotes)}
         />
       </div>
     </UiLocaleProvider>

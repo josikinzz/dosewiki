@@ -16,6 +16,7 @@ import { narrativeOverlayApplies } from "../../../../../lib/translation/reviewTy
 import type { readNarrativeReview } from "@lib/translation/narrativeReview";
 import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
 import { CorrectionReasonFields, correctionReason, EMPTY_CORRECTION, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
+import { TranslatorNoteSlot, useTranslatorNotes } from "./TranslatorNotes";
 type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
 type Row = Packet["rows"][number];
 /** One mark per paragraph; the workbench legend owns the wider definitions. */
@@ -133,6 +134,7 @@ export function NarrativeReview({ locale }: {
     const correctionRef = useRef<HTMLTextAreaElement>(null);
     const row = packet?.rows.find(r => r.id === selected);
     const labels = useMemo(() => paragraphLabels(packet?.rows ?? []), [packet]);
+    const notes = useTranslatorNotes(locale, packet?.slug, packet?.sourceVersion);
     async function load(id?: string, requestedSlug = slug, expectedVersion = packet?.sourceVersion) {
         setBusy(true);
         setError(null);
@@ -277,9 +279,11 @@ export function NarrativeReview({ locale }: {
       </div>
      </div>
      {active ? editor : null}
+     <TranslatorNoteSlot state={notes} afterRowId={item.id}/>
     </li>;
         })}
    </ol>
+   <TranslatorNoteSlot state={notes} rest/>
   </Surface> : null}
  </section>;
 }

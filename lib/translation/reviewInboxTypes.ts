@@ -8,7 +8,7 @@
  * translation (`segment`, a QA finding), or a reader suggestion from the public
  * glossary (`feedback`).
  */
-export type InboxScope = "glossary" | "ui" | "narrative" | "segment" | "feedback";
+export type InboxScope = "glossary" | "ui" | "narrative" | "segment" | "feedback" | "note";
 
 /**
  * Why an item is listed. A code union so later slices add their own reasons
@@ -30,7 +30,9 @@ export type InboxReason =
   /** English words left in a stored Chinese translation (the validator's LEFTOVER_LATIN finding). */
   | "leftover-latin"
   /** A new suggestion a reader sent from the public glossary. */
-  | "reader-suggestion";
+  | "reader-suggestion"
+  /** A translator's note whose section is gone from the English; hidden from readers. */
+  | "note-orphaned";
 
 /** QA findings a reviewer can mark "Fine here". */
 export type QaFindingKind = "glossary-disagreement" | "leftover-latin";
@@ -112,6 +114,7 @@ export const INBOX_REASON_LABEL: Record<InboxReason, string> = {
   "glossary-disagreement": "Disagrees with the glossary",
   "leftover-latin": "English left in",
   "reader-suggestion": "Reader suggestion",
+  "note-orphaned": "Note's section removed",
 };
 
 /** What each reason's check covers, named in the empty state. */
@@ -124,6 +127,7 @@ export const INBOX_CHECK_LABEL: Record<InboxReason, string> = {
   "glossary-disagreement": "stored translations that disagree with the glossary",
   "leftover-latin": "stored translations with English left in",
   "reader-suggestion": "new reader suggestions from the public glossary",
+  "note-orphaned": "translator's notes whose section left the English article",
 };
 
 export const INBOX_SCOPE_LABEL: Record<InboxScope, string> = {
@@ -132,6 +136,7 @@ export const INBOX_SCOPE_LABEL: Record<InboxScope, string> = {
   narrative: "Article",
   segment: "Translation",
   feedback: "Reader",
+  note: "Translator's note",
 };
 
 /** Deep links into the existing workbench editors. Views are named, so a later layout can remap them. */
@@ -144,6 +149,11 @@ export function uiLabelHref(locale: string, id: string): string {
 }
 export function narrativeSegmentHref(locale: string, slug: string, id: string): string {
   return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationReview: "article", translationLocale: locale, translationSlug: slug, translationSegment: id })}`;
+}
+
+/** Opens the article reader on one translator's note. */
+export function translatorNoteHref(locale: string, slug: string, section: string): string {
+  return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationReview: "article", translationLocale: locale, translationSlug: slug, translationNote: section })}`;
 }
 
 /** Workbench views a deep link can open. */

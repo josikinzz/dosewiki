@@ -22,6 +22,7 @@ import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/data/pub
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getLocalizedPublicSubstanceBySlug } from "@server/translation/localizedSubstance";
 import type { PageReviewState } from "@server/translation/pageReview";
+import type { ApprovedTranslatorNotes } from "@server/translation/translatorNoteTypes";
 import {
   getLocalizedPublicEffectBySlug,
 } from "@server/translation/localizedRecords";
@@ -102,6 +103,8 @@ export type SubstanceRouteResult =
     publicRevision?: string;
     /** Locale routes only: human review of this article's paragraphs, for the notice. */
     review?: PageReviewState;
+    /** Locale routes only: approved translator's notes by section, rendered in the article body. */
+    translatorNotes?: ApprovedTranslatorNotes;
   })
   | RedirectRouteResult
   | NotFoundRouteResult;
@@ -128,7 +131,7 @@ const getSubstanceRouteIdentity = cache(async (slug: string, locale: LiveLocale 
     return { kind: "not-found" } as const;
   }
 
-  return { kind: "ok", substance, review: localized?.review } as const;
+  return { kind: "ok", substance, review: localized?.review, translatorNotes: localized?.notes } as const;
 });
 
 export const loadSubstanceMetadataRoute = cache(async (slug: string, locale: LiveLocale | null = null) => {
@@ -147,7 +150,7 @@ export const loadSubstanceMetadataRoute = cache(async (slug: string, locale: Liv
 export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<SubstanceRouteResult> => {
   const identity = await getSubstanceRouteIdentity(slug, locale);
   if (identity.kind !== "ok") return identity;
-  const { substance, review } = identity;
+  const { substance, review, translatorNotes } = identity;
 
   const secondaryData = loadSubstanceSecondaryData(substance, slug, locale);
   // Only identity, linkability, molecule and safety data gate the article shell.
@@ -261,6 +264,7 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     publicRevision: "publicRevision" in substance && typeof substance.publicRevision === "string"
       ? substance.publicRevision : undefined,
     ...(review ? { review } : {}),
+    ...(translatorNotes ? { translatorNotes } : {}),
     pageProps: viewModel.pageProps,
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "substance", params: { slug } },

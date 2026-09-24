@@ -5,7 +5,8 @@ import type { ReviewReason } from "./reviewReason";
  * approved snapshot keyed by the finding, segment hash, term, and glossary
  * revision, so the finding returns only when one of those changes.
  */
-export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception";
+/** `note` holds translator's notes: locale-only text under an article section, never a translation of English. */
+export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception" | "note";
 export type ReviewSnapshot = { source: string; target: string; context: string; provenance?: "compiled" | "human" };
 export type ReviewState = { revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null };
 export type ReviewEntry = ReviewState & { locale: string; scope: ReviewScope; sourceId: string; updatedAt: number };

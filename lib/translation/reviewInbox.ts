@@ -12,10 +12,12 @@ import { narrativeIdentity, narrativeOverlayDecision, narrativeSourceVersion } f
 import { readReviewEntries } from "./reviewStore";
 import { readTranslationCoverageRows } from "./segmentStore";
 import { readUiTranslations } from "./uiTranslationStore";
+import { presentTranslatorNoteSections, translatorNoteLocation, translatorNoteSectionLabel } from "./translatorNotes";
 import {
   glossaryTermHref,
   INBOX_PAGE_SIZE,
   narrativeSegmentHref,
+  translatorNoteHref,
   uiLabelHref,
   type InboxItem,
   type InboxReason,
@@ -42,6 +44,7 @@ export const INBOX_CHECKS: readonly InboxReason[] = [
   "narrative-recheck",
   "glossary-disagreement",
   "leftover-latin",
+  "note-orphaned",
   "glossary-never-checked",
   "reader-suggestion",
 ];
@@ -138,6 +141,30 @@ async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Pro
   return items;
 }
 
+/** Notes whose section left the English article: readers no longer see them, and only Edit applies. */
+async function noteItems(reads: PublicDataReadAdapter, locale: string): Promise<InboxItem[]> {
+  const items: InboxItem[] = [];
+  const present = new Map<string, Set<string> | null>();
+  for (const entry of await readReviewEntries(locale, "note")) {
+    const location = translatorNoteLocation(entry), body = entry.approved?.target ?? entry.draft?.target;
+    if (!location || !body) continue;
+    if (!present.has(location.slug)) {
+      const record = await readTranslationRecord(reads, "article", location.slug);
+      present.set(location.slug, record ? presentTranslatorNoteSections(record) : null);
+    }
+    const sections = present.get(location.slug);
+    // A withdrawn article has nothing a reviewer can act on here, as for narrative approvals.
+    if (!sections || sections.has(location.section)) continue;
+    const label = translatorNoteSectionLabel(location.section);
+    items.push({
+      scope: "note", id: entry.sourceId, reason: "note-orphaned", english: label, live: null,
+      previous: { english: label, target: body }, where: `${location.slug} · ${label}`, revision: String(entry.revision),
+      href: translatorNoteHref(locale, location.slug, location.section), accept: null,
+    });
+  }
+  return items;
+}
+
 async function findingItems(reads: PublicDataReadAdapter, locale: string): Promise<InboxItem[]> {
   const [findings, exceptions] = await Promise.all([getInboxFindings(reads, locale), readQaExceptionKeys(locale)]);
   return qaFindingItems(locale, findings, exceptions);
@@ -163,7 +190,7 @@ export async function readReviewInbox(
 ): Promise<{ items: InboxItem[]; total: number; checked: InboxReason[]; counts: Partial<Record<InboxReason, number>>; reason: InboxReason | null }> {
   const chinese = resolveLocale(locale).scriptGate === "simplified";
   const suggestions = options.suggestions ?? null;
-  const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale), findingItems(reads, locale)]);
+  const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale), findingItems(reads, locale), noteItems(reads, locale)]);
   const order = (item: InboxItem) => INBOX_CHECKS.indexOf(item.reason);
   const every = [...scopes.flat(), ...(suggestions ? readerSuggestionItems(locale, suggestions) : [])];
   const counts: Partial<Record<InboxReason, number>> = {};
