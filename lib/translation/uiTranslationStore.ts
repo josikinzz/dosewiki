@@ -6,7 +6,7 @@ import { getPostgresClient } from "@server/postgres/runtime/backend";
 import { assertDataWritesNotFrozen, isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
 import { lockReviewEntry, mutateReviewEntry, mutateReviewEntryInTransaction, readReviewEntries, readReviewHistory, TranslationReviewConflictError, TranslationReviewError, type ReviewMutationOptions } from "./reviewStore";
 import type { ReviewAction, ReviewEntry, ReviewMutation } from "./reviewTypes";
-import { getCompiledUiCatalog } from "./uiCatalogs";
+import { getCompiledUiCatalog, getUiCatalogPendingRefresh } from "./uiCatalogs";
 import { isShortUiLabel, UI_BATCH_APPROVAL_REASON, type UiBatchApprovalItem, type UiBatchApprovalResult, type UiTranslationRow } from "./uiTranslationTypes";
 
 function declared(id: string) {
@@ -20,8 +20,14 @@ function rowFor(locale: string, id: string, entry?: ReviewEntry): UiTranslationR
   const approved = entry?.approved ?? null;
   const draft = entry?.draft ?? null;
   const active = draft ?? approved;
-  return { id, ...definition, compiledTarget, revision: entry?.revision ?? 0, draft, approved, updatedAt: entry?.updatedAt ?? null,
-    status: active && (active.source !== definition.source || active.context !== definition.context) ? "stale" : draft ? "draft" : approved ? "approved" : compiledTarget !== null ? "unreviewed" : "missing" };
+  const status: UiTranslationRow["status"] = active && (active.source !== definition.source || active.context !== definition.context) ? "stale" : draft ? "draft" : approved ? "approved" : compiledTarget !== null ? "unreviewed" : "missing";
+  // Human approval outranks the glossary, so an approved row never waits for a refresh.
+  const waiting = status === "approved" ? undefined : getUiCatalogPendingRefresh(locale).entries.get(definition.catalogKey);
+  return { id, ...definition, compiledTarget, revision: entry?.revision ?? 0, draft, approved, updatedAt: entry?.updatedAt ?? null, status,
+    pendingRefresh: waiting ? { term: waiting.term, expectedTarget: waiting.expectedTarget } : null };
+}
+export function isUiCatalogRefreshed(locale: string): boolean {
+  return getUiCatalogPendingRefresh(locale).refreshed;
 }
 export async function readUiTranslations(locale: string): Promise<UiTranslationRow[]> {
   resolveLocale(locale);

@@ -76,6 +76,28 @@ machine UI prose that disagrees with current glossary terms enters targeted
 refresh during online compilation. Human overrides remain authoritative.
 Drafts do not enter the compiled catalog.
 
+### Waiting for glossary refresh
+
+The compiler checks every longer UI string against the approved glossary with
+the shared term matcher, so "Back to replications" and "Tutorials and resources
+for replicating ..." both mention Replication. A string whose compiled wording
+lacks the approved rendering (返回复现 while Replication is 体验再现) keeps its
+wording and enters `pendingRefresh` in `src/i18n/catalogPublication.json`, one
+entry per key naming the `term` and `expectedTarget` behind it. A human-approved
+UI override is never queued, even when it keeps the old rendering on purpose.
+
+The **Waiting for glossary refresh** mode of the UI labels view lists those
+strings with their current wording, term, and approved rendering. **Review**
+opens a string in the one-at-a-time view, where approving the current wording
+takes it off the list. An online catalog build sends every waiting entry to the
+model and records the list as refreshed. An offline compile cannot refresh:
+it keeps the previous list, adds what its baseline terminology finds, and records
+`pendingRefreshStatus: "not-refreshed"`, which the view states. Records compiled
+before terms were recorded list bare keys; the view takes their term from
+`qaGlossaryMisses` and shows "Not recorded" when none names the key. Leaving the
+list requires an online build and a deployment; the list is not evidence of
+either.
+
 ### Short labels
 
 The **Short labels** mode of the UI labels view lists labels of three words or

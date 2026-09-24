@@ -1,8 +1,10 @@
 import { getUiMessageDefinition, UI_MESSAGE_ALIASES, UI_MESSAGE_DEFINITIONS } from "../../src/i18n/uiMessageDefinitions";
 import { UI_MESSAGE_SEEDS } from "../../src/i18n/uiMessageSeeds";
-import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
+import { termMatcher } from "../../scripts/translation/term-match.mjs";
 
 export type UiCatalogGlossaryMiss = { catalogKey: string; term: string; expectedTarget: string; humanApproved: boolean };
+/** A catalog entry whose existing wording disagrees with an approved glossary term and waits for a model refresh. */
+export type UiCatalogPendingRefresh = { catalogKey: string; term: string; expectedTarget: string };
 
 /** Explicit semantic aliases only. Never infer plurals or alias ambiguous Light. */
 export function expandUiGlossaryAliases(glossary: ReadonlyMap<string, string>): Map<string, string> {
@@ -24,7 +26,7 @@ export function getUiCatalogGlossaryMisses(
   glossary: ReadonlyMap<string, string>,
   approvedOverrides: Readonly<Record<string, string>> = {},
 ): UiCatalogGlossaryMiss[] {
-  const patterns = [...expandUiGlossaryAliases(glossary)].filter(([, target]) => target.trim()).map(([term, target]) => ({ term, target, pattern: glossaryTermPattern(term) }));
+  const patterns = [...expandUiGlossaryAliases(glossary)].filter(([, target]) => target.trim()).map(([term, target]) => ({ term, target, pattern: termMatcher(term) }));
   const misses: UiCatalogGlossaryMiss[] = [];
   for (const [key, target] of Object.entries(catalog)) {
     if (getUiMessageDefinition(key) || UI_MESSAGE_ALIASES[key]) continue;
@@ -53,7 +55,7 @@ export function compileUiCatalog(input: {
   auditGlossary?: ReadonlyMap<string, string>;
   approvedOverrides: Readonly<Record<string, string>>;
   seed?: ReadonlyMap<string, string>;
-}): { catalog: Record<string, string>; pending: string[]; pendingRefresh: string[]; glossaryMisses: UiCatalogGlossaryMiss[] } {
+}): { catalog: Record<string, string>; pending: string[]; pendingRefresh: UiCatalogPendingRefresh[]; glossaryMisses: UiCatalogGlossaryMiss[] } {
   const catalog: Record<string, string> = {};
   const pending: string[] = [];
   const glossaryResolvedKeys = new Set<string>();
@@ -76,6 +78,12 @@ export function compileUiCatalog(input: {
   const glossaryMisses = getUiCatalogGlossaryMisses(catalog, input.auditGlossary ?? input.glossary, input.approvedOverrides);
   // A whole approved phrase can intentionally render a nested term differently.
   // Keep that disagreement visible for review without inviting model overwrite.
-  const pendingRefresh = [...new Set(glossaryMisses.filter((miss) => !miss.humanApproved && !glossaryResolvedKeys.has(miss.catalogKey)).map((miss) => miss.catalogKey))];
-  return { catalog, pending: [...pending.filter((key) => !catalog[key]), ...pendingRefresh], pendingRefresh, glossaryMisses };
+  // One entry per key, naming the first term that disagrees, so a reviewer can see why it waits.
+  const refreshByKey = new Map<string, UiCatalogPendingRefresh>();
+  for (const miss of glossaryMisses) {
+    if (miss.humanApproved || glossaryResolvedKeys.has(miss.catalogKey) || refreshByKey.has(miss.catalogKey)) continue;
+    refreshByKey.set(miss.catalogKey, { catalogKey: miss.catalogKey, term: miss.term, expectedTarget: miss.expectedTarget });
+  }
+  const pendingRefresh = [...refreshByKey.values()];
+  return { catalog, pending: [...pending.filter((key) => !catalog[key]), ...refreshByKey.keys()], pendingRefresh, glossaryMisses };
 }

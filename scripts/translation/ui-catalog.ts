@@ -50,7 +50,7 @@ import {
 } from "./ui-catalog-sources";
 import { isBlocking, validateSegment } from "./validate.mjs";
 import { compileUiCatalog, expandUiGlossaryAliases, getUiCatalogGlossaryMisses } from "../../lib/translation/uiCatalogCompiler";
-import { getApprovedUiTranslationsDigest, type UiCatalogPublication } from "../../lib/translation/uiCatalogPublication";
+import { getApprovedUiTranslationsDigest, nextPendingRefresh, type UiCatalogPublication } from "../../lib/translation/uiCatalogPublication";
 import { getUiMessageDefinition, UI_MESSAGE_ALIASES, UI_MESSAGE_DEFINITIONS } from "../../src/i18n/uiMessageDefinitions";
 import { UI_MESSAGE_SEEDS } from "../../src/i18n/uiMessageSeeds";
 import { guardTarget } from "../postgres/targetGuard";
@@ -449,7 +449,9 @@ async function main() {
     approvedUiDigest: values.offline ? null : getApprovedUiTranslationsDigest(approvedOverrides),
     approvedUiSource: values.offline ? "offline-unverified" : "store",
     sourceInventoryDigest: createHash("sha256").update(JSON.stringify(inventory)).digest("hex"),
-    pendingRefresh: values.offline ? pendingRefresh : [],
+    // Each waiting entry names its term. Offline compiles keep the previous
+    // list and mark it not refreshed; online compiles have sent it to the model.
+    ...nextPendingRefresh({ offline: values.offline, previous: publications[localeCode], computed: pendingRefresh, catalog: sorted }),
     qaGlossaryMisses: getUiCatalogGlossaryMisses(sorted, auditGlossary, approvedOverrides),
     exactLabels: Object.fromEntries([...new Set([...Object.keys(UI_MESSAGE_DEFINITIONS), ...Object.keys(approvedOverrides)])].filter((key) => sorted[key]).map((key) => [key, {
       source: getUiMessageDefinition(key)?.source ?? key, target: sorted[key], targetDigest: createHash("sha256").update(sorted[key]).digest("hex"),

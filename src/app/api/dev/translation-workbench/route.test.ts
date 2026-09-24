@@ -6,7 +6,7 @@ import { GET, POST } from "./route";
 import { GET as historyGet } from "./history/route";
 vi.mock("server-only", () => ({}));
 const auth = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
-const store = vi.hoisted(() => ({ readUiTranslations: vi.fn(), writeUiTranslation: vi.fn(), readUiTranslationHistory: vi.fn() }));
+const store = vi.hoisted(() => ({ readUiTranslations: vi.fn(), writeUiTranslation: vi.fn(), readUiTranslationHistory: vi.fn(), isUiCatalogRefreshed: vi.fn(() => false) }));
 vi.mock("@/lib/auth/requireEditorSession", () => auth);
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: vi.fn(async () => null) }));
 vi.mock("@server/postgres/runtime/backend", () => ({ getDataBackend: () => "postgres", getPostgresClient: vi.fn() }));
@@ -66,6 +66,9 @@ describe("UI translation workbench route boundaries", () => {
     const response = await GET(new Request(`${url}?locale=zh-Hans`));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect((await response.json()).locales).toEqual(["zh-Hans"]);
+    const json = await response.json();
+    expect(json.locales).toEqual(["zh-Hans"]);
+    // The waiting list came from an offline compile, so the reviewer is told it was not refreshed.
+    expect(json.catalogRefreshed).toBe(false);
   });
 });

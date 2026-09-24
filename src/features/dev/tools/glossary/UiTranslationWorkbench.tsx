@@ -10,6 +10,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { EditorNotice, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
 import { ShortLabelGrid } from "./ShortLabelGrid";
+import { PendingRefreshList } from "./PendingRefreshList";
 
 export type UiEditDrafts = Map<string, { target: string; reason: string }>;
 
@@ -22,10 +23,11 @@ export function UiTranslationWorkbench({ locale, editDrafts }: { locale: string;
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [mode, setMode] = useState<"cards" | "short">("cards");
+  const [mode, setMode] = useState<"cards" | "short" | "refresh">("cards");
+  const [catalogRefreshed, setCatalogRefreshed] = useState(true);
   const load = useCallback(async () => {
     setError(null);
-    try { const result = await translationRequest<UiTranslationListResponse>(`${endpoint}?locale=${encodeURIComponent(locale)}`); setRows(result.rows); }
+    try { const result = await translationRequest<UiTranslationListResponse>(`${endpoint}?locale=${encodeURIComponent(locale)}`); setRows(result.rows); setCatalogRefreshed(result.catalogRefreshed ?? true); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to load UI labels."); }
   }, [locale]);
   useEffect(() => { void load(); }, [load]);
@@ -38,6 +40,7 @@ export function UiTranslationWorkbench({ locale, editDrafts }: { locale: string;
       <div role="group" aria-label="UI label view" className="flex gap-1">
         <Button type="button" variant={mode === "cards" ? "accent" : "outline"} size="sm" aria-pressed={mode === "cards"} onClick={() => setMode("cards")}>One at a time</Button>
         <Button type="button" variant={mode === "short" ? "accent" : "outline"} size="sm" aria-pressed={mode === "short"} onClick={() => setMode("short")}>Short labels</Button>
+        <Button type="button" variant={mode === "refresh" ? "accent" : "outline"} size="sm" aria-pressed={mode === "refresh"} onClick={() => setMode("refresh")}>Waiting for glossary refresh{rows ? ` (${rows.filter((row) => row.pendingRefresh).length})` : ""}</Button>
       </div>
     </div>
     <Input inputSize="sm" type="search" aria-label="Search UI labels" placeholder="Search English, translation, or context" value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
@@ -45,6 +48,7 @@ export function UiTranslationWorkbench({ locale, editDrafts }: { locale: string;
     {rows === null && !error ? <StateCard compact loading title="Loading UI labels" /> : null}
     {rows ? <p className="theme-text-faint text-xs">{rows.filter((row) => row.status === "draft").length} drafts · {rows.filter((row) => row.status === "approved").length} approved · {rows.filter((row) => row.status === "missing").length} missing from compiled catalog · {rows.filter((row) => row.status === "unreviewed").length} without human review · {rows.filter((row) => row.status === "stale").length} source changes needing review. These labels cover the registered contexts listed below.</p> : null}
     {shown && mode === "short" ? <ShortLabelGrid locale={locale} rows={shown} edits={edits} update={(next) => { const byId = new Map(next.map((row) => [row.id, row])); setRows((current) => current?.map((item) => byId.get(item.id) ?? item) ?? null); }} /> : null}
+    {shown && mode === "refresh" ? <PendingRefreshList rows={shown} refreshed={catalogRefreshed} review={(row) => { setSearch(row.id); setPage(0); setMode("cards"); }} /> : null}
     {shown?.length === 0 && mode === "cards" ? <StateCard compact title="No labels match" description="Try a different English label, translation, or context." /> : null}
     {shown && mode === "cards" && shown.length > 30 ? <div className="flex flex-wrap items-center gap-3" aria-label="UI label pages">
       <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((value) => value - 1)}>Previous labels</Button>

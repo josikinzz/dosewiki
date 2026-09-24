@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getDataBackend } from "@server/postgres/runtime/backend";
-import { readUiTranslations, writeUiTranslation } from "@server/translation/uiTranslationStore";
+import { isUiCatalogRefreshed, readUiTranslations, writeUiTranslation } from "@server/translation/uiTranslationStore";
 import { glossaryAccessibleLocales, glossaryLocaleAccess, parseLocale } from "../translation-glossary/glossaryRoutes";
 import { parseWorkbenchMutation, workbenchError } from "./workbenchRoutes";
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export const GET = protectedRouteOperation({
     const denied = glossaryLocaleAccess(auth, locale);
     if (denied) return denied;
     getDataBackend();
-    return NextResponse.json({ ok: true, locale, locales, rows: await readUiTranslations(locale) });
+    return NextResponse.json({ ok: true, locale, locales, rows: await readUiTranslations(locale), catalogRefreshed: isUiCatalogRefreshed(locale) });
   },
 });
 export const POST = protectedRouteOperation({

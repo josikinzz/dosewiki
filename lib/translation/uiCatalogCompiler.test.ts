@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compileUiCatalog, expandUiGlossaryAliases } from "./uiCatalogCompiler";
-import { getApprovedUiTranslationsDigest, getUiCatalogCoverage } from "./uiCatalogPublication";
+import { getApprovedUiTranslationsDigest, getUiCatalogCoverage, nextPendingRefresh, readPendingRefresh, type UiCatalogPublication } from "./uiCatalogPublication";
 import { resolveUiMessage } from "../../src/i18n/uiMessageDefinitions";
 import { translateMessage } from "../../src/i18n/serverMessages";
 import { UI_MESSAGE_INVENTORY, getUiMessageInventoryDefinition } from "./uiWorkbenchDefinitions";
@@ -102,7 +102,7 @@ describe("contextual UI catalog", () => {
     const existing = { [source]: "探索主观体验的复现。" };
     const result = compileUiCatalog({ locale: "zh-Hans", keys: [source], existing, glossary: new Map([["Replication", "体验再现"]]), approvedOverrides: {} });
     expect(result.pending).toContain(source);
-    expect(result.pendingRefresh).toEqual([source]);
+    expect(result.pendingRefresh).toEqual([{ catalogKey: source, term: "Replication", expectedTarget: "体验再现" }]);
     expect(result.catalog[source]).toBe(existing[source]);
     expect(result.glossaryMisses).toEqual([{ catalogKey: source, term: "Replication", expectedTarget: "体验再现", humanApproved: false }]);
   });
@@ -144,5 +144,63 @@ describe("contextual UI catalog", () => {
     expect(validateSegment({ source, target: "探索主观体验的体验再现。", locale, glossary }).defects).not.toContain("GLOSSARY_MISS");
     expect(glossary["appearance.light"]).toBeUndefined();
     expect(glossary.Light).toBe("轻度");
+  });
+});
+
+describe("glossary refresh of longer UI strings", () => {
+  const glossary = new Map([["Replication", "体验再现"]]);
+  const back = "Back to replications";
+  const tutorials = "Tutorials and resources for replicating specific subjective effects, preserved from the Effect Index archive.";
+
+  it("queues an existing label that renders an approved term the old way, naming the term", () => {
+    const result = compileUiCatalog({ locale: "zh-Hans", keys: [back], existing: { [back]: "返回复现" }, glossary, approvedOverrides: {} });
+    expect(result.pendingRefresh).toContainEqual({ catalogKey: back, term: "Replication", expectedTarget: "体验再现" });
+    expect(result.pending).toContain(back);
+    // Until a refresh runs, readers keep the existing wording rather than a blind substitution.
+    expect(result.catalog[back]).toBe("返回复现");
+  });
+
+  it("matches inflected mentions in longer prose", () => {
+    const result = compileUiCatalog({ locale: "zh-Hans", keys: [tutorials], existing: { [tutorials]: "用于复现特定主观效应的教程和资源，保存自 Effect Index 存档。" }, glossary, approvedOverrides: {} });
+    expect(result.pendingRefresh).toEqual([{ catalogKey: tutorials, term: "Replication", expectedTarget: "体验再现" }]);
+  });
+
+  it("never queues a human-approved override that keeps the old rendering on purpose", () => {
+    const result = compileUiCatalog({ locale: "zh-Hans", keys: [back], existing: { [back]: "old" }, glossary, approvedOverrides: { [back]: "返回复现" } });
+    expect(result.catalog[back]).toBe("返回复现");
+    expect(result.pendingRefresh.map((entry) => entry.catalogKey)).not.toContain(back);
+    expect(result.pending).not.toContain(back);
+  });
+
+  const publication = (overrides: Partial<UiCatalogPublication>): UiCatalogPublication => ({
+    compiledAt: "2026-09-21", catalogDigest: "c", approvedUiDigest: null, approvedUiSource: "offline-unverified", sourceInventoryDigest: "s", exactLabels: {}, ...overrides,
+  });
+
+  it("reads the checked-in shape, taking each term from the QA misses", () => {
+    const record = publication({
+      pendingRefresh: [back, "Unexplained key"],
+      qaGlossaryMisses: [{ catalogKey: back, term: "Replications", expectedTarget: "体验再现", humanApproved: false }],
+    });
+    const pending = readPendingRefresh(record);
+    expect(pending.refreshed).toBe(false);
+    expect(pending.entries.get(back)).toEqual({ catalogKey: back, term: "Replications", expectedTarget: "体验再现" });
+    expect(pending.entries.get("Unexplained key")).toEqual({ catalogKey: "Unexplained key", term: null, expectedTarget: null });
+    expect(readPendingRefresh(undefined)).toEqual({ refreshed: false, entries: new Map() });
+    expect(readPendingRefresh(publication({ approvedUiSource: "store", approvedUiDigest: "a", pendingRefresh: [] })).refreshed).toBe(true);
+  });
+
+  it("keeps the waiting list through an offline compile and marks it not refreshed", () => {
+    const previous = publication({ approvedUiSource: "store", pendingRefreshStatus: "refreshed", pendingRefresh: [{ catalogKey: back, term: "Replication", expectedTarget: "体验再现" }, { catalogKey: "Gone", term: "Replication", expectedTarget: "体验再现" }] });
+    const catalog = { [back]: "返回复现", [tutorials]: "用于复现特定主观效应的教程和资源，保存自 Effect Index 存档。" };
+    const computed = [{ catalogKey: tutorials, term: "Replications", expectedTarget: "体验再现" }];
+    const offline = nextPendingRefresh({ offline: true, previous, computed, catalog });
+    expect(offline.pendingRefreshStatus).toBe("not-refreshed");
+    expect(offline.pendingRefresh).toEqual([
+      { catalogKey: back, term: "Replication", expectedTarget: "体验再现" },
+      { catalogKey: tutorials, term: "Replications", expectedTarget: "体验再现" },
+    ]);
+    // An offline compile that finds its target already carries the term drops the entry.
+    expect(nextPendingRefresh({ offline: true, previous, computed: [], catalog: { [back]: "返回体验再现" } }).pendingRefresh).toEqual([]);
+    expect(nextPendingRefresh({ offline: false, previous, computed, catalog })).toEqual({ pendingRefresh: [], pendingRefreshStatus: "refreshed" });
   });
 });
