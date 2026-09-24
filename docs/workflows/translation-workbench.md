@@ -90,6 +90,12 @@ their own script with the English name beside it. Model, run, prompt, and
 revision numbers stay out of the Inbox and the article editor; hovering the
 Machine label shows them.
 
+Every field and passage in the language under review carries that language's
+`lang` and `dir="auto"`, so spellcheck, screen reader voice, and right-to-left
+text follow the translation rather than the English interface. A glossary
+definition stays part of its edit button's accessible name. Row results and
+page notices are announced through live regions that stay mounted.
+
 ## Review and history
 
 Glossary terms and interface text keep drafts and approval apart. On a glossary

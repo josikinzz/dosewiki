@@ -114,7 +114,7 @@ function GlossaryProposal({ locale, mentions, initialTerm, disabled, onClose }: 
     {row ? <p className="theme-text-faint text-xs">{row.approved ? `Approved translation: ${row.target}` : `Unreviewed translation: ${row.target}`}</p> : null}
     <div className="space-y-1">
       <label htmlFor={`${id}-target`} className="theme-text-secondary text-xs">Proposed translation</label>
-      <Input id={`${id}-target`} inputSize="sm" lang={locale} value={target} maxLength={400} disabled={disabled || busy} onChange={(event) => setTarget(event.target.value)} />
+      <Input id={`${id}-target`} inputSize="sm" lang={locale} dir="auto" value={target} maxLength={400} disabled={disabled || busy} onChange={(event) => setTarget(event.target.value)} />
     </div>
     <div className="flex flex-wrap gap-2">
       <Button type="button" size="sm" disabled={disabled || busy || !row || !target.trim()} onClick={() => void save()}>Save glossary draft</Button>

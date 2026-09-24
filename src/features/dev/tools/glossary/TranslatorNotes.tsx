@@ -109,7 +109,7 @@ function NoteEditor({ state, row, onClose }: { state: TranslatorNotesState; row:
   const approvable = Boolean(row.draft) && body === row.draft && reason.trim().length > 0;
   return (
     <div className="space-y-3">
-      <label htmlFor={`${formId}-body`} className="block">Translator&apos;s note<Textarea id={`${formId}-body`} ref={bodyRef} lang={locale} value={body} onChange={(e) => setBody(e.target.value)} disabled={busy} maxLength={TRANSLATOR_NOTE_MAX_LENGTH} /></label>
+      <label htmlFor={`${formId}-body`} className="block">Translator&apos;s note<Textarea id={`${formId}-body`} ref={bodyRef} lang={locale} dir="auto" value={body} onChange={(e) => setBody(e.target.value)} disabled={busy} maxLength={TRANSLATOR_NOTE_MAX_LENGTH} /></label>
       <p className="theme-text-faint text-xs">Write in {locale} only. Readers see it in a labelled box stating it is not in the English original. Notes never reach the translation prompt or another language.</p>
       <label htmlFor={`${formId}-reason`} className="block">Reason<Input id={`${formId}-reason`} value={reason} onChange={(e) => setReason(e.target.value)} disabled={busy} maxLength={1000} /></label>
       {error ? <p role="alert" className="text-sm text-[color:var(--theme-danger-text)]">{error}</p> : null}
@@ -143,8 +143,8 @@ function NoteSection({ state, row }: { state: TranslatorNotesState; row: Transla
         <span className="theme-text-faint text-xs">Translator&apos;s note · {row.label}</span>
         {mark ? <Badge variant={mark.variant}>{mark.label}</Badge> : null}
       </div>
-      {row.approved !== null ? <p lang={state.locale} className="theme-text-primary whitespace-pre-wrap">{row.approved}</p> : null}
-      {row.draft !== null ? <p className="theme-text-secondary whitespace-pre-wrap text-sm">Draft: <span lang={state.locale}>{row.draft}</span></p> : null}
+      {row.approved !== null ? <p lang={state.locale} dir="auto" className="theme-text-primary whitespace-pre-wrap">{row.approved}</p> : null}
+      {row.draft !== null ? <p className="theme-text-secondary whitespace-pre-wrap text-sm">Draft: <span lang={state.locale} dir="auto">{row.draft}</span></p> : null}
       {row.status === "orphaned"
         ? <p className="theme-text-secondary text-sm">This section is no longer in the English article, so readers do not see this note.</p>
         : open

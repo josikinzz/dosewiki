@@ -39,8 +39,8 @@ function ExampleView({ example, locale }: { example: NewExample; locale: string 
   return (
     <div className="min-w-0 space-y-1 break-words text-sm">
       {example.source ? <p lang="en" className="theme-text-secondary">English: {example.source}</p> : null}
-      <p className="theme-text-secondary">Before: <span lang={locale}>{example.before}</span></p>
-      <p className="theme-text-primary">After: <span lang={locale}>{example.after}</span></p>
+      <p className="theme-text-secondary">Before: <span lang={locale} dir="auto">{example.before}</span></p>
+      <p className="theme-text-primary">After: <span lang={locale} dir="auto">{example.after}</span></p>
       <p className="theme-text-secondary">Why: {example.why}</p>
       {example.origin ? <p className="theme-text-faint text-xs">Promoted from {example.origin.slug}, correction revision {example.origin.revision}</p> : null}
     </div>
@@ -113,7 +113,7 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
 
       <Surface variant="subtle" padding="sm" radius="lg" className="min-w-0 space-y-3">
         <label htmlFor={`${formId}-rules`} className="block">Rules, one per line
-          <Textarea id={`${formId}-rules`} lang={locale} value={value.rulesText} disabled={busy} rows={5}
+          <Textarea id={`${formId}-rules`} lang={locale} dir="auto" value={value.rulesText} disabled={busy} rows={5}
             onChange={(e) => setValue((current) => ({ ...current, rulesText: e.target.value }))} />
         </label>
         <p className="theme-text-faint text-xs">At most {STYLE_GUIDE_LIMITS.rules} rules of {STYLE_GUIDE_LIMITS.ruleChars} characters each.</p>
@@ -133,8 +133,8 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
         <fieldset className="space-y-2" disabled={busy}>
           <legend className="theme-text-primary font-medium">Add an example</legend>
           <label htmlFor={`${formId}-source`} className="block">English (optional)<Input id={`${formId}-source`} lang="en" value={adding.source ?? ""} onChange={(e) => setAdding({ ...adding, source: e.target.value })} /></label>
-          <label htmlFor={`${formId}-before`} className="block">Before<Input id={`${formId}-before`} lang={locale} value={adding.before} onChange={(e) => setAdding({ ...adding, before: e.target.value })} /></label>
-          <label htmlFor={`${formId}-after`} className="block">After<Input id={`${formId}-after`} lang={locale} value={adding.after} onChange={(e) => setAdding({ ...adding, after: e.target.value })} /></label>
+          <label htmlFor={`${formId}-before`} className="block">Before<Input id={`${formId}-before`} lang={locale} dir="auto" value={adding.before} onChange={(e) => setAdding({ ...adding, before: e.target.value })} /></label>
+          <label htmlFor={`${formId}-after`} className="block">After<Input id={`${formId}-after`} lang={locale} dir="auto" value={adding.after} onChange={(e) => setAdding({ ...adding, after: e.target.value })} /></label>
           <label htmlFor={`${formId}-why`} className="block">Why<Input id={`${formId}-why`} value={adding.why} maxLength={STYLE_GUIDE_LIMITS.whyChars} onChange={(e) => setAdding({ ...adding, why: e.target.value })} /></label>
           <Button size="sm" variant="outline" disabled={!canAdd} onClick={() => {
             const next: NewExample = { before: adding.before.trim(), after: adding.after.trim(), why: adding.why.trim() };

@@ -118,7 +118,7 @@ function ArticlePicker({ locale, disabled, onChoose }: {
             <li key={m.slug} id={`${id}-option-${index}`} role="option" aria-selected={index === active} className={`cursor-pointer rounded-md px-2 py-1.5 hover:bg-[var(--theme-frosted-control-hover-bg)] ${index === active ? "bg-[var(--theme-frosted-control-bg)]" : ""}`}
       onMouseDown={e => e.preventDefault()} onClick={() => pick(m)}>
      <span className="theme-text-primary">{m.english}</span>
-     {m.localized && m.localized !== m.english ? <span lang={locale} className="theme-text-secondary"> · {m.localized}</span> : null}
+     {m.localized && m.localized !== m.english ? <span lang={locale} dir="auto" className="theme-text-secondary"> · {m.localized}</span> : null}
      <span className="theme-text-faint text-xs"> · {m.slug}</span>
     </li>)}
    </ul> : null}
@@ -243,7 +243,7 @@ export function NarrativeReview({ locale, canAdmin = false }: {
    <p className="theme-text-secondary text-sm">Approved translation: {row.approved?.target ?? "Not reviewed"}</p>
    <p className="theme-text-secondary text-sm">{row.usages ? `The same English appears in ${count(row.usages.total, "place")}; showing ${row.usages.pages.length}.` : "Other places with the same English were not checked."} This correction changes only {packet?.slug}, {row.field}.</p>
    <ul className="theme-text-secondary text-sm">{row.usages?.pages.map(p => <li key={`${p.kind}:${p.slug}`}><SmartLink className="underline" href={p.href}>{p.kind}: {p.label}</SmartLink></li>)}</ul>
-   <label htmlFor={`${formId}-correction`} className="block">Correction<Textarea id={`${formId}-correction`} ref={correctionRef} lang={locale} value={target} onChange={e => setTarget(e.target.value)} disabled={busy} maxLength={30000}/></label>
+   <label htmlFor={`${formId}-correction`} className="block">Correction<Textarea id={`${formId}-correction`} ref={correctionRef} lang={locale} dir="auto" value={target} onChange={e => setTarget(e.target.value)} disabled={busy} maxLength={30000}/></label>
    <CorrectionReasonFields value={reason} onChange={setReason} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy}/>
    <div className="flex flex-wrap gap-2"><Button disabled={busy || !target.trim() || !reason.kind || openConflicts(row.source, target, row.glossary, exceptionsFor(reason, row.id)).length > 0} onClick={() => void mutate("save")}>Save draft</Button><Button variant="outline" disabled={busy || !row.draft || row.status === "stale" || row.draft.context !== row.context || target !== row.draft.target || !reason.kind} onClick={() => void mutate("approve")}>Approve saved draft</Button><Button variant="ghost" disabled={busy} onClick={closeEditor}>Close editor</Button></div>
    <ExpandButton variant="inline" className="-ml-1 text-current" isExpanded={historyOpen} ariaLabel={`History for ${row.field}`} onToggle={() => setHistoryOpen(!historyOpen)}>History</ExpandButton>
@@ -282,7 +282,7 @@ export function NarrativeReview({ locale, canAdmin = false }: {
        <button type="button" aria-label={`Review ${labels[index]}`} aria-describedby={textId} aria-expanded={active} disabled={busy}
         className={`theme-focus-ring block w-full min-w-0 rounded-md px-2 py-1 text-left hover:bg-[var(--theme-frosted-control-hover-bg)] ${active ? "bg-[var(--theme-frosted-control-bg)]" : ""}`}
         onClick={() => void load(item.id)}>
-        <span id={textId} lang={locale} className="theme-text-primary whitespace-pre-wrap break-words">{liveText(item)}</span>
+        <span id={textId} lang={locale} dir="auto" className="theme-text-primary whitespace-pre-wrap break-words">{liveText(item)}</span>
        </button>
       </div>
      </div>

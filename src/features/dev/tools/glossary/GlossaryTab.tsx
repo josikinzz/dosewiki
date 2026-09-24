@@ -553,8 +553,11 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           </Button>
         }
       >
-        {notice ? <EditorNotice notice={notice} /> : null}
-        {rowNotice && !rows.some((row) => row.term === rowNotice.term) ? <EditorNotice notice={{ tone: rowNotice.tone, message: rowNotice.message }} /> : null}
+        {/* A lasting live region: notices mounted into it are announced, not just shown. */}
+        <div aria-live="polite" className="empty:hidden">
+          {notice ? <EditorNotice notice={notice} /> : null}
+          {rowNotice && !rows.some((row) => row.term === rowNotice.term) ? <EditorNotice notice={{ tone: rowNotice.tone, message: rowNotice.message }} /> : null}
+        </div>
 
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load(locale)} />

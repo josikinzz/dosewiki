@@ -14,6 +14,15 @@ import { PendingRefreshList } from "./PendingRefreshList";
 import { CorrectionReasonFields, correctionReason, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
 import type { CorrectionReasonKind } from "@lib/translation/reviewReason";
 
+/** What each label state is called on its pill; the same words the summary line uses. */
+const UI_STATUS_LABEL: Record<UiTranslationRow["status"], string> = {
+  stale: "Source changed",
+  draft: "Unreviewed",
+  approved: "Approved",
+  unreviewed: "No human review",
+  missing: "Not in site build",
+};
+
 /** Unsaved work per label, kept across search and pagination: wording, note, reason kind, and "Fine here" choices. */
 export type UiEditDrafts = Map<string, { target: string; reason: string; kind?: CorrectionReasonKind | null; exceptions?: string[] }>;
 
@@ -107,17 +116,16 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
     } finally { inFlight.current = false; setBusy(false); }
   };
   return <Surface variant="subtle" padding="sm" radius="lg" className="space-y-3" aria-label={`${row.source}: ${row.context}`}>
-    <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="theme-text-primary whitespace-pre-wrap break-words font-medium">{row.source}</h3><p className="theme-text-secondary text-sm">{row.context}</p></div><EditorStatusPill tone={row.status === "approved" ? "success" : "warning"}>{row.status === "stale" ? "Source changed" : row.status === "unreviewed" ? "No human review" : row.status}</EditorStatusPill></div>
+    <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="theme-text-primary whitespace-pre-wrap break-words font-medium">{row.source}</h3><p className="theme-text-secondary text-sm">{row.context}</p></div><EditorStatusPill tone={row.status === "approved" ? "success" : "warning"}>{UI_STATUS_LABEL[row.status] ?? row.status}</EditorStatusPill></div>
     <p className="theme-text-faint break-words text-xs">Used in: {row.locations.join(" · ")}</p>
     {row.glossaryTerms.length ? <p className="theme-text-faint text-xs">Glossary terms: {row.glossaryTerms.join(", ")}</p> : null}
-    {row.compiledTarget ? <p className="theme-text-secondary text-sm">Compiled wording: <span className="theme-text-primary">{row.compiledTarget}</span></p> : null}
-    {row.approved ? <p className="theme-text-secondary text-sm">Approved wording: <span className="theme-text-primary">{row.approved.target}</span></p> : <p className="theme-text-faint text-xs">No human-approved wording is recorded for this context.</p>}
-    <div className="space-y-1"><label htmlFor={inputId} className="theme-text-secondary text-xs">Translation</label>{row.source.length > 100 || row.source.includes("\n") || target.length > 100 || target.includes("\n") ? <Textarea id={inputId} textareaSize="sm" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} /> : <Input id={inputId} inputSize="sm" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} />}</div>
+    {row.compiledTarget ? <p className="theme-text-secondary text-sm">Compiled wording: <span lang={locale} dir="auto" className="theme-text-primary">{row.compiledTarget}</span></p> : null}
+    {row.approved ? <p className="theme-text-secondary text-sm">Approved wording: <span lang={locale} dir="auto" className="theme-text-primary">{row.approved.target}</span></p> : <p className="theme-text-faint text-xs">No human-approved wording is recorded for this context.</p>}
+    <div className="space-y-1"><label htmlFor={inputId} className="theme-text-secondary text-xs">Translation</label>{row.source.length > 100 || row.source.includes("\n") || target.length > 100 || target.includes("\n") ? <Textarea id={inputId} textareaSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} /> : <Input id={inputId} inputSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} />}</div>
     <CorrectionReasonFields value={correction} onChange={editCorrection} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy} noteLabel="Review note (optional)" noteAriaLabel={`Review note for ${row.id}`} />
     <div className="flex flex-wrap items-center gap-2">
       <Button type="button" variant="outline" size="sm" disabled={busy || !target.trim() || !correction.kind || conflicts.length > 0 || (!dirty && row.status !== "stale" && row.status !== "unreviewed")} onClick={() => void write("save").catch(() => {})}>Save draft</Button>
       <Button type="button" variant="accent" size="sm" disabled={busy || dirty || !row.draft || row.draft.source !== row.source || row.draft.context !== row.context} onClick={() => void write("approve").catch(() => {})}>Approve saved draft</Button>
-      <span className="theme-text-faint text-xs">Revision {row.revision}</span>
     </div>
     {notice ? <EditorNotice notice={notice} /> : null}
     <TranslationHistory revision={row.revision} name={row.id} disabled={busy || dirty} load={async () => (await translationRequest<UiTranslationHistoryResponse>(`${endpoint}/history?locale=${encodeURIComponent(locale)}&id=${encodeURIComponent(row.id)}`)).history} restore={(revision) => write("restore", revision)} />

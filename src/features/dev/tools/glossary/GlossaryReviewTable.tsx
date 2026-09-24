@@ -254,6 +254,8 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
         <Input
           inputSize="sm"
           aria-label={`Translation for ${row.term}`}
+          lang={row.locale}
+          dir="auto"
           aria-busy={writing || undefined}
           value={draft}
           disabled={disabled}
@@ -273,7 +275,7 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
         />
       </EditorTableCell>
       <EditorTableCell label="Status">
-        {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Readers see: {row.approved_target}</p> : null}
+        {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Readers see: <span lang={row.locale} dir="auto">{row.approved_target}</span></p> : null}
         <EditorStatusPill tone={row.status === "approved" && !unchecked ? "success" : "warning"}>{unchecked ? "Live, never checked" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
         {unchecked ? <p className="theme-text-faint mt-1 text-xs">Readers already see this wording. Confirm it as it stands, or edit it and save a draft.</p> : null}
       </EditorTableCell>
@@ -311,7 +313,8 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
             </Button>
           ) : null}
         </div>
-        <p role="status" className={`mt-1 text-xs empty:hidden ${notice?.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "text-[color:var(--theme-success-text)]"}`}>
+        {/* Always mounted, so screen readers announce the result when it arrives. */}
+        <p role="status" className={notice ? `mt-1 text-xs ${notice.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "text-[color:var(--theme-success-text)]"}` : "sr-only"}>
           {notice?.message ?? ""}
         </p>
       </EditorTableCell>
@@ -369,12 +372,14 @@ function GlossaryDefinition({ term, gloss, held, onSave }: GlossaryDefinitionPro
       type="button"
       variant="quiet"
       size="auto"
-      className={`block whitespace-normal text-left text-xs font-normal ${gloss ? "theme-text-secondary" : ""}`}
-      aria-label={`Edit definition for ${term}`}
+      className={`group inline-flex items-start gap-1.5 whitespace-normal text-left text-xs font-normal ${gloss ? "theme-text-secondary" : ""}`}
       disabled={held}
       onClick={() => setDraft(gloss ?? "")}
     >
-      {gloss ?? "No definition yet"}
+      {/* The visible definition stays in the button's name; the hidden suffix says what pressing it does. */}
+      <span>{gloss ?? "No definition yet"}</span>
+      <span className="sr-only">{" "}(edit definition for {term})</span>
+      <Icon icon="lucide:pencil" size={12} className="mt-0.5 shrink-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" />
     </Button>
   );
 }

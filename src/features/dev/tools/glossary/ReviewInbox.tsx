@@ -223,14 +223,14 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
                     <dt className="theme-text-faint">English</dt>
                     <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.english}</dd>
                     <dt className="theme-text-faint">Readers see</dt>
-                    <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.live ?? <span className="theme-text-faint">English (not translated yet)</span>}</dd>
+                    <dd lang={item.live ? locale : undefined} dir="auto" className="theme-text-primary whitespace-pre-wrap break-words">{item.live ?? <span lang="en" className="theme-text-faint">English (not translated yet)</span>}</dd>
                     {item.previous ? <>
                       <dt className="theme-text-faint">Approved for</dt>
                       <dd className="theme-text-secondary whitespace-pre-wrap break-words">{item.previous.english} → {item.previous.target}</dd>
                     </> : null}
                     {item.suggestion ? <>
                       <dt className="theme-text-faint">Suggestion</dt>
-                      <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.suggestion}</dd>
+                      <dd lang={locale} dir="auto" className="theme-text-primary whitespace-pre-wrap break-words">{item.suggestion}</dd>
                     </> : null}
                     {item.origin ? <>
                       <dt className="theme-text-faint">Written by</dt>

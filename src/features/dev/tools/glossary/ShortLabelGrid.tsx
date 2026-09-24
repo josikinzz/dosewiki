@@ -106,8 +106,8 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
       <legend className="theme-text-faint break-all font-mono text-xs">{location}</legend>
       {group.map((row) => <div key={row.id} className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 py-0.5">
         <input type="checkbox" className="accent-dose-accent-strong" aria-label={`Select ${row.id}`} checked={selected.has(row.id)} disabled={busy} onChange={() => toggle(row.id)} />
-        <div className="min-w-0"><p className="theme-text-primary truncate text-sm" title={row.source}>{row.source}</p><p className="theme-text-faint truncate text-xs" title={row.context}>{row.context}</p></div>
-        <Input inputSize="sm" aria-label={`Translation for ${row.id}`} value={targetFor(row)} disabled={busy} onChange={(event) => editTarget(row, event.target.value)} />
+        <div className="min-w-0"><p className="theme-text-primary break-words text-sm">{row.source}</p><p className="theme-text-faint line-clamp-2 break-words text-xs" title={row.context}>{row.context}</p></div>
+        <Input inputSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={targetFor(row)} disabled={busy} onChange={(event) => editTarget(row, event.target.value)} />
         <EditorStatusPill tone="warning">{statusLabel(row)}</EditorStatusPill>
       </div>)}
     </fieldset>)}

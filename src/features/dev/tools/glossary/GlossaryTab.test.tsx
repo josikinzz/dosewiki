@@ -183,6 +183,14 @@ describe("GlossaryTab", () => {
     expect(rowFor("euphoria").getByText("Unreviewed")).toBeTruthy();
   });
 
+  it("tags each translation field with its language so spellcheck, voice, and direction follow it", async () => {
+    stubGlossaryApi([row("anxiety", "draft")]);
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
+    expect(input).toHaveAttribute("lang", LOCALE);
+    expect(input).toHaveAttribute("dir", "auto");
+  });
+
   it("does not implicitly approve an unchanged rendering on Enter", async () => {
     const api = stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
@@ -403,7 +411,7 @@ describe("GlossaryTab", () => {
 
     const fetchMock = vi.mocked(fetch);
     const listCalls = fetchMock.mock.calls.length;
-    await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     const input = screen.getByRole("textbox", { name: "Definition for anxiety" });
     expect(input).toHaveFocus();
     expect(input).toHaveValue("");
@@ -413,8 +421,10 @@ describe("GlossaryTab", () => {
     expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/gloss", body: { term: "anxiety", gloss: "Unease without a cause" } }]);
     expect(fetchMock.mock.calls).toHaveLength(listCalls + 1);
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Edit definition for anxiety" })).toHaveTextContent("Unease without a cause");
-    expect(screen.getByRole("button", { name: "Edit definition for euphoria" })).toHaveTextContent("Intense well-being");
+    expect(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toHaveTextContent("Unease without a cause");
+    expect(screen.getByRole("button", { name: /\(edit definition for euphoria\)$/ })).toHaveTextContent("Intense well-being");
+    // The definition itself is part of the button's accessible name, not replaced by it.
+    expect(screen.getByRole("button", { name: /^Unease without a cause\s*\(edit definition for anxiety\)$/ })).toBeInTheDocument();
     // The rendering review is untouched by a definition save.
     expect(rowFor("anxiety").getByText("Unreviewed")).toBeTruthy();
   });
@@ -426,14 +436,14 @@ describe("GlossaryTab", () => {
     await screen.findByText("anxiety");
 
     api.holdNextWrite();
-    await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), "Unease without a cause{Enter}");
 
     await screen.findByText("Saving definition");
     expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toBeDisabled();
-    expect(rowFor("anxiety").getByRole("button", { name: "Edit definition for anxiety" })).toBeDisabled();
+    expect(rowFor("anxiety").getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toBeDisabled();
     expect(rowFor("euphoria").getByRole("button", { name: "Approve" })).toBeEnabled();
-    expect(rowFor("euphoria").getByRole("button", { name: "Edit definition for euphoria" })).toBeEnabled();
+    expect(rowFor("euphoria").getByRole("button", { name: /\(edit definition for euphoria\)$/ })).toBeEnabled();
 
     api.release();
     await screen.findByText('Saved the definition of "anxiety".');
@@ -447,17 +457,17 @@ describe("GlossaryTab", () => {
     render(<GlossaryTab viewerRole="admin" />);
     await screen.findByText("anxiety");
 
-    await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), " changed{Escape}");
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Edit definition for anxiety" })).toHaveTextContent("Unease without a cause");
+    expect(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toHaveTextContent("Unease without a cause");
 
-    await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), " changed");
     await user.click(screen.getByRole("textbox", { name: "Translation for anxiety" }));
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     await user.keyboard("{Enter}");
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
     expect(api.calls).toEqual([]);
@@ -469,11 +479,11 @@ describe("GlossaryTab", () => {
     render(<GlossaryTab viewerRole="editor" />);
     await screen.findByText("anxiety");
 
-    await user.click(screen.getByRole("button", { name: "Edit definition for anxiety" }));
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), " and a great deal more than one line allows{Enter}");
 
     await screen.findByText("A definition is one line of at most 240 characters.");
-    expect(screen.getByRole("button", { name: "Edit definition for anxiety" })).toHaveTextContent("Unease without a cause");
+    expect(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toHaveTextContent("Unease without a cause");
   });
 
   it("shows a translator the definitions as plain text with no edit control and nothing where none exists", async () => {
@@ -482,14 +492,14 @@ describe("GlossaryTab", () => {
     await screen.findByText("anxiety");
 
     expect(rowFor("euphoria").getByText("Intense well-being")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Edit definition/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /edit definition for/ })).toBeNull();
     expect(screen.queryByText("No definition yet")).toBeNull();
     expect(screen.queryByText(/Click a definition/)).toBeNull();
 
     // An editor sees the placeholder where a definition is missing.
     render(<GlossaryTab viewerRole="editor" />);
-    await screen.findByRole("button", { name: "Edit definition for anxiety" });
-    expect(screen.getByRole("button", { name: "Edit definition for anxiety" })).toHaveTextContent("No definition yet");
+    await screen.findByRole("button", { name: /\(edit definition for anxiety\)$/ });
+    expect(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toHaveTextContent("No definition yet");
   });
 
   it("saving a changed rendering leaves it unreviewed and approval uses the saved revision", async () => {
