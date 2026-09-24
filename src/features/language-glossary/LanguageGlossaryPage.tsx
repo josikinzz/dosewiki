@@ -9,6 +9,8 @@ import { PublicPill } from "@/components/common/PublicTokens";
 import { SmartLink } from "@/components/common/SmartLink";
 import { GlossaryUsageDisclosure } from "@/components/glossary/GlossaryUsageDisclosure";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TranslationCredits } from "./TranslationCredits";
+import type { PublicTranslationCredit } from "@/data/content/translationCredits";
 import {
   PublicContentShell,
   PublicSectionHeading,
@@ -48,11 +50,14 @@ export function LanguageGlossaryPage({
   entries,
   usages,
   readiness,
+  credits = [],
 }: {
   language: (typeof glossaryLanguages)[number];
   entries: PublicGlossaryEntry[];
   usages: GlossaryUsageMap;
   readiness: { state: string; href: string; glossaryHref: string };
+  /** The people credited for this language; the block is omitted when empty. */
+  credits?: readonly PublicTranslationCredit[];
 }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
@@ -95,6 +100,7 @@ export function LanguageGlossaryPage({
           All glossaries
         </SmartLink>
       </p>
+      <TranslationCredits className="mb-8" title={t("translationCredits.title")} credits={credits} />
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <div>
           <Label htmlFor="glossary-search">

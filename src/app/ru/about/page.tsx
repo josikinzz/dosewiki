@@ -12,6 +12,7 @@ import {
   getPublicAboutPreviewSubstances,
   getPublicAboutData,
   getPublicDataOverview,
+  getPublicTranslationCredits,
 } from "@server/data/publicData";
 import { getMoleculePackDownloadStats } from "@server/open-data/downloadStats";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
@@ -30,6 +31,7 @@ import { setRequestLocale, t } from "@/i18n/server";
 import { UiLocaleProvider } from "@/i18n/client"
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
+import { TranslationCredits } from "@/features/language-glossary/TranslationCredits";
 
 export const revalidate = 3600;
 
@@ -66,6 +68,7 @@ export default async function LocalizedAboutPage() {
     substances,
     chemicalLayout,
     mechanismLayout,
+    translationCredits,
   ] = await Promise.all([
     getCopyByKeys(ABOUT_COPY_KEYS),
     getPublicAboutData(),
@@ -73,6 +76,7 @@ export default async function LocalizedAboutPage() {
     getPublicAboutPreviewSubstances(),
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
+    getPublicTranslationCredits(LOCALE.code),
   ]);
 
   const previewSnapshots = buildAboutPreviewSnapshots(
@@ -116,6 +120,9 @@ export default async function LocalizedAboutPage() {
           founderProfiles={contributors.founderProfiles}
           contributorRoster={contributors.roster}
           contributorsSectionTitle={contributors.sectionTitle}
+          translationCreditsContent={
+            <TranslationCredits title={t("translationCredits.title")} credits={translationCredits} />
+          }
           previewSnapshots={previewSnapshots}
           reuseContent={
             <PublicMarkdownBody content={localizedBody(copy.text(flavoredCopyKey("about-reuse-notice")))} />

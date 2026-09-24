@@ -96,7 +96,7 @@ export {
   getReportsByContributor,
 } from "./publicData.reports";
 
-export { getPublicAboutData } from "./publicData.about";
+export { getPublicAboutData, getPublicTranslationCredits } from "./publicData.about";
 
 export {
   getPublicContributorIdentity,

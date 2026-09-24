@@ -18,6 +18,7 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "languageGlossary.status.legacy_unverified": "已上线，尚未审校",
     "languageGlossary.status.missing": "尚未翻译",
     "languageGlossary.example.source": "在网站上查看此句",
+    "translationCredits.title": "翻译贡献者",
   },
   ru: {
     "article.machineTranslationNotice": "Эта страница переведена автоматически, приоритет имеет [английский оригинал]({{englishUrl}}). Ещё не переведённые абзацы остаются на английском.",
@@ -32,5 +33,6 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "languageGlossary.status.legacy_unverified": "Опубликовано, ещё не проверено",
     "languageGlossary.status.missing": "Ещё не переведено",
     "languageGlossary.example.source": "Открыть это предложение на сайте",
+    "translationCredits.title": "Участники перевода",
   },
 };

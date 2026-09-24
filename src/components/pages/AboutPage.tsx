@@ -155,6 +155,8 @@ interface AboutPageProps {
   missionContent?: ReactNode;
   sourcesContent?: ReactNode;
   historyContent?: ReactNode;
+  /** A language mirror's translation credits, shown after the founder cards. Absent on the English page. */
+  translationCreditsContent?: ReactNode;
   reuseContent?: ReactNode;
   /** Intro sentence above the Partners & Community roster. dose.wiki only; a Copy Studio slot. */
   communityIntro?: ReactNode;
@@ -174,6 +176,7 @@ export const AboutPage = memo(function AboutPage({
   missionContent,
   sourcesContent,
   historyContent,
+  translationCreditsContent,
   reuseContent,
   communityIntro,
   docBlurbs,
@@ -224,6 +227,8 @@ export const AboutPage = memo(function AboutPage({
           </p>
         </div>
       )}
+
+      {translationCreditsContent}
 
       {/* Infrastructure credit. For now this is the only surface that renders it;
           it renders nothing on a flavor that declares no supporter. */}

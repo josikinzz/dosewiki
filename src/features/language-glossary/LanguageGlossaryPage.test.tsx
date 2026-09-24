@@ -227,3 +227,27 @@ it("restores the stored reaction in a new session and offers removal", async () 
     screen.getByRole("button", { name: "Needs improvement" }),
   ).toHaveAttribute("aria-pressed", "true");
 });
+it("credits the language's translation contributors near the header, and omits the block when no one is credited", () => {
+  const { unmount } = render(
+    <LanguageGlossaryPage
+      language={glossaryLanguage("zh-Hans")!}
+      entries={entries}
+      usages={{}}
+      readiness={{ state: "Glossary in review", href: "/glossary/zh-Hans", glossaryHref: "/glossary/zh-Hans" }}
+      credits={[{
+        key: "VACUE",
+        displayName: "Vacue",
+        avatarUrl: null,
+        href: "https://x.com/Vacue138950",
+        contribution: "Chinese localization, terminology review, and localization workflow feedback",
+      }]}
+    />,
+  );
+  const credits = within(screen.getByRole("region", { name: "Translation contributors" }));
+  expect(credits.getByRole("link", { name: "Vacue" })).toHaveAttribute("href", "https://x.com/Vacue138950");
+  expect(credits.getByText("Chinese localization, terminology review, and localization workflow feedback")).toBeVisible();
+  unmount();
+
+  page();
+  expect(screen.queryByRole("region", { name: "Translation contributors" })).toBeNull();
+});

@@ -74,6 +74,7 @@ export type AboutConfigRecord = {
   aboutMarkdown?: string;
   aboutSubtitle?: string;
   founderProfileKeys?: string[];
+  translationCredits?: unknown;
   updatedAt: string;
 };
 

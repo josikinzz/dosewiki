@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { GlossaryUsageDisclosure } from "@/components/glossary/GlossaryUsageDisclosure";
 import { DefinitionList, DefinitionRow } from "@/components/common/DefinitionList";
 import { PublicPill } from "@/components/common/PublicTokens";
@@ -75,6 +76,8 @@ interface GlossaryPageProps {
   usages: GlossaryUsageMap;
   /** The mirror's `lang` for its renderings; null on the English page. */
   renderingLang: string | null;
+  /** A mirror's translation credits, shown under the header. Absent on the English page. */
+  credits?: ReactNode;
 }
 
 /**
@@ -82,10 +85,11 @@ interface GlossaryPageProps {
  * where it comes from on the site, with its one-line English definition and,
  * on a locale mirror, the rendering the mirror uses for it.
  */
-export function GlossaryPage({ groups, usages, renderingLang }: GlossaryPageProps) {
+export function GlossaryPage({ groups, usages, renderingLang, credits }: GlossaryPageProps) {
   return (
     <PublicContentShell focusTarget width="standard">
       <PageHeader icon="lucide:book-open-text" title={t(msg("Glossary"))} description={t(GLOSSARY_INTRO)} />
+      {credits}
       {groups.length === 0 ? (
         <StateCard
           icon="lucide:book-open-text"

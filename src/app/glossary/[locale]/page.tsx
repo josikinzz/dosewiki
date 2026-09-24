@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { readPublicLanguageGlossary } from "@server/translation/publicGlossary";
+import { getPublicTranslationCredits } from "@server/data/publicData";
 import { LanguageGlossaryPage } from "@/features/language-glossary/LanguageGlossaryPage";
 
 export const revalidate = 60;
@@ -19,7 +20,11 @@ export default async function Page({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const page = await readPublicLanguageGlossary((await params).locale);
+  const { locale } = await params;
+  const [page, credits] = await Promise.all([
+    readPublicLanguageGlossary(locale),
+    getPublicTranslationCredits(locale),
+  ]);
   if (!page) notFound();
-  return <LanguageGlossaryPage {...page} />;
+  return <LanguageGlossaryPage {...page} credits={credits} />;
 }

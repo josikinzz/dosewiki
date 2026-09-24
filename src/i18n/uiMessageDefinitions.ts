@@ -103,6 +103,19 @@ export const UI_MESSAGE_DEFINITIONS = {
     locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
     glossaryTerms: [],
   },
+  "translationCredits.title": {
+    source: "Translation contributors",
+    context: "Heading above the people credited for translating and reviewing this language edition of the site. Each entry below is a person's name and one line on what they contributed.",
+    locations: [
+      "src/features/language-glossary/TranslationCredits.tsx",
+      "src/features/language-glossary/LanguageGlossaryPage.tsx",
+      "src/app/zh/about/page.tsx",
+      "src/app/ru/about/page.tsx",
+      "src/app/zh/glossary/page.tsx",
+      "src/app/ru/glossary/page.tsx",
+    ],
+    glossaryTerms: [],
+  },
 } as const satisfies Record<string, UiMessageDefinition>;
 
 export type UiMessageId = keyof typeof UI_MESSAGE_DEFINITIONS;

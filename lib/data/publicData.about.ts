@@ -7,6 +7,11 @@ import { PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, PUBLIC_DATA_CACHE_TAGS } from "./
 import { getPublicContributorByKey, getPublicContributorIdentities } from "./publicData.contributors";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { PublicAboutData } from "./publicData.shared";
+import {
+  projectTranslationCredits,
+  translationCreditsFor,
+  type PublicTranslationCredit,
+} from "../../src/data/content/translationCredits";
 
 /** The About config document, a leaf read persisted at the top level. */
 const getPublicAboutConfig = cache(publicDataCache(async () => {
@@ -36,4 +41,21 @@ export const getPublicAboutData = cache(async (): Promise<PublicAboutData> => {
     founderProfiles,
     updatedAt: about?.updatedAt ?? null,
   };
+});
+
+/**
+ * One translation locale's credits, each resolved through the contributor's
+ * public profile and projected to public fields only (key, display name,
+ * avatar, link, contribution). A credit whose profile is gone is dropped.
+ * Rides the About config read, so an About save refreshes it.
+ */
+export const getPublicTranslationCredits = cache(async (locale: string): Promise<PublicTranslationCredit[]> => {
+  const about = await getPublicAboutConfig();
+  const credits = translationCreditsFor(about?.translationCredits, locale);
+  if (!credits.length) return [];
+  const profiles = await Promise.all(credits.map((credit) => getPublicContributorByKey(credit.profileKey)));
+  const byKey = new Map(
+    profiles.flatMap((profile, index) => (profile ? [[credits[index].profileKey, profile] as const] : [])),
+  );
+  return projectTranslationCredits(credits, (key) => byKey.get(key) ?? null);
 });

@@ -15,6 +15,8 @@ import { UiLocaleProvider } from "@/i18n/client";
 import { msg } from "@/i18n/messages";
 import { setRequestLocale, t } from "@/i18n/server";
 import { getGlossaryUsages } from "@server/translation/glossaryUsage";
+import { getPublicTranslationCredits } from "@server/data/publicData";
+import { TranslationCredits } from "@/features/language-glossary/TranslationCredits";
 
 export const revalidate = 3600;
 
@@ -33,14 +35,23 @@ export async function generateMetadata() {
 export default async function LocalizedGlossaryPage() {
   setRequestLocale(LOCALE.code);
   getDataBackend();
-  const [glosses, renderings] = await Promise.all([readGlosses(), readGlossaryRows(LOCALE.code, { status: "approved" })]);
+  const [glosses, renderings, credits] = await Promise.all([
+    readGlosses(),
+    readGlossaryRows(LOCALE.code, { status: "approved" }),
+    getPublicTranslationCredits(LOCALE.code),
+  ]);
   const groups = buildGlossaryGroups(glosses, renderings);
   const usages = await getGlossaryUsages(groups.flatMap((group) => group.entries.map((entry) => entry.term)));
 
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
-        <GlossaryContentPage groups={groups} usages={usages} renderingLang={LOCALE.htmlLang} />
+        <GlossaryContentPage
+          groups={groups}
+          usages={usages}
+          renderingLang={LOCALE.htmlLang}
+          credits={<TranslationCredits className="mb-8" title={t("translationCredits.title")} credits={credits} />}
+        />
       </div>
     </UiLocaleProvider>
   );

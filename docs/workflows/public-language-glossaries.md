@@ -31,6 +31,20 @@ unreleased language links to its glossary; released websites keep a glossary
 link in the directory. Locale identity comes from the translation locale names,
 not the mirror-host registry, so glossary participation does not launch a mirror.
 
+## Translation credits
+
+Each translation language can credit the people who contributed to it. A credit
+names an existing contributor profile and adds one contribution line; it is
+stored per locale as `translationCredits` on the About `siteConfig` document
+(`{ [locale]: [{ profileKey, contribution }] }`, at most 24 per language, 240
+characters per line). Admins edit it at `/dev/writing/about` (Writing, About), in the
+Translation credits section below the Founders list, and publish it with the
+About save. `/glossary/[locale]` and that locale's mirror of `/about` and
+`/glossary` show a "Translation contributors" block (`translationCredits.title`)
+with each display name linking to the profile's first external link, or to its
+`/contributors/<key>` page, followed by the contribution line. Only public
+profile fields reach the page. With no credits the block is omitted.
+
 ## Feedback boundary
 
 The public `/api/glossary-feedback/identity` GET establishes an HttpOnly, SameSite=Strict

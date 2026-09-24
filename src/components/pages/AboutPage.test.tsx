@@ -212,6 +212,19 @@ describe("AboutPage sections", () => {
       .toHaveTextContent("@alex");
   });
 
+  it("renders a supplied translation credits block inside the contributors section, and none by default", () => {
+    const { unmount } = renderAboutPage({
+      translationCreditsContent: <section aria-label="Translation contributors">Vacue</section>,
+    });
+    expect(
+      within(sectionById("contributors")).getByRole("region", { name: "Translation contributors" }),
+    ).toHaveTextContent("Vacue");
+    unmount();
+
+    renderAboutPage();
+    expect(screen.queryByRole("region", { name: "Translation contributors" })).toBeNull();
+  });
+
   it("shows this flavor's documentation links", () => {
     renderAboutPage();
 
