@@ -31,7 +31,11 @@ const REASON_TONE: Partial<Record<InboxReason, "info" | "warning" | "danger">> =
   "glossary-never-checked": "info",
   "reader-suggestion": "info",
 };
-const acceptLabel = (item: InboxItem) => (item.accept?.kind === "feedback-resolve" ? "Resolve" : "Accept");
+const acceptLabel = (item: InboxItem) => (item.accept?.kind === "feedback-resolve" ? "Resolve" : item.accept?.kind === "suggestion-accept" ? "Accept as draft" : "Accept");
+const acceptedMessage = (item: InboxItem) =>
+  item.accept?.kind === "feedback-resolve" ? `Resolved the suggestion on "${item.english}".`
+    : item.accept?.kind === "suggestion-accept" ? "Saved as a Fluency draft. Review and approve it in Pages; published wording is unchanged."
+      : `Accepted "${item.english}".`;
 
 type ReviewInboxProps = {
   locale: string;
@@ -110,7 +114,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   const accept = (item: InboxItem) => {
     const target = item.accept;
     if (!target) return;
-    void act(item, () => acceptInboxItem(locale, target), target.kind === "feedback-resolve" ? `Resolved the suggestion on "${item.english}".` : `Accepted "${item.english}".`);
+    void act(item, () => acceptInboxItem(locale, target), acceptedMessage(item));
   };
   const fineHere = (item: InboxItem) => {
     const exception = item.exception;
@@ -221,6 +225,10 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
                     {item.suggestion ? <>
                       <dt className="theme-text-faint">Suggestion</dt>
                       <dd className="theme-text-primary whitespace-pre-wrap break-words">{item.suggestion}</dd>
+                    </> : null}
+                    {item.origin ? <>
+                      <dt className="theme-text-faint">Model</dt>
+                      <dd className="theme-text-secondary break-words">{item.origin.model} · run {item.origin.runId.slice(0, 8)} · prompt {item.origin.promptVersion}</dd>
                     </> : null}
                     {item.detail ? <>
                       <dt className="theme-text-faint">Found</dt>

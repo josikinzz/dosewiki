@@ -5,10 +5,11 @@
  */
 /**
  * Where an item lives: a review scope with its own editor, a stored machine
- * translation (`segment`, a QA finding), or a reader suggestion from the public
- * glossary (`feedback`).
+ * translation (`segment`, a QA finding), a reader suggestion from the public
+ * glossary (`feedback`), or a model fluency suggestion for an article sentence
+ * (`model`).
  */
-export type InboxScope = "glossary" | "ui" | "narrative" | "segment" | "feedback" | "note";
+export type InboxScope = "glossary" | "ui" | "narrative" | "segment" | "feedback" | "note" | "model";
 
 /**
  * Why an item is listed. A code union so later slices add their own reasons
@@ -32,7 +33,9 @@ export type InboxReason =
   /** A new suggestion a reader sent from the public glossary. */
   | "reader-suggestion"
   /** A translator's note whose section is gone from the English; hidden from readers. */
-  | "note-orphaned";
+  | "note-orphaned"
+  /** A model fluency suggestion for one article sentence; `origin` names the model and run. */
+  | "model-suggestion";
 
 /** QA findings a reviewer can mark "Fine here". */
 export type QaFindingKind = "glossary-disagreement" | "leftover-latin";
@@ -57,7 +60,12 @@ export type InboxAccept =
   | { kind: "ui-approve"; id: string; expectedRevision: number; target: string }
   | { kind: "narrative-approve"; slug: string; id: string; sourceVersion: string; expectedRevision: number; target: string }
   /** Marks a reader suggestion resolved through the existing feedback status mutation. */
-  | { kind: "feedback-resolve"; id: string };
+  | { kind: "feedback-resolve"; id: string }
+  /** Saves a model suggestion as a narrative draft with reason Fluency; never an approval. */
+  | { kind: "suggestion-accept"; id: string; expectedRevision: number };
+
+/** Which model run produced a model suggestion. */
+export type InboxOrigin = { model: string; runId: string; promptVersion: string };
 
 export type InboxItem = {
   scope: InboxScope;
@@ -68,8 +76,10 @@ export type InboxItem = {
   english: string;
   /** The wording readers see now; null when the locale shows English or nothing. */
   live: string | null;
-  /** A proposed replacement: a reader's alternative wording (model suggestions come later). */
+  /** A proposed replacement: a reader's alternative wording, or a model's suggested sentence. */
   suggestion?: string;
+  /** Present on a model suggestion: the model and run that produced it. */
+  origin?: InboxOrigin;
   /** What the check found, in one line: the defects, the glossary rendering, the English left in, or the reader's comment. */
   detail?: string;
   /** Present when "Fine here" applies: the exception it records. */
@@ -115,6 +125,7 @@ export const INBOX_REASON_LABEL: Record<InboxReason, string> = {
   "leftover-latin": "English left in",
   "reader-suggestion": "Reader suggestion",
   "note-orphaned": "Note's section removed",
+  "model-suggestion": "Model fluency suggestion",
 };
 
 /** What each reason's check covers, named in the empty state. */
@@ -128,6 +139,7 @@ export const INBOX_CHECK_LABEL: Record<InboxReason, string> = {
   "leftover-latin": "stored translations with English left in",
   "reader-suggestion": "new reader suggestions from the public glossary",
   "note-orphaned": "translator's notes whose section left the English article",
+  "model-suggestion": "model fluency suggestions waiting for a person",
 };
 
 export const INBOX_SCOPE_LABEL: Record<InboxScope, string> = {
@@ -137,6 +149,7 @@ export const INBOX_SCOPE_LABEL: Record<InboxScope, string> = {
   segment: "Translation",
   feedback: "Reader",
   note: "Translator's note",
+  model: "Model",
 };
 
 /** Deep links into the existing workbench editors. Views are named, so a later layout can remap them. */

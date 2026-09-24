@@ -17,6 +17,7 @@ import type { readNarrativeReview } from "@lib/translation/narrativeReview";
 import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
 import { CorrectionReasonFields, correctionReason, EMPTY_CORRECTION, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
 import { TranslatorNoteSlot, useTranslatorNotes } from "./TranslatorNotes";
+import { FluencyReviewButton } from "./FluencyReviewButton";
 type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
 type Row = Packet["rows"][number];
 /** One mark per paragraph; the workbench legend owns the wider definitions. */
@@ -120,8 +121,10 @@ function ArticlePicker({ locale, disabled, onChoose }: {
    </ul> : null}
   </div>;
 }
-export function NarrativeReview({ locale }: {
+export function NarrativeReview({ locale, canAdmin = false }: {
     locale: string;
+    /** Shows the admin-only "Review fluency" model pass for the open article. */
+    canAdmin?: boolean;
 }) {
     const formId = useId();
     const kind = "article";
@@ -257,6 +260,7 @@ export function NarrativeReview({ locale }: {
     <h3 className="theme-text-primary font-medium">{packet.slug}</h3>
     {packet.tally ? <p className="theme-text-secondary text-sm">{packet.tally.humanApproved} of {packet.tally.total} paragraphs human approved</p> : null}
    </div>
+   {canAdmin ? <FluencyReviewButton key={packet.slug} locale={locale} slug={packet.slug}/> : null}
    <p className="theme-text-faint text-xs">Stored wording in source order. Click a translated paragraph to correct it. This view does not certify the deployed page or its layout.</p>
    <div aria-hidden="true" className="theme-text-faint hidden text-xs md:grid md:grid-cols-2 md:gap-4"><span>English</span><span>{locale}</span></div>
    <ol className="space-y-4">

@@ -4,8 +4,8 @@ import { readTranslationRecord, segmentsOf, type TranslationRecordKind } from ".
 import { narrativeContext, narrativeIdentity, narrativeOverlayDecision, narrativeSourceVersion } from "./narrativeIdentity";
 import { readTranslationCoverageRows } from "./segmentStore";
 import { getTranslationHashUsages } from "./translationCoverage";
-import { mutateReviewEntry, readReviewEntries, readReviewHistory, TranslationReviewError } from "./reviewStore";
-import type { NarrativeOverlayDecision, NarrativeRowStatus, ReviewAction } from "./reviewTypes";
+import { mutateReviewEntry, readReviewEntries, readReviewHistory, TranslationReviewError, type ReviewMutationOptions } from "./reviewStore";
+import type { NarrativeOverlayDecision, NarrativeRowStatus, ReviewAction, ReviewMutation } from "./reviewTypes";
 import type { ReviewReason } from "./reviewReason";
 import { assertCorrectionKeepsGlossary, glossaryMentionsFor, readGlossaryMentionIndex } from "./glossaryConflictCheck";
 import { resolveLocale } from "../../scripts/translation/locales.mjs";
@@ -56,6 +56,11 @@ export type NarrativeMutation = {
     glossaryExceptions?: string[];
 };
 export async function writeNarrativeReview(reads: PublicDataReadAdapter, input: NarrativeMutation) {
+    const plan = await planNarrativeReview(reads, input);
+    return mutateReviewEntry(plan.mutation, plan.options);
+}
+/** The review mutation and checks of one narrative write, for callers that write it with other entries in one transaction. */
+export async function planNarrativeReview(reads: PublicDataReadAdapter, input: NarrativeMutation): Promise<{ mutation: ReviewMutation; options: ReviewMutationOptions }> {
     const locale = resolveLocale(input.locale);
     const current = await sourceRecord(reads, input.kind, input.slug);
     if (current.sourceVersion !== input.sourceVersion)
@@ -67,7 +72,8 @@ export async function writeNarrativeReview(reads: PublicDataReadAdapter, input: 
     const glossaryExceptions = input.action === "save" && typeof input.target === "string"
         ? await assertCorrectionKeepsGlossary(input.locale, segment.source, input.target, input.glossaryExceptions)
         : [];
-    return mutateReviewEntry({ ...input, glossaryExceptions, scope: "narrative", sourceId: input.id, source: segment.source, context: narrativeContext(input.kind, segment, current.segments) }, {
+    const mutation: ReviewMutation = { ...input, glossaryExceptions, scope: "narrative", sourceId: input.id, source: segment.source, context: narrativeContext(input.kind, segment, current.segments) };
+    return { mutation, options: {
         beforeTransition: async () => {
             if ((await sourceRecord(reads, input.kind, input.slug)).sourceVersion !== input.sourceVersion)
                 throw new TranslationReviewError("Source context changed. Reload before reviewing.", 409);
@@ -77,6 +83,6 @@ export async function writeNarrativeReview(reads: PublicDataReadAdapter, input: 
             if (defects.length)
                 throw new TranslationReviewError(`Translation validation failed: ${defects.join(", ")}.`);
         },
-    });
+    } };
 }
 export async function narrativeHistory(locale: string, id: string) { resolveLocale(locale); return readReviewHistory(locale, "narrative", id); }

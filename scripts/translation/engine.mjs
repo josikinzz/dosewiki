@@ -177,8 +177,10 @@ export function planBatches(units, batchChars = DEFAULT_BATCH_CHARS) {
  * the same request rather than degrading into per-segment retries. A failure
  * that survives those retries, or cannot be retried, throws a
  * `TranslationTransportError`; cancellation throws the signal's reason.
+ * `systemPrompt` and `appTitle` default to translation; the fluency review
+ * (`lib/translation/fluencyReview.ts`) sends its own through the same client.
  */
-export async function sendBatch({ locale, model, apiKey, userMessage, temperature = 0.2, signal }) {
+export async function sendBatch({ locale, model, apiKey, userMessage, temperature = 0.2, signal, systemPrompt = locale.systemPrompt, appTitle = APP_TITLE }) {
   let lastError;
   for (let attempt = 1; attempt <= TRANSPORT_ATTEMPTS; attempt += 1) {
     signal?.throwIfAborted();
@@ -186,9 +188,9 @@ export async function sendBatch({ locale, model, apiKey, userMessage, temperatur
       return await withDeadline(
         (attemptSignal) => callOpenRouterChat({
           apiKey,
-          appTitle: APP_TITLE,
+          appTitle,
           model,
-          systemPrompt: locale.systemPrompt,
+          systemPrompt,
           userMessage,
           temperature,
           maxTokens: 16384,

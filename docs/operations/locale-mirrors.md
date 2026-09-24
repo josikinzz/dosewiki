@@ -156,8 +156,9 @@ holds its own database lease (`glm-5.3-flash:bulk`, `glm-5.3-flash:incremental`)
 so invocations of one lane never overlap and editorial refreshes keep running
 while a bulk campaign holds the bulk lease. The 100-request GLM 5.3 Flash
 ceiling is split by `TRANSLATION_REQUEST_QUOTA` in
-`lib/translation/requestPool.ts`: 90 for bulk and 10 for incremental, including
-retries, so the cap holds across both lanes and processes. Workers from before
+`lib/translation/requestPool.ts`: 90 for bulk, 8 for incremental (the refresh
+cron's own concurrency), and 2 for the admin-started fluency review, including
+retries, so the cap holds across the lanes and processes. Workers from before
 the split used one shared lease key; drain them before rollout so old and new
 leases never run side by side.
 Both workers propagate

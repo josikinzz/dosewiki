@@ -10,6 +10,7 @@ import { readGlossaryReviewRows } from "./glossaryReview";
 import { readTranslationRecord, segmentsOf } from "./liveTranslation";
 import { narrativeIdentity, narrativeOverlayDecision, narrativeSourceVersion } from "./narrativeIdentity";
 import { readReviewEntries } from "./reviewStore";
+import { modelSuggestionItems } from "./fluencyReview";
 import { readTranslationCoverageRows } from "./segmentStore";
 import { readUiTranslations } from "./uiTranslationStore";
 import { presentTranslatorNoteSections, translatorNoteLocation, translatorNoteSectionLabel } from "./translatorNotes";
@@ -35,7 +36,7 @@ import {
 /**
  * Reasons the inbox checks, in list order: English where readers expect their
  * language first, then wording readers see wrong, re-checks, QA findings,
- * unchecked terms, and reader suggestions last.
+ * model fluency suggestions, unchecked terms, and reader suggestions last.
  */
 export const INBOX_CHECKS: readonly InboxReason[] = [
   "segment-rejected",
@@ -45,6 +46,7 @@ export const INBOX_CHECKS: readonly InboxReason[] = [
   "glossary-disagreement",
   "leftover-latin",
   "note-orphaned",
+  "model-suggestion",
   "glossary-never-checked",
   "reader-suggestion",
 ];
@@ -190,7 +192,7 @@ export async function readReviewInbox(
 ): Promise<{ items: InboxItem[]; total: number; checked: InboxReason[]; counts: Partial<Record<InboxReason, number>>; reason: InboxReason | null }> {
   const chinese = resolveLocale(locale).scriptGate === "simplified";
   const suggestions = options.suggestions ?? null;
-  const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale), findingItems(reads, locale), noteItems(reads, locale)]);
+  const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale), findingItems(reads, locale), noteItems(reads, locale), modelSuggestionItems(reads, locale)]);
   const order = (item: InboxItem) => INBOX_CHECKS.indexOf(item.reason);
   const every = [...scopes.flat(), ...(suggestions ? readerSuggestionItems(locale, suggestions) : [])];
   const counts: Partial<Record<InboxReason, number>> = {};

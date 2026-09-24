@@ -1,10 +1,11 @@
 export const MAX_TRANSLATION_REQUEST_CONCURRENCY = 100;
 
 /**
- * Each worker lane's share of the 100-request ceiling. The lanes hold separate
- * leases and can run at once, so their quotas together never exceed it.
+ * Each lane's share of the 100-request ceiling. The lanes hold separate leases
+ * and can run at once, so their quotas together never exceed it. `review` is
+ * the admin-started fluency review (one per article, per process).
  */
-export const TRANSLATION_REQUEST_QUOTA = Object.freeze({ bulk: 90, incremental: 10 } as const);
+export const TRANSLATION_REQUEST_QUOTA = Object.freeze({ bulk: 90, incremental: 8, review: 2 } as const);
 
 export type TranslationRequestPool = {
   readonly limit: number;

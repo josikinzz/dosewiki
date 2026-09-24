@@ -145,6 +145,38 @@ resolved through the existing `/api/glossary-feedback/<id>/status` mutation,
 the same one the Glossary view's reader feedback queue uses. To adopt the
 reader's wording, use Edit to open the term first.
 
+#### Model fluency suggestions
+
+An admin can press **Review fluency** on the article open in Pages
+(`POST /api/dev/translation-fluency { locale, slug }`, admin only, one article
+per request). The model reads the article's English beside the wording readers
+see now, section by section (at most 12 requests of about 8,000 characters),
+and returns local edits: paragraph, current wording, suggested wording, reason.
+Paragraphs whose human approval applies are not sent. Each edit must quote a
+span that occurs once, pass the blocking validator, add no number the current
+wording lacks, and keep every approved glossary rendering its English mentions
+(the correction check in `lib/translation/glossaryConflicts.ts`); anything else
+is dropped and counted in the run summary. A second request for the same
+article while one runs is refused (409). The write freeze fails closed (503)
+before any model request. Requests go through the pipeline's provider client
+and the pool's `review` share.
+
+Suggestions are stored as drafts in `translationReviewEntries` under scope
+`model-suggestion`, each carrying the model, run id, prompt version, and the
+token use of its request; the `run:<slug>` entry's history records every run's
+summary. They are listed as **Model fluency suggestion** after the QA
+findings. A suggestion expires, and leaves the Inbox, when the sentence's
+English or the wording readers see changes. **Accept as draft**
+(`POST /api/dev/translation-inbox/suggestion`, Translator and up) saves the
+suggested sentence as a narrative draft with reason `{ kind: "fluency" }` and
+marks the suggestion resolved in one transaction. It never approves: the draft
+waits in Pages. An open correction draft on that sentence, an expired
+suggestion, or a changed revision is refused (409).
+
+The prompt has a seam for the locale's approved style guide
+(`fluencySystemPrompt(locale, styleGuide)`); the route passes none until the
+style guide ships.
+
 The Changes view reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the
 same transaction as the translation write. Entries include their English source,

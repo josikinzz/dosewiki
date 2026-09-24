@@ -451,7 +451,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} /></div> : null}
             {visitedViews.labels ? <div hidden={view !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} initialSearch={labelSearch} /></div> : null}
             {visitedViews.coverage ? <div hidden={view !== "coverage"}><TranslationCoverage key={data.locale} locale={data.locale} /></div> : null}
-            {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} /></div> : null}
+            {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} canAdmin={canAdmin} /></div> : null}
             {visitedViews.changes ? <div hidden={view !== "changes"}><TranslationChanges key={data.locale} locale={data.locale} /></div> : null}
             <div hidden={view !== "glossary"} className="space-y-4">
             <GlossaryFilterBar

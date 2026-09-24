@@ -34,6 +34,10 @@ export async function acceptInboxItem(locale: string, accept: InboxAccept): Prom
       // The existing feedback status mutation, as the Glossary view's reader feedback queue uses it.
       await translationRequest(`/api/glossary-feedback/${encodeURIComponent(accept.id)}/status`, { status: "resolved", note: "Resolved from the Inbox" });
       return;
+    case "suggestion-accept":
+      // Saves the model's sentence as a Fluency draft; it never approves.
+      await translationRequest("/api/dev/translation-inbox/suggestion", { locale, id: accept.id, expectedRevision: accept.expectedRevision });
+      return;
     case "narrative-approve":
       return saveThenApprove("/api/dev/translation-narrative", { locale, kind: "article", slug: accept.slug, id: accept.id, sourceVersion: accept.sourceVersion }, accept.expectedRevision, accept.target, (payload) => (payload.entry as { revision: number }).revision);
   }

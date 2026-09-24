@@ -4,9 +4,14 @@ import type { ReviewReason } from "./reviewReason";
  * `qa-exception` holds a reviewer's "Fine here" on an Inbox QA finding: an
  * approved snapshot keyed by the finding, segment hash, term, and glossary
  * revision, so the finding returns only when one of those changes.
+ *
+ * `model-suggestion` holds a model fluency suggestion for one article sentence
+ * as a draft until a person accepts it; see `lib/translation/fluencyReview.ts`.
+ * Accepting approves the suggestion entry (resolved) and saves a `narrative`
+ * draft; it never approves a translation.
  */
 /** `note` holds translator's notes: locale-only text under an article section, never a translation of English. */
-export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception" | "note";
+export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception" | "note" | "model-suggestion";
 export type ReviewSnapshot = { source: string; target: string; context: string; provenance?: "compiled" | "human" };
 export type ReviewState = { revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null };
 export type ReviewEntry = ReviewState & { locale: string; scope: ReviewScope; sourceId: string; updatedAt: number };

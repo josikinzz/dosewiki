@@ -26,6 +26,7 @@ vi.mock("./liveTranslation", () => ({
 }));
 
 import { runTranslationJobs } from "./jobWorker";
+import { TRANSLATION_REQUEST_QUOTA } from "./requestPool";
 
 const config = { mode: "incremental" as const, jobsPerRun: 1, requestConcurrency: 1 };
 const job = (slug: string, attempts = 1) => ({
@@ -247,16 +248,16 @@ describe("per-lane leases and request quotas", () => {
       })));
       return outcome(record.slug);
     });
-    // Both lanes ask for the whole ceiling; each is held to its quota.
+    // Both lanes ask for the whole ceiling; each is held to its quota, and the fluency review keeps its own share.
     const runs = Promise.all([
       runTranslationJobs("model-key", { mode: "bulk", jobsPerRun: 1, requestConcurrency: 100 }),
       runTranslationJobs("model-key", { mode: "incremental", jobsPerRun: 1, requestConcurrency: 100 }),
     ]);
-    await vi.waitFor(() => expect(active).toBe(100));
+    await vi.waitFor(() => expect(active).toBe(100 - TRANSLATION_REQUEST_QUOTA.review));
     release();
     expect((await runs).map((run) => [run.mode, run.leaseHeld, run.completed]))
       .toEqual([["bulk", true, 1], ["incremental", true, 1]]);
-    expect(peak).toBe(100);
+    expect(peak).toBe(100 - TRANSLATION_REQUEST_QUOTA.review);
   });
 });
 

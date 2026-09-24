@@ -47,6 +47,10 @@ export function sendBatch(input: {
   userMessage: string;
   temperature?: number;
   signal?: AbortSignal;
+  /** Defaults to the locale's translation prompt. */
+  systemPrompt?: string;
+  /** Defaults to APP_TITLE. */
+  appTitle?: string;
 }): Promise<OpenRouterChatResult>;
 
 export function translateBatchWithRetries(input: {
