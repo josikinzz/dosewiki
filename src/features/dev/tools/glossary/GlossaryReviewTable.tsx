@@ -35,6 +35,9 @@ import type { GlossaryUsageMap, GlossaryUsageResponse } from "@/lib/glossary/glo
 /** Unsaved wording survives category changes and search, scoped to its locale and source revision. */
 export type GlossaryEditDrafts = Map<string, { value: string; revision: string }>;
 
+/** The outcome of the last single-row write, shown on that row rather than at the top of the page. */
+export type GlossaryRowNotice = { term: string; tone: "success" | "danger"; message: string };
+
 const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
 export type GlossaryGroupSectionProps = {
@@ -60,8 +63,10 @@ export type GlossaryGroupSectionProps = {
   onApprove: (row: GlossaryRow) => void;
   onConfirm: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
+  onSaveAndApprove: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
+  rowNotice: GlossaryRowNotice | null;
 };
 
 /**
@@ -72,7 +77,7 @@ export type GlossaryGroupSectionProps = {
  * in one confirmed step; the confirm names the category, the button does not
  * have to.
  */
-export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryGroupSectionProps) {
+export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, rowNotice }: GlossaryGroupSectionProps) {
   const bodyId = useId();
   const { category, rows, draftCount, uncheckedCount } = group;
   const open = standingLabel({ drafts: totals.draft, unchecked: totals.unchecked });
@@ -126,7 +131,7 @@ export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, 
         ) : null}
       </div>
       <div id={bodyId} hidden={!expanded} className="px-3 pb-3">
-        {expanded ? <GlossaryTable editDrafts={editDrafts} rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onConfirm={onConfirm} onSave={onSave} onSaveDefinition={onSaveDefinition} onRestored={onRestored} /> : null}
+        {expanded ? <GlossaryTable editDrafts={editDrafts} rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onConfirm={onConfirm} onSave={onSave} onSaveAndApprove={onSaveAndApprove} onSaveDefinition={onSaveDefinition} onRestored={onRestored} rowNotice={rowNotice} /> : null}
       </div>
     </Surface>
   );
@@ -143,11 +148,13 @@ type GlossaryTableProps = {
   onApprove: (row: GlossaryRow) => void;
   onConfirm: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
+  onSaveAndApprove: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
+  rowNotice: GlossaryRowNotice | null;
 };
 
-function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usages, canDefine, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableProps) {
+function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usages, canDefine, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, rowNotice }: GlossaryTableProps) {
   return (
     <EditorTable className="md:min-w-[56rem]">
       <EditorTableHead>
@@ -172,7 +179,9 @@ function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usage
             onApprove={onApprove}
             onConfirm={onConfirm}
             onSave={onSave}
+            onSaveAndApprove={onSaveAndApprove}
             onSaveDefinition={onSaveDefinition} onRestored={onRestored}
+            notice={rowNotice?.term === row.term ? rowNotice : null}
           />
         ))}
       </EditorTableBody>
@@ -193,11 +202,13 @@ type GlossaryTableRowProps = {
   onApprove: (row: GlossaryRow) => void;
   onConfirm: (row: GlossaryRow) => void;
   onSave: (row: GlossaryRow, target: string) => void;
+  onSaveAndApprove: (row: GlossaryRow, target: string) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
+  notice: GlossaryRowNotice | null;
 };
 
-function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableRowProps) {
+function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, notice }: GlossaryTableRowProps) {
   const draftKey = JSON.stringify([row.locale, row.term]);
   const [draft, setDraft] = useState(() => editDrafts.get(draftKey)?.value ?? row.target);
   useEffect(() => {
@@ -209,8 +220,9 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
   const held = disabled || writing;
   const unchecked = isLiveUnchecked(row);
   const canSave = draft.trim().length > 0 && (dirty || unchecked);
+  const editedRow = () => ({ ...row, revision: editDrafts.get(draftKey)?.revision ?? row.revision });
   const save = () => {
-    if (canSave) onSave({ ...row, revision: editDrafts.get(draftKey)?.revision ?? row.revision }, draft.trim());
+    if (canSave) onSave(editedRow(), draft.trim());
   };
   // Enter only saves drafts. Approval always uses the explicit review button.
   const submit = () => {
@@ -269,24 +281,38 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
         {row.review_provenance === "legacy_unverified" ? "Legacy import, never checked by a person" : row.source === "human" ? (row.reviewed_by ?? "human") : "model"}
       </EditorTableCell>
       <EditorTableCell>
+        {/*
+          One main action per state: an edit is saved and approved in one step,
+          a clean draft is approved, live wording is confirmed. Save draft stays
+          as the quieter choice whenever there is something to save.
+        */}
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Actions for ${row.term}`}>
-          <Button type="button" variant="outline" size="sm" disabled={held || !canSave} onClick={save}>
-            <Icon icon="lucide:save" size={14} />
-            Save draft
-          </Button>
-          {row.status === "draft" ? (
-            <Button type="button" variant="outline" size="sm" disabled={held || dirty} onClick={() => onApprove(row)}>
+          {dirty ? (
+            <Button type="button" variant="accent" size="sm" disabled={held} onClick={() => onSaveAndApprove(editedRow(), draft.trim())}>
+              <Icon icon="lucide:check" size={14} />
+              Save and approve
+            </Button>
+          ) : row.status === "draft" ? (
+            <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={held} onClick={() => onApprove(row)}>
               <Icon icon="lucide:check" size={14} />
               Approve
             </Button>
-          ) : null}
-          {unchecked ? (
-            <Button type="button" variant="outline" size="sm" disabled={held || dirty} onClick={() => onConfirm(row)}>
+          ) : unchecked ? (
+            <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={held} onClick={() => onConfirm(row)}>
               <Icon icon="lucide:badge-check" size={14} />
               Confirm
             </Button>
           ) : null}
+          {canSave ? (
+            <Button type="button" variant="outline" size="sm" disabled={held} onClick={save}>
+              <Icon icon="lucide:save" size={14} />
+              Save draft
+            </Button>
+          ) : null}
         </div>
+        <p role="status" className={`mt-1 text-xs empty:hidden ${notice?.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "text-[color:var(--theme-success-text)]"}`}>
+          {notice?.message ?? ""}
+        </p>
       </EditorTableCell>
     </EditorTableRow>
   );

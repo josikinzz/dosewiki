@@ -542,6 +542,71 @@ describe("GlossaryTab", () => {
     expect(api.calls[1].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
   });
 
+  it("saves and approves an edited rendering in one step, approving exactly the saved revision", async () => {
+    const api = stubGlossaryApi([row("Artist", "draft"), row("Next", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    expect(rowFor("Artist").queryByRole("button", { name: "Save and approve" })).toBeNull();
+    await user.clear(input);
+    await user.type(input, "Künstler");
+    expect(rowFor("Artist").queryByRole("button", { name: "Approve" })).toBeNull();
+    await user.click(rowFor("Artist").getByRole("button", { name: "Save and approve" }));
+    await screen.findByText('Approved "Artist" as Künstler.');
+    expect(api.calls.map((call) => call.path)).toEqual(["/api/dev/translation-glossary/edit", "/api/dev/translation-glossary/approve"]);
+    expect(api.calls[0].body).toMatchObject({ term: "Artist", target: "Künstler", expectedRevision: "1:0", intent: "draft" });
+    expect(api.calls[1].body).toMatchObject({ terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Rendering for Next" })).toHaveFocus());
+  });
+
+  it("keeps focus on a saved row's Approve and reports the save on that row", async () => {
+    window.history.replaceState({}, "", "/dev/glossary?translationView=words&translationCategory=effects&translationStatus=all");
+    stubGlossaryApi([row("Artist", "draft"), row("Next", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for Artist" });
+    await user.clear(input);
+    await user.type(input, "Künstler");
+    await user.click(rowFor("Artist").getByRole("button", { name: "Save draft" }));
+    expect(await rowFor("Artist").findByText('Saved "Artist" as Künstler; awaiting approval.')).toBeInTheDocument();
+    await waitFor(() => expect(rowFor("Artist").getByRole("button", { name: "Approve" })).toHaveFocus());
+  });
+
+  it("asks before leaving the page with unsaved wording", async () => {
+    stubGlossaryApi([row("anxiety", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    const clean = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(clean);
+    expect(clean.defaultPrevented).toBe(false);
+    await user.type(input, " edited");
+    const dirty = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(dirty);
+    expect(dirty.defaultPrevented).toBe(true);
+  });
+
+  it("opens an Inbox item's Edit in place, keeping unsaved wording in other rows", async () => {
+    stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
+    const base = vi.mocked(fetch).getMockImplementation()!;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => new URL(String(input), "https://dev.dose.wiki").pathname === "/api/dev/translation-inbox"
+      ? Response.json({ ok: true, locale: LOCALE, items: [{ scope: "glossary", id: "euphoria", reason: "glossary-never-checked", english: "euphoria", live: "euphoria-de", where: "effect-name", revision: "1:0", href: "/dev/glossary?translationView=words&translationTerm=euphoria", accept: null }], total: 1, offset: 0, pageSize: 50, checked: [], counts: {}, reason: null })
+      : base(input, init)));
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
+    await user.clear(input);
+    await user.type(input, "Kept correction");
+    await user.click(viewButton("Inbox"));
+    await user.click(await screen.findByRole("link", { name: "Edit" }));
+    expect(viewButton("Terms")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("searchbox", { name: "Search words" })).toHaveValue("euphoria");
+    expect(new URLSearchParams(window.location.search).get("translationTerm")).toBe("euphoria");
+    await user.clear(screen.getByRole("searchbox", { name: "Search words" }));
+    await user.click(screen.getByRole("button", { name: /^Subjective Effect Index:/ }));
+    expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Kept correction");
+  });
+
   it("retries the same CSV with a bounded acknowledgement header only after explicit confirmation", async () => {
     const api = stubGlossaryApi([row("Artist", "draft")]);
     const user = userEvent.setup();

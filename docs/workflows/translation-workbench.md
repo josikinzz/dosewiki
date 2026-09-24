@@ -55,8 +55,11 @@ Review history sits in a drawer on each item: **History** on a glossary row, a
 UI label, and an open article paragraph.
 
 Glossary wording survives search, category changes, and view changes within
-the open workbench. Unsaved wording retains its original revision for conflict
-detection. It does not survive a browser reload. View, category, search, and
+the open workbench, including an Inbox **Edit**, which opens its place in the
+workbench without reloading the page. Unsaved wording retains its original
+revision for conflict detection. It does not survive a browser reload, so
+leaving or reloading the page with unsaved term or interface text wording asks
+first. View, category, search, and
 status selections update the URL. `translationCategory` selects a category;
 `translationStatus` selects `all`, `draft`, `unchecked`, or `approved`.
 
@@ -78,8 +81,15 @@ article reader in Articles. `parseWorkbenchDeepLink` in
 
 ## Review and history
 
-Glossary terms and interface text have separate **Save draft** and **Approve**
-actions. Saving a correction retains the effective approved wording. Approving
+Glossary terms and interface text keep drafts and approval apart. On a glossary
+row, each state has one main action: an edited row offers **Save and
+approve**, which saves the wording as a draft and then approves exactly the
+revision that save produced; a clean draft offers **Approve**; live, never
+checked wording offers **Confirm**. **Save draft** stays beside it whenever
+there is something to save, and Enter only ever saves a draft. After a plain
+save, focus stays on that row's **Approve**; after an approval, it moves to the
+next row needing review. A row's result is announced on the row itself.
+Saving a correction retains the effective approved wording. Approving
 requires the revision that the reviewer actually saw. A conflicting update must
 be reloaded and reviewed again. Restoring history creates another draft; it never
 publishes an old revision immediately.

@@ -68,7 +68,7 @@ import {
   type GlossaryRow,
 } from "./glossaryModel";
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
-import { GlossaryGroupSection, type GlossaryEditDrafts } from "./GlossaryReviewTable";
+import { GlossaryGroupSection, type GlossaryEditDrafts, type GlossaryRowNotice } from "./GlossaryReviewTable";
 import { GlossaryActionBar, GlossaryFilterBar } from "./GlossaryToolbar";
 import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
 import { TranslationChanges } from "./TranslationChanges";
@@ -92,8 +92,13 @@ type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" |
 /** The one row a single-row write is locking, and which of its two editable fields is being written. */
 type Writing = { term: string; field: "rendering" | "definition" };
 
-/** Where focus goes after a single-row write: the terms in document order at the time of the write, and the written row's place in them. */
-type Handoff = { order: string[]; index: number };
+/**
+ * Where focus goes after a single-row write: the terms in document order at
+ * the time of the write, the written row's place in them, and whether focus
+ * moves on to the next row needing review or stays on the written row's
+ * Approve (after a plain save, so approving it is one keypress away).
+ */
+type Handoff = { order: string[]; index: number; stay: boolean };
 
 type CollisionReview = {
   locale: string;
@@ -101,6 +106,7 @@ type CollisionReview = {
   kind: Exclude<Busy, null>;
   action: (collisionConfirmation?: string) => Promise<string>;
   term?: string;
+  stay?: boolean;
 };
 
 /** The one nav: glossary terms, UI labels, and the style guide are the Words view's lists; Articles is the Pages view. */
@@ -134,24 +140,42 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [wordsList, setWordsList] = useState<WordsList>("terms");
   /** The drawer under the article reader that a deep link asked for. */
   const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
+  /** Bumped when an Inbox link opens an article in place, so the reader remounts and reads the link. */
+  const [articleLink, setArticleLink] = useState(0);
   // Opens on glossary categories unless a deep link names a view; links written for the
   // older five views map onto these three (see parseWorkbenchDeepLink).
-  useEffect(() => {
-    const link = parseWorkbenchDeepLink(window.location.search) ?? { view: "words" as const };
+  const applyDeepLink = (search: string) => {
+    const link = parseWorkbenchDeepLink(search) ?? { view: "words" as const };
     setView(link.view);
     setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels", style: visited.style || link.words === "style" }));
     if (link.words) setWordsList(link.words);
     if (link.pages) setPagesSection(link.pages);
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(search);
     setCategory(params.get("translationCategory"));
     const status = params.get("translationStatus");
     if (status === "all" || status === "draft" || status === "unchecked" || status === "approved") setFilters((current) => ({ ...current, status }));
     if (link.term) setFilters({ status: "all", search: link.term });
     if (link.label) setFilters((current) => ({ ...current, search: link.label ?? "" }));
+    return link;
+  };
+  useEffect(() => {
+    const link = applyDeepLink(window.location.search);
     if (link.view !== "pages") return;
     const requestedLocale = new URLSearchParams(window.location.search).get("translationLocale");
     if (requestedLocale) setLocale(requestedLocale);
+    // Mount only: later links arrive through openInboxLink.
   }, []);
+  /** An Inbox item's Edit: opens its place in this workbench without a reload, so unsaved wording elsewhere survives. */
+  const openInboxLink = (href: string) => {
+    const url = new URL(href, window.location.href);
+    if (url.pathname !== window.location.pathname) {
+      window.location.assign(url);
+      return;
+    }
+    window.history.replaceState(window.history.state, "", url);
+    const link = applyDeepLink(url.search);
+    if (link.view === "pages") setArticleLink((current) => current + 1);
+  };
   const updateLocation = (values: Record<string, string | null>) => {
     const url = new URL(window.location.href);
     // Legacy article links must not override an explicit view selection on reload.
@@ -194,6 +218,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [writing, setWriting] = useState<Writing | null>(null);
   const writingTerm = writing?.term ?? null;
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  /** A single-row write's outcome, shown on its row; the page notice carries it only when the row is no longer listed. */
+  const [rowNotice, setRowNotice] = useState<GlossaryRowNotice | null>(null);
   const handoff = useRef<Handoff | null>(null);
   const [collisionReview, setCollisionReview] = useState<CollisionReview | null>(null);
   const collisionReturnFocus = useRef<HTMLElement | null>(null);
@@ -235,6 +261,18 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     void load(params.get("locale") ?? params.get("translationLocale"));
   }, [load]);
 
+  // Unsaved term and label wording lives only in memory, so leaving or
+  // reloading the page asks first.
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => {
+      if (termEditDrafts.current.size === 0 && uiEditDrafts.current.size === 0) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
+
   useEffect(() => {
     if (!data || data.jobs.active === 0 || locked) return;
     const timer = window.setInterval(() => void load(data.locale, true), 5000);
@@ -246,10 +284,15 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   // itself if nothing follows it, so a reviewer never reaches for the mouse.
   useEffect(() => {
     if (writingTerm !== null || !handoff.current) return;
-    const { order, index } = handoff.current;
+    const { order, index, stay } = handoff.current;
     handoff.current = null;
     const rows: Record<string, HTMLElement> = {};
     for (const row of document.querySelectorAll<HTMLElement>("tr[data-term]")) rows[row.dataset.term ?? ""] = row;
+    const written = rows[order[index]];
+    if (stay && written) {
+      (written.querySelector<HTMLElement>('[data-row-action="approve"]') ?? written.querySelector("input"))?.focus();
+      return;
+    }
     const next = order.slice(index + 1).find((term) => rows[term]?.dataset.needsReview === "true");
     rows[next ?? order[index]]?.querySelector("input")?.focus();
   }, [writingTerm]);
@@ -296,25 +339,29 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   /** Runs one write, reloads the locale, and reports the outcome; with a term, only that row locks and focus moves on afterwards. */
   const run = useCallback(
-    async (kind: Exclude<Busy, null>, action: (collisionConfirmation?: string) => Promise<string>, term?: string, collisionConfirmation?: string) => {
+    async (kind: Exclude<Busy, null>, action: (collisionConfirmation?: string) => Promise<string>, term?: string, collisionConfirmation?: string, stay = false) => {
       if (!locale) return;
       const version = ++actionVersion.current;
       setCollisionReview(null);
       if (!collisionConfirmation) collisionReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       if (term) setWriting({ term, field: "rendering" }); else setBusy(kind);
       setNotice(null);
+      setRowNotice(null);
+      const report = (tone: "success" | "danger", message: string) => {
+        if (term) setRowNotice({ term, tone, message }); else setNotice({ tone, message });
+      };
       try {
         const order = Array.from(document.querySelectorAll<HTMLElement>("tr[data-term]"), (row) => row.dataset.term ?? "");
         const message = await action(collisionConfirmation);
         await load(locale);
-        if (term) handoff.current = { order, index: order.indexOf(term) };
-        setNotice({ tone: "success", message });
+        if (term) handoff.current = { order, index: order.indexOf(term), stay };
+        report("success", message);
       } catch (error) {
         if (version !== actionVersion.current) return;
         if (error instanceof GlossaryReviewCollision) {
-          setCollisionReview({ locale, error, kind, action, term });
+          setCollisionReview({ locale, error, kind, action, term, stay });
         } else {
-          setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The change did not go through." });
+          report("danger", error instanceof Error ? error.message : "The change did not go through.");
         }
       } finally {
         if (term) setWriting(null); else setBusy(null);
@@ -376,8 +423,25 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const saveTarget = (row: GlossaryRow, target: string) =>
     run("approve", async (collisionConfirmation) => {
       const saved = await editTerm(locale!, row.term, target, collisionConfirmation, row.revision);
+      termEditDrafts.current.delete(JSON.stringify([row.locale, row.term]));
       return `Saved "${saved.term}" as ${saved.target}; awaiting approval.`;
+    }, row.term, undefined, true);
+
+  /**
+   * The row's main action once it is edited: save the wording as a draft,
+   * then approve exactly the revision that save produced. A shared-rendering
+   * question can interrupt either step; the retry reuses a finished save
+   * rather than saving twice.
+   */
+  const saveAndApprove = (row: GlossaryRow, target: string) => {
+    let saved: GlossaryRow | null = null;
+    return run("approve", async (collisionConfirmation) => {
+      saved ??= await editTerm(locale!, row.term, target, collisionConfirmation, row.revision);
+      termEditDrafts.current.delete(JSON.stringify([row.locale, row.term]));
+      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, approvalReason);
+      return `Approved "${row.term}" as ${saved.target}.`;
     }, row.term);
+  };
 
   /** Locks the row like a rendering save, but the definition is locale-independent, so the map updates in place and nothing reloads. */
   const saveDefinition = async (row: GlossaryRow, gloss: string) => {
@@ -385,12 +449,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     setCollisionReview(null);
     setWriting({ term: row.term, field: "definition" });
     setNotice(null);
+    setRowNotice(null);
     try {
       const saved = await saveGloss(row.term, gloss);
       setData((current) => current && { ...current, glosses: { ...current.glosses, [saved.term]: saved.gloss } });
-      setNotice({ tone: "success", message: `Saved the definition of "${saved.term}".` });
+      setRowNotice({ term: row.term, tone: "success", message: `Saved the definition of "${saved.term}".` });
     } catch (error) {
-      setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The definition was not saved." });
+      setRowNotice({ term: row.term, tone: "danger", message: error instanceof Error ? error.message : "The definition was not saved." });
     } finally {
       setWriting(null);
     }
@@ -496,6 +561,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         }
       >
         {notice ? <EditorNotice notice={notice} /> : null}
+        {rowNotice && !rows.some((row) => row.term === rowNotice.term) ? <EditorNotice notice={{ tone: rowNotice.tone, message: rowNotice.message }} /> : null}
 
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load(locale)} />
@@ -531,7 +597,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             ) : null}
             <StatusLegend />
 
-            {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} /></div> : null}
+            {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} onOpen={openInboxLink} /></div> : null}
 
             <div hidden={view !== "words"} className="space-y-4">
               <div hidden={wordsList !== "terms"}>
@@ -643,8 +709,10 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     onApprove={(row) => void approveOne(row)}
                     onConfirm={(row) => void confirmOne(row)}
                     onSave={saveTarget}
+                    onSaveAndApprove={(row, target) => void saveAndApprove(row, target)}
                     onSaveDefinition={(row, gloss) => void saveDefinition(row, gloss)}
                     onRestored={() => load(locale)}
+                    rowNotice={rowNotice}
                   />
                 ))}
               </div>
@@ -654,7 +722,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
             {visitedViews.pages ? (
               <div hidden={view !== "pages"} className="space-y-4">
-                <NarrativeReview key={data.locale} locale={data.locale} canAdmin={canAdmin} />
+                <NarrativeReview key={`${data.locale}:${articleLink}`} locale={data.locale} canAdmin={canAdmin} />
                 <WorkbenchDrawer key={`coverage:${data.locale}`} title="Coverage" defaultOpen={pagesSection === "coverage"}>
                   <TranslationCoverage locale={data.locale} />
                 </WorkbenchDrawer>
@@ -694,7 +762,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           if (!collisionReview || collisionReview.locale !== locale) return;
           const review = collisionReview;
           setCollisionReview(null);
-          void run(review.kind, review.action, review.term, review.error.collisionConfirmation);
+          void run(review.kind, review.action, review.term, review.error.collisionConfirmation, review.stay);
         }}
       />
     </div>
