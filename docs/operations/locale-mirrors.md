@@ -332,7 +332,7 @@ review, confirmation phrase, and `--write` ceremony documented in the
 credentials runbook. `--write` alone is not authorization.
 
 `stale --term` prints the rows it selects (`Matched rows  29 mentioning
-"Entactogen"` on 2026-09-12), marks them stale and replays the marked rows. It does not restamp unrelated old digests without evidence of unchanged prompt dependencies. The `/dev/glossary` tab's "Retranslate affected segments" does
+"Entactogen"` on 2026-09-12), marks them stale and replays the marked rows. It does not restamp unrelated old digests without evidence of unchanged prompt dependencies. The `/dev/glossary` workbench's **Retranslate** (in the admin Runs drawer in Pages) does
 the same marking and then enqueues the records that mention the term for the
 cron, which retranslates missing and stale hashes alike. The action records a
 request, not completion. Source coverage and queue state are reported separately.
@@ -462,7 +462,7 @@ Run the coverage audits and review any remaining fallback before launch. Then:
 3. Add the locale to `UI_LOCALES` and `CATALOGS` in `src/i18n/messages.ts`,
    generalize the locale constant in `live-mirror.ts`, `mirror-coverage.ts`,
    and `ui-catalog.ts`, then build its catalog.
-4. Add the domain on Vercel, then either "Start main translation" in the tab
+4. Add the domain on Vercel, then either "Start main translation" in the workbench's Runs drawer in Pages
    (enqueues every record for the cron, slow but hands-free) or run
    `backfill` from a workstation, and run both coverage lenses.
 

@@ -4,9 +4,54 @@ The `/dev/glossary` workbench separates terminology review, exact UI wording,
 source coverage, and publication evidence. Its locale capability is independent
 of the editor role. Every read and write checks the assigned locale on the server.
 
+## Layout: Inbox, Words, Pages
+
+The workbench has three views and opens on the Inbox.
+
+- **Inbox** lists everything in the locale that needs a person (see
+  [Review Inbox](#review-inbox)).
+- **Words** holds glossary terms and UI labels behind one search box, **Search
+  words**. The **Words list** switch picks **Glossary terms** or **UI labels**;
+  the search carries across both.
+- **Pages** holds the article reader (see
+  [Substance narrative review](#substance-narrative-review)) with drawers
+  under it: **Coverage** (per-page coverage and the release evidence import),
+  **Recent changes** (recorded automatic changes), and **Reader feedback and
+  website readiness**. Admins also see a collapsed **Runs** drawer with the
+  latest run's progress and every control that calls the model for a whole
+  locale: start the main translation, **Retranslate** pending terms, and retry
+  failed pages. A Translator without admin sees no run controls. **Draft
+  missing terms** stays with the glossary terms in Words, also admin-only.
+
+A one-line status strip under the view switch reads, on every view, the
+glossary totals (drafts, live never checked, human approved), how many stored
+translations follow the current terms, and the latest run's progress. Coverage
+in Pages condenses its own totals into one line the same way.
+
+One **Status legend** defines the states every panel names: Machine, Draft,
+Live, never checked, Human approved, Source changed, and Re-check. Beside it
+the workbench says once: "Approved here is not deployed; Pages shows release
+evidence." Panels no longer repeat that approval, compilation, or processing is
+not publication; the release evidence itself (the Coverage drawer's
+publication status and rendered route evidence, and website readiness) sits in
+Pages.
+
+Review history sits in a drawer on each item: **History** on a glossary row, a
+UI label, and an open article paragraph.
+
+Deep links keep working across the layout change. `translationView=inbox`,
+`words`, and `pages` name the views. Older values map onto them: `glossary`
+(with `translationTerm`) and `labels` (with `translationLabel`) open Words on
+that list, searched to the term or label; `narrative`, `coverage`, and
+`changes` open Pages, with the Coverage or Recent changes drawer open for the
+latter two; `translationReview=article` (with `translationSlug`,
+`translationSegment`, `translationVersion`, or `translationNote`) opens the
+article reader in Pages. `parseWorkbenchDeepLink` in
+`lib/translation/reviewInboxTypes.ts` owns the mapping.
+
 ## Review and history
 
-The Glossary and UI labels views have separate **Save draft** and **Approve**
+Glossary terms and UI labels in Words have separate **Save draft** and **Approve**
 actions. Saving a correction retains the effective approved wording. Approving
 requires the revision that the reviewer actually saw. A conflicting update must
 be reloaded and reviewed again. Restoring history creates another draft; it never
@@ -21,14 +66,14 @@ continues to supply approved terminology to article translation.
 
 ### Correction reasons and the glossary check
 
-The Narratives and UI labels editors ask why a correction was made. Save draft
+The article reader and UI labels editors ask why a correction was made. Save draft
 needs one of four reason chips, **Fluency**, **Terminology**, **Accuracy**, or
 **Local addition**, plus an optional note. History stores the reason as
 `{ kind, note }` (kind `fluency`, `terminology`, `accuracy`, or `local`) in the
 `reason` column as a versioned JSON object. Rows written before this change hold
 free text and read as `{ kind: "unspecified", note }`. A plain-text reason from
 an older caller, such as Inbox Accept or batch label approval, is still accepted
-and stored as plain text. The Glossary view's **Approval reason** chips
+and stored as plain text. The glossary terms list's **Approval reason** chips
 (Terminology by default) are recorded with every Approve and Confirm made there,
 in place of the fixed "Glossary review".
 
@@ -126,7 +171,7 @@ order within the whole list:
 Findings run the validator over stored targets with the coverage inventory's
 bounded, batched reads. The scan is cached for at most five minutes and is
 rebuilt at once when the approved glossary changes. An article finding's
-**Edit** opens the Narratives view at that sentence; a glossary finding on
+**Edit** opens the article reader in Pages at that sentence; a glossary finding on
 another record kind opens the term; other findings link to the page.
 
 **Fine here** (key F) on a glossary or leftover-English finding records a
@@ -142,7 +187,7 @@ refuses a changed revision (409, nothing written), obeys the write freeze
 
 **Resolve** (key A) on a reader suggestion sets its feedback status to
 resolved through the existing `/api/glossary-feedback/<id>/status` mutation,
-the same one the Glossary view's reader feedback queue uses. To adopt the
+the same one the reader feedback queue in Pages uses. To adopt the
 reader's wording, use Edit to open the term first.
 
 #### Model fluency suggestions
@@ -177,7 +222,7 @@ The prompt has a seam for the locale's approved style guide
 (`fluencySystemPrompt(locale, styleGuide)`); the route passes none until the
 style guide ships.
 
-The Changes view reads `translationSegmentHistory`. Automatic article and
+Recent changes in Pages reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the
 same transaction as the translation write. Entries include their English source,
 model, prompt version, time, and links to current source records using that hash.
@@ -185,7 +230,7 @@ Those links describe current usage, not an invented historical publication
 record. Existing translations acquire history when next changed; earlier
 versions cannot be reconstructed retroactively.
 
-The Changes view exports the displayed history page as JSON for recovery and
+Recent changes exports the displayed history page as JSON for recovery and
 review. Automatic segment history has no one-click restore action in this
 release; restoring that content requires a separately reviewed correction.
 Glossary and UI label history support restoration directly as a new draft.
@@ -199,7 +244,7 @@ into `src/i18n/uiWorkbenchInventory.generated.json`. Uncategorized entries retai
 source-derived legacy IDs until a meaning-specific definition is introduced.
 The large inventory is server-only; it does not enter the public client helpers.
 
-The UI labels view shows compiled wording separately from human approval.
+The UI labels list shows compiled wording separately from human approval.
 Compilation is not evidence that that wording is deployed. Approved UI overrides
 are tied to the current source and context. Source changes require a new review.
 The compiler uses human-approved UI wording first, applicable approved glossary
@@ -218,7 +263,7 @@ wording and enters `pendingRefresh` in `src/i18n/catalogPublication.json`, one
 entry per key naming the `term` and `expectedTarget` behind it. A human-approved
 UI override is never queued, even when it keeps the old rendering on purpose.
 
-The **Waiting for glossary refresh** mode of the UI labels view lists those
+The **Waiting for glossary refresh** mode of the UI labels list lists those
 strings with their current wording, term, and approved rendering. **Review**
 opens a string in the one-at-a-time view, where approving the current wording
 takes it off the list. An online catalog build sends every waiting entry to the
@@ -232,7 +277,7 @@ either.
 
 ### Short labels
 
-The **Short labels** mode of the UI labels view lists labels of three words or
+The **Short labels** mode of the UI labels list lists labels of three words or
 fewer that are not yet approved, as a dense grid grouped by the first file that
 uses them. Tick the rows that read right in context, edit any wording inline,
 and press **Approve selected**. Longer strings keep the one-at-a-time card.
@@ -273,7 +318,7 @@ or medical accuracy.
 
 ## Coverage and propagation
 
-Coverage runs on demand. It inventories all six published record kinds and the
+Coverage (a drawer in Pages) runs on demand. It inventories all six published record kinds and the
 current UI source inventory. The source traversal is cached for at most five
 minutes; the response includes its timestamp. It counts never-stored segments,
 stale translations, recorded rejections, and glossary disagreements. Article
@@ -347,7 +392,7 @@ language translation.
 
 ## Substance narrative review
 
-The Narratives view reads one public substance article side by side. Find article
+The article reader in Pages shows one public substance article side by side. Find article
 searches substance titles and aliases in the public search manifests for English
 and, for a UI locale, the reviewed locale; Source slug remains as an exact fallback.
 English and the wording a reader sees now sit in two columns, paragraph by
@@ -372,7 +417,7 @@ group. The reader overlays only applicable approvals over machine targets, and
 each approval gets one overlay decision: `apply`, `apply-recheck`, or `stale`.
 A machine refresh cannot overwrite a correction. Changing the approved sentence
 makes its approval stale. Changing only a neighbouring sentence keeps the approval
-on the page as `apply-recheck`, shown in the Narratives state marks as
+on the page as `apply-recheck`, shown in the reader's state marks as
 "Re-check: nearby English changed"; a re-check approval does not count as
 reviewed until someone saves and approves it again. Approvals stored before this
 split carry the old whole-group fingerprint and go stale on any change in their
