@@ -36,7 +36,8 @@ const present = (value: unknown): boolean => {
   return value != null && value !== "" && value !== false;
 };
 
-type IndexedNode = GlossaryUsageNode & { text: string };
+/** `segment` is the stored-translation identity of a content node: its hash and readable English. */
+type IndexedNode = GlossaryUsageNode & { text: string; segment?: { hash: string; english: string } };
 export type GlossaryUsageIndex = {
   nodes: IndexedNode[];
   labels: Map<string, number[]>;
@@ -44,10 +45,10 @@ export type GlossaryUsageIndex = {
 };
 
 /** Exact labels stay distinct: an Approved replicator is not a Verified replicator. */
-function addNode(index: GlossaryUsageIndex, seen: Set<string>, node: GlossaryUsageNode, text: string) {
+function addNode(index: GlossaryUsageIndex, seen: Set<string>, node: GlossaryUsageNode, text: string, hash?: string) {
   if (seen.has(node.id) || !text.trim()) return;
   seen.add(node.id);
-  const position = index.nodes.push({ ...node, text: normalize(text) }) - 1;
+  const position = index.nodes.push({ ...node, text: normalize(text), ...(hash ? { segment: { hash, english: text.replace(/\s+/g, " ").trim() } } : {}) }) - 1;
   const keys = node.kind === "label"
     ? new Set([normalize(text), normalize(text.replace(/^\d+\.\s+/, ""))])
     : new Set(words(text));
@@ -63,8 +64,8 @@ function addNode(index: GlossaryUsageIndex, seen: Set<string>, node: GlossaryUsa
 export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Promise<GlossaryUsageIndex> {
   const index: GlossaryUsageIndex = { nodes: [], labels: new Map(), postings: new Map() };
   const seen = new Set<string>();
-  const add = (id: string, href: string, title: string, context: string, text: string, kind: GlossaryUsageNode["kind"] = "label") =>
-    addNode(index, seen, { id, href, title, context, kind }, text);
+  const add = (id: string, href: string, title: string, context: string, text: string, kind: GlossaryUsageNode["kind"] = "label", hash?: string) =>
+    addNode(index, seen, { id, href, title, context, kind }, text, hash);
 
   for (const tab of TABS) add(`effects:tab:${tab.id}`, effectIndexViewPath(tab.id), "Subjective Effect Index", `Tab: ${tab.label}`, tab.label);
   for (const category of EFFECT_CATEGORY_DEFINITIONS) {
@@ -124,7 +125,7 @@ export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Pro
     for (const segment of extractSegments({ items: [source] }, CORPORA.substances).segments) {
       const section = sections.find((entry) => entry.public.visible && entry.articleFields.includes(segment.group as never));
       const destination = section?.public.toc ? `${href}#${section.id}` : href;
-      add(`substance:${substance.slug}:field:${segment.path}`, destination, title, `Field: ${segment.path}`, stripMarkup(segment.source), "content");
+      add(`substance:${substance.slug}:field:${segment.path}`, destination, title, `Field: ${segment.path}`, stripMarkup(segment.source), "content", segment.hash);
     }
     const walkHeadings = (value: unknown, path: string[]) => {
       if (!record(value)) return;
@@ -154,7 +155,7 @@ export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Pro
     const source = { slug: effect.slug, name: effect.name, summary: effect.summary, description_raw: effect.description_raw, analysis_raw: effect.analysis_raw, style_variations_raw: effect.style_variations_raw, personal_commentary_raw: effect.personal_commentary_raw };
     for (const segment of extractSegments({ items: [source] }, CORPORA.effects).segments) {
       if (segment.group === "name") continue;
-      add(`effect:${effect.slug}:field:${segment.path}`, href, effect.name, `Field: ${segment.path}`, stripMarkup(segment.source), "content");
+      add(`effect:${effect.slug}:field:${segment.path}`, href, effect.name, `Field: ${segment.path}`, stripMarkup(segment.source), "content", segment.hash);
     }
     for (const section of buildEffectArticleModel({ effect: effect as SubjectiveEffectArticle }).sections) {
       const label = EFFECT_ARTICLE_SECTION_TITLES[section.kind];
@@ -165,13 +166,12 @@ export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Pro
     if (article.publication_status !== "published" || article.kind === "blog") continue;
     const href = getPublicRoutePath({ family: "article", params: { slug: article.slug } });
     const source = { slug: article.slug, title: article.title, shortDescription: article.shortDescription, body_raw: article.body_raw };
-    for (const segment of extractSegments({ items: [source] }, CORPORA.articles).segments) add(`article:${article.slug}:field:${segment.path}`, href, article.title, `Field: ${segment.path}`, stripMarkup(segment.source), "content");
+    for (const segment of extractSegments({ items: [source] }, CORPORA.articles).segments) add(`article:${article.slug}:field:${segment.path}`, href, article.title, `Field: ${segment.path}`, stripMarkup(segment.source), "content", segment.hash);
   }
   return index;
 }
 
-/** Literal word-boundary matching. No stemming: plural and singular semantic labels remain independent. */
-export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offset = 0): GlossaryUsageResponse {
+function matchingNodes(index: GlossaryUsageIndex, term: string): IndexedNode[] {
   const key = normalize(term);
   const matches = new Set(index.labels.get(key) ?? []);
   const tokens = [...new Set(words(term))];
@@ -179,10 +179,15 @@ export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offs
   const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`, "u");
   for (const position of candidates) if (pattern.test(index.nodes[position].text)) matches.add(position);
-  const nodes = [...matches].map((position) => index.nodes[position]).sort((a, b) => a.kind.localeCompare(b.kind) * -1 || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+  return [...matches].map((position) => index.nodes[position]).sort((a, b) => a.kind.localeCompare(b.kind) * -1 || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+}
+
+/** Literal word-boundary matching. No stemming: plural and singular semantic labels remain independent. */
+export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offset = 0): GlossaryUsageResponse {
+  const nodes = matchingNodes(index, term);
   return {
     term,
-    nodes: nodes.slice(offset, offset + PAGE_SIZE).map(({ text: _text, ...node }) => node),
+    nodes: nodes.slice(offset, offset + PAGE_SIZE).map(({ text: _text, segment: _segment, ...node }) => node),
     totalSourceNodes: nodes.length,
     nextOffset: offset + PAGE_SIZE < nodes.length ? offset + PAGE_SIZE : null,
     coverage: COVERAGE,
@@ -205,6 +210,24 @@ async function getGlossaryUsageIndex(): Promise<GlossaryUsageIndex> {
 
 export async function getGlossaryUsage(term: string, offset = 0): Promise<GlossaryUsageResponse> {
   return queryGlossaryUsage(await getGlossaryUsageIndex(), term, offset);
+}
+
+export type GlossaryExampleCandidate = { hash: string; english: string; href: string };
+
+/**
+ * Content usages on the term's first disclosure page, in disclosure order,
+ * with the segment hash a stored translation is keyed by. Labels have no
+ * stored segment and are skipped.
+ */
+export function queryGlossaryExampleCandidates(index: GlossaryUsageIndex, term: string): GlossaryExampleCandidate[] {
+  return matchingNodes(index, term).slice(0, PAGE_SIZE).flatMap((node) =>
+    node.segment ? [{ hash: node.segment.hash, english: node.segment.english, href: node.href }] : []);
+}
+
+export async function getGlossaryExampleCandidates(terms: readonly string[]): Promise<Record<string, GlossaryExampleCandidate[]>> {
+  if (terms.length === 0) return {};
+  const index = await getGlossaryUsageIndex();
+  return Object.fromEntries([...new Set(terms)].map((term) => [term, queryGlossaryExampleCandidates(index, term)]));
 }
 
 /** Build the corpus index once, then project every disclosure before its page reaches the browser. */

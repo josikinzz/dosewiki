@@ -27,11 +27,21 @@ import {
   OTHER_CATEGORY,
   categoryForKind,
 } from "@/lib/glossary/glossaryCategories";
-import type {
-  glossaryLanguages,
-  PublicGlossaryEntry,
+import { useT } from "@/i18n/client";
+import {
+  PUBLIC_GLOSSARY_PROVENANCES,
+  type glossaryLanguages,
+  type PublicGlossaryEntry,
+  type PublicGlossaryProvenance,
 } from "./languageGlossary";
 import type { GlossaryUsageMap } from "@/lib/glossary/glossaryUsage";
+
+const STATUS_MESSAGE: Record<PublicGlossaryProvenance, string> = {
+  human_review: "languageGlossary.status.human_review",
+  machine_suggestion: "languageGlossary.status.machine_suggestion",
+  legacy_unverified: "languageGlossary.status.legacy_unverified",
+  missing: "languageGlossary.status.missing",
+};
 
 export function LanguageGlossaryPage({
   language,
@@ -46,10 +56,15 @@ export function LanguageGlossaryPage({
 }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [status, setStatus] = useState<PublicGlossaryProvenance | "all">(
+    "all",
+  );
+  const t = useT();
   const query = search.trim().toLocaleLowerCase(language.code);
   const visible = entries.filter(
     (entry) =>
       (category === "all" || categoryForKind(entry.kind).id === category) &&
+      (status === "all" || entry.provenance === status) &&
       `${entry.term}\n${entry.target ?? ""}`
         .toLocaleLowerCase(language.code)
         .includes(query),
@@ -80,7 +95,7 @@ export function LanguageGlossaryPage({
           All glossaries
         </SmartLink>
       </p>
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+      <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <div>
           <Label htmlFor="glossary-search">
             Search English or translations
@@ -102,6 +117,31 @@ export function LanguageGlossaryPage({
               {[...GLOSSARY_CATEGORIES, OTHER_CATEGORY].map((item) => (
                 <SelectItem key={item.id} value={item.id}>
                   {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="glossary-status">
+            {t("languageGlossary.status.filter")}
+          </Label>
+          <Select
+            value={status}
+            onValueChange={(value) =>
+              setStatus(value as PublicGlossaryProvenance | "all")
+            }
+          >
+            <SelectTrigger id="glossary-status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {t("languageGlossary.status.all")}
+              </SelectItem>
+              {PUBLIC_GLOSSARY_PROVENANCES.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {t(STATUS_MESSAGE[item])}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -154,13 +194,31 @@ export function LanguageGlossaryPage({
                         {entry.gloss}
                       </p>
                     ) : null}
+                    {entry.example ? (
+                      <figure className="border-dose-border space-y-1 border-l-2 pl-3 text-sm leading-6">
+                        <blockquote lang="en" className="theme-text-secondary">
+                          {entry.example.english}
+                        </blockquote>
+                        <blockquote
+                          lang={language.code}
+                          dir={language.direction}
+                          className="theme-text-secondary"
+                        >
+                          {entry.example.target}
+                        </blockquote>
+                        <figcaption>
+                          <SmartLink
+                            className="theme-text-muted underline"
+                            href={entry.example.href}
+                          >
+                            {t("languageGlossary.example.source")}
+                          </SmartLink>
+                        </figcaption>
+                      </figure>
+                    ) : null}
                     <div className="flex flex-wrap items-center gap-3">
                       <PublicPill size="sm">
-                        {entry.status === "draft"
-                          ? "Proposed"
-                          : entry.status === "approved"
-                            ? "Approved"
-                            : "Missing"}
+                        {t(STATUS_MESSAGE[entry.provenance])}
                       </PublicPill>
                       <GlossaryUsageDisclosure term={entry.term} initialData={usages[entry.term]} />
                     </div>

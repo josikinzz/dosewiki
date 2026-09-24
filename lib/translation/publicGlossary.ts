@@ -17,6 +17,7 @@ import { readGlosses } from "./glossaryGloss";
 import { collectGlossaryTerms } from "./glossaryTerms";
 import { languageReadiness, type LanguageRelease } from "./languageReadiness";
 import { getGlossaryUsages } from "./glossaryUsage";
+import { readGlossaryExamples } from "./glossaryExamples";
 
 /** Pages and feedback use identical draft projection and revision identities. */
 export async function readPublicGlossaryRenderings(locale: string) {
@@ -49,11 +50,19 @@ export const readPublicLanguageGlossary = publicDataCache(
     const release =
       (releases as LanguageRelease[]).find((row) => row.locale === locale) ??
       null;
-    const entries = projectGlossary([...definitions.values()], rows);
+    const projected = projectGlossary([...definitions.values()], rows);
+    const [usages, examples] = await Promise.all([
+      getGlossaryUsages(projected.map((entry) => entry.term)),
+      readGlossaryExamples(locale, projected),
+    ]);
+    const entries = projected.map((entry) => ({
+      ...entry,
+      example: examples.get(entry.term) ?? null,
+    }));
     return {
       language,
       entries,
-      usages: await getGlossaryUsages(entries.map((entry) => entry.term)),
+      usages,
       readiness: languageReadiness(
         locale,
         required.map((row) => row.term),

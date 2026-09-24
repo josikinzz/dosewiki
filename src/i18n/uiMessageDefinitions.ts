@@ -49,6 +49,48 @@ export const UI_MESSAGE_DEFINITIONS = {
     locations: ["src/features/article/components/MachineTranslationNotice.tsx"],
     glossaryTerms: [],
   },
+  "languageGlossary.status.filter": {
+    source: "Status",
+    context: "Label of the public language glossary filter that narrows terms by who checked the translation.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
+  "languageGlossary.status.all": {
+    source: "All statuses",
+    context: "Public language glossary status filter option that shows every term.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
+  "languageGlossary.status.human_review": {
+    source: "Checked by a person",
+    context: "Status of a glossary term whose live translation a human reviewer confirmed. Never names the reviewer.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
+  "languageGlossary.status.machine_suggestion": {
+    source: "Machine suggestion",
+    context: "Status of a glossary term whose shown translation is a proposal nobody has approved yet.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
+  "languageGlossary.status.legacy_unverified": {
+    source: "Live, not yet checked",
+    context: "Status of a glossary term whose translation already appears on the site but no person has checked yet.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
+  "languageGlossary.status.missing": {
+    source: "Not translated yet",
+    context: "Status of a glossary term that has no translation in this language yet.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
+  "languageGlossary.example.source": {
+    source: "See this sentence on the site",
+    context: "Link under a glossary term's example sentence pair; opens the page the English sentence comes from.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
 } as const satisfies Record<string, UiMessageDefinition>;
 
 export type UiMessageId = keyof typeof UI_MESSAGE_DEFINITIONS;

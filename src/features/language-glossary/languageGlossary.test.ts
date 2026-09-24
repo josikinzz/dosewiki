@@ -31,6 +31,27 @@ describe("public language glossary", () => {
       term: "Energy",
       target: null,
       status: "missing",
+      provenance: "missing",
+      example: null,
     });
+  });
+
+  it("projects approved wording without a recorded human check as live and unchecked", () => {
+    const entries = projectGlossary(
+      [],
+      [
+        { term: "Calm", kind: "effect-name", target: "平静", status: "approved", updated_at: 1 },
+        { term: "Drift", kind: "effect-name", target: "漂移", status: "approved", provenance: "legacy_unverified", updated_at: 1 },
+        { term: "Energy", kind: "effect-name", target: "活力", status: "approved", provenance: "human_review", updated_at: 1 },
+        // A draft is never checked, whatever the live row behind it was.
+        { term: "Glow", kind: "effect-name", target: "光晕", status: "draft", provenance: "human_review", updated_at: 1 },
+      ],
+    );
+    expect(entries.map((entry) => [entry.term, entry.provenance])).toEqual([
+      ["Calm", "legacy_unverified"],
+      ["Drift", "legacy_unverified"],
+      ["Energy", "human_review"],
+      ["Glow", "machine_suggestion"],
+    ]);
   });
 });

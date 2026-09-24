@@ -24,12 +24,24 @@ export const glossaryLanguages = Object.entries(names).map(([code, name]) => ({
 export function glossaryLanguage(code: string) {
   return glossaryLanguages.find((language) => language.code === code);
 }
+/** Who stands behind the shown wording. Never names the reviewer. */
+export type PublicGlossaryProvenance =
+  | "human_review"
+  | "machine_suggestion"
+  | "legacy_unverified"
+  | "missing";
+export const PUBLIC_GLOSSARY_PROVENANCES: readonly PublicGlossaryProvenance[] =
+  ["human_review", "machine_suggestion", "legacy_unverified", "missing"];
+/** One real sentence from the site, both sides trimmed around the term. */
+export type GlossaryExample = { english: string; target: string; href: string };
 export type PublicGlossaryEntry = {
   term: string;
   kind: string;
   gloss: string | null;
   target: string | null;
   status: "draft" | "approved" | "missing";
+  provenance: PublicGlossaryProvenance;
+  example: GlossaryExample | null;
   version: string | null;
 };
 export type Rendering = {
@@ -37,6 +49,8 @@ export type Rendering = {
   kind: string;
   target: string;
   status: "draft" | "approved";
+  /** Absent reads as unchecked: approved wording is never assumed checked. */
+  provenance?: Exclude<PublicGlossaryProvenance, "missing">;
   updated_at: number;
   /** Draft/restore changes advance this even when approved bytes are unchanged. */
   review_revision?: number;
@@ -63,6 +77,8 @@ export function projectGlossary(
       gloss: row.gloss || null,
       target: null,
       status: "missing",
+      provenance: "missing",
+      example: null,
       version: null,
     });
   for (const row of rows)
@@ -72,6 +88,11 @@ export function projectGlossary(
       gloss: entries.get(row.term)?.gloss ?? null,
       target: row.target || null,
       status: row.status,
+      provenance:
+        row.status === "draft"
+          ? "machine_suggestion"
+          : (row.provenance ?? "legacy_unverified"),
+      example: null,
       version: renderingVersion(row),
     });
   return [...entries.values()].sort((a, b) => a.term.localeCompare(b.term));

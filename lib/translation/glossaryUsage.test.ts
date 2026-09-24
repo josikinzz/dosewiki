@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
-import { buildGlossaryUsageIndex, queryGlossaryUsage } from "./glossaryUsage";
+import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
+import { buildGlossaryUsageIndex, queryGlossaryExampleCandidates, queryGlossaryUsage } from "./glossaryUsage";
 
 const reads = {
   getPublicSubstanceDocuments: async () => [{
@@ -31,6 +32,14 @@ async function usage(term: string) {
 }
 
 describe("glossary source usage", () => {
+  it("offers content usages as example candidates keyed by their stored segment, and keeps segments out of disclosures", async () => {
+    const summary = "A replicator studies replications. Tracers are not traceroute. Tracers recur.";
+    const candidates = queryGlossaryExampleCandidates(await index, "Tracers");
+    expect(candidates).toContainEqual({ hash: segmentHash(summary), english: summary, href: "/dmt" });
+    expect(candidates.every((candidate) => candidate.hash && candidate.english)).toBe(true);
+    expect(JSON.stringify((await usage("Tracers")).nodes)).not.toContain("segment");
+  });
+
   it("links numbered source headings with and without the presentation ordinal", async () => {
     const numbered = await usage("1. Taking Off");
     const plain = await usage("Taking Off");

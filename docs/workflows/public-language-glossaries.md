@@ -2,11 +2,26 @@
 
 `/glossary` remains the English reference; the existing Chinese mirror glossary
 is unchanged. `/glossary/languages` lists participating translation languages
-with stored rows. `/glossary/[locale]` shows proposed, approved and missing
-translations, English definitions, category/search controls and source usage.
-The public projection excludes reviewer identity and private feedback. Pending
-workbench drafts are shown as proposed wording while the effective approved
-term remains unchanged. Pages and transactional feedback validation use the same
+with stored rows. `/glossary/[locale]` shows each term's translation, English
+definition, source usage, and one of four statuses: "Checked by a person",
+"Machine suggestion", "Live, not yet checked", or "Not translated yet".
+Category, status, and search filters combine. The public projection excludes
+reviewer identity and private feedback. Pending workbench drafts are shown as
+proposed wording (a suggestion) while the effective approved term remains
+unchanged.
+
+A term is "Checked by a person" only when the newest recorded approval carries
+the exact live wording and names the reviewer the row names, the same rule the
+workbench applies. The comparison runs in the rendering SQL, so no reviewer
+identity leaves the database. Legacy approvals without that record read "Live,
+not yet checked" until someone confirms them in the workbench.
+
+Each term may show one in-context example: the first current usage from its
+source-usage list whose segment has a stored translation in that language, with
+the English and the stored translation both trimmed around the term (the shared
+term matcher in `scripts/translation/term-match.mjs` finds the English form). A
+term without such a usage shows no example. Status and link copy come from the
+UI catalog (`languageGlossary.*` message IDs). Pages and transactional feedback validation use the same
 single-query snapshot of canonical and review rows. Feedback versions and release
 evidence include the review revision, so an intervening draft, approval or restore
 invalidates older feedback forms and readiness evidence even if wording repeats.
