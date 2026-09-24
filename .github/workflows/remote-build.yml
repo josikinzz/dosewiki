@@ -1,11 +1,12 @@
 name: Remote Build
 
-# Build one surface on a runner near the database and upload it to Vercel as a
-# prebuilt deployment: a preview by default, or with target=production an
-# unaliased production deployment (--prod --skip-domain). Stops there: no step
-# assigns an alias or promotes, and no database write credential reaches the
-# build. Promotion stays in the manual release ceremony in
-# docs/operations/deployment.md.
+# Upload one surface's source to Vercel and let Vercel's builders build it: a
+# preview by default, or with target=production an unaliased production
+# deployment (--prod --skip-domain). The runner only checks out, scans, stages
+# the surface's cron jobs, and uploads; the build itself runs on Vercel with
+# the project's own environment, next to nothing on this runner. Stops there:
+# no step assigns an alias or promotes. Promotion stays in the manual release
+# ceremony in docs/operations/deployment.md.
 #
 # Capabilities and limits are described in docs/operations/security-ci.md
 # under "Remote build workflow".
@@ -22,15 +23,10 @@ on:
           - editor
           - effectindex
       ref:
-        description: Git ref to build (empty builds the ref this run was dispatched from)
+        description: Git ref to build (a branch, tag, or full commit SHA; empty builds the ref this run was dispatched from)
         type: string
         required: false
         default: ""
-      runner:
-        description: Runner label for runs-on (GitHub-hosted by default; a Blacksmith label is a drop-in swap)
-        type: string
-        required: false
-        default: ubuntu-latest
       environment:
         description: GitHub environment holding the surface's Vercel deploy token and project id
         type: environment
@@ -44,40 +40,27 @@ on:
           - preview
           - production
       dry_run:
-        description: Only print the build wrapper's plan; no build, no deploy
+        description: Only print what would be uploaded; no upload, no build
         type: boolean
         required: false
         default: false
-      build_workers:
-        description: DOSEWIKI_BUILD_WORKERS (static generation workers, 1 to 16)
-        type: string
-        required: false
-        default: "4"
-      pages_per_worker:
-        description: DOSEWIKI_BUILD_PAGES_PER_WORKER (pages in flight per worker, 1 to 8)
-        type: string
-        required: false
-        default: "1"
 
 permissions:
   contents: read
 
-# One remote build at a time across all surfaces. Three builds in parallel
-# exhausted the read-only role's connections (connection terminated, connect
-# timeout) while one alone completes. GitHub keeps one queued run per group, so
-# dispatch surfaces one after another; a newer dispatch replaces a queued one.
+# One release build at a time across all surfaces, so builds reach the
+# database in turn. GitHub keeps one queued run per group, so dispatch
+# surfaces one after another; a newer dispatch replaces a queued one.
 concurrency:
   group: remote-build
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build ${{ inputs.surface }} on ${{ inputs.runner }}
-    runs-on: ${{ inputs.runner }}
+    name: Build ${{ inputs.surface }} on Vercel
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
-      DATA_BACKEND: postgres
-      DATA_WRITES_FROZEN: "1"
       VERCEL_CLI: vercel@59.25.4
 
     steps:
@@ -90,177 +73,80 @@ jobs:
         run: node scripts/security/scan-secrets.mjs --tracked
 
       # The surface input names an artifact. scripts/build/build-surface.mjs, the
-      # module next.config.ts reads, derives its build surface, flavor, build
-      # directory, and this run's skew-protection deployment ID from that name.
+      # module next.config.ts reads, derives its build surface and flavor from
+      # that name. The Vercel project's own environment sets the same values
+      # for the build; the summary records what this artifact expects.
       - name: Resolve the artifact's build surface and flavor
         id: artifact
         env:
           ARTIFACT: ${{ inputs.surface }}
         run: node scripts/build/build-surface-cli.mjs outputs "$ARTIFACT" | tee -a "$GITHUB_OUTPUT"
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
-        with:
-          bun-version: "1.3.5"
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
       # The root vercel.json lists every project's cron jobs. Keep only the
       # jobs this artifact's project owns, so writer jobs never reach a public
-      # deployment.
+      # deployment. The staged file is part of the upload.
       - name: Stage this artifact's cron jobs
         run: node scripts/deploy/stage-vercel-crons.mjs "${{ inputs.surface }}"
 
-      - name: Print the build wrapper's plan (dry run)
+      - name: Print the upload plan (dry run)
         if: ${{ inputs.dry_run }}
-        env:
-          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
-          NEXT_PUBLIC_SITE_FLAVOR: ${{ steps.artifact.outputs.flavor }}
         run: |
-          node scripts/deploy/vercel-build.mjs --plan | tee plan.txt
           {
-            echo "## Dry run: ${{ inputs.surface }} on ${{ inputs.runner }}"
+            echo "## Dry run: ${{ inputs.surface }} on Vercel"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Commit | \`$(git rev-parse HEAD)\` |"
+            echo "| Surface / flavor | ${{ steps.artifact.outputs.surface }} / ${{ steps.artifact.outputs.flavor }} |"
+            echo "| Target | ${{ inputs.target }} |"
+            echo
+            echo "Staged cron paths:"
             echo
             echo '```'
-            cat plan.txt
+            node -e 'for (const c of require("./vercel.json").crons) console.log(c.schedule + "  " + c.path)'
             echo '```'
             echo
-            echo "No build ran and nothing was deployed."
+            echo "Nothing was uploaded or built."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # The webpack filesystem cache is versioned with the Next deployment ID
-      # inside next.config.ts; this key only decides which snapshot to restore.
-      - name: Restore the Next build cache
-        if: ${{ !inputs.dry_run }}
-        id: cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ steps.artifact.outputs.dir }}/cache
-          key: next-cache-${{ inputs.surface }}-${{ hashFiles('bun.lock') }}-${{ github.sha }}
-          restore-keys: |
-            next-cache-${{ inputs.surface }}-${{ hashFiles('bun.lock') }}-
-            next-cache-${{ inputs.surface }}-
-
-      # Pulls the project settings the CLI needs to run the package-owned build
-      # command. The pulled environment file is cut down before anything reads
-      # it to the public build inputs a Vercel-hosted build would also inline
-      # (NEXT_PUBLIC_* and NODE_OPTIONS); every secret line is deleted, and the
-      # job builds with those plus the variables named in the build step.
-      - name: Link the Vercel project for this surface
-        if: ${{ !inputs.dry_run }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          test -n "$VERCEL_TOKEN" || { echo "::error::VERCEL_TOKEN is required in the selected environment"; exit 1; }
-          test -n "$VERCEL_ORG_ID" || { echo "::error::VERCEL_ORG_ID is required in the selected environment"; exit 1; }
-          test -n "$VERCEL_PROJECT_ID" || { echo "::error::VERCEL_PROJECT_ID is required in the selected environment"; exit 1; }
-          target="${{ inputs.target }}"
-          bunx "$VERCEL_CLI" pull --yes --environment="$target" --token="$VERCEL_TOKEN"
-          env_file=".vercel/.env.$target.local"
-          public_inputs="$(node scripts/build/build-surface-cli.mjs public-build-inputs "$env_file")"
-          rm -f .vercel/.env.*.local
-          printf '%s\n' "$public_inputs" > "$env_file"
-          echo "Build inputs kept from the $target environment:"
-          sed 's/=.*//' "$env_file"
-
-      # vercel build runs vercel.json's buildCommand (bun run build:vercel), so
-      # the function-reference check and the artifact audit run exactly as they
-      # do on a laptop. Configure the values in the selected environment;
+      # vercel deploy uploads the checkout (minus .vercelignore) and Vercel runs
+      # vercel.json's buildCommand (bun run build:vercel) with the project's
+      # environment, so the function-reference check and the artifact audit run
+      # there. The platform assigns the deployment ID that skew protection uses.
       # RELEASE_BUILD_ENABLED is the same explicit gate the policy workflow uses.
-      - name: Build with explicitly approved read-only configuration
-        if: ${{ !inputs.dry_run }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          RELEASE_BUILD_ENABLED: ${{ vars.RELEASE_BUILD_ENABLED }}
-          POSTGRES_POOLED_URL: ${{ secrets.POSTGRES_POOLED_READONLY_URL }}
-          REPLICATION_MEDIA_BASE_URL: ${{ vars.REPLICATION_MEDIA_BASE_URL }}
-          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
-          NEXT_PUBLIC_SITE_FLAVOR: ${{ steps.artifact.outputs.flavor }}
-          DOSEWIKI_BUILD_WORKERS: ${{ inputs.build_workers }}
-          DOSEWIKI_BUILD_PAGES_PER_WORKER: ${{ inputs.pages_per_worker }}
-          # A Vercel-hosted build gets its deployment ID from the platform, and
-          # that ID is what skew protection routes a returning client by
-          # (the ?dpl= on every chunk and font URL). A prebuilt upload has no ID
-          # yet, so name one per run (gh-<run id>-<attempt>, resolved with the
-          # artifact). next.config.ts adopts it as deploymentId for build and
-          # request time alike, and vercel build records it in the output config.
-          DOSEWIKI_PREBUILT_DEPLOYMENT_ID: ${{ steps.artifact.outputs.deployment_id }}
-        run: |
-          test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
-          test -n "$POSTGRES_POOLED_URL" || { echo "::error::POSTGRES_POOLED_READONLY_URL is required"; exit 1; }
-          test -n "$REPLICATION_MEDIA_BASE_URL" || { echo "::error::REPLICATION_MEDIA_BASE_URL is required"; exit 1; }
-          test -n "$DOSEWIKI_PREBUILT_DEPLOYMENT_ID" || { echo "::error::The artifact step resolved no prebuilt deployment ID"; exit 1; }
-          prod_flag=""
-          if [ "${{ inputs.target }}" = "production" ]; then prod_flag="--prod"; fi
-          bunx "$VERCEL_CLI" build --yes $prod_flag --token="$VERCEL_TOKEN"
-
-      - name: Save the Next build cache
-        if: ${{ !inputs.dry_run && always() }}
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ steps.artifact.outputs.dir }}/cache
-          key: ${{ steps.cache.outputs.cache-primary-key }}
-
-      - name: Prerender census
-        if: ${{ !inputs.dry_run }}
-        env:
-          DOSEWIKI_BUILD_SURFACE: ${{ steps.artifact.outputs.surface }}
-        run: bun run build:census -- "${{ steps.artifact.outputs.dir }}" | tee census.txt
-
-      # A prebuilt upload drops every function file .vercelignore excludes,
-      # except under default output paths such as .next. The editor builds into
-      # .next-editor, so its `.next-*/` rule would strip files the functions
-      # reference. Drop that rule in this throwaway checkout only; the upload
-      # set is still .vercel/output plus the files its functions name. The CLI
-      # fails when the rule is gone.
-      - name: Keep the build directory's function files in the upload
-        if: ${{ !inputs.dry_run }}
-        run: node scripts/build/build-surface-cli.mjs unignore-build-directories .vercelignore
-
-      # A preview, or an unaliased production deployment (--skip-domain). No
-      # alias, no promotion: the deployment URL is printed for the release
-      # ceremony to inspect and promote.
-      - name: Deploy the prebuilt output
+      - name: Upload the source for a Vercel build
         if: ${{ !inputs.dry_run }}
         id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          RELEASE_BUILD_ENABLED: ${{ vars.RELEASE_BUILD_ENABLED }}
         run: |
-          # --archive=tgz: the prebuilt output exceeds the 15000-file upload limit.
+          test "$RELEASE_BUILD_ENABLED" = "true" || { echo "::error::Selected environment must explicitly enable release builds"; exit 1; }
+          test -n "$VERCEL_TOKEN" || { echo "::error::VERCEL_TOKEN is required in the selected environment"; exit 1; }
+          test -n "$VERCEL_ORG_ID" || { echo "::error::VERCEL_ORG_ID is required in the selected environment"; exit 1; }
+          test -n "$VERCEL_PROJECT_ID" || { echo "::error::VERCEL_PROJECT_ID is required in the selected environment"; exit 1; }
+          # --archive=tgz: the source tree exceeds the 15000-file upload limit.
           prod_flags=""
           if [ "${{ inputs.target }}" = "production" ]; then prod_flags="--prod --skip-domain"; fi
-          url="$(bunx "$VERCEL_CLI" deploy --prebuilt --archive=tgz --yes $prod_flags --token="$VERCEL_TOKEN")"
+          url="$(npx --yes "$VERCEL_CLI" deploy --archive=tgz --yes $prod_flags --token="$VERCEL_TOKEN")"
           test -n "$url" || { echo "::error::vercel deploy printed no deployment URL"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Publish the job summary
         if: ${{ !inputs.dry_run && always() }}
         run: |
-          case "${{ steps.cache.outputs.cache-hit }}" in
-            true) cache="hit (exact key)";;
-            *) if [ -n "${{ steps.cache.outputs.cache-matched-key }}" ]; then cache="partial hit (${{ steps.cache.outputs.cache-matched-key }})"; else cache="miss"; fi;;
-          esac
           {
-            echo "## Remote build: ${{ inputs.surface }} on ${{ inputs.runner }}"
+            echo "## Remote build: ${{ inputs.surface }} on Vercel"
             echo
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| Ref | \`${{ inputs.ref || github.ref }}\` at \`${{ github.sha }}\` |"
-            echo "| Next cache | $cache |"
-            echo "| Workers x pages per worker | ${{ inputs.build_workers }} x ${{ inputs.pages_per_worker }} |"
+            echo "| Ref | \`${{ inputs.ref || github.ref }}\` at \`$(git rev-parse HEAD)\` |"
+            echo "| Surface / flavor | ${{ steps.artifact.outputs.surface }} / ${{ steps.artifact.outputs.flavor }} |"
             echo "| Target | ${{ inputs.target }} |"
             echo "| Deployment | ${{ steps.deploy.outputs.url || 'not deployed (see the failed step)' }} |"
             echo
             echo "No alias was assigned. Promotion is a separate, manual step."
-            echo
-            echo '```'
-            cat census.txt 2>/dev/null || echo "census unavailable: the build did not finish"
-            echo '```'
+            echo "The build log, census, and elapsed time are on the Vercel deployment."
           } >> "$GITHUB_STEP_SUMMARY"

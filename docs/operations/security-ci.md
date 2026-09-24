@@ -30,51 +30,46 @@ Action or Bun updates should be a deliberate pull request that:
 
 ### Remote build workflow
 
-`.github/workflows/remote-build.yml` is a manually dispatched build of one
-surface (public, editor, or Effect Index) on a runner near the database,
-uploaded to Vercel as a prebuilt deployment. It exists so a release build
-does not have to run on a laptop an ocean away from PlanetScale. Its inputs
-are the surface, a git ref, the runner label (`runs-on` is that one input, so
-a Blacksmith label is a drop-in swap), the GitHub environment, the target
-(`preview` by default, or `production`), a dry-run switch, and the two static
-generation concurrency values.
+`.github/workflows/remote-build.yml` is a manually dispatched release build of
+one surface (public, editor, or Effect Index). The runner does not build: it
+uploads the checked-out source to Vercel, and Vercel's builders run the build
+with the project's own environment. Release builds do not run on a laptop or
+on a GitHub runner; Vercel's builders are the only place the public build
+completes reliably (the reasons are in
+[deployment](deployment.md#where-the-build-runs)). Its inputs are the
+surface, a git ref (a branch, tag, or full commit SHA; `actions/checkout`
+cannot fetch a short SHA), the GitHub environment, the target (`preview` by
+default, or `production`), and a dry-run switch.
 
 What it can do:
 
-- run the secret scan, install with the frozen lockfile, restore and save the
-  Next build cache keyed on surface and lockfile hash;
-- pull the Vercel project settings for the target, then cut the pulled
-  environment file down to its `NEXT_PUBLIC_*` and `NODE_OPTIONS` lines, the
-  public build inputs a Vercel-hosted build would inline too, so no secret
-  line survives to the build (the filter is `keepPublicBuildInputs` in
-  `scripts/build/build-surface.mjs`, fixture-tested beside it);
-- run the package-owned build command through `vercel build` with
-  `DATA_BACKEND=postgres`, `DATA_WRITES_FROZEN=1`, the read-only pooled
-  Postgres URL, and the replication media base from the selected environment;
-- print the prerender census and the elapsed build time as the job summary;
-- upload the build output and print its URL: a preview deployment, or with
+- run the secret scan and stage the surface's cron jobs into the upload;
+- upload the source with `vercel deploy`: a preview deployment, or with
   `target: production` a production deployment created with `--skip-domain`,
-  which serves the production environment at its own URL and holds no
-  domain until the release ceremony promotes it.
+  which serves the production environment at its own URL and holds no domain
+  until the release ceremony promotes it;
+- print the deployment URL as the job summary. The build log on the Vercel
+  deployment ends with the prerender census and elapsed time, which
+  `bun run build:vercel` prints after a successful build.
 
 What it cannot do, by construction:
 
+- build on the runner or upload prebuilt output;
+- hold a database URL: the build reads the Vercel project's own read-only
+  environment, never a GitHub secret;
 - assign a domain or promote: every production upload passes
   `--skip-domain`, and there is no `alias` or `promote` step;
-- write to the database: the environments it uses hold no write credential,
-  and the freeze variable is set for the whole job;
 - run on push or on a schedule: `workflow_dispatch` only, gated by the
   selected environment's required reviewers and its `RELEASE_BUILD_ENABLED`
   variable.
 
 The Vercel token it uses is a team token: Vercel does not scope tokens below
 deploy capability, so the only thing keeping it from promoting is the absence
-of a step that would. The pulled production file briefly holds that
-project's secrets on the runner before the job deletes those lines; the
-token could read them anyway, which is why it counts as production-capable. Treat it as production-capable, keep it in a
+of a step that would. Treat it as production-capable, keep it in a
 reviewer-gated environment, and record its scope in
 [data credentials](data-credentials.md#remote-build-deploy-token). A dry run
-(`dry_run: true`) prints the build wrapper's plan banner and nothing else.
+(`dry_run: true`) prints the commit, surface, target, and staged cron paths,
+and uploads nothing.
 
 ### Dependency audit reporting
 

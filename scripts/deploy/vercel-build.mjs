@@ -127,6 +127,10 @@ function main() {
   const startedAt = new Date();
   const status = run("bun", ["run", "build"]);
   writeBuildTiming({ startedAt, endedAt: new Date(), exitStatus: status });
+  // A Vercel-hosted build leaves no local output to point build:census at, so
+  // print the release's page count into the build log here. Informational:
+  // a census failure never changes the build's status.
+  if (status === 0) run("node", ["scripts/build/prerender-census.mjs"]);
   process.exit(status);
 }
 

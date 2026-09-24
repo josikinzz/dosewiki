@@ -194,14 +194,17 @@ test("the workflows name artifacts from this module instead of re-encoding the t
   const remoteSteps = remote.jobs.build.steps;
   const resolve = remoteSteps.find((step) => step.id === "artifact");
   assert.match(resolve.run, /build-surface-cli\.mjs outputs "\$ARTIFACT"/);
-  const build = remoteSteps.find((step) => step.env?.DOSEWIKI_PREBUILT_DEPLOYMENT_ID);
-  assert.equal(build.env.DOSEWIKI_PREBUILT_DEPLOYMENT_ID, "${{ steps.artifact.outputs.deployment_id }}");
-  assert.equal(build.env.DOSEWIKI_BUILD_SURFACE, "${{ steps.artifact.outputs.surface }}");
-  assert.equal(build.env.NEXT_PUBLIC_SITE_FLAVOR, "${{ steps.artifact.outputs.flavor }}");
   const remoteRuns = remoteSteps.map((step) => step.run ?? "").join("\n");
-  assert.match(remoteRuns, /build-surface-cli\.mjs public-build-inputs/);
-  assert.match(remoteRuns, /build-surface-cli\.mjs unignore-build-directories/);
+  assert.match(remoteRuns, /stage-vercel-crons\.mjs "\$\{\{ inputs\.surface \}\}"/);
   assert.doesNotMatch(remoteRuns, /case "\$\{\{ inputs\.surface \}\}"|NEXT_PUBLIC_\[A-Z0-9_\]|sed -i/);
+  // Vercel builds the upload: the runner never builds, never uploads prebuilt
+  // output, and never holds a database URL.
+  const deploy = remoteSteps.find((step) => step.id === "deploy");
+  assert.match(deploy.run, /deploy --archive=tgz --yes \$prod_flags/);
+  assert.match(deploy.run, /prod_flags="--prod --skip-domain"/);
+  assert.doesNotMatch(remoteRuns, /--prebuilt|vercel\S* build|bun run build/);
+  assert.doesNotMatch(remoteRuns, /VERCEL_CLI" (promote|alias)|vercel (promote|alias)/);
+  assert.doesNotMatch(JSON.stringify(remote), /POSTGRES/);
 
   const policy = await readWorkflow("vercel-policy-checks.yml");
   const release = policy.jobs["release-build"];

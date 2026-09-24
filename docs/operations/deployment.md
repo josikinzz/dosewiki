@@ -67,83 +67,64 @@ Preconditions:
 5. Confirm the editor environment has every handler environment value required by `lib/postgres/runtime/deploymentEnv.ts`.
 6. Inspect [data credentials](data-credentials.md) before any data-changing step. A deploy does not authorize a data write.
 
-Build with the package-owned Vercel path:
-
-```bash
-bun install --frozen-lockfile
-bun run build:vercel
-```
+Every release build runs on Vercel's builders through the package-owned
+command, `bun run build:vercel` (vercel.json's `buildCommand`). Nothing is
+built on a laptop or on a GitHub runner.
 
 ### Where the build runs
 
-Two build paths produce the same artifact through the same command:
+Dispatch `.github/workflows/remote-build.yml` with the surface, the ref (a
+branch, tag, or full commit SHA; a short SHA fails at checkout), the
+surface's GitHub environment, and the target. The runner stages the surface's
+cron jobs and uploads the source; Vercel builds it with the project's own
+environment and assigns the deployment ID that skew protection uses. With
+`target: production` the upload is a production deployment created with
+`--skip-domain`: it serves the production environment at its own URL and
+holds no domain. The release order below continues from step 3 with that
+deployment. Dispatch one surface at a time, in release order. Capabilities
+and limits: [security CI](security-ci.md#remote-build-workflow). The
+environments and tokens are recorded in
+[data credentials](data-credentials.md#remote-build-deploy-token).
 
-- **Remote (preferred once proven).** Dispatch
-  `.github/workflows/remote-build.yml` with the surface, the ref, the runner
-  label, the surface's GitHub environment, and the target. It runs
-  `bun run build:vercel` through `vercel build` next to the database, prints
-  the census and elapsed time as the job summary, and uploads the output.
-  With `target: production` the upload is a production deployment created
-  with `--skip-domain`: it serves the production environment at its own URL
-  and holds no domain. The release order below continues from step 3 with
-  that deployment. Dispatch one surface at a time, in release order.
-  Capabilities and limits: [security CI](security-ci.md#remote-build-workflow).
-  Provisioning the environments and running the first build is a human step
-  recorded in [data credentials](data-credentials.md#remote-build-deploy-token).
-- **Laptop (the fallback).** The isolated release trees and the commands in
-  this section, exactly as before.
+The same upload works by hand from an isolated release tree (a detached
+`git worktree` at the release commit, cron jobs staged, linked to the
+project): `vercel deploy --prod --skip-domain --archive=tgz --yes`. If the
+CLI loses its connection while it waits, the build continues on Vercel;
+read its state with `vercel inspect <deployment id>`.
 
-Limits of the remote path, observed on its first runs:
+Why Vercel builds it:
 
-- Run one remote build at a time. Three in parallel exhausted the read-only
-  role's database connections; the workflow's shared concurrency group queues
-  them, and GitHub keeps only one queued run, so dispatch surfaces in turn.
-- On a standard GitHub-hosted runner, public builds are not reliable yet.
-  The cause, from the PlanetScale logs of 2026-09-23: `FATAL: terminating
-  connection due to idle-in-transaction timeout`. A CPU-starved build worker
-  holds a read transaction open without sending for more than the 30s
-  `idle_in_transaction_session_timeout` the runtime sets, and Postgres ends
-  the session ("Connection terminated unexpectedly" in the build). The
-  database itself answers quickly (p99 29 ms that day); the read-only role
-  shares a PgBouncer pool of 8 server connections (`default_pool_size`, and
-  `max_db_connections` 20 across all roles) on a PS-5 cluster (1/16 vCPU).
-  The runtime client reruns a read-only query on a fresh connection, logging
-  `postgres: connection lost, rerunning read-only query`, and a 45s client
-  `query_timeout` turns a silent socket into a rerun; that carried most
-  runs, but two public production runs still failed after six attempts on
-  one query, at four and at two workers. Vercel's 8-core builders did not
-  hit this. Before the remote path can be the default, give it a larger
-  runner (the `runner` input) or a larger database, and record the result
-  here. Do not lengthen the transaction timeouts to hide it.
-- A prebuilt upload drops function files `.vercelignore` excludes unless they
-  sit under a default output path such as `.next`. The editor builds into
-  `.next-editor`, so the workflow removes the `.next-*/` rule in its own
-  checkout before deploying (`build-surface-cli.mjs
-  unignore-build-directories`); without that, Vercel fails with `ENOENT ...
-  .next-editor/package.json`.
-- A prebuilt upload has no platform deployment ID at build time, so skew
-  protection would be off: chunk URLs lose their `?dpl=` and a reader still
-  on the previous version loads mismatched files after promotion. The
-  workflow sets `DOSEWIKI_PREBUILT_DEPLOYMENT_ID=gh-<run id>-<attempt>`
-  (named and adopted by `scripts/build/build-surface.mjs`), and
-  `next.config.ts` uses it as a custom skew-protection ID at build and at
-  request time. Setting `NEXT_DEPLOYMENT_ID` instead is not enough: pages
-  rendered on request then take Vercel's own ID, so their font preloads miss
-  the CSS font URLs and every font downloads twice. Before promoting a
-  runner-built artifact, confirm that a prerendered page (`/lsd`) and a page
-  rendered on request (`/effects/drifting`) both carry only `?dpl=gh-`, and
-  that the stylesheet's font URLs use the same ID.
-- A `target: preview` deployment runs with the project's preview
-  environment, which holds no database URL, so pages rendered on demand fail
-  there. Use it for the census, the artifact audit, and timing only; a
-  release uses `target: production`.
+- Vercel's 8-core builders complete every surface. On a standard
+  GitHub-hosted runner, public builds were not reliable: a CPU-starved build
+  worker held a read transaction open past the 30s
+  `idle_in_transaction_session_timeout` the runtime sets, Postgres ended the
+  session, and two public production runs failed after six attempts on one
+  query (PlanetScale logs, 2026-09-23; a third failed the same way on
+  2026-09-24). The database answers quickly (p99 29 ms); the read-only role
+  shares a PgBouncer pool of 8 server connections (`default_pool_size`,
+  `max_db_connections` 20 across all roles) on a PS-5 cluster. Do not
+  lengthen the transaction timeouts to hide it.
+- Blacksmith runners are not an option: Blacksmith supports GitHub
+  organizations only, and this repository belongs to a personal account.
+- A Vercel-hosted build gets its deployment ID from the platform, so skew
+  protection and font URLs agree without the `DOSEWIKI_PREBUILT_DEPLOYMENT_ID`
+  and `.vercelignore` repairs a prebuilt upload needs (both remain in
+  `scripts/build/build-surface.mjs` for a prebuilt upload, which is no longer
+  a release path).
 
-The remote path becomes the default release path after two production
-releases have gone through it end to end with their census and elapsed time
-recorded in the concurrency table below. Until then the laptop path is the
-default and the remote path is an option. Either way, record which path built
-each artifact in the release record; the two are not interchangeable
-evidence for each other.
+Before promoting, confirm that a prerendered page (`/lsd`) and a page
+rendered on request (`/effects/drifting`) carry only the new deployment's
+`?dpl=` ID, and that the stylesheet's font URLs use the same ID. Deployment
+URLs sit behind Vercel's login protection; read them with
+`vercel curl <path> --deployment <url>`.
+
+Run one release build at a time: three in parallel exhausted the read-only
+role's database connections. The workflow's shared concurrency group queues
+them, and GitHub keeps only one queued run, so dispatch surfaces in turn.
+
+A `target: preview` deployment runs with the project's preview environment,
+which holds no database URL, so pages rendered on demand fail there. Use it
+for the artifact audit and timing only; a release uses `target: production`.
 
 The build must use webpack and produce the surface-specific artifact audit. A public build is acceptable only when the audit reports no protected editorial browser modules. Do not set `NEXT_PUBLIC_EDITOR_BUILD` directly and do not treat dead-code elimination as artifact separation.
 
@@ -156,15 +137,14 @@ twice. Verify consecutive cached builds with different IDs. Do not clear
 
 Static generation concurrency defaults to four workers rendering one page
 each (`lib/next/buildConcurrency.ts`). `DOSEWIKI_BUILD_WORKERS` and
-`DOSEWIKI_BUILD_PAGES_PER_WORKER` raise those numbers for a build that runs
-next to the database. Raise in small steps and record every setting tried
+`DOSEWIKI_BUILD_PAGES_PER_WORKER` raise those numbers; set them in the Vercel
+project's environment, which is where the build reads them. Raise in small steps and record every setting tried
 here, with the census elapsed time and the peak PlanetScale connection count
 observed during the build; a value this table does not support is not
 authorized.
 
 | Where                | Workers | Pages per worker | Elapsed | Peak connections | Recorded    |
 | -------------------- | ------- | ---------------- | ------- | ---------------- | ----------- |
-| Laptop (M1 Pro)      | 4       | 1                | not yet measured with `build:census` | not measured | pending |
 | Vercel builder (iad1), public DoseWiki | 4 | 1 | 11.3 min (1426 pages; 19.3 min before the diet) | not measured | 2026-09-23 |
 | Vercel builder (iad1), editor | 4 | 1 | 12.8 min (1158 pages; 19.7 min before) | not measured | 2026-09-23 |
 | Vercel builder (iad1), Effect Index | 4 | 1 | 5.4 min (1160 pages; 22.6 min before) | not measured | 2026-09-23 |
@@ -175,6 +155,7 @@ authorized.
 | GitHub-hosted runner, editor | 4 | 1 | 5m 38s build, 8 min run (census total 1053; one dropped connection rerun) | not measured | 2026-09-23 |
 | GitHub-hosted runner, public DoseWiki, production target | 4 | 1 | 9m 31s and 15m 47s on two runs (census total 1321; up to 14 reruns); a third run failed after six attempts on one query | not measured | 2026-09-23 |
 | GitHub-hosted runner, public DoseWiki, production target | 2 | 1 | failed: idle-in-transaction termination, then six query read timeouts on `/ru` | not measured | 2026-09-23 |
+| Vercel builder (iad1), public DoseWiki, production target, source upload | 4 | 1 | 9.4 min (Vercel `buildingAt` to `ready`) | not measured | 2026-09-24 |
 
 Stage scheduler ownership in each isolated release tree before uploading it.
 `node scripts/deploy/stage-vercel-crons.mjs <public|editor|effectindex>` rewrites
