@@ -4,39 +4,52 @@ The `/dev/glossary` workbench separates terminology review, exact UI wording,
 source coverage, and publication evidence. Its locale capability is independent
 of the editor role. Every read and write checks the assigned locale on the server.
 
-## Layout: Words, Pages, Inbox
+## Layout: Terms, Interface text, Articles, Inbox, Style guide
 
-The workbench opens on Words with glossary categories closed and all review
-states included. Choose a category to open its terms. Opening another category
-closes the previous one. Search shows matching terms across categories.
-The Inbox loads only after the reviewer selects it or follows an Inbox link.
+One nav, **Workbench view**, sits beside a labeled **Language** picker that
+names each language in its own script (for example "Deutsch (German)"). Its
+five entries map onto three internal views: **Terms**, **Interface text**, and
+**Style guide** are the Words view's lists (`terms`, `labels`, `style`),
+**Articles** is the Pages view, and **Inbox** is the Inbox view.
 
-- **Inbox** lists everything in the locale that needs a person (see
-  [Review Inbox](#review-inbox)).
-- **Words** holds glossary terms and UI labels behind one search box, **Search
-  words**. The **Words list** switch picks **Glossary terms** or **UI labels**;
-  the search carries across both.
-- **Pages** holds the article reader (see
+The workbench opens on Terms with glossary categories closed and all review
+states included.
+
+- **Terms** starts with the language's review progress: how many terms are
+  approved, unreviewed, and live but never checked, with one bar. **Continue
+  reviewing** opens the first category (in site order) with work left and
+  focuses its first row needing review. When every term is reviewed, the same
+  place says what happens next. Below it, one toolbar row holds **Search
+  words**, the status filter, and a **More** menu with **Export CSV**, **Import
+  CSV**, and (admin-only) **Draft missing terms**. Opening a category closes
+  the previous one; each category header shows a small progress bar and its own
+  **Approve all** and **Confirm all**. Search shows matching terms across
+  categories.
+- **Interface text** holds the UI labels. It shares **Search words** with
+  Terms, so a search carries across both.
+- **Articles** holds the article reader (see
   [Substance narrative review](#substance-narrative-review)) with drawers
   under it: **Coverage** (per-page coverage and the release evidence import),
   **Recent changes** (recorded automatic changes), and **Reader feedback and
   website readiness**. Admins also see a collapsed **Runs** drawer with the
   latest run's progress and every control that calls the model for a whole
   locale: start the main translation, **Retranslate** pending terms, and retry
-  failed pages. A Translator without admin sees no run controls. **Draft
-  missing terms** stays with the glossary terms in Words, also admin-only.
+  failed pages. A Translator without admin sees no run controls.
+- **Inbox** lists everything in the locale that needs a person (see
+  [Review Inbox](#review-inbox)). It loads only after the reviewer selects it
+  or follows an Inbox link.
+- **Style guide** holds the locale's style guide.
 
-A status strip shows glossary totals: drafts, live never checked, and human
-approved. Pages and Inbox also show stored translation counts and run progress.
-Words keeps these operational counts out of the terminology workflow.
+Articles and Inbox show a status line with stored translation counts and run
+progress. Terms keeps those operational counts out of the terminology workflow.
 
-One **Status legend** defines the states every panel names: Machine, Draft,
-Live, never checked, Human approved, Source changed, and Re-check. Beside it
-the workbench says once: "Approved here is not deployed; Pages shows release
-evidence." Panels no longer repeat that approval, compilation, or processing is
-not publication; the release evidence itself (the Coverage drawer's
-publication status and rendered route evidence, and website readiness) sits in
-Pages.
+One collapsed **Status legend** defines the states every panel names: Machine,
+Draft, Live, never checked, Human approved, Source changed, and Re-check. Inside
+it the workbench says once: "Approved here is not yet deployed; Coverage in
+Articles shows what has been released." Panels do not repeat that approval,
+compilation, or processing is not publication; the release evidence itself
+(the Coverage drawer's publication status and rendered route evidence, and
+website readiness) sits in Articles.
 
 Review history sits in a drawer on each item: **History** on a glossary row, a
 UI label, and an open article paragraph.
@@ -52,20 +65,20 @@ locations only when opened. `includeUsage=1` explicitly requests the complete
 usage payload; normal entry, saves, and progress polls omit that work.
 
 Deep links keep working across the layout change. `translationView=inbox`,
-`words`, and `pages` name the views; with `words`, `translationWords=terms`,
+`words`, and `pages` name the internal views; with `words`, `translationWords=terms`,
 `labels`, or `style` opens that list (so `translationWords=style` opens the
 style guide). Older values map onto them: `glossary`
-(with `translationTerm`) and `labels` (with `translationLabel`) open Words on
-that list, searched to the term or label; `narrative`, `coverage`, and
-`changes` open Pages, with the Coverage or Recent changes drawer open for the
+(with `translationTerm`) and `labels` (with `translationLabel`) open Terms or
+Interface text, searched to the term or label; `narrative`, `coverage`, and
+`changes` open Articles, with the Coverage or Recent changes drawer open for the
 latter two; `translationReview=article` (with `translationSlug`,
 `translationSegment`, `translationVersion`, or `translationNote`) opens the
-article reader in Pages. `parseWorkbenchDeepLink` in
+article reader in Articles. `parseWorkbenchDeepLink` in
 `lib/translation/reviewInboxTypes.ts` owns the mapping.
 
 ## Review and history
 
-Glossary terms and UI labels in Words have separate **Save draft** and **Approve**
+Glossary terms and interface text have separate **Save draft** and **Approve**
 actions. Saving a correction retains the effective approved wording. Approving
 requires the revision that the reviewer actually saw. A conflicting update must
 be reloaded and reviewed again. Restoring history creates another draft; it never
@@ -87,9 +100,10 @@ needs one of four reason chips, **Fluency**, **Terminology**, **Accuracy**, or
 `reason` column as a versioned JSON object. Rows written before this change hold
 free text and read as `{ kind: "unspecified", note }`. A plain-text reason from
 an older caller, such as Inbox Accept or batch label approval, is still accepted
-and stored as plain text. The glossary terms list's **Approval reason** chips
-(Terminology by default) are recorded with every Approve and Confirm made there,
-in place of the fixed "Glossary review".
+and stored as plain text. Above the open glossary
+category, "Approvals here are recorded as **Terminology** changes" sets the
+reason kind (Terminology by default) recorded with every Approve and Confirm
+made there, in place of the fixed "Glossary review".
 
 Every correction save runs a glossary check on the server, through the shared
 term matcher (`scripts/translation/term-match.mjs`). If the English mentions an
@@ -185,7 +199,7 @@ order within the whole list:
 Findings run the validator over stored targets with the coverage inventory's
 bounded, batched reads. The scan is cached for at most five minutes and is
 rebuilt at once when the approved glossary changes. An article finding's
-**Edit** opens the article reader in Pages at that sentence; a glossary finding on
+**Edit** opens the article reader in Articles at that sentence; a glossary finding on
 another record kind opens the term; other findings link to the page.
 
 **Fine here** (key F) on a glossary or leftover-English finding records a
@@ -201,12 +215,12 @@ refuses a changed revision (409, nothing written), obeys the write freeze
 
 **Resolve** (key A) on a reader suggestion sets its feedback status to
 resolved through the existing `/api/glossary-feedback/<id>/status` mutation,
-the same one the reader feedback queue in Pages uses. To adopt the
+the same one the reader feedback queue in Articles uses. To adopt the
 reader's wording, use Edit to open the term first.
 
 #### Model fluency suggestions
 
-An admin can press **Review fluency** on the article open in Pages
+An admin can press **Review fluency** on the article open in Articles
 (`POST /api/dev/translation-fluency { locale, slug }`, admin only, one article
 per request). The model reads the article's English beside the wording readers
 see now, section by section (at most 12 requests of about 8,000 characters),
@@ -229,14 +243,14 @@ English or the wording readers see changes. **Accept as draft**
 (`POST /api/dev/translation-inbox/suggestion`, Translator and up) saves the
 suggested sentence as a narrative draft with reason `{ kind: "fluency" }` and
 marks the suggestion resolved in one transaction. It never approves: the draft
-waits in Pages. An open correction draft on that sentence, an expired
+waits in Articles. An open correction draft on that sentence, an expired
 suggestion, or a changed revision is refused (409).
 
 The prompt includes the locale's approved style guide: its rules and up to five
 examples chosen against the article's English, as in the translation prompt.
 Drafts never reach it.
 
-Recent changes in Pages reads `translationSegmentHistory`. Automatic article and
+Recent changes in Articles reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the
 same transaction as the translation write. Entries include their English source,
 model, prompt version, time, and links to current source records using that hash.
@@ -332,7 +346,7 @@ or medical accuracy.
 
 ## Coverage and propagation
 
-Coverage (a drawer in Pages) runs on demand. It inventories all six published record kinds and the
+Coverage (a drawer in Articles) runs on demand. It inventories all six published record kinds and the
 current UI source inventory. The source traversal is cached for at most five
 minutes; the response includes its timestamp. It counts never-stored segments,
 stale translations, recorded rejections, and glossary disagreements. Article
@@ -406,7 +420,7 @@ language translation.
 
 ## Substance narrative review
 
-The article reader in Pages shows one public substance article side by side. Find article
+The article reader in Articles shows one public substance article side by side. Find article
 searches substance titles and aliases in the public search manifests for English
 and, for a UI locale, the reviewed locale; Source slug remains as an exact fallback.
 English and the wording a reader sees now sit in two columns, paragraph by

@@ -17,23 +17,25 @@ export const STATUS_LEGEND: readonly { state: string; meaning: string }[] = [
   { state: "Re-check", meaning: "The approved wording still shows, but nearby English changed. Check that it still fits." },
 ];
 
-export const DEPLOYMENT_LINE = "Approved here is not deployed; Pages shows release evidence.";
+export const DEPLOYMENT_LINE = "Approved here is not yet deployed; Coverage in Articles shows what has been released.";
 
 export function StatusLegend() {
   const listId = useId();
   const [open, setOpen] = useState(false);
   return (
-    <div className="theme-text-faint flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-      <button type="button" aria-expanded={open} aria-controls={listId} className="theme-focus-ring inline-flex items-center gap-1 rounded-md font-medium" onClick={() => setOpen(!open)}>
+    <div className="theme-text-muted text-xs">
+      <button type="button" aria-expanded={open} aria-controls={listId} className="theme-focus-ring inline-flex min-h-8 items-center gap-1 rounded-md font-medium" onClick={() => setOpen(!open)}>
         Status legend
         <ExpandIndicator isExpanded={open} />
       </button>
-      <span>{DEPLOYMENT_LINE}</span>
-      <ul id={listId} aria-label="Status legend" hidden={!open} className="w-full space-y-1 pt-1">
-        {STATUS_LEGEND.map((entry) => (
-          <li key={entry.state}><strong className="theme-text-secondary">{entry.state}</strong>: {entry.meaning}</li>
-        ))}
-      </ul>
+      <div id={listId} hidden={!open} className="max-w-prose space-y-2 pt-1">
+        <ul aria-label="Status legend" className="space-y-1">
+          {STATUS_LEGEND.map((entry) => (
+            <li key={entry.state}><strong className="theme-text-secondary">{entry.state}</strong>: {entry.meaning}</li>
+          ))}
+        </ul>
+        <p>{DEPLOYMENT_LINE}</p>
+      </div>
     </div>
   );
 }

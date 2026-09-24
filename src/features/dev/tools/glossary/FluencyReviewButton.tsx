@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Admin-only "Review fluency" for the article open in Pages: one model review
+ * Admin-only "Review fluency" for the article open in Articles: one model review
  * of this article per press. Suggestions land in the Inbox and wait for a
  * person; nothing on the page changes.
  */

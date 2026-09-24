@@ -333,7 +333,7 @@ export async function acceptModelSuggestion(
     throw new TranslationReviewError("This suggestion no longer passes the validator or the glossary check.", 409, "MODEL_SUGGESTION_EXPIRED");
   const narrative = sentence.narrative;
   if (narrative?.draft && narrativeOverlayDecision("article", article.segments, sentence.segment, narrative.draft) !== "stale")
-    throw new TranslationReviewError("A correction draft is already open for this sentence. Edit it in Pages instead.", 409, "NARRATIVE_DRAFT_OPEN");
+    throw new TranslationReviewError("A correction draft is already open for this sentence. Edit it in Articles instead.", 409, "NARRATIVE_DRAFT_OPEN");
   const plan = await planNarrativeReview(reads, {
     locale: locale.code, kind: "article", slug: article.slug, id: sentence.id, sourceVersion: article.sourceVersion,
     expectedRevision: narrative?.revision ?? 0, action: "save", target: draft.target, actor: input.actor,

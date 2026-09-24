@@ -89,7 +89,13 @@ export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, 
           ariaLabel={`${category.label}: ${standing}`}
           ariaControls={bodyId}
         />
-        <span className="theme-text-faint flex-1 text-xs tabular-nums">{standing}</span>
+        <span className="flex flex-1 items-center gap-3">
+          {/* Decorative: the header's accessible name already carries these counts. */}
+          <span aria-hidden="true" className="hidden h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-[var(--theme-field-surface)] shadow-[inset_0_0_0_1px_var(--theme-border-subtle)] sm:flex">
+            <span className="block h-full bg-[var(--theme-accent)]" style={{ width: `${totals.total ? ((totals.total - totals.draft - totals.unchecked) / totals.total) * 100 : 0}%` }} />
+          </span>
+          <span className="theme-text-muted text-xs tabular-nums">{standing}</span>
+        </span>
         {/* A "Reviewed" pill only where a reviewed category can be seen at all; under Unreviewed it can never appear. */}
         {!open && statusFilter === "all" ? <EditorStatusPill tone="success">Reviewed</EditorStatusPill> : null}
         {expanded && draftCount > 0 ? (

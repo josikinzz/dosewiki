@@ -31,7 +31,7 @@ const REASON_TONE: Partial<Record<InboxReason, "info" | "warning" | "danger">> =
 const acceptLabel = (item: InboxItem) => (item.accept?.kind === "feedback-resolve" ? "Resolve" : item.accept?.kind === "suggestion-accept" ? "Accept as draft" : "Accept");
 const acceptedMessage = (item: InboxItem) =>
   item.accept?.kind === "feedback-resolve" ? `Resolved the suggestion on "${item.english}".`
-    : item.accept?.kind === "suggestion-accept" ? "Saved as a Fluency draft. Review and approve it in Pages; published wording is unchanged."
+    : item.accept?.kind === "suggestion-accept" ? "Saved as a Fluency draft. Review and approve it in Articles; published wording is unchanged."
       : `Accepted "${item.english}".`;
 
 type ReviewInboxProps = {

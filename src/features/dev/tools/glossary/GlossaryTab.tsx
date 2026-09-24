@@ -28,7 +28,7 @@
  */
 
 import { GlossaryReaderFeedback } from "./GlossaryReaderFeedback";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -82,8 +82,9 @@ import { RunsPanel } from "./RunsPanel";
 import { StatusLegend } from "./StatusLegend";
 import { WorkbenchDrawer } from "./WorkbenchDrawer";
 import { Input } from "@/components/ui/input";
-import { ReasonKindChips } from "./CorrectionReason";
-import type { CorrectionReasonKind, ReviewReason } from "@lib/translation/reviewReason";
+import { TermsOverview, type NextCategory } from "./TermsOverview";
+import { CORRECTION_REASON_KINDS, CORRECTION_REASON_LABEL, type CorrectionReasonKind, type ReviewReason } from "../../../../../lib/translation/reviewReason";
+import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
@@ -102,12 +103,31 @@ type CollisionReview = {
   term?: string;
 };
 
+/** The one nav: glossary terms, UI labels, and the style guide are the Words view's lists; Articles is the Pages view. */
+type WorkbenchSection = WordsList | Exclude<WorkbenchView, "words">;
+
+const SECTIONS: readonly { value: WorkbenchSection; label: string }[] = [
+  { value: "terms", label: "Terms" },
+  { value: "labels", label: "Interface text" },
+  { value: "pages", label: "Articles" },
+  { value: "inbox", label: "Inbox" },
+  { value: "style", label: "Style guide" },
+];
+
+/** "Deutsch (German)" where the site knows the language's own name, else the code. */
+function languageLabel(code: string): string {
+  const language = glossaryLanguage(code);
+  if (!language) return code;
+  return language.nativeName && language.nativeName !== language.name ? `${language.nativeName} (${language.name})` : language.name;
+}
+
 type GlossaryTabProps = {
   /** Drafting, retranslating, and the main translation call the model, so they are admin-only; definitions are editor and up; everything else is open to a translator. */
   viewerRole: AppRole | null;
 };
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
+  const fieldId = useId();
   const [view, setView] = useState<WorkbenchView>("words");
   /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
   const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, words: false, pages: false, labels: false, style: false });
@@ -149,7 +169,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const openWordsList = (next: WordsList) => {
     setWordsList(next);
     updateLocation({ translationView: "words", translationWords: next });
-    if (next === "labels" || next === "style") setVisitedViews((current) => ({ ...current, [next]: true }));
+    setView("words");
+    setVisitedViews((current) => ({ ...current, words: true, [next]: true }));
+  };
+  const section: WorkbenchSection = view === "words" ? wordsList : view;
+  const openSection = (next: WorkbenchSection) => {
+    if (next === "terms" || next === "labels" || next === "style") openWordsList(next);
+    else openView(next);
   };
   const uiEditDrafts = useRef<UiEditDrafts>(new Map());
   const termEditDrafts = useRef<GlossaryEditDrafts>(new Map());
@@ -240,8 +266,11 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const counts = reviewCounts(data?.rows ?? []);
   const draftCount = data ? data.rows.filter(needsReview).length : 0;
   const workingRows = filters.search.trim() ? rows : groups.find((group) => group.category.id === category)?.rows ?? [];
-  const shownDrafts = workingRows.filter((row) => row.status === "draft");
-  const shownUnchecked = workingRows.filter(isLiveUnchecked);
+  const nextCategory = useMemo<NextCategory | null>(() => {
+    if (!data) return null;
+    const next = groupRows(data.rows).find((group) => group.draftCount + group.uncheckedCount > 0);
+    return next ? { id: next.category.id, label: next.category.label, left: next.draftCount + next.uncheckedCount } : null;
+  }, [data]);
   const reviewComplete = !!data && data.rows.length > 0 && draftCount === 0;
   const nothingTranslatedYet = !!data && data.segments.total === 0;
   const toggleGroup = (id: string) => {
@@ -249,6 +278,21 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     setCategory(next);
     updateLocation({ translationCategory: next });
   };
+
+  /** Set by Continue: once the category renders, its first row needing review takes focus. */
+  const [continueTo, setContinueTo] = useState<string | null>(null);
+  const continueReview = (id: string) => {
+    const status = filters.status === "draft" || filters.status === "unchecked" ? filters.status : "all";
+    setFilters({ status, search: "" });
+    setCategory(id);
+    updateLocation({ translationCategory: id, translationStatus: status, translationTerm: null, translationLabel: null });
+    setContinueTo(id);
+  };
+  useEffect(() => {
+    if (!continueTo) return;
+    setContinueTo(null);
+    document.querySelector<HTMLElement>(`[data-testid="glossary-group-${continueTo}"] tr[data-needs-review="true"] input`)?.focus();
+  }, [continueTo]);
 
   /** Runs one write, reloads the locale, and reports the outcome; with a term, only that row locks and focus moves on afterwards. */
   const run = useCallback(
@@ -290,8 +334,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])), approvalReason);
       return `Approved ${count(approved.length, "term")}.`;
     });
-
-  const approveShown = () => confirmApprove(shownDrafts.map((row) => row.term), "shown");
 
   /** The category header's action: the confirm names the group so a stray click cannot approve the wrong hundred terms. */
   const confirmApprove = (terms: readonly string[], where: string) => {
@@ -358,7 +400,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     const terms = [...pending];
     confirm({
       title: `Retranslate everything that mentions ${count(terms.length, "term")}?`,
-      description: "Request background updates for translations that mention these terms. Runs and Coverage in Pages track the processing.",
+      description: "Request background updates for translations that mention these terms. Runs and Coverage in Articles track the processing.",
       confirmLabel: "Retranslate",
       affected: terms,
       onConfirm: () =>
@@ -445,7 +487,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       <EditorSection
         icon="lucide:book-a"
         title="Translation workbench"
-        description="Choose a glossary category, find a term, or open UI labels and articles. Save wording as a draft, then approve it separately."
+        description="Review how dose.wiki reads in your language. Wording you save is a draft until someone approves it."
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={() => void load(locale)} disabled={locked}>
             <Icon icon="lucide:refresh-cw" size={14} />
@@ -460,125 +502,127 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         ) : data === null ? (
           <StateCard loading compact title="Loading glossary" />
         ) : (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="w-full md:w-56">
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+              <div className="w-full space-y-1 md:w-64">
+                <label htmlFor={`${fieldId}-language`} className="theme-text-secondary block text-xs font-medium">Language</label>
                 <EditorSelect
-                  aria-label="Locale"
+                  id={`${fieldId}-language`}
                   selectSize="sm"
                   value={data.locale}
                   options={data.locales.map((option) => ({
                     value: option.locale,
-                    label: `${option.locale}${option.live ? " (live)" : ""}`,
+                    label: `${languageLabel(option.locale)}${option.live ? ", live" : ""}`,
                   }))}
                   disabled={locked}
                   onChange={(event) => changeLocale(event.target.value)}
                 />
               </div>
-              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => openView(next as WorkbenchView)} options={[
-                { value: "words", label: "Words", disabled: locked },
-                { value: "pages", label: "Pages", disabled: locked },
-                { value: "inbox", label: "Inbox", disabled: locked },
-              ]} />
+              <EditorSegmentedControl label="Workbench view" value={section} onChange={(next) => openSection(next as WorkbenchSection)} options={SECTIONS.map((option) => ({ ...option, disabled: locked }))} />
             </div>
 
-            {/* The status strip: the locale's totals in one line, on every view. */}
-            <p className="theme-text-faint text-xs" data-testid="glossary-summary">
-              {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved
-              {view !== "words" ? ` · ${data.segments.current} of ${count(data.segments.total, "stored translation")} follow the current terms` : ""}
-              {view !== "words" && runStatus(data, busy === "start") ? ` · ${runStatus(data, busy === "start")}` : ""}
-              {refreshError ? ` · Progress refresh failed: ${refreshError}` : ""}
-            </p>
+            {/* Operational counts for the views that deal in stored translations. */}
+            {view === "pages" || view === "inbox" ? (
+              <p className="theme-text-muted text-xs" data-testid="translation-summary">
+                {data.segments.current} of {count(data.segments.total, "stored translation")} follow the current terms
+                {runStatus(data, busy === "start") ? ` · ${runStatus(data, busy === "start")}` : ""}
+                {refreshError ? ` · Progress refresh failed: ${refreshError}` : ""}
+              </p>
+            ) : null}
             <StatusLegend />
 
             {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} /></div> : null}
 
             <div hidden={view !== "words"} className="space-y-4">
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="w-full md:w-80">
-                  <Input
-                    type="search"
-                    inputSize="sm"
-                    aria-label="Search words"
-                    placeholder="Search terms, renderings, UI labels, or context"
-                    value={filters.search}
-                    onChange={(event) => {
-                      setFilters((current) => ({ ...current, search: event.target.value }));
-                      updateLocation({ translationTerm: event.target.value || null, translationLabel: null });
-                    }}
-                  />
-                </div>
-                <EditorSegmentedControl label="Words list" value={wordsList} onChange={(next) => openWordsList(next as WordsList)} options={[
-                  { value: "terms", label: "Glossary terms", disabled: locked },
-                  { value: "labels", label: "UI labels", disabled: locked },
-                  { value: "style", label: "Style guide", disabled: locked },
-                ]} />
+              <div hidden={wordsList !== "terms"}>
+                <TermsOverview
+                  counts={counts}
+                  next={nextCategory}
+                  canAdmin={canAdmin}
+                  pendingCount={pending.length}
+                  nothingTranslatedYet={nothingTranslatedYet}
+                  locked={locked}
+                  onContinue={continueReview}
+                />
               </div>
+              {wordsList !== "style" ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="w-full md:w-72">
+                    <Input
+                      type="search"
+                      inputSize="sm"
+                      aria-label="Search words"
+                      placeholder={wordsList === "terms" ? "Search terms or translations" : "Search English, translation, or context"}
+                      value={filters.search}
+                      onChange={(event) => {
+                        setFilters((current) => ({ ...current, search: event.target.value }));
+                        updateLocation({ translationTerm: event.target.value || null, translationLabel: null });
+                      }}
+                    />
+                  </div>
+                  {wordsList === "terms" ? (
+                    <>
+                      <GlossaryFilterBar
+                        filters={filters}
+                        setFilters={(next) => {
+                          const value = typeof next === "function" ? next(filters) : next;
+                          setFilters(value);
+                          updateLocation({ translationStatus: value.status });
+                        }}
+                        draftCount={counts.drafts}
+                        uncheckedCount={counts.unchecked}
+                      />
+                      <div className="ml-auto">
+                        <GlossaryActionBar
+                          locale={data.locale}
+                          locked={locked}
+                          canAdmin={canAdmin}
+                          activity={busy ? BUSY_LABEL[busy] : writing ? (writing.field === "definition" ? "Saving definition" : `Saving "${writing.term}"`) : null}
+                          onImport={(file) => void importFile(file)}
+                          onDraft={draft}
+                        />
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
               {visitedViews.labels ? <div hidden={wordsList !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} search={filters.search} onSearchChange={(search) => setFilters((current) => ({ ...current, search }))} /></div> : null}
               {visitedViews.style ? <div hidden={wordsList !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
-            <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-4">
-            <p className="theme-text-secondary text-sm">Choose one category to work through. Search finds terms across categories.</p>
-            <GlossaryFilterBar
-              filters={filters}
-              setFilters={(next) => {
-                const value = typeof next === "function" ? next(filters) : next;
-                setFilters(value);
-                updateLocation({ translationStatus: value.status });
-              }}
-              draftCount={counts.drafts}
-              uncheckedCount={counts.unchecked}
-              shownDraftCount={shownDrafts.length}
-              shownUncheckedCount={shownUnchecked.length}
-              locked={locked}
-              onApproveShown={approveShown}
-              onConfirmShown={() => confirmLive(shownUnchecked.map((row) => row.term), "shown")}
-            />
-
-            {workingRows.length > 0 ? <ReasonKindChips label="Approval reason" value={approvalKind} disabled={locked} onChange={setApprovalKind} /> : null}
-
-            <GlossaryActionBar
-              locale={data.locale}
-              locked={locked}
-              canAdmin={canAdmin}
-              activity={busy ? BUSY_LABEL[busy] : writing ? (writing.field === "definition" ? "Saving definition" : `Saving "${writing.term}"`) : null}
-              onImport={(file) => void importFile(file)}
-              onDraft={draft}
-            />
-            {canDefine ? (
-              <p className="theme-text-faint text-xs">
-                Definitions tell the translator and the model what each term means on this site; edit one by clicking it.
+            <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-3">
+            {workingRows.length > 0 ? (
+              <p className="theme-text-muted flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
+                <label htmlFor={`${fieldId}-reason`}>Approvals here are recorded as</label>
+                  <EditorSelect
+                    id={`${fieldId}-reason`}
+                    selectSize="sm"
+                    className="h-8 min-h-0 w-auto py-0 pl-2 text-xs md:text-xs"
+                    value={approvalKind}
+                    disabled={locked}
+                    options={CORRECTION_REASON_KINDS.map((kind) => ({ value: kind, label: CORRECTION_REASON_LABEL[kind] }))}
+                    onChange={(event) => setApprovalKind(event.target.value as CorrectionReasonKind)}
+                  />
+                <span>changes.</span>
+                {canDefine ? <span>Click a definition to edit it.</span> : null}
               </p>
             ) : null}
 
-            {reviewComplete ? (
-              <StateCard
-                tone={pending.length > 0 && !nothingTranslatedYet ? "warning" : "success"}
-                icon={pending.length > 0 && !nothingTranslatedYet ? "lucide:languages" : "lucide:check-check"}
-                title={`All ${count(data.rows.length, "term")} for ${data.locale} are reviewed`}
-                description={nothingTranslatedYet
-                  ? `Nothing has been translated under these terms yet.${canAdmin ? " Start the main translation from Runs in Pages." : ""}`
-                  : pending.length > 0
-                    ? `${count(pending.length, "approved rendering")} ${pending.length === 1 ? "has" : "have"} not been queued for propagation yet. Retranslating redoes only the translations that mention ${pending.length === 1 ? "it" : "them"}.${canAdmin ? " Retranslate from Runs in Pages." : ""}`
-                    : "No reviewed term changes are waiting to be requested."}
-                compact
-              />
-            ) : canAdmin && data.rows.length > 0 ? (
-              <p className="theme-text-faint text-xs">
-                The main translation can start once every term is reviewed: {count(draftCount, "term")} still {draftCount === 1 ? "needs" : "need"} a decision.
-              </p>
-            ) : null}
-
-            {rows.length === 0 && !reviewComplete ? (
+            {rows.length === 0 && data.rows.length === 0 ? (
               <StateCard
                 tone="neutral"
                 icon="lucide:book-a"
-                title={data.rows.length === 0 ? "No terms yet" : "Nothing matches these filters"}
-                description={data.rows.length === 0
-                  ? canAdmin ? "Draft the missing terms or import a CSV to begin the review." : "Import a CSV, or ask an admin to draft the missing terms, to begin the review."
-                  : "Widen the status or search filter."}
+                title="No terms yet"
+                description={canAdmin ? "Draft the missing terms or import a CSV from More to begin the review." : "Import a CSV from More, or ask an admin to draft the missing terms, to begin the review."}
                 compact
               />
-            ) : rows.length === 0 ? null : (
+            ) : rows.length === 0 ? (
+              <StateCard
+                tone="neutral"
+                icon="lucide:search-x"
+                title="Nothing matches"
+                description={filters.status === "all" ? "Try another search." : "Try another search, or show All."}
+                compact
+              />
+            ) : (
               <div className="space-y-3" data-testid="glossary-groups">
                 {groups.map((group) => (
                   <GlossaryGroupSection
