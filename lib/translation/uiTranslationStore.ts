@@ -7,7 +7,7 @@ import { assertDataWritesNotFrozen, isDataWriteFrozenError } from "../runtime/da
 import { lockReviewEntry, mutateReviewEntry, mutateReviewEntryInTransaction, readReviewEntries, readReviewHistory, TranslationReviewConflictError, TranslationReviewError, type ReviewMutationOptions } from "./reviewStore";
 import type { ReviewAction, ReviewEntry, ReviewMutation } from "./reviewTypes";
 import { getCompiledUiCatalog, getUiCatalogPendingRefresh } from "./uiCatalogs";
-import { assertCorrectionKeepsGlossary, glossaryMentionsFor, readGlossaryMentionIndex } from "./glossaryConflictCheck";
+import { assertCorrectionKeepsGlossary, assertKeepsGlossaryIn, glossaryMentionsFor, readGlossaryMentionIndex } from "./glossaryConflictCheck";
 import type { GlossaryMention } from "./glossaryConflicts";
 import { isShortUiLabel, UI_BATCH_APPROVAL_REASON, type UiBatchApprovalItem, type UiBatchApprovalResult, type UiTranslationRow } from "./uiTranslationTypes";
 
@@ -80,11 +80,14 @@ async function approveReviewedLabel(locale: string, actor: string, item: UiBatch
   const target = item.target.trim();
   if (!target) throw new TranslationReviewError("Enter a translation before approving.");
   const base = { locale, scope: "ui" as const, sourceId: item.id, source: definition.source, context: definition.context, actor, reason: UI_BATCH_APPROVAL_REASON };
+  // The batch has no "Fine here" choice, so new wording must keep every approved term, as a single save does.
+  const glossary = await readGlossaryMentionIndex(locale);
   const row = await getPostgresClient().sqlTransaction(async (tx) => {
     const current = await lockReviewEntry(tx, locale, "ui", item.id);
     if ((current?.revision ?? 0) !== item.expectedRevision) throw new TranslationReviewConflictError();
     const draft = current?.draft;
     const saved = draft && draft.provenance !== "compiled" && draft.source === definition.source && draft.context === definition.context && draft.target === target;
+    if (!saved) assertKeepsGlossaryIn(glossary, definition.source, target);
     const revision = saved ? item.expectedRevision : (await mutateReviewEntryInTransaction(tx, { ...base, action: "save", target, expectedRevision: item.expectedRevision }, mutationOptions(locale, definition, "save"))).revision;
     return mutateReviewEntryInTransaction(tx, { ...base, action: "approve", expectedRevision: revision }, mutationOptions(locale, definition, "approve"));
   });

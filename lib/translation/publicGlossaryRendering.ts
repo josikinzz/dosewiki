@@ -4,11 +4,14 @@ import type { Rendering } from "../../src/features/language-glossary/languageGlo
  * Whether a person checked the live wording, decided in SQL so the reviewer
  * never leaves the database: the newest recorded approval must carry these
  * exact bytes and name the actor the row names. Legacy metadata alone is not
- * proof (the rule `projectGlossaryReviewRows` applies in the workbench). A
- * pending draft or an unapproved row is a suggestion.
+ * proof (the rule `projectGlossaryReviewRows` applies in the workbench). The
+ * live approved state decides first: a pending draft over approved wording is
+ * a proposed change, not what readers see. Only a row with no approved
+ * rendering is a suggestion.
  */
+const LIVE = `g."status" = 'approved'`;
 const PROVENANCE = `CASE
-    WHEN r."draft"->>'target' IS NOT NULL OR g."status" <> 'approved' THEN 'machine_suggestion'
+    WHEN NOT (${LIVE}) THEN 'machine_suggestion'
     WHEN r."approved"->>'target' = g."target" AND (
       SELECT h."after_state"->'approved'->>'target' = g."target" AND h."actor" = g."reviewed_by"
       FROM "translationReviewHistory" h
@@ -20,11 +23,12 @@ const PROVENANCE = `CASE
 
 /** One SQL snapshot shared by public pages and transactional feedback validation.
  * Select only public rendering fields, never reviewer identities or history.
+ * Approved rows show their live wording; a draft shows only where nothing is approved.
  */
 export const PUBLIC_GLOSSARY_RENDERING_SELECT = `SELECT g."term",
-  COALESCE(r."draft"->>'context', g."kind") AS "kind",
-  COALESCE(r."draft"->>'target', g."target") AS "target",
-  CASE WHEN r."draft"->>'target' IS NOT NULL THEN 'draft' ELSE g."status" END AS "status",
+  CASE WHEN ${LIVE} THEN g."kind" ELSE COALESCE(r."draft"->>'context', g."kind") END AS "kind",
+  CASE WHEN ${LIVE} THEN g."target" ELSE COALESCE(r."draft"->>'target', g."target") END AS "target",
+  CASE WHEN ${LIVE} THEN 'approved' WHEN r."draft"->>'target' IS NOT NULL THEN 'draft' ELSE g."status" END AS "status",
   ${PROVENANCE} AS "provenance",
   g."updated_at", COALESCE(r."revision", 0) AS "review_revision"
   FROM "translationGlossary" g LEFT JOIN "translationReviewEntries" r

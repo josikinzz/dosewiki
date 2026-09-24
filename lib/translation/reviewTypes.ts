@@ -1,17 +1,23 @@
 /** Shared, browser-safe contracts for human translation review. */
 import type { ReviewReason } from "./reviewReason";
 /**
- * `qa-exception` holds a reviewer's "Fine here" on an Inbox QA finding: an
- * approved snapshot keyed by the finding, segment hash, term, and glossary
- * revision, so the finding returns only when one of those changes.
- *
- * `model-suggestion` holds a model fluency suggestion for one article sentence
- * as a draft until a person accepts it; see `lib/translation/fluencyReview.ts`.
- * Accepting approves the suggestion entry (resolved) and saves a `narrative`
- * draft; it never approves a translation.
+ * Where a review entry lives:
+ * - `ui`: one UI label or catalog message.
+ * - `glossary`: one glossary term's rendering.
+ * - `narrative`: one article sentence's human correction.
+ * - `qa-exception`: a reviewer's "Fine here" on an Inbox QA finding: an
+ *   approved snapshot keyed by the finding, segment hash, term, and revision,
+ *   so the finding returns only when one of those changes.
+ * - `note`: translator's notes, locale-only text under an article section,
+ *   never a translation of English.
+ * - `model-suggestion`: a model fluency suggestion for one article sentence,
+ *   held as a draft until a person accepts it; see
+ *   `lib/translation/fluencyReview.ts`. Accepting approves the suggestion
+ *   entry (resolved) and saves a `narrative` draft; it never approves a
+ *   translation.
+ * - `style-guide`: one document per locale, translator rules and example
+ *   corrections the prompt reads once approved.
  */
-/** `note` holds translator's notes: locale-only text under an article section, never a translation of English. */
-/** `style-guide` holds one document per locale: translator rules and example corrections the prompt reads once approved. */
 export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception" | "note" | "model-suggestion" | "style-guide";
 export type ReviewSnapshot = { source: string; target: string; context: string; provenance?: "compiled" | "human" };
 export type ReviewState = { revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null };

@@ -4,7 +4,8 @@
  */
 import type { InboxAccept, InboxException, InboxItem, InboxReason, InboxResponse } from "@lib/translation/reviewInboxTypes";
 import { confirmTerms } from "./glossaryModel";
-import { translationRequest } from "./TranslationHistory";
+import type { GlossaryRendering } from "@lib/translation/glossaryConflicts";
+import { TranslationRequestError, translationRequest } from "./TranslationHistory";
 
 export const INBOX_ACCEPT_REASON = "Accepted from the Inbox";
 
@@ -17,19 +18,32 @@ export async function markFineHere(locale: string, exception: InboxException): P
   await translationRequest("/api/dev/translation-inbox/exception", { locale, ...exception });
 }
 
-/** Save the shown wording as the human draft, then approve exactly the revision that save produced. */
-async function saveThenApprove(url: string, base: Record<string, unknown>, expectedRevision: number, target: string, revisionOf: (payload: Record<string, unknown>) => number): Promise<void> {
-  const saved = await translationRequest<Record<string, unknown>>(url, { ...base, action: "save", expectedRevision, target, reason: INBOX_ACCEPT_REASON });
+/** The approved glossary renderings an Accept left out, when the save route refused it with GLOSSARY_CONFLICT. */
+export function glossaryConflictsOf(error: unknown): GlossaryRendering[] | null {
+  if (!(error instanceof TranslationRequestError) || error.code !== "GLOSSARY_CONFLICT" || !Array.isArray(error.payload.conflicts)) return null;
+  return error.payload.conflicts.flatMap((row: unknown) => {
+    const { term, target } = (row ?? {}) as Partial<GlossaryRendering>;
+    return typeof term === "string" && typeof target === "string" ? [{ term, target }] : [];
+  });
+}
+
+/**
+ * Save the shown wording as the human draft, then approve exactly the revision
+ * that save produced. `glossaryExceptions` are the terms the reviewer marked
+ * "Fine here" after the save route reported them missing.
+ */
+async function saveThenApprove(url: string, base: Record<string, unknown>, expectedRevision: number, target: string, revisionOf: (payload: Record<string, unknown>) => number, glossaryExceptions: readonly string[]): Promise<void> {
+  const saved = await translationRequest<Record<string, unknown>>(url, { ...base, action: "save", expectedRevision, target, reason: INBOX_ACCEPT_REASON, ...(glossaryExceptions.length ? { glossaryExceptions } : {}) });
   await translationRequest(url, { ...base, action: "approve", expectedRevision: revisionOf(saved), reason: INBOX_ACCEPT_REASON });
 }
 
-export async function acceptInboxItem(locale: string, accept: InboxAccept): Promise<void> {
+export async function acceptInboxItem(locale: string, accept: InboxAccept, glossaryExceptions: readonly string[] = []): Promise<void> {
   switch (accept.kind) {
     case "glossary-confirm":
       await confirmTerms(locale, [accept.term], { [accept.term]: accept.expectedRevision });
       return;
     case "ui-approve":
-      return saveThenApprove("/api/dev/translation-workbench", { locale, id: accept.id }, accept.expectedRevision, accept.target, (payload) => (payload.row as { revision: number }).revision);
+      return saveThenApprove("/api/dev/translation-workbench", { locale, id: accept.id }, accept.expectedRevision, accept.target, (payload) => (payload.row as { revision: number }).revision, glossaryExceptions);
     case "feedback-resolve":
       // The existing feedback status mutation, as the Glossary view's reader feedback queue uses it.
       await translationRequest(`/api/glossary-feedback/${encodeURIComponent(accept.id)}/status`, { status: "resolved", note: "Resolved from the Inbox" });
@@ -39,7 +53,7 @@ export async function acceptInboxItem(locale: string, accept: InboxAccept): Prom
       await translationRequest("/api/dev/translation-inbox/suggestion", { locale, id: accept.id, expectedRevision: accept.expectedRevision });
       return;
     case "narrative-approve":
-      return saveThenApprove("/api/dev/translation-narrative", { locale, kind: "article", slug: accept.slug, id: accept.id, sourceVersion: accept.sourceVersion }, accept.expectedRevision, accept.target, (payload) => (payload.entry as { revision: number }).revision);
+      return saveThenApprove("/api/dev/translation-narrative", { locale, kind: "article", slug: accept.slug, id: accept.id, sourceVersion: accept.sourceVersion }, accept.expectedRevision, accept.target, (payload) => (payload.entry as { revision: number }).revision, glossaryExceptions);
   }
 }
 

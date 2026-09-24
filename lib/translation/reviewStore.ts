@@ -41,7 +41,7 @@ const TARGET_LIMIT: Record<ReviewScope, number> = { ui: 2000, glossary: 2000, no
 function validateInput(input: ReviewMutation): void {
   if (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0) throw new TranslationReviewError("An expected revision is required.");
   if (!input.actor?.trim() || !parseReviewReason(input.reason)) throw new TranslationReviewError("An actor and a reason of up to 1000 characters are required.");
-  if (!["ui", "glossary", "narrative", "qa-exception", "note", "model-suggestion", "style-guide"].includes(input.scope) || !input.locale || !input.sourceId || !input.source || !input.context) throw new TranslationReviewError("A declared translation source and context are required.");
+  if (!Object.prototype.hasOwnProperty.call(TARGET_LIMIT, input.scope) || !input.locale || !input.sourceId || !input.source || !input.context) throw new TranslationReviewError("A declared translation source and context are required.");
   if (!["save", "approve", "restore"].includes(input.action)) throw new TranslationReviewError("Unknown review action.");
   if (input.action === "save" && (typeof input.target !== "string" || !input.target.trim() || input.target.length > TARGET_LIMIT[input.scope])) throw new TranslationReviewError("Enter a translation within the scope character limit.");
   if (input.action === "restore" && (input.restoreRevision === undefined || !Number.isSafeInteger(input.restoreRevision) || input.restoreRevision < 0)) throw new TranslationReviewError("Choose a valid revision to restore.");

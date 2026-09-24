@@ -119,7 +119,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   useEffect(() => {
     const link = parseWorkbenchDeepLink(window.location.search) ?? { view: "inbox" as const };
     setView(link.view);
-    setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels" }));
+    setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels", style: visited.style || link.words === "style" }));
     if (link.words) setWordsList(link.words);
     if (link.pages) setPagesSection(link.pages);
     if (link.term) setFilters({ status: "all", search: link.term });

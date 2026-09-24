@@ -88,8 +88,19 @@ describe("public glossary provenance over isolated Postgres", () => {
     for (const row of renderings) expect(row.provenance).toBe(workbench.get(row.term));
     expect(JSON.stringify(raw)).not.toContain(REVIEWER);
 
-    // A pending draft over checked wording is shown as a suggestion.
-    await mutateGlossaryReview(LOCALE, [{ term: "Phenidate", expectedRevision: await revisionOf("Phenidate"), action: "save", target: "哌甲酯类" }], REVIEWER);
-    expect((await publicRows()).renderings.find((row) => row.term === "Phenidate")).toMatchObject({ status: "draft", target: "哌甲酯类", provenance: "machine_suggestion" });
+    // A proposed change (a pending draft) never downgrades the live wording readers see.
+    await mutateGlossaryReview(LOCALE, [
+      { term: "Phenidate", expectedRevision: await revisionOf("Phenidate"), action: "save", target: "哌甲酯类" },
+      { term: "Tracers", expectedRevision: await revisionOf("Tracers"), action: "save", target: "轨迹残影" },
+    ], REVIEWER);
+    const drafted = new Map((await publicRows()).renderings.map((row) => [row.term, row]));
+    expect(drafted.get("Phenidate")).toMatchObject({ status: "approved", target: "Phenidate", provenance: "human_review" });
+    expect(drafted.get("Tracers")).toMatchObject({ status: "approved", target: "拖影", provenance: "legacy_unverified" });
+  });
+
+  it("shows a draft as a machine suggestion only when there is no approved rendering", async () => {
+    await seed("Drifting", "漂移", "draft", null);
+    await mutateGlossaryReview(LOCALE, [{ term: "Drifting", expectedRevision: await revisionOf("Drifting"), action: "save", target: "视觉漂移" }], REVIEWER);
+    expect((await publicRows()).renderings).toEqual([expect.objectContaining({ term: "Drifting", status: "draft", target: "视觉漂移", provenance: "machine_suggestion" })]);
   });
 });

@@ -156,7 +156,7 @@ const reviewArgs = {
 };
 
 describe("public glossary intake through isolated Postgres", () => {
-  it("publishes pending draft wording and validates feedback against that same snapshot", async () => {
+  it("keeps live approved wording public over a pending draft and validates feedback against that same snapshot", async () => {
     await database.exec(
       `UPDATE "translationGlossary" SET status = 'approved';`,
     );
@@ -185,13 +185,14 @@ describe("public glossary intake through isolated Postgres", () => {
     const visible = publicGlossaryRendering(
       query.rows[0] as Record<string, unknown>,
     );
+    // A proposed change never replaces or downgrades the live word readers see.
     expect(visible).toMatchObject({
-      target: "Kalmte",
-      status: "draft",
+      target: "Rust",
+      status: "approved",
       review_revision: 1,
     });
     expect(languageReadiness("nl", ["Calm"], [visible], null).state).toBe(
-      "Glossary in review",
+      "Website in preparation",
     );
     expect(
       (
@@ -209,7 +210,7 @@ describe("public glossary intake through isolated Postgres", () => {
         await POST(
           request({
             action: "suggestion",
-            details: "Current proposed wording",
+            details: "Current live wording",
             version: renderingVersion(visible),
           }),
         )
@@ -217,7 +218,7 @@ describe("public glossary intake through isolated Postgres", () => {
     ).toBe(202);
     expect(
       (await client.query(api.glossaryFeedback.list, reviewArgs))[0],
-    ).toMatchObject({ target: "Kalmte", version: renderingVersion(visible) });
+    ).toMatchObject({ target: "Rust", version: renderingVersion(visible) });
     expect(
       (await database.query('SELECT target, status FROM "translationGlossary"'))
         .rows[0],

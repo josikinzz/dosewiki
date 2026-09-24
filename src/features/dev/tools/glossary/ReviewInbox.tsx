@@ -9,7 +9,9 @@
  * mutation with the revision shown; Edit opens that item's existing editor;
  * Fine here records a durable exception for a QA finding; Skip hides the item
  * for this browser session. Keys: J and K move, A accepts, E edits, F marks
- * fine, S skips.
+ * fine, S skips. When Accept leaves out an approved glossary rendering, the
+ * item shows the term with its own "Fine here" choice, which resends the save
+ * with that term as a glossary exception.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
@@ -17,14 +19,9 @@ import { Button } from "@/components/ui/button";
 import { focusRingClassName, Surface } from "@/components/ui/surface";
 import { StateCard } from "@/components/common/StateCard";
 import { EditorNotice, EditorSelect, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
-import {
-  INBOX_CHECK_LABEL,
-  INBOX_PAGE_SIZE,
-  INBOX_REASON_LABEL,
-  INBOX_SCOPE_LABEL,
-} from "../../../../../lib/translation/reviewInboxTypes";
-import type { InboxItem, InboxReason, InboxResponse } from "@lib/translation/reviewInboxTypes";
-import { acceptInboxItem, fetchInbox, inboxItemKey, markFineHere, readSkipped, writeSkipped } from "./reviewInboxModel";
+import { INBOX_CHECK_LABEL, INBOX_PAGE_SIZE, INBOX_REASON_LABEL, INBOX_SCOPE_LABEL, type InboxItem, type InboxReason, type InboxResponse } from "../../../../../lib/translation/reviewInboxTypes";
+import type { GlossaryRendering } from "@lib/translation/glossaryConflicts";
+import { acceptInboxItem, fetchInbox, glossaryConflictsOf, inboxItemKey, markFineHere, readSkipped, writeSkipped } from "./reviewInboxModel";
 
 const REASON_TONE: Partial<Record<InboxReason, "info" | "warning" | "danger">> = {
   "segment-rejected": "danger",
@@ -58,6 +55,8 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   const [focusIndex, setFocusIndex] = useState(0);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  /** The approved renderings the last Accept left out, for the item it named. */
+  const [glossaryConflict, setGlossaryConflict] = useState<{ key: string; conflicts: GlossaryRendering[] } | null>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   /** Set when a key or action moved focus, so the next render moves the DOM focus too. */
   const focusPending = useRef(false);
@@ -95,6 +94,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
     const key = inboxItemKey(item);
     setAccepting(key);
     setNotice(null);
+    setGlossaryConflict(null);
     try {
       await write();
       focusPending.current = true;
@@ -106,15 +106,20 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
       });
       setNotice({ tone: "success", message: done });
     } catch (cause) {
+      const conflicts = glossaryConflictsOf(cause);
+      if (conflicts?.length) {
+        setGlossaryConflict({ key, conflicts });
+        return;
+      }
       setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change did not go through. Reload the inbox and review the latest revision." });
     } finally {
       setAccepting(null);
     }
   };
-  const accept = (item: InboxItem) => {
+  const accept = (item: InboxItem, glossaryExceptions: readonly string[] = []) => {
     const target = item.accept;
     if (!target) return;
-    void act(item, () => acceptInboxItem(locale, target), acceptedMessage(item));
+    void act(item, () => acceptInboxItem(locale, target, glossaryExceptions), acceptedMessage(item));
   };
   const fineHere = (item: InboxItem) => {
     const exception = item.exception;
@@ -195,6 +200,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
         <ul aria-label="Items that need a person" className="space-y-2">
           {visible.map((item, index) => {
             const key = inboxItemKey(item);
+            const conflicts = glossaryConflict?.key === key ? glossaryConflict.conflicts : null;
             return (
               // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- focus tracks the roving item the shortcuts act on.
               <li
@@ -235,6 +241,10 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
                       <dd className="theme-text-secondary whitespace-pre-wrap break-words">{item.detail}</dd>
                     </> : null}
                   </dl>
+                  {conflicts ? <div role="status" className="theme-text-secondary flex flex-wrap items-center gap-2 text-sm">
+                    <span>This wording leaves out {conflicts.map(({ term, target }) => `${term} (${target})`).join(", ")} from the glossary.</span>
+                    <Button type="button" variant="outline" size="sm" disabled={accepting !== null} aria-label={`Fine here: accept without ${conflicts.map(({ term }) => term).join(", ")}`} onClick={() => accept(item, conflicts.map(({ term }) => term))}>Fine here</Button>
+                  </div> : null}
                   <div className="flex flex-wrap items-center gap-2">
                     <Button type="button" variant="accent" size="sm" disabled={!item.accept || accepting !== null} onClick={() => accept(item)}>
                       {accepting === key ? "Saving" : acceptLabel(item)}

@@ -81,6 +81,38 @@ describe("Review inbox", () => {
     expect(screen.getByRole("listitem", { name: "Glossary: Euphoria" })).toBeInTheDocument();
   });
 
+  it("shows a glossary conflict on Accept and resends the save with the term marked fine here", async () => {
+    const recheck: InboxItem = {
+      scope: "segment", id: "seg-1", reason: "narrative-recheck", english: "A replication of visual drifting.", live: "视觉漂移的再现作品。",
+      where: "article · sample", revision: "3", href: "/dev/glossary?translationSegment=seg-1",
+      accept: { kind: "narrative-approve", slug: "sample", id: "seg-1", sourceVersion: "v1", expectedRevision: 3, target: "视觉漂移的再现作品。" },
+    };
+    const writes: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
+      if (!init) return Response.json(response([recheck]));
+      const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+      writes.push(body);
+      if (body.action === "save" && !body.glossaryExceptions) {
+        return Response.json({ ok: false, code: "GLOSSARY_CONFLICT", error: "This sentence mentions Replication (体验再现). Your wording does not use it.", conflicts: [{ term: "Replication", target: "体验再现" }] }, { status: 409 });
+      }
+      return Response.json({ ok: true, entry: { revision: body.action === "save" ? 4 : 5 } });
+    }));
+    const user = userEvent.setup();
+    render(<ReviewInbox locale="zh-Hans" />);
+    await user.click(await screen.findByRole("button", { name: "Accept" }));
+    const item = screen.getByRole("listitem", { name: `Translation: ${recheck.english}` });
+    expect(item).toHaveTextContent("Replication (体验再现)");
+    await user.click(screen.getByRole("button", { name: /Fine here: accept without Replication/ }));
+    expect(await screen.findByText(`Accepted "${recheck.english}".`)).toBeInTheDocument();
+    expect(writes).toEqual([
+      expect.objectContaining({ action: "save", expectedRevision: 3 }),
+      expect.objectContaining({ action: "save", expectedRevision: 3, glossaryExceptions: ["Replication"] }),
+      expect.objectContaining({ action: "approve", expectedRevision: 4 }),
+    ]);
+    expect(writes[0]).not.toHaveProperty("glossaryExceptions");
+    expect(screen.queryByRole("listitem", { name: `Translation: ${recheck.english}` })).not.toBeInTheDocument();
+  });
+
   it("marks a QA finding fine here with F and records the exception it names", async () => {
     const writes: { url: string; body: Record<string, unknown> }[] = [];
     vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {

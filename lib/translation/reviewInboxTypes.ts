@@ -26,9 +26,9 @@ export type InboxReason =
   | "narrative-recheck"
   /** The validator rejected every attempt and nothing is stored, so readers see English. */
   | "segment-rejected"
-  /** A stored translation whose English mentions an approved glossary term and whose target lacks its rendering. */
+  /** A translation readers see (stored, or a human correction) whose English mentions an approved glossary term and which lacks its rendering. */
   | "glossary-disagreement"
-  /** English words left in a stored Chinese translation (the validator's LEFTOVER_LATIN finding). */
+  /** English words left in a Chinese translation readers see (the validator's LEFTOVER_LATIN finding). */
   | "leftover-latin"
   /** A new suggestion a reader sent from the public glossary. */
   | "reader-suggestion"
@@ -43,8 +43,9 @@ export type QaFindingKind = "glossary-disagreement" | "leftover-latin";
 /**
  * What "Fine here" records: an exception keyed by locale (the request's),
  * segment hash, term, and revision. For a glossary disagreement the revision is
- * the approved rendering's glossary revision; for leftover English it is the
- * stored translation's digest. A changed source (new hash), rendering, or
+ * the approved rendering's glossary revision joined with the stored
+ * translation's digest; for leftover English it is the stored translation's
+ * digest. A changed source (new hash), rendering, or
  * translation makes a new key, so the finding returns.
  */
 export type InboxException = { finding: QaFindingKind; hash: string; term: string; revision: string };
@@ -175,16 +176,18 @@ export function translatorNoteHref(locale: string, slug: string, section: string
 
 /** The workbench's three views. */
 export type WorkbenchView = "inbox" | "words" | "pages";
-/** The two lists behind the Words search. */
 /** Words holds the glossary terms, the UI labels, and the locale style guide. */
 export type WordsList = "terms" | "labels" | "style";
+const WORDS_LISTS: readonly WordsList[] = ["terms", "labels", "style"];
 /** The drawers under the article reader in Pages that a link can open. */
 export type PagesSection = "coverage" | "changes";
 export type WorkbenchDeepLink = { view: WorkbenchView; words?: WordsList; pages?: PagesSection; term?: string; label?: string };
 
 /**
- * Reads a workbench deep link. Links written before the three-view layout keep
- * working: `glossary` and `labels` open Words, and `coverage`, `changes`, and
+ * Reads a workbench deep link. `translationView=words` opens Words on the list
+ * `translationWords` names (`terms`, `labels`, or `style`), else on the list
+ * a `translationTerm` or `translationLabel` implies. Links written before the
+ * three-view layout keep working: `glossary` and `labels` open Words, and `coverage`, `changes`, and
  * `narrative` (like `translationReview=article`) open Pages.
  */
 export function parseWorkbenchDeepLink(search: string): WorkbenchDeepLink | null {
@@ -194,7 +197,11 @@ export function parseWorkbenchDeepLink(search: string): WorkbenchDeepLink | null
   const label = params.get("translationLabel") ?? undefined;
   switch (params.get("translationView")) {
     case "inbox": return { view: "inbox" };
-    case "words": return label !== undefined ? { view: "words", words: "labels", label } : { view: "words", words: "terms", term };
+    case "words": {
+      const list = params.get("translationWords");
+      if (list && (WORDS_LISTS as readonly string[]).includes(list)) return { view: "words", words: list as WordsList, term, label };
+      return label !== undefined ? { view: "words", words: "labels", label } : { view: "words", words: "terms", term };
+    }
     case "glossary": return { view: "words", words: "terms", term };
     case "labels": return { view: "words", words: "labels", label };
     case "pages":

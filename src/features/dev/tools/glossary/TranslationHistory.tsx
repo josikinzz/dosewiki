@@ -8,10 +8,15 @@ import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 
+/** A refused translation request, keeping the route's error code and body for callers that can recover. */
+export class TranslationRequestError extends Error {
+  constructor(message: string, readonly code: string | undefined, readonly payload: Record<string, unknown>) { super(message); }
+}
+
 export async function translationRequest<T>(url: string, body?: Record<string, unknown>): Promise<T> {
   const response = await fetch(url, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined);
   const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error ?? "The translation request failed.");
+  if (!response.ok) throw new TranslationRequestError(payload.error ?? "The translation request failed.", typeof payload.code === "string" ? payload.code : undefined, payload);
   return payload as T;
 }
 

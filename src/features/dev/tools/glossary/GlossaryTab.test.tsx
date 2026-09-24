@@ -51,6 +51,7 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
         };
         return Response.json(list);
       }
+      if (path === "/api/dev/translation-style-guide" && !init) return Response.json({ locale: LOCALE, revision: 0, draft: null, approved: null, approvedRevision: "", history: [] });
       if (path === "/api/dev/translation-inbox") return Response.json({ ok: true, locale: LOCALE, items: [], total: 0, offset: 0, pageSize: 50, checked: [], counts: {}, reason: null });
       if (path.endsWith("/import")) {
         calls.push({ path, body: String(init?.body) });
@@ -553,7 +554,7 @@ describe("workbench views", () => {
     for (const state of ["Machine", "Draft", "Live, never checked", "Human approved", "Source changed", "Re-check"]) expect(legend.getByText(state)).toBeInTheDocument();
   });
 
-  type Expectation = { view: "Inbox" | "Words" | "Pages"; region: string; list?: "Glossary terms" | "UI labels"; search?: string };
+  type Expectation = { view: "Inbox" | "Words" | "Pages"; region: string; list?: "Glossary terms" | "UI labels" | "Style guide"; search?: string };
   const cases: [string, Expectation][] = [
     ["translationView=inbox", { view: "Inbox", region: "Review inbox" }],
     ["translationView=glossary&translationTerm=anxiety", { view: "Words", region: "Glossary terms", list: "Glossary terms", search: "anxiety" }],
@@ -566,6 +567,8 @@ describe("workbench views", () => {
     ["translationView=words&translationTerm=anxiety", { view: "Words", region: "Glossary terms", list: "Glossary terms", search: "anxiety" }],
     ["translationView=words&translationLabel=appearance.light", { view: "Words", region: "UI labels", list: "UI labels", search: "appearance.light" }],
     ["translationView=pages", { view: "Pages", region: "Narrative review" }],
+    ["translationView=words&translationWords=style", { view: "Words", region: "Style guide", list: "Style guide" }],
+    ["translationView=words&translationWords=labels", { view: "Words", region: "UI labels", list: "UI labels" }],
   ];
 
   it.each(cases)("a deep link with %s opens the matching view", async (query, expected) => {

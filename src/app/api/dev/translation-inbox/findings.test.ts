@@ -15,6 +15,7 @@ import { POST as feedbackPost } from "../../glossary-feedback/route";
 import { POST as feedbackStatusPost } from "../../glossary-feedback/[id]/status/route";
 import { POST as approvePost } from "../translation-glossary/approve/route";
 import { POST as editPost } from "../translation-glossary/edit/route";
+import { GET as narrativeGet, POST as narrativePost } from "../translation-narrative/route";
 import { POST as exceptionPost } from "./exception/route";
 import { GET } from "./route";
 
@@ -122,6 +123,16 @@ const read = async (reason?: string): Promise<InboxResponse> => {
 };
 const post = (path: string, body: unknown) => new Request(`${origin}${path}`, { method: "POST", headers: { "content-type": "application/json", origin }, body: JSON.stringify(body) });
 const fineHere = (item: InboxItem, locale = LOCALE) => exceptionPost(post("/api/dev/translation-inbox/exception", { locale, ...item.exception }));
+/** Saves and approves a human correction for one article sentence through the Narratives route. */
+async function correct(english: string, target: string, glossaryExceptions?: string[]) {
+  const packet = await (await narrativeGet(new Request(`${origin}/api/dev/translation-narrative?locale=${LOCALE}&kind=article&slug=${SLUG}`))).json();
+  const row = packet.rows.find((candidate: { source: string }) => candidate.source === english);
+  const base = { locale: LOCALE, kind: "article", slug: SLUG, id: row.id, sourceVersion: packet.sourceVersion, reason: { kind: "terminology" } };
+  const saved = await narrativePost(post("/api/dev/translation-narrative", { ...base, action: "save", expectedRevision: 0, target, ...(glossaryExceptions ? { glossaryExceptions } : {}) }));
+  expect(saved.status).toBe(200);
+  const approved = await narrativePost(post("/api/dev/translation-narrative", { ...base, action: "approve", expectedRevision: (await saved.json()).entry.revision }));
+  expect(approved.status).toBe(200);
+}
 const historyCount = async () => Number((await database.query<{ n: number }>('SELECT count(*)::int AS n FROM "translationReviewHistory"')).rows[0].n);
 
 describe("inbox findings over isolated Postgres", () => {
@@ -133,7 +144,7 @@ describe("inbox findings over isolated Postgres", () => {
     const phenidate = segment(PHENIDATE_SOURCE);
     expect(glossary[0]).toMatchObject({
       scope: "segment", english: PHENIDATE_SOURCE, live: PHENIDATE_TARGET, accept: null,
-      exception: { finding: "glossary-disagreement", hash: phenidate.hash, term: "Phenidate", revision: "5" },
+      exception: { finding: "glossary-disagreement", hash: phenidate.hash, term: "Phenidate", revision: expect.stringMatching(/^5:[a-f0-9]{16}$/) },
     });
     expect(glossary[0].detail).toContain("哌甲酯类");
     // Edit opens the Narratives view at this sentence.
@@ -165,12 +176,52 @@ describe("inbox findings over isolated Postgres", () => {
     const back = await read("glossary-disagreement");
     expect(back.total).toBe(1);
     expect(back.items[0].detail).toContain("苯乙胺类哌啶");
-    expect(back.items[0].exception?.revision).not.toBe("5");
+    expect(back.items[0].exception?.revision).not.toBe(item.exception?.revision);
 
     // Fine here at the old revision is refused and writes nothing.
     const before = await historyCount();
     expect((await fineHere(item)).status).toBe(409);
     expect(await historyCount()).toBe(before);
+  });
+
+  it("brings a Fine here glossary item back when the stored translation changes", async () => {
+    await store(PHENIDATE_SOURCE, PHENIDATE_TARGET);
+    const [item] = (await read("glossary-disagreement")).items;
+    expect((await fineHere(item)).status).toBe(200);
+    expect((await read("glossary-disagreement")).total).toBe(0);
+    // A retranslation that still lacks the rendering is a new finding.
+    await database.query(`UPDATE "translationSegments" SET target = $1`, ["2-苄基哌啶是一种兴奋剂，与其他 phenidate 类药物结构相关。"]);
+    const back = await read("glossary-disagreement");
+    expect(back.total).toBe(1);
+    expect(back.items[0].exception?.revision).not.toBe(item.exception?.revision);
+    // Fine here at the old translation is refused and writes nothing.
+    const before = await historyCount();
+    expect((await fineHere(item)).status).toBe(409);
+    expect(await historyCount()).toBe(before);
+  });
+
+  it("checks the human correction readers see, not the machine target it replaced", async () => {
+    await store(PHENIDATE_SOURCE, PHENIDATE_TARGET);
+    await correct(PHENIDATE_SOURCE, "2-苄基哌啶是一种兴奋剂，在结构上与其他哌甲酯类相关。");
+    const body = await read();
+    expect(body.items.filter((item) => item.reason === "glossary-disagreement")).toEqual([]);
+    expect(body.items.filter((item) => item.reason === "leftover-latin")).toEqual([]);
+  });
+
+  it("does not list a human correction saved with a glossary exception for that term", async () => {
+    await store(PHENIDATE_SOURCE, PHENIDATE_TARGET);
+    await correct(PHENIDATE_SOURCE, "2-苄基哌啶是一种兴奋剂，在结构上与其他哌醋甲酯类相关。", ["Phenidate"]);
+    expect((await read("glossary-disagreement")).total).toBe(0);
+  });
+
+  it("lists English left in a human correction, and Fine here records it against that wording", async () => {
+    await store(PHENIDATE_SOURCE, "2-苄基哌啶是一种兴奋剂，在结构上与其他哌甲酯类相关。");
+    const human = "2-苄基哌啶是一种兴奋剂，在结构上与其他 phenidates 哌甲酯类相关。";
+    await correct(PHENIDATE_SOURCE, human);
+    const [item] = (await read("leftover-latin")).items;
+    expect(item).toMatchObject({ live: human, detail: "English left in: phenidates" });
+    expect((await fineHere(item)).status).toBe(200);
+    expect((await read("leftover-latin")).total).toBe(0);
   });
 
   it("ranks a rejected segment that fell back to English above glossary items", async () => {

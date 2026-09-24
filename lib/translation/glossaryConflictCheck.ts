@@ -24,7 +24,12 @@ export function glossaryMentionsFor(source: string, index: readonly GlossaryMent
  * `exceptions`. Returns the exceptions that applied, for review history.
  */
 export async function assertCorrectionKeepsGlossary(locale: string, source: string, target: string, exceptions: readonly string[] = []): Promise<string[]> {
-  const approved = (await readGlossaryMentionIndex(locale)).filter((row) => row.approved);
+  return assertKeepsGlossaryIn(await readGlossaryMentionIndex(locale), source, target, exceptions);
+}
+
+/** `assertCorrectionKeepsGlossary` against an index already read, for checks inside a transaction. */
+export function assertKeepsGlossaryIn(index: readonly GlossaryMention[], source: string, target: string, exceptions: readonly string[] = []): string[] {
+  const approved = index.filter((row) => row.approved);
   const conflicts = findGlossaryConflicts(source, target, approved);
   const excused = new Set(exceptions);
   const remaining = conflicts.filter((row) => !excused.has(row.term));

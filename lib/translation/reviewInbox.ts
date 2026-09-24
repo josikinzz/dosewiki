@@ -38,18 +38,20 @@ import {
  * language first, then wording readers see wrong, re-checks, QA findings,
  * model fluency suggestions, unchecked terms, and reader suggestions last.
  */
-export const INBOX_CHECKS: readonly InboxReason[] = [
-  "segment-rejected",
-  "narrative-source-changed",
-  "ui-source-changed",
-  "narrative-recheck",
-  "glossary-disagreement",
-  "leftover-latin",
-  "note-orphaned",
-  "model-suggestion",
-  "glossary-never-checked",
-  "reader-suggestion",
-];
+const INBOX_ORDER: Record<InboxReason, number> = {
+  "segment-rejected": 0,
+  "narrative-source-changed": 1,
+  "ui-source-changed": 2,
+  "narrative-recheck": 3,
+  "glossary-disagreement": 4,
+  "leftover-latin": 5,
+  "note-orphaned": 6,
+  "model-suggestion": 7,
+  "glossary-never-checked": 8,
+  "reader-suggestion": 9,
+};
+/** Every reason, so a new reason cannot be left out of the order. */
+export const INBOX_CHECKS: readonly InboxReason[] = (Object.keys(INBOX_ORDER) as InboxReason[]).sort((a, b) => INBOX_ORDER[a] - INBOX_ORDER[b]);
 
 async function glossaryItems(locale: string): Promise<InboxItem[]> {
   // A projected draft already waits in the Glossary view; only untouched live rows are listed.
@@ -193,7 +195,7 @@ export async function readReviewInbox(
   const chinese = resolveLocale(locale).scriptGate === "simplified";
   const suggestions = options.suggestions ?? null;
   const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale), findingItems(reads, locale), noteItems(reads, locale), modelSuggestionItems(reads, locale)]);
-  const order = (item: InboxItem) => INBOX_CHECKS.indexOf(item.reason);
+  const order = (item: InboxItem) => INBOX_ORDER[item.reason];
   const every = [...scopes.flat(), ...(suggestions ? readerSuggestionItems(locale, suggestions) : [])];
   const counts: Partial<Record<InboxReason, number>> = {};
   for (const item of every) counts[item.reason] = (counts[item.reason] ?? 0) + 1;

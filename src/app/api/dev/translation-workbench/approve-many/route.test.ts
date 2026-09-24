@@ -28,7 +28,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   vi.stubEnv("DATA_WRITES_FROZEN", "0");
   auth.requireRoleSession.mockImplementation(roleSessionFor("translator", { email: "sin@example.test", glossaryLocales: ["zh-Hans"] }));
-  await db.exec('TRUNCATE "translationReviewEntries", "translationReviewHistory"');
+  await db.exec('TRUNCATE "translationGlossary", "translationReviewEntries", "translationReviewHistory"');
 });
 afterEach(() => vi.unstubAllEnvs());
 afterAll(async () => { await db?.close(); });
@@ -80,6 +80,21 @@ describe("batch approval of short UI labels", () => {
     expect(results[1]).toMatchObject({ error: expect.stringContaining("PLACEHOLDER_LOSS") });
     // The draft and the approval share one transaction, so neither is kept.
     expect(await readReviewHistory("zh-Hans", "ui", clips)).toEqual([]);
+  });
+
+  it("fails a row that drops an approved glossary rendering and approves the rest", async () => {
+    await db.query(`INSERT INTO "translationGlossary" (locale, term, target, kind, status, source, reviewed_at, reviewed_by, retranslation_requested_at, updated_at) VALUES ('zh-Hans','Replication','体验再现','concept','approved','human',5,'sin@example.test',5,10)`);
+    const response = await post({ locale: "zh-Hans", items: [
+      { id: "gallery.replication", expectedRevision: 0, target: "体验再现" },
+      { id: "gallery.replications", expectedRevision: 0, target: "复现" },
+      { id: "appearance.light", expectedRevision: 0, target: "浅色" },
+    ] });
+    expect(response.status).toBe(200);
+    const { results } = await response.json() as UiBatchApprovalResponse;
+    expect(results.map((result) => [result.id, result.ok])).toEqual([["gallery.replication", true], ["gallery.replications", false], ["appearance.light", true]]);
+    expect(results[1]).toMatchObject({ code: "GLOSSARY_CONFLICT", error: expect.stringContaining("Replication (体验再现)") });
+    expect(await readReviewHistory("zh-Hans", "ui", "gallery.replications")).toEqual([]);
+    expect(await readApprovedUiTranslations("zh-Hans")).toMatchObject({ "gallery.replication": "体验再现", "appearance.light": "浅色" });
   });
 
   it("refuses the whole batch under the write freeze, outside the assigned locale, or without the translator role", async () => {

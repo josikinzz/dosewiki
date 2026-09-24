@@ -40,7 +40,9 @@ Review history sits in a drawer on each item: **History** on a glossary row, a
 UI label, and an open article paragraph.
 
 Deep links keep working across the layout change. `translationView=inbox`,
-`words`, and `pages` name the views. Older values map onto them: `glossary`
+`words`, and `pages` name the views; with `words`, `translationWords=terms`,
+`labels`, or `style` opens that list (so `translationWords=style` opens the
+style guide). Older values map onto them: `glossary`
 (with `translationTerm`) and `labels` (with `translationLabel`) open Words on
 that list, searched to the term or label; `narrative`, `coverage`, and
 `changes` open Pages, with the Coverage or Recent changes drawer open for the
