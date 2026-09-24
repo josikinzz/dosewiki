@@ -248,4 +248,83 @@ describe("AboutEditorTab", () => {
     const input = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(input.baselines[0].document.aboutMarkdown).toBe(ABOUT.aboutMarkdown);
   });
+
+  describe("translation credits", () => {
+    const profile = (key: string, displayName: string) => ({
+      key,
+      displayName,
+      aliases: [],
+      avatarUrl: null,
+      bio: "",
+      links: [],
+      hasCustomBio: false,
+    });
+    const PROFILES = [profile("JOSIE", "Josie Kins"), profile("VACUE", "Vacue")];
+
+    it("lets an admin credit a profile for a language and saves the credits with the document", async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, revision: 1, replayed: false, unchanged: false }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      render(<AboutEditorTab availableProfiles={PROFILES} canApprove />);
+
+      const section = within(screen.getByRole("region", { name: "Translation credits" }));
+      expect(section.getByText("No one is credited for this language yet.")).toBeInTheDocument();
+
+      fireEvent.click(section.getByRole("combobox", { name: "Add translation contributor" }));
+      fireEvent.change(await screen.findByPlaceholderText("Find a contributor to credit"), { target: { value: "vac" } });
+      fireEvent.click(await screen.findByRole("option", { name: /Vacue/ }));
+
+      await userEvent.type(
+        section.getByLabelText("Contribution for Vacue"),
+        "Chinese localization, terminology review, and localization workflow feedback",
+      );
+      expect(screen.getByText("1 section changed")).toBeTruthy();
+
+      await userEvent.click(screen.getByRole("button", { name: "Save About page" }));
+      await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const body = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
+      expect(body.translationCredits).toEqual({
+        "zh-Hans": [{
+          profileKey: "VACUE",
+          contribution: "Chinese localization, terminology review, and localization workflow feedback",
+        }],
+      });
+      expect(body.expected).toMatchObject({ translationCredits: {} });
+    });
+
+    it("shows stored credits and removes one", async () => {
+      useQueryMock.mockReturnValue({
+        ...ABOUT,
+        translationCredits: { "zh-Hans": [{ profileKey: "VACUE", contribution: "Chinese localization" }] },
+      });
+      render(<AboutEditorTab availableProfiles={PROFILES} canApprove />);
+
+      const section = within(screen.getByRole("region", { name: "Translation credits" }));
+      expect(section.getByLabelText("Contribution for Vacue")).toHaveValue("Chinese localization");
+      fireEvent.click(section.getByRole("button", { name: "Remove Vacue" }));
+      expect(section.queryByLabelText("Contribution for Vacue")).not.toBeInTheDocument();
+      expect(screen.getByText("1 section changed")).toBeTruthy();
+    });
+
+    it("hides credit editing from editors but carries the stored credits in their proposal", async () => {
+      const credits = { "zh-Hans": [{ profileKey: "VACUE", contribution: "Chinese localization" }] };
+      useQueryMock.mockReturnValue({ ...ABOUT, translationCredits: credits });
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true, proposalId: "cp_abc" }) });
+      vi.stubGlobal("fetch", fetchMock);
+      render(<AboutEditorTab availableProfiles={PROFILES} canApprove={false} />);
+
+      expect(screen.queryByRole("region", { name: "Translation credits" })).not.toBeInTheDocument();
+      await userEvent.type(screen.getByLabelText("Markdown source"), " Edited.");
+      await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const body = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
+      expect(body.payload.about.translationCredits).toEqual(credits);
+      expect(body.baselines[0].document.translationCredits).toEqual(credits);
+    });
+  });
 });

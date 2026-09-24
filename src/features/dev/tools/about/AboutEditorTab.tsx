@@ -25,6 +25,7 @@ import {
 import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
 import { AboutFounderSelectionSection } from "./AboutFounderSelectionSection";
+import { AboutTranslationCreditsSection } from "./AboutTranslationCreditsSection";
 import { useAboutEditorController } from "./useAboutEditorController";
 
 const AUTO_RESIZE_MIN_HEIGHT = 240;
@@ -68,6 +69,10 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     resetSubtitle,
     resetFounderKeys,
     toggleFounderKey,
+    addTranslationCredit,
+    removeTranslationCredit,
+    setTranslationCreditContribution,
+    resetTranslationCredits,
     copyMarkdown,
     copySubtitle,
     save,
@@ -108,7 +113,12 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   );
 
   const isFounderSelectionDirty = addedFounders.length > 0 || removedFounders.length > 0;
-  const dirtySectionCount = Number(isMarkdownDirty) + Number(isSubtitleDirty) + Number(isFounderSelectionDirty);
+  const isTranslationCreditsDirty = useMemo(
+    () => JSON.stringify(draft.translationCredits) !== JSON.stringify(original.translationCredits),
+    [draft.translationCredits, original.translationCredits],
+  );
+  const dirtySectionCount =
+    Number(isMarkdownDirty) + Number(isSubtitleDirty) + Number(isFounderSelectionDirty) + Number(isTranslationCreditsDirty);
 
   const profileLabelByKey = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -218,6 +228,20 @@ export const AboutEditorTab = memo(function AboutEditorTab({
       />
       </fieldset>
 
+      {canApprove ? (
+        <fieldset disabled={publicationUncertain}>
+          <AboutTranslationCreditsSection
+            availableProfiles={availableProfiles}
+            credits={draft.translationCredits}
+            isDirty={isTranslationCreditsDirty}
+            onAdd={addTranslationCredit}
+            onRemove={removeTranslationCredit}
+            onContributionChange={setTranslationCreditContribution}
+            onReset={resetTranslationCredits}
+          />
+        </fieldset>
+      ) : null}
+
       <EditorSection
         title="Related copy"
         icon="lucide:type"
@@ -272,6 +296,12 @@ export const AboutEditorTab = memo(function AboutEditorTab({
                 </p>
               </div>
             )}
+            {isTranslationCreditsDirty && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold theme-text-secondary">Translation credits</h3>
+                <p className="theme-text-faint text-sm">Details in the Translation credits section above.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -281,7 +311,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             variant="accent"
             size="sm"
             disabled={!isDirty || saveState === "saving"}
-            onClick={() => canApprove ? confirm({ title: "Publish About copy?", description: "Publish the displayed About copy, subtitle, and founder selection diff to dose.wiki /about and its search metadata.", confirmLabel: "Publish About copy", onConfirm: () => { void save(); } }) : void save()}
+            onClick={() => canApprove ? confirm({ title: "Publish About copy?", description: "Publish the displayed About copy, subtitle, founder selection, and translation credits diff to dose.wiki /about, its search metadata, and the language pages that show the credits.", confirmLabel: "Publish About copy", onConfirm: () => { void save(); } }) : void save()}
           >
             <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
             {canApprove ? "Save About page" : "Submit for review"}

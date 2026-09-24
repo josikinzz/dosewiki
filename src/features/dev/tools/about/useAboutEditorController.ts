@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCopyIndexSource } from "../useCopyIndexSource";
 
 import { normalizeFounderKeys } from "@/data/content/about";
+import {
+  TRANSLATION_CREDIT_LOCALES,
+  translationCreditsFor,
+  type TranslationCredits,
+} from "@/data/content/translationCredits";
 import type {
   EditorActionStatusState,
   EditorNoticeMessage,
@@ -34,6 +39,7 @@ type AboutConfigSource = {
   aboutMarkdown?: string | null;
   aboutSubtitle?: string | null;
   founderProfileKeys?: string[] | null;
+  translationCredits?: unknown;
   revision?: number;
   aggregates?: AboutAggregateSource;
 } | null | undefined;
@@ -42,8 +48,25 @@ type AboutDocument = {
   markdown: string;
   subtitle: string;
   founderKeys: string[];
+  translationCredits: TranslationCredits;
   exists: boolean;
   revision: number;
+}
+
+/** The stored credits as the editor edits them: known locales only, empty lists dropped. */
+function storedTranslationCredits(stored: unknown): TranslationCredits {
+  const credits: TranslationCredits = {};
+  for (const locale of TRANSLATION_CREDIT_LOCALES) {
+    const list = translationCreditsFor(stored, locale);
+    if (list.length) credits[locale] = list;
+  }
+  return credits;
+}
+
+/** Drop a locale whose list emptied, so removing the last credit reads as clean. */
+function withLocaleCredits(credits: TranslationCredits, locale: string, list: TranslationCredits[string]): TranslationCredits {
+  const { [locale]: _previous, ...rest } = credits;
+  return list.length ? { ...rest, [locale]: list } : rest;
 }
 
 function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
@@ -51,6 +74,7 @@ function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
     markdown: aboutConfig?.aboutMarkdown ?? "",
     subtitle: aboutConfig?.aboutSubtitle ?? "",
     founderKeys: aboutConfig?.founderProfileKeys ?? [],
+    translationCredits: storedTranslationCredits(aboutConfig?.translationCredits),
     exists: aboutConfig != null,
     revision: aboutConfig?.revision ?? 0,
   };
@@ -78,6 +102,10 @@ export interface AboutEditorController {
   resetSubtitle: () => void;
   resetFounderKeys: () => void;
   toggleFounderKey: (key: string) => void;
+  addTranslationCredit: (locale: string, profileKey: string) => void;
+  removeTranslationCredit: (locale: string, profileKey: string) => void;
+  setTranslationCreditContribution: (locale: string, profileKey: string, contribution: string) => void;
+  resetTranslationCredits: () => void;
   copyMarkdown: () => void;
   copySubtitle: () => void;
   /** Admin: writes the document. Editor: submits it as a change proposal and keeps the draft pending. */
@@ -201,6 +229,52 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     [applyDraftTransform],
   );
 
+  const addTranslationCredit = useCallback(
+    (locale: string, rawKey: string) => {
+      const profileKey = rawKey.trim().toUpperCase();
+      if (!profileKey) return;
+      applyDraftTransform((previous) => {
+        const list = previous.translationCredits[locale] ?? [];
+        if (list.some((credit) => credit.profileKey === profileKey)) return previous;
+        return {
+          ...previous,
+          translationCredits: withLocaleCredits(previous.translationCredits, locale, [...list, { profileKey, contribution: "" }]),
+        };
+      });
+    },
+    [applyDraftTransform],
+  );
+  const removeTranslationCredit = useCallback(
+    (locale: string, profileKey: string) =>
+      applyDraftTransform((previous) => ({
+        ...previous,
+        translationCredits: withLocaleCredits(
+          previous.translationCredits,
+          locale,
+          (previous.translationCredits[locale] ?? []).filter((credit) => credit.profileKey !== profileKey),
+        ),
+      })),
+    [applyDraftTransform],
+  );
+  const setTranslationCreditContribution = useCallback(
+    (locale: string, profileKey: string, contribution: string) =>
+      applyDraftTransform((previous) => ({
+        ...previous,
+        translationCredits: withLocaleCredits(
+          previous.translationCredits,
+          locale,
+          (previous.translationCredits[locale] ?? []).map((credit) =>
+            credit.profileKey === profileKey ? { ...credit, contribution } : credit,
+          ),
+        ),
+      })),
+    [applyDraftTransform],
+  );
+  const resetTranslationCredits = useCallback(
+    () => applyDraftTransform((previous) => ({ ...previous, translationCredits: original.translationCredits })),
+    [applyDraftTransform, original.translationCredits],
+  );
+
   const copyMarkdown = useCallback(
     () => copyToClipboard("markdown", draft.markdown),
     [copyToClipboard, draft.markdown],
@@ -219,6 +293,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
       aboutMarkdown: snapshot.draft.markdown,
       aboutSubtitle: snapshot.draft.subtitle,
       founderProfileKeys: snapshot.draft.founderKeys,
+      translationCredits: snapshot.draft.translationCredits,
     };
     try {
       if (!canApprove) {
@@ -232,6 +307,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
               aboutMarkdown: original.markdown,
               aboutSubtitle: original.subtitle,
               founderProfileKeys: original.founderKeys,
+              translationCredits: original.translationCredits,
             } : null,
           }],
         });
@@ -245,17 +321,21 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
         headers: { "Content-Type": "application/json" },
         body: publicationBody({ ...body, expectedRevision: snapshot.original.revision, expected: snapshot.original.exists ? {
           aboutMarkdown: snapshot.original.markdown, aboutSubtitle: snapshot.original.subtitle, founderProfileKeys: snapshot.original.founderKeys,
+          translationCredits: snapshot.original.translationCredits,
         } : null }),
       });
       const payload = (await response.json()) as {
-        about?: { aboutMarkdown: string; aboutSubtitle: string; founderProfileKeys: string[]; revision?: number };
+        about?: { aboutMarkdown: string; aboutSubtitle: string; founderProfileKeys: string[]; translationCredits?: TranslationCredits; revision?: number };
         unchanged?: boolean; replayed?: boolean;
         error?: string;
       };
       acknowledge(response, payload);
       // Advance only the baseline: `draft` here is the snapshot that was sent,
       // and anything typed while the request was in flight must stay pending.
-      const saved = payload.about ? toAboutDocument(payload.about) : snapshot.draft;
+      // The route echoes normalized credits; if it echoes none, the sent ones stood.
+      const saved = payload.about
+        ? toAboutDocument({ translationCredits: snapshot.draft.translationCredits, ...payload.about })
+        : snapshot.draft;
       publicationSnapshot.current = null;
       applyHydration(({ draft: current }) => ({ draft: { ...current, revision: saved.revision, exists: saved.exists }, original: saved }));
       setSaveState("saved");
@@ -299,6 +379,10 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     resetSubtitle,
     resetFounderKeys,
     toggleFounderKey,
+    addTranslationCredit,
+    removeTranslationCredit,
+    setTranslationCreditContribution,
+    resetTranslationCredits,
     copyMarkdown,
     copySubtitle,
     save,
