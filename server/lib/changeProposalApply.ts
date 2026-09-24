@@ -171,7 +171,7 @@ export async function applyTarget(
         }
       } else {
         // Both a payload document and a `snapshotBefore` row land here; the
-        // handler reads only the three editable fields, so a stored row's
+        // handler reads only the editable fields, so a stored row's
         // `key`, `updatedAt`, and `updatedBy` fall away and the approver is
         // recorded as the writer.
         const about = document as AboutDocument;
@@ -181,6 +181,7 @@ export async function applyTarget(
           aboutMarkdown: about.aboutMarkdown,
           aboutSubtitle: about.aboutSubtitle,
           founderProfileKeys: about.founderProfileKeys,
+          translationCredits: about.translationCredits,
           updatedBy: auth.actorEmail,
         });
       }

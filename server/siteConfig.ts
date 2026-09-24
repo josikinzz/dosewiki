@@ -52,6 +52,10 @@ export const aboutDocumentFields = {
   aboutMarkdown: v.optional(v.string()),
   aboutSubtitle: v.optional(v.string()),
   founderProfileKeys: v.optional(v.array(v.string())),
+  translationCredits: v.optional(v.record(v.string(), v.array(v.object({
+    profileKey: v.string(),
+    contribution: v.string(),
+  })))),
 } as const;
 
 export const aboutDocumentValidator = v.object(aboutDocumentFields);
@@ -60,6 +64,7 @@ export type AboutDocument = {
   aboutMarkdown?: string;
   aboutSubtitle?: string;
   founderProfileKeys?: string[];
+  translationCredits?: Record<string, Array<{ profileKey: string; contribution: string }>>;
 };
 
 type SaveAboutArgs = AboutDocument & {
@@ -95,6 +100,9 @@ export async function saveAboutHandler(ctx: MutationCtx, args: SaveAboutArgs) {
     aboutMarkdown: args.aboutMarkdown,
     aboutSubtitle: args.aboutSubtitle,
     founderProfileKeys: args.founderProfileKeys,
+    // A save that carries no credits (a proposal drafted before they existed)
+    // keeps the stored ones rather than clearing them.
+    translationCredits: args.translationCredits ?? existing?.translationCredits,
     updatedAt: now,
     updatedBy: auditStampFor(actor, args.updatedBy),
   };

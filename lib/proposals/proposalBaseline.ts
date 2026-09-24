@@ -13,6 +13,7 @@ export function proposalComparableDocument(kind: ProposalBaseline["kind"], value
     aboutMarkdown: row.aboutMarkdown ?? "",
     aboutSubtitle: row.aboutSubtitle ?? "",
     founderProfileKeys: row.founderProfileKeys ?? [],
+    translationCredits: row.translationCredits ?? {},
   };
   const { _id, _creationTime, updatedAt: _updatedAt, updatedBy: _updatedBy, ...document } = row;
   return document;

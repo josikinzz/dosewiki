@@ -2,7 +2,7 @@
  * Admin write endpoint for the About page document (the pinned About entry
  * of the /dev Writing tab).
  *
- *   POST /api/dev/about  { aboutMarkdown, aboutSubtitle, founderProfileKeys }
+ *   POST /api/dev/about  { aboutMarkdown, aboutSubtitle, founderProfileKeys, translationCredits? }
  *
  * Admin only: an editor's About save goes through `POST /api/dev/proposals`
  * as an `about` proposal instead, and reaches `siteConfig.saveAbout` only
@@ -69,6 +69,7 @@ export const POST = protectedRouteOperation<AboutBody & { expected?: unknown; ex
       aboutMarkdown: body.aboutMarkdown,
       aboutSubtitle: body.aboutSubtitle,
       founderProfileKeys: body.founderProfileKeys,
+      translationCredits: body.translationCredits,
       updatedBy: actorEmail,
       expected: body.expected,
       expectedRevision: body.expectedRevision, operationId: body.operationId,
@@ -83,6 +84,7 @@ export const POST = protectedRouteOperation<AboutBody & { expected?: unknown; ex
         aboutMarkdown: body.aboutMarkdown,
         aboutSubtitle: body.aboutSubtitle,
         founderProfileKeys: body.founderProfileKeys,
+        translationCredits: body.translationCredits,
         revision: receipt.revision,
       },
     });

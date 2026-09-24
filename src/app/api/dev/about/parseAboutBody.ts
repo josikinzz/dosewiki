@@ -4,6 +4,11 @@
  * is held to exactly what the admin's save is held to.
  */
 import { normalizeFounderKeys } from "@/data/content/about";
+import {
+  parseTranslationCredits,
+  TranslationCreditsError,
+  type TranslationCredits,
+} from "@/data/content/translationCredits";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 
 const MARKDOWN_MAX_LENGTH = 400_000;
@@ -18,12 +23,15 @@ export type AboutBody = {
   aboutMarkdown?: unknown;
   aboutSubtitle?: unknown;
   founderProfileKeys?: unknown;
+  translationCredits?: unknown;
 };
 
 export type ParsedAbout = {
   aboutMarkdown: string;
   aboutSubtitle: string;
   founderProfileKeys: string[];
+  /** Absent when the request carries none, so the stored credits stay as they are. */
+  translationCredits?: TranslationCredits;
 };
 
 function requireText(raw: unknown, label: string, maxLength: number): string {
@@ -61,7 +69,15 @@ export function parseAboutBody(raw: AboutBody): ParsedAbout {
     );
   }
 
-  return { aboutMarkdown, aboutSubtitle, founderProfileKeys };
+  if (raw.translationCredits === undefined) {
+    return { aboutMarkdown, aboutSubtitle, founderProfileKeys };
+  }
+  try {
+    return { aboutMarkdown, aboutSubtitle, founderProfileKeys, translationCredits: parseTranslationCredits(raw.translationCredits) };
+  } catch (error) {
+    if (error instanceof TranslationCreditsError) throw new JsonBodyError(400, error.message);
+    throw error;
+  }
 }
 
 /** The `about` entry of a proposal payload, or `null` when the payload carries none. */

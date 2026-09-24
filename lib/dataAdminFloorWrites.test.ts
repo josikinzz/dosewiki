@@ -183,13 +183,14 @@ describe("siteConfig.saveAbout audit stamp", () => {
     delete process.env.DATA_ADMIN_KEY;
   });
 
-  function aboutCtx() {
+  function aboutCtx(existing: Record<string, unknown> | null = null) {
     const insert = vi.fn(async (_table: string, _document: Record<string, unknown>) => "about-id");
+    const patch = vi.fn(async (_id: string, _document: Record<string, unknown>) => undefined);
     const ctx = {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
         insert,
-        patch: vi.fn(),
+        patch,
         query: vi.fn((table: string) => ({
           withIndex: (
             _index: string,
@@ -207,12 +208,12 @@ describe("siteConfig.saveAbout audit stamp", () => {
               const role = MEMBERSHIPS[key];
               return { unique: async () => (role ? { email: key, role } : null) };
             }
-            return { first: async () => null };
+            return { first: async () => existing };
           },
         })),
       },
     };
-    return { ctx: ctx as never, insert };
+    return { ctx: ctx as never, insert, patch };
   }
 
   it("stamps the approver by default and lets an admin attribute the write to someone else", async () => {
@@ -227,5 +228,25 @@ describe("siteConfig.saveAbout audit stamp", () => {
       updatedBy: "approver@example.com",
     });
     expect(attributed.insert.mock.calls[0]?.[1]).toMatchObject({ updatedBy: "approver@example.com" });
+  });
+
+  it("writes translation credits, and keeps the stored ones when a save carries none", async () => {
+    const credits = { "zh-Hans": [{ profileKey: "VACUE", contribution: "Chinese localization" }] };
+    const fresh = aboutCtx();
+    await saveAboutHandler(fresh.ctx, { ...as("admin@example.com"), aboutMarkdown: "# About", translationCredits: credits });
+    expect(fresh.insert.mock.calls[0]?.[1]).toMatchObject({ translationCredits: credits });
+
+    const stored = aboutCtx({ _id: "about-id", key: "about", aboutMarkdown: "# About", translationCredits: credits, updatedAt: "2026-01-01" });
+    await saveAboutHandler(stored.ctx, { ...as("admin@example.com"), aboutMarkdown: "# About, revised" });
+    expect(stored.patch.mock.calls[0]?.[1]).toMatchObject({ aboutMarkdown: "# About, revised", translationCredits: credits });
+  });
+
+  it("refuses an editor writing translation credits at the handler seam", async () => {
+    const credits = { "zh-Hans": [{ profileKey: "VACUE", contribution: "Chinese localization" }] };
+    const target = aboutCtx();
+    await expect(
+      saveAboutHandler(target.ctx, { ...as("editor@example.com"), aboutMarkdown: "# About", translationCredits: credits }),
+    ).rejects.toThrow();
+    expect(target.insert).not.toHaveBeenCalled();
   });
 });

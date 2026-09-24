@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
+import { DataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 
 const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
@@ -130,5 +131,63 @@ describe("about route", () => {
 
     expect(response.status).toBe(200);
     expect((await response.json()).about.founderProfileKeys).toEqual(["KAY-TWO", "RHO2"]);
+  });
+
+  describe("translation credits", () => {
+    const CREDITS = {
+      "zh-Hans": [{ profileKey: "vacue", contribution: " Chinese localization,  terminology review " }],
+    };
+
+    it("normalizes the credits and forwards them to siteConfig.saveAbout", async () => {
+      const response = await POST(saveRequest({ ...SAVE, translationCredits: CREDITS }));
+
+      expect(response.status).toBe(200);
+      const normalized = { "zh-Hans": [{ profileKey: "VACUE", contribution: "Chinese localization, terminology review" }] };
+      expect(mocks.mutation).toHaveBeenCalledWith("siteConfig.saveAbout", expect.objectContaining({
+        translationCredits: normalized,
+        expected: null,
+        expectedRevision: 0,
+      }));
+      expect((await response.json()).about.translationCredits).toEqual(normalized);
+    });
+
+    it("leaves the stored credits alone when a save does not carry them", async () => {
+      const response = await POST(saveRequest(SAVE));
+
+      expect(response.status).toBe(200);
+      expect(mocks.mutation.mock.calls[0][1].translationCredits).toBeUndefined();
+    });
+
+    it("rejects malformed credits with 400 before reaching Postgres", async () => {
+      for (const translationCredits of [
+        [],
+        { xx: [{ profileKey: "VACUE", contribution: "Review" }] },
+        { "zh-Hans": [{ profileKey: "va cue", contribution: "Review" }] },
+        { "zh-Hans": [{ profileKey: "VACUE", contribution: "" }] },
+        { "zh-Hans": [{ profileKey: "VACUE", contribution: "x".repeat(241) }] },
+      ]) {
+        const response = await POST(saveRequest({ ...SAVE, translationCredits }));
+        expect(response.status).toBe(400);
+      }
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
+    it("refuses an editor changing credits directly", async () => {
+      authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+
+      const response = await POST(saveRequest({ ...SAVE, translationCredits: CREDITS }));
+
+      expect(response.status).toBe(403);
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
+    it("fails closed while writes are frozen and publishes nothing", async () => {
+      mocks.mutation.mockRejectedValueOnce(new DataWriteFrozenError("siteConfig.saveAbout"));
+
+      const response = await POST(saveRequest({ ...SAVE, translationCredits: CREDITS }));
+
+      expect(response.ok).toBe(false);
+      expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
+    });
   });
 });
