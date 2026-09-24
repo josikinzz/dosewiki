@@ -60,7 +60,7 @@ it("adds a note under the section's last paragraph and takes it through draft an
   expect(writes[0]).toMatchObject({ locale: "zh-Hans", kind: "article", slug: "sample", section: "history-culture", action: "save", expectedRevision: 0, body: "中国的管制情况另见本节。" });
 
   await user.click(screen.getByRole("button", { name: "Approve saved revision" }));
-  await screen.findByText("Approved for this section. Public rendering still needs verification.");
+  await screen.findByText("Approved for this section.");
   expect(writes[1]).toMatchObject({ action: "approve", expectedRevision: 1 });
   expect(screen.getByText("Approved, shown to readers")).toBeInTheDocument();
 });

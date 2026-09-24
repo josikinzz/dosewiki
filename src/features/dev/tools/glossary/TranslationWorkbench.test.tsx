@@ -35,7 +35,7 @@ describe("UI translation review", () => {
     expect(writes[0]).toMatchObject({ action: "save", expectedRevision: 0, target: "浅色", reason: { kind: "fluency", note: "" }, glossaryExceptions: [] });
     expect(writes).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Approve saved draft" }));
-    await screen.findByText("Approved. Awaiting a UI catalog build, deployment, and public verification.");
+    await screen.findByText("Approved. Awaiting a UI catalog build.");
     expect(writes[1]).toMatchObject({ action: "approve", expectedRevision: 1 });
     expect(writes[1]).not.toHaveProperty("target");
   });
@@ -52,7 +52,7 @@ describe("UI translation review", () => {
     render(<UiTranslationWorkbench locale="zh-Hans" />);
     expect(await screen.findByRole("textbox", { name: "Translation for appearance.light" })).toHaveValue("浅色");
     expect(screen.getByText("No human review")).toBeInTheDocument();
-    expect(screen.getByText("Compiled wording (not verified live):")).toBeInTheDocument();
+    expect(screen.getByText("Compiled wording:")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
@@ -174,7 +174,7 @@ it("loads automatic changes on demand with old and new wording and cursor pagina
   await screen.findByText("旧译");
   expect(screen.getByText("体验再现")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Homepage" })).toHaveAttribute("href", "/");
-  expect(screen.getByText("Publication not verified")).toBeInTheDocument();
+  expect(screen.getByText(/restoring content requires a separate reviewed correction/)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Export this page" })).toBeEnabled();
   expect(screen.queryByRole("button", { name: /Restore/ })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Older changes" }));

@@ -80,6 +80,7 @@ it("offers Promote to style guide on a saved Fluency correction only, and sends 
   await user.type(screen.getByRole("textbox", { name: "Source slug" }), "sample");
   await user.click(screen.getByRole("button", { name: "Load source" }));
   await user.click(await screen.findByRole("button", { name: "Review summary" }));
+  await user.click(await screen.findByRole("button", { name: "History for summary" }));
 
   const items = (await screen.findAllByText(/^Revision \d/)).map((node) => node.closest("li")!);
   expect(within(items[0]).queryByRole("button", { name: "Promote to style guide" })).not.toBeInTheDocument();

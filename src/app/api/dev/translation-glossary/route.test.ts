@@ -129,6 +129,8 @@ describe("glossary draft and approval routes", () => {
         },
       ],
       actor.email,
+      undefined,
+      undefined,
     );
     expect(await response.json()).toMatchObject({ row: { status: "draft" } });
   });
@@ -138,6 +140,7 @@ describe("glossary draft and approval routes", () => {
       "zh-Hans",
       [{ term: "Euphoria", expectedRevision: "100:2", action: "approve" }],
       actor.email,
+      undefined,
       undefined,
     );
     review.mutateGlossaryReview.mockClear();

@@ -4,7 +4,6 @@ import { useRef, type Dispatch, type SetStateAction } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { EditorSegmentedControl, EditorStatusPill } from "@/features/dev/components";
 import {
   count,
@@ -51,16 +50,6 @@ export function GlossaryFilterBar({ filters, setFilters, draftCount, uncheckedCo
         value={filters.status}
         onChange={(value) => setFilters((current) => ({ ...current, status: value as GlossaryStatusFilter }))}
       />
-      <div className="w-full md:w-64">
-        <Input
-          type="search"
-          inputSize="sm"
-          aria-label="Search terms"
-          placeholder="Search term or rendering"
-          value={filters.search}
-          onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-        />
-      </div>
       {/* Sits with the filters it obeys, so "shown" reads as "what these controls show"; the count is the segmented control's badge. */}
       <Button
         type="button"
@@ -94,28 +83,21 @@ export function GlossaryFilterBar({ filters, setFilters, draftCount, uncheckedCo
 type GlossaryActionBarProps = {
   locale: string;
   locked: boolean;
+  /** Drafting calls the model, so only admins see it; retranslation and the main run sit in the Runs panel in Pages. */
   canAdmin: boolean;
-  nothingTranslatedYet: boolean;
-  pendingCount: number;
-  jobsActive: number;
   /** The live status pill's text while a write runs, or `null` when idle. */
   activity: string | null;
   onImport: (file: File | undefined) => void;
   onDraft: () => void;
-  onRetranslate: () => void;
 };
 
 export function GlossaryActionBar({
   locale,
   locked,
   canAdmin,
-  nothingTranslatedYet,
-  pendingCount,
-  jobsActive,
   activity,
   onImport,
   onDraft,
-  onRetranslate,
 }: GlossaryActionBarProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   return (
@@ -149,20 +131,6 @@ export function GlossaryActionBar({
           Draft missing terms
         </Button>
       ) : null}
-      {/* Absent, not disabled, until something has been translated: there is nothing to redo. */}
-      {!canAdmin || nothingTranslatedYet ? null : (
-        <Button
-          type="button"
-          variant={pendingCount > 0 ? "accent" : "outline"}
-          size="sm"
-          disabled={locked || pendingCount === 0 || jobsActive > 0}
-          aria-label={`Retranslate everything that mentions ${count(pendingCount, "term")}`}
-          onClick={onRetranslate}
-        >
-          <Icon icon="lucide:languages" size={14} />
-          Retranslate
-        </Button>
-      )}
       {activity ? <EditorStatusPill tone="info" loading live>{activity}</EditorStatusPill> : null}
     </div>
   );

@@ -1,8 +1,13 @@
 "use client";
 
 /**
- * Glossary: `/dev/glossary`. The reviewed term list every locale mirror's
- * prompts are held to, one row per (locale, term) in Postgres.
+ * Translation workbench: `/dev/glossary`, in three views. Inbox lists what
+ * needs a person. Words holds glossary terms and UI labels behind one search.
+ * Pages holds the article reader, per-page coverage, recorded changes, and, for
+ * admins, the collapsed Runs panel with every control that calls the model.
+ *
+ * The glossary is the reviewed term list every locale mirror's prompts are
+ * held to, one row per (locale, term) in Postgres.
  *
  * The workflow for a locale: draft the missing terms by machine, review each
  * one (save a proposed rendering as a draft, then approve that exact revision),
@@ -65,15 +70,18 @@ import {
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
 import { GlossaryGroupSection } from "./GlossaryReviewTable";
 import { GlossaryActionBar, GlossaryFilterBar } from "./GlossaryToolbar";
-import { PendingTermsList } from "./PendingTermsList";
 import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
 import { TranslationChanges } from "./TranslationChanges";
 import { NarrativeReview } from "./NarrativeReview";
 import { ReviewInbox } from "./ReviewInbox";
 import { StyleGuidePanel } from "./StyleGuidePanel";
 import { parseWorkbenchDeepLink } from "../../../../../lib/translation/reviewInboxTypes";
+import type { PagesSection, WorkbenchView, WordsList } from "@lib/translation/reviewInboxTypes";
 import { TranslationCoverage } from "./TranslationCoverage";
-import { TranslationProgress } from "./TranslationProgress";
+import { RunsPanel } from "./RunsPanel";
+import { StatusLegend } from "./StatusLegend";
+import { WorkbenchDrawer } from "./WorkbenchDrawer";
+import { Input } from "@/components/ui/input";
 import { ReasonKindChips } from "./CorrectionReason";
 import type { CorrectionReasonKind, ReviewReason } from "@lib/translation/reviewReason";
 
@@ -100,21 +108,34 @@ type GlossaryTabProps = {
 };
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
-  const [view, setView] = useState("glossary");
-  const [visitedViews, setVisitedViews] = useState({ inbox: false, labels: false, coverage: false, changes: false, narrative: false, style: false });
-  /** A UI label deep link (from the Inbox) opens the labels view searched to that label. */
-  const [labelSearch, setLabelSearch] = useState("");
+  const [view, setView] = useState<WorkbenchView>("inbox");
+  /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
+  const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, words: false, pages: false, labels: false, style: false });
+  const [wordsList, setWordsList] = useState<WordsList>("terms");
+  /** The drawer under the article reader that a deep link asked for. */
+  const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
+  // Opens on the Inbox unless a deep link names a view; links written for the
+  // older five views map onto these three (see parseWorkbenchDeepLink).
   useEffect(() => {
-    const link = parseWorkbenchDeepLink(window.location.search);
-    if (!link) return;
+    const link = parseWorkbenchDeepLink(window.location.search) ?? { view: "inbox" as const };
     setView(link.view);
-    if (link.view !== "glossary") setVisitedViews((visited) => ({ ...visited, [link.view]: true }));
+    setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels" }));
+    if (link.words) setWordsList(link.words);
+    if (link.pages) setPagesSection(link.pages);
     if (link.term) setFilters({ status: "all", search: link.term });
-    if (link.label) setLabelSearch(link.label);
-    if (link.view !== "narrative") return;
+    if (link.label) setFilters((current) => ({ ...current, search: link.label ?? "" }));
+    if (link.view !== "pages") return;
     const requestedLocale = new URLSearchParams(window.location.search).get("translationLocale");
     if (requestedLocale) setLocale(requestedLocale);
   }, []);
+  const openView = (next: WorkbenchView) => {
+    setView(next);
+    setVisitedViews((current) => ({ ...current, [next]: true, labels: current.labels || (next === "words" && wordsList === "labels") }));
+  };
+  const openWordsList = (next: WordsList) => {
+    setWordsList(next);
+    if (next === "labels" || next === "style") setVisitedViews((current) => ({ ...current, [next]: true }));
+  };
   const uiEditDrafts = useRef<UiEditDrafts>(new Map());
   const canAdmin = roleMeetsFloor(viewerRole, "admin");
   const canDefine = roleMeetsFloor(viewerRole, "editor");
@@ -204,7 +225,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const shownUnchecked = rows.filter(isLiveUnchecked);
   const reviewComplete = !!data && data.rows.length > 0 && draftCount === 0;
   const nothingTranslatedYet = !!data && data.segments.total === 0;
-  const canRetranslate = pending.length > 0 && !nothingTranslatedYet;
   // Collapsed is the exception, so it is what gets remembered: a group starts
   // open, and a reviewer folds away the ones they are done with. The set
   // survives filter changes and a reload of the same locale, and resets with
@@ -325,7 +345,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     const terms = [...pending];
     confirm({
       title: `Retranslate everything that mentions ${count(terms.length, "term")}?`,
-      description: "Request background updates for translations that mention these terms. Use Coverage to track processing; publication is verified separately.",
+      description: "Request background updates for translations that mention these terms. Runs and Coverage in Pages track the processing.",
       confirmLabel: "Retranslate",
       affected: terms,
       onConfirm: () =>
@@ -407,7 +427,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       <EditorSection
         icon="lucide:book-a"
         title="Translation workbench"
-        description="Review terminology, set exact UI wording, and check translation coverage. Saving a draft and approving it are separate actions."
+        description="Inbox lists what needs a person. Words holds glossary terms and UI labels. Pages holds articles, coverage, and changes. Saving a draft and approving it are separate actions."
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={() => void load(locale)} disabled={locked}>
             <Icon icon="lucide:refresh-cw" size={14} />
@@ -423,9 +443,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           <StateCard loading compact title="Loading glossary" />
         ) : (
           <div className="space-y-4">
-            <TranslationProgress data={data} starting={busy === "start"} error={refreshError} onRefresh={() => void load(data.locale, true)}
-              onRetryExhausted={canAdmin ? retryExhausted : undefined} retryDisabled={locked} />
-            <GlossaryReaderFeedback key={data.locale} locale={data.locale} />
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-full md:w-56">
                 <EditorSelect
@@ -440,23 +457,44 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   onChange={(event) => changeLocale(event.target.value)}
                 />
               </div>
-              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => { setView(next); if (next === "inbox" || next === "labels" || next === "coverage" || next === "changes" || next === "style") setVisitedViews((current) => ({ ...current, [next]: true })); }} options={[
+              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => openView(next as WorkbenchView)} options={[
                 { value: "inbox", label: "Inbox", disabled: locked },
-                { value: "glossary", label: "Glossary", disabled: locked },
-                { value: "labels", label: "UI labels", disabled: locked },
-                { value: "coverage", label: "Coverage", disabled: locked },
-                { value: "changes", label: "Changes", disabled: locked },
-                { value: "narrative", label: "Narratives", disabled: locked },
-                { value: "style", label: "Style guide", disabled: locked },
+                { value: "words", label: "Words", disabled: locked },
+                { value: "pages", label: "Pages", disabled: locked },
               ]} />
             </div>
+
+            {/* The status strip: the locale's totals in one line, on every view. */}
+            <p className="theme-text-faint text-xs" data-testid="glossary-summary">
+              {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
+              {runStatus(data, busy === "start") ? ` · ${runStatus(data, busy === "start")}` : ""}
+              {refreshError ? ` · Progress refresh failed: ${refreshError}` : ""}
+            </p>
+            <StatusLegend />
+
             {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} /></div> : null}
-            {visitedViews.labels ? <div hidden={view !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} initialSearch={labelSearch} /></div> : null}
-            {visitedViews.coverage ? <div hidden={view !== "coverage"}><TranslationCoverage key={data.locale} locale={data.locale} /></div> : null}
-            {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} canAdmin={canAdmin} /></div> : null}
-            {visitedViews.changes ? <div hidden={view !== "changes"}><TranslationChanges key={data.locale} locale={data.locale} /></div> : null}
-            {visitedViews.style ? <div hidden={view !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
-            <div hidden={view !== "glossary"} className="space-y-4">
+
+            <div hidden={view !== "words"} className="space-y-4">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="w-full md:w-80">
+                  <Input
+                    type="search"
+                    inputSize="sm"
+                    aria-label="Search words"
+                    placeholder="Search terms, renderings, UI labels, or context"
+                    value={filters.search}
+                    onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+                  />
+                </div>
+                <EditorSegmentedControl label="Words list" value={wordsList} onChange={(next) => openWordsList(next as WordsList)} options={[
+                  { value: "terms", label: "Glossary terms", disabled: locked },
+                  { value: "labels", label: "UI labels", disabled: locked },
+                  { value: "style", label: "Style guide", disabled: locked },
+                ]} />
+              </div>
+              {visitedViews.labels ? <div hidden={wordsList !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} search={filters.search} onSearchChange={(search) => setFilters((current) => ({ ...current, search }))} /></div> : null}
+              {visitedViews.style ? <div hidden={wordsList !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
+            <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-4">
             <GlossaryFilterBar
               filters={filters}
               setFilters={setFilters}
@@ -469,53 +507,33 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               onConfirmShown={() => confirmLive(shownUnchecked.map((row) => row.term), "shown")}
             />
 
-            <p className="theme-text-faint text-xs" data-testid="glossary-summary">
-              {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
-            </p>
-
             <ReasonKindChips label="Approval reason" value={approvalKind} disabled={locked} onChange={setApprovalKind} />
 
             <GlossaryActionBar
               locale={data.locale}
               locked={locked}
               canAdmin={canAdmin}
-              nothingTranslatedYet={nothingTranslatedYet}
-              pendingCount={pending.length}
-              jobsActive={data.jobs.active}
               activity={busy ? BUSY_LABEL[busy] : writing ? (writing.field === "definition" ? "Saving definition" : `Saving "${writing.term}"`) : null}
               onImport={(file) => void importFile(file)}
               onDraft={draft}
-              onRetranslate={retranslate}
             />
             {canDefine ? (
               <p className="theme-text-faint text-xs">
                 Definitions tell the translator and the model what each term means on this site; edit one by clicking it.
               </p>
             ) : null}
-            {canRetranslate ? <PendingTermsList terms={pending} /> : null}
 
             {reviewComplete ? (
               <StateCard
-                tone={canRetranslate ? "warning" : "success"}
-                icon={canRetranslate ? "lucide:languages" : "lucide:check-check"}
+                tone={pending.length > 0 && !nothingTranslatedYet ? "warning" : "success"}
+                icon={pending.length > 0 && !nothingTranslatedYet ? "lucide:languages" : "lucide:check-check"}
                 title={`All ${count(data.rows.length, "term")} for ${data.locale} are reviewed`}
                 description={nothingTranslatedYet
-                  ? "Nothing has been translated under these terms yet. Starting the main translation uses the shared worker pool, capped at 100 simultaneous GLM 5.3 Flash requests."
+                  ? `Nothing has been translated under these terms yet.${canAdmin ? " Start the main translation from Runs in Pages." : ""}`
                   : pending.length > 0
-                    ? `${count(pending.length, "approved rendering")} ${pending.length === 1 ? "has" : "have"} not been queued for propagation yet. Retranslating redoes only the translations that mention ${pending.length === 1 ? "it" : "them"}.`
-                    : "No reviewed term changes are waiting to be requested. Use Coverage to check stored content and processing; public publication is verified separately."}
+                    ? `${count(pending.length, "approved rendering")} ${pending.length === 1 ? "has" : "have"} not been queued for propagation yet. Retranslating redoes only the translations that mention ${pending.length === 1 ? "it" : "them"}.${canAdmin ? " Retranslate from Runs in Pages." : ""}`
+                    : "No reviewed term changes are waiting to be requested."}
                 compact
-                actions={!canAdmin ? undefined : canRetranslate ? (
-                  <Button type="button" variant="accent" size="sm" disabled={locked || data.jobs.active > 0} onClick={retranslate}>
-                    <Icon icon="lucide:languages" size={14} />
-                    Retranslate
-                  </Button>
-                ) : (
-                  <Button type="button" variant={nothingTranslatedYet ? "accent" : "outline"} size="sm" disabled={locked || data.jobs.active > 0} onClick={startMain}>
-                    <Icon icon="lucide:play" size={14} />
-                    {data.jobs.active > 0 ? "Translation running" : nothingTranslatedYet ? "Start main translation" : "Run the main translation again"}
-                  </Button>
-                )}
               />
             ) : data.rows.length > 0 ? (
               <p className="theme-text-faint text-xs">
@@ -559,7 +577,38 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                 ))}
               </div>
             )}
+            </section>
             </div>
+
+            {visitedViews.pages ? (
+              <div hidden={view !== "pages"} className="space-y-4">
+                <NarrativeReview key={data.locale} locale={data.locale} canAdmin={canAdmin} />
+                <WorkbenchDrawer key={`coverage:${data.locale}`} title="Coverage" defaultOpen={pagesSection === "coverage"}>
+                  <TranslationCoverage locale={data.locale} />
+                </WorkbenchDrawer>
+                <WorkbenchDrawer key={`changes:${data.locale}`} title="Recent changes" defaultOpen={pagesSection === "changes"}>
+                  <TranslationChanges locale={data.locale} />
+                </WorkbenchDrawer>
+                <GlossaryReaderFeedback key={data.locale} locale={data.locale} />
+                {canAdmin ? (
+                  <WorkbenchDrawer title="Runs" detail={runStatus(data, busy === "start") ?? "No run recorded"}>
+                    <RunsPanel
+                      data={data}
+                      pending={pending}
+                      reviewComplete={reviewComplete}
+                      draftCount={draftCount}
+                      locked={locked}
+                      starting={busy === "start"}
+                      refreshError={refreshError}
+                      onRefresh={() => void load(data.locale, true)}
+                      onStart={startMain}
+                      onRetranslate={retranslate}
+                      onRetryExhausted={retryExhausted}
+                    />
+                  </WorkbenchDrawer>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         )}
       </EditorSection>
@@ -578,6 +627,17 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       />
     </div>
   );
+}
+
+/** The latest run in a few words for the status strip and the Runs heading, or `null` when there has been none. */
+function runStatus(data: GlossaryList, starting: boolean): string | null {
+  const { jobs } = data;
+  if (starting) return "Preparing a translation run";
+  if (!jobs.total) return null;
+  const settled = Math.min(jobs.total, jobs.completed + jobs.exhausted);
+  const percent = Math.round(settled / jobs.total * 100);
+  const issues = jobs.completedWithRejections + jobs.exhausted;
+  return `${jobs.active > 0 ? "Translation running" : "Latest run"}: ${percent}% processed${issues ? `, ${issues.toLocaleString()} need attention` : ""}`;
 }
 
 const BUSY_LABEL: Record<Exclude<Busy, null>, string> = {

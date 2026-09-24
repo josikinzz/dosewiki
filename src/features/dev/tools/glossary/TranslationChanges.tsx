@@ -38,7 +38,7 @@ export function TranslationChanges({ locale }: { locale: string }) {
     </div>
     {error ? <StateCard compact tone="danger" title="Changes could not be loaded" description={error} /> : null}
     {!data ? <StateCard compact loading={busy} title={busy ? "Reading translation history" : "Recent changes have not been loaded"} description="Load the recorded changes for this locale to compare previous and updated wording." /> : <>
-      <StateCard compact tone="warning" title="Publication not verified" description="These records show stored translation updates. The public site's rendering and publication have not been verified. Previous wording is preserved for review and export; restoring content requires a separate reviewed correction." />
+      <p className="theme-text-faint text-xs">These records show stored translation updates. Previous wording is preserved for review and export; restoring content requires a separate reviewed correction.</p>
       <div className="flex flex-wrap items-center gap-3" aria-label="Translation change pages">
         <Button type="button" variant="outline" size="sm" disabled={busy || cursors.length === 1} onClick={() => void load(cursors.slice(0, -1))}>Newer changes</Button>
         <span className="theme-text-secondary text-sm">Page {cursors.length} · {data.changes.length} changes</span>

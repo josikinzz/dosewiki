@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GlossaryTab } from "./GlossaryTab";
 import type { GlossaryList, GlossaryRow } from "./glossaryModel";
@@ -51,6 +51,7 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
         };
         return Response.json(list);
       }
+      if (path === "/api/dev/translation-inbox") return Response.json({ ok: true, locale: LOCALE, items: [], total: 0, offset: 0, pageSize: 50, checked: [], counts: {}, reason: null });
       if (path.endsWith("/import")) {
         calls.push({ path, body: String(init?.body) });
         return refusals.shift() ?? importResponse.clone();
@@ -109,9 +110,16 @@ const rowFor = (term: string) => {
   return within(element);
 };
 
+const viewButton = (name: string) => within(screen.getByRole("group", { name: "Workbench view" })).getByRole("button", { name });
+
 describe("GlossaryTab", () => {
+  // The workbench opens on the Inbox; these cases review glossary terms, so they open Words through its deep link.
+  beforeEach(() => {
+    window.history.replaceState({}, "", "/dev/glossary?translationView=words");
+  });
   afterEach(() => {
     vi.unstubAllGlobals();
+    window.history.replaceState({}, "", "/");
   });
 
   it("approves an unchanged unreviewed row explicitly, locks only that row, and hands focus to the next unreviewed row after the reload", async () => {
@@ -229,7 +237,7 @@ describe("GlossaryTab", () => {
     render(<GlossaryTab viewerRole="translator" />);
     await screen.findByTestId("glossary-summary");
     await user.click(screen.getByRole("button", { name: /Live, never checked/ }));
-    await user.type(screen.getByRole("searchbox", { name: "Search terms" }), "a");
+    await user.type(screen.getByRole("searchbox", { name: "Search words" }), "a");
     await user.click(await screen.findByRole("button", { name: "Confirm all 2 live, never checked terms shown" }));
     const dialog = within(await screen.findByRole("dialog"));
     expect(dialog.getByText("Confirm the 2 live, never checked terms shown?")).toBeInTheDocument();
@@ -246,8 +254,8 @@ describe("GlossaryTab", () => {
     const input = await screen.findByRole("textbox", { name: "Rendering for anxiety" });
     await user.clear(input);
     await user.type(input, "Unsaved correction");
-    await user.click(screen.getByRole("button", { name: "Coverage" }));
-    await user.click(screen.getByRole("button", { name: "Glossary" }));
+    await user.click(viewButton("Pages"));
+    await user.click(viewButton("Words"));
     expect(screen.getByRole("textbox", { name: "Rendering for anxiety" })).toHaveValue("Unsaved correction");
   });
 
@@ -290,12 +298,17 @@ describe("GlossaryTab", () => {
 
   it("shows an admin the actions that call the model and hides them from a translator", async () => {
     stubGlossaryApi([row("anxiety", "approved")], ["anxiety"]);
+    const user = userEvent.setup();
     const { unmount } = render(<GlossaryTab viewerRole="admin" />);
     await screen.findByText("All 1 term for de are reviewed");
     expect(screen.getByRole("button", { name: "Draft missing terms" })).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /^Retranslate/ })).toHaveLength(2);
     expect(screen.getByRole("link", { name: "Export CSV" })).toHaveAttribute("href", "/api/dev/translation-glossary/export?locale=de");
     expect(screen.getByRole("button", { name: "Import CSV" })).toBeInTheDocument();
+    // Run controls sit in the collapsed Runs panel inside Pages.
+    expect(screen.queryByRole("button", { name: /^Retranslate/ })).toBeNull();
+    await user.click(viewButton("Pages"));
+    await user.click(screen.getByRole("button", { name: /^Runs/ }));
+    expect(screen.getAllByRole("button", { name: /^Retranslate/ })).toHaveLength(1);
     unmount();
 
     render(<GlossaryTab viewerRole="translator" />);
@@ -510,5 +523,101 @@ describe("GlossaryTab", () => {
     const requests = vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes("/import?"));
     expect(new Headers(requests[0][1]?.headers).has("X-Glossary-Collision-Confirmation")).toBe(false);
     expect(new Headers(requests[1][1]?.headers).get("X-Glossary-Collision-Confirmation")).toBe("a".repeat(64));
+  });
+});
+
+describe("workbench views", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("opens on the Inbox and offers exactly three views", async () => {
+    stubGlossaryApi([row("anxiety", "draft")]);
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByTestId("glossary-summary");
+    const views = within(screen.getByRole("group", { name: "Workbench view" })).getAllByRole("button");
+    expect(views.map((button) => button.textContent)).toEqual(["Inbox", "Words", "Pages"]);
+    expect(viewButton("Inbox")).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("region", { name: "Review inbox" })).toBeVisible();
+  });
+
+  it("shows one status legend with the deployment line", async () => {
+    stubGlossaryApi([row("anxiety", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByTestId("glossary-summary");
+    expect(screen.getAllByText("Approved here is not deployed; Pages shows release evidence.")).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Status legend" }));
+    const legend = within(screen.getByRole("list", { name: "Status legend" }));
+    for (const state of ["Machine", "Draft", "Live, never checked", "Human approved", "Source changed", "Re-check"]) expect(legend.getByText(state)).toBeInTheDocument();
+  });
+
+  type Expectation = { view: "Inbox" | "Words" | "Pages"; region: string; list?: "Glossary terms" | "UI labels"; search?: string };
+  const cases: [string, Expectation][] = [
+    ["translationView=inbox", { view: "Inbox", region: "Review inbox" }],
+    ["translationView=glossary&translationTerm=anxiety", { view: "Words", region: "Glossary terms", list: "Glossary terms", search: "anxiety" }],
+    ["translationView=labels&translationLabel=appearance.light", { view: "Words", region: "UI labels", list: "UI labels", search: "appearance.light" }],
+    ["translationView=coverage", { view: "Pages", region: "Translation coverage" }],
+    ["translationView=changes", { view: "Pages", region: "Translation changes" }],
+    ["translationView=narrative", { view: "Pages", region: "Narrative review" }],
+    ["translationReview=article&translationLocale=de&translationSlug=sample&translationSegment=x", { view: "Pages", region: "Narrative review" }],
+    ["translationReview=article&translationLocale=de&translationSlug=sample&translationNote=summary", { view: "Pages", region: "Narrative review" }],
+    ["translationView=words&translationTerm=anxiety", { view: "Words", region: "Glossary terms", list: "Glossary terms", search: "anxiety" }],
+    ["translationView=words&translationLabel=appearance.light", { view: "Words", region: "UI labels", list: "UI labels", search: "appearance.light" }],
+    ["translationView=pages", { view: "Pages", region: "Narrative review" }],
+  ];
+
+  it.each(cases)("a deep link with %s opens the matching view", async (query, expected) => {
+    window.history.replaceState({}, "", `/dev/glossary?${query}`);
+    stubGlossaryApi([row("anxiety", "draft")]);
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByTestId("glossary-summary");
+    expect(viewButton(expected.view)).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("region", { name: expected.region })).toBeVisible();
+    if (expected.list) expect(within(screen.getByRole("group", { name: "Words list" })).getByRole("button", { name: expected.list })).toHaveAttribute("aria-pressed", "true");
+    if (expected.search) expect(screen.getByRole("searchbox", { name: "Search words" })).toHaveValue(expected.search);
+  });
+
+  it("filters glossary terms and UI labels with one search", async () => {
+    window.history.replaceState({}, "", "/dev/glossary?translationView=words");
+    stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("euphoria");
+    expect(screen.getAllByRole("searchbox")).toHaveLength(1);
+    await user.type(screen.getByRole("searchbox", { name: "Search words" }), "anx");
+    await waitFor(() => expect(screen.queryByText("euphoria")).toBeNull());
+    await user.click(within(screen.getByRole("group", { name: "Words list" })).getByRole("button", { name: "UI labels" }));
+    expect(screen.getAllByRole("searchbox")).toHaveLength(1);
+    expect(screen.getByRole("searchbox", { name: "Search words" })).toHaveValue("anx");
+  });
+
+  it("shows a Translator without admin no run controls in Pages", async () => {
+    window.history.replaceState({}, "", "/dev/glossary?translationView=pages");
+    stubGlossaryApi([row("anxiety", "approved")], ["anxiety"]);
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByTestId("glossary-summary");
+    expect(screen.getByRole("region", { name: "Narrative review" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Runs/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Retranslate/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /main translation/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Retry/ })).toBeNull();
+  });
+
+  it("keeps an admin's run controls collapsed inside Pages until opened", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({
+      ok: true, generatedAt: 1, locale: LOCALE, promptVersion: "v1", segments: { total: 0, current: 0 }, jobs: NO_JOBS,
+      locales: [{ locale: LOCALE, live: true, draft: 0, approved: 1 }], rows: [row("anxiety", "approved")], pending: [], glosses: {},
+    } satisfies GlossaryList)));
+    window.history.replaceState({}, "", "/dev/glossary?translationView=pages");
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="admin" />);
+    await screen.findByTestId("glossary-summary");
+    const runs = screen.getByRole("button", { name: /^Runs/ });
+    expect(runs).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Start main translation" })).toBeNull();
+    await user.click(runs);
+    expect(screen.getByRole("button", { name: "Start main translation" })).toBeVisible();
   });
 });

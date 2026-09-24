@@ -19,13 +19,20 @@ export type UiEditDrafts = Map<string, { target: string; reason: string; kind?: 
 
 const endpoint = "/api/dev/translation-workbench";
 
-export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "" }: { locale: string; editDrafts?: UiEditDrafts; initialSearch?: string }) {
+export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "", search: sharedSearch, onSearchChange }: {
+  locale: string; editDrafts?: UiEditDrafts; initialSearch?: string;
+  /** A search owned by the page (the Words view's one search); when given, this list shows no search box of its own. */
+  search?: string; onSearchChange?: (search: string) => void;
+}) {
   const localEdits = useRef<UiEditDrafts>(new Map());
   const edits = editDrafts ?? localEdits.current;
   const [rows, setRows] = useState<UiTranslationRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState(initialSearch);
+  const [ownSearch, setOwnSearch] = useState(initialSearch);
+  const search = sharedSearch ?? ownSearch;
+  const setSearch = onSearchChange ?? setOwnSearch;
   const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [search]);
   const [mode, setMode] = useState<"cards" | "short" | "refresh">("cards");
   const [catalogRefreshed, setCatalogRefreshed] = useState(true);
   const load = useCallback(async () => {
@@ -37,7 +44,7 @@ export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "" 
   const needle = search.trim().toLowerCase();
   const shown = rows?.filter((row) => [row.source, row.context, row.id, row.draft?.target ?? "", row.approved?.target ?? row.compiledTarget ?? ""].some((value) => value.toLowerCase().includes(needle)));
   return <section aria-label="UI labels" className="space-y-4">
-    <p className="theme-text-secondary text-sm">Set the exact wording for each meaning. Saving creates an unreviewed draft. Approval preserves human wording for the next UI catalog build; deployment and public verification are still required.</p>
+    <p className="theme-text-secondary text-sm">Set the exact wording for each meaning. Saving creates an unreviewed draft. Approval preserves human wording for the next UI catalog build.</p>
     <div className="flex flex-wrap items-center gap-2">
       <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reload UI labels</Button>
       <div role="group" aria-label="UI label view" className="flex gap-1">
@@ -46,7 +53,7 @@ export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "" 
         <Button type="button" variant={mode === "refresh" ? "accent" : "outline"} size="sm" aria-pressed={mode === "refresh"} onClick={() => setMode("refresh")}>Waiting for glossary refresh{rows ? ` (${rows.filter((row) => row.pendingRefresh).length})` : ""}</Button>
       </div>
     </div>
-    <Input inputSize="sm" type="search" aria-label="Search UI labels" placeholder="Search English, translation, or context" value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} />
+    {sharedSearch === undefined ? <Input inputSize="sm" type="search" aria-label="Search UI labels" placeholder="Search English, translation, or context" value={search} onChange={(event) => { setSearch(event.target.value); setPage(0); }} /> : null}
     {error ? <StateCard compact tone="danger" title="UI labels could not be loaded" description={error} actions={<Button variant="outline" size="sm" onClick={() => void load()}>Retry</Button>} /> : null}
     {rows === null && !error ? <StateCard compact loading title="Loading UI labels" /> : null}
     {rows ? <p className="theme-text-faint text-xs">{rows.filter((row) => row.status === "draft").length} drafts · {rows.filter((row) => row.status === "approved").length} approved · {rows.filter((row) => row.status === "missing").length} missing from compiled catalog · {rows.filter((row) => row.status === "unreviewed").length} without human review · {rows.filter((row) => row.status === "stale").length} source changes needing review. These labels cover the registered contexts listed below.</p> : null}
@@ -92,7 +99,7 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
       });
       edits.delete(editKey);
       update(result.row); setCorrection({ kind: null, note: "", segment: row.id, exceptions: [] });
-      setNotice({ tone: "success", message: action === "approve" ? "Approved. Awaiting a UI catalog build, deployment, and public verification." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
+      setNotice({ tone: "success", message: action === "approve" ? "Approved. Awaiting a UI catalog build." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
     } catch (cause) {
       setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change was not saved." });
       // Keep the typed rendering on errors; a stale revision must be deliberately reviewed.
@@ -103,7 +110,7 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
     <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="theme-text-primary whitespace-pre-wrap break-words font-medium">{row.source}</h3><p className="theme-text-secondary text-sm">{row.context}</p></div><EditorStatusPill tone={row.status === "approved" ? "success" : "warning"}>{row.status === "stale" ? "Source changed" : row.status === "unreviewed" ? "No human review" : row.status}</EditorStatusPill></div>
     <p className="theme-text-faint break-words text-xs">Used in: {row.locations.join(" · ")}</p>
     {row.glossaryTerms.length ? <p className="theme-text-faint text-xs">Glossary terms: {row.glossaryTerms.join(", ")}</p> : null}
-    {row.compiledTarget ? <p className="theme-text-secondary text-sm">Compiled wording (not verified live): <span className="theme-text-primary">{row.compiledTarget}</span></p> : null}
+    {row.compiledTarget ? <p className="theme-text-secondary text-sm">Compiled wording: <span className="theme-text-primary">{row.compiledTarget}</span></p> : null}
     {row.approved ? <p className="theme-text-secondary text-sm">Approved wording: <span className="theme-text-primary">{row.approved.target}</span></p> : <p className="theme-text-faint text-xs">No human-approved wording is recorded for this context.</p>}
     <div className="space-y-1"><label htmlFor={inputId} className="theme-text-secondary text-xs">Translation</label>{row.source.length > 100 || row.source.includes("\n") || target.length > 100 || target.includes("\n") ? <Textarea id={inputId} textareaSize="sm" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} /> : <Input id={inputId} inputSize="sm" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} />}</div>
     <CorrectionReasonFields value={correction} onChange={editCorrection} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy} noteLabel="Review note (optional)" noteAriaLabel={`Review note for ${row.id}`} />

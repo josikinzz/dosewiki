@@ -38,17 +38,14 @@ export function TranslationCoverage({ locale }: { locale: string }) {
   return (
     <section aria-label="Translation coverage" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="theme-text-secondary max-w-3xl text-sm">Compare public source content with stored translations, including content that has never been translated. Processing, human review, and publication are separate steps.</p>
+        <p className="theme-text-secondary max-w-3xl text-sm">Compare public source content with stored translations, including content that has never been translated.</p>
         <Button type="button" variant="outline" size="sm" onClick={() => void load()} disabled={busy}>{busy ? "Checking coverage" : data ? "Refresh coverage" : "Check coverage"}</Button>
       </div>
       {error ? <StateCard compact tone="danger" title="Coverage check failed" description={error} /> : null}
       {!data ? <StateCard compact loading={busy} title={busy ? "Reading source inventory" : "Coverage has not been checked"} description="Run a check to see source coverage and queue progress for this locale." /> : <>
-        <Surface variant="subtle" padding="sm" radius="lg" className="space-y-2">
-          <p className="theme-text-primary font-medium">{data.summary.current} of {data.summary.units} source units current across {data.summary.records} records</p>
-          <p className="theme-text-secondary text-sm">{data.summary.missing} missing · {data.summary.stale} outdated · {data.summary.rejected} rejected · {data.summary.glossaryMisses} glossary disagreements · {data.summary.repeatedPunctuation} doubled punctuation · {data.summary.leftoverLatin} leftover English</p>
-          <p className="theme-text-faint text-xs">Current means stored against the current source and translation instructions. It does not mean human approved or verified on the public site. Counts are source units within each record, not translated pages. {data.uniqueHashes} unique source hashes across the inventory.</p>
-          <p className="theme-text-faint text-xs">Checked {new Date(data.generatedAt).toLocaleString()}. Source inventory from {new Date(data.inventoryGeneratedAt).toLocaleString()}.</p>
-        </Surface>
+        {/* The totals in one line; the table below breaks them down by content kind. */}
+        <p className="theme-text-secondary text-sm" data-testid="coverage-strip"><strong className="theme-text-primary">{data.summary.current} of {data.summary.units} source units current across {data.summary.records} records</strong> · {data.summary.missing} missing · {data.summary.stale} outdated · {data.summary.rejected} rejected · {data.summary.glossaryMisses} glossary disagreements · {data.summary.repeatedPunctuation} doubled punctuation · {data.summary.leftoverLatin} leftover English · Jobs: {data.queue.queued} queued · {data.queue.running} running · {data.queue.retrying} retrying · {data.queue.failed} failed · {data.queue.completed} completed jobs</p>
+        <p className="theme-text-faint text-xs">Current means stored against the current source and translation instructions. Counts are source units, not pages; {data.uniqueHashes} unique source hashes. Checked {new Date(data.generatedAt).toLocaleString()}; source inventory from {new Date(data.inventoryGeneratedAt).toLocaleString()}.</p>
         <EditorTable>
           <EditorTableHead>{["Content", "Records", "Current / required", "Missing", "Outdated", "Rejected", "Glossary", "Punctuation", "English"].map((label) => <EditorTableHeading key={label}>{label}</EditorTableHeading>)}</EditorTableHead>
           <EditorTableBody>{data.byKind.map((kind) => <EditorTableRow key={kind.kind}>
@@ -63,16 +60,11 @@ export function TranslationCoverage({ locale }: { locale: string }) {
             <EditorTableCell label="English">{kind.leftoverLatin}</EditorTableCell>
           </EditorTableRow>)}</EditorTableBody>
         </EditorTable>
-        <Surface variant="subtle" padding="sm" radius="lg" className="space-y-2">
-          <h3 className="theme-text-primary font-medium">Background processing</h3>
-          <p className="theme-text-secondary text-sm">{data.queue.queued} queued · {data.queue.running} running · {data.queue.retrying} retrying · {data.queue.failed} failed · {data.queue.completed} completed jobs</p>
-          <p className="theme-text-faint text-xs">A completed job is processing evidence. It is not a count of all translated or published pages.</p>
-        </Surface>
         {data.ui ? <Surface variant="subtle" padding="sm" radius="lg" className="space-y-2">
           <h3 className="theme-text-primary font-medium">UI catalog coverage</h3>
           <p className="theme-text-secondary text-sm">{data.ui.translated} of {data.ui.total} registered labels compiled · {data.ui.approved} human approved · {data.ui.missingIds.length} missing · {data.ui.approvalMismatches.length} approved renderings awaiting compilation · {data.ui.glossaryMisses?.length ?? 0} glossary disagreements</p>
           {data.ui.glossaryMisses?.length ? <p className="theme-text-faint text-xs">Glossary disagreements are review suggestions. A human-approved wording may intentionally differ in its UI context.</p> : null}
-          <p className="theme-text-faint text-xs">{data.ui.compiledAt ? `Compiled ${new Date(data.ui.compiledAt).toLocaleString()}.` : "No compilation timestamp is recorded."} {data.ui.approvedSnapshotCurrent ? "The compiled approval snapshot is current." : "The compiled approval snapshot needs updating."} Public rendering has not been verified.</p>
+          <p className="theme-text-faint text-xs">{data.ui.compiledAt ? `Compiled ${new Date(data.ui.compiledAt).toLocaleString()}.` : "No compilation timestamp is recorded."} {data.ui.approvedSnapshotCurrent ? "The compiled approval snapshot is current." : "The compiled approval snapshot needs updating."}</p>
         </Surface> : null}
         <Surface variant="subtle" padding="sm" radius="lg" className="space-y-2">
           <h3 className="theme-text-primary font-medium">Rendered route evidence</h3>

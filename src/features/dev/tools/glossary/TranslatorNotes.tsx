@@ -95,7 +95,7 @@ function NoteEditor({ state, row, onClose }: { state: TranslatorNotesState; row:
       if (!response.ok) throw new Error(result.error ?? "Unable to save the note.");
       const incomplete = result.publication?.some((receipt: { status: string }) => receipt.status !== "accepted");
       setNotice(action === "approve"
-        ? incomplete ? "Approved, but cache delivery is incomplete. Retain the receipt and retry publication through the operator workflow." : "Approved for this section. Public rendering still needs verification."
+        ? incomplete ? "Approved, but cache delivery is incomplete. Retain the receipt and retry publication through the operator workflow." : "Approved for this section."
         : "Draft saved. Readers do not see it until it is approved.");
       if (action === "restore" && result.entry?.draft?.target) setBody(result.entry.draft.target);
       await state.reload();

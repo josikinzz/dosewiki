@@ -54,7 +54,7 @@ export function TranslationProgress({ data, starting, error, onRefresh, onRetryE
       <p className="theme-text-muted text-xs">
         {starting ? "Gathering public pages and saving the run. This may take a moment." : running
           ? `${number(jobs.inFlight ?? 0)} pages being worked on${jobs.retrying ? ` · ${number(jobs.retrying)} retrying` : ""}. Progress refreshes every 5 seconds. You can close this page; translation continues on the server.`
-          : "This run is saved. This is the latest saved run, not whole-site coverage. Use Coverage for current site coverage and publication status."}
+          : "This run is saved. This is the latest saved run, not whole-site coverage; Coverage in Pages shows the whole site."}
       </p>
       <p className="theme-text-faint text-[0.6875rem] tabular-nums">Updated {new Date(data.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}</p>
       {issues > 0 && <p className="text-xs text-[color:var(--theme-warning-text)]">{number(jobs.completedWithRejections)} pages contain segments that failed validation and retain their previous wording or fall back to English. {jobs.exhausted > 0 ? `${number(jobs.exhausted)} pages stopped after repeated failures. ` : ""}Saved translations are preserved. Review these results before running translation again.</p>}

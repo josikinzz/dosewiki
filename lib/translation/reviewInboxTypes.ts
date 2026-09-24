@@ -152,13 +152,17 @@ export const INBOX_SCOPE_LABEL: Record<InboxScope, string> = {
   model: "Model",
 };
 
-/** Deep links into the existing workbench editors. Views are named, so a later layout can remap them. */
+/**
+ * Deep links into the workbench editors. The workbench has three views: Inbox,
+ * Words (glossary terms and UI labels), and Pages (article reader, coverage,
+ * changes, and admin runs).
+ */
 export const WORKBENCH_PATH = "/dev/glossary";
 export function glossaryTermHref(locale: string, term: string): string {
-  return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationView: "glossary", translationTerm: term })}`;
+  return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationView: "words", translationTerm: term })}`;
 }
 export function uiLabelHref(locale: string, id: string): string {
-  return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationView: "labels", translationLabel: id })}`;
+  return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationView: "words", translationLabel: id })}`;
 }
 export function narrativeSegmentHref(locale: string, slug: string, id: string): string {
   return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationReview: "article", translationLocale: locale, translationSlug: slug, translationSegment: id })}`;
@@ -169,15 +173,34 @@ export function translatorNoteHref(locale: string, slug: string, section: string
   return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationReview: "article", translationLocale: locale, translationSlug: slug, translationNote: section })}`;
 }
 
-/** Workbench views a deep link can open. */
-export type WorkbenchLinkView = "inbox" | "glossary" | "labels" | "narrative";
-/** Reads a workbench deep link written by the builders above or by the Narratives view. */
-export function parseWorkbenchDeepLink(search: string): { view: WorkbenchLinkView; term?: string; label?: string } | null {
+/** The workbench's three views. */
+export type WorkbenchView = "inbox" | "words" | "pages";
+/** The two lists behind the Words search. */
+/** Words holds the glossary terms, the UI labels, and the locale style guide. */
+export type WordsList = "terms" | "labels" | "style";
+/** The drawers under the article reader in Pages that a link can open. */
+export type PagesSection = "coverage" | "changes";
+export type WorkbenchDeepLink = { view: WorkbenchView; words?: WordsList; pages?: PagesSection; term?: string; label?: string };
+
+/**
+ * Reads a workbench deep link. Links written before the three-view layout keep
+ * working: `glossary` and `labels` open Words, and `coverage`, `changes`, and
+ * `narrative` (like `translationReview=article`) open Pages.
+ */
+export function parseWorkbenchDeepLink(search: string): WorkbenchDeepLink | null {
   const params = new URLSearchParams(search);
-  if (params.get("translationReview") === "article") return { view: "narrative" };
-  const view = params.get("translationView");
-  if (view === "inbox") return { view };
-  if (view === "glossary") return { view, term: params.get("translationTerm") ?? undefined };
-  if (view === "labels") return { view, label: params.get("translationLabel") ?? undefined };
-  return null;
+  if (params.get("translationReview") === "article") return { view: "pages" };
+  const term = params.get("translationTerm") ?? undefined;
+  const label = params.get("translationLabel") ?? undefined;
+  switch (params.get("translationView")) {
+    case "inbox": return { view: "inbox" };
+    case "words": return label !== undefined ? { view: "words", words: "labels", label } : { view: "words", words: "terms", term };
+    case "glossary": return { view: "words", words: "terms", term };
+    case "labels": return { view: "words", words: "labels", label };
+    case "pages":
+    case "narrative": return { view: "pages" };
+    case "coverage": return { view: "pages", pages: "coverage" };
+    case "changes": return { view: "pages", pages: "changes" };
+    default: return null;
+  }
 }
