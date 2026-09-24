@@ -45,6 +45,29 @@ the exact count and terms in a dialog first. A category header reads, for
 example, "3 drafts, 2 never checked"; its **Approve all** approves the drafts
 only, and its **Confirm all** confirms the never-checked rows only.
 
+### Review Inbox
+
+The **Inbox** view lists, in one place, everything in the locale that needs a
+person. This first slice checks three things: glossary rows that are live but
+never checked, UI labels whose English or context changed after a human
+approved them, and article sentences whose approval went stale (own English
+changed) or needs a re-check (a neighbouring sentence changed). Stale approvals
+come first, then re-checks, then never-checked terms.
+
+Each item shows the English, the wording readers see now, why it is listed,
+and **Accept**, **Edit**, **Skip**. Accept calls the existing mutation at the
+revision shown: Confirm for a glossary row, or save the live wording as a draft
+and approve that revision for a UI label or article sentence. A stale revision
+is refused and writes nothing. An item with no live wording (readers see
+English) has no Accept; use Edit. Edit opens the item's existing editor through
+its deep link. Skip hides the item for this browser session only. Keys: J and K
+move, A accepts, E edits, S skips.
+
+`GET /api/dev/translation-inbox?locale=<code>&offset=<n>` returns one page of
+50 items and the total. It is read-only and has the same Translator access and
+locale assignment checks as the rest of the workbench. The inbox is a read
+model over the review tables and stored segments; it adds no approval path.
+
 The Changes view reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the
 same transaction as the translation write. Entries include their English source,

@@ -16,12 +16,12 @@ export type UiEditDrafts = Map<string, { target: string; reason: string }>;
 
 const endpoint = "/api/dev/translation-workbench";
 
-export function UiTranslationWorkbench({ locale, editDrafts }: { locale: string; editDrafts?: UiEditDrafts }) {
+export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "" }: { locale: string; editDrafts?: UiEditDrafts; initialSearch?: string }) {
   const localEdits = useRef<UiEditDrafts>(new Map());
   const edits = editDrafts ?? localEdits.current;
   const [rows, setRows] = useState<UiTranslationRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [page, setPage] = useState(0);
   const [mode, setMode] = useState<"cards" | "short" | "refresh">("cards");
   const [catalogRefreshed, setCatalogRefreshed] = useState(true);

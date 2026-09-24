@@ -69,6 +69,8 @@ import { PendingTermsList } from "./PendingTermsList";
 import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
 import { TranslationChanges } from "./TranslationChanges";
 import { NarrativeReview } from "./NarrativeReview";
+import { ReviewInbox } from "./ReviewInbox";
+import { parseWorkbenchDeepLink } from "../../../../../lib/translation/reviewInboxTypes";
 import { TranslationCoverage } from "./TranslationCoverage";
 import { TranslationProgress } from "./TranslationProgress";
 
@@ -96,13 +98,18 @@ type GlossaryTabProps = {
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [view, setView] = useState("glossary");
-  const [visitedViews, setVisitedViews] = useState({ labels: false, coverage: false, changes: false, narrative: false });
+  const [visitedViews, setVisitedViews] = useState({ inbox: false, labels: false, coverage: false, changes: false, narrative: false });
+  /** A UI label deep link (from the Inbox) opens the labels view searched to that label. */
+  const [labelSearch, setLabelSearch] = useState("");
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("translationReview") !== "article") return;
-    setView("narrative");
-    setVisitedViews((visited) => ({ ...visited, narrative: true }));
-    const requestedLocale = params.get("translationLocale");
+    const link = parseWorkbenchDeepLink(window.location.search);
+    if (!link) return;
+    setView(link.view);
+    if (link.view !== "glossary") setVisitedViews((visited) => ({ ...visited, [link.view]: true }));
+    if (link.term) setFilters({ status: "all", search: link.term });
+    if (link.label) setLabelSearch(link.label);
+    if (link.view !== "narrative") return;
+    const requestedLocale = new URLSearchParams(window.location.search).get("translationLocale");
     if (requestedLocale) setLocale(requestedLocale);
   }, []);
   const uiEditDrafts = useRef<UiEditDrafts>(new Map());
@@ -427,7 +434,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   onChange={(event) => changeLocale(event.target.value)}
                 />
               </div>
-              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => { setView(next); if (next === "labels" || next === "coverage" || next === "changes") setVisitedViews((current) => ({ ...current, [next]: true })); }} options={[
+              <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => { setView(next); if (next === "inbox" || next === "labels" || next === "coverage" || next === "changes") setVisitedViews((current) => ({ ...current, [next]: true })); }} options={[
+                { value: "inbox", label: "Inbox", disabled: locked },
                 { value: "glossary", label: "Glossary", disabled: locked },
                 { value: "labels", label: "UI labels", disabled: locked },
                 { value: "coverage", label: "Coverage", disabled: locked },
@@ -435,7 +443,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                 { value: "narrative", label: "Narratives", disabled: locked },
               ]} />
             </div>
-            {visitedViews.labels ? <div hidden={view !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} /></div> : null}
+            {visitedViews.inbox ? <div hidden={view !== "inbox"}><ReviewInbox key={data.locale} locale={data.locale} /></div> : null}
+            {visitedViews.labels ? <div hidden={view !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} initialSearch={labelSearch} /></div> : null}
             {visitedViews.coverage ? <div hidden={view !== "coverage"}><TranslationCoverage key={data.locale} locale={data.locale} /></div> : null}
             {visitedViews.narrative ? <div hidden={view !== "narrative"}><NarrativeReview key={data.locale} locale={data.locale} /></div> : null}
             {visitedViews.changes ? <div hidden={view !== "changes"}><TranslationChanges key={data.locale} locale={data.locale} /></div> : null}
