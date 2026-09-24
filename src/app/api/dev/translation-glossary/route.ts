@@ -36,7 +36,7 @@ export const GET = protectedRouteOperation({
 
     const searchParams = new URL(request.url).searchParams;
     const requested = searchParams.get("locale");
-    const includeUsage = searchParams.get("includeUsage") !== "0";
+    const includeUsage = searchParams.get("includeUsage") === "1";
     const allowedLocales = glossaryAccessibleLocales(auth);
     if (allowedLocales.length === 0)
       return NextResponse.json(
@@ -67,9 +67,10 @@ export const GET = protectedRouteOperation({
       loadApprovedStyleGuide(locale),
     ]);
     const context = translationContextFromRows(locale, rows, glosses, styleGuide);
-    const [segments, jobs] = await Promise.all([
+    const [segments, jobs, reviewRows] = await Promise.all([
       translationSegmentCounts(locale, context.promptVersion),
       translationJobCounts(locale),
+      readGlossaryReviewRows(locale, rows),
     ]);
     const liveCodes: readonly string[] = LIVE_LOCALE_CODES;
     const byLocale: Record<string, GlossaryLocaleOption> = {};
@@ -87,7 +88,6 @@ export const GET = protectedRouteOperation({
           live: liveCodes.includes(summary.locale),
         };
 
-    const reviewRows = await readGlossaryReviewRows(locale, rows);
     const body: GlossaryListResponse = {
       ok: true,
       generatedAt: Date.now(),

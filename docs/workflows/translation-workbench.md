@@ -4,9 +4,12 @@ The `/dev/glossary` workbench separates terminology review, exact UI wording,
 source coverage, and publication evidence. Its locale capability is independent
 of the editor role. Every read and write checks the assigned locale on the server.
 
-## Layout: Inbox, Words, Pages
+## Layout: Words, Pages, Inbox
 
-The workbench has three views and opens on the Inbox.
+The workbench opens on Words with glossary categories closed and all review
+states included. Choose a category to open its terms. Opening another category
+closes the previous one. Search shows matching terms across categories.
+The Inbox loads only after the reviewer selects it or follows an Inbox link.
 
 - **Inbox** lists everything in the locale that needs a person (see
   [Review Inbox](#review-inbox)).
@@ -23,10 +26,9 @@ The workbench has three views and opens on the Inbox.
   failed pages. A Translator without admin sees no run controls. **Draft
   missing terms** stays with the glossary terms in Words, also admin-only.
 
-A one-line status strip under the view switch reads, on every view, the
-glossary totals (drafts, live never checked, human approved), how many stored
-translations follow the current terms, and the latest run's progress. Coverage
-in Pages condenses its own totals into one line the same way.
+A status strip shows glossary totals: drafts, live never checked, and human
+approved. Pages and Inbox also show stored translation counts and run progress.
+Words keeps these operational counts out of the terminology workflow.
 
 One **Status legend** defines the states every panel names: Machine, Draft,
 Live, never checked, Human approved, Source changed, and Re-check. Beside it
@@ -38,6 +40,16 @@ Pages.
 
 Review history sits in a drawer on each item: **History** on a glossary row, a
 UI label, and an open article paragraph.
+
+Glossary wording survives search, category changes, and view changes within
+the open workbench. Unsaved wording retains its original revision for conflict
+detection. It does not survive a browser reload. View, category, search, and
+status selections update the URL. `translationCategory` selects a category;
+`translationStatus` selects `all`, `draft`, `unchecked`, or `approved`.
+
+The glossary list loads without usage links. **Where it is used** loads source
+locations only when opened. `includeUsage=1` explicitly requests the complete
+usage payload; normal entry, saves, and progress polls omit that work.
 
 Deep links keep working across the layout change. `translationView=inbox`,
 `words`, and `pages` name the views; with `words`, `translationWords=terms`,

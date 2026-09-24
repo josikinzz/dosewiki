@@ -32,10 +32,14 @@ import { TranslationHistory, translationRequest } from "./TranslationHistory";
 import type { ReviewHistoryEntry } from "@lib/translation/reviewTypes";
 import type { GlossaryUsageMap, GlossaryUsageResponse } from "@/lib/glossary/glossaryUsage";
 
+/** Unsaved wording survives category changes and search, scoped to its locale and source revision. */
+export type GlossaryEditDrafts = Map<string, { value: string; revision: string }>;
+
 const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
 export type GlossaryGroupSectionProps = {
   group: GlossaryGroup;
+  editDrafts: GlossaryEditDrafts;
   /** Category counts from the unfiltered rows, so the header keeps its meaning while a search narrows the list. */
   totals: { total: number; draft: number; unchecked: number };
   statusFilter: GlossaryStatusFilter;
@@ -68,7 +72,7 @@ export type GlossaryGroupSectionProps = {
  * in one confirmed step; the confirm names the category, the button does not
  * have to.
  */
-export function GlossaryGroupSection({ group, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryGroupSectionProps) {
+export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryGroupSectionProps) {
   const bodyId = useId();
   const { category, rows, draftCount, uncheckedCount } = group;
   const open = standingLabel({ drafts: totals.draft, unchecked: totals.unchecked });
@@ -88,7 +92,7 @@ export function GlossaryGroupSection({ group, totals, statusFilter, expanded, di
         <span className="theme-text-faint flex-1 text-xs tabular-nums">{standing}</span>
         {/* A "Reviewed" pill only where a reviewed category can be seen at all; under Unreviewed it can never appear. */}
         {!open && statusFilter === "all" ? <EditorStatusPill tone="success">Reviewed</EditorStatusPill> : null}
-        {draftCount > 0 ? (
+        {expanded && draftCount > 0 ? (
           <Button
             type="button"
             variant="outline"
@@ -101,7 +105,7 @@ export function GlossaryGroupSection({ group, totals, statusFilter, expanded, di
             Approve all
           </Button>
         ) : null}
-        {uncheckedCount > 0 ? (
+        {expanded && uncheckedCount > 0 ? (
           <Button
             type="button"
             variant="outline"
@@ -116,13 +120,14 @@ export function GlossaryGroupSection({ group, totals, statusFilter, expanded, di
         ) : null}
       </div>
       <div id={bodyId} hidden={!expanded} className="px-3 pb-3">
-        <GlossaryTable rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onConfirm={onConfirm} onSave={onSave} onSaveDefinition={onSaveDefinition} onRestored={onRestored} />
+        {expanded ? <GlossaryTable editDrafts={editDrafts} rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onConfirm={onConfirm} onSave={onSave} onSaveDefinition={onSaveDefinition} onRestored={onRestored} /> : null}
       </div>
     </Surface>
   );
 }
 
 type GlossaryTableProps = {
+  editDrafts: GlossaryEditDrafts;
   rows: GlossaryRow[];
   disabled: boolean;
   writingTerm: string | null;
@@ -136,7 +141,7 @@ type GlossaryTableProps = {
   onRestored: () => Promise<void>;
 };
 
-function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableProps) {
+function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usages, canDefine, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableProps) {
   return (
     <EditorTable className="md:min-w-[56rem]">
       <EditorTableHead>
@@ -150,7 +155,8 @@ function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine
       <EditorTableBody>
         {rows.map((row) => (
           <GlossaryTableRow
-            key={row.term}
+            key={`${row.locale}:${row.term}`}
+            editDrafts={editDrafts}
             row={row}
             gloss={glosses[row.term]}
             usage={usages[row.term]}
@@ -169,6 +175,7 @@ function GlossaryTable({ rows, disabled, writingTerm, glosses, usages, canDefine
 }
 
 type GlossaryTableRowProps = {
+  editDrafts: GlossaryEditDrafts;
   row: GlossaryRow;
   /** The term's definition, absent until an editor writes one. */
   gloss: string | undefined;
@@ -184,15 +191,20 @@ type GlossaryTableRowProps = {
   onRestored: () => Promise<void>;
 };
 
-function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableRowProps) {
-  const [draft, setDraft] = useState(row.target);
-  useEffect(() => setDraft(row.target), [row.target]);
+function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveDefinition, onRestored }: GlossaryTableRowProps) {
+  const draftKey = JSON.stringify([row.locale, row.term]);
+  const [draft, setDraft] = useState(() => editDrafts.get(draftKey)?.value ?? row.target);
+  useEffect(() => {
+    const saved = editDrafts.get(draftKey);
+    if (saved && saved.value.trim() === row.target) editDrafts.delete(draftKey);
+    setDraft(editDrafts.get(draftKey)?.value ?? row.target);
+  }, [draftKey, editDrafts, row.target]);
   const dirty = draft.trim() !== row.target && draft.trim().length > 0;
   const held = disabled || writing;
   const unchecked = isLiveUnchecked(row);
   const canSave = draft.trim().length > 0 && (dirty || unchecked);
   const save = () => {
-    if (canSave) onSave(row, draft.trim());
+    if (canSave) onSave({ ...row, revision: editDrafts.get(draftKey)?.revision ?? row.revision }, draft.trim());
   };
   // Enter only saves drafts. Approval always uses the explicit review button.
   const submit = () => {
@@ -228,7 +240,12 @@ function GlossaryTableRow({ row, gloss, usage, canDefine, disabled, writing, onA
           value={draft}
           disabled={disabled}
           readOnly={writing}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            const value = event.target.value;
+            setDraft(value);
+            if (value === row.target) editDrafts.delete(draftKey);
+            else editDrafts.set(draftKey, { value, revision: editDrafts.get(draftKey)?.revision ?? row.revision });
+          }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();

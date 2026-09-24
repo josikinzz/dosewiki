@@ -51,7 +51,7 @@ export function GlossaryFilterBar({ filters, setFilters, draftCount, uncheckedCo
         onChange={(value) => setFilters((current) => ({ ...current, status: value as GlossaryStatusFilter }))}
       />
       {/* Sits with the filters it obeys, so "shown" reads as "what these controls show"; the count is the segmented control's badge. */}
-      <Button
+      {shownDraftCount > 0 ? <Button
         type="button"
         variant="outline"
         size="sm"
@@ -61,7 +61,7 @@ export function GlossaryFilterBar({ filters, setFilters, draftCount, uncheckedCo
       >
         <Icon icon="lucide:check-check" size={14} />
         Approve all shown
-      </Button>
+      </Button> : null}
       {/* Only where the filters list live, never checked rows, so the drafts view keeps one bulk action. */}
       {shownUncheckedCount > 0 ? (
         <Button

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Translation workbench: `/dev/glossary`, in three views. Inbox lists what
+ * Translation workbench: `/dev/glossary`, opening on glossary categories. Inbox lists what
  * needs a person. Words holds glossary terms and UI labels behind one search.
  * Pages holds the article reader, per-page coverage, recorded changes, and, for
  * admins, the collapsed Runs panel with every control that calls the model.
@@ -68,7 +68,7 @@ import {
   type GlossaryRow,
 } from "./glossaryModel";
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
-import { GlossaryGroupSection } from "./GlossaryReviewTable";
+import { GlossaryGroupSection, type GlossaryEditDrafts } from "./GlossaryReviewTable";
 import { GlossaryActionBar, GlossaryFilterBar } from "./GlossaryToolbar";
 import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
 import { TranslationChanges } from "./TranslationChanges";
@@ -108,35 +108,52 @@ type GlossaryTabProps = {
 };
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
-  const [view, setView] = useState<WorkbenchView>("inbox");
+  const [view, setView] = useState<WorkbenchView>("words");
   /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
   const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, words: false, pages: false, labels: false, style: false });
   const [wordsList, setWordsList] = useState<WordsList>("terms");
   /** The drawer under the article reader that a deep link asked for. */
   const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
-  // Opens on the Inbox unless a deep link names a view; links written for the
+  // Opens on glossary categories unless a deep link names a view; links written for the
   // older five views map onto these three (see parseWorkbenchDeepLink).
   useEffect(() => {
-    const link = parseWorkbenchDeepLink(window.location.search) ?? { view: "inbox" as const };
+    const link = parseWorkbenchDeepLink(window.location.search) ?? { view: "words" as const };
     setView(link.view);
     setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels", style: visited.style || link.words === "style" }));
     if (link.words) setWordsList(link.words);
     if (link.pages) setPagesSection(link.pages);
+    const params = new URLSearchParams(window.location.search);
+    setCategory(params.get("translationCategory"));
+    const status = params.get("translationStatus");
+    if (status === "all" || status === "draft" || status === "unchecked" || status === "approved") setFilters((current) => ({ ...current, status }));
     if (link.term) setFilters({ status: "all", search: link.term });
     if (link.label) setFilters((current) => ({ ...current, search: link.label ?? "" }));
     if (link.view !== "pages") return;
     const requestedLocale = new URLSearchParams(window.location.search).get("translationLocale");
     if (requestedLocale) setLocale(requestedLocale);
   }, []);
+  const updateLocation = (values: Record<string, string | null>) => {
+    const url = new URL(window.location.href);
+    // Legacy article links must not override an explicit view selection on reload.
+    url.searchParams.delete("translationReview");
+    for (const [key, value] of Object.entries(values)) {
+      if (value === null) url.searchParams.delete(key); else url.searchParams.set(key, value);
+    }
+    window.history.replaceState(window.history.state, "", url);
+  };
   const openView = (next: WorkbenchView) => {
+    updateLocation({ translationView: next });
     setView(next);
     setVisitedViews((current) => ({ ...current, [next]: true, labels: current.labels || (next === "words" && wordsList === "labels") }));
   };
   const openWordsList = (next: WordsList) => {
     setWordsList(next);
+    updateLocation({ translationView: "words", translationWords: next });
     if (next === "labels" || next === "style") setVisitedViews((current) => ({ ...current, [next]: true }));
   };
   const uiEditDrafts = useRef<UiEditDrafts>(new Map());
+  const termEditDrafts = useRef<GlossaryEditDrafts>(new Map());
+  const [category, setCategory] = useState<string | null>(null);
   const canAdmin = roleMeetsFloor(viewerRole, "admin");
   const canDefine = roleMeetsFloor(viewerRole, "editor");
   const [locale, setLocale] = useState<string | null>(null);
@@ -169,7 +186,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     if (background) refreshInFlight.current = true;
     setLoadError(null);
     try {
-      const next = await fetchGlossary(code, !background);
+      const next = await fetchGlossary(code, false);
       if (version !== loadVersion.current) return;
       setRefreshError(null);
       setData((current) => background && current ? { ...next, usages: current.usages } : next);
@@ -188,7 +205,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   }, []);
 
   useEffect(() => {
-    void load(new URL(window.location.href).searchParams.get("locale"));
+    const params = new URL(window.location.href).searchParams;
+    void load(params.get("locale") ?? params.get("translationLocale"));
   }, [load]);
 
   useEffect(() => {
@@ -221,21 +239,16 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   }, [data]);
   const counts = reviewCounts(data?.rows ?? []);
   const draftCount = data ? data.rows.filter(needsReview).length : 0;
-  const shownDrafts = rows.filter((row) => row.status === "draft");
-  const shownUnchecked = rows.filter(isLiveUnchecked);
+  const workingRows = filters.search.trim() ? rows : groups.find((group) => group.category.id === category)?.rows ?? [];
+  const shownDrafts = workingRows.filter((row) => row.status === "draft");
+  const shownUnchecked = workingRows.filter(isLiveUnchecked);
   const reviewComplete = !!data && data.rows.length > 0 && draftCount === 0;
   const nothingTranslatedYet = !!data && data.segments.total === 0;
-  // Collapsed is the exception, so it is what gets remembered: a group starts
-  // open, and a reviewer folds away the ones they are done with. The set
-  // survives filter changes and a reload of the same locale, and resets with
-  // the locale, because another mirror's review is another job.
-  const [collapsed, setCollapsed] = useState<Record<string, true>>({});
-  const toggleGroup = (id: string) =>
-    setCollapsed((current) => {
-      const next = { ...current };
-      if (next[id]) delete next[id]; else next[id] = true;
-      return next;
-    });
+  const toggleGroup = (id: string) => {
+    const next = category === id ? null : id;
+    setCategory(next);
+    updateLocation({ translationCategory: next });
+  };
 
   /** Runs one write, reloads the locale, and reports the outcome; with a term, only that row locks and focus moves on afterwards. */
   const run = useCallback(
@@ -417,7 +430,12 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     setCollisionReview(null);
     setLocale(code);
     setFilters(DEFAULT_FILTERS);
-    setCollapsed({});
+    setCategory(null);
+    url.searchParams.delete("translationCategory");
+    url.searchParams.delete("translationTerm");
+    url.searchParams.delete("translationLabel");
+    url.searchParams.delete("translationStatus");
+    window.history.replaceState(window.history.state, "", url);
     setData(null);
     void load(code);
   };
@@ -427,7 +445,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       <EditorSection
         icon="lucide:book-a"
         title="Translation workbench"
-        description="Inbox lists what needs a person. Words holds glossary terms and UI labels. Pages holds articles, coverage, and changes. Saving a draft and approving it are separate actions."
+        description="Choose a glossary category, find a term, or open UI labels and articles. Save wording as a draft, then approve it separately."
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={() => void load(locale)} disabled={locked}>
             <Icon icon="lucide:refresh-cw" size={14} />
@@ -451,23 +469,24 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   value={data.locale}
                   options={data.locales.map((option) => ({
                     value: option.locale,
-                    label: `${option.locale}${option.live ? " (live)" : ""} · ${option.draft} ${STATE_WORD.draft}, ${option.approved} ${STATE_WORD.approved}`,
+                    label: `${option.locale}${option.live ? " (live)" : ""}`,
                   }))}
                   disabled={locked}
                   onChange={(event) => changeLocale(event.target.value)}
                 />
               </div>
               <EditorSegmentedControl label="Workbench view" value={view} onChange={(next) => openView(next as WorkbenchView)} options={[
-                { value: "inbox", label: "Inbox", disabled: locked },
                 { value: "words", label: "Words", disabled: locked },
                 { value: "pages", label: "Pages", disabled: locked },
+                { value: "inbox", label: "Inbox", disabled: locked },
               ]} />
             </div>
 
             {/* The status strip: the locale's totals in one line, on every view. */}
             <p className="theme-text-faint text-xs" data-testid="glossary-summary">
-              {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved · {data.segments.current} of {count(data.segments.total, "stored translation")} {data.segments.total === 1 ? "follows" : "follow"} the current terms
-              {runStatus(data, busy === "start") ? ` · ${runStatus(data, busy === "start")}` : ""}
+              {count(counts.drafts, "draft")}, {counts.unchecked} live never checked, {counts.approved} human approved
+              {view !== "words" ? ` · ${data.segments.current} of ${count(data.segments.total, "stored translation")} follow the current terms` : ""}
+              {view !== "words" && runStatus(data, busy === "start") ? ` · ${runStatus(data, busy === "start")}` : ""}
               {refreshError ? ` · Progress refresh failed: ${refreshError}` : ""}
             </p>
             <StatusLegend />
@@ -483,7 +502,10 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     aria-label="Search words"
                     placeholder="Search terms, renderings, UI labels, or context"
                     value={filters.search}
-                    onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+                    onChange={(event) => {
+                      setFilters((current) => ({ ...current, search: event.target.value }));
+                      updateLocation({ translationTerm: event.target.value || null, translationLabel: null });
+                    }}
                   />
                 </div>
                 <EditorSegmentedControl label="Words list" value={wordsList} onChange={(next) => openWordsList(next as WordsList)} options={[
@@ -495,9 +517,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               {visitedViews.labels ? <div hidden={wordsList !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} search={filters.search} onSearchChange={(search) => setFilters((current) => ({ ...current, search }))} /></div> : null}
               {visitedViews.style ? <div hidden={wordsList !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
             <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-4">
+            <p className="theme-text-secondary text-sm">Choose one category to work through. Search finds terms across categories.</p>
             <GlossaryFilterBar
               filters={filters}
-              setFilters={setFilters}
+              setFilters={(next) => {
+                const value = typeof next === "function" ? next(filters) : next;
+                setFilters(value);
+                updateLocation({ translationStatus: value.status });
+              }}
               draftCount={counts.drafts}
               uncheckedCount={counts.unchecked}
               shownDraftCount={shownDrafts.length}
@@ -507,7 +534,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               onConfirmShown={() => confirmLive(shownUnchecked.map((row) => row.term), "shown")}
             />
 
-            <ReasonKindChips label="Approval reason" value={approvalKind} disabled={locked} onChange={setApprovalKind} />
+            {workingRows.length > 0 ? <ReasonKindChips label="Approval reason" value={approvalKind} disabled={locked} onChange={setApprovalKind} /> : null}
 
             <GlossaryActionBar
               locale={data.locale}
@@ -535,7 +562,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     : "No reviewed term changes are waiting to be requested."}
                 compact
               />
-            ) : data.rows.length > 0 ? (
+            ) : canAdmin && data.rows.length > 0 ? (
               <p className="theme-text-faint text-xs">
                 The main translation can start once every term is reviewed: {count(draftCount, "term")} still {draftCount === 1 ? "needs" : "need"} a decision.
               </p>
@@ -559,7 +586,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     group={group}
                     totals={totals[group.category.id] ?? { total: group.rows.length, draft: group.draftCount, unchecked: group.uncheckedCount }}
                     statusFilter={filters.status}
-                    expanded={!collapsed[group.category.id]}
+                    expanded={Boolean(filters.search.trim()) || category === group.category.id}
+                    editDrafts={termEditDrafts.current}
                     disabled={busy !== null}
                     writingTerm={writingTerm}
                     glosses={data.glosses}

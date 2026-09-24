@@ -49,7 +49,7 @@ export type GlossaryFilters = {
   search: string;
 };
 
-export const DEFAULT_FILTERS: GlossaryFilters = { status: "draft", search: "" };
+export const DEFAULT_FILTERS: GlossaryFilters = { status: "all", search: "" };
 
 /**
  * What a reviewer reads for each stored status. "draft" stays the API and DB
@@ -208,10 +208,10 @@ export class GlossaryReviewCollision extends Error {
   }
 }
 
-export async function fetchGlossary(locale: string | null, includeUsage = true): Promise<GlossaryList> {
+export async function fetchGlossary(locale: string | null, includeUsage = false): Promise<GlossaryList> {
   const params = new URLSearchParams();
   if (locale) params.set("locale", locale);
-  if (!includeUsage) params.set("includeUsage", "0");
+  params.set("includeUsage", includeUsage ? "1" : "0");
   const url = `${BASE_PATH}${params.size ? `?${params}` : ""}`;
   const payload = await requestJson(url, { cache: "no-store" }, {
     network: "Network error while loading the glossary.",

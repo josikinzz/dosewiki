@@ -213,15 +213,14 @@ describe("glossary draft and approval routes", () => {
     expect(await response.json()).toMatchObject({
       rows: drafts,
       segments: { total: 2, current: 1 },
-      usages: {},
     });
-    expect(usage.getGlossaryUsages).toHaveBeenCalledWith(["Euphoria"]);
+    expect(usage.getGlossaryUsages).not.toHaveBeenCalled();
   });
 
-  it("skips the precomputed usage payload for lightweight progress polls", async () => {
-    const response = await GET(new Request("https://dev.dose.wiki/api/dev/translation-glossary?locale=zh-Hans&includeUsage=0"));
+  it("only computes usage links when explicitly requested", async () => {
+    const response = await GET(new Request("https://dev.dose.wiki/api/dev/translation-glossary?locale=zh-Hans&includeUsage=1"));
     expect(response.status).toBe(200);
-    expect(await response.json()).not.toHaveProperty("usages");
-    expect(usage.getGlossaryUsages).not.toHaveBeenCalled();
+    expect(await response.json()).toHaveProperty("usages");
+    expect(usage.getGlossaryUsages).toHaveBeenCalledWith([]);
   });
 });
