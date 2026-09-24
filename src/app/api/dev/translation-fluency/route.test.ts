@@ -9,6 +9,7 @@ import { segmentsOf } from "@server/translation/liveTranslation";
 import { narrativeIdentity } from "@server/translation/narrativeIdentity";
 import type { InboxResponse } from "@server/translation/reviewInboxTypes";
 import { decodeReviewReason } from "@server/translation/reviewReason";
+import { writeStyleGuide } from "@server/translation/styleGuide";
 import { GET as inboxGet } from "../translation-inbox/route";
 import { POST as acceptPost } from "../translation-inbox/suggestion/route";
 import { POST } from "./route";
@@ -147,6 +148,17 @@ describe("model fluency review over isolated Postgres", () => {
     expect((await inbox()).total).toBe(0);
   });
 
+  it("gives the model the approved style guide, never a draft", async () => {
+    const guide = (rule: string) => ({ rules: [rule], examples: [] });
+    const actor = "sin@example.test";
+    await writeStyleGuide({ locale: LOCALE, action: "save", expectedRevision: 0, guide: guide("Write 体验再现, never 复现."), actor, reason: "House style" });
+    await writeStyleGuide({ locale: LOCALE, action: "approve", expectedRevision: 1, actor, reason: "House style" });
+    await writeStyleGuide({ locale: LOCALE, action: "save", expectedRevision: 2, guide: guide("A draft rule nobody approved."), actor, reason: "House style" });
+    expect((await review()).status).toBe(200);
+    const [call] = provider.callOpenRouterChat.mock.calls[0];
+    expect(call.systemPrompt).toContain("Write 体验再现, never 复现.");
+    expect(call.systemPrompt).not.toContain("A draft rule nobody approved.");
+  });
   it("refuses a non-admin with 403 and fails closed under the write freeze", async () => {
     asTranslator();
     expect((await review()).status).toBe(403);

@@ -218,9 +218,9 @@ marks the suggestion resolved in one transaction. It never approves: the draft
 waits in Pages. An open correction draft on that sentence, an expired
 suggestion, or a changed revision is refused (409).
 
-The prompt has a seam for the locale's approved style guide
-(`fluencySystemPrompt(locale, styleGuide)`); the route passes none until the
-style guide ships.
+The prompt includes the locale's approved style guide: its rules and up to five
+examples chosen against the article's English, as in the translation prompt.
+Drafts never reach it.
 
 Recent changes in Pages reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the
@@ -462,7 +462,7 @@ the section returns, the note shows again. There is no delete action yet.
 
 ### Style guide
 
-The **Style guide** view holds each locale's rules and example corrections for
+The **Style guide** list under Words holds each locale's rules and example corrections for
 the translation prompt. It is one document per locale in scope `style-guide` of
 the review tables: `rules` (one per line, at most 40) and `examples`
 (`{ before, after, why }`, with the English they translate when known). The
@@ -475,7 +475,7 @@ In the article reader, a saved correction whose reason is **Fluency** shows
 the style guide draft as an example: before is the wording it replaced (the
 earlier draft or approval, else the machine target), after is the corrected
 wording, and why is the correction's note. A correction is promoted once.
-Promotion never approves; the draft waits in the Style guide view.
+Promotion never approves; the draft waits in the Style guide list under Words.
 
 Only the approved document reaches prompts. `loadTranslationContext` (and
 `translate:locale`) load it beside the approved glossary, and

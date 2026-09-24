@@ -23,6 +23,7 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { DEFAULT_MODEL, sendBatch, TranslationTransportError } from "../../scripts/translation/engine.mjs";
 import { resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
+import { styleGuidePromptLines } from "../../scripts/translation/style-guide.mjs";
 import type { Segment } from "../../scripts/translation/segment-manifest.mjs";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
@@ -43,6 +44,7 @@ import {
   type FluencySuggestion,
 } from "./fluencyReviewPrompt";
 import { readGlossaryRows } from "./glossary";
+import { loadApprovedStyleGuide } from "./approvedStyleGuide";
 import { readTranslationRecord, segmentsOf } from "./liveTranslation";
 import { narrativeIdentity, narrativeOverlayDecision, narrativeOwnSourceHash, narrativeSourceVersion } from "./narrativeIdentity";
 import { planNarrativeReview } from "./narrativeReview";
@@ -165,7 +167,7 @@ export async function runFluencyReview(input: {
   apiKey: string;
   actor: string;
   signal?: AbortSignal;
-  /** The locale's approved style guide; ticket 13 supplies it. */
+  /** Style guide text for the prompt; omitted, the locale's approved style guide is loaded. */
   styleGuide?: string;
 }): Promise<FluencyRunSummary> {
   assertDataWritesNotFrozen("runFluencyReview");
@@ -177,7 +179,9 @@ export async function runFluencyReview(input: {
   try {
     const article = await readArticleSentences(input.reads, locale.code, input.slug);
     const glossary = await approvedGlossary(locale.code);
-    const systemPrompt = fluencySystemPrompt(locale, input.styleGuide);
+    // Only the approved guide reaches the model, with examples chosen against this article's English.
+    const styleGuide = input.styleGuide ?? styleGuidePromptLines(locale, await loadApprovedStyleGuide(locale.code), article.sentences.map((sentence) => sentence.segment.source).join("\n")).join("\n");
+    const systemPrompt = fluencySystemPrompt(locale, styleGuide);
     const promptVersion = fluencyPromptVersion(FLUENCY_MODEL, systemPrompt, glossary);
     const paragraphs: FluencyParagraph[] = article.sentences
       .filter((sentence) => sentence.live && !sentence.humanApproved)
