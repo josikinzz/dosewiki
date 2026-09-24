@@ -61,12 +61,56 @@ and approve that revision for a UI label or article sentence. A stale revision
 is refused and writes nothing. An item with no live wording (readers see
 English) has no Accept; use Edit. Edit opens the item's existing editor through
 its deep link. Skip hides the item for this browser session only. Keys: J and K
-move, A accepts, E edits, S skips.
+move, A accepts, E edits, F marks a finding fine here, S skips.
 
-`GET /api/dev/translation-inbox?locale=<code>&offset=<n>` returns one page of
-50 items and the total. It is read-only and has the same Translator access and
-locale assignment checks as the rest of the workbench. The inbox is a read
-model over the review tables and stored segments; it adds no approval path.
+`GET /api/dev/translation-inbox?locale=<code>&offset=<n>&reason=<reason>`
+returns one page of 50 items, the total, and the count per reason; `reason`
+narrows the list to one reason (the view's reason filter). It is read-only and
+has the same Translator access and locale assignment checks as the rest of the
+workbench. The inbox is a read model over the review tables and stored
+segments; it adds no approval path.
+
+#### What the checks found
+
+The Inbox also lists findings from automated checks and readers, in this
+order within the whole list:
+
+1. **Rejected, readers see English** (first): the validator refused every
+   attempt and no translation is stored, so readers get the English. The item
+   names the defects. A rejection that still has an older stored translation
+   is not listed, because readers see that translation.
+2. The stale approvals and re-checks above.
+3. **Disagrees with the glossary**: a stored translation whose English mentions
+   an approved term (the shared term matcher, inflections included, scoped by
+   the term's kind) and whose target lacks the rendering. One item per
+   sentence and term.
+4. **English left in**: the validator's `LEFTOVER_LATIN` finding over stored
+   zh-Hans targets.
+5. Live, never checked glossary rows.
+6. **Reader suggestion** (last): new or in-review suggestions from the public
+   glossary feedback queue, read through the existing feedback query.
+
+Findings run the validator over stored targets with the coverage inventory's
+bounded, batched reads. The scan is cached for at most five minutes and is
+rebuilt at once when the approved glossary changes. An article finding's
+**Edit** opens the Narratives view at that sentence; a glossary finding on
+another record kind opens the term; other findings link to the page.
+
+**Fine here** (key F) on a glossary or leftover-English finding records a
+`qa-exception` entry in `translationReviewEntries`, with the actor and reason in
+`translationReviewHistory`. The key is the locale, the segment hash, the term,
+and the revision the reviewer saw: for a glossary finding, the glossary
+revision of the approved rendering (when that rendering last changed; a saved
+draft or a Confirm does not change it); for leftover English, a digest of the
+stored translation. The item stays away until the English (a new hash), the
+rendering, or the translation changes. `POST /api/dev/translation-inbox/exception`
+refuses a changed revision (409, nothing written), obeys the write freeze
+(503), and checks Translator access and locale assignment.
+
+**Resolve** (key A) on a reader suggestion sets its feedback status to
+resolved through the existing `/api/glossary-feedback/<id>/status` mutation,
+the same one the Glossary view's reader feedback queue uses. To adopt the
+reader's wording, use Edit to open the term first.
 
 The Changes view reads `translationSegmentHistory`. Automatic article and
 gallery replacements retain their previous and next segment snapshots in the

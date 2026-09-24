@@ -11,7 +11,19 @@ const term = (name: string, target: string): InboxItem => ({
 const response = (items: InboxItem[], total = items.length): InboxResponse => ({
   ok: true, locale: "zh-Hans", items, total, offset: 0, pageSize: 50,
   checked: ["narrative-source-changed", "ui-source-changed", "narrative-recheck", "glossary-never-checked"],
+  counts: {}, reason: null,
 });
+const disagreement: InboxItem = {
+  scope: "segment", id: "a1b2c3d4e5f60718:Phenidate", reason: "glossary-disagreement",
+  english: "2-Benzylpiperidine is a stimulant related to other phenidates.", live: "2-苄基哌啶是一种兴奋剂，与其他 phenidates 相关。",
+  detail: "Glossary: Phenidate → 哌甲酯类", where: "article · 2-benzylpiperidine", revision: "5", href: "/dev/glossary?translationSegment=x", accept: null,
+  exception: { finding: "glossary-disagreement", hash: "a1b2c3d4e5f60718", term: "Phenidate", revision: "5" },
+};
+const suggestion: InboxItem = {
+  scope: "feedback", id: "feedback-1", reason: "reader-suggestion", english: "Replication", live: "再现作品", suggestion: "体验再现",
+  detail: "Reader: 体验再现 reads more naturally", where: "Public glossary · 2026-09-20", revision: "new",
+  href: "/dev/glossary?translationTerm=Replication", accept: { kind: "feedback-resolve", id: "feedback-1" },
+};
 
 beforeEach(() => window.sessionStorage.clear());
 afterEach(() => vi.unstubAllGlobals());
@@ -67,6 +79,40 @@ describe("Review inbox", () => {
     await user.click(await screen.findByRole("button", { name: "Accept" }));
     expect(await screen.findByText(/changed since you opened it/)).toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: "Glossary: Euphoria" })).toBeInTheDocument();
+  });
+
+  it("marks a QA finding fine here with F and records the exception it names", async () => {
+    const writes: { url: string; body: Record<string, unknown> }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (!init) return Response.json(response([disagreement, term("Anxiety", "焦虑")]));
+      writes.push({ url: String(url), body: JSON.parse(String(init.body)) });
+      return Response.json({ ok: true });
+    }));
+    const user = userEvent.setup();
+    render(<ReviewInbox locale="zh-Hans" />);
+    const first = await screen.findByRole("listitem", { name: `Translation: ${disagreement.english}` });
+    expect(first).toHaveTextContent("Glossary: Phenidate → 哌甲酯类");
+    first.focus();
+    await user.keyboard("f");
+    expect(await screen.findByText(/Marked fine here/)).toBeInTheDocument();
+    expect(writes).toEqual([{ url: "/api/dev/translation-inbox/exception", body: { locale: "zh-Hans", finding: "glossary-disagreement", hash: "a1b2c3d4e5f60718", term: "Phenidate", revision: "5" } }]);
+    expect(screen.getByRole("listitem", { name: "Glossary: Anxiety" })).toHaveFocus();
+  });
+
+  it("resolves a reader suggestion through the existing feedback status route", async () => {
+    const writes: { url: string; body: Record<string, unknown> }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (!init) return Response.json(response([suggestion]));
+      writes.push({ url: String(url), body: JSON.parse(String(init.body)) });
+      return Response.json({ ok: true, feedback: { id: "feedback-1", status: "resolved" } });
+    }));
+    const user = userEvent.setup();
+    render(<ReviewInbox locale="zh-Hans" />);
+    expect(await screen.findByText("体验再现")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+    expect(await screen.findByText('Resolved the suggestion on "Replication".')).toBeInTheDocument();
+    expect(writes).toEqual([{ url: "/api/glossary-feedback/feedback-1/status", body: expect.objectContaining({ status: "resolved" }) }]);
+    expect(screen.queryByRole("listitem", { name: "Reader: Replication" })).not.toBeInTheDocument();
   });
 
   it("says nothing needs a person and names the scopes it checked", async () => {

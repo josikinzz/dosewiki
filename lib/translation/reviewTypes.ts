@@ -1,5 +1,10 @@
 /** Shared, browser-safe contracts for human translation review. */
-export type ReviewScope = "ui" | "glossary" | "narrative";
+/**
+ * `qa-exception` holds a reviewer's "Fine here" on an Inbox QA finding: an
+ * approved snapshot keyed by the finding, segment hash, term, and glossary
+ * revision, so the finding returns only when one of those changes.
+ */
+export type ReviewScope = "ui" | "glossary" | "narrative" | "qa-exception";
 export type ReviewSnapshot = { source: string; target: string; context: string; provenance?: "compiled" | "human" };
 export type ReviewState = { revision: number; draft: ReviewSnapshot | null; approved: ReviewSnapshot | null };
 export type ReviewEntry = ReviewState & { locale: string; scope: ReviewScope; sourceId: string; updatedAt: number };

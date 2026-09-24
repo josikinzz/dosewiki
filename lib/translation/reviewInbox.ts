@@ -21,13 +21,29 @@ import {
   type InboxReason,
 } from "./reviewInboxTypes";
 import type { ReviewEntry } from "./reviewTypes";
+import {
+  getInboxFindings,
+  qaFindingItems,
+  readerSuggestionItems,
+  readQaExceptionKeys,
+  resolveFindingLinks,
+  type ReaderSuggestionRow,
+} from "./reviewInboxFindings";
 
-/** Reasons this slice checks, in list order: wording readers see wrong first, then re-checks, then unchecked terms. */
+/**
+ * Reasons the inbox checks, in list order: English where readers expect their
+ * language first, then wording readers see wrong, re-checks, QA findings,
+ * unchecked terms, and reader suggestions last.
+ */
 export const INBOX_CHECKS: readonly InboxReason[] = [
+  "segment-rejected",
   "narrative-source-changed",
   "ui-source-changed",
   "narrative-recheck",
+  "glossary-disagreement",
+  "leftover-latin",
   "glossary-never-checked",
+  "reader-suggestion",
 ];
 
 async function glossaryItems(locale: string): Promise<InboxItem[]> {
@@ -122,15 +138,42 @@ async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Pro
   return items;
 }
 
-/** One page of the locale's inbox, and the total across every page. */
+async function findingItems(reads: PublicDataReadAdapter, locale: string): Promise<InboxItem[]> {
+  const [findings, exceptions] = await Promise.all([getInboxFindings(reads, locale), readQaExceptionKeys(locale)]);
+  return qaFindingItems(locale, findings, exceptions);
+}
+
+export type ReviewInboxOptions = {
+  /**
+   * The public glossary feedback queue, read by the caller through the
+   * existing feedback query; null when that read is unavailable, so the inbox
+   * does not claim it checked reader suggestions.
+   */
+  suggestions?: readonly ReaderSuggestionRow[] | null;
+  /** Only items listed for this reason. */
+  reason?: InboxReason | null;
+};
+
+/** One page of the locale's inbox, the total across every page, and the count per reason. */
 export async function readReviewInbox(
   reads: PublicDataReadAdapter,
   locale: string,
   offset = 0,
-): Promise<{ items: InboxItem[]; total: number; checked: InboxReason[] }> {
-  resolveLocale(locale);
-  const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale)]);
+  options: ReviewInboxOptions = {},
+): Promise<{ items: InboxItem[]; total: number; checked: InboxReason[]; counts: Partial<Record<InboxReason, number>>; reason: InboxReason | null }> {
+  const chinese = resolveLocale(locale).scriptGate === "simplified";
+  const suggestions = options.suggestions ?? null;
+  const scopes = await Promise.all([glossaryItems(locale), uiItems(locale), narrativeItems(reads, locale), findingItems(reads, locale)]);
   const order = (item: InboxItem) => INBOX_CHECKS.indexOf(item.reason);
-  const all = scopes.flat().sort((a, b) => order(a) - order(b) || a.where.localeCompare(b.where) || a.id.localeCompare(b.id));
-  return { items: all.slice(offset, offset + INBOX_PAGE_SIZE), total: all.length, checked: [...INBOX_CHECKS] };
+  const every = [...scopes.flat(), ...(suggestions ? readerSuggestionItems(locale, suggestions) : [])];
+  const counts: Partial<Record<InboxReason, number>> = {};
+  for (const item of every) counts[item.reason] = (counts[item.reason] ?? 0) + 1;
+  const reason = options.reason ?? null;
+  const all = every
+    .filter((item) => !reason || item.reason === reason)
+    .sort((a, b) => order(a) - order(b) || a.where.localeCompare(b.where) || a.id.localeCompare(b.id));
+  const items = all.slice(offset, offset + INBOX_PAGE_SIZE);
+  await resolveFindingLinks(reads, locale, items);
+  const checked = INBOX_CHECKS.filter((check) => (check !== "leftover-latin" || chinese) && (check !== "reader-suggestion" || suggestions));
+  return { items, total: all.length, checked, counts, reason };
 }

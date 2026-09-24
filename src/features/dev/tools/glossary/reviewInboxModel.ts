@@ -2,14 +2,19 @@
  * Review Inbox client calls. Reading is the inbox route; Accept dispatches to
  * the existing workbench mutation each item names, at the revision it showed.
  */
-import type { InboxAccept, InboxItem, InboxResponse } from "@lib/translation/reviewInboxTypes";
+import type { InboxAccept, InboxException, InboxItem, InboxReason, InboxResponse } from "@lib/translation/reviewInboxTypes";
 import { confirmTerms } from "./glossaryModel";
 import { translationRequest } from "./TranslationHistory";
 
 export const INBOX_ACCEPT_REASON = "Accepted from the Inbox";
 
-export async function fetchInbox(locale: string, offset = 0): Promise<InboxResponse> {
-  return translationRequest<InboxResponse>(`/api/dev/translation-inbox?${new URLSearchParams({ locale, offset: String(offset) })}`);
+export async function fetchInbox(locale: string, offset = 0, reason: InboxReason | null = null): Promise<InboxResponse> {
+  return translationRequest<InboxResponse>(`/api/dev/translation-inbox?${new URLSearchParams({ locale, offset: String(offset), ...(reason ? { reason } : {}) })}`);
+}
+
+/** "Fine here": records the exception the item names, at the revision it showed. */
+export async function markFineHere(locale: string, exception: InboxException): Promise<void> {
+  await translationRequest("/api/dev/translation-inbox/exception", { locale, ...exception });
 }
 
 /** Save the shown wording as the human draft, then approve exactly the revision that save produced. */
@@ -25,6 +30,10 @@ export async function acceptInboxItem(locale: string, accept: InboxAccept): Prom
       return;
     case "ui-approve":
       return saveThenApprove("/api/dev/translation-workbench", { locale, id: accept.id }, accept.expectedRevision, accept.target, (payload) => (payload.row as { revision: number }).revision);
+    case "feedback-resolve":
+      // The existing feedback status mutation, as the Glossary view's reader feedback queue uses it.
+      await translationRequest(`/api/glossary-feedback/${encodeURIComponent(accept.id)}/status`, { status: "resolved", note: "Resolved from the Inbox" });
+      return;
     case "narrative-approve":
       return saveThenApprove("/api/dev/translation-narrative", { locale, kind: "article", slug: accept.slug, id: accept.id, sourceVersion: accept.sourceVersion }, accept.expectedRevision, accept.target, (payload) => (payload.entry as { revision: number }).revision);
   }
