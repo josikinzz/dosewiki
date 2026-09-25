@@ -2,7 +2,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { DevModePageControllerState } from "./devModePageTypes";
-import { DEV_TAB_REGISTRY } from "./devTabRegistry";
+import { DEV_TAB_REGISTRY, findDevTab } from "./devTabRegistry";
 
 const { tool } = vi.hoisted(() => ({
   tool: (name: string) => ({ [name]: () => <div data-testid="dev-tool">{name}</div> }),
@@ -18,6 +18,7 @@ vi.mock("../tags", () => tool("TagEditorTab"));
 vi.mock("../tools/writing/WritingTab", () => tool("WritingTab"));
 vi.mock("../tools/copy-studio/CopyStudioTab", () => tool("CopyStudioTab"));
 vi.mock("../tools/queue/QueueTab", () => tool("QueueTab"));
+vi.mock("../tools/inbox/InboxTab", () => tool("InboxTab"));
 vi.mock("../tools/contributors/ContributorsTab", () => tool("ContributorsTab"));
 vi.mock("../tools/playlists/PlaylistsTab", () => tool("PlaylistsTab"));
 vi.mock("../tools/citation-review/CitationReviewTab", () => tool("CitationReviewTab"));
@@ -136,6 +137,16 @@ describe("DevModePageView", () => {
 
     expect(getByText("Admin role required")).toBeTruthy();
     expect(getByText(/Banners is closed to your role/)).toBeTruthy();
+    expect(queryByTestId("dev-tool")).toBeNull();
+  });
+
+  it("keeps the Inbox behind the admin floor: below it, no list and none of its reads", () => {
+    expect(findDevTab("inbox").role).toBe("admin");
+    const { getByText, queryByTestId } = render(
+      <DevModePageView controller={buildController("inbox", "Admin role required", false)} />,
+    );
+
+    expect(getByText(/Inbox is closed to your role/)).toBeTruthy();
     expect(queryByTestId("dev-tool")).toBeNull();
   });
 });

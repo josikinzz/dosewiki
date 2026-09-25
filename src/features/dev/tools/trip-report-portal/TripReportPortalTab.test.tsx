@@ -218,6 +218,18 @@ describe("TripReportPortalTab", () => {
     expect(screen.getByRole("button", { name: /^Published/ })).toHaveTextContent("1");
   });
 
+  it("opens on the submission a deep link names, the way the Inbox opens it", async () => {
+    render(<TripReportPortalTab initialSubmissionId="submission-1" />);
+    await screen.findByText("2 reports · 2 authors · 2 substances");
+
+    expect(
+      await screen.findByText(
+        (_, element) => element?.tagName === "LI" && element.textContent === "LSD · 75 ug, oral",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Careful low dose museum walk/ })).toHaveAttribute("aria-selected", "true");
+  });
+
   it("persists the decision note with an accepted submission", async () => {
     const user = userEvent.setup();
     render(<TripReportPortalTab />);

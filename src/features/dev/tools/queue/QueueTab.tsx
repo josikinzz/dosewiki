@@ -53,6 +53,8 @@ type QueueTabProps = {
   canApprove: boolean;
   /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
   onLoadIntoEditor: (seed: DevProposalSeed) => Promise<void>;
+  /** The proposal a deep link opens on. */
+  initialProposalId?: string;
 };
 
 type DetailState =
@@ -73,7 +75,7 @@ const targetCount = (count: number) => `${count} ${count === 1 ? "item" : "items
 const affectedRows = (targets: readonly TargetDrift[], showChanges = true) =>
   targets.map((target) => `${TARGET_KIND_LABELS[target.kind]} ${target.key}${showChanges && target.drifted ? " (changed since submission)" : ""}`);
 
-export function QueueTab({ canApprove, onLoadIntoEditor }: QueueTabProps) {
+export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
@@ -117,17 +119,26 @@ export function QueueTab({ canApprove, onLoadIntoEditor }: QueueTabProps) {
     }
   }, []);
 
+  // A deep link (`/dev/queue/<id>`, as the Inbox opens it) selects its
+  // proposal once; a later role change starts clean like any other reload.
+  const initialIdRef = useRef(initialProposalId);
+
   useEffect(() => {
     setProposals(null);
     setDetail({ status: "idle" });
     setDrafts({});
     setNotice(null);
     void loadList();
+    const initialId = initialIdRef.current;
+    if (initialId) {
+      initialIdRef.current = undefined;
+      void loadDetail(initialId);
+    }
     return () => {
       ++listVersion.current;
       ++detailVersion.current;
     };
-  }, [loadList, canApprove]);
+  }, [loadList, loadDetail, canApprove]);
 
   const selectedId = detail.status === "idle" ? null : detail.id;
   const commentText = selectedId ? drafts[selectedId]?.comment ?? "" : "";

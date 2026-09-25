@@ -55,6 +55,7 @@ describe("devTabRegistry", () => {
       expect(["admin", "editor", "translator", "contributor"]).toContain(tab.role);
     }
     expect(byRole("admin")).toEqual([
+      "inbox",
       "citation-review",
       "trip-report-submissions",
       "article-feedback",
@@ -120,7 +121,8 @@ describe("devTabRegistry", () => {
   });
 
   it("lands every role on the first tool it can use", () => {
-    expect(firstUsableTab("admin")).toBe("articles");
+    // The Inbox is an admin's entry point (fork F6); the tools stay one click away.
+    expect(firstUsableTab("admin")).toBe("inbox");
     expect(firstUsableTab("editor")).toBe("articles");
     expect(firstUsableTab("editor_translator")).toBe("articles");
     // A translator also holds the contributor floor; its own tool comes first.

@@ -64,6 +64,10 @@ export type DevModePageControllerState = {
   writingInitialSlug?: string;
   /** `/dev/copy-studio/<block key>`: the block Copy Studio opens on. */
   copyStudioInitialKey?: string;
+  /** `/dev/trip-report-submissions/<submission id>`: the submission Trip reports opens on. */
+  tripReportsInitialId?: string;
+  /** `/dev/queue/<proposal id>`: the proposal Change Review opens on. */
+  queueInitialId?: string;
   /** `/dev/playlists/<key>`: the playlist the tab opens on. */
   playlistsInitialKey?: string;
   /**

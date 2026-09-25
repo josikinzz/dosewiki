@@ -755,4 +755,14 @@ export default defineSchema({
     .index("by_proposed_by", ["proposedBy"])
     .index("by_proposed_by_status", ["proposedBy", "status"])
     .index("by_created_at", ["createdAt"]),
+
+  // Who is working an Inbox item whose own record has no Reviewing status
+  // (citation articles, change proposals, review recommendations). Trip
+  // reports and feedback claim through their status and decision log instead.
+  inboxClaims: defineTable({
+    source: v.union(v.literal("citations"), v.literal("proposals"), v.literal("review-recommendations")),
+    item_id: v.string(),
+    claimed_by: v.string(),
+    claimed_at: v.string(),
+  }).index("by_source_item", ["source", "item_id"]),
 });

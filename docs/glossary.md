@@ -266,6 +266,14 @@ _Avoid_: editor sign-off, pending review, soft reviewed
 The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is the one reason the submitter may see: a trip report author signed in with the submission's contact email reads it in My reports under Submissions while that decision still stands, and never sees the note, the actor, or anyone else's submissions. Glossary feedback keeps only its latest note.
 _Avoid_: review history (for the note field), audit trail, overwritten note
 
+**Inbox**:
+The admin's entry point in `/dev`: one list of everything that waits on an admin, from Trip reports, Feedback (article and site), Glossary feedback, Citations, and Change Review (proposals and review recommendations), most urgent first and then oldest first. Each source lists the same bucket its tool's rail badge counts, and the Inbox rail count is their sum, so every counted item is reachable. The owning tools keep their tabs as detail views; decisions that need their own checks (publishing, citation evidence, review approval) open there.
+_Avoid_: dashboard, queue of queues
+
+**Claim**:
+Taking an Inbox item so a second admin does not triage it too. Claiming moves the item to Reviewing with the claimer's name. Trip reports and feedback claim through their status, and the decision log names the claimer; citation articles, proposals and review recommendations have no Reviewing status of their own, so their claims live in `inboxClaims`. Only the claimer can release a claim.
+_Avoid_: assign (for claiming yourself), lock
+
 **Intake Status**:
 The one status vocabulary the Citations, Trip reports and Feedback queues show. Each tool keeps its stored values and maps them to these words in `src/features/intake/intakeStatus.ts`:
 

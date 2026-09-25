@@ -73,6 +73,7 @@ const REJECTION_STATUS_BY_CODE: Record<string, number> = {
   REVERT_CONFLICT: 409,
   REVIEW_REVISION_OUTDATED: 409,
   REVIEW_ALREADY_COMPLETED: 409,
+  INBOX_CLAIM_HELD: 409,
 };
 
 export type DataRejection = {
