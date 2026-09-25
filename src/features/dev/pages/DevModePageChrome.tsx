@@ -12,6 +12,7 @@ import type { DevModePrimaryTab } from "./devModePageUtils";
 import {
   DEV_TAB_REGISTRY,
   findDevTab,
+  INBOX_ROLLUP_BADGE,
   type DevModeTab,
   type DevTabDescriptor,
   type DevToolGroup,
@@ -191,6 +192,7 @@ export function DevModePageChrome({
       role: floor,
       destination,
       badge: badge === undefined ? undefined : badgeCounts[badge],
+      rollsUpIntake: badge === INBOX_ROLLUP_BADGE || undefined,
       unsaved: unsavedWork.isDirty(id) || undefined,
     })),
   }));
@@ -353,10 +355,11 @@ export function DevModePageChrome({
   const railGroups = roleGroups.filter((group) => group.enabled.length > 0);
   const enabledTotal = railGroups.reduce((sum, group) => sum + group.enabled.length, 0);
   const keepFlat = enabledTotal <= INLINE_RAIL_TOTAL_LIMIT;
-  // When the role has the entry group (the Inbox), its one count already
-  // covers every intake queue, so the group menus stop rolling up the same
-  // items a second time. The tools inside each menu keep their own counts.
-  const entryShown = railGroups.some((group) => group.id === "entry");
+  // When the role has the Inbox, its one count already covers every intake
+  // queue, so the group menus stop rolling up the same items a second time.
+  // The tools inside each menu keep their own counts. Home shares the Start
+  // group with it but counts nothing, so it does not stop the roll-up.
+  const entryShown = railGroups.some((group) => group.enabled.some((tab) => tab.rollsUpIntake));
 
   return (
     <div className="w-full">

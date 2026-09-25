@@ -266,6 +266,10 @@ _Avoid_: editor sign-off, pending review, soft reviewed
 The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is the one reason the submitter may see: a trip report author signed in with the submission's contact email reads it in My reports under Submissions while that decision still stands, and never sees the note, the actor, or anyone else's submissions. Glossary feedback keeps only its latest note.
 _Avoid_: review history (for the note field), audit trail, overwritten note
 
+**Home**:
+Where bare `/dev` opens, for every member role: that member's own work as cards, each linking to the exact item it names. An admin sees the Inbox total, each queue's count, and pending invites; an editor sees their saved article drafts and open proposals (read from `/api/dev/my-work`, scoped to the session's actor); a translator sees the review inbox count per language they hold, with Continue; a contributor sees a checklist for their own profile. Counts come from the rail badge reads, so a count that failed to load reads Unknown, never zero. The Inbox and every tool stay one click away on the rail.
+_Avoid_: dashboard, landing page
+
 **Inbox**:
 The admin's entry point in `/dev`: one list of everything that waits on an admin, from Trip reports, Feedback (article and site), Glossary feedback, Citations, and Change Review (proposals and review recommendations), most urgent first and then oldest first. Each source lists the same bucket its tool's rail badge counts, and the Inbox rail count is their sum, so every counted item is reachable. The owning tools keep their tabs as detail views; decisions that need their own checks (publishing, citation evidence, review approval) open there.
 _Avoid_: dashboard, queue of queues

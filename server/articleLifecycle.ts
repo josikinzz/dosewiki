@@ -1,5 +1,5 @@
 import { PostgresError, v } from "../lib/postgres/runtime/values";
-import { query, type MutationCtx } from "../lib/postgres/runtime/server";
+import { query, type MutationCtx, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { contentHash } from "../lib/proposals/contentHash";
@@ -37,6 +37,37 @@ export const get = query({
     };
   },
 });
+
+/**
+ * The signed-in member's own saved article drafts and open proposals, for the
+ * `/dev` Home. Scoped to the resolved actor's membership email, never to a
+ * caller-supplied address, and to that actor even for an admin: this is "my
+ * work", not the review queue. A discarded draft keeps its row for the version
+ * counter but holds no article, so it is not listed.
+ */
+export async function mineHandler(ctx: QueryCtx, args: { apiKey?: string; actorEmail?: string }) {
+  if (!args.actorEmail?.trim()) {
+    // A server-key call that names nobody acts as the system, which drafts nothing.
+    throw new PostgresError({ code: "ACTOR_REQUIRED", message: "A signed-in member is required to list their drafts and proposals." });
+  }
+  const actor = await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "editor");
+  const [drafts, submitted, returned] = await Promise.all([
+    ctx.db.query("articleDrafts").withIndex("by_owner_slug", (q) => q.eq("ownerEmail", actor.email)).collect(),
+    ctx.db.query("changeProposals").withIndex("by_proposed_by_status", (q) => q.eq("proposedBy", actor.email).eq("status", "submitted")).collect(),
+    ctx.db.query("changeProposals").withIndex("by_proposed_by_status", (q) => q.eq("proposedBy", actor.email).eq("status", "changes_requested")).collect(),
+  ]);
+  return {
+    drafts: drafts
+      .filter((row) => row.ownerEmail === actor.email && row.article)
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .map((row) => ({ slug: row.slug, title: row.article?.title ?? row.slug, updatedAt: row.updatedAt })),
+    proposals: [...submitted, ...returned]
+      .filter((row) => row.proposedBy === actor.email)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+      .map((row) => projectProposalSummary(row, actor.email)),
+  };
+}
+export const mine = query({ args: authArgs, handler: mineHandler });
 
 const actionValidator = v.union(v.literal("saveDraft"), v.literal("discardDraft"), v.literal("publish"), v.literal("submit"), v.literal("restore"));
 const writeArgs = {

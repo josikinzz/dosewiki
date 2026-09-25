@@ -19,6 +19,7 @@ vi.mock("../tools/writing/WritingTab", () => tool("WritingTab"));
 vi.mock("../tools/copy-studio/CopyStudioTab", () => tool("CopyStudioTab"));
 vi.mock("../tools/queue/QueueTab", () => tool("QueueTab"));
 vi.mock("../tools/inbox/InboxTab", () => tool("InboxTab"));
+vi.mock("../tools/home/HomeTab", () => tool("HomeTab"));
 vi.mock("../tools/contributors/ContributorsTab", () => tool("ContributorsTab"));
 vi.mock("../tools/playlists/PlaylistsTab", () => tool("PlaylistsTab"));
 vi.mock("../tools/citation-review/CitationReviewTab", () => tool("CitationReviewTab"));

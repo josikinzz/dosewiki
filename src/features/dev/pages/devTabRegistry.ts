@@ -13,9 +13,10 @@ import { roleMeetsFloor, type AppRole, type RoleFloor } from "@/lib/auth/roles";
 import { DEV_ROUTE_FILTERS, type DevRouteFilter } from "@/utils/devHref";
 
 /**
- * `entry` holds the Inbox, the admin's entry point: it renders ahead of the
- * other groups as a plain pill, and its count stands in for the intake counts
- * the group menus would otherwise roll up.
+ * `entry` (the rail's Start group) holds Home, where bare `/dev` opens for
+ * every role, and the Inbox, the admin's entry point. It renders ahead of the
+ * other groups as plain pills, and the Inbox count stands in for the intake
+ * counts the group menus would otherwise roll up.
  */
 export type DevToolGroup = "entry" | "content" | "intake" | "site";
 
@@ -93,6 +94,21 @@ const SHELL: DevTabDestination = { kind: "shell" };
  * rail labels.
  */
 const REGISTRY = [
+  {
+    id: "home",
+    label: "Home",
+    group: "entry",
+    aliases: [],
+    // Each member's own work, by role: counts and cards that link to the exact
+    // item. At the lowest floor so every member role opens it.
+    role: "contributor",
+    data: NO_DATA,
+    saveModel: "instant",
+    // A read-only landing: every card opens the tool that owns the item.
+    saveLine: "none",
+    layout: "shell",
+    destination: SHELL,
+  },
   {
     id: "inbox",
     label: "Inbox",
@@ -380,26 +396,38 @@ const PINNED_ROUTES: Readonly<Record<string, DevRoute>> = {
   about: { tab: "writing", slug: "about" },
 };
 
-/** The tab that opens when the route names no tab, or names one nobody knows. */
+/** The tab that opens when the route names a tab nobody knows. */
 export const DEFAULT_DEV_TAB: DevModeTab = "articles";
 
+/** Where bare `/dev` (and sign-in's return) opens: each member's own work. */
+export const HOME_DEV_TAB = "home" satisfies DevModeTab;
+
+/** The rail badge that sums every intake count; the tab carrying it is the Inbox. */
+export const INBOX_ROLLUP_BADGE = "inbox" satisfies NonNullable<DevTabDescriptor["badge"]>;
+
 /**
- * Floors in landing preference. A translator also holds the contributor floor,
- * but their own work is the Glossary, so the more specific floor wins; admins
- * land on the Inbox, the entry point for everything waiting on them.
+ * Floors in fallback preference. A translator also holds the contributor
+ * floor, but their own tool is the Glossary, so the more specific floor wins;
+ * for admins it is the Inbox, the entry point for everything waiting on them.
  */
 const LANDING_FLOORS: readonly RoleFloor[] = ["admin", "editor", "translator", "contributor"];
 
 /**
- * The tool a role lands on when the route names none: the first shell tool in
- * registry order at the most specific floor the role holds. Roles with no
- * usable tool keep the default, which renders its locked panel.
+ * The first tool a role can use: the first shell tool in registry order at
+ * the most specific floor the role holds. Home is not a tool, so it never
+ * answers here; bare `/dev` opens Home directly, and this stays the fallback
+ * for the Tools section. Roles with no usable tool keep the default, which
+ * renders its locked panel.
  */
 export function firstUsableTab(role: AppRole | null | undefined): DevModeTab {
   for (const floor of LANDING_FLOORS) {
     if (!roleMeetsFloor(role, floor)) continue;
     const tab = DEV_TAB_REGISTRY.find(
-      (candidate) => candidate.group !== "chrome" && candidate.destination.kind === "shell" && candidate.role === floor,
+      (candidate) =>
+        candidate.id !== HOME_DEV_TAB
+        && candidate.group !== "chrome"
+        && candidate.destination.kind === "shell"
+        && candidate.role === floor,
     );
     if (tab) return tab.id;
   }
@@ -427,9 +455,10 @@ function hasOwn(table: object, key: string): boolean {
 }
 
 /**
- * `/dev/<tabSegment>/<slugSegment>?<filter param>=<value>` to a tab. Unknown
- * tab segments fall back to the default tab and keep the slug, so a mistyped
- * tool name still lands on a shell instead of a 404. `query` is the page's
+ * `/dev/<tabSegment>/<slugSegment>?<filter param>=<value>` to a tab. Bare
+ * `/dev` opens Home. Unknown tab segments fall back to the default tab and
+ * keep the slug, so a mistyped tool name still lands on a shell instead of a
+ * 404. `query` is the page's
  * search params in Next's record shape; only a value the tab's `filter`
  * declares comes through, and a filter segment's preset wins over it.
  */
@@ -442,7 +471,7 @@ export function resolveDevRoute(
     return PINNED_ROUTES[tabSegment];
   }
   const descriptor = tabSegment === undefined ? undefined : resolveDevTabAlias(tabSegment);
-  const route: DevRoute = { tab: descriptor?.id ?? DEFAULT_DEV_TAB };
+  const route: DevRoute = { tab: tabSegment === undefined ? HOME_DEV_TAB : descriptor?.id ?? DEFAULT_DEV_TAB };
   if (slugSegment) route.slug = slugSegment;
   const filter = descriptor?.filter;
   if (filter) {

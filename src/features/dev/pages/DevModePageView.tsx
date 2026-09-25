@@ -40,6 +40,10 @@ const QueueTab = dynamic(
   () => import("../tools/queue/QueueTab").then((m) => m.QueueTab),
   { ssr: false, loading },
 );
+const HomeTab = dynamic(
+  () => import("../tools/home/HomeTab").then((m) => m.HomeTab),
+  { ssr: false, loading },
+);
 const InboxTab = dynamic(
   () => import("../tools/inbox/InboxTab").then((m) => m.InboxTab),
   { ssr: false, loading },
@@ -206,6 +210,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             onLoadIntoEditor={controller.onLoadProposal}
             initialProposalId={controller.queueInitialId}
           />
+        ) : controller.activeTab === "home" ? (
+          <HomeTab role={controller.role} profileKey={controller.sessionProfileKey} />
         ) : controller.activeTab === "inbox" ? (
           <InboxTab actorEmail={controller.userEmail ?? null} />
         ) : controller.activeTab === "contributors" ? (
