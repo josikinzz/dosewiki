@@ -3,6 +3,11 @@ import { query, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { auditStampFor } from "./lib/auditStamp";
+import {
+  feedbackQueueCountsValidator,
+  feedbackQueueOrderValidator,
+  readFeedbackQueue,
+} from "./lib/feedbackQueue";
 
 const statusValidator = v.union(
   v.literal("new"),
@@ -131,6 +136,42 @@ export const list = query({
           .take(limit);
 
     return docs.map(toFeedbackQueueItem);
+  },
+});
+
+/**
+ * One page of the review queue with status and search applied on the server,
+ * in a stable keyset order, and the per-status counts of every row the search
+ * matches. Unlike `list`, no row falls outside the queue's reach.
+ */
+export const queuePage = query({
+  args: {
+    apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
+    status: v.optional(statusValidator),
+    search: v.optional(v.string()),
+    order: v.optional(feedbackQueueOrderValidator),
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    feedback: v.array(feedbackQueueItemValidator),
+    nextCursor: v.union(v.string(), v.null()),
+    counts: feedbackQueueCountsValidator,
+  }),
+  handler: async (ctx, args) => {
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
+
+    const page = await readFeedbackQueue(ctx, "articleFeedback", { ...args, limit: clampLimit(args.limit) });
+    return {
+      feedback: page.rows.map((row) => toFeedbackQueueItem(row as unknown as FeedbackRow)),
+      nextCursor: page.nextCursor,
+      counts: page.counts,
+    };
   },
 });
 

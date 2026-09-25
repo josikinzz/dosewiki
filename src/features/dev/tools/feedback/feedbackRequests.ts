@@ -1,37 +1,63 @@
-import { FEEDBACK_QUEUE_WINDOW, type FeedbackTransitionInput } from "./FeedbackReviewQueue";
+import type { FeedbackImportance, FeedbackQueueItem, FeedbackTransitionInput } from "./FeedbackReviewQueue";
+import {
+  FEEDBACK_PAGE_SIZE,
+  QUEUE_STATUSES,
+  pageLocally,
+  type FeedbackPage,
+  type FeedbackPageQuery,
+  type StatusCounts,
+} from "./feedbackQueueModel";
 
 type FeedbackRequests<Item> = {
-  fetchList: () => Promise<Item[]>;
+  fetchPage: (query: FeedbackPageQuery) => Promise<FeedbackPage<Item>>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
 };
 
-const FEEDBACK_STATUSES = new Set(["new", "reviewing", "resolved", "rejected", "spam"]);
+const FEEDBACK_STATUSES = new Set<string>(QUEUE_STATUSES);
+
+const LIST_MESSAGES = {
+  network: "Network error while loading feedback.",
+  failure: "Unable to load feedback.",
+};
 
 /**
- * HTTP client for one feedback source. Both sources expose the same
- * `GET {basePath}/queue?limit=` and `POST {basePath}/{id}/status` routes.
- * The list is one request for the newest rows of every status; the queue
- * filters and counts them itself.
+ * HTTP client for one feedback source. Article and site feedback expose
+ * `GET {basePath}/queue?status=&q=&order=&cursor=&limit=`, which filters,
+ * searches, orders and pages on the server, and `POST {basePath}/{id}/status`.
+ * A source whose queue route returns its whole list (`listUrl`) is paged in
+ * the browser under the same contract.
  *
  * A successful response that does not carry the expected shape is an error,
  * never an empty queue: the queue keeps the rows it already has and offers
  * a retry, so a broken contract cannot read as "no feedback".
  */
-export function createFeedbackRequests<Item>(
+export function createFeedbackRequests<Item extends FeedbackQueueItem>(
   basePath: string,
-  options: { listUrl?: string } = {},
+  options: {
+    listUrl?: string;
+    importance?: (item: Item) => FeedbackImportance | null | undefined;
+  } = {},
 ): FeedbackRequests<Item> {
   return {
-    async fetchList() {
-      const payload = await requestJson(
-        options.listUrl ?? `${basePath}/queue?limit=${FEEDBACK_QUEUE_WINDOW}`,
-        { cache: "no-store" },
-        {
-          network: "Network error while loading feedback.",
-          failure: "Unable to load feedback.",
-        },
-      );
-      return readFeedbackList<Item>(payload);
+    async fetchPage(query) {
+      if (options.listUrl) {
+        const payload = await requestJson(options.listUrl, { cache: "no-store" }, LIST_MESSAGES);
+        return pageLocally(readFeedbackList<Item>(payload), query, options.importance);
+      }
+
+      const params = new URLSearchParams({ status: query.status, order: query.sort, limit: String(FEEDBACK_PAGE_SIZE) });
+      if (query.search.trim()) {
+        params.set("q", query.search.trim());
+      }
+      if (query.cursor) {
+        params.set("cursor", query.cursor);
+      }
+      const payload = await requestJson(`${basePath}/queue?${params}`, { cache: "no-store" }, LIST_MESSAGES);
+      return {
+        rows: readFeedbackList<Item>(payload),
+        counts: readCounts(payload.counts),
+        nextCursor: readCursor(payload.nextCursor),
+      };
     },
     async transition(id, input) {
       const payload = await requestJson(
@@ -54,12 +80,37 @@ export function createFeedbackRequests<Item>(
   };
 }
 
+const MALFORMED_LIST = "The server did not return the feedback list. Try again.";
+
 /** The `feedback` array of a list response, or a retryable error when it is missing or malformed. */
 export function readFeedbackList<Item>(payload: Record<string, unknown>): Item[] {
   if (!Array.isArray(payload.feedback) || !payload.feedback.every(isFeedbackRow)) {
-    throw new Error("The server did not return the feedback list. Try again.");
+    throw new Error(MALFORMED_LIST);
   }
   return payload.feedback as Item[];
+}
+
+function readCounts(value: unknown): StatusCounts {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(MALFORMED_LIST);
+  }
+  const record = value as Record<string, unknown>;
+  const counts = {} as StatusCounts;
+  for (const status of QUEUE_STATUSES) {
+    const count = record[status];
+    if (typeof count !== "number" || !Number.isInteger(count) || count < 0) {
+      throw new Error(MALFORMED_LIST);
+    }
+    counts[status] = count;
+  }
+  return counts;
+}
+
+function readCursor(value: unknown): string | null {
+  if (value === null || (typeof value === "string" && value.length > 0)) {
+    return value;
+  }
+  throw new Error(MALFORMED_LIST);
 }
 
 function isFeedbackRow(value: unknown): boolean {

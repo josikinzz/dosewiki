@@ -5,6 +5,12 @@ import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "..
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
 import { PublicProjectionReader } from "./dbPublicReads";
 import { fromRow, quote, type Doc } from "./dbRows";
+import {
+  readFeedbackQueueCounts,
+  readFeedbackQueuePage,
+  type FeedbackQueuePageOptions,
+  type FeedbackQueueTable,
+} from "./feedbackQueuePage";
 
 export class EditorialProjectionReader extends PublicProjectionReader {
   async getStudioReplicationTotal(): Promise<number> {
@@ -136,6 +142,15 @@ export class EditorialProjectionReader extends PublicProjectionReader {
        GROUP BY "term", "target", "version" ORDER BY "term", "version"`, [locale],
     );
     return result.rows as Array<{ term: string; target: string; version: string; right: number; improve: number }>;
+  }
+
+  /** One keyset page of a feedback queue, filtered and ordered in SQL. */
+  async getFeedbackQueuePage(table: FeedbackQueueTable, options: FeedbackQueuePageOptions) {
+    return readFeedbackQueuePage(this.client, table, options);
+  }
+
+  async getFeedbackQueueCounts(table: FeedbackQueueTable, search: string | undefined) {
+    return readFeedbackQueueCounts(this.client, table, search);
   }
 
   async getFeedbackCountByStatuses(

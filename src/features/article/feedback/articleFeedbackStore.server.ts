@@ -3,6 +3,11 @@ import "server-only";
 import { createHmac, randomUUID } from "node:crypto";
 
 import { makeFunctionReference } from "@server/postgres/runtime/api";
+import type {
+  FeedbackQueueOrder,
+  FeedbackQueuePageFilters,
+  FeedbackQueuePageResult,
+} from "@/lib/http/feedbackQueueRoute";
 
 import {
   getPublicIntakeWriteCapability,
@@ -88,6 +93,19 @@ const listFeedbackRef = makeFunctionReference<
   ArticleFeedbackQueueItem[]
 >("articleFeedback:list");
 
+const queuePageRef = makeFunctionReference<
+  "query",
+  {
+    apiKey: string;
+    status?: ArticleFeedbackStatus;
+    search?: string;
+    order: FeedbackQueueOrder;
+    cursor?: string;
+    limit: number;
+  },
+  FeedbackQueuePageResult<ArticleFeedbackQueueItem>
+>("articleFeedback:queuePage");
+
 const countFeedbackRef = makeFunctionReference<
   "query",
   { apiKey: string; statuses: ArticleFeedbackStatus[] },
@@ -154,6 +172,21 @@ export class DataArticleFeedbackStore {
       ...(filters.status ? { status: filters.status } : {}),
       limit: clampLimit(filters.limit),
     }) as ArticleFeedbackQueueItem[];
+  }
+
+  /**
+   * One page of the review queue, filtered, searched and ordered on the
+   * server, with the per-status counts of every row the search matches.
+   */
+  async page(filters: FeedbackQueuePageFilters<ArticleFeedbackStatus>): Promise<FeedbackQueuePageResult<ArticleFeedbackQueueItem>> {
+    return await this.options.client.query(queuePageRef, {
+      apiKey: this.options.apiKey,
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.search ? { search: filters.search } : {}),
+      order: filters.order,
+      ...(filters.cursor ? { cursor: filters.cursor } : {}),
+      limit: clampLimit(filters.limit),
+    }) as FeedbackQueuePageResult<ArticleFeedbackQueueItem>;
   }
 
   /** Total rows in the given statuses, computed on the server: no list travels. */

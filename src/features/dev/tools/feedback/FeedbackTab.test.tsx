@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resetDevRailBadgesForTests, useDevRailBadges } from "@/features/dev/pages/useDevRailBadges";
 
+import { queueResponse } from "@/test/feedbackQueueServer";
+
 import { FeedbackTab } from "./FeedbackTab";
 
 const articleRow = {
@@ -66,11 +68,11 @@ function stubFeedback(pendingTotals: number[] = [0]) {
       }
 
       if (url.pathname === "/api/article-feedback/queue") {
-        return Response.json({ ok: true, feedback: [articleRow] });
+        return queueResponse(input, [articleRow]);
       }
 
       if (url.pathname === "/api/site-feedback/queue") {
-        return Response.json({ ok: true, feedback: siteRows });
+        return queueResponse(input, siteRows);
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -145,7 +147,7 @@ describe("FeedbackTab", () => {
     expect(screen.getByRole("button", { name: "Spam" })).toBeDisabled();
   });
 
-  it("keeps the chosen status across sources and in the URL, and applies it to the site queue without a refetch", async () => {
+  it("keeps the chosen status across sources and in the URL, and asks the site queue for that status", async () => {
     const user = userEvent.setup();
     render(<FeedbackTab />);
 
@@ -162,8 +164,8 @@ describe("FeedbackTab", () => {
     expect(screen.queryByText("Website technical issue")).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Spam (1)");
     expect(window.location.search).toBe("?source=site&status=spam");
-    expect(fetch).toHaveBeenCalledWith("/api/site-feedback/queue?limit=250", expect.anything());
-    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("status=spam"));
+    // The status filter runs on the server, so every spam row is reachable, not only a recent window.
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/api/site-feedback/queue?status=spam&"), expect.anything());
   });
 
   it("reads the status filter from the address on load", async () => {
@@ -235,18 +237,20 @@ describe("FeedbackTab", () => {
       const url = new URL(String(input), "https://dose.wiki");
       if (url.pathname === "/api/article-feedback/queue") {
         await articleGate;
-        return Response.json({ ok: true, feedback: [articleRow] });
+        return queueResponse(input, [articleRow]);
       }
 
       if (url.pathname === "/api/site-feedback/queue") {
-        return Response.json({ ok: true, feedback: [technicalRow, spamRow] });
+        return queueResponse(input, [technicalRow, spamRow]);
       }
 
       return Response.json({ ok: true, article: 0, site: 0, total: 0 });
     });
 
     render(<FeedbackTab />);
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/article-feedback/queue?limit=250", expect.anything()));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/api/article-feedback/queue?"), expect.anything()),
+    );
 
     await user.click(screen.getByRole("button", { name: "Site" }));
     await screen.findAllByText("Website technical issue");

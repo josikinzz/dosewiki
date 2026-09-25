@@ -13,6 +13,7 @@ import {
   type FeedbackSourceAdapter,
 } from "./FeedbackReviewQueue";
 import { siteFeedbackAdapter } from "./siteFeedbackAdapter";
+import { queueResponse } from "@/test/feedbackQueueServer";
 
 const articleRow = {
   id: "article-1",
@@ -77,7 +78,7 @@ function stubFetch(
         options.failList = false;
         return Response.json({ error: "Storage is warming up." }, { status: 503 });
       }
-      return Response.json({ ok: true, feedback: rows });
+      return queueResponse(input, rows);
     }
 
     return Response.json({ error: "unexpected" }, { status: 500 });
@@ -224,12 +225,12 @@ describe("FeedbackReviewQueue with a malformed list response", () => {
   it("shows a retryable error on a first load that returns an empty object, never an empty queue", async () => {
     const user = userEvent.setup();
     let malformed = true;
-    vi.stubGlobal("fetch", vi.fn(async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       if (malformed) {
         malformed = false;
         return Response.json({});
       }
-      return Response.json({ ok: true, feedback: [articleRow] });
+      return queueResponse(input, [articleRow]);
     }));
     render(<Queue adapter={articleFeedbackAdapter} />);
 
@@ -252,7 +253,7 @@ describe("FeedbackReviewQueue with a malformed list response", () => {
       if (url.startsWith("/api/article-feedback/queue")) {
         lists += 1;
         return lists === 1
-          ? Response.json({ ok: true, feedback: [articleRow, second] })
+          ? queueResponse(input, [articleRow, second])
           : new Response("<html>502</html>", { status: 200 });
       }
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -295,12 +296,12 @@ describe("FeedbackReviewQueue after a decision", () => {
       if (url.startsWith("/api/article-feedback/queue")) {
         lists += 1;
         if (lists === 1) {
-          return Response.json({ ok: true, feedback: [rowA, rowB, rowC] });
+          return queueResponse(input, [rowA, rowB, rowC]);
         }
         await refreshGate;
         // A new report arrived at the top while the admin worked.
         const arrived = { ...articleRow, id: "article-0", substance_title: "Zolpidem" };
-        return Response.json({ ok: true, feedback: [arrived, { ...rowA, status: "resolved" }, rowB, rowC] });
+        return queueResponse(input, [arrived, { ...rowA, status: "resolved" }, rowB, rowC]);
       }
       return Response.json({ error: "unexpected" }, { status: 500 });
     }));
@@ -400,7 +401,11 @@ describe("FeedbackReviewQueue intake triage", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     const list = await screen.findByRole("listbox", { name: "Feedback queue" });
-    const titles = () => within(list).getAllByRole("option").map((option) => option.textContent ?? "");
+    // Changing the order reloads the list from the server, so read the list afresh each time.
+    const titles = () =>
+      within(screen.getByRole("listbox", { name: "Feedback queue" }))
+        .getAllByRole("option")
+        .map((option) => option.textContent ?? "");
     expect(within(within(list).getAllByRole("option")[1]).getByText("Critical")).toBeInTheDocument();
 
     await user.click(screen.getByRole("combobox", { name: "Sort" }));
@@ -409,6 +414,101 @@ describe("FeedbackReviewQueue intake triage", () => {
     await waitFor(() => expect(titles()[0]).toContain("Fentanyl"));
     expect(titles()[1]).toContain("Melatonin");
     expect(titles()[2]).toContain("Caffeine");
+  });
+});
+
+describe("FeedbackReviewQueue reach", () => {
+  const oldUnresolved = {
+    ...articleRow,
+    id: "old-unresolved",
+    substance_title: "Tramadol",
+    details: "Seizure threshold missing.",
+    created_at: "2025-01-01T00:00:00.000Z",
+  };
+  const newerResolved = Array.from({ length: 250 }, (_, index) => ({
+    ...articleRow,
+    id: `resolved-${index}`,
+    status: "resolved",
+    substance_title: `Resolved ${index}`,
+    created_at: new Date(Date.UTC(2026, 0, 1) + index * 60_000).toISOString(),
+  }));
+
+  function stubServer(rows: ({ id: string } & Record<string, unknown>)[]) {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
+      String(input).startsWith("/api/article-feedback/queue")
+        ? queueResponse(input, rows)
+        : Response.json({ error: "unexpected" }, { status: 500 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  const listbox = () => screen.getByRole("listbox", { name: "Feedback queue" });
+
+  it("still exposes one old unresolved report under 250 newer resolved ones", async () => {
+    stubServer([oldUnresolved, ...newerResolved]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    expect(await screen.findByRole("heading", { level: 3, name: "Tramadol" })).toBeInTheDocument();
+    expect(within(listbox()).getAllByRole("option")).toHaveLength(1);
+    expect(screen.getByText("1 new · 250 resolved")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("New (1)");
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveTextContent("Oldest first");
+  });
+
+  it("pages through everything, shows loaded apart from total, and keeps the selection and note while more load", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubServer([oldUnresolved, ...newerResolved]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("heading", { level: 3, name: "Tramadol" });
+    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
+    await user.click(await screen.findByRole("option", { name: "All 251" }));
+
+    expect(await screen.findByText("100 of 251 loaded")).toBeInTheDocument();
+    await user.click(within(listbox()).getByText("Resolved 247"));
+    await user.type(screen.getByLabelText("Review note"), "Reopen?");
+
+    await user.click(screen.getByRole("button", { name: "Load more" }));
+    expect(await screen.findByText("200 of 251 loaded")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Load more" }));
+    expect(await screen.findByText("251 of 251 loaded")).toBeInTheDocument();
+
+    expect(screen.queryByRole("button", { name: "Load more" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Resolved 247" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Review note")).toHaveValue("Reopen?");
+    const cursors = fetchMock.mock.calls
+      .map(([input]) => new URL(String(input), "https://dose.wiki").searchParams)
+      .filter((params) => params.get("status") === "all")
+      .map((params) => params.get("cursor"));
+    expect(cursors).toEqual([null, "100", "200"]);
+  });
+
+  it("searches on the server, so a match outside the loaded rows is found", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubServer([oldUnresolved, ...newerResolved]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("heading", { level: 3, name: "Tramadol" });
+    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
+    await user.click(await screen.findByRole("option", { name: "Resolved 250" }));
+    await screen.findByText("100 of 250 loaded");
+
+    await user.type(screen.getByRole("searchbox", { name: "Search feedback" }), "Resolved 3");
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=Resolved+3"), expect.anything()),
+    );
+    // "Resolved 3" and "Resolved 30" to "Resolved 39": the oldest ones sit past the first page.
+    expect(await screen.findByText("11 of 11 loaded")).toBeInTheDocument();
+    expect(within(listbox()).getByText("Resolved 3")).toBeInTheDocument();
+  });
+
+  it("opens on Reviewing when nothing is New but something is still being reviewed", async () => {
+    stubServer([{ ...oldUnresolved, status: "reviewing" }, ...newerResolved.slice(0, 3)]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    expect(await screen.findByRole("heading", { level: 3, name: "Tramadol" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Reviewing (1)");
   });
 });
 
@@ -432,7 +532,9 @@ describe("FeedbackReviewQueue filter", () => {
     expect(screen.getByRole("option", { name: "Spam 0" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("option", { name: "All 2" }));
-    expect(within(list).getAllByRole("option")).toHaveLength(2);
+    await waitFor(() =>
+      expect(within(screen.getByRole("listbox", { name: "Feedback queue" })).getAllByRole("option")).toHaveLength(2),
+    );
   });
 
   it("opens on everything when nothing is New", async () => {
