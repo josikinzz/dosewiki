@@ -17,6 +17,10 @@ export const ABOUT_COPY_BLOCKS: readonly { key: string; label: string }[] = [
   { key: "about-doc-link-blurbs", label: "Documentation card blurbs" },
   { key: "about-mission-effect-index", label: "Mission statement (Effect Index)" },
   { key: "about-community-intro", label: "Community intro" },
+  { key: "about-collaboration-summaries", label: "Official collaboration one-liners" },
+  { key: "about-collaboration-tripsit", label: "Official collaboration: TripSit" },
+  { key: "about-collaboration-protestkit", label: "Official collaboration: PRO Test Kit" },
+  { key: "about-collaboration-piru", label: "Official collaboration: Piru" },
 ];
 
 /**

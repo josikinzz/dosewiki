@@ -22,6 +22,7 @@ import { splitAboutMarkdown } from "@/data/content/aboutSections";
 import { selectAboutContributors } from "@/data/contributorRoster";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
+import { ABOUT_COLLABORATIONS, AboutCollaborationsSection } from "@/components/pages/AboutCollaborationsSection";
 import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnapshot";
 import type { SubstanceArticle } from "@/schema";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -129,6 +130,15 @@ export default async function LocalizedAboutPage() {
           }
           communityIntro={
             <PublicMarkdownBody content={localizedBody(copy.text("about-community-intro"))} />
+          }
+          collaborationsContent={
+            <AboutCollaborationsSection
+              summaries={copy.items("about-collaboration-summaries")}
+              bodies={Object.fromEntries(ABOUT_COLLABORATIONS.map(({ key }) => [
+                key,
+                <PublicMarkdownBody key={key} content={localizedBody(copy.text(`about-collaboration-${key}`))} />,
+              ]))}
+            />
           }
           docBlurbs={copy.items("about-doc-link-blurbs")}
           missionContent={<AboutMissionMarkdown content={localizedBody(aboutSections.introduction)} />}

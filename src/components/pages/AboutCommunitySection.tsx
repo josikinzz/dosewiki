@@ -14,13 +14,16 @@ export const GROUP_LABEL_CLASSNAME =
 
 /**
  * The squircle logo tile every entry shares. Artwork letterboxes by default;
- * square avatar marks bleed to the edges; wordmarks fit by width.
+ * square avatar marks bleed to the edges; wordmarks fit by width. `lg` is the
+ * Official collaborations row size.
  */
-function LogoTile({ logo }: { logo: CommunityLogo }) {
+export function LogoTile({ logo, size = "sm" }: { logo: CommunityLogo; size?: "sm" | "lg" }) {
+  const pixels = size === "lg" ? 44 : 36;
   return (
     <span
       className={cn(
-        "flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[0.55rem]",
+        "flex shrink-0 items-center justify-center overflow-hidden",
+        size === "lg" ? "h-11 w-11 rounded-[0.7rem]" : "h-9 w-9 rounded-[0.55rem]",
         "theme-community-tile border border-dose-border",
         "transition-[box-shadow,border-color] duration-300",
       )}
@@ -28,13 +31,14 @@ function LogoTile({ logo }: { logo: CommunityLogo }) {
       <AppImage
         src={logo.src}
         alt=""
-        width={36}
-        height={36}
-        unoptimized={logo.src.endsWith(".svg")}
+        width={pixels}
+        height={pixels}
+        unoptimized={logo.src.endsWith(".svg") || logo.src.endsWith(".avif")}
         className={cn(
           logo.fit === "cover" && "h-full w-full object-cover",
           logo.fit === "wide" && "h-auto w-[88%] object-contain",
-          (logo.fit ?? "contain") === "contain" && "h-6 w-6 object-contain",
+          (logo.fit ?? "contain") === "contain" && (size === "lg" ? "h-7 w-7" : "h-6 w-6"),
+          (logo.fit ?? "contain") === "contain" && "object-contain",
         )}
       />
     </span>

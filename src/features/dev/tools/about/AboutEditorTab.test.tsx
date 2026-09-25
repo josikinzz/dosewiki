@@ -59,6 +59,10 @@ describe("AboutEditorTab", () => {
       "/dev/copy-studio/about-doc-link-blurbs",
       "/dev/copy-studio/about-mission-effect-index",
       "/dev/copy-studio/about-community-intro",
+      "/dev/copy-studio/about-collaboration-summaries",
+      "/dev/copy-studio/about-collaboration-tripsit",
+      "/dev/copy-studio/about-collaboration-protestkit",
+      "/dev/copy-studio/about-collaboration-piru",
     ]);
   });
 

@@ -160,6 +160,8 @@ interface AboutPageProps {
   reuseContent?: ReactNode;
   /** Intro sentence above the Partners & Community roster. dose.wiki only; a Copy Studio slot. */
   communityIntro?: ReactNode;
+  /** Official collaborations body (dose.wiki only), built from Copy Studio slots by the route. */
+  collaborationsContent?: ReactNode;
   docBlurbs?: string[];
   docCopyControl?: ReactNode;
   /** Editor-managed tagline from Postgres siteConfig; falls back to the canonical line. */
@@ -179,6 +181,7 @@ export const AboutPage = memo(function AboutPage({
   translationCreditsContent,
   reuseContent,
   communityIntro,
+  collaborationsContent,
   docBlurbs,
   docCopyControl,
   subtitle,
@@ -190,6 +193,7 @@ export const AboutPage = memo(function AboutPage({
   const introductionTitle = effectIndex ? t("Mission") : t("Introduction");
   const downloadsTitle = effectIndex ? t("Downloads") : t("Downloads & reuse");
   const showSources = !effectIndex && Boolean(sourcesContent);
+  const showCollaborations = ABOUT_CONFIG.showCollaborations && Boolean(collaborationsContent);
   const hasRosterEntries =
     contributorRoster !== null &&
     (contributorRoster.founder !== null ||
@@ -260,6 +264,15 @@ export const AboutPage = memo(function AboutPage({
       ? [{ id: "data", label: downloadsTitle, icon: "lucide:download" } satisfies PublicTableOfContentsItem]
       : []),
     ...(effectIndex ? [contributorsTocItem] : []),
+    ...(showCollaborations
+      ? [
+          {
+            id: "collaborations",
+            label: t("Official collaborations"),
+            icon: "lucide:badge-check",
+          } satisfies PublicTableOfContentsItem,
+        ]
+      : []),
     ...(ABOUT_CONFIG.showCommunity
       ? [
           {
@@ -405,6 +418,15 @@ export const AboutPage = memo(function AboutPage({
         ) : null}
 
         {effectIndex ? contributorsSection : null}
+
+        {/* Official collaborations: projects that work with dose.wiki directly,
+            one expandable row each. dose.wiki only (see `about.showCollaborations`). */}
+        {showCollaborations ? (
+          <section id="collaborations" className="scroll-mt-24 space-y-4">
+            <PublicSectionHeading icon="lucide:badge-check" title={t("Official collaborations")} />
+            {collaborationsContent}
+          </section>
+        ) : null}
 
         {/* Partners & Community: one compact roster of data partners and
             neighbouring communities. dose.wiki only; Effect Index never

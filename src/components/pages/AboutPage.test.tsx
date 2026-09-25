@@ -11,6 +11,7 @@ import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { ABOUT_COMMUNITY_LINKS } from "@/data/content/aboutCommunity";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { AboutPage } from "./AboutPage";
+import { AboutCollaborationsSection } from "./AboutCollaborationsSection";
 
 /** Flavored: "Documentation" on dose.wiki, "Licensing & Contact" on Effect Index. */
 const docsLabel = SITE_FLAVOR_CONFIG.about.docsTitle;
@@ -30,6 +31,7 @@ const expectedSectionIds = [
   "docs",
   ...(showOpenData ? ["data"] : []),
   ...(isEffectIndex() ? ["contributors"] : []),
+  ...(SITE_FLAVOR_CONFIG.about.showCollaborations ? ["collaborations"] : []),
   ...(SITE_FLAVOR_CONFIG.about.showCommunity ? ["community"] : []),
   ...(SITE_FLAVOR_CONFIG.about.contact ? ["contact"] : []),
 ];
@@ -67,6 +69,12 @@ function renderAboutPage(
         missionContent={<p>Mission test copy for harm reduction.</p>}
         sourcesContent={<p>Sources section fixture.</p>}
         historyContent={<p>Project history fixture.</p>}
+        collaborationsContent={
+          <AboutCollaborationsSection
+            summaries={["Journal fixture", "Combination fixture", "Reagent fixture"]}
+            bodies={{ piru: <p>Piru body fixture.</p> }}
+          />
+        }
         downloads={{
           substances: { count: 1234, bytes: 23_895_032 },
           effects: { count: 310, bytes: 1_525_750 },
@@ -531,6 +539,21 @@ describe("AboutPage cross-publication content", () => {
  */
 const showCommunity = SITE_FLAVOR_CONFIG.about.showCommunity;
 const describeCommunity = showCommunity ? describe : describe.skip;
+
+(SITE_FLAVOR_CONFIG.about.showCollaborations ? describe : describe.skip)("AboutPage collaborations section", () => {
+  it("lists each partner as a collapsed row with its summary and outbound links", () => {
+    renderAboutPage();
+
+    const section = sectionById("collaborations");
+    const rows = section.querySelectorAll("details");
+    expect(rows).toHaveLength(3);
+    rows.forEach((row) => expect(row.open).toBe(false));
+    expect(within(section).getByText("TripSit")).toBeInTheDocument();
+    expect(within(section).getByText("Journal fixture")).toBeInTheDocument();
+    expect(within(section).getByText("Piru body fixture.")).toBeInTheDocument();
+    expect(section.querySelector('a[href="https://testflight.apple.com/join/4vcA7dY3"]')).not.toBeNull();
+  });
+});
 
 describeCommunity("AboutPage community section", () => {
   it("renders the section, its TOC anchors, and every roster entry", () => {
