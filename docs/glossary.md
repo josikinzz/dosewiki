@@ -266,6 +266,23 @@ _Avoid_: editor sign-off, pending review, soft reviewed
 The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is reserved for a reason the submitter may see; nothing shows it yet. Glossary feedback keeps only its latest note.
 _Avoid_: review history (for the note field), audit trail, overwritten note
 
+**Intake Status**:
+The one status vocabulary the Citations, Trip reports and Feedback queues show. Each tool keeps its stored values and maps them to these words in `src/features/intake/intakeStatus.ts`:
+
+- **New**: arrived and not yet decided. A trip report submission stored as `submitted`, feedback stored as `new`, and a citation evidence row that is still undecided. An undecided citation row also shows its evidence qualifier: Ready to approve (`supported`), Needs source, or Needs review.
+- **Reviewing**: an admin has started on it and it still waits on a decision.
+- **Accepted**: an admin agreed with it. An accepted citation row is part of the article's evidence at once; an accepted trip report still waits for Publish and counts as waiting on an admin.
+- **Resolved**: feedback that was acted on and closed.
+- **Published**: live on the public site. A published trip report, including a submission stored as `exported`.
+- **Rejected**: declined, with the reason in the decision log or the row's reviewer note. It can be reopened to Reviewing.
+- **Spam**: junk filed away without review. It can be reopened to Reviewing.
+
+_Avoid_: Not published (for Rejected or Spam), Exported (for Published), Approved (as a status word; Approve stays the citation action), Needs review (as a status; it names the trip report bucket and a citation qualifier)
+
+**Triage Keys**:
+The single-key shortcuts every intake queue shares: `j` and `k` move the selection, `a` accepts (Resolve in Feedback, Approve in Citations), `r` rejects, `s` marks spam, `n` focuses the review note, `u` undoes the last decision, and `?` lists the keys. They never fire inside a text field, while a dialog is open, or for a key another control already handled. Reject and Spam still ask before they write.
+_Avoid_: hotkeys, accelerators
+
 ## Replications Surface Language
 
 The [replication classification field guide](workflows/replication-classification-guide.html) is the canonical intake and taxonomy procedure. It keeps gallery admission, viewing mode, effect evidence, title-only drug tags, and artist practice as separate decisions.

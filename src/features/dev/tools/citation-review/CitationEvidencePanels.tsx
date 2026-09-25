@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +31,7 @@ import {
   toneIconClass,
   toneTileClass,
   type CitationEvidenceDecisionHandlers,
+  type CitationRejectRequest,
   type CitationUndoOffer,
 } from "./CitationReviewPanels";
 
@@ -42,8 +43,11 @@ export function CitationEvidenceSection({
   openedClaimKeys,
   sectionUndo,
   rowUndo,
+  rejectRequest,
   onApproveSection,
 }: {
+  /** The `r` key's request to open one row's reject form. */
+  rejectRequest?: CitationRejectRequest | null;
   group: { section: string; label: string; rows: CitationEvidenceRowModel[] };
   commands: CitationReviewCommands;
   handlers: CitationEvidenceDecisionHandlers;
@@ -98,6 +102,7 @@ export function CitationEvidenceSection({
             }}
             handlers={handlers}
             undo={rowUndo && rowUndo.decision.prior[0]?.claimKey === row.claimKey ? rowUndo : null}
+            rejectRequest={rejectRequest?.claimKey === row.claimKey ? rejectRequest.nonce : undefined}
           />
         ))}
       </div>
@@ -135,10 +140,13 @@ function CitationSupportQuote({ children }: { children: ReactNode }) {
 
 function CitationRejectForm({
   pending,
+  focusOnOpen = false,
   onCancel,
   onConfirm,
 }: {
   pending: boolean;
+  /** Opened from the keyboard: the reason control takes focus. */
+  focusOnOpen?: boolean;
   onCancel: () => void;
   onConfirm: (statusReason: string | undefined) => void;
 }) {
@@ -146,6 +154,12 @@ function CitationRejectForm({
   const [detail, setDetail] = useState("");
   const reasonId = useId();
   const detailId = useId();
+  const reasonRef = useRef<HTMLSelectElement | null>(null);
+  useEffect(() => {
+    if (focusOnOpen) reasonRef.current?.focus();
+    // Only on open; later renders leave focus where the reviewer put it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const detailRequired = reason === "other";
   const detailMissing = detailRequired && detail.trim().length === 0;
 
@@ -159,6 +173,7 @@ function CitationRejectForm({
         {(fieldProps) => (
           <EditorSelect
             {...fieldProps}
+            ref={reasonRef}
             selectSize="sm"
             options={REJECT_REASON_OPTIONS}
             value={reason}
@@ -209,14 +224,27 @@ function CitationEvidenceRow({
   command,
   handlers,
   undo,
+  rejectRequest,
 }: {
   row: CitationEvidenceRowModel;
   command: CitationReviewCommands["rows"][string];
   handlers: CitationEvidenceDecisionHandlers;
   undo: CitationUndoOffer | null;
+  /** Changes each time the `r` key asks this row for its reject form. */
+  rejectRequest?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [keyboardReject, setKeyboardReject] = useState(false);
+  const [seenRejectRequest, setSeenRejectRequest] = useState(rejectRequest);
+  if (rejectRequest !== seenRejectRequest) {
+    setSeenRejectRequest(rejectRequest);
+    if (rejectRequest !== undefined && !command.rejectDisabled) {
+      setExpanded(true);
+      setRejecting(true);
+      setKeyboardReject(true);
+    }
+  }
   const isUnresolved = UNRESOLVED_CITATION_STATUSES.includes(row.status);
   const referenceIds = [...new Set(row.referenceIds)];
   const supports = row.supports ?? [];
@@ -240,7 +268,8 @@ function CitationEvidenceRow({
         type="button"
         aria-expanded={expanded}
         onClick={() => {
-          if (!expanded) handlers.onRowExpanded(row.claimKey);
+          if (expanded) handlers.onRowCollapsed?.(row.claimKey);
+          else handlers.onRowExpanded(row.claimKey);
           setExpanded(!expanded);
         }}
         className="theme-focus-ring-inset flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5"
@@ -271,7 +300,7 @@ function CitationEvidenceRow({
           {showLegacyRationale ? <p className="mt-3 text-sm theme-text-muted">{row.supportRationale}</p> : null}
           {supports.length > 0 ? <div className="mt-4 space-y-4">{supports.map((support, index) => <div key={`${row.claimKey}-${support.referenceId}-${index}`} className="space-y-1.5"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium theme-text-primary">{support.sourceName}</p><Badge variant="secondary" className={REFERENCE_ID_BADGE_CLASS}>{support.referenceId}</Badge>{support.sourceType && support.sourceType !== "unknown" ? <Badge variant="secondary">{support.sourceType}</Badge> : null}{support.quality ? <Badge variant="secondary" className="normal-case tracking-normal">Quality: {support.quality}</Badge> : null}</div><CitationSupportQuote>{support.supportingQuote}</CitationSupportQuote><p className="text-sm theme-text-muted">{support.rationale}</p></div>)}</div> : null}
           {(row.diagnostics?.length ?? 0) > 0 ? <div className="mt-4 space-y-2">{(row.diagnostics ?? []).map((diagnostic, index) => { const tone = citationTone({ kind: "diagnostic", value: diagnostic.severity }); return <div key={`${row.claimKey}-diagnostic-${index}`} className={`text-sm theme-text-secondary ${toneTileClass(tone)}`}><div className="flex items-center gap-2"><Icon icon={diagnostic.severity === "error" ? "lucide:triangle-alert" : "lucide:badge-alert"} size={15} className={toneIconClass(tone)} /><span className="font-medium theme-text-primary">{diagnostic.code}</span></div><p className="mt-1">{diagnostic.message}</p></div>; })}</div> : null}
-          {rejecting ? <CitationRejectForm pending={command.isPending} onCancel={() => setRejecting(false)} onConfirm={(statusReason) => { setRejecting(false); handlers.onReject(row.claimKey, statusReason); }} /> : <EditorActionGroup label="Evidence row decision actions" className="mt-4"><Button variant="success" size="pill" className="rounded-full" disabled={command.approveDisabled} onClick={() => handlers.onApprove([row.claimKey])}><Icon icon={command.isPending ? "lucide:loader-2" : "lucide:badge-check"} size={16} className={command.isPending ? "animate-spin" : undefined} />Approve</Button><Button variant="destructivePill" size="pill" className="rounded-full" disabled={command.rejectDisabled} onClick={() => setRejecting(true)}><Icon icon={command.isPending ? "lucide:loader-2" : "lucide:x-circle"} size={16} className={command.isPending ? "animate-spin" : undefined} />Reject</Button></EditorActionGroup>}
+          {rejecting ? <CitationRejectForm pending={command.isPending} focusOnOpen={keyboardReject} onCancel={() => { setRejecting(false); setKeyboardReject(false); }} onConfirm={(statusReason) => { setRejecting(false); setKeyboardReject(false); handlers.onReject(row.claimKey, statusReason); }} /> : <EditorActionGroup label="Evidence row decision actions" className="mt-4"><Button variant="success" size="pill" className="rounded-full" disabled={command.approveDisabled} onClick={() => handlers.onApprove([row.claimKey])}><Icon icon={command.isPending ? "lucide:loader-2" : "lucide:badge-check"} size={16} className={command.isPending ? "animate-spin" : undefined} />Approve</Button><Button variant="destructivePill" size="pill" className="rounded-full" disabled={command.rejectDisabled} onClick={() => { setRejecting(true); setKeyboardReject(false); }}><Icon icon={command.isPending ? "lucide:loader-2" : "lucide:x-circle"} size={16} className={command.isPending ? "animate-spin" : undefined} />Reject</Button></EditorActionGroup>}
         </EditorPanelBody>
       ) : null}
     </EditorPanel>

@@ -1,14 +1,18 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/common/Icon";
 import {
+  EditorList,
   EditorListItem,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
+  TriageShortcutHint,
 } from "@/features/dev/components";
 import {
   CITATION_QUEUE_FILTERS,
   CITATION_QUEUE_FILTER_LABEL,
+  CITATION_STATUS_LABEL,
   formatCitationCount,
   type CitationReviewQueueFilter,
   type CitationReviewQueueSummary,
@@ -90,17 +94,41 @@ export function CitationQueueHeader({
   );
 }
 
+/**
+ * The article queue as the shared triage list: arrows (and j/k from the tab)
+ * move the selection, and the search narrows it by title or slug. Open in
+ * Review lives on the selected article's summary, so each row stays one
+ * option with nothing else to tab to.
+ */
+export function citationQueueMatches(
+  entry: CitationReviewQueueSummary,
+  query: string,
+  articleTitleBySlug: Map<string, string>,
+): boolean {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  const title = (articleTitleBySlug.get(entry.slug) ?? entry.slug).toLowerCase();
+  return title.includes(needle) || entry.slug.includes(needle);
+}
+
 export function CitationQueuePanel({
   queue,
   selectedSlug,
   articleTitleBySlug,
   onSelectSlug,
+  query = "",
+  onQueryChange,
 }: {
+  /** The articles to list, already narrowed by `query`. */
   queue: CitationReviewQueueSummary[];
   selectedSlug: string | null;
   articleTitleBySlug: Map<string, string>;
   onSelectSlug: (slug: string) => void;
+  /** The search lives with the tab so j/k step through the same rows the list shows. */
+  query?: string;
+  onQueryChange?: (query: string) => void;
 }) {
+  const titleOf = (entry: CitationReviewQueueSummary) => articleTitleBySlug.get(entry.slug) ?? entry.slug;
   return (
     <EditorSection
       icon="lucide:files"
@@ -109,54 +137,72 @@ export function CitationQueuePanel({
       actions={<EditorStatusPill tone="neutral">{queue.length} queued</EditorStatusPill>}
       className="h-fit lg:sticky lg:top-6"
     >
-      <div className="space-y-2 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto lg:pr-1">
-        {queue.map((entry) => {
+      {onQueryChange ? (
+        <Input
+          type="search"
+          inputSize="sm"
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder="Search articles"
+          aria-label="Search articles"
+          className="mb-2"
+        />
+      ) : null}
+      <EditorList
+        label="Citation queue"
+        items={queue}
+        getKey={(entry) => entry.slug}
+        selectedKey={selectedSlug}
+        onSelect={onSelectSlug}
+        maxHeight="min(70vh, calc(100vh - 16rem))"
+        estimateRowHeight={72}
+        emptyText={query.trim() ? `No article matches "${query.trim()}".` : "No articles queued."}
+        renderItem={(entry, { selected }) => {
           const unresolvedBlocking =
             entry.blockingNeedsSourceCount +
             entry.blockingNeedsReviewCount +
             entry.blockingRejectedCount;
-          const isSelected = selectedSlug === entry.slug;
           return (
-            <div key={entry.slug} className="space-y-1">
-              <EditorListItem
-                active={isSelected}
-                onSelect={() => onSelectSlug(entry.slug)}
-                className="flex-col items-stretch gap-1 px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p
-                    className={`min-w-0 truncate text-sm font-semibold ${
-                      isSelected ? "theme-accent-heading" : "theme-text-primary"
-                    }`}
-                  >
-                    {articleTitleBySlug.get(entry.slug) ?? entry.slug}
-                  </p>
-                  <span className="flex shrink-0 flex-wrap justify-end gap-2">
-                    {unresolvedBlocking > 0 ? (
-                      <EditorStatusPill tone="danger">{unresolvedBlocking} blocking</EditorStatusPill>
-                    ) : null}
-                    {entry.supportedCount > 0 ? (
-                      <EditorStatusPill tone="success">{entry.supportedCount} ready</EditorStatusPill>
-                    ) : null}
-                  </span>
-                </div>
-                <p className="truncate text-xs theme-text-faint">
-                  {entry.slug} · {formatCitationCount(entry.totalRows, "row")} ·{" "}
-                  {entry.approvedCount} approved · Updated {formatUpdatedAt(entry.updatedAt)}
-                </p>
-              </EditorListItem>
-              <div className="flex justify-end">
-                <Button asChild variant="quiet" size="quiet">
-                  <a href={`/review/${entry.slug}`}>
-                    Open in Review
-                    <Icon icon="lucide:arrow-up-right" size={14} />
-                  </a>
-                </Button>
-              </div>
-            </div>
+            <EditorListItem active={selected} tabIndex={-1} className="flex-col items-stretch gap-1 px-4 py-3">
+              <span className="flex items-start justify-between gap-3">
+                <span
+                  className={`min-w-0 truncate text-sm font-semibold ${
+                    selected ? "theme-accent-heading" : "theme-text-primary"
+                  }`}
+                >
+                  {titleOf(entry)}
+                </span>
+                <span className="flex shrink-0 flex-wrap justify-end gap-2">
+                  {unresolvedBlocking > 0 ? (
+                    <EditorStatusPill tone="danger">{unresolvedBlocking} blocking</EditorStatusPill>
+                  ) : null}
+                  {entry.supportedCount > 0 ? (
+                    <EditorStatusPill tone="success">{entry.supportedCount} ready</EditorStatusPill>
+                  ) : null}
+                </span>
+              </span>
+              <span className="block truncate text-xs theme-text-faint">
+                {entry.slug} · {formatCitationCount(entry.totalRows, "row")} ·{" "}
+                {entry.approvedCount} {CITATION_STATUS_LABEL.approved.toLowerCase()} · Updated{" "}
+                {formatUpdatedAt(entry.updatedAt)}
+              </span>
+            </EditorListItem>
           );
-        })}
-      </div>
+        }}
+      />
+      <TriageShortcutHint className="mt-3" />
     </EditorSection>
+  );
+}
+
+/** The selected article's link out to the full review workbench. */
+export function CitationOpenInReview({ slug }: { slug: string }) {
+  return (
+    <Button asChild variant="quiet" size="quiet">
+      <a href={`/review/${slug}`}>
+        Open in Review
+        <Icon icon="lucide:arrow-up-right" size={14} />
+      </a>
+    </Button>
   );
 }

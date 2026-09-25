@@ -1,5 +1,6 @@
 import type { SubstanceArticle } from "@/schema";
 import type { EditorStatusPillTone } from "@/features/dev/components";
+import { CITATION_INTAKE_STATUS, INTAKE_STATUS_LABEL } from "@/features/intake/intakeStatus";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
 import { getCatalogSectionPromptDescriptors } from "@/schema/substance/sectionManifest";
 
@@ -42,8 +43,8 @@ export const CITATION_QUEUE_FILTERS: readonly CitationReviewQueueFilter[] = [
 
 export const CITATION_QUEUE_FILTER_LABEL: Record<CitationReviewQueueFilter, string> = {
   open: "Open",
-  approved: "Approved",
-  rejected: "Rejected",
+  approved: INTAKE_STATUS_LABEL[CITATION_INTAKE_STATUS.approved],
+  rejected: INTAKE_STATUS_LABEL[CITATION_INTAKE_STATUS.rejected],
   all: "All",
 };
 
@@ -238,12 +239,17 @@ const CITATION_STATUS_TONE: Record<CitationEvidenceStatus, EditorStatusPillTone>
   rejected: "danger",
 }
 
+/**
+ * Decided rows read in the shared intake words (docs/glossary.md, Intake
+ * Status). Undecided rows are New there; the pill names their evidence
+ * qualifier, since that decides whether they can be approved.
+ */
 export const CITATION_STATUS_LABEL: Record<CitationEvidenceStatus, string> = {
   supported: "Ready to approve",
   needs_source: "Needs source",
   needs_review: "Needs review",
-  approved: "Approved",
-  rejected: "Rejected",
+  approved: INTAKE_STATUS_LABEL[CITATION_INTAKE_STATUS.approved],
+  rejected: INTAKE_STATUS_LABEL[CITATION_INTAKE_STATUS.rejected],
 };
 
 const CITATION_SEVERITY_TONE: Record<CitationEvidenceSeverity, EditorStatusPillTone> = {

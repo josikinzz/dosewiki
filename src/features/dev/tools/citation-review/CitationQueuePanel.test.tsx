@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { CitationQueuePanel } from "./CitationQueuePanel";
+import { CitationOpenInReview, CitationQueuePanel } from "./CitationQueuePanel";
 import type { CitationReviewQueueSummary } from "./citationReviewModels";
 
 const summary: CitationReviewQueueSummary = {
@@ -25,24 +25,37 @@ const summary: CitationReviewQueueSummary = {
   updatedAt: "2026-05-01T00:00:00.000Z",
 };
 
+const titles = new Map([
+  ["lsd", "LSD"],
+  ["mdma", "MDMA"],
+]);
+
 describe("CitationQueuePanel", () => {
-  it("exposes Open in Review as a named row action beside the selectable row", async () => {
+  it("is a listbox the arrow keys move through, and a click selects", async () => {
     const user = userEvent.setup();
     const onSelectSlug = vi.fn();
     render(
       <CitationQueuePanel
-        queue={[summary]}
-        selectedSlug={null}
-        articleTitleBySlug={new Map([["lsd", "LSD"]])}
+        queue={[summary, { ...summary, slug: "mdma", articleId: 2 }]}
+        selectedSlug="lsd"
+        articleTitleBySlug={titles}
         onSelectSlug={onSelectSlug}
       />,
     );
 
-    const link = screen.getByRole("link", { name: "Open in Review" });
-    expect(link).toHaveAttribute("href", "/review/lsd");
-    expect(link.closest("button")).toBeNull();
+    const listbox = screen.getByRole("listbox", { name: "Citation queue" });
+    expect(within(listbox).getByRole("option", { selected: true })).toHaveTextContent("LSD");
+    fireEvent.keyDown(listbox, { key: "ArrowDown" });
+    expect(onSelectSlug).toHaveBeenLastCalledWith("mdma");
 
-    await user.click(screen.getByRole("button", { name: /LSD/ }));
-    expect(onSelectSlug).toHaveBeenCalledWith("lsd");
+    await user.click(within(listbox).getByText("LSD"));
+    expect(onSelectSlug).toHaveBeenLastCalledWith("lsd");
+    // Rows hold no links of their own; the selected article's summary carries Open in Review.
+    expect(within(listbox).queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("links the selected article to the Review portal", () => {
+    render(<CitationOpenInReview slug="lsd" />);
+    expect(screen.getByRole("link", { name: "Open in Review" })).toHaveAttribute("href", "/review/lsd");
   });
 });

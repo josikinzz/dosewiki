@@ -62,7 +62,12 @@ export type CitationEvidenceDecisionHandlers = {
   onReject: (claimKey: string, statusReason: string | undefined) => void;
   /** A row was opened, so its quote has been on screen. */
   onRowExpanded: (claimKey: string) => void;
+  /** A row was closed again; the triage keys stop acting on it. */
+  onRowCollapsed?: (claimKey: string) => void;
 };
+
+/** A request from the `r` key to open the reject form on one row; `nonce` changes per press. */
+export type CitationRejectRequest = { claimKey: string; nonce: number };
 
 /** The undo for the last decision, rendered where that decision was made. */
 export type CitationUndoOffer = {

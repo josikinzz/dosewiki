@@ -409,7 +409,12 @@ describe("TripReportPortalTab", () => {
         expect.objectContaining({ method: "POST", body: JSON.stringify({ publish: false }) }),
       ),
     );
-    expect(await screen.findByText("Promotion payload")).toBeInTheDocument();
+    // The preview reads as a summary, not as raw JSON.
+    const preview = (await screen.findByRole("heading", { name: "Publish preview" })).closest("section")!;
+    expect(within(preview).getByText("/reports/careful-low-dose-museum-walk")).toBeInTheDocument();
+    expect(within(preview).getByText("LSD, 75 ug, oral")).toBeInTheDocument();
+    expect(within(preview).getByText("No contributor profile")).toBeInTheDocument();
+    expect(screen.queryByText(/"slug":/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Publish" }));
     // The terminal, public-facing write sits behind the confirm dialog.
@@ -605,5 +610,142 @@ describe("TripReportPortalTab", () => {
     await user.click(await screen.findByRole("button", { name: "Accept" }));
 
     await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("none"));
+  });
+});
+
+describe("TripReportPortalTab keyboard triage and bulk actions", () => {
+  const second = { ...submission, id: "submission-2", title: "Second museum walk", created_at: "2026-06-10T12:00:00.000Z" };
+
+  function statusPosts() {
+    return vi
+      .mocked(fetch)
+      .mock.calls.filter(([input, init]) => String(input).endsWith("/status") && init?.method === "POST")
+      .map(([input, init]) => ({ url: String(input), body: JSON.parse(String(init?.body)) as Record<string, unknown> }));
+  }
+
+  it("opens rows with j and k and accepts the open one with a", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission, second]);
+    render(<TripReportPortalTab />);
+
+    await screen.findByRole("option", { name: /Careful low dose museum walk/ });
+    await user.keyboard("j");
+    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+    await user.keyboard("j");
+    expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
+    await user.keyboard("k");
+    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+
+    await user.keyboard("a");
+    await waitFor(() =>
+      expect(statusPosts()).toEqual([
+        { url: "/api/trip-report-submissions/submission-1/status", body: { status: "accepted" } },
+      ]),
+    );
+  });
+
+  it("asks before r rejects, then u reopens the submission", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await screen.findByRole("heading", { name: "Careful low dose museum walk" });
+    await user.keyboard("r");
+    const dialog = await screen.findByRole("dialog", { name: "Reject this submission?" });
+    expect(statusPosts()).toHaveLength(0);
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(statusPosts()).toHaveLength(1));
+    expect(statusPosts()[0].body).toEqual({ status: "rejected" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    expect(await screen.findByRole("button", { name: /Undo: .*back to Reviewing/ })).toBeInTheDocument();
+    await user.keyboard("u");
+    await waitFor(() => expect(statusPosts()).toHaveLength(2));
+    expect(statusPosts()[1].body).toEqual({ status: "reviewing" });
+  });
+
+  it("is a listbox the arrow keys move through", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission, second]);
+    render(<TripReportPortalTab />);
+
+    const listbox = await screen.findByRole("listbox", { name: "Trip reports" });
+    await screen.findByRole("option", { name: /Careful low dose museum walk/ });
+    listbox.focus();
+    await user.keyboard("{ArrowDown}");
+    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+    await user.keyboard("{ArrowDown}");
+    expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
+    expect(within(listbox).getByRole("option", { selected: true })).toHaveTextContent("Second museum walk");
+  });
+
+  it("marks every ticked submission as spam after one confirm", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission, second]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("checkbox", { name: "Select Careful low dose museum walk" }));
+    await user.click(screen.getByRole("checkbox", { name: "Select Second museum walk" }));
+    expect(screen.getByText("2 selected")).toBeInTheDocument();
+    // Ticking is not opening.
+    expect(screen.queryByRole("heading", { name: "Careful low dose museum walk" })).not.toBeInTheDocument();
+
+    const bulk = screen.getByRole("toolbar", { name: "Bulk submission actions" });
+    await user.click(within(bulk).getByRole("button", { name: "Mark as spam" }));
+    const dialog = await screen.findByRole("dialog", { name: "Mark 2 submissions as spam?" });
+    expect(within(dialog).getByText("Second museum walk")).toBeInTheDocument();
+    expect(statusPosts()).toHaveLength(0);
+
+    await user.click(within(dialog).getByRole("button", { name: "Mark as spam" }));
+    await waitFor(() =>
+      expect(statusPosts()).toEqual([
+        { url: "/api/trip-report-submissions/submission-1/status", body: { status: "spam" } },
+        { url: "/api/trip-report-submissions/submission-2/status", body: { status: "spam" } },
+      ]),
+    );
+    expect(await screen.findByText("Marked 2 submissions as spam.")).toBeInTheDocument();
+  });
+
+  it("attributes a publish to a contributor picked by name, not a typed key", async () => {
+    const user = userEvent.setup();
+    stubCorpus([acceptedSubmission]);
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/dev/trip-reports")) {
+        return Response.json({ ok: true, reports: [], contributors: [{ key: "NERVEWING", displayName: "nervewing" }] });
+      }
+      if (url.includes("/queue")) {
+        const requestUrl = new URL(url, "https://dose.wiki");
+        return requestUrl.searchParams.has("id")
+          ? Response.json({ ok: true, submission: acceptedSubmission })
+          : Response.json({ ok: true, needsReview: [], history: [acceptedSubmission] });
+      }
+      if (url.includes("/promote")) {
+        return Response.json({
+          ok: true,
+          submission: acceptedSubmission,
+          payload: { ...promotionPayload, subject: { name: "Anonymous", profile_key: "NERVEWING" } },
+        });
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    });
+    Element.prototype.scrollIntoView ??= () => {};
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    expect(screen.queryByPlaceholderText("Profile key (optional)")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("combobox", { name: "Contributor" }));
+    await user.click(await screen.findByRole("option", { name: /nervewing/ }));
+    await user.click(screen.getByRole("button", { name: "Preview publish" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/trip-report-submissions/submission-1/promote",
+        expect.objectContaining({ body: JSON.stringify({ publish: false, profile_key: "NERVEWING" }) }),
+      ),
+    );
+    const preview = (await screen.findByRole("heading", { name: "Publish preview" })).closest("section")!;
+    expect(within(preview).getByText("nervewing (contributor profile)")).toBeInTheDocument();
   });
 });

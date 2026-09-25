@@ -54,6 +54,69 @@ describe("EditorList", () => {
     expect(listbox).toHaveAttribute("aria-activedescendant", within(listbox).getByRole("option", { selected: true }).id);
   });
 
+  it("skips group headings with the keys and keeps them out of the options", () => {
+    type Entry = { kind: "heading" | "row"; key: string; name: string };
+    const entries: Entry[] = [
+      { kind: "heading", key: "h-1", name: "Group one" },
+      { kind: "row", key: "a", name: "Alpha" },
+      { kind: "heading", key: "h-2", name: "Group two" },
+      { kind: "row", key: "b", name: "Beta" },
+    ];
+    const onSelect = vi.fn();
+    render(
+      <EditorList
+        items={entries}
+        getKey={(entry) => entry.key}
+        isOption={(entry) => entry.kind === "row"}
+        renderItem={(entry, { selected }) =>
+          entry.kind === "heading" ? <h3>{entry.name}</h3> : <EditorListItem active={selected} title={entry.name} tabIndex={-1} />
+        }
+        selectedKey="a"
+        onSelect={onSelect}
+        emptyText="Nothing."
+        label="Grouped"
+      />,
+    );
+    const listbox = screen.getByRole("listbox", { name: "Grouped" });
+    expect(within(listbox).getAllByRole("option").map((option) => option.textContent)).toEqual(["Alpha", "Beta"]);
+
+    fireEvent.keyDown(listbox, { key: "ArrowDown" });
+    expect(onSelect).toHaveBeenLastCalledWith("b");
+    fireEvent.keyDown(listbox, { key: "Home" });
+    expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it("ticks rows for bulk actions with a checkbox or Space, without moving the selection", () => {
+    const onToggle = vi.fn();
+    const onSelect = vi.fn();
+    render(
+      <EditorList
+        items={ITEMS.slice(0, 3)}
+        getKey={(item) => item.slug}
+        renderItem={(item, { selected }) => <EditorListItem active={selected} title={item.name} tabIndex={-1} />}
+        selectedKey="item-1"
+        onSelect={onSelect}
+        multiSelect={{
+          checkedKeys: new Set(["item-2"]),
+          onToggle,
+          checkLabel: (item) => `Select ${item.name}`,
+          canCheck: (item) => item.slug !== "item-0",
+        }}
+        emptyText="Nothing."
+        label="Checkable"
+      />,
+    );
+    expect(screen.queryByRole("checkbox", { name: "Select Item 0" })).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Select Item 2" })).toBeChecked();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select Item 1" }));
+    expect(onToggle).toHaveBeenLastCalledWith("item-1");
+    expect(onSelect).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(screen.getByRole("listbox", { name: "Checkable" }), { key: " " });
+    expect(onToggle).toHaveBeenCalledTimes(2);
+  });
+
   it("selects on click and filters through the search box", () => {
     const onSelect = vi.fn();
     render(<Harness onSelect={onSelect} search />);
