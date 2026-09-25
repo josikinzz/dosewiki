@@ -493,7 +493,7 @@ describe("EditableValue citations stay with the field draft", () => {
   }
 
   it("drops a citation added to a draft that is then cancelled", async () => {
-    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper" });
+    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper", authors: [], year: null, url: null });
     const user = userEvent.setup();
     const { addReference, commit } = renderCitable();
 
@@ -506,7 +506,7 @@ describe("EditableValue citations stay with the field draft", () => {
   });
 
   it("adds the citation's reference once when the field applies", async () => {
-    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper" });
+    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper", authors: [], year: null, url: null });
     const user = userEvent.setup();
     const { addReference, commit } = renderCitable();
 
