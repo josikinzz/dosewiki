@@ -52,6 +52,7 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
         return Response.json(list);
       }
       if (path === "/api/dev/translation-style-guide" && !init) return Response.json({ locale: LOCALE, revision: 0, draft: null, approved: null, approvedRevision: "", history: [] });
+      if (path === "/api/dev/translation-coverage") return Response.json({ ok: true, locale: LOCALE, pages: [], affectedPagesTotal: 0 });
       if (path === "/api/dev/translation-inbox") return Response.json({ ok: true, locale: LOCALE, items: [], total: 0, offset: 0, pageSize: 50, checked: [], counts: {}, reason: null });
       if (path.endsWith("/import")) {
         calls.push({ path, body: String(init?.body) });
@@ -164,7 +165,7 @@ describe("GlossaryTab", () => {
     await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
 
     await waitFor(() => expect(api.calls).toHaveLength(1));
-    expect(api.calls[0]).toEqual({ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" }, reason: { kind: "terminology", note: "" } } });
+    expect(api.calls[0]).toEqual({ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } });
 
     // Mid-write: the written row is held, the other row is fully live.
     expect(first).toHaveAttribute("readonly");
@@ -233,7 +234,7 @@ describe("GlossaryTab", () => {
     await user.click(screen.getByRole("button", { name: /Live, never checked/ }));
     await user.click(rowFor("anxiety").getByRole("button", { name: "Confirm" }));
     await screen.findByText('Confirmed "anxiety".');
-    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" }, reason: { kind: "terminology", note: "" } } }]);
+    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } }]);
     expect(document.querySelector('tr[data-term="anxiety"]')).toBeNull();
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("1 of 2 terms approved");
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("1 live, never checked");
@@ -267,7 +268,7 @@ describe("GlossaryTab", () => {
     expect(confirmDialog.getByText(/Confirm the 2 live, never checked terms/)).toBeInTheDocument();
     await user.click(confirmDialog.getByRole("button", { name: /^Confirm / }));
     await screen.findByText("Confirmed 2 terms.");
-    expect(api.calls[1]).toEqual({ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["focus", "joy"], expectedRevisions: { focus: "1:0", joy: "1:0" }, reason: { kind: "terminology", note: "" } } });
+    expect(api.calls[1]).toEqual({ path: "/api/dev/translation-glossary/confirm", body: { locale: LOCALE, terms: ["focus", "joy"], expectedRevisions: { focus: "1:0", joy: "1:0" } } });
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("Every term is reviewed");
     expect(screen.getByTestId("glossary-summary")).toHaveTextContent("6 terms approved");
   });
@@ -511,11 +512,12 @@ describe("GlossaryTab", () => {
     await user.type(input, "Künstler");
     await user.click(rowFor("Artist").getByRole("button", { name: "Save draft" }));
     await screen.findByText('Saved "Artist" as Künstler; awaiting approval.');
-    expect(api.calls[0].body).toEqual({ locale: LOCALE, term: "Artist", target: "Künstler", intent: "draft", expectedRevision: "1:0" });
+    // The row's reason control starts on Terminology, in plain view, and that is what the save records.
+    expect(api.calls[0].body).toEqual({ locale: LOCALE, term: "Artist", target: "Künstler", intent: "draft", expectedRevision: "1:0", reason: { kind: "terminology", note: "" } });
     expect(rowFor("Artist").getByText("Unreviewed")).toBeInTheDocument();
     await user.click(rowFor("Artist").getByRole("button", { name: "Approve" }));
     await screen.findByText('Approved "Artist".');
-    expect(api.calls[1].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist"], expectedRevisions: { Artist: "1:1" } });
   });
 
   it("asks again for changed collisions during individual approval and hands focus forward only after success", async () => {
@@ -533,7 +535,7 @@ describe("GlossaryTab", () => {
     expect(input).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Allow shared translation" }));
     await screen.findByText('Approved "Artist".');
-    expect(api.calls[2].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist"], expectedRevisions: { Artist: "1:0" }, collisionConfirmation: "b".repeat(64) });
+    expect(api.calls[2].body).toEqual({ locale: LOCALE, terms: ["Artist"], expectedRevisions: { Artist: "1:0" }, collisionConfirmation: "b".repeat(64) });
     await waitFor(() => expect(screen.getByRole("textbox", { name: "Translation for Next" })).toHaveFocus());
   });
 
@@ -549,7 +551,7 @@ describe("GlossaryTab", () => {
     expect(api.calls).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Allow shared translation" }));
     await screen.findByText("Approved 2 terms.");
-    expect(api.calls[1].body).toEqual({ locale: LOCALE, reason: { kind: "terminology", note: "" }, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
+    expect(api.calls[1].body).toEqual({ locale: LOCALE, terms: ["Artist", "Replicator"], expectedRevisions: { Artist: "1:0", Replicator: "1:0" }, collisionConfirmation: "a".repeat(64) });
   });
 
   it("saves and approves an edited rendering in one step, approving exactly the saved revision", async () => {
@@ -644,22 +646,24 @@ describe("workbench views", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("opens on category choices without fetching the review inbox or usage corpus", async () => {
+  it("opens on the Inbox without fetching the usage corpus, and Terms opens on category choices", async () => {
     stubGlossaryApi([row("anxiety", "draft")]);
+    const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
     await screen.findByTestId("glossary-summary");
     const views = within(screen.getByRole("group", { name: "Workbench view" })).getAllByRole("button");
-    expect(views.map((button) => button.textContent)).toEqual(["Terms", "Interface text", "Articles", "Inbox", "Style guide"]);
-    expect(viewButton("Terms")).toHaveAttribute("aria-pressed", "true");
+    expect(views.map((button) => button.textContent)).toEqual(["Inbox", "Terms", "Interface text", "Articles", "Style guide"]);
+    expect(viewButton("Inbox")).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByRole("region", { name: "Review inbox" })).toBeVisible();
+    const requests = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
+    expect(requests.some((url) => url.includes("includeUsage=0"))).toBe(true);
+    await user.click(viewButton("Terms"));
     expect(screen.getByRole("button", { name: /^Subjective Effect Index:/ })).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("textbox", { name: "Translation for anxiety" })).toBeNull();
-    expect(screen.queryByRole("region", { name: "Review inbox" })).toBeNull();
-    const requests = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
-    expect(requests.some((url) => url.includes("translation-inbox"))).toBe(false);
-    expect(requests.some((url) => url.includes("includeUsage=0"))).toBe(true);
   });
 
   it("continues with the first category that has work left and focuses its first row needing review", async () => {
+    window.history.replaceState({}, "", "/dev/glossary?translationView=words");
     stubGlossaryApi([{ ...row("Replication", "approved"), kind: "replication" }, row("anxiety", "approved"), row("euphoria", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
@@ -672,6 +676,7 @@ describe("workbench views", () => {
   });
 
   it("opens one category at a time and retains unsaved wording between categories", async () => {
+    window.history.replaceState({}, "", "/dev/glossary?translationView=words");
     stubGlossaryApi([row("anxiety", "draft"), { ...row("Replication", "draft"), kind: "replication" }]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);

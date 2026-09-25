@@ -31,13 +31,15 @@ it("reviews rendered field context and keeps an edited draft out of approval", a
     await user.clear(correction);
     await user.type(correction, "审阅后的内容");
     await user.click(screen.getByRole("button", { name: "Accuracy" }));
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("Draft saved. Published wording is unchanged.");
-    expect(writes[0]).toMatchObject({ expectedRevision: 0, action: "save", sourceVersion: packet.sourceVersion });
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeEnabled();
+    expect(writes[0]).toMatchObject({ expectedRevision: 0, action: "save", sourceVersion: packet.sourceVersion, reason: { kind: "accuracy", note: "" } });
+    // Approving saved wording as it stands needs no reason.
+    expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
     await user.type(correction, "新");
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Save and approve" })).toBeDisabled();
 });
 it("keeps a re-check approval on the preview and marks it in the field states", async () => {
  const approved={source:"2-Benzylpiperidine is a stimulant of the piperidine class.",target:"2-苄基哌啶是一种哌啶类兴奋剂。",context:"before neighbour edit"};
@@ -51,7 +53,7 @@ it("keeps a re-check approval on the preview and marks it in the field states", 
  // The field dropdown gave way to per-paragraph marks in the parallel view.
  expect(within(screen.getAllByRole("listitem")[0]).getByText("Re-check: nearby English changed")).toBeInTheDocument();
 });
-it("keeps Approve disabled while the saved draft belongs to older source context", async () => {
+it("offers no Approve while the saved draft belongs to older source context", async () => {
  const draft={source:"2-Benzylpiperidine is a stimulant of the piperidine class.",target:"2-苄基哌啶是一种哌啶类兴奋剂。",context:"before neighbour edit"};
  const row={id:"a".repeat(64),hash:"hash",field:"toxicity.0",source:draft.source,context:"after neighbour edit",machine:{target:"机器翻译"},revision:1,draft,approved:null,overlay:null,status:"draft",usages:null};
  vi.stubGlobal("fetch",vi.fn(async()=>Response.json({locale:"zh-Hans",kind:"article",slug:"sample",sourceVersion:"v",rows:[row],history:[]})));
@@ -61,12 +63,12 @@ it("keeps Approve disabled while the saved draft belongs to older source context
  await waitFor(()=>expect(screen.getByRole("textbox",{name:"Correction"})).toHaveFocus());
  await user.click(screen.getByRole("button",{name:"Accuracy"}));
  expect(screen.getByRole("textbox",{name:"Correction"})).toHaveValue(draft.target);
- expect(screen.getByRole("button",{name:"Approve saved draft"})).toBeDisabled();
+ expect(screen.queryByRole("button",{name:"Approve"})).toBeNull();
 });
 it("refuses to edit from a stale field preview", async () => {
  const row={id:"a".repeat(64),field:"summary",source:"Old source",context:"old",machine:{target:"旧译文"},revision:0,draft:null,approved:null,status:"unreviewed",usages:null};
  let calls=0;
- vi.stubGlobal("fetch",vi.fn(async()=>Response.json({locale:"zh-Hans",kind:"article",slug:"sample",sourceVersion:++calls===1?"old":"new",rows:[{...row,source:calls===1?"Old source":"Changed source"}],history:[]})));
+ vi.stubGlobal("fetch",vi.fn(async(url:string)=>url.startsWith("/api/dev/translation-coverage")?Response.json({pages:[]}):Response.json({locale:"zh-Hans",kind:"article",slug:"sample",sourceVersion:++calls===1?"old":"new",rows:[{...row,source:calls===1?"Old source":"Changed source"}],history:[]})));
  const user=userEvent.setup();render(<NarrativeReview locale="zh-Hans"/>);
  await user.type(screen.getByRole("textbox",{name:"Article slug"}),"sample");await user.click(screen.getByRole("button",{name:"Open article"}));
  await user.click(await screen.findByRole("button",{name:"Review summary"}));

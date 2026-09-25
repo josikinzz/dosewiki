@@ -1,10 +1,15 @@
 "use client";
 
 /**
- * Translation workbench: `/dev/glossary`, opening on glossary categories. Inbox lists what
- * needs a person. Words holds glossary terms and UI labels behind one search.
- * Pages holds the article reader, per-page coverage, recorded changes, and, for
- * admins, the collapsed Runs panel with every control that calls the model.
+ * Translation workbench: `/dev/glossary`, opening on the Inbox, which lists
+ * what needs a person. Words holds glossary terms and UI labels behind one
+ * search. Pages (Articles) opens on the articles needing review, then holds
+ * the article reader, per-page coverage, recorded changes, and, for admins,
+ * the collapsed Runs panel with every control that calls the model.
+ *
+ * Terms, interface text, article paragraphs and the style guide share one
+ * reason control and one save-then-approve model (see CorrectionReason), and
+ * a translator may approve their own edits; the header says so.
  *
  * The glossary is the reviewed term list every locale mirror's prompts are
  * held to, one row per (locale, term) in Postgres.
@@ -84,7 +89,7 @@ import { StatusLegend } from "./StatusLegend";
 import { WorkbenchDrawer } from "./WorkbenchDrawer";
 import { Input } from "@/components/ui/input";
 import { TermsOverview, type NextCategory } from "./TermsOverview";
-import { CORRECTION_REASON_KINDS, CORRECTION_REASON_LABEL, type CorrectionReasonKind, type ReviewReason } from "../../../../../lib/translation/reviewReason";
+import type { ReviewReason } from "../../../../../lib/translation/reviewReason";
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
@@ -112,11 +117,12 @@ type CollisionReview = {
 /** The one nav: glossary terms, UI labels, and the style guide are the Words view's lists; Articles is the Pages view. */
 type WorkbenchSection = WordsList | Exclude<WorkbenchView, "words">;
 
+/** Inbox first: it is where the workbench opens, with everything waiting for a person. */
 const SECTIONS: readonly { value: WorkbenchSection; label: string }[] = [
+  { value: "inbox", label: "Inbox" },
   { value: "terms", label: "Terms" },
   { value: "labels", label: "Interface text" },
   { value: "pages", label: "Articles" },
-  { value: "inbox", label: "Inbox" },
   { value: "style", label: "Style guide" },
 ];
 
@@ -127,7 +133,7 @@ type GlossaryTabProps = {
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const fieldId = useId();
-  const [view, setView] = useState<WorkbenchView>("words");
+  const [view, setView] = useState<WorkbenchView>("inbox");
   /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
   const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, words: false, pages: false, labels: false, style: false });
   const [wordsList, setWordsList] = useState<WordsList>("terms");
@@ -135,10 +141,10 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
   /** Bumped when an Inbox link opens an article in place, so the reader remounts and reads the link. */
   const [articleLink, setArticleLink] = useState(0);
-  // Opens on glossary categories unless a deep link names a view; links written for the
+  // Opens on the Inbox unless a deep link names a view; links written for the
   // older five views map onto these three (see parseWorkbenchDeepLink).
   const applyDeepLink = (search: string) => {
-    const link = parseWorkbenchDeepLink(search) ?? { view: "words" as const };
+    const link = parseWorkbenchDeepLink(search) ?? { view: "inbox" as const };
     setView(link.view);
     setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels", style: visited.style || link.words === "style" }));
     if (link.words) setWordsList(link.words);
@@ -220,9 +226,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** What "Retranslate" sends: derived on the server from review and retranslate stamps, so it is the same list after a reload or on another machine. */
   const pending = data?.pending ?? [];
   const { confirm, dialog } = useConfirm();
-  /** Recorded in review history with every approval and confirmation made from this view. */
-  const [approvalKind, setApprovalKind] = useState<CorrectionReasonKind>("terminology");
-  const approvalReason: ReviewReason = { kind: approvalKind, note: "" };
   const locked = busy !== null || writingTerm !== null || collisionReview !== null;
 
   const load = useCallback(async (code: string | null, background = false) => {
@@ -365,13 +368,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const approveOne = (row: GlossaryRow) =>
     run("approve", async (collisionConfirmation) => {
-      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision }, approvalReason);
+      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
       return `Approved "${row.term}".`;
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
     run("approve", async (collisionConfirmation) => {
-      const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])), approvalReason);
+      const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])));
       return `Approved ${count(approved.length, "term")}.`;
     });
 
@@ -392,13 +395,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** Records a person's check of live wording exactly as readers see it; nothing on the site changes. */
   const confirmOne = (row: GlossaryRow) =>
     run("confirm", async (collisionConfirmation) => {
-      await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation, approvalReason);
+      await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation);
       return `Confirmed "${row.term}".`;
     }, row.term);
 
   const confirmMany = (terms: readonly string[]) =>
     run("confirm", async (collisionConfirmation) => {
-      const confirmed = await confirmTerms(locale!, terms, revisionsOf(terms), collisionConfirmation, approvalReason);
+      const confirmed = await confirmTerms(locale!, terms, revisionsOf(terms), collisionConfirmation);
       return `Confirmed ${count(confirmed.length, "term")}.`;
     });
 
@@ -413,9 +416,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     });
   };
 
-  const saveTarget = (row: GlossaryRow, target: string) =>
+  const saveTarget = (row: GlossaryRow, target: string, reason: ReviewReason) =>
     run("approve", async (collisionConfirmation) => {
-      const saved = await editTerm(locale!, row.term, target, collisionConfirmation, row.revision);
+      const saved = await editTerm(locale!, row.term, target, collisionConfirmation, row.revision, reason);
       termEditDrafts.current.delete(JSON.stringify([row.locale, row.term]));
       return `Saved "${saved.term}" as ${saved.target}; awaiting approval.`;
     }, row.term, undefined, true);
@@ -426,12 +429,12 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
    * question can interrupt either step; the retry reuses a finished save
    * rather than saving twice.
    */
-  const saveAndApprove = (row: GlossaryRow, target: string) => {
+  const saveAndApprove = (row: GlossaryRow, target: string, reason: ReviewReason) => {
     let saved: GlossaryRow | null = null;
     return run("approve", async (collisionConfirmation) => {
-      saved ??= await editTerm(locale!, row.term, target, collisionConfirmation, row.revision);
+      saved ??= await editTerm(locale!, row.term, target, collisionConfirmation, row.revision, reason);
       termEditDrafts.current.delete(JSON.stringify([row.locale, row.term]));
-      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, approvalReason);
+      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, reason);
       return `Approved "${row.term}" as ${saved.target}.`;
     }, row.term);
   };
@@ -491,7 +494,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const startMain = () =>
     confirm({
       title: `Start the main translation for ${languageLabel(locale!)}?`,
-      description: "Every public page will be translated in the background through one shared pool capped at 100 simultaneous GLM 5.3 Flash requests.",
+      description: "Every public page will be translated in the background through one shared pool capped at 100 simultaneous requests to the translation model.",
       confirmLabel: "Start translation",
       onConfirm: () =>
         void run("start", async () => {
@@ -545,7 +548,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       <EditorSection
         icon="lucide:book-a"
         title="Translation workbench"
-        description="Review how dose.wiki reads in your language. Wording you save is a draft until someone approves it."
+        description="Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={() => void load(locale)} disabled={locked}>
             <Icon icon="lucide:refresh-cw" size={14} />
@@ -651,22 +654,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               {visitedViews.labels ? <div hidden={wordsList !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} search={filters.search} onSearchChange={(search) => setFilters((current) => ({ ...current, search }))} /></div> : null}
               {visitedViews.style ? <div hidden={wordsList !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
             <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-3">
-            {workingRows.length > 0 ? (
-              <p className="theme-text-muted flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
-                <label htmlFor={`${fieldId}-reason`}>Approvals here are recorded as</label>
-                  <EditorSelect
-                    id={`${fieldId}-reason`}
-                    selectSize="sm"
-                    className="h-8 min-h-0 w-auto py-0 pl-2 text-xs md:text-xs"
-                    value={approvalKind}
-                    disabled={locked}
-                    options={CORRECTION_REASON_KINDS.map((kind) => ({ value: kind, label: CORRECTION_REASON_LABEL[kind] }))}
-                    onChange={(event) => setApprovalKind(event.target.value as CorrectionReasonKind)}
-                  />
-                <span>changes.</span>
-                {canDefine ? <span>Click a definition to edit it.</span> : null}
-              </p>
-            ) : null}
+            {workingRows.length > 0 && canDefine ? <p className="theme-text-muted text-xs">Click a definition to edit it.</p> : null}
 
             {rows.length === 0 && data.rows.length === 0 ? (
               <StateCard
@@ -705,7 +693,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     onApprove={(row) => void approveOne(row)}
                     onConfirm={(row) => void confirmOne(row)}
                     onSave={saveTarget}
-                    onSaveAndApprove={(row, target) => void saveAndApprove(row, target)}
+                    onSaveAndApprove={(row, target, reason) => void saveAndApprove(row, target, reason)}
                     onSaveDefinition={(row, gloss) => void saveDefinition(row, gloss)}
                     onRestored={() => load(locale)}
                     rowNotice={rowNotice}

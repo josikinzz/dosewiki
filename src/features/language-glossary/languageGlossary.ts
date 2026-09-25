@@ -24,6 +24,10 @@ export const glossaryLanguages = Object.entries(names).map(([code, name]) => ({
 export function glossaryLanguage(code: string) {
   return glossaryLanguages.find((language) => language.code === code);
 }
+/** "German, Simplified Chinese" for visible text; a code with no known name reads as itself. */
+export function languageNames(codes: readonly string[] | undefined): string {
+  return (codes ?? []).map((code) => glossaryLanguage(code)?.name ?? code).join(", ");
+}
 /** Who stands behind the shown wording. Never names the reviewer. */
 export type PublicGlossaryProvenance =
   | "human_review"

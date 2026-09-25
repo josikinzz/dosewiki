@@ -3,7 +3,7 @@
 import { Icon } from "@/components/common/Icon";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
-import type { GlossaryList } from "./glossaryModel";
+import { languageLabel, type GlossaryList } from "./glossaryModel";
 import styles from "./TranslationProgress.module.css";
 
 export function TranslationProgress({ data, starting, error, onRefresh, onRetryExhausted, retryDisabled = false }: {
@@ -22,7 +22,7 @@ export function TranslationProgress({ data, starting, error, onRefresh, onRetryE
   const title = starting ? "Preparing your translation" : running ? "Translation in progress" : issues ? "Translation finished with items to review" : "Latest run complete";
   const number = (value: number) => value.toLocaleString();
   return (
-    <Surface variant="subtle" padding="md" className="space-y-4" aria-label={`${data.locale} translation progress`}>
+    <Surface variant="subtle" padding="md" className="space-y-4" aria-label={`${languageLabel(data.locale)} translation progress`}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <p className="theme-text-faint text-xs uppercase tracking-widest">{data.locale} · Latest translation run</p>

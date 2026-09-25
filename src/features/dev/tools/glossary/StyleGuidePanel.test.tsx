@@ -31,7 +31,7 @@ it("drafts rules and examples, then approves the saved revision", async () => {
   const writes = stubGuide({ approved: { rules: [], examples: [EXAMPLE] }, approvedRevision: "0000000000000000", revision: 2 });
   const user = userEvent.setup();
   render(<StyleGuidePanel locale="zh-Hans" />);
-  expect(await screen.findByText(/Approved · prompt revision 0000000000000000/)).toBeInTheDocument();
+  expect(await screen.findByText(/Approved · version 0000000000000000/)).toBeInTheDocument();
   expect(screen.getByText("一种中枢兴奋剂。")).toBeInTheDocument();
 
   await user.type(screen.getByRole("textbox", { name: "Rules, one per line" }), "用“服用”描述剂量。");
@@ -39,18 +39,21 @@ it("drafts rules and examples, then approves the saved revision", async () => {
   await user.type(screen.getByRole("textbox", { name: "After" }), "复现作品");
   await user.type(screen.getByRole("textbox", { name: "Why" }), "A gallery label is a noun.");
   await user.click(screen.getByRole("button", { name: "Add example to draft" }));
-  await user.type(screen.getByRole("textbox", { name: "Reason" }), "House style");
-  expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+  expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
+  // The shared reason control: a kind, and a note if the translator wants one.
+  expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Fluency" }));
+  await user.type(screen.getByRole("textbox", { name: "Note (optional)" }), "House style");
 
   await user.click(screen.getByRole("button", { name: "Save draft" }));
-  await screen.findByText("Draft saved. Prompts still read the approved guide.");
+  await screen.findByText("Draft saved. Translations still follow the approved guide.");
   expect(writes[0]).toMatchObject({
-    locale: "zh-Hans", action: "save", expectedRevision: 2, reason: "House style",
+    locale: "zh-Hans", action: "save", expectedRevision: 2, reason: { kind: "fluency", note: "House style" },
     guide: { rules: ["用“服用”描述剂量。"], examples: [EXAMPLE, { before: "返回复现", after: "复现作品", why: "A gallery label is a noun." }] },
   });
 
-  await user.click(screen.getByRole("button", { name: "Approve saved draft" }));
-  await screen.findByText(/Approved\. The next translation run reads this guide/);
+  await user.click(screen.getByRole("button", { name: "Approve" }));
+  await screen.findByText(/Approved\. The next translation run follows this guide/);
   expect(writes[1]).toMatchObject({ action: "approve", expectedRevision: 3 });
 });
 

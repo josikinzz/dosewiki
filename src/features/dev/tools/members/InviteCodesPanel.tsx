@@ -24,6 +24,7 @@ import {
   type MintedInvite,
 } from "./inviteCodeRequests";
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
+import { languageNames } from "@/features/language-glossary/languageGlossary";
 import { getRoleDisplayName, parseGlossaryLocaleGrant, roleMeetsFloor } from "@/lib/auth/roles";
 import { MemberPermissionFields } from "./MemberPermissionFields";
 
@@ -360,7 +361,7 @@ export default function InviteCodesPanel() {
               invite, expires {formatDate(minted.invite.expiresAt)},{" "}
               {minted.invite.maxUses}{" "}
               {minted.invite.maxUses === 1 ? "use" : "uses"}.
-              {roleMeetsFloor(minted.invite.role, "translator") && ` Approved glossary languages: ${minted.invite.glossaryLocales?.join(", ") || "none"}.`}
+              {roleMeetsFloor(minted.invite.role, "translator") && ` Translation languages: ${languageNames(minted.invite.glossaryLocales) || "none"}.`}
             </p>
           </div>
         </NestedContentCard>
@@ -420,7 +421,7 @@ export default function InviteCodesPanel() {
                           </span>
                         ) : null}
                       </div>
-                      {roleMeetsFloor(invite.role, "translator") && <p className="theme-text-faint text-xs">Glossary languages: {invite.glossaryLocales?.join(", ") || "none"}</p>}
+                      {roleMeetsFloor(invite.role, "translator") && <p className="theme-text-faint text-xs">Translation languages: {languageNames(invite.glossaryLocales) || "none"}</p>}
                       <p className="theme-text-faint text-xs">
                         {invite.redemptions.length}/{invite.maxUses} used.
                         Minted {formatDate(invite.createdAt)} by{" "}

@@ -20,6 +20,7 @@ import {
   type TranslatorNoteStatus,
 } from "@server/translation/translatorNoteTypes";
 import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
+import { languageLabel } from "./glossaryModel";
 
 const ENDPOINT = "/api/dev/translation-note";
 
@@ -110,7 +111,7 @@ function NoteEditor({ state, row, onClose }: { state: TranslatorNotesState; row:
   return (
     <div className="space-y-3">
       <label htmlFor={`${formId}-body`} className="block">Translator&apos;s note<Textarea id={`${formId}-body`} ref={bodyRef} lang={locale} dir="auto" value={body} onChange={(e) => setBody(e.target.value)} disabled={busy} maxLength={TRANSLATOR_NOTE_MAX_LENGTH} /></label>
-      <p className="theme-text-faint text-xs">Write in {locale} only. Readers see it in a labelled box stating it is not in the English original. Notes never reach the translation prompt or another language.</p>
+      <p className="theme-text-faint text-xs">Write in {languageLabel(locale)} only. Readers see it in a labelled box stating it is not in the English original. Notes are never used for translation or shown in another language.</p>
       <label htmlFor={`${formId}-reason`} className="block">Reason<Input id={`${formId}-reason`} value={reason} onChange={(e) => setReason(e.target.value)} disabled={busy} maxLength={1000} /></label>
       {error ? <p role="alert" className="text-sm text-[color:var(--theme-danger-text)]">{error}</p> : null}
       {notice ? <p role="status" className="theme-text-secondary text-sm">{notice}</p> : null}

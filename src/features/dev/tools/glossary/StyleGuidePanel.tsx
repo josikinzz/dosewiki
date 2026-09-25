@@ -1,8 +1,9 @@
 "use client";
 /**
  * The style guide view: a locale's rules and example corrections the
- * translation prompt reads. Translators edit one draft of the whole guide,
- * save it, and approve the saved revision; only the approved guide reaches
+ * translation prompt reads. Translators edit one draft of the whole guide and
+ * save and approve it like any other wording (the shared ApprovalActions and
+ * ReasonPicker); only the approved guide reaches
  * prompts, and approving it changes the prompt version (stored translations
  * read as stale, nothing is enqueued). Examples arrive from the article
  * reader through "Promote to style guide" on a Fluency correction, or are
@@ -16,6 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Surface } from "@/components/ui/surface";
 import { StateCard } from "@/components/common/StateCard";
 import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
+import { ApprovalActions, EMPTY_REASON, ReasonPicker, reasonFor, type ReasonDraft } from "./CorrectionReason";
+import { languageLabel } from "./glossaryModel";
 import { EMPTY_STYLE_GUIDE, STYLE_GUIDE_LIMITS, type StyleGuideDocument, type StyleGuideExample, type StyleGuidePacket } from "../../../../../lib/translation/styleGuideTypes";
 
 const ENDPOINT = "/api/dev/translation-style-guide";
@@ -51,7 +54,7 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
   const formId = useId();
   const [packet, setPacket] = useState<StyleGuidePacket | null>(null);
   const [value, setValue] = useState<Working>(working(null));
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState<ReasonDraft>(EMPTY_REASON);
   const [adding, setAdding] = useState<NewExample>({ source: "", before: "", after: "", why: "" });
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState("");
 
@@ -68,22 +71,31 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
   }, [locale]);
   useEffect(() => { void load(); }, [load]);
 
-  async function mutate(action: "save" | "approve" | "restore", restoreRevision?: number) {
+  async function send(action: "save" | "approve" | "restore", expectedRevision: number, restoreRevision?: number): Promise<StyleGuidePacket> {
+    const fallback = action === "save" ? "Saved the style guide as it stands." : action === "approve" ? "Approved the saved style guide." : `Restored revision ${restoreRevision} as a draft.`;
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ locale, action, expectedRevision, guide: action === "save" ? documentOf(value) : undefined, reason: reasonFor(reason, fallback), restoreRevision }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error ?? "Unable to save the style guide.");
+    return result.packet;
+  }
+
+  /** Save and approve saves the guide, then approves exactly the revision that save produced. */
+  async function mutate(action: "save" | "approve" | "restore" | "save-approve", restoreRevision?: number) {
     if (!packet) return;
     setBusy(true);
     setError(null);
     setNotice("");
     try {
-      const response = await fetch(ENDPOINT, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ locale, action, expectedRevision: packet.revision, guide: action === "save" ? documentOf(value) : undefined, reason, restoreRevision }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Unable to save the style guide.");
-      setNotice(action === "approve"
-        ? "Approved. The next translation run reads this guide; stored translations now count as stale, and nothing was queued."
-        : "Draft saved. Prompts still read the approved guide.");
+      const saved = await send(action === "save-approve" ? "save" : action, packet.revision, restoreRevision);
+      if (action === "save-approve") await send("approve", saved.revision);
+      setReason(EMPTY_REASON);
+      setNotice(action === "approve" || action === "save-approve"
+        ? "Approved. The next translation run follows this guide. Existing translations are marked for an update; nothing was queued."
+        : action === "restore" ? "Restored as a draft. Translations still follow the approved guide." : "Draft saved. Translations still follow the approved guide.");
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to save the style guide.");
@@ -94,17 +106,17 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
 
   const proposed = documentOf(value);
   const unsaved = packet ? !sameDocument(proposed, packet.draft ?? packet.approved) : false;
-  const approvable = Boolean(packet?.draft) && !unsaved && reason.trim().length > 0;
+  const approvable = Boolean(packet?.draft) && !unsaved;
   const canAdd = adding.before.trim() && adding.after.trim() && adding.why.trim() && adding.before.trim() !== adding.after.trim();
 
   if (!packet) return error ? <StateCard compact tone="danger" title="Style guide unavailable" description={error} /> : <p className="theme-text-secondary text-sm">Loading the style guide.</p>;
   return (
     <section aria-label="Style guide" className="min-w-0 space-y-4">
       <p className="theme-text-secondary text-sm">
-        Rules and example corrections for {locale}. The translation prompt reads the approved guide: every rule, and up to five examples that share words with the text being translated.
+        Rules and example corrections for {languageLabel(locale)}. Translations follow the approved guide: every rule, and up to five examples that share words with the text being translated.
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        {packet.approved ? <Badge variant="success">Approved · prompt revision {packet.approvedRevision || "empty"}</Badge> : <Badge variant="outline">Nothing approved yet</Badge>}
+        {packet.approved ? <Badge variant="success">Approved · version {packet.approvedRevision || "empty"}</Badge> : <Badge variant="outline">Nothing approved yet</Badge>}
         {packet.draft ? <Badge variant="secondary">Draft waiting for approval</Badge> : null}
         {unsaved ? <Badge variant="default">Unsaved changes</Badge> : null}
       </div>
@@ -144,16 +156,15 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
           }}>Add example to draft</Button>
         </fieldset>
 
-        <label htmlFor={`${formId}-reason`} className="block">Reason<Input id={`${formId}-reason`} value={reason} maxLength={1000} disabled={busy} onChange={(e) => setReason(e.target.value)} /></label>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled={busy || !reason.trim() || !unsaved} onClick={() => void mutate("save")}>Save draft</Button>
-          <Button variant="accent" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
-        </div>
+        <ReasonPicker value={reason} onChange={setReason} disabled={busy} needed={unsaved} />
+        <ApprovalActions changed={unsaved} approvable={approvable} busy={busy} blocked={!reason.kind}
+          onSave={() => void mutate("save")} onSaveAndApprove={() => void mutate("save-approve")} onApprove={() => void mutate("approve")} />
       </Surface>
 
       {packet.history?.length ? <>
         <h4 className="theme-text-primary font-medium">Style guide history</h4>
-        <ul className="space-y-2">{packet.history.map((h) => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)} <Button size="sm" variant="outline" disabled={busy || !reason.trim()} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
+        {unsaved ? <p className="theme-text-faint text-xs">Save your changes first to restore an earlier revision.</p> : null}
+        <ul className="space-y-2">{packet.history.map((h) => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)} <Button size="sm" variant="outline" disabled={busy || unsaved} aria-label={`Restore revision ${h.revision} as draft`} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
       </> : null}
     </section>
   );
