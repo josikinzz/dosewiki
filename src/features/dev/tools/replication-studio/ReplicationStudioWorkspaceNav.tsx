@@ -57,9 +57,12 @@ export function ReplicationStudioWorkspaceNav({
         </p>
       </div>
 
+      {/* Every workspace keeps its visible name at every width. On a phone the
+          row takes a line of its own, drops the icons to make room, and
+          scrolls sideways if the names still do not fit. */}
       <nav
         aria-label="Replication Studio workspace"
-        className="inline-flex items-center gap-0.5 rounded-full border max-sm:order-2 border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1"
+        className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full border max-sm:order-2 max-sm:w-full border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1"
       >
         {WORKSPACES.map((workspace) => {
           const active = activePanel === workspace.value;
@@ -70,11 +73,11 @@ export function ReplicationStudioWorkspaceNav({
               size="sm"
               variant={active ? "pillActive" : "quiet"}
               aria-current={active ? "page" : undefined}
-              className={cn("rounded-full", !active && "theme-text-muted")}
+              className={cn("shrink-0 rounded-full max-sm:flex-1", !active && "theme-text-muted")}
               onClick={() => onRequestWorkspace(workspace.value)}
             >
-              <Icon icon={workspace.icon} size={15} />
-              <span className="max-sm:sr-only">{workspace.label}</span>
+              <Icon icon={workspace.icon} size={15} className="max-sm:hidden" />
+              <span>{workspace.label}</span>
             </Button>
           );
         })}

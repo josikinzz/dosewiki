@@ -4,13 +4,16 @@
  * One verb, two shapes, because the studio has two ways to edit:
  *
  *   POST /api/dev/replications/editorial  { mode: "single", id, expected, updates }
- *   POST /api/dev/replications/editorial  { mode: "bulk", ids, …fields }
+ *   POST /api/dev/replications/editorial  { mode: "bulk", items: { id, expected }[], patch }
+ *   POST /api/dev/replications/editorial  { mode: "bulk", ids, showcaseExcluded }
  *
- * The single edit carries the snapshot the drawer was opened with so Postgres can
+ * Every editorial edit carries the snapshot the studio loaded so Postgres can
  * refuse a stale save rather than re-assert fields somebody else has since
- * changed; the bulk edit carries only the fields it means to set. Both shapes
- * rewrite the public corpus directly, so the route is admin-only and Postgres
- * enforces the same floor.
+ * changed. A bulk edit checks each item on its own: fresh items are written,
+ * stale ones come back as `conflicts` (a 409 when nothing was written). The
+ * id-only bulk shape is the corpus-wide showcase toggle, which is not an
+ * editorial field. All shapes rewrite the public corpus directly, so the route
+ * is admin-only and Postgres enforces the same floor.
  */
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
@@ -43,7 +46,8 @@ type ParsedEditorial =
   | { mode: "single"; id: string; expected: EditorialSnapshot; updates: EditorialSnapshot }
   | {
       mode: "bulk";
-      ids: string[];
+      items?: { id: string; expected: EditorialSnapshot }[];
+      ids?: string[];
       effectSlug?: string;
       artist?: string;
       role?: StudioRole;
@@ -110,37 +114,55 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
   }
 
   if (raw.mode === "bulk") {
-    if (
-      !Array.isArray(raw.ids)
-      || raw.ids.length === 0
-      || raw.ids.length > 250
-      || raw.ids.some((id) => typeof id !== "string" || id.length === 0)
-    ) {
-      throw new JsonBodyError(400, "ids must be a list of 1–250 replication ids.");
+    const parsed: Extract<ParsedEditorial, { mode: "bulk" }> = { mode: "bulk" };
+    if (raw.items !== undefined) {
+      if (!Array.isArray(raw.items) || raw.items.length === 0 || raw.items.length > 250) {
+        throw new JsonBodyError(400, "items must be a list of 1 to 250 replications.");
+      }
+      parsed.items = raw.items.map((item: unknown, index: number) => {
+        const entry = (item ?? {}) as Record<string, unknown>;
+        if (typeof entry.id !== "string" || entry.id.length === 0 || entry.id.length > 200) {
+          throw new JsonBodyError(400, `items[${index}].id is required.`);
+        }
+        return { id: entry.id, expected: parseSnapshot(entry.expected, `items[${index}].expected`) };
+      });
+    } else {
+      if (
+        !Array.isArray(raw.ids)
+        || raw.ids.length === 0
+        || raw.ids.length > 250
+        || raw.ids.some((id) => typeof id !== "string" || id.length === 0)
+      ) {
+        throw new JsonBodyError(400, "ids must be a list of 1 to 250 replication ids.");
+      }
+      parsed.ids = raw.ids as string[];
     }
+    // Editorial fields ride in `patch` next to `items`; the showcase toggle
+    // stays a top-level flag beside `ids`.
+    const fields = (
+      parsed.items && raw.patch && typeof raw.patch === "object" ? raw.patch : raw
+    ) as Record<string, unknown>;
 
-    const parsed: ParsedEditorial = { mode: "bulk", ids: raw.ids as string[] };
-
-    if (raw.effectSlug !== undefined && raw.effectSlug !== null && raw.effectSlug !== "") {
-      if (typeof raw.effectSlug !== "string" || !isValidReplicationSlug(raw.effectSlug)) {
+    if (fields.effectSlug !== undefined && fields.effectSlug !== null && fields.effectSlug !== "") {
+      if (typeof fields.effectSlug !== "string" || !isValidReplicationSlug(fields.effectSlug)) {
         throw new JsonBodyError(400, "effectSlug must be a kebab-case slug.");
       }
-      parsed.effectSlug = raw.effectSlug;
+      parsed.effectSlug = fields.effectSlug;
     }
-    if (raw.artist !== undefined && raw.artist !== null && raw.artist !== "") {
-      if (typeof raw.artist !== "string" || raw.artist.length > 200) {
+    if (fields.artist !== undefined && fields.artist !== null && fields.artist !== "") {
+      if (typeof fields.artist !== "string" || fields.artist.length > 200) {
         throw new JsonBodyError(400, "artist must be a non-blank name.");
       }
-      parsed.artist = raw.artist.trim();
+      parsed.artist = fields.artist.trim();
     }
-    if (raw.role !== undefined && raw.role !== null && raw.role !== "") {
-      if (typeof raw.role !== "string" || !ROLES.has(raw.role as StudioRole)) {
+    if (fields.role !== undefined && fields.role !== null && fields.role !== "") {
+      if (typeof fields.role !== "string" || !ROLES.has(fields.role as StudioRole)) {
         throw new JsonBodyError(400, "role must be replication or figure.");
       }
-      parsed.role = raw.role as StudioRole;
+      parsed.role = fields.role as StudioRole;
     }
-    if (raw.addEffectTags !== undefined) {
-      const tags = parseTags(raw.addEffectTags, "addEffectTags");
+    if (fields.addEffectTags !== undefined) {
+      const tags = parseTags(fields.addEffectTags, "addEffectTags");
       if (tags.length > 0) {
         parsed.addEffectTags = tags;
       }
@@ -160,6 +182,17 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
       && parsed.showcaseExcluded === undefined
     ) {
       throw new JsonBodyError(400, "A bulk edit needs at least one field to change.");
+    }
+    const editorial =
+      parsed.effectSlug !== undefined
+      || parsed.artist !== undefined
+      || parsed.role !== undefined
+      || parsed.addEffectTags !== undefined;
+    if (editorial && !parsed.items) {
+      throw new JsonBodyError(
+        400,
+        "A bulk editorial change must send items with each row's expected values.",
+      );
     }
 
     return parsed;
@@ -207,7 +240,8 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
     const result = await dataWrite.client.mutation(api.replications.bulkUpdateEditorialFields, {
       apiKey,
       actorEmail,
-      ids: body.ids as Id<"replications">[],
+      items: body.items?.map((item) => ({ id: item.id as Id<"replications">, expected: item.expected })),
+      ids: body.ids as Id<"replications">[] | undefined,
       effect_slug: body.effectSlug,
       artist: body.artist,
       role: body.role,
@@ -215,10 +249,24 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       showcase_excluded: body.showcaseExcluded,
     });
 
+    const conflicts = result.conflicts ?? [];
+    if (result.updated === 0 && conflicts.length > 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Every selected replication changed since you loaded the studio; nothing was written.",
+          updated: 0,
+          slugs: [],
+          conflicts,
+        },
+        { status: 409 },
+      );
+    }
+
     const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
     if (body.effectSlug) targets.push({ kind: "effect", slug: body.effectSlug });
     await publishPublicCache({ targets, source: "manual" });
 
-    return NextResponse.json({ ok: true, updated: result.updated, slugs: result.slugs });
+    return NextResponse.json({ ok: true, updated: result.updated, slugs: result.slugs, conflicts });
   },
 });

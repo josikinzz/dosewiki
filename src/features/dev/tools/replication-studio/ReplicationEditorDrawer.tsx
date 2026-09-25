@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
   EditorPanel,
   EditorSelect,
   EditorStatusPill,
+  useConfirm,
 } from "@/features/dev/components";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -52,9 +54,10 @@ export type ReplicationEditorDrawerProps = {
    */
   placement: "column" | "sheet";
   onSaveSingle: (row: StudioRow, draft: SingleEditDraft) => void;
-  onApplyBulk: (rows: readonly StudioRow[], edit: BulkEdit) => void;
+  /** Resolves true once the edit went through, which spends the bulk draft. */
+  onApplyBulk: (rows: readonly StudioRow[], edit: BulkEdit) => Promise<boolean> | void;
   onDeselect: () => void;
-  /** Reports whether the single-row draft differs from the saved row. */
+  /** Reports whether the single-row or bulk draft holds unapplied changes. */
   onDirtyChange?: (dirty: boolean) => void;
   /** Opens Showcases on this replication's drug-article placements. */
   onOpenPlacement?: (row: StudioRow) => void;
@@ -263,6 +266,31 @@ function bulkEditOf(state: BulkState): BulkEdit {
   };
 }
 
+/** One plain line per field the bulk edit will set, for the confirm. */
+function bulkChangeLines(edit: BulkEdit, effects: readonly StudioEffectOption[]): string[] {
+  const name = (slug: string) => effects.find((effect) => effect.slug === slug)?.name ?? slug;
+  const lines: string[] = [];
+  if (edit.effectSlug) lines.push(`Effect: ${name(edit.effectSlug)}`);
+  if (edit.artist) lines.push(`Artist: ${edit.artist}`);
+  if (edit.role) lines.push(`Role: ${edit.role === "figure" ? "Figure" : "Replication"}`);
+  if (edit.addEffectTags) lines.push(`Add effects shown: ${edit.addEffectTags.map(name).join(", ")}`);
+  return lines;
+}
+
+/**
+ * The bulk draft belongs to one selection. Keyed by the selected ids, it reads
+ * as empty the moment the selection changes, so an old draft can never be
+ * applied to a new set of works.
+ */
+function useBulkDraft(selected: readonly StudioRow[]) {
+  const key = selected.length > 1 ? selected.map((row) => row.id).join("\n") : "";
+  const [state, setState] = useState<{ key: string; value: BulkState }>({ key, value: EMPTY_BULK });
+  const bulk = state.key === key ? state.value : EMPTY_BULK;
+  const setBulk = (value: BulkState) => setState({ key, value });
+  const dirty = Boolean(key) && bulkChangeLines(bulkEditOf(bulk), []).length > 0;
+  return { bulk, setBulk, resetBulk: () => setState({ key, value: EMPTY_BULK }), dirty };
+}
+
 function BulkFields({
   rows,
   effects,
@@ -370,7 +398,7 @@ export function KeyboardHints() {
  * follows it when the subject changed, the draft was clean, or the reload is
  * the save landing (the new row equals the draft).
  */
-function useSingleDraft(row: StudioRow | null, onDirtyChange?: (dirty: boolean) => void) {
+function useSingleDraft(row: StudioRow | null) {
   const [draft, setDraft] = useState<SingleEditDraft | null>(() => (row ? draftOf(row) : null));
   const previous = useRef<StudioRow | null>(row);
 
@@ -390,11 +418,6 @@ function useSingleDraft(row: StudioRow | null, onDirtyChange?: (dirty: boolean) 
   }, [row]);
 
   const dirty = Boolean(row && draft && !draftsEqual(draft, draftOf(row)));
-  useEffect(() => {
-    onDirtyChange?.(dirty);
-  }, [dirty, onDirtyChange]);
-  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
-
   return { draft, setDraft, dirty };
 }
 
@@ -416,10 +439,42 @@ export function ReplicationEditorDrawer({
   onOpenPlacement,
 }: ReplicationEditorDrawerProps) {
   const single = selected.length === 1 ? selected[0] : null;
-  const { draft, setDraft, dirty } = useSingleDraft(single, onDirtyChange);
+  const { draft, setDraft, dirty } = useSingleDraft(single);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [bulk, setBulk] = useState<BulkState>(EMPTY_BULK);
-  const nothingToApply = !bulk.effectSlug && !bulk.artist.trim() && !bulk.role && bulk.addTags.length === 0;
+  const [hintsOpen, setHintsOpen] = useState(false);
+  const { bulk, setBulk, resetBulk, dirty: bulkDirty } = useBulkDraft(selected);
+  const { confirm, dialog } = useConfirm();
+
+  const anyDirty = dirty || bulkDirty;
+  useEffect(() => {
+    onDirtyChange?.(anyDirty);
+  }, [anyDirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  const requestApplyBulk = () => {
+    const targets = selected;
+    const edit = bulkEditOf(bulk);
+    const count = targets.length;
+    confirm({
+      title: `Apply to ${count} replications?`,
+      description: (
+        <>
+          <span className="block">These changes go live on the public site for every selected work:</span>
+          {bulkChangeLines(edit, effects).map((line) => (
+            <span key={line} className="theme-text-primary block font-medium">
+              {line}
+            </span>
+          ))}
+        </>
+      ),
+      confirmLabel: `Apply to ${count}`,
+      affected: targets.map((row) => row.title || row.slug),
+      onConfirm: async () => {
+        const applied = await onApplyBulk(targets, edit);
+        if (applied) resetBulk();
+      },
+    });
+  };
 
   const title = selected.length === 0
     ? "Nothing selected"
@@ -483,7 +538,26 @@ export function ReplicationEditorDrawer({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
         {selected.length === 0 ? (
-          <KeyboardHints />
+          // Idle help stays one line tall until asked for.
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-expanded={hintsOpen}
+              aria-controls="studio-inspector-hints"
+              onClick={() => setHintsOpen((open) => !open)}
+            >
+              <Icon icon="lucide:keyboard" size={15} />
+              Keyboard shortcuts
+              <ExpandIndicator isExpanded={hintsOpen} />
+            </Button>
+            {hintsOpen ? (
+              <div id="studio-inspector-hints">
+                <KeyboardHints />
+              </div>
+            ) : null}
+          </div>
         ) : single && draft ? (
           <div className="space-y-6">
             {previewOpen ? <ReplicationThumb row={single} className="aspect-[4/3]" enableVideoPreview /> : null}
@@ -535,10 +609,8 @@ export function ReplicationEditorDrawer({
             type="button"
             variant="accent"
             size="sm"
-            disabled={busy || nothingToApply}
-            onClick={() => {
-              onApplyBulk(selected, bulkEditOf(bulk));
-            }}
+            disabled={busy || !bulkDirty}
+            onClick={requestApplyBulk}
           >
             Apply to {selected.length}
           </Button>
@@ -547,6 +619,7 @@ export function ReplicationEditorDrawer({
           </Button>
         </footer>
       ) : null}
+      {dialog}
     </EditorPanel>
   );
 }

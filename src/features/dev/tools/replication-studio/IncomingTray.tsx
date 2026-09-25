@@ -37,15 +37,29 @@ export type IncomingTrayProps = {
   onPatch: (id: string, patch: Partial<IncomingFile>) => void;
   onDiscard: (id: string) => void;
   onClear: () => void;
+  /** Publishes one item: uploads the file, then inserts its live row. */
   onAdd: (item: IncomingFile) => void;
+  /** Publishes every item whose required fields are filled. */
+  onAddAll: () => void;
 };
+
+/** An item can publish once it has the fields a findable row needs. */
+export function incomingReady(item: IncomingFile): boolean {
+  return (
+    item.status !== "uploading"
+    && Boolean(item.title.trim())
+    && Boolean(item.artist.trim())
+    && Boolean(item.effectSlug)
+  );
+}
 
 /**
  * Files wait here between the drop and the row.
  *
  * Nothing uploads on drop: an asset with no title, artist, or effect is a row
  * somebody has to find again later, so the tray asks for those first and only
- * then does the upload-then-insert round trip.
+ * then does the upload-then-insert round trip. That round trip publishes: the
+ * new row is live on the public site, so the buttons say Publish.
  */
 export function IncomingTray({
   items,
@@ -55,6 +69,7 @@ export function IncomingTray({
   onDiscard,
   onClear,
   onAdd,
+  onAddAll,
 }: IncomingTrayProps) {
   if (items.length === 0) {
     return null;
@@ -65,16 +80,30 @@ export function IncomingTray({
     ...effects.map((effect) => ({ value: effect.slug, label: effect.name })),
   ];
 
+  const readyCount = items.filter(incomingReady).length;
+
   return (
-    <EditorPanel>
+    <EditorPanel role="region" aria-label="Incoming">
       <EditorPanelHeader
         eyebrow="Upload"
         title="Incoming"
+        description="Publishing uploads the file and adds it to the library, where it goes live on the public site. Nothing is written until you publish."
         meta={<Badge variant="secondary">{items.length}</Badge>}
         actions={
-          <Button type="button" variant="ghost" size="sm" onClick={onClear}>
-            Clear tray
-          </Button>
+          <>
+            <Button type="button" variant="ghost" size="sm" onClick={onClear}>
+              Clear tray
+            </Button>
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              disabled={readyCount === 0}
+              onClick={onAddAll}
+            >
+              Publish {readyCount}
+            </Button>
+          </>
         }
       />
       <EditorPanelBody className="space-y-3">
@@ -152,10 +181,10 @@ export function IncomingTray({
                 <Button
                   type="button"
                   size="sm"
-                  disabled={busy || !item.title.trim() || !item.artist.trim() || !item.effectSlug}
+                  disabled={!incomingReady(item)}
                   onClick={() => onAdd(item)}
                 >
-                  {busy ? "Uploading…" : "Add to library"}
+                  {busy ? "Publishing…" : "Publish"}
                 </Button>
                 <Button
                   type="button"

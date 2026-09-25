@@ -179,13 +179,19 @@ export function ReplicationStudioTab({
   const [view, setView] = useState<StudioGridView>("grid");
   const [density, setDensity] = useState<StudioGridDensity>("comfortable");
   const [groupMenuOpen, setGroupMenuOpen] = useState(false);
+  // From xl the idle inspector can be pinned open (the grid never moves when
+  // a selection lands) or unpinned (the grid takes its space until a work is
+  // selected). Either way the grid box stays mounted, so selection and scroll
+  // position survive the column opening or closing.
+  const [inspectorPinned, setInspectorPinned] = useState(true);
   const isLibrary = activePanel === null;
   const hasSelection = selection.size > 0;
-  // From lg the inspector is always a column. Between lg and xl there is room
+  // From lg the inspector is a column. Between lg and xl there is room
   // for two columns beside the grid, not three, so while something is
   // selected the rail makes way (it folds into the toolbar's filter popover)
   // and comes back when the selection clears. Under lg it is a sheet.
-  const inspectorColumn = drawerInColumn || (railInColumn && hasSelection);
+  const inspectorColumn =
+    (drawerInColumn && (inspectorPinned || hasSelection)) || (railInColumn && hasSelection);
   const railColumn = railInColumn && (drawerInColumn || !hasSelection);
   const [frameRef, frameHeight] = useViewportFrame(isLibrary && load.status === "ready");
 
@@ -302,10 +308,25 @@ export function ReplicationStudioTab({
       artists={artists}
       busy={busy}
       onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
-      onApplyBulk={(targets, edit) => void controller.applyBulk(targets, edit)}
+      onApplyBulk={controller.applyBulk}
       onDeselect={controller.clearSelection}
       onDirtyChange={controller.setEditorDirty}
       onOpenPlacement={(row) => controller.openPlacement(row.id)}
+    />
+  );
+
+  // Upload and the drop target work on every workspace, so the tray that
+  // holds what they queue shows on every workspace too.
+  const incomingTray = (
+    <IncomingTray
+      items={incoming.incoming}
+      effects={effects}
+      artists={artists}
+      onPatch={incoming.patchIncoming}
+      onDiscard={incoming.discardIncoming}
+      onClear={incoming.clearIncoming}
+      onAdd={(item) => void incoming.addToLibrary(item)}
+      onAddAll={() => void incoming.addAllToLibrary()}
     />
   );
 
@@ -369,7 +390,15 @@ export function ReplicationStudioTab({
             ))}
           </ToggleGroup>
         ) : null}
-        {drawerInColumn ? null : (
+        {drawerInColumn ? (
+          <ToggleIcon
+            label="Keep the inspector open"
+            icon="lucide:panel-right"
+            pressed={inspectorPinned}
+            onClick={() => setInspectorPinned((pinned) => !pinned)}
+          />
+        ) : null}
+        {inspectorColumn && !hasSelection ? null : (
           <Popover>
             <PopoverTrigger asChild>
               <Button type="button" variant="ghost" size="icon" className="size-8 max-md:hidden" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
@@ -424,17 +453,7 @@ export function ReplicationStudioTab({
           <section aria-label="Library" className="flex min-h-0 min-w-0 flex-col gap-3">
             {libraryToolbar}
             {incoming.incoming.length > 0 ? (
-              <div className="max-h-[45%] shrink-0 overflow-y-auto">
-                <IncomingTray
-                  items={incoming.incoming}
-                  effects={effects}
-                  artists={artists}
-                  onPatch={incoming.patchIncoming}
-                  onDiscard={incoming.discardIncoming}
-                  onClear={incoming.clearIncoming}
-                  onAdd={(item) => void incoming.addToLibrary(item)}
-                />
-              </div>
+              <div className="max-h-[45%] shrink-0 overflow-y-auto">{incomingTray}</div>
             ) : null}
             <div className="min-h-0 flex-1">
               <ReplicationGrid
@@ -458,6 +477,7 @@ export function ReplicationStudioTab({
           {railInColumn ? <ReplicationFacetRail {...railProps} layout="sticky" /> : null}
 
           <div className="min-w-0 space-y-4">
+            {incomingTray}
             {railInColumn ? null : filtersPopover}
             {activeFilters}
 
@@ -612,7 +632,7 @@ export function ReplicationStudioTab({
             Drop images, videos, or MP3s
           </p>
           <p className="theme-text-muted text-sm">
-            They land in the Incoming tray before anything is written.
+            They wait in the Incoming tray. Publishing puts them live on the public site.
           </p>
         </div>
       </div>

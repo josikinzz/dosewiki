@@ -52,6 +52,21 @@ export type ShowcaseMode = "drug" | "replication";
 
 let cachedCorpus: CorpusPayload | null = null;
 
+/** The editorial fields as loaded: the compare-and-swap guard every save sends. */
+function expectedOf(row: StudioRow) {
+  return {
+    title: row.title,
+    artist: row.artist,
+    role: row.role,
+    effect_slug: row.effect_slug,
+    credit_line: row.credit_line,
+    effect_tags: row.effect_tags,
+  };
+}
+
+type BulkConflict = { id: string; slug: string | null; reason: string };
+type BulkResult = { updated: number; conflicts?: BulkConflict[] };
+
 /**
  * Whether `media` matches. Starts true so the server render and jsdom take
  * the wide layout; the listener corrects it before first paint in a browser.
@@ -82,6 +97,9 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   const [facets, setFacets] = useState<StudioFacets>(EMPTY_STUDIO_FACETS);
   const [selection, setSelection] = useState<Set<string>>(() => new Set());
   const [anchor, setAnchor] = useState<string | null>(null);
+  // Where a keyboard range starts: the last card chosen without Shift. The
+  // anchor moves with every arrow; this stays put so Shift+arrows span it.
+  const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [activePanel, setActivePanel] = useState<"featured" | "playlists" | "substances" | null>(
@@ -284,6 +302,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   const resetSelection = useCallback(() => {
     setSelection(new Set());
     setAnchor(null);
+    setRangeStart(null);
   }, []);
   const clearSelection = useCallback(() => guardDraft(resetSelection), [guardDraft, resetSelection]);
 
@@ -297,6 +316,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       guardDraft(() => {
         setSelection(new Set([row.id]));
         setAnchor(row.id);
+        setRangeStart(row.id);
       });
     },
     [guardDraft, rows],
@@ -305,8 +325,9 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   const onCardActivate = useCallback(
     (event: ReactMouseEvent, id: string) => {
       const next = new Set(selection);
-      if (event.shiftKey && anchor && visibleIds.includes(anchor)) {
-        const from = visibleIds.indexOf(anchor);
+      const start = rangeStart && visibleIds.includes(rangeStart) ? rangeStart : anchor;
+      if (event.shiftKey && start && visibleIds.includes(start)) {
+        const from = visibleIds.indexOf(start);
         const to = visibleIds.indexOf(id);
         const [low, high] = from < to ? [from, to] : [to, from];
         if (!(event.ctrlKey || event.metaKey)) next.clear();
@@ -320,16 +341,21 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
         if (!onlyThis) next.add(id);
       }
       const unchanged = next.size === selection.size && [...next].every((entry) => selection.has(entry));
+      const moveAnchor = () => {
+        if (event.shiftKey) return;
+        setAnchor(id);
+        setRangeStart(id);
+      };
       if (unchanged) {
-        if (!event.shiftKey) setAnchor(id);
+        moveAnchor();
         return;
       }
       guardDraft(() => {
         setSelection(next);
-        if (!event.shiftKey) setAnchor(id);
+        moveAnchor();
       });
     },
-    [anchor, guardDraft, selection, visibleIds],
+    [anchor, guardDraft, rangeStart, selection, visibleIds],
   );
 
   useEffect(() => {
@@ -382,14 +408,26 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       const nextIndex =
         current === -1 ? 0 : Math.max(0, Math.min(visibleIds.length - 1, current + step));
       const id = visibleIds[nextIndex];
+      // Shift+arrow spans from where the range started to the new anchor, so
+      // stepping back shrinks the range instead of adding one more card.
+      const start = rangeStart && visibleIds.includes(rangeStart) ? rangeStart : anchor;
+      let next: Set<string>;
+      if (event.shiftKey && start && visibleIds.includes(start)) {
+        const from = visibleIds.indexOf(start);
+        const [low, high] = from < nextIndex ? [from, nextIndex] : [nextIndex, from];
+        next = new Set(visibleIds.slice(low, high + 1));
+      } else {
+        next = new Set([id]);
+      }
       guardDraft(() => {
-        setSelection((existing) => (event.shiftKey ? new Set([...existing, id]) : new Set([id])));
+        setSelection(next);
         setAnchor(id);
+        if (!event.shiftKey || !start) setRangeStart(id);
       });
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [anchor, clearSelection, focusSearch, guardDraft, selection.size, visibleIds]);
+  }, [anchor, clearSelection, focusSearch, guardDraft, rangeStart, selection.size, visibleIds]);
 
   const saveSingle = useCallback(
     async (row: StudioRow, draft: SingleEditDraft) => {
@@ -402,14 +440,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
           body: JSON.stringify({
             mode: "single",
             id: row.id,
-            expected: {
-              title: row.title,
-              artist: row.artist,
-              role: row.role,
-              effect_slug: row.effect_slug,
-              credit_line: row.credit_line,
-              effect_tags: row.effect_tags,
-            },
+            expected: expectedOf(row),
             updates: {
               title: draft.title.trim(),
               artist: draft.artist.trim(),
@@ -435,28 +466,51 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     [loadCorpus],
   );
 
+  /**
+   * Applies one bulk edit. Each row carries the values it was loaded with; the
+   * server writes the rows that still match and names the rest. Resolves true
+   * when the request went through, so the inspector can spend its draft.
+   */
   const applyBulk = useCallback(
-    async (targets: readonly StudioRow[], edit: BulkEdit) => {
+    async (targets: readonly StudioRow[], edit: BulkEdit): Promise<boolean> => {
       setBusy(true);
       setFeedback(null);
       try {
         const response = await fetch(EDITORIAL_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "bulk", ids: targets.map((row) => row.id), ...edit }),
+          body: JSON.stringify({
+            mode: "bulk",
+            items: targets.map((row) => ({ id: row.id, expected: expectedOf(row) })),
+            patch: edit,
+          }),
         });
-        if (!response.ok) {
+        if (!response.ok && response.status !== 409) {
           setFeedback({ tone: "danger", message: await readError(response, "Bulk edit failed.") });
-          return;
+          return false;
         }
-        const payload = (await response.json()) as { updated: number };
-        setFeedback({ tone: "success", message: `Updated ${payload.updated} rows.` });
+        const payload = (await response.json()) as BulkResult;
+        const conflicts = payload.conflicts ?? [];
+        if (conflicts.length > 0) {
+          const names = conflicts.map((conflict) => conflict.slug ?? conflict.id).join(", ");
+          setFeedback({
+            tone: "warning",
+            message:
+              `Updated ${payload.updated} of ${targets.length}. ` +
+              `Not written because someone changed or removed them after you loaded the studio: ${names}. ` +
+              "The library now shows their current values; apply again if the change still fits.",
+          });
+        } else {
+          setFeedback({ tone: "success", message: `Updated ${payload.updated} rows.` });
+        }
         await loadCorpus();
+        return true;
       } catch {
         setFeedback({
           tone: "danger",
           message: "Bulk edit failed: the editor endpoint is unreachable.",
         });
+        return false;
       } finally {
         setBusy(false);
       }
@@ -468,7 +522,28 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     void applyBulk(selectedRows, { role: "figure" });
   }, [applyBulk, selectedRows]);
 
-  const incoming = useReplicationIncoming({ rows, loadCorpus, setFeedback, readError });
+  // A freshly published work becomes the selection once the reloaded corpus
+  // lists it; the grid scrolls its anchor into view. An open draft wins: the
+  // new work is not worth a discard prompt nobody asked for.
+  const [revealSlug, setRevealSlug] = useState<string | null>(null);
+  useEffect(() => {
+    if (!revealSlug) return;
+    const row = rows.find((entry) => entry.slug === revealSlug);
+    if (!row) return;
+    setRevealSlug(null);
+    if (editorDirty) return;
+    setSelection(new Set([row.id]));
+    setAnchor(row.id);
+    setRangeStart(row.id);
+  }, [editorDirty, revealSlug, rows]);
+
+  const incoming = useReplicationIncoming({
+    rows,
+    loadCorpus,
+    setFeedback,
+    readError,
+    onPublished: setRevealSlug,
+  });
 
   const featuredItems = useMemo<OrderablePanelItem[]>(() => {
     const bySlug = new Map(rows.map((row) => [row.slug, row]));
