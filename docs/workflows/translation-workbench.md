@@ -173,8 +173,8 @@ Confirm writes through the same review mutation as Approve: a stale revision
 is refused and writes nothing, the shared-rendering check applies, and the
 write freeze, locale assignment, and Translator role all hold. Confirming
 leaves the wording, the prompt digest, and the retranslation queue unchanged.
-Bulk **Confirm all** (per category) and **Confirm all shown** (per filter) name
-the exact count and terms in a dialog first. A category header reads, for
+Bulk **Confirm all** on a category header names the exact count and terms in a
+dialog first. A category header reads, for
 example, "3 drafts, 2 never checked"; its **Approve all** approves the drafts
 only, and its **Confirm all** confirms the never-checked rows only.
 

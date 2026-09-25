@@ -376,7 +376,8 @@ describe("DevModePageChrome phone sheet", () => {
 
     const menu = within(sheet).getByRole("navigation", { name: "Dev mode tools menu" });
     const groups = within(menu).getAllByRole("group").map((group) => group.getAttribute("aria-label"));
-    expect(groups).toEqual(["Start", "Content", "Intake", "Site"]);
+    // The site sections scroll with the tools; only the session line is pinned.
+    expect(groups).toEqual(["Start", "Content", "Intake", "Site", "Site sections"]);
 
     // Every tool is listed; locked ones carry their reason inline.
     for (const tab of SHELL_TABS) {

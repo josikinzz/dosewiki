@@ -14,6 +14,7 @@ import {
   useDevShortcuts,
 } from "@/features/dev/components";
 import { OrderingPanel } from "@/features/dev/tools/contributors/OrderingPanel";
+import { TOUCH_HALO_Y } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 import { IncomingTray } from "./IncomingTray";
@@ -119,7 +120,9 @@ function ToggleIcon({
       aria-label={label}
       aria-pressed={pressed}
       title={label}
-      className="size-7 rounded-full [@media(pointer:coarse)]:size-11"
+      // 36px on a touch screen with a 44px-tall halo: 44px circles made the
+      // wells taller than every control beside them.
+      className={cn("size-7 rounded-full [@media(pointer:coarse)]:size-9", TOUCH_HALO_Y)}
       onClick={onClick}
     >
       <Icon icon={icon} size={14} />
@@ -308,7 +311,7 @@ export function ReplicationStudioTab({
         ) : null}
       </p>
       {activeFilters}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         <Popover open={groupMenuOpen} onOpenChange={setGroupMenuOpen}>
           <PopoverTrigger asChild>
             <Button type="button" variant="ghost" size="sm" aria-label={`Group by ${group === "none" ? "nothing" : group}`}>
