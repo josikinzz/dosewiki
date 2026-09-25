@@ -11,6 +11,7 @@ import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
 import { articlePublicationNotice, type ArticlePublicationNotice } from "./publicationNotice";
 import { articleSectionForPath, type ArticleEditorSection } from "./articleSections";
 import { placeWords } from "./changeNote";
+import type { FeedbackRef } from "@/features/intake/feedbackCorrection";
 
 /**
  * What the local preview holds at one allow-listed field path, or `null` when
@@ -120,6 +121,8 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const [loading, setLoading] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [revisionOf, setRevisionOf] = useState<string | undefined>();
+  // The reader feedback this session corrects (Start correction); a submit carries it once.
+  const [feedbackRef, setFeedbackRef] = useState<FeedbackRef | undefined>();
   const [expired, setExpired] = useState(false);
   const current = useRef(article);
   current.current = article;
@@ -255,6 +258,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       ...(action === "saveDraft" || action === "publish" || action === "submit" ? { article: nextArticle } : {}),
       summary, ...(version === undefined ? {} : { draftVersion: version }),
       ...((action === "saveDraft" || action === "submit") && revisionOf ? { revisionOf } : {}),
+      ...((action === "submit" || action === "publish") && feedbackRef ? { feedbackRef } : {}),
     };
     const identity = JSON.stringify(body);
     if (pending.current && pending.current.identity !== identity) throw new Error("The previous operation has no confirmed outcome. Retry that exact operation before changing or discarding this draft.");
@@ -304,11 +308,14 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
         preview(snapshot.article); setSavedArticle(snapshot.article); setBaseHash(snapshot.baseHash);
         setSnapshot({ ...snapshot, draft: null, draftVersion: data.draftVersion });
         setRevisionOf(undefined);
+        // The proposal now carries the feedback; a later submission is a new change.
+        setFeedbackRef(undefined);
         if (typeof data.proposalId === "string") setSubmittedProposalId(data.proposalId);
         setNotice("Submitted for review. Published content has not changed.");
       } else {
         preview(data.article); setSavedArticle(data.article); setBaseHash(data.baseHash);
         setRevisionOf(undefined);
+        if (action === "publish") setFeedbackRef(undefined);
         setSnapshot({ article: data.article, baseHash: data.baseHash, draft: null, history: snapshot.history, draftVersion: data.draftVersion });
         // The route answers once the editor host has the change; the public
         // site catches up later. Only the receipt can say how far it got.
@@ -324,7 +331,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       setUncertain(pending.current !== null);
       setError(pending.current ? `No confirmation received. Retry the previous operation to reconcile it. ${message}` : message); throw failure;
     } finally { requestLock.current = false; setBusy(false); }
-  }, [snapshot, expired, baselineRefreshRequired, recovery, slug, baseHash, version, preview, revisionOf, readSnapshot, adoptSnapshot]);
+  }, [snapshot, expired, baselineRefreshRequired, recovery, slug, baseHash, version, preview, revisionOf, feedbackRef, readSnapshot, adoptSnapshot]);
   const retry = useCallback(async () => {
     if (!pending.current) return;
     const request = JSON.parse(pending.current.identity);
@@ -347,5 +354,5 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
   return { article, published, isFieldChanged, history: snapshot?.history ?? [],
     hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
-    dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, proposals: snapshot?.proposals ?? [], submittedProposalId };
+    dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, feedbackRef, setFeedbackRef, proposals: snapshot?.proposals ?? [], submittedProposalId };
 }

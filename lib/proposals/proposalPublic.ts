@@ -1,5 +1,6 @@
 import type { ProposalStatus } from "./proposalStatus";
 import { readArticlePatches } from "./articlePatch";
+import { readFeedbackRef } from "../../src/features/intake/feedbackCorrection";
 
 /** Display identity is explicitly chosen public profile text, never an email-derived name. */
 export function safeProposalName(value: unknown, fallback: "Contributor" | "Reviewer"): string {
@@ -28,6 +29,10 @@ type SummarySource = {
   commentCount?: number;
   appliedAt?: string;
   conflictReason?: string;
+  /** The stored proposal body; only its `feedbackRef` is read here. */
+  payload?: unknown;
+  /** An already projected feedback reference (the route re-projects Postgres results). */
+  feedbackRef?: unknown;
 };
 
 export function projectProposalComment(comment: CommentSource) {
@@ -53,7 +58,16 @@ export function projectProposalSummary(row: SummarySource, actorEmail: string) {
     commentCount: row.comments?.length ?? row.commentCount ?? 0,
     appliedAt: row.appliedAt,
     conflictReason: row.conflictReason,
+    // The reader feedback this proposal answers: its id and section only, never
+    // the reader's contact details or words.
+    ...optionalFeedbackRef(row),
   };
+}
+
+function optionalFeedbackRef(row: SummarySource) {
+  const payload = row.payload !== null && typeof row.payload === "object" ? row.payload as { feedbackRef?: unknown } : null;
+  const feedbackRef = readFeedbackRef(row.feedbackRef) ?? readFeedbackRef(payload?.feedbackRef);
+  return feedbackRef ? { feedbackRef } : {};
 }
 
 

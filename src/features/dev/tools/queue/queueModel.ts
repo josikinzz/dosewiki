@@ -7,6 +7,7 @@ import type { EditorStatusPillTone } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import type { ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
 import type { ArticlePatch } from "../../../../../lib/proposals/articlePatch";
+import type { FeedbackRef } from "@/features/intake/feedbackCorrection";
 
 export type { ProposalStatus };
 
@@ -33,6 +34,8 @@ export type ProposalSummary = {
   commentCount: number;
   appliedAt?: string;
   conflictReason?: string;
+  /** The reader feedback this proposal answers (id and article section only). */
+  feedbackRef?: FeedbackRef;
 };
 
 /** `GET /api/dev/proposals/<id>`: the full row plus the live hash of each target. */

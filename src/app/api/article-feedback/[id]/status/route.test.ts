@@ -80,6 +80,20 @@ describe("article feedback status route", () => {
     await expect(failed.json()).resolves.toEqual({ error: "Unable to update article feedback right now." });
   });
 
+  it("passes an explicit outcome through and refuses one it does not know", async () => {
+    const recorded = await POST(statusRequest({ status: "resolved", outcome: "explanation_provided" }), context);
+    expect(recorded.status).toBe(200);
+    expect(mocks.transition).toHaveBeenCalledWith("feedback-1", {
+      status: "resolved",
+      actorEmail: "admin@example.com",
+      outcome: "explanation_provided",
+    });
+
+    mocks.transition.mockClear();
+    expect((await POST(statusRequest({ status: "resolved", outcome: "fixed" }), context)).status).toBe(400);
+    expect(mocks.transition).not.toHaveBeenCalled();
+  });
+
   it("refuses a cross-origin POST with 403 before touching the store", async () => {
     const response = await POST(
       new Request("https://dose.wiki/api/article-feedback/feedback-1/status", {

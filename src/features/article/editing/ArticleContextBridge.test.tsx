@@ -278,6 +278,42 @@ describe("submitting one change for review", () => {
   });
 });
 
+describe("starting a correction from reader feedback", () => {
+  afterEach(() => { window.history.replaceState(null, "", "/"); });
+
+  it("switches to edit mode, opens the section, and carries only the feedback id and section into the proposal", async () => {
+    const user = userEvent.setup();
+    window.history.replaceState(null, "", "/fixture?feedback=fb-0001&section=summary");
+    const setMode = vi.fn();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json({
+        ok: true, proposalId: "p7k2m9x4q1", status: "submitted", changeId: "change-1",
+        baseHash: "public-revision", draftVersion: 2,
+      }))
+      .mockResolvedValue(Response.json({ ...snapshot(null), draftVersion: 2 }));
+    vi.stubGlobal("fetch", request);
+
+    const { rerender } = render(view({ ...state, mode: "view", role: "editor", email: "second@example.test", setMode }));
+    expect(setMode).toHaveBeenCalledWith("edit");
+    rerender(view({ ...state, role: "editor", email: "second@example.test", setMode }));
+
+    expect(await screen.findByRole("dialog", { name: "Edit summary" })).toBeTruthy();
+    expect(screen.getByText("Correcting reader feedback #b-0001")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Submit for review/ }));
+
+    await waitFor(() => expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
+    const posted = JSON.parse(String(request.mock.calls.find(([, init]) => init?.method === "POST")?.[1]?.body));
+    expect(posted).toMatchObject({ action: "submit", feedbackRef: { id: "fb-0001", section: "summary" } });
+    expect(Object.keys(posted.feedbackRef)).toEqual(["id", "section"]);
+    // The proposal carries the feedback now; a reload must not attach it to another change.
+    await waitFor(() => expect(window.location.search).toBe(""));
+    expect(screen.queryByText(/Correcting reader feedback/)).toBeNull();
+  });
+});
+
 describe("leaving and discarding through the shared guard and confirm", () => {
   it("asks before closing a dirty section, and Discard changes drops the local edit", async () => {
     const user = userEvent.setup();

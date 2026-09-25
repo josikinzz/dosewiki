@@ -20,6 +20,7 @@ import { fetchProposals, fetchReviewRecommendations } from "@/features/dev/tools
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import { NEEDS_REVIEW_SUBMISSION_STATUSES } from "@/features/dev/tools/trip-report-portal/tripReportPortalModel";
 import { decisionLogOf, UNKNOWN_DECISION_ACTOR, type DecisionLogged } from "@/features/intake/decisionLog";
+import { FEEDBACK_OUTCOME_LABEL } from "@/features/intake/feedbackCorrection";
 import {
   FEEDBACK_INTAKE_STATUS,
   INTAKE_STATUS_LABEL,
@@ -320,10 +321,13 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
             <h4 className="theme-accent-heading text-sm font-semibold">Details</h4>
             <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.details}</p>
           </section>
+          {/* A link does not move the item, so the cached row just takes the new log. */}
+          {adapter.renderCorrection?.(row, (updated) => cache.put(updated.id, { ...row, ...updated }))}
           {adapter.keepsDecisionLog ? (
             <DecisionLogSection
               entries={decisionLogOf(row)}
               statusLabel={(status: FeedbackQueueStatus) => INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS[status]]}
+              outcomeLabel={(outcome) => FEEDBACK_OUTCOME_LABEL[outcome]}
             />
           ) : row.reviewed_by ? (
             <p className="theme-text-faint text-xs">

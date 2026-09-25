@@ -1,18 +1,23 @@
 import { useId } from "react";
 
 import type { DecisionLogEntry } from "@/features/intake/decisionLog";
+import type { FeedbackOutcome } from "@/features/intake/feedbackCorrection";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 
 /**
  * An intake item's decision log as the review panels show it: every status
- * change, oldest first, with who made it, when, the move, and the note.
+ * change, oldest first, with who made it, when, the move, and the note. An
+ * article feedback entry also names its outcome, or the change it linked.
  */
 export function DecisionLogSection<Status extends string>({
   entries,
   statusLabel,
+  outcomeLabel,
 }: {
   entries: readonly DecisionLogEntry<Status>[];
   statusLabel: (status: Status) => string;
+  /** How a recorded outcome reads; sources without outcomes leave it out. */
+  outcomeLabel?: (outcome: FeedbackOutcome) => string;
 }) {
   const headingId = useId();
   return (
@@ -27,9 +32,7 @@ export function DecisionLogSection<Status extends string>({
           {entries.map((entry, index) => (
             <li key={`${entry.at}-${index}`} className="theme-portal-rule border-l-2 pl-3">
               <p className="theme-text-primary text-sm font-medium">
-                {entry.migrated
-                  ? `Earlier decision: ${statusLabel(entry.to)}`
-                  : `${entry.from ? statusLabel(entry.from) : "Unknown"} to ${statusLabel(entry.to)}`}
+                {describeEntry(entry, statusLabel, outcomeLabel)}
               </p>
               <p className="theme-text-faint mt-0.5 text-xs">
                 {[
@@ -49,6 +52,22 @@ export function DecisionLogSection<Status extends string>({
       )}
     </section>
   );
+}
+
+function describeEntry<Status extends string>(
+  entry: DecisionLogEntry<Status>,
+  statusLabel: (status: Status) => string,
+  outcomeLabel: ((outcome: FeedbackOutcome) => string) | undefined,
+): string {
+  if (entry.migrated) {
+    return `Earlier decision: ${statusLabel(entry.to)}`;
+  }
+  if (entry.linked_change && entry.from === entry.to) {
+    const kind = entry.linked_change.kind === "proposal" ? "proposal" : "published revision";
+    return `Linked ${kind} #${entry.linked_change.id.slice(-6)}`;
+  }
+  const move = `${entry.from ? statusLabel(entry.from) : "Unknown"} to ${statusLabel(entry.to)}`;
+  return entry.outcome && outcomeLabel ? `${move} as ${outcomeLabel(entry.outcome)}` : move;
 }
 
 function formatDecisionTime(value: string): string {

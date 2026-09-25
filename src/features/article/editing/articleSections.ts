@@ -13,6 +13,11 @@ export const ARTICLE_SECTION_LABELS = {
 } as const;
 export type ArticleEditorSection = keyof typeof ARTICLE_SECTION_LABELS;
 
+/** Whether a value, such as a section named in a link, is one of the in-page editor's sections. */
+export function isArticleEditorSection(value: unknown): value is ArticleEditorSection {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(ARTICLE_SECTION_LABELS, value);
+}
+
 /** Fields that live inside another section's form. */
 const HOSTED_FIELDS: Record<string, ArticleEditorSection> = { duration: "dosage", title: "identification" };
 

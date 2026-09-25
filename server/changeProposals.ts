@@ -22,6 +22,7 @@ import { writingProposalDocumentValidator, type WritingProposalDocument } from "
 import { prepareVCode } from "../src/features/effects/vcode/editing";
 import { projectProposalComment, projectProposalDetail, projectProposalSummary } from "../lib/proposals/proposalPublic";
 import { articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
+import { readFeedbackRef, type FeedbackRef } from "../src/features/intake/feedbackCorrection";
 
 /**
  * Editor change proposals: the commit panel's staged save, held for an admin
@@ -65,6 +66,12 @@ type SubmitArgs = {
   baselines: ProposalBaseline[];
   /** The returned proposal this one replaces; it becomes `superseded` in the same mutation. */
   revisionOf?: Id<"changeProposals">;
+  /**
+   * The reader feedback this proposal answers, already checked by the caller.
+   * Stored as `payload.feedbackRef` (id and section only); a revision without
+   * one keeps the reference of the proposal it replaces.
+   */
+  feedbackRef?: FeedbackRef;
 };
 
 const SUMMARY_MAX_LENGTH = 500;
@@ -194,6 +201,7 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     }
   }
 
+  const feedbackRef = args.feedbackRef ?? readFeedbackRef((prior?.payload as { feedbackRef?: unknown } | undefined)?.feedbackRef);
   const now = new Date().toISOString();
   const proposalId = await ctx.db.insert("changeProposals", {
     proposedBy: actor.email,
@@ -203,7 +211,11 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     targets,
     // The structured patch rides in the payload jsonb, so Change Review reads
     // the same field changes the author saw without a schema change.
-    payload: { ...args.payload, articlePatches: buildArticlePatches(args.payload as ProposalPayload, snapshots) },
+    payload: {
+      ...args.payload,
+      articlePatches: buildArticlePatches(args.payload as ProposalPayload, snapshots),
+      ...(feedbackRef ? { feedbackRef } : {}),
+    },
     summary,
     diff: buildProposalDiff(args.payload as ProposalPayload, snapshots),
     diffVersion: 1,

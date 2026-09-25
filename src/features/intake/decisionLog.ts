@@ -1,6 +1,8 @@
 /**
  * The append-only decision log an intake item (trip report submission, article
  * or site feedback) keeps: one entry per status transition, oldest first.
+ * Article feedback also logs each change linked to it as an entry whose status
+ * does not move (see `feedbackCorrection.ts`).
  * Client-safe (no node imports), so the Postgres mutations, the routes and the
  * review panels read one shape and one derivation.
  *
@@ -10,6 +12,8 @@
  * entry, and the first new transition stores that entry ahead of its own, so
  * no backfill is needed.
  */
+
+import type { FeedbackOutcome, LinkedChange } from "./feedbackCorrection";
 
 export type DecisionLogEntry<Status extends string = string> = {
   /** ISO timestamp of the decision. */
@@ -28,6 +32,16 @@ export type DecisionLogEntry<Status extends string = string> = {
   public_reason?: string;
   /** True on the entry derived from a review note stored before the log existed. */
   migrated?: boolean;
+  /**
+   * Feedback only: the explicit outcome the decision closed the item with
+   * (see `feedbackCorrection.ts`). Advisory; it gates nothing.
+   */
+  outcome?: FeedbackOutcome;
+  /**
+   * Feedback only: a change linked to the item. A link entry leaves the
+   * status where it was (`from` equals `to`).
+   */
+  linked_change?: LinkedChange;
 };
 
 export type DecisionLogged<Status extends string = string> = {

@@ -26,11 +26,13 @@ import { ArticleLayout, type ArticleLayoutProps } from "../components/ArticleLay
 import { ArticleEditProvider, type ArticleEditContextValue } from "./ArticleEditContext";
 import { ArticleSectionEditorContext } from "./ArticleSectionEditor.editor";
 import { ARTICLE_SECTION_LABELS, ArticleSectionForm, type ArticleEditorSection, type SectionFormHandle } from "./ArticleSectionForm";
+import { isArticleEditorSection } from "./articleSections";
 import { ArticleChangeDiff, articleFieldChanges } from "./ArticleChangeDiff";
 import { synthesizeChangeNote } from "./changeNote";
 import { ArticleProposalReview } from "./ArticleProposalReview";
 import { useArticleLifecycle, articlePublicationErrors, describeValidationIssue, fieldIssueMessage, type ArticleRevision } from "./useArticleLifecycle";
 import type { SubstanceArticle } from "@/schema";
+import { CORRECTION_FEEDBACK_PARAM, CORRECTION_SECTION_PARAM, readCorrectionParams } from "@/features/intake/feedbackCorrection";
 import { useArticleForm } from "@/hooks/useArticleForm";
 
 export type ArticleContextBridgeProps = {
@@ -111,6 +113,26 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const operationLocked = requestLocked || !!lifecycle.recovery || lifecycle.baselineRefreshRequired;
   const [section, setSection] = useState<ArticleEditorSection | null>(null);
   const [review, setReview] = useState(false);
+  // Start correction (the feedback review) opens this page with the feedback
+  // id and a section. Read once: the proposal submitted here carries the id.
+  const [correction] = useState(() => typeof window === "undefined" || workbench ? null : readCorrectionParams(window.location.search));
+  const correctionSection = isArticleEditorSection(correction?.section) ? correction.section : null;
+  const setFeedbackRef = lifecycle.setFeedbackRef;
+  useEffect(() => { if (correction) setFeedbackRef(correction); }, [correction, setFeedbackRef]);
+  const correctionModeSet = useRef(false);
+  const setMode = context.setMode;
+  useEffect(() => {
+    if (!correction || correctionModeSet.current || !context.enabled || !canDraft(role)) return;
+    correctionModeSet.current = true;
+    if (context.mode !== "edit") setMode?.("edit");
+  }, [correction, context.enabled, context.mode, role, setMode]);
+  const detachCorrection = useCallback(() => {
+    setFeedbackRef(undefined);
+    const url = new URL(window.location.href);
+    url.searchParams.delete(CORRECTION_FEEDBACK_PARAM);
+    url.searchParams.delete(CORRECTION_SECTION_PARAM);
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+  }, [setFeedbackRef]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const historyId = useId();
   const [formDirty, setFormDirty] = useState(false);
@@ -136,7 +158,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const [localError, setLocalError] = useState<string | null>(null);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
   const { confirm, dialog: confirmDialog } = useConfirm();
-  useEffect(() => { if (requestedSection && active) setSection(requestedSection); }, [requestedSection, active]);
+  const openOnSection = requestedSection ?? correctionSection;
+  useEffect(() => { if (openOnSection && active) setSection(openOnSection); }, [openOnSection, active]);
   useEffect(() => { onDirtyChange?.(lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked); return () => onDirtyChange?.(false); }, [onDirtyChange, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
   useEffect(() => { onOperationLockChange?.(operationLocked); }, [onOperationLockChange, operationLocked]);
   const formRef = useRef<SectionFormHandle | null>(null);
@@ -244,8 +267,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   };
   const publishFromSheet = (action: PublishAction) => attempt(async () => {
     const publishing = action === "Publish" && canPublish;
+    const linkedFeedback = !!lifecycle.feedbackRef;
     await lifecycle.act(publishing ? "publish" : "submit", summary);
     if (!publishing) submitted();
+    // The change now carries the feedback; a reload must not attach it to another one.
+    if (linkedFeedback) detachCorrection();
     // The write answered with the published article and the lifecycle has
     // already adopted it. Refreshing the route here would re-run the page
     // and re-drain the editor library, which reads as a reload of work the
@@ -308,6 +334,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
             {pendingChipId && <Link href="/dev/queue" className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
             {pendingProposals > 0 && <span>{pendingLabel}</span>}
           </p>}
+          {lifecycle.feedbackRef && <p data-feedback-correction className="theme-text-muted flex shrink-0 flex-wrap items-center gap-1 text-xs">
+            <span className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5">Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
+            <Button variant="ghost" size="sm" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>
+          </p>}
         </div>
         <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
           {lifecycle.ready ? <>
@@ -366,9 +396,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
             receipt={receipt.receipt}
             disabled={operationLocked}
             busy={lifecycle.busy}
-            description={canPublish
+            description={`${canPublish
               ? "Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged."
-              : "Submitting sends this change to an admin for review. The published article stays unchanged until it is approved."}
+              : "Submitting sends this change to an admin for review. The published article stays unchanged until it is approved."}${lifecycle.feedbackRef
+              ? ` The change is linked to reader feedback #${lifecycle.feedbackRef.id.slice(-6)} by its id only; the reader's contact details stay private.`
+              : ""}`}
             note={{
               value: summary,
               onChange: (value) => { setSummary(value); setSummaryEdited(true); },

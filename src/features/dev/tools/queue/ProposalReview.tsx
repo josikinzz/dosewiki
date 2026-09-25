@@ -13,6 +13,7 @@ import {
 } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 import { ArticleChangeDiff } from "@/features/article/editing/ArticleChangeDiff";
+import { ARTICLE_SECTION_LABELS, isArticleEditorSection } from "@/features/article/editing/articleSections";
 import {
   diffWithoutArticles,
   STATUS_LABELS,
@@ -136,6 +137,18 @@ export function ProposalReview({
           <>
             <dt className="theme-text-faint">Reverted</dt>
             <dd className="theme-text-primary">{formatProposalDate(proposal.revertedAt)}</dd>
+          </>
+        ) : null}
+        {proposal.feedbackRef ? (
+          <>
+            {/* Advisory context only: the feedback never gates this review. */}
+            <dt className="theme-text-faint">Answers</dt>
+            <dd className="theme-text-primary">
+              Reader feedback #{proposal.feedbackRef.id.slice(-6)}
+              {isArticleEditorSection(proposal.feedbackRef.section)
+                ? ` · ${ARTICLE_SECTION_LABELS[proposal.feedbackRef.section]}`
+                : ""}
+            </dd>
           </>
         ) : null}
       </dl>
