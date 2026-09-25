@@ -43,6 +43,7 @@ export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackQueueI
   source: "article",
   ...createFeedbackRequests<ArticleFeedbackQueueItem>("/api/article-feedback"),
   transitions: ARTICLE_FEEDBACK_STATUS_TRANSITIONS,
+  importance: (row) => row.importance,
   labels: {
     icon: "lucide:message-square-plus",
     title: "Article Feedback",

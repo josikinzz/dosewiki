@@ -3,6 +3,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createArticleFeedbackRow, validateArticleFeedback } from "@/features/article/feedback/articleFeedback";
+
 import { articleFeedbackAdapter } from "./articleFeedbackAdapter";
 import {
   FeedbackReviewQueue,
@@ -55,7 +57,7 @@ type Deferred = { resolve: () => void };
 
 function stubFetch(
   basePath: string,
-  rows: { id: string }[],
+  rows: ({ id: string } & Record<string, unknown>)[],
   options: { holdTransition?: Deferred; failList?: boolean } = {},
 ) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -262,6 +264,151 @@ describe("FeedbackReviewQueue with a malformed list response", () => {
 
     expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
     expect(within(list).getByText("Psilocybin")).toBeInTheDocument();
+  });
+});
+
+describe("FeedbackReviewQueue after a decision", () => {
+  const rowA = { ...articleRow, id: "article-a", substance_title: "Alprazolam" };
+  const rowB = { ...articleRow, id: "article-b", substance_title: "Bromazepam" };
+  const rowC = { ...articleRow, id: "article-c", substance_title: "Clonazepam" };
+
+  /**
+   * A queue of three New rows whose transition and post-decision refresh are
+   * both held until the test releases them.
+   */
+  function stubHeldQueue() {
+    let releaseTransition: () => void = () => {};
+    let releaseRefresh: () => void = () => {};
+    const transitionGate = new Promise<void>((resolve) => {
+      releaseTransition = resolve;
+    });
+    const refreshGate = new Promise<void>((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let lists = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (init?.method === "POST") {
+        await transitionGate;
+        return Response.json({ ok: true, feedback: { ...rowA, status: "resolved" } });
+      }
+      if (url.startsWith("/api/article-feedback/queue")) {
+        lists += 1;
+        if (lists === 1) {
+          return Response.json({ ok: true, feedback: [rowA, rowB, rowC] });
+        }
+        await refreshGate;
+        // A new report arrived at the top while the admin worked.
+        const arrived = { ...articleRow, id: "article-0", substance_title: "Zolpidem" };
+        return Response.json({ ok: true, feedback: [arrived, { ...rowA, status: "resolved" }, rowB, rowC] });
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    }));
+    return { releaseTransition: () => releaseTransition(), releaseRefresh: () => releaseRefresh() };
+  }
+
+  it("keeps the row the admin moved to, and the note typed there, through the decision and the refresh", async () => {
+    const user = userEvent.setup();
+    const held = stubHeldQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    expect(screen.getByRole("heading", { level: 3, name: "Alprazolam" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+
+    // While the decision is in flight the admin moves on and starts a note.
+    await user.click(within(list).getByText("Clonazepam"));
+    await user.type(screen.getByLabelText("Review note"), "Dose table checked");
+
+    held.releaseTransition();
+    // The decided row leaves the New list; its notice belongs to that row, not this one.
+    await waitFor(() => expect(within(list).queryByText("Alprazolam")).not.toBeInTheDocument());
+    expect(screen.queryByText('Moved feedback for "Alprazolam" to resolved.')).not.toBeInTheDocument();
+    held.releaseRefresh();
+    await within(list).findByText("Zolpidem");
+
+    expect(screen.getByRole("heading", { level: 3, name: "Clonazepam" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Review note")).toHaveValue("Dose table checked");
+  });
+
+  it("hands the review to the next row after a decision and keeps it there when the refresh lands", async () => {
+    const user = userEvent.setup();
+    const held = stubHeldQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+    held.releaseTransition();
+
+    expect(await screen.findByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Review note"), "Half a thought");
+    held.releaseRefresh();
+    await within(list).findByText("Zolpidem");
+
+    expect(screen.getByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Review note")).toHaveValue("Half a thought");
+  });
+
+  it("refreshes the list without a loading label", async () => {
+    const user = userEvent.setup();
+    const held = stubHeldQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+    held.releaseTransition();
+    await screen.findByText('Moved feedback for "Alprazolam" to resolved.');
+
+    expect(screen.queryByText("Loading feedback...")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loading")).not.toBeInTheDocument();
+    expect(within(list).getByText("Bromazepam")).toBeInTheDocument();
+
+    held.releaseRefresh();
+    await within(list).findByText("Zolpidem");
+    expect(screen.queryByText("Loading feedback...")).not.toBeInTheDocument();
+  });
+});
+
+describe("FeedbackReviewQueue intake triage", () => {
+  it("files a honeypot submission under Spam, not New", async () => {
+    const validation = validateArticleFeedback({
+      substance_slug: "mescaline",
+      substance_title: "Mescaline",
+      category: "inaccurate",
+      importance: "normal",
+      details: "Cheap pills here.",
+      honeypot: "https://spam.example",
+    });
+    if (!validation.ok) throw new Error("fixture should validate");
+    const honeypotRow = createArticleFeedbackRow(validation.normalized, { id: "article-spam" });
+    stubFetch("/api/article-feedback", [honeypotRow]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    expect(screen.getByText("1 spam")).toBeInTheDocument();
+    expect(within(list).getByText("Spam")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("All");
+  });
+
+  it("shows each row's importance and sorts the list by it", async () => {
+    const user = userEvent.setup();
+    stubFetch("/api/article-feedback", [
+      { ...articleRow, id: "article-low", substance_title: "Caffeine", importance: "low" },
+      { ...articleRow, id: "article-critical", substance_title: "Fentanyl", importance: "critical" },
+      { ...articleRow, id: "article-normal", substance_title: "Melatonin", importance: "normal" },
+    ]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    const titles = () => within(list).getAllByRole("option").map((option) => option.textContent ?? "");
+    expect(within(within(list).getAllByRole("option")[1]).getByText("Critical")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("combobox", { name: "Sort" }));
+    await user.click(await screen.findByRole("option", { name: "Importance" }));
+
+    await waitFor(() => expect(titles()[0]).toContain("Fentanyl"));
+    expect(titles()[1]).toContain("Melatonin");
+    expect(titles()[2]).toContain("Caffeine");
   });
 });
 

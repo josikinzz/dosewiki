@@ -46,12 +46,17 @@ export type FeedbackQueueItem = {
   reviewed_at?: string;
 };
 
+/** How much a reader said a report matters; the queue shows it as a pill and can sort by it. */
+export type FeedbackImportance = "critical" | "high" | "normal" | "low";
+
 export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   source: "article" | "site" | "glossary";
   /** The newest rows of every status, at most `FEEDBACK_QUEUE_WINDOW` of them. */
   fetchList: () => Promise<Item[]>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>;
+  /** The row's importance, for sources whose form asks for one. */
+  importance?: (item: Item) => FeedbackImportance | null | undefined;
   /** Source-specific header and metadata; the queue renders details, notes, and decisions. */
   renderDetail: (item: Item) => ReactNode;
   labels: {
@@ -109,6 +114,54 @@ const CONFIRMED_DECISIONS: Record<
   spam: { title: "Mark as spam?", verb: "Marking", confirmLabel: "Mark as spam", destructive: false },
 };
 
+const IMPORTANCE_LABELS: Record<FeedbackImportance, string> = {
+  critical: "Critical",
+  high: "High",
+  normal: "Normal",
+  low: "Low",
+};
+
+const IMPORTANCE_PILL_TONE: Record<FeedbackImportance, EditorStatusPillTone> = {
+  critical: "danger",
+  high: "caution",
+  normal: "info",
+  low: "neutral",
+};
+
+const IMPORTANCE_RANK: Record<FeedbackImportance, number> = { critical: 0, high: 1, normal: 2, low: 3 };
+
+type QueueSort = "newest" | "oldest" | "importance";
+
+const SORT_LABELS: Record<QueueSort, string> = {
+  newest: "Newest first",
+  oldest: "Oldest first",
+  importance: "Importance",
+};
+
+/**
+ * The list in the chosen order. Importance puts critical first and, within a
+ * level, the report that has waited longest; unrated rows sort last.
+ */
+function sortRows<Item extends FeedbackQueueItem>(
+  rows: readonly Item[],
+  sort: QueueSort,
+  importance: FeedbackSourceAdapter<Item>["importance"],
+): Item[] {
+  const byAge = (a: Item, b: Item) => a.created_at.localeCompare(b.created_at);
+  const sorted = [...rows];
+  if (sort === "newest") {
+    return sorted.sort((a, b) => byAge(b, a));
+  }
+  if (sort === "oldest" || !importance) {
+    return sorted.sort(byAge);
+  }
+  const rank = (row: Item) => {
+    const level = importance(row);
+    return level ? IMPORTANCE_RANK[level] : Object.keys(IMPORTANCE_RANK).length;
+  };
+  return sorted.sort((a, b) => rank(a) - rank(b) || byAge(a, b));
+}
+
 export function isFeedbackQueueFilter(value: unknown): value is FeedbackQueueFilter {
   return typeof value === "string" && (QUEUE_FILTERS as string[]).includes(value);
 }
@@ -165,6 +218,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [note, setNote] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [sort, setSort] = useState<QueueSort>("newest");
   /**
    * Which list request is allowed to write state. Every load takes the next
    * number, so a response arriving after a newer load (or after unmount) is
@@ -178,17 +232,24 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   });
   const { confirm, dialog: confirmDialog } = useConfirm();
 
+  /**
+   * Load or refresh the list. A load never moves the selection: the row the
+   * admin is on stays selected while it is still listed. A `background`
+   * refresh keeps the current rows on screen instead of showing the loading
+   * label.
+   */
   const loadQueue = useCallback(
-    async (preferredId?: string) => {
+    async ({ background = false }: { background?: boolean } = {}) => {
       const version = ++loadVersion.current;
-      setLoadState({ status: "loading" });
+      if (!background) {
+        setLoadState({ status: "loading" });
+      }
       try {
         const rows = await adapter.fetchList();
         if (version !== loadVersion.current) {
           return;
         }
         setFeedback(rows);
-        setSelectedId(preferredId && rows.some((row) => row.id === preferredId) ? preferredId : null);
         setLoadState({ status: "ready" });
       } catch (error) {
         if (version !== loadVersion.current) {
@@ -213,8 +274,13 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const counts = useMemo(() => countByStatus(feedback), [feedback]);
   const activeFilter: FeedbackQueueFilter = statusFilter ?? (counts.new > 0 ? "new" : "all");
   const visible = useMemo(
-    () => (activeFilter === "all" ? feedback : feedback.filter((row) => row.status === activeFilter)),
-    [feedback, activeFilter],
+    () =>
+      sortRows(
+        activeFilter === "all" ? feedback : feedback.filter((row) => row.status === activeFilter),
+        sort,
+        adapter.importance,
+      ),
+    [feedback, activeFilter, sort, adapter.importance],
   );
 
   // A row that left the current filter (after a decision, or a filter change)
@@ -223,6 +289,23 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     () => visible.find((row) => row.id === selectedId) ?? visible[0] ?? null,
     [selectedId, visible],
   );
+
+  /**
+   * The row on screen, for work that finishes later: a decision that lands
+   * after the admin moved on must not touch the note typed on the new row.
+   */
+  const currentRowId = useRef<string | null>(null);
+  useEffect(() => {
+    currentRowId.current = selected?.id ?? null;
+  }, [selected]);
+
+  function changeNote(value: string) {
+    // Typing pins the row, so a refresh that reorders the list cannot move the note to another one.
+    if (selected && selected.id !== selectedId) {
+      setSelectedId(selected.id);
+    }
+    setNote(value);
+  }
 
   function selectRow(id: string) {
     if (id === selected?.id) {
@@ -253,26 +336,37 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       return;
     }
 
-    setPendingId(selected.id);
+    const decidedId = selected.id;
+    setPendingId(decidedId);
     setActionFeedback(null);
     const trimmedNote = note.trim();
     try {
-      const updated = await adapter.transition(selected.id, {
+      const updated = await adapter.transition(decidedId, {
         status,
         note: trimmedNote.length > 0 ? trimmedNote : undefined,
       });
       setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
-      setActionFeedback({
-        tone: "success",
-        message: labels.transitioned(updated, STATUS_LABELS[status].toLowerCase()),
-      });
-      setNote("");
       setPendingId(null);
+      // The admin may have moved to another row while this was in flight;
+      // that row, its note and its notices are theirs to keep.
+      if (currentRowId.current === decidedId) {
+        setActionFeedback({
+          tone: "success",
+          message: labels.transitioned(updated, STATUS_LABELS[status].toLowerCase()),
+        });
+        setNote("");
+        if (activeFilter !== "all" && updated.status !== activeFilter) {
+          // The decided row leaves this filter: hand the review to its neighbour, pinned.
+          const index = visible.findIndex((row) => row.id === decidedId);
+          const next = visible[index + 1] ?? visible[index - 1] ?? null;
+          setSelectedId(next?.id ?? null);
+        }
+      }
       // Any transition can move the row in or out of the pending bucket the rail counts.
       invalidateDevRailBadge("feedback");
-      // Reconcile the latest-window boundary and concurrent reviewer changes without
-      // keeping this action pending behind another full queue transfer.
-      void loadQueue(updated.id);
+      // Reconcile the latest-window boundary and concurrent reviewer changes in
+      // the background, keeping the list and the selection where they are.
+      void loadQueue({ background: true });
     } catch (error) {
       setActionFeedback({
         tone: "danger",
@@ -315,7 +409,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         actions={headerActions?.(guard)}
       >
         {loadState.status === "error" ? (
-          <LoadErrorState message={loadState.message} onRetry={() => void loadQueue(selected?.id)} />
+          <LoadErrorState message={loadState.message} onRetry={() => void loadQueue({ background: feedback.length > 0 })} />
         ) : null}
       </EditorSection>
 
@@ -327,6 +421,23 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           delay={0.05}
           actions={(
             <>
+              <label htmlFor={`${adapter.source}-feedback-sort`} className="sr-only">
+                Sort
+              </label>
+              <Select value={sort} onValueChange={(value) => setSort(value as QueueSort)}>
+                <SelectTrigger id={`${adapter.source}-feedback-sort`} selectSize="compact" className="w-36">
+                  <SelectValue>{SORT_LABELS[sort]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(SORT_LABELS) as QueueSort[])
+                    .filter((option) => option !== "importance" || adapter.importance)
+                    .map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {SORT_LABELS[option]}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
               <label htmlFor={`${adapter.source}-feedback-filter`} className="sr-only">
                 Queue filter
               </label>
@@ -379,6 +490,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
                 <QueueRow
                   title={labels.itemTitle(row)}
                   subtitle={labels.itemSubtitle(row)}
+                  importance={adapter.importance?.(row) ?? null}
                   row={row}
                   active={active}
                 />
@@ -406,7 +518,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               pending={pendingId === selected.id}
               note={note}
               noteId={`${adapter.source}-feedback-review-note`}
-              onNoteChange={setNote}
+              onNoteChange={changeNote}
               actionFeedback={actionFeedback}
               onDismissFeedback={() => setActionFeedback(null)}
               onStatusChange={decide}
@@ -449,11 +561,13 @@ export function formatFeedbackDate(value?: string): string | null {
  */
 function QueueRow({
   active,
+  importance,
   row,
   subtitle,
   title,
 }: {
   active: boolean;
+  importance: FeedbackImportance | null;
   row: FeedbackQueueItem;
   subtitle: string | null;
   title: string;
@@ -466,7 +580,10 @@ function QueueRow({
             <span className={`font-semibold ${active ? "theme-accent-heading" : "theme-text-primary"}`}>{title}</span>
             {subtitle ? <span className="theme-text-faint text-xs"> · {subtitle}</span> : null}
           </span>
-          <FeedbackStatusPill status={row.status} />
+          <span className="flex shrink-0 items-center gap-1.5">
+            {importance ? <FeedbackImportancePill importance={importance} /> : null}
+            <FeedbackStatusPill status={row.status} />
+          </span>
         </span>
         <span className="theme-text-muted block truncate text-xs">{row.details}</span>
       </span>
@@ -595,6 +712,10 @@ export function FeedbackStatusPill({ status }: { status: FeedbackQueueStatus }) 
       {STATUS_LABELS[status] ?? status}
     </EditorStatusPill>
   );
+}
+
+export function FeedbackImportancePill({ importance }: { importance: FeedbackImportance }) {
+  return <EditorStatusPill tone={IMPORTANCE_PILL_TONE[importance]}>{IMPORTANCE_LABELS[importance]}</EditorStatusPill>;
 }
 
 export function FeedbackMetadataItem({ href, label, value }: { href?: string; label: string; value?: string | null }) {
