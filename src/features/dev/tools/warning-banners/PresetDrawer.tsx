@@ -296,7 +296,8 @@ export function PresetDrawer({
               onClick={onSave}
             >
               <Icon icon="lucide:save" size={15} />
-              {contextual ? "Publish shared preset" : "Publish preset"}
+              {/* In-page, the button opens the shared review-and-publish sheet. */}
+              {contextual ? "Review" : "Publish preset"}
             </Button>
             <Button
               type="button"

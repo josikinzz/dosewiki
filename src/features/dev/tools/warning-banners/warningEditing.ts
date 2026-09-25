@@ -13,6 +13,8 @@ export type WarningRevision = {
 export type WarningResult = {
   key: string; changeId: string; baseHash: string; preset: WarningBannerPreset | null;
   affectedSlugs: string[]; allSubstances: boolean; enabledSlugs: string[];
+  /** The delivery receipt the route returns; absent on a reconciled replay. */
+  publication?: { status?: string };
 };
 export type WarningEditorState = {
   preset: WarningBannerPreset | null; baseHash: string; history: WarningRevision[];

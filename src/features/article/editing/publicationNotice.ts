@@ -15,6 +15,8 @@ export type ArticlePublicationNotice = {
   message: string;
   /** App Path of the public article the change goes to. */
   path: string;
+  /** The receipt the route returned, so a delivery tracker can start from it. */
+  receipts: readonly Pick<PublicationReceipt, "status" | "verification">[] | null;
 };
 
 const FAILED_STATUSES = new Set(["rejected", "unreachable", "unconfigured"]);
@@ -37,10 +39,15 @@ const MESSAGES: Record<PublicationDelivery, string> = {
   unknown: "Saved on the editor host. The public delivery state was not reported.",
 };
 
+/** The sentence for one delivery state, as a polled receipt moves through them. */
+export function publicationMessage(delivery: PublicationDelivery): string {
+  return MESSAGES[delivery];
+}
+
 export function articlePublicationNotice(
   slug: string,
   receipts: readonly Pick<PublicationReceipt, "status" | "verification">[] | null | undefined,
 ): ArticlePublicationNotice {
   const delivery = publicationDelivery(receipts);
-  return { delivery, message: MESSAGES[delivery], path: `/${slug}` };
+  return { delivery, message: MESSAGES[delivery], path: `/${slug}`, receipts: Array.isArray(receipts) ? receipts : null };
 }

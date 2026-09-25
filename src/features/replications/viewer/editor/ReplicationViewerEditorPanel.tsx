@@ -13,6 +13,9 @@ import type { PlaylistDraft } from "@/features/dev/tools/playlists/playlistsMode
 import { ReplicationSingleEditor, type SingleEditDraft } from "@/features/dev/tools/replication-studio/ReplicationEditorDrawer";
 import type { StudioRow, StudioEffectOption } from "@/features/dev/tools/replication-studio/replicationStudioModel";
 import { useContextualEditing } from "@/features/contextual-editing/context";
+import { PublicationReceiptChips, PublishSheet } from "@/features/contextual-editing/PublishSheet";
+import { usePublicationReceipt } from "@/features/contextual-editing/usePublicationReceipt";
+import type { PublicationTarget } from "@server/next/publicationWire";
 import type { ReplicationViewerEditorGateProps } from "./ReplicationViewerEditorGate.editor";
 import { SortableViewerRail } from "./SortableViewerRail";
 
@@ -67,6 +70,28 @@ function publicationValue(field: string, value: unknown, collection: Replication
   return String(value);
 }
 
+/** App Paths, or plain names where a collection has no page of its own, that a publication changes. */
+function publicationPages(publication: Publication, collection: ReplicationViewerEditorGateProps["collection"]): string[] {
+  if (publication.mode === "metadata") return [`/replications/${publication.slug}`, collection.sourcePath, "Every collection that shows this work"];
+  const kind = publication.change.targetKind;
+  const key = String(publication.change.targetKey);
+  if (kind === "substance") return [`/${key}`];
+  if (kind === "effect") return [`/effects/${key}`];
+  if (kind === "artist") return [`/replications/artist/${key}`];
+  return [`Playlist ${key}`];
+}
+
+/**
+ * Outbox identities whose delivery state belongs to this publication alone.
+ * Playlists and effect or artist orders enqueue no identity of their own, and
+ * a shared list identity would report other writes, so those poll nothing
+ * and the receipt says the public state was not reported.
+ */
+function publicationIdentities(publication: Publication): PublicationTarget[] {
+  if (publication.mode === "metadata") return [{ kind: "replication", slug: publication.slug }];
+  return publication.change.targetKind === "substance" ? [{ kind: "article", slug: String(publication.change.targetKey) }] : [];
+}
+
 /** The viewer owns the only dialog. This panel portals into its existing focus boundary. */
 export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateProps) {
   const { collection, activeSlug, open, panelHost, railHost, onOrderChange, onReorderModeChange } = props;
@@ -93,6 +118,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
   const effectSearchId = useId();
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { if (review) reviewHeading.current?.focus(); }, [review]);
+  const { receipt, start: startReceipt, reset: resetReceipt } = usePublicationReceipt();
   const locked = busy || pendingPublication !== null;
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -194,6 +220,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
     const { source_url, ...updates } = session.draft;
     const fingerprint = JSON.stringify([session.base.row.id, session.base.revision, session.draft]);
     const requestId = requestIds.current[fingerprint] ??= crypto.randomUUID();
+    resetReceipt();
     setReview({ mode: "metadata", slug: activeSlug, change: { id: session.base.row.id, expectedRevision: session.base.revision, requestId, updates, sourceUrl: source_url ?? null }, before: draftOf(session.base.row), after: session.draft });
   };
   const reviewCollection = () => {
@@ -201,6 +228,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
     const { target: owner, draft, base, revision } = collectionSession;
     const fingerprint = JSON.stringify([targetKey, revision, base.slugs, draft]);
     const requestId = requestIds.current[fingerprint] ??= crypto.randomUUID();
+    resetReceipt();
     setReview({ mode: "collection", slug: activeSlug, collectionKey: targetKey, change: { targetKind: owner.kind, targetKey: owner.key, expectedRevision: revision, requestId, slugs: draft.slugs, previousSlugs: base.slugs, title: draft.title }, before: { title: base.title, slugs: base.slugs }, after: { title: draft.title, slugs: draft.slugs } });
   };
 
@@ -227,7 +255,8 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
     setBusy(true); setError(null); setPendingPublication(publication);
     try {
       await request(ENDPOINT, { method: "POST", body: JSON.stringify({ mode: publication.mode, change: publication.change, slug: publication.slug }) });
-      setNotice("Publication confirmed. The attributed before/after history was saved with this change.");
+      setNotice("Saved on the editor host. The attributed before/after history was saved with this change.");
+      startReceipt(publicationIdentities(publication));
       setPendingPublication(null);
       setReview(null);
       // Only the confirmed domain is cleared. Other works' drafts survive reconciliation.
@@ -266,6 +295,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
         </div> : null}
         {error ? <div role="alert" className="theme-text-primary space-y-2 text-sm"><p>{error}</p><Button size="sm" variant="secondary" disabled={busy} onClick={() => void load().catch(cause => setError(String(cause)))}>Retry read</Button>{session ? <Button size="sm" variant="ghostDestructive" disabled={locked} onClick={() => void load(undefined, true).catch(cause => setError(String(cause)))}>Discard this draft and reload stored version</Button> : null}</div> : null}
         {notice ? <p role="status" className="theme-text-primary text-sm">{notice}</p> : null}
+        {receipt && !review ? <PublicationReceiptChips receipt={receipt} /> : null}
         {pendingPublication ? <section aria-label="Publication reconciliation" className="space-y-3">
           <h3 className="theme-text-primary font-semibold">{busy ? "Publication pending" : "Publication outcome unknown"}</h3>
           <p className="theme-text-muted text-sm">The {pendingPublication.mode} change for {pendingPublication.collectionKey ?? pendingPublication.slug} retains its original request identity. Nothing is replayed automatically. Retry only this exact reviewed request to confirm whether it was applied.</p>
@@ -282,7 +312,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
           </EditorField>
           <Button variant="secondary" size="sm" disabled={locked || findingEffects || effectQuery.trim().length < 2} onClick={() => void findEffectOptions()}>{findingEffects ? "Finding effects…" : "Find effect options"}</Button>
           </div> : null}
-          <fieldset disabled={locked}><ReplicationSingleEditor row={session.base.row} effects={session.base.effects} artists={[session.base.row.artist]} value={session.draft} busy={locked} onDraftChange={changeMetadata} onSave={reviewMetadata} showSource saveLabel="Review publication" /></fieldset>
+          <fieldset disabled={locked}><ReplicationSingleEditor row={session.base.row} effects={session.base.effects} artists={[session.base.row.artist]} value={session.draft} busy={locked} onDraftChange={changeMetadata} onSave={reviewMetadata} showSource saveLabel="Review" /></fieldset>
           {session.dirty ? <div className="theme-text-primary space-y-1 text-sm" aria-label="Local metadata preview"><strong>{session.draft.title}</strong><p>{session.draft.artist}</p><p>{session.draft.credit_line}</p><p className="break-all">{session.draft.source_url}</p></div> : null}
         </> : null}
         {!review && !pendingPublication && scope === "collection" && session ? <>
@@ -303,22 +333,27 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
           </div> : null}
           {collectionSession?.editable ? <>
             <p className="theme-text-muted text-sm">{collectionSession.target.kind === "playlist" ? "Only this playlist changes. Existing showcases are not rewritten by changing a reusable playlist." : collectionSession.target.kind === "substance" ? "Only this substance showcase changes. Removing a work suppresses it here, not from the canonical media library." : "Membership is derived from canonical metadata. This collection supports order changes only."}</p>
-            <PlaylistEditor contextual draft={collectionSession.draft} isNew={false} isDirty={collectionDirty} busy={locked} notice={null} onChange={changeCollection} onSave={reviewCollection} onCancel={() => changeCollection(collectionSession.base)} saveLabel="Review publication" capabilities={{ rename: collectionSession.target.kind === "playlist", membership: collectionSession.target.kind === "playlist" || collectionSession.target.kind === "substance" }} />
+            <PlaylistEditor contextual draft={collectionSession.draft} isNew={false} isDirty={collectionDirty} busy={locked} notice={null} onChange={changeCollection} onSave={reviewCollection} onCancel={() => changeCollection(collectionSession.base)} saveLabel="Review" capabilities={{ rename: collectionSession.target.kind === "playlist", membership: collectionSession.target.kind === "playlist" || collectionSession.target.kind === "substance" }} />
             {!targetOverride && railHost ? <Button size="sm" variant="secondary" disabled={locked} aria-pressed={arranging} onClick={() => { setArranging(!arranging); onReorderModeChange(!arranging); }}>{arranging ? "Finish arranging thumbnails" : "Arrange thumbnails (keyboard or pointer)"}</Button> : null}
           </> : <p className="theme-text-muted text-sm">{target ? "You cannot publish changes to this collection." : "This gallery derives its membership. Choose an owned playlist to curate, or edit this work’s canonical metadata."}</p>}
         </> : null}
-        {review && !pendingPublication ? <section className="min-w-0 space-y-4" aria-label="Publication review">
-          <h3 ref={reviewHeading} tabIndex={-1} className="theme-text-primary font-semibold">Review {review.mode === "metadata" ? "shared metadata correction" : "collection publication"}</h3>
-          <p className="theme-text-muted text-sm">{review.mode === "metadata" ? "This updates the canonical work in every appearance, not just this collection." : "This publishes the named collection’s membership and order; it does not edit or delete media."}</p>
-          {Object.entries(review.after as Record<string, unknown>).filter(([field, value]) => JSON.stringify(value) !== JSON.stringify((review.before as Record<string, unknown>)[field])).map(([field, value]) => <section key={field} className="min-w-0 space-y-2">
-            <h4 className="font-semibold">{PUBLICATION_FIELD_LABELS[field] ?? field}</h4>
-            <div className="min-w-0 space-y-3">
-              <div><h5 className="theme-text-muted text-sm">Published</h5><p className="whitespace-pre-wrap text-sm">{publicationValue(field, (review.before as Record<string, unknown>)[field], collection)}</p></div>
-              <div><h5 className="theme-text-muted text-sm">Your draft</h5><p className="whitespace-pre-wrap text-sm">{publicationValue(field, value, collection)}</p></div>
-            </div>
-          </section>)}
-          <div className="sticky bottom-0 flex flex-wrap gap-2 border-t theme-border bg-dose-body py-3"><Button variant="accent" disabled={busy} onClick={() => void publish()}>{busy ? "Publishing…" : "Confirm publication"}</Button><Button variant="ghost" disabled={busy} onClick={() => { setReview(null); panelRef.current?.focus(); }}>Return to draft</Button></div>
-        </section> : null}
+        {review && !pendingPublication ? <PublishSheet
+          heading={review.mode === "metadata" ? "Shared metadata correction" : "Collection change"}
+          headingRef={reviewHeading}
+          description={review.mode === "metadata" ? "This updates the canonical work in every appearance, not just this collection." : "This publishes the named collection’s membership and order; it does not edit or delete media."}
+          changes={Object.entries(review.after as Record<string, unknown>)
+            .filter(([field, value]) => JSON.stringify(value) !== JSON.stringify((review.before as Record<string, unknown>)[field]))
+            .map(([field, value]) => ({
+              field, label: PUBLICATION_FIELD_LABELS[field] ?? field,
+              before: publicationValue(field, (review.before as Record<string, unknown>)[field], collection),
+              after: publicationValue(field, value, collection),
+            }))}
+          targets={publicationPages(review, collection)}
+          onPublish={publish}
+          receipt={receipt}
+          busy={busy}
+          onCancel={() => { setReview(null); panelRef.current?.focus(); }}
+        /> : null}
         {anyDirty && !review && !pendingPublication ? <Button variant="ghostDestructive" disabled={locked} onClick={discard}>Discard all viewer drafts</Button> : null}
       </section>, panelHost)}
     {open && arranging && scope === "collection" && !targetOverride && collectionSession?.editable && railHost && railItems.length > 0 ? createPortal(<SortableViewerRail items={railItems} activeSlug={activeSlug} disabled={locked} onActivate={props.onActivateSlug} onReorder={slugs => changeCollection({ ...collectionSession.draft, slugs: [...slugs, ...collectionSession.draft.slugs.filter(slug => !slugs.includes(slug))] })} />, railHost) : null}

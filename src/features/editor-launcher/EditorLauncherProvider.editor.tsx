@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { SITE_FLAVOR } from "@/config/siteFlavor";
 import { getEditorHandoffUrl } from "@server/next/publicHostPolicy";
 import { canAccessDev, type AppRole } from "@/lib/auth/roles";
-import { useDirtyGuard } from "@/features/dev/components/useDirtyGuard";
+import { useUnsavedEditsGuard } from "@/features/contextual-editing/useUnsavedEditsGuard";
 import {
   ContextualEditingContext, ContextualEditorContainerContext, type DraftNavigationGuard,
 } from "@/features/contextual-editing/context";
@@ -55,11 +55,7 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
     };
   }, []);
   const activeGuards = [...dirty.current].map((key) => guards.current.get(key));
-  const { guard: requestLeave, dialog: leaveDialog } = useDirtyGuard(dirty.current.size > 0, {
-    title: "Unsaved changes",
-    description: activeGuards.every((guard) => guard && guard.canDiscard !== false)
-      ? "Save a private draft, discard your changes, or keep editing. Nothing is published by leaving."
-      : "Return to the open editor to save, discard, or reconcile its pending publication before leaving.",
+  const { guard: requestLeave, dialog: leaveDialog } = useUnsavedEditsGuard(dirty.current.size > 0, {
     canDiscard: activeGuards.every((guard) => guard && guard.canDiscard !== false),
     container: outlet,
     onDiscard: () => {
