@@ -145,6 +145,37 @@ describe("changeProposals.submit", () => {
     expect(detail!.diff).not.toContain("Nothing changed");
   });
 
+  it("stores the structured article patch in the payload and returns it with the proposal", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
+    const { proposalId } = await submitHandler(ctx, submitArgs() as never);
+    const stored = rowsOf("changeProposals").get(proposalId)!;
+    const patches = [{ slug: "lsd", changes: [{ path: "summary", before: "Stored summary", after: "Proposed summary" }] }];
+    expect((stored.payload as Record<string, unknown>).articlePatches).toEqual(patches);
+
+    const detail = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId });
+    expect(detail!.articlePatches).toEqual(patches);
+    // The stored patch is what the author saw, even after production moves on.
+    rowsOf("substanceIndex").set("s1", { ...storedLsd, summary: "Later production" });
+    const later = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId });
+    expect(later!.articlePatches).toEqual(patches);
+  });
+
+  it("computes the patch for an older proposal from its verified before and after", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
+    const { proposalId } = await submitHandler(ctx, submitArgs() as never);
+    const stored = rowsOf("changeProposals").get(proposalId)!;
+    const { articlePatches: _patch, ...legacyPayload } = stored.payload as Record<string, unknown>;
+    rowsOf("changeProposals").set(proposalId, { ...stored, payload: legacyPayload });
+
+    const detail = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId });
+    expect(detail!.articlePatches).toEqual([{ slug: "lsd", changes: [{ path: "summary", before: "Stored summary", after: "Proposed summary" }] }]);
+
+    // Once production drifted, an older proposal has no trustworthy before.
+    rowsOf("substanceIndex").set("s1", { ...storedLsd, summary: "Later production" });
+    const drifted = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId });
+    expect(drifted!.articlePatches).toBeUndefined();
+  });
+
   it("preserves the server-generated submitted comparison after rejection and production drift", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
     const { proposalId } = await submitHandler(ctx, submitArgs() as never);

@@ -12,7 +12,9 @@ import {
   EditorToolbar,
 } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
+import { ArticleChangeDiff } from "@/features/article/editing/ArticleChangeDiff";
 import {
+  diffWithoutArticles,
   STATUS_LABELS,
   STATUS_PILL_TONE,
   formatProposalDate,
@@ -97,6 +99,10 @@ export function ProposalReview({
     superseded: "This submission was replaced by a newer revision. Select that revision in the list to follow its review.",
     reverted: "This publication was undone. Further changes need a new submission from the relevant editor.",
   }[proposal.status];
+  const articlePatches = proposal.comparisonMode === "unavailable" ? [] : proposal.articlePatches ?? [];
+  // Copy blocks, About and index layouts have no field reading yet and keep
+  // the text diff; article sections already shown above are left out of it.
+  const otherDiff = diffWithoutArticles(proposal.diff, articlePatches.map((patch) => patch.slug));
   const otherEditors = proposal.targets.filter((target) => target.kind === "about" || target.kind === "copyBlock");
 
   return (
@@ -216,20 +222,27 @@ export function ProposalReview({
           </p>
         )}
         <h4 className="theme-accent-heading text-sm font-semibold">What changed</h4>
-        {proposal.diff.trim() ? /^[-+]\s*(?:"(?:[^"\\]|\\.)+"\s*:|[{}[\]])/m.test(proposal.diff) ? (
+        {/* Article changes read exactly as the author saw them in the page. */}
+        {articlePatches.map((patch) => (
+          <div key={patch.slug} className="space-y-2" data-testid="proposal-article-changes">
+            {proposal.targets.length > 1 ? <p className="theme-text-faint text-sm">Article · {patch.slug}</p> : null}
+            <ArticleChangeDiff changes={patch.changes} />
+          </div>
+        ))}
+        {otherDiff.trim() ? /^[-+]\s*(?:"(?:[^"\\]|\\.)+"\s*:|[{}[\]])/m.test(otherDiff) ? (
           <ChangelogDiff
-            markdown={proposal.diff}
+            markdown={otherDiff}
             id={`proposal-diff-${proposal._id}`}
             keyPrefix={proposal._id}
             className="rounded-xl border border-dose-border"
           />
         ) : (
           <ProseDiff
-            markdown={proposal.diff}
+            markdown={otherDiff}
             id={`proposal-diff-${proposal._id}`}
             className="theme-public-card-subtle rounded-xl border px-4 py-3"
           />
-        ) : (
+        ) : articlePatches.length > 0 ? null : (
           <p className="theme-text-faint text-sm">
             No text comparison is available. Do not approve until the full change can be reviewed.
           </p>

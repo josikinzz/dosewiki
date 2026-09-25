@@ -7,6 +7,7 @@ import {
   CITATION_NEEDED_TOKEN,
 } from "@/lib/citations/citationTokens";
 import { getPublicTocSectionEntries } from "@/schema/substance/sectionManifest";
+import { ROUTE_LABELS } from "@/features/article/components/sections/routeLabels";
 
 /**
  * How many other articles of one bulk save the article surface names before
@@ -216,17 +217,24 @@ export function describeProseDiff(diff: string): string {
 export function articleFieldPathWords(
   path: string,
 ): Pick<ChangeDescription, "section" | "field"> {
-  const segments = path
-    .split(".")
-    .filter((segment) => segment.length > 0)
-    .map((segment): ChangeFieldSegment => {
-      const indexed = /^(.*)\[(\d+)\]$/.exec(segment);
-      return indexed
-        ? { label: toWords(indexed[1]), index: Number(indexed[2]) + 1 }
-        : { label: toWords(segment), index: null };
-    });
+  // A keyed identity may itself hold a dot ("routes[i.m.]"), so a dot inside
+  // brackets never splits the path.
+  const parts = path.split(/\.(?![^[]*\])/).filter((segment) => segment.length > 0);
+  const segments = parts.flatMap((segment): ChangeFieldSegment[] => {
+    const indexed = /^(.*)\[(\d+)\]$/.exec(segment);
+    if (indexed) return [{ label: toWords(indexed[1]), index: Number(indexed[2]) + 1 }];
+    // A keyed entry reads as its identity: a route as the name its table
+    // heading shows ("Oral"), any other entry as its key after its list.
+    const keyed = /^([^[]*)\[([^\]]+)\]$/.exec(segment);
+    if (keyed) {
+      return keyed[1] === "routes"
+        ? [{ label: ROUTE_LABELS[keyed[2].toLowerCase()] ?? toWords(keyed[2]), index: null }]
+        : [{ label: toWords(keyed[1]), index: null }, { label: keyed[2], index: null }];
+    }
+    return [{ label: toWords(segment), index: null }];
+  });
   const [head, ...rest] = segments;
-  const headKey = path.split(".")[0].replace(/\[\d+\]$/, "");
+  const headKey = (parts[0] ?? "").replace(/\[[^\]]*\]$/, "");
   const section = sectionsByField[headKey] ?? null;
   const fieldSegments = section ? rest : [head, ...rest];
   return { section, field: fieldSegments.length > 0 ? fieldSegments : null };

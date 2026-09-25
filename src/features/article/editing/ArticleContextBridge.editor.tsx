@@ -26,7 +26,7 @@ import { ARTICLE_SECTION_LABELS, ArticleSectionForm, type ArticleEditorSection, 
 import { ArticleChangeDiff, articleFieldChanges } from "./ArticleChangeDiff";
 import { synthesizeChangeNote } from "./changeNote";
 import { ArticleProposalReview } from "./ArticleProposalReview";
-import { useArticleLifecycle, articlePublicationErrors, type ArticleRevision } from "./useArticleLifecycle";
+import { useArticleLifecycle, articlePublicationErrors, describeValidationIssue, type ArticleRevision } from "./useArticleLifecycle";
 import type { SubstanceArticle } from "@/schema";
 import { useArticleForm } from "@/hooks/useArticleForm";
 
@@ -328,8 +328,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           <p className="theme-text-muted text-sm">Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged.</p>
           </>}
           {problems.length > 0 && <div role="alert" className="theme-text-primary space-y-2 text-sm">{problems.map((problem, index) => {
-            const key = problem.split(/[.:[ ]/, 1)[0] as ArticleEditorSection;
-            return <div key={index} className="space-y-1"><p>{problem}</p>{key in ARTICLE_SECTION_LABELS && <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => openSection(key)}>Edit {ARTICLE_SECTION_LABELS[key].toLowerCase()}</Button>}</div>;
+            const sectionId = problem.sectionId;
+            return <div key={index} className="space-y-1"><p>{describeValidationIssue(problem)}</p>{sectionId && <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => openSection(sectionId)}>Edit {ARTICLE_SECTION_LABELS[sectionId].toLowerCase()}</Button>}</div>;
           })}</div>}
           <ArticleChangeDiff before={lifecycle.published} after={lifecycle.article} />
           </section>

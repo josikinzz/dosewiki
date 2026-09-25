@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ARTICLE_SECTION_LABELS } from "./ArticleSectionForm";
-import { CHANGE_NOTE_MAX_LENGTH, synthesizeChangeNote } from "./changeNote";
+import { CHANGE_NOTE_MAX_LENGTH, placeWords, synthesizeChangeNote } from "./changeNote";
 
 const DOSAGE = ARTICLE_SECTION_LABELS.dosage;
 
@@ -57,6 +57,11 @@ describe("synthesizeChangeNote", () => {
       before: null,
       after: { min: 20, max: 40, unit: "mg" },
     }])).toBe(`Filled in ${DOSAGE} › Routes 1 › Dose ranges › Heavy`);
+  });
+
+  it("names a keyed route by the heading the page shows for it", () => {
+    expect(placeWords("dosage.routes[oral].dose_ranges.moderate")).toBe(`${DOSAGE} › Oral › Dose ranges › Moderate`);
+    expect(placeWords("dosage.routes[i.m.].notes")).toBe(`${DOSAGE} › IM › Notes`);
   });
 
   it("says nothing when nothing changed, because nothing can be published", () => {

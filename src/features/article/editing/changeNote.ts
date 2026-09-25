@@ -4,8 +4,8 @@ import {
   fieldWords,
 } from "@/data/changelog/articleRecentChanges";
 
-import { ARTICLE_SECTION_LABELS } from "./ArticleSectionForm";
-import type { ArticleFieldChange } from "./ArticleChangeDiff";
+import type { ArticleFieldChange } from "../../../../lib/proposals/articlePatch";
+import { ARTICLE_SECTION_LABELS } from "./articleSections";
 
 /**
  * The change note the publish confirmation opens with.
@@ -25,9 +25,10 @@ export const CHANGE_NOTE_MAX_LENGTH = 500;
 /** How many field clauses a note spells out before it counts the rest. */
 const MAX_CLAUSES = 2;
 
-function sectionLabel(path: string): string {
+/** The editor section label a field path belongs to. */
+export function sectionLabel(path: string): string {
   const head = path.split(/[.[ ]/, 1)[0];
-  if (head in ARTICLE_SECTION_LABELS) {
+  if (Object.prototype.hasOwnProperty.call(ARTICLE_SECTION_LABELS, head)) {
     return ARTICLE_SECTION_LABELS[head as keyof typeof ARTICLE_SECTION_LABELS];
   }
   if (head === "duration") return "Dosage and duration";
@@ -35,15 +36,21 @@ function sectionLabel(path: string): string {
   return head;
 }
 
-/** "Dosage and duration › Routes 1 › Notes", or the section alone. */
-function placeWords(path: string): string {
+/** "Oral › Dose ranges › Heavy": the place inside the section, or null for the section itself. */
+export function fieldPlaceWords(path: string): string | null {
   const words = articleFieldPathWords(path);
-  const label = sectionLabel(path);
   // A path whose head has no public section keeps that head as its first field
   // segment. The editor's own section label already names it, so dropping it
   // is what keeps a single-segment path from reading "Summary › Summary".
   const segments = words.section ? words.field : words.field?.slice(1);
-  return segments && segments.length > 0 ? `${label} › ${fieldWords(segments)}` : label;
+  return segments && segments.length > 0 ? fieldWords(segments) : null;
+}
+
+/** "Dosage and duration › Oral › Notes", or the section alone. */
+export function placeWords(path: string): string {
+  const label = sectionLabel(path);
+  const field = fieldPlaceWords(path);
+  return field ? `${label} › ${field}` : label;
 }
 
 /** A stored reference's title, when the value really carries a usable one. */

@@ -1,5 +1,6 @@
 import { buildArticleChangelog, collectDiff, type DiffEntry } from "../../src/utils/data/changelog";
 import { truncateDiffMarkdown } from "../../lib/proposals/diffMarkdown";
+import { articleFieldChanges, type ArticlePatch } from "../../lib/proposals/articlePatch";
 import { proposalComparableDocument } from "../../lib/proposals/proposalBaseline";
 import { mergeArticleReferenceMetadataForReplacement } from "./substanceIngestion";
 import { payloadDocuments, type ProposalPayload, type ProposalSnapshotEntry } from "./changeProposalApply";
@@ -34,6 +35,23 @@ export function proposalWriteDocument(entry: ProposalSnapshotEntry, before: unkn
     group: typeof proposed.group === "string" ? proposed.group.trim() || undefined : undefined,
   };
   return proposed;
+}
+
+/**
+ * The structured patch of every article a payload updates, against the same
+ * baseline and the same write projection the text diff uses. A new article
+ * has no field-by-field reading, so it is left to the text diff.
+ */
+export function buildArticlePatches(payload: ProposalPayload, baseline: readonly ProposalSnapshotEntry[]): ArticlePatch[] {
+  return payloadDocuments(payload).flatMap((entry) => {
+    if (entry.kind !== "article") return [];
+    const before = baseline.find((row) => row.kind === entry.kind && row.key === entry.key)?.document ?? null;
+    if (before === null || before === undefined) return [];
+    return [{
+      slug: entry.key,
+      changes: articleFieldChanges(proposalPublicDocument(before), proposalPublicDocument(proposalWriteDocument(entry, before))),
+    }];
+  });
 }
 
 export function buildProposalDiff(payload: ProposalPayload, baseline: readonly ProposalSnapshotEntry[]): string {

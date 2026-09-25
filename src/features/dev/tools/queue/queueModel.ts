@@ -6,6 +6,7 @@
 import type { EditorStatusPillTone } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import type { ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
+import type { ArticlePatch } from "../../../../../lib/proposals/articlePatch";
 
 export type { ProposalStatus };
 
@@ -42,6 +43,12 @@ export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   comments: ProposalComment[];
   revertedAt?: string;
   liveHashes: Array<{ kind: ProposalTargetKind; key: string; hash: string }>;
+  /**
+   * The field changes of each article this proposal updates: stored at submit,
+   * or computed from a trusted before and after for an older proposal. Absent
+   * when no field-by-field reading is available; the text diff then stands.
+   */
+  articlePatches?: ArticlePatch[];
   /** Present only for the fresh, explicitly requested Load into editor seed read. */
   payload?: DevProposalSeed["payload"];
 };
@@ -127,6 +134,20 @@ export function targetDrift(detail: Pick<ProposalDetail, "targets" | "liveHashes
     const live = detail.liveHashes.find((hash) => hash.kind === target.kind && hash.key === target.key);
     return { ...target, drifted: live === undefined || live.hash !== target.baseHash };
   });
+}
+
+/**
+ * The text diff without the sections of articles already shown field by field,
+ * so a mixed proposal lists each change once. Sections are split on the
+ * `# <kind>: <key>` headings the server writes.
+ */
+export function diffWithoutArticles(markdown: string, slugs: readonly string[]): string {
+  if (slugs.length === 0) return markdown;
+  const shown = new Set(slugs);
+  return markdown.split(/(?=^# )/mu).filter((section) => {
+    const heading = /^# article: ([^\n/]+?)(?: \/ [^\n]*)?(?:\n|$)/u.exec(section);
+    return !heading || !shown.has(heading[1].trim());
+  }).join("");
 }
 
 /** Admin actions the proposal's status still allows; the buttons render from this. */
