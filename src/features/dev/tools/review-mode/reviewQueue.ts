@@ -23,6 +23,8 @@ export interface ReviewQueueEntry {
   reviewedRevision?: string;
   /** Who signed off the covered revision. */
   reviewedBy?: string;
+  /** The editor whose recommendation that sign-off approved, if any. */
+  recommendedBy?: string;
   /**
    * Fallback richness when no source stats are available for the slug: how
    * many bibliography entries the article itself carries.
@@ -144,6 +146,18 @@ export function resolveOverriddenEditorialReview(
 }
 
 /**
+ * Who a sign-off credits, in words: "Recommended by X, approved by Y" when an
+ * admin approved an editor's recommendation, "Reviewed by Y" otherwise. Null
+ * when the sign-off names no reviewer.
+ */
+export function signOffCredit(entry: Pick<ReviewQueueEntry, "reviewedBy" | "recommendedBy">): string | null {
+  if (!entry.reviewedBy) return null;
+  return entry.recommendedBy
+    ? `Recommended by ${entry.recommendedBy}, approved by ${entry.reviewedBy}`
+    : `Reviewed by ${entry.reviewedBy}`;
+}
+
+/**
  * Each article's current published revision, keyed by slug, as
  * `/api/dev/review-revisions` reports it. It is derived from the stored
  * content, so every article is present; a slug missing from it (created after
@@ -190,6 +204,7 @@ export function buildReviewQueue(
             : status,
           ...(signed ? { reviewedRevision: signed } : {}),
           ...(signed && review?.reviewed_by ? { reviewedBy: review.reviewed_by } : {}),
+          ...(signed && review?.recommended_by ? { recommendedBy: review.recommended_by } : {}),
           referenceCount: resolveReferenceCount(article),
           flagSummary: deriveReviewFlagSummary(article.editorial_review?.flags),
           flags: (article.editorial_review?.flags ?? []).map(({ label, severity }) => ({ label, severity })),

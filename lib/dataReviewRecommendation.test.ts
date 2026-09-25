@@ -107,6 +107,22 @@ describe("review recommendations", () => {
     }
   });
 
+  it("keeps the recommender and the note on the approved review", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
+    await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "Doses match the sources" });
+    const revision = await publishedArticleRevision(ctx, "lsd");
+
+    await approveReviewRecommendationsHandler(ctx, { ...asAdmin, items: [{ slug: "lsd", revision }] });
+
+    expect(reviewOf(rowsOf)).toMatchObject({
+      status: "completed",
+      reviewed_by: "admin@example.com",
+      recommended_by: "editor@example.com",
+      recommendation_note: "Doses match the sources",
+    });
+    expect(reviewOf(rowsOf).recommended_at).toEqual(expect.any(String));
+  });
+
   it("reports a recommendation made stale by a later publish instead of approving it", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });

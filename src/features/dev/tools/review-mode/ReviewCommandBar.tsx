@@ -31,6 +31,7 @@ import {
 } from "./ReviewBarChrome";
 import { ReviewOverflowSheet } from "./ReviewOverflowSheet";
 import { ReviewQueueSettingsPanel } from "./ReviewQueueSettingsPanel";
+import { signOffCredit } from "./reviewQueue";
 import { NOTES_PANEL_ID } from "./ReviewNotesPanel";
 import { REVIEW_SETTINGS_DEFAULTS, type ReviewViewMode } from "./reviewSettings";
 import { ReviewSubstancePicker } from "./ReviewSubstancePicker";
@@ -568,8 +569,9 @@ export function ReviewCommandBar({
       ) : null}
 
       {/* Progress as text at every width, plus, for roles that cannot sign
-          off, why Mark reviewed is not theirs and what R does instead. Said in
-          text, not a tooltip. */}
+          off, why Mark reviewed is not theirs and what R does instead, and
+          for a reviewed article who signed it off. Said in text, not a
+          tooltip. */}
       <div className="theme-text-faint mx-auto flex max-w-[1500px] items-baseline justify-end gap-x-4 px-3 pb-1.5 text-[11px] leading-none sm:px-5">
         {!canSignOff ? (
           <p className="mr-auto">
@@ -582,6 +584,9 @@ export function ReviewCommandBar({
                   : " Recommend reviewed (R) asks an admin to approve it."
               : null}
           </p>
+        ) : null}
+        {current?.status === "completed" && signOffCredit(current) ? (
+          <p data-testid="review-signoff-credit">{signOffCredit(current)}.</p>
         ) : null}
         <p data-testid="review-progress-text" className="tabular-nums">
           {reviewedCount.toLocaleString()} of {queue.length.toLocaleString()} reviewed,{" "}

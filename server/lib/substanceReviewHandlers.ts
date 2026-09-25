@@ -273,7 +273,8 @@ export type RecommendationApprovalOutcome = {
 /**
  * An admin approves editors' recommendations in one write. Each approval
  * writes `completed` with the recommended revision and the approving admin as
- * reviewer. `revision` is the recommendation revision the admin saw; a
+ * reviewer, keeping the recommending editor (`recommended_by`,
+ * `recommended_at`) and their note. `revision` is the recommendation revision the admin saw; a
  * recommendation that no longer matches it, or whose revision is no longer
  * the published one, is left alone and reported rather than approved.
  */
@@ -309,7 +310,7 @@ export async function approveReviewRecommendationsHandler(
       outcome.stale.push(item.slug);
       continue;
     }
-    const { recommendation: _answered, ...rest } = existing;
+    const { recommendation: _answered, recommendation_note: _earlierNote, ...rest } = existing;
     const editorialReview: Record<string, unknown> = {
       ...rest,
       status: "completed",
@@ -317,6 +318,10 @@ export async function approveReviewRecommendationsHandler(
       reviewed_by: actor.email,
       reviewed_at: now,
       reviewed_revision: recommendation.revision,
+      // The editor who recommended it stays credited beside the approver.
+      recommended_by: recommendation.recommended_by,
+      recommended_at: recommendation.recommended_at,
+      ...(recommendation.note ? { recommendation_note: recommendation.note } : {}),
     };
     await ctx.db.patch(article._id, { editorial_review: editorialReview });
     outcome.approved.push(item.slug);

@@ -257,7 +257,7 @@ The derived `stale` review status: a sign-off whose `reviewed_revision` is no lo
 _Avoid_: outdated review, expired review, unreviewed (for a stale sign-off)
 
 **Recommended Reviewed**:
-An editor's request that an admin sign off an article, made with R in /review. Stored as `editorial_review.recommendation` (`revision`, `recommended_by`, `recommended_at`, `note`) bound to the published revision the editor read; it never changes the review status. Admins approve recommendations in batches from the Review recommendations lane in Change Review, which writes `completed` at the recommended revision. A recommendation whose revision is no longer the published one is stale and needs another review before approval.
+An editor's request that an admin sign off an article, made with R in /review. Stored as `editorial_review.recommendation` (`revision`, `recommended_by`, `recommended_at`, `note`) bound to the published revision the editor read; it never changes the review status. Admins approve recommendations in batches from the Review recommendations lane in Change Review, which writes `completed` at the recommended revision and keeps the recommender as `recommended_by` (with `recommended_at` and the note as `recommendation_note`) beside the approving admin's `reviewed_by`; /review shows "Recommended by X, approved by Y". A recommendation whose revision is no longer the published one is stale and needs another review before approval.
 _Avoid_: editor sign-off, pending review, soft reviewed
 
 **Review Status Names**:

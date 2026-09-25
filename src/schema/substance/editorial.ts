@@ -77,6 +77,14 @@ export const editorialReviewSchema = z.object({
    * the published revision moves on, the recommendation reads as stale.
    */
   recommendation: reviewRecommendationSchema.optional(),
+  /**
+   * On a sign-off that approved a recommendation: the editor who recommended
+   * it, when, and their note, so the record credits both the recommender and
+   * the approving admin (`reviewed_by`). Absent on a direct admin sign-off.
+   */
+  recommended_by: z.string().optional(),
+  recommended_at: z.string().optional(),
+  recommendation_note: z.string().optional(),
   /** Declared so editor saves preserve Review Flags instead of stripping them. */
   flags: z.array(reviewFlagSchema).optional(),
 });

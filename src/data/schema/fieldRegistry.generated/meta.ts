@@ -121,6 +121,24 @@ export const metaGeneratedFieldRegistry = {
     default: "",
     isNullable: false,
   },
+  "editorial_review.recommended_by": {
+    path: "editorial_review.recommended_by",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "editorial_review.recommended_at": {
+    path: "editorial_review.recommended_at",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
+  "editorial_review.recommendation_note": {
+    path: "editorial_review.recommendation_note",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
   "editorial_review.flags": {
     path: "editorial_review.flags",
     type: "object",
