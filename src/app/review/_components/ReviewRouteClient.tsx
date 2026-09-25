@@ -7,8 +7,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
-import type { SubstanceArticle } from "@/schema";
-import { slugify } from "@/utils/slug";
+import { resolveEditorArticleSlug } from "@/features/dev/context/devModeUtils";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { useDevModePageController } from "@/features/dev/pages/useDevModePageController";
 import { ReviewExperience } from "@/features/dev/tools/review-mode/ReviewExperience";
@@ -71,17 +70,14 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
       return [];
     }
 
-    return library.articles.map((article) => {
-      const record = article as SubstanceArticle & { slug?: unknown };
-      const slug =
-        typeof record.slug === "string" && record.slug
-          ? record.slug
-          : slugify(article.title || article.identification?.common_name || "");
-      return {
+    return library.articles.flatMap((article) => {
+      const slug = resolveEditorArticleSlug(article);
+      if (!slug) return [];
+      return [{
         slug,
         name: article.title || article.identification?.common_name || slug,
         priority: article.priority,
-      };
+      }];
     });
   }, [library]);
 

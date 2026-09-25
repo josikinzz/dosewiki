@@ -103,11 +103,12 @@ describe("buildReviewQueue", () => {
     expect(queue[0]?.status).toBe("in_progress");
   });
 
-  it("derives a slug from the title when none is stored", () => {
+  it("leaves out a row with no stored slug rather than guessing one from the title", () => {
     const queue = buildReviewQueue([
       makeArticle({ title: "No Slug Here", slug: undefined }),
+      makeArticle({ title: "Lysergic acid diethylamide", slug: "lsd" }),
     ]);
-    expect(queue[0]?.slug).toBe("no-slug-here");
+    expect(queue.map((entry) => entry.slug)).toEqual(["lsd"]);
   });
 
   it("counts bibliography entries as the fallback richness", () => {

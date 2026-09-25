@@ -1,7 +1,5 @@
 import { type PropsWithChildren, type ReactNode } from "react";
-import { get, useFormContext, useFormState, type FieldPath } from "react-hook-form";
 import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
-import type { SubstanceArticle } from "@/schema";
 
 const helperTextClass = "theme-text-faint text-[11px]";
 
@@ -15,44 +13,6 @@ type CharacterCountProps = {
   value: string;
 };
 
-
-/**
- * Collapsible free-floating wrapper for top-level form sections (accent
- * header + hairline via `CollapsibleEditorCard`; no card chrome).
- */
-export interface CollapsibleFormSectionCardProps extends PropsWithChildren {
-  title: string;
-  icon?: ReactNode;
-  description?: string;
-  names: FieldPath<SubstanceArticle> | FieldPath<SubstanceArticle>[];
-  defaultExpanded?: boolean;
-}
-
-export function CollapsibleFormSectionCard({
-  title,
-  icon,
-  names,
-  description,
-  defaultExpanded = false,
-  children,
-}: CollapsibleFormSectionCardProps) {
-  const { control } = useFormContext<SubstanceArticle>();
-  const fieldNames = Array.isArray(names) ? names : [names];
-  const { errors } = useFormState({ control, name: fieldNames });
-  const hasError = fieldNames.some((name) => Boolean(get(errors, name)));
-
-  return (
-    <CollapsibleEditorCard
-      title={title}
-      icon={icon}
-      description={description}
-      defaultExpanded={defaultExpanded}
-      hasError={hasError}
-    >
-      {children}
-    </CollapsibleEditorCard>
-  );
-}
 
 /**
  * Collapsible subsection within a form section.

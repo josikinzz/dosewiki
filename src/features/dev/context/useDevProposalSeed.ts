@@ -52,7 +52,9 @@ export function useDevProposalSeed({
       }
       const proposedBySlug = new Map<string, ProposedArticle>();
       for (const article of seed.payload.articles ?? []) {
-        proposedBySlug.set(resolveEditorArticleSlug(article as SubstanceArticle), article);
+        const slug = resolveEditorArticleSlug(article as SubstanceArticle);
+        if (!slug) throw new Error("This submission holds an article without a slug, so it cannot be loaded.");
+        proposedBySlug.set(slug, article);
       }
 
       // Only slugs production holds are hydrated; a proposal for a new
@@ -75,8 +77,8 @@ export function useDevProposalSeed({
         const remaining = new Map(proposedBySlug);
         const next = previous.map((article) => {
           const slug = resolveEditorArticleSlug(article);
-          const proposal = remaining.get(slug);
-          if (!proposal) {
+          const proposal = slug ? remaining.get(slug) : undefined;
+          if (!slug || !proposal) {
             return article;
           }
           remaining.delete(slug);
@@ -112,7 +114,8 @@ export function useDevProposalSeed({
         const original = getOriginalArticles();
         const next: ArticleRecord[] = [];
         previous.forEach((article, index) => {
-          if (!seeded.slugs.has(resolveEditorArticleSlug(article))) {
+          const slug = resolveEditorArticleSlug(article);
+          if (!slug || !seeded.slugs.has(slug)) {
             next.push(article);
             return;
           }

@@ -55,6 +55,7 @@ function DevModeConsumer() {
 const ARTICLES = [
   {
     title: "LSD",
+    slug: "lsd",
     identification: { common_name: "LSD" },
   },
 ];

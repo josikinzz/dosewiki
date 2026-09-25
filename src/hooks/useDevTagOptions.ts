@@ -1,9 +1,7 @@
-import { useMemo } from "react";
 import type { SubstanceArticle } from "@/schema";
 
 import type { TagOption } from "../data/config/tagOptions";
 import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/data/tagRegistry";
-import { useDevMode } from "@/features/dev/context/DevModeContext";
 
 export interface DevTagOptionsResult {
   registry: TagRegistry;
@@ -63,9 +61,4 @@ export function buildDevTagOptions(articles: SubstanceArticle[]): DevTagOptionsR
       mechanismOfAction: mapUsagesToOptions(registry, "mechanism_of_action"),
       indexCategories,
     };
-}
-
-export function useDevTagOptions(): DevTagOptionsResult {
-  const { articles } = useDevMode();
-  return useMemo(() => buildDevTagOptions(articles as SubstanceArticle[]), [articles]);
 }

@@ -75,14 +75,16 @@ function rebaseTagMutation({
   mutation: TagMutation;
 }): RebasedTagMutation {
   const rebased = previous.map((draft, index) => {
-    const landed = landedBySlug.get(resolveEditorArticleSlug(draft));
+    const slug = resolveEditorArticleSlug(draft);
+    const landed = slug ? landedBySlug.get(slug) : undefined;
     return landed && draft === baseline[index] ? landed : draft;
   });
 
   const rewrite = runTagEditorMutation(rebased, mutation);
-  const changes = rewrite.changes.filter((change) =>
-    hydratedSlugs.has(resolveEditorArticleSlug(rebased[change.index])),
-  );
+  const changes = rewrite.changes.filter((change) => {
+    const slug = resolveEditorArticleSlug(rebased[change.index]);
+    return slug !== null && hydratedSlugs.has(slug);
+  });
   if (changes.length === 0) {
     return { before: rebased, result: { articles: previous, changes } };
   }
@@ -113,14 +115,16 @@ function revertTagMutation(previous: SubstanceArticle[], undo: TagUndo): Reverte
   for (const index of undo.changedIndexes) {
     const after = undo.after[index];
     const before = undo.before[index];
-    if (after && before) {
-      bySlug.set(resolveEditorArticleSlug(after), { before, after });
+    const slug = after ? resolveEditorArticleSlug(after) : null;
+    if (slug && before) {
+      bySlug.set(slug, { before, after });
     }
   }
 
   let restoredCount = 0;
   const articles = previous.map((row) => {
-    const entry = bySlug.get(resolveEditorArticleSlug(row));
+    const slug = resolveEditorArticleSlug(row);
+    const entry = slug ? bySlug.get(slug) : undefined;
     if (!entry || row !== entry.after) {
       return row;
     }
@@ -233,7 +237,7 @@ export function TagEditorTab({
           const hydratedSlugs = new Set(
             plan.changes
               .map((change) => resolveEditorArticleSlug(articles[change.index]))
-              .filter((slug) => slug.length > 0),
+              .filter((slug): slug is string => slug !== null),
           );
           if (hydratedSlugs.size === 0) {
             dispatch({ type: "mutationSucceeded", effectId: effect.id, result: plan, before: articles });
@@ -251,7 +255,10 @@ export function TagEditorTab({
           }
 
           const landedBySlug = new Map(
-            hydration.articles.map((article) => [resolveEditorArticleSlug(article), article]),
+            hydration.articles.flatMap((article) => {
+              const slug = resolveEditorArticleSlug(article);
+              return slug ? [[slug, article] as const] : [];
+            }),
           );
           // The baseline from before the await is the right comparison: a
           // row still identical to it is the untouched placeholder the plan

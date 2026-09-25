@@ -4703,34 +4703,6 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
-      "match": "var(--theme-danger-border)",
-      "line": 34,
-      "column": 103
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
-      "match": "var(--theme-danger-bg)",
-      "line": 34,
-      "column": 135
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
-      "match": "var(--theme-danger-text-strong)",
-      "line": 35,
-      "column": 61
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/tools/substance-editor/GeneratorOutputPreview.tsx",
-      "match": "var(--theme-danger-text)",
-      "line": 42,
-      "column": 53
-    },
-    {
-      "rule": "direct-theme-variable",
       "filePath": "src/features/dev/tools/substance-editor/SubstanceEditorSelectionSection.tsx",
       "match": "var(--theme-border-subtle)",
       "line": 129,

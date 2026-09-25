@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
 import type { SubstanceArticle } from "@/schema";
 import type { SubstanceInfo } from "../substance-editor/types";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
   buildReviewGroups,
   buildReviewQueue,
@@ -164,15 +165,7 @@ export function useReviewQueue({
 
   const article = useMemo(() => {
     if (!current) return null;
-    const bySlug = typedArticles.find((candidate) => {
-      const record = candidate as SubstanceArticle & { slug?: unknown };
-      return typeof record.slug === "string" && record.slug === current.slug;
-    });
-    return (
-      bySlug ??
-      typedArticles.find((candidate) => candidate.title === current.name) ??
-      null
-    );
+    return typedArticles.find((candidate) => resolveEditorArticleSlug(candidate) === current.slug) ?? null;
   }, [current, typedArticles]);
 
   const reviewedCount = useMemo(

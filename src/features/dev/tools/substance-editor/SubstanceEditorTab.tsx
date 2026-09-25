@@ -4,7 +4,7 @@ import { EditorNotice, useDirtyGuard } from "@/features/dev/components";
 import { LoadErrorState } from "@/features/dev/components/LoadErrorState";
 import { StateCard } from "@/components/common/StateCard";
 import { viewToPath } from "@/utils/routing";
-import { slugify } from "@/utils/slug";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import { resolveSessionRole } from "@/lib/auth/roles";
 import type { SubstanceArticle } from "@/schema";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
@@ -42,10 +42,8 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   const handleSelectSubstance = useCallback((slug: string) => {
     if (slug !== selectedSubstanceSlug) dirtyGuard.guard(() => setSelectedSubstanceSlug(slug));
   }, [dirtyGuard.guard, selectedSubstanceSlug, setSelectedSubstanceSlug]);
-  const article = ready ? (articles as SubstanceArticle[]).find((candidate) => {
-    const storedSlug = (candidate as SubstanceArticle & { slug?: string }).slug;
-    return (storedSlug || slugify(candidate.title || candidate.identification.common_name)) === selectedSubstanceSlug;
-  }) : null;
+  const article = ready ? (articles as SubstanceArticle[]).find((candidate) =>
+    resolveEditorArticleSlug(candidate) === selectedSubstanceSlug) : null;
   return <div className="mt-6 space-y-8">
     {dirtyGuard.dialog}
     <SubstanceEditorSelectionSection

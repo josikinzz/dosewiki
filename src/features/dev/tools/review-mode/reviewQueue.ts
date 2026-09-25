@@ -1,7 +1,7 @@
 import type { SubstanceArticle } from "@/schema";
 import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
 import { substanceVisibility } from "@/schema/substance/substanceVisibilityPolicy";
-import { slugify } from "@/utils/slug";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import type { ReviewStatus } from "../substance-editor/types";
 
 /**
@@ -94,13 +94,6 @@ export const REVIEW_QUEUE_ORDER_OPTIONS: Array<{
   { value: "alpha-desc", label: "Z → A" },
 ];
 
-function resolveArticleSlug(article: SubstanceArticle & { slug?: unknown }): string {
-  const explicit = typeof article.slug === "string" ? article.slug.trim() : "";
-  return (
-    explicit || slugify(article.title || article.identification?.common_name || "")
-  );
-}
-
 function resolveStatus(value: unknown): ReviewStatus {
   return value === "in_progress" || value === "completed" ? value : "needed";
 }
@@ -160,7 +153,7 @@ export function buildReviewQueue(
 ): ReviewQueueEntry[] {
   return articles
     .flatMap((article) => {
-      const slug = resolveArticleSlug(article);
+      const slug = resolveEditorArticleSlug(article);
       if (!slug) return [];
       const visibility = substanceVisibility({
         indexCategories: article.index_categories,

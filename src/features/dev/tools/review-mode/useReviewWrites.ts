@@ -11,6 +11,7 @@ import {
 
 import type { SubstanceArticle } from "@/schema";
 import type { ReviewStatus } from "../substance-editor/types";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
   resolveReviewCelebration,
   type ReviewCelebration,
@@ -191,10 +192,7 @@ export function useReviewStatusWrites({
   );
 
   const articleStatus = useCallback((entrySlug: string): ReviewStatus => {
-    const record = typedArticles.find((candidate) => {
-      const withSlug = candidate as SubstanceArticle & { slug?: unknown };
-      return typeof withSlug.slug === "string" && withSlug.slug === entrySlug;
-    });
+    const record = typedArticles.find((candidate) => resolveEditorArticleSlug(candidate) === entrySlug);
     const raw = record?.editorial_review?.status;
     return raw === "in_progress" || raw === "completed" ? raw : "needed";
   }, [typedArticles]);

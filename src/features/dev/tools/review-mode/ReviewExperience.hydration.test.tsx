@@ -93,10 +93,6 @@ vi.mock("@/features/article/components/ArticleLayout", () => ({
   ),
 }));
 
-vi.mock("../../forms/ArticleDraftFormFieldsRHF", () => ({
-  ArticleDraftFormFieldsRHF: () => <div data-testid="article-form" />,
-}));
-
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 

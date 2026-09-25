@@ -8,6 +8,7 @@ const { applyArticlesTransformMock, hydrateArticlesNowMock, mockDevArticles, dev
   const mockDevArticles = [
     {
       title: "LSD",
+      slug: "lsd",
       identification: { common_name: "LSD" },
       index_categories: ["Classic", "Psychedelic"],
       classification: { chemical_class: [], psychoactive_class: [] },
@@ -15,6 +16,7 @@ const { applyArticlesTransformMock, hydrateArticlesNowMock, mockDevArticles, dev
     },
     {
       title: "MDMA",
+      slug: "mdma",
       identification: { common_name: "MDMA" },
       index_categories: ["Empathogen"],
       classification: { chemical_class: [], psychoactive_class: [] },
@@ -66,7 +68,7 @@ const articleWithTags = (
     mechanism?: string[];
   },
 ) => {
-  const article = createEmptyArticle();
+  const article = { ...createEmptyArticle(), slug: title.toLowerCase() } as ReturnType<typeof createEmptyArticle>;
   article.title = title;
   article.identification.common_name = title;
   article.index_categories = tags.index ?? [];
@@ -561,8 +563,6 @@ describe("TagEditorTab state-machine integration", () => {
 
     // The LSD row itself is edited while its hydration is pending: the draft
     // no longer equals its baseline, so the landed body must not replace it.
-    // (These fixture rows carry no explicit slug, so the edit stays off the
-    // title the slug is derived from.)
     devContext.articles = [
       { ...mockDevArticles[0], identification: { common_name: "LSD", iupac_name: "edited meanwhile" } },
       mockDevArticles[1],
