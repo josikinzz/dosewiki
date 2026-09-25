@@ -1,7 +1,15 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+
+import {
+  expectRailMarksUnsaved,
+  renderInDevShell,
+  switchTabExpectingGuard,
+} from "../../pages/devShellTestHarness";
 import { PlaylistsTab } from "./PlaylistsTab";
 import { isDraftDirty, moveSlug, type OwnedPlaylist } from "./playlistsModel";
 
@@ -336,6 +344,39 @@ describe("PlaylistsTab", () => {
     await user.click(await screen.findByRole("button", { name: "Discard changes" }));
     await waitFor(() => expect(screen.queryByLabelText(/Name/)).toBeNull());
     expect(window.location.pathname).toBe("/dev/playlists");
+  });
+
+  it("reports an unsaved playlist to the shell: a rail dot, and a guard on tab switch", async () => {
+    const user = userEvent.setup();
+    stubPlaylistsApi([mine]);
+    const { nav, onTabChange } = renderInDevShell(<PlaylistsTab isAdmin={false} />, { tab: "playlists", role: "editor" });
+
+    await screen.findByText("Ada's list");
+    await user.click(rowFor("adas-list").getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText(/Name/), " extended");
+
+    expectRailMarksUnsaved(nav, "Playlists");
+    const dialog = switchTabExpectingGuard(nav, onTabChange);
+    expect(within(dialog).getByText("Playlists: “Ada's list extended”")).toBeTruthy();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Discard" }));
+    expect(onTabChange).toHaveBeenCalledWith("articles");
+    expect(screen.getByLabelText(/Name/)).toHaveValue("Ada's list");
+  });
+
+  it("leaves unload to the shell", async () => {
+    const user = userEvent.setup();
+    stubPlaylistsApi([mine]);
+    const add = vi.spyOn(window, "addEventListener");
+    render(<PlaylistsTab isAdmin={false} />);
+
+    await screen.findByText("Ada's list");
+    await user.click(rowFor("adas-list").getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText(/Name/), " extended");
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+
+    expect(add.mock.calls.filter(([type]) => type === "beforeunload")).toEqual([]);
+    add.mockRestore();
   });
 
   it("folds a long list behind Show all and unfolds it when a work lands in the hidden tail", async () => {

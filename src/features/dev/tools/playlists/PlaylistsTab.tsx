@@ -30,6 +30,7 @@ import {
   LoadErrorState,
   useConfirm,
   useDirtyGuard,
+  useUnsavedWork,
   type EditorNoticeMessage,
   type SearchablePickerOption,
 } from "@/features/dev/components";
@@ -131,8 +132,18 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   }, [initialKey]);
 
   const isDirty = draft ? isDraftDirty(draft, saved) : false;
+  // The guard keeps in-tool switches (another playlist, New, Close); the shell
+  // owns rail clicks, Leave and unload. Saving reads the change back in a
+  // confirm first, so the shell only discards.
   const { guard, dialog: dirtyDialog } = useDirtyGuard(isDirty, {
     description: "This playlist has changes that are not saved. Discarding drops them; the stored playlist is unchanged.",
+    warnOnUnload: false,
+  });
+  useUnsavedWork({
+    id: "playlists",
+    label: `Playlists: “${draft?.title.trim() || "Untitled"}”`,
+    dirty: isDirty,
+    discard: () => setDraft(saved ? draftOf(saved) : null),
   });
 
   // The address follows the open playlist so a reload or a shared link lands

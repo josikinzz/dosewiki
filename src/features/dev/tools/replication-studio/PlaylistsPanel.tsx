@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { ActionNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
+import { ActionNotice, EditorSection, EditorStatusPill, useUnsavedWork } from "@/features/dev/components";
 
 import type { ReplicationPlaylistSummary } from "./replicationPlaylistModel";
 import type { StudioRow } from "./replicationStudioModel";
@@ -102,6 +102,24 @@ export function PlaylistsPanel({
   } = controller;
   const [deleteTarget, setDeleteTarget] = useState<ReplicationPlaylistSummary | null>(null);
   const titleFieldId = useId();
+  // A saved playlist changes no gallery, so the shell may save it as well as
+  // discard it.
+  const { save, resetDraft } = controller;
+  useUnsavedWork({
+    id: "replications:playlist",
+    tab: "replications",
+    label: `Replications: playlist “${draft?.title.trim() || "Untitled"}”`,
+    dirty: isDirty,
+    saveLabel: "Save playlist",
+    save: isSaving
+      ? undefined
+      : async () => {
+          if (!(await save())) {
+            throw new Error("The playlist was not saved. The reason is shown in Playlists.");
+          }
+        },
+    discard: resetDraft,
+  });
 
   return (
     <EditorSection

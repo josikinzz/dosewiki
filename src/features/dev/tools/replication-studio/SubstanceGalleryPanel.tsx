@@ -23,6 +23,7 @@ import {
   EditorStatusPill,
   EditorToolbar,
   LoadErrorState,
+  useUnsavedWork,
 } from "@/features/dev/components";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 
@@ -171,6 +172,15 @@ export function SubstanceGalleryPanel({
     undoable,
     redoable,
   } = controller;
+  // A showcase save changes a live article gallery, so the shell only discards.
+  useUnsavedWork({
+    id: "replications:showcase",
+    tab: "replications",
+    label: `Replications: ${substanceSlug ?? "drug"} showcase`,
+    dirty: isDirty,
+    publishesLive: true,
+    discard: controller.handleDiscard,
+  });
 
   /**
    * Excluding the last row in a band leaves no neighbour to receive focus, so

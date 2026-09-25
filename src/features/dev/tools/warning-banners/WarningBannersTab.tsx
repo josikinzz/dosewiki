@@ -38,6 +38,7 @@ import {
 import {
   useConfirm,
   useDirtyGuard,
+  useUnsavedWork,
   type EditorActionStatusState,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
@@ -179,7 +180,9 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   const draft = useMemo(() => (editor ? composeDraft(editor) : null), [editor]);
   // Replacing the open draft (another preset, New preset, Coverage's Edit, or
   // closing the drawer) asks first while it holds unsaved work.
-  const { guard: guardDraft, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty);
+  // The shell owns rail clicks, Leave and unload; this guard keeps the
+  // in-tool switches.
+  const { guard: guardDraft, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, { warnOnUnload: false });
 
   /**
    * The site-wide glyph size. Its own query, draft, save state and notice, none
@@ -541,6 +544,29 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       });
     }
   }, [iconSize, invalidateEditorReads]);
+
+  // Both drafts would go live on save (a preset on its articles, the size on
+  // every banner), so the shell only discards them.
+  useUnsavedWork({
+    id: "banners:preset",
+    tab: "banners",
+    label: `Banners: ${draft?.headline.trim() || draft?.key || "new preset"}`,
+    dirty: isDirty,
+    publishesLive: true,
+    discard: () =>
+      setEditor((current) => (current?.origin ? editorFor(current.origin, BLANK_PRESET) : null)),
+  });
+  useUnsavedWork({
+    id: "banners:icon-size",
+    tab: "banners",
+    label: "Banners: icon size for every banner",
+    dirty: iconSizeDirty,
+    publishesLive: true,
+    discard: () => {
+      setIconSizeDraft(null);
+      setIconSizeSaveState("idle");
+    },
+  });
 
   if (rows === undefined) {
     if (rowsError) {

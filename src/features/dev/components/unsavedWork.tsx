@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 /**
- * One tool's unsaved work, as the shell sees it. `id` is the rail tab that
- * holds the work, so the rail can mark it. `save` is optional: work with no
+ * One tool's unsaved work, as the shell sees it. `id` names the work and is
+ * the rail tab that holds it, so the rail can mark it. A tool with several
+ * editable scopes registers one entry per scope, each with its own `id` and
+ * the shared `tab`. `save` is optional: work with no
  * one-step save (a draft that still needs its own review step) offers only
  * Discard.
  *
@@ -15,6 +17,8 @@ import { ConfirmDialog } from "./ConfirmDialog";
  */
 export interface UnsavedWorkEntry {
   id: string;
+  /** The rail tab that holds this work, when `id` is a scope inside it. Defaults to `id`. */
+  tab?: string;
   label: string;
   dirty: boolean;
   save?: () => Promise<void>;
@@ -36,7 +40,8 @@ export type UnsavedWorkExit = "tab" | "leave";
 export interface UnsavedWorkRegistry {
   /** Every registered entry that is dirty right now, in registration order. */
   dirtyEntries: readonly UnsavedWorkEntry[];
-  isDirty: (id: string) => boolean;
+  /** Whether any dirty entry lives on this rail tab. */
+  isDirty: (tab: string) => boolean;
   /**
    * Runs `proceed` at once when nothing would be lost. Otherwise opens the one
    * dialog, and runs `proceed` only after every listed entry is saved or
@@ -162,7 +167,10 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
     if (savingId === null) setPending(null);
   }, [savingId]);
 
-  const isDirty = useCallback((id: string) => dirtyEntries.some((entry) => entry.id === id), [dirtyEntries]);
+  const isDirty = useCallback(
+    (tab: string) => dirtyEntries.some((entry) => (entry.tab ?? entry.id) === tab),
+    [dirtyEntries],
+  );
   const value = useMemo<RegistryContext>(
     () => ({ dirtyEntries, isDirty, confirmExit, register }),
     [dirtyEntries, isDirty, confirmExit, register],
@@ -241,7 +249,7 @@ export function useUnsavedWork(entry: UnsavedWorkEntry): void {
   useEffect(() => {
     latest.current = entry;
   });
-  const { id, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive } = entry;
+  const { id, tab, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive } = entry;
   const canSave = entry.save !== undefined && !publishesLive;
   const register = registry?.register;
 
@@ -249,6 +257,7 @@ export function useUnsavedWork(entry: UnsavedWorkEntry): void {
     if (!register) return;
     return register({
       id,
+      tab,
       label,
       dirty,
       saveLabel,
@@ -257,5 +266,5 @@ export function useUnsavedWork(entry: UnsavedWorkEntry): void {
       save: canSave ? () => latest.current.save?.() ?? Promise.resolve() : undefined,
       discard: () => latest.current.discard(),
     });
-  }, [register, id, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive, canSave]);
+  }, [register, id, tab, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive, canSave]);
 }

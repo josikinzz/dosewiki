@@ -93,15 +93,6 @@ export function usePlaylistsController({
   }, [draft, savedPlaylist]);
 
   useEffect(() => { onDirtyChange?.(isDirty); }, [isDirty, onDirtyChange]);
-  useEffect(() => {
-    if (!isDirty) return;
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [isDirty]);
 
   const applyTransition = useCallback((transition: Exclude<DraftTransition, { kind: "open" }>) => {
     if (savingRef.current) return;
@@ -171,11 +162,12 @@ export function usePlaylistsController({
     setSaveState("idle");
   }, [draft, savedPlaylist]);
 
-  const save = useCallback(async () => {
-    if (savingRef.current || !draft) return;
+  /** Resolves true once the playlist is stored; every failure is reported in the panel. */
+  const save = useCallback(async (): Promise<boolean> => {
+    if (savingRef.current || !draft) return false;
     if (draft.title.trim().length === 0 || draft.key.length === 0) {
       setFeedback({ tone: "warning", message: "A playlist needs a name before it can be saved." });
-      return;
+      return false;
     }
     savingRef.current = true;
     keyedRequestRef.current += 1;
@@ -189,12 +181,12 @@ export function usePlaylistsController({
       if (response.status === 409) {
         setSaveState("idle");
         setFeedback({ tone: "warning", message: `"${draft.title}" changed since you opened it. Reload the playlists to see the stored version before saving again.` });
-        return;
+        return false;
       }
       if (!response.ok) {
         setSaveState("idle");
         setFeedback({ tone: "danger", message: await readError(response, `Could not save "${draft.title}".`) });
-        return;
+        return false;
       }
       const payload = (await response.json()) as { playlist: ReplicationPlaylist & { pruned: string[] } };
       const stored = payload.playlist;
@@ -208,9 +200,11 @@ export function usePlaylistsController({
       setFeedback(stored.pruned.length > 0
         ? { tone: "warning", message: `Saved "${stored.title}". ${stored.pruned.length} ${stored.pruned.length === 1 ? "entry" : "entries"} named a work that no longer exists or is excluded everywhere, and were dropped.` }
         : { tone: "success", message: `Saved "${stored.title}".` });
+      return true;
     } catch {
       setSaveState("idle");
       setFeedback({ tone: "danger", message: "Could not reach the playlists endpoint." });
+      return false;
     } finally {
       savingRef.current = false;
     }

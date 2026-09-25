@@ -156,16 +156,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     [galleryDirty, leaveSubstances],
   );
 
-  useEffect(() => {
-    if (!galleryDirty && !editorDirty) return;
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [galleryDirty, editorDirty]);
-
   /** Runs `change` now, or once the editor confirms throwing its draft away. */
   const guardDraft = useCallback(
     (change: () => void) => {
