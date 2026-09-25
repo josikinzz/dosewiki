@@ -102,7 +102,7 @@ export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, 
         />
         <span className="flex flex-1 items-center gap-3">
           {/* Decorative: the header's accessible name already carries these counts. */}
-          <span aria-hidden="true" className="hidden h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-[var(--theme-field-surface)] shadow-[inset_0_0_0_1px_var(--theme-border-subtle)] sm:flex">
+          <span aria-hidden="true" className="hidden h-1.5 w-20 shrink-0 overflow-hidden rounded-full theme-progress-track sm:flex">
             <span className="block h-full bg-[var(--theme-accent)]" style={{ width: `${totals.total ? ((totals.total - totals.draft - totals.unchecked) / totals.total) * 100 : 0}%` }} />
           </span>
           <span className="theme-text-muted text-xs tabular-nums">{standing}</span>

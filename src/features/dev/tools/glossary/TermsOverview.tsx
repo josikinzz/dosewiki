@@ -71,7 +71,7 @@ export function TermsOverview({ counts, next, canAdmin, pendingCount, nothingTra
         aria-valuemax={total}
         aria-valuenow={counts.approved}
         aria-valuetext={`${counts.approved} of ${count(total, "term")} approved; ${counts.unchecked} live, never checked`}
-        className="flex h-2 overflow-hidden rounded-full bg-[var(--theme-field-surface)] shadow-[inset_0_0_0_1px_var(--theme-border-subtle)]"
+        className="flex h-2 overflow-hidden rounded-full theme-progress-track"
       >
         <span className="block h-full bg-[var(--theme-accent)]" style={{ width: share(counts.approved) }} />
         <span className="block h-full bg-[var(--theme-warning-text)] opacity-60" style={{ width: share(counts.unchecked) }} />

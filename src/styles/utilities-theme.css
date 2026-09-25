@@ -4577,3 +4577,9 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 .theme-ring-accent-strong {
   --tw-ring-color: var(--theme-accent-strong);
 }
+
+/* Thin progress track with a hairline inset edge (glossary coverage bars). */
+.theme-progress-track {
+  background-color: var(--theme-field-surface);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
