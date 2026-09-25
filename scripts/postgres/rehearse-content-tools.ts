@@ -346,7 +346,7 @@ async function main() {
 
       const created = await client.mutation(api.moleculeOverrides.save, { ...adminActor, slug, svg: svg1, molblock, smiles: "C", boldBonds: [0], updatedBy: adminActor.actorEmail });
       const row = await client.query(api.moleculeOverrides.getBySlug, { slug });
-      expect(S, "authorized save creates an editor-sourced row", created.updated === false && row?.svg === svg1 && row.source === "editor" && JSON.stringify(row.boldBonds) === "[0]", created);
+      expect(S, "authorized save creates an editor-sourced row", created.status === "ok" && created.updated === false && row?.svg === svg1 && row.source === "editor" && JSON.stringify(row.boldBonds) === "[0]", created);
       const index = await adapter.getPublicMoleculeOverrideSummaries();
       const indexed = index.find((entry) => entry.slug === slug);
       expect(S, "override index (PublicDataReadAdapter, DATA_BACKEND=postgres) lists the new depiction", indexed?.updatedAt === row?.updatedAt, indexed);
@@ -356,10 +356,10 @@ async function main() {
 
       const changed = await client.mutation(api.moleculeOverrides.save, { ...adminActor, slug, svg: svg2, molblock });
       const row2 = await client.query(api.moleculeOverrides.getBySlug, { slug });
-      expect(S, "re-save with new svg patches the row and advances the revision", changed.updated === true && changed.id === created.id && row2?.svg === svg2 && row2.updatedAt > (row?.updatedAt ?? "") && row2.boldBonds === undefined, { before: row?.updatedAt, after: row2?.updatedAt });
+      expect(S, "re-save with new svg patches the row and advances the revision", changed.status === "ok" && created.status === "ok" && changed.updated === true && changed.id === created.id && row2?.svg === svg2 && row2.updatedAt > (row?.updatedAt ?? "") && row2.boldBonds === undefined, { before: row?.updatedAt, after: row2?.updatedAt });
       expect(S, "public molecule read reflects the change", (await adapter.getPublicMoleculeBySlug(slug))?.svg === svg2);
       const unchangedSvg = await client.mutation(api.moleculeOverrides.save, { ...adminActor, slug, svg: svg2, molblock: `${molblock}\n` });
-      expect(S, "identical svg keeps its published revision", unchangedSvg.updated === true && (await client.query(api.moleculeOverrides.getBySlug, { slug }))?.updatedAt === row2?.updatedAt);
+      expect(S, "identical svg keeps its published revision", unchangedSvg.status === "ok" && unchangedSvg.updated === true && (await client.query(api.moleculeOverrides.getBySlug, { slug }))?.updatedAt === row2?.updatedAt);
 
       const editorSave = await failure(() => client.mutation(api.moleculeOverrides.save, { ...editorActor, slug, svg: svg1, molblock }));
       expect(S, "editor-role actor is refused", isAuthRefusal(editorSave) && /Admin access required/.test(errorMessage(editorSave)), errorMessage(editorSave));

@@ -110,6 +110,58 @@ describe("molecule override route", () => {
     });
   });
 
+  it("relays the expected revision and answers a stale save with 409 and no publication", async () => {
+    mocks.mutation.mockResolvedValue({
+      status: "conflict",
+      server: { updatedAt: "2026-09-02T00:00:00.000Z", updatedBy: "OTHER" },
+    });
+    const response = await POST(
+      postRequest({
+        slug: "2c-b",
+        molblock: "mol",
+        svg: "<svg />",
+        expectedUpdatedAt: "2026-09-01T00:00:00.000Z",
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.conflict).toEqual({ updatedAt: "2026-09-02T00:00:00.000Z", updatedBy: "OTHER" });
+    expect(body.error).toMatch(/saved this depiction after you opened it/);
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      "moleculeOverrides.save",
+      expect.objectContaining({ expectedUpdatedAt: "2026-09-01T00:00:00.000Z" }),
+    );
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
+  });
+
+  it("returns the stored revision after a save so the next save can check it", async () => {
+    mocks.mutation.mockResolvedValue({
+      status: "ok",
+      updated: true,
+      updatedAt: "2026-09-03T00:00:00.000Z",
+    });
+    const response = await POST(
+      postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />", expectedUpdatedAt: null }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ updatedAt: "2026-09-03T00:00:00.000Z" });
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      "moleculeOverrides.save",
+      expect.objectContaining({ expectedUpdatedAt: null }),
+    );
+  });
+
+  it("refuses an empty expected revision before touching Postgres", async () => {
+    const response = await POST(
+      postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />", expectedUpdatedAt: "" }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
   it("publishes the class index alongside a class depiction", async () => {
     mocks.mutation.mockResolvedValue({ updated: true });
     const response = await POST(

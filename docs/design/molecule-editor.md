@@ -61,7 +61,11 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   and floor the viewBox so tiny molecules don't over-zoom. Atom labels are real `<text>`
   elements (Greek included: no glyph hacks), and rounded line caps come from the engine.
 - **Guard:** `stereoGuard.ts` (RDKit) compares edited vs original InChI so a wedge edit that
-  silently inverts a stereocenter (a *different molecule*) is flagged.
+  silently inverts a stereocenter (a *different molecule*) is flagged. A mismatch opens a
+  **Changed chemistry** panel with the before and after InChI, formula and stereocentres
+  (`chemistryDiff.ts`; class and template modes show canonical SMILES). A substance or class
+  whose chemistry changed publishes only after the chemist types its name; the button then
+  reads **Publish changed chemistry**.
 - **Starting structure:** The editor loads `moleculeOverrides.molblock`, including `source:
   "seeded"` baselines. **Revert to auto** runs `smilesToMolblock` from the article SMILES in the
   canvas only. It does not delete or publish anything; the article changes only on Save.
@@ -76,9 +80,11 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   dragging; off, the overlay is `pointer-events: none` and drawing goes straight through it.
   Fade and size are sliders. Session-only: the image lives in an object URL and is never
   uploaded or saved (`TracingLayer.tsx`).
-- **Persistence:** Save POSTs `{ slug, molblock, svg, smiles?, boldBonds? }` to the editor-gated
-  `/api/dev/molecule-override` route, which writes the Postgres `moleculeOverrides` table
-  and revalidates the public substance page. Save marks the row `source: "editor"`. The public
+- **Persistence:** Save POSTs `{ slug, molblock, svg, smiles?, boldBonds?, expectedUpdatedAt? }`
+  to the editor-gated `/api/dev/molecule-override` route, which writes the Postgres
+  `moleculeOverrides` table and revalidates the public substance page. `expectedUpdatedAt` is
+  the revision the editor loaded (`null` when none existed); when someone saved since, the route
+  answers 409, writes nothing, and the editor keeps the edit on the canvas with a notice. Save marks the row `source: "editor"`. The public
   article and chemical-class comparison panels serve the stored SVG through a URL versioned by
   `updatedAt`; the image response is immutable because every save creates a new URL. A short CDN
   revalidation propagation delay can remain. A save does not rewrite the committed

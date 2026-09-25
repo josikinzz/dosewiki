@@ -48,7 +48,9 @@ export function planEnablementChange(
   const noVisibleChange = preset.enabled
     ? "Readers see no change: this preset reaches every article whatever its list says. The list is still stored in production."
     : "Readers see no change: this preset is switched off. The list is still stored in production and applies when you switch it on.";
-  const draftNote = dirty ? " Unsaved edits to its words are saved with it." : "";
+  const draftNote = dirty
+    ? " Your unsaved edits to its words are not published by this change; they stay a draft."
+    : "";
 
   if (change.action === "disable") {
     const nextSlugs = preset.enabledSlugs.filter((slug) => !change.slugs.includes(slug));

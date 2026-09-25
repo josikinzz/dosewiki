@@ -27,7 +27,11 @@ import {
   type TracingLayerState,
 } from "./TracingLayer";
 import type { EditorMode, MoleculeClassTemplate, SaveResult } from "./moleculeEditorTypes";
-import { MoleculeGuardStatus, MoleculePreview } from "./MoleculeEditorWorkbenchStatus";
+import {
+  ChemistryChangePanel,
+  MoleculeGuardStatus,
+  MoleculePreview,
+} from "./MoleculeEditorWorkbenchStatus";
 
 /** One slim row that stays in reach while the canvas scrolls: guard, status, Save. */
 const SAVE_BAR_CLASS =
@@ -84,6 +88,10 @@ interface MoleculeEditorWorkbenchProps {
   onRevert: () => void;
   onRequestRemove: () => void;
   onSave: () => void;
+  /** Name the chemist types to publish changed chemistry; null when no typed confirm applies. */
+  publishName: string | null;
+  confirmName: string;
+  onConfirmNameChange: (value: string) => void;
   saveResult: SaveResult | null;
   onDismissSaveResult: () => void;
 }
@@ -135,6 +143,9 @@ export function MoleculeEditorWorkbench({
   onRevert,
   onRequestRemove,
   onSave,
+  publishName,
+  confirmName,
+  onConfirmNameChange,
   saveResult,
   onDismissSaveResult,
 }: MoleculeEditorWorkbenchProps) {
@@ -152,8 +163,8 @@ export function MoleculeEditorWorkbench({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsId = useId();
 
-  const saveLabel = guardMismatch
-    ? "Save anyway"
+  const saveLabel = guardMismatch && publishName
+    ? "Publish changed chemistry"
     : mode === "templates"
       ? "Save template"
       : mode === "classes"
@@ -414,6 +425,15 @@ export function MoleculeEditorWorkbench({
             active={hasCanvas}
             mode={mode}
           />
+          {guardMismatch && hasCanvas ? (
+            <ChemistryChangePanel
+              guard={guard}
+              mode={mode}
+              publishName={publishName}
+              confirmName={confirmName}
+              onConfirmNameChange={onConfirmNameChange}
+            />
+          ) : null}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             {hasCanvas && (saving || dirty) ? (
               <EditorActionStatus status={saving ? "saving" : "dirty"} />

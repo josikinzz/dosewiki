@@ -60,6 +60,7 @@ import { useTracingLayer } from "./TracingLayer";
 import { useTemplateApplication } from "./useTemplateApplication";
 import { useMoleculeSourceRead } from "./useMoleculeSourceRead";
 import { useMoleculePickerRead } from "./useMoleculePickerRead";
+import { matchesTypedName } from "./chemistryDiff";
 import { MoleculeEditorModePanel } from "./MoleculeEditorModePanel";
 import { MoleculeEditorWorkbench } from "./MoleculeEditorWorkbench";
 import type {
@@ -138,6 +139,8 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
 
   const [previewSvg, setPreviewSvg] = useState<string | null>(null);
   const [guard, setGuard] = useState<InchiComparison | null>(null);
+  // Typed confirmation that unlocks publishing a structure whose chemistry changed.
+  const [confirmName, setConfirmName] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
@@ -678,6 +681,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setOverrideLoadError(null);
         setTemplateSmilesInput("");
         setTemplateMemberSlug(null);
+        setConfirmName("");
         tracing.clear();
         if (mode === "templates") {
           setTemplateDoc(undefined);
@@ -728,6 +732,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setTemplateLoadError(null);
         setTemplateSmilesInput("");
         setTemplateMemberSlug(null);
+        setConfirmName("");
         tracing.clear();
       };
       if (hasUnsavedChanges) {
@@ -974,8 +979,26 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const dirty = hasUnsavedChanges;
   const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
   const enginesReady = !!ocl && !!rdkit;
+  // Changed chemistry on a live depiction (substance or class) publishes only
+  // after the chemist types its name; templates are not live, so they skip it.
+  const publishName =
+    mode === "substances"
+      ? molecules?.find((item) => item.slug === selected)?.title ?? selected
+      : mode === "classes"
+        ? selectedClass?.label ?? selected
+        : null;
+  const chemistryChanged = guard != null && !guard.match;
+  const chemistryConfirmed =
+    !chemistryChanged || !publishName || matchesTypedName(confirmName, publishName);
   const canSave =
-    enginesReady && dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
+    enginesReady &&
+    dirty &&
+    !!edited &&
+    !!previewSvg &&
+    !saving &&
+    !noStructure &&
+    !renderBlocked &&
+    chemistryConfirmed;
   // Gates all whole-depiction transforms: the two mirror flips and both alignment rotations.
   const canTransform = enginesReady && !!edited && !saving && !noStructure && !renderBlocked;
 
@@ -1125,6 +1148,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       return;
     }
     const saveSlug = mode === "classes" ? `class:${selected}` : selected;
+    // The revision this editor loaded: the stored updatedAt, or null when no
+    // depiction existed. The route answers 409 when someone saved since.
+    const expectedUpdatedAt =
+      overrideDoc === undefined ? undefined : overrideDoc ? overrideDoc.updatedAt : null;
     try {
       const res = await fetch(SAVE_API, {
         method: "POST",
@@ -1135,9 +1162,24 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           svg,
           smiles,
           ...(boldBonds.length > 0 ? { boldBonds } : {}),
+          ...(expectedUpdatedAt !== undefined ? { expectedUpdatedAt } : {}),
         }),
       });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        updatedAt?: string;
+        conflict?: { updatedAt?: string | null; updatedBy?: string | null };
+      };
+      if (res.status === 409) {
+        // Nothing was written; the edit stays on the canvas.
+        const who = body.conflict?.updatedBy || "Someone";
+        setSaveResult({
+          tone: "danger",
+          title: "Someone saved first",
+          message: `${who} saved this depiction after you opened it, so nothing was published. Your edit is still on the canvas. Reload the page to see their version before saving again.`,
+        });
+        return;
+      }
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
       setOverrideDoc({
         slug: saveSlug,
@@ -1146,9 +1188,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         ...(smiles ? { smiles } : {}),
         ...(boldBonds.length > 0 ? { boldBonds } : {}),
         source: "editor",
-        updatedAt: new Date().toISOString(),
+        updatedAt: body.updatedAt ?? new Date().toISOString(),
       });
       setBoldBaseline(boldBonds);
+      setConfirmName("");
       setVariant("saved");
       void invalidateEditorReads(["moleculeOverrides:listSlugs", "moleculeOverrides:getBySlug", "moleculeOverrides:getMetadataBySlug"]);
       setSaveResult({
@@ -1166,7 +1209,17 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, ocl, smiles, mode, previewAtomLabels, boldBonds, invalidateEditorReads]);
+  }, [
+    selected,
+    edited,
+    ocl,
+    smiles,
+    mode,
+    previewAtomLabels,
+    boldBonds,
+    overrideDoc,
+    invalidateEditorReads,
+  ]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {
@@ -1318,6 +1371,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         onRevert={revertToAuto}
         onRequestRemove={requestRemove}
         onSave={() => void save()}
+        publishName={publishName}
+        confirmName={confirmName}
+        onConfirmNameChange={setConfirmName}
         saveResult={saveResult}
         onDismissSaveResult={() => setSaveResult(null)}
       />
