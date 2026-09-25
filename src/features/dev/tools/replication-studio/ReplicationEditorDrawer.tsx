@@ -579,7 +579,7 @@ export function ReplicationEditorDrawer({
   // An unpublished upload's save reaches no public page.
   const allUnpublished = selected.length > 0 && selected.every(isUnpublished);
   useUnsavedWork({
-    id: "replications:inspector",
+    id: "replications/inspector",
     tab: "replications",
     label: `Replications: ${single?.title ?? "open work"}`,
     dirty,
@@ -589,7 +589,7 @@ export function ReplicationEditorDrawer({
     },
   });
   useUnsavedWork({
-    id: "replications:bulk",
+    id: "replications/bulk",
     tab: "replications",
     label: `Replications: bulk edit of ${selected.length} works`,
     dirty: bulkDirty,

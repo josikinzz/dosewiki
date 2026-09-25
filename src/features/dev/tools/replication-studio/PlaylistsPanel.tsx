@@ -105,7 +105,7 @@ export function PlaylistsPanel({
   // discard it.
   const { save, resetDraft } = controller;
   useUnsavedWork({
-    id: "replications:playlist",
+    id: "replications/playlist",
     tab: "replications",
     label: `Replications: playlist “${draft?.title.trim() || "Untitled"}”`,
     dirty: isDirty,

@@ -305,7 +305,7 @@ export function useReplicationIncoming({
   // The tray uploads unpublished, so nothing in it is live either way; the
   // shell can only discard it, since each file still needs its own Upload.
   useUnsavedWork({
-    id: "replications:incoming",
+    id: "replications/incoming",
     tab: "replications",
     label: `Replications: ${incoming.length} ${incoming.length === 1 ? "file" : "files"} in the Incoming tray`,
     dirty: incoming.length > 0,

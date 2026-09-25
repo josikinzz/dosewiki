@@ -129,7 +129,7 @@ export function useFeaturedController({
     loaded &&
     (order.length !== savedOrder.length || order.some((slug, index) => slug !== savedOrder[index]));
   useUnsavedWork({
-    id: "replications:featured",
+    id: "replications/featured",
     tab: "replications",
     label: "Replications: Featured order",
     dirty,

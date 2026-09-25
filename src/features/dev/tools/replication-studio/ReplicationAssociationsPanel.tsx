@@ -467,7 +467,7 @@ export function ReplicationAssociationsPanel({
   // Eligibility decides which live galleries may show the work, so the shell
   // only discards.
   useUnsavedWork({
-    id: "replications:showcase",
+    id: "replications/showcase",
     tab: "replications",
     label: `Replications: ${row.title} drug associations`,
     dirty: isDirty,
