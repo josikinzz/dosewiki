@@ -342,8 +342,8 @@ function TickBox<T>({ item, itemKey, multiSelect }: { item: T; itemKey: string; 
         className={cn(
           "flex size-4 items-center justify-center rounded border transition",
           checked
-            ? "border-[color:var(--theme-accent-strong)] bg-[var(--theme-accent-strong)] text-[color:var(--theme-surface-deep)]"
-            : "border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)]",
+            ? "theme-list-tick-checked"
+            : "theme-list-tick",
         )}
       >
         {checked ? (

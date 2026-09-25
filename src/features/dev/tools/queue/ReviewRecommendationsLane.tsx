@@ -200,7 +200,7 @@ export function ReviewRecommendationsLane({ linkedSlug = null }: { linkedSlug?: 
               key={row.slug}
               data-testid={`recommendation-${row.slug}`}
               aria-current={row.slug === linkedSlug ? "true" : undefined}
-              className={`flex items-start justify-between gap-3${row.slug === linkedSlug ? " rounded-lg ring-1 ring-[var(--theme-accent-strong)] ring-offset-4 ring-offset-transparent" : ""}`}
+              className={`flex items-start justify-between gap-3${row.slug === linkedSlug ? " rounded-lg theme-ring-accent-strong ring-1 ring-offset-4 ring-offset-transparent" : ""}`}
             >
               <EditorCheckbox
                 checked={!row.stale && selected.has(row.slug)}

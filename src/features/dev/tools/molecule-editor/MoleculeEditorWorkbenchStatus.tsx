@@ -94,7 +94,7 @@ export function ChemistryChangePanel({
   return (
     <section
       aria-labelledby={headingId}
-      className="basis-full space-y-3 rounded-lg border border-[color:var(--theme-danger-border)] bg-[var(--theme-danger-bg)] p-3"
+      className="basis-full space-y-3 theme-danger-panel rounded-lg border p-3"
     >
       <h3 id={headingId} className="theme-danger-text text-sm font-semibold">
         Changed chemistry

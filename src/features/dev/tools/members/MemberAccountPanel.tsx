@@ -147,7 +147,7 @@ function MemberAccountControls({
         </Button>
       </section>
 
-      <section className="space-y-3 border-t border-[var(--theme-border-subtle)] pt-4" aria-label="Sign-in">
+      <section className="space-y-3 theme-divider-border border-t pt-4" aria-label="Sign-in">
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => onIssueReset(row)}>
             <Icon icon="lucide:key-round" size={14} />

@@ -4551,3 +4551,29 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 .theme-cutout-glow {
   filter: var(--theme-cutout-glow-filter);
 }
+
+/* Editor-kit semantic classes. They live in the token layer so dev tool
+   components never name a theme variable directly (theme:tokens:check). */
+.theme-review-status-stale {
+  background-color: var(--theme-accent-strong);
+}
+
+.theme-list-tick {
+  border-color: var(--theme-border-subtle);
+  background-color: var(--theme-field-surface);
+}
+
+.theme-list-tick-checked {
+  border-color: var(--theme-accent-strong);
+  background-color: var(--theme-accent-strong);
+  color: var(--theme-surface-deep);
+}
+
+.theme-danger-panel {
+  border-color: var(--theme-danger-border);
+  background-color: var(--theme-danger-bg);
+}
+
+.theme-ring-accent-strong {
+  --tw-ring-color: var(--theme-accent-strong);
+}
