@@ -133,6 +133,9 @@ export function KitCatalog() {
       layout: filtered
         .filter((story) => story.tier === "layout")
         .sort((a, b) => a.name.localeCompare(b.name)),
+      editor: filtered
+        .filter((story) => story.tier === "editor")
+        .sort((a, b) => a.name.localeCompare(b.name)),
     }),
     [filtered],
   );
@@ -185,7 +188,7 @@ export function KitCatalog() {
                 </p>
                 <p className="max-w-[70ch] text-sm text-[var(--theme-text-muted)]">
                   The appearance controls dress the whole document, so every story below is the parity harness for
-                  all four Fun/Pro × day/night combinations. There is one kit: a story that only passes in one
+                  all four Vivid/Clinical × day/night combinations. There is one kit: a story that only passes in one
                   combination is a token or call-site defect, never a reason to fork the component.
                 </p>
               </div>

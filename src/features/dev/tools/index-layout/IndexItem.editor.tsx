@@ -6,7 +6,7 @@ import type { SubstanceArticle, SubstancePriority } from "@/schema";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { ArticleDisplayNameInput, ArticlePrioritySelect } from "@/features/dev/forms/ArticleDisplayFields";
-import { EditorField, EditorNotice, useConfirm } from "@/features/dev/components";
+import { EditorField, Notice, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { proposalSubmittedNotice } from "../proposalSubmission";
@@ -99,7 +99,7 @@ function ItemBody({ initial, slug, returnFocusRef, close }: { initial: Source; s
       <p className="theme-text-faint text-sm">Low and Hide for now remove public listing projections but retain direct article links. High and Normal do not override a separate Hidden index category.</p>
       <Button variant="secondary" disabled={!visibilityDirty || busy || !!source.draft || (uncertain && pending.current?.kind !== "visibility")} onClick={() => confirm({ title: canApprove ? "Publish listing visibility separately?" : "Submit listing visibility separately?", description: `${canApprove ? "Set" : "Propose setting"} ${slug} to ${priority}. Affects the substance index, homepage, category listings, and search projections on both publications${canApprove ? "" : " only after admin approval"}. Direct article links remain; separate Hidden category, Reviewed status, and Review Flags are unchanged. The display-name draft is not included.`, confirmLabel: canApprove ? "Publish listing visibility" : "Submit visibility for review", onConfirm: () => publish("visibility") })}>{canApprove ? "Publish listing visibility" : "Submit visibility for review"}</Button>
       {notice && <p role="status">{notice}</p>}<Button variant="ghost" disabled={busy} onClick={cancel}>Cancel</Button>
-      {proposalId && <EditorNotice notice={proposalSubmittedNotice(`Index metadata for ${slug}`, proposalId)} />}
+      {proposalId && <Notice {...proposalSubmittedNotice(`Index metadata for ${slug}`, proposalId)} />}
       {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before closing.</p>}
     </div>{dialog}
   </ContextualEditorPanel>;

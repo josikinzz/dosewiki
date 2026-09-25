@@ -5,7 +5,7 @@ import type { MouseEvent } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { EditorNotice } from "@/features/dev/components";
+import { Notice } from "@/features/dev/components";
 import { ArticleLayout } from "@/features/article/components/ArticleLayout";
 import ArticleContextBridge from "@/features/article/editing/ArticleContextBridge.editor";
 import type { SubstanceArticle } from "@/schema";
@@ -22,12 +22,8 @@ import type { DraftNavigationGuard } from "@/features/contextual-editing/context
  * would sit, rather than let the reviewer read their absence as a data error.
  */
 const BANNERS_HIDDEN_NOTICE = (
-  <EditorNotice
-    notice={{
-      tone: "neutral",
-      icon: "lucide:eye-off",
-      message: "Warning banners are hidden in review.",
-    }}
+  <Notice
+    tone="neutral" icon="lucide:eye-off" message="Warning banners are hidden in review."
   />
 );
 
@@ -114,14 +110,8 @@ export function ReviewArticleView({
             back. The chrome above stays live, so that route stays open too. */}
         {articleFailed && current ? (
           <div className="mb-4" data-testid="review-article-failed">
-            <EditorNotice
-              notice={{
-                tone: "danger",
-                title: `Could not load ${current.name}`,
-                message:
-                  "The article body did not arrive. Retry, or move on and come back to it.",
-                live: true,
-                actions: (
+            <Notice
+              tone="danger" title={`Could not load ${current.name}`} message="The article body did not arrive. Retry, or move on and come back to it." actions={(
                   <Button
                     variant="glass"
                     size="pill"
@@ -131,8 +121,7 @@ export function ReviewArticleView({
                     <Icon icon="lucide:refresh-cw" size={16} />
                     Retry
                   </Button>
-                ),
-              }}
+                )}
             />
           </div>
         ) : null}
@@ -146,13 +135,8 @@ export function ReviewArticleView({
             data on screen, not about the editing mode. */}
         {articlesRefreshConflict ? (
           <div className="mb-4">
-            <EditorNotice
-              notice={{
-                tone: "warning",
-                title: "Showing an older copy",
-                message:
-                  "This page is held on the data loaded earlier, because unapplied editor changes are keeping the working set from taking updates. The database has moved on since then, so an inline edit may be refused as stale. Apply and commit the pending editor changes, or reload the page, to catch up.",
-              }}
+            <Notice
+              tone="warning" title="Showing an older copy" message="This page is held on the data loaded earlier, because unapplied editor changes are keeping the working set from taking updates. The database has moved on since then, so an inline edit may be refused as stale. Apply and commit the pending editor changes, or reload the page, to catch up."
             />
           </div>
         ) : null}
@@ -176,10 +160,10 @@ export function ReviewArticleView({
           </ArticleContextBridge>
         ) : articleHydrating ? (
           <div aria-busy="true" data-testid="review-article-loading">
-            <EditorNotice notice={{ tone: "info", message: `Loading ${current?.name ?? "the article"}…` }} />
+            <Notice tone="loading" message={`Loading ${current?.name ?? "the article"}…`} />
           </div>
         ) : current && !articleFailed ? (
-          <EditorNotice notice={{ tone: "warning", message: "No article data found for this substance." }} />
+          <Notice tone="warning" message="No article data found for this substance." />
         ) : null}
       </div>
     </>

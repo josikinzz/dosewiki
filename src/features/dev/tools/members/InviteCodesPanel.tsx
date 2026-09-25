@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NestedContentCard } from "@/components/ui/surface";
 import {
-  ActionNotice,
+  Notice,
   EditorField,
   EditorFieldRow,
   EditorSegmentedControl,
@@ -312,12 +312,12 @@ export default function InviteCodesPanel() {
             {isMinting ? "Minting…" : "Mint invite"}
           </Button>
           {mintNotice ? (
-            <ActionNotice
+            <Notice placement="inline"
               tone={mintNotice.tone}
-              onDismiss={() => setMintNotice(null)}
+              dismiss={() => setMintNotice(null)}
             >
               {mintNotice.message}
-            </ActionNotice>
+            </Notice>
           ) : null}
         </div>
       </form>
@@ -370,9 +370,9 @@ export default function InviteCodesPanel() {
               {copyButton("link")}
             </div>
             {copyFailed ? (
-              <ActionNotice tone="danger" onDismiss={() => setCopyFailed(false)}>
+              <Notice placement="inline" tone="danger" dismiss={() => setCopyFailed(false)}>
                 Copy failed. Select the text and copy it by hand.
-              </ActionNotice>
+              </Notice>
             ) : null}
             <p className="theme-text-faint text-xs">
               {getRoleDisplayName(minted.invite.role)}{" "}
@@ -401,12 +401,12 @@ export default function InviteCodesPanel() {
               ]}
             />
             {listNotice ? (
-              <ActionNotice
+              <Notice placement="inline"
                 tone={listNotice.tone}
-                onDismiss={() => setListNotice(null)}
+                dismiss={() => setListNotice(null)}
               >
                 {listNotice.message}
-              </ActionNotice>
+              </Notice>
             ) : null}
             <Button
               type="button"

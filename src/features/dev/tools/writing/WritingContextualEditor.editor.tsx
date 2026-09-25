@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
-import { EditorNotice, EditorSection, EditorToolbar } from "@/features/dev/components";
+import { Notice, EditorSection, EditorToolbar } from "@/features/dev/components";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { WritingEditor } from "./WritingEditor";
@@ -48,7 +48,7 @@ function WritingSession({ slug, writingKind, bylineAuthors, onRetry }: Props & {
         </EditorSection>
       ) : controller.isLoadingRow ? <p role="status">Loading writing…</p> : !controller.loadedRow ? (
         <EditorSection title="Writing could not be loaded" description="Retry loading before making changes.">
-          {controller.notice ? <EditorNotice notice={controller.notice} /> : null}
+          {controller.notice ? <Notice {...controller.notice} /> : null}
           <EditorToolbar><Button onClick={onRetry}>Retry loading</Button><Button variant="outline" onClick={() => setOpen(false)}>Close editor</Button></EditorToolbar>
         </EditorSection>
       ) : <WritingEditor contextual contributorProfiles={[]} profilesLoading={false} controller={controller} canApprove={role === "admin"} bylineAuthors={bylineAuthors} />}

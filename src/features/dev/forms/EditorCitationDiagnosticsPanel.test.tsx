@@ -32,8 +32,8 @@ describe("EditorCitationDiagnosticsPanel", () => {
       screen.getByRole("heading", { level: 3, name: /Citation token preview/ }),
     ).toBeInTheDocument();
 
-    // EditorNotice renders the shared Alert surface rather than a hand-rolled card.
-    expect(screen.getAllByRole("note").length).toBeGreaterThan(0);
+    // Notice renders the shared Alert surface rather than a hand-rolled card.
+    expect(screen.getAllByRole("status").length).toBeGreaterThan(0);
     expect(screen.getByText("Unknown inline reference IDs")).toBeInTheDocument();
 
     const toggle = screen.getByRole("button", { name: /no inline links/ });

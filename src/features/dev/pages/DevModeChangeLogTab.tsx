@@ -15,11 +15,10 @@ import {
 import { describeChange, fieldWords } from "@/data/changelog/articleRecentChanges";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import {
-  ActionNotice,
+  Notice,
   EditorActionGroup,
   EditorField,
   EditorFieldRow,
-  EditorNotice,
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
@@ -129,6 +128,7 @@ function describeWindow(
 export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
   const {
     notice,
+    clearNotice,
     totalEntriesCount,
     filters,
     articleOptions,
@@ -289,12 +289,10 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
 
       <div className="min-w-0 space-y-8">
         {notice && (
-          <EditorNotice
-            notice={{
-              tone: notice.type === "error" ? "danger" : "success",
-              message: notice.message,
-              live: notice.type === "error",
-            }}
+          <Notice
+            tone={notice.type === "error" ? "danger" : notice.type === "pending" ? "loading" : "success"}
+            message={notice.message}
+            dismiss={notice.type === "pending" ? undefined : clearNotice}
           />
         )}
 
@@ -474,12 +472,12 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
                         <div id={diffId} className="space-y-3">
                           <EditorActionGroup label="Save entry actions">
                             {entryFeedback?.entryId === entry.id ? (
-                              <ActionNotice
+                              <Notice placement="inline"
                                 tone={entryFeedback.tone}
-                                onDismiss={clearEntryFeedback}
+                                dismiss={clearEntryFeedback}
                               >
                                 {entryFeedback.message}
-                              </ActionNotice>
+                              </Notice>
                             ) : null}
                             <Button
                               variant="glass"

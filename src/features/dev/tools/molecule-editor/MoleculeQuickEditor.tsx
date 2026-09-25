@@ -24,7 +24,7 @@ import { Button } from "@/components/ui";
 import {
   ConfirmDialog,
   EditorActionStatus,
-  EditorNotice,
+  Notice,
   EditorStatusPill,
 } from "@/features/dev/components";
 import { OclEditor } from "./OclEditor";
@@ -103,35 +103,18 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
 
       {/* fatal renderer / editor failures go first so the tall canvas never hides them */}
       {oclError || rdkitError ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Renderer unavailable",
-            message:
-              "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
-            icon: "lucide:circle-alert",
-          }}
+        <Notice
+          tone="danger" title="Renderer unavailable" message="The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry." icon="lucide:circle-alert"
         />
       ) : canvasError ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Editor unavailable",
-            message:
-              "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
-            icon: "lucide:circle-alert",
-          }}
+        <Notice
+          tone="danger" title="Editor unavailable" message="The structure editor failed to load, so changes can't be saved. Reload the page to retry." icon="lucide:circle-alert"
         />
       ) : null}
 
       {overrideLoadError ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Couldn't load depiction",
-            message: overrideLoadError,
-            live: true,
-          }}
+        <Notice
+          tone="danger" title="Couldn't load depiction" message={overrideLoadError}
         />
       ) : null}
 
@@ -220,19 +203,13 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
           </div>
 
           {saveResult ? (
-            <EditorNotice
+            <Notice
               className="w-full"
-              notice={{
-                tone: saveResult.tone,
-                title: saveResult.tone === "success" ? "Saved" : "Couldn't save",
-                message: saveResult.message,
-                live: true,
-                actions: (
+              tone={saveResult.tone} title={saveResult.tone === "success" ? "Saved" : "Couldn't save"} message={saveResult.message} actions={(
                   <Button variant="outline" size="sm" onClick={dismissSaveResult}>
                     Dismiss
                   </Button>
-                ),
-              }}
+                )}
             />
           ) : null}
         </div>

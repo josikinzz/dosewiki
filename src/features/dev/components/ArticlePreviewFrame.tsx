@@ -48,7 +48,7 @@ import type { SubstanceArticle } from "@/schema";
 import type { ColorScheme } from "@/theme";
 import { draftMoleculeImageUrl, previewBannerStack } from "./articlePreviewModel";
 import { EditorSegmentedControl } from "./EditorNavigation";
-import { EditorNotice, type EditorNoticeMessage } from "./EditorNotice";
+import { Notice, type NoticeMessage } from "./Notice";
 import { EditorToolbar } from "./EditorToolbar";
 import { SearchablePicker } from "./SearchablePicker";
 
@@ -338,7 +338,7 @@ export function ArticlePreviewFrame({
     focus?.scrollIntoView?.({ block: "start" });
   }, [body, article, width]);
 
-  const notices: EditorNoticeMessage[] = [];
+  const notices: NoticeMessage[] = [];
   if (bannerStack?.forced) {
     notices.push({
       tone: "neutral",
@@ -437,7 +437,7 @@ export function ArticlePreviewFrame({
       </EditorToolbar>
 
       {notices.map((notice, index) => (
-        <EditorNotice key={index} notice={notice} />
+        <Notice key={index} {...notice} />
       ))}
 
       <div

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 
 import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Surface } from "@/components/ui/surface";
-import { EditorNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
+import { Notice, EditorSection, EditorStatusPill } from "@/features/dev/components";
 import type { EditorSectionProps } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 import { buildEditorReferenceDiagnostics } from "@/lib/citations/editorReferenceDiagnostics";
@@ -42,15 +42,13 @@ function WarningList({
   );
 
   if (!collapsible) {
-    return <EditorNotice headingLevel={headingLevel} notice={{ tone: "warning", title, message: badges }} />;
+    return <Notice headingLevel={headingLevel} tone="warning" title={title} message={badges} />;
   }
 
   return (
-    <EditorNotice
+    <Notice
       headingLevel={headingLevel}
-      notice={{
-        tone: "warning",
-        title: (
+      tone="warning" title={(
           <button
             type="button"
             onClick={() => setIsExpanded((value) => !value)}
@@ -63,9 +61,7 @@ function WarningList({
               <ExpandIndicator isExpanded={isExpanded} />
             </span>
           </button>
-        ),
-        message: isExpanded ? badges : null,
-      }}
+        )} message={isExpanded ? badges : null}
     />
   );
 }

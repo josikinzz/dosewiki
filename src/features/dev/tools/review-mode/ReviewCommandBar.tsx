@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
-import { EditorNotice } from "@/features/dev/components";
+import { Notice } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 import {
   CITATION_PANEL_ID,
@@ -591,8 +591,8 @@ export function ReviewCommandBar({
 
       {tickError ? (
         <div className="mx-auto max-w-[1500px] px-3 pb-2 sm:px-5">
-          <EditorNotice
-            notice={{ tone: "danger", message: tickError, live: true }}
+          <Notice
+            tone="danger" message={tickError}
           />
         </div>
       ) : null}

@@ -1,7 +1,7 @@
 import { Icon } from "@/components/common/Icon";
 import { Button, Input } from "@/components/ui";
 import {
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -204,15 +204,15 @@ export function MoleculeEditorModePanel({
       ) : null}
 
       {mode === "templates" && selected && templateLoadError ? (
-        <EditorNotice
+        <Notice
           className="mt-4"
-          notice={{ tone: "danger", title: "Couldn't load template", message: templateLoadError, live: true }}
+          tone="danger" title="Couldn't load template" message={templateLoadError}
         />
       ) : null}
       {mode !== "templates" && selected && overrideLoadError ? (
-        <EditorNotice
+        <Notice
           className="mt-4"
-          notice={{ tone: "danger", title: "Couldn't load depiction", message: overrideLoadError, live: true }}
+          tone="danger" title="Couldn't load depiction" message={overrideLoadError}
         />
       ) : null}
       {mode === "templates" && selected && templateDoc === null && !source && !templateLoadError ? (

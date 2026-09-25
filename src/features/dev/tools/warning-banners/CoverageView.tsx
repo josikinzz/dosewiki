@@ -35,7 +35,7 @@ import {
 } from "@/data/substanceWarningBanners";
 import {
   EditorListItem,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSelect,
   EditorStatusPill,
@@ -189,16 +189,13 @@ export function CoverageView({
               }
             >
               {!target && targets.length > 0 ? (
-                <EditorNotice
-                  notice={{
-                    tone: "warning",
-                    message: (
+                <Notice
+                  tone="warning" message={(
                       <>
                         <span className="font-mono">{activeSlug}</span>
                         {" is not in the loaded substance list. Any banner below still renders, because enablement is by slug."}
                       </>
-                    ),
-                  }}
+                    )}
                 />
               ) : null}
 
@@ -269,20 +266,16 @@ export function CoverageView({
               )}
 
               {suppressed.map((preset) => (
-                <EditorNotice
+                <Notice
                   key={preset.key}
-                  notice={{
-                    tone: "warning",
-                    title: `Over the ${MAX_BANNERS_PER_ARTICLE}-banner cap`,
-                    message: (
+                  tone="warning" title={`Over the ${MAX_BANNERS_PER_ARTICLE}-banner cap`} message={(
                       <>
                         <span className="font-mono">{preset.key}</span>
                         {" is enabled on "}
                         <span className="font-mono">{activeSlug}</span>
                         {" but will not render. Disable one of the banners above, or disable this one."}
                       </>
-                    ),
-                  }}
+                    )}
                 />
               ))}
             </EditorSection>

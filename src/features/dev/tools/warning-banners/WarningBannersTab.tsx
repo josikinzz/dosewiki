@@ -40,7 +40,7 @@ import {
   useDirtyGuard,
   useUnsavedWork,
   type EditorActionStatusState,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import { WarningBannersBoundary } from "./WarningBannersBoundary";
@@ -179,7 +179,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const [editor, setEditor] = useState<PresetEditor | null>(null);
   const [iconValid, setIconValid] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const isDirty = editor ? isCopyDirty(editor) || isScopeDirty(editor) : false;
@@ -208,7 +208,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
    */
   const [iconSizeDraft, setIconSizeDraft] = useState<string | null>(null);
   const [iconSizeSaveState, setIconSizeSaveState] = useState<SaveState>("idle");
-  const [iconSizeNotice, setIconSizeNotice] = useState<EditorNoticeMessage | null>(null);
+  const [iconSizeNotice, setIconSizeNotice] = useState<NoticeMessage | null>(null);
 
   useEffect(() => {
     if (view !== "coverage" && editor === null) return;

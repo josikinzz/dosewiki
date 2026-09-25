@@ -14,7 +14,7 @@ import {
   type TagUsage,
 } from "@/utils/data/tagRegistry";
 import type { SubstanceArticle } from "@/schema";
-import type { Notice, NoticeSource, SelectedTag, TagUndo } from "./types";
+import type { TagNoticeState, NoticeSource, SelectedTag, TagUndo } from "./types";
 
 type TagEditorEffect = | { kind: "tagMutation"; id: number; mutation: TagMutation }
 | { kind: "undoMutation"; id: number; undo: TagUndo }
@@ -36,7 +36,7 @@ export type TagEditorState = {
   moveLabel: string;
   keepSourceCopy: boolean;
   deleteConfirmed: boolean;
-  notice: Notice | null;
+  notice: TagNoticeState | null;
   isApplying: boolean;
   registry: TagRegistry;
   /** The last rewrite that can still be put back, until the next one lands. */
@@ -156,7 +156,7 @@ const nextEffect = (
  * A success notice that still offers Undo stays put while the editor looks at
  * other tags; everything else is stale the moment the selection moves.
  */
-const carriedNotice = (state: TagEditorState): Notice | null =>
+const carriedNotice = (state: TagEditorState): TagNoticeState | null =>
   state.undo && state.notice?.type === "success" && state.notice.source === state.undo.source
     ? state.notice
     : null;
@@ -231,7 +231,7 @@ const effectNoticeSource = (effect: TagEditorEffect | null): NoticeSource => {
 const completeMatchingEffect = (
   state: TagEditorState,
   effectId: number,
-  notice: Notice,
+  notice: TagNoticeState,
 ): TagEditorState => {
   if (state.pendingEffect?.id !== effectId) {
     return state;

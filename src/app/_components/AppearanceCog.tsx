@@ -273,7 +273,7 @@ export function AppearanceCog({
                   }}
                   className="theme-focus-ring inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
                 >
-                  <Icon icon="ri:wrench-line" size={14} />
+                  <Icon icon="lucide:palette" size={14} />
                   <span>{t("Theme Lab")}</span>
                 </button>
               ) : null

@@ -11,12 +11,47 @@ import {
   EditorPanelBody,
   EditorSection,
   EditorStatusPill,
+  Notice,
 } from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
 import { articleCount } from "./tagEditorStateMachine";
-import { TagNotice } from "./TagNotice";
-import type { NoticeSource, TagMutationFormsProps } from "./types";
+import type { NoticeSource, TagMutationFormsProps, TagNoticeState, TagUndo } from "./types";
+
+/**
+ * A tool notice. A success that can still be reversed carries its own Undo,
+ * so the record of what changed and the way back sit together.
+ */
+export function TagFeedback({
+  notice,
+  undo = null,
+  onUndo,
+  busy = false,
+  onDismiss,
+}: {
+  notice: TagNoticeState;
+  undo?: TagUndo | null;
+  onUndo?: () => void;
+  busy?: boolean;
+  onDismiss?: () => void;
+}) {
+  const canUndo = notice.type === "success" && undo !== null && onUndo !== undefined;
+  return (
+    <Notice
+      placement="inline"
+      tone={notice.type === "error" ? "danger" : "success"}
+      dismiss={onDismiss}
+      actions={canUndo ? (
+        <Button type="button" variant="glass" size="xs" className="rounded-full" onClick={onUndo} disabled={busy}>
+          <Icon icon="lucide:undo-2" size={14} />
+          Undo {undo.action.toLowerCase()}
+        </Button>
+      ) : undefined}
+    >
+      {notice.message}
+    </Notice>
+  );
+}
 
 export function TagMutationForms({
   selectedUsage,
@@ -41,7 +76,7 @@ export function TagMutationForms({
   const affected = articleCount(selectedUsage.count);
   const noticeFor = (source: NoticeSource) =>
     notice?.source === source ? (
-      <TagNotice
+      <TagFeedback
         notice={notice}
         undo={undo?.source === source ? undo : null}
         onUndo={onUndo}

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   EditorActionGroup,
   EditorField,
-  EditorNotice,
+  Notice,
   EditorStatusPill,
   EditorToolbar,
 } from "@/features/dev/components";
@@ -160,7 +160,7 @@ export function ProposalReview({
         </section>
       ) : null}
       {proposal.status === "changes_requested" && proposal.conflictReason ? (
-        <EditorNotice notice={{ tone: "warning", title: "Why a revision was requested", message: proposal.conflictReason, live: true }} />
+        <Notice tone="warning" title="Why a revision was requested" message={proposal.conflictReason} />
       ) : null}
 
       {canLoad ? (
@@ -223,11 +223,7 @@ export function ProposalReview({
 
       <section className="space-y-2">
         {proposal.comparisonMode === "unavailable" ? (
-          <EditorNotice notice={{
-            tone: "warning",
-            title: "Historical comparison unavailable",
-            message: proposal.comparisonNote ?? "This older submission has no verifiable comparison. Prepare a new submission from the current editor before approval.",
-          }} />
+          <Notice tone="warning" title="Historical comparison unavailable" message={proposal.comparisonNote ?? "This older submission has no verifiable comparison. Prepare a new submission from the current editor before approval."} />
         ) : (
           <p className="theme-text-muted text-sm">
             {proposal.comparisonMode === "applied"

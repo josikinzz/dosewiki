@@ -30,7 +30,7 @@ import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import {
-  ActionNotice,
+  Notice,
   EditorActionGroup,
   EditorActionStatus,
   EditorCheckbox,
@@ -39,7 +39,7 @@ import {
   EditorToolbar,
   TagToken,
   useUnsavedWork,
-  type ActionNoticeTone,
+  type NoticeTone,
 } from "@/features/dev/components";
 import { isShowcaseEligible } from "@/data/substanceReplicationGallery";
 
@@ -64,7 +64,7 @@ import {
 
 const ASSOCIATIONS_API = "/api/dev/replications/associations";
 
-type Feedback = { tone: ActionNoticeTone; message: string };
+type Feedback = { tone: NoticeTone; message: string };
 
 /**
  * A string discriminant, not `ok: boolean`, chosen while the project compiled
@@ -652,17 +652,17 @@ export function ReplicationAssociationsPanel({
           </EditorToolbar>
 
           {isDirty && summary.curatedAtRisk.length > 0 ? (
-            <ActionNotice tone="warning">
+            <Notice placement="inline" tone="warning">
               {`Saving will drop ${summary.curatedAtRisk.length} curated ${plural(summary.curatedAtRisk.length, "position", "positions")}: ${summary.curatedAtRisk
                 .map((entry) => `${entry.title} (position ${entry.curatedPosition})`)
                 .join(", ")}. Those drugs pinned this replication, so excluding it also un-curates it.`}
-            </ActionNotice>
+            </Notice>
           ) : null}
 
           {feedback ? (
-            <ActionNotice tone={feedback.tone} onDismiss={() => setFeedback(null)}>
+            <Notice placement="inline" tone={feedback.tone} dismiss={() => setFeedback(null)}>
               {feedback.message}
-            </ActionNotice>
+            </Notice>
           ) : null}
 
           {groups.map((group) => (

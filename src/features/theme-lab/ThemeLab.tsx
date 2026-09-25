@@ -607,7 +607,7 @@ export function ThemeLab() {
     >
       <header className={styles.panelHeader}>
         <div className={styles.titleBlock}>
-          <Icon icon="ri:wrench-line" size={22} className={styles.titleMark} />
+          <Icon icon="lucide:palette" size={22} className={styles.titleMark} />
           <div>
             <h2 className={styles.title}>Theme Lab</h2>
             {/* Never promise persistence we cannot deliver: when the browser

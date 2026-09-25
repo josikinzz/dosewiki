@@ -6,7 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { ArticleChangeDiff } from "@/features/article/editing/ArticleChangeDiff";
-import { EditorNotice } from "@/features/dev/components";
+import { Notice } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 
 const PANEL_ID = "review-changes-since-review";
@@ -85,7 +85,7 @@ export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewe
         {open ? (
           <div id={PANEL_ID} className="border-t border-dose-border p-4">
             {loading ? <p role="status" className="theme-text-muted text-sm">Loading the changes since review…</p> : null}
-            {error ? <EditorNotice notice={{ tone: "danger", message: error, live: true }} /> : null}
+            {error ? <Notice tone="danger" message={error} /> : null}
             {changes ? <ArticleChangeDiff before={changes.signed} after={changes.current} /> : null}
           </div>
         ) : null}

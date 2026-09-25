@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import {
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorStatusPill,
   LoadErrorState,
@@ -141,7 +141,7 @@ function ProfilePane({ controller }: { controller: ContributorsController }) {
   const { notice, detail, detailError, isDetailLoading, retryDetail } = controller;
   return (
     <div className="space-y-6">
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} /> : null}
       {detailError ? <LoadErrorState message={detailError} onRetry={retryDetail} busy={isDetailLoading} /> : null}
       {isDetailLoading && !detail ? <StateCard loading compact title="Loading profile" /> : null}
       <ContributorProfileEditor controller={controller} linkedAccount={null} />

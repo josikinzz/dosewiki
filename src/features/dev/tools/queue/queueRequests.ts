@@ -13,6 +13,7 @@ import type {
   RecommendationApproval,
   ReviewRecommendationRow,
 } from "./queueModel";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 const BASE_PATH = "/api/dev/proposals";
 
@@ -128,27 +129,14 @@ async function postJson(
   );
 }
 
-async function requestJson(
+function requestJson(
   url: string,
   init: RequestInit | undefined,
   messages: { network: string; failure: string },
-): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = init ? await fetch(url, init) : await fetch(url);
-  } catch {
-    throw new Error(messages.network);
-  }
-
-  const payload: unknown = await response.json().catch(() => null);
-  const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
-    ? payload as Record<string, unknown>
-    : null;
-  if (!response.ok) {
-    throw new QueueRequestError(typeof record?.error === "string" ? record.error : messages.failure, response.status);
-  }
-  if (!record) {
-    throw new Error("The server returned an unreadable response. Refresh to check the latest status.");
-  }
-  return record;
+) {
+  return devFetch(url, {
+    ...init,
+    messages: { ...messages, unreadable: "The server returned an unreadable response. Refresh to check the latest status." },
+    onError: (status, _payload, message) => new QueueRequestError(message, status),
+  });
 }

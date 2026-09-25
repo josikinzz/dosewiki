@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
-  ActionNotice,
+  Notice,
   ConfirmDialog,
   EditorActionStatus,
   EditorSection,
@@ -266,17 +266,17 @@ export function SubstanceGalleryPanel({
       ) : null}
 
       {exclusions.over ? (
-        <ActionNotice tone="danger">
+        <Notice placement="inline" tone="danger">
           This gallery excludes {exclusions.count} works and the limit is {exclusions.limit}, so it will
           not save. Restore some from the Excluded shelf, or use Exclude everywhere on the junk so it
           leaves every gallery at once instead of filling this one.
-        </ActionNotice>
+        </Notice>
       ) : null}
 
       {feedback ? (
-        <ActionNotice tone={feedback.tone} onDismiss={() => controller.setFeedback(null)}>
+        <Notice placement="inline" tone={feedback.tone} dismiss={() => controller.setFeedback(null)}>
           {feedback.message}
-        </ActionNotice>
+        </Notice>
       ) : null}
 
       {conflict ? (
@@ -306,11 +306,11 @@ export function SubstanceGalleryPanel({
       ) : null}
 
       {detail && unknownRightsOnStage > 0 ? (
-        <ActionNotice tone="warning">
+        <Notice placement="inline" tone="warning">
           {unknownRightsOnStage} of the {board.filledSlots} curated works the article will show
           {unknownRightsOnStage === 1 ? " has" : " have"} unknown reuse terms. Advisory only: check the
           rights before featuring them this prominently.
-        </ActionNotice>
+        </Notice>
       ) : null}
 
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
-import { EditorNotice, EditorSection, useConfirm } from "@/features/dev/components";
+import { Notice, EditorSection, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { CopyBlockFields } from "./CopyBlockFields";
 import { buildCopyStudioBlocks, draftFromBlock, draftToText, blockCurrentText, type CopyBlockRow } from "./copyStudioUtils";
@@ -74,7 +74,7 @@ function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: strin
         {dirty ? <DiffPreview diffText={buildTextChangelog(block.label, blockCurrentText(block), text).markdown} /> : <p className="theme-text-muted text-sm">No pending changes.</p>}
       </EditorSection>
       {notice && <p role="status">{notice}</p>}
-      {proposalId && <EditorNotice notice={proposalSubmittedNotice(block.label, proposalId)} />}
+      {proposalId && <Notice {...proposalSubmittedNotice(block.label, proposalId)} />}
       {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before closing.</p>}
       <div className="flex flex-wrap gap-2"><Button disabled={!dirty || saving} onClick={() => canApprove ? confirm({ title: "Publish shared copy?", description: `Publish this diff to every rendering of ${copyKey}. This is not page-local.`, confirmLabel: "Publish shared copy", onConfirm: publish }) : void publish()}>{saving ? (canApprove ? "Publishing…" : "Submitting…") : canApprove ? "Publish copy" : "Submit for review"}</Button><Button variant="secondary" disabled={saving} onClick={requestClose}>Cancel</Button></div>
     </div> : <p>No supported block exists for this key.</p>}{dialog}

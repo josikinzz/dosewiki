@@ -8,6 +8,7 @@
  */
 
 import { sortRoster, type MemberRow } from "../members/membersModel";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 /** One stored link: the profile `key` names the sign-in `membershipEmail`. */
 export type ProfileLink = { key: string; membershipEmail: string };
@@ -178,16 +179,10 @@ export async function setProfileAccount(key: string, email: string | null): Prom
   );
 }
 
-async function requestJson(url: string, init: RequestInit | undefined, failure: string): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = init ? await fetch(url, init) : await fetch(url);
-  } catch {
-    throw new Error("Network error. Nothing changed; try again.");
-  }
-  const payload: Record<string, unknown> = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(typeof payload.error === "string" ? payload.error : failure);
-  }
-  return payload;
+function requestJson(url: string, init: RequestInit | undefined, failure: string) {
+  return devFetch(url, {
+    ...init,
+    messages: { network: "Network error. Nothing changed; try again.", failure },
+    emptyBodyOk: true,
+  });
 }

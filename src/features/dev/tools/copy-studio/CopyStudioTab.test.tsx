@@ -314,7 +314,8 @@ describe("CopyStudioTab", () => {
   it("uses the kit notice while the block loads and when it fails", async () => {
     source.state = { data: undefined, error: null };
     const { rerender } = render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
-    expect(screen.getByRole("note")).toHaveTextContent(/Loading/);
+    expect(screen.getByText(/Loading the stored copy/).closest('[role="status"]')).not.toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
 
     source.state = { data: undefined, error: "The editing source could not be loaded." };
     rerender(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);

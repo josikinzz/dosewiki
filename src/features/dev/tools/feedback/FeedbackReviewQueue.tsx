@@ -15,12 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "@/components/common/Icon";
 import {
-  ActionNotice,
+  Notice,
   EditorActionGroup,
   EditorField,
   EditorList,
   EditorListRow,
-  EditorNotice,
   EditorPanel,
   EditorSection,
   EditorStatusPill,
@@ -962,9 +961,9 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
             </div>
           ) : null}
           {moreState.status === "error" ? (
-            <ActionNotice tone="danger" onDismiss={() => setMoreState({ status: "idle" })}>
+            <Notice placement="inline" tone="danger" dismiss={() => setMoreState({ status: "idle" })}>
               {moreState.message}
-            </ActionNotice>
+            </Notice>
           ) : null}
           <TriageShortcutHint className="mt-3" />
         </EditorSection>
@@ -991,30 +990,20 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           }
         >
           {openLink?.state === "missing" ? (
-            <EditorNotice
-              notice={{
-                tone: "warning",
-                title: MISSING_TASK_TITLE,
-                message: "The link names a feedback item that was removed, or one your role cannot open. Nothing else was selected in its place.",
-                actions: (
+            <Notice
+              tone="warning" title={MISSING_TASK_TITLE} message="The link names a feedback item that was removed, or one your role cannot open. Nothing else was selected in its place." actions={(
                   <Button type="button" variant="outline" size="sm" onClick={leaveLink}>
                     Show the queue
                   </Button>
-                ),
-              }}
+                )}
             />
           ) : openLink?.state === "error" ? (
-            <EditorNotice
-              notice={{
-                tone: "danger",
-                title: "The linked feedback did not load",
-                message: openLink.message,
-                actions: (
+            <Notice
+              tone="danger" title="The linked feedback did not load" message={openLink.message} actions={(
                   <Button type="button" variant="outline" size="sm" onClick={() => void lookUpLinked(openLink.id)}>
                     Try again
                   </Button>
-                ),
-              }}
+                )}
             />
           ) : openLink?.state === "pending" ? (
             <EditorStatusPill tone="info" loading live>
@@ -1257,9 +1246,9 @@ function FeedbackDetail({
         {actionFeedback || undo ? (
           <div className="flex flex-wrap items-center gap-2">
             {actionFeedback ? (
-              <ActionNotice tone={actionFeedback.tone} onDismiss={onDismissFeedback}>
+              <Notice placement="inline" tone={actionFeedback.tone} dismiss={onDismissFeedback}>
                 {actionFeedback.message}
-              </ActionNotice>
+              </Notice>
             ) : null}
             {undo ? (
               <Button type="button" variant="outline" size="sm" disabled={undo.disabled} onClick={undo.onUndo}>

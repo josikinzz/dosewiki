@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useUnsavedWork, type ActionNoticeTone } from "@/features/dev/components";
+import { useUnsavedWork, type NoticeTone } from "@/features/dev/components";
 
 import { incomingReady, type IncomingFile } from "./IncomingTray";
 import {
@@ -18,7 +18,7 @@ import {
 const CORPUS_API = "/api/dev/replications";
 const UPLOAD_URL_API = "/api/dev/replications/upload-url";
 
-type Feedback = { tone: ActionNoticeTone; message: string };
+type Feedback = { tone: NoticeTone; message: string };
 
 type IncomingControllerOptions = {
   rows: readonly StudioRow[];

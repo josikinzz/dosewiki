@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   EditorListItem,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -207,7 +207,7 @@ export function WritingTab({
       >
         {dialog}
         {listError ? (
-          <EditorNotice notice={{ tone: "danger", title: "List unavailable", message: listError }} />
+          <Notice tone="danger" title="List unavailable" message={listError} />
         ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">

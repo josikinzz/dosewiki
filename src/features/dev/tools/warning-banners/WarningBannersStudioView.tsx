@@ -10,12 +10,12 @@ import {
 } from "@/data/substanceWarningBanners";
 import {
   EditorNavTabs,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorStatusPill,
   LoadErrorState,
   type EditorActionStatusState,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 import type { BannerCoverage } from "./bannerCoverage";
@@ -129,8 +129,8 @@ type WarningBannersStudioViewProps = {
   isNew: boolean;
   isDirty: boolean;
   saveState: EditorActionStatusState | "idle";
-  notice: EditorNoticeMessage | null;
-  iconSizeNotice: EditorNoticeMessage | null;
+  notice: NoticeMessage | null;
+  iconSizeNotice: NoticeMessage | null;
   iconSizeControl: BannerIconSizeControl;
   iconValid: boolean;
   /** The `useConfirm` dialog, rendered once here for every guarded write. */
@@ -207,10 +207,10 @@ export function WarningBannersStudioView({
           />
         ) : null}
 
-        {notice ? <EditorNotice notice={notice} /> : null}
+        {notice ? <Notice {...notice} /> : null}
         {/* A second, separate notice. Sharing one would let a preset save and a
             size save overwrite each other's outcome on screen. */}
-        {iconSizeNotice ? <EditorNotice notice={iconSizeNotice} /> : null}
+        {iconSizeNotice ? <Notice {...iconSizeNotice} /> : null}
 
         <EditorNavTabs
           label="Banner Studio views"

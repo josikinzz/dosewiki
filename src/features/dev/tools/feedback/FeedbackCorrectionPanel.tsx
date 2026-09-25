@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ActionNotice, EditorActionGroup, EditorStatusPill, EditorToolbar } from "@/features/dev/components";
+import { Notice, EditorActionGroup, EditorStatusPill, EditorToolbar } from "@/features/dev/components";
 import {
   ARTICLE_SECTION_LABELS,
   isArticleEditorSection,
@@ -28,6 +28,7 @@ import {
 import { devHref } from "@/utils/devHref";
 
 import { formatFeedbackDate } from "./FeedbackReviewQueue";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 /** The section Start correction opens on when the admin picks none: a guess from the category. */
 const CATEGORY_SECTION: Partial<Record<string, ArticleEditorSection>> = {
@@ -272,9 +273,9 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
       ) : null}
 
       {notice ? (
-        <ActionNotice tone={notice.tone} onDismiss={() => setNotice(null)}>
+        <Notice placement="inline" tone={notice.tone} dismiss={() => setNotice(null)}>
           {notice.message}
-        </ActionNotice>
+        </Notice>
       ) : null}
     </section>
   );
@@ -324,22 +325,12 @@ function parseChoice(value: string): LinkedChange | null {
   return { kind, id };
 }
 
-async function requestJson(url: string, init: RequestInit): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = await fetch(url, init);
-  } catch {
-    throw new Error("Network error while reaching the feedback correction.");
-  }
-  const payload: unknown = await response.json().catch(() => null);
-  const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
-    ? payload as Record<string, unknown>
-    : null;
-  if (!response.ok) {
-    throw new Error(typeof record?.error === "string" ? record.error : "Unable to reach the feedback correction.");
-  }
-  if (!record) {
-    throw new Error("The server returned an unreadable response. Try again.");
-  }
-  return record;
+function requestJson(url: string, init: RequestInit) {
+  return devFetch(url, {
+    ...init,
+    messages: {
+      network: "Network error while reaching the feedback correction.",
+      failure: "Unable to reach the feedback correction.",
+    },
+  });
 }

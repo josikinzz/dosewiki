@@ -4,7 +4,6 @@ import {
   EditorActionGroup,
   EditorActionStatus,
   EditorField,
-  EditorNotice,
   EditorSection,
   EditorToolbar,
 } from "./index";
@@ -65,21 +64,9 @@ describe("dev editor components", () => {
     expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
   });
 
-  it("supports explicit live regions for notices and action status", () => {
-    render(
-      <>
-        <EditorNotice
-          notice={{
-            tone: "success",
-            message: "Saved profile changes.",
-            live: true,
-          }}
-        />
-        <EditorActionStatus status="saving" />
-      </>,
-    );
+  it("announces action status politely while it saves", () => {
+    render(<EditorActionStatus status="saving" />);
 
-    expect(screen.getByRole("alert")).toHaveAttribute("aria-live", "polite");
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
     expect(screen.getByRole("status")).toHaveTextContent("Saving");
   });

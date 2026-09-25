@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
-import { EditorNotice, EditorSelect } from "@/features/dev/components";
+import { Notice, EditorSelect } from "@/features/dev/components";
 import type { ReviewFlag, ReviewFlagSeverity } from "@/schema";
 import { CANONICAL_REVIEW_FLAG_LABELS } from "@/schema/substance/editorial";
 import { ARTICLE_SECTION_CATALOG } from "@/schema/substance/sectionCatalog";
@@ -197,7 +197,7 @@ export function ReviewNotesPanel({ slug, name, flags, onFlagsChange, onClose }: 
               {saving ? "Saving" : "Add flag"}
             </Button>
           </div>
-          {error ? <EditorNotice notice={{ tone: "danger", message: error, live: true }} /> : null}
+          {error ? <Notice tone="danger" message={error} /> : null}
 
           {flags.length > 0 ? (
             <ul className="space-y-3 border-t border-dose-border pt-4">

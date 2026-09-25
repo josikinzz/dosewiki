@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { ActionNoticeTone } from "@/features/dev/components";
+import type { NoticeTone } from "@/features/dev/components";
 
 import type { BulkEdit, SingleEditDraft } from "./ReplicationEditorDrawer";
 import { readReplicationApiError as readError } from "./replicationStudioApi";
@@ -16,7 +16,7 @@ export type CorpusLoadState =
   | { status: "loading" }
   | { status: "ready" }
   | { status: "error"; message: string };
-export type StudioFeedback = { tone: ActionNoticeTone; message: string };
+export type StudioFeedback = { tone: NoticeTone; message: string };
 
 let cachedCorpus: CorpusPayload | null = null;
 

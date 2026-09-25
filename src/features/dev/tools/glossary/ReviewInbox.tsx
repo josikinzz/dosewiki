@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName, Surface } from "@/components/ui/surface";
-import { EditorCheckbox, EditorNotice, EditorSelect, EditorStatusPill, useDevShortcuts, type DevShortcut, type EditorNoticeMessage } from "@/features/dev/components";
+import { EditorCheckbox, Notice, EditorSelect, EditorStatusPill, useDevShortcuts, type DevShortcut, type NoticeMessage } from "@/features/dev/components";
 import type { GlossaryRendering } from "@server/translation/glossaryConflicts";
 import { INBOX_CHECK_LABEL, INBOX_PAGE_SIZE, INBOX_REASON_LABEL, INBOX_SCOPE_LABEL, type InboxItem, type InboxReason, type InboxResponse } from "@server/translation/reviewInboxTypes";
 import {
@@ -83,7 +83,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   const [skipped, setSkipped] = useState<Set<string>>(() => (typeof window === "undefined" ? new Set() : readSkipped(locale)));
   const [focusIndex, setFocusIndex] = useState(0);
   const [accepting, setAccepting] = useState<string | null>(null);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   /** The approved renderings the last Accept left out, for the item it named. */
   const [glossaryConflict, setGlossaryConflict] = useState<{ key: string; conflicts: GlossaryRendering[] } | null>(null);
   const [shortcutsOn, setShortcutsOn] = useState(() => (typeof window === "undefined" ? true : readShortcutsEnabled()));
@@ -266,15 +266,11 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   const liveRegion = (
     <div role="status" aria-live="polite" aria-label="Inbox messages" className="space-y-2 empty:hidden">
       {undoable ? (
-        <EditorNotice
-          notice={{
-            tone: "info",
-            message: `Accepting "${undoable.english}" in 10 seconds.`,
-            actions: <Button type="button" variant="outline" size="sm" onClick={undoAccept}>Undo</Button>,
-          }}
+        <Notice
+          tone="info" message={`Accepting "${undoable.english}" in 10 seconds.`} actions={<Button type="button" variant="outline" size="sm" onClick={undoAccept}>Undo</Button>}
         />
       ) : null}
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
     </div>
   );
 

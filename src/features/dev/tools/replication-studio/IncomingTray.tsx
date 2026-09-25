@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   EditorField,
-  EditorNotice,
+  Notice,
   EditorPanel,
   EditorPanelBody,
   EditorPanelHeader,
@@ -187,21 +187,13 @@ export function IncomingTray({
                 </div>
 
                 {matches.length > 0 ? (
-                  <EditorNotice
-                    notice={{
-                      tone: "warning",
-                      title: "Duplicate file",
-                      message: `The library already holds these exact bytes: ${matches.join(", ")}. Upload only if a second row is intended.`,
-                    }}
+                  <Notice
+                    tone="warning" title="Duplicate file" message={`The library already holds these exact bytes: ${matches.join(", ")}. Upload only if a second row is intended.`}
                   />
                 ) : null}
                 {lowResolution && item.size ? (
-                  <EditorNotice
-                    notice={{
-                      tone: "warning",
-                      title: "Low resolution",
-                      message: `${item.size.width} × ${item.size.height} pixels. Works under ${LOW_RESOLUTION_MIN_EDGE} pixels on the short edge look soft in galleries.`,
-                    }}
+                  <Notice
+                    tone="warning" title="Low resolution" message={`${item.size.width} × ${item.size.height} pixels. Works under ${LOW_RESOLUTION_MIN_EDGE} pixels on the short edge look soft in galleries.`}
                   />
                 ) : null}
 

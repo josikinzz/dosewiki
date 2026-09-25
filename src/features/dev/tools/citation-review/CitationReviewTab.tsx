@@ -4,7 +4,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { Icon } from "@/components/common/Icon";
 import { SmartLink } from "@/components/common/SmartLink";
 import {
-  EditorNotice,
+  Notice,
   LoadErrorState,
   useConfirm,
   useScrollToDetail,
@@ -381,7 +381,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           ) : null}
 
           {keyHint ? (
-            <EditorNotice notice={{ tone: "info", title: "Nothing to act on yet", message: keyHint, live: true }} />
+            <Notice tone="info" title="Nothing to act on yet" message={keyHint} />
           ) : null}
 
           <CitationChecklistPanel checklist={checklist} />
@@ -389,35 +389,20 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           {selectedArticle ? <EditorCitationDiagnosticsPanel article={selectedArticle} /> : null}
 
           {queueError ? (
-            <EditorNotice
-              notice={{
-                tone: "danger",
-                title: "Queue refresh failed",
-                message: formatQueueLoadFailure(queueError),
-                live: true,
-              }}
+            <Notice
+              tone="danger" title="Queue refresh failed" message={formatQueueLoadFailure(queueError)}
             />
           ) : null}
 
           {actionError ? (
-            <EditorNotice
-              notice={{
-                tone: "danger",
-                title: "Citation action failed",
-                message: actionError,
-                live: true,
-              }}
+            <Notice
+              tone="danger" title="Citation action failed" message={actionError}
             />
           ) : null}
 
           {offscreenUndo ? (
-            <EditorNotice
-              notice={{
-                tone: "success",
-                title: `${offscreenUndo.decision.status === "approved" ? "Approved" : "Rejected"} ${formatCitationCount(offscreenUndoCount, "row")} in ${articleTitleBySlug.get(offscreenUndo.decision.slug) ?? offscreenUndo.decision.slug}`,
-                message: "Saved to the live article. Undo puts each row back the way it was and reopens that article.",
-                live: true,
-                actions: (
+            <Notice
+              tone="success" title={`${offscreenUndo.decision.status === "approved" ? "Approved" : "Rejected"} ${formatCitationCount(offscreenUndoCount, "row")} in ${articleTitleBySlug.get(offscreenUndo.decision.slug) ?? offscreenUndo.decision.slug}`} message="Saved to the live article. Undo puts each row back the way it was and reopens that article." actions={(
                   <>
                     <Button
                       variant="outline"
@@ -432,8 +417,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
                       Keep
                     </Button>
                   </>
-                ),
-              }}
+                )}
             />
           ) : null}
 

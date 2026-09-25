@@ -9,7 +9,7 @@ import {
   EditorField,
   EditorList,
   EditorListRow,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -139,7 +139,7 @@ export function ContributorsTab({
 
   const editorPane = (
     <div ref={detailRef} className="scroll-mt-6 space-y-6">
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} /> : null}
       {detailError ? (
         <LoadErrorState message={detailError} onRetry={retryDetail} busy={isDetailLoading} />
       ) : null}

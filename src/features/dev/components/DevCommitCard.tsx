@@ -1,18 +1,14 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { EditorNotice } from "./EditorNotice";
+import { Notice } from "./Notice";
 import { EditorSection } from "./EditorSection";
-import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
 
-const noticeToneMap: Record<
-  DevCommitNotice["type"],
-  { tone: EditorStatusPillTone; icon: "lucide:triangle-alert" | "lucide:loader-circle" | "lucide:badge-check" }
-> = {
-  error: { tone: "danger", icon: "lucide:triangle-alert" },
-  pending: { tone: "info", icon: "lucide:loader-circle" },
-  success: { tone: "success", icon: "lucide:badge-check" },
-};
+const noticeToneByType = {
+  error: "danger",
+  pending: "loading",
+  success: "success",
+} as const;
 
 export type DevCommitNotice = {
   type: "success" | "error" | "pending";
@@ -84,35 +80,24 @@ export function DevCommitCard({
   onDismissNotice,
 }: DevCommitCardProps) {
   const copy = DESTINATION_COPY[destination];
-  const noticeContent = notice
-    ? (() => {
-        const meta = noticeToneMap[notice.type];
-        return (
-          <div className="flex flex-wrap items-center gap-3">
-            <EditorStatusPill
-              tone={meta.tone}
-              icon={meta.icon}
-              loading={notice.type === "pending"}
-              live
-            >
-              {notice.message}
-            </EditorStatusPill>
-            {notice.actionHref ? (
-              <Button asChild variant="outline" size="sm" className="rounded-full">
-                <a href={notice.actionHref} target="_blank" rel="noreferrer">
-                  {notice.actionLabel ?? "Open"}
-                </a>
-              </Button>
-            ) : null}
-            {notice.type === "error" && onDismissNotice ? (
-              <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={onDismissNotice}>
-                Dismiss
-              </Button>
-            ) : null}
-          </div>
-        );
-      })()
-    : null;
+  // The save hook clears successes on its own clock, so the notice does not add a second one.
+  const noticeContent = notice ? (
+    <Notice
+      placement="inline"
+      tone={noticeToneByType[notice.type]}
+      dismiss={notice.type === "pending" ? undefined : onDismissNotice}
+      autoClearMs={null}
+      actions={notice.actionHref ? (
+        <Button asChild variant="outline" size="sm" className="rounded-full">
+          <a href={notice.actionHref} target="_blank" rel="noreferrer">
+            {notice.actionLabel ?? "Open"}
+          </a>
+        </Button>
+      ) : undefined}
+    >
+      {notice.message}
+    </Notice>
+  ) : null;
 
   return (
     <EditorSection
@@ -126,23 +111,18 @@ export function DevCommitCard({
       description={description ?? copy.description}
     >
       {rebase ? (
-        <EditorNotice
+        <Notice
           className="mb-3"
-          notice={{
-            tone: "info",
-            icon: "lucide:file-pen-line",
-            message: (
+          tone="info" icon="lucide:file-pen-line" message={(
               <span data-testid="commit-rebase-banner">
                 Revising returned proposal #{rebase.proposalId.slice(-PROPOSAL_ID_DISPLAY_LENGTH)}
                 {rebase.reason ? `: ${rebase.reason}` : ""}
               </span>
-            ),
-            actions: (
+            )} actions={(
               <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={rebase.onDiscard}>
                 Discard
               </Button>
-            ),
-          }}
+            )}
         />
       ) : null}
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">

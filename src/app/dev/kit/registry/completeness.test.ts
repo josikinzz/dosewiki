@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import * as commonBarrel from "@/components/common";
 import * as layoutBarrel from "@/components/layout";
 import * as uiBarrel from "@/components/ui";
+import * as editorKitBarrel from "@/features/dev/components";
 
 import { documentedExports, stories } from "./index";
 
@@ -30,6 +31,7 @@ const SHARED_BARRELS = [
   { label: "ui/", barrel: uiBarrel as Record<string, unknown> },
   { label: "common/", barrel: commonBarrel as Record<string, unknown> },
   { label: "layout/", barrel: layoutBarrel as Record<string, unknown> },
+  { label: "editor kit (src/features/dev/components)", barrel: editorKitBarrel as Record<string, unknown> },
 ];
 
 function runtimeExports(barrel: Record<string, unknown>): string[] {
@@ -59,6 +61,7 @@ describe("UI Kit catalog completeness", () => {
       ...Object.keys(uiBarrel),
       ...Object.keys(commonBarrel),
       ...Object.keys(layoutBarrel),
+      ...Object.keys(editorKitBarrel),
     ]);
     const stale = Array.from(new Set(stories.flatMap((story) => story.exports)))
       .filter((key) => !runtime.has(key))
@@ -69,6 +72,16 @@ describe("UI Kit catalog completeness", () => {
       `These symbols are documented in a story but are not exported from any ` +
         `shared barrel (renamed or removed?):\n  ${stale.join("\n  ")}`,
     ).toEqual([]);
+  });
+
+  it("files every editor kit export under the Editor kit tier", () => {
+    const editorExports = new Set(Object.keys(editorKitBarrel));
+    const misfiled = stories
+      .filter((story) => story.exports.some((key) => editorExports.has(key)))
+      .filter((story) => story.tier !== "editor")
+      .map((story) => story.id);
+
+    expect(misfiled).toEqual([]);
   });
 
   it("gives every story a unique id", () => {

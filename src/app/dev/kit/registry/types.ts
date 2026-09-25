@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
  * Every shared component documented in /dev/kit ships exactly one StoryDef.
  * The completeness test (registry/completeness.test.ts) reads the `exports`
  * field across all stories and fails the build if a symbol exported from the
- * shared barrels (ui / common / layout) has no catalog entry. That is what
+ * shared barrels (ui / common / layout) or the editor kit index
+ * (src/features/dev/components) has no catalog entry. That is what
  * keeps the kit from drifting: you cannot add a primitive without showing it.
  */
 
-export type KitTier = "primitive" | "common" | "layout";
+export type KitTier = "primitive" | "common" | "layout" | "editor";
 
 /**
  * stable  - use freely in new code.
@@ -106,6 +107,11 @@ export const KIT_TIERS: { id: KitTier; label: string; blurb: string }[] = [
     id: "layout",
     label: "Layout & chrome",
     blurb: "Public page shells and chrome. src/components/layout",
+  },
+  {
+    id: "editor",
+    label: "Editor kit",
+    blurb: "The dev tool and in-page editor components. src/features/dev/components",
   },
 ];
 

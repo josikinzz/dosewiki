@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useCopyIndexSource } from "../useCopyIndexSource";
 
 import { normalizeFounderKeys } from "@/data/content/about";
@@ -11,7 +11,7 @@ import {
 } from "@/data/content/translationCredits";
 import type {
   EditorActionStatusState,
-  EditorNoticeMessage,
+  NoticeMessage,
 } from "@/features/dev/components";
 import { useEditorDocument } from "@/features/dev/context/editorDocumentSession";
 import { buildTextChangelog } from "@/utils/data/changelog";
@@ -20,7 +20,6 @@ import type { AboutCopyNotice } from "./aboutEditorUtils";
 import { useCopyIndexOperation } from "../useCopyIndexOperation";
 
 const API_PATH = "/api/dev/about";
-const COPY_NOTICE_DURATION_MS = 2500;
 
 type SaveState = EditorActionStatusState | "idle";
 
@@ -90,8 +89,9 @@ export interface AboutEditorController {
   original: AboutDocument;
   isDirty: boolean;
   saveState: SaveState;
-  notice: EditorNoticeMessage | null;
+  notice: NoticeMessage | null;
   copyNotice: AboutCopyNotice | null;
+  dismissCopyNotice: () => void;
   markdownDiff: string;
   subtitleDiff: string;
   subtitleHasChanges: boolean;
@@ -144,9 +144,8 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
   const publicationSnapshot = useRef<{ draft: AboutDocument; original: AboutDocument } | null>(null);
 
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [copyNotice, setCopyNotice] = useState<AboutCopyNotice | null>(null);
-  const copyNoticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { draft, original, isDirty, applyDraftTransform, applyHydration } = document;
 
@@ -160,18 +159,9 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
   );
 
 
-  const showCopyNotice = useCallback((next: AboutCopyNotice) => {
-    setCopyNotice(next);
-    clearTimeout(copyNoticeTimeoutRef.current ?? undefined);
-    copyNoticeTimeoutRef.current = setTimeout(() => {
-      setCopyNotice(null);
-      copyNoticeTimeoutRef.current = null;
-    }, COPY_NOTICE_DURATION_MS);
-  }, []);
-
-  useEffect(() => {
-    return () => clearTimeout(copyNoticeTimeoutRef.current ?? undefined);
-  }, []);
+  // The copy result shows in a Notice: a success clears itself, a failure stays until dismissed.
+  const showCopyNotice = setCopyNotice;
+  const dismissCopyNotice = useCallback(() => setCopyNotice(null), []);
 
   const copyToClipboard = useCallback(
     (target: AboutCopyNotice["target"], value: string) => {
@@ -369,6 +359,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     saveState,
     notice,
     copyNotice,
+    dismissCopyNotice,
     markdownDiff: markdownChangelog.markdown,
     subtitleDiff: subtitleChangelog.markdown,
     subtitleHasChanges: subtitleChangelog.hasChanges,

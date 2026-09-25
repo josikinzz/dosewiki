@@ -17,7 +17,7 @@ import { useT } from "@/i18n/client";
 import {
   EditorActionStatus,
   EditorField,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -121,8 +121,8 @@ export function WritingEditor({
 
   return (
     <>
-      {notice && !(controller.isDirty && notice.tone === "success") ? <EditorNotice notice={notice} /> : null}
-      {controller.parsedBody.error ? <EditorNotice notice={{ tone: "danger", message: controller.parsedBody.error }} /> : null}
+      {notice && !(controller.isDirty && notice.tone === "success") ? <Notice {...notice} /> : null}
+      {controller.parsedBody.error ? <Notice tone="danger" message={controller.parsedBody.error} /> : null}
       <WritingRecoveryPanels controller={controller} fieldLabels={WRITING_FIELD_LABELS} />
 
       {contextual ? <p role="status" className="theme-text-muted text-sm">{controller.isDirty ? "Unsaved changes" : controller.baseline.status === "published" ? "Public document · no unsaved changes" : "Unpublished document · no unsaved changes"}</p> : null}
@@ -340,7 +340,7 @@ export function WritingEditor({
         )}
       </EditorToolbar>
       <WritingSaveTime controller={controller} />
-      {controller.uncertain ? <EditorNotice notice={{ tone: "warning", message: "Publication has not been confirmed. Editing and discard are locked until you explicitly reconcile the original operation.", actions: <Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button> }} /> : null}
+      {controller.uncertain ? <Notice tone="warning" message="Publication has not been confirmed. Editing and discard are locked until you explicitly reconcile the original operation." actions={<Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button>} /> : null}
       <EditorToolbar>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.isDirty} onClick={() => setDiscarding(true)}>Discard local edits</Button>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.loadedRow} onClick={() => void controller.reconcile()}>Load the latest saved version</Button>

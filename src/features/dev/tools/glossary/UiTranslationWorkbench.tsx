@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Surface } from "@/components/ui/surface";
 import { StateCard } from "@/components/common/StateCard";
-import { EditorNotice, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
+import { Notice, EditorStatusPill, type NoticeMessage } from "@/features/dev/components";
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
 import { ShortLabelGrid } from "./ShortLabelGrid";
 import { PendingRefreshList } from "./PendingRefreshList";
@@ -85,7 +85,7 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
   const correctionOf = (): CorrectionDraft => { const saved = edits.get(editKey); return { kind: saved?.kind ?? null, note: saved?.reason ?? "", segment: row.id, exceptions: saved?.exceptions ?? [] }; };
   const [correction, setCorrection] = useState<CorrectionDraft>(correctionOf);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const inFlight = useRef(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- correctionOf reads the same edits entry keyed by editKey.
   useEffect(() => { setTarget(edits.get(editKey)?.target ?? row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? ""); setCorrection(correctionOf()); }, [row, edits, editKey]);
@@ -138,7 +138,7 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
     <CorrectionReasonFields value={correction} onChange={editCorrection} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy} needed={dirty} noteLabel="Review note (optional)" noteAriaLabel={`Review note for ${row.id}`} />
     <ApprovalActions changed={dirty && Boolean(target.trim())} canSave={canSave} approvable={approvable} busy={busy} blocked={(dirty && !correction.kind) || conflicts.length > 0}
       onSave={() => void write("save").catch(() => {})} onSaveAndApprove={() => void write("save-approve").catch(() => {})} onApprove={() => void write("approve").catch(() => {})} />
-    {notice ? <EditorNotice notice={notice} /> : null}
+    {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
     <TranslationHistory revision={row.revision} name={row.id} disabled={busy || dirty} load={async () => (await translationRequest<UiTranslationHistoryResponse>(`${endpoint}/history?locale=${encodeURIComponent(locale)}&id=${encodeURIComponent(row.id)}`)).history} restore={(revision) => write("restore", revision)} />
   </Surface>;
 }

@@ -11,7 +11,7 @@ import type { DraftCheckpoint } from "@/features/dev/recovery/draftRecovery";
 
 import type {
   EditorActionStatusState,
-  EditorNoticeMessage,
+  NoticeMessage,
 } from "@/features/dev/components";
 
 import {
@@ -101,7 +101,7 @@ export function useWritingWorkbenchController({
   const [isLoadingRow, setIsLoadingRow] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [uncertain, setUncertain] = useState(false);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   // A date input holding a half-typed day reports an empty value; the editor
   // says so here rather than saving no date without a word.

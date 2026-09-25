@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
-  ActionNotice,
+  Notice,
   ConfirmDialog,
   EditorSection,
   EditorStatusPill,
@@ -148,9 +148,9 @@ export function PlaylistsPanel({
       }
     >
       {feedback ? (
-        <ActionNotice tone={feedback.tone} onDismiss={() => controller.setFeedback(null)}>
+        <Notice placement="inline" tone={feedback.tone} dismiss={() => controller.setFeedback(null)}>
           {feedback.message}
-        </ActionNotice>
+        </Notice>
       ) : null}
 
       <section aria-labelledby="saved-playlists-heading" className="space-y-2">
