@@ -82,6 +82,22 @@ export function describeValidationIssue(issue: ArticleValidationIssue): string {
   return issue.path === "article" ? issue.message : `${placeWords(issue.path)}: ${issue.message}`;
 }
 
+/**
+ * Whether an issue at `issuePath` is about the field at `fieldPath`: the same
+ * leaf, a part of it (a range's `.unit`), or the group it belongs to (every
+ * tier of one route must share a unit, and that rule names the tiers' parent).
+ */
+export function issueConcernsField(issuePath: string, fieldPath: string): boolean {
+  const within = (inner: string, outer: string) =>
+    inner === outer || inner.startsWith(`${outer}.`) || inner.startsWith(`${outer}[`);
+  return within(issuePath, fieldPath) || within(fieldPath, issuePath);
+}
+
+/** One field's reason, without the place words the field already stands in for. */
+export function fieldIssueMessage(issues: ArticleValidationIssue[], fieldPath: string): string | null {
+  return issues.find((issue) => issue.path !== "article" && issueConcernsField(issue.path, fieldPath))?.message ?? null;
+}
+
 export function articlePublicationErrors(article: SubstanceArticle, before: SubstanceArticle): ArticleValidationIssue[] {
   return articleValidationIssues(article, before);
 }
@@ -321,8 +337,15 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     setRevisionOf(snapshot?.draft?.revisionOf);
   }, [savedArticle, preview, snapshot, baselineRefreshRequired, recovery]);
   const getArticle = useCallback(() => current.current, []);
+  const published = snapshot?.article ?? initialArticle;
+  /** Whether the preview differs from the published article at one editable path. */
+  const isFieldChanged = useCallback((path: string) => {
+    const before = readEditableFieldValue(published as unknown as Record<string, unknown>, path);
+    const after = readEditableFieldValue(article as unknown as Record<string, unknown>, path);
+    return JSON.stringify(before) !== JSON.stringify(after);
+  }, [published, article]);
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
-  return { article, published: snapshot?.article ?? initialArticle, history: snapshot?.history ?? [],
+  return { article, published, isFieldChanged, history: snapshot?.history ?? [],
     hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
     dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, proposals: snapshot?.proposals ?? [], submittedProposalId };
 }

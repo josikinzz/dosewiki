@@ -218,6 +218,34 @@ describe("reading-page editor navigation", () => {
     expect(await screen.findByRole("dialog", { name: "Unsaved changes" })).toBeInTheDocument();
   });
 
+  it("badges the launcher while the page holds unsaved edits", async () => {
+    render(<EditorLauncherProvider><PrivateDraft /></EditorLauncherProvider>);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Edit page" }));
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument();
+    await user.type(screen.getByRole("textbox", { name: "Private draft" }), "Correction");
+    const state = screen.getByRole("status", { name: "Page editing state" });
+    expect(state.closest("[data-editor-launcher]")).not.toBeNull();
+    expect(state).toHaveTextContent("Unsaved");
+    await user.clear(screen.getByRole("textbox", { name: "Private draft" }));
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument();
+  });
+
+  it("badges the launcher while a proposal on the page waits for review", async () => {
+    function PendingProposal() {
+      const { setPending } = useContextualEditing();
+      useEffect(() => {
+        setPending?.("fixture-proposal", true);
+        return () => setPending?.("fixture-proposal", false);
+      }, [setPending]);
+      return null;
+    }
+    const view = render(<EditorLauncherProvider><PendingProposal /></EditorLauncherProvider>);
+    expect(await screen.findByText("Pending review")).toBeInTheDocument();
+    view.rerender(<EditorLauncherProvider>{null}</EditorLauncherProvider>);
+    await waitFor(() => expect(screen.queryByText("Pending review")).not.toBeInTheDocument());
+  });
+
   it("disables contextual controls without removing existing workbench navigation", async () => {
     vi.stubEnv("NEXT_PUBLIC_CONTEXTUAL_EDITING", "false");
     render(<ReadingPage />);

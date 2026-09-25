@@ -29,6 +29,17 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
   const dirty = useRef(new Set<string>());
   const guards = useRef(new Map<string, DraftNavigationGuard>());
   const [, refreshGuards] = useState(0);
+  // Keys of the page's editors with work waiting for review, for the badge.
+  const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(() => new Set());
+  const setPending = useCallback((key: string, value: boolean) => {
+    setPendingKeys((current) => {
+      if (current.has(key) === value) return current;
+      const next = new Set(current);
+      if (value) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }, []);
   const reading = getEditorHandoffUrl(pathname, "", true) === null;
   const enabled = editorHost && reading;
   const eligible = enabled && canAccessDev(identity.role);
@@ -132,11 +143,18 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
     }
     return page?.target;
   }, [targets, pathname]);
+  // Entering edit mode never loses work; leaving it asks first.
+  const requestLeaveRef = useRef(requestLeave);
+  useEffect(() => { requestLeaveRef.current = requestLeave; }, [requestLeave]);
+  const changeMode = useCallback((next: "view" | "edit") => {
+    if (next === "edit") setMode(next);
+    else requestLeaveRef.current(() => setMode(next));
+  }, []);
   const editing = useMemo(() => ({
     enabled: contextualEnabled, mode: contextualEnabled ? mode : "view" as const,
     role: eligible ? identity.role : null, email: eligible ? identity.email : null,
-    setDirty, registerDraftGuard,
-  }), [contextualEnabled, eligible, mode, identity, setDirty, registerDraftGuard]);
+    setDirty, registerDraftGuard, setPending, setMode: changeMode,
+  }), [contextualEnabled, eligible, mode, identity, setDirty, registerDraftGuard, setPending, changeMode]);
   return (
     <EditorTargetContext.Provider value={enabled ? register : null}>
       <EditorLauncherOutletContext.Provider value={enabled ? registerOutlet : null}>
@@ -147,7 +165,8 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
               {enabled ? <Suspense fallback={null}>
                 <EditorLauncherSession onIdentityChange={onIdentityChange} target={target} outlet={outlet} pathname={pathname}
                   contextualEnabled={contextualEnabled} mode={mode}
-                  onModeChange={(next) => next === "edit" ? setMode(next) : requestLeave(() => setMode(next))} />
+                  unsaved={dirty.current.size > 0} pending={pendingKeys.size > 0}
+                  onModeChange={changeMode} />
               </Suspense> : null}
               {leaveDialog}
             </ContextualEditorContainerContext.Provider>

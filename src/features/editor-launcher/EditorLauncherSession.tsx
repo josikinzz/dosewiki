@@ -4,6 +4,7 @@ import { Fragment, useEffect, useId, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { SessionProvider, useSession } from "next-auth/react";
 import { Eye, Pencil, Wrench } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import {
@@ -22,6 +23,10 @@ type Props = {
   contextualEnabled: boolean;
   mode: "view" | "edit";
   onModeChange: (mode: "view" | "edit") => void;
+  /** Something on this page holds edits not yet saved as a private draft. */
+  unsaved?: boolean;
+  /** Something on this page waits for review, such as a submitted proposal. */
+  pending?: boolean;
 };
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -36,7 +41,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
   );
 }
 
-function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnabled, mode, onModeChange }: Props) {
+function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnabled, mode, onModeChange, unsaved = false, pending = false }: Props) {
   const session = useSession();
   const modeHintId = useId();
   const role = session.status === "authenticated" ? session.data.user?.role ?? null : null;
@@ -93,6 +98,14 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
         ? "calc(var(--viewer-rail-height, 96px) + 4.5rem + env(safe-area-inset-bottom, 0px))"
         : "max(1rem, env(safe-area-inset-bottom))" }}
     >
+      {unsaved || pending ? (
+        // Page state the launcher would otherwise hide until someone opened
+        // the page's editor: work that is not saved, and work waiting on review.
+        <div role="status" aria-label="Page editing state" className="flex items-center gap-1 ps-1">
+          {unsaved ? <Badge asChild variant="default"><span data-launcher-badge="unsaved">Unsaved</span></Badge> : null}
+          {pending ? <Badge asChild variant="outline"><span data-launcher-badge="pending">Pending review</span></Badge> : null}
+        </div>
+      ) : null}
       {editable ? (
         <div role="group" aria-label="Page editing mode" className="flex gap-1">
           <Button size="icon" variant="ghost" className="theme-selected-control border border-transparent" data-state={mode === "view" ? "active" : "inactive"} aria-label="View" title="View without editing controls" aria-pressed={mode === "view"} onClick={() => onModeChange("view")}><Eye aria-hidden="true" /></Button>

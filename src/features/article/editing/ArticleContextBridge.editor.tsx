@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
@@ -28,7 +29,7 @@ import { ARTICLE_SECTION_LABELS, ArticleSectionForm, type ArticleEditorSection, 
 import { ArticleChangeDiff, articleFieldChanges } from "./ArticleChangeDiff";
 import { synthesizeChangeNote } from "./changeNote";
 import { ArticleProposalReview } from "./ArticleProposalReview";
-import { useArticleLifecycle, articlePublicationErrors, describeValidationIssue, type ArticleRevision } from "./useArticleLifecycle";
+import { useArticleLifecycle, articlePublicationErrors, describeValidationIssue, fieldIssueMessage, type ArticleRevision } from "./useArticleLifecycle";
 import type { SubstanceArticle } from "@/schema";
 import { useArticleForm } from "@/hooks/useArticleForm";
 
@@ -99,7 +100,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const router = useRouter();
   const role = workbench ? workbenchRole ?? null : context.role;
   const active = !!slug && canDraft(role) && (workbench || (context.enabled && context.mode === "edit"));
-  const lifecycle = useArticleLifecycle(slug ?? "", article, active);
+  // In view mode an editor still learns whether a saved private draft waits
+  // here; the same snapshot then serves edit mode without a second load.
+  const viewing = !!slug && canDraft(role) && !workbench && context.enabled && context.mode === "view";
+  const lifecycle = useArticleLifecycle(slug ?? "", article, active || viewing);
   const [proposalBusy, setProposalBusy] = useState(false);
   const [proposalNotesDirty, setProposalNotesDirty] = useState(false);
   const resetProposalNotes = useRef<() => void>(() => {});
@@ -264,8 +268,25 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const submittedStatus = lifecycle.proposals.find((proposal) => proposal._id === lifecycle.submittedProposalId)?.status;
   const pendingChipId = lifecycle.submittedProposalId && (!submittedStatus || submittedStatus === "submitted") ? lifecycle.submittedProposalId : null;
   const pendingLabel = pendingProposals === 1 ? "1 proposal pending on this article" : `${pendingProposals} proposals pending on this article`;
+  const proposalPending = !!pendingChipId || pendingProposals > 0;
+  // The launcher badges this page while a proposal on it waits for review.
+  const setPending = context.setPending;
+  useEffect(() => {
+    setPending?.(guardKey, proposalPending);
+    return () => setPending?.(guardKey, false);
+  }, [setPending, guardKey, proposalPending]);
+  // The same validation the review sheet lists, read per field so an applied
+  // edit shows its problem beside the value instead of at review time.
+  const fieldIssue = useCallback((path: string) => fieldIssueMessage(problems, path), [problems]);
   const status = lifecycle.uncertain ? "Previous operation unconfirmed. Editing is paused until it is reconciled." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft…") : lifecycle.busy ? "Loading or saving…" : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
-  if (!active) return <>{children}</>;
+  if (!active) return <>
+    {viewing && lifecycle.hasDraft && <div className="mx-auto flex max-w-[1500px] justify-end px-[max(1rem,env(safe-area-inset-left))] pt-3 sm:px-6">
+      {context.setMode
+        ? <Button variant="outline" size="chip" data-private-draft-chip title="Open edit mode to continue your saved private draft." onClick={() => context.setMode?.("edit")}><Icon icon="lucide:file-pen-line" size={14} aria-hidden />You have a private draft</Button>
+        : <Badge asChild variant="outline"><p data-private-draft-chip><Icon icon="lucide:file-pen-line" size={14} aria-hidden className="me-1" />You have a private draft</p></Badge>}
+    </div>}
+    {children}
+  </>;
   if (lifecycle.expired) return <>
     <Surface variant="subtle" padding="md" className="mx-auto mb-6 max-w-5xl space-y-3">
       <p role="alert" className="theme-text-primary">Article access has expired or changed. Your private draft is concealed and retained in this tab. Nothing will save or publish automatically.</p>
@@ -322,7 +343,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
       {(localError || lifecycle.error) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
     </>}>
-    <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: lifecycle.commit, registerDraft, refreshStoredValue: lifecycle.refreshStoredValue, addReference: lifecycle.addReference, references: lifecycle.article.references ?? [] } : null}>
+    <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: lifecycle.commit, registerDraft, refreshStoredValue: lifecycle.refreshStoredValue, addReference: lifecycle.addReference, references: lifecycle.article.references ?? [], isChanged: lifecycle.isFieldChanged, fieldIssue } : null}>
       <ArticleLayout {...layoutProps} content={layoutProps?.content ? { ...layoutProps.content, chemistryPresentation: buildArticleChemistryPresentation(lifecycle.article) } : undefined} fromSubstanceSlug={slug} article={lifecycle.article} />
     </ArticleEditProvider>
     </StickyArticleEditorLayout>
