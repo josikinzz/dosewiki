@@ -41,6 +41,19 @@ describe("requireRoleSession", () => {
     }
   });
 
+  it("never admits the local screenshot viewer to an API, read or write", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_SCREENSHOT_VIEWER", "1");
+    vi.stubEnv("DATA_WRITES_FROZEN", "1");
+    mocks.getServerSession.mockResolvedValue(null);
+
+    for (const floor of ["contributor", "editor", "admin"] as const) {
+      const result = await requireRoleSession(floor);
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.response.status).toBe(401);
+    }
+  });
+
   it("rejects a viewer session at every floor, including contributor", async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { email: "viewer@example.com", role: "viewer" },

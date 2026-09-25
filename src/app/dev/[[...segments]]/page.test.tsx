@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const ALIGNED = {
   status: "aligned" as const,
@@ -18,10 +18,16 @@ const {
   getEditorTargetAlignmentMock,
   getOwnedContributorProfileMock,
   getServerSessionMock,
+  requestHeaders,
 } = vi.hoisted(() => ({
   getEditorTargetAlignmentMock: vi.fn(),
   getOwnedContributorProfileMock: vi.fn(),
   getServerSessionMock: vi.fn(),
+  requestHeaders: { current: new Headers({ host: "127.0.0.1:3100" }) },
+}));
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => requestHeaders.current),
 }));
 
 vi.mock("next-auth", () => ({
@@ -183,6 +189,58 @@ describe("NextDevPage shell selection", () => {
     expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
   });
 
+
+  describe("local screenshot viewer", () => {
+    const VIEWER_ENV = ["NODE_ENV", "DEV_SCREENSHOT_VIEWER", "DATA_WRITES_FROZEN"] as const;
+    let previous: Record<string, string | undefined> = {};
+
+    beforeEach(() => {
+      previous = Object.fromEntries(VIEWER_ENV.map((key) => [key, process.env[key]]));
+      vi.stubEnv("NODE_ENV", "development");
+      vi.stubEnv("DEV_SCREENSHOT_VIEWER", "1");
+      vi.stubEnv("DATA_WRITES_FROZEN", "1");
+      requestHeaders.current = new Headers({ host: "127.0.0.1:3100" });
+      getServerSessionMock.mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+      for (const key of VIEWER_ENV) vi.stubEnv(key, previous[key]);
+    });
+
+    it("renders the shell without a session and skips the private profile read", async () => {
+      const element = await NextDevPage({ params: Promise.resolve({ segments: ["replications"] }) });
+
+      expect(element.type).toBe(NextDevRouteClient);
+      expect(element.props).toEqual(expect.objectContaining({ initialTab: "replications", ownedProfileKey: undefined }));
+      expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["NODE_ENV is production", { NODE_ENV: "production" }],
+      ["the opt-in is unset", { DEV_SCREENSHOT_VIEWER: undefined }],
+      ["the write freeze is off", { DATA_WRITES_FROZEN: undefined }],
+    ])("redirects to sign-in when %s", async (_label, overrides) => {
+      for (const [key, value] of Object.entries(overrides)) vi.stubEnv(key, value);
+      await expect(NextDevPage({ params: Promise.resolve({ segments: ["replications"] }) })).rejects.toThrow(
+        "redirect:/sign-in",
+      );
+    });
+
+    it("redirects to sign-in for a non-loopback host", async () => {
+      requestHeaders.current = new Headers({ host: "dev.dose.wiki" });
+      await expect(NextDevPage({ params: Promise.resolve({ segments: ["replications"] }) })).rejects.toThrow(
+        "redirect:/sign-in",
+      );
+    });
+
+    it("never replaces a real session", async () => {
+      getServerSessionMock.mockResolvedValue({ user: { email: "member@example.com", role: "contributor" } });
+      getOwnedContributorProfileMock.mockResolvedValue("MEMBER");
+      const element = await NextDevPage({ params: Promise.resolve({ segments: ["replications"] }) });
+      expect(element.props).toEqual(expect.objectContaining({ initialProfileKey: "MEMBER" }));
+      expect(getOwnedContributorProfileMock).toHaveBeenCalledWith("member@example.com");
+    });
+  });
 
   describe("route resolution", () => {
     const asEditor = () => {

@@ -25,6 +25,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 - Public pages use the App Router under `src/app/`, with static generation or ISR where declared.
 - Public data loaders live under `lib/data/` and `lib/next/`; native Postgres executes the registered handlers.
 - Protected editor routes live under `/dev`; `src/middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
+- `lib/auth/devScreenshotViewer.ts` is a local `next dev` exception that renders `/dev` documents without an account for screenshots. It never admits an API, a mutation, or a production build.
 - Auth.js supplies identity, database membership rows supply roles, and server write capabilities enforce actor and intent.
 - The public `/api/v1` surface exposes public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints.
 - Local JSON and Markdown are migration inputs, exports, prompts, backups, or generated artifacts unless active source reads them. `data/lineage.json` owns generated-data lineage.

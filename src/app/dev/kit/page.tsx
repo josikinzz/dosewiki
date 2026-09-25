@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@auth";
+import { getDevShellSession } from "@server/next/devShellSession";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
@@ -17,7 +16,7 @@ export const metadata = buildNoIndexPageMetadata({
 });
 
 export default async function DevKitPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getDevShellSession();
   const decision = getDevRouteDecision({
     pathname: STATUS_PAGE_PATHS.dev,
     email: session?.user?.email ?? null,

@@ -29,6 +29,31 @@ npm run build    # production build plus the editor artifact audit
 npm run start    # serve the production build
 ```
 
+### Screenshot the dev tools without signing in
+
+For UI review, a local dev server can render `/dev` documents without an
+account. It is read-only and local by construction: it works only under
+`next dev`, only with `DEV_SCREENSHOT_VIEWER=1` and `DATA_WRITES_FROZEN=1`, only
+for GET requests to `/dev` from a loopback host, and every API keeps its own
+session and role check (see `lib/auth/devScreenshotViewer.ts`).
+
+```bash
+npm run dev:screenshot-viewer                        # serves http://127.0.0.1:3100
+npm run dev:screenshot -- /dev/replications          # writes tmp/dev-screenshots/replications-<time>.png
+npm run dev:screenshot -- /dev/replications --out tmp/dev-screenshots/replications.png --full-page
+```
+
+The server binds to 127.0.0.1 on port 3100 with its own build directory
+(`.next-screenshot`), so it runs beside an ordinary `npm run dev`. Any browser on
+the same machine can open `http://127.0.0.1:3100/dev/replications`; the tab rail
+renders, but private reads answer 401. The screenshot script uses
+`playwright-core`, blocks every non-GET request, and fills the Replication
+Studio's reads with the public `/api/v1/replications` projection so the grid
+shows real rows (`--no-fixtures` turns that off). Corpus-backed tabs such as
+Substances stay on their loading state because the editor library read still
+requires a session. Run `npm run dev` once first if the generated theme and
+icon assets are missing.
+
 `NEXT_PUBLIC_SITE_FLAVOR=effectindex` builds the Effect Index publication;
 unset builds dose.wiki. See [deployment](docs/operations/deployment.md) before
 changing build keys, hosts, or flavors.

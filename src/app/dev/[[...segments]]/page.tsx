@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getRequestSession } from "@server/next/requestSession";
+import { getDevShellSession } from "@server/next/devShellSession";
 import { getOwnedContributorProfileKey } from "@server/data/publicData.contributors";
 import {
   getEditorTargetAlignment,
@@ -44,7 +44,7 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
   if (destination.kind === "external") {
     redirect(route.slug ? `${destination.href}/${route.slug}` : destination.href);
   }
-  const session = await getRequestSession();
+  const { session, screenshotViewer } = await getDevShellSession();
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
   // Any signed-in member role may open the shell; a tab above the role
@@ -77,7 +77,8 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
   const userEmail = email?.trim() ?? "";
   // Resolve the canonical owned key without delaying the shell or materializing
   // the full profile. The email-derived key remains the existing initial fallback.
-  const ownedProfileKey = userEmail
+  // The local screenshot viewer has no membership, so it skips this private read.
+  const ownedProfileKey = userEmail && !screenshotViewer
     ? getOwnedContributorProfileKey(userEmail)
         .catch((error: unknown) => {
           console.error("Unable to resolve the owned contributor profile; rendering the /dev shell without it.", error);

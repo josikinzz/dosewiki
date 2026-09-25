@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@auth";
+import { getDevShellSession } from "@server/next/devShellSession";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
@@ -19,7 +18,7 @@ export const metadata = buildNoIndexPageMetadata({
 // The Effect Index build never reaches this page: middleware answers the whole `/dev`
 // prefix with a real 404 there (`dev` in `FlavorGatedRoute`), so only the role gate is left.
 export default async function DevThemesPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getDevShellSession();
   const decision = getDevRouteDecision({
     pathname: STATUS_PAGE_PATHS.dev,
     email: session?.user?.email ?? null,

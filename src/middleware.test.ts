@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { SUBSTANCE_INDEX_VIEW_PARAMS } from "@/utils/indexViewRoutes";
 import themeLabBootstrap from "@/features/theme-lab/themeLabBootstrap.generated.json";
@@ -846,5 +846,75 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBe(
       "https://dosewiki-admin.vercel.app/search?q=lsd+dosage",
     );
+  });
+});
+
+describe("local dev screenshot viewer", () => {
+  const VIEWER_ENV = ["NODE_ENV", "DEV_SCREENSHOT_VIEWER", "DATA_WRITES_FROZEN"] as const;
+  let previous: Record<string, string | undefined> = {};
+
+  beforeEach(() => {
+    previous = Object.fromEntries(VIEWER_ENV.map((key) => [key, process.env[key]]));
+    mocks.getToken.mockReset().mockResolvedValue(null);
+    vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "true");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_SCREENSHOT_VIEWER", "1");
+    vi.stubEnv("DATA_WRITES_FROZEN", "1");
+  });
+
+  afterEach(() => {
+    for (const key of VIEWER_ENV) vi.stubEnv(key, previous[key]);
+    vi.resetModules();
+  });
+
+  function localRequest(path: string, init: { method?: string; host?: string } = {}) {
+    const host = init.host ?? "127.0.0.1:3100";
+    return new NextRequest(`http://${host}${path}`, { method: init.method ?? "GET", headers: { host } });
+  }
+
+  it("serves /dev documents without a session only when every condition holds", async () => {
+    const { middleware } = await import("./middleware");
+    for (const path of ["/dev", "/dev/replications", "/dev/kit"]) {
+      const response = await middleware(localRequest(path));
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+      expect(response.headers.get("location")).toBeNull();
+    }
+    expect(mocks.getToken).not.toHaveBeenCalled();
+  });
+
+  it("keeps mutations on /dev behind the sign-in gate", async () => {
+    const { middleware } = await import("./middleware");
+    for (const method of ["POST", "PUT", "DELETE"]) {
+      const response = await middleware(localRequest("/dev/replications", { method }));
+      expect(response.headers.get("x-middleware-next")).toBeNull();
+      expect(new URL(response.headers.get("location")!).pathname).toBe("/sign-in");
+    }
+  });
+
+  it.each([
+    ["the opt-in is unset", { DEV_SCREENSHOT_VIEWER: undefined }],
+    ["the write freeze is off", { DATA_WRITES_FROZEN: undefined }],
+  ])("redirects to sign-in when %s", async (_label, overrides) => {
+    for (const [key, value] of Object.entries(overrides)) vi.stubEnv(key, value);
+    const { middleware } = await import("./middleware");
+    const response = await middleware(localRequest("/dev/replications"));
+    expect(response.headers.get("x-middleware-next")).toBeNull();
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/sign-in");
+  });
+
+  it("refuses a non-loopback Host", async () => {
+    const { middleware } = await import("./middleware");
+    const response = await middleware(localRequest("/dev/replications", { host: "192.168.1.20:3100" }));
+    expect(response.headers.get("x-middleware-next")).toBeNull();
+  });
+
+  it("is off under NODE_ENV=production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { middleware } = await import("./middleware");
+    for (const host of ["127.0.0.1:3100", "localhost:3000"]) {
+      const response = await middleware(localRequest("/dev/replications", { host }));
+      expect(response.headers.get("x-middleware-next")).toBeNull();
+    }
   });
 });

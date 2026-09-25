@@ -51,12 +51,24 @@ function EditorHint() {
   return null;
 }
 
-export function AppProviders({ children, session }: { children: ReactNode; session?: Session | null }) {
+export function AppProviders({
+  children,
+  session,
+  sessionBasePath,
+}: {
+  children: ReactNode;
+  session?: Session | null;
+  /**
+   * Set only for the local screenshot viewer (lib/auth/devScreenshotViewer.ts),
+   * whose session has no Auth.js cookie behind it. Unset keeps Auth.js defaults.
+   */
+  sessionBasePath?: string;
+}) {
   const [queryClient] = useState(() => new QueryClient(queryClientOptions));
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider session={session}>
+      <SessionProvider session={session} basePath={sessionBasePath}>
         <EditorHint />
         {children}
       </SessionProvider>

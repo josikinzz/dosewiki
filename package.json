@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "next:dev": "bun run dev",
+    "dev:screenshot-viewer": "DEV_SCREENSHOT_VIEWER=1 DATA_WRITES_FROZEN=1 DOSEWIKI_BUILD_DIR=.next-screenshot next dev -H 127.0.0.1 -p 3100",
+    "dev:screenshot": "node scripts/tools/screenshot-dev-tool.mjs",
     "build": "next build --webpack && node scripts/build/editor-artifact-audit.mjs",
     "next:build": "bun run build",
     "build:vercel": "node scripts/deploy/vercel-build.mjs",

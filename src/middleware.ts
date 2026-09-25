@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import { authSecret } from "@server/auth/runtimePolicy";
+import { admitsDevScreenshotViewer } from "@server/auth/devScreenshotViewer";
 import {
   getEditorHandoffUrl,
   isPublicHost,
@@ -524,6 +525,15 @@ export async function middleware(request: NextRequest) {
   }
 
   if (delivery === "editor" || !request.nextUrl.pathname.startsWith("/dev")) {
+    return browserPolicy.secure(
+      NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
+    );
+  }
+
+  // Local `next dev` screenshot viewer: GET/HEAD `/dev` documents only, and
+  // only with the opt-in, the write freeze, and a loopback host. Its APIs stay
+  // behind their own session and role checks. See lib/auth/devScreenshotViewer.ts.
+  if (admitsDevScreenshotViewer({ method: request.method, pathname: request.nextUrl.pathname, headers: request.headers })) {
     return browserPolicy.secure(
       NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
     );
