@@ -408,7 +408,16 @@ export const updateEditorialFieldsArgs = v.object({
 export const bulkUpdateEditorialFieldsArgs = v.object({
   apiKey: v.optional(v.string()),
   actorEmail: v.optional(v.string()),
-  ids: v.array(v.id("replications")),
+  /**
+   * The rows an editorial change targets, each with the snapshot the studio
+   * loaded. A row that no longer matches its snapshot is reported as a
+   * conflict and left unwritten.
+   */
+  items: v.optional(
+    v.array(v.object({ id: v.id("replications"), expected: replicationEditorialSnapshot })),
+  ),
+  /** Rows named by id alone; accepted only for the showcase toggle below. */
+  ids: v.optional(v.array(v.id("replications"))),
   effect_slug: v.optional(v.string()),
   artist: v.optional(v.string()),
   role: v.optional(replicationRole),

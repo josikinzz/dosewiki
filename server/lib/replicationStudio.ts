@@ -1,3 +1,4 @@
+import type { Id } from "../../lib/postgres/runtime/dataModel";
 import type { MutationCtx, QueryCtx } from "../../lib/postgres/runtime/server"
 import { requireRole } from "./auth";
 import {
@@ -10,6 +11,7 @@ import { memoizedStorageUrls, resolveReplicationUrls } from "./replicationUrls";
 import type {
   BulkUpdateEditorialFieldsArgs,
   GetStudioRowsArgs,
+  ReplicationEditorialSnapshot,
   UpdateEditorialFieldsArgs,
 } from "./replicationValidators";
 
@@ -159,6 +161,9 @@ export async function updateEditorialFieldsHandler(
   return { success: true, slug: row.slug };
 }
 
+/** A bulk target the handler refused because it moved since the studio loaded it. */
+export type BulkEditConflict = { id: string; slug: string | null; reason: string };
+
 export async function bulkUpdateEditorialFieldsHandler(
   ctx: MutationCtx,
   args: BulkUpdateEditorialFieldsArgs,
@@ -168,12 +173,16 @@ export async function bulkUpdateEditorialFieldsHandler(
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
     "admin",
   );
-  if (args.ids.length === 0) {
+  const targets: { id: Id<"replications">; expected?: ReplicationEditorialSnapshot }[] = [
+    ...(args.items ?? []),
+    ...(args.ids ?? []).map((id) => ({ id })),
+  ];
+  if (targets.length === 0) {
     throw new Error("A bulk edit needs at least one row.");
   }
-  if (args.ids.length > BULK_EDIT_LIMIT) {
+  if (targets.length > BULK_EDIT_LIMIT) {
     throw new Error(
-      `A bulk edit may touch at most ${BULK_EDIT_LIMIT} rows (got ${args.ids.length}).`,
+      `A bulk edit may touch at most ${BULK_EDIT_LIMIT} rows (got ${targets.length}).`,
     );
   }
 
@@ -187,28 +196,48 @@ export async function bulkUpdateEditorialFieldsHandler(
   const addTags = args.addEffectTags
     ? normalizeEffectTags(args.addEffectTags)
     : [];
-  if (
-    args.effect_slug === undefined
-    && artist === undefined
-    && args.role === undefined
-    && args.showcase_excluded === undefined
-    && addTags.length === 0
-  ) {
+  const editorial =
+    args.effect_slug !== undefined
+    || artist !== undefined
+    || args.role !== undefined
+    || addTags.length > 0;
+  if (!editorial && args.showcase_excluded === undefined) {
     throw new Error("A bulk edit needs at least one field to change.");
+  }
+  // Editorial fields are what the single edit guards, so the bulk path guards
+  // them the same way: every row carries the snapshot it was loaded with.
+  if (editorial && targets.some((target) => !target.expected)) {
+    throw new Error(
+      "A bulk editorial change must send each row's expected values; reload the studio and try again.",
+    );
   }
 
   const updatedSlugs: string[] = [];
-  for (const id of args.ids) {
-    const row = await ctx.db.get(id);
+  const conflicts: BulkEditConflict[] = [];
+  for (const target of targets) {
+    const row = await ctx.db.get(target.id);
     if (!row) {
-      throw new Error(
-        `Replication ${id} no longer exists; reload the studio before applying.`,
-      );
+      conflicts.push({ id: target.id, slug: null, reason: "It no longer exists." });
+      continue;
+    }
+    if (target.expected) {
+      const expected = {
+        ...target.expected,
+        effect_tags: [...target.expected.effect_tags].sort(),
+      };
+      if (!editorialSnapshotsAgree(editorialSnapshotOf(row), expected)) {
+        conflicts.push({
+          id: target.id,
+          slug: row.slug,
+          reason: "Someone saved it after you loaded the studio.",
+        });
+        continue;
+      }
     }
     const nextTags = addTags.length > 0
       ? normalizeEffectTags([...(row.effect_tags ?? []), ...addTags])
       : row.effect_tags;
-    await ctx.db.patch(id, {
+    await ctx.db.patch(target.id, {
       ...(args.effect_slug !== undefined ? { effect_slug: args.effect_slug } : {}),
       ...(artist ? { artist } : {}),
       ...(args.role !== undefined ? { role: args.role } : {}),
@@ -220,5 +249,5 @@ export async function bulkUpdateEditorialFieldsHandler(
     updatedSlugs.push(row.slug);
   }
 
-  return { success: true, updated: updatedSlugs.length, slugs: updatedSlugs };
+  return { success: true, updated: updatedSlugs.length, slugs: updatedSlugs, conflicts };
 }

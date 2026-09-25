@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -230,13 +230,18 @@ describe("ReplicationStudioTab", () => {
     expect(await screen.findByText(/2 selected/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Figure" }));
     await user.click(screen.getByRole("button", { name: "Apply to 2" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Apply to 2" }));
 
     await waitFor(() =>
       expect(calls.some((call) => call.url === "/api/dev/replications/editorial")).toBe(true),
     );
     const bulk = calls.find((call) => call.url === "/api/dev/replications/editorial");
     const body = JSON.parse(String(bulk?.init?.body)) as Record<string, unknown>;
-    expect(body).toMatchObject({ mode: "bulk", ids: ["row-1", "row-2"], role: "figure" });
+    expect(body).toMatchObject({
+      mode: "bulk",
+      items: [{ id: "row-1" }, { id: "row-2" }],
+      patch: { role: "figure" },
+    });
   });
 
   it("shows the drug gallery beside its filter rail without mounting the library behind it", async () => {

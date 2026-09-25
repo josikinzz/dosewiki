@@ -302,7 +302,7 @@ export function ReplicationStudioTab({
       artists={artists}
       busy={busy}
       onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
-      onApplyBulk={(targets, edit) => void controller.applyBulk(targets, edit)}
+      onApplyBulk={controller.applyBulk}
       onDeselect={controller.clearSelection}
       onDirtyChange={controller.setEditorDirty}
       onOpenPlacement={(row) => controller.openPlacement(row.id)}
