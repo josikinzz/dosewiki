@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { DEV_UTILITIES } from "./DevUtilitiesMenu";
 import type { DevModeToolSheetProps, GroupView } from "./DevModeToolTypes";
 
 const SHEET_TAB_CLASS =
@@ -46,7 +45,7 @@ function SheetToolList({ groups, activeTab, isToolsSection, activeRowRef, onTabC
             ...group.locked.map((item) => ({ item, lockReason: item.reason as string | null })),
           ].map(({ item, lockReason }) => {
             const badge = item.badge ? <CountBadge count={item.badge} /> : null;
-            if (item.destination.kind === "external") {
+            if (item.destination.kind === "external" && lockReason === null) {
               return <a key={item.id} href={item.destination.href} title={`Opens ${item.label} full screen`} className={SHEET_TAB_CLASS}>{item.label}<Icon icon="lucide:arrow-up-right" size={12} className="text-current" />{badge}</a>;
             }
             const isActive = isToolsSection && activeTab === item.id;
@@ -71,6 +70,7 @@ export function DevToolSheet({
   activePrimaryTab,
   activeLabel,
   changeLogLockReason,
+  utilities,
   onPrimaryTabChange,
   onLeave,
   session,
@@ -116,8 +116,8 @@ export function DevToolSheet({
           <div className="theme-divider shrink-0 border-t px-3 pt-1 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div role="group" aria-label="Site sections" className="flex flex-col gap-0.5">
               <span aria-hidden className={`${GROUP_CAPTION_CLASS} px-3 pb-1 pt-1`}>More</span>
-              <button type="button" ref={changeLogActive ? (activeRowRef as RefObject<HTMLButtonElement>) : undefined} disabled={changeLogLockReason !== null} aria-disabled={changeLogLockReason !== null ? "true" : undefined} title={changeLogLockReason ?? undefined} aria-current={changeLogActive ? "page" : undefined} data-state={changeLogActive ? "active" : "inactive"} onClick={() => closeThen(onPrimaryTabChange)("change-log")} className={SHEET_TAB_CLASS}>Change log</button>
-              {DEV_UTILITIES.map((utility) => <Link key={utility.href} href={utility.href} className={SHEET_TAB_CLASS}><Icon icon={utility.icon} size={16} className="theme-accent-emphasis shrink-0" />{utility.label}</Link>)}
+              <button type="button" ref={changeLogActive ? (activeRowRef as RefObject<HTMLButtonElement>) : undefined} disabled={changeLogLockReason !== null} aria-disabled={changeLogLockReason !== null ? "true" : undefined} title={changeLogLockReason ?? undefined} aria-current={changeLogActive ? "page" : undefined} data-state={changeLogActive ? "active" : "inactive"} onClick={() => closeThen(onPrimaryTabChange)("change-log")} className={SHEET_TAB_CLASS}>Change log{changeLogLockReason ? <span className="theme-text-muted ml-auto text-xs font-normal">{changeLogLockReason}</span> : null}</button>
+              {utilities.map((utility) => <Link key={utility.href} href={utility.href} className={SHEET_TAB_CLASS}><Icon icon={utility.icon} size={16} className="theme-accent-emphasis shrink-0" />{utility.label}</Link>)}
               <button type="button" onClick={() => closeThen(onLeave)(undefined)} className={SHEET_TAB_CLASS}><Icon icon="lucide:x" size={16} className="shrink-0" />Leave editor</button>
             </div>
             <div role="group" aria-label="Session" className="mt-1 flex items-center gap-2 px-3 pt-2">{session}</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useId, useLayoutEffect } from "react";
+import { Fragment, useEffect, useId, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { SessionProvider, useSession } from "next-auth/react";
 import { Eye, Pencil, Wrench } from "lucide-react";
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { canAccessDev, type AppRole } from "@/lib/auth/roles";
-import { getEditorLauncherActions } from "./actions";
+import { canEditTarget, getEditorLauncherActions } from "./actions";
 import type { EditorTarget } from "./context";
 
 type Props = {
@@ -41,6 +41,21 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
   const modeHintId = useId();
   const role = session.status === "authenticated" ? session.data.user?.role ?? null : null;
   const eligible = canAccessDev(role);
+  // The Edit toggle, and its E shortcut, only where this role can edit the page.
+  const editable = contextualEnabled && canEditTarget(target, role);
+
+  // Signing out already resets the mode upstream; this covers a member whose
+  // page or role no longer allows editing while still signed in.
+  // Asked once per loss of edit rights, so a pending unsaved-work prompt is
+  // never re-opened on every render.
+  const leftEditRef = useRef(false);
+  useEffect(() => {
+    if (editable) { leftEditRef.current = false; return; }
+    if (eligible && mode === "edit" && !leftEditRef.current) {
+      leftEditRef.current = true;
+      onModeChange("view");
+    }
+  }, [eligible, editable, mode, onModeChange]);
 
   // Synchronize the homepage corner before paint, including logout and gate unmount.
   useLayoutEffect(() => {
@@ -49,7 +64,7 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
   }, [role, session.data?.user?.email, onIdentityChange]);
 
   useEffect(() => {
-    if (!eligible || !contextualEnabled) return;
+    if (!eligible || !editable) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (
         event.defaultPrevented ||
@@ -64,7 +79,7 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [eligible, contextualEnabled, mode, onModeChange]);
+  }, [eligible, editable, mode, onModeChange]);
 
   if (!eligible) return null;
   const actions = getEditorLauncherActions(target, role);
@@ -78,7 +93,7 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
         ? "calc(var(--viewer-rail-height, 96px) + 4.5rem + env(safe-area-inset-bottom, 0px))"
         : "max(1rem, env(safe-area-inset-bottom))" }}
     >
-      {contextualEnabled ? (
+      {editable ? (
         <div role="group" aria-label="Page editing mode" className="flex gap-1">
           <Button size="icon" variant="ghost" className="theme-selected-control border border-transparent" data-state={mode === "view" ? "active" : "inactive"} aria-label="View" title="View without editing controls" aria-pressed={mode === "view"} onClick={() => onModeChange("view")}><Eye aria-hidden="true" /></Button>
           <Button size="icon" variant="ghost" className="theme-selected-control border border-transparent" data-state={mode === "edit" ? "active" : "inactive"} aria-label="Edit page" aria-pressed={mode === "edit"} aria-describedby={modeHintId} title="Show editing controls on this page. Press E to toggle editing. Nothing is published by switching modes." onClick={() => onModeChange("edit")}><Pencil aria-hidden="true" /></Button>

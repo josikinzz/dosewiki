@@ -5,10 +5,11 @@
  * tab is one entry here plus its render branch in `DevModePageView`.
  *
  * Kept free of React and runtime app imports on purpose: the server route and
- * the client router both load it. The role type is a type-only import.
+ * the client router both load it. The one runtime role import is the pure
+ * floor check that `firstUsableTab` needs.
  */
 
-import type { AppRole, RoleFloor } from "@/lib/auth/roles";
+import { roleMeetsFloor, type AppRole, type RoleFloor } from "@/lib/auth/roles";
 import { DEV_ROUTE_FILTERS, type DevRouteFilter } from "@/utils/devHref";
 
 export type DevToolGroup = "content" | "intake" | "site";
@@ -357,6 +358,29 @@ const PINNED_ROUTES: Readonly<Record<string, DevRoute>> = {
 
 /** The tab that opens when the route names no tab, or names one nobody knows. */
 export const DEFAULT_DEV_TAB: DevModeTab = "articles";
+
+/**
+ * Floors in landing preference. A translator also holds the contributor floor,
+ * but their own work is the Glossary, so the more specific floor wins; admins
+ * land with editors on the article tools.
+ */
+const LANDING_FLOORS: readonly RoleFloor[] = ["editor", "translator", "contributor"];
+
+/**
+ * The tool a role lands on when the route names none: the first shell tool in
+ * registry order at the most specific floor the role holds. Roles with no
+ * usable tool keep the default, which renders its locked panel.
+ */
+export function firstUsableTab(role: AppRole | null | undefined): DevModeTab {
+  for (const floor of LANDING_FLOORS) {
+    if (!roleMeetsFloor(role, floor)) continue;
+    const tab = DEV_TAB_REGISTRY.find(
+      (candidate) => candidate.group !== "chrome" && candidate.destination.kind === "shell" && candidate.role === floor,
+    );
+    if (tab) return tab.id;
+  }
+  return DEFAULT_DEV_TAB;
+}
 
 // Own-property guards: these tables are keyed by URL segments, and
 // `/dev/constructor` must not find `Object.prototype.constructor`.

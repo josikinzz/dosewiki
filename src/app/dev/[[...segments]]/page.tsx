@@ -15,7 +15,13 @@ import {
   DataTargetSplitRefusal,
 } from "../../_components/DataTargetSplitNotice";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
-import { findDevTab, resolveDevRoute } from "@/features/dev/pages/devTabRegistry";
+import {
+  DEFAULT_DEV_TAB,
+  findDevTab,
+  firstUsableTab,
+  resolveDevRoute,
+} from "@/features/dev/pages/devTabRegistry";
+import { viewToPath } from "@/utils/routing";
 
 // No `force-dynamic`: the route already opts out of caching by reading the
 // session cookie, and the flag additionally blocked the static shell from
@@ -58,6 +64,15 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
 
   if (redirectTarget.type === "unauthorized") {
     redirect(redirectTarget.href);
+  }
+
+  // Bare `/dev` (where sign-in returns) opens the first tool the role can
+  // use, so a translator or contributor never lands on a lock screen.
+  if (tabSegment === undefined) {
+    const landing = firstUsableTab(role);
+    if (landing !== DEFAULT_DEV_TAB) {
+      redirect(viewToPath({ type: "dev", tab: landing }));
+    }
   }
 
   // Resolved server-side on purpose: the privileged write URL must never be

@@ -6,6 +6,7 @@ import {
   DEFAULT_DEV_TAB,
   DEV_TAB_REGISTRY,
   findDevTab,
+  firstUsableTab,
   resolveDevRoute,
   resolveDevTabAlias,
 } from "./devTabRegistry";
@@ -106,6 +107,7 @@ describe("devTabRegistry", () => {
       "DevModeToolSheet.tsx",
       "DevToolSaveLine.tsx",
       "useDevChromeEnvironment.ts",
+      "useDevRouteAccess.ts",
     ];
     // `change-log` doubles as the primary-section name, so only tool ids count.
     const toolIds = DEV_TAB_REGISTRY.filter((tab) => tab.group !== "chrome").map((tab) => tab.id);
@@ -115,6 +117,17 @@ describe("devTabRegistry", () => {
         expect(source.includes(`"${id}"`), `${file} names the "${id}" tab`).toBe(false);
       }
     }
+  });
+
+  it("lands every role on the first tool it can use", () => {
+    expect(firstUsableTab("admin")).toBe("articles");
+    expect(firstUsableTab("editor")).toBe("articles");
+    expect(firstUsableTab("editor_translator")).toBe("articles");
+    // A translator also holds the contributor floor; its own tool comes first.
+    expect(firstUsableTab("translator")).toBe("glossary");
+    expect(firstUsableTab("contributor")).toBe("contributors");
+    expect(firstUsableTab("viewer")).toBe(DEFAULT_DEV_TAB);
+    expect(firstUsableTab(null)).toBe(DEFAULT_DEV_TAB);
   });
 
   it("falls back to the default tab and keeps the slug for unknown segments", () => {

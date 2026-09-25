@@ -1,8 +1,29 @@
 import { findDevTab, type DevModeTab } from "@/features/dev/pages/devTabRegistry";
-import { canAccessDev, roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
+import { canAccessDev, canDraft, roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import type { EditorTarget } from "./context";
 
 export type EditorLauncherAction = { label: string; href: string };
+
+/**
+ * Whether the page's editable record is one this role can change in place,
+ * mirroring each contextual editor's own gate: articles and writing need the
+ * editor role, effect articles need admin, and a replication viewer opens to
+ * contributors. A page with no declared record keeps the member floor, since
+ * its in-page editors (copy blocks, artist profiles) gate themselves.
+ */
+export function canEditTarget(target: EditorTarget | undefined, role: AppRole | null | undefined): boolean {
+  switch (target?.kind) {
+    case "substance":
+    case "writing":
+      return canDraft(role);
+    case "effect":
+      return role === "admin";
+    case "replications":
+      return roleMeetsFloor(role, "contributor");
+    default:
+      return canAccessDev(role);
+  }
+}
 
 /** Only links to existing tools; their server-side authorization remains authoritative. */
 export function getEditorLauncherActions(

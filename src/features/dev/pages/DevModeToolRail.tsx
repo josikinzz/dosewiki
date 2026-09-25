@@ -120,7 +120,8 @@ export function RailLockedMenu({ locked }: { locked: readonly LockedToolItem[] }
     <div role="group" aria-label="Locked tools" className="flex shrink-0 items-center">
       <RailDivider />
       <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild><button type="button" className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}>Locked<CountBadge count={locked.length} label="locked" /><ExpandIndicator isExpanded={open} variant="compact" /></button></DropdownMenuTrigger>
+        {/* A neutral lock and a plain count: locked tools are not work waiting, so they never borrow the work-count badge. */}
+        <DropdownMenuTrigger asChild><button type="button" className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}><Icon icon="lucide:lock" size={12} className="theme-text-muted" />Locked<span aria-hidden className="theme-text-muted font-mono text-[0.6875rem]">{locked.length}</span><span className="sr-only">{`, ${locked.length} locked`}</span><ExpandIndicator isExpanded={open} variant="compact" /></button></DropdownMenuTrigger>
         <DropdownMenuContent align="start" aria-label="Locked tools" className={`w-64 ${MENU_CONTENT_CLASS}`}>
           {locked.map((item) => <DropdownMenuItem key={item.id} disabled className={`${MENU_TAB_CLASS} justify-between gap-3`}><span>{item.label}</span><span className="theme-text-muted text-xs font-normal">{item.reason}</span></DropdownMenuItem>)}
         </DropdownMenuContent>

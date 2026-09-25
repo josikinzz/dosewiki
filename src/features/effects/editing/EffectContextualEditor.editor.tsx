@@ -25,10 +25,12 @@ type Document = { effect: SubjectiveEffectArticle; baseRevision: string; history
 type History = NarrativeHistoryEntry;
 export default function EffectContextualEditor(props: Props) {
   const { enabled, mode, role } = useContextualEditing();
-  if (!enabled || role !== "admin") return null;
+  if (!enabled) return null;
+  // Every member declares the record so the launcher can hide its Edit toggle
+  // here for roles below admin; only an admin session ever mounts the editor.
   return <>
     <EditorLauncherTarget target={{ kind: "effect", slug: props.slug, name: props.pageProps.article.hero.name }} />
-    {mode === "edit" ? <EffectSession key={props.slug} {...props} /> : null}
+    {mode === "edit" && role === "admin" ? <EffectSession key={props.slug} {...props} /> : null}
   </>;
 }
 

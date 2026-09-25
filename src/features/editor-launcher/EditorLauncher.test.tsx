@@ -132,6 +132,27 @@ describe("reading-page editor navigation", () => {
   });
 
 
+  it("offers the Edit toggle only where the role can edit the page", async () => {
+    const effect: EditorTarget = { kind: "effect", slug: "drifting", name: "Drifting" };
+    auth.role = "editor";
+    const view = render(<ReadingPage target={effect} />);
+    await screen.findByRole("button", { name: "Open dev tools" });
+    // Effect articles are admin-only; an editor gets no toggle there.
+    expect(screen.queryByRole("button", { name: "Edit page" })).not.toBeInTheDocument();
+
+    view.rerender(<ReadingPage />);
+    expect(await screen.findByRole("button", { name: "Edit page" })).toBeInTheDocument();
+
+    // Substance articles need the editor role, so a contributor sees none.
+    auth.role = "contributor";
+    view.rerender(<ReadingPage />);
+    expect(screen.queryByRole("button", { name: "Edit page" })).not.toBeInTheDocument();
+
+    auth.role = "admin";
+    view.rerender(<ReadingPage target={effect} />);
+    expect(await screen.findByRole("button", { name: "Edit page" })).toBeInTheDocument();
+  });
+
   it("toggles contextual editing with E while leaving typing and modified keys alone", async () => {
     const view = render(<EditorLauncherProvider><ShortcutFixture /></EditorLauncherProvider>);
     const user = userEvent.setup();

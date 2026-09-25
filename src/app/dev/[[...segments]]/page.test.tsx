@@ -99,6 +99,24 @@ describe("NextDevPage shell selection", () => {
     await expect(element.props.ownedProfileKey).resolves.toBe("MEMBER");
   });
 
+  it.each([
+    ["translator", "/dev/glossary"],
+    ["contributor", "/dev/contributors"],
+  ] as const)("sends a %s opening bare /dev to the first tool it can use", async (role, href) => {
+    getServerSessionMock.mockResolvedValue({ user: { email: "member@example.com", role } });
+    getOwnedContributorProfileMock.mockResolvedValue(null);
+
+    await expect(NextDevPage({ params: Promise.resolve({ segments: [] }) })).rejects.toThrow(`redirect:${href}`);
+  });
+
+  it("keeps an editor on bare /dev, which already opens Substances", async () => {
+    getServerSessionMock.mockResolvedValue({ user: { email: "editor@example.com", role: "editor" } });
+    getOwnedContributorProfileMock.mockResolvedValue(null);
+
+    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
+    expect(element.props).toEqual(expect.objectContaining({ initialTab: "articles" }));
+  });
+
   it("still loads the shell for a contributor on an editor tab, which the shell renders locked", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { email: "member@example.com", role: "contributor" },

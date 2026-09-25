@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -44,6 +45,9 @@ export function ThemeLabWorkbench() {
     <div className="min-h-screen bg-dose-body text-dose-text">
       <div className="mx-auto flex w-full max-w-[68ch] flex-col gap-8 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-3">
+          <Link href="/dev" className="text-sm font-medium text-dose-text-secondary hover:text-dose-text">
+            Back to dev tools
+          </Link>
           <h1 className="text-2xl font-semibold text-dose-text">Theme Lab</h1>
           <p className="text-sm text-dose-text-secondary">
             Recolor the site live (the Fun palette or Pro’s accent seeds) and save it to this
