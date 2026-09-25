@@ -21,6 +21,7 @@ import { TagListPanel } from "./TagListPanel";
 import { TagDetailPanel } from "./TagDetailPanel";
 import { TagMutationForms } from "./TagMutationForms";
 import { TagNotice } from "./TagNotice";
+import { applyDraft, baselineTagSignature } from "./tagDraftProjection";
 import type { TagEditorTabProps, TagUndo } from "./types";
 import {
   createTagEditorState,
@@ -173,7 +174,43 @@ export function TagEditorTab({
   }, [registryRetry]);
 
   const registryEntries = registryFetch.status === "ready" ? registryFetch.entries : null;
-  const registry = useMemo(() => buildTagRegistry(registryEntries ?? []), [registryEntries]);
+  // The list is the server's tags with the draft's tag changes layered on
+  // top, the same projection a finished mutation reports, so an uncommitted
+  // rename survives a remount or a reload and the next mutation finds it.
+  const baseline = useMemo(() => getOriginalArticles(), [getOriginalArticles]);
+  const projectRegistry = useCallback(
+    (draftArticles: readonly SubstanceArticle[]) =>
+      buildTagRegistry(applyDraft(registryEntries ?? [], { articles: draftArticles, baseline: getOriginalArticles() })),
+    [getOriginalArticles, registryEntries],
+  );
+  const registry = useMemo(
+    () => buildTagRegistry(applyDraft(registryEntries ?? [], { articles, baseline })),
+    [articles, baseline, registryEntries],
+  );
+
+  // A commit moves the baseline onto the draft's tags; the fetched server
+  // list predates it, so read it again rather than show the old names.
+  const baselineSignature = useMemo(() => baselineTagSignature(baseline), [baseline]);
+  const fetchedForSignature = useRef(baselineSignature);
+  useEffect(() => {
+    if (fetchedForSignature.current === baselineSignature) {
+      return;
+    }
+    fetchedForSignature.current = baselineSignature;
+    let cancelled = false;
+    fetchTagRegistryEntries()
+      .then((entries) => {
+        if (!cancelled) {
+          setRegistryFetch({ status: "ready", entries });
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to refresh the tag registry after the baseline moved.", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [baselineSignature]);
 
   // The header's reload keeps the panels mounted: the rebuilt registry flows
   // in through the articlesChanged dispatch, and the button reports the
@@ -236,7 +273,13 @@ export function TagEditorTab({
               .filter((slug) => slug.length > 0),
           );
           if (hydratedSlugs.size === 0) {
-            dispatch({ type: "mutationSucceeded", effectId: effect.id, result: plan, before: articles });
+            dispatch({
+              type: "mutationSucceeded",
+              effectId: effect.id,
+              result: plan,
+              before: articles,
+              registry: projectRegistry(plan.articles),
+            });
             return;
           }
 
@@ -284,6 +327,7 @@ export function TagEditorTab({
             effectId: effect.id,
             result: outcome.rebased.result,
             before: outcome.rebased.before,
+            registry: projectRegistry(outcome.rebased.result.articles),
           });
         } catch (error) {
           console.error("Tag mutation failed", error);
@@ -314,6 +358,7 @@ export function TagEditorTab({
           type: "undoSucceeded",
           effectId: effect.id,
           articles: outcome.reverted.articles,
+          registry: projectRegistry(outcome.reverted.articles),
           restoredCount: outcome.reverted.restoredCount,
         });
       } catch (error) {
@@ -340,7 +385,7 @@ export function TagEditorTab({
     } catch {
       dispatch({ type: "effectFailed", effectId: effect.id, message: "Diff download failed. Try again." });
     }
-  }, [applyArticlesTransform, articleHydration, articles, getOriginalArticles, onCopyDatasetMarkdown, onDownloadDatasetMarkdown, state.pendingEffect]);
+  }, [applyArticlesTransform, articleHydration, articles, getOriginalArticles, onCopyDatasetMarkdown, onDownloadDatasetMarkdown, projectRegistry, state.pendingEffect]);
   const handleRename = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();

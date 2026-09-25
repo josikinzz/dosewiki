@@ -67,10 +67,22 @@ export type TagEditorEvent =
       result: TagMutationResult;
       /** The working set the rewrite ran over, so the rewrite can be put back. */
       before: readonly SubstanceArticle[];
+      /**
+       * The list after the rewrite: the server's tags with the draft on top.
+       * Without it the registry is built from the rewritten rows alone.
+       */
+      registry?: TagRegistry;
     }
   | { type: "mutationFailed"; effectId: number; message: string }
   | { type: "undoRequested" }
-  | { type: "undoSucceeded"; effectId: number; articles: SubstanceArticle[]; restoredCount: number }
+  | {
+      type: "undoSucceeded";
+      effectId: number;
+      articles: SubstanceArticle[];
+      restoredCount: number;
+      /** As on `mutationSucceeded`: the projected list, else built from `articles`. */
+      registry?: TagRegistry;
+    }
   | { type: "undoFailed"; effectId: number; message: string }
   | { type: "articlesChanged"; registry: TagRegistry };
 
@@ -389,7 +401,7 @@ export const tagEditorReducer = (
       }
       return repairSelection({
         ...state,
-        registry: buildTagRegistry(event.articles),
+        registry: event.registry ?? buildTagRegistry(event.articles),
         undo: null,
         pendingEffect: null,
         isApplying: false,
@@ -459,7 +471,7 @@ export const tagEditorReducer = (
       }
 
       const summary = summarizeMutation(event.result);
-      const registry = buildTagRegistry(event.result.articles);
+      const registry = event.registry ?? buildTagRegistry(event.result.articles);
       const successState = {
         ...state,
         registry,

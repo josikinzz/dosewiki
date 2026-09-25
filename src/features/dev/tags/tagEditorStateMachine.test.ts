@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { buildTagRegistry } from "@/utils/data/tagRegistry";
 
-const { applyArticlesTransformMock, hydrateArticlesNowMock, mockDevArticles, devContext } = vi.hoisted(() => {
+const { applyArticlesTransformMock, getOriginalArticles, hydrateArticlesNowMock, mockDevArticles, devContext } = vi.hoisted(() => {
   const mockDevArticles = [
     {
       title: "LSD",
@@ -25,7 +25,10 @@ const { applyArticlesTransformMock, hydrateArticlesNowMock, mockDevArticles, dev
   // directly to stand in for an edit made through another tool while the tag
   // editor's hydration is in flight.
   const devContext = { articles: mockDevArticles as unknown[], original: mockDevArticles as unknown[] };
+  // Stable like the real context's getter, which changes only with the baseline.
+  const getOriginalArticles = () => devContext.original;
   return {
+    getOriginalArticles,
     mockDevArticles,
     devContext,
     hydrateArticlesNowMock: vi.fn(),
@@ -38,7 +41,7 @@ const { applyArticlesTransformMock, hydrateArticlesNowMock, mockDevArticles, dev
 vi.mock("../context/DevModeContext", () => ({
   useDevMode: () => ({
     articles: devContext.articles,
-    getOriginalArticles: () => devContext.original,
+    getOriginalArticles,
     applyArticlesTransform: applyArticlesTransformMock,
     articleHydration: createHydratedArticleHydration({
       hydrateArticlesNow: hydrateArticlesNowMock,
@@ -577,6 +580,65 @@ describe("TagEditorTab state-machine integration", () => {
     });
     expect(devContext.articles[0]).not.toHaveProperty("summary");
     expect(devContext.articles[1]).toBe(mockDevArticles[1]);
+  });
+
+  it("lists a renamed tag by its new name before commit, even though the server still has the old one", async () => {
+    stubRegistryFetch();
+    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
+    // The rename happened earlier in this session; the tab mounts fresh and
+    // the tag registry route still answers with the committed tags.
+    devContext.articles = [
+      { ...mockDevArticles[0], index_categories: ["Classic Rock", "Psychedelic"] },
+      mockDevArticles[1],
+    ];
+
+    renderTab();
+
+    expect(await screen.findByRole("button", { name: /Classic Rock/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Classic\b(?! Rock)/ })).toBeNull();
+    expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic Rock");
+
+    // Renaming the renamed tag again reaches the article that carries it.
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
+      target: { value: "Classic Jazz" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
+
+    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1));
+    expect(devContext.articles[0]).toMatchObject({ index_categories: ["Classic Jazz", "Psychedelic"] });
+    expect(await screen.findByRole("status")).toHaveTextContent('Renamed "Classic Rock" to "Classic Jazz" in 1 article.');
+  });
+
+  it("keeps an uncommitted rename in the list after Reload tags", async () => {
+    // Each round trip answers with a fresh copy of the committed tags.
+    stubRegistryFetch(async () => ({
+      ok: true,
+      json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles.map((article) => ({ ...article })) }),
+    }));
+    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
+
+    const { rerender } = renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
+      target: { value: "Classic Rock" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
+    expect(await screen.findByRole("status")).toBeInTheDocument();
+    rerender(
+      createElement(TagEditorTab, {
+        datasetMarkdown: "+ changed",
+        hasDatasetChanges: true,
+        onCopyDatasetMarkdown: async () => undefined,
+        onDownloadDatasetMarkdown: () => undefined,
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reload tags" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reload tags" })).not.toBeDisabled());
+
+    expect(screen.getByRole("button", { name: /Classic Rock/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Classic\b(?! Rock)/ })).toBeNull();
   });
 
   it("shows a retry state when the registry fetch fails", async () => {

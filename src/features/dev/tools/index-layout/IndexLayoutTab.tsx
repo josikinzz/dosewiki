@@ -179,6 +179,23 @@ export function IndexLayoutTab({ commitPanel, enableStickyPanels }: IndexLayoutT
   const destinations = useMemo(() => listDestinations(board), [board]);
   const allSections = useMemo(() => board.flatMap((category) => category.sections), [board]);
   const isDirty = useMemo(() => !areManualsEqual(getOriginal(), manual), [getOriginal, manual]);
+  // Every dataset's draft state, so the switcher marks uncommitted edits on
+  // the datasets that are not open as well as the one that is.
+  const dirtyDatasets = useMemo<Record<ManualDatasetKey, boolean>>(
+    () => ({
+      psychoactive: !areManualsEqual(getOriginalPsychoactiveIndexManual(), psychoactiveIndexManual),
+      chemical: !areManualsEqual(getOriginalChemicalIndexManual(), chemicalIndexManual),
+      mechanism: !areManualsEqual(getOriginalMechanismIndexManual(), mechanismIndexManual),
+    }),
+    [
+      chemicalIndexManual,
+      getOriginalChemicalIndexManual,
+      getOriginalMechanismIndexManual,
+      getOriginalPsychoactiveIndexManual,
+      mechanismIndexManual,
+      psychoactiveIndexManual,
+    ],
+  );
 
   const superTabs = useMemo(() => {
     if (dataset !== "psychoactive") return [];
@@ -391,6 +408,7 @@ export function IndexLayoutTab({ commitPanel, enableStickyPanels }: IndexLayoutT
             value: key,
             label: DATASET_LABELS[key],
             icon: DATASET_ICONS[key],
+            badge: dirtyDatasets[key] ? "Uncommitted" : undefined,
           }))}
         />
         <span className="mx-1 h-5 w-px bg-[var(--editor-panel-border)]" aria-hidden />
