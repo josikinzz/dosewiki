@@ -70,6 +70,14 @@ function postedStatuses(): string[] {
     .map(([, init]) => (JSON.parse(String(init?.body)) as { status?: string }).status ?? "");
 }
 
+/** Every body the page posted to the review endpoint, in order. */
+function postedBodies(): Array<Record<string, unknown>> {
+  return vi
+    .mocked(fetch)
+    .mock.calls.filter(([url, init]) => String(url).includes("editorial-review") && init?.method === "POST")
+    .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
+}
+
 function signInAs(role: "admin" | "editor") {
   fixtures.session = {
     status: "authenticated",
@@ -104,7 +112,14 @@ beforeEach(() => {
         return new Response(JSON.stringify({ stats: [] }), { status: 200 });
       }
       if (url.includes("editorial-review")) {
-        const body = JSON.parse(String(init?.body)) as { slug: string; status: string };
+        const body = JSON.parse(String(init?.body)) as { slug: string; status: string; action?: string; note?: string };
+        if (body.action === "recommend") {
+          const recommendation = { revision: "initial", recommended_by: "editor@example.com", recommended_at: "2026-09-25T00:00:00.000Z", note: body.note ?? "" };
+          return new Response(
+            JSON.stringify({ ok: true, slug: body.slug, editorial_review: { ...baseArticle.editorial_review, recommendation } }),
+            { status: 200 },
+          );
+        }
         return new Response(
           JSON.stringify({ ok: true, slug: body.slug, editorial_review: { ...baseArticle.editorial_review, status: body.status } }),
           { status: 200 },
@@ -122,16 +137,30 @@ async function renderWorkbench(slug = "heroin") {
 }
 
 describe("review sign-off", () => {
-  it("shows editors a disabled Mark reviewed with the reason in visible text, and R posts nothing", async () => {
+  it("gives editors Recommend reviewed instead of Mark reviewed, with the reason in visible text", async () => {
     signInAs("editor");
     await renderWorkbench();
 
-    expect(screen.getByRole("button", { name: "Mark as reviewed" })).toBeDisabled();
-    expect(screen.getByText("Only admins can sign off a review.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Mark as reviewed" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Recommend as reviewed" })).toBeEnabled();
+    expect(screen.getByText(/Only admins can sign off a review\./)).toBeVisible();
+  });
+
+  it("records an editor's R as a recommendation with a note, not a completed review", async () => {
+    signInAs("editor");
+    await renderWorkbench();
 
     fireEvent.keyDown(window, { key: "r" });
-    await act(async () => {});
-    expect(postedStatuses()).toEqual([]);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Recommend Heroin as reviewed?");
+    fireEvent.change(within(dialog).getByLabelText("Note for the admin (optional)"), { target: { value: "Doses match the sources" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Recommend reviewed" }));
+
+    await waitFor(() => expect(postedBodies()).toHaveLength(1));
+    expect(postedBodies()[0]).toMatchObject({ action: "recommend", slug: "heroin", note: "Doses match the sources" });
+    expect(postedStatuses()).toEqual([""]);
+    expect(await screen.findByRole("button", { name: "Recommended reviewed: awaiting an admin" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Recommended Heroin as reviewed.");
   });
 
   it("lets an admin mark reviewed", async () => {

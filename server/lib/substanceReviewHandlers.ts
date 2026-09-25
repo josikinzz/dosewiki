@@ -26,6 +26,7 @@ import {
   publishedArticleRevision,
 } from "./articleRevisionJournal";
 import { articleDocument, type ArticleDocument } from "./articleLifecycleValidation";
+import { isRecommendationStale, REVIEW_INITIAL_REVISION } from "../../src/schema/substance/editorial";
 
 export type ReviewFlagInput = {
   label: string;
@@ -168,6 +169,11 @@ export async function setEditorialReviewHandler(
     status: args.status,
     notes: typeof existing.notes === "string" ? existing.notes : "",
     ...(Array.isArray(existing.flags) ? { flags: existing.flags } : {}),
+    // A hold keeps an editor's recommendation waiting for an admin; a
+    // sign-off answers it.
+    ...(args.status !== "completed" && isStoredRecommendation(existing.recommendation)
+      ? { recommendation: existing.recommendation }
+      : {}),
     ...(reviewedRevision !== null
       ? {
           reviewed_by: actor.email,
@@ -178,6 +184,189 @@ export async function setEditorialReviewHandler(
   };
   await ctx.db.patch(article._id, { editorial_review: editorialReview });
   return { slug: args.slug, editorial_review: editorialReview };
+}
+
+type StoredRecommendation = {
+  revision: string;
+  recommended_by: string;
+  recommended_at: string;
+  note: string;
+};
+
+function isStoredRecommendation(value: unknown): value is StoredRecommendation {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return ["revision", "recommended_by", "recommended_at", "note"].every((key) => typeof record[key] === "string");
+}
+
+/** Longest note an editor may attach to a recommendation. */
+export const REVIEW_RECOMMENDATION_NOTE_MAX = 1000;
+
+/**
+ * An editor recommends an article as reviewed. The recommendation is bound to
+ * the published revision the editor read and leaves `status` untouched: it is
+ * not a completed review, and only an admin approval turns it into one.
+ *
+ * `revision` must be the current published revision. One the article has
+ * already moved past is refused, so a recommendation never starts out stale.
+ */
+export async function recommendEditorialReviewHandler(
+  ctx: MutationCtx,
+  args: EditorArgs & { revision?: string; note: string },
+) {
+  const actor = await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "editor");
+  const note = args.note.trim();
+  if (note.length > REVIEW_RECOMMENDATION_NOTE_MAX) {
+    throw new PostgresError({
+      code: "INVALID_REVIEW_RECOMMENDATION",
+      message: `A recommendation note can be at most ${REVIEW_RECOMMENDATION_NOTE_MAX} characters.`,
+    });
+  }
+  const article = await requireArticle(ctx, args);
+  const existing = storedReview(article);
+  const published = await publishedArticleRevision(ctx, args.slug);
+  if (args.revision !== undefined && args.revision !== published) {
+    throw new PostgresError({
+      code: "REVIEW_REVISION_OUTDATED",
+      message: "This article changed since you loaded it. Reload and review the current version.",
+    });
+  }
+  if (existing.status === "completed" && existing.reviewed_revision === published) {
+    throw new PostgresError({
+      code: "REVIEW_ALREADY_COMPLETED",
+      message: "This article is already reviewed at its current version.",
+    });
+  }
+  const recommendation: StoredRecommendation = {
+    revision: published,
+    recommended_by: actor.email,
+    recommended_at: new Date(Date.now()).toISOString(),
+    note,
+  };
+  const editorialReview = { ...existing, recommendation };
+  await ctx.db.patch(article._id, { editorial_review: editorialReview });
+  return { slug: args.slug, editorial_review: editorialReview };
+}
+
+/** Most recommendations one approval may cover. */
+export const REVIEW_RECOMMENDATION_BATCH_MAX = 100;
+
+export type RecommendationApprovalOutcome = {
+  /** Signed off at the recommended revision. */
+  approved: string[];
+  /** The article was published again after the recommendation; re-review first. */
+  stale: string[];
+  /** No recommendation at that revision any more (withdrawn, replaced or already approved). */
+  missing: string[];
+};
+
+/**
+ * An admin approves editors' recommendations in one write. Each approval
+ * writes `completed` with the recommended revision and the approving admin as
+ * reviewer. `revision` is the recommendation revision the admin saw; a
+ * recommendation that no longer matches it, or whose revision is no longer
+ * the published one, is left alone and reported rather than approved.
+ */
+export async function approveReviewRecommendationsHandler(
+  ctx: MutationCtx,
+  args: { apiKey?: string; actorEmail?: string; items: Array<{ slug: string; revision: string }> },
+): Promise<RecommendationApprovalOutcome> {
+  const actor = await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "admin");
+  if (args.items.length === 0 || args.items.length > REVIEW_RECOMMENDATION_BATCH_MAX) {
+    throw new PostgresError({
+      code: "INVALID_REVIEW_RECOMMENDATION",
+      message: `Approve between 1 and ${REVIEW_RECOMMENDATION_BATCH_MAX} recommendations at a time.`,
+    });
+  }
+  const outcome: RecommendationApprovalOutcome = { approved: [], stale: [], missing: [] };
+  const seen = new Set<string>();
+  const now = new Date(Date.now()).toISOString();
+  for (const item of args.items) {
+    if (seen.has(item.slug)) continue;
+    seen.add(item.slug);
+    const article = await requireArticle(ctx, { slug: item.slug });
+    const existing = storedReview(article);
+    const recommendation = existing.recommendation;
+    if (!isStoredRecommendation(recommendation) || recommendation.revision !== item.revision) {
+      outcome.missing.push(item.slug);
+      continue;
+    }
+    if (recommendation.revision !== (await publishedArticleRevision(ctx, item.slug))) {
+      outcome.stale.push(item.slug);
+      continue;
+    }
+    const { recommendation: _answered, ...rest } = existing;
+    const editorialReview: Record<string, unknown> = {
+      ...rest,
+      status: "completed",
+      notes: typeof existing.notes === "string" ? existing.notes : "",
+      reviewed_by: actor.email,
+      reviewed_at: now,
+      reviewed_revision: recommendation.revision,
+    };
+    await ctx.db.patch(article._id, { editorial_review: editorialReview });
+    outcome.approved.push(item.slug);
+  }
+  return outcome;
+}
+
+export type ReviewRecommendationRow = StoredRecommendation & {
+  slug: string;
+  title: string;
+  /** The article's current published revision. */
+  publishedRevision: string;
+  /** Published again since the recommendation, so it needs re-review. */
+  stale: boolean;
+};
+
+type ReviewRecommendationDatabase = QueryCtx["db"] & {
+  getReviewRecommendationRows(): Promise<Array<{
+    slug: string;
+    title: string;
+    status: string | null;
+    reviewedRevision: string | null;
+    recommendation: unknown;
+  }>>;
+  getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>>;
+};
+
+/**
+ * Every pending recommendation with whether it is stale, oldest first, for
+ * the admin's Review recommendations lane.
+ */
+export async function listReviewRecommendationsHandler(
+  ctx: QueryCtx,
+  args: { apiKey?: string; actorEmail?: string },
+): Promise<ReviewRecommendationRow[]> {
+  await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "admin");
+  const db = ctx.db as ReviewRecommendationDatabase;
+  const [rows, revisions] = await Promise.all([db.getReviewRecommendationRows(), db.getPublishedArticleRevisions()]);
+  const published = new Map(revisions.map(({ slug, revision }) => [slug, revision]));
+  return rows
+    .flatMap((row) => {
+      if (!isStoredRecommendation(row.recommendation)) return [];
+      const publishedRevision = published.get(row.slug) ?? REVIEW_INITIAL_REVISION;
+      return [{
+        ...row.recommendation,
+        slug: row.slug,
+        title: row.title,
+        publishedRevision,
+        stale: isRecommendationStale(row.recommendation, publishedRevision),
+      }];
+    })
+    .sort((a, b) => a.recommended_at.localeCompare(b.recommended_at));
 }
 
 export async function addHumanReviewFlagHandler(

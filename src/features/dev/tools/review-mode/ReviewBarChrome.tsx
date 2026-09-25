@@ -233,6 +233,7 @@ export function MarkReviewedControl({
   hasCurrent,
   isTicking,
   canSignOff,
+  recommendation = null,
   toggleReviewed,
 }: {
   isCurrentReviewed: boolean;
@@ -243,8 +244,46 @@ export function MarkReviewedControl({
   isTicking: boolean;
   /** False for roles the route refuses; the bar says why in visible text. */
   canSignOff: boolean;
+  /**
+   * Set for editors, who recommend instead of signing off: `none` offers
+   * Recommend reviewed, `pending` shows a recommendation awaiting an admin,
+   * and `stale` offers to recommend the newer version again.
+   */
+  recommendation?: "none" | "pending" | "stale" | null;
   toggleReviewed: () => void;
 }) {
+  if (recommendation && !isCurrentReviewed) {
+    return recommendation === "pending" ? (
+      <Button
+        variant="outline"
+        size="pill"
+        className={cn("rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5", TOUCH_PILL)}
+        disabled
+        aria-label="Recommended reviewed: awaiting an admin"
+      >
+        <Icon icon="lucide:send" size={16} />
+        <span className="hidden sm:inline">Recommended</span>
+      </Button>
+    ) : (
+      <Button
+        variant="accent"
+        size="pill"
+        className={cn("rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-4", TOUCH_PILL)}
+        onClick={toggleReviewed}
+        disabled={!hasCurrent || isTicking}
+        aria-label="Recommend as reviewed"
+        title="Recommend as reviewed (R)"
+      >
+        <Icon
+          icon={isTicking ? "lucide:loader-2" : "lucide:send"}
+          size={16}
+          className={isTicking ? "animate-spin" : undefined}
+        />
+        <span className="hidden sm:inline">Recommend reviewed</span>
+        <Kbd>R</Kbd>
+      </Button>
+    );
+  }
   return isCurrentReviewed ? (
     <span className="flex items-center justify-center gap-1.5">
       <Button
@@ -310,7 +349,7 @@ const REVIEW_CRITERIA = [
 const SHORTCUTS: Array<[string, string]> = [
   ["←", "Previous article"],
   ["→", "Next article"],
-  ["R", "Toggle reviewed"],
+  ["R", "Toggle reviewed (editors: recommend reviewed)"],
   ["F", "Notes and flags"],
   ["U", "Undo the last status change"],
   ["M", "Molecule depiction panel"],

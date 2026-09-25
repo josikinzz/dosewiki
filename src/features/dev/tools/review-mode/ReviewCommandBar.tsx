@@ -132,6 +132,8 @@ export function ReviewCommandBar({
     lastTick,
     celebration,
     canSignOff,
+    canRecommend,
+    currentRecommendation,
     currentHydrated,
     toggleReviewed,
     toggleFlagged,
@@ -272,6 +274,7 @@ export function ReviewCommandBar({
       hasCurrent={current !== null && currentHydrated}
       isTicking={isTicking}
       canSignOff={canSignOff}
+      recommendation={canRecommend ? (currentRecommendation ? (currentRecommendation.stale ? "stale" : "pending") : "none") : null}
       toggleReviewed={toggleReviewed}
     />
   );
@@ -565,9 +568,21 @@ export function ReviewCommandBar({
       ) : null}
 
       {/* Progress as text at every width, plus, for roles that cannot sign
-          off, why Mark reviewed is disabled. Said in text, not a tooltip. */}
+          off, why Mark reviewed is not theirs and what R does instead. Said in
+          text, not a tooltip. */}
       <div className="theme-text-faint mx-auto flex max-w-[1500px] items-baseline justify-end gap-x-4 px-3 pb-1.5 text-[11px] leading-none sm:px-5">
-        {!canSignOff ? <p className="mr-auto">Only admins can sign off a review.</p> : null}
+        {!canSignOff ? (
+          <p className="mr-auto">
+            Only admins can sign off a review.
+            {canRecommend
+              ? currentRecommendation?.stale
+                ? " Your recommendation is stale: the article changed since. Review it again and recommend."
+                : currentRecommendation
+                  ? " Recommended; waiting for an admin to approve it in Change Review."
+                  : " Recommend reviewed (R) asks an admin to approve it."
+              : null}
+          </p>
+        ) : null}
         <p data-testid="review-progress-text" className="tabular-nums">
           {reviewedCount.toLocaleString()} of {queue.length.toLocaleString()} reviewed,{" "}
           {(queue.length - reviewedCount).toLocaleString()} to go

@@ -10,9 +10,16 @@
  * reserved for content edits.
  *
  *   POST /api/dev/editorial-review   { slug, status, revision? }  → set review status
+ *   POST /api/dev/editorial-review   { action: "recommend", slug, revision?, note? }
+ *                                                                → recommend as reviewed
  *
  * `revision` is the published revision the reviewer read. It is only accepted
  * with `completed`; without it the article's current revision is recorded.
+ *
+ * `recommend` is how an editor does review work without admin rights: it
+ * records a recommendation bound to the current published revision and never
+ * changes the status. Admins approve recommendations in Change Review
+ * (`/api/dev/review-recommendations`), which is what writes `completed`.
  */
 import { NextResponse } from "next/server";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
@@ -27,11 +34,14 @@ export const runtime = "nodejs";
 
 const addHumanReviewFlagMutation = makeFunctionReference<"mutation">("substanceIndex:addHumanReviewFlag");
 const deleteReviewFlagMutation = makeFunctionReference<"mutation">("substanceIndex:deleteReviewFlag");
+const recommendReviewMutation = makeFunctionReference<"mutation">("substanceIndex:recommendEditorialReview");
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 /** A revision `resultHash` (hex) or the `initial` marker, never free text. */
 const REVISION_RE = /^[A-Za-z0-9]{1,128}$/;
 const REVIEW_STATUSES = ["needed", "in_progress", "completed"] as const;
+/** Matches `REVIEW_RECOMMENDATION_NOTE_MAX` in the review handlers. */
+const RECOMMENDATION_NOTE_MAX = 1000;
 type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
 type SetReviewBody = {
@@ -41,6 +51,7 @@ type SetReviewBody = {
   revision?: unknown;
   flag?: unknown;
   identity?: unknown;
+  note?: unknown;
 };
 
 type FlagInput = { label: string; severity: "major" | "minor" | "note"; note: string; section?: string };
@@ -48,7 +59,8 @@ type FlagIdentity = { created_at: string; label: string; source: "agent" | "huma
 type ParsedSetReview =
   | { action: "status"; slug: string; status: ReviewStatus; revision?: string }
   | { action: "add-flag"; slug: string; flag: FlagInput }
-  | { action: "delete-flag"; slug: string; identity: FlagIdentity };
+  | { action: "delete-flag"; slug: string; identity: FlagIdentity }
+  | { action: "recommend"; slug: string; revision?: string; note: string };
 
 const FLAG_SEVERITIES = new Set(["major", "minor", "note"]);
 const FLAG_SOURCES = new Set(["agent", "human"]);
@@ -79,6 +91,18 @@ function parseSetReviewBody(body: SetReviewBody): ParsedSetReview {
     const identity = value as Record<string, unknown>;
     if (typeof identity.created_at !== "string" || typeof identity.label !== "string" || !FLAG_SOURCES.has(identity.source as string)) throw new JsonBodyError(400, "A valid Review Flag identity is required.");
     return { action, slug, identity: identity as FlagIdentity };
+  }
+  if (action === "recommend") {
+    if (body.note !== undefined && typeof body.note !== "string") throw new JsonBodyError(400, "A recommendation note must be text.");
+    const note = typeof body.note === "string" ? body.note.trim() : "";
+    if (note.length > RECOMMENDATION_NOTE_MAX) {
+      throw new JsonBodyError(400, `A recommendation note can be at most ${RECOMMENDATION_NOTE_MAX} characters.`);
+    }
+    if (body.revision === undefined) return { action, slug, note };
+    if (typeof body.revision !== "string" || !REVISION_RE.test(body.revision)) {
+      throw new JsonBodyError(400, "A valid published revision is required.");
+    }
+    return { action, slug, revision: body.revision, note };
   }
   if (action !== "status") throw new JsonBodyError(400, "A valid editorial review action is required.");
   const status = typeof body.status === "string" ? body.status : "";
@@ -115,6 +139,17 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
 
     const apiKey =
       dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey;
+
+    if (body.action === "recommend") {
+      const recommended = await dataWrite.client.mutation(recommendReviewMutation, {
+        apiKey,
+        actorEmail,
+        slug: body.slug,
+        note: body.note,
+        ...(body.revision !== undefined ? { revision: body.revision } : {}),
+      });
+      return NextResponse.json({ ok: true, slug: recommended.slug, editorial_review: recommended.editorial_review });
+    }
 
     const result = body.action === "add-flag"
       ? await dataWrite.client.mutation(addHumanReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, flag: body.flag })

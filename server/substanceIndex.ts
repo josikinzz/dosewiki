@@ -34,10 +34,13 @@ import {
 } from "./lib/substanceProvenanceHandlers";
 import {
   addHumanReviewFlagHandler,
+  approveReviewRecommendationsHandler,
   deleteReviewFlagHandler,
   getPublishedRevisionsHandler,
   getReviewChangesHandler,
+  listReviewRecommendationsHandler,
   publishReviewedSectionHandler as executePublishReviewedSection,
+  recommendEditorialReviewHandler,
   replaceAgentReviewFlagsHandler,
   setEditorialReviewHandler,
 } from "./lib/substanceReviewHandlers";
@@ -541,6 +544,38 @@ export const setEditorialReview = mutation({
     revision: v.optional(v.string()),
   },
   handler: setEditorialReviewHandler,
+});
+
+/** An editor recommends an article as reviewed, bound to the current revision. */
+export const recommendEditorialReview = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    /** The published revision the editor read; refused when no longer current. */
+    revision: v.optional(v.string()),
+    note: v.string(),
+  },
+  handler: recommendEditorialReviewHandler,
+});
+
+/** An admin approves recommendations, each at the revision it covered. */
+export const approveReviewRecommendations = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    items: v.array(v.object({ slug: v.string(), revision: v.string() })),
+  },
+  handler: approveReviewRecommendationsHandler,
+});
+
+/** Every pending review recommendation, with whether it is stale. */
+export const listReviewRecommendations = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  handler: listReviewRecommendationsHandler,
 });
 
 /** Each article's current published revision, for deriving stale sign-offs. */

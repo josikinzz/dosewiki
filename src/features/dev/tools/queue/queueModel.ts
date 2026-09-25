@@ -49,7 +49,26 @@ export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
 /** What `POST /api/dev/proposals/<id>/approve` answers. */
 export type ApproveOutcome = { status: "applied" | "changes_requested"; conflictReason?: string };
 
-type QueueGroupId = "submitted" | "changes_requested" | "applied" | "closed"
+/**
+ * One row of `GET /api/dev/review-recommendations`: an editor's
+ * "Recommended reviewed" awaiting an admin. `stale` means the article was
+ * published again after it, so it cannot be approved without re-review.
+ */
+export type ReviewRecommendationRow = {
+  slug: string;
+  title: string;
+  revision: string;
+  recommended_by: string;
+  recommended_at: string;
+  note: string;
+  publishedRevision: string;
+  stale: boolean;
+};
+
+/** What `POST /api/dev/review-recommendations` answers, by slug. */
+export type RecommendationApproval = { approved: string[]; stale: string[]; missing: string[] };
+
+type QueueGroupId ="submitted" | "changes_requested" | "applied" | "closed"
 
 type QueueGroup = {
   id: QueueGroupId;

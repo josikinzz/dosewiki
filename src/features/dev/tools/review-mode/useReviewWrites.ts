@@ -10,7 +10,12 @@ import {
 } from "react";
 
 import type { SubstanceArticle } from "@/schema";
-import { REVIEW_INITIAL_REVISION, type ReviewState } from "@/schema/substance/editorial";
+import {
+  isRecommendationStale,
+  REVIEW_INITIAL_REVISION,
+  type ReviewRecommendation,
+  type ReviewState,
+} from "@/schema/substance/editorial";
 import type { ReviewStatus } from "../substance-editor/types";
 import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
@@ -72,6 +77,14 @@ export interface ReviewStatusWrites {
   lastTick: ReviewLastTick | null;
   /** Whether this role may mark an article reviewed (admins only). */
   canSignOff: boolean;
+  /** Whether this role recommends instead: editors, whose R asks an admin to sign off. */
+  canRecommend: boolean;
+  /** The current article's pending recommendation, and whether a later publish made it stale. */
+  currentRecommendation: { recommendation: ReviewRecommendation; stale: boolean } | null;
+  /** The article just recommended, for the toast; cleared after the undo window's length. */
+  lastRecommended: string | null;
+  /** Records "Recommended reviewed" for the current article at the revision on screen. */
+  recommendReviewed: (note: string) => Promise<void>;
   /** Whether the current article body has loaded, so a tick means it was read. */
   currentHydrated: boolean;
   milestone: number | null;
@@ -100,6 +113,7 @@ export function useReviewStatusWrites({
   reviewedCount,
   setOverrides,
   canSignOff,
+  canRecommend = false,
   currentHydrated,
   publishedRevisions = null,
 }: {
@@ -109,6 +123,7 @@ export function useReviewStatusWrites({
   reviewedCount: number;
   setOverrides: ReviewOverlays["setOverrides"];
   canSignOff: boolean;
+  canRecommend?: boolean;
   currentHydrated: boolean;
   publishedRevisions?: PublishedRevisions | null;
 }): ReviewStatusWrites {
@@ -123,6 +138,11 @@ export function useReviewStatusWrites({
     (ReviewCelebration & { id: number }) | null
   >(null);
 
+  // Recommendations written this session, keyed by slug, until the working
+  // set re-reads them.
+  const [recommendations, setRecommendations] = useState<Record<string, ReviewRecommendation>>({});
+  const [lastRecommended, setLastRecommended] = useState<string | null>(null);
+  const recommendTimerRef = useRef<number | null>(null);
   const undoTimerRef = useRef<number | null>(null);
   const milestoneTimerRef = useRef<number | null>(null);
   const celebrationIdRef = useRef(0);
@@ -132,6 +152,7 @@ export function useReviewStatusWrites({
       if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
       if (milestoneTimerRef.current !== null) window.clearTimeout(milestoneTimerRef.current);
       if (celebrationTimerRef.current !== null) window.clearTimeout(celebrationTimerRef.current);
+      if (recommendTimerRef.current !== null) window.clearTimeout(recommendTimerRef.current);
     },
     [],
   );
@@ -283,6 +304,59 @@ export function useReviewStatusWrites({
     );
   }, [articleStatus, current, isTicking, setReviewStatus]);
 
+  const currentRecommendation = (() => {
+    if (!current) return null;
+    const record = typedArticles.find((candidate) => resolveEditorArticleSlug(candidate) === current.slug);
+    const recommendation = recommendations[current.slug] ?? record?.editorial_review?.recommendation;
+    if (!recommendation) return null;
+    return {
+      recommendation,
+      // Before the revisions load nothing reads as stale, as with sign-offs.
+      stale: publishedRevisions
+        ? isRecommendationStale(recommendation, publishedRevisions[current.slug] ?? REVIEW_INITIAL_REVISION)
+        : false,
+    };
+  })();
+
+  /**
+   * An editor's R: a recommendation bound to the revision on screen, which
+   * never changes the review status. Only an admin approval completes it.
+   */
+  const recommendReviewed = useCallback(async (note: string) => {
+    if (!current || isTicking || !canRecommend || !currentHydrated) return;
+    const { slug, name } = current;
+    setIsTicking(true);
+    setTickError(null);
+    try {
+      const response = await fetch("/api/dev/editorial-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "recommend",
+          slug,
+          note: note.trim(),
+          ...(publishedRevisions ? { revision: publishedRevisions[slug] ?? REVIEW_INITIAL_REVISION } : {}),
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        editorial_review?: SubstanceArticle["editorial_review"];
+      } | null;
+      const recommendation = payload?.editorial_review?.recommendation;
+      if (!response.ok || !recommendation) {
+        throw new Error(payload?.error ?? "Unable to record the recommendation. Are you signed in as an editor?");
+      }
+      setRecommendations((previous) => ({ ...previous, [slug]: recommendation }));
+      setLastRecommended(name);
+      if (recommendTimerRef.current !== null) window.clearTimeout(recommendTimerRef.current);
+      recommendTimerRef.current = window.setTimeout(() => setLastRecommended(null), UNDO_WINDOW_MS);
+    } catch (error) {
+      setTickError(error instanceof Error ? error.message : "Unable to record the recommendation.");
+    } finally {
+      setIsTicking(false);
+    }
+  }, [canRecommend, current, currentHydrated, isTicking, publishedRevisions]);
+
   const dismissCelebration = useCallback(() => {
     if (celebrationTimerRef.current !== null) {
       window.clearTimeout(celebrationTimerRef.current);
@@ -315,6 +389,10 @@ export function useReviewStatusWrites({
     clearTickError,
     lastTick,
     canSignOff,
+    canRecommend,
+    currentRecommendation,
+    lastRecommended,
+    recommendReviewed,
     currentHydrated,
     milestone,
     celebration,

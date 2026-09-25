@@ -52,6 +52,12 @@ export function getDefaultEditorialReview(): EditorialReview {
   return { ...EDITORIAL_REVIEW_DEFAULT };
 }
 
+function isRecommendation(value: unknown): value is NonNullable<EditorialReview["recommendation"]> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return ["revision", "recommended_by", "recommended_at", "note"].every((key) => typeof record[key] === "string");
+}
+
 export function normalizeEditorialReviewForEditor(raw: unknown): EditorialReview {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return getDefaultEditorialReview();
@@ -68,6 +74,7 @@ export function normalizeEditorialReviewForEditor(raw: unknown): EditorialReview
     ...(typeof item.reviewed_by === "string" ? { reviewed_by: item.reviewed_by } : {}),
     ...(typeof item.reviewed_at === "string" ? { reviewed_at: item.reviewed_at } : {}),
     ...(typeof item.reviewed_revision === "string" ? { reviewed_revision: item.reviewed_revision } : {}),
+    ...(isRecommendation(item.recommendation) ? { recommendation: item.recommendation } : {}),
   };
 }
 
