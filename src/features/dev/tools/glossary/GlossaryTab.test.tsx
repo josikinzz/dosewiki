@@ -67,22 +67,24 @@ function stubGlossaryApi(rows: GlossaryRow[], pending: string[] = [], importResp
         hold = false;
         await gate();
       }
+      // Row writes answer with the written rows, as the routes do, so the tab patches them in place.
+      const written = (terms: readonly string[]) => ({ rows: rows.filter((r) => terms.includes(r.term)).map((r) => ({ ...r })), pending });
       if (path.endsWith("/approve")) {
         const terms = body.terms as string[];
         for (const r of rows) if (terms.includes(r.term)) r.status = "approved";
-        return Response.json({ ok: true, approved: terms });
+        return Response.json({ ok: true, approved: terms, ...written(terms) });
       }
       if (path.endsWith("/confirm")) {
         const terms = body.terms as string[];
         for (const r of rows) if (terms.includes(r.term)) r.review_provenance = "human_review";
-        return Response.json({ ok: true, confirmed: terms });
+        return Response.json({ ok: true, confirmed: terms, ...written(terms) });
       }
       if (path.endsWith("/edit")) {
         const target = rows.find((r) => r.term === body.term)!;
         target.target = String(body.target);
         target.status = "draft";
         target.revision = "1:1";
-        return Response.json({ ok: true, row: target });
+        return Response.json({ ok: true, row: { ...target }, ...written([target.term]) });
       }
       if (path.endsWith("/gloss")) {
         if (typeof body.gloss !== "string" || body.gloss.length > 40) return Response.json({ error: "A definition is one line of at most 240 characters." }, { status: 400 });
@@ -453,7 +455,7 @@ describe("GlossaryTab", () => {
     expect(rowFor("anxiety").getByRole("button", { name: "Approve" })).toBeEnabled();
   });
 
-  it("cancels a definition edit on Escape or blur and skips the write when nothing changed", async () => {
+  it("cancels a definition edit on Escape and skips the write when nothing changed", async () => {
     const api = stubGlossaryApi([row("anxiety", "draft")], [], undefined, { anxiety: "Unease without a cause" });
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="admin" />);
@@ -464,15 +466,95 @@ describe("GlossaryTab", () => {
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
     expect(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toHaveTextContent("Unease without a cause");
 
-    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
-    await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), " changed");
-    await user.click(screen.getByRole("textbox", { name: "Translation for anxiety" }));
-    expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
-
+    // Unchanged: neither Enter nor clicking away writes anything.
     await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
     await user.keyboard("{Enter}");
     expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
+    await user.click(screen.getByRole("textbox", { name: "Translation for anxiety" }));
+    expect(screen.queryByRole("textbox", { name: "Definition for anxiety" })).toBeNull();
     expect(api.calls).toEqual([]);
+  });
+
+  it("keeps a typed definition when the field loses focus: blur saves it", async () => {
+    const api = stubGlossaryApi([row("anxiety", "draft")], [], undefined, { anxiety: "Unease without a cause" });
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="editor" />);
+    await screen.findByText("anxiety");
+
+    await user.click(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ }));
+    await user.type(screen.getByRole("textbox", { name: "Definition for anxiety" }), " or reason");
+    await user.click(screen.getByRole("textbox", { name: "Translation for anxiety" }));
+
+    await screen.findByText('Saved the definition of "anxiety".');
+    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/gloss", body: { term: "anxiety", gloss: "Unease without a cause or reason" } }]);
+    expect(screen.getByRole("button", { name: /\(edit definition for anxiety\)$/ })).toHaveTextContent("Unease without a cause or reason");
+  });
+
+  it("patches the approved row from the write's answer without fetching the locale again", async () => {
+    stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("anxiety");
+    const listReads = () => vi.mocked(fetch).mock.calls.filter(([url, init]) => !init?.method && new URL(String(url), "https://dev.dose.wiki").pathname === "/api/dev/translation-glossary").length;
+    const before = listReads();
+
+    await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
+    await screen.findByText('Approved "anxiety".');
+    expect(listReads()).toBe(before);
+    expect(screen.getByTestId("glossary-summary")).toHaveTextContent("1 of 2 terms approved");
+  });
+
+  it("keeps the view nav usable while one row saves", async () => {
+    const api = stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("anxiety");
+    api.holdNextWrite();
+    await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(api.calls).toHaveLength(1));
+    expect(viewButton("Inbox")).toBeEnabled();
+    expect(viewButton("Interface text")).toBeEnabled();
+    api.release();
+    await screen.findByText('Approved "anxiety".');
+  });
+
+  it("runs the row's main action on Ctrl+Enter or Command+Enter, never on plain Enter", async () => {
+    const api = stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    expect(await screen.findByText(/Ctrl\+Enter \(Command\+Enter on a Mac\) runs the row's main action/)).toBeInTheDocument();
+    const input = screen.getByRole("textbox", { name: "Translation for anxiety" });
+    input.focus();
+    await user.keyboard("{Enter}");
+    expect(api.calls).toEqual([]);
+    await user.keyboard("{Control>}{Enter}{/Control}");
+    await screen.findByText('Approved "anxiety".');
+    expect(api.calls).toEqual([{ path: "/api/dev/translation-glossary/approve", body: { locale: LOCALE, terms: ["anxiety"], expectedRevisions: { anxiety: "1:0" } } }]);
+
+    const next = screen.getByRole("textbox", { name: "Translation for euphoria" });
+    await user.clear(next);
+    await user.type(next, "Euphorie");
+    await user.keyboard("{Meta>}{Enter}{/Meta}");
+    await screen.findByText('Approved "euphoria" as Euphorie.');
+    expect(api.calls.slice(1).map((call) => call.path)).toEqual(["/api/dev/translation-glossary/edit", "/api/dev/translation-glossary/approve"]);
+  });
+
+  it("shows Refresh in progress until the reload lands", async () => {
+    stubGlossaryApi([row("anxiety", "draft")]);
+    const user = userEvent.setup();
+    render(<GlossaryTab viewerRole="translator" />);
+    await screen.findByText("anxiety");
+    let finish: (() => void) | null = null;
+    const original = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementationOnce(async (input, init) => {
+      await new Promise<void>((resolve) => { finish = resolve; });
+      return original(input, init);
+    });
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await screen.findByRole("button", { name: "Refreshing" })).toHaveAttribute("aria-busy", "true");
+    finish!();
+    expect(await screen.findByRole("button", { name: "Refresh" })).toBeEnabled();
   });
 
   it("surfaces the server's refusal of a definition and keeps the old text", async () => {

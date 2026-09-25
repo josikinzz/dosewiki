@@ -23,7 +23,7 @@
  * on the mirror until someone approves it.
  *
  * A single-row write locks only its own row, so a reviewer can keep typing in
- * the next one; after the reload, focus moves to the next unreviewed row so
+ * the next one; after the row updates in place, focus moves to the next unreviewed row so
  * the reviewer can continue through the list with explicit approval buttons.
  *
  * Under each term sits its definition (gloss): the one-line English meaning
@@ -32,12 +32,12 @@
  * editor writes them in place here and a translator reads them.
  */
 
-import { GlossaryReaderFeedback } from "./GlossaryReaderFeedback";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   EditorNotice,
   EditorSection,
@@ -50,14 +50,17 @@ import {
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
+import { parseWorkbenchDeepLink, type PagesSection, type WorkbenchView, type WordsList } from "@server/translation/reviewInboxTypes";
+import type { ReviewReason } from "@server/translation/reviewReason";
 import {
+  applyRowPatch,
   approveTerms,
   confirmTerms,
   count,
   DEFAULT_FILTERS,
   draftMissingTerms,
-  editTerm,
   fetchGlossary,
+  fetchGlossaryProgress,
   filterRows,
   groupRows,
   isLiveUnchecked,
@@ -69,30 +72,32 @@ import {
   retranslateTerms,
   retryExhaustedPages,
   saveGloss,
+  saveTermDraft,
   startMainTranslation,
   STATE_WORD,
   type GlossaryFilters,
   type GlossaryList,
   type GlossaryRow,
+  type GlossaryRowPatch,
 } from "./glossaryModel";
+import { DraftMap, useDraftMapHasEntries, type DraftMapOf } from "./draftMap";
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
+import { GlossaryReaderFeedback } from "./GlossaryReaderFeedback";
 import { GlossaryGroupSection, type GlossaryEditDrafts, type GlossaryRowNotice } from "./GlossaryReviewTable";
 import { GlossaryActionBar, GlossaryFilterBar } from "./GlossaryToolbar";
-import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
-import { TranslationChanges } from "./TranslationChanges";
 import { NarrativeReview } from "./NarrativeReview";
 import { ReviewInbox } from "./ReviewInbox";
-import { StyleGuidePanel } from "./StyleGuidePanel";
-import { DraftMap, useDraftMapHasEntries, type DraftMapOf } from "./draftMap";
-import { parseWorkbenchDeepLink } from "../../../../../lib/translation/reviewInboxTypes";
-import type { PagesSection, WorkbenchView, WordsList } from "@lib/translation/reviewInboxTypes";
-import { TranslationCoverage } from "./TranslationCoverage";
 import { RunsPanel } from "./RunsPanel";
 import { StatusLegend } from "./StatusLegend";
-import { WorkbenchDrawer } from "./WorkbenchDrawer";
-import { Input } from "@/components/ui/input";
+import { StyleGuidePanel } from "./StyleGuidePanel";
 import { TermsOverview, type NextCategory } from "./TermsOverview";
-import type { ReviewReason } from "../../../../../lib/translation/reviewReason";
+import { TranslationChanges } from "./TranslationChanges";
+import { TranslationCoverage } from "./TranslationCoverage";
+import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
+import { WorkbenchDrawer } from "./WorkbenchDrawer";
+
+/** A write's outcome: the message to show, and the written rows to patch in place (`null` reloads the locale instead). */
+type WriteResult = { message: string; patch: GlossaryRowPatch | null };
 
 /** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
@@ -112,7 +117,7 @@ type CollisionReview = {
   locale: string;
   error: GlossaryReviewCollision;
   kind: Exclude<Busy, null>;
-  action: (collisionConfirmation?: string) => Promise<string>;
+  action: (collisionConfirmation?: string) => Promise<string | WriteResult>;
   term?: string;
   stay?: boolean;
 };
@@ -230,6 +235,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const pending = data?.pending ?? [];
   const { confirm, dialog } = useConfirm();
   const locked = busy !== null || writingTerm !== null || collisionReview !== null;
+  /** The view nav stays usable while one row saves; only whole-tab writes and the collision question hold it. */
+  const navLocked = busy !== null || collisionReview !== null;
 
   const load = useCallback(async (code: string | null, background = false) => {
     if (background && refreshInFlight.current) return;
@@ -282,11 +289,41 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   });
   const { confirmExit } = useUnsavedWorkRegistry();
 
+  /** The poll during a run: counts only, against the prompt digest already loaded, so the server rereads no rows. */
+  const pollProgress = useCallback(async (code: string, promptVersion: string) => {
+    if (refreshInFlight.current) return;
+    const version = loadVersion.current;
+    refreshInFlight.current = true;
+    try {
+      const next = await fetchGlossaryProgress(code, promptVersion);
+      if (version !== loadVersion.current) return;
+      setRefreshError(null);
+      setData((current) => current && current.locale === next.locale ? { ...current, jobs: next.jobs, segments: next.segments } : current);
+    } catch (error) {
+      if (version === loadVersion.current) setRefreshError(error instanceof Error ? error.message : "Unable to refresh progress.");
+    } finally {
+      refreshInFlight.current = false;
+    }
+  }, []);
+
+  /** Refresh: a full reload, shown as in progress on the button until it lands. */
+  const refresh = async () => {
+    setBusy("load");
+    try {
+      await load(locale);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runActive = (data?.jobs.active ?? 0) > 0;
+  const pollLocale = data?.locale ?? null;
+  const pollVersion = data?.promptVersion ?? null;
   useEffect(() => {
-    if (!data || data.jobs.active === 0 || locked) return;
-    const timer = window.setInterval(() => void load(data.locale, true), 5000);
+    if (!runActive || !pollLocale || !pollVersion || locked) return;
+    const timer = window.setInterval(() => void pollProgress(pollLocale, pollVersion), 5000);
     return () => window.clearInterval(timer);
-  }, [data, load, locked]);
+  }, [runActive, pollLocale, pollVersion, pollProgress, locked]);
 
   // Runs once the written row is unlocked and the reload has rendered: the
   // next unreviewed row after the written one takes focus, or the written row
@@ -346,9 +383,22 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     document.querySelector<HTMLElement>(`[data-testid="glossary-group-${continueTo}"] tr[data-needs-review="true"] input`)?.focus();
   }, [continueTo]);
 
-  /** Runs one write, reloads the locale, and reports the outcome; with a term, only that row locks and focus moves on afterwards. */
+  /**
+   * Written rows replace theirs in place, with no locale reload. A full load
+   * already in flight read the rows before this write, so it is dropped.
+   */
+  const applyPatch = useCallback((patch: GlossaryRowPatch) => {
+    ++loadVersion.current;
+    setData((current) => current && applyRowPatch(current, patch));
+  }, []);
+
+  /**
+   * Runs one write and reports the outcome. A row write patches the rows it
+   * returns; a whole-tab write (or a server that returns no rows) reloads the
+   * locale. With a term, only that row locks and focus moves on afterwards.
+   */
   const run = useCallback(
-    async (kind: Exclude<Busy, null>, action: (collisionConfirmation?: string) => Promise<string>, term?: string, collisionConfirmation?: string, stay = false) => {
+    async (kind: Exclude<Busy, null>, action: (collisionConfirmation?: string) => Promise<string | WriteResult>, term?: string, collisionConfirmation?: string, stay = false) => {
       if (!locale) return;
       const version = ++actionVersion.current;
       setCollisionReview(null);
@@ -361,8 +411,11 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       };
       try {
         const order = Array.from(document.querySelectorAll<HTMLElement>("tr[data-term]"), (row) => row.dataset.term ?? "");
-        const message = await action(collisionConfirmation);
-        await load(locale);
+        const result = await action(collisionConfirmation);
+        // A language switch during the write owns the tab now.
+        if (version !== actionVersion.current) return;
+        const { message, patch } = typeof result === "string" ? { message: result, patch: null } : result;
+        if (patch) applyPatch(patch); else await load(locale);
         if (term) handoff.current = { order, index: order.indexOf(term), stay };
         report("success", message);
       } catch (error) {
@@ -376,19 +429,19 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         if (term) setWriting(null); else setBusy(null);
       }
     },
-    [load, locale],
+    [applyPatch, load, locale],
   );
 
   const approveOne = (row: GlossaryRow) =>
     run("approve", async (collisionConfirmation) => {
-      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
-      return `Approved "${row.term}".`;
+      const { patch } = await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
+      return { message: `Approved "${row.term}".`, patch };
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
     run("approve", async (collisionConfirmation) => {
       const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])));
-      return `Approved ${count(approved.length, "term")}.`;
+      return { message: `Approved ${count(approved.terms.length, "term")}.`, patch: approved.patch };
     });
 
   /** The category header's action: the confirm names the group so a stray click cannot approve the wrong hundred terms. */
@@ -408,14 +461,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** Records a person's check of live wording exactly as readers see it; nothing on the site changes. */
   const confirmOne = (row: GlossaryRow) =>
     run("confirm", async (collisionConfirmation) => {
-      await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation);
-      return `Confirmed "${row.term}".`;
+      const { patch } = await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation);
+      return { message: `Confirmed "${row.term}".`, patch };
     }, row.term);
 
   const confirmMany = (terms: readonly string[]) =>
     run("confirm", async (collisionConfirmation) => {
       const confirmed = await confirmTerms(locale!, terms, revisionsOf(terms), collisionConfirmation);
-      return `Confirmed ${count(confirmed.length, "term")}.`;
+      return { message: `Confirmed ${count(confirmed.terms.length, "term")}.`, patch: confirmed.patch };
     });
 
   /** Bulk confirm always names the exact number it will record, and the terms, before anything is written. */
@@ -431,9 +484,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const saveTarget = (row: GlossaryRow, target: string, reason: ReviewReason) =>
     run("approve", async (collisionConfirmation) => {
-      const saved = await editTerm(locale!, row.term, target, collisionConfirmation, row.revision, reason);
+      const { row: saved, patch } = await saveTermDraft(locale!, row.term, target, collisionConfirmation, row.revision, reason);
       termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
-      return `Saved "${saved.term}" as ${saved.target}; awaiting approval.`;
+      return { message: `Saved "${saved.term}" as ${saved.target}; awaiting approval.`, patch };
     }, row.term, undefined, true);
 
   /**
@@ -445,10 +498,15 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const saveAndApprove = (row: GlossaryRow, target: string, reason: ReviewReason) => {
     let saved: GlossaryRow | null = null;
     return run("approve", async (collisionConfirmation) => {
-      saved ??= await editTerm(locale!, row.term, target, collisionConfirmation, row.revision, reason);
+      if (!saved) {
+        const draft = await saveTermDraft(locale!, row.term, target, collisionConfirmation, row.revision, reason);
+        saved = draft.row;
+        // The saved draft shows at once, even if the approval then stops on a question.
+        if (draft.patch) applyPatch(draft.patch);
+      }
       termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
-      await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, reason);
-      return `Approved "${row.term}" as ${saved.target}.`;
+      const { patch } = await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, reason);
+      return { message: `Approved "${row.term}" as ${saved.target}.`, patch };
     }, row.term);
   };
 
@@ -570,9 +628,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         title="Translation workbench"
         description="Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
         actions={
-          <Button type="button" variant="ghost" size="sm" onClick={() => void load(locale)} disabled={locked}>
-            <Icon icon="lucide:refresh-cw" size={14} />
-            Refresh
+          <Button type="button" variant="ghost" size="sm" onClick={() => void refresh()} disabled={locked} aria-busy={busy === "load" || undefined}>
+            <Icon icon="lucide:refresh-cw" size={14} className={busy === "load" ? "animate-spin" : undefined} />
+            {busy === "load" ? "Refreshing" : "Refresh"}
           </Button>
         }
       >
@@ -603,7 +661,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   onChange={(event) => requestLocale(event.target.value)}
                 />
               </div>
-              <EditorSegmentedControl label="Workbench view" value={section} onChange={(next) => openSection(next as WorkbenchSection)} options={SECTIONS.map((option) => ({ ...option, disabled: locked }))} />
+              <EditorSegmentedControl label="Workbench view" value={section} onChange={(next) => openSection(next as WorkbenchSection)} options={SECTIONS.map((option) => ({ ...option, disabled: navLocked }))} />
             </div>
 
             {/* Operational counts for the views that deal in stored translations. */}
@@ -675,6 +733,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               {visitedViews.style ? <div hidden={wordsList !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
             <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-3">
             {workingRows.length > 0 && canDefine ? <p className="theme-text-muted text-xs">Click a definition to edit it.</p> : null}
+            {workingRows.length > 0 ? <p className="theme-text-muted text-xs [@media(pointer:coarse)]:hidden">In a translation, Enter saves an edit as a draft; Ctrl+Enter (Command+Enter on a Mac) runs the row&apos;s main action.</p> : null}
 
             {rows.length === 0 && data.rows.length === 0 ? (
               <StateCard
@@ -715,7 +774,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     onSave={saveTarget}
                     onSaveAndApprove={(row, target, reason) => void saveAndApprove(row, target, reason)}
                     onSaveDefinition={(row, gloss) => void saveDefinition(row, gloss)}
-                    onRestored={() => load(locale)}
+                    onRestored={async (patch) => { if (patch) applyPatch(patch); else await load(locale); }}
                     rowNotice={rowNotice}
                   />
                 ))}

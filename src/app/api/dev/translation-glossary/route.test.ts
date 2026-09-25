@@ -223,4 +223,32 @@ describe("glossary draft and approval routes", () => {
     expect(await response.json()).toHaveProperty("usages");
     expect(usage.getGlossaryUsages).toHaveBeenCalledWith([]);
   });
+
+  it("returns the written rows and the retranslation list so the workbench patches them in place", async () => {
+    review.mutateGlossaryReview.mockResolvedValueOnce([
+      { term: "Euphoria", target: "欣快", status: "approved", approved_target: "欣快", reviewed_at: 5, retranslation_requested_at: 1, revision: "5:3" },
+      { term: "Anxiety", target: "焦虑", status: "draft", approved_target: "焦", reviewed_at: 4, retranslation_requested_at: 1, revision: "4:1" },
+      { term: "Calm", target: "平静", status: "draft", approved_target: null, reviewed_at: null, retranslation_requested_at: null, revision: "1:0" },
+    ]);
+    const response = await approvePost(post("approve", approve));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.rows).toEqual([expect.objectContaining({ term: "Euphoria", revision: "5:3" })]);
+    // A draft over approved wording still counts by its stored status.
+    expect(body.pending).toEqual(["Euphoria", "Anxiety"]);
+    const saved = await (await editPost(post("edit", edit))).json();
+    expect(saved).toMatchObject({ row: { term: "Euphoria" }, rows: [{ term: "Euphoria", revision: "100:3" }] });
+  });
+
+  it("answers the progress poll with counts only, without rereading the glossary or recomputing the prompt", async () => {
+    const response = await GET(new Request("https://dev.dose.wiki/api/dev/translation-glossary?locale=zh-Hans&progress=1&promptVersion=abc"));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({ locale: "zh-Hans", promptVersion: "abc", segments: { total: 2, current: 1 }, jobs: { active: 0 } });
+    expect(body).not.toHaveProperty("rows");
+    expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
+    expect(review.readGlossaryReviewRows).not.toHaveBeenCalled();
+    expect(context).not.toHaveBeenCalled();
+    expect((await GET(new Request("https://dev.dose.wiki/api/dev/translation-glossary?locale=zh-Hans&progress=1"))).status).toBe(400);
+  });
 });

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { InboxItem, InboxResponse } from "@lib/translation/reviewInboxTypes";
@@ -28,24 +28,86 @@ const suggestion: InboxItem = {
 beforeEach(() => window.sessionStorage.clear());
 afterEach(() => vi.unstubAllGlobals());
 
+beforeEach(() => window.localStorage.clear());
+afterEach(() => vi.useRealTimers());
+
 describe("Review inbox", () => {
-  it("accepts the focused item with A through the existing confirm mutation and moves focus to the next item", async () => {
+  it("schedules the focused item's accept on A, offers Undo for 10 seconds, then writes through the existing confirm mutation", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     const writes: { url: string; body: Record<string, unknown> }[] = [];
     vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
       if (!init) return Response.json(response([term("Euphoria", "欣快"), term("Anxiety", "焦虑")]));
       writes.push({ url: String(url), body: JSON.parse(String(init.body)) });
       return Response.json({ ok: true, confirmed: ["Euphoria"] });
     }));
-    const user = userEvent.setup();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<ReviewInbox locale="zh-Hans" />);
     const first = await screen.findByRole("listitem", { name: "Glossary: Euphoria" });
     first.focus();
     await user.keyboard("a");
-    expect(await screen.findByText('Accepted "Euphoria".')).toBeInTheDocument();
-    expect(writes).toEqual([{ url: "/api/dev/translation-glossary/confirm", body: expect.objectContaining({ locale: "zh-Hans", terms: ["Euphoria"], expectedRevisions: { Euphoria: "10:0" } }) }]);
+    // Nothing is written yet: the item leaves the list, focus moves on, and Undo is offered.
+    expect(writes).toEqual([]);
+    expect(screen.getByRole("status", { name: "Inbox messages" })).toHaveTextContent('Accepting "Euphoria" in 10 seconds.');
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
     expect(screen.queryByRole("listitem", { name: "Glossary: Euphoria" })).not.toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: "Glossary: Anxiety" })).toHaveFocus();
+
+    vi.advanceTimersByTime(10_000);
+    expect(await screen.findByText('Accepted "Euphoria".')).toBeInTheDocument();
+    expect(writes).toEqual([{ url: "/api/dev/translation-glossary/confirm", body: expect.objectContaining({ locale: "zh-Hans", terms: ["Euphoria"], expectedRevisions: { Euphoria: "10:0" } }) }]);
+    expect(screen.queryByRole("button", { name: "Undo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("listitem", { name: "Glossary: Anxiety" })).toHaveFocus();
     expect(screen.getByTestId("inbox-summary")).toHaveTextContent("1 item needs a person");
+  });
+
+  it("writes nothing when Undo follows A, and brings the item back with focus on it", async () => {
+    const fetcher = vi.fn(async (_url: string, init?: RequestInit) => init ? Response.json({ ok: true }) : Response.json(response([term("Euphoria", "欣快"), term("Anxiety", "焦虑")])));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<ReviewInbox locale="zh-Hans" />);
+    (await screen.findByRole("listitem", { name: "Glossary: Euphoria" })).focus();
+    await user.keyboard("a");
+    await user.click(screen.getByRole("button", { name: "Undo" }));
+    expect(screen.getByRole("listitem", { name: "Glossary: Euphoria" })).toHaveFocus();
+    expect(screen.getByRole("status", { name: "Inbox messages" })).toHaveTextContent('Undone. "Euphoria" was not accepted.');
+    // U undoes from the keyboard too.
+    await user.keyboard("a");
+    expect(screen.queryByRole("listitem", { name: "Glossary: Euphoria" })).not.toBeInTheDocument();
+    await user.keyboard("u");
+    expect(screen.getByRole("listitem", { name: "Glossary: Euphoria" })).toBeInTheDocument();
+    expect(fetcher.mock.calls.filter(([, init]) => init)).toEqual([]);
+  });
+
+  it("does nothing on A alone once single-key shortcuts are off, and remembers the choice", async () => {
+    const fetcher = vi.fn(async (_url: string, init?: RequestInit) => init ? Response.json({ ok: true }) : Response.json(response([term("Euphoria", "欣快"), term("Anxiety", "焦虑")])));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    const { unmount } = render(<ReviewInbox locale="zh-Hans" />);
+    await user.click(await screen.findByRole("checkbox", { name: "Single-key shortcuts" }));
+    const first = screen.getByRole("listitem", { name: "Glossary: Euphoria" });
+    first.focus();
+    await user.keyboard("ajs");
+    expect(fetcher.mock.calls.filter(([, init]) => init)).toEqual([]);
+    expect(screen.queryByRole("button", { name: "Undo" })).not.toBeInTheDocument();
+    expect(first).toHaveFocus();
+    expect(screen.getByRole("listitem", { name: "Glossary: Euphoria" })).toBeInTheDocument();
+    unmount();
+    render(<ReviewInbox locale="zh-Hans" />);
+    expect(await screen.findByRole("checkbox", { name: "Single-key shortcuts" })).not.toBeChecked();
+  });
+
+  it("keeps its live region mounted before the first message", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(response([term("Euphoria", "欣快")]))));
+    const user = userEvent.setup();
+    render(<ReviewInbox locale="zh-Hans" />);
+    // Mounted while loading, and still the same element once items arrive.
+    const region = screen.getByRole("status", { name: "Inbox messages" });
+    expect(region).toHaveAttribute("aria-live", "polite");
+    await screen.findByRole("listitem", { name: "Glossary: Euphoria" });
+    expect(screen.getByRole("status", { name: "Inbox messages" })).toBe(region);
+    expect(region).toBeEmptyDOMElement();
+    await user.click(screen.getByRole("button", { name: "Accept" }));
+    expect(await within(region).findByText('Accepted "Euphoria".')).toBeInTheDocument();
   });
 
   it("moves with J and K, skips with S for the session, and opens the editor with E", async () => {

@@ -77,3 +77,24 @@ export function writeSkipped(locale: string, skipped: ReadonlySet<string>): void
     // Storage can be unavailable; skips then last until the view unmounts.
   }
 }
+
+/**
+ * Whether the Inbox's single-letter keys are on, a per-browser choice
+ * (WCAG 2.1.4). On unless turned off here; every key also has a button.
+ */
+const SHORTCUTS_STORAGE_KEY = "translation-inbox-single-key-shortcuts";
+export function readShortcutsEnabled(): boolean {
+  try {
+    return window.localStorage.getItem(SHORTCUTS_STORAGE_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+export function writeShortcutsEnabled(enabled: boolean): void {
+  try {
+    if (enabled) window.localStorage.removeItem(SHORTCUTS_STORAGE_KEY);
+    else window.localStorage.setItem(SHORTCUTS_STORAGE_KEY, "off");
+  } catch {
+    // Storage can be unavailable; the choice then lasts until the view unmounts.
+  }
+}

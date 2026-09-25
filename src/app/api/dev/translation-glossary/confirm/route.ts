@@ -17,6 +17,7 @@ import {
   GLOSSARY_BODY_MAX_BYTES,
   glossaryCollisionResponse,
   glossaryLocaleAccess,
+  glossaryRowPatch,
   parseCollisionConfirmation,
   parseExpectedRevisions,
   parseLocale,
@@ -73,12 +74,12 @@ export const POST = protectedRouteOperation<ConfirmBody, ParsedConfirm>({
     getDataBackend();
     const denied = glossaryLocaleAccess(auth, body.locale);
     if (denied) return denied;
-    await confirmLegacyGlossaryRows(
+    const rows = await confirmLegacyGlossaryRows(
       body.locale,
       body.terms.map((term) => ({ term, expectedRevision: body.expectedRevisions[term] })),
       actorEmail,
       { collisionConfirmation: body.collisionConfirmation, reason: body.reason },
     );
-    return NextResponse.json({ ok: true, locale: body.locale, confirmed: body.terms });
+    return NextResponse.json({ ok: true, locale: body.locale, confirmed: body.terms, ...glossaryRowPatch(rows, body.terms) });
   },
 });
