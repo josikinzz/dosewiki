@@ -90,4 +90,23 @@ describe("DataArticleFeedbackStore", () => {
       },
     );
   });
+
+  it("reads a queue page through the server-side paging query without an actor", async () => {
+    const query = vi.fn(async () => ({ feedback: [], nextCursor: null, counts: {} }));
+    const store = new DataArticleFeedbackStore({
+      apiKey: "test-key",
+      client: { mutation: vi.fn(), mutationAsService: vi.fn(), query },
+    });
+
+    await store.page({ status: "new", search: "ketamine", order: "oldest", cursor: "next", limit: 900 });
+
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ name: "articleFeedback:queuePage" }), {
+      apiKey: "test-key",
+      status: "new",
+      search: "ketamine",
+      order: "oldest",
+      cursor: "next",
+      limit: 250,
+    });
+  });
 });

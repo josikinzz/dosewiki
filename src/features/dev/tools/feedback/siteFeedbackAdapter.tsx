@@ -41,13 +41,15 @@ export const siteFeedbackAdapter: FeedbackSourceAdapter<SiteFeedbackQueueItem> =
   source: "site",
   ...createFeedbackRequests<SiteFeedbackQueueItem>("/api/site-feedback"),
   transitions: SITE_FEEDBACK_STATUS_TRANSITIONS,
+  importance: (row) => row.urgency,
   labels: {
     icon: "lucide:megaphone",
     title: "Site Feedback",
     description: "General site feedback from readers: requests, bugs, design, performance, and accessibility reports.",
     emptyQueue: "No site feedback yet.",
     itemTitle: (row) => SITE_FEEDBACK_CATEGORY_LABELS[row.category],
-    itemSubtitle: (row) => (row.urgency ? SITE_FEEDBACK_URGENCY_LABELS[row.urgency] : null),
+    // Urgency shows as the row's importance pill, so the subtitle does not repeat it.
+    itemSubtitle: () => null,
     transitioned: (row, statusLabel) =>
       `Moved ${SITE_FEEDBACK_CATEGORY_LABELS[row.category].toLowerCase()} feedback to ${statusLabel}.`,
   },

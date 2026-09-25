@@ -3,6 +3,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createArticleFeedbackRow, validateArticleFeedback } from "@/features/article/feedback/articleFeedback";
+
 import { articleFeedbackAdapter } from "./articleFeedbackAdapter";
 import {
   FeedbackReviewQueue,
@@ -11,6 +13,7 @@ import {
   type FeedbackSourceAdapter,
 } from "./FeedbackReviewQueue";
 import { siteFeedbackAdapter } from "./siteFeedbackAdapter";
+import { queueResponse } from "@/test/feedbackQueueServer";
 
 const articleRow = {
   id: "article-1",
@@ -55,7 +58,7 @@ type Deferred = { resolve: () => void };
 
 function stubFetch(
   basePath: string,
-  rows: { id: string }[],
+  rows: ({ id: string } & Record<string, unknown>)[],
   options: { holdTransition?: Deferred; failList?: boolean } = {},
 ) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -75,7 +78,7 @@ function stubFetch(
         options.failList = false;
         return Response.json({ error: "Storage is warming up." }, { status: 503 });
       }
-      return Response.json({ ok: true, feedback: rows });
+      return queueResponse(input, rows);
     }
 
     return Response.json({ error: "unexpected" }, { status: 500 });
@@ -218,6 +221,297 @@ describe.each([
   });
 });
 
+describe("FeedbackReviewQueue with a malformed list response", () => {
+  it("shows a retryable error on a first load that returns an empty object, never an empty queue", async () => {
+    const user = userEvent.setup();
+    let malformed = true;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (malformed) {
+        malformed = false;
+        return Response.json({});
+      }
+      return queueResponse(input, [articleRow]);
+    }));
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.queryByText("No article feedback yet.")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect((await screen.findAllByText("Mescaline")).length).toBeGreaterThan(0);
+  });
+
+  it("keeps the loaded rows when the refresh after a decision returns invalid JSON", async () => {
+    const user = userEvent.setup();
+    const second = { ...articleRow, id: "article-2", substance_title: "Psilocybin" };
+    let lists = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (init?.method === "POST") {
+        return Response.json({ ok: true, feedback: { ...articleRow, status: "reviewing" } });
+      }
+      if (url.startsWith("/api/article-feedback/queue")) {
+        lists += 1;
+        return lists === 1
+          ? queueResponse(input, [articleRow, second])
+          : new Response("<html>502</html>", { status: 200 });
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    }));
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("button", { name: "Reviewing" }));
+
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(within(list).getByText("Psilocybin")).toBeInTheDocument();
+  });
+});
+
+describe("FeedbackReviewQueue after a decision", () => {
+  const rowA = { ...articleRow, id: "article-a", substance_title: "Alprazolam" };
+  const rowB = { ...articleRow, id: "article-b", substance_title: "Bromazepam" };
+  const rowC = { ...articleRow, id: "article-c", substance_title: "Clonazepam" };
+
+  /**
+   * A queue of three New rows whose transition and post-decision refresh are
+   * both held until the test releases them.
+   */
+  function stubHeldQueue() {
+    let releaseTransition: () => void = () => {};
+    let releaseRefresh: () => void = () => {};
+    const transitionGate = new Promise<void>((resolve) => {
+      releaseTransition = resolve;
+    });
+    const refreshGate = new Promise<void>((resolve) => {
+      releaseRefresh = resolve;
+    });
+    let lists = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (init?.method === "POST") {
+        await transitionGate;
+        return Response.json({ ok: true, feedback: { ...rowA, status: "resolved" } });
+      }
+      if (url.startsWith("/api/article-feedback/queue")) {
+        lists += 1;
+        if (lists === 1) {
+          return queueResponse(input, [rowA, rowB, rowC]);
+        }
+        await refreshGate;
+        // A new report arrived at the top while the admin worked.
+        const arrived = { ...articleRow, id: "article-0", substance_title: "Zolpidem" };
+        return queueResponse(input, [arrived, { ...rowA, status: "resolved" }, rowB, rowC]);
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    }));
+    return { releaseTransition: () => releaseTransition(), releaseRefresh: () => releaseRefresh() };
+  }
+
+  it("keeps the row the admin moved to, and the note typed there, through the decision and the refresh", async () => {
+    const user = userEvent.setup();
+    const held = stubHeldQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    expect(screen.getByRole("heading", { level: 3, name: "Alprazolam" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+
+    // While the decision is in flight the admin moves on and starts a note.
+    await user.click(within(list).getByText("Clonazepam"));
+    await user.type(screen.getByLabelText("Review note"), "Dose table checked");
+
+    held.releaseTransition();
+    // The decided row leaves the New list; its notice belongs to that row, not this one.
+    await waitFor(() => expect(within(list).queryByText("Alprazolam")).not.toBeInTheDocument());
+    expect(screen.queryByText('Moved feedback for "Alprazolam" to resolved.')).not.toBeInTheDocument();
+    held.releaseRefresh();
+    await within(list).findByText("Zolpidem");
+
+    expect(screen.getByRole("heading", { level: 3, name: "Clonazepam" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Review note")).toHaveValue("Dose table checked");
+  });
+
+  it("hands the review to the next row after a decision and keeps it there when the refresh lands", async () => {
+    const user = userEvent.setup();
+    const held = stubHeldQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+    held.releaseTransition();
+
+    expect(await screen.findByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Review note"), "Half a thought");
+    held.releaseRefresh();
+    await within(list).findByText("Zolpidem");
+
+    expect(screen.getByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Review note")).toHaveValue("Half a thought");
+  });
+
+  it("refreshes the list without a loading label", async () => {
+    const user = userEvent.setup();
+    const held = stubHeldQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("button", { name: "Resolve" }));
+    held.releaseTransition();
+    await screen.findByText('Moved feedback for "Alprazolam" to resolved.');
+
+    expect(screen.queryByText("Loading feedback...")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loading")).not.toBeInTheDocument();
+    expect(within(list).getByText("Bromazepam")).toBeInTheDocument();
+
+    held.releaseRefresh();
+    await within(list).findByText("Zolpidem");
+    expect(screen.queryByText("Loading feedback...")).not.toBeInTheDocument();
+  });
+});
+
+describe("FeedbackReviewQueue intake triage", () => {
+  it("files a honeypot submission under Spam, not New", async () => {
+    const validation = validateArticleFeedback({
+      substance_slug: "mescaline",
+      substance_title: "Mescaline",
+      category: "inaccurate",
+      importance: "normal",
+      details: "Cheap pills here.",
+      honeypot: "https://spam.example",
+    });
+    if (!validation.ok) throw new Error("fixture should validate");
+    const honeypotRow = createArticleFeedbackRow(validation.normalized, { id: "article-spam" });
+    stubFetch("/api/article-feedback", [honeypotRow]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    expect(screen.getByText("1 spam")).toBeInTheDocument();
+    expect(within(list).getByText("Spam")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("All");
+  });
+
+  it("shows each row's importance and sorts the list by it", async () => {
+    const user = userEvent.setup();
+    stubFetch("/api/article-feedback", [
+      { ...articleRow, id: "article-low", substance_title: "Caffeine", importance: "low" },
+      { ...articleRow, id: "article-critical", substance_title: "Fentanyl", importance: "critical" },
+      { ...articleRow, id: "article-normal", substance_title: "Melatonin", importance: "normal" },
+    ]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    // Changing the order reloads the list from the server, so read the list afresh each time.
+    const titles = () =>
+      within(screen.getByRole("listbox", { name: "Feedback queue" }))
+        .getAllByRole("option")
+        .map((option) => option.textContent ?? "");
+    expect(within(within(list).getAllByRole("option")[1]).getByText("Critical")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("combobox", { name: "Sort" }));
+    await user.click(await screen.findByRole("option", { name: "Importance" }));
+
+    await waitFor(() => expect(titles()[0]).toContain("Fentanyl"));
+    expect(titles()[1]).toContain("Melatonin");
+    expect(titles()[2]).toContain("Caffeine");
+  });
+});
+
+describe("FeedbackReviewQueue reach", () => {
+  const oldUnresolved = {
+    ...articleRow,
+    id: "old-unresolved",
+    substance_title: "Tramadol",
+    details: "Seizure threshold missing.",
+    created_at: "2025-01-01T00:00:00.000Z",
+  };
+  const newerResolved = Array.from({ length: 250 }, (_, index) => ({
+    ...articleRow,
+    id: `resolved-${index}`,
+    status: "resolved",
+    substance_title: `Resolved ${index}`,
+    created_at: new Date(Date.UTC(2026, 0, 1) + index * 60_000).toISOString(),
+  }));
+
+  function stubServer(rows: ({ id: string } & Record<string, unknown>)[]) {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
+      String(input).startsWith("/api/article-feedback/queue")
+        ? queueResponse(input, rows)
+        : Response.json({ error: "unexpected" }, { status: 500 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  const listbox = () => screen.getByRole("listbox", { name: "Feedback queue" });
+
+  it("still exposes one old unresolved report under 250 newer resolved ones", async () => {
+    stubServer([oldUnresolved, ...newerResolved]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    expect(await screen.findByRole("heading", { level: 3, name: "Tramadol" })).toBeInTheDocument();
+    expect(within(listbox()).getAllByRole("option")).toHaveLength(1);
+    expect(screen.getByText("1 new · 250 resolved")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("New (1)");
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveTextContent("Oldest first");
+  });
+
+  it("pages through everything, shows loaded apart from total, and keeps the selection and note while more load", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubServer([oldUnresolved, ...newerResolved]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("heading", { level: 3, name: "Tramadol" });
+    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
+    await user.click(await screen.findByRole("option", { name: "All 251" }));
+
+    expect(await screen.findByText("100 of 251 loaded")).toBeInTheDocument();
+    await user.click(within(listbox()).getByText("Resolved 247"));
+    await user.type(screen.getByLabelText("Review note"), "Reopen?");
+
+    await user.click(screen.getByRole("button", { name: "Load more" }));
+    expect(await screen.findByText("200 of 251 loaded")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Load more" }));
+    expect(await screen.findByText("251 of 251 loaded")).toBeInTheDocument();
+
+    expect(screen.queryByRole("button", { name: "Load more" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Resolved 247" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Review note")).toHaveValue("Reopen?");
+    const cursors = fetchMock.mock.calls
+      .map(([input]) => new URL(String(input), "https://dose.wiki").searchParams)
+      .filter((params) => params.get("status") === "all")
+      .map((params) => params.get("cursor"));
+    expect(cursors).toEqual([null, "100", "200"]);
+  });
+
+  it("searches on the server, so a match outside the loaded rows is found", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubServer([oldUnresolved, ...newerResolved]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("heading", { level: 3, name: "Tramadol" });
+    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
+    await user.click(await screen.findByRole("option", { name: "Resolved 250" }));
+    await screen.findByText("100 of 250 loaded");
+
+    await user.type(screen.getByRole("searchbox", { name: "Search feedback" }), "Resolved 3");
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=Resolved+3"), expect.anything()),
+    );
+    // "Resolved 3" and "Resolved 30" to "Resolved 39": the oldest ones sit past the first page.
+    expect(await screen.findByText("11 of 11 loaded")).toBeInTheDocument();
+    expect(within(listbox()).getByText("Resolved 3")).toBeInTheDocument();
+  });
+
+  it("opens on Reviewing when nothing is New but something is still being reviewed", async () => {
+    stubServer([{ ...oldUnresolved, status: "reviewing" }, ...newerResolved.slice(0, 3)]);
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    expect(await screen.findByRole("heading", { level: 3, name: "Tramadol" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Reviewing (1)");
+  });
+});
+
 describe("FeedbackReviewQueue filter", () => {
   it("opens on the New rows when there are any and counts every status in the filter", async () => {
     const user = userEvent.setup();
@@ -238,7 +532,9 @@ describe("FeedbackReviewQueue filter", () => {
     expect(screen.getByRole("option", { name: "Spam 0" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("option", { name: "All 2" }));
-    expect(within(list).getAllByRole("option")).toHaveLength(2);
+    await waitFor(() =>
+      expect(within(screen.getByRole("listbox", { name: "Feedback queue" })).getAllByRole("option")).toHaveLength(2),
+    );
   });
 
   it("opens on everything when nothing is New", async () => {
