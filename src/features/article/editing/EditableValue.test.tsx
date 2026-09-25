@@ -3,10 +3,12 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { doseRangeTransformer } from "@/data/schema";
-import type { DoseRange } from "@/schema";
+import { fetchReferenceMetadata } from "@/lib/citations/referenceIntake";
+import type { DoseRange, Reference } from "@/schema";
 import {
   ArticleEditProvider,
   ArticleFieldCommitError,
+  useFieldMarkers,
   type ArticleEditContextValue,
   type EditableFieldValue,
 } from "./ArticleEditContext";
@@ -15,6 +17,11 @@ import { EditableValue } from "./EditableValue";
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} aria-hidden />,
+}));
+
+vi.mock("@/lib/citations/referenceIntake", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/citations/referenceIntake")>()),
+  fetchReferenceMetadata: vi.fn(),
 }));
 
 function renderWithProvider(
@@ -425,6 +432,134 @@ describe("EditableValue with a parsed value and citations", () => {
       "Not a dose range.",
     );
     expect(commit).not.toHaveBeenCalled();
+  });
+});
+
+describe("EditableValue citations stay with the field draft", () => {
+  function MarkerRemover() {
+    const markers = useFieldMarkers();
+    const first = markers?.markers[0];
+    return first ? (
+      <button
+        type="button"
+        data-citation-control
+        onClick={() => markers.removeMarker(first)}
+      >
+        Remove this citation
+      </button>
+    ) : null;
+  }
+
+  function renderCitable(
+    value = "Original note.",
+    commit = vi.fn(async (_path: string, next: EditableFieldValue) => next),
+  ) {
+    const addReference = vi.fn((reference: Reference) => reference.id);
+    render(
+      <ArticleEditProvider value={{ commit, addReference, references: [] }}>
+        <EditableValue
+          path="dosage.routes[1].notes"
+          value={value}
+          label="Oral notes"
+        >
+          <span>{value}</span>
+          <MarkerRemover />
+        </EditableValue>
+      </ArticleEditProvider>,
+    );
+    return { addReference, commit };
+  }
+
+  async function citeDoi(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
+    // From the keyboard: jsdom does not honor the pointer-down guard that keeps
+    // a mouse click on Cite from blurring the field.
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Cite" })).toHaveFocus();
+    await user.keyboard("{Enter}");
+    await user.type(
+      screen.getByLabelText(/DOI, PubMed, ISBN, URL/),
+      "10.1000/xyz123{Enter}",
+    );
+    await waitFor(() =>
+      expect(
+        (
+          screen.getByRole("textbox", {
+            name: "Edit Oral notes",
+          }) as HTMLTextAreaElement
+        ).value,
+      ).toContain("[cite:doi-10-1000-xyz123]"),
+    );
+  }
+
+  it("drops a citation added to a draft that is then cancelled", async () => {
+    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper" });
+    const user = userEvent.setup();
+    const { addReference, commit } = renderCitable();
+
+    await citeDoi(user);
+    screen.getByRole("textbox", { name: "Edit Oral notes" }).focus();
+    await user.keyboard("{Escape}");
+
+    expect(commit).not.toHaveBeenCalled();
+    expect(addReference).not.toHaveBeenCalled();
+  });
+
+  it("adds the citation's reference once when the field applies", async () => {
+    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper" });
+    const user = userEvent.setup();
+    const { addReference, commit } = renderCitable();
+
+    await citeDoi(user);
+    screen.getByRole("textbox", { name: "Edit Oral notes" }).focus();
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => expect(commit).toHaveBeenCalledTimes(1));
+    expect(addReference).toHaveBeenCalledTimes(1);
+    expect(addReference.mock.calls[0][0]).toMatchObject({
+      doi: "10.1000/xyz123",
+      title: "A paper",
+    });
+  });
+
+  it("keeps a failed metadata lookup warning visible on the field", async () => {
+    vi.mocked(fetchReferenceMetadata).mockRejectedValueOnce(
+      new Error("offline"),
+    );
+    const user = userEvent.setup();
+    renderCitable();
+
+    await citeDoi(user);
+
+    expect(
+      screen.getByText(/Metadata could not be loaded/),
+    ).toBeVisible();
+  });
+
+  it("removes only the marker and its adjacent space", async () => {
+    const user = userEvent.setup();
+    const { commit } = renderCitable("Keep  this. Claim [cite:x] here.");
+
+    await user.click(screen.getByRole("button", { name: "Remove this citation" }));
+
+    expect(commit).toHaveBeenCalledWith(
+      "dosage.routes[1].notes",
+      "Keep  this. Claim here.",
+      "Keep  this. Claim [cite:x] here.",
+    );
+  });
+
+  it("removes a trailing marker without leaving a space before the period", async () => {
+    const user = userEvent.setup();
+    const { commit } = renderCitable("Claim [cite:x].");
+
+    await user.click(screen.getByRole("button", { name: "Remove this citation" }));
+
+    expect(commit).toHaveBeenCalledWith(
+      "dosage.routes[1].notes",
+      "Claim.",
+      "Claim [cite:x].",
+    );
   });
 });
 

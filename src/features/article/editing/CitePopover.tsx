@@ -40,6 +40,11 @@ export type CitePopoverProps = {
    */
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Receives a warning the field must keep showing after this panel closes,
+   * such as a metadata lookup that failed while the citation still applied.
+   */
+  onLookupWarning?: (message: string) => void;
   disabled?: boolean;
 };
 
@@ -51,7 +56,7 @@ function referenceLabel(reference: Reference): string {
   return `${reference.title || reference.id}${year}`;
 }
 
-export function CitePopover({ references, addReference, onInsert, open, onOpenChange, disabled = false }: CitePopoverProps) {
+export function CitePopover({ references, addReference, onInsert, open, onOpenChange, onLookupWarning, disabled = false }: CitePopoverProps) {
   const [query, setQuery] = useState("");
   const queryId = useId();
   // The popover exists to be typed into, and Radix focuses the panel rather
@@ -60,7 +65,6 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
   // appears because an editor activated the control.
   const focusOnMount = useCallback((node: HTMLInputElement | null) => { node?.focus(); }, []);
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState("");
 
   const detection = detectQuickAddReference(query);
   const needle = query.trim().toLowerCase();
@@ -75,7 +79,6 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
   const close = () => {
     onOpenChange(false);
     setQuery("");
-    setNote("");
     setBusy(false);
   };
 
@@ -93,14 +96,13 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
   const addPasted = async () => {
     if (!detection || busy) return;
     setBusy(true);
-    setNote("");
     let metadataTitle = detection.title ?? "";
     if (hasReferenceMetadataLookup(detection)) {
       try {
         const metadata = await fetchReferenceMetadata(detection);
         if (metadata?.title) metadataTitle = metadata.title;
       } catch {
-        setNote("Metadata could not be loaded. The citation still applies and the source needs review.");
+        onLookupWarning?.("Metadata could not be loaded. The citation still applies and the source needs review.");
       }
     }
     const reference = buildQuickAddReference({
@@ -157,7 +159,7 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
           ref={focusOnMount}
           value={query}
           disabled={busy}
-          onChange={(event) => { setQuery(event.target.value); setNote(""); }}
+          onChange={(event) => setQuery(event.target.value)}
           onKeyDown={onQueryKeyDown}
         />
         {detection && <Button type="button" className="w-full" disabled={busy} onClick={() => { void addPasted(); }}>
@@ -182,7 +184,6 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
         {matches.length === 0 && !detection && <p className="theme-text-muted text-sm">
           Paste an identifier to add a source, or type to search the sources this article already cites.
         </p>}
-        {note && <p role="alert" className="theme-text-muted text-sm">{note}</p>}
       </PopoverContent>
     </Popover>
   );
