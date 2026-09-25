@@ -217,7 +217,7 @@ const publicMatchableReplicationRow = v.object({
   title_class_mentions: v.optional(v.array(titleClassMentionValidator)),
   showcase_excluded: v.optional(v.boolean()),
   replication_status: v.optional(replicationStatusValidator),
-  publication_state: v.optional(v.union(v.literal("published"), v.literal("duplicate-suppressed"))),
+  publication_state: v.optional(v.union(v.literal("published"), v.literal("unpublished"), v.literal("duplicate-suppressed"))),
 });
 
 /**

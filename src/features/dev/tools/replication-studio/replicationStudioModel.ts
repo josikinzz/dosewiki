@@ -9,6 +9,33 @@
 export type StudioMediaType = "image" | "video" | "audio";
 export type StudioRole = "replication" | "figure";
 
+/** Every stored rights status, in the order the studio lists them. */
+export const STUDIO_RIGHTS_STATUSES = [
+  "unknown",
+  "creator-retained",
+  "explicit-license",
+  "permission-granted",
+  "public-domain",
+] as const;
+export type StudioRightsStatus = (typeof STUDIO_RIGHTS_STATUSES)[number];
+
+export const RIGHTS_STATUS_LABELS: Record<StudioRightsStatus, string> = {
+  unknown: "Unknown",
+  "creator-retained": "Creator retains rights",
+  "explicit-license": "Explicit license",
+  "permission-granted": "Permission granted",
+  "public-domain": "Public domain",
+};
+
+/**
+ * The statuses the studio can set on its own. The others need license or
+ * permission details the studio does not edit, so they are recorded with the
+ * rights metadata scripts and only shown here.
+ */
+export const STUDIO_SETTABLE_RIGHTS: readonly StudioRightsStatus[] = ["unknown", "creator-retained"];
+
+export type StudioPublicationState = "published" | "unpublished" | "duplicate-suppressed";
+
 export type StudioRow = {
   id: string;
   slug: string;
@@ -32,7 +59,13 @@ export type StudioRow = {
   }[];
   credit_line: string | null;
   source_url?: string | null;
-  rights_status?: string | null;
+  rights_status?: StudioRightsStatus | null;
+  /** Absent reads as published: rows loaded before uploads could wait. */
+  publication_state?: StudioPublicationState;
+  /** SHA-256 of the stored file, when known; the duplicate check reads it. */
+  source_sha256?: string | null;
+  width?: number | null;
+  height?: number | null;
   url: string | null;
   thumbnail_url: string | null;
   /** Low-resolution muted video rendition used for bounded preview playback. */
@@ -295,4 +328,24 @@ export function formatDuration(seconds: number | null): string | null {
   const minutes = Math.floor(seconds / 60);
   const rest = Math.round(seconds % 60);
   return `${minutes}:${String(rest).padStart(2, "0")}`;
+}
+
+/* -------------------------------------------------------------- provenance */
+
+/** Whether a row waits in the library, off every public page. */
+export function isUnpublished(row: Pick<StudioRow, "publication_state">): boolean {
+  return row.publication_state === "unpublished";
+}
+
+/** Under this many pixels on the short edge, an image is flagged before upload. */
+export const LOW_RESOLUTION_MIN_EDGE = 800;
+
+export function isLowResolution(width: number, height: number): boolean {
+  return Math.min(width, height) < LOW_RESOLUTION_MIN_EDGE;
+}
+
+/** Hex SHA-256 of a file's bytes: the identity the storage key and duplicate check use. */
+export async function fileSha256(file: Blob): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }

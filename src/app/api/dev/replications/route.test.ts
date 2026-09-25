@@ -183,7 +183,7 @@ describe("replication create route", () => {
     expect(mediaFetch).not.toHaveBeenCalled();
   });
 
-  it("inserts the asset for an admin and publishes the replication collections plus the new record", async () => {
+  it("inserts the asset unpublished with rights unknown and publishes nothing", async () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
@@ -192,17 +192,20 @@ describe("replication create route", () => {
     const response = await POST(createRequest());
 
     expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ ok: true, slug: "new-asset", published: false });
     expect(mocks.mutation).toHaveBeenCalledWith(
       "replications.insertMediaAsset",
-      expect.objectContaining({ slug: "new-asset", actorEmail: "admin@example.com" }),
+      expect.objectContaining({
+        slug: "new-asset",
+        actorEmail: "admin@example.com",
+        publication_state: "unpublished",
+        rights_status: "unknown",
+      }),
     );
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "replication-collections" }, { kind: "replication", slug: "new-asset" }],
-      source: "manual",
-    });
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
-  it("publishes the owning effect alongside the collections when the asset has one", async () => {
+  it("records the source, credit and rights the tray asked for", async () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
@@ -221,19 +224,44 @@ describe("replication create route", () => {
           uploadToken,
           fileSize: mediaBytes.length,
           effectSlug: "tracers",
+          sourceUrl: "https://artist.test/new-asset",
+          creditLine: "Archive Artist, 2024",
+          rightsStatus: "creator-retained",
         }),
       }),
     );
 
     expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [
-        { kind: "replication-collections" },
-        { kind: "effect", slug: "tracers" },
-        { kind: "replication", slug: "new-asset" },
-      ],
-      source: "manual",
-    });
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      "replications.insertMediaAsset",
+      expect.objectContaining({
+        effect_slug: "tracers",
+        source_url: "https://artist.test/new-asset",
+        credit_line: "Archive Artist, 2024",
+        rights_status: "creator-retained",
+        publication_state: "unpublished",
+      }),
+    );
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
+  });
+
+  it("refuses a source that is not an HTTP address before any storage read", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com" }));
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/dev/replications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+        body: JSON.stringify({
+          slug: "new-asset", title: "New asset", artist: "Archive Artist", type: "image",
+          format: "webp", uploadToken, fileSize: mediaBytes.length, sourceUrl: "javascript:alert(1)",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
   it("never publishes or inserts an interrupted upload", async () => {

@@ -30,7 +30,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader {
          (SELECT count(*)::int FROM "tripReports") AS "reportCount",
          (SELECT count(*)::int FROM "replications"
            WHERE COALESCE(to_jsonb("role") #>> '{}', 'replication') = 'replication'
-             AND (to_jsonb("publication_state") #>> '{}') IS DISTINCT FROM 'duplicate-suppressed'
+             AND COALESCE(to_jsonb("publication_state") #>> '{}', 'published') = 'published'
              AND (to_jsonb("replication_status") #>> '{}') IS DISTINCT FROM 'not-replication'
              AND (to_jsonb("type") #>> '{}') IN ('image', 'video', 'audio')) AS "replicationCount",
          EXISTS (
@@ -234,7 +234,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader {
     const result = await this.client.query(
       `SELECT ${losslessSelectList("replications", ["_id", "_creationTime", "artist", "artist_url", "effect_slug", "storage_id", "r2_key", "url"])} FROM "replications"
        WHERE COALESCE(to_jsonb("role") #>> '{}', 'replication') = 'replication'
-         AND (to_jsonb("publication_state") #>> '{}') IS DISTINCT FROM 'duplicate-suppressed'
+         AND COALESCE(to_jsonb("publication_state") #>> '{}', 'published') = 'published'
          AND (to_jsonb("replication_status") #>> '{}') IS DISTINCT FROM 'not-replication'
          AND (to_jsonb("type") #>> '{}') IN ('image', 'video', 'audio')
        ORDER BY "_creationTime" ASC, "_id" ASC`,

@@ -29,6 +29,7 @@ import type {
 
 const INSERT_MEDIA_ASSET_FIELDS = [
   "slug",
+  "publication_state",
   "title",
   "artist",
   "artist_url",
@@ -275,16 +276,15 @@ function validHttpUrl(value: string | undefined) {
   }
 }
 
-function validateRightsCoherence(
+export function validateRightsCoherence(
   slug: string,
   rights: Pick<
     InsertMediaAssetArgs,
-    | "rights_status"
     | "license_name"
     | "license_url"
     | "permission_notes"
     | "source_url"
-  >,
+  > & { rights_status?: InsertMediaAssetArgs["rights_status"] },
 ) {
   const hasLicenseName = Boolean(rights.license_name?.trim());
   const hasLicenseUrl = validHttpUrl(rights.license_url);

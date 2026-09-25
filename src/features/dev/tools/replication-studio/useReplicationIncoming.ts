@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ActionNoticeTone } from "@/features/dev/components";
 
@@ -8,7 +8,9 @@ import { incomingReady, type IncomingFile } from "./IncomingTray";
 import {
   buildReplicationSlug,
   fileFormat,
+  fileSha256,
   inferMediaType,
+  isUnpublished,
   titleFromFileName,
   type StudioRow,
 } from "./replicationStudioModel";
@@ -23,18 +25,33 @@ type IncomingControllerOptions = {
   loadCorpus: () => Promise<void>;
   setFeedback: (feedback: Feedback | null) => void;
   readError: (response: Response, fallback: string) => Promise<string>;
-  /** Called with the new row's slug once it is live and the corpus reloaded. */
-  onPublished?: (slug: string) => void;
+  /** Called with the new row's slug once it is in the library and the corpus reloaded. */
+  onUploaded?: (slug: string) => void;
 };
+
+/** Reads an image's pixel size from its preview; resolves null when it cannot. */
+function readImageSize(url: string): Promise<{ width: number; height: number } | null> {
+  if (typeof Image === "undefined") return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve(
+      image.naturalWidth > 0 ? { width: image.naturalWidth, height: image.naturalHeight } : null,
+    );
+    image.onerror = () => resolve(null);
+    image.src = url;
+  });
+}
 
 export function useReplicationIncoming({
   rows,
   loadCorpus,
   setFeedback,
   readError,
-  onPublished,
+  onUploaded,
 }: IncomingControllerOptions) {
   const [incoming, setIncoming] = useState<IncomingFile[]>([]);
+  // Slugs this session uploaded: the tray keeps them in view until they publish.
+  const [uploadedSlugs, setUploadedSlugs] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
@@ -48,30 +65,50 @@ export function useReplicationIncoming({
     };
   }, []);
 
+  const patchIncoming = useCallback((id: string, patch: Partial<IncomingFile>) => {
+    setIncoming((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    );
+  }, []);
+
   const addFiles = useCallback((fileList: FileList | null) => {
     const files = [...(fileList ?? [])];
     if (files.length === 0) return;
-    setIncoming((current) => [
-      ...current,
-      ...files.map((file, index) => {
-        const type = inferMediaType(file);
-        const previewUrl = type === "audio" ? null : URL.createObjectURL(file);
-        if (previewUrl) objectUrls.current.add(previewUrl);
-        return {
-          id: `incoming-${Date.now()}-${index}`,
-          file,
-          name: file.name,
-          type,
-          previewUrl,
-          title: titleFromFileName(file.name),
-          artist: "",
-          effectSlug: "",
-          effectTags: [],
-          status: "draft" as const,
-        };
-      }),
-    ]);
-  }, []);
+    const stamp = Date.now();
+    const added = files.map((file, index): IncomingFile => {
+      const type = inferMediaType(file);
+      const previewUrl = type === "audio" ? null : URL.createObjectURL(file);
+      if (previewUrl) objectUrls.current.add(previewUrl);
+      return {
+        id: `incoming-${stamp}-${index}`,
+        file,
+        name: file.name,
+        type,
+        previewUrl,
+        title: titleFromFileName(file.name),
+        artist: "",
+        effectSlug: "",
+        rightsStatus: "unknown",
+        sourceUrl: "",
+        creditLine: "",
+        status: "draft",
+      };
+    });
+    setIncoming((current) => [...current, ...added]);
+    // The checks run before anything uploads: the hash finds a file the
+    // library already holds, the pixel size finds a thumbnail-sized image.
+    for (const item of added) {
+      void fileSha256(item.file).then(
+        (sha256) => patchIncoming(item.id, { sha256 }),
+        () => patchIncoming(item.id, { sha256: null }),
+      );
+      if (item.type === "image" && item.previewUrl) {
+        void readImageSize(item.previewUrl).then((size) => {
+          if (size) patchIncoming(item.id, { size });
+        });
+      }
+    }
+  }, [patchIncoming]);
 
   const discardIncoming = useCallback((id: string) => {
     setIncoming((current) => {
@@ -96,23 +133,45 @@ export function useReplicationIncoming({
     });
   }, []);
 
-  const patchIncoming = useCallback((id: string, patch: Partial<IncomingFile>) => {
-    setIncoming((current) =>
-      current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
-    );
-  }, []);
+  /** Library works with the same bytes as each tray item, by slug. */
+  const duplicates = useMemo(() => {
+    const bySha = new Map<string, string[]>();
+    for (const row of rows) {
+      if (!row.source_sha256) continue;
+      bySha.set(row.source_sha256, [...(bySha.get(row.source_sha256) ?? []), row.slug]);
+    }
+    const seen = new Map<string, string>();
+    const result = new Map<string, string[]>();
+    for (const item of incoming) {
+      if (!item.sha256) continue;
+      const matches = [...(bySha.get(item.sha256) ?? [])];
+      const earlier = seen.get(item.sha256);
+      if (earlier) matches.push(`${earlier} (also in this tray)`);
+      else seen.set(item.sha256, item.name);
+      if (matches.length > 0) result.set(item.id, matches);
+    }
+    return result;
+  }, [incoming, rows]);
+
+  /** Uploads from this session that still wait unpublished, in upload order. */
+  const waiting = useMemo(
+    () =>
+      uploadedSlugs
+        .map((slug) => rows.find((row) => row.slug === slug))
+        .filter((row): row is StudioRow => Boolean(row && isUnpublished(row))),
+    [rows, uploadedSlugs],
+  );
 
   /**
-   * Publishes one item and resolves to its slug, or null when it failed.
-   * `takenSlugs` carries slugs published earlier in the same batch, which the
-   * loaded corpus does not list yet.
+   * Uploads one item as an unpublished row and resolves to its slug, or null
+   * when it failed. `takenSlugs` carries slugs uploaded earlier in the same
+   * batch, which the loaded corpus does not list yet.
    */
   const addToLibrary = useCallback(
     async (item: IncomingFile, takenSlugs: readonly string[] = []): Promise<string | null> => {
       patchIncoming(item.id, { status: "uploading", error: undefined });
       try {
-        const sha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await item.file.arrayBuffer()))]
-          .map((byte) => byte.toString(16).padStart(2, "0")).join("");
+        const sha256 = item.sha256 ?? await fileSha256(item.file);
         const urlResponse = await fetch(UPLOAD_URL_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -157,7 +216,9 @@ export function useReplicationIncoming({
             type: item.type,
             uploadToken,
             effectSlug: item.effectSlug,
-            effectTags: item.effectTags,
+            rightsStatus: item.rightsStatus,
+            sourceUrl: item.sourceUrl.trim() || undefined,
+            creditLine: item.creditLine.trim() || undefined,
             format: fileFormat(item.name),
             fileSize: item.file.size,
           }),
@@ -170,9 +231,13 @@ export function useReplicationIncoming({
           return null;
         }
         discardIncoming(item.id);
-        setFeedback({ tone: "success", message: `Published ${slug}. It is live on the public site.` });
+        setUploadedSlugs((current) => [...current.filter((entry) => entry !== slug), slug]);
+        setFeedback({
+          tone: "success",
+          message: `Uploaded ${slug}. It stays unpublished until you publish it.`,
+        });
         await loadCorpus();
-        onPublished?.(slug);
+        onUploaded?.(slug);
         return slug;
       } catch {
         patchIncoming(item.id, {
@@ -182,23 +247,26 @@ export function useReplicationIncoming({
         return null;
       }
     },
-    [discardIncoming, loadCorpus, onPublished, patchIncoming, readError, rows, setFeedback],
+    [discardIncoming, loadCorpus, onUploaded, patchIncoming, readError, rows, setFeedback],
   );
 
-  /** Publishes every ready item in tray order, one at a time. */
+  /** Uploads every ready item in tray order, one at a time. */
   const addAllToLibrary = useCallback(async () => {
-    const published: string[] = [];
+    const uploaded: string[] = [];
     for (const item of incoming.filter(incomingReady)) {
-      const slug = await addToLibrary(item, published);
-      if (slug) published.push(slug);
+      const slug = await addToLibrary(item, uploaded);
+      if (slug) uploaded.push(slug);
     }
-    if (published.length > 1) {
+    if (uploaded.length > 1) {
       setFeedback({
         tone: "success",
-        message: `Published ${published.length} works. They are live on the public site.`,
+        message: `Uploaded ${uploaded.length} works. They stay unpublished until you publish them.`,
       });
     }
   }, [addToLibrary, incoming, setFeedback]);
+
+  /** Stops tracking this session's uploads; they stay in the library, flagged. */
+  const dismissWaiting = useCallback(() => setUploadedSlugs([]), []);
 
   useEffect(() => {
     const carriesFiles = (event: DragEvent) =>
@@ -236,6 +304,8 @@ export function useReplicationIncoming({
 
   return {
     incoming,
+    duplicates,
+    waiting,
     dragging,
     fileInputRef,
     addFiles,
@@ -244,5 +314,6 @@ export function useReplicationIncoming({
     patchIncoming,
     addToLibrary,
     addAllToLibrary,
+    dismissWaiting,
   };
 }

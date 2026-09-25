@@ -29,7 +29,45 @@ export type ReplicationStatus =
   | "unreviewed"
   | "source-corrupt";
 
-export type ReplicationPublicationState = "published" | "duplicate-suppressed";
+/**
+ * Absent means published. `unpublished` is a studio upload still waiting on
+ * its provenance; `duplicate-suppressed` is a consolidated duplicate.
+ */
+export type ReplicationPublicationState = "published" | "unpublished" | "duplicate-suppressed";
+
+/** Only a published row (or a legacy row with no state) reaches a public surface. */
+export function isPublishedState(state: ReplicationPublicationState | null | undefined): boolean {
+  return (state ?? "published") === "published";
+}
+
+/** What an upload still lacks before it may publish: a known rights status, a source. */
+export type ReplicationProvenanceGap = "rights" | "source";
+
+/** A source is an absolute HTTP or HTTPS address. */
+export function isReplicationSourceUrl(value: string | null | undefined): boolean {
+  if (!value?.trim()) return false;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The provenance an unpublished upload must carry before it publishes. The
+ * studio and the write path share this rule so a Publish button the studio
+ * enables is one the server accepts.
+ */
+export function replicationProvenanceGaps(row: {
+  rights_status?: string | null;
+  source_url?: string | null;
+}): ReplicationProvenanceGap[] {
+  const gaps: ReplicationProvenanceGap[] = [];
+  if (!row.rights_status || row.rights_status === "unknown") gaps.push("rights");
+  if (!isReplicationSourceUrl(row.source_url)) gaps.push("source");
+  return gaps;
+}
 
 type ReplicationViewingMode =
   | "open-eye"
@@ -163,7 +201,7 @@ export function isPublishableReplication(row: {
 }): boolean {
   return (
     isReplicationRow(row) &&
-    row.publication_state !== "duplicate-suppressed" &&
+    isPublishedState(row.publication_state) &&
     row.replication_status !== "not-replication" &&
     PRESENTABLE_REPLICATION_TYPES[row.type] === true
   );

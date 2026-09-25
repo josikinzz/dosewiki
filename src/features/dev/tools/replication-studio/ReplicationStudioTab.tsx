@@ -202,8 +202,10 @@ export function ReplicationStudioTab({
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   // The inspector, bulk, playlist and showcase drafts register where they
-  // live; Featured and the Incoming tray live here. Both would go live, so
-  // the shell only discards them.
+  // live; Featured and the Incoming tray live here. Featured would go live, so
+  // the shell only discards it. The tray uploads unpublished, so nothing in it
+  // is live either way; the shell can only discard it, since each file still
+  // needs its own Upload.
   const featuredDirty =
     featuredLoaded &&
     (featuredOrder.length !== savedFeatured.length ||
@@ -224,7 +226,7 @@ export function ReplicationStudioTab({
     tab: "replications",
     label: `Replications: ${incoming.incoming.length} ${incoming.incoming.length === 1 ? "file" : "files"} in the Incoming tray`,
     dirty: incoming.incoming.length > 0,
-    publishesLive: true,
+    publishesLive: false,
     discard: incoming.clearIncoming,
   });
 
@@ -363,6 +365,7 @@ export function ReplicationStudioTab({
       busy={busy}
       onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
       onApplyBulk={controller.applyBulk}
+      onPublish={controller.publishRows}
       onDeselect={controller.clearSelection}
       onDirtyChange={controller.setEditorDirty}
       onOpenPlacement={(row) => controller.openPlacement(row.id)}
@@ -374,13 +377,28 @@ export function ReplicationStudioTab({
   const incomingTray = (
     <IncomingTray
       items={incoming.incoming}
+      duplicates={incoming.duplicates}
+      waiting={incoming.waiting}
       effects={effects}
       artists={artists}
+      busy={busy}
       onPatch={incoming.patchIncoming}
       onDiscard={incoming.discardIncoming}
       onClear={incoming.clearIncoming}
       onAdd={(item) => void incoming.addToLibrary(item)}
       onAddAll={() => void incoming.addAllToLibrary()}
+      onPublish={(rows) =>
+        confirm({
+          title: `Publish ${rows.length} ${rows.length === 1 ? "work" : "works"}?`,
+          description: "They go live on the public site: their effect galleries, permalinks and the replication collections.",
+          confirmLabel: `Publish ${rows.length}`,
+          affected: rows.map((row) => row.title || row.slug),
+          onConfirm: async () => {
+            await controller.publishRows(rows);
+          },
+        })
+      }
+      onDismissWaiting={incoming.dismissWaiting}
     />
   );
 
@@ -506,7 +524,7 @@ export function ReplicationStudioTab({
 
           <section aria-label="Library" className="flex min-h-0 min-w-0 flex-col gap-3">
             {libraryToolbar}
-            {incoming.incoming.length > 0 ? (
+            {incoming.incoming.length > 0 || incoming.waiting.length > 0 ? (
               <div className="max-h-[45%] shrink-0 overflow-y-auto">{incomingTray}</div>
             ) : null}
             <div className="min-h-0 flex-1">

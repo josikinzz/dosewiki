@@ -130,9 +130,12 @@ const replicationMediaType = v.union(
  * Public lifecycle of a stored replication row. Absence means published so the
  * existing corpus needs no backfill. Duplicate suppression is reversible and
  * deliberately distinct from the editorial replication-status taxonomy.
+ * `unpublished` is a studio upload held back until its provenance (a known
+ * rights status and a source) is complete; no public read returns it.
  */
 export const replicationPublicationState = v.union(
   v.literal("published"),
+  v.literal("unpublished"),
   v.literal("duplicate-suppressed"),
 );
 

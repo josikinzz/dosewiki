@@ -18,6 +18,10 @@ vi.mock("@server/next/publishPublicCache", () => ({
   publishPublicCache: publishMocks.publishPublicCache,
 }));
 
+vi.mock("@server/translation/segmentStore", () => ({
+  enqueueTranslationJobs: vi.fn(async () => {}),
+}));
+
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
@@ -147,6 +151,7 @@ describe("replication editorial route", () => {
       ok: true,
       updated: 1,
       slugs: ["drifting-replication"],
+      published: [],
       conflicts: [],
     });
     expect(mocks.mutation).toHaveBeenCalledWith(
@@ -181,6 +186,7 @@ describe("replication editorial route", () => {
       ok: true,
       updated: 1,
       slugs: ["drifting-replication"],
+      published: [],
       conflicts: [{ id: "stale-id", slug: "stale-replication", reason: "Someone saved it after you loaded the studio." }],
     });
   });
@@ -201,6 +207,83 @@ describe("replication editorial route", () => {
       conflicts: [{ id: "replication-id" }],
     });
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
+  });
+
+  it("bulk-sets rights on three items, each guarded by its own expected provenance", async () => {
+    mocks.mutation.mockResolvedValue({ updated: 3, slugs: ["a", "b", "c"], published: [], effects: ["drifting"], conflicts: [] });
+    const expected = { ...snapshot, rights_status: "unknown", source_url: null };
+
+    const response = await POST(editorialRequest({
+      mode: "bulk",
+      items: ["a", "b", "c"].map((id) => ({ id, expected })),
+      patch: { rightsStatus: "creator-retained" },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      "replications.bulkUpdateEditorialFields",
+      expect.objectContaining({
+        items: ["a", "b", "c"].map((id) => ({ id, expected })),
+        rights_status: "creator-retained",
+      }),
+    );
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "replication-collections" }, { kind: "effect", slug: "drifting" }],
+      source: "manual",
+    });
+  });
+
+  it("refuses an unknown rights status and a non-HTTP source before reaching Postgres", async () => {
+    for (const patch of [{ rightsStatus: "stolen" }, { sourceUrl: "ftp://example.test/a" }]) {
+      const response = await POST(editorialRequest({ ...bulkEdit, patch }));
+      expect(response.status).toBe(400);
+    }
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("answers 409 and publishes nothing while every item still lacks a source", async () => {
+    mocks.mutation.mockResolvedValue({
+      updated: 0,
+      slugs: [],
+      published: [],
+      conflicts: [{ id: "replication-id", slug: "drifting-replication", reason: "It needs a source before it can publish.", code: "incomplete" }],
+    });
+
+    const response = await POST(editorialRequest({ ...bulkEdit, patch: { publish: true } }));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/Nothing was published/),
+    });
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      "replications.bulkUpdateEditorialFields",
+      expect.objectContaining({ publish: true }),
+    );
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
+  });
+
+  it("brings a published upload's gallery and permalink live", async () => {
+    mocks.mutation.mockResolvedValue({
+      updated: 1,
+      slugs: ["drifting-replication"],
+      published: ["drifting-replication"],
+      effects: ["drifting"],
+      conflicts: [],
+    });
+
+    const response = await POST(editorialRequest({ ...bulkEdit, patch: { publish: true } }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ published: ["drifting-replication"] });
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [
+        { kind: "replication-collections" },
+        { kind: "effect", slug: "drifting" },
+        { kind: "replication", slug: "drifting-replication" },
+      ],
+      source: "manual",
+    });
   });
 
   it("refuses a bulk editorial change that names rows without expected values", async () => {
