@@ -40,13 +40,15 @@ async function seedArticle(row: {
   importance?: string;
   title?: string;
   details?: string;
+  contactEmail?: string;
 }) {
   sequence += 1;
   const created = new Date(Date.UTC(2026, 0, 1) + row.day * 86_400_000).toISOString();
   await db.query(
     `INSERT INTO "articleFeedback" ("_id", "_creationTime", "id", "status", "schema_version", "substance_slug",
-       "substance_title", "category", "importance", "details", "honeypot_triggered", "created_at", "updated_at")
-     VALUES ($1, $2, $3, $4, 1, 'mescaline', $5, 'inaccurate', $6, $7, false, $8, $8)`,
+       "substance_title", "category", "importance", "details", "honeypot_triggered", "created_at", "updated_at",
+       "contact_email")
+     VALUES ($1, $2, $3, $4, 1, 'mescaline', $5, 'inaccurate', $6, $7, false, $8, $8, $9)`,
     [
       `id${String(sequence).padStart(30, "0")}`,
       sequence,
@@ -56,6 +58,7 @@ async function seedArticle(row: {
       row.importance ?? "normal",
       row.details ?? "Duration looks off.",
       created,
+      row.contactEmail ?? null,
     ],
   );
 }
@@ -147,6 +150,21 @@ describe("feedback queue paging over isolated Postgres", () => {
     expect(percent.rows.map((row) => row.id)).toEqual(["a"]);
     const wildcard = await readFeedbackQueuePage(client, "articleFeedback", { search: "%", order: "oldest", limit: 10 });
     expect(wildcard.rows.map((row) => row.id)).toEqual(["a"]);
+  });
+
+  it("never matches a reader's contact details, which must not travel in a search URL", async () => {
+    await seedArticle({ id: "a", status: "new", day: 1, contactEmail: "reader@example.com" });
+    await db.query(
+      `INSERT INTO "siteFeedback" ("_id", "_creationTime", "id", "status", "schema_version", "category", "details",
+         "honeypot_triggered", "created_at", "updated_at", "email")
+       VALUES ('site-row', 1, 's', 'new', 1, 'bug', 'Broken link', false, '2026-01-02', '2026-01-02', 'reader@example.com')`,
+    );
+
+    for (const table of ["articleFeedback", "siteFeedback"] as const) {
+      const page = await readFeedbackQueuePage(client, table, { search: "reader@example.com", order: "oldest", limit: 10 });
+      expect(page.rows).toEqual([]);
+      expect(await readFeedbackQueueCounts(client, table, "reader@example")).toMatchObject({ new: 0 });
+    }
   });
 
   it("keeps a loaded page's successor stable when newer rows arrive", async () => {

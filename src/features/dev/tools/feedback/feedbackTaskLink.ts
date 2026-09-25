@@ -14,7 +14,7 @@
 import { devHref } from "@/utils/devHref";
 
 import { isFeedbackQueueFilter, type FeedbackQueueFilter } from "./FeedbackReviewQueue";
-import type { QueueSort } from "./feedbackQueueModel";
+import { looksLikeContactDetails, type QueueSort } from "./feedbackQueueModel";
 
 export type FeedbackSource = "article" | "site";
 
@@ -38,13 +38,13 @@ export function isQueueSort(value: unknown): value is QueueSort {
 }
 
 /**
- * Whether search text may go in an address. Reader contact details are the
- * one thing an admin searches by that must never leave the page: anything
- * with an @ or a run of seven or more digits stays out.
+ * Whether search text may go in an address: short, and naming no person.
+ * Reader contact details are the one thing an admin might search by that must
+ * never leave the page (see `looksLikeContactDetails`).
  */
 export function isShareableSearch(text: string): boolean {
   const trimmed = text.trim();
-  return trimmed.length > 0 && trimmed.length <= MAX_SHAREABLE_SEARCH && !trimmed.includes("@") && !/\d[\d\s().-]{5,}\d/.test(trimmed);
+  return trimmed.length > 0 && trimmed.length <= MAX_SHAREABLE_SEARCH && !looksLikeContactDetails(trimmed);
 }
 
 /** The task link for a feedback item or queue view, as an App Path. */

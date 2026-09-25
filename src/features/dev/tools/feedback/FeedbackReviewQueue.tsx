@@ -48,6 +48,7 @@ import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import {
   QUEUE_STATUSES,
   defaultSort,
+  looksLikeContactDetails,
   matchesFilter,
   totalFor,
   type FeedbackPage,
@@ -130,6 +131,14 @@ type LoadState =
 type MoreState = { status: "idle" } | { status: "loading" } | { status: "error"; message: string };
 
 type ActionFeedback = { tone: "success" | "danger"; message: string };
+
+/**
+ * The search a queue request may carry: the typed text, or nothing when it
+ * looks like a reader's contact details, which never enter a request URL.
+ */
+function searchableText(text: string): string {
+  return looksLikeContactDetails(text) ? "" : text.trim();
+}
 
 /** Pause after the last keystroke before the search goes to the server. */
 const SEARCH_DEBOUNCE_MS = 250;
@@ -303,7 +312,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const [autoFilter, setAutoFilter] = useState<FeedbackQueueFilter>("new");
   const [sortChoice, setSortChoice] = useState<QueueSort | null>(initialSort);
   const [searchText, setSearchText] = useState(initialSearch);
-  const [search, setSearch] = useState(initialSearch.trim());
+  const [search, setSearch] = useState(() => searchableText(initialSearch));
+  const contactSearch = looksLikeContactDetails(searchText);
   /**
    * Which list request is allowed to write state. Every load takes the next
    * number, so a response arriving after a newer load (or after unmount) is
@@ -333,7 +343,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   }, [feedback]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setSearch(searchText.trim()), SEARCH_DEBOUNCE_MS);
+    const timer = window.setTimeout(() => setSearch(searchableText(searchText)), SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [searchText]);
 
@@ -877,8 +887,14 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
             onChange={(event) => setSearchText(event.target.value)}
             placeholder="Search feedback"
             aria-label="Search feedback"
+            aria-describedby={contactSearch ? `${noteId}-search-hint` : undefined}
             className="mb-2"
           />
+          {contactSearch ? (
+            <p id={`${noteId}-search-hint`} role="status" className="theme-text-muted mb-2 text-xs">
+              Contact details cannot be searched. Search by substance, page or the feedback text instead.
+            </p>
+          ) : null}
           {checkedRows.length > 0 ? (
             <EditorPanel variant="toolbar" className="mb-2 p-2">
               <EditorToolbar label="Bulk feedback actions" variant="split">

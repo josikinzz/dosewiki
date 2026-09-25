@@ -2,6 +2,7 @@ import type { FeedbackImportance, FeedbackQueueItem, FeedbackTransitionInput } f
 import {
   FEEDBACK_PAGE_SIZE,
   QUEUE_STATUSES,
+  looksLikeContactDetails,
   pageLocally,
   type FeedbackPage,
   type FeedbackPageQuery,
@@ -49,7 +50,8 @@ export function createFeedbackRequests<Item extends FeedbackQueueItem>(
       }
 
       const params = new URLSearchParams({ status: query.status, order: query.sort, limit: String(FEEDBACK_PAGE_SIZE) });
-      if (query.search.trim()) {
+      // A reader's contact details never enter a request URL.
+      if (query.search.trim() && !looksLikeContactDetails(query.search)) {
         params.set("q", query.search.trim());
       }
       if (query.cursor) {

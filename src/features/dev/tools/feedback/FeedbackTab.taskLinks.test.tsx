@@ -143,16 +143,31 @@ describe("Feedback task links", () => {
     expect(screen.getByRole("option", { name: /Psilocybin/ })).toHaveAttribute("aria-selected", "true");
   });
 
-  it("never writes a search that names a reader's contact into the address", async () => {
+  it("never puts a search that names a reader's contact into the address or a request URL", async () => {
     const user = userEvent.setup();
     render(<FeedbackTab />);
     await reviewing("Mescaline");
+    const requestedUrls = () => vi.mocked(fetch).mock.calls.map(([input]) => String(input));
 
-    await user.type(screen.getByRole("searchbox", { name: "Search feedback" }), "reader@example.com");
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining("q=reader%40example.com"), expect.anything()),
-    );
+    const box = screen.getByRole("searchbox", { name: "Search feedback" });
+    await user.type(box, "reader@example.com");
+    expect(await screen.findByText(/Contact details cannot be searched/)).toBeInTheDocument();
+    await user.clear(box);
+    await user.type(box, "+44 20 7946 0958");
+    expect(screen.getByText(/Contact details cannot be searched/)).toBeInTheDocument();
+    // Past the debounce: a plain search would have gone out by now.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    expect(requestedUrls().some((url) => /q=/.test(url))).toBe(false);
+    for (const url of requestedUrls()) {
+      expect(url).not.toMatch(/reader|example|7946/);
+    }
     expect(address()).not.toContain("reader");
     expect(address()).not.toContain("example");
+
+    await user.clear(box);
+    await user.type(box, "duration");
+    expect(screen.queryByText(/Contact details cannot be searched/)).not.toBeInTheDocument();
+    await waitFor(() => expect(requestedUrls().some((url) => url.includes("q=duration"))).toBe(true));
   });
 });
