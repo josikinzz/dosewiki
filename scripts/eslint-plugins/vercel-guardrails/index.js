@@ -404,6 +404,8 @@ const requireRateLimit = {
       'feedbackStatusRoute',
       // Feedback queue reads wrap protectedRouteOperation with rateLimit: "diagnosticRead".
       'feedbackQueueRoute',
+      // Feedback item reads wrap protectedRouteOperation with rateLimit: "diagnosticRead".
+      'feedbackItemRoute',
       // Editor read routes wrap protectedRouteOperation with rateLimit: "editorPolledRead".
       'editorReadRoute',
       // /api/subscribe applies per-IP and global limits through this limiter's limit() calls.
