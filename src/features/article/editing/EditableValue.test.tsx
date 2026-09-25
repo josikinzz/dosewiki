@@ -370,6 +370,64 @@ describe("EditableValue with a parsed value", () => {
   });
 });
 
+describe("EditableValue with a parsed value and citations", () => {
+  const LIGHT: DoseRange = { min: 10, max: 20, unit: "mg" };
+
+  function renderCitableRange(commit: ArticleEditContextValue["commit"]) {
+    return render(
+      <ArticleEditProvider
+        value={{ commit, references: [], addReference: () => "x" }}
+      >
+        <EditableValue<DoseRange>
+          path="dosage.routes[0].dose_ranges.light"
+          value={LIGHT}
+          label="Light dose"
+          format={(range) => doseRangeTransformer.toForm(range)}
+          parse={(raw) => doseRangeTransformer.toSchema(raw)}
+          parseErrorLabel="Not a dose range."
+          citeHint="Cite this dose in the route notes."
+        >
+          <span>10-20 mg</span>
+        </EditableValue>
+      </ArticleEditProvider>,
+    );
+  }
+
+  it("offers no Cite control and says where to cite instead", async () => {
+    const user = userEvent.setup();
+    renderCitableRange(
+      vi.fn(async (_path: string, value: EditableFieldValue) => value),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit Light dose" }));
+
+    expect(screen.queryByRole("button", { name: /Cite/ })).toBeNull();
+    expect(
+      screen.getByText("Cite this dose in the route notes."),
+    ).toBeInTheDocument();
+  });
+
+  it("refuses a citation marker typed into the unit", async () => {
+    const user = userEvent.setup();
+    const commit = vi.fn(
+      async (_path: string, value: EditableFieldValue) => value,
+    );
+    renderCitableRange(commit);
+
+    await user.click(screen.getByRole("button", { name: "Edit Light dose" }));
+    const field = screen.getByRole("textbox", { name: "Edit Light dose" });
+    await user.clear(field);
+    // `[[` is how user-event types a literal bracket.
+    await user.type(field, "10-20 mg[[cite:x]{Enter}");
+
+    expect(field).toHaveValue("10-20 mg[cite:x]");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Not a dose range.",
+    );
+    expect(commit).not.toHaveBeenCalled();
+  });
+});
+
 describe("EditableSlot", () => {
   it("renders nothing at all without an editing context", () => {
     const { container } = render(

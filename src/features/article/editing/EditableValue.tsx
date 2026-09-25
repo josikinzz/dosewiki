@@ -57,6 +57,12 @@ interface EditableValueProps<T extends EditableValueInput = string> {
   parse?: (raw: string) => T | null;
   /** Shown instead of committing when `parse` returns `null`. */
   parseErrorLabel?: string;
+  /**
+   * Where to cite this value instead. A parsed field has no Cite control: its
+   * parser would read a marker as part of the stored value (a dose unit of
+   * `mg[cite:x]`), so the field says where the citation belongs.
+   */
+  citeHint?: string;
   children: ReactNode;
   /**
    * Wrapper element. Stays `span` so inline call sites (a note inside a `<p>`)
@@ -117,6 +123,7 @@ export function EditableValue<T extends EditableValueInput = string>({
   format,
   parse,
   parseErrorLabel,
+  citeHint = "Cite this value in the notes beside it.",
   children,
   as = "span",
   label: labelKey,
@@ -496,9 +503,12 @@ export function EditableValue<T extends EditableValueInput = string>({
             className="theme-text-faint mt-1 block text-sm leading-snug"
           >
             {isPending ? "Applying to preview…" : "Enter applies · Esc cancels"}
+            {parse && editing.addReference ? (
+              <span className="block">{citeHint}</span>
+            ) : null}
           </span>
           <span className="mt-2 flex flex-wrap items-center gap-2">
-            {editing.addReference && !conflict ? (
+            {editing.addReference && !conflict && !parse ? (
               <CitePopover
                 open={citeOpen}
                 onOpenChange={setCiteOpen}

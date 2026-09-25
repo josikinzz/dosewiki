@@ -83,3 +83,28 @@ describe("durationStageTransformer round trip", () => {
     );
   });
 });
+
+describe("range parsers refuse citation markers", () => {
+  // `parseRangeString` reads everything after the numbers as the unit, so a
+  // marker typed into a dose would otherwise be stored as `mg[cite:x]`.
+  it.each([
+    "10-20 mg[cite:x]",
+    "10-20 mg [cite:smith-2020]",
+    "10+ mg[citation-needed]",
+    "<20 mg[cite:x]",
+    "20 mg [cite:",
+  ])("rejects %s", (raw) => {
+    expect(parseRangeString(raw)).toBeNull();
+    expect(doseRangeTransformer.toSchema(raw)).toBeNull();
+    expect(durationStageTransformer.toSchema(raw.replace("mg", "minutes"))).toBeNull();
+  });
+
+  it("still reads the same text without the marker", () => {
+    expect(parseRangeString("10-20 mg")).toEqual({ min: 10, max: 20, unit: "mg" });
+    expect(durationStageTransformer.toSchema("30-60 minutes")).toEqual({
+      min: 30,
+      max: 60,
+      unit: "minutes",
+    });
+  });
+});
