@@ -209,6 +209,11 @@ export function DevModePageChrome({
   }, [confirmExit, onTabChange]);
   const openRecord = useCallback((record: PaletteRecord) => {
     setPaletteOpen(false);
+    // A saved view can open outside the shell (Review), like its tool does.
+    if (!record.href.startsWith("/dev")) {
+      confirmExit(() => window.location.assign(record.href), "leave");
+      return;
+    }
     confirmExit(() => {
       if (requestOpenPath) requestOpenPath(record.href);
       else window.location.assign(record.href);

@@ -10,6 +10,7 @@ import {
 
 type FeedbackRequests<Item> = {
   fetchPage: (query: FeedbackPageQuery) => Promise<FeedbackPage<Item>>;
+  fetchItem: (id: string) => Promise<Item | null>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
 };
 
@@ -23,7 +24,8 @@ const LIST_MESSAGES = {
 /**
  * HTTP client for one feedback source. Article and site feedback expose
  * `GET {basePath}/queue?status=&q=&order=&cursor=&limit=`, which filters,
- * searches, orders and pages on the server, and `POST {basePath}/{id}/status`.
+ * searches, orders and pages on the server, `GET {basePath}/{id}` for one
+ * item a task link names, and `POST {basePath}/{id}/status`.
  * A source whose queue route returns its whole list (`listUrl`) is paged in
  * the browser under the same contract.
  *
@@ -58,6 +60,33 @@ export function createFeedbackRequests<Item extends FeedbackQueueItem>(
         counts: readCounts(payload.counts),
         nextCursor: readCursor(payload.nextCursor),
       };
+    },
+    async fetchItem(id) {
+      if (options.listUrl) {
+        const payload = await requestJson(options.listUrl, { cache: "no-store" }, LIST_MESSAGES);
+        return readFeedbackList<Item>(payload).find((row) => row.id === id) ?? null;
+      }
+      let response: Response;
+      try {
+        response = await fetch(`${basePath}/${encodeURIComponent(id)}`, { cache: "no-store" });
+      } catch {
+        throw new Error("Network error while opening the feedback.");
+      }
+      // Gone, or above this session's role: the queue names both the same way.
+      if (response.status === 404 || response.status === 403) {
+        return null;
+      }
+      const payload: unknown = await response.json().catch(() => null);
+      const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
+        ? payload as Record<string, unknown>
+        : null;
+      if (!response.ok) {
+        throw new Error(typeof record?.error === "string" ? record.error : "Unable to open that feedback.");
+      }
+      if (!record || !isFeedbackRow(record.feedback)) {
+        throw new Error("The server did not return the feedback. Try again.");
+      }
+      return record.feedback as Item;
     },
     async transition(id, input) {
       const payload = await requestJson(

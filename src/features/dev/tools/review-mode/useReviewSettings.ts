@@ -99,6 +99,7 @@ export function useReviewSettings({
       flagLabels: fromUrl.flagLabels ?? stored.flagLabels,
       flagSeverity: fromUrl.flagSeverity ?? stored.flagSeverity,
       flagGroupBy: fromUrl.flagGroupBy ?? stored.flagGroupBy,
+      changedSinceReview: fromUrl.changedSinceReview ?? stored.changedSinceReview,
     });
     if (fromUrl.slug) setCurrentSlug(fromUrl.slug);
     setSettingsRestored(true);

@@ -267,7 +267,8 @@ describe("submitting one change for review", () => {
     await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Submit for review/ }));
 
     const chip = await screen.findByRole("link", { name: /Proposal #p7k2m9 pending/ });
-    expect(chip.getAttribute("href")).toBe("/dev/queue");
+    // The chip is the proposal's task link: Change Review opens on it.
+    expect(chip.getAttribute("href")).toBe("/dev/queue/p7k2m9x4q1");
     // The page is what readers see, not the proposal: the proposal lives in review.
     expect(screen.getByRole("article", { name: "Article preview" }).textContent).toBe("Public article");
     expect(screen.queryByText(ownerSummary)).toBeNull();
@@ -283,7 +284,8 @@ describe("starting a correction from reader feedback", () => {
 
   it("switches to edit mode, opens the section, and carries only the feedback id and section into the proposal", async () => {
     const user = userEvent.setup();
-    window.history.replaceState(null, "", "/fixture?feedback=fb-0001&section=summary");
+    const back = "/dev/article-feedback/fb-0001?source=article&status=unresolved&sort=oldest";
+    window.history.replaceState(null, "", `/fixture?feedback=fb-0001&section=summary&returnTo=${encodeURIComponent(back)}`);
     const setMode = vi.fn();
     const request = vi.fn()
       .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
@@ -301,6 +303,8 @@ describe("starting a correction from reader feedback", () => {
     expect(await screen.findByRole("dialog", { name: "Edit summary" })).toBeTruthy();
     expect(screen.getByText("Correcting reader feedback #b-0001")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Cancel" }));
+    // Back to feedback returns to the queue context the correction started from.
+    expect(screen.getByRole("link", { name: "Back to feedback" })).toHaveAttribute("href", back);
     await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
     await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Submit for review/ }));
 
@@ -311,6 +315,7 @@ describe("starting a correction from reader feedback", () => {
     // The proposal carries the feedback now; a reload must not attach it to another change.
     await waitFor(() => expect(window.location.search).toBe(""));
     expect(screen.queryByText(/Correcting reader feedback/)).toBeNull();
+    expect(screen.getByRole("link", { name: "Back to feedback" })).toHaveAttribute("href", back);
   });
 });
 

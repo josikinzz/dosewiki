@@ -15,6 +15,7 @@ import {
   EditorListItem,
   EditorNotice,
   EditorSection,
+  EditorSegmentedControl,
   EditorStatusPill,
   useConfirm,
   useScrollToDetail,
@@ -23,6 +24,7 @@ import {
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
+import { MISSING_TASK_TITLE } from "@/features/dev/tools/missingTask";
 import { ProposalReview } from "./ProposalReview";
 import { ReviewRecommendationsLane } from "./ReviewRecommendationsLane";
 import { viewToPath } from "@/utils/routing";
@@ -43,10 +45,17 @@ import {
   approveProposal,
   fetchProposal,
   fetchProposals,
+  isMissingRecord,
   postComment,
   rejectProposal,
   revertProposal,
 } from "./queueRequests";
+import {
+  isMyPendingProposal,
+  proposalTaskHref,
+  readQueueTaskParams,
+  type QueueView,
+} from "./queueTaskLink";
 
 type QueueTabProps = {
   /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
@@ -61,7 +70,7 @@ type DetailState =
   | { status: "idle" }
   | { status: "loading"; id: string }
   | { status: "ready"; id: string; proposal: ProposalDetail }
-  | { status: "error"; id: string; message: string };
+  | { status: "error"; id: string; message: string; missing: boolean };
 
 const TARGET_KIND_LABELS: Record<ProposalDetail["targets"][number]["kind"], string> = {
   article: "Article",
@@ -84,6 +93,11 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
   const [pending, setPending] = useState<"approve" | "reject" | "revert" | "comment" | "load" | null>(null);
   const [drafts, setDrafts] = useState<Record<string, { comment: string; rejection: string }>>({});
   const [listLoading, setListLoading] = useState(true);
+  // The address carries the saved view and a linked recommendation; read once, before first render.
+  const [fromUrl] = useState(() =>
+    typeof window === "undefined" ? { view: null, recommendation: null } : readQueueTaskParams(window.location.search),
+  );
+  const [view, setView] = useState<QueueView | null>(fromUrl.view);
   const actionInFlight = useRef(false);
   /** Older requests must never replace the currently selected detail or list. */
   const detailVersion = useRef(0);
@@ -115,7 +129,12 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
       }
     } catch (error) {
       if (version === detailVersion.current) {
-        setDetail({ status: "error", id, message: error instanceof Error ? error.message : "Unable to load that proposal." });
+        setDetail({
+          status: "error",
+          id,
+          message: error instanceof Error ? error.message : "Unable to load that proposal.",
+          missing: isMissingRecord(error),
+        });
       }
     }
   }, []);
@@ -159,7 +178,14 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
       return;
     }
     setNotice(null);
+    // The address is the task link, so a reload or a copied link opens this proposal.
+    window.history.replaceState(null, "", proposalTaskHref(id, view));
     void loadDetail(id);
+  };
+
+  const changeView = (next: QueueView | null) => {
+    setView(next);
+    window.history.replaceState(null, "", proposalTaskHref(selectedId, next));
   };
 
   /** Runs one review action against the open proposal, then refetches both panes. */
@@ -293,7 +319,9 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
     }
   };
 
-  const groups = groupProposals(proposals ?? []).filter((group) => group.rows.length > 0);
+  // My pending proposals lists exactly the rows its count counts, from the same list read.
+  const myPending = (proposals ?? []).filter(isMyPendingProposal);
+  const groups = groupProposals(view === "mine" ? myPending : proposals ?? []).filter((group) => group.rows.length > 0);
   const firstHistoryGroup = groups.find((group) => group.id === "applied" || group.id === "closed")?.id;
   const pendingCount = proposals?.filter((row) => row.status === "submitted" || row.status === "changes_requested").length ?? 0;
 
@@ -333,7 +361,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
       </EditorSection>
 
       {/* Editors recommend sign-offs from /review; approving them is admin work. */}
-      {canApprove ? <ReviewRecommendationsLane /> : null}
+      {canApprove ? <ReviewRecommendationsLane linkedSlug={fromUrl.recommendation} /> : null}
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
         <EditorSection
@@ -341,6 +369,17 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
           title="Submissions"
           description={proposals ? `${pendingCount} awaiting review or revision · ${proposals.length - pendingCount} in history` : listError ? "Not loaded" : "Loading"}
           delay={0.05}
+          actions={
+            <EditorSegmentedControl
+              label="Submissions view"
+              options={[
+                { value: "all", label: "All" },
+                { value: "mine", label: "My pending", ...(proposals ? { badge: String(myPending.length) } : {}) },
+              ]}
+              value={view ?? "all"}
+              onChange={(value) => changeView(value === "mine" ? "mine" : null)}
+            />
+          }
         >
           {proposals === null && !listError ? (
             <EditorStatusPill tone="info" loading live>
@@ -356,7 +395,10 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
               </Button>
             </EmptyStateSurface>
           ) : null}
-          {proposals && proposals.length > 0 && pendingCount === 0 ? (
+          {proposals && view === "mine" && myPending.length === 0 ? (
+            <p className="theme-text-muted text-sm">None of your proposals is waiting on a decision or a revision.</p>
+          ) : null}
+          {proposals && proposals.length > 0 && pendingCount === 0 && view !== "mine" ? (
             <p className="theme-text-muted text-sm">No submissions are awaiting review or revision.</p>
           ) : null}
           {groups.map((group) => (
@@ -400,6 +442,12 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
             <EditorStatusPill tone="info" loading live>
               Loading proposal...
             </EditorStatusPill>
+          ) : detail.status === "error" && detail.missing ? (
+            <EditorNotice notice={{
+              tone: "warning",
+              title: MISSING_TASK_TITLE,
+              message: "The link names a proposal that was removed, or one your role cannot open. Nothing else was selected in its place.",
+            }} />
           ) : detail.status === "error" ? (
             <EditorNotice notice={{
               tone: "danger",

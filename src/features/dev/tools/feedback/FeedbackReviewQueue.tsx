@@ -13,12 +13,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Icon } from "@/components/common/Icon";
 import {
   ActionNotice,
   EditorActionGroup,
   EditorField,
   EditorList,
   EditorListRow,
+  EditorNotice,
   EditorPanel,
   EditorSection,
   EditorStatusPill,
@@ -32,6 +34,7 @@ import {
 } from "@/features/dev/components";
 import { FEEDBACK_INTAKE_STATUS, INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
 import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
+import { MISSING_TASK_TITLE } from "@/features/dev/tools/missingTask";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { decisionLogOf, type DecisionLogEntry } from "@/features/intake/decisionLog";
@@ -46,6 +49,7 @@ import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import {
   QUEUE_STATUSES,
   defaultSort,
+  matchesFilter,
   totalFor,
   type FeedbackPage,
   type FeedbackPageQuery,
@@ -55,7 +59,8 @@ import {
 
 export type FeedbackQueueStatus = "new" | "reviewing" | "resolved" | "rejected" | "spam";
 
-export type FeedbackQueueFilter = FeedbackQueueStatus | "all";
+/** A status, `all`, or `unresolved` (New and Reviewing together). */
+export type FeedbackQueueFilter = FeedbackQueueStatus | "all" | "unresolved";
 
 export type FeedbackTransitionInput = { status: FeedbackQueueStatus; note?: string; outcome?: FeedbackOutcome };
 
@@ -80,6 +85,11 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
    * source, plus the per-status counts of every row the search matches.
    */
   fetchPage: (query: FeedbackPageQuery) => Promise<FeedbackPage<Item>>;
+  /**
+   * One item by id, for a task link whose item the current list does not
+   * show. Null when it no longer exists or the session cannot open it.
+   */
+  fetchItem?: (id: string) => Promise<Item | null>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>;
   /** The row's importance, for sources whose form asks for one. */
@@ -125,11 +135,12 @@ type ActionFeedback = { tone: "success" | "danger"; message: string };
 /** Pause after the last keystroke before the search goes to the server. */
 const SEARCH_DEBOUNCE_MS = 250;
 
-const QUEUE_FILTERS: FeedbackQueueFilter[] = ["all", ...QUEUE_STATUSES];
+const QUEUE_FILTERS: FeedbackQueueFilter[] = ["all", "unresolved", ...QUEUE_STATUSES];
 
 /** The shared intake words (docs/glossary.md, Intake Status); feedback stores them as is. */
 const STATUS_LABELS: Record<FeedbackQueueFilter, string> = {
   all: "All",
+  unresolved: "Unresolved",
   new: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.new],
   reviewing: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.reviewing],
   resolved: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.resolved],
@@ -221,11 +232,28 @@ function automaticFallback(filter: FeedbackQueueFilter, counts: StatusCounts): F
 
 export type FeedbackDraftGuard = (proceed: () => void) => void;
 
+/** The queue context a task link restores: the chosen order, the search, and the item. */
+export type FeedbackQueueContext = { sort: QueueSort | null; search: string; selectedId: string | null };
+
+/**
+ * Where a task link's item stands. `pending` while the queue looks for it,
+ * `found` once it is on screen, `missing` when it no longer exists or the
+ * session cannot open it, `error` when the lookup itself failed.
+ */
+type LinkState =
+  | { id: string; state: "pending" | "found" | "missing" }
+  | { id: string; state: "error"; message: string };
+
 export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   adapter,
   headerActions,
   statusFilter,
   onStatusFilterChange,
+  initialSelectedId = null,
+  initialSort = null,
+  initialSearch = "",
+  onContextChange,
+  taskLinkFor,
 }: {
   adapter: FeedbackSourceAdapter<Item>;
   /**
@@ -241,6 +269,18 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
    */
   statusFilter: FeedbackQueueFilter | null;
   onStatusFilterChange: (filter: FeedbackQueueFilter) => void;
+  /** The item a task link names; the queue opens on it, or says it is gone. */
+  initialSelectedId?: string | null;
+  initialSort?: QueueSort | null;
+  initialSearch?: string;
+  /**
+   * The order the admin chose, the search that went to the server, and the
+   * item they picked or a link named (never the automatic first row), so
+   * the tab can keep them in the address.
+   */
+  onContextChange?: (context: FeedbackQueueContext) => void;
+  /** The task link for one item, for the Review's Copy link button. */
+  taskLinkFor?: (id: string) => string;
 }) {
   const { labels } = adapter;
   // The rail count this queue feeds: glossary feedback has its own badge.
@@ -249,17 +289,22 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const [feedback, setFeedback] = useState<Item[]>([]);
   const [counts, setCounts] = useState<StatusCounts | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
   const [heldRow, setHeldRow] = useState<Item | null>(null);
+  const [link, setLink] = useState<LinkState | null>(() =>
+    initialSelectedId ? { id: initialSelectedId, state: "pending" } : null,
+  );
+  /** A linked item the current list does not show (another status, or beyond the loaded pages). */
+  const [linkedRow, setLinkedRow] = useState<Item | null>(null);
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [moreState, setMoreState] = useState<MoreState>({ status: "idle" });
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [note, setNote] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [autoFilter, setAutoFilter] = useState<FeedbackQueueFilter>("new");
-  const [sortChoice, setSortChoice] = useState<QueueSort | null>(null);
-  const [searchText, setSearchText] = useState("");
-  const [search, setSearch] = useState("");
+  const [sortChoice, setSortChoice] = useState<QueueSort | null>(initialSort);
+  const [searchText, setSearchText] = useState(initialSearch);
+  const [search, setSearch] = useState(initialSearch.trim());
   /**
    * Which list request is allowed to write state. Every load takes the next
    * number, so a response arriving after a newer load (or after unmount) is
@@ -383,7 +428,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
 
   // Rows come in the server's order; a decided row leaves a status filter at once.
   const visible = useMemo(
-    () => (activeFilter === "all" ? feedback : feedback.filter((row) => row.status === activeFilter)),
+    () => feedback.filter((row) => matchesFilter(row.status, activeFilter)),
     [feedback, activeFilter],
   );
   const total = counts ? totalFor(counts, activeFilter) : null;
@@ -397,11 +442,71 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     if (listed) {
       return listed;
     }
+    if (linkedRow && linkedRow.id === selectedId) {
+      return linkedRow;
+    }
     if (heldRow && heldRow.id === selectedId && note.trim().length > 0) {
       return heldRow;
     }
+    // A task link never falls back to another row: while its item is looked
+    // for, or once it is known to be gone, the review says so instead.
+    if (link && link.id === selectedId && link.state !== "found") {
+      return null;
+    }
     return visible[0] ?? null;
-  }, [heldRow, note, selectedId, visible]);
+  }, [heldRow, link, linkedRow, note, selectedId, visible]);
+
+  // Find a task link's item once the first list is in: on the list, or read
+  // on its own when this filter, search or page does not show it.
+  const lookupStarted = useRef(false);
+  const fetchItem = adapter.fetchItem;
+  const lookUpLinked = useCallback(
+    async (id: string) => {
+      if (!fetchItem) {
+        setLink({ id, state: "missing" });
+        return;
+      }
+      setLink({ id, state: "pending" });
+      try {
+        const row = await fetchItem(id);
+        if (row) {
+          setLinkedRow(row);
+          setLink({ id, state: "found" });
+        } else {
+          setLink({ id, state: "missing" });
+        }
+      } catch (error) {
+        setLink({ id, state: "error", message: error instanceof Error ? error.message : "Unable to open that feedback." });
+      }
+    },
+    [fetchItem],
+  );
+  useEffect(() => {
+    if (!link || link.state !== "pending" || lookupStarted.current || loadState.status !== "ready") {
+      return;
+    }
+    lookupStarted.current = true;
+    if (feedback.some((row) => row.id === link.id && matchesFilter(row.status, activeFilter))) {
+      setLink({ id: link.id, state: "found" });
+      return;
+    }
+    void lookUpLinked(link.id);
+  }, [activeFilter, feedback, link, loadState.status, lookUpLinked]);
+
+  // Report the context a task link restores. The automatic first row is not
+  // a choice, so only a picked or linked item goes out.
+  const onContextChangeRef = useRef(onContextChange);
+  useEffect(() => {
+    onContextChangeRef.current = onContextChange;
+  }, [onContextChange]);
+  // The address already holds what the queue opened on; only changes go out.
+  const reportedContext = useRef(`${initialSort}|${initialSearch.trim()}|${initialSelectedId}`);
+  useEffect(() => {
+    const key = `${sortChoice}|${search}|${selectedId}`;
+    if (key === reportedContext.current) return;
+    reportedContext.current = key;
+    onContextChangeRef.current?.({ sort: sortChoice, search, selectedId });
+  }, [sortChoice, search, selectedId]);
 
   useEffect(() => {
     if (selected) {
@@ -432,6 +537,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
     guard(() => {
       setSelectedId(id);
+      setLink(null);
       setActionFeedback(null);
       setNote("");
       scrollReviewIntoViewOnSmallScreens(reviewSectionId);
@@ -444,7 +550,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       onStatusFilterChange(next);
       setChecked(new Set());
     };
-    if (!selected || next === "all" || selected.status === next) {
+    if (!selected || matchesFilter(selected.status, next)) {
       apply();
       return;
     }
@@ -458,6 +564,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   /** Put a written row in the list and move its count from the old status to the new one. */
   function applyTransition(updated: Item, previousStatus: FeedbackQueueStatus) {
     setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
+    setLinkedRow((row) => (row && row.id === updated.id ? updated : row));
     setCounts((current) =>
       current && updated.status !== previousStatus
         ? { ...current, [previousStatus]: current[previousStatus] - 1, [updated.status]: current[updated.status] + 1 }
@@ -501,7 +608,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           ),
         });
         setNote("");
-        if (activeFilter !== "all" && updated.status !== activeFilter) {
+        if (!matchesFilter(updated.status, activeFilter)) {
           // The decided row leaves this filter: hand the review to its neighbour, pinned.
           const index = visible.findIndex((row) => row.id === decidedId);
           const next = visible[index + 1] ?? visible[index - 1] ?? null;
@@ -549,6 +656,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   /** Put a row a correction link left back in the list; its status did not move. */
   function replaceRow(updated: Item) {
     setFeedback((rows) => rows.map((row) => (row.id === updated.id ? { ...row, ...updated } : row)));
+    setLinkedRow((row) => (row && row.id === updated.id ? { ...row, ...updated } : row));
   }
 
   const undoTo = lastDecision ? undoTarget(adapter.transitions, lastDecision) : null;
@@ -571,7 +679,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         message: `Undone. ${labels.transitioned(updated, STATUS_LABELS[updated.status].toLowerCase())}`,
       });
       // Bring the row back under review when it is listed and no note would be dropped.
-      if (note.trim().length === 0 && (activeFilter === "all" || updated.status === activeFilter)) {
+      if (note.trim().length === 0 && matchesFilter(updated.status, activeFilter)) {
         setSelectedId(updated.id);
       }
       invalidateDevRailBadge(railBadge);
@@ -582,6 +690,26 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         message: error instanceof Error ? error.message : "Unable to undo that decision.",
       });
       setPendingId(null);
+    }
+  }
+
+  /** The task link on screen: one the review is still looking for, or cannot show. */
+  const openLink = link && link.id === selectedId && !selected ? link : null;
+
+  /** Drop a link that cannot open; the review goes to the queue's first row. */
+  function leaveLink() {
+    setLink(null);
+    setSelectedId(null);
+  }
+
+  async function copyTaskLink(id: string) {
+    if (!taskLinkFor) return;
+    const href = new URL(taskLinkFor(id), window.location.origin).toString();
+    try {
+      await navigator.clipboard.writeText(href);
+      setActionFeedback({ tone: "success", message: "Link copied. It opens this item with the current filter, order and search." });
+    } catch {
+      setActionFeedback({ tone: "danger", message: `Copy did not work in this browser. The link is ${href}` });
     }
   }
 
@@ -848,11 +976,51 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           description={
             selected
               ? `${labels.itemTitle(selected)} · received ${formatFeedbackDate(selected.created_at) ?? "unknown date"}`
-              : "No feedback selected"
+              : openLink
+                ? "Linked feedback"
+                : "No feedback selected"
           }
           delay={0.1}
+          actions={
+            selected && taskLinkFor ? (
+              <Button type="button" variant="ghost" size="sm" onClick={() => void copyTaskLink(selected.id)}>
+                <Icon icon="lucide:link" size={14} />
+                Copy link
+              </Button>
+            ) : null
+          }
         >
-          {selected ? (
+          {openLink?.state === "missing" ? (
+            <EditorNotice
+              notice={{
+                tone: "warning",
+                title: MISSING_TASK_TITLE,
+                message: "The link names a feedback item that was removed, or one your role cannot open. Nothing else was selected in its place.",
+                actions: (
+                  <Button type="button" variant="outline" size="sm" onClick={leaveLink}>
+                    Show the queue
+                  </Button>
+                ),
+              }}
+            />
+          ) : openLink?.state === "error" ? (
+            <EditorNotice
+              notice={{
+                tone: "danger",
+                title: "The linked feedback did not load",
+                message: openLink.message,
+                actions: (
+                  <Button type="button" variant="outline" size="sm" onClick={() => void lookUpLinked(openLink.id)}>
+                    Try again
+                  </Button>
+                ),
+              }}
+            />
+          ) : openLink?.state === "pending" ? (
+            <EditorStatusPill tone="info" loading live>
+              Opening the linked feedback...
+            </EditorStatusPill>
+          ) : selected ? (
             <FeedbackDetail
               row={selected}
               header={adapter.renderDetail(selected)}

@@ -95,7 +95,7 @@ const queuePageRef = makeFunctionReference<
   "query",
   {
     apiKey: string;
-    status?: SiteFeedbackStatus;
+    status?: SiteFeedbackStatus | "unresolved";
     search?: string;
     order: FeedbackQueueOrder;
     cursor?: string;
@@ -103,6 +103,12 @@ const queuePageRef = makeFunctionReference<
   },
   FeedbackQueuePageResult<SiteFeedbackQueueItem>
 >("siteFeedback:queuePage");
+
+const getFeedbackRef = makeFunctionReference<
+  "query",
+  { apiKey: string; id: string },
+  SiteFeedbackQueueItem | null
+>("siteFeedback:get");
 
 const countFeedbackRef = makeFunctionReference<
   "query",
@@ -185,6 +191,14 @@ export class DataSiteFeedbackStore {
       ...(filters.cursor ? { cursor: filters.cursor } : {}),
       limit: clampLimit(filters.limit),
     }) as FeedbackQueuePageResult<SiteFeedbackQueueItem>;
+  }
+
+  /** One item by its public id, or null when no row has it. */
+  async get(id: string): Promise<SiteFeedbackQueueItem | null> {
+    return await this.options.client.query(getFeedbackRef, {
+      apiKey: this.options.apiKey,
+      id,
+    }) as SiteFeedbackQueueItem | null;
   }
 
   /** Total rows in the given statuses, computed on the server: no list travels. */

@@ -81,6 +81,8 @@ export type DevModePageControllerState = {
   tripReportsInitialId?: string;
   /** `/dev/queue/<proposal id>`: the proposal Change Review opens on. */
   queueInitialId?: string;
+  /** `/dev/article-feedback/<feedback id>?source=`: the feedback item the Feedback tab opens on. */
+  feedbackInitialId?: string;
   /** `/dev/playlists/<key>`: the playlist the tab opens on. */
   playlistsInitialKey?: string;
   /** `/dev/people/<email or profile key>` (and `/dev/members/<email>`): the person People opens on. */

@@ -38,13 +38,23 @@ export const QUEUE_STATUSES: FeedbackQueueStatus[] = ["new", "reviewing", "resol
 
 const IMPORTANCE_RANK: Record<FeedbackImportance, number> = { critical: 0, high: 1, normal: 2, low: 3 };
 
+/** The statuses the `unresolved` filter lists: every item still waiting on a decision. */
+export const UNRESOLVED_STATUSES: readonly FeedbackQueueStatus[] = ["new", "reviewing"];
+
 /** Unresolved rows open oldest first so nothing waits forever; resolved history opens newest first. */
 export function defaultSort(filter: FeedbackQueueFilter): QueueSort {
-  return filter === "new" || filter === "reviewing" ? "oldest" : "newest";
+  return filter === "new" || filter === "reviewing" || filter === "unresolved" ? "oldest" : "newest";
+}
+
+/** Whether a row in `status` belongs in the list `filter` shows. */
+export function matchesFilter(status: FeedbackQueueStatus, filter: FeedbackQueueFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "unresolved") return UNRESOLVED_STATUSES.includes(status);
+  return status === filter;
 }
 
 export function totalFor(counts: StatusCounts, filter: FeedbackQueueFilter): number {
-  return filter === "all" ? QUEUE_STATUSES.reduce((sum, status) => sum + counts[status], 0) : counts[filter];
+  return QUEUE_STATUSES.filter((status) => matchesFilter(status, filter)).reduce((sum, status) => sum + counts[status], 0);
 }
 
 export function emptyCounts(): StatusCounts {
@@ -101,7 +111,7 @@ export function pageLocally<Item extends FeedbackQueueItem>(
       )
     : [...all];
   const listed = sortRows(
-    query.status === "all" ? matching : matching.filter((row) => row.status === query.status),
+    matching.filter((row) => matchesFilter(row.status, query.status)),
     query.sort,
     importance,
   );

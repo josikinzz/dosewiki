@@ -12,6 +12,7 @@ import {
   isCompletedCorrection,
   linkedChangesOf,
   readCorrectionParams,
+  readCorrectionReturn,
   readFeedbackRef,
   resolveCorrections,
 } from "./feedbackCorrection";
@@ -99,6 +100,17 @@ describe("the feedback reference", () => {
     expect(href).toBe("/lsd?feedback=fb-0001&section=dosage");
     expect(readCorrectionParams(href.slice(href.indexOf("?")))).toEqual({ id: "fb-0001", section: "dosage" });
     expect(readCorrectionParams("?other=1")).toBeNull();
+  });
+
+  it("carries the feedback task link back, and only a /dev path on this site", () => {
+    const back = "/dev/article-feedback/fb-0001?source=article&status=unresolved";
+    const href = correctionHref("lsd", "fb-0001", null, back);
+    expect(readCorrectionReturn(href.slice(href.indexOf("?")))).toBe(back);
+    expect(readCorrectionParams(href.slice(href.indexOf("?")))).toEqual({ id: "fb-0001" });
+    for (const hostile of ["https://evil.example/dev/x", "//evil.example/dev/", "/\\evil.example", "/lsd", "javascript:alert(1)"]) {
+      expect(readCorrectionReturn(`?returnTo=${encodeURIComponent(hostile)}`)).toBeNull();
+      expect(correctionHref("lsd", "fb-0001", null, hostile)).toBe("/lsd?feedback=fb-0001");
+    }
   });
 
   it("keeps only the id and section", () => {

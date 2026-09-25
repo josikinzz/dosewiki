@@ -73,6 +73,19 @@ async function allPages(options: { status?: string; search?: string; order: Feed
 }
 
 describe("feedback queue paging over isolated Postgres", () => {
+  it("lists New and Reviewing together, oldest first, for the unresolved filter", async () => {
+    await seedArticle({ id: "reviewing-old", status: "reviewing", day: 0 });
+    await seedArticle({ id: "resolved-mid", status: "resolved", day: 1 });
+    await seedArticle({ id: "new-late", status: "new", day: 2 });
+    await seedArticle({ id: "spam-late", status: "spam", day: 3 });
+
+    const page = await readFeedbackQueuePage(client, "articleFeedback", { status: "unresolved", order: "oldest", limit: 100 });
+    expect(page.rows.map((row) => row.id)).toEqual(["reviewing-old", "new-late"]);
+    const counts = await readFeedbackQueueCounts(client, "articleFeedback", undefined);
+    expect(counts.new + counts.reviewing).toBe(page.rows.length);
+    expect(await allPages({ status: "unresolved", order: "oldest", limit: 1 })).toEqual(["reviewing-old", "new-late"]);
+  });
+
   it("still reaches one old unresolved report under 250 newer resolved ones", async () => {
     await seedArticle({ id: "old-unresolved", status: "new", day: 0 });
     for (let index = 1; index <= 250; index += 1) {

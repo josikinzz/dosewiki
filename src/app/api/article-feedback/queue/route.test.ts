@@ -52,4 +52,18 @@ describe("article feedback queue route", () => {
     expect(refused.status).toBe(400);
     await expect(refused.json()).resolves.toEqual({ error: "Unknown article feedback status: open" });
   });
+
+  it("lists New and Reviewing together for the unresolved filter, with a total from the same answer", async () => {
+    mocks.page.mockResolvedValueOnce({
+      feedback: [{ id: "reviewing-old", status: "reviewing" }, { id: "new-late", status: "new" }],
+      nextCursor: null,
+      counts: { new: 1, reviewing: 1, resolved: 250, rejected: 0, spam: 0 },
+    });
+
+    const response = await GET(new Request("https://dose.wiki/api/article-feedback/queue?status=unresolved&order=oldest"));
+
+    expect(response.status).toBe(200);
+    expect(mocks.page).toHaveBeenCalledWith({ status: "unresolved", order: "oldest", limit: 100 });
+    await expect(response.json()).resolves.toMatchObject({ total: 2 });
+  });
 });

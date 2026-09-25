@@ -260,11 +260,34 @@ function correctionRevision(row: RevisionFacts): CorrectionRevision {
 export const CORRECTION_FEEDBACK_PARAM = "feedback";
 export const CORRECTION_SECTION_PARAM = "section";
 
-/** The article page with the correction context the in-page editor reads. */
-export function correctionHref(slug: string, feedbackId: string, section?: string | null): string {
+/** The feedback task link the in-page editor offers to return to. */
+export const CORRECTION_RETURN_PARAM = "returnTo";
+
+/**
+ * Whether a return address is a /dev task link on this site: a plain App
+ * Path under /dev, never another origin, a protocol-relative URL, or a
+ * backslash trick a browser would read as one.
+ */
+export function isEditorReturnPath(value: string | null | undefined): value is string {
+  return typeof value === "string" && value.startsWith("/dev/") && !value.startsWith("//") && !/[\\\s]/.test(value);
+}
+
+/**
+ * The article page with the correction context the in-page editor reads, and
+ * the task link that opened it (the feedback queue with its filters and the
+ * item), so the editor can go back to the same place.
+ */
+export function correctionHref(slug: string, feedbackId: string, section?: string | null, returnTo?: string | null): string {
   const params = new URLSearchParams({ [CORRECTION_FEEDBACK_PARAM]: feedbackId });
   if (section) params.set(CORRECTION_SECTION_PARAM, section);
+  if (isEditorReturnPath(returnTo)) params.set(CORRECTION_RETURN_PARAM, returnTo);
   return `/${encodeURIComponent(slug)}?${params}`;
+}
+
+/** The task link a correction page was opened from, or null when it names none this site trusts. */
+export function readCorrectionReturn(search: string): string | null {
+  const value = new URLSearchParams(search).get(CORRECTION_RETURN_PARAM);
+  return isEditorReturnPath(value) ? value : null;
 }
 
 /** The correction context in a page's query string, or null when it names none. */
