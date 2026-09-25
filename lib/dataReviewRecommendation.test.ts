@@ -13,7 +13,6 @@ import {
   recommendEditorialReviewHandler,
   setEditorialReviewHandler,
 } from "../server/lib/substanceReviewHandlers";
-import { REVIEW_INITIAL_REVISION } from "../src/schema/substance/editorial";
 import { SERVER_KEY, admin, createCtx, editor, proposedLsd, storedLsd, type Row } from "./changeProposalReviewFixture";
 
 const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com" };
@@ -64,17 +63,19 @@ describe("review recommendations", () => {
 
   it("refuses a recommendation for a revision the article has moved past", async () => {
     const { ctx } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
+    const read = await publishedArticleRevision(ctx, "lsd");
     await publish(ctx, "Published summary", "change-first-0001");
     await expect(
-      recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", revision: REVIEW_INITIAL_REVISION, note: "" }),
+      recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", revision: read, note: "" }),
     ).rejects.toMatchObject({ data: { code: "REVIEW_REVISION_OUTDATED" } });
   });
 
   it("never lets an editor approve a recommendation", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
+    const revision = await publishedArticleRevision(ctx, "lsd");
     await expect(
-      approveReviewRecommendationsHandler(ctx, { ...asEditor, items: [{ slug: "lsd", revision: REVIEW_INITIAL_REVISION }] }),
+      approveReviewRecommendationsHandler(ctx, { ...asEditor, items: [{ slug: "lsd", revision }] }),
     ).rejects.toThrow("Admin access required");
     expect(reviewOf(rowsOf).status).not.toBe("completed");
   });
@@ -84,21 +85,23 @@ describe("review recommendations", () => {
       memberships: [admin, editor],
       substanceIndex: [storedLsd, article("s2", "dmt", "DMT"), article("s3", "mdma", "MDMA")],
     });
+    const revisions = new Map<string, string>();
     for (const slug of ["lsd", "dmt", "mdma"]) {
       await recommendEditorialReviewHandler(ctx, { ...asEditor, slug, note: "" });
+      revisions.set(slug, await publishedArticleRevision(ctx, slug));
     }
 
     const outcome = await approveReviewRecommendationsHandler(ctx, {
       ...asAdmin,
-      items: ["lsd", "dmt", "mdma"].map((slug) => ({ slug, revision: REVIEW_INITIAL_REVISION })),
+      items: ["lsd", "dmt", "mdma"].map((slug) => ({ slug, revision: revisions.get(slug)! })),
     });
 
     expect(outcome).toEqual({ approved: ["lsd", "dmt", "mdma"], stale: [], missing: [] });
-    for (const id of ["s1", "s2", "s3"]) {
+    for (const [id, slug] of [["s1", "lsd"], ["s2", "dmt"], ["s3", "mdma"]]) {
       expect(reviewOf(rowsOf, id)).toMatchObject({
         status: "completed",
         reviewed_by: "admin@example.com",
-        reviewed_revision: REVIEW_INITIAL_REVISION,
+        reviewed_revision: revisions.get(slug),
       });
       expect(reviewOf(rowsOf, id)).not.toHaveProperty("recommendation");
     }
@@ -107,11 +110,12 @@ describe("review recommendations", () => {
   it("reports a recommendation made stale by a later publish instead of approving it", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
+    const recommended = await publishedArticleRevision(ctx, "lsd");
     await publish(ctx, "Edited after the recommendation", "change-after-0001");
 
     const outcome = await approveReviewRecommendationsHandler(ctx, {
       ...asAdmin,
-      items: [{ slug: "lsd", revision: REVIEW_INITIAL_REVISION }],
+      items: [{ slug: "lsd", revision: recommended }],
     });
 
     expect(outcome).toEqual({ approved: [], stale: ["lsd"], missing: [] });
@@ -133,7 +137,9 @@ describe("review recommendations", () => {
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "dmt", note: "Checked" });
     await publish(ctx, "Edited after the recommendation", "change-after-0001");
-    const lsdRevision = await publishedArticleRevision(ctx, "lsd");
+    const published = await Promise.all(
+      ["lsd", "dmt"].map(async (slug) => ({ slug, revision: await publishedArticleRevision(ctx, slug) })),
+    );
 
     // The projection reader's two narrow reads, served from the fixture rows.
     const rows = async () => (await Promise.all(["lsd", "dmt"].map((slug) => loadArticle(ctx, slug)))).map((row) => ({
@@ -145,7 +151,7 @@ describe("review recommendations", () => {
     }));
     const db = Object.assign(Object.create(ctx.db), {
       getReviewRecommendationRows: rows,
-      getPublishedArticleRevisions: async () => [{ slug: "lsd", revision: lsdRevision }],
+      getPublishedArticleRevisions: async () => published,
     });
 
     const listed = await listReviewRecommendationsHandler({ ...ctx, db } as never, asAdmin);

@@ -12,7 +12,6 @@ import {
 import type { SubstanceArticle } from "@/schema";
 import {
   isRecommendationStale,
-  REVIEW_INITIAL_REVISION,
   type ReviewRecommendation,
   type ReviewState,
 } from "@/schema/substance/editorial";
@@ -281,15 +280,15 @@ export function useReviewStatusWrites({
   const toggleReviewed = useCallback(() => {
     if (!current || isTicking || !canSignOff || !currentHydrated) return;
     const signing = current.status !== "completed";
+    // Without a revision on screen the route records the current one.
+    const onScreen = publishedRevisions?.[current.slug];
     void setReviewStatus(
       current.slug,
       current.name,
       signing ? "completed" : "needed",
       articleStatus(current.slug),
       seenStatus(current),
-      signing && publishedRevisions
-        ? { revision: publishedRevisions[current.slug] ?? REVIEW_INITIAL_REVISION }
-        : undefined,
+      signing && onScreen ? { revision: onScreen } : undefined,
     );
   }, [articleStatus, canSignOff, current, currentHydrated, isTicking, publishedRevisions, setReviewStatus]);
 
@@ -309,12 +308,11 @@ export function useReviewStatusWrites({
     const record = typedArticles.find((candidate) => resolveEditorArticleSlug(candidate) === current.slug);
     const recommendation = recommendations[current.slug] ?? record?.editorial_review?.recommendation;
     if (!recommendation) return null;
+    const published = publishedRevisions?.[current.slug];
     return {
       recommendation,
       // Before the revisions load nothing reads as stale, as with sign-offs.
-      stale: publishedRevisions
-        ? isRecommendationStale(recommendation, publishedRevisions[current.slug] ?? REVIEW_INITIAL_REVISION)
-        : false,
+      stale: published ? isRecommendationStale(recommendation, published) : false,
     };
   })();
 
@@ -335,7 +333,7 @@ export function useReviewStatusWrites({
           action: "recommend",
           slug,
           note: note.trim(),
-          ...(publishedRevisions ? { revision: publishedRevisions[slug] ?? REVIEW_INITIAL_REVISION } : {}),
+          ...(publishedRevisions?.[slug] ? { revision: publishedRevisions[slug] } : {}),
         }),
       });
       const payload = (await response.json().catch(() => null)) as {

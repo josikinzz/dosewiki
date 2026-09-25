@@ -3,7 +3,7 @@ import { setEditorialReviewHandler } from "../server/lib/substanceReviewHandlers
 
 type Role = "admin" | "editor" | "contributor" | "viewer";
 
-const patch = vi.fn(async () => undefined);
+const patch = vi.fn(async (_id: string, _value: unknown) => undefined);
 
 /**
  * Mirrors the ctx shape in `dataSubstanceIndexEditorReadAuth.test.ts`, plus
@@ -14,6 +14,8 @@ function createCtx(memberships: Record<string, Role>, article: Record<string, un
     auth: { getUserIdentity: vi.fn(async () => null) },
     db: {
       patch,
+      // A sign-off first journals the stored article when nothing has yet.
+      insert: vi.fn(async (table: string) => `${table}:1`),
       query: vi.fn((table: string) => ({
         withIndex: (
           _indexName: string,
@@ -27,7 +29,10 @@ function createCtx(memberships: Record<string, Role>, article: Record<string, un
             },
           });
           if (table === "substanceIndex") {
-            return { first: vi.fn(async () => article) };
+            return { first: vi.fn(async () => article), take: vi.fn(async () => (article ? [article] : [])) };
+          }
+          if (table === "moleculeOverrides") {
+            return { first: vi.fn(async () => null) };
           }
           if (table === "articleRevisions") {
             return { order: () => ({ first: vi.fn(async () => null), take: vi.fn(async () => []) }) };
@@ -87,7 +92,7 @@ describe("setEditorialReviewHandler completed floor", () => {
     await expect(tick("admin@example.com", "completed")).resolves.toMatchObject({
       editorial_review: { status: "completed", reviewed_by: "admin@example.com" },
     });
-    expect(patch).toHaveBeenCalledTimes(1);
+    expect(patch.mock.calls.filter(([id]) => id === "article-id")).toHaveLength(1);
   });
 
   it("refuses a contributor at every status", async () => {

@@ -1,7 +1,6 @@
 import type { SubstanceArticle } from "@/schema";
 import {
   deriveReviewState,
-  REVIEW_INITIAL_REVISION,
   type ReviewFlagSeverity,
   type ReviewState,
 } from "@/schema/substance/editorial";
@@ -146,8 +145,9 @@ export function resolveOverriddenEditorialReview(
 
 /**
  * Each article's current published revision, keyed by slug, as
- * `/api/dev/review-revisions` reports it. A slug with no recorded revision is
- * absent and reads as `REVIEW_INITIAL_REVISION`.
+ * `/api/dev/review-revisions` reports it. It is derived from the stored
+ * content, so every article is present; a slug missing from it (created after
+ * the read) is unknown and never reads as stale.
  */
 export type PublishedRevisions = Readonly<Record<string, string>>;
 
@@ -180,15 +180,13 @@ export function buildReviewQueue(
       );
       const review = resolveOverriddenEditorialReview(article, overrides[slug]) ?? article.editorial_review;
       const signed = status === "completed" ? review?.reviewed_revision : undefined;
+      const published = publishedRevisions?.[slug];
       return [
         {
           slug,
           name: article.title || article.identification?.common_name || slug,
-          status: publishedRevisions && signed
-            ? deriveReviewState(
-                { status, reviewed_revision: signed },
-                publishedRevisions[slug] ?? REVIEW_INITIAL_REVISION,
-              )
+          status: published && signed
+            ? deriveReviewState({ status, reviewed_revision: signed }, published)
             : status,
           ...(signed ? { reviewedRevision: signed } : {}),
           ...(signed && review?.reviewed_by ? { reviewedBy: review.reviewed_by } : {}),

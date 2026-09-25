@@ -249,11 +249,11 @@ One dated review of a chosen article set. It replaces agent-sourced flags for co
 _Avoid_: resolved flag state, dismissed-flag audit trail, incremental agent flag edits
 
 **Reviewed**:
-Human sign-off recorded as editorial status `completed` and displayed publicly as `expert_reviewed`. Only a human editor in the review workbench may set it; review agents never do. The sign-off records `reviewed_by` and the published revision it covered as `reviewed_revision` (`initial` when the article had no recorded revision yet).
+Human sign-off recorded as editorial status `completed` and displayed publicly as `expert_reviewed`. Only a human editor in the review workbench may set it; review agents never do. The sign-off records `reviewed_by` and the published revision it covered as `reviewed_revision`. That revision is derived from the stored article content and its molecule chemistry, so every write path (publish, batch save, inline and IUPAC writes, generated sections, reference provenance, molecule edits) moves it; review records, flags and notes never do. When a write bypassed the revision journal, signing journals the stored article privately first so the signed content stays readable. Older sign-offs holding a journal hash or `initial` read as Changed Since Review.
 _Avoid_: approved, agent-approved, auto-complete
 
 **Changed Since Review**:
-The derived `stale` review status: a sign-off whose `reviewed_revision` is no longer the article's latest published revision. It is never stored, counts as not reviewed in /review, and opens with a diff of the fields changed since the signed revision. Public pages still show the article as reviewed.
+The derived `stale` review status: a sign-off whose `reviewed_revision` is no longer the article's current published revision. It is never stored, counts as not reviewed in /review, and opens with a diff of the fields changed since the signed revision. Public pages still show the article as reviewed.
 _Avoid_: outdated review, expired review, unreviewed (for a stale sign-off)
 
 **Recommended Reviewed**:

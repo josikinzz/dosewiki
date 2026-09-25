@@ -22,6 +22,7 @@ import {
 import {
   articleAtRevision,
   isArticleRevision,
+  journalStoredArticle,
   loadArticle,
   publishedArticleRevision,
 } from "./articleRevisionJournal";
@@ -134,8 +135,10 @@ export async function publishReviewedSectionHandler(
  * `expert_reviewed` signal.
  *
  * A sign-off records the published revision it covered. `revision` is the one
- * the reviewer read; it must name a published state of this article, and when
- * omitted the current one is recorded. A later publish then derives `stale`.
+ * the reviewer read; it must name a state of this article, and when omitted
+ * the current one is recorded. Signing the current revision first journals
+ * the stored article if a write bypassed the journal, so the changes since
+ * the sign-off can be read later. Any later content write derives `stale`.
  */
 export async function setEditorialReviewHandler(
   ctx: MutationCtx,
@@ -163,6 +166,8 @@ export async function setEditorialReviewHandler(
         });
       }
       reviewedRevision = args.revision;
+    } else {
+      await journalStoredArticle(ctx, args.slug, actor);
     }
   }
   const editorialReview: Record<string, unknown> = {
@@ -241,6 +246,7 @@ export async function recommendEditorialReviewHandler(
       message: "This article is already reviewed at its current version.",
     });
   }
+  await journalStoredArticle(ctx, args.slug, actor);
   const recommendation: StoredRecommendation = {
     revision: published,
     recommended_by: actor.email,
@@ -474,8 +480,8 @@ type ReviewRevisionDatabase = QueryCtx["db"] & {
 
 /**
  * Every article's current published revision, keyed by slug, so /review can
- * derive `stale` for each sign-off. Articles with no recorded revision are
- * absent and read as `REVIEW_INITIAL_REVISION`.
+ * derive `stale` for each sign-off. Derived from stored content, so every
+ * article is present.
  */
 export async function getPublishedRevisionsHandler(
   ctx: QueryCtx,
