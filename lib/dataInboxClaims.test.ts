@@ -13,7 +13,7 @@ import {
   recommendEditorialReviewHandler,
 } from "../server/lib/substanceReviewHandlers";
 import { INBOX_CLAIM_EXPIRY_MS } from "../server/lib/inboxClaimSources";
-import { REVIEW_INITIAL_REVISION } from "../src/schema/substance/editorial";
+import { publishedArticleRevision } from "../server/lib/articleRevisionJournal";
 import { SERVER_KEY, admin, createCtx, editor, proposalRow, storedLsd, type Row } from "./changeProposalReviewFixture";
 
 const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com" };
@@ -157,11 +157,12 @@ describe("deciding an item ends its claim", () => {
   it("clears a review recommendation's claim when it is approved", async () => {
     const { ctx } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
+    const revision = await publishedArticleRevision(ctx, "lsd");
     await claimHandler(ctx, { ...asAdmin, source: "review-recommendations", item_id: "lsd" });
 
     const outcome = await approveReviewRecommendationsHandler(ctx, {
       ...asAdmin,
-      items: [{ slug: "lsd", revision: REVIEW_INITIAL_REVISION }],
+      items: [{ slug: "lsd", revision }],
     });
 
     expect(outcome.approved).toEqual(["lsd"]);
