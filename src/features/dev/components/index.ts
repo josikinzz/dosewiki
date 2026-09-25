@@ -106,6 +106,7 @@ export {
 export {
   EditorList,
 } from "./EditorList";
+export type { EditorListMultiSelect } from "./EditorList";
 
 export type {
   SearchablePickerOption,
@@ -128,3 +129,10 @@ export {
   useUnsavedWorkRegistry,
 } from "./unsavedWork";
 export type { UnsavedWorkEntry, UnsavedWorkExit, UnsavedWorkExitScope, UnsavedWorkRegistry } from "./unsavedWork";
+
+export {
+  isTextEntryTarget,
+  TriageShortcutHint,
+  useTriageShortcuts,
+} from "./useTriageShortcuts";
+export type { TriageAction, TriageShortcutHandlers } from "./useTriageShortcuts";

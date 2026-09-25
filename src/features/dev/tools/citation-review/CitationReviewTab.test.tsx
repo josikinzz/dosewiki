@@ -134,19 +134,19 @@ describe("CitationReviewTab", () => {
 
     await screen.findByText("Ready claim");
     const filter = screen.getByRole("group", { name: "Queue filter" });
-    await user.click(within(filter).getByRole("button", { name: "Approved" }));
+    await user.click(within(filter).getByRole("button", { name: "Accepted" }));
 
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith("/api/citation-evidence/queue?status=approved", undefined),
     );
     expect(await screen.findByText("No evidence rows match this filter")).toBeInTheDocument();
     expect(
-      screen.getByText(/No articles have evidence rows matching the approved filter/),
+      screen.getByText(/No articles have evidence rows matching the accepted filter/),
     ).toBeInTheDocument();
 
     // The filter control survives the empty state so the reviewer can switch back.
     const emptyFilter = screen.getByRole("group", { name: "Queue filter" });
-    expect(within(emptyFilter).getByRole("button", { name: "Approved" })).toHaveAttribute(
+    expect(within(emptyFilter).getByRole("button", { name: "Accepted" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -392,7 +392,7 @@ describe("CitationReviewTab decisions refresh in place", () => {
     expect(undo).toBeInTheDocument();
     expect(screen.queryByText("Loading review queue")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Detail (optional)")).toHaveValue("Half-typed reason");
-    expect(within(evidenceRow("First claim")).getByText("Approved")).toBeInTheDocument();
+    expect(within(evidenceRow("First claim")).getByText("Accepted")).toBeInTheDocument();
   });
 
   it("shows only the last clicked article's rows when an earlier request resolves last", async () => {
@@ -468,6 +468,60 @@ describe("CitationReviewTab decisions refresh in place", () => {
     await user.click(within(dialog).getByRole("button", { name: "Approve 2 rows" }));
     await waitFor(() =>
       expect(posts).toEqual([{ slug: "lsd", claimKeys: ["summary:first", "summary:second"], status: "approved" }]),
+    );
+  });
+
+  it("moves between articles with j and k, approves the open row with a, and undoes with u", async () => {
+    const user = userEvent.setup();
+    const posts: StatusPost[] = [];
+    const mdmaSummary = { ...openSummary, slug: "mdma", articleId: 2 };
+    stubServer({
+      queue: [openSummary, mdmaSummary],
+      rowsBySlug: { lsd: twoReadyRows, mdma: [createRow({ claimKey: "summary:mdma", claimText: "MDMA claim" })] },
+      posts,
+    });
+    render(<CitationReviewTab />);
+
+    await screen.findByText("First claim");
+    await user.keyboard("j");
+    expect(await screen.findByText("MDMA claim")).toBeInTheDocument();
+    expect(within(screen.getByRole("listbox", { name: "Citation queue" })).getByRole("option", { selected: true }))
+      .toHaveTextContent("mdma");
+    await user.keyboard("k");
+    expect(await screen.findByText("First claim")).toBeInTheDocument();
+
+    // With no row open, a explains instead of writing.
+    await user.keyboard("a");
+    expect(await screen.findByText(/Open an evidence row first/)).toBeInTheDocument();
+    expect(posts).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: /First claim/ }));
+    await user.keyboard("a");
+    await waitFor(() => expect(posts).toEqual([{ slug: "lsd", claimKeys: ["summary:first"], status: "approved" }]));
+
+    await within(evidenceRow("First claim")).findByRole("button", { name: "Undo" });
+    await user.keyboard("u");
+    await waitFor(() => expect(posts).toHaveLength(2));
+    expect(posts[1]).toEqual({ slug: "lsd", claimKeys: ["summary:first"], status: "supported" });
+  });
+
+  it("opens the open row's reject form with r and puts the cursor on the reason", async () => {
+    const user = userEvent.setup();
+    const posts: StatusPost[] = [];
+    stubServer({ queue: [openSummary], rowsBySlug: { lsd: twoReadyRows }, posts });
+    render(<CitationReviewTab />);
+
+    await user.click(await screen.findByRole("button", { name: /Second claim/ }));
+    await user.keyboard("r");
+    const reason = await within(evidenceRow("Second claim")).findByLabelText("Why is this row rejected?");
+    expect(reason).toHaveFocus();
+    expect(posts).toHaveLength(0);
+
+    await user.click(within(evidenceRow("Second claim")).getByRole("button", { name: "Reject row" }));
+    await waitFor(() =>
+      expect(posts).toEqual([
+        expect.objectContaining({ slug: "lsd", claimKeys: ["summary:second"], status: "rejected" }),
+      ]),
     );
   });
 

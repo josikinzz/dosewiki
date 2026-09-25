@@ -8,6 +8,8 @@ import type {
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
 import { useDirtyGuard, useUnsavedWork } from "@/features/dev/components";
+import { INTAKE_STATUS_LABEL, TRIP_REPORT_INTAKE_STATUS } from "@/features/intake/intakeStatus";
+import { canTransitionTripReportSubmission } from "@/features/reports/submissions/tripReportSubmissionStatus";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
@@ -62,6 +64,17 @@ export function useTripReportPortalController() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<DataTripReportImportPayload | null>(null);
   const [submissionDetail, setSubmissionDetail] = useState<TripReportSubmissionRow | null>(null);
+  /** The last single status change, so `u` and the Undo button can take it back. */
+  const [lastDecision, setLastDecision] = useState<{
+    id: string;
+    title: string;
+    from: TripReportSubmissionStatus;
+    to: TripReportSubmissionStatus;
+  } | null>(null);
+  /** Submissions ticked for a bulk decision; separate from the open row. */
+  const [checkedIds, setCheckedIds] = useState<ReadonlySet<string>>(() => new Set());
+  /** The bulk bar's own notice, shown above the list rather than in one review. */
+  const [bulkFeedback, setBulkFeedback] = useState<Feedback | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const openReportRef = useRef<string | null>(null);
@@ -415,39 +428,104 @@ export function useTripReportPortalController() {
       return;
     }
 
+    const previousStatus = selectedSubmission.status;
     setBusy(true);
     setFeedback(null);
     try {
-      const response = await fetch(`/api/trip-report-submissions/${selectedSubmission.id}/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, ...(notes !== undefined ? { notes } : {}) }),
-      });
-
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setFeedback({
-          tone: "danger",
-          message: typeof payload.error === "string" ? payload.error : "Unable to update submission.",
-        });
+      const result = await postSubmissionStatus(selectedSubmission.id, status, notes);
+      if (!result.ok) {
+        setFeedback({ tone: "danger", message: result.message });
         return;
       }
-
-      const updated = payload.submission as TripReportSubmissionRow | undefined;
-      if (!updated) {
-        setFeedback({ tone: "danger", message: "The updated submission response was incomplete." });
-        return;
-      }
+      const updated = result.submission;
       patchSubmission(updated);
+      setLastDecision(
+        updated.status !== previousStatus
+          ? { id: updated.id, title: updated.title, from: previousStatus, to: updated.status }
+          : null,
+      );
       setFeedback({ tone: "success", message: STATUS_FEEDBACK[updated.status](updated.title) });
       setPromotionPayload(null);
       invalidateDevRailBadge("trip-reports");
       void loadSubmissionIndex();
-    } catch {
-      setFeedback({ tone: "danger", message: "Network error while updating the submission." });
     } finally {
       setBusy(false);
     }
+  }
+
+  const undoTo = lastDecision ? submissionUndoTarget(lastDecision) : null;
+
+  /** Take the last single decision back; the decision log records both moves. */
+  async function undoLastDecision() {
+    if (!lastDecision || !undoTo || busy) {
+      return;
+    }
+    const decision = lastDecision;
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const result = await postSubmissionStatus(decision.id, undoTo);
+      if (!result.ok) {
+        setFeedback({ tone: "danger", message: result.message });
+        return;
+      }
+      replaceSubmission(result.submission);
+      if (submissionDetail?.id === result.submission.id) setSubmissionDetail(result.submission);
+      setLastDecision(null);
+      setFeedback({
+        tone: "success",
+        message: `Undone. "${result.submission.title}" is ${INTAKE_STATUS_LABEL[TRIP_REPORT_INTAKE_STATUS[result.submission.status]]} again.`,
+      });
+      invalidateDevRailBadge("trip-reports");
+      void loadSubmissionIndex();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function toggleChecked(id: string) {
+    setCheckedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  /**
+   * One decision on every ticked submission, one request each so each item's
+   * decision log records its own entry. Returns what happened for the notice.
+   */
+  async function runBulkDecision(status: Extract<TripReportSubmissionStatus, "rejected" | "spam">, targets: PortalRow[]) {
+    setBusy(true);
+    setFeedback(null);
+    const failures: string[] = [];
+    const done = new Set<string>();
+    try {
+      for (const row of targets) {
+        const result = await postSubmissionStatus(row.id, status);
+        if (result.ok) {
+          replaceSubmission(result.submission);
+          if (submissionDetail?.id === result.submission.id) setSubmissionDetail(result.submission);
+          done.add(row.id);
+        } else {
+          failures.push(`${row.title}: ${result.message}`);
+        }
+      }
+    } finally {
+      setBusy(false);
+    }
+    setCheckedIds((current) => new Set([...current].filter((id) => !done.has(id))));
+    setLastDecision(null);
+    const verb = status === "spam" ? "Marked" : "Rejected";
+    const tail = status === "spam" ? " as spam" : "";
+    setBulkFeedback(
+      failures.length === 0
+        ? { tone: "success", message: `${verb} ${done.size} ${done.size === 1 ? "submission" : "submissions"}${tail}.` }
+        : { tone: "danger", message: `${verb} ${done.size} of ${targets.length}${tail}. Not changed: ${failures.join("; ")}` },
+    );
+    invalidateDevRailBadge("trip-reports");
+    void loadSubmissionIndex();
   }
 
   async function runPromotion(publish: boolean, attribution: PromotionAttribution) {
@@ -511,8 +589,18 @@ export function useTripReportPortalController() {
 
   return {
     bucket,
+    bulkFeedback,
     busy,
     changeSubmissionStatus,
+    checkedIds,
+    lastDecision,
+    orderedRows,
+    runBulkDecision,
+    setBulkFeedback,
+    setCheckedIds,
+    toggleChecked,
+    undoLastDecision,
+    undoTo,
     closeEditor,
     corpus,
     deleteReport,
@@ -551,6 +639,55 @@ export function useTripReportPortalController() {
     stats,
     visible,
   };
+}
+
+type StatusResult = { ok: true; submission: TripReportSubmissionRow } | { ok: false; message: string };
+
+/** One status write through the guarded route; the route resolves the actor and appends the log entry. */
+async function postSubmissionStatus(
+  id: string,
+  status: TripReportSubmissionStatus,
+  notes?: string,
+): Promise<StatusResult> {
+  try {
+    const response = await fetch(`/api/trip-report-submissions/${id}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status, ...(notes !== undefined ? { notes } : {}) }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return { ok: false, message: typeof payload.error === "string" ? payload.error : "Unable to update submission." };
+    }
+    const updated = payload.submission as TripReportSubmissionRow | undefined;
+    return updated
+      ? { ok: true, submission: updated }
+      : { ok: false, message: "The updated submission response was incomplete." };
+  } catch {
+    return { ok: false, message: "Network error while updating the submission." };
+  }
+}
+
+/**
+ * Where undo takes a decided submission: back where it was when the
+ * transitions allow it, else to Reviewing, which every decided status except
+ * Published can reopen to. A published submission cannot be undone here.
+ */
+export function submissionUndoTarget(decision: {
+  from: TripReportSubmissionStatus;
+  to: TripReportSubmissionStatus;
+}): TripReportSubmissionStatus | null {
+  if (canTransitionTripReportSubmission(decision.to, decision.from)) return decision.from;
+  return canTransitionTripReportSubmission(decision.to, "reviewing") ? "reviewing" : null;
+}
+
+/** A submission a bulk decision can move to `status`. */
+export function canBulkDecide(row: PortalRow, status: "rejected" | "spam"): boolean {
+  return (
+    row.origin === "submission" &&
+    row.status !== "published" &&
+    canTransitionTripReportSubmission(row.status, status)
+  );
 }
 
 const STATUS_FEEDBACK: Record<TripReportSubmissionStatus, (title: string) => string> = {

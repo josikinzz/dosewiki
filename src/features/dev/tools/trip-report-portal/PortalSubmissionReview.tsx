@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, type MutableRefObject, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ActionNotice,
-  CodeSurface,
   EditorActionGroup,
   EditorField,
   EditorNotice,
@@ -15,7 +14,10 @@ import {
   EditorToolbar,
   useConfirm,
   type EditorStatusPillTone,
+  type SearchablePickerOption,
 } from "@/features/dev/components";
+import { SearchablePicker } from "@/features/dev/components/SearchablePicker";
+import { INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE, TRIP_REPORT_INTAKE_STATUS } from "@/features/intake/intakeStatus";
 import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
 import { decisionLogOf } from "@/features/intake/decisionLog";
 import type {
@@ -26,6 +28,8 @@ import {
   TRIP_REPORT_SUBMISSION_TRANSITIONS,
   type TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissionStatus";
+import { publicHref } from "@/utils/publicHref";
+import type { PortalContributorOption } from "./tripReportPortalModel";
 
 /**
  * The intake queue's review surface, unchanged in capability from the tool the
@@ -34,27 +38,26 @@ import {
  * corpus list as a published report rather than from a separate queue screen.
  */
 
-const STATUS_LABELS: Record<TripReportSubmissionStatus, string> = {
-  submitted: "Submitted",
-  reviewing: "Reviewing",
-  accepted: "Accepted",
-  rejected: "Rejected",
-  spam: "Spam",
-  exported: "Exported",
-};
+/** A submission's status in the shared intake words (docs/glossary.md, Intake Status). */
+const statusLabel = (status: TripReportSubmissionStatus) => INTAKE_STATUS_LABEL[TRIP_REPORT_INTAKE_STATUS[status]];
 
-const STATUS_TONE: Record<TripReportSubmissionStatus, EditorStatusPillTone> = {
-  submitted: "info",
-  reviewing: "caution",
-  accepted: "success",
-  exported: "success",
-  rejected: "danger",
-  spam: "danger",
-};
+const statusTone = (status: TripReportSubmissionStatus): EditorStatusPillTone =>
+  INTAKE_STATUS_TONE[TRIP_REPORT_INTAKE_STATUS[status]];
 
 export type PromotionAttribution = {
   profileKey: string;
   confirmAuthorNameClaim: boolean;
+};
+
+/**
+ * What the triage keys can ask of the open review. The tab owns the keys; the
+ * review owns the note, the confirms and the busy state, so it fills this in.
+ */
+export type SubmissionTriageActions = {
+  accept: () => void;
+  reject: () => void;
+  spam: () => void;
+  note: () => void;
 };
 
 /** Every write this panel can start; the clicked control shows its own busy label. */
@@ -62,7 +65,9 @@ type PendingAction = TripReportSubmissionStatus | "preview" | "publish";
 
 export function PortalSubmissionReview({
   busy,
+  contributors,
   feedback,
+  feedbackAction,
   onClose,
   onDismissFeedback,
   onNavigate,
@@ -71,9 +76,16 @@ export function PortalSubmissionReview({
   promotionPayload,
   queuePosition,
   submission,
+  triageRef,
 }: {
   busy: boolean;
+  /** Contributor profiles a published report can be attributed to. */
+  contributors: readonly PortalContributorOption[];
   feedback: { tone: "success" | "danger"; message: string } | null;
+  /** A control that belongs with the notice, such as Undo. */
+  feedbackAction?: ReactNode;
+  /** Filled with this review's triage actions while it is open. */
+  triageRef?: MutableRefObject<SubmissionTriageActions | null>;
   onClose: () => void;
   onDismissFeedback: () => void;
   onNavigate: (direction: -1 | 1) => void;
@@ -90,6 +102,15 @@ export function PortalSubmissionReview({
   const [note, setNote] = useState("");
   const [pending, setPending] = useState<PendingAction | null>(null);
   const { confirm, dialog } = useConfirm();
+  const contributorOptions = useMemo<SearchablePickerOption[]>(() => {
+    const byKey = new Map<string, SearchablePickerOption>();
+    for (const contributor of contributors) {
+      if (!byKey.has(contributor.key)) {
+        byKey.set(contributor.key, { value: contributor.key, label: contributor.displayName, hint: contributor.key });
+      }
+    }
+    return [...byKey.values()];
+  }, [contributors]);
 
   const attribution: PromotionAttribution = { profileKey, confirmAuthorNameClaim };
   const canPromote = submission.status === "accepted";
@@ -108,6 +129,52 @@ export function PortalSubmissionReview({
     setPending(status);
     onStatusChange(status, note.trim() || undefined);
   }
+
+  const noteId = `trip-report-decision-note-${submission.id}`;
+  const canDecide = (status: TripReportSubmissionStatus) => !busy && validTargets.includes(status);
+
+  function confirmReject() {
+    confirm({
+      title: "Reject this submission?",
+      description: `"${submission.title}" leaves the review queue. You can reopen it later from the All bucket; the author is not notified.`,
+      confirmLabel: "Reject",
+      destructive: true,
+      onConfirm: () => decide("rejected"),
+    });
+  }
+
+  function confirmSpam() {
+    confirm({
+      title: "Mark as spam?",
+      description: `"${submission.title}" is filed as spam and leaves the review queue. Use this for junk, not for reports you disagree with; a wrong call can be reopened from the All bucket.`,
+      confirmLabel: "Mark as spam",
+      destructive: true,
+      onConfirm: () => decide("spam"),
+    });
+  }
+
+  // The keys reach the same paths as the buttons, with the same guards.
+  useEffect(() => {
+    if (!triageRef) return;
+    triageRef.current = {
+      accept: () => {
+        if (canDecide("accepted")) decide("accepted");
+      },
+      reject: () => {
+        if (canDecide("rejected")) confirmReject();
+      },
+      spam: () => {
+        if (canDecide("spam")) confirmSpam();
+      },
+      note: () => document.getElementById(noteId)?.focus(),
+    };
+  });
+  useEffect(
+    () => () => {
+      if (triageRef) triageRef.current = null;
+    },
+    [triageRef],
+  );
 
   function promote(publish: boolean) {
     setPending(publish ? "publish" : "preview");
@@ -153,9 +220,7 @@ export function PortalSubmissionReview({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <EditorStatusPill tone={STATUS_TONE[submission.status]}>
-            {STATUS_LABELS[submission.status]}
-          </EditorStatusPill>
+          <EditorStatusPill tone={statusTone(submission.status)}>{statusLabel(submission.status)}</EditorStatusPill>
           <span className="theme-text-muted text-xs">
             {submission.author_name} · {substanceNames.join(", ") || "No substances"}
           </span>
@@ -174,10 +239,15 @@ export function PortalSubmissionReview({
       </header>
 
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
-        {feedback ? (
-          <ActionNotice tone={feedback.tone} onDismiss={onDismissFeedback}>
-            {feedback.message}
-          </ActionNotice>
+        {feedback || feedbackAction ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {feedback ? (
+              <ActionNotice tone={feedback.tone} onDismiss={onDismissFeedback}>
+                {feedback.message}
+              </ActionNotice>
+            ) : null}
+            {feedbackAction}
+          </div>
         ) : null}
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -222,10 +292,7 @@ export function PortalSubmissionReview({
           <Narrative label="Conclusion" value={submission.report.conclusion} />
         </div>
 
-        <DecisionLogSection
-          entries={decisionLogOf(submission)}
-          statusLabel={(status) => STATUS_LABELS[status]}
-        />
+        <DecisionLogSection entries={decisionLogOf(submission)} statusLabel={statusLabel} />
 
         {submission.status === "exported" ? (
           <EditorNotice
@@ -239,6 +306,7 @@ export function PortalSubmissionReview({
         ) : (
           <EditorPanel variant="toolbar" className="space-y-3 p-3">
             <EditorField
+              id={noteId}
               label="Decision note"
               description="Added to the decision log with the decision you make next. Leave it empty to record only the outcome."
             >
@@ -282,15 +350,7 @@ export function PortalSubmissionReview({
                   variant="ghostDestructive"
                   disabled={busy || !validTargets.includes("rejected")}
                   aria-busy={active === "rejected" || undefined}
-                  onClick={() =>
-                    confirm({
-                      title: "Reject this submission?",
-                      description: `"${submission.title}" leaves the review queue. You can reopen it later from the All bucket; the author is not notified.`,
-                      confirmLabel: "Reject",
-                      destructive: true,
-                      onConfirm: () => decide("rejected"),
-                    })
-                  }
+                  onClick={confirmReject}
                 >
                   {actionLabel("rejected", "Reject", "Rejecting…")}
                 </Button>
@@ -302,15 +362,7 @@ export function PortalSubmissionReview({
                   size="sm"
                   disabled={busy || !validTargets.includes("spam")}
                   aria-busy={active === "spam" || undefined}
-                  onClick={() =>
-                    confirm({
-                      title: "Mark as spam?",
-                      description: `"${submission.title}" is filed as spam and leaves the review queue. Use this for junk, not for reports you disagree with; a wrong call can be reopened from the All bucket.`,
-                      confirmLabel: "Mark as spam",
-                      destructive: true,
-                      onConfirm: () => decide("spam"),
-                    })
-                  }
+                  onClick={confirmSpam}
                 >
                   {actionLabel("spam", "Mark as spam", "Marking…")}
                 </Button>
@@ -323,17 +375,21 @@ export function PortalSubmissionReview({
           <EditorPanel variant="toolbar" className="space-y-3 p-3">
             <EditorField
               label="Publish as a public trip report"
-              description="Attribution needs an existing contributor profile key. Leave it empty to publish under the submitted byline."
+              description="Attribute it to a contributor profile, or leave it empty to publish under the submitted byline."
             >
               {(controlProps) => (
-                <Input
-                  {...controlProps}
-                  className="md:w-64"
-                  value={profileKey}
-                  placeholder="Profile key (optional)"
-                  disabled={busy}
-                  onChange={(event) => setProfileKey(event.target.value)}
-                />
+                <div className="md:w-72">
+                  <SearchablePicker
+                    id={controlProps.id}
+                    ariaLabel="Contributor"
+                    options={contributorOptions}
+                    value={profileKey || null}
+                    placeholder="Choose a contributor (optional)"
+                    emptyText="No contributor matches."
+                    disabled={busy}
+                    onChange={(next) => setProfileKey(next ?? "")}
+                  />
+                </div>
               )}
             </EditorField>
             <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
@@ -378,21 +434,75 @@ export function PortalSubmissionReview({
           </EditorPanel>
         ) : null}
 
-        {promotionPayload ? (
-          <CodeSurface
-            title="Promotion payload"
-            language="json"
-            maxHeight={384}
-            value={JSON.stringify(promotionPayload, null, 2)}
-          />
-        ) : null}
+        {promotionPayload ? <PromotionPreview payload={promotionPayload} contributors={contributors} /> : null}
       </div>
     </EditorPanel>
   );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return <h4 className="theme-accent-heading text-sm font-semibold">{children}</h4>;
+/**
+ * The publish preview as the public report will carry it: address, byline
+ * and attribution, substances, and how much of each section is there. The
+ * raw payload stays on the server; nothing here needs reading as JSON.
+ */
+function PromotionPreview({
+  contributors,
+  payload,
+}: {
+  contributors: readonly PortalContributorOption[];
+  payload: DataTripReportImportPayload;
+}) {
+  const profileKey = payload.subject.profile_key;
+  const contributor = profileKey ? contributors.find((option) => option.key === profileKey) : undefined;
+  const count = (entries: readonly unknown[], noun: string) =>
+    entries.length === 0 ? "none" : `${entries.length} ${noun}${entries.length === 1 ? "" : "s"}`;
+  const rows: { label: string; value: string }[] = [
+    { label: "Public address", value: publicHref.report(payload.slug) },
+    { label: "Title", value: payload.title },
+    { label: "Byline", value: payload.subject.name || "No byline" },
+    {
+      label: "Attributed to",
+      value: profileKey ? `${contributor?.displayName ?? profileKey} (contributor profile)` : "No contributor profile",
+    },
+    {
+      label: "Substances",
+      value:
+        payload.substances
+          .map((substance) => [substance.name, substance.dose, substance.roa].filter(Boolean).join(", "))
+          .join("; ") || "None listed",
+    },
+    { label: "Introduction", value: payload.introduction?.trim() ? "Included" : "None" },
+    {
+      label: "Timeline",
+      value: `Onset ${count(payload.onset, "entry")} · peak ${count(payload.peak, "entry")} · offset ${count(payload.offset, "entry")}`,
+    },
+    { label: "Conclusion", value: payload.conclusion?.trim() ? "Included" : "None" },
+    { label: "Tags", value: payload.tags.length > 0 ? payload.tags.join(", ") : "None" },
+    { label: "Featured", value: payload.featured ? "Yes" : "No" },
+  ];
+
+  return (
+    <section aria-labelledby="trip-report-publish-preview" className="space-y-2">
+      <SectionHeading id="trip-report-publish-preview">Publish preview</SectionHeading>
+      <p className="theme-text-faint text-xs">Nothing is public yet. This is what Publish will create.</p>
+      <dl className="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[10rem_minmax(0,1fr)]">
+        {rows.map((row) => (
+          <div key={row.label} className="contents">
+            <dt className="theme-text-faint text-xs font-semibold uppercase tracking-wider sm:pt-0.5">{row.label}</dt>
+            <dd className="theme-text-primary break-words">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function SectionHeading({ children, id }: { children: React.ReactNode; id?: string }) {
+  return (
+    <h4 id={id} className="theme-accent-heading text-sm font-semibold">
+      {children}
+    </h4>
+  );
 }
 
 function Metadata({ label, value }: { label: string; value?: string | null }) {

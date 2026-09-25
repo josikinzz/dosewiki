@@ -1,19 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
 import {
+  ActionNotice,
+  EditorActionGroup,
   EditorNotice,
   EditorPanel,
+  EditorToolbar,
   TagToken,
+  TriageShortcutHint,
+  useConfirm,
+  useTriageShortcuts,
 } from "@/features/dev/components";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
+import { INTAKE_STATUS_LABEL, TRIP_REPORT_INTAKE_STATUS } from "@/features/intake/intakeStatus";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import { PortalOrganizerRail } from "./PortalOrganizerRail";
 import { PortalReportEditor } from "./PortalReportEditor";
-import { PortalSubmissionReview } from "./PortalSubmissionReview";
+import { PortalSubmissionReview, type SubmissionTriageActions } from "./PortalSubmissionReview";
 import { PortalReportList } from "./PortalReportList";
 import {
   activeFacetCount,
@@ -22,7 +29,7 @@ import {
   type PortalFacetKind,
   type PortalSort,
 } from "./tripReportPortalModel";
-import { useTripReportPortalController } from "./useTripReportPortalController";
+import { canBulkDecide, useTripReportPortalController } from "./useTripReportPortalController";
 
 const SORTS: { value: PortalSort; label: string }[] = [
   { value: "newest", label: "Newest" },
@@ -75,11 +82,57 @@ export function TripReportPortalTab() {
     sort,
     stats,
     visible,
+    bulkFeedback,
+    checkedIds,
+    lastDecision,
+    runBulkDecision,
+    setBulkFeedback,
+    setCheckedIds,
+    toggleChecked,
+    undoLastDecision,
+    undoTo,
   } = useTripReportPortalController();
+  const { confirm, dialog: confirmDialog } = useConfirm();
+  const triageRef = useRef<SubmissionTriageActions | null>(null);
+
+  // Ticks only count while their row is in the list on screen.
+  const checkedRows = visible.filter((row) => checkedIds.has(row.id));
+
+  function bulkDecide(status: "rejected" | "spam") {
+    const targets = checkedRows.filter((row) => canBulkDecide(row, status));
+    if (targets.length === 0 || busy) {
+      return;
+    }
+    const count = `${targets.length} ${targets.length === 1 ? "submission" : "submissions"}`;
+    const skipped = checkedRows.length - targets.length;
+    confirm({
+      title: status === "spam" ? `Mark ${count} as spam?` : `Reject ${count}?`,
+      description: `${
+        status === "spam" ? "Each is filed as spam" : "Each is rejected"
+      } and leaves the review queue. A wrong call can be reopened from the All bucket; authors are not notified.${
+        skipped > 0 ? ` ${skipped} ticked ${skipped === 1 ? "row is" : "rows are"} left as they are.` : ""
+      }`,
+      confirmLabel: status === "spam" ? "Mark as spam" : "Reject",
+      destructive: true,
+      affected: targets.map((row) => row.title),
+      onConfirm: () => runBulkDecision(status, targets),
+    });
+  }
+
+  const { helpDialog } = useTriageShortcuts({
+    onMove: selectAdjacent,
+    onAccept: () => triageRef.current?.accept(),
+    onReject: () => triageRef.current?.reject(),
+    onSpam: () => triageRef.current?.spam(),
+    onNote: () => triageRef.current?.note(),
+    onUndo: () => void undoLastDecision(),
+  });
 
   return (
     <div className="space-y-4">
       {discardDialog}
+      {confirmDialog}
+      {helpDialog}
       <header className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
           <h2 className="theme-accent-heading font-display text-2xl font-semibold">Trip Report Portal</h2>
@@ -214,18 +267,68 @@ export function TripReportPortalTab() {
                 id="trip-report-portal-list"
                 className={
                   editorOpen
-                    ? `max-h-56 overflow-y-auto xl:max-h-none xl:overflow-visible ${stripOpen ? "" : "hidden xl:block"}`
+                    ? `[--portal-list-max:14rem] xl:[--portal-list-max:calc(100vh-12rem)] ${stripOpen ? "" : "hidden xl:block"}`
                     : undefined
                 }
               >
+                {bulkFeedback || (lastDecision && undoTo) || checkedRows.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-2 px-1 py-2">
+                    {checkedRows.length > 0 ? (
+                      <EditorToolbar label="Bulk submission actions" variant="compact">
+                        <span className="theme-text-secondary text-xs tabular-nums" aria-live="polite">
+                          {checkedRows.length} selected
+                        </span>
+                        <EditorActionGroup label="Bulk decision">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={busy || !checkedRows.some((row) => canBulkDecide(row, "spam"))}
+                            onClick={() => bulkDecide("spam")}
+                          >
+                            Mark as spam
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghostDestructive"
+                            size="sm"
+                            disabled={busy || !checkedRows.some((row) => canBulkDecide(row, "rejected"))}
+                            onClick={() => bulkDecide("rejected")}
+                          >
+                            Reject
+                          </Button>
+                          <Button type="button" variant="quiet" size="quiet" disabled={busy} onClick={() => setCheckedIds(new Set())}>
+                            Clear
+                          </Button>
+                        </EditorActionGroup>
+                      </EditorToolbar>
+                    ) : null}
+                    {bulkFeedback ? (
+                      <ActionNotice tone={bulkFeedback.tone} onDismiss={() => setBulkFeedback(null)}>
+                        {bulkFeedback.message}
+                      </ActionNotice>
+                    ) : null}
+                    {lastDecision && undoTo ? (
+                      <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void undoLastDecision()}>
+                        Undo: &ldquo;{lastDecision.title}&rdquo; back to{" "}
+                        {INTAKE_STATUS_LABEL[TRIP_REPORT_INTAKE_STATUS[undoTo]]}
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
                 {bucket === "needs" && load.submissions.status === "error" ? null : (
                   <PortalReportList
                     compact={editorOpen}
                     groups={groups}
                     selectedId={selectedId}
                     onSelect={selectRow}
+                    checkedIds={checkedIds}
+                    canCheck={(row) => canBulkDecide(row, "spam") || canBulkDecide(row, "rejected")}
+                    onToggleChecked={toggleChecked}
+                    maxHeight={editorOpen ? "var(--portal-list-max)" : "min(75vh, 960px)"}
                   />
                 )}
+                <TriageShortcutHint className="mt-2 px-1" />
               </div>
             </main>
 
@@ -303,6 +406,8 @@ export function TripReportPortalTab() {
               <PortalSubmissionReview
                 key={selectedSubmission.id}
                 busy={busy}
+                contributors={corpus.contributors}
+                triageRef={triageRef}
                 feedback={feedback}
                 promotionPayload={promotionPayload}
                 queuePosition={queuePosition}

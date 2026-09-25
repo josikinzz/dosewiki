@@ -10,6 +10,7 @@ import {
   groupPortalRows,
   NEEDS_REVIEW_SUBMISSION_STATUSES,
   portalStats,
+  portalStatusLabel,
   rowMatchesQuery,
   sortPortalRows,
   toggleFacetValue,
@@ -105,6 +106,18 @@ describe("portal buckets", () => {
     expect(corpus.filter((row) => bucketOf(row) === "needs").map((row) => row.id)).toEqual(["s1", "s2", "s3"]);
     // Accepted still reads as Accepted: it waits on Publish, not on a decision.
     expect(corpus.find((row) => row.id === "s3")?.statusKind).toBe("accepted");
+  });
+
+  it("labels every row in the shared intake words, never 'Not published'", () => {
+    const label = (status: "submitted" | "reviewing" | "accepted" | "rejected" | "spam" | "exported") =>
+      portalStatusLabel(submission({ id: status, title: status, author: "anon", status }));
+    expect(label("submitted")).toBe("New");
+    expect(label("reviewing")).toBe("Reviewing");
+    expect(label("accepted")).toBe("Accepted");
+    expect(label("rejected")).toBe("Rejected");
+    expect(label("spam")).toBe("Spam");
+    expect(label("exported")).toBe("Published");
+    expect(portalStatusLabel(corpus[0])).toBe("Published");
   });
 
   it("counts published rows as the published bucket and leaves the rest to All", () => {

@@ -8,6 +8,7 @@ import {
   LoadErrorState,
   useConfirm,
   useScrollToDetail,
+  useTriageShortcuts,
 } from "@/features/dev/components";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
@@ -23,13 +24,19 @@ import {
   groupCitationEvidenceBySection,
   type CitationReviewQueueLoadFailure,
 } from "./citationReviewModels";
-import { CitationQueueHeader, CitationQueuePanel } from "./CitationQueuePanel";
+import {
+  CitationOpenInReview,
+  CitationQueueHeader,
+  CitationQueuePanel,
+  citationQueueMatches,
+} from "./CitationQueuePanel";
 import { CitationEvidenceSection } from "./CitationEvidencePanels";
 import {
   CitationBulkApprovePanel,
   CitationChecklistPanel,
   CitationSelectedSummary,
   type CitationEvidenceDecisionHandlers,
+  type CitationRejectRequest,
   type CitationUndoOffer,
 } from "./CitationReviewPanels";
 import { useCitationReviewData } from "./useCitationReviewData";
@@ -189,6 +196,12 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     [confirm, rows, updateStatuses],
   );
 
+  // The evidence row the triage keys act on: the one opened last, while it stays open.
+  const [activeClaim, setActiveClaim] = useState<{ slug: string | null; claimKey: string } | null>(null);
+  const activeClaimKey = activeClaim && activeClaim.slug === selectedSlug ? activeClaim.claimKey : null;
+  const [rejectRequest, setRejectRequest] = useState<CitationRejectRequest | null>(null);
+  const [keyHint, setKeyHint] = useState<string | null>(null);
+
   const handlers = useMemo<CitationEvidenceDecisionHandlers>(
     () => ({
       onApprove: (claimKeys) => {
@@ -198,6 +211,8 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
         void updateStatuses([claimKey], "rejected", statusReason);
       },
       onRowExpanded: (claimKey) => {
+        setActiveClaim({ slug: selectedSlug, claimKey });
+        setKeyHint(null);
         setOpened((current) => {
           const base = current.slug === selectedSlug ? current.claimKeys : new Set<string>();
           if (base.has(claimKey)) {
@@ -205,6 +220,9 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           }
           return { slug: selectedSlug, claimKeys: new Set([...base, claimKey]) };
         });
+      },
+      onRowCollapsed: (claimKey) => {
+        setActiveClaim((current) => (current?.claimKey === claimKey ? null : current));
       },
     }),
     [selectedSlug, updateStatuses],
@@ -231,6 +249,50 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   const isSingleRowUndo = undoOnScreen !== null && undoOnScreen.decision.prior.length === 1;
   const rowUndo = isSingleRowUndo ? undoOnScreen : null;
   const setUndo = undoOnScreen && !isSingleRowUndo ? undoOnScreen : null;
+
+  const [queueQuery, setQueueQuery] = useState("");
+  const visibleQueue = useMemo(
+    () => queue.filter((entry) => citationQueueMatches(entry, queueQuery, articleTitleBySlug)),
+    [articleTitleBySlug, queue, queueQuery],
+  );
+
+  const OPEN_A_ROW_HINT = "Open an evidence row first: a approves it, r rejects it with a reason.";
+  const { helpDialog } = useTriageShortcuts({
+    enabled: !initialLoading && queue.length > 0,
+    onMove: (direction) => {
+      const index = visibleQueue.findIndex((entry) => entry.slug === selectedSlug);
+      const next = index < 0 ? visibleQueue[0] : visibleQueue[index + direction];
+      if (next) {
+        setKeyHint(null);
+        setSelectedSlug(next.slug);
+      }
+    },
+    onAccept: () => {
+      if (!activeClaimKey) {
+        setKeyHint(OPEN_A_ROW_HINT);
+        return;
+      }
+      const command = commands.rows[activeClaimKey];
+      if (command && !command.approveDisabled) {
+        setKeyHint(null);
+        handlers.onApprove([activeClaimKey]);
+      }
+    },
+    onReject: () => {
+      if (!activeClaimKey) {
+        setKeyHint(OPEN_A_ROW_HINT);
+        return;
+      }
+      if (commands.rows[activeClaimKey]?.rejectDisabled === false) {
+        setKeyHint(null);
+        setRejectRequest((current) => ({ claimKey: activeClaimKey, nonce: (current?.nonce ?? 0) + 1 }));
+      }
+    },
+    onUndo: () => {
+      if (undoOffer && !undoOffer.disabled) undoOffer.onUndo();
+    },
+    labels: { accept: "Approve the open evidence row", reject: "Reject the open evidence row" },
+  });
 
   if (initialLoading) {
     return (
@@ -300,15 +362,26 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[24rem_minmax(0,1fr)]">
         <CitationQueuePanel
-          queue={queue}
+          queue={visibleQueue}
           selectedSlug={selectedSlug}
           articleTitleBySlug={articleTitleBySlug}
           onSelectSlug={handleSelectSlug}
+          query={queueQuery}
+          onQueryChange={setQueueQuery}
         />
 
         <div ref={detailColumnRef} className="scroll-mt-6 space-y-8">
           {selectedSummary ? (
-            <CitationSelectedSummary selectedSummary={selectedSummary} articleTitle={articleTitle} />
+            <div className="space-y-2">
+              <CitationSelectedSummary selectedSummary={selectedSummary} articleTitle={articleTitle} />
+              <div className="flex justify-end">
+                <CitationOpenInReview slug={selectedSummary.slug} />
+              </div>
+            </div>
+          ) : null}
+
+          {keyHint ? (
+            <EditorNotice notice={{ tone: "info", title: "Nothing to act on yet", message: keyHint, live: true }} />
           ) : null}
 
           <CitationChecklistPanel checklist={checklist} />
@@ -389,6 +462,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
                   handlers={handlers}
                   openedClaimKeys={openedClaimKeys}
                   rowUndo={rowUndo}
+                  rejectRequest={rejectRequest}
                   sectionUndo={setUndo && bulkOrigin === group.section ? setUndo : null}
                   onApproveSection={(section, claimKeys) => {
                     confirmApproval(claimKeys, `in ${formatCitationSectionLabel(section)}`, section);
@@ -415,6 +489,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
       </div>
 
       {dialog}
+      {helpDialog}
     </div>
   );
 }

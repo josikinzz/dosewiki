@@ -22,6 +22,25 @@ export interface EditorListProps<T> {
   /** Accessible name of the listbox. */
   label: string;
   className?: string;
+  /**
+   * False for items that only divide the list (group headings). They take a
+   * row's height, are hidden from assistive tech, and the keys skip them.
+   */
+  isOption?: (item: T) => boolean;
+  /**
+   * A checkbox on each row for bulk actions, separate from the one selected
+   * row. Space on the list ticks the selected row.
+   */
+  multiSelect?: EditorListMultiSelect<T>;
+}
+
+export interface EditorListMultiSelect<T> {
+  checkedKeys: ReadonlySet<string>;
+  onToggle: (key: string) => void;
+  /** Accessible name of a row's checkbox, such as "Select Mescaline". */
+  checkLabel: (item: T) => string;
+  /** Rows that cannot take the bulk actions get no checkbox. */
+  canCheck?: (item: T) => boolean;
 }
 
 /**
@@ -89,6 +108,10 @@ function useWindow(count: number, estimate: number, scrollRef: RefObject<HTMLDiv
  * `onSelect(key)`; `renderItem` should render a presentational row (an
  * `EditorListItem` with `active={selected}` and no `onSelect`) so a tap does
  * not report twice.
+ *
+ * `isOption` lets group headings sit in the list at a row's pitch without
+ * becoming options, and `multiSelect` adds a checkbox per row for bulk
+ * actions. The intake queues pair this list with `useTriageShortcuts`.
  */
 export function EditorList<T>({
   items,
@@ -102,6 +125,8 @@ export function EditorList<T>({
   emptyText,
   label,
   className,
+  isOption,
+  multiSelect,
 }: EditorListProps<T>) {
   const id = useId();
   const [query, setQuery] = useState("");
@@ -138,30 +163,52 @@ export function EditorList<T>({
     }
   }, [selectedIndex, rowHeight, viewport, scrollTo]);
 
+  const optionAt = useCallback((index: number) => !isOption || isOption(visible[index]), [isOption, visible]);
+
+  /** The nearest option from `from` stepping by `step`, or -1 past either end. */
+  const seekOption = useCallback(
+    (from: number, step: 1 | -1) => {
+      for (let index = from; index >= 0 && index < visible.length; index += step) {
+        if (optionAt(index)) return index;
+      }
+      return -1;
+    },
+    [optionAt, visible.length],
+  );
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!onSelect || visible.length === 0) return;
+    if (event.defaultPrevented || visible.length === 0) return;
+    if (event.key === " " && multiSelect && selectedIndex >= 0) {
+      const item = visible[selectedIndex];
+      event.preventDefault();
+      if (!multiSelect.canCheck || multiSelect.canCheck(item)) multiSelect.onToggle(getKey(item));
+      return;
+    }
+    if (!onSelect) return;
     let next: number;
     switch (event.key) {
       case "ArrowDown":
-        next = Math.min(visible.length - 1, selectedIndex + 1);
+        next = selectedIndex < 0 ? seekOption(0, 1) : seekOption(selectedIndex + 1, 1);
         break;
       case "ArrowUp":
-        next = Math.max(0, selectedIndex < 0 ? 0 : selectedIndex - 1);
+        next = selectedIndex < 0 ? seekOption(0, 1) : seekOption(selectedIndex - 1, -1);
         break;
       case "Home":
-        next = 0;
+        next = seekOption(0, 1);
         break;
       case "End":
-        next = visible.length - 1;
+        next = seekOption(visible.length - 1, -1);
         break;
       default:
         return;
     }
     event.preventDefault();
-    if (next !== selectedIndex) onSelect(getKey(visible[next]));
+    if (next >= 0 && next !== selectedIndex) onSelect(getKey(visible[next]));
   };
 
   const rows = visible.slice(start, end);
+  // Row heights are measured from an option, never from a heading.
+  const measuredOffset = rows.findIndex((_, offset) => optionAt(start + offset));
   const activeId = selectedIndex >= 0 ? `${id}-option-${selectedIndex}` : undefined;
 
   return (
@@ -197,7 +244,15 @@ export function EditorList<T>({
               {rows.map((item, offset) => {
                 const index = start + offset;
                 const key = getKey(item);
+                if (!optionAt(index)) {
+                  return (
+                    <div key={key} aria-hidden="true" style={{ height: rowHeight }} className="flex flex-col justify-end">
+                      {renderItem(item, { selected: false })}
+                    </div>
+                  );
+                }
                 const selected = index === selectedIndex;
+                const checkable = multiSelect !== undefined && (!multiSelect.canCheck || multiSelect.canCheck(item));
                 return (
                   // Keyboard selection lives on the listbox (aria-activedescendant); rows only take the pointer.
                   // eslint-disable-next-line jsx-a11y/click-events-have-key-events
@@ -207,11 +262,30 @@ export function EditorList<T>({
                     role="option"
                     aria-selected={selected}
                     tabIndex={-1}
-                    ref={offset === 0 ? measureRow : undefined}
+                    ref={offset === measuredOffset ? measureRow : undefined}
                     onClick={onSelect ? () => onSelect(key) : undefined}
-                    className="pb-1"
+                    className={multiSelect ? "flex items-center gap-2 pb-1" : "pb-1"}
                   >
-                    {renderItem(item, { selected })}
+                    {multiSelect ? (
+                      <>
+                        <span className="flex w-5 shrink-0 justify-center">
+                          {checkable ? (
+                            <input
+                              type="checkbox"
+                              tabIndex={-1}
+                              aria-label={multiSelect.checkLabel(item)}
+                              checked={multiSelect.checkedKeys.has(key)}
+                              onClick={(event) => event.stopPropagation()}
+                              onChange={() => multiSelect.onToggle(key)}
+                              className="theme-replication-checkbox"
+                            />
+                          ) : null}
+                        </span>
+                        <div className="min-w-0 flex-1">{renderItem(item, { selected })}</div>
+                      </>
+                    ) : (
+                      renderItem(item, { selected })
+                    )}
                   </div>
                 );
               })}

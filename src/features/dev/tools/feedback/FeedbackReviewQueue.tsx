@@ -24,10 +24,13 @@ import {
   EditorStatusPill,
   EditorToolbar,
   LoadErrorState,
+  TriageShortcutHint,
   useConfirm,
   useDirtyGuard,
+  useTriageShortcuts,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
+import { FEEDBACK_INTAKE_STATUS, INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
 import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
@@ -107,22 +110,42 @@ const SEARCH_DEBOUNCE_MS = 250;
 
 const QUEUE_FILTERS: FeedbackQueueFilter[] = ["all", ...QUEUE_STATUSES];
 
+/** The shared intake words (docs/glossary.md, Intake Status); feedback stores them as is. */
 const STATUS_LABELS: Record<FeedbackQueueFilter, string> = {
   all: "All",
-  new: "New",
-  reviewing: "Reviewing",
-  resolved: "Resolved",
-  rejected: "Rejected",
-  spam: "Spam",
+  new: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.new],
+  reviewing: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.reviewing],
+  resolved: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.resolved],
+  rejected: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.rejected],
+  spam: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.spam],
 };
 
 const STATUS_PILL_TONE: Record<FeedbackQueueStatus, EditorStatusPillTone> = {
-  new: "info",
-  reviewing: "caution",
-  resolved: "success",
-  rejected: "danger",
-  spam: "danger",
+  new: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.new],
+  reviewing: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.reviewing],
+  resolved: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.resolved],
+  rejected: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.rejected],
+  spam: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.spam],
 };
+
+/** Decisions the bulk bar can make on ticked rows. */
+type BulkDecision = Extract<FeedbackQueueStatus, "rejected" | "spam">;
+
+/** The last single decision, so `u` and the Undo button can take it back. */
+type LastDecision = { id: string; title: string; from: FeedbackQueueStatus; to: FeedbackQueueStatus };
+
+/**
+ * Where undo takes a decided row: back where it was when the transitions
+ * allow it, else to Reviewing, which every decided status can reopen to.
+ */
+export function undoTarget(
+  transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>,
+  decision: Pick<LastDecision, "from" | "to">,
+): FeedbackQueueStatus | null {
+  const allowed = transitions[decision.to] ?? [];
+  if (allowed.includes(decision.from)) return decision.from;
+  return allowed.includes("reviewing") ? "reviewing" : null;
+}
 
 /** Decisions that take the row off the queue and are asked about before they write. */
 const CONFIRMED_DECISIONS: Record<
@@ -238,6 +261,11 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     description: "The note you typed is only saved with a decision. Leaving this item now drops it.",
   });
   const { confirm, dialog: confirmDialog } = useConfirm();
+  /** Rows ticked for a bulk decision; separate from the one row under review. */
+  const [checked, setChecked] = useState<ReadonlySet<string>>(() => new Set());
+  const [bulkPending, setBulkPending] = useState(false);
+  const [lastDecision, setLastDecision] = useState<LastDecision | null>(null);
+  const noteId = `${adapter.source}-feedback-review-note`;
 
   useEffect(() => {
     loadedCount.current = feedback.length;
@@ -394,19 +422,34 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   }
 
   function changeFilter(next: FeedbackQueueFilter) {
-    if (!selected || next === "all" || selected.status === next) {
+    // Ticks belong to the list they were made on.
+    const apply = () => {
       onStatusFilterChange(next);
+      setChecked(new Set());
+    };
+    if (!selected || next === "all" || selected.status === next) {
+      apply();
       return;
     }
     guard(() => {
-      onStatusFilterChange(next);
+      apply();
       setActionFeedback(null);
       setNote("");
     });
   }
 
+  /** Put a written row in the list and move its count from the old status to the new one. */
+  function applyTransition(updated: Item, previousStatus: FeedbackQueueStatus) {
+    setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
+    setCounts((current) =>
+      current && updated.status !== previousStatus
+        ? { ...current, [previousStatus]: current[previousStatus] - 1, [updated.status]: current[updated.status] + 1 }
+        : current,
+    );
+  }
+
   async function updateStatus(status: FeedbackQueueStatus) {
-    if (!selected || pendingId) {
+    if (!selected || pendingId || bulkPending) {
       return;
     }
 
@@ -420,11 +463,11 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         status,
         note: trimmedNote.length > 0 ? trimmedNote : undefined,
       });
-      setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
-      setCounts((current) =>
-        current && updated.status !== previousStatus
-          ? { ...current, [previousStatus]: current[previousStatus] - 1, [updated.status]: current[updated.status] + 1 }
-          : current,
+      applyTransition(updated, previousStatus);
+      setLastDecision(
+        updated.status !== previousStatus
+          ? { id: updated.id, title: labels.itemTitle(updated), from: previousStatus, to: updated.status }
+          : null,
       );
       setPendingId(null);
       // The admin may have moved to another row while this was in flight;
@@ -479,6 +522,130 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       onConfirm: () => updateStatus(status),
     });
   }
+
+  const undoTo = lastDecision ? undoTarget(adapter.transitions, lastDecision) : null;
+
+  /** Take the last single decision back; the decision log records both moves. */
+  async function undoLastDecision() {
+    if (!lastDecision || !undoTo || pendingId || bulkPending) {
+      return;
+    }
+    const decision = lastDecision;
+    setPendingId(decision.id);
+    setActionFeedback(null);
+    try {
+      const updated = await adapter.transition(decision.id, { status: undoTo });
+      applyTransition(updated, decision.to);
+      setLastDecision(null);
+      setPendingId(null);
+      setActionFeedback({
+        tone: "success",
+        message: `Undone. ${labels.transitioned(updated, STATUS_LABELS[updated.status].toLowerCase())}`,
+      });
+      // Bring the row back under review when it is listed and no note would be dropped.
+      if (note.trim().length === 0 && (activeFilter === "all" || updated.status === activeFilter)) {
+        setSelectedId(updated.id);
+      }
+      invalidateDevRailBadge(railBadge);
+      void loadQueue({ background: true });
+    } catch (error) {
+      setActionFeedback({
+        tone: "danger",
+        message: error instanceof Error ? error.message : "Unable to undo that decision.",
+      });
+      setPendingId(null);
+    }
+  }
+
+  const canBulk = (row: Item, status: BulkDecision) => (adapter.transitions[row.status] ?? []).includes(status);
+  const checkedRows = visible.filter((row) => checked.has(row.id));
+
+  function toggleChecked(id: string) {
+    setChecked((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function runBulk(status: BulkDecision, targets: Item[]) {
+    setBulkPending(true);
+    setActionFeedback(null);
+    const failures: string[] = [];
+    const done = new Set<string>();
+    // One at a time: each write is its own decision in the item's log.
+    for (const row of targets) {
+      try {
+        const updated = await adapter.transition(row.id, { status });
+        applyTransition(updated, row.status);
+        done.add(row.id);
+      } catch (error) {
+        failures.push(`${labels.itemTitle(row)}: ${error instanceof Error ? error.message : "failed"}`);
+      }
+    }
+    setChecked((current) => new Set([...current].filter((id) => !done.has(id))));
+    setLastDecision(null);
+    setBulkPending(false);
+    const verb = status === "spam" ? "Marked" : "Rejected";
+    const tail = status === "spam" ? " as spam" : "";
+    setActionFeedback(
+      failures.length === 0
+        ? { tone: "success", message: `${verb} ${done.size} feedback ${done.size === 1 ? "item" : "items"}${tail}.` }
+        : {
+            tone: "danger",
+            message: `${verb} ${done.size} of ${targets.length}${tail}. Not changed: ${failures.join("; ")}`,
+          },
+    );
+    invalidateDevRailBadge(railBadge);
+    void loadQueue({ background: true });
+  }
+
+  function bulkDecide(status: BulkDecision) {
+    const targets = checkedRows.filter((row) => canBulk(row, status));
+    if (targets.length === 0 || bulkPending || pendingId) {
+      return;
+    }
+    const count = `${targets.length} feedback ${targets.length === 1 ? "item" : "items"}`;
+    const skipped = checkedRows.length - targets.length;
+    confirm({
+      title: status === "spam" ? `Mark ${count} as spam?` : `Reject ${count}?`,
+      description: (
+        <>
+          This writes to production right away and takes {targets.length === 1 ? "it" : "them"} off the queue. Each stays
+          in the {STATUS_LABELS[status]} list, where it can go back to Reviewing.
+          {skipped > 0 ? ` ${skipped} ticked ${skipped === 1 ? "item is" : "items are"} already there and stay as they are.` : null}
+        </>
+      ),
+      confirmLabel: status === "spam" ? "Mark as spam" : "Reject",
+      destructive: status === "rejected",
+      affected: targets.map((row) => labels.itemTitle(row)),
+      onConfirm: () => runBulk(status, targets),
+    });
+  }
+
+  const canDecide = (status: FeedbackQueueStatus) =>
+    selected !== null && !pendingId && !bulkPending && (adapter.transitions[selected.status] ?? []).includes(status);
+
+  const { helpDialog } = useTriageShortcuts({
+    onMove: (direction) => {
+      const index = visible.findIndex((row) => row.id === selected?.id);
+      const next = index < 0 ? visible[0] : visible[index + direction];
+      if (next) selectRow(next.id);
+    },
+    onAccept: () => {
+      if (canDecide("resolved")) decide("resolved");
+    },
+    onReject: () => {
+      if (canDecide("rejected")) decide("rejected");
+    },
+    onSpam: () => {
+      if (canDecide("spam")) decide("spam");
+    },
+    onNote: () => document.getElementById(noteId)?.focus(),
+    onUndo: () => void undoLastDecision(),
+    labels: { accept: "Resolve" },
+  });
 
   return (
     <div className="flex w-full flex-col gap-8">
@@ -557,6 +724,38 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
             aria-label="Search feedback"
             className="mb-2"
           />
+          {checkedRows.length > 0 ? (
+            <EditorPanel variant="toolbar" className="mb-2 p-2">
+              <EditorToolbar label="Bulk feedback actions" variant="split">
+                <p className="theme-text-secondary text-sm tabular-nums" aria-live="polite">
+                  {checkedRows.length} selected
+                </p>
+                <EditorActionGroup label="Bulk decision" align="end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={bulkPending || !checkedRows.some((row) => canBulk(row, "spam"))}
+                    onClick={() => bulkDecide("spam")}
+                  >
+                    Mark as spam
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    disabled={bulkPending || !checkedRows.some((row) => canBulk(row, "rejected"))}
+                    onClick={() => bulkDecide("rejected")}
+                  >
+                    Reject
+                  </Button>
+                  <Button type="button" variant="quiet" size="quiet" disabled={bulkPending} onClick={() => setChecked(new Set())}>
+                    Clear
+                  </Button>
+                </EditorActionGroup>
+              </EditorToolbar>
+            </EditorPanel>
+          ) : null}
           {loadState.status === "ready" || feedback.length > 0 ? (
             <EditorList
               label="Feedback queue"
@@ -564,6 +763,12 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               getKey={(row) => row.id}
               selectedKey={selected?.id ?? null}
               onSelect={selectRow}
+              multiSelect={{
+                checkedKeys: checked,
+                onToggle: toggleChecked,
+                checkLabel: (row) => `Select ${labels.itemTitle(row)}`,
+                canCheck: (row) => canBulk(row, "spam") || canBulk(row, "rejected"),
+              }}
               emptyText={
                 search
                   ? `No ${activeFilter === "all" ? "" : `${STATUS_LABELS[activeFilter].toLowerCase()} `}feedback matches "${search}".`
@@ -605,6 +810,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               {moreState.message}
             </ActionNotice>
           ) : null}
+          <TriageShortcutHint className="mt-3" />
         </EditorSection>
 
         <EditorSection
@@ -624,13 +830,22 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               header={adapter.renderDetail(selected)}
               keepsDecisionLog={adapter.keepsDecisionLog === true}
               validTargets={adapter.transitions[selected.status] ?? []}
-              pending={pendingId === selected.id}
+              pending={pendingId === selected.id || bulkPending}
               note={note}
-              noteId={`${adapter.source}-feedback-review-note`}
+              noteId={noteId}
               onNoteChange={changeNote}
               actionFeedback={actionFeedback}
               onDismissFeedback={() => setActionFeedback(null)}
               onStatusChange={decide}
+              undo={
+                lastDecision && undoTo
+                  ? {
+                      label: `Undo: back to ${STATUS_LABELS[undoTo]}`,
+                      disabled: pendingId !== null || bulkPending,
+                      onUndo: () => void undoLastDecision(),
+                    }
+                  : null
+              }
             />
           ) : (
             <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted text-sm">
@@ -641,6 +856,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       </div>
       {draftDialog}
       {confirmDialog}
+      {helpDialog}
     </div>
   );
 }
@@ -711,8 +927,10 @@ function FeedbackDetail({
   onStatusChange,
   pending,
   row,
+  undo,
   validTargets,
 }: {
+  undo: { label: string; disabled: boolean; onUndo: () => void } | null;
   actionFeedback: ActionFeedback | null;
   header: ReactNode;
   keepsDecisionLog: boolean;
@@ -813,10 +1031,19 @@ function FeedbackDetail({
             </EditorActionGroup>
           </EditorToolbar>
         </EditorPanel>
-        {actionFeedback ? (
-          <ActionNotice tone={actionFeedback.tone} onDismiss={onDismissFeedback}>
-            {actionFeedback.message}
-          </ActionNotice>
+        {actionFeedback || undo ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {actionFeedback ? (
+              <ActionNotice tone={actionFeedback.tone} onDismiss={onDismissFeedback}>
+                {actionFeedback.message}
+              </ActionNotice>
+            ) : null}
+            {undo ? (
+              <Button type="button" variant="outline" size="sm" disabled={undo.disabled} onClick={undo.onUndo}>
+                {undo.label}
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </div>

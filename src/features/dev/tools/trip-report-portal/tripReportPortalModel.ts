@@ -11,6 +11,11 @@
  * Everything here is pure. The tab owns fetching and React state; this owns what
  * the editor sees.
  */
+import {
+  INTAKE_STATUS_LABEL,
+  TRIP_REPORT_INTAKE_STATUS,
+  type IntakeStatus,
+} from "@/features/intake/intakeStatus";
 import { groupTripReports } from "@/features/reports/domain/tripReportIndex";
 import type { ReportViewMode } from "@/types/tripReport";
 import type {
@@ -72,7 +77,10 @@ export type PortalRow = {
   substances: TripReportEditableSubstance[];
   tags: string[];
   status: TripReportSubmissionStatus | "published";
+  /** Which bucket logic the row follows (Needs review, Published, other). */
   statusKind: PortalStatusKind;
+  /** The status word the list shows, shared with every intake queue. */
+  intakeStatus: IntakeStatus;
   /** Trip date when known, else the date the row entered the system. */
   sortDate: string;
   /**
@@ -85,12 +93,10 @@ export type PortalRow = {
   attributionReviewed: boolean;
 };
 
-export const PORTAL_STATUS_LABELS: Record<PortalStatusKind, string> = {
-  needs: "Needs review",
-  published: "Published",
-  accepted: "Accepted",
-  rejected: "Not published",
-};
+/** The row's status in the shared intake words (docs/glossary.md, Intake Status). */
+export function portalStatusLabel(row: Pick<PortalRow, "intakeStatus">): string {
+  return INTAKE_STATUS_LABEL[row.intakeStatus];
+}
 
 export function isNeedsReviewStatus(status: string): boolean {
   return (NEEDS_REVIEW_SUBMISSION_STATUSES as readonly string[]).includes(status);
@@ -141,6 +147,7 @@ export function toPortalRowFromReport(report: PublishedReportPayload): PortalRow
     tags: report.tags,
     status: "published",
     statusKind: "published",
+    intakeStatus: TRIP_REPORT_INTAKE_STATUS.published,
     sortDate: report.subject.trip_date ?? isoDate(report.createdAt),
     fields: null,
     profileKey: report.profileKey ?? null,
@@ -177,6 +184,7 @@ export function toPortalRowFromSubmission(submission: SubmissionRowPayload): Por
     tags: submission.report.tags,
     status: submission.status,
     statusKind: statusKindOf(submission.status),
+    intakeStatus: TRIP_REPORT_INTAKE_STATUS[submission.status],
     sortDate: submission.report.subject.trip_date ?? submission.created_at.slice(0, 10),
     fields: null,
     profileKey: null,

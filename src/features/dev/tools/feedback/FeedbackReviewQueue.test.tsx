@@ -616,3 +616,113 @@ describe("FeedbackReviewQueue filter", () => {
     expect(screen.getByLabelText("Review note")).toHaveValue("");
   });
 });
+
+describe("FeedbackReviewQueue keyboard triage and bulk actions", () => {
+  const rowA = { ...articleRow, id: "article-a", substance_title: "Alprazolam", created_at: "2026-08-01T12:00:00.000Z" };
+  const rowB = { ...articleRow, id: "article-b", substance_title: "Bromazepam", created_at: "2026-08-02T12:00:00.000Z" };
+  const rowC = { ...articleRow, id: "article-c", substance_title: "Clonazepam", created_at: "2026-08-03T12:00:00.000Z" };
+
+  /** A live stand-in: each POST moves the row to the posted status, and later lists show it. */
+  function stubLiveQueue() {
+    const rows = new Map<string, Record<string, unknown> & { id: string }>(
+      [rowA, rowB, rowC].map((row) => [row.id, { ...row }]),
+    );
+    const posts: { id: string; body: Record<string, unknown> }[] = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const match = /^\/api\/article-feedback\/([^/]+)\/status$/.exec(url);
+      if (match && init?.method === "POST") {
+        const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+        posts.push({ id: match[1], body });
+        const updated = { ...rows.get(match[1])!, status: body.status };
+        rows.set(match[1], updated);
+        return Response.json({ ok: true, feedback: updated });
+      }
+      if (url.startsWith("/api/article-feedback/queue")) {
+        return queueResponse(input, [...rows.values()]);
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    return posts;
+  }
+
+  it("moves the selection with j and k and resolves with a", async () => {
+    const user = userEvent.setup();
+    const posts = stubLiveQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("heading", { level: 3, name: "Alprazolam" });
+    await user.keyboard("j");
+    expect(await screen.findByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+    await user.keyboard("j");
+    expect(await screen.findByRole("heading", { level: 3, name: "Clonazepam" })).toBeInTheDocument();
+    await user.keyboard("k");
+    expect(await screen.findByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+
+    await user.keyboard("a");
+    await waitFor(() => expect(posts).toEqual([{ id: "article-b", body: { status: "resolved" } }]));
+  });
+
+  it("asks before r rejects, types nothing into the note, and u takes the decision back", async () => {
+    const user = userEvent.setup();
+    const posts = stubLiveQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("heading", { level: 3, name: "Alprazolam" });
+    await user.keyboard("r");
+    const dialog = await screen.findByRole("dialog", { name: "Reject this feedback?" });
+    expect(posts).toHaveLength(0);
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(posts).toEqual([{ id: "article-a", body: { status: "rejected" } }]));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    await user.keyboard("u");
+    await waitFor(() =>
+      expect(posts[1]).toEqual({ id: "article-a", body: { status: "reviewing" } }),
+    );
+
+    await user.keyboard("n");
+    expect(screen.getByLabelText("Review note")).toHaveFocus();
+    expect(screen.getByLabelText("Review note")).toHaveValue("");
+  });
+
+  it("keeps the arrow keys on the queue listbox", async () => {
+    stubLiveQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await screen.findByRole("heading", { level: 3, name: "Alprazolam" });
+    list.focus();
+    await userEvent.setup().keyboard("{ArrowDown}");
+    expect(await screen.findByRole("heading", { level: 3, name: "Bromazepam" })).toBeInTheDocument();
+    expect(within(list).getByRole("option", { selected: true })).toHaveTextContent("Bromazepam");
+  });
+
+  it("marks every ticked row as spam after one confirm", async () => {
+    const user = userEvent.setup();
+    const posts = stubLiveQueue();
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("checkbox", { name: "Select Alprazolam" }));
+    await user.click(screen.getByRole("checkbox", { name: "Select Clonazepam" }));
+    expect(screen.getByText("2 selected")).toBeInTheDocument();
+
+    await user.click(within(screen.getByRole("toolbar", { name: "Bulk feedback actions" })).getByRole("button", { name: "Mark as spam" }));
+    const dialog = await screen.findByRole("dialog", { name: "Mark 2 feedback items as spam?" });
+    expect(within(dialog).getByText("Alprazolam")).toBeInTheDocument();
+    expect(within(dialog).getByText("Clonazepam")).toBeInTheDocument();
+    expect(posts).toHaveLength(0);
+
+    await user.click(within(dialog).getByRole("button", { name: "Mark as spam" }));
+    await waitFor(() =>
+      expect(posts).toEqual([
+        { id: "article-a", body: { status: "spam" } },
+        { id: "article-c", body: { status: "spam" } },
+      ]),
+    );
+    expect(await screen.findByText("Marked 2 feedback items as spam.")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("2 selected")).not.toBeInTheDocument());
+  });
+});
