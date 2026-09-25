@@ -276,6 +276,7 @@ export function DoseTiersTable({
                       label={`${routeLabel} ${label.toLowerCase()} dose`}
                       parse={doseRangeTransformer.toSchema}
                       parseErrorLabel={DOSE_PARSE_ERROR}
+                      citeHint="Cite this dose in the route notes."
                       path={`${routePath}.dose_ranges.${key}`}
                       value={toEditableRange(range)}
                     >
@@ -386,6 +387,7 @@ export function DurationPanelView({
                     label={`${routeLabel} ${label.toLowerCase()} duration`}
                     parse={durationStageTransformer.toSchema}
                     parseErrorLabel={DURATION_PARSE_ERROR}
+                    citeHint="Cite this duration in the route notes."
                     path={`${routePath}.stages.${key}`}
                     value={toEditableRange(stage)}
                   >

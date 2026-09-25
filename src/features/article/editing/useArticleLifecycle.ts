@@ -8,6 +8,7 @@ import { applyEditableFieldWrite, parseEditableFieldPath, type EditableFieldValu
 import { findEquivalentReference } from "../../../../lib/citations/referenceIdentity.mjs";
 import { ArticleFieldCommitError, type ArticleEditContextValue } from "./ArticleEditContext";
 import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
+import { articlePublicationNotice, type ArticlePublicationNotice } from "./publicationNotice";
 
 /**
  * What the local preview holds at one allow-listed field path, or `null` when
@@ -81,6 +82,10 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const [version, setVersion] = useState<number | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Set only by a publish or restore, from the receipt the route returned.
+  const [publication, setPublication] = useState<ArticlePublicationNotice | null>(null);
+  // The proposal this session just submitted, kept for the pending chip.
+  const [submittedProposalId, setSubmittedProposalId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uncertain, setUncertain] = useState(false);
@@ -140,6 +145,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     current.current = next;
     setArticle(next);
     setNotice(null);
+    setPublication(null);
   }, []);
   const commit: ArticleEditContextValue["commit"] = useCallback(async (path, value, expected) => {
     const result = applyEditableFieldWrite(current.current as unknown as Record<string, unknown>, path, value, { expected });
@@ -222,7 +228,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     if (!pending.current) pending.current = { identity, changeId: crypto.randomUUID() };
     if (candidate) preview(candidate);
     requestLock.current = true;
-    setBusy(true); setError(null); setNotice(null);
+    setBusy(true); setError(null); setNotice(null); setPublication(null);
     try {
       const response = await fetch("/api/dev/article-lifecycle", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -259,15 +265,23 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
           setNotice("Private draft discarded. The current published article is loaded; published content has not changed.");
         }
       } else if (action === "submit") {
-        setSavedArticle(nextArticle); preview(nextArticle);
+        // The proposal now lives in review, so the page goes back to what
+        // readers see. Keeping the proposed content here left a change count
+        // and a Submit button that invited the same proposal twice.
+        preview(snapshot.article); setSavedArticle(snapshot.article); setBaseHash(snapshot.baseHash);
         setSnapshot({ ...snapshot, draft: null, draftVersion: data.draftVersion });
         setRevisionOf(undefined);
+        if (typeof data.proposalId === "string") setSubmittedProposalId(data.proposalId);
         setNotice("Submitted for review. Published content has not changed.");
       } else {
         preview(data.article); setSavedArticle(data.article); setBaseHash(data.baseHash);
         setRevisionOf(undefined);
         setSnapshot({ article: data.article, baseHash: data.baseHash, draft: null, history: snapshot.history, draftVersion: data.draftVersion });
-        setNotice(action === "restore" ? "Revision restored as a new published change." : "Article change published.");
+        // The route answers once the editor host has the change; the public
+        // site catches up later. Only the receipt can say how far it got.
+        const delivery = articlePublicationNotice(slug, data.publication);
+        setPublication(delivery);
+        setNotice(action === "restore" ? `Revision restored as a new change. ${delivery.message}` : delivery.message);
       }
       // Read-only history/proposal refresh never changes the draft baseline.
       void fetch(`/api/dev/article-lifecycle?slug=${encodeURIComponent(slug)}`, { cache: "no-store" })
@@ -292,6 +306,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const getArticle = useCallback(() => current.current, []);
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
   return { article, published: snapshot?.article ?? initialArticle, history: snapshot?.history ?? [],
-    hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, commit, refreshStoredValue, addReference, preview, act, discardLocal,
-    dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, proposals: snapshot?.proposals ?? [] };
+    hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
+    dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, proposals: snapshot?.proposals ?? [], submittedProposalId };
 }

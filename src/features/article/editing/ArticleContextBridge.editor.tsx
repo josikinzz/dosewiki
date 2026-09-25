@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { useContextualEditing, type DraftNavigationGuard } from "@/features/contextual-editing/context";
 import { EditorToolbar } from "@/features/dev/components/EditorToolbar";
+import { useConfirm } from "@/features/dev/components/ConfirmDialog";
 import { canDraft, type AppRole } from "@/lib/auth/roles";
 import { ArticleLayout, type ArticleLayoutProps } from "../components/ArticleLayout";
 import { ArticleEditProvider, type ArticleEditContextValue } from "./ArticleEditContext";
@@ -130,6 +132,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   useEffect(() => { if (requestedSection && active) setSection(requestedSection); }, [requestedSection, active]);
   useEffect(() => { onDirtyChange?.(lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked); return () => onDirtyChange?.(false); }, [onDirtyChange, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
   useEffect(() => { onOperationLockChange?.(operationLocked); }, [onOperationLockChange, operationLocked]);
@@ -200,21 +203,47 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const primaryLabel = canPublish ? "Publish" : lifecycle.revisionOf ? "Submit proposal revision" : "Submit for review";
   const countLabel = changes.length === 1 ? "1 change" : `${changes.length} changes`;
   const actionBlocked = operationLocked || changes.length === 0 || problems.length > 0;
+  const submitted = () => {
+    // The page now shows the published article; open forms must not keep
+    // offering the submitted values as fresh edits.
+    for (const draft of inlineDrafts.current.values()) draft.discard();
+    inlineDrafts.current.clear(); setInlineDirty(false);
+    setFormDirty(false); setFormEpoch((value) => value + 1);
+  };
+  const performPrimary = () => attempt(async () => {
+    await lifecycle.act(canPublish ? "publish" : "submit", summary);
+    if (!canPublish) submitted();
+    // The write answered with the published article and the lifecycle has
+    // already adopted it. Refreshing the route here would re-run the page
+    // and re-drain the editor library, which reads as a reload of work the
+    // editor just watched land.
+    setSummary(""); setSummaryEdited(false); setReview(false);
+  });
+  // Publishing reaches every reader, so it always passes through one confirm
+  // that names where the change lands. Submitting for review changes nothing
+  // public and runs directly.
+  const publicPath = `/${slug ?? ""}`;
   const runPrimary = () => {
     if (actionBlocked) return;
-    void attempt(async () => {
-      await lifecycle.act(canPublish ? "publish" : "submit", summary);
-      // The write answered with the published article and the lifecycle has
-      // already adopted it. Refreshing the route here would re-run the page
-      // and re-drain the editor library, which reads as a reload of work the
-      // editor just watched land.
-      setSummary(""); setSummaryEdited(false); setReview(false);
+    if (!canPublish) { void performPrimary(); return; }
+    confirm({
+      title: "Publish this change to every reader?",
+      description: `The article is saved on the editor host first, then delivered to the public site. ${countLabel} with the note "${summary.trim() || "no note"}".`,
+      affected: [publicPath, "/changes"],
+      confirmLabel: "Publish",
+      onConfirm: performPrimary,
     });
   };
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
     void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); setDiscardOpen(false); closePanel(); router.refresh(); });
   }}>Retry previous operation</Button> : null;
-  const status = lifecycle.uncertain ? "Previous operation unconfirmed. Editing is paused until it is reconciled." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft…") : lifecycle.busy ? "Loading or saving…" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
+  const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
+  // Until the refreshed list names it, the proposal just submitted is pending;
+  // once review decides it, the chip gives way to the list's own status.
+  const submittedStatus = lifecycle.proposals.find((proposal) => proposal._id === lifecycle.submittedProposalId)?.status;
+  const pendingChipId = lifecycle.submittedProposalId && (!submittedStatus || submittedStatus === "submitted") ? lifecycle.submittedProposalId : null;
+  const pendingLabel = pendingProposals === 1 ? "1 proposal pending on this article" : `${pendingProposals} proposals pending on this article`;
+  const status = lifecycle.uncertain ? "Previous operation unconfirmed. Editing is paused until it is reconciled." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft…") : lifecycle.busy ? "Loading or saving…" : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
   if (!active) return <>{children}</>;
   if (lifecycle.expired) return <>
     <Surface variant="subtle" padding="md" className="mx-auto mb-6 max-w-5xl space-y-3">
@@ -233,6 +262,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         <div className="min-w-0 flex-1 basis-full sm:flex sm:basis-auto sm:items-center sm:gap-3">
           <p className="theme-text-primary shrink-0 text-sm font-semibold">Private preview</p>
           <p className="theme-text-muted truncate text-xs" role="status" title={status}>{status}</p>
+          {(pendingChipId || pendingProposals > 0) && <p className="theme-text-muted flex shrink-0 flex-wrap items-center gap-2 text-xs">
+            {pendingChipId && <Link href="/dev/queue" className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
+            {pendingProposals > 0 && <span>{pendingLabel}</span>}
+          </p>}
         </div>
         <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
           {lifecycle.ready ? <>
@@ -257,6 +290,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         </div>
       </div>
       {!lifecycle.ready && lifecycle.loaded && <p role="alert" className="theme-text-primary px-1 py-2 text-sm">{lifecycle.baselineRefreshRequired ? "The saved draft was discarded. Refresh and reconcile the latest article before editing; your local copy remains here." : "Article writes are paused. Your edits remain here; no operation will resume automatically after sign-in."}</p>}
+      {lifecycle.publication && <p data-testid="article-publication-notice" className="theme-text-primary px-1 py-2 text-sm">
+        {lifecycle.publication.message}{" "}
+        <Link href={lifecycle.publication.path} className="underline underline-offset-2">Open the public article</Link>
+      </p>}
       {lifecycle.uncertain && <p className="theme-text-primary px-1 py-2 text-sm">{status}</p>}
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
       {(localError || lifecycle.error) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
@@ -278,13 +315,15 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           {changes.length > 0 && <>
           <label htmlFor={summaryId} className="theme-text-primary block space-y-2 text-sm">Change note<Input id={summaryId} value={summary} onChange={(event) => { setSummary(event.target.value); setSummaryEdited(true); }} onKeyDown={(event) => {
             if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+            // A plain Enter never publishes: finishing a sentence is not a
+            // decision to go live. The modified chord is the explicit action.
             event.preventDefault();
-            runPrimary();
+            if (event.metaKey || event.ctrlKey) runPrimary();
           }} /></label>
-          <p className="theme-text-muted text-sm">Written from the changed fields. Edit it if the change deserves more than the diff already says.</p>
+          <p className="theme-text-muted text-sm">Written from the changed fields. Edit it if the change deserves more than the diff already says. Press Ctrl+Enter or Cmd+Enter to {canPublish ? "review and publish" : "submit for review"}.</p>
           <div className="flex flex-wrap gap-2">
             <Button disabled={actionBlocked} onClick={runPrimary}>{primaryLabel} ({countLabel})</Button>
-            {canPublish && <Button variant="outline" disabled={actionBlocked} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); setSummary(""); setSummaryEdited(false); setReview(false); }); }}>Submit for review instead</Button>}
+            {canPublish && <Button variant="outline" disabled={actionBlocked} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); submitted(); setSummary(""); setSummaryEdited(false); setReview(false); }); }}>Submit for review instead</Button>}
           </div>
           <p className="theme-text-muted text-sm">Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged.</p>
           </>}
@@ -365,5 +404,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {restore && <div className="space-y-5 overflow-y-auto"><ArticleChangeDiff before={lifecycle.published} after={restore.before} /><Button disabled={operationLocked || role !== "admin" || restore.resultHash !== lifecycle.publishedHash} onClick={() => { void attempt(async () => { await lifecycle.act("restore", `Undo ${restore.revisionId}`, restore.revisionId); router.refresh(); setRestore(null); }); }}>Restore the state before this change</Button>{localError && <p role="alert">{localError}</p>}</div>}
       {retryControl}
     </ContextualEditorPanel>
+    {confirmDialog}
   </ArticleSectionEditorContext.Provider>;
 }

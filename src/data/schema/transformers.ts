@@ -6,6 +6,9 @@ import type { DoseRange, DurationStage, Citation, CountryLegality } from "../../
  * These enable human-friendly editing of structured data.
  */
 
+/** The opening of either citation marker kind, complete or half typed. */
+const CITATION_MARKER_START = /\[(?:cite:|citation-needed)/i;
+
 /**
  * Parse a range string like "10-20 mg", "10+ mg", "~10 mg", or "<20 mg"
  * Returns { min, max, unit } or null if unparseable
@@ -13,6 +16,10 @@ import type { DoseRange, DurationStage, Citation, CountryLegality } from "../../
 export function parseRangeString(str: string): { min: number | null; max: number | null; unit: string } | null {
   const trimmed = str.trim();
   if (!trimmed) return null;
+  // The unit captures everything after the numbers, so a citation marker typed
+  // here would be stored as part of the unit (`mg[cite:x]`). Doses and
+  // durations are cited in the route notes, never inline.
+  if (CITATION_MARKER_START.test(trimmed)) return null;
 
   // Pattern: "10-20 mg" or "10 - 20 mg"
   const rangeMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(.*)$/);

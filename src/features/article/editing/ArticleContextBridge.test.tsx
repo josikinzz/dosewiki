@@ -168,10 +168,108 @@ describe("publishing one change", () => {
     await user.clear(note);
     await user.type(note, "Corrected the onset claim");
     await user.click(within(screen.getByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
 
     await waitFor(() => {
       const posted = request.mock.calls.find(([, init]) => init?.method === "POST");
       expect(JSON.parse(String(posted?.[1]?.body))).toMatchObject({ summary: "Corrected the onset claim" });
     });
+  });
+
+  it("does not publish when Enter is pressed in the change note", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValue(published(ownerSummary));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    await screen.findByText(ownerSummary);
+    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+
+    const note = await screen.findByLabelText("Change note");
+    await user.type(note, " today{Enter}");
+
+    expect(screen.queryByRole("dialog", { name: /Publish this change/ })).toBeNull();
+    expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+    expect((note as HTMLInputElement).value).toMatch(/ today$/);
+  });
+
+  it("asks before publishing from Ctrl+Enter and names what changes", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValue(published(ownerSummary));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    await screen.findByText(ownerSummary);
+    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+
+    await user.click(await screen.findByLabelText("Change note"));
+    await user.keyboard("{Control>}{Enter}{/Control}");
+
+    const confirm = await screen.findByRole("dialog", { name: /Publish this change/ });
+    expect(within(confirm).getByText("/fixture")).toBeTruthy();
+    expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+
+    await user.click(within(confirm).getByRole("button", { name: "Cancel" }));
+    expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+  });
+
+  it("reports a pending delivery from the receipt and links to the public article", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json({
+        ok: true, revisionId: "rev-1", changeId: "change-1", draftVersion: 2,
+        article: { ...article, summary: ownerSummary }, baseHash: "published-revision",
+        publication: [{ target: "durable-outbox", status: "pending", attempts: 0, verification: "pending" }],
+      }))
+      .mockResolvedValue(Response.json(snapshot(null)));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    await screen.findByText(ownerSummary);
+    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
+
+    const notice = await screen.findByTestId("article-publication-notice");
+    expect(notice.textContent).toMatch(/Saved on the editor host/);
+    expect(notice.textContent).toMatch(/pending/i);
+    expect(notice.textContent).not.toMatch(/\bpublished\b/i);
+    expect(within(notice).getByRole("link", { name: /public article/i }).getAttribute("href")).toBe("/fixture");
+  });
+});
+
+describe("submitting one change for review", () => {
+  const proposal = {
+    _id: "p7k2m9x4q1", proposerName: "Second", isAuthor: true, createdAt: "2026-09-24T00:00:00.000Z",
+    updatedAt: "2026-09-24T00:00:00.000Z", status: "submitted", targets: [{ kind: "article", key: "fixture" }],
+    summary: ownerSummary, commentCount: 0,
+  };
+
+  it("shows the published article again with the pending proposal and no second submit", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json({
+        ok: true, proposalId: proposal._id, status: "submitted", changeId: "change-1",
+        baseHash: "public-revision", draftVersion: 2,
+      }))
+      .mockResolvedValue(Response.json({ ...snapshot(null), draftVersion: 2, proposals: [proposal] }));
+    vi.stubGlobal("fetch", request);
+    render(view({ ...state, role: "editor", email: "second@example.test" }));
+    await screen.findByText(ownerSummary);
+    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Submit for review/ }));
+
+    const chip = await screen.findByRole("link", { name: /Proposal #p7k2m9 pending/ });
+    expect(chip.getAttribute("href")).toBe("/dev/queue");
+    // The page is what readers see, not the proposal: the proposal lives in review.
+    expect(screen.getByRole("article", { name: "Article preview" }).textContent).toBe("Public article");
+    expect(screen.queryByText(ownerSummary)).toBeNull();
+    // Nothing is left to submit until the editor makes a new edit.
+    expect(screen.queryByRole("button", { name: /Submit for review/ })).toBeNull();
+    await waitFor(() => expect(screen.getByText(/1 proposal pending on this article/)).toBeTruthy());
+    expect(request.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   });
 });

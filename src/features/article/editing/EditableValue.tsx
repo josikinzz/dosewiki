@@ -30,6 +30,8 @@ import {
   type CitationMarkerSpan,
 } from "@/lib/citations/citationTokens";
 import { useT, type MessageValues } from "@/i18n/client";
+import type { Reference } from "@/schema";
+import { findEquivalentReference } from "../../../../lib/citations/referenceIdentity.mjs";
 
 interface EditableValueProps<T extends EditableValueInput = string> {
   /** Concrete article field path, e.g. `dosage.routes[2].notes`. */
@@ -57,6 +59,12 @@ interface EditableValueProps<T extends EditableValueInput = string> {
   parse?: (raw: string) => T | null;
   /** Shown instead of committing when `parse` returns `null`. */
   parseErrorLabel?: string;
+  /**
+   * Where to cite this value instead. A parsed field has no Cite control: its
+   * parser would read a marker as part of the stored value (a dose unit of
+   * `mg[cite:x]`), so the field says where the citation belongs.
+   */
+  citeHint?: string;
   children: ReactNode;
   /**
    * Wrapper element. Stays `span` so inline call sites (a note inside a `<p>`)
@@ -75,6 +83,25 @@ interface EditableValueProps<T extends EditableValueInput = string> {
    */
   emptyLabel?: string;
   className?: string;
+}
+
+/**
+ * The field text with one marker taken out, and the one space that separated
+ * it from the claim when nothing else needs that space. Everything else in
+ * the text, deliberate double spaces included, stays exactly as stored.
+ */
+export function withoutMarker(
+  text: string,
+  marker: Pick<CitationMarkerSpan, "start" | "end">,
+): string {
+  let before = text.slice(0, marker.start);
+  let after = text.slice(marker.end);
+  if (before.endsWith(" ") && (after === "" || /^[\s.,;:!?)]/.test(after))) {
+    before = before.slice(0, -1);
+  } else if (before === "" && after.startsWith(" ")) {
+    after = after.slice(1);
+  }
+  return `${before}${after}`;
 }
 
 /** Roughly fits the editor to the text without a resize observer. */
@@ -117,6 +144,7 @@ export function EditableValue<T extends EditableValueInput = string>({
   format,
   parse,
   parseErrorLabel,
+  citeHint = "Cite this value in the notes beside it.",
   children,
   as = "span",
   label: labelKey,
@@ -161,6 +189,14 @@ export function EditableValue<T extends EditableValueInput = string>({
   // thing being answered, so the new marker takes its place.
   const replaceRangeRef = useRef<{ start: number; end: number } | null>(null);
   const [citeOpen, setCiteOpen] = useState(false);
+  // Sources minted by Cite while this field is open. They belong to the draft,
+  // not the article: Esc drops them with the text, and only an apply hands
+  // them to the surface. Otherwise a cancelled edit leaves an uncited source
+  // in the reference list for review to trip over.
+  const pendingReferencesRef = useRef<Reference[]>([]);
+  // A metadata lookup that failed while citing. Lives on the field, because
+  // the popover that noticed it closes the moment the marker lands.
+  const [lookupWarning, setLookupWarning] = useState("");
 
   useEffect(() => {
     if (!isEditing) setDraft(text);
@@ -201,7 +237,49 @@ export function EditableValue<T extends EditableValueInput = string>({
     });
   }, []);
 
+  /**
+   * Hold a source for this draft and answer with the id its marker uses. A
+   * source the article, or this draft, already has answers with that id.
+   */
+  const addDraftReference = useCallback(
+    (reference: Reference): string => {
+      const known = [
+        ...(editing?.references ?? []),
+        ...pendingReferencesRef.current,
+      ];
+      const existing = findEquivalentReference(known, reference);
+      if (existing?.id) return existing.id;
+      pendingReferencesRef.current = [
+        ...pendingReferencesRef.current,
+        reference,
+      ];
+      return reference.id;
+    },
+    [editing?.references],
+  );
+
+  /**
+   * Hand the draft's sources to the surface once its text has applied. A
+   * source whose marker was deleted again before applying is not cited by
+   * anything, so it is dropped rather than added.
+   */
+  const commitPendingReferences = useCallback(
+    (applied: string) => {
+      const pendingReferences = pendingReferencesRef.current;
+      pendingReferencesRef.current = [];
+      if (!editing?.addReference) return;
+      for (const reference of pendingReferences) {
+        if (applied.includes(`[cite:${reference.id}]`)) {
+          editing.addReference(reference);
+        }
+      }
+    },
+    [editing],
+  );
+
   const finish = useCallback(() => {
+    pendingReferencesRef.current = [];
+    setLookupWarning("");
     restoreFocusRef.current =
       document.activeElement === document.body ||
       !!editorRef.current?.contains(document.activeElement);
@@ -258,6 +336,7 @@ export function EditableValue<T extends EditableValueInput = string>({
           baseValue as EditableFieldValue,
         )
         .then(() => {
+          commitPendingReferences(next);
           setStatus("Applied to local preview.");
           finish();
         })
@@ -299,6 +378,7 @@ export function EditableValue<T extends EditableValueInput = string>({
     [
       baseText,
       baseValue,
+      commitPendingReferences,
       editing,
       finish,
       isPending,
@@ -323,6 +403,7 @@ export function EditableValue<T extends EditableValueInput = string>({
           parsed as EditableFieldValue,
           baseValue as EditableFieldValue,
         );
+        commitPendingReferences(draft);
         finish();
       },
       discard: () => {
@@ -343,6 +424,7 @@ export function EditableValue<T extends EditableValueInput = string>({
     label,
     path,
     text,
+    commitPendingReferences,
     finish,
   ]);
 
@@ -361,6 +443,8 @@ export function EditableValue<T extends EditableValueInput = string>({
 
   const startEditing = useCallback(() => {
     cancelledRef.current = false;
+    pendingReferencesRef.current = [];
+    setLookupWarning("");
     setDraft(text);
     setStatus("");
     setError(null);
@@ -378,6 +462,8 @@ export function EditableValue<T extends EditableValueInput = string>({
   const citeAtMarker = useCallback(
     (marker: CitationMarkerSpan) => {
       cancelledRef.current = false;
+      pendingReferencesRef.current = [];
+      setLookupWarning("");
       setDraft(text);
       setStatus("");
       setError(null);
@@ -396,11 +482,7 @@ export function EditableValue<T extends EditableValueInput = string>({
   const removeMarker = useCallback(
     (marker: CitationMarkerSpan) => {
       if (!editing) return;
-      const next =
-        `${text.slice(0, marker.start)}${text.slice(marker.end)}`.replace(
-          / {2,}/g,
-          " ",
-        );
+      const next = withoutMarker(text, marker);
       const parsed = parse ? parse(next) : (next as T);
       if (parsed === null) return;
       setStatus("Applying to preview…");
@@ -456,7 +538,9 @@ export function EditableValue<T extends EditableValueInput = string>({
           aria-busy={isPending}
           onBlur={(event) => {
             if (event.currentTarget.contains(event.relatedTarget)) return;
-            if (cancelledRef.current || isPending || conflict) return;
+            // Cite's panel renders in a portal, so focus entering it looks like
+            // focus leaving the field. Choosing a source is part of the edit.
+            if (cancelledRef.current || isPending || conflict || citeOpen) return;
             commitDraft(draft);
           }}
         >
@@ -496,14 +580,18 @@ export function EditableValue<T extends EditableValueInput = string>({
             className="theme-text-faint mt-1 block text-sm leading-snug"
           >
             {isPending ? "Applying to preview…" : "Enter applies · Esc cancels"}
+            {parse && editing.addReference ? (
+              <span className="block">{citeHint}</span>
+            ) : null}
           </span>
           <span className="mt-2 flex flex-wrap items-center gap-2">
-            {editing.addReference && !conflict ? (
+            {editing.addReference && !conflict && !parse ? (
               <CitePopover
                 open={citeOpen}
                 onOpenChange={setCiteOpen}
                 references={editing.references ?? []}
-                addReference={editing.addReference}
+                addReference={addDraftReference}
+                onLookupWarning={setLookupWarning}
                 onInsert={insertAtCaret}
                 disabled={isPending}
               />
@@ -515,6 +603,14 @@ export function EditableValue<T extends EditableValueInput = string>({
               onCancel={cancelEditing}
             />
           </span>
+          {lookupWarning ? (
+            <span
+              role="status"
+              className="theme-warning-text mt-1 block text-sm leading-snug"
+            >
+              {lookupWarning}
+            </span>
+          ) : null}
           {error ? (
             <span
               id={`${fieldId}-error`}
