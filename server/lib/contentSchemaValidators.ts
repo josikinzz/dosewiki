@@ -176,6 +176,21 @@ const tripReportSubmissionStatus = v.union(
   v.literal("exported"),
 );
 
+// One append-only entry per status transition; see
+// src/features/intake/decisionLog.ts. `from` is absent only on the entry
+// migrated from a review note stored before the log existed.
+export const tripReportSubmissionDecisionLog = v.array(
+  v.object({
+    at: v.string(),
+    actor: v.string(),
+    from: v.optional(tripReportSubmissionStatus),
+    to: tripReportSubmissionStatus,
+    note: v.optional(v.string()),
+    public_reason: v.optional(v.string()),
+    migrated: v.optional(v.boolean()),
+  }),
+);
+
 const tripReportSubmissionReport = v.object({
   title: v.string(),
   subject: tripReportSubjectValidator,
@@ -206,6 +221,7 @@ export const tripReportSubmission = v.object({
   review_notes: v.optional(v.string()),
   reviewed_by: v.optional(v.string()),
   reviewed_at: v.optional(v.string()),
+  decision_log: v.optional(tripReportSubmissionDecisionLog),
   exported_trip_report_id: v.optional(v.id("tripReports")),
   exported_at: v.optional(v.string()),
   created_at: v.string(),
@@ -218,6 +234,19 @@ const articleFeedbackStatus = v.union(
   v.literal("resolved"),
   v.literal("rejected"),
   v.literal("spam"),
+);
+
+// Article and site feedback share the status machine, so they share the log shape.
+export const feedbackDecisionLog = v.array(
+  v.object({
+    at: v.string(),
+    actor: v.string(),
+    from: v.optional(articleFeedbackStatus),
+    to: articleFeedbackStatus,
+    note: v.optional(v.string()),
+    public_reason: v.optional(v.string()),
+    migrated: v.optional(v.boolean()),
+  }),
 );
 
 const articleFeedbackCategory = v.union(
@@ -252,6 +281,7 @@ export const articleFeedback = v.object({
   review_notes: v.optional(v.string()),
   reviewed_by: v.optional(v.string()),
   reviewed_at: v.optional(v.string()),
+  decision_log: v.optional(feedbackDecisionLog),
   created_at: v.string(),
   updated_at: v.string(),
 });
@@ -289,6 +319,7 @@ export const siteFeedback = v.object({
   review_notes: v.optional(v.string()),
   reviewed_by: v.optional(v.string()),
   reviewed_at: v.optional(v.string()),
+  decision_log: v.optional(feedbackDecisionLog),
   created_at: v.string(),
   updated_at: v.string(),
 });

@@ -138,6 +138,50 @@ describe.each([
     await waitFor(() => expect(screen.getByLabelText("Review note")).toHaveValue(""));
   });
 
+  it("shows every past decision in the log, oldest first, with who and why", async () => {
+    stubFetch(basePath, [
+      {
+        ...row,
+        status: "resolved",
+        review_notes: "Fixed in the dosage table.",
+        decision_log: [
+          { at: "2026-08-02T09:00:00.000Z", actor: "first@example.com", from: "new", to: "reviewing" },
+          {
+            at: "2026-08-03T09:00:00.000Z",
+            actor: "second@example.com",
+            from: "reviewing",
+            to: "resolved",
+            note: "Fixed in the dosage table.",
+          },
+        ],
+      },
+    ]);
+    render(queue);
+
+    const log = await screen.findByRole("list", { name: "Decision log" });
+    const entries = within(log).getAllByRole("listitem");
+    expect(entries).toHaveLength(2);
+    expect(entries[0]).toHaveTextContent("New to Reviewing");
+    expect(entries[0]).toHaveTextContent("first@example.com");
+    expect(entries[1]).toHaveTextContent("Reviewing to Resolved");
+    expect(entries[1]).toHaveTextContent("second@example.com");
+    expect(entries[1]).toHaveTextContent("Fixed in the dosage table.");
+  });
+
+  it("shows a review note stored before the log as a migrated entry", async () => {
+    stubFetch(basePath, [
+      { ...row, status: "rejected", review_notes: "Not reproducible.", reviewed_by: "first@example.com" },
+    ]);
+    render(queue);
+
+    const log = await screen.findByRole("list", { name: "Decision log" });
+    const [entry] = within(log).getAllByRole("listitem");
+    expect(entry).toHaveTextContent("Earlier decision: Rejected");
+    expect(entry).toHaveTextContent("first@example.com");
+    expect(entry).toHaveTextContent("recorded before the decision log");
+    expect(entry).toHaveTextContent("Not reproducible.");
+  });
+
   it("asks before rejecting and only writes after the confirm, omitting a blank note", async () => {
     const user = userEvent.setup();
     const fetchMock = stubFetch(basePath, [row]);

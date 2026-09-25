@@ -29,6 +29,7 @@ type ArticleFeedbackQueueItem = Pick<
   | "review_notes"
   | "reviewed_by"
   | "reviewed_at"
+  | "decision_log"
   | "created_at"
 >;
 
@@ -42,6 +43,7 @@ const IMPORTANCE_PILL_TONE: Record<ArticleFeedbackRow["importance"], EditorStatu
 export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackQueueItem> = {
   source: "article",
   ...createFeedbackRequests<ArticleFeedbackQueueItem>("/api/article-feedback"),
+  keepsDecisionLog: true,
   transitions: ARTICLE_FEEDBACK_STATUS_TRANSITIONS,
   importance: (row) => row.importance,
   labels: {

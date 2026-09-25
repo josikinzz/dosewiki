@@ -260,6 +260,12 @@ _Avoid_: outdated review, expired review, unreviewed (for a stale sign-off)
 An editor's request that an admin sign off an article, made with R in /review. Stored as `editorial_review.recommendation` (`revision`, `recommended_by`, `recommended_at`, `note`) bound to the published revision the editor read; it never changes the review status. Admins approve recommendations in batches from the Review recommendations lane in Change Review, which writes `completed` at the recommended revision. A recommendation whose revision is no longer the published one is stale and needs another review before approval.
 _Avoid_: editor sign-off, pending review, soft reviewed
 
+## Intake Language
+
+**Decision Log**:
+The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is reserved for a reason the submitter may see; nothing shows it yet. Glossary feedback keeps only its latest note.
+_Avoid_: review history (for the note field), audit trail, overwritten note
+
 ## Replications Surface Language
 
 The [replication classification field guide](workflows/replication-classification-guide.html) is the canonical intake and taxonomy procedure. It keeps gallery admission, viewing mode, effect evidence, title-only drug tags, and artist practice as separate decisions.

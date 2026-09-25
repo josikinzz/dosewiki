@@ -173,10 +173,24 @@ describe("trip report submission intake", () => {
       updated_at: "2026-06-11T12:02:00.000Z",
     });
     // A blank note records only the outcome; the stored note stays.
-    expect(
-      transitionTripReportSubmission(accepted, { status: "reviewing", reviewer: "editor@example.com", notes: "  " })
-        .review_notes,
-    ).toBe("Good candidate.");
+    const reopened = transitionTripReportSubmission(accepted, {
+      status: "reviewing",
+      reviewer: "admin@example.com",
+      notes: "  ",
+      now: new Date("2026-06-11T12:05:00.000Z"),
+    });
+    expect(reopened.review_notes).toBe("Good candidate.");
+    // Each decision appends to the log, in order; neither overwrites the other.
+    expect(reopened.decision_log).toEqual([
+      {
+        at: "2026-06-11T12:02:00.000Z",
+        actor: "editor@example.com",
+        from: "submitted",
+        to: "accepted",
+        note: "Good candidate.",
+      },
+      { at: "2026-06-11T12:05:00.000Z", actor: "admin@example.com", from: "accepted", to: "reviewing" },
+    ]);
     expect(() =>
       transitionTripReportSubmission(accepted, {
         status: "submitted",

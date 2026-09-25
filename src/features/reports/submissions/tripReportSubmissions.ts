@@ -7,6 +7,7 @@ import {
   decisionNoteOrUndefined,
   type TripReportSubmissionStatus,
 } from "./tripReportSubmissionStatus";
+import { appendDecision, type DecisionLogEntry } from "../../intake/decisionLog";
 
 export {
   isTripReportSubmissionStatus,
@@ -97,6 +98,8 @@ export type TripReportSubmissionRow = {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: string;
+  /** Every status transition, oldest first; see `decisionLogOf` for rows decided before it existed. */
+  decision_log?: DecisionLogEntry<TripReportSubmissionStatus>[];
   exported_trip_report_id?: string;
   exported_at?: string;
   created_at: string;
@@ -238,13 +241,21 @@ export function transitionTripReportSubmission(
   }
 
   const timestamp = (options.now ?? new Date()).toISOString();
+  const notes = decisionNoteOrUndefined(options.notes);
   return {
     ...row,
     status: options.status,
-    review_notes: decisionNoteOrUndefined(options.notes) ?? row.review_notes,
+    review_notes: notes ?? row.review_notes,
     reviewed_by: options.reviewer,
     reviewed_at: timestamp,
     updated_at: timestamp,
+    decision_log: appendDecision(row, {
+      at: timestamp,
+      actor: options.reviewer,
+      from: row.status,
+      to: options.status,
+      ...(notes !== undefined ? { note: notes } : {}),
+    }),
   };
 }
 

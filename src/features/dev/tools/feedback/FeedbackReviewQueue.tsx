@@ -28,7 +28,9 @@ import {
   useDirtyGuard,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
+import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
+import { decisionLogOf, type DecisionLogEntry } from "@/features/intake/decisionLog";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 
 import {
@@ -55,6 +57,7 @@ export type FeedbackQueueItem = {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: string;
+  decision_log?: DecisionLogEntry<FeedbackQueueStatus>[];
 };
 
 /** How much a reader said a report matters; the queue shows it as a pill and can sort by it. */
@@ -73,6 +76,11 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   importance?: (item: Item) => FeedbackImportance | null | undefined;
   /** Source-specific header and metadata; the queue renders details, notes, and decisions. */
   renderDetail: (item: Item) => ReactNode;
+  /**
+   * True when the source stores a decision log, so the review shows every
+   * decision. A source without one shows only its latest note.
+   */
+  keepsDecisionLog?: boolean;
   labels: {
     icon: string;
     title: string;
@@ -610,6 +618,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
             <FeedbackDetail
               row={selected}
               header={adapter.renderDetail(selected)}
+              keepsDecisionLog={adapter.keepsDecisionLog === true}
               validTargets={adapter.transitions[selected.status] ?? []}
               pending={pendingId === selected.id}
               note={note}
@@ -690,6 +699,7 @@ function QueueRow({
 function FeedbackDetail({
   actionFeedback,
   header,
+  keepsDecisionLog,
   note,
   noteId,
   onDismissFeedback,
@@ -701,6 +711,7 @@ function FeedbackDetail({
 }: {
   actionFeedback: ActionFeedback | null;
   header: ReactNode;
+  keepsDecisionLog: boolean;
   note: string;
   noteId: string;
   onDismissFeedback: () => void;
@@ -721,7 +732,9 @@ function FeedbackDetail({
         <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.details}</p>
       </section>
 
-      {row.review_notes || row.reviewed_by ? (
+      {keepsDecisionLog ? (
+        <DecisionLogSection entries={decisionLogOf(row)} statusLabel={(status) => STATUS_LABELS[status]} />
+      ) : row.review_notes || row.reviewed_by ? (
         <section>
           <h4 className="theme-accent-heading text-sm font-semibold">Review notes</h4>
           {row.reviewed_by || row.reviewed_at ? (
@@ -741,7 +754,11 @@ function FeedbackDetail({
         <EditorField
           htmlFor={noteId}
           label="Review note"
-          description="Optional. Saved with the decision and replaces the previous note."
+          description={
+            keepsDecisionLog
+              ? "Optional. Added to the decision log with the decision you make next."
+              : "Optional. Saved with the decision and replaces the previous note."
+          }
         >
           <Textarea
             id={noteId}
