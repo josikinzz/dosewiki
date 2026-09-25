@@ -37,11 +37,13 @@ remain actor- and intent-scoped. The production ceremony lives in
 
 - Accounts exist only through two paths. The first admins are seeded from a
   workstation with `scripts/auth/seed-admin-accounts.mjs`; everyone else
-  redeems an invite an admin minted in `/dev/members` at `/invite?code=...`,
+  redeems an invite an admin minted in `/dev/people` at `/invite?code=...`,
   choosing a username and password. The invite fixes the role (`editor` or
   `contributor`).
-- Roles, bans, and password-reset links are managed in `/dev/members` by an
-  admin. Admin itself is a stored role granted only by the seed script or an
+- Roles, bans, and password-reset links are managed in `/dev/people` (the
+  retired `/dev/members` still opens it) by an admin, beside each account's
+  public contributor profile. The link between the two is the profile's
+  membership email, chosen there from a picker. Admin itself is a stored role granted only by the seed script or an
   existing admin; the roster cannot grant or revoke it.
 - `auth.ts` verifies the password with scrypt (`lib/auth/passwords.ts`) and
   re-reads the stored role on every JWT refresh, so a ban or role change lands

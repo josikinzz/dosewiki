@@ -345,4 +345,50 @@ describe("contributor profile route", () => {
     });
   });
 
+  describe("as an admin linking a profile to an account", () => {
+    beforeEach(() => signIn("admin", "admin@example.com"));
+
+    it("writes the membership email alone, so the link never touches the rest of the profile", async () => {
+      routeQueries({ editorProfile: storedProfile({ membershipEmail: null, updatedAt: "2026-09-01T00:00:00.000Z" }) });
+      mocks.mutation.mockResolvedValue({ profile: { key: "ADA" }, revision: 2 });
+
+      const response = await POST(postRequest({
+        key: "ADA",
+        expectedUpdatedAt: "2026-09-01T00:00:00.000Z",
+        membershipEmail: "ada@example.com",
+      }));
+
+      expect(response.status).toBe(200);
+      expect(mocks.mutation).toHaveBeenCalledWith(
+        "contributorProfiles.saveProfileAsEditor",
+        expect.objectContaining({
+          actorEmail: "admin@example.com",
+          key: "ADA",
+          expectedUpdatedAt: "2026-09-01T00:00:00.000Z",
+          patch: { membershipEmail: "ada@example.com" },
+        }),
+      );
+    });
+
+    it("clears the link with null", async () => {
+      routeQueries({ editorProfile: storedProfile() });
+      mocks.mutation.mockResolvedValue({ profile: { key: "ADA" }, revision: 2 });
+
+      expect((await POST(postRequest({ key: "ADA", membershipEmail: null }))).status).toBe(200);
+      expect(mocks.mutation).toHaveBeenCalledWith(
+        "contributorProfiles.saveProfileAsEditor",
+        expect.objectContaining({ patch: { membershipEmail: null } }),
+      );
+    });
+  });
+
+  it("refuses an editor's link to a record another sign-in holds, before any write", async () => {
+    signIn("editor", "editor@example.com");
+    routeQueries({ editorProfile: storedProfile() });
+
+    const response = await POST(postRequest({ key: "ADA", membershipEmail: "editor@example.com" }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
 });

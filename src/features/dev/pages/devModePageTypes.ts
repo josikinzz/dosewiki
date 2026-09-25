@@ -80,8 +80,8 @@ export type DevModePageControllerState = {
   queueInitialId?: string;
   /** `/dev/playlists/<key>`: the playlist the tab opens on. */
   playlistsInitialKey?: string;
-  /** `/dev/members/<email>`: the member whose row Members opens on. */
-  membersInitialKey?: string;
+  /** `/dev/people/<email or profile key>` (and `/dev/members/<email>`): the person People opens on. */
+  peopleInitialKey?: string;
   /** Keys the tool subtree; see `DevModePageProps.toolMountKey`. */
   toolMountKey: number;
   /**

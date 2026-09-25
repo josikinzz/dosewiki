@@ -25,8 +25,8 @@ export type DevToolGroup = "entry" | "content" | "intake" | "site";
  *   before rendering.
  * - `library-deferred`: starts the corpus read without blocking the active tool.
  * - `contributors`: reads the contributor profile directory. Corpus tools need
- *   it for changelog attribution on save; the people and writing tools need it
- *   for their pickers.
+ *   it for changelog attribution on save; Contributors, People and Writing
+ *   need it for their lists and pickers.
  * - `layouts`: reads the private, revision-bearing index layouts used by
  *   staged corpus drafts and proposal application.
  */
@@ -325,14 +325,18 @@ const REGISTRY = [
     destination: SHELL,
   },
   {
-    id: "members",
-    label: "Members",
+    id: "people",
+    label: "People",
     group: "site",
-    aliases: [],
-    keywords: ["people", "accounts", "roles", "invites"],
-    // Roster, roles, bans, resets, invites: every action is admin-only in Postgres too.
+    // Members folded in: `/dev/members` and `/dev/members/<email>` still open here.
+    aliases: ["members"],
+    keywords: ["members", "accounts", "roles", "invites", "profiles", "contributors"],
+    // Each account beside its public profile: roster, roles, bans, resets,
+    // invites and the link between the two. Every account action and the
+    // link are admin-only in Postgres too. Contributors stays the profile
+    // directory for editors and each contributor's own profile.
     role: "admin",
-    data: NO_DATA,
+    data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "instant",
     layout: "shell",
     destination: SHELL,

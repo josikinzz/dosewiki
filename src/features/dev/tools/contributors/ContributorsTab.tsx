@@ -16,11 +16,11 @@ import {
   LoadErrorState,
   useDirtyGuard,
   useScrollToDetail,
-  useUnsavedWork,
   type EditorNavOption,
 } from "@/features/dev/components";
 
 import { ContributorProfileEditor } from "./ContributorProfileEditor";
+import { useContributorUnsavedWork } from "./useContributorUnsavedWork";
 import { useContributorsController, type ContributorScope } from "./useContributorsController";
 
 export type ContributorsTabProps = {
@@ -97,12 +97,6 @@ export function ContributorsTab({
     isDetailLoading,
     retryDetail,
     hasUnsavedChanges,
-    isProfileDirty,
-    isWorkOrderDirty,
-    isReportOrderDirty,
-    discardProfile,
-    resetWorkOrder,
-    resetReportOrder,
     notice,
   } = controller;
 
@@ -113,40 +107,15 @@ export function ContributorsTab({
   useScrollToDetail(detailRef, selectedKey || null);
 
   // Picking another row or flipping the scope replaces the loaded record, and
-  // with it every unsaved field and order. Both go through the guard. The
-  // shell owns rail clicks, Leave and unload through the entries below.
+  // with it every unsaved field and order. Both go through the guard.
   const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(hasUnsavedChanges, {
     ...DIRTY_GUARD_COPY,
     warnOnUnload: false,
   });
 
-  // Each save below goes live on the public contributor page at once, so the
-  // shell only discards; saving stays with this tool's own buttons.
-  const who = detail?.profile.displayName ?? "this contributor";
-  useUnsavedWork({
-    id: "contributors:profile",
-    tab: "contributors",
-    label: `Contributors: profile of ${who}`,
-    dirty: isProfileDirty,
-    publishesLive: true,
-    discard: discardProfile,
-  });
-  useUnsavedWork({
-    id: "contributors:work-order",
-    tab: "contributors",
-    label: `Contributors: order of ${who}'s works`,
-    dirty: isWorkOrderDirty,
-    publishesLive: true,
-    discard: resetWorkOrder,
-  });
-  useUnsavedWork({
-    id: "contributors:report-order",
-    tab: "contributors",
-    label: `Contributors: order of ${who}'s reports`,
-    dirty: isReportOrderDirty,
-    publishesLive: true,
-    discard: resetReportOrder,
-  });
+  // The shell owns rail clicks, Leave and unload through these entries.
+  useContributorUnsavedWork(controller, "contributors", "Contributors");
+
   const guardedSelect = useCallback(
     (key: string) => {
       if (key === resolvedKey) return;

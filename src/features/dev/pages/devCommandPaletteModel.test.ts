@@ -10,26 +10,27 @@ const RECORDS = [
   record("articles", "MDA", "mda"),
   record("banners", "MDMA", "mdma"),
   record("writing", "About", "about"),
-  record("members", "sam", "sam@example.com"),
+  record("people", "sam", "sam@example.com"),
 ];
 
 describe("matchPalette", () => {
   it("lists every tool the role may open, and nothing above it", () => {
     const admin = paletteToolsFor("admin").map((tool) => tool.tab);
     const editor = paletteToolsFor("editor").map((tool) => tool.tab);
-    expect(admin).toContain("members");
-    expect(editor).not.toContain("members");
+    expect(admin).toContain("people");
+    expect(editor).not.toContain("people");
     expect(editor).not.toContain("banners");
     expect(paletteToolsFor(null)).toEqual([]);
   });
 
   it("puts the named tool first", () => {
-    const { tools } = matchPalette("members", paletteToolsFor("admin"), RECORDS);
-    expect(tools[0].tab).toBe("members");
+    const { tools } = matchPalette("people", paletteToolsFor("admin"), RECORDS);
+    expect(tools[0].tab).toBe("people");
   });
 
   it("matches a tool by its keywords and route aliases", () => {
-    expect(matchPalette("people", paletteToolsFor("admin"), []).tools.map((tool) => tool.tab)).toContain("members");
+    // Members folded into People: its old name and route still find it.
+    expect(matchPalette("members", paletteToolsFor("admin"), []).tools[0].tab).toBe("people");
     expect(matchPalette("warnings", paletteToolsFor("admin"), []).tools.map((tool) => tool.tab)).toEqual(["banners"]);
   });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
   EditorToolbar,
   TagToken,
 } from "@/features/dev/components";
+import { devHref } from "@/utils/devHref";
 
 import { AvatarUpload } from "./AvatarUpload";
 import { BioEditor } from "./BioEditor";
@@ -49,7 +51,22 @@ const ADMIN_ONLY_REASON = "Admin only: an editor can see this but not change it.
 const STICKY_SAVE_BAR_CLASS =
   "sticky bottom-0 z-10 rounded-xl border border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg)]/95 p-3 backdrop-blur";
 
-export function ContributorProfileEditor({ controller, contextual = false, onReview }: { controller: ContributorsController; contextual?: boolean; onReview?: () => void }) {
+export function ContributorProfileEditor({
+  controller,
+  contextual = false,
+  onReview,
+  linkedAccount,
+}: {
+  controller: ContributorsController;
+  contextual?: boolean;
+  onReview?: () => void;
+  /**
+   * Replaces the linked-account line. People draws the link beside the
+   * account it names, so it passes `null`; the Contributors tab keeps the
+   * read-only line that points there.
+   */
+  linkedAccount?: ReactNode;
+}) {
   const {
     canEdit,
     canApprove,
@@ -137,23 +154,26 @@ export function ContributorProfileEditor({ controller, contextual = false, onRev
                     title={canApprove ? undefined : ADMIN_ONLY_REASON}
                   />
                 </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="contributor-membership-email">Membership email</Label>
-                  <Input
-                    id="contributor-membership-email"
-                    type="email"
-                    value={form.membershipEmail}
-                    onChange={(event) => updateForm({ membershipEmail: event.target.value })}
-                    placeholder="name@example.com"
-                    disabled={!canApprove}
-                    title={canApprove ? undefined : ADMIN_ONLY_REASON}
-                  />
-                  <p className="theme-text-faint text-xs">
-                    {canApprove
-                      ? "Links this profile to a sign-in, so the owner edits it themselves. Clearing it leaves the profile editor-curated only."
-                      : ADMIN_ONLY_REASON}
-                  </p>
-                </div>
+                {linkedAccount === undefined ? (
+                  <div className="space-y-1 md:col-span-2">
+                    <p className="theme-text-secondary text-sm">
+                      {detail.profile.membershipEmail
+                        ? <>Linked account: <span className="font-mono">{detail.profile.membershipEmail}</span></>
+                        : "No linked account, so no member edits this profile themselves."}
+                    </p>
+                    {canApprove ? (
+                      <a
+                        href={devHref({ type: "dev", tab: "people", slug: detail.profile.key })}
+                        className="theme-accent-link inline-flex items-center gap-1 text-xs"
+                      >
+                        {detail.profile.membershipEmail ? "Change the link in People" : "Link an account in People"}
+                        <Icon icon="lucide:arrow-right" size={12} />
+                      </a>
+                    ) : (
+                      <p className="theme-text-faint text-xs">{ADMIN_ONLY_REASON}</p>
+                    )}
+                  </div>
+                ) : linkedAccount}
               </>
             ) : null}
           </div>

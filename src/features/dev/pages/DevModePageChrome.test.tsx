@@ -225,7 +225,7 @@ describe("DevModePageChrome rail", () => {
     const lockedTrigger = within(nav).getByRole("button", { name: /^Locked,/ });
     const menu = openMenu(lockedTrigger);
     expect(within(menu).getByText("Glossary")).toBeTruthy();
-    expect(within(menu).getByText("Members")).toBeTruthy();
+    expect(within(menu).getByText("People")).toBeTruthy();
     for (const item of within(menu).getAllByRole("menuitem")) {
       expect(item.getAttribute("aria-disabled")).toBe("true");
     }
@@ -256,7 +256,7 @@ describe("DevModePageChrome rail", () => {
     expect(within(menu).getByText("Substances").parentElement?.textContent).toContain("Editor role required");
     expect(within(menu).getByText("Review").parentElement?.textContent).toContain("Editor role required");
     expect(within(menu).getByText("Change log").parentElement?.textContent).toContain("Editor role required");
-    expect(within(menu).getByText("Members").parentElement?.textContent).toContain("Admin role required");
+    expect(within(menu).getByText("People").parentElement?.textContent).toContain("Admin role required");
 
     expect(queryByRole("button", { name: "Change log" })).toBeNull();
     expect(queryByRole("button", { name: "Utilities" })).toBeNull();

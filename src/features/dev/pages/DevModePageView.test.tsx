@@ -30,7 +30,7 @@ vi.mock("../tools/warning-banners/WarningBannersTab", () => tool("WarningBanners
 vi.mock("../tools/substance-editor/SubstanceEditorTab", () => tool("SubstanceEditorTab"));
 vi.mock("../tools/feedback/FeedbackTab", () => tool("FeedbackTab"));
 vi.mock("../tools/trip-report-portal/TripReportPortalTab", () => tool("TripReportPortalTab"));
-vi.mock("../tools/members/MembersTab", () => tool("MembersTab"));
+vi.mock("../tools/people/PeopleTab", () => tool("PeopleTab"));
 vi.mock("../tools/glossary/GlossaryTab", () => tool("GlossaryTab"));
 vi.mock("../tools/my-reports/MyReportsTab", () => tool("MyReportsTab"));
 
@@ -99,7 +99,7 @@ describe("DevModePageView", () => {
   });
 
   it("puts a live-write save line in the warning tone", async () => {
-    const { findByTestId, getByText } = render(<DevModePageView controller={buildController("members")} />);
+    const { findByTestId, getByText } = render(<DevModePageView controller={buildController("people")} />);
     await findByTestId("dev-tool");
 
     const line = getByText("Each save goes live right away.");
@@ -149,5 +149,16 @@ describe("DevModePageView", () => {
 
     expect(getByText(/Inbox is closed to your role/)).toBeTruthy();
     expect(queryByTestId("dev-tool")).toBeNull();
+  });
+
+  it("keeps People behind the admin floor, while a contributor still opens Contributors on their own profile", async () => {
+    expect(findDevTab("people").role).toBe("admin");
+    const locked = render(<DevModePageView controller={buildController("people", "Admin role required", false)} />);
+    expect(locked.getByText(/People is closed to your role/)).toBeTruthy();
+    expect(locked.queryByTestId("dev-tool")).toBeNull();
+    locked.unmount();
+
+    const own = render(<DevModePageView controller={{ ...buildController("contributors", null, false), role: "contributor", canDraft: false }} />);
+    expect((await own.findByTestId("dev-tool")).textContent).toBe("ContributorsTab");
   });
 });

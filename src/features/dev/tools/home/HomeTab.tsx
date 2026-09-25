@@ -161,8 +161,8 @@ function PendingInvitesCard() {
           ))}
         </ul>
       )}
-      <a href={devHref({ type: "dev", tab: "members" })} className="theme-accent-link inline-flex min-h-11 items-center gap-1.5 text-sm">
-        Open Members
+      <a href={devHref({ type: "dev", tab: "people" })} className="theme-accent-link inline-flex min-h-11 items-center gap-1.5 text-sm">
+        Open People
         <Icon icon="lucide:arrow-right" size={14} />
       </a>
     </EditorSection>

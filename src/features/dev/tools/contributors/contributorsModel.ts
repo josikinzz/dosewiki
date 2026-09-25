@@ -249,7 +249,6 @@ export type ContributorFormState = {
   displayName: string;
   bio: string;
   role: string;
-  membershipEmail: string;
   avatarUrl: string;
   aliases: string[];
   links: Array<{ label: string; url: string }>;
@@ -265,7 +264,6 @@ export function toContributorForm(profile: EditorContributorProfile): Contributo
     displayName: profile.displayName,
     bio: profile.bio,
     role: profile.role ?? "",
-    membershipEmail: profile.membershipEmail ?? "",
     avatarUrl: profile.avatarUrl ?? "",
     aliases: [...profile.aliases],
     links: profile.links.map((link) => ({ ...link })),
@@ -297,7 +295,9 @@ export function isContributorFormDirty(
  * is saving. `saveProfileAsEditor` refuses the trust fields (role, membership
  * email, gallery exclusion, archival, approved replicator, staff note) from
  * anyone below admin even when they are unchanged, so an editor's body must
- * not carry them at all.
+ * not carry them at all. The membership email is not on the form: People
+ * links a profile to an account as its own write, so a profile save never
+ * carries (or reverts) the link.
  *
  * Emptied clearable fields become `null`, the only way a patch-only mutation
  * can be told to clear something rather than to leave it alone. `bio` is not
@@ -314,7 +314,6 @@ export type OwnContributorPatch = {
 export type ContributorPatch = OwnContributorPatch & {
   aliases: string[];
   role?: string | null;
-  membershipEmail?: string | null;
   exclude_from_gallery?: boolean;
   archival?: boolean;
   approved_replicator?: boolean;
@@ -335,7 +334,6 @@ export function buildContributorPatch(
   return {
     ...editorPatch,
     role: form.role.trim() ? form.role.trim() : null,
-    membershipEmail: form.membershipEmail.trim() ? form.membershipEmail.trim() : null,
     exclude_from_gallery: form.exclude_from_gallery,
     archival: form.archival,
     approved_replicator: form.approved_replicator,
