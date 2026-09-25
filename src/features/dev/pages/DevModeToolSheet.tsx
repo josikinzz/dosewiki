@@ -9,25 +9,18 @@ import {
   DialogPortal,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { UnsavedDot } from "./DevModeToolRail";
+import {
+  CountBadge,
+  RAIL_GROUP_CAPTION_CLASS as GROUP_CAPTION_CLASS,
+  RAIL_ICON_BUTTON_CLASS as ICON_BUTTON_CLASS,
+  UnsavedDot,
+} from "./DevModeToolRail";
 import type { DevModeToolSheetProps, GroupView } from "./DevModeToolTypes";
 
+// The sheet's rows are the rail's tabs at phone size; the caption, icon
+// button and count badge are the rail's own.
 const SHEET_TAB_CLASS =
   "theme-dev-rail-tab flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[0.9375rem] font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45 data-[state=active]:font-semibold";
-const GROUP_CAPTION_CLASS =
-  "theme-dev-rail-group shrink-0 select-none px-1 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.14em]";
-const ICON_BUTTON_CLASS =
-  `theme-dev-rail-button flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${TOUCH_ICON}`;
-
-function CountBadge({ count }: { count: number }) {
-  return (
-    <>
-      <span aria-hidden title={`${count} awaiting review`} className="theme-portal-count-badge inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1.5 font-mono text-[10px] font-semibold leading-none">{count}</span>
-      <span className="sr-only">{`, ${count} awaiting review`}</span>
-    </>
-  );
-}
 
 function SheetToolList({ groups, activeTab, isToolsSection, activeRowRef, onTabChange }: {
   groups: readonly GroupView[];

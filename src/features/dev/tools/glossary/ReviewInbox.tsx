@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName, Surface } from "@/components/ui/surface";
-import { EditorCheckbox, EditorNotice, EditorSelect, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
+import { EditorCheckbox, EditorNotice, EditorSelect, EditorStatusPill, useDevShortcuts, type DevShortcut, type EditorNoticeMessage } from "@/features/dev/components";
 import type { GlossaryRendering } from "@server/translation/glossaryConflicts";
 import { INBOX_CHECK_LABEL, INBOX_PAGE_SIZE, INBOX_REASON_LABEL, INBOX_SCOPE_LABEL, type InboxItem, type InboxReason, type InboxResponse } from "@server/translation/reviewInboxTypes";
 import {
@@ -61,6 +61,16 @@ type ReviewInboxProps = {
 
 const openHref = (href: string) => window.location.assign(href);
 
+/** The Inbox's single keys, for the shell's `?` sheet; listed only while they are on. */
+const REVIEW_INBOX_SHORTCUTS: readonly DevShortcut[] = [
+  { keys: "j / k", label: "Next and previous item in the Inbox" },
+  { keys: "a", label: "Accept, with 10 seconds to undo" },
+  { keys: "u", label: "Undo the accept" },
+  { keys: "e", label: "Edit the item" },
+  { keys: "f", label: "Fine here" },
+  { keys: "s", label: "Skip" },
+];
+
 function isTyping(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
 }
@@ -77,6 +87,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   /** The approved renderings the last Accept left out, for the item it named. */
   const [glossaryConflict, setGlossaryConflict] = useState<{ key: string; conflicts: GlossaryRendering[] } | null>(null);
   const [shortcutsOn, setShortcutsOn] = useState(() => (typeof window === "undefined" ? true : readShortcutsEnabled()));
+  useDevShortcuts(REVIEW_INBOX_SHORTCUTS, shortcutsOn);
   /** The keyboard accept waiting out its undo window; nothing is written for it yet. */
   const [undoable, setUndoable] = useState<InboxItem | null>(null);
   const undoableRef = useRef<{ item: InboxItem; timer: number } | null>(null);

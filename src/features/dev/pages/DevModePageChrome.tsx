@@ -6,9 +6,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
+import { isBareCommandKey, isDialogOpen, useDevShortcutList } from "../components/devShortcuts";
 import { useUnsavedWorkRegistry } from "../components/unsavedWork";
 import { canDraft, getRoleDisplayName, getRoleFloorLockReason, type AppRole } from "@/lib/auth/roles";
+import { DevCommandPalette } from "./DevCommandPalette";
+import type { PaletteRecord, PaletteTool } from "./devCommandPaletteModel";
 import type { DevModePrimaryTab } from "./devModePageUtils";
+import { DevShortcutSheet } from "./DevShortcutSheet";
 import {
   DEV_TAB_REGISTRY,
   findDevTab,
@@ -129,7 +133,7 @@ function splitGroupsByRole(
  * One slim toolbar, desktop-app style: a wrench mark, the Content group as
  * inline pills, Intake and Site as dropdown menus with rolled-up badges, a
  * Locked overflow for tools above the signed-in role, then a trailing cluster
- * with the secondary destinations (Change log, utilities), Leave editor, and
+ * with the secondary destinations (Change log, the Cmd+K palette, utilities), Leave editor, and
  * the session controls. The rail is always one row: the strip scrolls
  * sideways inside its own box and keeps the active tab (or the menu holding
  * it) in view, while the trailing cluster stays put. Under `md` the whole
@@ -146,6 +150,8 @@ export function DevModePageChrome({
   userName,
   onPrimaryTabChange: requestPrimaryTabChange,
   onTabChange: requestTabChange,
+  onOpenPath: requestOpenPath,
+  glossaryLocales,
   onSignIn,
   onLeave: requestLeave,
 }: DevModePageChromeProps) {
@@ -179,6 +185,48 @@ export function DevModePageChrome({
     () => confirmExit(() => void signOut({ callbackUrl: "/sign-in" }), "leave"),
     [confirmExit],
   );
+
+  // Cmd+K and `?`. What the palette opens goes through the same registry
+  // question as a rail click: a tool or a record elsewhere drops the open
+  // tool's drafts, and a record in the open tool remounts it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const toolShortcuts = useDevShortcutList();
+  const openTool = useCallback((tool: PaletteTool) => {
+    setPaletteOpen(false);
+    const { href } = tool;
+    if (href) {
+      confirmExit(() => window.location.assign(href), "leave");
+    } else {
+      onTabChange(tool.tab);
+    }
+  }, [confirmExit, onTabChange]);
+  const openRecord = useCallback((record: PaletteRecord) => {
+    setPaletteOpen(false);
+    confirmExit(() => {
+      if (requestOpenPath) requestOpenPath(record.href);
+      else window.location.assign(record.href);
+    }, "tab");
+  }, [confirmExit, requestOpenPath]);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "k") {
+        // Cmd+K works from a text field too, but never over another dialog.
+        if (!paletteOpen && isDialogOpen()) return;
+        event.preventDefault();
+        setPaletteOpen((current) => !current);
+        return;
+      }
+      if (event.key === "?" && isBareCommandKey(event)) {
+        event.preventDefault();
+        setShortcutsOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [paletteOpen]);
+
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
   const mayDraft = canDraft(role);
@@ -361,9 +409,36 @@ export function DevModePageChrome({
   // group with it but counts nothing, so it does not stop the roll-up.
   const entryShown = railGroups.some((group) => group.enabled.some((tab) => tab.rollsUpIntake));
 
+  const paletteButton = (
+    <button
+      type="button"
+      title="Open any tool or record (Cmd+K)"
+      aria-label="Open any tool or record"
+      aria-keyshortcuts="Meta+K Control+K"
+      onClick={() => setPaletteOpen(true)}
+      className={RAIL_ICON_BUTTON_CLASS}
+    >
+      <Icon icon="lucide:search" size={15} />
+    </button>
+  );
+
   return (
     <div className="w-full">
       <DevSurfaceTitle />
+      <DevCommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        role={pendingReason === null ? role : null}
+        glossaryLocales={glossaryLocales}
+        onOpenTool={openTool}
+        onOpenRecord={openRecord}
+      />
+      <DevShortcutSheet
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+        toolLabel={activeLabel}
+        shortcuts={toolShortcuts}
+      />
 
       {/* Phone: one bar, tools behind a sheet. */}
       <div className="theme-dev-rail flex min-h-11 w-full items-center gap-1 rounded-lg border px-1.5 py-1 md:hidden">
@@ -387,6 +462,7 @@ export function DevModePageChrome({
           onLeave={onLeave}
           session={sessionControls}
         />
+        {paletteButton}
         <button
           type="button"
           title="Leave editor"
@@ -493,6 +569,7 @@ export function DevModePageChrome({
         <RailDivider />
 
         <div className="flex min-w-0 items-center gap-1">
+          {paletteButton}
           {utilities.length > 0 ? <DevUtilitiesMenu utilities={utilities} /> : null}
           <button
             type="button"

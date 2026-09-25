@@ -19,6 +19,8 @@ import {
   EditorStatusPill,
   EditorToolbar,
   useConfirm,
+  useDevShortcuts,
+  type DevShortcut,
 } from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
 import { UNPLACED_SLOT, buildBoard, listDestinations, type BoardItem } from "./boardModel";
@@ -122,7 +124,14 @@ function NewCategoryPopover({ onAdd }: { onAdd: (label: string) => void }) {
  * gesture writes straight into the dev draft — undo is the safety net, and the
  * shell's commit panel is the only thing that reaches production.
  */
+/** The board's window-wide undo, for the shell's `?` sheet. */
+const INDEX_LAYOUT_SHORTCUTS: readonly DevShortcut[] = [
+  { keys: "Cmd+Z or Ctrl+Z", label: "Undo the last layout change" },
+  { keys: "Shift+Cmd+Z or Shift+Ctrl+Z", label: "Redo" },
+];
+
 export function IndexLayoutTab({ commitPanel, enableStickyPanels }: IndexLayoutTabProps) {
+  useDevShortcuts(INDEX_LAYOUT_SHORTCUTS);
   const {
     psychoactiveIndexManual,
     chemicalIndexManual,

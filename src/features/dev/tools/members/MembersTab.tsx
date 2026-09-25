@@ -16,7 +16,7 @@
  * the notice is the end of it.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -82,7 +82,12 @@ const PENDING_LABEL: Record<PendingKind, string> = {
   reset: "Issuing reset link",
 };
 
-export function MembersTab() {
+type MembersTabProps = {
+  /** `/dev/members/<email>` (a Cmd+K member record): opens that member's Edit drawer, or shows their row when it takes no actions. */
+  initialMember?: string;
+};
+
+export function MembersTab({ initialMember }: MembersTabProps = {}) {
   const [roster, setRoster] = useState<MemberRoster | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingAction | null>(null);
@@ -107,6 +112,21 @@ export function MembersTab() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // The linked member lands once, on the first roster that holds them.
+  const landedRef = useRef(false);
+  useEffect(() => {
+    if (!initialMember || !roster || landedRef.current) return;
+    const wanted = initialMember.trim().toLowerCase();
+    const row = roster.members.find((member) => member.email.toLowerCase() === wanted);
+    if (!row) return;
+    landedRef.current = true;
+    if (memberRowLock(row, roster.self) === null) {
+      setEditing(row.email);
+    } else {
+      document.querySelector(`[data-member="${CSS.escape(row.email)}"]`)?.scrollIntoView?.({ block: "center" });
+    }
+  }, [initialMember, roster]);
 
   /** Runs one action, reloads the roster, and reports the outcome. */
   const run = useCallback(

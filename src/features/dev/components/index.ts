@@ -136,3 +136,6 @@ export {
   useTriageShortcuts,
 } from "./useTriageShortcuts";
 export type { TriageAction, TriageShortcutHandlers } from "./useTriageShortcuts";
+
+export { DevShortcutsProvider, useDevShortcutList, useDevShortcuts } from "./devShortcuts";
+export type { DevShortcut } from "./devShortcuts";

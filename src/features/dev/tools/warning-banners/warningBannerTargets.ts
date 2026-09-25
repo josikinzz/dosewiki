@@ -55,3 +55,15 @@ export async function fetchWarningBannerTargets(
   cachedWarningBannerTargets = payload.items;
   return payload.items;
 }
+
+/**
+ * `/dev/banners/preset:<key>` opens a preset's editor, the way
+ * `/dev/banners/<slug>` opens a substance's coverage. Substance slugs never
+ * hold a colon, so the two cannot collide.
+ */
+export const BANNER_PRESET_SLUG_PREFIX = "preset:";
+
+/** The preset key a Banners slug names, or null for a substance slug. */
+export function bannerPresetFromSlug(slug: string | undefined): string | null {
+  return slug?.startsWith(BANNER_PRESET_SLUG_PREFIX) ? slug.slice(BANNER_PRESET_SLUG_PREFIX.length) || null : null;
+}

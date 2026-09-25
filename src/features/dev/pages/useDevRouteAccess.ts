@@ -165,6 +165,7 @@ export function useDevRouteAccess({
     userEmail: nextSession.data?.user?.email,
     userImage: nextSession.data?.user?.image,
     userName: nextSession.data?.user?.name,
+    glossaryLocales: nextSession.data?.user?.glossaryLocales,
     onPrimaryTabChange: handlePrimaryTabChange,
     onTabChange: handleTabChange,
   };

@@ -34,6 +34,15 @@ type DevRouteState = {
   filter?: string;
 };
 
+/** An address with its percent escapes undone, so the router's and a link's spelling compare equal. */
+function comparableAddress(path: string): string {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
+}
+
 /**
  * One-way switch: true the first time a corpus-backed tool is opened, and true
  * forever after within the session. Unsaved article edits live above the tab
@@ -86,10 +95,12 @@ export function resolveDevRouteState(
   };
 }
 
-function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigate, getCurrentPath }: {
+function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, onOpenPath, toolMountKey, navigate, getCurrentPath }: {
   routeState: DevRouteState;
   initialProfileKey?: string;
   onTabChange: (tab: DevModeTab) => void;
+  onOpenPath: (path: string) => void;
+  toolMountKey: number;
   navigate: (path: string) => void;
   getCurrentPath: () => string;
 }) {
@@ -114,6 +125,8 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
           initialProfileKey={initialProfileKey}
           isLibraryLoading={isLoadingLibrary || !library}
           onTabChange={onTabChange}
+          onOpenPath={onOpenPath}
+          toolMountKey={toolMountKey}
         />
       </DevModeProvider>
     </SubstanceIndexProvider>
@@ -155,6 +168,24 @@ export function NextDevRouteClient({
     router.push(path);
   }, [router]);
 
+  // A Cmd+K record opens by address, then the open tool remounts once the
+  // router lands there, so it reads the record from its initial props the
+  // way a deep link does. Most tools only read those on mount. The chrome has
+  // already asked the unsaved-work registry before this runs.
+  const address = comparableAddress(search ? `${pathname}?${search}` : pathname ?? "/dev");
+  const [recordMount, setRecordMount] = useState<{ key: number; pending: string | null }>({ key: 0, pending: null });
+  if (recordMount.pending !== null && recordMount.pending === address) {
+    setRecordMount({ key: recordMount.key + 1, pending: null });
+  }
+  const handleOpenPath = useCallback((path: string) => {
+    if (comparableAddress(path) === address) {
+      setRecordMount((current) => ({ key: current.key + 1, pending: null }));
+      return;
+    }
+    setRecordMount((current) => ({ ...current, pending: comparableAddress(path) }));
+    router.push(path);
+  }, [address, router]);
+
   const readCurrentPath = useCallback(() => pathname ?? "/dev", [pathname]);
   const profileKey = useOwnedProfileKey(initialProfileKey, ownedProfileKey);
 
@@ -163,6 +194,8 @@ export function NextDevRouteClient({
       routeState={routeState}
       initialProfileKey={profileKey}
       onTabChange={handleTabChange}
+      onOpenPath={handleOpenPath}
+      toolMountKey={recordMount.key}
       navigate={handleNavigate}
       getCurrentPath={readCurrentPath}
     />

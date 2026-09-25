@@ -167,6 +167,13 @@ describe("WarningBannersTab presets", () => {
     expect(screen.queryByText("Couldn't save that preset")).not.toBeInTheDocument();
   });
 
+  it("opens a preset's editor from /dev/banners/preset:<key>", async () => {
+    stubApi();
+    render(<WarningBannersTab initialSubstanceSlug={`preset:${PRESET.key}`} />);
+
+    expect(await screen.findByLabelText("Headline")).toHaveValue(PRESET.headline);
+  });
+
   it("shows the copy before and after, and the substances by title, in the publish confirm", async () => {
     stubApi();
     const user = userEvent.setup();

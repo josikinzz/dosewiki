@@ -147,6 +147,17 @@ describe("MembersTab", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 
+  it("opens the linked member's drawer from /dev/members/<email>, and never an admin's", async () => {
+    stubMembersApi(ROSTER);
+    const { unmount } = render(<MembersTab initialMember="Ada@example.com" />);
+    expect(await screen.findByRole("dialog", { name: "Edit ada" })).toBeTruthy();
+    unmount();
+
+    render(<MembersTab initialMember="lyrea@example.com" />);
+    await screen.findByText("lyrea");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
   it("says in text why the signed-in user's own non-admin row cannot be edited", async () => {
     // A self row that is not admin cannot happen for a real admin session, but
     // the lock is about the email, and the tab must not depend on the role.

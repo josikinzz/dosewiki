@@ -24,12 +24,13 @@ beforeAll(() => {
 });
 
 describe("DevUtilitiesMenu", () => {
-  it("opens from a wrench button and links to the UI kit and Theme lab", async () => {
+  it("opens from its own button and links to the UI kit and Theme lab", async () => {
     const user = userEvent.setup();
     render(<DevUtilitiesMenu />);
 
     const trigger = screen.getByRole("button", { name: "Utilities" });
-    expect(trigger.querySelector("[data-icon='lucide:wrench']")).not.toBeNull();
+    // Not the wrench: that is the rail's Dev Tools mark beside it.
+    expect(trigger.querySelector("[data-icon='lucide:blocks']")).not.toBeNull();
     expect(screen.queryByRole("dialog")).toBeNull();
 
     await user.click(trigger);

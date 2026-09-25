@@ -9,6 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { isBareCommandKey, isTextEntryTarget, useDevShortcuts } from "./devShortcuts";
+
+export { isTextEntryTarget };
 
 export type TriageAction = "accept" | "reject" | "spam" | "note" | "undo";
 
@@ -56,29 +59,6 @@ const HANDLER_OF: Record<TriageAction, keyof TriageShortcutHandlers> = {
   undo: "onUndo",
 };
 
-/** True when a key starts in a place where letters are text, not commands. */
-export function isTextEntryTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  if (target.tagName === "TEXTAREA" || target.tagName === "SELECT") return true;
-  if (target.tagName !== "INPUT") return false;
-  const type = (target as HTMLInputElement).type;
-  return !["checkbox", "radio", "button", "submit", "reset", "range", "color", "file"].includes(type);
-}
-
-/** True while any dialog is on screen; its own keys come first. */
-function isDialogOpen(): boolean {
-  return document.querySelector('[role="dialog"], [role="alertdialog"]') !== null;
-}
-
-/** Menus and open popovers (a select's options, a command list) own their letters for typeahead. */
-function isInsidePopupWidget(target: EventTarget | null): boolean {
-  return (
-    target instanceof Element &&
-    target.closest('[role="menu"], [role="menubar"], [data-radix-popper-content-wrapper], [cmdk-root]') !== null
-  );
-}
-
 /** One quiet line under a queue so the keys can be found; pointer-only screens skip it. */
 export function TriageShortcutHint({ className }: { className?: string }) {
   return (
@@ -97,7 +77,10 @@ export function TriageShortcutHint({ className }: { className?: string }) {
  * Keys never fire inside a text field, while a dialog is open, with a
  * modifier held, or when another handler already called `preventDefault`.
  * A handled key is marked handled so it never also types into a field the
- * handler focused. Returns the `?` dialog; render it once near the tool root.
+ * handler focused. Inside the /dev shell the keys join the shell's one `?`
+ * sheet and `helpDialog` is null; rendered alone (a test, a page outside the
+ * shell) the hook answers `?` with its own dialog. Render `helpDialog` once
+ * near the tool root either way.
  */
 export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDialog: ReactNode } {
   const [helpOpen, setHelpOpen] = useState(false);
@@ -107,15 +90,26 @@ export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDial
   });
   const enabled = handlers.enabled !== false;
 
+  const labels = { ...DEFAULT_LABELS, ...handlers.labels };
+  const rows: { keys: string; label: string }[] = [];
+  if (handlers.onMove) rows.push({ keys: "j / k", label: labels.move });
+  for (const [key, action] of Object.entries(ACTION_KEYS)) {
+    if (handlers[HANDLER_OF[action]]) rows.push({ keys: key, label: labels[action] });
+  }
+  // The shell's sheet lists these rows beside its own `?` and Cmd+K.
+  const inShell = useDevShortcuts(rows, enabled);
+  rows.push({ keys: "?", label: "Show these keys" });
+  const listKey = rows.map((row) => `${row.keys}:${row.label}`).join("|");
+
   useEffect(() => {
     if (!enabled) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.defaultPrevented || event.isComposing) return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (isTextEntryTarget(event.target) || isInsidePopupWidget(event.target) || isDialogOpen()) return;
+      if (!isBareCommandKey(event)) return;
 
       const current = latest.current;
       if (event.key === "?") {
+        // The shell owns `?` and opens one sheet for every tool.
+        if (inShell) return;
         event.preventDefault();
         setHelpOpen(true);
         return;
@@ -135,19 +129,10 @@ export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDial
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [enabled]);
-
-  const labels = { ...DEFAULT_LABELS, ...handlers.labels };
-  const rows: { keys: string; label: string }[] = [];
-  if (handlers.onMove) rows.push({ keys: "j / k", label: labels.move });
-  for (const [key, action] of Object.entries(ACTION_KEYS)) {
-    if (handlers[HANDLER_OF[action]]) rows.push({ keys: key, label: labels[action] });
-  }
-  rows.push({ keys: "?", label: "Show these keys" });
-  const listKey = rows.map((row) => `${row.keys}:${row.label}`).join("|");
+  }, [enabled, inShell]);
 
   const helpDialog = useMemo(
-    () => (
+    () => inShell ? null : (
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent className="max-w-sm" showClose={false}>
           <DialogHeader>
@@ -178,7 +163,7 @@ export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDial
     ),
     // `rows` is rebuilt every render; its text is what matters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [helpOpen, listKey],
+    [helpOpen, inShell, listKey],
   );
 
   return { helpDialog };
