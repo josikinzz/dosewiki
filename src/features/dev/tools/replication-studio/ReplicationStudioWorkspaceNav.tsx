@@ -4,7 +4,8 @@ import type { RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { SaveFamilyPill } from "@/features/dev/components";
+import { SaveLine } from "@/features/dev/components";
+import { findDevTab } from "@/features/dev/pages/devTabRegistry";
 import { cn } from "@/lib/utils";
 
 export type StudioWorkspace = "featured" | "playlists" | "substances" | null;
@@ -83,7 +84,7 @@ export function ReplicationStudioWorkspaceNav({
           together. On a phone the group dissolves: the actions ride beside
           the workspace tabs and the save model takes the last line. */}
       <div className="contents sm:ml-auto sm:flex sm:items-center sm:gap-2">
-        <SaveFamilyPill family="immediate" className="whitespace-nowrap max-sm:order-4" />
+        <SaveLine model={findDevTab("replications").saveModel} className="whitespace-nowrap max-sm:order-4" />
         <div className="flex items-center gap-2 max-sm:order-3 max-sm:ml-auto">
           <Button
             type="button"

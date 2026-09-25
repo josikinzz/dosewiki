@@ -58,6 +58,24 @@ function openMenu(trigger: HTMLElement) {
 }
 
 describe("DevModePageChrome rail", () => {
+  // First in the file on purpose: React reports a missing key once per
+  // component, so a later render would pass even with the key gone.
+  it("gives inline and menu rail groups stable keys (no missing-key warning)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      // Admin renders Content inline beside Intake and Site menus; a
+      // contributor renders every group inline.
+      renderChrome("articles", "admin").unmount();
+      renderChrome("contributors", "contributor").unmount();
+      const keyWarnings = errors.mock.calls.filter((call) =>
+        call.some((arg) => typeof arg === "string" && arg.includes('unique "key" prop')),
+      );
+      expect(keyWarnings).toEqual([]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
   it("keeps Content inline and collapses Intake and Site into menus for an admin", () => {
     const { nav } = renderChrome("articles", "admin");
 
@@ -198,30 +216,45 @@ describe("DevModePageChrome rail", () => {
   });
 
   it("shows a contributor only their own tools flat, with everything else in Locked", () => {
-    const { nav, getByRole } = renderChrome("contributors", "contributor");
+    const { nav, queryByRole } = renderChrome("contributors", "contributor");
 
     // The whole rail fits flat: no group menus, the contributor's own tools are pills.
     expect(within(nav).queryByRole("button", { name: "Site" })).toBeNull();
     expect(within(nav).queryByRole("button", { name: "Intake" })).toBeNull();
     expect(within(nav).queryByRole("button", { name: "Substances" })).toBeNull();
 
-    const content = within(nav).getByRole("group", { name: "Content" });
-    expect(within(content).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
+    // Review needs the editor role too, so it is locked rather than a live link.
+    expect(within(nav).queryByRole("group", { name: "Content" })).toBeNull();
+    expect(within(nav).queryByRole("link", { name: /Review/ })).toBeNull();
 
     const site = within(nav).getByRole("group", { name: "Site" });
     const ownTools = Array.from(site.querySelectorAll("button")).map((el) => el.textContent?.trim());
     expect(ownTools).toEqual(["Contributors", "Playlists", "My reports"]);
 
-    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 14 locked" });
+    // Every locked tool, Change log included, says why in text inside the menu.
+    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 16 locked" });
     const menu = openMenu(lockedTrigger);
     const items = within(menu).getAllByRole("menuitem");
-    expect(items).toHaveLength(14);
+    expect(items).toHaveLength(16);
     expect(within(menu).getByText("Substances").parentElement?.textContent).toContain("Editor role required");
+    expect(within(menu).getByText("Review").parentElement?.textContent).toContain("Editor role required");
+    expect(within(menu).getByText("Change log").parentElement?.textContent).toContain("Editor role required");
     expect(within(menu).getByText("Members").parentElement?.textContent).toContain("Admin role required");
 
-    const changeLog = getByRole("button", { name: "Change log" });
-    expect(changeLog).toBeDisabled();
-    expect(changeLog.getAttribute("title")).toBe("Editor role required");
+    expect(queryByRole("button", { name: "Change log" })).toBeNull();
+    expect(queryByRole("button", { name: "Utilities" })).toBeNull();
+  });
+
+  it("counts locked tools with a neutral lock glyph, not the work-count badge", () => {
+    const { nav } = renderChrome("contributors", "contributor");
+
+    const lockedTrigger = within(nav).getByRole("button", { name: /^Locked,/ });
+    expect(lockedTrigger.querySelector('[data-icon="lucide:lock"]')).not.toBeNull();
+    expect(lockedTrigger.querySelector(".theme-portal-count-badge")).toBeNull();
+  });
+
+  it("offers the kit and theme utilities only to roles that can open them", () => {
+    expect(renderChrome("articles", "editor").getByRole("button", { name: "Utilities" })).toBeTruthy();
   });
 
   it("asks a signed-out session to sign in behind the Locked menu", () => {
@@ -240,9 +273,9 @@ describe("DevModePageChrome rail", () => {
     );
     const nav = getByRole("navigation", { name: "Dev mode tools" });
 
-    // The Review launcher stays a plain link; every shell tool sits in Locked.
-    expect(within(nav).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
-    const menu = openMenu(within(nav).getByRole("button", { name: `Locked, ${SHELL_TABS.length} locked` }));
+    // Every tool, the Review launcher and Change log included, sits in Locked.
+    expect(within(nav).queryByRole("link", { name: /Review/ })).toBeNull();
+    const menu = openMenu(within(nav).getByRole("button", { name: `Locked, ${TOOL_TABS.length + 1} locked` }));
     for (const item of within(menu).getAllByRole("menuitem")) {
       expect(item.getAttribute("aria-disabled")).toBe("true");
       expect(within(item).getByText("Sign in required")).toBeTruthy();
@@ -278,6 +311,8 @@ describe("DevModePageChrome rail", () => {
       expect(control).toBeDisabled();
       expect(control.getAttribute("title")).toBe("Checking your account");
     }
+    // The reason is visible text on the rail, not only a tooltip.
+    expect(getByRole("status").textContent).toBe("Checking your account");
     expect(getByRole("button", { name: "Change log" })).toBeDisabled();
   });
 });
@@ -340,6 +375,19 @@ describe("DevModePageChrome phone sheet", () => {
     expect(within(footer).getByRole("link", { name: "Theme lab" }).getAttribute("href")).toBe("/dev/themes");
     expect(within(footer).getByRole("button", { name: "Change log" })).toBeEnabled();
     expect(within(sheet).getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("keeps the kit and theme links out of a contributor's sheet", () => {
+    const { getByRole } = renderPhone("contributor", "contributors");
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Contributors" }));
+
+    const sheet = getByRole("dialog");
+    expect(within(sheet).queryByRole("link", { name: "UI kit" })).toBeNull();
+    expect(within(sheet).queryByRole("link", { name: "Theme lab" })).toBeNull();
+    expect(within(sheet).queryByRole("link", { name: /Review/ })).toBeNull();
+    const changeLog = within(sheet).getByRole("button", { name: /^Change log/ });
+    expect(changeLog).toBeDisabled();
+    expect(changeLog.textContent).toContain("Editor role required");
   });
 
   it("focuses and reveals the active row on open instead of the first row", () => {

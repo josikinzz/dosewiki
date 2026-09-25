@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { AppRole } from "@/lib/auth/roles";
 import type { DevModePrimaryTab } from "./devModePageUtils";
 import type { DevModeTab, DevTabDescriptor, DevToolGroup } from "./devTabRegistry";
+import type { DevUtility } from "./DevUtilitiesMenu";
 
 export type ToolTabItem = Pick<DevTabDescriptor, "id" | "label" | "role" | "destination"> & {
   badge?: number;
@@ -29,6 +30,8 @@ export type DevModeToolSheetProps = DevModeToolNavigationProps & {
   activePrimaryTab: DevModePrimaryTab;
   activeLabel: string;
   changeLogLockReason: string | null;
+  /** The utility routes this role may open. */
+  utilities: readonly DevUtility[];
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onLeave: () => void;
   session: ReactNode;

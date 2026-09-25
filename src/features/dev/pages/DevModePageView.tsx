@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 import { StateCard } from "@/components/common/StateCard";
-import { EditorStatusPill, SAVE_FAMILY_PILL } from "@/features/dev/components";
 import { Button } from "@/components/ui/button";
 import {
   DevModePageChrome,
@@ -11,7 +10,8 @@ import {
 } from "./DevModePageChrome";
 import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
-import { findDevTab, type DevTabDescriptor } from "./devTabRegistry";
+import { findDevTab } from "./devTabRegistry";
+import { DevToolSaveLine } from "./DevToolSaveLine";
 
 /**
  * Every tool is its own lazily-loaded chunk. The shell used to pull every tool
@@ -103,30 +103,6 @@ type DevModePageViewProps = {
 };
 
 /**
- * One line above every tool naming its save family, read off the registry
- * descriptor so a tool cannot say one thing and do another. Only tools the
- * shell renders get one: the chrome cluster (Change log) is not a tool, an
- * external destination (Review) never renders here at all, and a tool that
- * sets `saveFamilyInTool` says it in its own toolbar.
- */
-function DevToolSaveFamily({ tab, canApprove }: { tab: DevTabDescriptor; canApprove: boolean }) {
-  if (tab.group === "chrome" || tab.destination.kind !== "shell" || tab.id === "queue" || tab.saveFamilyInTool) {
-    return null;
-  }
-  const needsReview = !canApprove && (tab.saveFamily === "staged" || tab.id === "writing" || tab.id === "copy-studio");
-  const pill = needsReview
-    ? { label: "Changes need admin approval", detail: "Submitting for review does not publish your changes.", icon: "lucide:git-pull-request", tone: "info" as const }
-    : SAVE_FAMILY_PILL[tab.saveFamily];
-  return (
-    <div className="mt-4 flex justify-end">
-      <EditorStatusPill tone={pill.tone} icon={pill.icon} title={pill.detail}>
-        {pill.label}
-      </EditorStatusPill>
-    </div>
-  );
-}
-
-/**
  * Stands in for a tool the settled session may not use. The tab stays
  * addressable so a deep link explains itself instead of bouncing; the tool's
  * chunk is never loaded and none of its reads start.
@@ -192,7 +168,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       />
 
       <div className={controller.contentWrapperClass}>
-        <DevToolSaveFamily tab={activeDescriptor} canApprove={controller.canApprove} />
+        <DevToolSaveLine tab={activeDescriptor} canApprove={controller.canApprove} />
         {controller.activeTabLockReason !== null ? (
           <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
         ) : controller.activeTab === "index-layout"
@@ -260,10 +236,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "my-reports" ? (
           <MyReportsTab canApprove={controller.canApprove} />
         ) : controller.activeTab === "articles" ? (
-          <SubstanceEditorTab
-            initialSlug={controller.articlesInitialSlug}
-            renderCommitPanel={controller.renderCommitPanel}
-          />
+          <SubstanceEditorTab initialSlug={controller.articlesInitialSlug} />
         ) : null}
       </div>
     </main>

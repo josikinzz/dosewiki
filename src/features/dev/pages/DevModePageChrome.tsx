@@ -13,7 +13,7 @@ import {
   type DevTabDescriptor,
   type DevToolGroup,
 } from "./devTabRegistry";
-import { DevUtilitiesMenu } from "./DevUtilitiesMenu";
+import { DevUtilitiesMenu, devUtilitiesFor } from "./DevUtilitiesMenu";
 import {
   INLINE_RAIL_TOTAL_LIMIT,
   RAIL_CLASS,
@@ -87,7 +87,8 @@ export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string
 
 /**
  * Splits every group's tabs by the signed-in role. External launchers (Review)
- * are always enabled: the destination enforces its own role gate.
+ * follow the same floor: the destination enforces its own gate too, but the
+ * rail never offers a link the role would bounce off.
  *
  * While the session is still resolving, `pendingReason` keeps every tab in
  * `enabled` and marks it pending instead. The rail then holds its final shape
@@ -103,10 +104,6 @@ function splitGroupsByRole(
     const enabled: ToolTabItem[] = [];
     const locked: LockedToolItem[] = [];
     for (const tab of group.tabs) {
-      if (tab.destination.kind === "external") {
-        enabled.push(tab);
-        continue;
-      }
       if (pendingReason !== null) {
         enabled.push({ ...tab, pending: pendingReason });
         continue;
@@ -150,15 +147,14 @@ export function DevModePageChrome({
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
   const mayDraft = canDraft(role);
-  const isAdmin = role === "admin";
   // Each badge is only asked for by a role that may open its tab.
   const badgeCounts = useDevRailBadges(role, userEmail);
   const toolGroups = TOOL_GROUPS.map((group) => ({
     ...group,
-    tabs: group.tabs.map(({ id, label, role, destination, badge }): ToolTabItem => ({
+    tabs: group.tabs.map(({ id, label, labelFor, role: floor, destination, badge }): ToolTabItem => ({
       id,
-      label: id === "queue" && !isAdmin ? "My submissions" : label,
-      role,
+      label: labelFor?.(role) ?? label,
+      role: floor,
       destination,
       badge: badge === undefined ? undefined : badgeCounts[badge],
     })),
@@ -167,12 +163,30 @@ export function DevModePageChrome({
   // rail's shape and let the tabs wait instead of filing them all under Locked.
   const pendingReason = sessionStatus === "loading" ? "Checking your account" : null;
   const roleGroups = splitGroupsByRole(toolGroups, role, pendingReason);
-  const lockedTools = roleGroups.flatMap((group) => group.locked);
-  const changeLogLockReason =
-    pendingReason ?? getRoleFloorLockReason(role, findDevTab("change-log").role);
+  const changeLogDescriptor = findDevTab("change-log");
+  const changeLogRoleReason = pendingReason === null
+    ? getRoleFloorLockReason(role, changeLogDescriptor.role)
+    : null;
+  const changeLogLockReason = pendingReason ?? changeLogRoleReason;
+  // A Change log the role cannot open joins the Locked menu, where its reason
+  // is text, instead of sitting in the cluster as a dead button.
+  const lockedTools: LockedToolItem[] = [
+    ...roleGroups.flatMap((group) => group.locked),
+    ...(changeLogRoleReason === null
+      ? []
+      : [{
+          id: changeLogDescriptor.id,
+          label: changeLogDescriptor.label,
+          role: changeLogDescriptor.role,
+          destination: changeLogDescriptor.destination,
+          reason: changeLogRoleReason,
+        }]),
+  ];
+  const utilities = devUtilitiesFor(role);
+  const activeDescriptor = findDevTab(activeTab);
   const activeLabel = activePrimaryTab === "change-log"
     ? "Change log"
-    : activeTab === "queue" && !isAdmin ? "My submissions" : findDevTab(activeTab).label;
+    : activeDescriptor.labelFor?.(role) ?? activeDescriptor.label;
   const sessionDetail = mayDraft
     ? "Signed in. You can edit articles."
     : "Signed in. You can edit your own contributor record from the Contributors tab.";
@@ -326,6 +340,7 @@ export function DevModePageChrome({
           activePrimaryTab={activePrimaryTab}
           activeLabel={activeLabel}
           changeLogLockReason={changeLogLockReason}
+          utilities={utilities}
           onPrimaryTabChange={onPrimaryTabChange}
           onLeave={onLeave}
           session={sessionControls}
@@ -373,6 +388,7 @@ export function DevModePageChrome({
             const inline = group.id === "content" || keepFlat;
             return inline ? (
               <RailInlineGroup
+                key={group.id}
                 label={group.label}
                 tabs={group.enabled}
                 activeTab={activeTab}
@@ -393,6 +409,11 @@ export function DevModePageChrome({
             );
           })}
           {lockedTools.length > 0 ? <RailLockedMenu locked={lockedTools} /> : null}
+          {pendingReason !== null ? (
+            <span role="status" className="theme-text-muted shrink-0 whitespace-nowrap px-2 text-xs">
+              {pendingReason}
+            </span>
+          ) : null}
         </nav>
         <button
           type="button"
@@ -404,27 +425,31 @@ export function DevModePageChrome({
           <Icon icon="lucide:chevron-right" size={15} />
         </button>
 
-        <RailDivider />
+        {changeLogRoleReason === null ? (
+          <>
+            <RailDivider />
 
-        <nav aria-label="Dev mode sections" className="flex shrink-0 items-center gap-0.5">
-          <button
-            type="button"
-            disabled={changeLogLockReason !== null}
-            aria-disabled={changeLogLockReason !== null ? "true" : undefined}
-            title={changeLogLockReason ?? undefined}
-            aria-current={activePrimaryTab === "change-log" ? "page" : undefined}
-            data-state={activePrimaryTab === "change-log" ? "active" : "inactive"}
-            onClick={() => onPrimaryTabChange("change-log")}
-            className={RAIL_TAB_CLASS}
-          >
-            Change log
-          </button>
-        </nav>
+            <nav aria-label="Dev mode sections" className="flex shrink-0 items-center gap-0.5">
+              <button
+                type="button"
+                disabled={changeLogLockReason !== null}
+                aria-disabled={changeLogLockReason !== null ? "true" : undefined}
+                title={changeLogLockReason ?? undefined}
+                aria-current={activePrimaryTab === "change-log" ? "page" : undefined}
+                data-state={activePrimaryTab === "change-log" ? "active" : "inactive"}
+                onClick={() => onPrimaryTabChange("change-log")}
+                className={RAIL_TAB_CLASS}
+              >
+                Change log
+              </button>
+            </nav>
+          </>
+        ) : null}
 
         <RailDivider />
 
         <div className="flex min-w-0 items-center gap-1">
-          <DevUtilitiesMenu />
+          {utilities.length > 0 ? <DevUtilitiesMenu utilities={utilities} /> : null}
           <button
             type="button"
             title="Leave editor"

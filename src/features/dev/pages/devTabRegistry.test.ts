@@ -1,9 +1,12 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_DEV_TAB,
   DEV_TAB_REGISTRY,
   findDevTab,
+  firstUsableTab,
   resolveDevRoute,
   resolveDevTabAlias,
 } from "./devTabRegistry";
@@ -72,6 +75,59 @@ describe("devTabRegistry", () => {
     ]);
     expect(byRole("translator")).toEqual(["glossary"]);
     expect(byRole("contributor")).toEqual(["contributors", "playlists", "my-reports"]);
+  });
+
+  it("declares the save model each tool actually uses", () => {
+    for (const tab of DEV_TAB_REGISTRY) {
+      expect(["record", "batch", "instant"]).toContain(tab.saveModel);
+      expect(["shell", "full-bleed"]).toContain(tab.layout);
+    }
+    const byModel = (model: string) =>
+      DEV_TAB_REGISTRY.filter((tab) => tab.saveModel === model).map((tab) => tab.id);
+    // Substances keeps a per-article draft with Save draft, Publish and Submit
+    // for review; it has no shared commit panel.
+    expect(byModel("record")).toEqual(["articles", "writing", "copy-studio"]);
+    expect(byModel("batch")).toEqual(["tag-editor", "index-layout"]);
+  });
+
+  it("relabels Change Review for members who can only see their own submissions", () => {
+    const queue = findDevTab("queue");
+    expect(queue.labelFor?.("admin")).toBe("Change Review");
+    expect(queue.labelFor?.("editor")).toBe("My submissions");
+    expect(queue.labelFor?.(null)).toBe("My submissions");
+  });
+
+  it("keeps tab ids out of the shell's layout, save line and label decisions", () => {
+    // The render switch in DevModePageView maps ids to tools by design; these
+    // modules decide layout, save lines, labels and landing, and read those
+    // from descriptor fields instead.
+    const shellModules = [
+      "DevModePageChrome.tsx",
+      "DevModeToolRail.tsx",
+      "DevModeToolSheet.tsx",
+      "DevToolSaveLine.tsx",
+      "useDevChromeEnvironment.ts",
+      "useDevRouteAccess.ts",
+    ];
+    // `change-log` doubles as the primary-section name, so only tool ids count.
+    const toolIds = DEV_TAB_REGISTRY.filter((tab) => tab.group !== "chrome").map((tab) => tab.id);
+    for (const file of shellModules) {
+      const source = readFileSync(path.join(__dirname, file), "utf8");
+      for (const id of toolIds) {
+        expect(source.includes(`"${id}"`), `${file} names the "${id}" tab`).toBe(false);
+      }
+    }
+  });
+
+  it("lands every role on the first tool it can use", () => {
+    expect(firstUsableTab("admin")).toBe("articles");
+    expect(firstUsableTab("editor")).toBe("articles");
+    expect(firstUsableTab("editor_translator")).toBe("articles");
+    // A translator also holds the contributor floor; its own tool comes first.
+    expect(firstUsableTab("translator")).toBe("glossary");
+    expect(firstUsableTab("contributor")).toBe("contributors");
+    expect(firstUsableTab("viewer")).toBe(DEFAULT_DEV_TAB);
+    expect(firstUsableTab(null)).toBe(DEFAULT_DEV_TAB);
   });
 
   it("falls back to the default tab and keeps the slug for unknown segments", () => {

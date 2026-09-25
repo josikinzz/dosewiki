@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import type { EditorStatusPillTone } from "@/features/dev/components";
 
 
@@ -6,8 +5,6 @@ import type { EditorStatusPillTone } from "@/features/dev/components";
 
 
 export interface SubstanceEditorTabProps {
-  /** Render function for commit panel - receives optional action slot for buttons and tab-specific description copy */
-  renderCommitPanel?: (actionSlot?: ReactNode, description?: ReactNode) => ReactNode;
   /** The `/dev/articles/<slug>` deep link: the substance the tab opens on. */
   initialSlug?: string;
 }

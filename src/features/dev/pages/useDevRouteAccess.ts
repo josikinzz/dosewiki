@@ -7,14 +7,15 @@ import {
   canDraft,
   getRoleFloorLockReason,
   resolveSessionRole,
+  type AppRole,
 } from "@/lib/auth/roles";
 import { resolvePrimaryTab, type DevModePrimaryTab } from "./devModePageUtils";
-import { findDevTab, type DevModeTab } from "./devTabRegistry";
+import { findDevTab, firstUsableTab, type DevModeTab } from "./devTabRegistry";
 
-const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
-  tools: "articles",
-  "change-log": "change-log",
-};
+/** Where a primary section opens: Tools lands on the first tool the role can use. */
+function primarySectionTab(primaryTab: DevModePrimaryTab, role: AppRole | null): DevModeTab {
+  return primaryTab === "change-log" ? "change-log" : firstUsableTab(role);
+}
 
 type UseDevRouteAccessArgs = {
   activeTab: DevModeTab;
@@ -62,9 +63,9 @@ export function useDevRouteAccess({
 
   const handlePrimaryTabChange = useCallback(
     (primaryTab: DevModePrimaryTab) => {
-      handleTabChange(devModePrimaryDefaults[primaryTab]);
+      handleTabChange(primarySectionTab(primaryTab, role));
     },
-    [handleTabChange],
+    [handleTabChange, role],
   );
 
   const sessionStatus = nextSession.status;

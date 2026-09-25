@@ -51,10 +51,7 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
   }
 
   return (
-    <ReviewExperience
-      renderCommitPanel={controller.renderCommitPanel}
-      initialSlug={initialSlug}
-    />
+    <ReviewExperience initialSlug={initialSlug} />
   );
 }
 

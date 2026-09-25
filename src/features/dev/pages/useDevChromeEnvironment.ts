@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-import type { DevModeTab } from "./devTabRegistry";
+import { findDevTab, type DevModeTab } from "./devTabRegistry";
 
 function isEditableEventTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
@@ -65,23 +65,16 @@ export function useDevChromeEnvironment({
 
   /**
    * The toolbar spans the viewport on every tab, but the tools below it do not.
-   * Only the surfaces drawn for edge-to-edge space keep the whole width: the
-   * Index layout board, the Replication Studio (rail + grid + drawer), the Trip
-   * Report Portal (rail + list + editor), and the Banner Studio, whose Presets
-   * table carries six columns beside a two-column drawer and whose Coverage view
-   * is a 300px substance rail plus a fluid detail column. The Review workbench is
-   * its own route (`/review`) and sets its own width. Every other tool is a form
-   * stack that reads badly when stretched, so it goes back to the 6xl column.
+   * Only the surfaces drawn for edge-to-edge space (rails beside grids, wide
+   * tables beside drawers, the layout board) declare `layout: "full-bleed"` in
+   * the registry and keep the whole width. The Review workbench is its own
+   * route (`/review`) and sets its own width. Every other tool is a form stack
+   * that reads badly when stretched, so it goes back to the 6xl column.
    */
-  const contentWrapperClass = useMemo(() => {
-    const isFullBleedTool =
-      activeTab === "index-layout" ||
-      activeTab === "replications" ||
-      activeTab === "banners" ||
-      activeTab === "trip-report-submissions";
-
-    return isFullBleedTool ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl";
-  }, [activeTab]);
+  const contentWrapperClass = useMemo(
+    () => (findDevTab(activeTab).layout === "full-bleed" ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl"),
+    [activeTab],
+  );
 
   return {
     enableStickyPanels,
