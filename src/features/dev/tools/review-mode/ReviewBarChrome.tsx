@@ -147,6 +147,7 @@ export function ReviewToast({
 }) {
   return (
     <div
+      role="status"
       className={cn(
         "fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-sm shadow-[var(--theme-elevation-xl)] backdrop-blur-[14px]",
         "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
@@ -231,13 +232,17 @@ export function MarkReviewedControl({
   justTicked,
   hasCurrent,
   isTicking,
+  canSignOff,
   toggleReviewed,
 }: {
   isCurrentReviewed: boolean;
   /** The tick that just happened is this article's, so the check draws in. */
   justTicked: boolean;
+  /** An article is selected and its body has loaded. */
   hasCurrent: boolean;
   isTicking: boolean;
+  /** False for roles the route refuses; the bar says why in visible text. */
+  canSignOff: boolean;
   toggleReviewed: () => void;
 }) {
   return isCurrentReviewed ? (
@@ -250,7 +255,7 @@ export function MarkReviewedControl({
           TOUCH_PILL,
         )}
         onClick={toggleReviewed}
-        disabled={isTicking}
+        disabled={isTicking || !canSignOff}
         aria-label="Reviewed: undo"
         title="Reviewed: click to undo (R)"
       >
@@ -266,7 +271,7 @@ export function MarkReviewedControl({
         size="auto"
         className="hidden px-1 sm:inline-flex"
         onClick={toggleReviewed}
-        disabled={isTicking}
+        disabled={isTicking || !canSignOff}
       >
         Undo
       </Button>
@@ -280,7 +285,7 @@ export function MarkReviewedControl({
         TOUCH_PILL,
       )}
       onClick={toggleReviewed}
-      disabled={!hasCurrent || isTicking}
+      disabled={!hasCurrent || isTicking || !canSignOff}
       aria-label="Mark as reviewed"
       title="Mark as reviewed (R)"
     >
@@ -306,8 +311,8 @@ const SHORTCUTS: Array<[string, string]> = [
   ["←", "Previous article"],
   ["→", "Next article"],
   ["R", "Toggle reviewed"],
-  ["F", "Toggle the in-progress flag"],
-  ["U", "Undo the last tick"],
+  ["F", "Notes and flags"],
+  ["U", "Undo the last status change"],
   ["M", "Molecule depiction panel"],
   ["C", "Citation palette"],
   ["E", "Toggle inline editing"],
@@ -335,9 +340,9 @@ export function ReviewHelpPanel() {
           ))}
         </ul>
         <p className="theme-text-faint mt-2 text-[12px]">
-          Can&rsquo;t finish one? Flag it{" "}
-          <Icon icon="lucide:flag" size={12} className="inline" /> and move on;
-          it stays in the queue.
+          Can&rsquo;t finish one? Hold it{" "}
+          <Icon icon="lucide:hand" size={12} className="inline" />, note why
+          under Notes and flags (F), and move on; it stays in the queue.
         </p>
       </div>
       <div className="hidden [@media(pointer:fine)]:block">

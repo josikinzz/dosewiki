@@ -4,7 +4,6 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { EditorSelect } from "@/features/dev/components";
 import {
-  REVIEW_FLAGS_UI,
   REVIEW_QUEUE_ORDER_OPTIONS,
   type ReviewQueueOrder,
 } from "./reviewQueue";
@@ -69,112 +68,107 @@ export function ReviewQueueSettingsPanel({
           </span>
         ) : null}
       </label>
-      {/* The advisory-flag filters live behind REVIEW_FLAGS_UI with the rest
-          of the flag surface — see reviewQueue.ts. */}
-      {REVIEW_FLAGS_UI ? (
-        <>
-          <div className="theme-text-faint space-y-1.5 text-xs">
-            <label
-              htmlFor="review-flag-label"
-              className="block font-semibold uppercase tracking-[0.12em]"
-            >
-              Flag label
-            </label>
-            <EditorSelect
-              id="review-flag-label"
-              value=""
-              onChange={(event) =>
-                event.target.value &&
-                updateSettings({
-                  flagLabels: [
-                    ...new Set([...flagLabels, event.target.value]),
-                  ],
-                })
-              }
-              options={[
-                {
-                  value: "",
-                  label: flagLabels.length
-                    ? "Add another label"
-                    : "All labels",
-                },
-                ...availableFlagLabels
-                  .filter((value) => !flagLabels.includes(value))
-                  .map((value) => ({ value, label: value })),
-              ]}
-            />
-            {flagLabels.length ? (
-              <div className="flex flex-wrap gap-1.5">
-                {flagLabels.map((value) => (
-                  <Button
-                    key={value}
-                    type="button"
-                    variant="chip"
-                    size="chip"
-                    onClick={() =>
-                      updateSettings({
-                        flagLabels: flagLabels.filter(
-                          (label) => label !== value,
-                        ),
-                      })
-                    }
-                  >
-                    {value}
-                    <Icon icon="lucide:x" size={12} />
-                  </Button>
-                ))}
-              </div>
-            ) : null}
+      {/* Advisory Review Flag filters: narrow or group the picker by flag. */}
+      <div className="theme-text-faint space-y-1.5 text-xs">
+        <label
+          htmlFor="review-flag-label"
+          className="block font-semibold uppercase tracking-[0.12em]"
+        >
+          Flag label
+        </label>
+        <EditorSelect
+          id="review-flag-label"
+          value=""
+          onChange={(event) =>
+            event.target.value &&
+            updateSettings({
+              flagLabels: [
+                ...new Set([...flagLabels, event.target.value]),
+              ],
+            })
+          }
+          options={[
+            {
+              value: "",
+              label: flagLabels.length
+                ? "Add another label"
+                : "All labels",
+            },
+            ...availableFlagLabels
+              .filter((value) => !flagLabels.includes(value))
+              .map((value) => ({ value, label: value })),
+          ]}
+        />
+        {flagLabels.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {flagLabels.map((value) => (
+              <Button
+                key={value}
+                type="button"
+                variant="chip"
+                size="chip"
+                onClick={() =>
+                  updateSettings({
+                    flagLabels: flagLabels.filter(
+                      (label) => label !== value,
+                    ),
+                  })
+                }
+              >
+                {value}
+                <Icon icon="lucide:x" size={12} />
+              </Button>
+            ))}
           </div>
-          <label
-            htmlFor="review-flag-severity"
-            className="theme-text-faint block space-y-1.5 text-xs"
-          >
-            <span className="font-semibold uppercase tracking-[0.12em]">
-              Flag severity
-            </span>
-            <EditorSelect
-              id="review-flag-severity"
-              value={flagSeverity ?? ""}
-              onChange={(event) =>
-                updateSettings({
-                  flagSeverity: (event.target.value ||
-                    null) as ReviewSettings["flagSeverity"],
-                })
-              }
-              options={[
-                { value: "", label: "All severities" },
-                { value: "major", label: "Major" },
-                { value: "minor", label: "Minor" },
-                { value: "note", label: "Note" },
-              ]}
-            />
-          </label>
-          <label
-            htmlFor="review-flag-group"
-            className="theme-text-faint block space-y-1.5 text-xs"
-          >
-            <span className="font-semibold uppercase tracking-[0.12em]">
-              Group flags by
-            </span>
-            <EditorSelect
-              id="review-flag-group"
-              value={flagGroupBy}
-              onChange={(event) =>
-                updateSettings({
-                  flagGroupBy: event.target
-                    .value as ReviewSettings["flagGroupBy"],
-                })
-              }
-              options={[
-                { value: "none", label: "Category / flat" },
-                { value: "severity", label: "Severity" },
-                { value: "label", label: "Label" },
-              ]}
-            />
-          </label>
-        </>
-      ) : null}
+        ) : null}
+      </div>
+      <label
+        htmlFor="review-flag-severity"
+        className="theme-text-faint block space-y-1.5 text-xs"
+      >
+        <span className="font-semibold uppercase tracking-[0.12em]">
+          Flag severity
+        </span>
+        <EditorSelect
+          id="review-flag-severity"
+          value={flagSeverity ?? ""}
+          onChange={(event) =>
+            updateSettings({
+              flagSeverity: (event.target.value ||
+                null) as ReviewSettings["flagSeverity"],
+            })
+          }
+          options={[
+            { value: "", label: "All severities" },
+            { value: "major", label: "Major" },
+            { value: "minor", label: "Minor" },
+            { value: "note", label: "Note" },
+          ]}
+        />
+      </label>
+      <label
+        htmlFor="review-flag-group"
+        className="theme-text-faint block space-y-1.5 text-xs"
+      >
+        <span className="font-semibold uppercase tracking-[0.12em]">
+          Group flags by
+        </span>
+        <EditorSelect
+          id="review-flag-group"
+          value={flagGroupBy}
+          onChange={(event) =>
+            updateSettings({
+              flagGroupBy: event.target
+                .value as ReviewSettings["flagGroupBy"],
+            })
+          }
+          options={[
+            { value: "none", label: "Category / flat" },
+            { value: "severity", label: "Severity" },
+            { value: "label", label: "Label" },
+          ]}
+        />
+      </label>
       <div className="space-y-1.5">
         <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
           <input

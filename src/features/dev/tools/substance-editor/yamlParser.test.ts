@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import yaml from "yaml";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
-import { normalizeArticleInput, parseGeneratedYaml, parseSectionYamlObject } from "./yamlParser";
+import { normalizeArticleInput } from "./yamlParser";
 
-describe("parseGeneratedYaml", () => {
+describe("normalizeArticleInput", () => {
   it("preserves legacy pharmacology data when hydrating an existing article", () => {
     const legacyArticle = {
       ...createEmptyArticle(),
@@ -32,24 +31,18 @@ describe("parseGeneratedYaml", () => {
       },
     };
 
-    const result = parseGeneratedYaml(yaml.stringify(legacyArticle, { lineWidth: 0, nullStr: "" }));
+    const article = normalizeArticleInput(legacyArticle);
 
-    expect(result.success).toBe(true);
-    expect(result.data?.pharmacology.pharmacokinetics).toBe("Rapid hepatic metabolism.");
-    expect(result.data?.pharmacology.route_bioavailability).toEqual({ Oral: "70%" });
-    expect(result.data?.pharmacology.route_half_life).toEqual({ Oral: "3 hours" });
-    expect(result.data?.pharmacology.binding_sites).toEqual(
+    expect(article.pharmacology.pharmacokinetics).toBe("Rapid hepatic metabolism.");
+    expect(article.pharmacology.route_bioavailability).toEqual({ Oral: "70%" });
+    expect(article.pharmacology.route_half_life).toEqual({ Oral: "3 hours" });
+    expect(article.pharmacology.binding_sites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ tag: "5-HT2A receptor agonist (partial)" }),
         expect.objectContaining({ tag: "5-HT2C receptor agonist (partial)" }),
         expect.objectContaining({ target: "NMDA receptor", efficacy: "antagonist" }),
       ]),
     );
-  });
-
-  it("rejects empty or non-object section YAML", () => {
-    expect(() => parseSectionYamlObject("   ")).toThrow("Generated YAML is empty.");
-    expect(() => parseSectionYamlObject("null")).toThrow("Generated YAML must parse to an object.");
   });
 
   it("defaults missing editorial review metadata for editor workflows", () => {

@@ -11,6 +11,7 @@ import {
 
 import type { SubstanceArticle } from "@/schema";
 import type { ReviewStatus } from "../substance-editor/types";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
   resolveReviewCelebration,
   type ReviewCelebration,
@@ -38,10 +39,14 @@ export function useReviewOverlays(): ReviewOverlays {
 }
 
 
+/** The last status change, held for the undo window. */
 interface ReviewLastTick {
   slug: string;
   name: string;
+  /** The status the reviewer saw before the change, overlay included. */
   previous: ReviewStatus;
+  /** The status the change set. */
+  status: ReviewStatus;
 }
 
 export interface ReviewStatusWrites {
@@ -49,6 +54,10 @@ export interface ReviewStatusWrites {
   tickError: string | null;
   clearTickError: () => void;
   lastTick: ReviewLastTick | null;
+  /** Whether this role may mark an article reviewed (admins only). */
+  canSignOff: boolean;
+  /** Whether the current article body has loaded, so a tick means it was read. */
+  currentHydrated: boolean;
   milestone: number | null;
   celebration: (ReviewCelebration & { id: number }) | null;
   toggleReviewed: () => void;
@@ -60,6 +69,10 @@ export interface ReviewStatusWrites {
 /**
  * The tick and the flag (`/api/dev/editorial-review`), plus the undo window,
  * milestone toast, and bucket celebration a tick can set off.
+ *
+ * Completing a review is admin-only at the route, so `canSignOff` keeps the
+ * tick from firing for any other role, and `currentHydrated` keeps it from
+ * firing before the reviewer could have read the article body.
  */
 export function useReviewStatusWrites({
   current,
@@ -67,12 +80,16 @@ export function useReviewStatusWrites({
   queueGroups,
   reviewedCount,
   setOverrides,
+  canSignOff,
+  currentHydrated,
 }: {
   current: ReviewQueueEntry | null;
   typedArticles: SubstanceArticle[];
   queueGroups: ReviewQueueGroup[];
   reviewedCount: number;
   setOverrides: ReviewOverlays["setOverrides"];
+  canSignOff: boolean;
+  currentHydrated: boolean;
 }): ReviewStatusWrites {
   const [isTicking, setIsTicking] = useState(false);
   const [tickError, setTickError] = useState<string | null>(null);
@@ -106,6 +123,7 @@ export function useReviewStatusWrites({
       name: string,
       status: ReviewStatus,
       baseStatus: ReviewStatus,
+      previous: ReviewStatus,
       options?: { isUndo?: boolean },
     ) => {
       setIsTicking(true);
@@ -134,13 +152,20 @@ export function useReviewStatusWrites({
         }));
 
 
-        if (status === "completed" && !options?.isUndo) {
-          setLastTick({ slug, name, previous: baseStatus });
+        // Every change, un-reviewing included, gets the toast and its undo
+        // window; an undo itself does not, so U never ping-pongs.
+        if (options?.isUndo) {
+          setLastTick(null);
+        } else {
+          setLastTick({ slug, name, previous, status });
           if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
           undoTimerRef.current = window.setTimeout(
             () => setLastTick(null),
             UNDO_WINDOW_MS,
           );
+        }
+
+        if (status === "completed" && !options?.isUndo) {
 
           // Loudest celebration only. `queueGroups` is this render's closure,
           // i.e. the tree as it stood before this tick — exactly what the
@@ -174,8 +199,6 @@ export function useReviewStatusWrites({
               MILESTONE_MS,
             );
           }
-        } else {
-          setLastTick(null);
         }
       } catch (error) {
         setTickError(
@@ -190,24 +213,28 @@ export function useReviewStatusWrites({
     [queueGroups, reviewedCount, setOverrides],
   );
 
+  /**
+   * What the working set's own row says, which is the base an override is
+   * recorded against (see `ReviewStatusOverride.baseStatus`). The status the
+   * reviewer sees, and so the one an undo returns to, is the queue entry's,
+   * which already reads the optimistic overlay first.
+   */
   const articleStatus = useCallback((entrySlug: string): ReviewStatus => {
-    const record = typedArticles.find((candidate) => {
-      const withSlug = candidate as SubstanceArticle & { slug?: unknown };
-      return typeof withSlug.slug === "string" && withSlug.slug === entrySlug;
-    });
+    const record = typedArticles.find((candidate) => resolveEditorArticleSlug(candidate) === entrySlug);
     const raw = record?.editorial_review?.status;
     return raw === "in_progress" || raw === "completed" ? raw : "needed";
   }, [typedArticles]);
 
   const toggleReviewed = useCallback(() => {
-    if (!current || isTicking) return;
+    if (!current || isTicking || !canSignOff || !currentHydrated) return;
     void setReviewStatus(
       current.slug,
       current.name,
       current.status === "completed" ? "needed" : "completed",
       articleStatus(current.slug),
+      current.status,
     );
-  }, [articleStatus, current, isTicking, setReviewStatus]);
+  }, [articleStatus, canSignOff, current, currentHydrated, isTicking, setReviewStatus]);
 
   const toggleFlagged = useCallback(() => {
     if (!current || isTicking) return;
@@ -216,6 +243,7 @@ export function useReviewStatusWrites({
       current.name,
       current.status === "in_progress" ? "needed" : "in_progress",
       articleStatus(current.slug),
+      current.status,
     );
   }, [articleStatus, current, isTicking, setReviewStatus]);
 
@@ -234,6 +262,7 @@ export function useReviewStatusWrites({
       lastTick.name,
       lastTick.previous,
       articleStatus(lastTick.slug),
+      lastTick.status,
       { isUndo: true },
     );
   }, [articleStatus, isTicking, lastTick, setReviewStatus]);
@@ -243,6 +272,8 @@ export function useReviewStatusWrites({
     tickError,
     clearTickError,
     lastTick,
+    canSignOff,
+    currentHydrated,
     milestone,
     celebration,
     toggleReviewed,

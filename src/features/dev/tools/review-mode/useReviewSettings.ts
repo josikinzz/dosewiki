@@ -10,7 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 
-import { REVIEW_FLAGS_UI, type ReviewQueueEntry } from "./reviewQueue";
+import type { ReviewQueueEntry } from "./reviewQueue";
 import {
   loadReviewSettings,
   REVIEW_SETTINGS_DEFAULTS,
@@ -28,7 +28,6 @@ import {
 } from "./reviewUrl";
 
 /** Stable empty list so the flag-off path never churns memo dependencies. */
-const NO_FLAG_LABELS: string[] = [];
 
 export interface ReviewSettingsState {
   settings: ReviewSettings;
@@ -75,9 +74,9 @@ export function useReviewSettings({
   // With the flag surface off, stored or URL-carried flag settings become
   // inert here — one choke point, so no consumer can filter, group, or badge
   // by flags while the reviewer can't see the controls that would explain it.
-  const effectiveFlagLabels = REVIEW_FLAGS_UI ? flagLabels : NO_FLAG_LABELS;
-  const effectiveFlagSeverity = REVIEW_FLAGS_UI ? flagSeverity : null;
-  const effectiveFlagGroupBy = REVIEW_FLAGS_UI ? flagGroupBy : "none";
+  const effectiveFlagLabels = flagLabels;
+  const effectiveFlagSeverity = flagSeverity;
+  const effectiveFlagGroupBy = flagGroupBy;
   // Restore after mount so the server render matches first client paint. The
   // address is consulted here too: a `?view=` in a shared or bookmarked link is
   // a statement about which view to open, and it outranks the stored default.
@@ -110,7 +109,7 @@ export function useReviewSettings({
         const next = { ...previous, ...patch };
         saveReviewSettings(next);
         const location = parseReviewLocation(window.location.href);
-        window.history.replaceState(window.history.state, "", buildReviewUrl({ slug: location.slug, view: location.view ?? next.viewMode, flagLabels: REVIEW_FLAGS_UI ? next.flagLabels : [], flagSeverity: REVIEW_FLAGS_UI ? next.flagSeverity : null, flagGroupBy: REVIEW_FLAGS_UI ? next.flagGroupBy : "none" }));
+        window.history.replaceState(window.history.state, "", buildReviewUrl({ slug: location.slug, view: location.view ?? next.viewMode, flagLabels: next.flagLabels, flagSeverity: next.flagSeverity, flagGroupBy: next.flagGroupBy }));
         return next;
       });
     },

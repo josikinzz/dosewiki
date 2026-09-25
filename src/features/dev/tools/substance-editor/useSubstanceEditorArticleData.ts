@@ -1,18 +1,10 @@
 import type { SubstanceArticle } from "@/schema";
 import { getDefaultEditorialReview, isDirectUrlOnlySubstance } from "@/schema";
-import { slugify } from "@/utils/slug";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import { useMemo, useState } from "react";
 import type { ReviewStatus, SortOrder, SubstanceInfo } from "./types";
 
 const REVIEW_STATUS_FALLBACK: ReviewStatus = getDefaultEditorialReview().status;
-
-function resolveArticleSlug(article: SubstanceArticle): string {
-  const explicitSlug = "slug" in article && typeof article.slug === "string"
-    ? article.slug.trim()
-    : "";
-
-  return explicitSlug || slugify(article.title || article.identification.common_name || "");
-}
 
 export function useSubstanceEditorArticleData(articles: SubstanceArticle[], initialSlug?: string) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,13 +13,13 @@ export function useSubstanceEditorArticleData(articles: SubstanceArticle[], init
   // hides it, so the toggle opens in whichever state shows the linked article.
   const [showDirectUrlOnly, setShowDirectUrlOnly] = useState(() =>
     articles.some((article) =>
-      resolveArticleSlug(article) === initialSlug && isDirectUrlOnlySubstance(article.priority)));
+      resolveEditorArticleSlug(article) === initialSlug && isDirectUrlOnlySubstance(article.priority)));
   const [selectedSubstanceSlug, setSelectedSubstanceSlug] = useState<string | null>(initialSlug ?? null);
 
   const substances = useMemo<SubstanceInfo[]>(() => articles
     .filter((article) => showDirectUrlOnly || !isDirectUrlOnlySubstance(article.priority))
     .flatMap((article) => {
-      const slug = resolveArticleSlug(article);
+      const slug = resolveEditorArticleSlug(article);
       if (!slug) return [];
 
       return [{

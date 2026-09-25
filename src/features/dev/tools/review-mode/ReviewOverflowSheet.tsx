@@ -25,6 +25,7 @@ import {
   type ProgressFlourish,
 } from "./ReviewBarChrome";
 import type { ReviewQueueGroup } from "./reviewQueue";
+import { NOTES_PANEL_ID } from "./ReviewNotesPanel";
 import { ReviewTrophyShelf } from "./ReviewTrophyShelf";
 
 interface ReviewOverflowSheetProps {
@@ -35,6 +36,8 @@ interface ReviewOverflowSheetProps {
   isCurrentFlagged: boolean;
   isTicking: boolean;
   toggleFlagged: () => void;
+  notesPanelOpen: boolean;
+  toggleNotesPanel: () => void;
   /** The Webpage / Editor tabs; `onAfterChange` closes the sheet. */
   renderViewTabs: (onAfterChange: () => void) => ReactNode;
   moleculePanelOpen: boolean;
@@ -62,6 +65,8 @@ export function ReviewOverflowSheet({
   isCurrentFlagged,
   isTicking,
   toggleFlagged,
+  notesPanelOpen,
+  toggleNotesPanel,
   renderViewTabs,
   moleculePanelOpen,
   citationPanelOpen,
@@ -120,11 +125,29 @@ export function ReviewOverflowSheet({
           onClick={toggleFlagged}
           disabled={!hasCurrent || isTicking}
           aria-pressed={isCurrentFlagged}
+          aria-label="Hold"
         >
-          <Icon icon="lucide:flag" size={15} />
-          {isCurrentFlagged
-            ? "Flagged as in progress: tap to clear"
-            : "Flag as in progress"}
+          <Icon icon="lucide:hand" size={15} />
+          {isCurrentFlagged ? "On hold: tap to release" : "Hold"}
+        </Button>
+
+        <Button
+          variant={notesPanelOpen ? "pillActive" : "pill"}
+          size="pill"
+          className={cn(
+            "w-full justify-start rounded-full gap-2 md:hidden",
+            TOUCH_PILL,
+          )}
+          onClick={() => {
+            toggleNotesPanel();
+            setOverflowOpen(false);
+          }}
+          disabled={!hasCurrent}
+          aria-expanded={notesPanelOpen}
+          aria-controls={NOTES_PANEL_ID}
+        >
+          <Icon icon="lucide:notebook-pen" size={15} />
+          Notes and flags
         </Button>
 
         {/* border-dose-divider, NOT .theme-divider: that utility also

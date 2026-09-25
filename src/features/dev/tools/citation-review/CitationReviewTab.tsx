@@ -32,20 +32,11 @@ import {
   type CitationUndoOffer,
 } from "./CitationReviewPanels";
 import { useCitationReviewData } from "./useCitationReviewData";
-import { slugify } from "@/utils/slug";
+import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 
 type CitationReviewTabProps = {
   initialSlug?: string;
 };
-
-function resolveArticleSlug(article: {
-  title?: string;
-  identification?: { common_name?: string };
-  slug?: string;
-}) {
-  const explicitSlug = typeof article.slug === "string" ? article.slug.trim() : "";
-  return explicitSlug || slugify(article.identification?.common_name || article.title || "");
-}
 
 /** One sentence the reviewer can act on or report: what failed, and the id to quote. */
 function formatQueueLoadFailure(failure: CitationReviewQueueLoadFailure): string {
@@ -90,7 +81,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   const articleBySlug = useMemo(() => {
     const lookup = new Map<string, (typeof articles)[number]>();
     for (const article of articles) {
-      const articleSlug = resolveArticleSlug(article);
+      const articleSlug = resolveEditorArticleSlug(article);
       if (articleSlug) {
         lookup.set(articleSlug, article);
       }
@@ -104,7 +95,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
       lookup.set(record.slug, record.name);
     }
     for (const article of articles) {
-      const articleSlug = resolveArticleSlug(article);
+      const articleSlug = resolveEditorArticleSlug(article);
       if (!articleSlug) {
         continue;
       }

@@ -145,7 +145,7 @@ describe("resolveReviewCelebration", () => {
     const groups = [
       group({
         key: UNPLACED_GROUP_KEY,
-        label: "Not on the index",
+        label: "Unplaced",
         sections: [],
         entries: [entry("mystery")],
       }),

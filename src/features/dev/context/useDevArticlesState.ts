@@ -64,9 +64,8 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
       let nextOriginal: ArticleRecord[] | null = null;
 
       original.forEach((baseline, index) => {
-        const hydrated = baseline
-          ? articlesBySlug.get(resolveEditorArticleSlug(baseline))
-          : undefined;
+        const slug = baseline ? resolveEditorArticleSlug(baseline) : null;
+        const hydrated = slug ? articlesBySlug.get(slug) : undefined;
         if (!hydrated || hydrated === baseline || draft[index] !== baseline) {
           return;
         }

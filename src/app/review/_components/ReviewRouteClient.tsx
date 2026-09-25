@@ -4,11 +4,11 @@ import { useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSectionLoadingModel, RouteLoading } from "@/app/_components/RouteLoading";
 import { StateCard } from "@/components/common/StateCard";
+import { LoadErrorState } from "@/features/dev/components/LoadErrorState";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
-import type { SubstanceArticle } from "@/schema";
-import { slugify } from "@/utils/slug";
+import { resolveEditorArticleSlug } from "@/features/dev/context/devModeUtils";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { useDevModePageController } from "@/features/dev/pages/useDevModePageController";
 import { ReviewExperience } from "@/features/dev/tools/review-mode/ReviewExperience";
@@ -24,7 +24,7 @@ type ReviewRouteClientProps = {
  * the dev-tools page chrome. The dev page controller still runs underneath so
  * the editor view's commit panel behaves identically to the main editor tab.
  */
-function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
+function ReviewWorkbench({ initialSlug, libraryEmpty }: { initialSlug?: string; libraryEmpty: boolean }) {
   const router = useRouter();
 
   const onTabChange = useCallback(
@@ -42,7 +42,9 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
     onTabChange,
   });
 
-  if (controller.articlesLength === 0) {
+  // An empty library is an answer, not a pending load: the workbench says
+  // there is nothing to review rather than wait for rows that never come.
+  if (controller.articlesLength === 0 && !libraryEmpty) {
     return (
       <main className="theme-page-shell flex min-h-screen items-center justify-center p-8">
         <StateCard loading title="Loading the review queue" />
@@ -57,7 +59,7 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
 
 function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   const { layout: categoryLayout } = useCategoryLayout();
-  const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
+  const { library, isLoading: isLoadingLibrary, error: libraryError, requestLibrary } = useLazyLibrary(true);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -68,17 +70,14 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
       return [];
     }
 
-    return library.articles.map((article) => {
-      const record = article as SubstanceArticle & { slug?: unknown };
-      const slug =
-        typeof record.slug === "string" && record.slug
-          ? record.slug
-          : slugify(article.title || article.identification?.common_name || "");
-      return {
+    return library.articles.flatMap((article) => {
+      const slug = resolveEditorArticleSlug(article);
+      if (!slug) return [];
+      return [{
         slug,
         name: article.title || article.identification?.common_name || slug,
         priority: article.priority,
-      };
+      }];
     });
   }, [library]);
 
@@ -106,6 +105,20 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
 
   const navigate = useCallback((path: string) => router.push(path), [router]);
   const getCurrentPath = useCallback(() => pathname ?? "/review", [pathname]);
+  const retryLibrary = useCallback(() => {
+    // The hook reports the outcome through `error` and `library`.
+    requestLibrary().catch(() => {});
+  }, [requestLibrary]);
+
+  if (libraryError && !library) {
+    return (
+      <main className="theme-page-shell min-h-screen p-8">
+        <div className="mx-auto max-w-xl pt-16">
+          <LoadErrorState message={libraryError} onRetry={retryLibrary} />
+        </div>
+      </main>
+    );
+  }
   if (categoryLayout === undefined || isLoadingLibrary || !library) {
     // Content-shaped skeleton instead of a full-screen splash: the shell stays
     // up and the load reads as the page assembling rather than the app
@@ -138,7 +151,7 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
     <LightweightDataProvider layout={layout} substances={substances}>
       <SubstanceIndexProvider libraryData={library}>
         <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
-          <ReviewWorkbench initialSlug={initialSlug} />
+          <ReviewWorkbench initialSlug={initialSlug} libraryEmpty={library.articles.length === 0} />
         </DevModeProvider>
       </SubstanceIndexProvider>
     </LightweightDataProvider>

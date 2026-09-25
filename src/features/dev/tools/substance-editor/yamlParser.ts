@@ -1,10 +1,4 @@
-import { parse, YAMLParseError } from "yaml";
-import {
-  isSubstancePriority,
-  substanceArticleSchema,
-  type SubstanceArticle,
-} from "@/schema";
-import { stripMarkdownCodeFences } from "../../../../../lib/article/normalization.mjs";
+import { isSubstancePriority, type SubstanceArticle } from "@/schema";
 import { normalizeHarmPotential } from "./yamlParserHarmPotential";
 import {
   normalizeCitations,
@@ -24,13 +18,6 @@ import {
   normalizeTolerance,
 } from "./yamlParserSectionNormalizers";
 import { getString, getStringArray, isObjectRecord } from "./yamlParserShared";
-
-export interface ParseResult {
-  success: boolean;
-  data?: SubstanceArticle;
-  error?: string;
-  lineNumber?: number;
-}
 
 const REFERENCE_TEMPLATES = new Set([
   "cite_journal",
@@ -60,78 +47,6 @@ function normalizeReferences(raw: unknown): SubstanceArticle["references"] {
 
     return reference as SubstanceArticle["references"][number];
   });
-}
-
-function parseYamlRecord(
-  yamlString: string,
-  objectErrorMessage: string,
-): Record<string, unknown> {
-  const parsed = parse(stripMarkdownCodeFences(yamlString));
-
-  if (!isObjectRecord(parsed)) {
-    throw new Error(objectErrorMessage);
-  }
-
-  return parsed;
-}
-
-export function parseSectionYamlObject<T extends Record<string, unknown> = Record<string, unknown>>(
-  yamlString: string,
-): T {
-  if (!yamlString.trim()) {
-    throw new Error("Generated YAML is empty.");
-  }
-
-  return parseYamlRecord(yamlString, "Generated YAML must parse to an object.") as T;
-}
-
-/**
- * Parses a YAML string into a SubstanceArticle object.
- * Handles malformed YAML gracefully with informative error messages.
- */
-export function parseGeneratedYaml(yamlString: string): ParseResult {
-  if (!yamlString || !yamlString.trim()) {
-    return {
-      success: false,
-      error: "No YAML content to parse",
-    };
-  }
-
-  try {
-    const article = normalizeArticleInput(
-      parseYamlRecord(yamlString, "Parsed content is not a valid object"),
-    );
-    const validation = substanceArticleSchema.safeParse(article);
-
-    if (!validation.success) {
-      const firstIssue = validation.error.issues[0];
-      return {
-        success: false,
-        error: `Validation error at ${firstIssue.path.join(".")}: ${firstIssue.message}`,
-      };
-    }
-
-    return {
-      success: true,
-      data: validation.data,
-    };
-  } catch (error) {
-    if (error instanceof YAMLParseError) {
-      const lineMatch = error.message.match(/at line (\d+)/);
-      const lineNumber = lineMatch ? Number.parseInt(lineMatch[1], 10) : undefined;
-
-      return {
-        success: false,
-        error: `YAML parsing error: ${error.message}`,
-        lineNumber,
-      };
-    }
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown parsing error",
-    };
-  }
 }
 
 /**

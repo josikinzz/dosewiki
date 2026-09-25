@@ -1,23 +1,21 @@
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { SubstanceArticle } from "@/schema";
-import { slugify } from "@/utils/slug";
 
 export const EMPTY_INDEX_CONFIG: ManualIndexConfig = { version: 1, categories: [] };
 
 /**
- * The slug an editor surface knows an article by.
+ * The slug an editor surface knows an article by, or null when the row has none.
  *
- * Postgres projections attach a resolved `slug`, but the article schema itself
- * has none, so every editor picker falls back to slugifying the title. The
- * library list and the on-demand article hydration have to agree on this
- * exactly, or a hydrated article would never find the row it belongs to.
+ * Every Postgres editor projection (the library list rows and the per-slug
+ * hydration) attaches the stored `slug`, so this reads that and nothing else.
+ * There is no title fallback: a slug guessed from a title can name a different
+ * article than the one stored under it, and the library list and the hydrated
+ * article have to agree exactly or a hydrated article never finds its row.
  */
-export const resolveEditorArticleSlug = (article: SubstanceArticle): string => {
-  const explicitSlug = "slug" in article && typeof article.slug === "string"
-    ? article.slug.trim()
-    : "";
-
-  return explicitSlug || slugify(article.title || article.identification?.common_name || "");
+export const resolveEditorArticleSlug = (article: SubstanceArticle | { slug?: unknown }): string | null => {
+  const stored = (article as { slug?: unknown }).slug;
+  const slug = typeof stored === "string" ? stored.trim() : "";
+  return slug || null;
 };
 
 /**

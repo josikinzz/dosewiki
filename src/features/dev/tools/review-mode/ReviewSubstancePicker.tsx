@@ -21,7 +21,6 @@ import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBad
 import { cn } from "@/lib/utils";
 import type { ReviewStatus } from "../substance-editor/types";
 import {
-  REVIEW_FLAGS_UI,
   type ReviewQueueEntry,
   type ReviewQueueGroup,
 } from "./reviewQueue";
@@ -186,7 +185,7 @@ function EntryItem({
       <span className="theme-text-faint ml-1 hidden shrink-0 text-xs sm:inline">
         {entry.slug}
       </span>
-      {REVIEW_FLAGS_UI && entry.flagSummary ? (
+      {entry.flagSummary ? (
         <StatusBadge
           tone={FLAG_BADGE_TONE[entry.flagSummary.highestSeverity]}
           className="ml-auto shrink-0 gap-1 whitespace-nowrap tabular-nums"
@@ -207,7 +206,7 @@ function EntryItem({
           icon="lucide:badge-check"
           className={cn(
             "hidden sm:inline-flex",
-            REVIEW_FLAGS_UI && entry.flagSummary ? undefined : "ml-auto",
+            entry.flagSummary ? undefined : "ml-auto",
           )}
         >
           reviewed
@@ -218,7 +217,7 @@ function EntryItem({
           icon="lucide:pencil-line"
           className={cn(
             "hidden sm:inline-flex",
-            REVIEW_FLAGS_UI && entry.flagSummary ? undefined : "ml-auto",
+            entry.flagSummary ? undefined : "ml-auto",
           )}
         >
           in progress

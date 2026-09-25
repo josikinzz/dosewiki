@@ -25,10 +25,10 @@ const credentials: DevSaveCredentials = {
 function createDraft() {
   return buildDevSaveDraft({
     articles: [
-      { id: 1, title: "LSD" },
-      { id: 2, title: "MDMA" },
+      { id: 1, title: "LSD", slug: "lsd" },
+      { id: 2, title: "MDMA", slug: "mdma" },
     ] as never[],
-    originalArticles: [{ id: 1, title: "LSD" }] as never[],
+    originalArticles: [{ id: 1, title: "LSD", slug: "lsd" }] as never[],
     layouts: [
       {
         type: "psychoactive",
@@ -76,9 +76,9 @@ describe("dev save command contract", () => {
 
   it("builds Postgres payloads from changed document snapshots", () => {
     expect(buildDataCommandPayload(createDraft())).toEqual({
-      changedArticles: [{ id: 2, title: "MDMA" }],
+      changedArticles: [{ id: 2, title: "MDMA", slug: "mdma" }],
       payload: {
-        articles: [{ id: 2, title: "MDMA" }],
+        articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
         changelog: {
           markdown:
             "# Dataset\n\n+ MDMA\n\n---\n\n# Psychoactive Index\n\n+ classic\n\n---\n\n# Chemical Index\n\n+ tryptamines\n\n---\n\n# Mechanism Index\n\n+ 5ht2a",
@@ -223,7 +223,7 @@ describe("dev save command contract", () => {
 
   it("summarizes a proposal from the changed titles and layout labels", () => {
     const draft = createDraft();
-    expect(buildProposalSummary(draft, { articles: [{ id: 2, title: "MDMA" }] })).toBe("Update MDMA");
+    expect(buildProposalSummary(draft, { articles: [{ id: 2, title: "MDMA", slug: "mdma" }] })).toBe("Update MDMA");
     expect(buildProposalSummary(draft, { indexLayouts: [{ type: "mechanism", version: 1, categories: [] }] })).toBe(
       "Update Mechanism of action",
     );
