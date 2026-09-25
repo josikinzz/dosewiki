@@ -228,6 +228,10 @@ _Avoid_: source-material-priority rollout, rerunning completed substances, bulk 
 An advisory to-do attached to an article or section by the review workflow or a human editor. It never gates approval; an article may be Reviewed with open flags.
 _Avoid_: blocker, approval gate, review failure
 
+**Hold**:
+The in-progress review status a reviewer sets in /review when an article cannot be finished now. The reason goes in a Review Flag note from the notes and flags panel; a held article stays in the queue.
+_Avoid_: flag (for the status), in-progress flag, blocked
+
 **Flag Severity**:
 The size of a flag's to-do: `major` for absent or substantially deficient work, `minor` for a bounded fix, or `note` for an optional improvement. It never controls approval or visibility.
 _Avoid_: blocker, unapprovable, keep hidden

@@ -311,7 +311,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ["←", "Previous article"],
   ["→", "Next article"],
   ["R", "Toggle reviewed"],
-  ["F", "Toggle the in-progress flag"],
+  ["F", "Notes and flags"],
   ["U", "Undo the last status change"],
   ["M", "Molecule depiction panel"],
   ["C", "Citation palette"],
@@ -340,9 +340,9 @@ export function ReviewHelpPanel() {
           ))}
         </ul>
         <p className="theme-text-faint mt-2 text-[12px]">
-          Can&rsquo;t finish one? Flag it{" "}
-          <Icon icon="lucide:flag" size={12} className="inline" /> and move on;
-          it stays in the queue.
+          Can&rsquo;t finish one? Hold it{" "}
+          <Icon icon="lucide:hand" size={12} className="inline" />, note why
+          under Notes and flags (F), and move on; it stays in the queue.
         </p>
       </div>
       <div className="hidden [@media(pointer:fine)]:block">

@@ -30,7 +30,7 @@ import {
 } from "./ReviewBarChrome";
 import { ReviewOverflowSheet } from "./ReviewOverflowSheet";
 import { ReviewQueueSettingsPanel } from "./ReviewQueueSettingsPanel";
-import { REVIEW_FLAGS_UI } from "./reviewQueue";
+import { NOTES_PANEL_ID } from "./ReviewNotesPanel";
 import { REVIEW_SETTINGS_DEFAULTS, type ReviewViewMode } from "./reviewSettings";
 import { ReviewSubstancePicker } from "./ReviewSubstancePicker";
 import { ReviewTrophyShelf } from "./ReviewTrophyShelf";
@@ -52,6 +52,8 @@ interface ReviewCommandBarProps {
   toggleMoleculePanel: () => void;
   toggleCitationPanel: () => void;
   toggleInlineEdit: () => void;
+  notesPanelOpen: boolean;
+  toggleNotesPanel: () => void;
   /** Editor floor: inline edits update only the private local article preview. */
   canEditArticle: boolean;
   helpOpen: boolean;
@@ -89,6 +91,8 @@ export function ReviewCommandBar({
   toggleMoleculePanel,
   toggleCitationPanel,
   toggleInlineEdit,
+  notesPanelOpen,
+  toggleNotesPanel,
   canEditArticle,
   helpOpen,
   setHelpOpen,
@@ -181,8 +185,9 @@ export function ReviewCommandBar({
     groupByCategory !== REVIEW_SETTINGS_DEFAULTS.groupByCategory ||
     inlineEdit !== REVIEW_SETTINGS_DEFAULTS.inlineEdit ||
     articleLinks !== REVIEW_SETTINGS_DEFAULTS.articleLinks ||
-    (REVIEW_FLAGS_UI &&
-      (flagLabels.length > 0 || flagSeverity !== null || flagGroupBy !== "none"));
+    flagLabels.length > 0 ||
+    flagSeverity !== null ||
+    flagGroupBy !== "none";
   // Inline editing turns body text into local draft inputs, never public autosave.
   // A mode that changes what a click *does* cannot live only inside a popover,
   // so it owns a pill beside M and C whose warning tone announces it while it
@@ -332,7 +337,7 @@ export function ReviewCommandBar({
           </Button>
         </div>
 
-        {/* Judge — the flag and the verdict this page exists for. */}
+        {/* Judge: hold it, say why, or sign it off. */}
         <div className="flex shrink-0 items-center gap-2">
           <Button
             variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
@@ -341,13 +346,29 @@ export function ReviewCommandBar({
             onClick={toggleFlagged}
             disabled={!current || isTicking}
             aria-pressed={isCurrentFlagged}
+            aria-label="Hold"
             title={
               isCurrentFlagged
-                ? "Flagged as in progress: click to clear (F)"
-                : "Flag as in progress if you can't finish it now (F)"
+                ? "On hold: click to release"
+                : "Hold this article if you can't finish it now"
             }
           >
-            <Icon icon="lucide:flag" size={15} />
+            <Icon icon="lucide:hand" size={15} />
+          </Button>
+
+          <Button
+            variant={notesPanelOpen ? "pillActive" : "pill"}
+            size="pill"
+            className={cn("hidden md:inline-flex", TOUCH_PILL)}
+            onClick={toggleNotesPanel}
+            disabled={!current}
+            aria-expanded={notesPanelOpen}
+            aria-controls={NOTES_PANEL_ID}
+            aria-label="Notes and flags"
+            title={notesPanelOpen ? "Hide notes and flags (F)" : "Notes and flags: record why it is held (F)"}
+          >
+            <Icon icon="lucide:notebook-pen" size={14} />
+            <Kbd>F</Kbd>
           </Button>
 
           {/* Both states occupy one width, so ticking an article never
@@ -511,6 +532,8 @@ export function ReviewCommandBar({
           isCurrentFlagged={isCurrentFlagged}
           isTicking={isTicking}
           toggleFlagged={toggleFlagged}
+          notesPanelOpen={notesPanelOpen}
+          toggleNotesPanel={toggleNotesPanel}
           renderViewTabs={renderViewTabs}
           moleculePanelOpen={moleculePanelOpen}
           citationPanelOpen={citationPanelOpen}

@@ -1,8 +1,6 @@
 import { type PropsWithChildren, type ReactNode } from "react";
 import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
 
-const helperTextClass = "theme-text-faint text-[11px]";
-
 type SectionHeaderProps = {
   title: string;
   description?: string;
@@ -12,7 +10,6 @@ type SectionHeaderProps = {
 type CharacterCountProps = {
   value: string;
 };
-
 
 /**
  * Collapsible subsection within a form section.
@@ -89,7 +86,3 @@ export const SectionHeader = ({ title, description, icon }: SectionHeaderProps) 
 export const CharacterCount = ({ value }: CharacterCountProps) => (
   <p className="theme-text-faint text-[11px] text-right">{(value ?? "").length} characters</p>
 );
-
-
-
-export { helperTextClass };

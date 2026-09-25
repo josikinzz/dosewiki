@@ -11,7 +11,7 @@ import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
 import { EditorNotice, useDirtyGuard } from "@/features/dev/components";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
 import { canApprove, canDraft, resolveSessionRole } from "@/lib/auth/roles";
-import type { SubstanceArticle } from "@/schema";
+import type { ReviewFlag, SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
 import type { ReviewStatus, SubstanceEditorTabProps } from "../substance-editor/types";
 import { applyReviewArticleOverlay } from "./reviewArticleOverlay";
@@ -19,6 +19,7 @@ import { ReviewArticleView } from "./ReviewArticleView";
 import { Kbd, ReviewToast } from "./ReviewBarChrome";
 import { ReviewClassCelebration } from "./ReviewClassCelebration";
 import { ReviewCommandBar } from "./ReviewCommandBar";
+import { ReviewNotesPanel } from "./ReviewNotesPanel";
 import { resolveOverriddenEditorialReview } from "./reviewQueue";
 import { STATUS_DOT } from "./ReviewSubstancePicker";
 import { useReviewQueue } from "./useReviewQueue";
@@ -44,7 +45,7 @@ function isWidgetTarget(target: EventTarget | null): boolean {
 const STATUS_CHANGE_COPY: Record<ReviewStatus, { lead: string; tail: string }> = {
   completed: { lead: "Marked", tail: "reviewed" },
   needed: { lead: "Marked", tail: "not reviewed" },
-  in_progress: { lead: "Flagged", tail: "as in progress" },
+  in_progress: { lead: "Held", tail: "" },
 };
 
 /** True when a key event originates inside a form control the user is typing in. */
@@ -70,7 +71,7 @@ type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> 
  * `/api/dev/editorial-review` (never the full save flow) and stays in sync
  * with the editor form's own review fields in both directions — see
  * `ReviewStatusOverride.baseStatus` for the drift rule. Keyboard: ← previous,
- * → next, R toggle reviewed, U undo the last tick, M the molecule panel,
+ * → next, R toggle reviewed, U undo the last status change, F notes and flags, M the molecule panel,
  * C the citation palette, E inline editing.
  *
  * This file only composes: settings and history live in `useReviewSettings`,
@@ -114,10 +115,14 @@ export const ReviewExperience = memo(function ReviewExperience({
   } = settings;
 
   const overlays = useReviewOverlays();
+  // Review Flags written from the notes panel, keyed by slug, until the
+  // working set re-reads them.
+  const [flagOverrides, setFlagOverrides] = useState<Record<string, ReviewFlag[]>>({});
   const queueState = useReviewQueue({
     typedArticles,
     layout,
     overrides: overlays.overrides,
+    flagOverrides,
     settings,
   });
   const {
@@ -162,6 +167,7 @@ export const ReviewExperience = memo(function ReviewExperience({
   // "open" would make every fresh session boot the WASM editor unasked.
   const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
   const [citationPanelOpen, setCitationPanelOpen] = useState(false);
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   // Controlled so `?` can open it; the mobile sheet needs the same treatment
   // because selecting anything inside it should close it.
   const [helpOpen, setHelpOpen] = useState(false);
@@ -200,7 +206,7 @@ export const ReviewExperience = memo(function ReviewExperience({
     canSignOff,
     currentHydrated: currentArticleHydrated,
   });
-  const { lastTick, milestone, celebration, toggleReviewed, toggleFlagged, undoLastTick } =
+  const { lastTick, milestone, celebration, toggleReviewed, undoLastTick } =
     status;
 
   const [articleDirty, setArticleDirty] = useState(false);
@@ -229,6 +235,15 @@ export const ReviewExperience = memo(function ReviewExperience({
     if (!currentSlugRef.current) return;
     setMoleculePanelOpen((open) => !open);
   }, [currentSlugRef]);
+
+  const toggleNotesPanel = useCallback(() => {
+    if (!currentSlugRef.current) return;
+    setNotesPanelOpen((open) => !open);
+  }, [currentSlugRef]);
+
+  const recordFlags = useCallback((slug: string, flags: ReviewFlag[]) => {
+    setFlagOverrides((previous) => ({ ...previous, [slug]: flags }));
+  }, []);
 
   const toggleCitationPanel = useCallback(() => {
     if (!currentSlugRef.current) return;
@@ -265,6 +280,7 @@ export const ReviewExperience = memo(function ReviewExperience({
   useEffect(() => {
     setMoleculePanelOpen(false);
     setCitationPanelOpen(false);
+    setNotesPanelOpen(false);
   }, [currentSlug]);
 
   useEffect(() => {
@@ -296,11 +312,10 @@ export const ReviewExperience = memo(function ReviewExperience({
         event.preventDefault();
         toggleCitationPanel();
       } else if (event.key === "f" || event.key === "F") {
-        // The one status action that had no shortcut, on the surface that asks
-        // for it most: "I can't finish this" is the second-most-repeated
-        // gesture in a 274-article pass.
+        // Notes and flags, where a held article gets its reason. The panel
+        // takes focus in the note, so the next keys type rather than command.
         event.preventDefault();
-        toggleFlagged();
+        toggleNotesPanel();
       } else if (event.key === "e" || event.key === "E") {
         // The typing guard above keeps E out of the very inputs the mode
         // creates, so the key that turns editing on can never type into it.
@@ -317,9 +332,9 @@ export const ReviewExperience = memo(function ReviewExperience({
     goNext,
     goPrev,
     toggleCitationPanel,
-    toggleFlagged,
     toggleInlineEdit,
     toggleMoleculePanel,
+    toggleNotesPanel,
     toggleReviewed,
     undoLastTick,
   ]);
@@ -373,12 +388,26 @@ export const ReviewExperience = memo(function ReviewExperience({
         toggleMoleculePanel={toggleMoleculePanel}
         toggleCitationPanel={toggleCitationPanel}
         toggleInlineEdit={toggleInlineEdit}
+        notesPanelOpen={notesPanelOpen}
+        toggleNotesPanel={toggleNotesPanel}
         canEditArticle={canEditArticle}
         helpOpen={helpOpen}
         setHelpOpen={setHelpOpen}
       />
 
       {articleNavigation.dialog}
+      {notesPanelOpen && current ? (
+        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
+          <ReviewNotesPanel
+            key={current.slug}
+            slug={current.slug}
+            name={current.name}
+            flags={flagOverrides[current.slug] ?? article?.editorial_review?.flags ?? []}
+            onFlagsChange={recordFlags}
+            onClose={() => setNotesPanelOpen(false)}
+          />
+        </div>
+      ) : null}
       <ReviewArticleView
         allReviewed={allReviewed}
         total={queue.length}

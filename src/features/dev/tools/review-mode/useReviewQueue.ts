@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
-import type { SubstanceArticle } from "@/schema";
+import type { ReviewFlag, SubstanceArticle } from "@/schema";
 import type { SubstanceInfo } from "../substance-editor/types";
 import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
@@ -52,11 +52,14 @@ export function useReviewQueue({
   typedArticles,
   layout,
   overrides,
+  flagOverrides,
   settings,
 }: {
   typedArticles: SubstanceArticle[];
   layout: CategoryLayout;
   overrides: ReviewStatusOverrides;
+  /** Review Flags written this session, which the queue's badges read first. */
+  flagOverrides?: Readonly<Record<string, ReviewFlag[]>>;
   settings: ReviewSettingsState;
 }): ReviewQueueState {
   const {
@@ -111,20 +114,31 @@ export function useReviewQueue({
 
   const homeOrder = useMemo(() => flattenHomeOrder(layout), [layout]);
 
+  // The queue reads flags written this session so picker badges and flag
+  // filters follow the notes panel without waiting for a library refresh.
+  const queueArticles = useMemo(() => {
+    if (!flagOverrides || Object.keys(flagOverrides).length === 0) return typedArticles;
+    return typedArticles.map((article) => {
+      const slug = resolveEditorArticleSlug(article);
+      const flags = slug ? flagOverrides[slug] : undefined;
+      return flags ? { ...article, editorial_review: { ...article.editorial_review, flags } } : article;
+    });
+  }, [flagOverrides, typedArticles]);
+
   // `filterToPlacedSlugs` scopes the corpus to the public index: an article
   // the layout never places is not part of the launch pass, so it neither
   // appears in the picker nor counts toward any progress figure.
   const queue = useMemo(
     () =>
       sortReviewQueue(
-        filterToPlacedSlugs(buildReviewQueue(typedArticles, overrides), homeOrder),
+        filterToPlacedSlugs(buildReviewQueue(queueArticles, overrides), homeOrder),
         order,
         {
           sourceTokens,
           homeOrder,
         },
       ),
-    [typedArticles, overrides, order, sourceTokens, homeOrder],
+    [queueArticles, overrides, order, sourceTokens, homeOrder],
   );
   const flagFilteredQueue = useMemo(
     () => filterReviewQueue(queue, { unreviewedOnly: false, currentSlug: null, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),

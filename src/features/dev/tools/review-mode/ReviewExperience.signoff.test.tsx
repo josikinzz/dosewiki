@@ -144,10 +144,10 @@ describe("review sign-off", () => {
     await waitFor(() => expect(postedStatuses()).toEqual(["completed"]));
   });
 
-  it("returns F, R, Undo to in progress, not to the status the library row held", async () => {
+  it("returns Hold, R, Undo to in progress, not to the status the library row held", async () => {
     await renderWorkbench();
 
-    fireEvent.keyDown(window, { key: "f" });
+    fireEvent.click(screen.getAllByRole("button", { name: "Hold" })[0]);
     await waitFor(() => expect(postedStatuses()).toEqual(["in_progress"]));
     await waitFor(() => expect(screen.getByRole("button", { name: "Mark as reviewed" })).toBeEnabled());
     fireEvent.keyDown(window, { key: "r" });
