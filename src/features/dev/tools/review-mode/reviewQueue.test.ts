@@ -8,7 +8,6 @@ import {
   deriveReviewFlagSummary,
   deriveReviewFlagLabels,
   filterReviewQueue,
-  filterToPlacedSlugs,
   flattenHomeOrder,
   queueIndexOf,
   sortReviewQueue,
@@ -65,7 +64,7 @@ function makeEntry(overrides: Partial<ReviewQueueEntry>): ReviewQueueEntry {
 }
 
 describe("buildReviewQueue", () => {
-  it("keeps only publicly listed articles", () => {
+  it("keeps every reachable article and leaves hidden ones out", () => {
     const queue = buildReviewQueue([
       makeArticle({ title: "Zeta", slug: "zeta" }),
       makeArticle({ title: "Alpha", slug: "alpha" }),
@@ -77,7 +76,7 @@ describe("buildReviewQueue", () => {
         index_categories: ["hidden"],
       }),
     ]);
-    expect(queue.map((entry) => entry.slug)).toEqual(["alpha", "zeta"]);
+    expect(queue.map((entry) => entry.slug)).toEqual(["alpha", "hidden-for-now", "quiet", "zeta"]);
   });
 
   it("prefers a tick recorded against the article's current status", () => {
@@ -153,29 +152,6 @@ describe("buildReviewQueue", () => {
     expect(hydratedEntry?.referenceCount).toBe(3);
   });
 
-});
-
-describe("filterToPlacedSlugs", () => {
-  const entries = [
-    makeEntry({ slug: "dmt", name: "DMT" }),
-    makeEntry({ slug: "lsd", name: "LSD", status: "completed" }),
-    makeEntry({ slug: "nowhere", name: "Nowhere" }),
-  ];
-
-  it("drops entries the layout never places", () => {
-    const filtered = filterToPlacedSlugs(entries, ["lsd", "dmt"]);
-    expect(filtered.map((entry) => entry.slug)).toEqual(["dmt", "lsd"]);
-  });
-
-  it("keeps the full queue when no placements exist", () => {
-    const filtered = filterToPlacedSlugs(entries, []);
-    expect(filtered.map((entry) => entry.slug)).toEqual([
-      "dmt",
-      "lsd",
-      "nowhere",
-    ]);
-    expect(filtered).not.toBe(entries);
-  });
 });
 
 describe("deriveReviewFlagSummary", () => {

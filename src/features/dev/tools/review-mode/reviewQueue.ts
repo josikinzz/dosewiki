@@ -132,8 +132,9 @@ export function resolveOverriddenEditorialReview(
 }
 
 /**
- * The launch review corpus: publicly listed articles, matching the coverage
- * page's headline scope. Ordering is applied separately by `sortReviewQueue`.
+ * The review corpus: every article a reader can reach, listed or direct-URL
+ * only, whether or not the index layout places it. Only hidden articles stay
+ * out. Ordering is applied separately by `sortReviewQueue`.
  */
 export function buildReviewQueue(
   articles: readonly SubstanceArticle[],
@@ -147,7 +148,7 @@ export function buildReviewQueue(
         indexCategories: article.index_categories,
         priority: article.priority,
       });
-      if (visibility !== "public") return [];
+      if (visibility === "hidden") return [];
       return [
         {
           slug,
@@ -163,25 +164,6 @@ export function buildReviewQueue(
       ];
     })
     .sort((left, right) => left.name.localeCompare(right.name));
-}
-
-/**
- * Restrict the corpus to articles the home-page layout actually places.
- *
- * Unplaced articles used to trail the grouped picker as a "Not on the index"
- * holding pen, and every progress figure counted them. The launch pass reviews
- * the public index, so they are out of the corpus entirely — picker, arrows,
- * and counts all read from the filtered queue. An empty placement list keeps
- * the full queue: a layout that failed to arrive should degrade to reviewing
- * everything, not to an empty workbench.
- */
-export function filterToPlacedSlugs(
-  entries: readonly ReviewQueueEntry[],
-  placedSlugs: readonly string[],
-): ReviewQueueEntry[] {
-  if (placedSlugs.length === 0) return [...entries];
-  const placed = new Set(placedSlugs);
-  return entries.filter((entry) => placed.has(entry.slug));
 }
 
 export interface ReviewQueueRanks {
@@ -312,7 +294,8 @@ interface EntryPlacement {
  * belongs to its first placement only — the same first-appearance rule
  * `flattenHomeOrder` uses, so the grouped and flat views agree on the corpus.
  * Empty categories and subsections are dropped; anything the layout does not
- * place at all trails in one final group.
+ * place at all (direct-URL-only articles among them) trails in one final
+ * Unplaced group, so nothing a reader can open escapes review.
  */
 export function buildReviewGroups(
   entries: readonly ReviewQueueEntry[],
@@ -372,7 +355,7 @@ export function buildReviewGroups(
   if (unplaced.length > 0) {
     groups.push({
       key: UNPLACED_GROUP_KEY,
-      label: "Not on the index",
+      label: "Unplaced",
       sections: [],
       entries: unplaced,
       count: unplaced.length,

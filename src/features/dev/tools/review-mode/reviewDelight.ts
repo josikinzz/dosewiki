@@ -26,7 +26,7 @@ export interface ReviewCelebration {
  * Called with the tree as it stood *before* the tick landed, so `slug` is
  * treated as completed regardless of its recorded status — which also makes
  * the check idempotent if it ever runs against the post-tick tree. The
- * unplaced bucket never celebrates: "Not on the index" is a holding pen, not
+ * unplaced bucket never celebrates: "Unplaced" is a holding pen, not
  * an achievement.
  */
 export function resolveReviewCelebration(

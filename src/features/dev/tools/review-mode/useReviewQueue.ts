@@ -12,7 +12,6 @@ import {
   buildReviewFlagGroups,
   deriveReviewFlagLabels,
   filterReviewQueue,
-  filterToPlacedSlugs,
   flattenHomeOrder,
   queueIndexOf,
   sortReviewQueue,
@@ -25,7 +24,7 @@ import type { ReviewSettingsState } from "./useReviewSettings";
 export interface ReviewQueueState {
   /** Whether `/api/dev/article-source-stats` answered, for the settings panel. */
   statsState: "loading" | "ready" | "fallback";
-  /** Every placed article in the reviewer's chosen order. */
+  /** Every reachable article in the reviewer's chosen order. */
   queue: ReviewQueueEntry[];
   /** The queue under the flag filters only, which is what the picker lists. */
   flagFilteredQueue: ReviewQueueEntry[];
@@ -125,13 +124,13 @@ export function useReviewQueue({
     });
   }, [flagOverrides, typedArticles]);
 
-  // `filterToPlacedSlugs` scopes the corpus to the public index: an article
-  // the layout never places is not part of the launch pass, so it neither
-  // appears in the picker nor counts toward any progress figure.
+  // Every reachable article is in the corpus, placed on the index or not:
+  // unplaced ones land in the picker's Unplaced group and count toward
+  // progress like any other.
   const queue = useMemo(
     () =>
       sortReviewQueue(
-        filterToPlacedSlugs(buildReviewQueue(queueArticles, overrides), homeOrder),
+        buildReviewQueue(queueArticles, overrides),
         order,
         {
           sourceTokens,

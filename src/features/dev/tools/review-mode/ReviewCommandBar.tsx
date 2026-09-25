@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
@@ -280,233 +281,238 @@ export function ReviewCommandBar({
           and a citation button, and at laptop widths the old 1.5rem gaps
           pushed the Configure cluster onto a second line. One row is a hard
           requirement — a wrapped bar reads as broken chrome. */}
-      <div className="mx-auto flex max-w-[1500px] flex-nowrap items-center gap-x-3 px-3 py-2 sm:gap-x-4 sm:px-5 xl:gap-x-6">
-        {/* Navigate — ← and → flank the article they move between, so the
-            pair reads as one control instead of sitting 500px apart. */}
-        <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
-          <Button
-            asChild
-            variant="iconGhost"
-            size="auto"
-            className={cn("hidden sm:inline-flex", TOUCH_ICON)}
-            title="Back to Dev Tools"
-          >
-            <Link href="/dev" aria-label="Back to Dev Tools">
-              <Icon icon="lucide:arrow-left-to-line" size={16} />
-            </Link>
-          </Button>
+      {/* The help popover's root spans the row so it can anchor to the Judge
+          cluster, which is visible at every width, while its trigger button
+          only shows from `2xl`. `?` opens it at any width. */}
+      <Popover open={helpOpen} onOpenChange={setHelpOpen}>
+        <div className="mx-auto flex max-w-[1500px] flex-nowrap items-center gap-x-3 px-3 py-2 sm:gap-x-4 sm:px-5 xl:gap-x-6">
+          {/* Navigate — ← and → flank the article they move between, so the
+              pair reads as one control instead of sitting 500px apart. */}
+          <div className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none">
+            <Button
+              asChild
+              variant="iconGhost"
+              size="auto"
+              className={cn("hidden sm:inline-flex", TOUCH_ICON)}
+              title="Back to Dev Tools"
+            >
+              <Link href="/dev" aria-label="Back to Dev Tools">
+                <Icon icon="lucide:arrow-left-to-line" size={16} />
+              </Link>
+            </Button>
 
-          <Button
-            variant="glass"
-            size="pill"
-            className={cn(
-              "px-2.5 [@media(pointer:coarse)]:min-w-11 sm:ml-1 sm:px-3.5",
-              TOUCH_PILL,
-            )}
-            onClick={goPrev}
-            disabled={!canGoPrev}
-            aria-label="Previous article"
-            title="Previous article (←)"
-          >
-            <Icon icon="lucide:chevron-left" size={16} />
-            <Kbd>←</Kbd>
-          </Button>
+            <Button
+              variant="glass"
+              size="pill"
+              className={cn(
+                "px-2.5 [@media(pointer:coarse)]:min-w-11 sm:ml-1 sm:px-3.5",
+                TOUCH_PILL,
+              )}
+              onClick={goPrev}
+              disabled={!canGoPrev}
+              aria-label="Previous article"
+              title="Previous article (←)"
+            >
+              <Icon icon="lucide:chevron-left" size={16} />
+              <Kbd>←</Kbd>
+            </Button>
 
-          <ReviewSubstancePicker
-            entries={flagFilteredQueue}
-            groups={pickerGroups}
-            grouped={groupByCategory || effectiveFlagGroupBy !== "none"}
-            current={current}
-            onSelect={navigateTo}
-          />
+            <ReviewSubstancePicker
+              entries={flagFilteredQueue}
+              groups={pickerGroups}
+              grouped={groupByCategory || effectiveFlagGroupBy !== "none"}
+              current={current}
+              onSelect={navigateTo}
+            />
 
-          <Button
-            variant="glass"
-            size="pill"
-            className={cn(
-              "px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5",
-              TOUCH_PILL,
-            )}
-            onClick={goNext}
-            disabled={!canGoNext}
-            aria-label="Next article"
-            title="Next article (→)"
-          >
-            <Kbd>→</Kbd>
-            <Icon icon="lucide:chevron-right" size={16} />
-          </Button>
-        </div>
-
-        {/* Judge: hold it, say why, or sign it off. */}
-        <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
-            size="auto"
-            className={cn("hidden md:inline-flex", TOUCH_ICON)}
-            onClick={toggleFlagged}
-            disabled={!current || isTicking}
-            aria-pressed={isCurrentFlagged}
-            aria-label="Hold"
-            title={
-              isCurrentFlagged
-                ? "On hold: click to release"
-                : "Hold this article if you can't finish it now"
-            }
-          >
-            <Icon icon="lucide:hand" size={15} />
-          </Button>
-
-          <Button
-            variant={notesPanelOpen ? "pillActive" : "pill"}
-            size="pill"
-            className={cn("hidden md:inline-flex", TOUCH_PILL)}
-            onClick={toggleNotesPanel}
-            disabled={!current}
-            aria-expanded={notesPanelOpen}
-            aria-controls={NOTES_PANEL_ID}
-            aria-label="Notes and flags"
-            title={notesPanelOpen ? "Hide notes and flags (F)" : "Notes and flags: record why it is held (F)"}
-          >
-            <Icon icon="lucide:notebook-pen" size={14} />
-            <Kbd>F</Kbd>
-          </Button>
-
-          {/* Both states occupy one width, so ticking an article never
-              reflows the row (or, on a phone, changes how many rows there
-              are) under the reviewer's finger. */}
-          <div className="flex justify-center sm:min-w-[11.5rem]">
-            {markReviewedControl}
+            <Button
+              variant="glass"
+              size="pill"
+              className={cn(
+                "px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5",
+                TOUCH_PILL,
+              )}
+              onClick={goNext}
+              disabled={!canGoNext}
+              aria-label="Next article"
+              title="Next article (→)"
+            >
+              <Kbd>→</Kbd>
+              <Icon icon="lucide:chevron-right" size={16} />
+            </Button>
           </div>
-        </div>
 
-        {/* Configure — the workbench's own settings, kept away from the
-            article controls. The open-in menu lives here rather than beside
-            the picker, where its chevron read as a second article list. */}
-        <div className="ml-auto hidden items-center gap-1.5 lg:flex">
-          {renderViewTabs(undefined, { labelsFrom2Xl: true, nowrap: true })}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          {/* Judge: hold it, say why, or sign it off. */}
+          <PopoverAnchor asChild>
+            <div className="flex shrink-0 items-center gap-2">
               <Button
-                variant="iconGhost"
+                variant={isCurrentFlagged ? "iconWarning" : "iconGhost"}
                 size="auto"
-                className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
-                title="Open this article in…"
-                aria-label="Open this article in another tool"
-              >
-                <Icon icon="lucide:external-link" size={15} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {openElsewhereItems}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button
-            variant={moleculePanelOpen ? "pillActive" : "pill"}
-            size="pill"
-            className={TOUCH_PILL}
-            onClick={toggleMoleculePanel}
-            disabled={!current}
-            aria-expanded={moleculePanelOpen}
-            aria-controls={MOLECULE_PANEL_ID}
-            aria-label="Molecule depiction editor"
-            title={
-              moleculePanelOpen
-                ? "Hide the molecule depiction editor (M)"
-                : "Edit the molecule depiction inline (M)"
-            }
-          >
-            <Icon icon="lucide:hexagon" size={14} />
-            <Kbd>M</Kbd>
-          </Button>
-
-          <Button
-            variant={citationPanelOpen ? "pillActive" : "pill"}
-            size="pill"
-            className={TOUCH_PILL}
-            onClick={toggleCitationPanel}
-            disabled={!current}
-            aria-expanded={citationPanelOpen}
-            aria-controls={CITATION_PANEL_ID}
-            aria-label="Citation palette"
-            title={
-              citationPanelOpen
-                ? "Hide the citation palette (C)"
-                : "Sources and citation markers (C)"
-            }
-          >
-            <Icon icon="lucide:book-marked" size={14} />
-            <Kbd>C</Kbd>
-          </Button>
-
-          <Button
-            variant={inlineEditActive ? "iconWarning" : "pill"}
-            size="pill"
-            className={TOUCH_PILL}
-            onClick={toggleInlineEdit}
-            disabled={!current || viewMode !== "webpage" || !canEditArticle}
-            aria-pressed={inlineEditActive}
-            aria-label="Inline editing"
-            title={
-              !canEditArticle
-                ? "Editor role required"
-                : viewMode !== "webpage"
-                  ? "Inline editing applies to the Webpage view"
-                  : inlineEditActive
-                    ? "Inline editing is on: clicking article text edits it (E)"
-                    : "Edit article text inline (E)"
-            }
-          >
-            <Icon icon="lucide:pencil-line" size={14} />
-            <Kbd>E</Kbd>
-          </Button>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="iconGhost"
-                size="auto"
-                className={cn("relative hidden 2xl:inline-flex", TOUCH_ICON)}
+                className={cn("hidden md:inline-flex", TOUCH_ICON)}
+                onClick={toggleFlagged}
+                disabled={!current || isTicking}
+                aria-pressed={isCurrentFlagged}
+                aria-label="Hold"
                 title={
-                  settingsChanged
-                    ? "Queue settings (some are off their defaults)"
-                    : "Queue settings"
+                  isCurrentFlagged
+                    ? "On hold: click to release"
+                    : "Hold this article if you can't finish it now"
                 }
-                aria-label="Queue settings"
               >
-                <Icon icon="lucide:settings-2" size={16} />
-                {settingsChanged ? (
-                  <span
-                    aria-hidden
-                    className="theme-review-settings-dot absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full"
-                  />
-                ) : null}
+                <Icon icon="lucide:hand" size={15} />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-72">
-              {settingsPanel}
-            </PopoverContent>
-          </Popover>
 
-          <Popover>
-            <PopoverTrigger asChild>
               <Button
-                variant="iconGhost"
-                size="auto"
-                className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
-                title="Class trophies"
-                aria-label="Class trophies"
+                variant={notesPanelOpen ? "pillActive" : "pill"}
+                size="pill"
+                className={cn("hidden md:inline-flex", TOUCH_PILL)}
+                onClick={toggleNotesPanel}
+                disabled={!current}
+                aria-expanded={notesPanelOpen}
+                aria-controls={NOTES_PANEL_ID}
+                aria-label="Notes and flags"
+                title={notesPanelOpen ? "Hide notes and flags (F)" : "Notes and flags: record why it is held (F)"}
               >
-                <Icon icon="lucide:trophy" size={15} />
+                <Icon icon="lucide:notebook-pen" size={14} />
+                <Kbd>F</Kbd>
               </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-80">
-              <ReviewTrophyShelf groups={queueGroups} />
-            </PopoverContent>
-          </Popover>
 
-          <Popover open={helpOpen} onOpenChange={setHelpOpen}>
+              {/* Both states occupy one width, so ticking an article never
+                  reflows the row (or, on a phone, changes how many rows there
+                  are) under the reviewer's finger. */}
+              <div className="flex justify-center sm:min-w-[11.5rem]">
+                {markReviewedControl}
+              </div>
+            </div>
+          </PopoverAnchor>
+
+          {/* Configure — the workbench's own settings, kept away from the
+              article controls. The open-in menu lives here rather than beside
+              the picker, where its chevron read as a second article list. */}
+          <div className="ml-auto hidden items-center gap-1.5 lg:flex">
+            {renderViewTabs(undefined, { labelsFrom2Xl: true, nowrap: true })}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="iconGhost"
+                  size="auto"
+                  className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
+                  title="Open this article in…"
+                  aria-label="Open this article in another tool"
+                >
+                  <Icon icon="lucide:external-link" size={15} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {openElsewhereItems}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant={moleculePanelOpen ? "pillActive" : "pill"}
+              size="pill"
+              className={TOUCH_PILL}
+              onClick={toggleMoleculePanel}
+              disabled={!current}
+              aria-expanded={moleculePanelOpen}
+              aria-controls={MOLECULE_PANEL_ID}
+              aria-label="Molecule depiction editor"
+              title={
+                moleculePanelOpen
+                  ? "Hide the molecule depiction editor (M)"
+                  : "Edit the molecule depiction inline (M)"
+              }
+            >
+              <Icon icon="lucide:hexagon" size={14} />
+              <Kbd>M</Kbd>
+            </Button>
+
+            <Button
+              variant={citationPanelOpen ? "pillActive" : "pill"}
+              size="pill"
+              className={TOUCH_PILL}
+              onClick={toggleCitationPanel}
+              disabled={!current}
+              aria-expanded={citationPanelOpen}
+              aria-controls={CITATION_PANEL_ID}
+              aria-label="Citation palette"
+              title={
+                citationPanelOpen
+                  ? "Hide the citation palette (C)"
+                  : "Sources and citation markers (C)"
+              }
+            >
+              <Icon icon="lucide:book-marked" size={14} />
+              <Kbd>C</Kbd>
+            </Button>
+
+            <Button
+              variant={inlineEditActive ? "iconWarning" : "pill"}
+              size="pill"
+              className={TOUCH_PILL}
+              onClick={toggleInlineEdit}
+              disabled={!current || viewMode !== "webpage" || !canEditArticle}
+              aria-pressed={inlineEditActive}
+              aria-label="Inline editing"
+              title={
+                !canEditArticle
+                  ? "Editor role required"
+                  : viewMode !== "webpage"
+                    ? "Inline editing applies to the Webpage view"
+                    : inlineEditActive
+                      ? "Inline editing is on: clicking article text edits it (E)"
+                      : "Edit article text inline (E)"
+              }
+            >
+              <Icon icon="lucide:pencil-line" size={14} />
+              <Kbd>E</Kbd>
+            </Button>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="iconGhost"
+                  size="auto"
+                  className={cn("relative hidden 2xl:inline-flex", TOUCH_ICON)}
+                  title={
+                    settingsChanged
+                      ? "Queue settings (some are off their defaults)"
+                      : "Queue settings"
+                  }
+                  aria-label="Queue settings"
+                >
+                  <Icon icon="lucide:settings-2" size={16} />
+                  {settingsChanged ? (
+                    <span
+                      aria-hidden
+                      className="theme-review-settings-dot absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full"
+                    />
+                  ) : null}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72">
+                {settingsPanel}
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="iconGhost"
+                  size="auto"
+                  className={cn("hidden 2xl:inline-flex", TOUCH_ICON)}
+                  title="Class trophies"
+                  aria-label="Class trophies"
+                >
+                  <Icon icon="lucide:trophy" size={15} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80">
+                <ReviewTrophyShelf groups={queueGroups} />
+              </PopoverContent>
+            </Popover>
+
             <PopoverTrigger asChild>
               <Button
                 variant="iconGhost"
@@ -521,30 +527,30 @@ export function ReviewCommandBar({
             <PopoverContent align="end" className="w-80">
               <ReviewHelpPanel />
             </PopoverContent>
-          </Popover>
-        </div>
+          </div>
 
-        <ReviewOverflowSheet
-          reviewedCount={reviewedCount}
-          total={queue.length}
-          progressFlourish={progressFlourish}
-          hasCurrent={current !== null}
-          isCurrentFlagged={isCurrentFlagged}
-          isTicking={isTicking}
-          toggleFlagged={toggleFlagged}
-          notesPanelOpen={notesPanelOpen}
-          toggleNotesPanel={toggleNotesPanel}
-          renderViewTabs={renderViewTabs}
-          moleculePanelOpen={moleculePanelOpen}
-          citationPanelOpen={citationPanelOpen}
-          toggleMoleculePanel={toggleMoleculePanel}
-          toggleCitationPanel={toggleCitationPanel}
-          openElsewhereItems={openElsewhereItems}
-          queueGroups={queueGroups}
-          settingsPanel={settingsPanel}
-          settingsChanged={settingsChanged}
-        />
-      </div>
+          <ReviewOverflowSheet
+            reviewedCount={reviewedCount}
+            total={queue.length}
+            progressFlourish={progressFlourish}
+            hasCurrent={current !== null}
+            isCurrentFlagged={isCurrentFlagged}
+            isTicking={isTicking}
+            toggleFlagged={toggleFlagged}
+            notesPanelOpen={notesPanelOpen}
+            toggleNotesPanel={toggleNotesPanel}
+            renderViewTabs={renderViewTabs}
+            moleculePanelOpen={moleculePanelOpen}
+            citationPanelOpen={citationPanelOpen}
+            toggleMoleculePanel={toggleMoleculePanel}
+            toggleCitationPanel={toggleCitationPanel}
+            openElsewhereItems={openElsewhereItems}
+            queueGroups={queueGroups}
+            settingsPanel={settingsPanel}
+            settingsChanged={settingsChanged}
+          />
+        </div>
+      </Popover>
 
       {inlineEditActive ? (
         <div className="theme-review-inline-edit-banner px-3 pb-1.5 text-[11px] sm:hidden">
@@ -553,12 +559,15 @@ export function ReviewCommandBar({
         </div>
       ) : null}
 
-      {/* Said in text, not a tooltip: a disabled button alone reads as broken. */}
-      {!canSignOff ? (
-        <p className="theme-text-faint mx-auto max-w-[1500px] px-3 pb-1.5 text-right text-[11px] sm:px-5">
-          Only admins can sign off a review.
+      {/* Progress as text at every width, plus, for roles that cannot sign
+          off, why Mark reviewed is disabled. Said in text, not a tooltip. */}
+      <div className="theme-text-faint mx-auto flex max-w-[1500px] items-baseline justify-end gap-x-4 px-3 pb-1.5 text-[11px] leading-none sm:px-5">
+        {!canSignOff ? <p className="mr-auto">Only admins can sign off a review.</p> : null}
+        <p data-testid="review-progress-text" className="tabular-nums">
+          {reviewedCount.toLocaleString()} of {queue.length.toLocaleString()} reviewed,{" "}
+          {(queue.length - reviewedCount).toLocaleString()} to go
         </p>
-      ) : null}
+      </div>
 
       {tickError ? (
         <div className="mx-auto max-w-[1500px] px-3 pb-2 sm:px-5">
@@ -568,10 +577,8 @@ export function ReviewCommandBar({
         </div>
       ) : null}
 
-      {/* The bar's one progress presentation at every width: the full-width
-          track welded to its bottom edge, at zero cost in row height. The
-          labelled numbers live in the overflow sheet and, from `2xl` where
-          the sheet is gone, in the track's hover title. */}
+      {/* The full-width track welded to the bar's bottom edge, under the
+          progress text above it. */}
       <ProgressStrip
         reviewed={reviewedCount}
         total={queue.length}

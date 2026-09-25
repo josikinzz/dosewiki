@@ -9,6 +9,9 @@ const PopoverTrigger = PopoverPrimitive.Trigger
 
 const PopoverArrow = PopoverPrimitive.Arrow
 
+/** Positions the content against an element other than the trigger. */
+const PopoverAnchor = PopoverPrimitive.Anchor
+
 const PopoverContent = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
@@ -31,4 +34,4 @@ const PopoverContent = React.forwardRef<
 ))
 PopoverContent.displayName = PopoverPrimitive.Content.displayName
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverArrow }
+export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent, PopoverArrow }

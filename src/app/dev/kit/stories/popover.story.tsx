@@ -3,6 +3,7 @@ import { Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
+  PopoverAnchor,
   PopoverArrow,
   PopoverContent,
   PopoverTrigger,
@@ -19,9 +20,29 @@ export const popoverStory: StoryDef = {
     "A Radix popover with the themed overlay surface preset: a floating panel anchored to a trigger for menus, filters, or small forms.",
   source: "src/components/ui/popover.tsx",
   importLine:
-    'import { Popover, PopoverArrow, PopoverTrigger, PopoverContent } from "@/components/ui/popover";',
-  exports: ["Popover", "PopoverArrow", "PopoverTrigger", "PopoverContent"],
+    'import { Popover, PopoverAnchor, PopoverArrow, PopoverTrigger, PopoverContent } from "@/components/ui/popover";',
+  exports: ["Popover", "PopoverAnchor", "PopoverArrow", "PopoverTrigger", "PopoverContent"],
   examples: [
+    {
+      label: "Separate anchor",
+      note: "PopoverAnchor positions the content against another element, for a trigger that is hidden at some widths or a keyboard shortcut that opens the popover.",
+      background: "plain",
+      render: () => (
+        <Popover>
+          <div className="flex items-center gap-3">
+            <PopoverAnchor asChild>
+              <span className="theme-text-secondary rounded-full border px-3 py-1 text-xs">Anchor</span>
+            </PopoverAnchor>
+            <PopoverTrigger asChild>
+              <Button variant="outline">Open beside the anchor</Button>
+            </PopoverTrigger>
+          </div>
+          <PopoverContent align="start">
+            <span className="theme-text-secondary text-sm">Positioned against the anchor, not the button.</span>
+          </PopoverContent>
+        </Popover>
+      ),
+    },
     {
       label: "Basic popover",
       note: "Trigger plus content. Wrap a Button with asChild for a real button trigger.",

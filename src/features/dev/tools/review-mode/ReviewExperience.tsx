@@ -347,7 +347,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             notice={{
               tone: "info",
               message:
-                "No publicly listed articles are available to review yet.",
+                "No public articles are available to review yet.",
             }}
           />
         </div>
