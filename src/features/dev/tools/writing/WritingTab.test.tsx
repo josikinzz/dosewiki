@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -269,20 +269,131 @@ describe("WritingTab", () => {
     expect(screen.getByRole("button", { name: "Confirm publication" })).toBeEnabled();
   });
 
-  it("keeps the save inert for an editor with the admin reason, while the draft stays editable", async () => {
+  it("lets an editor submit a post for review as a proposal, never a direct save", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
-    renderTab({ canApprove: false });
-    await screen.findByText("Field notes");
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "/api/dev/proposals" && init?.method === "POST") {
+        return Response.json({ ok: true, proposalId: "cp_abcdef123456" });
+      }
+      const slug = new URL(String(input), "https://dose.wiki").searchParams.get("slug");
+      return slug ? Response.json({ ok: true, article: ROWS[slug] ?? null }) : Response.json({ ok: true, articles: ENTRIES });
+    });
+    renderTab({ canApprove: false, initialSlug: "launch-post" });
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
 
+    // No tooltip-only refusal: the editor has a real action instead.
+    expect(screen.queryByRole("button", { name: "Review changes" })).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Admin role required")).not.toBeInTheDocument();
+    const submit = screen.getByRole("button", { name: "Submit for review" });
+    expect(submit).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Body"), " More.");
+    await user.click(publicationState().getByRole("button", { name: "Published" }));
+    await user.click(submit);
+
+    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts.map(([url]) => String(url))).toEqual(["/api/dev/proposals"]);
+    const body = JSON.parse(String(posts[0][1]?.body));
+    expect(body).toMatchObject({
+      summary: "Update blog post “Launch post”",
+      payload: { writing: { slug: "launch-post", kind: "blog", status: "published", bodyFormat: "markdown", title: "Launch post", body: "Post. More." } },
+      baselines: [{ kind: "writing", key: "launch-post", document: ROWS["launch-post"] }],
+    });
+    expect(await screen.findByText("Submitted for review")).toBeInTheDocument();
+    // The proposal holds the edit; the editor returns to the saved version.
+    expect(screen.getByLabelText("Body")).toHaveValue("Post.");
+  });
+
+  it("offers Submit for review in the shell dialog for an editor", async () => {
+    const user = userEvent.setup();
+    render(
+      <UnsavedWorkProvider>
+        <RailProbe onSwitch={vi.fn()} />
+        <WritingTab contributorProfiles={[]} profilesLoading={false} canApprove={false} initialKind="blog" />
+      </UnsavedWorkProvider>,
+    );
+    await user.click(await screen.findByRole("button", { name: /Launch post/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
+    await user.type(screen.getByLabelText("Title"), " two");
+
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    expect(within(dialog).getByRole("button", { name: "Submit for review" })).toBeTruthy();
+  });
+
+  it("renders the preview beside the editor and updates it as the body is typed", async () => {
+    const user = userEvent.setup();
+    renderTab({ initialSlug: "launch-post" });
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
+
+    const preview = screen.getByRole("region", { name: "Preview" });
+    expect(within(preview).getByTestId("preview")).toHaveTextContent("Post.");
+
+    await user.type(screen.getByLabelText("Body"), " Fresh line");
+    expect(within(preview).getByTestId("preview")).toHaveTextContent("Post. Fresh line");
+
+    await user.click(screen.getByRole("button", { name: "Live preview" }));
+    expect(screen.queryByRole("region", { name: "Preview" })).not.toBeInTheDocument();
+  });
+
+  it("blocks saving an invalid publication date with a field error", async () => {
+    const user = userEvent.setup();
+    ROWS["dated-post"] = { ...ROWS["launch-post"], slug: "dated-post", title: "Dated post", publicationDate: "2026-02-30" };
+    renderTab({ canApprove: false, initialSlug: "dated-post" });
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Dated post"));
+    await user.type(screen.getByLabelText("Title"), " edited");
+
+    expect(screen.getByText("“2026-02-30” is not a real date. Pick a day, or clear the field.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Publication date")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("button", { name: "Submit for review" })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Publication date"), { target: { value: "2026-02-28" } });
+    expect(screen.queryByText(/is not a real date/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Submit for review" })).toBeEnabled();
+    delete ROWS["dated-post"];
+  });
+
+  it("shows the cover image as a thumbnail and edits tags with the tag picker", async () => {
+    const user = userEvent.setup();
+    renderTab({ initialKind: "blog" });
+    await screen.findByText("Launch post");
     await user.click(screen.getByRole("button", { name: "New" }));
-    await user.type(screen.getByLabelText("Title"), "Fresh");
 
-    // The same draft an admin could save: title present, not read-only.
-    expect(screen.getByLabelText("Title")).toHaveValue("Fresh");
-    const save = screen.getByRole("button", { name: "Review changes" });
-    expect(save).toBeDisabled();
-    expect(publicationState().getByRole("button", { name: "Published" })).toBeDisabled();
-    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+    await user.type(screen.getByLabelText("Cover image URL"), "/images/cover.png");
+    expect(screen.getByRole("img", { name: "Cover preview" })).toHaveAttribute("src", "/images/cover.png");
+
+    const tags = screen.getByRole("combobox", { name: /Tags/ });
+    await user.type(tags, "harm reduction{Enter}");
+    expect(screen.getByText("Harm Reduction")).toBeInTheDocument();
+  });
+
+  it("keeps the admin path: Review changes, then a confirmed direct save", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "POST") return Response.json({ ok: true, slug: "launch-post", revision: "d".repeat(64) });
+      const slug = new URL(String(input), "https://dose.wiki").searchParams.get("slug");
+      return slug ? Response.json({ ok: true, article: ROWS[slug] ?? null }) : Response.json({ ok: true, articles: ENTRIES });
+    });
+    renderTab({ initialSlug: "launch-post" });
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
+    expect(screen.queryByRole("button", { name: "Submit for review" })).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Body"), " More.");
+    await user.click(screen.getByRole("button", { name: "Review changes" }));
+    await user.click(screen.getByRole("button", { name: "Confirm save as unpublished" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
+    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts.map(([url]) => String(url))).toEqual(["/api/dev/writing-article"]);
+    expect(JSON.parse(String(posts[0][1]?.body))).toMatchObject({ slug: "launch-post", body: "Post. More.", status: "draft" });
+  });
+
+  it("names the reload action in plain words", async () => {
+    renderTab({ initialSlug: "field-notes" });
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
+    expect(screen.queryByText(/baseline/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Load the latest saved version" })).toBeInTheDocument();
   });
 });

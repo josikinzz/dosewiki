@@ -386,6 +386,36 @@ describe("QueueTab", () => {
     });
   });
 
+  it("shows a Writing proposal with its diff and lets an admin apply it", async () => {
+    const writingRow: ProposalSummary = {
+      ...submitted,
+      _id: "cp_5",
+      summary: "Update blog post “Launch post”",
+      targets: [{ kind: "writing", key: "launch-post", baseHash: "h-post" }],
+    };
+    const { calls } = stubQueueApi([writingRow], {
+      cp_5: {
+        ...writingRow,
+        diff: "# writing: launch-post / body\n\n- Stored body.\n+ Proposed body.",
+        comments: [],
+        liveHashes: [{ kind: "writing", key: "launch-post", hash: "h-post" }],
+      },
+    });
+    renderQueue({ canApprove: true });
+
+    await userEvent.click(await screen.findByRole("button", { name: /Launch post/ }));
+    const [target] = await screen.findAllByTestId("proposal-target");
+    expect(target).toHaveTextContent("Writing");
+    expect(target).toHaveTextContent("launch-post");
+    expect(screen.getByRole("insertion")).toHaveTextContent("Proposed");
+    expect(screen.getByRole("link", { name: "Open Writing editor: launch-post" })).toHaveAttribute("href", "/dev/writing/launch-post");
+
+    await userEvent.click(screen.getByRole("button", { name: "Approve and apply" }));
+    const dialog = await screen.findByRole("dialog", { name: "Apply to production?" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Apply to production" }));
+    await waitFor(() => expect(calls).toContainEqual({ url: `${BASE}/cp_5/approve`, method: "POST", body: {} }));
+  });
+
   it("prevents an admin approving their own submission", async () => {
     const { calls } = stubQueueApi([submitted], { cp_1: { ...submittedDetail, isAuthor: true } });
     renderQueue({ canApprove: true });

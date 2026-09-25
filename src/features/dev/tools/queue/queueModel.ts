@@ -10,7 +10,7 @@ import type { ArticlePatch } from "../../../../../lib/proposals/articlePatch";
 
 export type { ProposalStatus };
 
-type ProposalTargetKind = "article" | "indexLayout" | "about" | "copyBlock"
+type ProposalTargetKind = "article" | "indexLayout" | "about" | "copyBlock" | "writing"
 
 type ProposalTarget = { kind: ProposalTargetKind; key: string; baseHash: string }
 
@@ -163,8 +163,8 @@ export function reviewActionsFor(status: ProposalStatus): { approve: boolean; re
  * Whether the viewer may rebase this proposal: it is still open to its
  * proposer (waiting, or returned with changes requested), the viewer is that
  * proposer or an admin, and everything it changes is something the substances
- * editor can hold (articles and index layouts; copy blocks and About have
- * their own editors). Mirrors what `changeProposals.submit` accepts as
+ * editor can hold (articles and index layouts; copy blocks, About and
+ * Writing have their own editors). Mirrors what `changeProposals.submit` accepts as
  * `revisionOf`.
  */
 export function canLoadIntoEditor(

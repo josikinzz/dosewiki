@@ -6,8 +6,9 @@
  *
  * The POST body is the same `SaveArticlePayload` the save route takes, plus
  * the tab-local documents editors cannot write directly (`copyBlocks[]`,
- * parsed as `/api/dev/copy-block` parses one block, and `about`, parsed as
- * `/api/dev/about` does), plus a summary and each document's loaded baseline;
+ * parsed as `/api/dev/copy-block` parses one block, `about`, parsed as
+ * `/api/dev/about` does, and one `writing` entry, parsed as
+ * `/api/dev/writing-article` does), plus a summary and each document's loaded baseline;
  * nothing here touches production, only `changeProposals`.
  */
 import { NextResponse } from "next/server";
@@ -26,6 +27,7 @@ import {
 } from "../../save-article/saveArticleUtils";
 import { parseAboutPayload } from "../about/parseAboutBody";
 import { parseCopyBlockPayloads } from "../copy-block/parseCopyBlockBody";
+import { parseWritingPayload } from "../writing-article/parseWritingArticleBody";
 
 export const runtime = "nodejs";
 
@@ -37,6 +39,7 @@ type ProposalBody = {
     indexLayouts?: unknown;
     copyBlocks?: unknown;
     about?: unknown;
+    writing?: unknown;
     changelog?: unknown;
   };
   summary?: unknown;
@@ -99,9 +102,10 @@ export const POST = protectedRouteOperation<ProposalBody>({
     const indexLayouts = parseIndexLayoutPayloads(rawPayload.indexLayouts);
     const copyBlocks = parseCopyBlockPayloads(rawPayload.copyBlocks);
     const about = parseAboutPayload(rawPayload.about);
+    const writing = parseWritingPayload(rawPayload.writing);
     const changelog = parseChangelogPayload(rawPayload.changelog);
 
-    if (articles.length === 0 && indexLayouts.length === 0 && copyBlocks.length === 0 && !about) {
+    if (articles.length === 0 && indexLayouts.length === 0 && copyBlocks.length === 0 && !about && !writing) {
       return NextResponse.json({ error: "No Postgres-compatible changes to propose." }, { status: 400 });
     }
 
@@ -110,7 +114,7 @@ export const POST = protectedRouteOperation<ProposalBody>({
       return NextResponse.json({ error: "A proposal needs a summary." }, { status: 400 });
     }
     if (!Array.isArray(body.baselines) || body.baselines.some((entry) =>
-      !entry || typeof entry !== "object" || !["article", "indexLayout", "copyBlock", "about"].includes(entry.kind) ||
+      !entry || typeof entry !== "object" || !["article", "indexLayout", "copyBlock", "about", "writing"].includes(entry.kind) ||
       typeof entry.key !== "string" || !Object.prototype.hasOwnProperty.call(entry, "document"))) {
       return NextResponse.json({ error: "Every change needs its loaded baseline. Your draft is preserved; reload the source and reapply your edits." }, { status: 400 });
     }
@@ -125,6 +129,7 @@ export const POST = protectedRouteOperation<ProposalBody>({
       indexLayouts,
       ...(copyBlocks.length > 0 ? { copyBlocks } : {}),
       ...(about ? { about } : {}),
+      ...(writing ? { writing } : {}),
       ...(changelog ? { changelog } : {}),
     };
 

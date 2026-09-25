@@ -24,3 +24,17 @@ export function formatArchiveDate(timestamp: string | null | undefined): string 
 
   return Number.isNaN(parsed.getTime()) ? null : DATE_FORMATTER.format(parsed);
 }
+
+/**
+ * Whether a stored publication date is one the public pages can show: a
+ * calendar day (`YYYY-MM-DD`) that exists, or a full ISO timestamp starting
+ * with one. A day like `2026-02-30` fails, because `Date` would quietly roll
+ * it into March.
+ */
+export function isValidPublicationDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T[\d:.]+(?:Z|[+-]\d{2}:\d{2})?)?$/.exec(value.trim());
+  if (!match) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}

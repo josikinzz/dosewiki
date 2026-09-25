@@ -83,10 +83,24 @@ interface ProposalAbout { aboutMarkdown: string;
 aboutSubtitle: string;
 founderProfileKeys: string[]; }
 
+/** One Writing row as `POST /api/dev/proposals` accepts it under `payload.writing`. */
+interface ProposalWriting { slug: string;
+kind: "article" | "blog";
+status: "draft" | "published";
+bodyFormat: "vcode" | "markdown";
+title: string;
+teaser: string;
+coverImageUrl: string;
+body: string;
+tags: string[];
+authorProfileKeys: string[];
+publicationDate?: string; }
+
 /** Everything a proposal may carry: the save-article body plus the tab-local documents. */
 export type ProposalPayload = SaveArticlePayload & {
   copyBlocks?: ProposalCopyBlock[];
   about?: ProposalAbout;
+  writing?: ProposalWriting;
 };
 
 export interface SubmitProposalPayload {

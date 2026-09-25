@@ -62,6 +62,7 @@ function replayRevalidationPaths(proposal: Doc<"changeProposals">): string[] {
     else if (target.kind === "indexLayout") { paths.add("/substances"); paths.add(indexLayoutRevalidationPath(target.key as IndexLayoutType)); }
     else if (target.kind === "about") paths.add("/about");
     else if (target.kind === "copyBlock") paths.add("/copy-blocks");
+    else if (target.kind === "writing") paths.add("/articles");
   }
   return [...paths].sort();
 }

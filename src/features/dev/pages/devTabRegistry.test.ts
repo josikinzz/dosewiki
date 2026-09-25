@@ -11,6 +11,7 @@ import {
   resolveDevRoute,
   resolveDevTabAlias,
 } from "./devTabRegistry";
+import { saveDestinationFor } from "./DevToolSaveLine";
 
 describe("devTabRegistry", () => {
   it("keeps ids and route segments unique across descriptors", () => {
@@ -91,6 +92,12 @@ describe("devTabRegistry", () => {
     // for review; it has no shared commit panel.
     expect(byModel("record")).toEqual(["articles", "writing", "copy-studio"]);
     expect(byModel("batch")).toEqual(["tag-editor", "index-layout"]);
+  });
+
+  it("says an editor's Writing save is submitted for review, not view only", () => {
+    const writing = findDevTab("writing");
+    expect(saveDestinationFor(writing, false)).toBe("proposal");
+    expect(saveDestinationFor(writing, true)).toBe("live");
   });
 
   it("relabels Change Review for members who can only see their own submissions", () => {

@@ -29,6 +29,7 @@ const TARGET_KIND_LABELS: Record<ProposalDetail["targets"][number]["kind"], stri
   indexLayout: "Index layout",
   about: "About",
   copyBlock: "Copy block",
+  writing: "Writing",
 };
 
 function StatusPill({ status }: { status: ProposalStatus }) {
@@ -103,7 +104,7 @@ export function ProposalReview({
   // Copy blocks, About and index layouts have no field reading yet and keep
   // the text diff; article sections already shown above are left out of it.
   const otherDiff = diffWithoutArticles(proposal.diff, articlePatches.map((patch) => patch.slug));
-  const otherEditors = proposal.targets.filter((target) => target.kind === "about" || target.kind === "copyBlock");
+  const otherEditors = proposal.targets.filter((target) => target.kind === "about" || target.kind === "copyBlock" || target.kind === "writing");
 
   return (
     <div className="space-y-6 [overflow-wrap:anywhere]">
@@ -167,15 +168,17 @@ export function ProposalReview({
         <section className="space-y-3">
           <h4 className="theme-accent-heading text-sm font-semibold">Prepare a new submission</h4>
           <p className="theme-text-secondary text-sm leading-6">
-            About and Copy changes cannot be loaded from this view. Open the relevant editor, use the changes and feedback below to update its current content, and submit a new proposal. It will not automatically replace this submission.
+            About, Copy and Writing changes cannot be loaded from this view. Open the relevant editor, use the changes and feedback below to update its current content, and submit a new proposal. It will not automatically replace this submission.
           </p>
           <EditorActionGroup label="Open the relevant editor">
             {otherEditors.map((target) => (
               <Button key={`${target.kind}:${target.key}`} asChild variant="outline" size="sm">
                 <a href={target.kind === "about"
                   ? viewToPath({ type: "dev", tab: "writing", slug: "about" })
-                  : viewToPath({ type: "dev", tab: "copy-studio", slug: target.key })}>
-                  {target.kind === "about" ? "Open About editor" : `Open Copy editor: ${target.key}`}
+                  : target.kind === "writing"
+                    ? viewToPath({ type: "dev", tab: "writing", slug: target.key })
+                    : viewToPath({ type: "dev", tab: "copy-studio", slug: target.key })}>
+                  {target.kind === "about" ? "Open About editor" : target.kind === "writing" ? `Open Writing editor: ${target.key}` : `Open Copy editor: ${target.key}`}
                 </a>
               </Button>
             ))}

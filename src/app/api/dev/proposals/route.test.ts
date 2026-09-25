@@ -180,6 +180,62 @@ describe("dev proposals route", () => {
     );
   });
 
+  it("accepts a Writing entry, parsed like the admin's direct save, with its writing baseline", async () => {
+    const client = grantWriteCapability(createClient());
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      post({
+        payload: {
+          writing: {
+            slug: " launch-post ", kind: "blog", status: "published", bodyFormat: "markdown",
+            title: " Launch post ", teaser: " Hello. ", coverImageUrl: "/images/cover.png", body: "Post body.",
+            tags: [" News ", ""], authorProfileKeys: ["JOSIE"], publicationDate: "2026-03-14",
+          },
+        },
+        summary: "Update blog post",
+        baselines: [{ kind: "writing", key: "launch-post", document: null }],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(client.mutation).toHaveBeenCalledWith(
+      "changeProposals.submit",
+      expect.objectContaining({
+        payload: {
+          articles: [],
+          indexLayouts: [],
+          writing: {
+            slug: "launch-post", kind: "blog", status: "published", bodyFormat: "markdown",
+            title: "Launch post", teaser: "Hello.", coverImageUrl: "/images/cover.png", body: "Post body.",
+            tags: ["News"], authorProfileKeys: ["JOSIE"], publicationDate: "2026-03-14",
+          },
+        },
+        baselines: [{ kind: "writing", key: "launch-post", document: null }],
+      }),
+    );
+  });
+
+  it("rejects a Writing entry with an invalid date, an empty published body, or a slug move", async () => {
+    const client = grantWriteCapability(createClient());
+    const { POST } = await import("./route");
+    const writing = { slug: "launch-post", kind: "blog", status: "draft", bodyFormat: "markdown", title: "Launch", body: "Body." };
+    const submit = (overrides: Record<string, unknown>) => POST(post({
+      payload: { writing: { ...writing, ...overrides } },
+      summary: "x",
+      baselines: [{ kind: "writing", key: "launch-post", document: null }],
+    }));
+
+    const badDate = await submit({ publicationDate: "2026-02-30" });
+    expect(badDate.status).toBe(400);
+    expect((await badDate.json()).error).toContain("real calendar day");
+    expect((await submit({ status: "published", body: "  " })).status).toBe(400);
+    const moved = await submit({ originalSlug: "old-post" });
+    expect(moved.status).toBe(400);
+    expect((await moved.json()).error).toContain("Ask an admin to rename it");
+    expect(client.mutation).not.toHaveBeenCalled();
+  });
+
   it("rejects a copy block or About that the direct save would refuse", async () => {
     const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");

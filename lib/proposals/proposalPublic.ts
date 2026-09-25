@@ -7,7 +7,7 @@ export function safeProposalName(value: unknown, fallback: "Contributor" | "Revi
   return name && !/[@\p{Cc}]/u.test(name) ? name : fallback;
 }
 
-type Target = { kind: "article" | "indexLayout" | "copyBlock" | "about"; key: string; baseHash: string };
+type Target = { kind: "article" | "indexLayout" | "copyBlock" | "about" | "writing"; key: string; baseHash: string };
 type CommentSource = { by?: string; authorName?: string; at: string; text: string };
 type SummarySource = {
   _id: string;
@@ -74,6 +74,7 @@ type PayloadSource = {
   indexLayouts?: unknown[];
   copyBlocks?: unknown[];
   about?: unknown;
+  writing?: unknown;
 };
 
 // Client-supplied changelog markdown and attribution are not needed to seed
@@ -86,6 +87,7 @@ function projectProposalPayload(payload: unknown) {
     ...(Array.isArray(value.indexLayouts) ? { indexLayouts: value.indexLayouts.map(proposalPublicDocument) } : {}),
     ...(Array.isArray(value.copyBlocks) ? { copyBlocks: value.copyBlocks.map(proposalPublicDocument) } : {}),
     ...(value.about !== undefined ? { about: proposalPublicDocument(value.about) } : {}),
+    ...(value.writing !== undefined ? { writing: proposalPublicDocument(value.writing) } : {}),
   };
 }
 
@@ -93,12 +95,12 @@ function projectProposalPayload(payload: unknown) {
 export function proposalPublicDiff(markdown: string): string {
   let incomplete = false;
   const diff = markdown.split(/(?=^# )/mu).map((section) => {
-    if (/^# (?:article|indexLayout|copyBlock|about): [^\n]+ \/ (?:submittedBy|proposedBy|reviewedBy|updatedBy|createdBy|actorEmail|email|contactEmail|membershipEmail|contact)(?:[.\s[]|$)/u.test(section)) {
+    if (/^# (?:article|indexLayout|copyBlock|about|writing): [^\n]+ \/ (?:submittedBy|proposedBy|reviewedBy|updatedBy|createdBy|actorEmail|email|contactEmail|membershipEmail|contact)(?:[.\s[]|$)/u.test(section)) {
       return "";
     }
     // A newly created/deleted document is serialized as a whole JSON object,
     // rather than one section per field. Scrub only its envelope, not prose.
-    if (!/^# (?:article|indexLayout|copyBlock|about): [^\n]+\n/u.test(section) ||
+    if (!/^# (?:article|indexLayout|copyBlock|about|writing): [^\n]+\n/u.test(section) ||
         section.slice(0, section.indexOf("\n")).includes(" / ") ||
         !/^[+-] {2}"(?:submittedBy|proposedBy|reviewedBy|updatedBy|createdBy|actorEmail|email|contactEmail|membershipEmail|contact)":/mu.test(section)) {
       return section;
