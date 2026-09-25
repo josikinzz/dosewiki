@@ -87,6 +87,78 @@ function seedInvites() {
   ];
 }
 
+/** Another admin, so the Inbox can show an item someone else holds. */
+export const FIXTURE_OTHER_ADMIN = "other-admin@localhost.invalid";
+
+/**
+ * What waits on an admin in the Inbox: trip reports, article, site and
+ * glossary feedback, citation articles and one expired claim. The waiting
+ * proposal comes from `seedProposal`. Every source is present so each row
+ * shape, urgency and claim state renders.
+ */
+export function seedInbox() {
+  const hour = 3_600_000;
+  const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
+  const logged = (actor, hours, from, to) => [{ at: at(hours), actor, from, to }];
+  return {
+    trip: [
+      {
+        id: "fixture-trip-1", status: "submitted", schema_version: 1, report: {}, title: "A quiet evening with a fixture",
+        author_name: "Fixture author", substance_names: ["Psilocybin"], may_contact: false, publish_consent: true,
+        age_confirmed: true, honeypot_triggered: false, created_at: at(70), updated_at: at(70),
+      },
+      {
+        id: "fixture-trip-2", status: "reviewing", schema_version: 1, report: {}, title: "Fixture festival notes, part two",
+        author_name: "", substance_names: ["MDMA", "Ketamine"], may_contact: true, publish_consent: false,
+        age_confirmed: true, honeypot_triggered: false, created_at: at(200), updated_at: at(20),
+        reviewed_by: FIXTURE_OTHER_ADMIN, decision_log: logged(FIXTURE_OTHER_ADMIN, 20, "submitted", "reviewing"),
+      },
+    ],
+    article: [
+      {
+        id: "fixture-af-1", status: "new", schema_version: 1, substance_slug: "mescaline", substance_title: "Mescaline",
+        category: "inaccurate", importance: "high", details: "The oral duration looks off; most sources give 10 to 12 hours.",
+        honeypot_triggered: false, created_at: at(120), updated_at: at(120),
+      },
+      {
+        id: "fixture-af-2", status: "reviewing", schema_version: 1, substance_slug: "lsd", substance_title: "LSD",
+        category: "source", importance: "normal", details: "A 2025 study on microdosing could be cited in Pharmacology.",
+        source_url: "https://example.invalid/study", honeypot_triggered: false, created_at: at(300), updated_at: at(10),
+        reviewed_by: FIXTURE_EMAIL, decision_log: logged(FIXTURE_EMAIL, 10, "new", "reviewing"),
+      },
+    ],
+    site: [
+      {
+        id: "fixture-sf-1", status: "new", schema_version: 1, category: "technical", urgency: "critical",
+        page: "/search", details: "Search returns nothing on a phone.", honeypot_triggered: false,
+        created_at: at(5), updated_at: at(5),
+      },
+    ],
+    glossary: [
+      {
+        id: "fixture-gf-1", status: "new", locale: "de", term: "Toleranz", target: "Toleranz", version: "v1",
+        alternative: "Gewöhnung", details: "Reads oddly in the dosage context.", created_at: at(90),
+      },
+    ],
+    citations: [
+      {
+        slug: "lsd", articleId: 1, totalRows: 14, supportedCount: 6, needsSourceCount: 3, needsReviewCount: 2,
+        approvedCount: 3, rejectedCount: 0, blockingCount: 2, updatedAt: at(48),
+      },
+      {
+        slug: "mdma", articleId: 2, totalRows: 8, supportedCount: 5, needsSourceCount: 0, needsReviewCount: 1,
+        approvedCount: 2, rejectedCount: 0, blockingCount: 0, updatedAt: at(400),
+      },
+    ],
+    claims: [
+      // Held by another admin and left untouched for over a day: reads as unclaimed.
+      { source: "citations", item_id: "mdma", claimed_by: FIXTURE_OTHER_ADMIN, claimed_at: at(60), expired: true },
+      // The seeded proposal, held by another admin: offers Take over.
+      { source: "proposals", item_id: "journeyseed000001", claimed_by: FIXTURE_OTHER_ADMIN, claimed_at: at(2), expired: false },
+    ],
+  };
+}
+
 /** A 64-character hex revision from a counter, so every run names the same revisions. */
 export function fixtureRevision(n) {
   return n.toString(16).padStart(64, "0");
@@ -214,6 +286,9 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   );
   const proposals = state === "empty" ? [] : [seedProposal(writing.get("field-notes"), role)];
   const replications = buildReplicationFixture(state === "empty" ? 0 : replicationRows);
+  const inbox = state === "empty"
+    ? { trip: [], article: [], site: [], glossary: [], citations: [], claims: [] }
+    : seedInbox();
   /** Records someone else already saved over, so a `conflicted` store bumps each once. */
   const contested = new Set();
 
@@ -442,6 +517,55 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
           { id: "fixture-report-1", slug: "fixture-festival-notes", title: "Fixture festival notes", createdAt: FIXTURE_EPOCH - 300 * 3_600_000 },
         ],
       }));
+    }
+
+    // Inbox: every intake queue it reads, plus claims, answered from one in-memory store.
+    if (pathname === "/api/dev/inbox/claims") {
+      if (upper === "GET") return toolRead(() => json(200, { ok: true, claims: structuredClone(inbox.claims) }));
+      if (upper === "POST") {
+        return toolWrite(() => {
+          const { action, source, id } = body ?? {};
+          inbox.claims = inbox.claims.filter((entry) => entry.source !== source || entry.item_id !== id);
+          if (action === "release") return json(200, { ok: true, released: true });
+          const claim = { source, item_id: id, claimed_by: fixture.session.user.email, claimed_at: tick() };
+          inbox.claims.push(claim);
+          return json(200, { ok: true, claim });
+        });
+      }
+    }
+    if (pathname === "/api/trip-report-submissions/queue" && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, submissions: structuredClone(inbox.trip) }));
+    }
+    for (const [prefix, key] of [["article-feedback", "article"], ["site-feedback", "site"]]) {
+      if (pathname === `/api/${prefix}/queue` && upper === "GET") {
+        const status = params.get("status") ?? "all";
+        const rows = inbox[key].filter((row) => status === "all" || row.status === status);
+        const counts = { new: 0, reviewing: 0, resolved: 0, rejected: 0, spam: 0 };
+        for (const row of inbox[key]) counts[row.status] += 1;
+        return toolRead(() => json(200, { ok: true, feedback: structuredClone(rows), counts, nextCursor: null, total: rows.length }));
+      }
+    }
+    if (pathname === "/api/glossary-feedback/queue" && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, locale: "de", locales: ["de"], feedback: structuredClone(inbox.glossary) }));
+    }
+    if (/^\/api\/article-feedback\/[^/]+\/corrections$/.test(pathname) && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, corrections: [], candidates: { proposals: [], revisions: [] } }));
+    }
+    if (pathname === "/api/citation-evidence/queue" && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, queue: structuredClone(inbox.citations) }));
+    }
+    const statusMatch = /^\/api\/(trip-report-submissions|article-feedback|site-feedback|glossary-feedback)\/([^/]+)\/status$/.exec(pathname);
+    if (statusMatch && upper === "POST") {
+      return toolWrite(() => {
+        const key = { "trip-report-submissions": "trip", "article-feedback": "article", "site-feedback": "site", "glossary-feedback": "glossary" }[statusMatch[1]];
+        const row = inbox[key].find((entry) => entry.id === decodeURIComponent(statusMatch[2]));
+        if (!row) return json(404, { error: "That item is gone." });
+        const to = body?.status;
+        const actor = fixture.session.user.email;
+        row.decision_log = [...(row.decision_log ?? []), { at: tick(), actor, from: row.status, to, ...(body?.notes || body?.note ? { note: body.notes ?? body.note } : {}) }];
+        Object.assign(row, { status: to, reviewed_by: actor });
+        return json(200, key === "trip" ? { ok: true, submission: structuredClone(row) } : { ok: true, feedback: structuredClone(row) });
+      });
     }
 
     if (pathname === "/api/dev/replications" && upper === "GET") {

@@ -137,6 +137,51 @@ builds a new shared primitive, add it to **Conventions** and log it under
   any sheet (it silently renders body text; `ContributorProfileEditor` still
   uses it).
 - **Utilities** (`/dev/kit`, `/dev/themes`) lead with `EditorBackLink`.
+- **Triage workspace (list plus review pane).** A queue tool puts its list
+  and filters on the left (`lg:sticky lg:top-24`, list `maxHeight`
+  `min(calc(100dvh - 13rem), 720px)` so it fits under the public header) and
+  a review pane on the right as an `EditorPanel className="overflow-visible"`
+  (overflow must stay visible or sticky children stop sticking). The pane
+  header names the item once: title, then source glyph and label, "Waiting
+  since" age, status and urgency pills, and the "Open in <Tool>" accent link,
+  with a pager ("N of M" plus previous/next icon buttons carrying
+  `aria-keyshortcuts` j/k). No section descriptions that repeat the title.
+  The Inbox (`src/features/dev/tools/inbox/InboxTab.tsx`, `ReviewPane`) is
+  the reference.
+- **Decision dock.** Every action on the item under review lives in one
+  `sticky bottom-0` footer inside the pane (`theme-portal-rule border-t
+  bg-[var(--editor-panel-bg)]/95 backdrop-blur`): the result notice (with
+  Undo), the claim or ownership line, then the decision buttons, primary
+  first. It sticks to the bottom of the screen only while the pane is on
+  it, which is the phone thumb zone. One accent per pane: the decision, or
+  "Open in <Tool>" when the owning tool decides; claim-like controls are
+  outline. Pending buttons name their state ("Claiming", "Resolving").
+- **Master/detail on phones.** Below `lg`, picking a row calls
+  `useScrollToDetail` on the pane (with `scroll-mt-24` so the public header
+  does not cover it), and the pane carries "Back to list" (scrolls to the
+  list and focuses the listbox) plus the pager, so triage never needs a
+  scroll back up. An idle pane is hidden on phones.
+- **Key caps on buttons.** A button bound to a single key shows the cap on
+  fine pointers only: wrap `<kbd className="theme-dev-kbd">` in a span with
+  `[@media(pointer:coarse)]:hidden` (the kbd class sets its own display, so
+  the media class must sit on a wrapper) and put the key in
+  `aria-keyshortcuts`. The cap is `aria-hidden`, so accessible names stay
+  "Resolve", "Reject".
+- **Unknown counts on filters.** A segmented option whose count is unknown
+  (loading, or its queue failed) omits its `badge` rather than showing 0;
+  totals omit theirs while any part is unknown.
+- **Rail freshness in one line.** A tool that reads several rail badges shows
+  one quiet line for every failed count (`useDevRailBadgeReadings`, last
+  known value and time, one "Retry counts"), not one `DevRailBadgeFreshness`
+  per badge. The Inbox's `RailCountFreshness` is the reference.
+- **Filtered-empty says why and resets.** When filters hide every item, say
+  how many wait outside the named filters and offer "Show everything" (a
+  link button that resets them). A truly empty queue says "All clear".
+- **Undo for the last triage decision.** Tools that make instant decisions
+  bind `u` through `useTriageShortcuts({ onUndo })` and show Undo beside the
+  success notice, reverting through the same status route and transition
+  table the owning tool uses (back where it was when allowed, else
+  Reviewing).
 - The user-facing name of the surface is "Editor" (sr-only h1, nav landmarks
   "Editor tools" / "Editor sections", "Leave editor").
 
@@ -274,4 +319,72 @@ Deferred, with reasons:
 - Rail badge "13" (stale) vs Home "At least 13": the rail is shell chrome.
 - The `theme:tokens:check` count rises by the twelve `var(--theme-*)` reads
   in the new `dev-tools.css` rules, the sanctioned place for them.
+
+### Pass 3: Inbox (`/dev/inbox`)
+
+Commit: see `git log --grep "Dev tools redesign: Inbox"`.
+Screenshots: `tmp/redesign/inbox/before/` and `tmp/redesign/inbox/after/`
+(loaded dark and light; every source kind selected; reject and take over
+dialogs; claimed; key info notice; unsent note; Mine; filtered-empty; frozen
+claim; empty; failed; one queue failed; loading; stale rail counts; editor
+locked; desktop and phone), captured by `tmp/redesign/inbox/capture.mjs`.
+Critique in `tmp/redesign/inbox/critique.md` (21/40 before), inventory with
+the item-by-item preservation check in `tmp/redesign/inbox/inventory.md`,
+detector evidence in `tmp/redesign/inbox/detector/`.
+
+Main changes:
+
+- Layout: filters on top (assignment now counted), list column sticky and
+  sized to the viewport, Refresh beside the Waiting count, review pane
+  docked as an `EditorPanel` with one header and a sticky decision dock
+  (see Conventions: triage workspace, decision dock).
+- Duplication removed: section descriptions gone; the pane header skips
+  title and pills for article and site feedback, whose own detail draws
+  them (`detailHasHeading` on the source adapter). Urgency tone is one rule
+  (`urgencyTone`: critical danger, high caution, low neutral).
+- Rows: source glyph (registry icon), age as `<time>` via Home's
+  `describeDay`, claimer only when claimed.
+- Phone: selection scrolls the pane in; Back to list; pager; the dock is
+  the thumb zone; idle pane hidden.
+- Claims: the claim line moved into the dock, outline buttons, pending
+  labels; claim, release and take over announce through an sr-only live
+  region instead of a banner that repeated the line.
+- Notices: live in the dock, clear when you pick another item, success
+  offers Undo; new `u` undo through the adapters' `actions.undo`
+  (`inboxSources.tsx`, trip reports and feedback, same routes and
+  transition tables as the owning tools).
+- Errors: one `LoadErrorState` for the whole read (`describeLoadFailures`
+  in `inboxModel.ts`), one freshness line (`RailCountFreshness`), skeleton
+  rows while loading, no zero counts for unknown queues, "Show everything"
+  when filters hide all, "All clear" when nothing waits.
+- Detail: fact labels use `type-meta-label`, one `DetailHeading` recipe,
+  the article feedback correction panel folds behind an `ExpandButton`
+  (`CorrectionReveal`, mounts on open), a stale recommendation says it can
+  only be looked at again.
+- Freeze: a refused write reads "Writes are paused, so that was not
+  saved."; while frozen the dock shows one quiet line; buttons stay enabled
+  so the next write can clear the freeze (disabling them would pin it).
+- Journeys fixtures (`scripts/tools/journeys/fixtures.mjs`) now answer every
+  Inbox read and write in-browser (`seedInbox`, `FIXTURE_OTHER_ADMIN`):
+  trip reports, article/site/glossary feedback, citation queue, correction
+  candidates, claims (one expired, one held by another admin on the seeded
+  proposal), status posts. Rail count routes and review recommendations are
+  unchanged (the capture script overrides them), so other tools' baselines
+  do not move.
+
+Deferred, with reasons:
+
+- Display names for external reviewer emails: needs an admin directory the
+  client does not have.
+- Citation article titles instead of slugs: the citation queue route returns
+  slugs only.
+- Glossary item deep link from "Open in Glossary": the Glossary tool has no
+  item route yet.
+- Feeding the rail badge from the Inbox's loaded list: shell badge store.
+- Remembered or URL filters: wants a shared saved-view convention.
+- Implicit claim on decision: changes what the decision log records.
+- "Open in <Tool>" through `guardedLinkProps`: tools do not receive the
+  shell's `onOpenHref`; the unsaved-work registry's `beforeunload` still
+  covers the navigation.
+- Detector `ai-color-palette` findings: the brand accent, a brand decision.
 
