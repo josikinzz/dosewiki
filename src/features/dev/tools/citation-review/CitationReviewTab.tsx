@@ -10,6 +10,7 @@ import {
   useScrollToDetail,
 } from "@/features/dev/components";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
+import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { useDevMode } from "../../context/DevModeContext";
 import { EditorCitationDiagnosticsPanel } from "../../forms/EditorCitationDiagnosticsPanel";
 import {
@@ -261,15 +262,18 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   }
 
   const queueHeader = (
-    <CitationQueueHeader
-      queue={queue}
-      queueFilter={queueFilter}
-      onQueueFilterChange={setQueueFilter}
-      refreshing={refreshing}
-      onRefreshQueue={() => {
-        void refreshQueue();
-      }}
-    />
+    <>
+      <CitationQueueHeader
+        queue={queue}
+        queueFilter={queueFilter}
+        onQueueFilterChange={setQueueFilter}
+        refreshing={refreshing}
+        onRefreshQueue={() => {
+          void refreshQueue();
+        }}
+      />
+      <DevRailBadgeFreshness badge="citations" noun="articles" />
+    </>
   );
 
   if (queue.length === 0) {

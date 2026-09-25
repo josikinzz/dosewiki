@@ -3,6 +3,9 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AppRole } from "@/lib/auth/roles";
+import userEvent from "@testing-library/user-event";
+
+import { DevRailBadgeFreshness } from "./DevRailBadgeFreshness";
 import {
   invalidateDevRailBadge,
   resetDevRailBadgesForTests,
@@ -205,5 +208,62 @@ describe("useDevRailBadges", () => {
     } finally {
       visibility.mockRestore();
     }
+  });
+
+  describe("freshness", () => {
+    function Queue() {
+      const counts = useDevRailBadges("admin");
+      return (
+        <>
+          <span data-testid="badge">{counts["trip-reports"] ?? "none"}</span>
+          <DevRailBadgeFreshness badge="trip-reports" noun="reports" />
+        </>
+      );
+    }
+
+    it("keeps 12 as the last known count when a refresh fails, and clears the stale line on success", async () => {
+      const user = userEvent.setup();
+      stubCounts({ tripReports: [12, "fail", 9] });
+      render(<Queue />);
+      await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("12"));
+      // A healthy count says nothing in the queue.
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+      act(() => {
+        invalidateDevRailBadge("trip-reports");
+      });
+
+      const line = await screen.findByRole("status");
+      expect(line).toHaveTextContent(/12 reports is the last known count/);
+      // Never replaced by zero, and the rail badge is not turned into an alert.
+      expect(screen.getByTestId("badge")).toHaveTextContent("12");
+
+      await user.click(screen.getByRole("button", { name: "Retry" }));
+
+      await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("9"));
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    it("says the count is unknown, not zero, when the first load fails", async () => {
+      stubCounts({ tripReports: ["fail"] });
+      render(<Queue />);
+
+      const line = await screen.findByRole("status");
+      expect(line).toHaveTextContent("The count of waiting reports could not load.");
+      expect(screen.getByTestId("badge")).toHaveTextContent("none");
+    });
+
+    it("treats a malformed answer as a failed refresh", async () => {
+      stubCounts({ tripReports: [4] });
+      render(<Queue />);
+      await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("4"));
+      vi.mocked(fetch).mockImplementation(async () => Response.json({ ok: true }));
+
+      act(() => {
+        invalidateDevRailBadge("trip-reports");
+      });
+
+      expect(await screen.findByRole("status")).toHaveTextContent(/4 reports is the last known count/);
+    });
   });
 });

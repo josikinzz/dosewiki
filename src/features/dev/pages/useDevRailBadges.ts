@@ -53,6 +53,13 @@ type BadgeEntry = {
   count: number | null;
   /** The per-source split behind `count`, when the endpoint reports one. */
   parts: Readonly<Record<string, number>> | null;
+  /** When `count` last arrived (epoch ms); null until it has. */
+  updatedAt: number | null;
+  /**
+   * Set when the latest request failed and cleared by the next success. A
+   * failure never touches `count`: the last known count stays, marked stale.
+   */
+  failed: boolean;
   /** Bumped by every invalidation; a mounted rail refetches when it changes. */
   generation: number;
 };
@@ -60,7 +67,7 @@ type BadgeEntry = {
 type BadgeSnapshot = Readonly<Record<DevRailBadge, BadgeEntry>>;
 
 const INITIAL_SNAPSHOT = Object.fromEntries(
-  BADGES.map((badge) => [badge, { count: null, parts: null, generation: 0 }]),
+  BADGES.map((badge) => [badge, { count: null, parts: null, updatedAt: null, failed: false, generation: 0 }]),
 ) as BadgeSnapshot;
 
 /**
@@ -100,27 +107,37 @@ export function resetDevRailBadgesForTests() {
   emit();
 }
 
-async function loadCount(badge: DevRailBadge, generation: number, owner: string) {
+async function readCount(badge: DevRailBadge): Promise<BadgeReading | null> {
   const source = BADGE_SOURCES[badge];
   try {
     const response = await fetch(source.url);
     if (!response.ok) {
-      return;
+      return null;
     }
-
     const payload: unknown = await response.json();
-    const reading =
-      payload !== null && typeof payload === "object" ? source.read(payload as Record<string, unknown>) : null;
-    // An invalidation raced this answer: the refetch it triggered wins.
-    if (!reading || activeOwner !== owner || snapshot[badge].generation !== generation) {
-      return;
-    }
-
-    snapshot = { ...snapshot, [badge]: { count: reading.count, parts: reading.parts ?? null, generation } };
-    emit();
+    return payload !== null && typeof payload === "object" ? source.read(payload as Record<string, unknown>) : null;
   } catch {
-    // A missing badge is the correct failure mode: the rail still works.
+    return null;
   }
+}
+
+async function loadCount(badge: DevRailBadge, generation: number, owner: string) {
+  const reading = await readCount(badge);
+  // An invalidation raced this answer: the refetch it triggered wins.
+  if (activeOwner !== owner || snapshot[badge].generation !== generation) {
+    return;
+  }
+
+  const entry = snapshot[badge];
+  snapshot = {
+    ...snapshot,
+    // A failed read keeps the last known count and marks it stale; the rail
+    // badge still shows it, and the opened queue says how old it is.
+    [badge]: reading
+      ? { count: reading.count, parts: reading.parts ?? null, updatedAt: Date.now(), failed: false, generation }
+      : { ...entry, failed: true },
+  };
+  emit();
 }
 
 /**
@@ -196,4 +213,27 @@ export function useDevRailBadges(role: AppRole | null, actorEmail?: string | nul
 export function useDevRailBadgeParts(badge: DevRailBadge): Readonly<Record<string, number>> | null {
   const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
   return current[badge].parts;
+}
+
+/** What an opened queue needs to say about its rail count: how fresh it is. */
+export type DevRailBadgeStatus = {
+  /** Last known count; null while it has never loaded. */
+  count: number | null;
+  /** When `count` arrived (epoch ms); null while it has never loaded. */
+  updatedAt: number | null;
+  /** True when the latest request failed: `count` is the last known, not the current, value. */
+  failed: boolean;
+  /** Ask the mounted rail to fetch this count again. */
+  retry: () => void;
+};
+
+/**
+ * One badge's count with its freshness, for the queue the badge points at.
+ * The rail keeps showing the last known count on failure, so this is where
+ * an editor learns the number may be old.
+ */
+export function useDevRailBadgeStatus(badge: DevRailBadge): DevRailBadgeStatus {
+  const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
+  const { count, updatedAt, failed } = current[badge];
+  return { count, updatedAt, failed, retry: () => invalidateDevRailBadge(badge) };
 }

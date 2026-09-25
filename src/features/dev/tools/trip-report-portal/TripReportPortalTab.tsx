@@ -9,6 +9,7 @@ import {
   EditorPanel,
   TagToken,
 } from "@/features/dev/components";
+import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import { PortalOrganizerRail } from "./PortalOrganizerRail";
 import { PortalReportEditor } from "./PortalReportEditor";
@@ -123,6 +124,8 @@ export function TripReportPortalTab() {
           }}
         />
       ) : null}
+
+      <DevRailBadgeFreshness badge="trip-reports" noun="reports" />
 
       <div
         className={`grid gap-4 ${

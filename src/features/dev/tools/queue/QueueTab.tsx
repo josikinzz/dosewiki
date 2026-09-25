@@ -21,6 +21,7 @@ import {
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
+import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import { ProposalReview } from "./ProposalReview";
 import { viewToPath } from "@/utils/routing";
@@ -315,6 +316,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor }: QueueTabProps) {
             }
           />
         ) : null}
+        <DevRailBadgeFreshness badge="proposals" noun="submissions" />
       </EditorSection>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
