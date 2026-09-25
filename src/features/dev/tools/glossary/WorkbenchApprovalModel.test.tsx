@@ -238,7 +238,7 @@ describe("one save-then-approve model", () => {
     expect(screen.getByText("Choose a reason to save this change.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save and approve" }));
-    await screen.findByText("Approved. Awaiting a UI catalog build.");
+    await screen.findByText("Approved. It goes live with the next site release.");
     expect(writes.map((write) => write.body.action)).toEqual(["save", "approve"]);
     expect(writes[1].body).toMatchObject({ expectedRevision: 1 });
   });

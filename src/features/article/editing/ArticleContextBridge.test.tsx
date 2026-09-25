@@ -56,7 +56,7 @@ describe("private article session boundaries", () => {
     await screen.findByText(/Your private draft is concealed/);
     expect(screen.queryByText("Unsaved private correction")).toBeNull();
     expect(screen.queryByRole("button", { name: "Save draft" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Refresh latest baseline" }));
+    fireEvent.click(screen.getByRole("button", { name: "Load latest published version" }));
     fireEvent.click(await screen.findByRole("button", { name: "Use the merged draft" }));
     const review = await screen.findByRole("dialog", { name: "Review article changes" });
     expect(within(review).getByText("Unsaved private correction")).toBeTruthy();
@@ -380,7 +380,7 @@ describe("leaving and discarding through the shared guard and confirm", () => {
     render(view(state));
     await screen.findByText(ownerSummary);
 
-    await user.click(screen.getByRole("button", { name: "Private preview options" }));
+    await user.click(screen.getByRole("button", { name: "Editing options" }));
     await user.click(await screen.findByRole("menuitem", { name: "Discard saved draft" }));
     const confirm = await screen.findByRole("dialog", { name: "Discard your private article draft?" });
     expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
@@ -401,9 +401,9 @@ describe("reconciling a draft with a newer published article", () => {
   });
   const refreshTo = async (user: ReturnType<typeof userEvent.setup>) => {
     await screen.findByText(ownerSummary);
-    await user.click(screen.getByRole("button", { name: "Private preview options" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Refresh latest baseline" }));
-    return screen.findByRole("dialog", { name: "Reconcile article draft" });
+    await user.click(screen.getByRole("button", { name: "Editing options" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Load latest published version" }));
+    return screen.findByRole("dialog", { name: "Merge with the latest version" });
   };
   const posts = (request: ReturnType<typeof vi.fn>) => request.mock.calls
     .filter(([, init]) => init?.method === "POST")

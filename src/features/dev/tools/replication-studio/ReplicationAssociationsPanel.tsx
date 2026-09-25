@@ -398,7 +398,7 @@ export function ReplicationAssociationsPanel({
             ? { status: "ready", rows: payload.associations }
             : {
                 status: "error",
-                message: "The associations endpoint returned no association list.",
+                message: "The server returned no association list.",
               };
         } else {
           next = {
@@ -407,7 +407,7 @@ export function ReplicationAssociationsPanel({
           };
         }
       } catch {
-        next = { status: "error", message: "Failed to reach the associations endpoint." };
+        next = { status: "error", message: "Could not reach the server to load associations." };
       }
       if (cancelled) {
         return;
@@ -549,7 +549,7 @@ export function ReplicationAssociationsPanel({
       });
     } catch {
       setSaveState("error");
-      setFeedback({ tone: "danger", message: "Saving failed: the associations endpoint is unreachable." });
+      setFeedback({ tone: "danger", message: "Saving failed: the server could not be reached." });
     }
   }, [draft, rows, slug]);
 

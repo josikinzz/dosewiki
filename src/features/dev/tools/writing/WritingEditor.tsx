@@ -340,7 +340,7 @@ export function WritingEditor({
         )}
       </EditorToolbar>
       <WritingSaveTime controller={controller} />
-      {controller.uncertain ? <Notice tone="warning" message="Publication has not been confirmed. Editing and discard are locked until you explicitly reconcile the original operation." actions={<Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button>} /> : null}
+      {controller.uncertain ? <Notice tone="warning" message="Publication has not been confirmed. Editing and discard are locked until you retry the original publication." actions={<Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button>} /> : null}
       <EditorToolbar>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.isDirty} onClick={() => setDiscarding(true)}>Discard local edits</Button>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.loadedRow} onClick={() => void controller.reconcile()}>Load the latest saved version</Button>

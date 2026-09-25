@@ -228,7 +228,7 @@ describe("AboutEditorTab", () => {
     });
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+    expect(screen.getByRole("link", { name: "Open in Change Review" })).toHaveAttribute("href", "/dev/queue");
     // Production is untouched, so the edit is still pending against it.
     expect(screen.getByText("1 section changed")).toBeTruthy();
   });

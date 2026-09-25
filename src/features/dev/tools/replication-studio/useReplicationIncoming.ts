@@ -242,7 +242,7 @@ export function useReplicationIncoming({
       } catch {
         patchIncoming(item.id, {
           status: "error",
-          error: "Upload failed: the endpoint is unreachable.",
+          error: "Upload failed: the server could not be reached.",
         });
         return null;
       }

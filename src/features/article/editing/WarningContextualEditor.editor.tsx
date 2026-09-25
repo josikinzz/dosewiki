@@ -182,8 +182,8 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
     }
     confirm({
       title: `Resolve pending warning ${uncertainKey}?`,
-      description: "First check whether this exact change committed. If no receipt exists, retry only the original request below with the same change id. No newly edited values will be sent.",
-      confirmLabel: "Reconcile or retry original change",
+      description: "Retry sends the original change again. If it already went through, nothing publishes twice. Edits made since then are not sent.",
+      confirmLabel: "Retry original change",
       onConfirm: async () => {
         setSaving(true); setError(null);
         try { await adopt(await retryPendingWarning(operation.body.key)); }
@@ -202,12 +202,12 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
         {error ? <p role="alert" className="text-dose-danger">{error}</p> : null}
         {notice ? <p role="status" className="theme-text-secondary">{notice}</p> : null}
         {receipt && !reviewing ? <PublicationReceiptChips receipt={receipt} /> : null}
-        {locked ? <p>Sign in again to reopen warning editing. No write will be replayed automatically.</p> : <>
+        {locked ? <p>Sign in again to reopen warning editing. Nothing is saved or published automatically.</p> : <>
           {uncertainKey ? <Surface variant="subtle" padding="sm" radius="lg">
             <h3 className="font-semibold">Warning publication remains unconfirmed</h3>
-            <p className="theme-text-secondary text-sm">Keep this editor open. Discard, navigation and new changes are blocked until the original operation is resolved.</p>
+            <p className="theme-text-secondary text-sm">Keep this editor open. Discard, navigation and new changes are blocked until the original change is confirmed.</p>
             <pre className="my-3 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(pendingWarning(uncertainKey)?.body, null, 2)}</pre>
-            <Button variant="secondary" disabled={saving || loading} onClick={reconcile}>Reconcile pending warning</Button>
+            <Button variant="secondary" disabled={saving || loading} onClick={reconcile}>Retry to confirm</Button>
           </Surface> : null}
           {loading ? <p role="status">Loading current warnings and history…</p> : null}
           {!loading && !error && presets.length === 0 ? <p>No warning presets are available. Preset creation and bulk coverage remain in the Banners workbench.</p> : null}

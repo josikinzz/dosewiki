@@ -90,7 +90,7 @@ function LayoutBody({ type, initial, group, close }: { type: "psychoactive" | "c
       const response = await fetch("/api/dev/index-layout", { method: "POST", headers: { "Content-Type": "application/json" }, body: publicationBody({ layout: { type, ...draft }, expected: baseline, expectedRevision: revision }) });
       const data = await response.json();
       const receipt = acknowledge(response, data);
-      setRevision(receipt.revision); setBaseline(draft); setNotice(receipt.unchanged ? "No publication was needed; this layout is unchanged." : receipt.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : "Published index layout. Public indices and category projections are refreshing; article visibility, Reviewed status, and Review Flags are unchanged."); router.refresh();
+      setRevision(receipt.revision); setBaseline(draft); setNotice(receipt.unchanged ? "No publication was needed; this layout is unchanged." : receipt.replayed ? "Your earlier publication went through. Someone may have published changes since." : "Published index layout. Public indices and category listings are refreshing; article visibility, Reviewed status, and Review Flags are unchanged."); router.refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Publication failed. Your draft is preserved."); } finally { setBusy(false); }
   }
   return <ContextualEditorPanel title={`Edit ${group.name} index`} description={`${type} layout. Category and section keys and substance slugs identify every edit, regardless of filtering. Layout membership is not article visibility.`} open onOpenChange={cancel}>
@@ -102,7 +102,7 @@ function LayoutBody({ type, initial, group, close }: { type: "psychoactive" | "c
       {notice && <p role="status">{notice}</p>}
       {proposalId && <Notice {...proposalSubmittedNotice(`${type} index layout`, proposalId)} />}
       {uncertain && <p role="alert">The publication outcome is not confirmed. Retry the same publication before closing or changing this draft.</p>}
-      <div className="flex flex-wrap gap-2"><Button disabled={!dirty || busy} onClick={() => canApprove ? confirm({ title: "Publish index layout?", description: "Publish the displayed diff to the substance index, grouped index pages, category projections, and both publications that consume this layout. Article direct links, visibility, Reviewed status, and Review Flags are unchanged.", confirmLabel: "Publish layout", onConfirm: publish }) : void publish()}>{busy ? (canApprove ? "Publishing…" : "Submitting…") : canApprove ? "Publish layout" : "Submit for review"}</Button><Button variant="secondary" disabled={busy} onClick={cancel}>Cancel</Button></div>
+      <div className="flex flex-wrap gap-2"><Button disabled={!dirty || busy} onClick={() => canApprove ? confirm({ title: "Publish index layout?", description: "Publish the displayed diff to the substance index, grouped index pages, category listings, and both publications that consume this layout. Article direct links, visibility, Reviewed status, and Review Flags are unchanged.", confirmLabel: "Publish layout", onConfirm: publish }) : void publish()}>{busy ? (canApprove ? "Publishing…" : "Submitting…") : canApprove ? "Publish layout" : "Submit for review"}</Button><Button variant="secondary" disabled={busy} onClick={cancel}>Cancel</Button></div>
     </div>{dialog}
   </ContextualEditorPanel>;
 }

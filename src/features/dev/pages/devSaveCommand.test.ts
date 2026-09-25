@@ -205,7 +205,7 @@ describe("dev save command contract", () => {
       resolvedSubmitterKey: "EDITOR",
       changelogEntry: null,
       markChangesSaved: true,
-      actionLabel: "View in queue",
+      actionLabel: "Open in Change Review",
       actionHref: "/dev/queue",
     });
   });

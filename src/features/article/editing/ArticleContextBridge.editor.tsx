@@ -176,7 +176,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     return formDirty && formRef.current ? formRef.current.collect() : lifecycle.getArticle();
   };
   const saveDraft = async () => {
-    if (operationLocked) throw new Error("Reconcile the previous operation before saving a private draft.");
+    if (operationLocked) throw new Error("Retry the unconfirmed change before saving a private draft.");
     if (proposalNotesDirty) throw new Error("Post or discard the proposal notes before saving an article draft.");
     const candidate = await collect();
     await lifecycle.act("saveDraft", summary, undefined, candidate);
@@ -201,7 +201,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   }), [context.registerDraftGuard, guardKey, operationLocked, proposalNotesDirty]);
   const attempt = async (operation: () => Promise<void>) => {
     setLocalError(null);
-    try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The operation was not confirmed. Your edits are retained."); }
+    try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The change was not confirmed. Your edits are kept."); }
   };
   const closePanel = () => { setSection(null); setReview(false); onSectionClose?.(); };
   // The same dialog the launcher shows before leaving the page. The launcher's
@@ -244,12 +244,12 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     void attempt(async () => { lifecycle.preview(await collect()); setFormDirty(false); setFormEpoch((value) => value + 1); setSection(next); setReview(false); setLocalError(null); });
   };
   const refreshBaseline = async () => {
-    if (requestLocked || proposalNotesDirty) throw new Error("Finish the pending operation or proposal notes before refreshing the article baseline.");
+    if (requestLocked || proposalNotesDirty) throw new Error("Finish the unconfirmed change or the proposal notes before loading the latest published version.");
     lifecycle.preview(await collect());
     setFormDirty(false); setFormEpoch((value) => value + 1); closePanel();
     await lifecycle.refresh();
   };
-  const refreshControl = lifecycle.loaded ? <Button variant="outline" size="sm" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onClick={() => { void attempt(refreshBaseline); }}>Refresh latest baseline</Button> : null;
+  const refreshControl = lifecycle.loaded ? <Button variant="outline" size="sm" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onClick={() => { void attempt(refreshBaseline); }}>Load latest published version</Button> : null;
   const changes = useMemo(() => active ? articleFieldChanges(lifecycle.published, lifecycle.article) : [], [active, lifecycle.published, lifecycle.article]);
   const problems = useMemo(() => active ? articlePublicationErrors(lifecycle.article, lifecycle.published) : [], [active, lifecycle.article, lifecycle.published]);
   // The note arrives written. It keeps following the changed fields while the
@@ -293,7 +293,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   }, [lifecycle.publication, slug, startReceipt]);
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
     void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); closePanel(); router.refresh(); });
-  }}>Retry previous operation</Button> : null;
+  }}>Retry unconfirmed change</Button> : null;
   const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
   // Until the refreshed list names it, the proposal just submitted is pending;
   // once review decides it, the chip gives way to the list's own status.
@@ -310,7 +310,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   // The same validation the review sheet lists, read per field so an applied
   // edit shows its problem beside the value instead of at review time.
   const fieldIssue = useCallback((path: string) => fieldIssueMessage(problems, path), [problems]);
-  const status = lifecycle.uncertain ? "Previous operation unconfirmed. Editing is paused until it is reconciled." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft…") : lifecycle.busy ? "Loading or saving…" : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
+  const status = lifecycle.uncertain ? "Your last change was not confirmed. Editing is paused until you retry it." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft…") : lifecycle.busy ? "Loading or saving…" : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
   if (!active) return <>
     {viewing && lifecycle.hasDraft && <div className="mx-auto flex max-w-[1500px] justify-end px-[max(1rem,env(safe-area-inset-left))] pt-3 sm:px-6">
       {context.setMode
@@ -324,7 +324,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       <p role="alert" className="theme-text-primary">Article access has expired or changed. Your private draft is concealed and retained in this tab. Nothing will save or publish automatically.</p>
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" asChild><a href={`/sign-in?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`} target="_blank" rel="noopener noreferrer">Sign in in a new tab</a></Button>
-        <Button variant="outline" disabled={requestLocked} onClick={() => { void attempt(refreshBaseline); }}>Refresh latest baseline</Button>
+        <Button variant="outline" disabled={requestLocked} onClick={() => { void attempt(refreshBaseline); }}>Load latest published version</Button>
       </div>
       {lifecycle.error && <p role="alert" className="theme-text-muted text-sm">{lifecycle.error}</p>}
     </Surface>
@@ -334,7 +334,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     <StickyArticleEditorLayout actions={<>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1 basis-full sm:flex sm:basis-auto sm:items-center sm:gap-3">
-          <p className="theme-text-primary shrink-0 text-sm font-semibold">Private preview</p>
+          <p className="theme-text-primary shrink-0 text-sm font-semibold">{changes.length > 0 ? "Private preview" : "Editing"}</p>
           <p className="theme-text-muted truncate text-xs" role="status" title={status}>{status}</p>
           {(pendingChipId || pendingProposals > 0) && <p className="theme-text-muted flex shrink-0 flex-wrap items-center gap-2 text-xs">
             {pendingChipId && <Link href={`/dev/queue/${encodeURIComponent(pendingChipId)}`} className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
@@ -354,21 +354,21 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           </> :!lifecycle.loaded && <Button variant="outline" size="icon" aria-label="Load private draft" title="Load private draft" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}><Icon icon="lucide:download" size={16} /></Button>}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Private preview options" title="Private preview options"><Icon icon="lucide:ellipsis" size={16} /></Button>
+              <Button variant="ghost" size="icon" aria-label="Editing options" title="Editing options"><Icon icon="lucide:ellipsis" size={16} /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" collisionPadding={16} className="w-72 max-w-[calc(100vw-2rem)]">
               <p className="theme-text-primary px-2 py-2 text-sm">{status}</p>
               <p className="theme-text-muted px-2 pb-2 text-sm">Nothing publishes automatically. Save a private draft, or review the changed fields before submitting or publishing.</p>
               {lifecycle.loaded && <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="min-h-11" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Refresh latest baseline</DropdownMenuItem>
+                <DropdownMenuItem className="min-h-11" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Load latest published version</DropdownMenuItem>
               </>}
               {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-      {!lifecycle.ready && lifecycle.loaded && <p role="alert" className="theme-text-primary px-1 py-2 text-sm">{lifecycle.baselineRefreshRequired ? "The saved draft was discarded. Refresh and reconcile the latest article before editing; your local copy remains here." : "Article writes are paused. Your edits remain here; no operation will resume automatically after sign-in."}</p>}
+      {!lifecycle.ready && lifecycle.loaded && <p role="alert" className="theme-text-primary px-1 py-2 text-sm">{lifecycle.baselineRefreshRequired ? "The saved draft was discarded. Load the latest published version and merge your edits before editing; your local copy remains here." : "Article saving is paused. Your edits remain here; nothing is saved or published automatically after sign-in."}</p>}
       {lifecycle.publication && <div data-testid="article-publication-notice" className="theme-text-primary space-y-2 px-1 py-2 text-sm">
         <p>
           {publicationMessage(receipt.receipt?.public ?? lifecycle.publication.delivery)}{" "}
@@ -404,7 +404,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
             disabled={operationLocked}
             busy={lifecycle.busy}
             description={`${canPublish
-              ? "Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged."
+              ? "Publishing changes the live article and its derived displays for all readers. It is refused if someone else published this article after you loaded it. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged."
               : "Submitting sends this change to an admin for review. The published article stays unchanged until it is approved."}${lifecycle.feedbackRef
               ? ` The change is linked to reader feedback #${lifecycle.feedbackRef.id.slice(-6)} by its id only; the reader's contact details stay private.`
               : ""}`}
@@ -460,7 +460,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       </div>
     </ContextualEditorPanel>
     {leaveGuard.dialog}
-    <ContextualEditorPanel title="Reconcile article draft" open={!!lifecycle.recovery} onOpenChange={(open) => { if (!open && !requestLocked) lifecycle.cancelRecovery(); }} description="The latest public article and saved draft have been fetched. Your local draft is still unchanged. Nothing is saved or published by this review.">
+    <ContextualEditorPanel title="Merge with the latest version" open={!!lifecycle.recovery} onOpenChange={(open) => { if (!open && !requestLocked) lifecycle.cancelRecovery(); }} description="The latest public article and saved draft have been fetched. Your local draft is still unchanged. Nothing is saved or published by this review.">
       {lifecycle.recovery && lifecycle.merge && <div className="space-y-5 overflow-y-auto">
         <p className="theme-text-muted text-sm">Your draft is compared with the latest public article from the revision you started on. A field only one of you changed is already in the merged draft. A field you both changed waits for you to choose a version. Publishing still checks the latest revision, so a change that lands after this merge is refused.</p>
         <ArticleMergeReview merge={lifecycle.merge} choices={lifecycle.mergeChoices} onChoose={lifecycle.chooseMerge} />
@@ -471,7 +471,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         <div className="flex flex-wrap gap-2">
           <Button className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked || lifecycle.merge.unresolved.length > 0} onClick={() => { void attempt(async () => { lifecycle.reconcile(true); setFormEpoch((value) => value + 1); setReview(true); }); }}>Use the merged draft</Button>
           <Button variant="outline" className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked} onClick={() => { void attempt(async () => { lifecycle.reconcile(false); setFormEpoch((value) => value + 1); }); }}>{lifecycle.recovery.draft ? "Discard local edits and load saved draft" : "Discard local edits and load published article"}</Button>
-          <Button variant="ghost" disabled={requestLocked} onClick={() => lifecycle.cancelRecovery()}>Keep current baseline</Button>
+          <Button variant="ghost" disabled={requestLocked} onClick={() => lifecycle.cancelRecovery()}>Keep my current version</Button>
         </div>
         {lifecycle.merge.unresolved.length > 0 && <p className="theme-text-muted text-sm">{unresolvedConflictText(lifecycle.merge.unresolved.length)}</p>}
         {(localError || lifecycle.error) && <p role="alert" className="theme-text-primary whitespace-pre-wrap text-sm">{localError || lifecycle.error}</p>}

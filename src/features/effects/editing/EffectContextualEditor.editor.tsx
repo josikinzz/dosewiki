@@ -98,7 +98,7 @@ function EffectSession({ slug, pageProps }: Props) {
         : payload.error ?? "Unable to load this effect.");
       setDocument(payload);
       if (!retain) resetDraft(effectDraftFromRow(payload.effect));
-      else setMessage("Latest published baseline loaded. Local edits are retained; review the diff before publishing.");
+      else setMessage("Latest published version loaded. Your edits are kept; review the changes before publishing.");
       operation.current = null;
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to load this effect."); }
     finally { setBusy(false); }
@@ -113,7 +113,7 @@ function EffectSession({ slug, pageProps }: Props) {
       const response = await fetch("/api/dev/effect-article", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...JSON.parse(body), operationId: operation.current.id }) });
       const result = await response.json() as { revision?: string; error?: string };
       if (!response.ok && response.status < 500) setUncertain(false);
-      if (!response.ok || !result.revision) throw new Error(result.error ?? "Publication was not confirmed. Retry to reconcile the operation.");
+      if (!response.ok || !result.revision) throw new Error(result.error ?? "Publication was not confirmed. Retry to confirm it.");
       setUncertain(false);
       const saved = { ...document.effect, ...parsed.updates };
       setDocument({ ...document, effect: saved, baseRevision: result.revision });
@@ -167,7 +167,7 @@ function EffectSession({ slug, pageProps }: Props) {
       {error ? <Notice tone="danger" message={error} /> : null}
       {message ? <Notice tone="info" message={message} /> : null}
       {receipt && reviewed !== fingerprint ? <PublicationReceiptChips receipt={receipt} /> : null}
-      {uncertain ? <Notice tone="warning" message="Publication is not confirmed. Editing, closing and discard are locked until you reconcile the original operation." actions={<Button disabled={working} onClick={() => void publish()}>Retry publication confirmation</Button>} /> : null}
+      {uncertain ? <Notice tone="warning" message="Publication is not confirmed. Editing, closing and discard are locked until you retry the original publication." actions={<Button disabled={working} onClick={() => void publish()}>Retry publication confirmation</Button>} /> : null}
       {busy && !document ? <p role="status">Loading effect… You can close this editor while it loads.</p> : null}
       {!document && !busy ? <Button onClick={() => void load()}>Retry loading</Button> : null}
       {draft ? <div ref={fieldsRef} className="min-w-0 space-y-6">
@@ -235,7 +235,7 @@ function EffectSession({ slug, pageProps }: Props) {
         <StructuredFields field="subarticles" value={draft.subarticles ?? []} disabled={busy} errors={parsed.fieldErrors} onChange={value => update({ subarticles: value.map(row => ({ id: row.id ?? "", title: row.title ?? "" })) })} />
         <EditorToolbar label="Draft recovery">
           <Button variant="ghost" disabled={busy || !dirty} onClick={discard}>Discard local edits</Button>
-          <Button variant="ghost" disabled={busy} onClick={() => void load(true)}>Reload published baseline</Button>
+          <Button variant="ghost" disabled={busy} onClick={() => void load(true)}>Load latest published version</Button>
         </EditorToolbar>
         {document ? <NarrativeHistory entries={document.history} /> : null}
       </div> : null}
@@ -258,7 +258,7 @@ function effectFieldChanges(baseline: EffectDraft, draft: EffectDraft): FieldCha
     .filter(field => JSON.stringify(draft[field]) !== JSON.stringify(baseline[field]))
     .map(field => ({
       field, label: FIELD_LABELS[field],
-      before: effectFieldValue(FIELD_LABELS[field], "published baseline", baseline[field]),
+      before: effectFieldValue(FIELD_LABELS[field], "published version", baseline[field]),
       after: effectFieldValue(FIELD_LABELS[field], "local changes", draft[field]),
     }));
 }

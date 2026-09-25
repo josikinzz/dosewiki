@@ -56,7 +56,7 @@ export function ArticleProposalReview({ proposals, slug, canApprove, blocked, on
     if (!proposal || !canApprove || blocked || (action === "approve" && proposal.isAuthor)) return;
     confirmation.confirm({
       title: action === "approve" ? "Publish this proposal?" : action === "reject" ? "Reject this proposal?" : "Revert this proposal?",
-      description: action === "reject" ? `The proposal closes permanently. The proposer will see this note: ${note.trim()}` : "This affects the live content for every target listed below. The existing proposal workflow rechecks its recorded baseline before applying any change.",
+      description: action === "reject" ? `The proposal closes permanently. The proposer will see this note: ${note.trim()}` : "This affects the live content for every target listed below. Approval first checks the proposal against the article version it was written for.",
       affected: proposal.targets.map((target) => `${target.kind}: ${target.key}`),
       confirmLabel: action === "approve" ? "Approve and publish" : action === "reject" ? "Reject proposal" : "Revert proposal",
       destructive: action !== "approve",

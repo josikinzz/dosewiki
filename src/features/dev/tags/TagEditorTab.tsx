@@ -326,7 +326,7 @@ export function TagEditorTab({
             });
           });
           if (!outcome.rebased) {
-            throw new Error("The working set did not accept the tag rewrite.");
+            throw new Error("The tag rewrite could not be added to your working changes.");
           }
           dispatch({
             type: "mutationSucceeded",
@@ -340,7 +340,7 @@ export function TagEditorTab({
           dispatch({
             type: "mutationFailed",
             effectId: effect.id,
-            message: error instanceof Error ? error.message : "Tag mutation failed. Check console for details.",
+            message: error instanceof Error ? error.message : "The tag change failed. Try again.",
           });
         }
       })();
@@ -358,7 +358,7 @@ export function TagEditorTab({
           });
         });
         if (!outcome.reverted) {
-          throw new Error("The working set did not accept the restore.");
+          throw new Error("The restore could not be added to your working changes.");
         }
         dispatch({
           type: "undoSucceeded",

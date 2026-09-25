@@ -29,7 +29,7 @@ export async function submitToolProposal(input: {
   return { proposalId: result.proposalId };
 }
 
-/** The success notice after a submission: what was proposed, and the way to the Queue. */
+/** The success notice after a submission: what was proposed, and the way to Change Review. */
 export function proposalSubmittedNotice(subject: string, proposalId: string): NoticeMessage {
   return {
     tone: "success",
@@ -37,7 +37,7 @@ export function proposalSubmittedNotice(subject: string, proposalId: string): No
     message: `${subject} is held as proposal #${proposalId.slice(-6)} until an admin approves it. Production is unchanged until then.`,
     actions: (
       <Button asChild variant="outline" size="sm" className="rounded-full">
-        <a href={viewToPath({ type: "dev", tab: "queue" })}>View in queue</a>
+        <a href={viewToPath({ type: "dev", tab: "queue" })}>Open in Change Review</a>
       </Button>
     ),
   };

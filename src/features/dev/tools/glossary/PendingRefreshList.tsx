@@ -12,9 +12,9 @@ import { StateCard } from "@/components/common/StateCard";
 export function PendingRefreshList({ rows, refreshed, review }: { rows: readonly UiTranslationRow[]; refreshed: boolean; review: (row: UiTranslationRow) => void }) {
   const waiting = rows.filter((row) => row.pendingRefresh);
   return <div className="space-y-3">
-    <p className="theme-text-secondary text-sm">These strings still use wording that an approved glossary term has replaced. The next online UI catalog build regenerates them with the term. To keep the current wording on purpose, approve it in the one-at-a-time view; human approval is never refreshed.</p>
-    {refreshed ? null : <p className="theme-text-faint text-xs">The last catalog compile ran offline, so it could not refresh these strings. They change only after an online catalog build and a deployment.</p>}
-    {waiting.length === 0 ? <StateCard compact title="Nothing is waiting" description="No UI string disagrees with an approved glossary term in the last compiled catalog." /> : <div className="overflow-x-auto">
+    <p className="theme-text-secondary text-sm">These strings still use wording that an approved glossary term has replaced. The next site release updates them with the term. To keep the current wording on purpose, approve it in the one-at-a-time view; human approval is never refreshed.</p>
+    {refreshed ? null : <p className="theme-text-faint text-xs">The last site release could not refresh these strings because it ran offline. They change only in a later site release.</p>}
+    {waiting.length === 0 ? <StateCard compact title="Nothing is waiting" description="No UI string disagrees with an approved glossary term in the current site release." /> : <div className="overflow-x-auto">
       <table aria-label="Waiting for glossary refresh" className="w-full text-left text-sm">
         <thead className="theme-text-faint text-xs"><tr><th className="py-1 pr-3 font-normal">English</th><th className="py-1 pr-3 font-normal">Current wording</th><th className="py-1 pr-3 font-normal">Term</th><th className="py-1 pr-3 font-normal">Approved term translation</th><th className="py-1 font-normal"><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>{waiting.map((row) => <tr key={row.id} aria-label={row.source} className="align-top">

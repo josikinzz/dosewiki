@@ -179,7 +179,7 @@ export function createDataSaveAdapter({
       const payload = withChangeNote(buildDataCommandPayload(draft).payload, draft.note ?? "");
       for (const layout of payload.indexLayouts ?? []) {
         const original = draft.layouts.find((row) => row.type === layout.type)?.originalData;
-        if (original === undefined) throw new Error("The layout baseline is unavailable. Your draft is preserved; reload the source.");
+        if (original === undefined) throw new Error("The layout you started from is unavailable. Your draft is kept; reload the page.");
         layout.expected = original === EMPTY_INDEX_CONFIG ? null : original;
         layout.expectedRevision = original && typeof original === "object" && "revision" in original && typeof original.revision === "number" ? original.revision : 0;
       }
@@ -253,7 +253,7 @@ export function createProposalSaveAdapter({
         }),
         ...(payload.indexLayouts ?? []).map((layout) => {
           const original = draft.layouts.find((row) => row.type === layout.type)!.originalData;
-          if (original === undefined) throw new Error("The layout baseline is unavailable. Your draft is preserved; reload the source.");
+          if (original === undefined) throw new Error("The layout you started from is unavailable. Your draft is kept; reload the page.");
           return { kind: "indexLayout" as const, key: layout.type, document: original === EMPTY_INDEX_CONFIG ? null : original };
         }),
       ];
@@ -271,7 +271,7 @@ export function createProposalSaveAdapter({
         resolvedSubmitterKey: credentials.key,
         changelogEntry: null,
         markChangesSaved: true,
-        actionLabel: "View in queue",
+        actionLabel: "Open in Change Review",
         actionHref: "/dev/queue",
       };
     },

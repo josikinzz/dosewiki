@@ -174,7 +174,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, []);
   const load = useCallback(async (signal?: AbortSignal) => {
     if (requestLock.current || pending.current) {
-      setError("Reconcile the previous operation before loading another baseline. Your draft is retained.");
+      setError("Retry the unconfirmed change before loading another version. Your draft is kept.");
       return;
     }
     setError(null); setLoading(true);
@@ -230,7 +230,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, [preview]);
 
   const refresh = useCallback(async () => {
-    if (requestLock.current || pending.current) throw new Error("Retry the exact previous operation before refreshing. Your draft is retained.");
+    if (requestLock.current || pending.current) throw new Error("Retry the unconfirmed change before loading the latest version. Your draft is kept.");
     requestLock.current = true;
     setBusy(true); setError(null); setNotice(null);
     try {
@@ -256,7 +256,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, [recovery, snapshot, baseHash, article, mergeChoices]);
   const chooseMerge = useCallback((path: string, side: MergeSide) => setMergeChoices((choices) => ({ ...choices, [path]: side })), []);
   const reconcile = useCallback((keepDraft: boolean) => {
-    if (!recovery || requestLock.current || pending.current) throw new Error("Load the latest baseline after reconciling the previous operation.");
+    if (!recovery || requestLock.current || pending.current) throw new Error("Retry the unconfirmed change before loading the latest version.");
     if (keepDraft) {
       if (!merge || merge.unresolved.length > 0) throw new Error("Choose a version for every field both of you changed before using the merged draft.");
       // Identity and review state are the record's, never the draft's.
@@ -277,7 +277,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, [recovery, merge, preview, adoptSnapshot]);
 
   const act = useCallback(async (action: ArticleLifecycleAction, summary = "", revisionId?: string, candidate?: SubstanceArticle) => {
-    if (!snapshot || expired || baselineRefreshRequired || recovery || requestLock.current) throw new Error("Article writes are unavailable. Refresh and reconcile the current baseline; your local changes are retained.");
+    if (!snapshot || expired || baselineRefreshRequired || recovery || requestLock.current) throw new Error("Article saving is unavailable. Load the latest published version and merge your edits; your local changes are kept.");
     const nextArticle = candidate ?? current.current;
     if (action === "publish" || action === "submit") {
       const problems = articlePublicationErrors(nextArticle, snapshot.article);
@@ -295,7 +295,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       ...((action === "submit" || action === "publish") && feedbackRef ? { feedbackRef } : {}),
     };
     const identity = JSON.stringify(body);
-    if (pending.current && pending.current.identity !== identity) throw new Error("The previous operation has no confirmed outcome. Retry that exact operation before changing or discarding this draft.");
+    if (pending.current && pending.current.identity !== identity) throw new Error("Your last change was not confirmed. Retry it before changing or discarding this draft.");
     if (!pending.current) pending.current = { identity, changeId: crypto.randomUUID() };
     if (candidate) preview(candidate);
     requestLock.current = true;
@@ -325,12 +325,12 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
         setRevisionOf(undefined);
         let fresh: Snapshot;
         try { fresh = await readSnapshot(); } catch {
-          setError("The saved draft was discarded, but the current article could not be loaded. Your local copy is retained. Refresh the latest baseline before continuing.");
+          setError("The saved draft was discarded, but the current article could not be loaded. Your local copy is retained. Load the latest published version before continuing.");
           return;
         }
         if ((fresh.draftVersion ?? fresh.draft?.version ?? 0) !== data.draftVersion) {
           setRecovery(fresh);
-          setNotice("The saved draft was discarded, then another tab changed it. Choose how to reconcile the latest saved state with your retained local copy.");
+          setNotice("The saved draft was discarded, then another tab changed it. Choose how to merge the latest saved version with your local copy.");
         } else {
           adoptSnapshot(fresh, true);
           setNotice("Private draft discarded. The current published article is loaded; published content has not changed.");
@@ -361,9 +361,9 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       void fetch(`/api/dev/article-lifecycle?slug=${encodeURIComponent(slug)}`, { cache: "no-store" })
         .then(async (result) => { if (result.ok) { const fresh = await result.json() as Snapshot; setSnapshot((previous) => previous ? { ...previous, history: fresh.history, proposals: fresh.proposals } : previous); } }).catch(() => {});
     } catch (failure) {
-      const message = failure instanceof Error ? failure.message : "No confirmation received. Keep your draft and retry the same action to reconcile it.";
+      const message = failure instanceof Error ? failure.message : "No confirmation received. Keep your draft and retry the same action to confirm it.";
       setUncertain(pending.current !== null);
-      setError(pending.current ? `No confirmation received. Retry the previous operation to reconcile it. ${message}` : message); throw failure;
+      setError(pending.current ? `No confirmation received. Retry your last change to confirm it. ${message}` : message); throw failure;
     } finally { requestLock.current = false; setBusy(false); }
   }, [snapshot, expired, baselineRefreshRequired, recovery, slug, baseHash, version, preview, revisionOf, feedbackRef, readSnapshot, adoptSnapshot]);
   const retry = useCallback(async () => {

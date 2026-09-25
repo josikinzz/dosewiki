@@ -52,7 +52,7 @@ export function useFeaturedController({
       setCurated(payload.curated);
       setLoaded(true);
     } catch {
-      setFeedback({ tone: "danger", message: "Failed to reach the featured endpoint." });
+      setFeedback({ tone: "danger", message: "Could not reach the server to load featured replications." });
     }
   }, [setFeedback]);
 
@@ -92,7 +92,7 @@ export function useFeaturedController({
       setSaveState("error");
       setFeedback({
         tone: "danger",
-        message: "Saving failed: the featured endpoint is unreachable.",
+        message: "Saving failed: the server could not be reached.",
       });
     }
   }, [order, setFeedback]);

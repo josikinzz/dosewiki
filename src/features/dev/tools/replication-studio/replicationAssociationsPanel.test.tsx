@@ -429,7 +429,7 @@ describe("ReplicationAssociationsPanel", () => {
     render(<ReplicationAssociationsPanel row={ROW} />);
 
     expect(
-      await screen.findByText("The associations endpoint returned no association list."),
+      await screen.findByText("The server returned no association list."),
     ).toBeInTheDocument();
     expect(
       screen.queryByText("This replication does not appear on any drug article yet"),

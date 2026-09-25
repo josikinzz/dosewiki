@@ -27,7 +27,7 @@ export const SAVE_LINE_COPY: Record<SaveModel, SaveLineCopy> = {
   },
   batch: {
     label: "Edits collect in your draft. Commit sends them live.",
-    detail: "Every edit here joins one working set that goes live together when you commit.",
+    detail: "Every edit here joins your working changes, which go live together when you commit.",
     icon: "lucide:layers",
     tone: "info",
   },

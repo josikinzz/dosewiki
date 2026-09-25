@@ -97,7 +97,7 @@ function ProfileSession({ profileKey, counts, verifiedReplicator, onClose }: { p
       setEndorsementReview(false);
       controller.retryDetail();
       router.refresh();
-    } catch (error) { setEndorsementError(error instanceof Error ? error.message : "Response unavailable. Retry to reconcile the same endorsement operation."); }
+    } catch (error) { setEndorsementError(error instanceof Error ? error.message : "The endorsement change was not confirmed. Retry to confirm it."); }
     finally { setEndorsementBusy(false); }
   }
   return <ContextualEditorPanel title="Edit artist profile" description="Local edits are private to this browser session. Publishing updates the shared profile on dose.wiki and Effect Index." open onOpenChange={(next) => { if (!next) close(); }}>
@@ -110,7 +110,7 @@ function ProfileSession({ profileKey, counts, verifiedReplicator, onClose }: { p
       <fieldset ref={editorFields} hidden={review} disabled={controller.publicationUncertain || controller.profileSaveState === "saving" || endorsementBusy || !!endorsementOperation}>
         <ContributorProfileEditor controller={controller} contextual onReview={() => setReview(true)} />
       </fieldset>
-      {controller.publicationUncertain ? <div role="alert"><p>The publication response was lost. Editing is paused; reconcile the same operation before publishing another change.</p><Button disabled={endorsementBusy || !!endorsementOperation} onClick={() => void controller.saveProfile()}>Reconcile publication</Button></div> : null}
+      {controller.publicationUncertain ? <div role="alert"><p>The publication response was lost. Editing is paused; retry the original publication before publishing another change.</p><Button disabled={endorsementBusy || !!endorsementOperation} onClick={() => void controller.saveProfile()}>Retry publication</Button></div> : null}
       {review && profile && form && publishedPatch && draftPatch ? <section aria-label="Profile publication preview" className="min-w-0 space-y-4">
         <h3 ref={reviewHeading} tabIndex={-1} className="font-display text-xl">Local preview</h3>
         <ArtistIdentityHeader name={form.displayName} attributed browseAllHref="/replications" avatarUrl={controller.avatarRemoved ? null : controller.avatarPreviewUrl ?? (form.avatarUrl || profile.storedAvatarUrl)} approvedReplicator={profile.approved_replicator} verifiedReplicator={verifiedReplicator} role={profile.role} bio={<ProfileBioMarkdown content={form.bio} />} links={form.links} counts={counts} />
@@ -135,7 +135,7 @@ function ProfileSession({ profileKey, counts, verifiedReplicator, onClose }: { p
         <h3 className="font-display text-lg">Admin endorsement</h3>
         <p>Approved replicator is an editorial endorsement, not identity verification. It stars the artist and raises their gallery rail on both publications.</p>
         {endorsementError ? <div role="alert"><p>{endorsementError}</p>{!endorsementOperation ? <Button variant="outline" onClick={() => { controller.retryDetail(); setEndorsementReview(false); setEndorsementError(null); }}>Reload current endorsement</Button> : null}</div> : null}
-        {endorsementReview ? <><p>{profile.approved_replicator ? "Remove" : "Grant"} Approved replicator for {profile.displayName}?</p><Button disabled={endorsementBusy || (!endorsementOperation && (controller.hasUnsavedChanges || controller.publicationUncertain || controller.profileSaveState === "saving"))} onClick={() => void publishEndorsement()}>{endorsementOperation ? "Reconcile endorsement" : "Confirm endorsement change"}</Button><Button variant="ghost" disabled={endorsementBusy || !!endorsementOperation} onClick={() => setEndorsementReview(false)}>Cancel</Button></> : <Button variant="outline" disabled={controller.hasUnsavedChanges || controller.publicationUncertain || controller.profileSaveState === "saving"} onClick={() => setEndorsementReview(true)}>{profile.approved_replicator ? "Review endorsement removal" : "Review endorsement grant"}</Button>}
+        {endorsementReview ? <><p>{profile.approved_replicator ? "Remove" : "Grant"} Approved replicator for {profile.displayName}?</p><Button disabled={endorsementBusy || (!endorsementOperation && (controller.hasUnsavedChanges || controller.publicationUncertain || controller.profileSaveState === "saving"))} onClick={() => void publishEndorsement()}>{endorsementOperation ? "Retry endorsement change" : "Confirm endorsement change"}</Button><Button variant="ghost" disabled={endorsementBusy || !!endorsementOperation} onClick={() => setEndorsementReview(false)}>Cancel</Button></> : <Button variant="outline" disabled={controller.hasUnsavedChanges || controller.publicationUncertain || controller.profileSaveState === "saving"} onClick={() => setEndorsementReview(true)}>{profile.approved_replicator ? "Review endorsement removal" : "Review endorsement grant"}</Button>}
         <Link href="/dev/contributors" className="block underline">Other privileged profile settings remain in the workbench</Link>
       </section> : null}
     </div>

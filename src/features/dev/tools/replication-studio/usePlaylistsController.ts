@@ -37,7 +37,7 @@ export async function fetchReplicationPlaylist(key: string): Promise<Replication
     throw new Error(await readError(response, "Could not load that playlist."));
   }
   const payload = (await response.json()) as { playlist?: ReplicationPlaylist };
-  if (!payload.playlist) throw new Error("The playlist endpoint returned no playlist.");
+  if (!payload.playlist) throw new Error("The server returned no playlist.");
   return payload.playlist;
 }
 
@@ -69,7 +69,7 @@ export function usePlaylistsController({
         }
         const payload = (await response.json()) as { playlists?: unknown };
         if (!Array.isArray(payload.playlists)) {
-          if (!cancelled) setFeedback({ tone: "danger", message: "The playlists endpoint returned something unreadable." });
+          if (!cancelled) setFeedback({ tone: "danger", message: "The server returned a playlist list that could not be read." });
           return;
         }
         if (!cancelled) {
@@ -77,7 +77,7 @@ export function usePlaylistsController({
           setLoaded(true);
         }
       } catch {
-        if (!cancelled) setFeedback({ tone: "danger", message: "Could not reach the playlists endpoint." });
+        if (!cancelled) setFeedback({ tone: "danger", message: "Could not reach the server." });
       }
     })();
     return () => { cancelled = true; };
@@ -203,7 +203,7 @@ export function usePlaylistsController({
       return true;
     } catch {
       setSaveState("idle");
-      setFeedback({ tone: "danger", message: "Could not reach the playlists endpoint." });
+      setFeedback({ tone: "danger", message: "Could not reach the server." });
       return false;
     } finally {
       savingRef.current = false;
@@ -226,7 +226,7 @@ export function usePlaylistsController({
       setDraft((current) => current?.key === playlist.key ? null : current);
       setSavedPlaylist((current) => current?.key === playlist.key ? null : current);
     } catch {
-      setFeedback({ tone: "danger", message: "Could not reach the playlists endpoint." });
+      setFeedback({ tone: "danger", message: "Could not reach the server." });
     } finally {
       deletingKeysRef.current.delete(playlist.key);
       setDeletingKeys((current) => { const next = new Set(current); next.delete(playlist.key); return next; });

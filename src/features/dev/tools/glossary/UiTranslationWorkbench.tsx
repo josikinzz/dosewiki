@@ -121,7 +121,7 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
       }
       edits.delete(editKey);
       update(result); setCorrection({ kind: null, note: "", segment: row.id, exceptions: [] });
-      setNotice({ tone: "success", message: action === "approve" || action === "save-approve" ? "Approved. Awaiting a UI catalog build." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
+      setNotice({ tone: "success", message: action === "approve" || action === "save-approve" ? "Approved. It goes live with the next site release." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
     } catch (cause) {
       setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change was not saved." });
       // Keep the typed rendering on errors; a stale revision must be deliberately reviewed.

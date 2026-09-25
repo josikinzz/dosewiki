@@ -292,7 +292,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       setSaveState("saved");
       setNotice({
         tone: "success",
-        message: receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : `Saved “${activeBlock.label}”. The public pages reading this key are live with it now.`,
+        message: receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication went through. Someone may have published changes since." : `Saved “${activeBlock.label}”. The public pages reading this key are live with it now.`,
       });
       return true;
     } catch (error) {
@@ -378,7 +378,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       setSaveState("saved");
       setNotice({
         tone: "success",
-        message: receipt.unchanged ? "No stored copy needed removal." : receipt.replayed ? "Your earlier removal receipt is confirmed. Later public edits may exist." : "Stored copy removed. This key now serves its checked-in default.",
+        message: receipt.unchanged ? "No stored copy needed removal." : receipt.replayed ? "Your earlier removal went through. Someone may have published changes since." : "Stored copy removed. This key now serves its checked-in default.",
       });
     } catch (error) {
       setSaveState("error");

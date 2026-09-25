@@ -76,28 +76,28 @@ function ItemBody({ initial, slug, returnFocusRef, close }: { initial: Source; s
       const data = await response.json();
       if (!response.ok) { if (response.status >= 400 && response.status < 500) setUncertain(false); throw new Error(data.error ?? "Publication failed. Your draft is preserved."); }
       if (!canApprove) {
-        if (typeof data.proposalId !== "string" || !data.proposalId || data.changeId !== pending.current.changeId) throw new Error("No proposal receipt was received. Retry the same submission before closing.");
+        if (typeof data.proposalId !== "string" || !data.proposalId || data.changeId !== pending.current.changeId) throw new Error("The submission was not confirmed. Retry the same submission before closing.");
         setUncertain(false); setProposalId(data.proposalId);
         return;
       }
-      if (!data.article || typeof data.baseHash !== "string") throw new Error("No publication receipt was received. Retry the same publication before closing.");
+      if (!data.article || typeof data.baseHash !== "string") throw new Error("Publication was not confirmed. Retry the same publication before closing.");
       setUncertain(false);
       setSource({ ...source, article: data.article, baseHash: data.baseHash }); pending.current = null;
       setNotice(kind === "name" ? "Published display name. The canonical URL, Reviewed status, and Review Flags are unchanged." : "Published listing priority. Direct article links remain available; Reviewed status and Review Flags are unchanged."); router.refresh();
-    } catch (failure) { setNotice(failure instanceof Error ? failure.message : "No publication confirmation received. Your draft is preserved; retry to reconcile."); }
+    } catch (failure) { setNotice(failure instanceof Error ? failure.message : "No publication confirmation received. Your draft is kept; retry to confirm it."); }
     finally { lock.current = false; setBusy(false); }
   }
   return <ContextualEditorPanel title={`Edit ${currentName} display metadata`} description={`Canonical article ${source.article.id ?? slug}; /${slug}. The open editor keeps this identity when the index is filtered or sorted.`} open returnFocusRef={returnFocusRef} onOpenChange={cancel}>
     <div className="space-y-6">
-      {source.draft ? <p role="alert">A private article draft already exists. Publish index changes only after reconciling that draft in the article editor; its content is not loaded or overwritten here.</p> : null}
+      {source.draft ? <p role="alert">A private article draft already exists. Publish index changes only after publishing or discarding that draft in the article editor; its content is not loaded or overwritten here.</p> : null}
       <EditorField label="Display Name / Title" htmlFor="index-item-name"><ArticleDisplayNameInput id="index-item-name" value={name} disabled={busy || uncertain} onChange={(event) => setName(event.target.value)} /></EditorField>
       <section aria-label="Local name preview"><h3>Local preview</h3><p>{name}</p><p className="theme-text-faint text-sm">Canonical URL unchanged: /{slug}</p></section>
       <DiffPreview diffText={buildTextChangelog("Display name", currentName, name).markdown} />
       <Button disabled={!nameDirty || !name.trim() || busy || !!source.draft || (uncertain && pending.current?.kind !== "name")} onClick={() => canApprove ? confirm({ title: "Publish display name?", description: "Changes the article title, index rows, search results, and metadata on both publications. Visibility, Reviewed status, and Review Flags do not change.", confirmLabel: "Publish display name", onConfirm: () => publish("name") }) : void publish("name")}>{canApprove ? "Publish display name" : "Submit display name for review"}</Button>
       <EditorField label="Priority and listing visibility" htmlFor="index-item-priority"><ArticlePrioritySelect id="index-item-priority" value={priority} disabled={busy || uncertain} onChange={setPriority} /></EditorField>
       <DiffPreview diffText={buildTextChangelog("Listing priority", source.article.priority ?? "normal", priority).markdown} />
-      <p className="theme-text-faint text-sm">Low and Hide for now remove public listing projections but retain direct article links. High and Normal do not override a separate Hidden index category.</p>
-      <Button variant="secondary" disabled={!visibilityDirty || busy || !!source.draft || (uncertain && pending.current?.kind !== "visibility")} onClick={() => confirm({ title: canApprove ? "Publish listing visibility separately?" : "Submit listing visibility separately?", description: `${canApprove ? "Set" : "Propose setting"} ${slug} to ${priority}. Affects the substance index, homepage, category listings, and search projections on both publications${canApprove ? "" : " only after admin approval"}. Direct article links remain; separate Hidden category, Reviewed status, and Review Flags are unchanged. The display-name draft is not included.`, confirmLabel: canApprove ? "Publish listing visibility" : "Submit visibility for review", onConfirm: () => publish("visibility") })}>{canApprove ? "Publish listing visibility" : "Submit visibility for review"}</Button>
+      <p className="theme-text-faint text-sm">Low and Hide for now remove the article from public listings but keep direct article links. High and Normal do not override a separate Hidden index category.</p>
+      <Button variant="secondary" disabled={!visibilityDirty || busy || !!source.draft || (uncertain && pending.current?.kind !== "visibility")} onClick={() => confirm({ title: canApprove ? "Publish listing visibility separately?" : "Submit listing visibility separately?", description: `${canApprove ? "Set" : "Propose setting"} ${slug} to ${priority}. Affects the substance index, homepage, category listings, and search results on both publications${canApprove ? "" : " only after admin approval"}. Direct article links remain; separate Hidden category, Reviewed status, and Review Flags are unchanged. The display-name draft is not included.`, confirmLabel: canApprove ? "Publish listing visibility" : "Submit visibility for review", onConfirm: () => publish("visibility") })}>{canApprove ? "Publish listing visibility" : "Submit visibility for review"}</Button>
       {notice && <p role="status">{notice}</p>}<Button variant="ghost" disabled={busy} onClick={cancel}>Cancel</Button>
       {proposalId && <Notice {...proposalSubmittedNotice(`Index metadata for ${slug}`, proposalId)} />}
       {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before closing.</p>}
