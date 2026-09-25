@@ -181,7 +181,9 @@ export function sectionCopyStudioGroups(groups: readonly CopyStudioGroup[]): Cop
 }
 
 /**
- * The blocks whose key or label contains `query`, case-insensitively, in
+ * The blocks whose key, label or published text contains `query`,
+ * case-insensitively, so an editor can find a typo by the words they saw on
+ * the page. Key and label matches come first, then text matches, each in
  * catalogue order. A blank query matches nothing: the rail shows the active
  * group instead, so the search never has to enumerate all 400-odd blocks.
  */
@@ -193,10 +195,16 @@ export function filterCopyStudioBlocks(
   if (!needle) {
     return [];
   }
-  return blocks.filter(
-    (block) =>
-      block.key.toLowerCase().includes(needle) || block.label.toLowerCase().includes(needle),
-  );
+  const byName: CopyStudioBlock[] = [];
+  const byText: CopyStudioBlock[] = [];
+  blocks.forEach((block) => {
+    if (block.key.toLowerCase().includes(needle) || block.label.toLowerCase().includes(needle)) {
+      byName.push(block);
+    } else if (blockCurrentText(block).toLowerCase().includes(needle)) {
+      byText.push(block);
+    }
+  });
+  return [...byName, ...byText];
 }
 
 /**
