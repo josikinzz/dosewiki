@@ -46,6 +46,7 @@ import { useDevRailBadges } from "./useDevRailBadges";
  */
 const TOOL_GROUPS: readonly { id: DevToolGroup; label: string; tabs: readonly DevTabDescriptor[] }[] = (
   [
+    { id: "entry", label: "Start" },
     { id: "content", label: "Content" },
     { id: "intake", label: "Intake" },
     { id: "site", label: "Site" },
@@ -352,6 +353,10 @@ export function DevModePageChrome({
   const railGroups = roleGroups.filter((group) => group.enabled.length > 0);
   const enabledTotal = railGroups.reduce((sum, group) => sum + group.enabled.length, 0);
   const keepFlat = enabledTotal <= INLINE_RAIL_TOTAL_LIMIT;
+  // When the role has the entry group (the Inbox), its one count already
+  // covers every intake queue, so the group menus stop rolling up the same
+  // items a second time. The tools inside each menu keep their own counts.
+  const entryShown = railGroups.some((group) => group.id === "entry");
 
   return (
     <div className="w-full">
@@ -419,7 +424,7 @@ export function DevModePageChrome({
           className={RAIL_STRIP_CLASS}
         >
           {railGroups.map((group, index) => {
-            const inline = group.id === "content" || keepFlat;
+            const inline = group.id === "entry" || group.id === "content" || keepFlat;
             return inline ? (
               <RailInlineGroup
                 key={group.id}
@@ -429,6 +434,7 @@ export function DevModePageChrome({
                 isToolsSection={isToolsSection}
                 onTabChange={onTabChange}
                 showDivider={index > 0}
+                showCaption={group.id !== "entry"}
               />
             ) : (
               <RailGroupMenu
@@ -439,6 +445,7 @@ export function DevModePageChrome({
                 isToolsSection={isToolsSection}
                 onTabChange={onTabChange}
                 showDivider={index > 0}
+                rollUpBadges={!entryShown}
               />
             );
           })}

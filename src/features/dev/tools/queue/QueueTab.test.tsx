@@ -147,6 +147,14 @@ describe("QueueTab", () => {
     expect(screen.queryByRole("button", { name: "Revert" })).toBeNull();
   });
 
+  it("opens on the proposal a deep link names, the way the Inbox opens it", async () => {
+    stubQueueApi([submitted, applied], { cp_1: submittedDetail });
+    renderQueue({ canApprove: true, initialProposalId: "cp_1" });
+
+    await waitFor(() => expect(screen.getAllByTestId("proposal-target")).toHaveLength(2));
+    expect(group("submitted").getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("shows an article proposal with the same field diff the author read in the page", async () => {
     stubQueueApi([submitted], {
       cp_1: {

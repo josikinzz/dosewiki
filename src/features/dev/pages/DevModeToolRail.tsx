@@ -89,20 +89,24 @@ function RailPill({ item, isActive, onTabChange }: { item: ToolTabItem; isActive
   );
 }
 
-export function RailInlineGroup({ label, tabs, activeTab, isToolsSection, onTabChange, showDivider }: DevModeToolNavigationProps & { label: string; tabs: readonly ToolTabItem[]; showDivider: boolean }) {
+export function RailInlineGroup({ label, tabs, activeTab, isToolsSection, onTabChange, showDivider, showCaption = true }: DevModeToolNavigationProps & { label: string; tabs: readonly ToolTabItem[]; showDivider: boolean; showCaption?: boolean }) {
   return (
     <div role="group" aria-label={label} className="flex shrink-0 items-center gap-0.5">
       {showDivider ? <RailDivider /> : null}
-      <span aria-hidden className={RAIL_GROUP_CAPTION_CLASS}>{label}</span>
+      {showCaption ? <span aria-hidden className={RAIL_GROUP_CAPTION_CLASS}>{label}</span> : null}
       {tabs.map((item) => <RailPill key={item.id} item={item} isActive={isToolsSection && activeTab === item.id} onTabChange={onTabChange} />)}
     </div>
   );
 }
 
-export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabChange, showDivider }: DevModeToolNavigationProps & { label: string; tabs: readonly ToolTabItem[]; showDivider: boolean }) {
+/**
+ * `rollUpBadges` false keeps the trigger free of a count: the Inbox already
+ * shows the same items, and a second total beside it would count them twice.
+ */
+export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabChange, showDivider, rollUpBadges = true }: DevModeToolNavigationProps & { label: string; tabs: readonly ToolTabItem[]; showDivider: boolean; rollUpBadges?: boolean }) {
   const [open, setOpen] = useState(false);
   const isActive = isToolsSection && tabs.some((tab) => tab.id === activeTab);
-  const badgeTotal = tabs.reduce((sum, tab) => sum + (tab.badge ?? 0), 0);
+  const badgeTotal = rollUpBadges ? tabs.reduce((sum, tab) => sum + (tab.badge ?? 0), 0) : 0;
   const pending = tabs.find((tab) => tab.pending)?.pending;
   const unsaved = tabs.some((tab) => tab.unsaved);
   return (

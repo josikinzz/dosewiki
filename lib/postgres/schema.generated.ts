@@ -649,6 +649,22 @@ export const glossaryReactionEvents = pgTable(
   ],
 );
 
+export const inboxClaims = pgTable(
+  "inboxClaims",
+  {
+    _id: text("_id").primaryKey(),
+    _creationTime: doublePrecision("_creationTime").notNull(),
+    "source": text("source").notNull(),
+    "item_id": text("item_id").notNull(),
+    "claimed_by": text("claimed_by").notNull(),
+    "claimed_at": text("claimed_at").notNull(),
+  },
+  (t) => [
+    index("inboxClaims_by_creation_time").on(t._creationTime),
+    index("inboxClaims_by_source_item").on(sql`${t["source"]} COLLATE "C"`, sql`${t["item_id"]} COLLATE "C"`, t._creationTime),
+  ],
+);
+
 export const indexLayouts = pgTable(
   "indexLayouts",
   {
@@ -1673,6 +1689,7 @@ export const tableColumns = {
   generatedPublicationOperations: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "proposalId": { kind: "text", optional: false }, "payloadDigest": { kind: "text", optional: false }, "artifactDigest": { kind: "text", optional: false }, "manifestDigest": { kind: "text", optional: false }, "rawResponseHash": { kind: "text", optional: false }, "targetDeploymentFingerprint": { kind: "text", optional: false }, "slug": { kind: "text", optional: false }, "profile": { kind: "text", optional: false }, "affectedPaths": { kind: "jsonb", optional: false }, "actorEmail": { kind: "text", optional: false }, "reviewedBy": { kind: "text", optional: false }, "reviewedAt": { kind: "text", optional: false }, "previousHash": { kind: "text", optional: false }, "nextHash": { kind: "text", optional: false }, "hashVersion": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false } },
   glossaryFeedback: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "locale": { kind: "text", optional: false }, "term": { kind: "text", optional: false }, "target": { kind: "text", optional: false }, "version": { kind: "text", optional: false }, "id": { kind: "text", optional: false }, "visitor": { kind: "text", optional: false }, "details": { kind: "text", optional: false }, "alternative": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "text", optional: false }, "review_notes": { kind: "text", optional: true }, "reviewed_by": { kind: "text", optional: true }, "reviewed_at": { kind: "text", optional: true } },
   glossaryReactionEvents: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "locale": { kind: "text", optional: false }, "term": { kind: "text", optional: false }, "target": { kind: "text", optional: false }, "version": { kind: "text", optional: false }, "id": { kind: "text", optional: false }, "visitor": { kind: "text", optional: false }, "choice": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false } },
+  inboxClaims: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "source": { kind: "text", optional: false }, "item_id": { kind: "text", optional: false }, "claimed_by": { kind: "text", optional: false }, "claimed_at": { kind: "text", optional: false } },
   indexLayouts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "type": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "categories": { kind: "jsonb", optional: false } },
   inviteCodes: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "codeHash": { kind: "text", optional: false }, "role": { kind: "text", optional: false }, "glossaryLocales": { kind: "jsonb", optional: true }, "createdBy": { kind: "text", optional: false }, "createdAt": { kind: "text", optional: false }, "expiresAt": { kind: "text", optional: false }, "maxUses": { kind: "double", optional: false }, "redemptions": { kind: "jsonb", optional: false }, "revokedAt": { kind: "text", optional: true }, "note": { kind: "text", optional: true } },
   mailingListSubscribers: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "email": { kind: "text", optional: false }, "list": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "created_at": { kind: "double", optional: false }, "ip_hash": { kind: "text", optional: true }, "user_agent": { kind: "text", optional: true }, "honeypot_triggered": { kind: "boolean", optional: false } },
@@ -1806,6 +1823,7 @@ export const tableIndexes = {
   generatedPublicationOperations: { "by_proposal_id": ["proposalId"], "by_slug_created": ["slug","createdAt"] },
   glossaryFeedback: { "by_locale_created": ["locale","created_at"], "by_visitor_id": ["visitor","id"] },
   glossaryReactionEvents: { "by_version_visitor": ["locale","term","version","visitor","created_at"], "by_visitor_id": ["visitor","id"] },
+  inboxClaims: { "by_source_item": ["source","item_id"] },
   indexLayouts: { "by_type": ["type"] },
   inviteCodes: { "by_code_hash": ["codeHash"], "by_created_at": ["createdAt"] },
   mailingListSubscribers: { "by_email_list": ["email","list"], "by_list_status": ["list","status"] },
@@ -1872,6 +1890,7 @@ export const tableNames = [
   "generatedPublicationOperations",
   "glossaryFeedback",
   "glossaryReactionEvents",
+  "inboxClaims",
   "indexLayouts",
   "inviteCodes",
   "mailingListSubscribers",
@@ -1940,6 +1959,7 @@ export const tables = {
   generatedPublicationOperations,
   glossaryFeedback,
   glossaryReactionEvents,
+  inboxClaims,
   indexLayouts,
   inviteCodes,
   mailingListSubscribers,

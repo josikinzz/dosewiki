@@ -19,6 +19,7 @@ import * as copyBlocks from "../../../server/copyBlocks";
 import * as effectIndexArchive from "../../../server/effectIndexArchive";
 import * as effectIndexArticles from "../../../server/effectIndexArticles";
 import * as glossaryFeedback from "../../../server/glossaryFeedback";
+import * as inboxClaims from "../../../server/inboxClaims";
 import * as indexLayouts from "../../../server/indexLayouts";
 import * as inviteCodes from "../../../server/inviteCodes";
 import * as mailingList from "../../../server/mailingList";
@@ -73,6 +74,7 @@ export const functionModules: Record<string, Record<string, unknown>> = {
   effectIndexArchive,
   effectIndexArticles,
   glossaryFeedback,
+  inboxClaims,
   indexLayouts,
   inviteCodes,
   mailingList,

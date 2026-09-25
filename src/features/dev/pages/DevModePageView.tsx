@@ -40,6 +40,10 @@ const QueueTab = dynamic(
   () => import("../tools/queue/QueueTab").then((m) => m.QueueTab),
   { ssr: false, loading },
 );
+const InboxTab = dynamic(
+  () => import("../tools/inbox/InboxTab").then((m) => m.InboxTab),
+  { ssr: false, loading },
+);
 const ContributorsTab = dynamic(
   () => import("../tools/contributors/ContributorsTab").then((m) => m.ContributorsTab),
   { ssr: false, loading },
@@ -200,7 +204,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <QueueTab
             canApprove={controller.canApprove}
             onLoadIntoEditor={controller.onLoadProposal}
+            initialProposalId={controller.queueInitialId}
           />
+        ) : controller.activeTab === "inbox" ? (
+          <InboxTab actorEmail={controller.userEmail ?? null} />
         ) : controller.activeTab === "contributors" ? (
           <ContributorsTab
             profiles={controller.contributorDirectory.profiles}
@@ -215,7 +222,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
-          <TripReportPortalTab />
+          <TripReportPortalTab initialSubmissionId={controller.tripReportsInitialId} />
         ) : controller.activeTab === "article-feedback" ? (
           <FeedbackTab initialSource={controller.initialFilter} />
         ) : controller.activeTab === "tag-editor" ? (

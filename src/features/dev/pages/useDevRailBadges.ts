@@ -5,11 +5,25 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import { DEV_TAB_REGISTRY, type DevTabDescriptor } from "./devTabRegistry";
 
-/** A named count source a descriptor can declare; the rail renders it as a badge. */
-export type DevRailBadge = NonNullable<DevTabDescriptor["badge"]>;
+/** A badge a descriptor can declare; the rail renders it beside the tab. */
+type DescriptorBadge = NonNullable<DevTabDescriptor["badge"]>;
+
+/**
+ * The badge the Inbox declares. It has no endpoint of its own: its count is
+ * the sum of every count source below that the role may read, so the Inbox
+ * number and the queues it lists cannot disagree.
+ */
+const INBOX_BADGE = "inbox" satisfies DescriptorBadge;
+
+/**
+ * A count source with its own endpoint. Review recommendations wait on an
+ * admin but have no tab of their own (they sit inside Change Review), so they
+ * only reach the rail through the Inbox count.
+ */
+export type DevRailBadge = Exclude<DescriptorBadge, typeof INBOX_BADGE> | "review-recommendations";
 
 /** Counts the rail shows right now, keyed by badge name; absent while unknown or zero. */
-export type DevRailBadgeCounts = Readonly<Partial<Record<DevRailBadge, number>>>;
+export type DevRailBadgeCounts = Readonly<Partial<Record<DescriptorBadge, number>>>;
 
 /**
  * What one count endpoint answered: the badge total, plus the per-source split
@@ -39,14 +53,30 @@ const BADGE_SOURCES: Record<DevRailBadge, BadgeSource> = {
   proposals: { url: "/api/dev/proposals/count", read: numberField("submitted") },
   citations: { url: "/api/citation-evidence/open-count", read: numberField("count") },
   "glossary-feedback": { url: "/api/glossary-feedback/pending-count", read: numberField("total") },
+  "review-recommendations": {
+    url: "/api/dev/review-recommendations",
+    read: ({ recommendations }) => (Array.isArray(recommendations) ? { count: recommendations.length } : null),
+  },
 };
 
 const BADGES = Object.keys(BADGE_SOURCES) as DevRailBadge[];
 
-/** The badged tab's role floor: a member below it never asks for that count. */
-const BADGE_FLOORS = Object.fromEntries(
-  DEV_TAB_REGISTRY.flatMap((tab) => (tab.badge ? [[tab.badge, tab.role]] : [])),
-) as Record<DevRailBadge, DevTabDescriptor["role"]>;
+/**
+ * The badged tab's role floor: a member below it never asks for that count.
+ * Review recommendations have no tab; approving them is admin work.
+ */
+const BADGE_FLOORS = {
+  "review-recommendations": "admin",
+  ...Object.fromEntries(
+    DEV_TAB_REGISTRY.flatMap((tab) => (tab.badge && tab.badge !== INBOX_BADGE ? [[tab.badge, tab.role]] : [])),
+  ),
+} as Record<DevRailBadge, DevTabDescriptor["role"]>;
+
+/** The Inbox's own floor: below it the Inbox count is never assembled. */
+const INBOX_FLOOR = DEV_TAB_REGISTRY.find((tab) => tab.badge === INBOX_BADGE)?.role ?? "admin";
+
+/** Every count the Inbox lists, in the order it names them. */
+export const INBOX_BADGE_PARTS: readonly DevRailBadge[] = BADGES;
 
 type BadgeEntry = {
   /** Last count the rail saw; null until the endpoint has answered once. */
@@ -194,13 +224,18 @@ export function useDevRailBadges(role: AppRole | null, actorEmail?: string | nul
     };
   }, [role, owner]);
 
-  const counts: Partial<Record<DevRailBadge, number>> = {};
+  const counts: Partial<Record<DescriptorBadge, number>> = {};
+  let inboxTotal = 0;
   for (const badge of BADGES) {
     if (activeOwner !== owner || !roleMeetsFloor(role, BADGE_FLOORS[badge])) continue;
     const { count } = current[badge];
     if (count !== null && count > 0) {
-      counts[badge] = count;
+      inboxTotal += count;
+      if (badge !== "review-recommendations") counts[badge] = count;
     }
+  }
+  if (inboxTotal > 0 && roleMeetsFloor(role, INBOX_FLOOR)) {
+    counts[INBOX_BADGE] = inboxTotal;
   }
   return counts;
 }

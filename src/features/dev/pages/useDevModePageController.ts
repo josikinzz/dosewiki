@@ -207,6 +207,8 @@ export function useDevModePageController({
     writingInitialSlug: initialArticleSlug,
     copyStudioInitialKey: initialArticleSlug,
     playlistsInitialKey: initialArticleSlug,
+    tripReportsInitialId: initialArticleSlug,
+    queueInitialId: initialArticleSlug,
     initialFilter,
     tagEditorTabProps,
     contributorDirectory,

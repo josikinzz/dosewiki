@@ -20,6 +20,7 @@ import type * as copyBlocks from "../../../server/copyBlocks";
 import type * as effectIndexArchive from "../../../server/effectIndexArchive";
 import type * as effectIndexArticles from "../../../server/effectIndexArticles";
 import type * as glossaryFeedback from "../../../server/glossaryFeedback";
+import type * as inboxClaims from "../../../server/inboxClaims";
 import type * as indexLayouts from "../../../server/indexLayouts";
 import type * as inviteCodes from "../../../server/inviteCodes";
 import type * as mailingList from "../../../server/mailingList";
@@ -73,6 +74,7 @@ export type Api = ApiFromModules<{
   effectIndexArchive: typeof effectIndexArchive;
   effectIndexArticles: typeof effectIndexArticles;
   glossaryFeedback: typeof glossaryFeedback;
+  inboxClaims: typeof inboxClaims;
   indexLayouts: typeof indexLayouts;
   inviteCodes: typeof inviteCodes;
   mailingList: typeof mailingList;

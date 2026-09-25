@@ -76,13 +76,14 @@ describe("DevModePageChrome rail", () => {
     }
   });
 
-  it("keeps Content inline and collapses Intake and Site into menus for an admin", () => {
+  it("leads with the Inbox, keeps Content inline and collapses Intake and Site into menus for an admin", () => {
     const { nav } = renderChrome("articles", "admin");
 
     const groups = within(nav).getAllByRole("group");
-    expect(groups.map((group) => group.getAttribute("aria-label"))).toEqual(["Content", "Intake", "Site"]);
+    expect(groups.map((group) => group.getAttribute("aria-label"))).toEqual(["Start", "Content", "Intake", "Site"]);
+    expect(within(groups[0]).getByRole("button", { name: "Inbox" })).toBeTruthy();
 
-    const content = groups[0];
+    const content = groups[1];
     const pills = Array.from(content.querySelectorAll("button, a")).map((el) => el.textContent?.trim());
     expect(pills).toEqual(CONTENT_TABS.map((tab) => tab.label));
 
@@ -117,12 +118,28 @@ describe("DevModePageChrome rail", () => {
   });
 
   it("rolls group badges up onto the menu trigger and keeps full accessible names", () => {
-    badgeState.counts = { "trip-reports": 3, feedback: 12, proposals: 2 };
+    badgeState.counts = { proposals: 2 };
+    try {
+      // An editor has no Inbox, so the Intake menu carries the count itself.
+      const { nav } = renderChrome("articles", "editor");
+
+      const trigger = within(nav).getByRole("button", { name: "Intake, 2 awaiting review" });
+      expect(within(trigger).getByTitle("2 awaiting review").textContent).toBe("2");
+      expect(within(openMenu(trigger)).getByRole("menuitem", { name: "My submissions, 2 awaiting review" })).toBeTruthy();
+    } finally {
+      badgeState.counts = {};
+    }
+  });
+
+  it("collapses an admin's intake counts into the one Inbox count while each tool keeps its own", () => {
+    badgeState.counts = { inbox: 20, "trip-reports": 3, feedback: 12, proposals: 2, "glossary-feedback": 3 };
     try {
       const { nav } = renderChrome("articles", "admin");
 
-      const trigger = within(nav).getByRole("button", { name: "Intake, 17 awaiting review" });
-      expect(within(trigger).getByTitle("17 awaiting review").textContent).toBe("17");
+      expect(within(nav).getByRole("button", { name: "Inbox, 20 awaiting review" })).toBeTruthy();
+      // The menus do not count the same items a second time.
+      expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
+      const trigger = within(nav).getByRole("button", { name: "Intake" });
 
       const menu = openMenu(trigger);
       const feedback = within(menu).getByRole("menuitem", { name: "Feedback, 12 awaiting review" });
@@ -232,10 +249,10 @@ describe("DevModePageChrome rail", () => {
     expect(ownTools).toEqual(["Contributors", "Playlists", "My reports"]);
 
     // Every locked tool, Change log included, says why in text inside the menu.
-    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 16 locked" });
+    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 17 locked" });
     const menu = openMenu(lockedTrigger);
     const items = within(menu).getAllByRole("menuitem");
-    expect(items).toHaveLength(16);
+    expect(items).toHaveLength(17);
     expect(within(menu).getByText("Substances").parentElement?.textContent).toContain("Editor role required");
     expect(within(menu).getByText("Review").parentElement?.textContent).toContain("Editor role required");
     expect(within(menu).getByText("Change log").parentElement?.textContent).toContain("Editor role required");
@@ -301,6 +318,7 @@ describe("DevModePageChrome rail", () => {
 
     // Same groups as a full-access rail, no Locked overflow, nothing clickable yet.
     expect(within(nav).getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual([
+      "Start",
       "Content",
       "Intake",
       "Site",
@@ -358,7 +376,7 @@ describe("DevModePageChrome phone sheet", () => {
 
     const menu = within(sheet).getByRole("navigation", { name: "Dev mode tools menu" });
     const groups = within(menu).getAllByRole("group").map((group) => group.getAttribute("aria-label"));
-    expect(groups).toEqual(["Content", "Intake", "Site"]);
+    expect(groups).toEqual(["Start", "Content", "Intake", "Site"]);
 
     // Every tool is listed; locked ones carry their reason inline.
     for (const tab of SHELL_TABS) {

@@ -37,7 +37,7 @@ const SORTS: { value: PortalSort; label: string }[] = [
   { value: "title", label: "Title" },
 ];
 
-export function TripReportPortalTab() {
+export function TripReportPortalTab({ initialSubmissionId }: { initialSubmissionId?: string } = {}) {
   // Below xl the list folds into a strip above the open record; this is that
   // strip's disclosure. At xl the list has its own column and ignores it.
   const [stripOpen, setStripOpen] = useState(true);
@@ -93,7 +93,7 @@ export function TripReportPortalTab() {
     toggleChecked,
     undoLastDecision,
     undoTo,
-  } = useTripReportPortalController();
+  } = useTripReportPortalController(initialSubmissionId);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const triageRef = useRef<SubmissionTriageActions | null>(null);
 

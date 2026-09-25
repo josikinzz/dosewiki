@@ -48,7 +48,7 @@ const DISCARD_COPY = {
   description: "This report has changes that were not saved. Discarding them leaves the live page as it is now.",
 };
 
-export function useTripReportPortalController() {
+export function useTripReportPortalController(initialSubmissionId?: string) {
   const { corpus, load, loadPublished, loadSubmissionIndex, updateReports, replaceSubmission } =
     useTripReportPortalCorpus();
 
@@ -254,6 +254,17 @@ export function useTripReportPortalController() {
 
   /** Open a row from the list, asking first when that would drop unsaved edits. */
   const selectRow = useCallback((row: PortalRow) => guard(() => openRow(row)), [guard, openRow]);
+
+  // A deep link (`/dev/trip-report-submissions/<submission id>`, as the Inbox
+  // opens it) selects that submission once its row has loaded.
+  const initialOpenedRef = useRef(false);
+  useEffect(() => {
+    if (!initialSubmissionId || initialOpenedRef.current) return;
+    const row = rows.find((entry) => entry.origin === "submission" && entry.id === initialSubmissionId);
+    if (!row) return;
+    initialOpenedRef.current = true;
+    openRow(row);
+  }, [initialSubmissionId, rows, openRow]);
 
   /**
    * Step to the neighbouring row in list order. A row that has just left the

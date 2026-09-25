@@ -12,7 +12,12 @@
 import { roleMeetsFloor, type AppRole, type RoleFloor } from "@/lib/auth/roles";
 import { DEV_ROUTE_FILTERS, type DevRouteFilter } from "@/utils/devHref";
 
-export type DevToolGroup = "content" | "intake" | "site";
+/**
+ * `entry` holds the Inbox, the admin's entry point: it renders ahead of the
+ * other groups as a plain pill, and its count stands in for the intake counts
+ * the group menus would otherwise roll up.
+ */
+export type DevToolGroup = "entry" | "content" | "intake" | "site";
 
 /**
  * - `library`: reads the substance corpus and waits on the library drain
@@ -65,7 +70,7 @@ type DevTabDescriptorOf<Id extends string> = {
   labelFor?: (role: AppRole | null) => string;
   destination: DevTabDestination;
   /** Named count source rendered as a rail badge; `useDevRailBadges` maps the name to its endpoint. */
-  badge?: "trip-reports" | "feedback" | "proposals" | "citations" | "glossary-feedback";
+  badge?: "inbox" | "trip-reports" | "feedback" | "proposals" | "citations" | "glossary-feedback";
   /**
    * A tab-level filter kept in the URL as `?<param>=<value>`. `segments` are
    * extra route segments that open the tab with that value preset, the way a
@@ -88,6 +93,22 @@ const SHELL: DevTabDestination = { kind: "shell" };
  * rail labels.
  */
 const REGISTRY = [
+  {
+    id: "inbox",
+    label: "Inbox",
+    group: "entry",
+    aliases: [],
+    // Everything that waits on an admin, from every intake tool, in one list.
+    // The owning tools keep their tabs and open from here for the full review.
+    role: "admin",
+    data: NO_DATA,
+    saveModel: "instant",
+    // Claims and intake decisions, one item at a time; publishing stays in the owning tools.
+    saveLine: "none",
+    layout: "shell",
+    destination: SHELL,
+    badge: "inbox",
+  },
   {
     id: "articles",
     label: "Substances",
@@ -365,9 +386,9 @@ export const DEFAULT_DEV_TAB: DevModeTab = "articles";
 /**
  * Floors in landing preference. A translator also holds the contributor floor,
  * but their own work is the Glossary, so the more specific floor wins; admins
- * land with editors on the article tools.
+ * land on the Inbox, the entry point for everything waiting on them.
  */
-const LANDING_FLOORS: readonly RoleFloor[] = ["editor", "translator", "contributor"];
+const LANDING_FLOORS: readonly RoleFloor[] = ["admin", "editor", "translator", "contributor"];
 
 /**
  * The tool a role lands on when the route names none: the first shell tool in
