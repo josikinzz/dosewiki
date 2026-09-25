@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
@@ -79,8 +78,13 @@ type CopyStudioTabProps = {
  * proposal for the Queue instead, and only an approval writes the row.
  *
  * The rail lists one group at a time, under a section tier so the group chips
- * fit one row; a search query replaces it with every block whose key or label
- * matches, across all groups, while the editor stays on the selected block.
+ * fit one row; a search query replaces it with every block whose key, label
+ * or text matches, across all groups, while the editor stays on the selected
+ * block.
+ *
+ * An editor's submission resets the draft to the published copy and marks the
+ * block "Proposal pending" for the rest of the session, so the draft is clean
+ * again and a second submission needs a new edit.
  */
 export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const rows = useEditorRead("copyBlocks:getEditorCatalogue", {}, "list") as CopyBlockRow[] | undefined;
@@ -99,6 +103,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const [loadedBlock, setLoadedBlock] = useState<CopyStudioBlock | null>(null);
   const [baselineRow, setBaselineRow] = useState<CopyBlockRow | null>(null);
   const [baselineRevision, setBaselineRevision] = useState(0);
+  const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(() => new Set());
+  const resetHelpId = useId();
+  const removeHelpId = useId();
   const { serialize: publicationBody, acknowledge, uncertain } = useCopyIndexOperation();
   const awaitingWrite = useRef<CopyStudioBlock | null>(null);
 
@@ -251,7 +258,11 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
           summary: `Update copy "${activeBlock.label}"`,
           baselines: [{ kind: "copyBlock", key: activeBlock.key, document: baselineRow }],
         });
-        setSaveState("saved");
+        // The proposal holds the edit now; the draft returns to the published
+        // copy so the guard is quiet and a resubmit needs a new edit.
+        setPendingKeys((current) => new Set(current).add(activeBlock.key));
+        setDraft(draftFromBlock(loadedBlock));
+        setSaveState("idle");
         setNotice(proposalSubmittedNotice(`“${activeBlock.label}”`, proposalId));
         return;
       }
@@ -390,7 +401,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
           <div className="space-y-3 xl:sticky xl:top-6 xl:self-start">
             <EditorField
               label="Search"
-              description="Matches a block key or label across every group."
+              description="Matches a block key, label or the words it shows, across every group."
               counter={isSearching ? `${visibleBlocks.length} found` : undefined}
             >
               {(fieldProps) => (
@@ -399,7 +410,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                   type="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Key or label"
+                  placeholder="Key, label or text"
                 />
               )}
             </EditorField>
@@ -411,7 +422,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
               selectedKey={activeBlock?.key ?? null}
               onSelect={selectBlock}
               emptyText={
-                isSearching ? "No block key or label matches that." : "No copy blocks in this group."
+                isSearching ? "No block key, label or text matches that." : "No copy blocks in this group."
               }
               renderItem={(block, { selected }) => (
                 <EditorListItem
@@ -428,6 +439,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                       ) : null}
                       {block.source === "data" ? (
                         <EditorStatusPill tone="info">Edited</EditorStatusPill>
+                      ) : null}
+                      {pendingKeys.has(block.key) ? (
+                        <EditorStatusPill tone="neutral">Pending</EditorStatusPill>
                       ) : null}
                     </span>
                   }
@@ -452,66 +466,40 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                   />
                 ) : null}
 
-                <fieldset disabled={uncertain || saveState === "saving" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key}><CopyBlockFields kind={activeBlock.kind} draft={draft} onChange={setDraft} /></fieldset>
-                {detailSource.error && <><p role="alert">{detailSource.error}</p><Button onClick={detailSource.reload}>Retry loading source</Button></>}
-                {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before leaving this block.</p>}
+                {detailSource.error ? (
+                  <EditorNotice
+                    notice={{
+                      tone: "danger",
+                      title: "Could not load this block",
+                      message: detailSource.error,
+                      actions: (
+                        <Button type="button" variant="outline" size="sm" onClick={detailSource.reload}>
+                          Try again
+                        </Button>
+                      ),
+                    }}
+                  />
+                ) : selectedSnapshot === undefined ? (
+                  <EditorNotice
+                    notice={{
+                      tone: "info",
+                      message: "Loading the stored copy for this block. Editing unlocks when it arrives.",
+                    }}
+                  />
+                ) : null}
+                {uncertain ? (
+                  <EditorNotice
+                    notice={{
+                      tone: "warning",
+                      live: true,
+                      title: "Publication unconfirmed",
+                      message: "The publication outcome is unconfirmed. Retry the same publication before leaving this block.",
+                    }}
+                  />
+                ) : null}
 
-                <EditorToolbar variant="split">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="accent"
-                      size="sm"
-                      disabled={!isDirty || saveState === "saving" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key}
-                      onClick={() => canApprove ? confirm({
-                        title: "Publish shared copy?",
-                        description: `Every public rendering of “${activeBlock.key}” will change. Review the pending diff and preview before confirming.`,
-                        confirmLabel: "Publish copy",
-                        onConfirm: handleSave,
-                      }) : void handleSave()}
-                    >
-                      <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
-                      {canApprove ? "Publish copy" : "Submit for review"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      disabled={!canReset || uncertain || saveState === "saving"}
-                      onClick={handleResetDraft}
-                    >
-                      <Icon icon="lucide:rotate-ccw" size={15} />
-                      Reset to default
-                    </Button>
-                    {canApprove ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={activeBlock.source !== "data" || saveState === "saving"}
-                        onClick={() =>
-                          confirm({
-                            title: "Remove stored copy?",
-                            description: `“${activeBlock.label}” goes back to its checked-in default on the public pages right away. The stored wording is deleted and cannot be recovered.`,
-                            confirmLabel: "Remove stored copy",
-                            destructive: true,
-                            onConfirm: handleRevertToDefault,
-                          })
-                        }
-                      >
-                        <Icon icon="lucide:undo-2" size={15} />
-                        Remove stored copy
-                      </Button>
-                    ) : null}
-                  </div>
-                  {saveState === "idle" ? (
-                    <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
-                      {isDirty ? (canApprove ? "Unsaved changes" : "Changes to propose") : "No changes"}
-                    </EditorStatusPill>
-                  ) : (
-                    <EditorActionStatus status={saveState} />
-                  )}
-                </EditorToolbar>
+                <fieldset disabled={uncertain || saveState === "saving" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key}><CopyBlockFields kind={activeBlock.kind} draft={draft} onChange={setDraft} /></fieldset>
+
 
                 {placeholders.length > 0 ? (
                   <EditorSection
@@ -555,6 +543,77 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                     <p className="theme-text-faint text-sm">No pending changes.</p>
                   )}
                 </EditorSection>
+
+                <EditorToolbar variant="split">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="accent"
+                      size="sm"
+                      disabled={!isDirty || saveState === "saving" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key}
+                      onClick={() => canApprove ? confirm({
+                        title: "Publish shared copy?",
+                        description: `Every public rendering of “${activeBlock.key}” will change. Review the pending diff and preview before confirming.`,
+                        confirmLabel: "Publish copy",
+                        onConfirm: handleSave,
+                      }) : void handleSave()}
+                    >
+                      <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
+                      {canApprove ? "Publish copy" : "Submit for review"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={!canReset || uncertain || saveState === "saving"}
+                      onClick={handleResetDraft}
+                      aria-describedby={resetHelpId}
+                    >
+                      <Icon icon="lucide:rotate-ccw" size={15} />
+                      Load default into draft
+                    </Button>
+                    {canApprove ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={activeBlock.source !== "data" || saveState === "saving"}
+                        aria-describedby={removeHelpId}
+                        onClick={() =>
+                          confirm({
+                            title: "Remove stored copy?",
+                            description: `“${activeBlock.label}” goes back to its checked-in default on the public pages right away. The stored wording is deleted and cannot be recovered.`,
+                            confirmLabel: "Remove stored copy",
+                            destructive: true,
+                            onConfirm: handleRevertToDefault,
+                          })
+                        }
+                      >
+                        <Icon icon="lucide:undo-2" size={15} />
+                        Remove stored copy
+                      </Button>
+                    ) : null}
+                  </div>
+                  {saveState === "idle" ? (
+                    <EditorStatusPill tone={isDirty ? "warning" : pendingKeys.has(activeBlock.key) ? "info" : "neutral"}>
+                      {isDirty
+                        ? canApprove ? "Unsaved changes" : "Changes to propose"
+                        : pendingKeys.has(activeBlock.key) ? "Proposal pending" : "No changes"}
+                    </EditorStatusPill>
+                  ) : (
+                    <EditorActionStatus status={saveState} />
+                  )}
+                </EditorToolbar>
+                <ul className="theme-text-faint space-y-1 text-xs">
+                  <li id={resetHelpId}>
+                    Load default into draft puts the checked-in default wording in the editor. Nothing changes on the site until you {canApprove ? "publish" : "submit"} the draft.
+                  </li>
+                  {canApprove ? (
+                    <li id={removeHelpId}>
+                      Remove stored copy deletes the saved wording, so the public pages show the checked-in default right away.
+                    </li>
+                  ) : null}
+                </ul>
               </>
             ) : null}
           </div>

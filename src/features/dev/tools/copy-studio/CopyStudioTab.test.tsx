@@ -10,7 +10,9 @@ vi.mock("@/hooks/useEditorRead", () => ({
   useEditorRead: (name: string) => (name === "copyBlocks:getEditorCatalogue" ? query.rows : undefined),
   useInvalidateEditorReads: () => async () => undefined,
 }));
-vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: (url: string | null) => ({ data: url ? { document: query.rows.find((row) => row.key === new URL(url, "https://dose.wiki").searchParams.get("key")) ?? null, revision: 0 } : undefined, error: null, reload: vi.fn() }) }));
+/** `state` overrides the snapshot read, to hold the tab in its loading or failed state. */
+const source = vi.hoisted(() => ({ state: null as { data: undefined; error: string | null } | null }));
+vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: (url: string | null) => source.state ? { ...source.state, reload: vi.fn() } : ({ data: url ? { document: query.rows.find((row) => row.key === new URL(url, "https://dose.wiki").searchParams.get("key")) ?? null, revision: 0 } : undefined, error: null, reload: vi.fn() }) }));
 
 vi.mock("@/components/pages/PublicMarkdownBody", () => ({
   PublicMarkdownBody: ({ content }: { content: string }) => <div data-testid="preview">{content}</div>,
@@ -42,29 +44,36 @@ describe("CopyStudioTab", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     query.rows = [];
+    source.state = null;
     window.history.replaceState(null, "", "/");
   });
 
-  it("filters the rail by key and label substring across every group", async () => {
+  it("filters the rail by key and label substring across every group, name matches first", async () => {
     render(<CopyStudioTab canApprove />);
 
     const search = screen.getByRole("searchbox", { name: "Search" });
-    await userEvent.type(search, "about-");
+    // Pasted, as a one-letter prefix matches the text of nearly every block.
+    await userEvent.click(search);
+    await userEvent.paste("about-");
 
     const keys = railKeys();
-    expect(keys.every((entry) => entry.includes("about-"))).toBe(true);
+    const firstTextMatch = keys.findIndex((entry) => !entry.includes("about-"));
+    expect(firstTextMatch).not.toBe(0);
+    if (firstTextMatch > 0) {
+      expect(keys.slice(firstTextMatch).some((entry) => entry.includes("about-"))).toBe(false);
+    }
     expect(keys.some((entry) => entry.startsWith("Reuse notice"))).toBe(true);
     expect(keys.some((entry) => entry.includes("SEO"))).toBe(true);
     // The result counter tracks the filtered rail, not the catalogue's size.
     expect(screen.getByText(`${keys.length} found`)).toBeTruthy();
 
     await userEvent.clear(search);
-    await userEvent.type(search, "footer tagline");
+    await userEvent.paste("footer tagline");
     expect(railKeys().every((entry) => entry.startsWith("Footer tagline"))).toBe(true);
 
     await userEvent.clear(search);
-    await userEvent.type(search, "zzz-no-such-block");
-    expect(screen.getByText("No block key or label matches that.")).toBeTruthy();
+    await userEvent.paste("zzz-no-such-block");
+    expect(screen.getByText("No block key, label or text matches that.")).toBeTruthy();
   });
 
   it("opens on the deep-linked block, its group and its section", () => {
@@ -186,6 +195,74 @@ describe("CopyStudioTab", () => {
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+  });
+
+  it("finds a block by a phrase from its stored text", async () => {
+    query.rows = [STORED_REUSE_NOTICE];
+    render(<CopyStudioTab canApprove />);
+
+    await userEvent.type(screen.getByRole("searchbox", { name: "Search" }), "wording for the reuse");
+    expect(railKeys()).toHaveLength(1);
+    expect(railKeys()[0]).toContain("about-reuse-notice");
+  });
+
+  it("resets to the published copy after a submission, shows it pending, and needs a new edit to resubmit", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, proposalId: "cp_abc123" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CopyStudioTab initialKey="about-reuse-notice" canApprove={false} />);
+    const field = screen.getByRole("textbox", { name: "Copy" });
+    const before = (field as HTMLTextAreaElement).value;
+    await userEvent.type(field, " Edited.");
+    await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+    expect(await screen.findByText("Submitted for review")).toBeTruthy();
+
+    expect(screen.getByRole("textbox", { name: "Copy" })).toHaveValue(before);
+    expect(screen.getByText("Proposal pending")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Submit for review" })).toBeDisabled();
+
+    const other = railOptions().find((option) => option.textContent?.includes("about-doc-link-blurbs"))!;
+    await userEvent.click(other);
+    expect(screen.queryByRole("dialog", { name: /Discard changes to/ })).toBeNull();
+    await waitFor(() => expect(activeRailKey()).toContain("about-doc-link-blurbs"));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the preview and the diff before the publish toolbar", async () => {
+    render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
+
+    const publish = screen.getByRole("button", { name: "Publish copy" });
+    for (const heading of ["Preview", "Pending changes"]) {
+      const section = screen.getByRole("heading", { name: heading });
+      expect(section.compareDocumentPosition(publish) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
+  it("names the two ways back to the default apart and says what each does", () => {
+    query.rows = [STORED_REUSE_NOTICE];
+    render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+
+    const draftReset = screen.getByRole("button", { name: "Load default into draft" });
+    const remove = screen.getByRole("button", { name: "Remove stored copy" });
+    expect(draftReset).toHaveAccessibleDescription(/draft/i);
+    expect(remove).toHaveAccessibleDescription(/public pages/i);
+    expect(screen.queryByRole("button", { name: "Reset to default" })).toBeNull();
+  });
+
+  it("uses the kit notice while the block loads and when it fails", async () => {
+    source.state = { data: undefined, error: null };
+    const { rerender } = render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+    expect(screen.getByRole("note")).toHaveTextContent(/Loading/);
+
+    source.state = { data: undefined, error: "The editing source could not be loaded." };
+    rerender(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("The editing source could not be loaded.");
+    expect(within(alert).getByRole("button", { name: "Try again" })).toBeTruthy();
   });
 
   it("keeps edited copy and its loaded baseline when production changes", async () => {

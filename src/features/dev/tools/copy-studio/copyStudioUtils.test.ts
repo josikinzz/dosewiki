@@ -130,8 +130,25 @@ describe("copy studio block reconciliation", () => {
     expect(filterCopyStudioBlocks(blocks, "footer CREDIT").map((block) => block.key)).toEqual([
       "zeta-footer",
     ]);
-    expect(filterCopyStudioBlocks(blocks, "about-").every((block) => block.key.includes("about-"))).toBe(true);
+    const aboutMatches = filterCopyStudioBlocks(blocks, "about-");
+    const byKey = aboutMatches.filter((block) => block.key.includes("about-"));
+    expect(byKey.length).toBeGreaterThan(0);
+    expect(aboutMatches.slice(0, byKey.length)).toEqual(byKey);
     expect(filterCopyStudioBlocks(blocks, "   ")).toEqual([]);
+  });
+
+  it("finds a block by a phrase from its text, after the key and label matches", () => {
+    const blocks = buildCopyStudioBlocks([
+      { key: "zeta-hero", kind: "plain", body: "Welcome to the zqvault archive.", label: "Hero title", group: "Home" },
+      { key: "zeta-list", kind: "list", items: ["First point", "A typo lives hre"], label: "Points", group: "Home" },
+      { key: "vault-note", kind: "plain", body: "b", label: "Zqvault note", group: "Footer" },
+    ]);
+
+    expect(filterCopyStudioBlocks(blocks, "typo lives HRE").map((block) => block.key)).toEqual(["zeta-list"]);
+    expect(filterCopyStudioBlocks(blocks, "ZQVAULT").map((block) => block.key)).toEqual([
+      "vault-note",
+      "zeta-hero",
+    ]);
   });
 });
 
