@@ -81,8 +81,13 @@ beforeEach(() => {
   fixtures.articles = [
     // Signed rev1, published rev9 since: changed.
     makeArticle("heroin", "Heroin", { status: "completed", reviewed_by: "admin@example.com", reviewed_revision: "rev1" }),
-    // Signed the revision still published: reviewed.
-    makeArticle("morphine", "Morphine", { status: "completed", reviewed_by: "admin@example.com", reviewed_revision: "rev2" }),
+    // Signed the revision still published, approving an editor's recommendation: reviewed.
+    makeArticle("morphine", "Morphine", {
+      status: "completed",
+      reviewed_by: "admin@example.com",
+      reviewed_revision: "rev2",
+      recommended_by: "editor@example.com",
+    }),
     // Signed before any revision was recorded, then published: changed.
     makeArticle("fentanyl", "Fentanyl", { status: "completed", reviewed_by: "admin@example.com", reviewed_revision: "initial" }),
     makeArticle("codeine", "Codeine"),
@@ -146,7 +151,7 @@ describe("changed since review", () => {
   it("shows only the fields changed since the signed revision", async () => {
     await renderWorkbench("heroin");
     const notice = await screen.findByRole("region", { name: "Changed since review" });
-    expect(notice).toHaveTextContent("Heroin was published after admin@example.com signed it off");
+    expect(notice).toHaveTextContent("Heroin changed after its sign-off (Reviewed by admin@example.com)");
 
     fireEvent.click(within(notice).getByRole("button", { name: "Show changes since review" }));
 
@@ -162,6 +167,13 @@ describe("changed since review", () => {
   it("does not offer the diff on an article whose sign-off is current", async () => {
     await renderWorkbench("morphine");
     expect(screen.queryByRole("region", { name: "Changed since review" })).toBeNull();
+  });
+
+  it("credits both the recommending editor and the approving admin", async () => {
+    await renderWorkbench("morphine");
+    expect(await screen.findByTestId("review-signoff-credit")).toHaveTextContent(
+      "Recommended by editor@example.com, approved by admin@example.com.",
+    );
   });
 
   it("filters the queue to exactly the articles changed since review", async () => {

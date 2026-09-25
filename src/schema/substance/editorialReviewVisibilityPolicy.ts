@@ -75,6 +75,9 @@ export function normalizeEditorialReviewForEditor(raw: unknown): EditorialReview
     ...(typeof item.reviewed_at === "string" ? { reviewed_at: item.reviewed_at } : {}),
     ...(typeof item.reviewed_revision === "string" ? { reviewed_revision: item.reviewed_revision } : {}),
     ...(isRecommendation(item.recommendation) ? { recommendation: item.recommendation } : {}),
+    ...(typeof item.recommended_by === "string" ? { recommended_by: item.recommended_by } : {}),
+    ...(typeof item.recommended_at === "string" ? { recommended_at: item.recommended_at } : {}),
+    ...(typeof item.recommendation_note === "string" ? { recommendation_note: item.recommendation_note } : {}),
   };
 }
 

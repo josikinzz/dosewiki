@@ -9,6 +9,8 @@ import { ArticleChangeDiff } from "@/features/article/editing/ArticleChangeDiff"
 import { Notice } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 
+import { signOffCredit } from "./reviewQueue";
+
 const PANEL_ID = "review-changes-since-review";
 
 interface ReviewChanges {
@@ -22,14 +24,17 @@ export interface ReviewChangesSinceReviewProps {
   /** The published revision the stale sign-off covered. */
   reviewedRevision: string;
   reviewedBy?: string;
+  /** The editor whose recommendation the sign-off approved, if any. */
+  recommendedBy?: string;
 }
 
 /**
- * The notice a stale article opens with: it was published after its sign-off,
- * and one click shows only the fields that changed since the signed revision,
- * so re-review reads a diff instead of the whole article.
+ * The notice a stale article opens with: it changed after its sign-off, and
+ * one click shows only the fields that changed since the signed revision, so
+ * re-review reads a diff instead of the whole article.
  */
-export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewedBy }: ReviewChangesSinceReviewProps) {
+export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewedBy, recommendedBy }: ReviewChangesSinceReviewProps) {
+  const credit = signOffCredit({ reviewedBy, recommendedBy });
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [changes, setChanges] = useState<ReviewChanges | null>(null);
@@ -68,7 +73,7 @@ export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewe
           <Icon icon="lucide:git-compare" size={15} className="theme-text-secondary shrink-0" />
           <p className="theme-text-primary min-w-0 flex-1 text-sm">
             <span className="font-semibold">Changed since review.</span>{" "}
-            {name} was published after {reviewedBy ? `${reviewedBy} signed it off` : "its sign-off"}.
+            {name} changed after its sign-off{credit ? ` (${credit})` : ""}.
             Mark it reviewed again once the changes are checked.
           </p>
           <Button

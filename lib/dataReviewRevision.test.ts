@@ -8,7 +8,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { writeHandler } from "../server/articleLifecycle";
 import { articleBaseHash, loadArticle, publishedArticleRevision } from "../server/lib/articleRevisionJournal";
 import { articleDocument } from "../server/lib/articleLifecycleValidation";
-import { getReviewChangesHandler, setEditorialReviewHandler } from "../server/lib/substanceReviewHandlers";
+import { addHumanReviewFlagHandler, getReviewChangesHandler, setEditorialReviewHandler } from "../server/lib/substanceReviewHandlers";
+import { saveSubstancesHandler, setIupacNameHandler } from "../server/lib/substanceWriteHandlers";
 import { deriveReviewState, REVIEW_INITIAL_REVISION } from "../src/schema/substance/editorial";
 import { SERVER_KEY, admin, createCtx, editor, proposedLsd, storedLsd } from "./changeProposalReviewFixture";
 
@@ -58,10 +59,62 @@ describe("review sign-off revision", () => {
     });
   });
 
-  it("records the initial marker when the article has no revision yet", async () => {
+  it("journals the stored article privately when a sign-off finds nothing journaled", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
+    const revision = await publishedArticleRevision(ctx, "lsd");
+    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
+
+    expect(storedReview(rowsOf).reviewed_revision).toBe(revision);
+    const journal = [...rowsOf("articleRevisions").values()];
+    expect(journal).toHaveLength(1);
+    expect(journal[0].after).toMatchObject({ summary: "Stored summary" });
+    expect(rowsOf("changelog").size).toBe(0);
+
+    // Signing again finds the content already journaled.
+    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
+    expect(rowsOf("articleRevisions").size).toBe(1);
+  });
+
+  it("makes the sign-off stale after a staged batch save, and still reads the signed content", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
     await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
-    expect(storedReview(rowsOf).reviewed_revision).toBe(REVIEW_INITIAL_REVISION);
+    const signed = storedReview(rowsOf).reviewed_revision as string;
+
+    // The /api/save-article Commit path: saveArticleBatch.save runs this with no journal row.
+    const stored = articleDocument(await loadArticle(ctx, "lsd"));
+    const saved = await saveSubstancesHandler(ctx, {
+      ...asAdmin,
+      articles: [{ ...stored, summary: "Saved through the batch" } as never],
+    });
+    expect(saved.updated).toBe(1);
+
+    expect(deriveReviewState(storedReview(rowsOf), await publishedArticleRevision(ctx, "lsd"))).toBe("stale");
+    const changes = await getReviewChangesHandler(ctx, { ...asAdmin, slug: "lsd", revision: signed });
+    expect(changes.signed).toMatchObject({ summary: "Stored summary" });
+    expect(changes.current).toMatchObject({ summary: "Saved through the batch" });
+  });
+
+  it("makes the sign-off stale after an IUPAC write", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
+    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
+    const identification = (await loadArticle(ctx, "lsd")).identification as { iupac_name?: string };
+
+    await setIupacNameHandler(ctx, { ...asAdmin, slug: "lsd", value: "A corrected name", expected: identification.iupac_name ?? "" });
+
+    expect(deriveReviewState(storedReview(rowsOf), await publishedArticleRevision(ctx, "lsd"))).toBe("stale");
+  });
+
+  it("makes the sign-off stale when the molecule chemistry changes, but not for a flag", async () => {
+    const molecule = { _id: "m-lsd", _creationTime: 1, slug: "lsd", svg: "<svg/>", molblock: "first", updatedAt: "2026-01-01" };
+    const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd], moleculeOverrides: [molecule] });
+    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
+
+    await addHumanReviewFlagHandler(ctx, { ...asAdmin, slug: "lsd", flag: { label: "formatting", severity: "note", note: "" } });
+    await ctx.db.patch("m-lsd" as never, { svg: "<svg>re-rendered</svg>" });
+    expect(deriveReviewState(storedReview(rowsOf), await publishedArticleRevision(ctx, "lsd"))).toBe("completed");
+
+    await ctx.db.patch("m-lsd" as never, { molblock: "second" });
+    expect(deriveReviewState(storedReview(rowsOf), await publishedArticleRevision(ctx, "lsd"))).toBe("stale");
   });
 
   it("makes the sign-off stale once the article is published again", async () => {

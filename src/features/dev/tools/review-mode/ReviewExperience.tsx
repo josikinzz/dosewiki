@@ -441,6 +441,7 @@ export const ReviewExperience = memo(function ReviewExperience({
             name={current.name}
             reviewedRevision={current.reviewedRevision}
             reviewedBy={current.reviewedBy}
+            recommendedBy={current.recommendedBy}
           />
         </div>
       ) : null}

@@ -62,10 +62,12 @@ export const editorialReviewSchema = z.object({
   reviewed_by: z.string().optional(),
   reviewed_at: z.string().optional(),
   /**
-   * The published revision the sign-off covered: the `resultHash` of the
-   * article's latest `articleRevisions` row when it was signed, or
-   * `REVIEW_INITIAL_REVISION` when no revision had been recorded yet. A later
-   * publish records a new revision, so the review derives `stale`.
+   * The published revision the sign-off covered, derived from the stored
+   * article content and its molecule chemistry (`articleReviewRevision` in
+   * `server/lib/articleReviewRevision.ts`). Any later content write, through
+   * any write path, moves it, so the review derives `stale`. Sign-offs made
+   * before that derivation hold a revision journal `resultHash` or
+   * `REVIEW_INITIAL_REVISION`; they read as stale and their diff still resolves.
    */
   reviewed_revision: z.string().optional(),
   /**
@@ -75,13 +77,22 @@ export const editorialReviewSchema = z.object({
    * the published revision moves on, the recommendation reads as stale.
    */
   recommendation: reviewRecommendationSchema.optional(),
+  /**
+   * On a sign-off that approved a recommendation: the editor who recommended
+   * it, when, and their note, so the record credits both the recommender and
+   * the approving admin (`reviewed_by`). Absent on a direct admin sign-off.
+   */
+  recommended_by: z.string().optional(),
+  recommended_at: z.string().optional(),
+  recommendation_note: z.string().optional(),
   /** Declared so editor saves preserve Review Flags instead of stripping them. */
   flags: z.array(reviewFlagSchema).optional(),
 });
 
 /**
- * The revision name a sign-off records when the article has no recorded
+ * The revision name early sign-offs recorded when the article had no recorded
  * revision yet: the content it covered is the `before` of the first revision.
+ * New sign-offs never record it; it is read only so those older ones resolve.
  */
 export const REVIEW_INITIAL_REVISION = "initial";
 

@@ -3,6 +3,7 @@
 import { PUBLIC_GLOSSARY_RENDERING_SELECT, publicGlossaryRendering } from "../../translation/publicGlossaryRendering";
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
+import { articleReviewRevision } from "../../../server/lib/articleReviewRevision";
 import { PublicProjectionReader } from "./dbPublicReads";
 import { fromRow, quote, type Doc } from "./dbRows";
 import {
@@ -21,20 +22,32 @@ export class EditorialProjectionReader extends PublicProjectionReader {
   }
 
   /**
-   * Each article's latest recorded revision hash, the value a review sign-off
-   * compares against. Only the two small columns are read, never the snapshots.
+   * Each article's current revision, the value a review sign-off compares
+   * against. It is derived from the stored article and its molecule chemistry
+   * (`articleReviewRevision`), so every article body is read; the revision
+   * journal is not, since writes that bypass it must still count.
    */
   async getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>> {
-    const result = await this.client.query(
-      `SELECT DISTINCT ON ("slug" COLLATE "C") "slug", "resultHash"
-       FROM "articleRevisions"
-       ORDER BY "slug" COLLATE "C", "_creationTime" DESC`,
-    );
-    return result.rows.flatMap((row) =>
-      typeof row.slug === "string" && typeof row.resultHash === "string" && row.resultHash
-        ? [{ slug: row.slug, revision: row.resultHash }]
-        : [],
-    );
+    const [articles, molecules] = await Promise.all([
+      this.client.query(`SELECT ${losslessSelectList("substanceIndex")} FROM "substanceIndex"`),
+      this.client.query(
+        `SELECT ${losslessSelectList("moleculeOverrides", ["_id", "_creationTime", "slug", "molblock", "smiles", "boldBonds"])}
+         FROM "moleculeOverrides"
+         ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
+      ),
+    ]);
+    // The first override per slug, as the by_slug lookup reads it.
+    const chemistry = new Map<string, Doc>();
+    for (const row of molecules.rows) {
+      const molecule = fromRow("moleculeOverrides", row);
+      if (typeof molecule.slug === "string" && !chemistry.has(molecule.slug)) chemistry.set(molecule.slug, molecule);
+    }
+    return articles.rows.flatMap((row) => {
+      const article = fromRow("substanceIndex", row);
+      return typeof article.slug === "string"
+        ? [{ slug: article.slug, revision: articleReviewRevision(article, chemistry.get(article.slug)) }]
+        : [];
+    });
   }
 
   /**

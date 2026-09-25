@@ -4,7 +4,8 @@ import type { MutationCtx, QueryCtx } from "../../lib/postgres/runtime/server"
 import type { AuthorizedActor } from "./auth";
 import { contentHash } from "../../lib/proposals/contentHash";
 import { deriveSubmittedBy } from "../../lib/changelog/submitterStamp";
-import { articleChangePatch, type ArticleDocument } from "./articleLifecycleValidation";
+import { articleChangePatch, articleDocument, type ArticleDocument } from "./articleLifecycleValidation";
+import { articleContentFingerprint, articleFingerprintOf, articleReviewRevision } from "./articleReviewRevision";
 import { encodeFieldPathKey, getArticleValueByPath } from "../../src/data/schema/fieldPath";
 import { REVIEW_INITIAL_REVISION } from "../../src/schema/substance/editorial";
 
@@ -76,10 +77,12 @@ async function markChangedArticleEvidence(ctx: MutationCtx, before: ArticleDocum
 export async function recordArticleRevision(ctx: MutationCtx, input: {
   before: ArticleDocument; after: ArticleDocument; actor: Pick<AuthorizedActor, "email" | "role">;
   changeId: string; baseHash: string; summary: string; restoredFrom?: Id<"articleRevisions">; publicChangelog?: boolean;
+  /** False only for a snapshot of content another write already stored. */
+  markEvidence?: boolean;
 }) {
   const now = new Date().toISOString();
   const changed = Object.keys(articleChangePatch(input.before, input.after));
-  await markChangedArticleEvidence(ctx, input.before, input.after, input.actor.email, changed);
+  if (input.markEvidence !== false) await markChangedArticleEvidence(ctx, input.before, input.after, input.actor.email, changed);
   const revisionId = await ctx.db.insert("articleRevisions", {
     slug: input.after.slug!, changeId: input.changeId, actorEmail: input.actor.email, actorRole: input.actor.role,
     before: input.before, after: input.after, baseHash: input.baseHash, resultHash: "", summary: input.summary,
@@ -106,14 +109,19 @@ export function articleRevisionResult(revision: Doc<"articleRevisions">) {
 /** Revisions one article may carry before review lookups refuse to guess. */
 const REVIEW_REVISION_SCAN_LIMIT = 1000;
 
+async function moleculeChemistry(ctx: QueryCtx | MutationCtx, slug: string) {
+  return ctx.db.query("moleculeOverrides").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+}
+
 /**
  * The article's current published revision, as a review sign-off records it:
- * the latest revision's `resultHash`, or `REVIEW_INITIAL_REVISION` when no
- * revision has been recorded yet.
+ * derived from the stored article and its molecule override (see
+ * `articleReviewRevision`), so a write that bypasses the revision journal
+ * still moves it and makes an earlier sign-off stale.
  */
 export async function publishedArticleRevision(ctx: QueryCtx | MutationCtx, slug: string): Promise<string> {
-  const latest = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("desc").first();
-  return latest?.resultHash || REVIEW_INITIAL_REVISION;
+  const article = await loadArticle(ctx, slug);
+  return articleReviewRevision(articleDocument(article), await moleculeChemistry(ctx, slug));
 }
 
 async function articleRevisionsOldestFirst(ctx: QueryCtx | MutationCtx, slug: string) {
@@ -124,18 +132,37 @@ async function articleRevisionsOldestFirst(ctx: QueryCtx | MutationCtx, slug: st
   return revisions;
 }
 
-/** Whether `revision` names a published state of this article that a review can cover. */
-export async function isArticleRevision(ctx: QueryCtx | MutationCtx, slug: string, revision: string): Promise<boolean> {
-  if (revision === REVIEW_INITIAL_REVISION) return true;
-  const revisions = await articleRevisionsOldestFirst(ctx, slug);
-  return revisions.some((row) => row.resultHash === revision);
+/**
+ * Make sure the revision journal holds the article exactly as stored, so the
+ * content a sign-off or recommendation covers can be read back later. When a
+ * write bypassed the journal, one private snapshot row records the stored
+ * content (against the last journaled state) without touching citation
+ * evidence or the public changelog.
+ */
+export async function journalStoredArticle(ctx: MutationCtx, slug: string, actor: Pick<AuthorizedActor, "email" | "role">) {
+  const current = articleDocument(await loadArticle(ctx, slug));
+  const latest = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("desc").first();
+  const fingerprint = articleContentFingerprint(current);
+  if (latest && articleContentFingerprint(latest.after as ArticleDocument) === fingerprint) return;
+  await recordArticleRevision(ctx, {
+    before: (latest?.after as ArticleDocument | undefined) ?? current,
+    after: current,
+    actor,
+    changeId: `review-snapshot-${Date.now().toString(36)}-${fingerprint.slice(0, 12)}`,
+    baseHash: await articleBaseHash(ctx, current),
+    summary: "Recorded the stored article for a review",
+    publicChangelog: false,
+    markEvidence: false,
+  });
 }
 
 /**
- * The article as it stood at a signed revision: that revision's `after`, or
- * for `REVIEW_INITIAL_REVISION` the first revision's `before` (the current
- * article when nothing was ever published). Null when the revision is unknown
- * for this slug.
+ * The article as it stood at a signed revision, or null when the revision
+ * names no state of this article that can be read back. A derived revision is
+ * found by content: the stored article, then journaled states newest first.
+ * A legacy journal `resultHash` names its row, and the legacy
+ * `REVIEW_INITIAL_REVISION` marker the first revision's `before` (the current
+ * article when nothing was ever journaled).
  */
 export async function articleAtRevision(
   ctx: QueryCtx | MutationCtx,
@@ -145,6 +172,22 @@ export async function articleAtRevision(
 ): Promise<ArticleDocument | null> {
   const revisions = await articleRevisionsOldestFirst(ctx, slug);
   if (revision === REVIEW_INITIAL_REVISION) return (revisions[0]?.before as ArticleDocument | undefined) ?? current;
-  const signed = revisions.find((row) => row.resultHash === revision);
-  return signed ? (signed.after as ArticleDocument) : null;
+  const fingerprint = articleFingerprintOf(revision);
+  if (fingerprint === null) {
+    const signed = revisions.find((row) => row.resultHash === revision);
+    return signed ? (signed.after as ArticleDocument) : null;
+  }
+  if (articleContentFingerprint(current) === fingerprint) return current;
+  for (let index = revisions.length - 1; index >= 0; index -= 1) {
+    const after = revisions[index].after as ArticleDocument;
+    if (articleContentFingerprint(after) === fingerprint) return after;
+  }
+  const first = revisions[0]?.before as ArticleDocument | undefined;
+  return first && articleContentFingerprint(first) === fingerprint ? first : null;
+}
+
+/** Whether `revision` names a state of this article that a review can cover. */
+export async function isArticleRevision(ctx: QueryCtx | MutationCtx, slug: string, revision: string): Promise<boolean> {
+  const current = articleDocument(await loadArticle(ctx, slug));
+  return (await articleAtRevision(ctx, slug, revision, current)) !== null;
 }
