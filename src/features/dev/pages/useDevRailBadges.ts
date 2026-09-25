@@ -11,11 +11,34 @@ export type DevRailBadge = NonNullable<DevTabDescriptor["badge"]>;
 /** Counts the rail shows right now, keyed by badge name; absent while unknown or zero. */
 export type DevRailBadgeCounts = Readonly<Partial<Record<DevRailBadge, number>>>;
 
-/** Where each badge's count comes from, and which field of the JSON answer holds it. */
-const BADGE_SOURCES: Record<DevRailBadge, { url: string; field: string }> = {
-  "trip-reports": { url: "/api/dev/trip-reports/needs-review-count", field: "count" },
-  feedback: { url: "/api/feedback/pending-count", field: "total" },
-  proposals: { url: "/api/dev/proposals/count", field: "submitted" },
+/**
+ * What one count endpoint answered: the badge total, plus the per-source split
+ * when the endpoint returns one (feedback answers `{ article, site, total }`).
+ */
+type BadgeReading = { count: number; parts?: Readonly<Record<string, number>> };
+
+type BadgeSource = { url: string; read: (payload: Record<string, unknown>) => BadgeReading | null };
+
+function numberField(name: string): BadgeSource["read"] {
+  return (payload) => {
+    const count = payload[name];
+    return typeof count === "number" ? { count } : null;
+  };
+}
+
+/** Where each badge's count comes from, and how to read its JSON answer. */
+const BADGE_SOURCES: Record<DevRailBadge, BadgeSource> = {
+  "trip-reports": { url: "/api/dev/trip-reports/needs-review-count", read: numberField("count") },
+  feedback: {
+    url: "/api/feedback/pending-count",
+    read: ({ article, site, total }) =>
+      typeof total === "number" && typeof article === "number" && typeof site === "number"
+        ? { count: total, parts: { article, site } }
+        : null,
+  },
+  proposals: { url: "/api/dev/proposals/count", read: numberField("submitted") },
+  citations: { url: "/api/citation-evidence/open-count", read: numberField("count") },
+  "glossary-feedback": { url: "/api/glossary-feedback/pending-count", read: numberField("total") },
 };
 
 const BADGES = Object.keys(BADGE_SOURCES) as DevRailBadge[];
@@ -28,17 +51,24 @@ const BADGE_FLOORS = Object.fromEntries(
 type BadgeEntry = {
   /** Last count the rail saw; null until the endpoint has answered once. */
   count: number | null;
+  /** The per-source split behind `count`, when the endpoint reports one. */
+  parts: Readonly<Record<string, number>> | null;
+  /** When `count` last arrived (epoch ms); null until it has. */
+  updatedAt: number | null;
+  /**
+   * Set when the latest request failed and cleared by the next success. A
+   * failure never touches `count`: the last known count stays, marked stale.
+   */
+  failed: boolean;
   /** Bumped by every invalidation; a mounted rail refetches when it changes. */
   generation: number;
 };
 
 type BadgeSnapshot = Readonly<Record<DevRailBadge, BadgeEntry>>;
 
-const INITIAL_SNAPSHOT: BadgeSnapshot = {
-  "trip-reports": { count: null, generation: 0 },
-  feedback: { count: null, generation: 0 },
-  proposals: { count: null, generation: 0 },
-};
+const INITIAL_SNAPSHOT = Object.fromEntries(
+  BADGES.map((badge) => [badge, { count: null, parts: null, updatedAt: null, failed: false, generation: 0 }]),
+) as BadgeSnapshot;
 
 /**
  * Plain module store, read through `useSyncExternalStore`. Lives outside React
@@ -77,26 +107,37 @@ export function resetDevRailBadgesForTests() {
   emit();
 }
 
-async function loadCount(badge: DevRailBadge, generation: number, owner: string) {
+async function readCount(badge: DevRailBadge): Promise<BadgeReading | null> {
   const source = BADGE_SOURCES[badge];
   try {
     const response = await fetch(source.url);
     if (!response.ok) {
-      return;
+      return null;
     }
-
-    const payload = await response.json();
-    const count = payload[source.field];
-    // An invalidation raced this answer: the refetch it triggered wins.
-    if (typeof count !== "number" || activeOwner !== owner || snapshot[badge].generation !== generation) {
-      return;
-    }
-
-    snapshot = { ...snapshot, [badge]: { count, generation } };
-    emit();
+    const payload: unknown = await response.json();
+    return payload !== null && typeof payload === "object" ? source.read(payload as Record<string, unknown>) : null;
   } catch {
-    // A missing badge is the correct failure mode: the rail still works.
+    return null;
   }
+}
+
+async function loadCount(badge: DevRailBadge, generation: number, owner: string) {
+  const reading = await readCount(badge);
+  // An invalidation raced this answer: the refetch it triggered wins.
+  if (activeOwner !== owner || snapshot[badge].generation !== generation) {
+    return;
+  }
+
+  const entry = snapshot[badge];
+  snapshot = {
+    ...snapshot,
+    // A failed read keeps the last known count and marks it stale; the rail
+    // badge still shows it, and the opened queue says how old it is.
+    [badge]: reading
+      ? { count: reading.count, parts: reading.parts ?? null, updatedAt: Date.now(), failed: false, generation }
+      : { ...entry, failed: true },
+  };
+  emit();
 }
 
 /**
@@ -162,4 +203,37 @@ export function useDevRailBadges(role: AppRole | null, actorEmail?: string | nul
     }
   }
   return counts;
+}
+
+/**
+ * The per-source split behind one badge, for a tool that shows it beside its
+ * own source filter. Null until the shell's rail has loaded that count, and
+ * for another account's cached answer.
+ */
+export function useDevRailBadgeParts(badge: DevRailBadge): Readonly<Record<string, number>> | null {
+  const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
+  return current[badge].parts;
+}
+
+/** What an opened queue needs to say about its rail count: how fresh it is. */
+export type DevRailBadgeStatus = {
+  /** Last known count; null while it has never loaded. */
+  count: number | null;
+  /** When `count` arrived (epoch ms); null while it has never loaded. */
+  updatedAt: number | null;
+  /** True when the latest request failed: `count` is the last known, not the current, value. */
+  failed: boolean;
+  /** Ask the mounted rail to fetch this count again. */
+  retry: () => void;
+};
+
+/**
+ * One badge's count with its freshness, for the queue the badge points at.
+ * The rail keeps showing the last known count on failure, so this is where
+ * an editor learns the number may be old.
+ */
+export function useDevRailBadgeStatus(badge: DevRailBadge): DevRailBadgeStatus {
+  const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
+  const { count, updatedAt, failed } = current[badge];
+  return { count, updatedAt, failed, retry: () => invalidateDevRailBadge(badge) };
 }

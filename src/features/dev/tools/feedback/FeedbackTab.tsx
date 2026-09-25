@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { EditorSegmentedControl } from "@/features/dev/components";
+import { useDevRailBadgeParts } from "@/features/dev/pages/useDevRailBadges";
 import { viewToPath } from "@/utils/routing";
 
 import { articleFeedbackAdapter } from "./articleFeedbackAdapter";
@@ -32,6 +33,10 @@ const STATUS_PARAM = "status";
  * carries into the new one. The status filter lives here, above the remount,
  * so an editor working through New rows stays on New across both sources.
  *
+ * Each source option carries its pending count (New plus Reviewing), read from
+ * the rail badge's own answer, so the badge total and the two options always
+ * add up. The counts stay hidden until the rail has loaded them.
+ *
  * Both filters live in the URL, `?source=` and `?status=`, so a reload keeps
  * them, and the retired `/dev/site-feedback` address presets the source
  * through the registry's filter segments. The route only resolves `source`
@@ -42,6 +47,7 @@ const STATUS_PARAM = "status";
  */
 export function FeedbackTab({ initialSource }: { initialSource?: string }) {
   const [source, setSource] = useState<FeedbackSource>(initialSource === "site" ? "site" : "article");
+  const pendingBySource = useDevRailBadgeParts("feedback");
   const [statusFilter, setStatusFilter] = useState<FeedbackQueueFilter | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -68,7 +74,10 @@ export function FeedbackTab({ initialSource }: { initialSource?: string }) {
   const sourceFilter = (guard: FeedbackDraftGuard) => (
     <EditorSegmentedControl
       label="Feedback source"
-      options={SOURCE_OPTIONS}
+      options={SOURCE_OPTIONS.map((option) => {
+        const pending = pendingBySource?.[option.value];
+        return pending === undefined ? option : { ...option, badge: String(pending) };
+      })}
       value={source}
       onChange={(value) => {
         if (value !== source) {

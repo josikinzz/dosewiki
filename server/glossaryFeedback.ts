@@ -2,12 +2,15 @@ import { PostgresError, v } from "../lib/postgres/runtime/values";
 import { query, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
-import { canAccessGlossaryLocale } from "../src/lib/auth/roles";
+import { approvedGlossaryLocales, canAccessGlossaryLocale } from "../src/lib/auth/roles";
 import {
   glossaryLanguage,
   renderingVersion,
 } from "../src/features/language-glossary/languageGlossary";
-import { SITE_FEEDBACK_STATUS_TRANSITIONS } from "../src/features/site-feedback/siteFeedback";
+import {
+  SITE_FEEDBACK_PENDING_STATUSES,
+  SITE_FEEDBACK_STATUS_TRANSITIONS,
+} from "../src/features/site-feedback/siteFeedback";
 import {
   glossaryFeedbackStatus,
   glossaryReactionChoice,
@@ -181,21 +184,55 @@ export const createReaction = mutation({
     return { choice: args.choice };
   },
 });
+/** The newest rows `list` returns per locale; the pending count reads the same window. */
+const LIST_WINDOW = 250;
+function newestForLocale(ctx: QueryCtx, locale: string) {
+  return ctx.db
+    .query("glossaryFeedback")
+    .withIndex("by_locale_created", (q) => q.eq("locale", locale))
+    .order("desc")
+    .take(LIST_WINDOW);
+}
 export const list = query({
   args: { apiKey: v.string(), actorEmail: v.string(), locale: v.string() },
   handler: async (ctx, args) => {
     await requireLocale(ctx, args);
-    const rows = await ctx.db
-      .query("glossaryFeedback")
-      .withIndex("by_locale_created", (q) => q.eq("locale", args.locale))
-      .order("desc")
-      .take(250);
+    const rows = await newestForLocale(ctx, args.locale);
     return rows.map(
       ({ visitor: _visitor, _id, _creationTime: _time, ...row }) => ({
         ...row,
         id: _id,
       }),
     );
+  },
+});
+/**
+ * Pending glossary feedback across every locale this reviewer may open, for
+ * the `/dev` rail badge. It counts inside the window `list` returns, so the
+ * badge never names a row the Glossary queue cannot show.
+ */
+export const pendingCount = query({
+  args: { apiKey: v.string(), actorEmail: v.string() },
+  handler: async (ctx, args) => {
+    const actor = await requireRole(
+      ctx,
+      { ...args, adminIntent: "editorArticleWrite" },
+      "translator",
+    );
+    const membership = await ctx.db
+      .query("memberships")
+      .withIndex("by_email", (q) => q.eq("email", actor.email))
+      .unique();
+    const pending: readonly string[] = SITE_FEEDBACK_PENDING_STATUSES;
+    let total = 0;
+    for (const locale of approvedGlossaryLocales({
+      role: actor.role,
+      glossaryLocales: membership?.glossaryLocales,
+    })) {
+      const rows = await newestForLocale(ctx, locale);
+      total += rows.filter((row) => pending.includes(row.status)).length;
+    }
+    return total;
   },
 });
 export const reactions = query({

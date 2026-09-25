@@ -324,6 +324,12 @@ describe("public glossary intake through isolated Postgres", () => {
     ).toBe(202);
     const rows = await client.query(api.glossaryFeedback.list, reviewArgs);
     expect(rows).toHaveLength(1);
+    // The rail badge counts it for the reviewer of that language only.
+    const countArgs = { apiKey: "test-review", actorEmail: reviewArgs.actorEmail };
+    expect(await client.query(api.glossaryFeedback.pendingCount, countArgs)).toBe(1);
+    expect(
+      await client.query(api.glossaryFeedback.pendingCount, { ...countArgs, actorEmail: "other@example.test" }),
+    ).toBe(0);
     expect(rows[0]).toMatchObject({
       target: "Rust",
       version: renderingVersion(rendering),
@@ -340,6 +346,7 @@ describe("public glossary intake through isolated Postgres", () => {
     expect(
       (await client.query(api.glossaryFeedback.list, reviewArgs))[0].status,
     ).toBe("resolved");
+    expect(await client.query(api.glossaryFeedback.pendingCount, countArgs)).toBe(0);
     expect(
       (await database.query('SELECT target, status FROM "translationGlossary"'))
         .rows,

@@ -39,7 +39,7 @@ describe("trip report needs-review count route", () => {
     mocks.storeCount.mockResolvedValue(312);
   });
 
-  it("counts exactly the Needs review statuses through the store's count call", async () => {
+  it("counts the Needs review statuses, accepted-but-unpublished included, through the store's count call", async () => {
     const { enforceRateLimit } = await import("@server/http/nextRateLimit");
     const { GET } = await import("./route");
 
@@ -48,6 +48,8 @@ describe("trip report needs-review count route", () => {
     expect(enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "diagnosticRead");
     expect(mocks.storeCount).toHaveBeenCalledTimes(1);
     expect(mocks.storeCount).toHaveBeenCalledWith({ statuses: [...NEEDS_REVIEW_SUBMISSION_STATUSES] });
+    // An accepted report is not live until an admin publishes it, so the badge counts it.
+    expect(mocks.storeCount.mock.calls[0][0].statuses).toContain("accepted");
     // The badge never pays for a list download.
     expect(mocks.storeList).not.toHaveBeenCalled();
     expect(response.status).toBe(200);

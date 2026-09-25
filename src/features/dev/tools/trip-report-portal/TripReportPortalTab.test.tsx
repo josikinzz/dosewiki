@@ -200,7 +200,8 @@ describe("TripReportPortalTab", () => {
 
     render(<TripReportPortalTab />);
 
-    expect(await screen.findByRole("button", { name: /^Needs review/ })).toHaveTextContent("300");
+    // Every pending row, plus the accepted row still waiting on Publish.
+    expect(await screen.findByRole("button", { name: /^Needs review/ })).toHaveTextContent("301");
     // The capped page still contributes what the scoped read does not carry.
     expect(screen.getByRole("button", { name: /^All/ })).toHaveTextContent("302");
     expect(screen.getByRole("button", { name: /^Published/ })).toHaveTextContent("1");
@@ -345,10 +346,12 @@ describe("TripReportPortalTab", () => {
 
     render(<TripReportPortalTab />);
 
-    // An accepted submission is in neither the needs-review nor the published
-    // bucket, so All is where an editor finds it.
-    await user.click(await screen.findByRole("button", { name: /^All/ }));
-    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    // An accepted submission still waits on an admin to publish it, so it
+    // stays in Needs review, labelled Accepted, where the tab opens.
+    const acceptedRow = await screen.findByRole("option", { name: /Careful low dose museum walk/ });
+    expect(screen.getByRole("button", { name: /^Needs review/ })).toHaveTextContent("1");
+    expect(acceptedRow).toHaveTextContent("Accepted");
+    await user.click(acceptedRow);
 
     await user.click(screen.getByRole("button", { name: "Preview publish" }));
 

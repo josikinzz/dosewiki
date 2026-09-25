@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { resetDevRailBadgesForTests, useDevRailBadges } from "@/features/dev/pages/useDevRailBadges";
+
 import { CitationReviewTab } from "./CitationReviewTab";
 import type { CitationEvidenceRow, CitationReviewQueueSummary } from "./citationReviewModels";
 
@@ -202,6 +204,42 @@ describe("CitationReviewTab", () => {
     await user.click(await screen.findByRole("button", { name: "Undo" }));
     await waitFor(() => expect(posts).toHaveLength(2));
     expect(posts[1]).toEqual({ slug: "lsd", claimKeys: ["summary:ready"], status: "supported" });
+  });
+
+  it("refreshes the rail's open-article count after a decision", async () => {
+    const user = userEvent.setup();
+    resetDevRailBadgesForTests();
+    stubQueue({ open: [openSummary] }, { posts: [] });
+    const queueFetch = vi.mocked(fetch).getMockImplementation()!;
+    const openCounts = [1, 0];
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (String(input) === "/api/citation-evidence/open-count") {
+        return Response.json({ ok: true, count: openCounts.length > 1 ? openCounts.shift() : openCounts[0] });
+      }
+      if (String(input).includes("-count") || String(input).endsWith("/count")) {
+        return Response.json({ ok: true, count: 0, total: 0, article: 0, site: 0, submitted: 0 });
+      }
+      return queueFetch(input, init);
+    });
+
+    function Badge() {
+      const count = useDevRailBadges("admin").citations;
+      return <span data-testid="badge">{count === undefined ? "none" : String(count)}</span>;
+    }
+
+    render(
+      <>
+        <Badge />
+        <CitationReviewTab />
+      </>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("1"));
+    await user.click(await screen.findByRole("button", { name: /Ready claim/ }));
+    const group = screen.getByRole("group", { name: "Evidence row decision actions" });
+    await user.click(within(group).getByRole("button", { name: "Approve" }));
+
+    await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("none"));
   });
 
   it("asks for a reason before rejecting and saves it with the row", async () => {

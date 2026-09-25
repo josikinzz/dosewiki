@@ -21,6 +21,7 @@ import {
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
+import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import { ProposalReview } from "./ProposalReview";
 import { ReviewRecommendationsLane } from "./ReviewRecommendationsLane";
@@ -316,6 +317,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor }: QueueTabProps) {
             }
           />
         ) : null}
+        <DevRailBadgeFreshness badge="proposals" noun="submissions" />
       </EditorSection>
 
       {/* Editors recommend sign-offs from /review; approving them is admin work. */}

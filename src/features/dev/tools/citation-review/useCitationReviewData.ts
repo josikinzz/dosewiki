@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import {
   groupPriorRowsForRestore,
   type CitationEvidenceRow,
@@ -194,6 +195,8 @@ export function useCitationReviewData(initialSlug?: string) {
 
       try {
         await postStatus({ slug, claimKeys: decidedKeys, status, statusReason });
+        // A decision can drain an article out of the open count the rail shows.
+        invalidateDevRailBadge("citations");
         await Promise.all([refreshQueue(), refreshDetail(slug)]);
         setUndoableDecision({ status, slug, prior });
       } catch (error) {
@@ -222,6 +225,7 @@ export function useCitationReviewData(initialSlug?: string) {
       for (const group of groupPriorRowsForRestore(decision.prior)) {
         await postStatus({ slug: decision.slug, ...group });
       }
+      invalidateDevRailBadge("citations");
       await refreshQueue();
       // A decision can drain its article out of the queue and move the
       // selection on; undo brings the restored article back into view.

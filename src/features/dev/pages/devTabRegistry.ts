@@ -65,7 +65,7 @@ type DevTabDescriptorOf<Id extends string> = {
   labelFor?: (role: AppRole | null) => string;
   destination: DevTabDestination;
   /** Named count source rendered as a rail badge; `useDevRailBadges` maps the name to its endpoint. */
-  badge?: "trip-reports" | "feedback" | "proposals";
+  badge?: "trip-reports" | "feedback" | "proposals" | "citations" | "glossary-feedback";
   /**
    * A tab-level filter kept in the URL as `?<param>=<value>`. `segments` are
    * extra route segments that open the tab with that value preset, the way a
@@ -122,6 +122,7 @@ const REGISTRY = [
     saveModel: "instant",
     layout: "shell",
     destination: SHELL,
+    badge: "citations",
   },
   {
     id: "trip-report-submissions",
@@ -293,6 +294,8 @@ const REGISTRY = [
     saveModel: "instant",
     layout: "shell",
     destination: SHELL,
+    // Reader feedback on the renderings waits here, per language the reviewer holds.
+    badge: "glossary-feedback",
   },
   {
     id: "my-reports",

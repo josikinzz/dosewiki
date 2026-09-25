@@ -29,6 +29,7 @@ import {
   type EditorStatusPillTone,
 } from "@/features/dev/components";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
+import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 
 import {
@@ -194,6 +195,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   onStatusFilterChange: (filter: FeedbackQueueFilter) => void;
 }) {
   const { labels } = adapter;
+  // The rail count this queue feeds: glossary feedback has its own badge.
+  const railBadge = adapter.source === "glossary" ? "glossary-feedback" : "feedback";
   const reviewSectionId = `${adapter.source}-feedback-review-section`;
   const [feedback, setFeedback] = useState<Item[]>([]);
   const [counts, setCounts] = useState<StatusCounts | null>(null);
@@ -432,7 +435,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         }
       }
       // Any transition can move the row in or out of the pending bucket the rail counts.
-      invalidateDevRailBadge("feedback");
+      invalidateDevRailBadge(railBadge);
       // Reconcile counts and concurrent reviewer changes in the background,
       // keeping the list and the selection where they are.
       void loadQueue({ background: true });
@@ -480,6 +483,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         {loadState.status === "error" ? (
           <LoadErrorState message={loadState.message} onRetry={() => void loadQueue({ background: feedback.length > 0 })} />
         ) : null}
+        <DevRailBadgeFreshness badge={railBadge} noun="feedback items" />
       </EditorSection>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">

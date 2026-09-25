@@ -100,19 +100,21 @@ describe("portal row identity", () => {
 });
 
 describe("portal buckets", () => {
-  it("treats exactly the submitted and reviewing states as needing review", () => {
-    expect([...NEEDS_REVIEW_SUBMISSION_STATUSES]).toEqual(["submitted", "reviewing"]);
-    expect(corpus.filter((row) => bucketOf(row) === "needs").map((row) => row.id)).toEqual(["s1", "s2"]);
+  it("treats submitted, reviewing and accepted-but-unpublished as needing review", () => {
+    expect([...NEEDS_REVIEW_SUBMISSION_STATUSES]).toEqual(["submitted", "reviewing", "accepted"]);
+    expect(corpus.filter((row) => bucketOf(row) === "needs").map((row) => row.id)).toEqual(["s1", "s2", "s3"]);
+    // Accepted still reads as Accepted: it waits on Publish, not on a decision.
+    expect(corpus.find((row) => row.id === "s3")?.statusKind).toBe("accepted");
   });
 
   it("counts published rows as the published bucket and leaves the rest to All", () => {
-    expect(countBucket(corpus, "needs")).toBe(2);
+    expect(countBucket(corpus, "needs")).toBe(3);
     expect(countBucket(corpus, "published")).toBe(3);
     expect(countBucket(corpus, "all")).toBe(7);
 
-    // Accepted-but-unpromoted and spam sit in neither of the first two.
+    // Only spam sits in neither of the first two.
     const stranded = corpus.filter((row) => bucketOf(row) === "other").map((row) => row.id);
-    expect(stranded).toEqual(["s3", "s4"]);
+    expect(stranded).toEqual(["s4"]);
   });
 });
 
