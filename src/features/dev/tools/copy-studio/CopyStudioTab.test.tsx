@@ -231,6 +231,30 @@ describe("CopyStudioTab", () => {
     expect(fetchMock.mock.calls[0][0]).toBe("/api/dev/proposals");
   });
 
+  it("never publishes an admin's block from the shell dialog, only discards it", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const onLeave = vi.fn();
+
+    render(
+      <UnsavedWorkProvider>
+        <LeaveProbe onLeave={onLeave} />
+        <CopyStudioTab initialKey="about-reuse-notice" canApprove />
+      </UnsavedWorkProvider>,
+    );
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
+
+    await userEvent.click(screen.getByRole("button", { name: "Leave editor" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    expect(within(dialog).getByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeTruthy();
+    expect(within(dialog).queryByRole("button", { name: /Publish|Save|Submit/ })).toBeNull();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Discard" }));
+
+    expect(onLeave).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("finds a block by a phrase from its stored text", async () => {
     query.rows = [STORED_REUSE_NOTICE];
     render(<CopyStudioTab canApprove />);

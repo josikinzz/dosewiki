@@ -142,15 +142,18 @@ export function WritingTab({
   });
   // The shell asks before a rail click, Leave or sign-out drops the open
   // draft. Its Save is the editor's own save, offered only when that button
-  // would be enabled; About keeps its own save, so the shell only discards it
+  // would be enabled and only for an unpublished save: a record that is or
+  // would become live (publishing, or unpublishing a live page) is published
+  // from the editor. About keeps its own save, so the shell only discards it
   // (unmounting drops that draft).
-  const { canSave, save: saveDraft, discard: discardDraft } = controller;
+  const { canSave, save: saveDraft, discard: discardDraft, baseline } = controller;
   const shellCanSave = !pinned && canApprove && canSave && isDirty;
   useUnsavedWork({
     id: "writing",
     label: `Writing: ${openTitle}`,
     dirty: unsaved,
-    saveLabel: draft.status === "published" ? "Publish" : "Save as unpublished",
+    saveLabel: "Save as unpublished",
+    publishesLive: !pinned && (draft.status === "published" || baseline.status === "published"),
     save: shellCanSave
       ? async () => {
           if (!(await saveDraft(draft.status))) {

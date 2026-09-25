@@ -312,8 +312,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   }, [activeBlock, baselineRow, baselineRevision, canApprove, currentText, draft, draftText, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload, invalidateEditorReads]);
 
   // The shell asks before a rail click, Leave or sign-out drops the open
-  // block's edits. Its Save is this tool's own primary action, offered only
-  // when that button would be enabled, and named for where it goes.
+  // block's edits. Its Save submits for review, offered only when this tool's
+  // own button would be enabled; an admin's save publishes live, so the shell
+  // offers only Discard and the admin publishes from here.
   const shellCanSave = isDirty
     && saveState !== "saving"
     && selectedSnapshot !== undefined
@@ -323,11 +324,12 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     id: "copy-studio",
     label: `Copy: ${activeBlock?.label ?? "open block"}`,
     dirty: isDirty,
-    saveLabel: canApprove ? "Publish copy" : "Submit for review",
+    saveLabel: "Submit for review",
+    publishesLive: canApprove,
     save: shellCanSave
       ? async () => {
           if (!(await handleSave())) {
-            throw new Error(`“${activeBlock?.label ?? "This block"}” was not ${canApprove ? "published" : "submitted"}. The reason is shown in Copy.`);
+            throw new Error(`“${activeBlock?.label ?? "This block"}” was not submitted. The reason is shown in Copy.`);
           }
         }
       : undefined,

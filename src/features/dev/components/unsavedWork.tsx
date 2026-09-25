@@ -8,6 +8,10 @@ import { ConfirmDialog } from "./ConfirmDialog";
  * holds the work, so the rail can mark it. `save` is optional: work with no
  * one-step save (a draft that still needs its own review step) offers only
  * Discard.
+ *
+ * The dialog never publishes live. Publishing needs the tool's own explicit
+ * action and confirm, so an entry whose save would go live sets
+ * `publishesLive` and the dialog drops its Save, whatever `save` is.
  */
 export interface UnsavedWorkEntry {
   id: string;
@@ -15,8 +19,10 @@ export interface UnsavedWorkEntry {
   dirty: boolean;
   save?: () => Promise<void>;
   discard: () => void;
-  /** The save button's verb when plain "Save" would hide where it goes, like "Publish copy". */
+  /** The save button's verb, like "Save as unpublished" or "Submit for review". */
   saveLabel?: string;
+  /** This entry's save would go live; the dialog offers only Discard and Keep editing. */
+  publishesLive?: boolean;
   /**
    * Work that lives above the tool switch (the shared draft) survives a rail
    * click, so only Leave, sign-out and a browser unload stop for it.
@@ -131,8 +137,9 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
   };
 
   const saveOne = async (exit: PendingExit, id: string) => {
-    const save = entriesRef.current.get(id)?.save;
-    if (!save) return;
+    const entry = entriesRef.current.get(id);
+    if (!entry?.save || entry.publishesLive) return;
+    const save = entry.save;
     setSavingId(id);
     setError(null);
     try {
@@ -176,12 +183,19 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
             <ul className="space-y-1.5">
               {rows.map((entry) => (
                 <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="theme-text-secondary min-w-0 flex-1 truncate text-sm">{entry.label}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="theme-text-secondary block truncate text-sm">{entry.label}</span>
+                    {entry.publishesLive ? (
+                      <span className="theme-text-muted block text-xs">
+                        This change would go live. Publish it from the tool; leaving here never publishes.
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="flex shrink-0 items-center gap-1.5">
                     <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => discardOne(pending, entry.id)}>
                       Discard
                     </Button>
-                    {entry.save ? (
+                    {entry.save && !entry.publishesLive ? (
                       <Button
                         type="button"
                         variant="accent"
@@ -227,8 +241,8 @@ export function useUnsavedWork(entry: UnsavedWorkEntry): void {
   useEffect(() => {
     latest.current = entry;
   });
-  const { id, label, dirty, saveLabel, keepsOnTabSwitch } = entry;
-  const canSave = entry.save !== undefined;
+  const { id, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive } = entry;
+  const canSave = entry.save !== undefined && !publishesLive;
   const register = registry?.register;
 
   useEffect(() => {
@@ -239,8 +253,9 @@ export function useUnsavedWork(entry: UnsavedWorkEntry): void {
       dirty,
       saveLabel,
       keepsOnTabSwitch,
+      publishesLive,
       save: canSave ? () => latest.current.save?.() ?? Promise.resolve() : undefined,
       discard: () => latest.current.discard(),
     });
-  }, [register, id, label, dirty, saveLabel, keepsOnTabSwitch, canSave]);
+  }, [register, id, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive, canSave]);
 }

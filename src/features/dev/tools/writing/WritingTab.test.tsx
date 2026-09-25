@@ -189,14 +189,35 @@ describe("WritingTab", () => {
     await user.click(screen.getByRole("button", { name: "Copy" }));
     const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
     expect(within(dialog).getByText("Writing: Field notes extra")).toBeTruthy();
-    // A published row saves by publishing, and the button says so.
-    expect(within(dialog).getByRole("button", { name: "Publish" })).toBeTruthy();
+    // A published row saves by publishing, which the dialog never does.
+    expect(within(dialog).getByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeTruthy();
+    expect(within(dialog).queryByRole("button", { name: /Publish|Save/ })).toBeNull();
     expect(onSwitch).not.toHaveBeenCalled();
 
     await user.click(within(dialog).getByRole("button", { name: "Discard" }));
 
     expect(onSwitch).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText("Title")).toHaveValue("Field notes");
+  });
+
+  it("offers an unpublished save in the shell dialog for a draft that has never been live", async () => {
+    const user = userEvent.setup();
+    const onSwitch = vi.fn();
+    render(
+      <UnsavedWorkProvider>
+        <RailProbe onSwitch={onSwitch} />
+        <WritingTab contributorProfiles={[]} profilesLoading={false} canApprove initialKind="blog" />
+      </UnsavedWorkProvider>,
+    );
+    await user.click(await screen.findByRole("button", { name: /Launch post/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
+    await user.type(screen.getByLabelText("Title"), " two");
+
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+
+    expect(within(dialog).getByRole("button", { name: "Save as unpublished" })).toBeTruthy();
+    expect(within(dialog).queryByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeNull();
   });
 
   it("opens on the kind the route names without rewriting the URL", async () => {

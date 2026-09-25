@@ -20,7 +20,7 @@ beforeAll(() => {
 });
 
 /** A stand-in tool: one text field whose draft registers with the shell. */
-function FakeWritingTool({ save }: { save?: () => Promise<void> }) {
+function FakeWritingTool({ save, publishesLive }: { save?: () => Promise<void>; publishesLive?: boolean }) {
   const [draft, setDraft] = useState("");
   useUnsavedWork({
     id: "writing",
@@ -31,11 +31,12 @@ function FakeWritingTool({ save }: { save?: () => Promise<void> }) {
       setDraft("");
     } : undefined,
     discard: () => setDraft(""),
+    publishesLive,
   });
   return <input aria-label="Draft" value={draft} onChange={(event) => setDraft(event.target.value)} />;
 }
 
-function renderShell({ save }: { save?: () => Promise<void> } = {}) {
+function renderShell({ save, publishesLive }: { save?: () => Promise<void>; publishesLive?: boolean } = {}) {
   const onTabChange = vi.fn();
   const onLeave = vi.fn();
   render(
@@ -53,7 +54,7 @@ function renderShell({ save }: { save?: () => Promise<void> } = {}) {
         onSignIn={vi.fn()}
         onLeave={onLeave}
       />
-      <FakeWritingTool save={save} />
+      <FakeWritingTool save={save} publishesLive={publishesLive} />
     </UnsavedWorkProvider>,
   );
   const nav = screen.getByRole("navigation", { name: "Dev mode tools" });
@@ -125,6 +126,23 @@ describe("the shell's unsaved-work registry", () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
     });
     await waitFor(() => expect(onLeave).toHaveBeenCalledTimes(1));
+  });
+
+  it("never offers Save for work whose save would go live, even when the tool passes one", () => {
+    const save = vi.fn(async () => {});
+    const { onLeave } = renderShell({ save, publishesLive: true });
+    makeDirty();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Leave editor" })[0]);
+    const dialog = screen.getByRole("dialog");
+
+    expect(within(dialog).getByText(/Publish it from the tool; leaving here never publishes\./)).toBeTruthy();
+    expect(within(dialog).queryByRole("button", { name: "Save" })).toBeNull();
+    expect(within(dialog).getByRole("button", { name: "Keep editing" })).toBeTruthy();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Discard" }));
+    expect(save).not.toHaveBeenCalled();
+    expect(onLeave).toHaveBeenCalledTimes(1);
   });
 
   it("asks before signing out with a dirty draft", () => {
