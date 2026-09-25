@@ -40,11 +40,14 @@ export function CitationQueueHeader({
   queueFilter,
   onQueueFilterChange,
   onRefreshQueue,
+  refreshing = false,
 }: {
   queue: CitationReviewQueueSummary[];
   queueFilter: CitationReviewQueueFilter;
   onQueueFilterChange: (filter: CitationReviewQueueFilter) => void;
   onRefreshQueue: () => void;
+  /** A refresh is in flight; the list stays on screen meanwhile. */
+  refreshing?: boolean;
 }) {
   const readyApprovalCount = queue.reduce((total, entry) => total + entry.supportedCount, 0);
   const blockingGapCount = queue.reduce(
@@ -62,9 +65,9 @@ export function CitationQueueHeader({
       title="Citation review queue"
       description="Evidence snippets, gap states, and reviewer decisions never leave the protected dev area."
       actions={(
-        <Button variant="outline" size="pill" className="rounded-full" onClick={onRefreshQueue}>
-          <Icon icon="lucide:refresh-cw" size={16} />
-          Refresh queue
+        <Button variant="outline" size="pill" className="rounded-full" disabled={refreshing} onClick={onRefreshQueue}>
+          <Icon icon="lucide:refresh-cw" size={16} className={refreshing ? "animate-spin" : undefined} />
+          {refreshing ? "Refreshing queue" : "Refresh queue"}
         </Button>
       )}
     >

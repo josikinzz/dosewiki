@@ -29,6 +29,7 @@ import {
   CitationChecklistPanel,
   CitationSelectedSummary,
   type CitationEvidenceDecisionHandlers,
+  type CitationUndoOffer,
 } from "./CitationReviewPanels";
 import { useCitationReviewData } from "./useCitationReviewData";
 import { slugify } from "@/utils/slug";
@@ -67,7 +68,8 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     queueFilter,
     setQueueFilter,
     queueError,
-    isQueueLoading,
+    initialLoading,
+    refreshing,
     selectedSlug,
     setSelectedSlug,
     selectedSummary,
@@ -149,13 +151,26 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     [setSelectedSlug],
   );
 
-  // The article-wide approval unlocks only after a row of this article has
-  // been opened in this session, so a quote has been on screen.
-  const [readSlug, setReadSlug] = useState<string | null>(null);
-  const hasReadRow = readSlug !== null && readSlug === selectedSlug;
+  // Rows opened in this session, per article. The section and article-wide
+  // approvals unlock only once every ready row they would approve is opened.
+  const [opened, setOpened] = useState<{ slug: string | null; claimKeys: ReadonlySet<string> }>({
+    slug: null,
+    claimKeys: new Set(),
+  });
+  const openedClaimKeys = useMemo<ReadonlySet<string>>(
+    () => (opened.slug === selectedSlug ? opened.claimKeys : new Set()),
+    [opened, selectedSlug],
+  );
+  const openedReadyCount = commands.bulkApprove.claimKeys.filter((claimKey) =>
+    openedClaimKeys.has(claimKey),
+  ).length;
+
+  // Where a multi-row approval came from, so its undo renders in that place:
+  // a section id, or "article" for the article-wide approval.
+  const [bulkOrigin, setBulkOrigin] = useState<string | null>(null);
 
   const confirmApproval = useCallback(
-    (claimKeys: string[], scope: string) => {
+    (claimKeys: string[], scope: string, origin: string) => {
       const wanted = new Set(claimKeys);
       const countBySection = new Map<string, number>();
       for (const row of rows) {
@@ -170,10 +185,13 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
       confirm({
         title: `Approve ${formatCitationCount(claimKeys.length, "ready row")} ${scope}?`,
         description:
-          "Each approved row becomes part of the public article's evidence. Rows without a verified quote and rejected rows are left alone. You can undo for a few seconds after it lands.",
+          "Each approved row becomes part of the public article's evidence. Rows without a verified quote and rejected rows are left alone. You can undo until your next decision.",
         confirmLabel: `Approve ${formatCitationCount(claimKeys.length, "row")}`,
         affected,
-        onConfirm: () => updateStatuses(claimKeys, "approved"),
+        onConfirm: () => {
+          setBulkOrigin(origin);
+          return updateStatuses(claimKeys, "approved");
+        },
       });
     },
     [confirm, rows, updateStatuses],
@@ -187,14 +205,42 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
       onReject: (claimKey, statusReason) => {
         void updateStatuses([claimKey], "rejected", statusReason);
       },
-      onRowExpanded: () => {
-        setReadSlug(selectedSlug);
+      onRowExpanded: (claimKey) => {
+        setOpened((current) => {
+          const base = current.slug === selectedSlug ? current.claimKeys : new Set<string>();
+          if (base.has(claimKey)) {
+            return current;
+          }
+          return { slug: selectedSlug, claimKeys: new Set([...base, claimKey]) };
+        });
       },
     }),
     [selectedSlug, updateStatuses],
   );
 
-  if (isQueueLoading) {
+  const undoOffer = useMemo<CitationUndoOffer | null>(
+    () =>
+      undoableDecision
+        ? {
+            decision: undoableDecision,
+            disabled: isBulkUpdating || pendingClaimKeys.length > 0,
+            onUndo: () => {
+              void undoLastDecision();
+            },
+            onKeep: dismissUndo,
+          }
+        : null,
+    [dismissUndo, isBulkUpdating, pendingClaimKeys.length, undoLastDecision, undoableDecision],
+  );
+  // The undo renders beside what it changed: inside the row for a single-row
+  // decision, in the section or the article-wide panel for a set. A decision
+  // that drained its article out of the queue falls back to a notice here.
+  const undoOnScreen = undoOffer && undoOffer.decision.slug === selectedSlug ? undoOffer : null;
+  const isSingleRowUndo = undoOnScreen !== null && undoOnScreen.decision.prior.length === 1;
+  const rowUndo = isSingleRowUndo ? undoOnScreen : null;
+  const setUndo = undoOnScreen && !isSingleRowUndo ? undoOnScreen : null;
+
+  if (initialLoading) {
     return (
       <div className="mt-6">
         <StateCard loading compact title="Loading review queue" />
@@ -202,7 +248,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     );
   }
 
-  if (queueError) {
+  if (queueError && queue.length === 0) {
     return (
       <div className="mt-6">
         <LoadErrorState
@@ -228,6 +274,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
       queue={queue}
       queueFilter={queueFilter}
       onQueueFilterChange={setQueueFilter}
+      refreshing={refreshing}
       onRefreshQueue={() => {
         void refreshQueue();
       }}
@@ -249,7 +296,8 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     );
   }
 
-  const undoCount = undoableDecision?.prior.length ?? 0;
+  const offscreenUndo = undoOffer && !undoOnScreen ? undoOffer : null;
+  const offscreenUndoCount = offscreenUndo?.decision.prior.length ?? 0;
 
   return (
     <div className="mt-6 space-y-8">
@@ -272,6 +320,17 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
 
           {selectedArticle ? <EditorCitationDiagnosticsPanel article={selectedArticle} /> : null}
 
+          {queueError ? (
+            <EditorNotice
+              notice={{
+                tone: "danger",
+                title: "Queue refresh failed",
+                message: formatQueueLoadFailure(queueError),
+                live: true,
+              }}
+            />
+          ) : null}
+
           {actionError ? (
             <EditorNotice
               notice={{
@@ -283,27 +342,25 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
             />
           ) : null}
 
-          {undoableDecision ? (
+          {offscreenUndo ? (
             <EditorNotice
               notice={{
                 tone: "success",
-                title: `${undoableDecision.status === "approved" ? "Approved" : "Rejected"} ${formatCitationCount(undoCount, "row")}`,
-                message: "Saved to the live article. Undo puts each row back the way it was.",
+                title: `${offscreenUndo.decision.status === "approved" ? "Approved" : "Rejected"} ${formatCitationCount(offscreenUndoCount, "row")} in ${articleTitleBySlug.get(offscreenUndo.decision.slug) ?? offscreenUndo.decision.slug}`,
+                message: "Saved to the live article. Undo puts each row back the way it was and reopens that article.",
                 live: true,
                 actions: (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={isBulkUpdating || pendingClaimKeys.length > 0}
-                      onClick={() => {
-                        void undoLastDecision();
-                      }}
+                      disabled={offscreenUndo.disabled}
+                      onClick={offscreenUndo.onUndo}
                     >
                       <Icon icon="lucide:undo-2" size={16} />
                       Undo
                     </Button>
-                    <Button variant="quiet" size="quiet" onClick={dismissUndo}>
+                    <Button variant="quiet" size="quiet" onClick={offscreenUndo.onKeep}>
                       Keep
                     </Button>
                   </>
@@ -335,8 +392,11 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
                   group={group}
                   commands={commands}
                   handlers={handlers}
+                  openedClaimKeys={openedClaimKeys}
+                  rowUndo={rowUndo}
+                  sectionUndo={setUndo && bulkOrigin === group.section ? setUndo : null}
                   onApproveSection={(section, claimKeys) => {
-                    confirmApproval(claimKeys, `in ${formatCitationSectionLabel(section)}`);
+                    confirmApproval(claimKeys, `in ${formatCitationSectionLabel(section)}`, section);
                   }}
                 />
               ))
@@ -349,9 +409,10 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           {!isDetailLoading && sectionGroups.length > 0 ? (
             <CitationBulkApprovePanel
               command={commands.bulkApprove}
-              hasReadRow={hasReadRow}
+              openedCount={openedReadyCount}
+              undo={setUndo && bulkOrigin !== null && sectionGroups.every((group) => group.section !== bulkOrigin) ? setUndo : null}
               onApproveAll={(claimKeys) => {
-                confirmApproval(claimKeys, `for ${articleTitle ?? "this article"}`);
+                confirmApproval(claimKeys, `for ${articleTitle ?? "this article"}`, "article");
               }}
             />
           ) : null}
