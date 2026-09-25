@@ -1,5 +1,6 @@
 import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { QueueTab } from "./QueueTab";
@@ -150,6 +151,18 @@ describe("QueueTab", () => {
   it("opens on the proposal a deep link names, the way the Inbox opens it", async () => {
     stubQueueApi([submitted, applied], { cp_1: submittedDetail });
     renderQueue({ canApprove: true, initialProposalId: "cp_1" });
+
+    await waitFor(() => expect(screen.getAllByTestId("proposal-target")).toHaveLength(2));
+    expect(group("submitted").getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps the deep-linked proposal open when its effect runs twice, as React's development mode does", async () => {
+    stubQueueApi([submitted, applied], { cp_1: submittedDetail });
+    render(
+      <StrictMode>
+        <QueueTab canApprove onLoadIntoEditor={vi.fn(async () => undefined)} initialProposalId="cp_1" />
+      </StrictMode>,
+    );
 
     await waitFor(() => expect(screen.getAllByTestId("proposal-target")).toHaveLength(2));
     expect(group("submitted").getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");

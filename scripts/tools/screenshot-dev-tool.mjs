@@ -2,21 +2,29 @@
 /**
  * Screenshot a `/dev` tool from a local screenshot-viewer dev server.
  *
- *   npm run dev:screenshot-viewer            # terminal 1, serves 127.0.0.1:3100
+ *   npm run dev:journeys-server              # terminal 1, serves 127.0.0.1:3100
  *   npm run dev:screenshot -- /dev/replications
+ *   npm run dev:screenshot -- /dev/writing/launch-post --role editor --state frozen --theme light
  *
  * The server side is `lib/auth/devScreenshotViewer.ts`: `/dev` documents render
  * without an account, while every `/api/*` route keeps its own session check.
- * This browser is read-only on top of that: it aborts every request that is not
- * GET or HEAD. By default it also answers the Replication Studio's reads with a
- * fixture built from the public `/api/v1/replications` projection, so the tab
- * renders real public rows instead of a 401 error panel. `--no-fixtures` skips
- * that and lets the private reads fail as they would for any signed-out visitor.
+ * This browser answers the API itself from the deterministic fixtures in
+ * `scripts/tools/journeys/fixtures.mjs` (a role, a tool state, synthetic
+ * records), so a capture needs no private data and no database, and nothing is
+ * posted to the server. `--no-fixtures` skips that and lets the private reads
+ * fail as they would for any signed-out visitor, with every non-GET aborted.
+ *
+ * The capture waits for the shell to settle (see `waitForDevShellReady`) and,
+ * with `--ready`, for a specific piece of text, instead of network idle plus a
+ * fixed sleep.
  */
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright-core";
+
+import { assertLoopbackBase, installFixtureRoutes, waitForDevShellReady } from "./journeys/browserFixtures.mjs";
+import { JOURNEY_ROLES, TOOL_STATES, createJourneyFixture } from "./journeys/fixtures.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -27,17 +35,24 @@ const { values, positionals } = parseArgs({
     height: { type: "string", default: "900" },
     "full-page": { type: "boolean", default: false },
     "no-fixtures": { type: "boolean", default: false },
-    "wait-ms": { type: "string", default: "2500" },
-    "fixture-rows": { type: "string", default: "300" },
+    role: { type: "string", default: "admin" },
+    state: { type: "string", default: "loaded" },
+    theme: { type: "string", default: "dark" },
+    touch: { type: "boolean", default: false },
+    ready: { type: "string" },
+    "fixture-rows": { type: "string", default: "24" },
     help: { type: "boolean", short: "h", default: false },
   },
 });
 
 if (values.help) {
   console.log(`Usage: npm run dev:screenshot -- [/dev/<tab>] [--base URL] [--out FILE]
-  [--width N] [--height N] [--full-page] [--no-fixtures] [--wait-ms N] [--fixture-rows N]
+  [--width N] [--height N] [--full-page] [--theme light|dark] [--touch]
+  [--role ${JOURNEY_ROLES.join("|")}] [--state ${TOOL_STATES.join("|")}]
+  [--ready TEXT] [--fixture-rows N] [--no-fixtures]
 
-Defaults: /dev/replications, http://127.0.0.1:3100, tmp/dev-screenshots/<tab>-<time>.png`);
+Defaults: /dev/replications, http://127.0.0.1:3100, admin, loaded, dark,
+tmp/dev-screenshots/<tab>-<time>.png`);
   process.exit(0);
 }
 
@@ -45,96 +60,28 @@ const devPath = positionals[0] ?? "/dev/replications";
 if (devPath !== "/dev" && !devPath.startsWith("/dev/") && !devPath.startsWith("/dev?")) {
   throw new Error(`Only /dev paths are supported; received ${devPath}.`);
 }
+if (values.theme !== "light" && values.theme !== "dark") throw new Error(`--theme is light or dark; received ${values.theme}.`);
 
-const base = new URL(values.base);
-if (!["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)) {
-  throw new Error(`The screenshot viewer only runs against a loopback origin; received ${base.origin}.`);
-}
-
+const base = assertLoopbackBase(values.base);
 const tabName = devPath.replace(/^\/dev\/?/, "").split(/[/?]/)[0] || "dev";
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const outPath = resolve(values.out ?? `tmp/dev-screenshots/${tabName}-${stamp}.png`);
 mkdirSync(dirname(outPath), { recursive: true });
 
-/** Public v1 rows reshaped to the studio's `StudioRow`; no private field is invented. */
-async function buildStudioCorpusFixture(limitRows) {
-  const rows = [];
-  let cursor = null;
-  do {
-    const url = new URL("/api/v1/replications", base);
-    url.searchParams.set("limit", "100");
-    if (cursor) url.searchParams.set("cursor", cursor);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Public replication read failed (${response.status}) at ${url}.`);
-    const page = await response.json();
-    rows.push(...page.data);
-    cursor = page.pagination?.next_cursor ?? null;
-  } while (cursor && rows.length < limitRows);
-
-  const titleCase = (slug) => slug.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
-  const studioRows = rows.slice(0, limitRows).map((row, index) => ({
-    id: `public-${index}`,
-    slug: row.slug,
-    title: row.title,
-    artist: row.artist,
-    artist_url: row.artist_url ?? null,
-    role: "replication",
-    type: row.type,
-    effect_slug: row.effect_slug ?? null,
-    effect_name: row.effect_slug ? titleCase(row.effect_slug) : null,
-    effect_tags: row.effect_tags ?? [],
-    credit_line: row.rights?.credit_line ?? null,
-    rights_status: row.rights?.status ?? null,
-    url: row.url ?? null,
-    thumbnail_url: row.thumbnail_url ?? null,
-    preview_url: row.preview_url ?? null,
-    format: row.format,
-    duration: row.duration ?? null,
-    file_size: row.file_size ?? null,
-    created_at: row.created_at,
-  }));
-  const effectSlugs = new Set(studioRows.flatMap((row) => [row.effect_slug, ...row.effect_tags].filter(Boolean)));
-  const effects = [...effectSlugs].sort().map((slug) => ({ slug, name: titleCase(slug) }));
-  return { rows: studioRows, effects };
-}
-
-const fixtures = values["no-fixtures"] ? null : {
-  corpus: await buildStudioCorpusFixture(Number(values["fixture-rows"])),
-};
+const fixture = values["no-fixtures"]
+  ? null
+  : createJourneyFixture({ role: values.role, state: values.state, replicationRows: Number(values["fixture-rows"]) });
 
 const browser = await chromium.launch({ headless: true });
-let blockedWrites = 0;
 try {
   const context = await browser.newContext({
     viewport: { width: Number(values.width), height: Number(values.height) },
+    colorScheme: values.theme,
+    ...(values.touch ? { hasTouch: true, isMobile: true, deviceScaleFactor: 3 } : {}),
   });
-
-  await context.route("**/*", async (route) => {
-    const request = route.request();
-    const method = request.method().toUpperCase();
-    if (method !== "GET" && method !== "HEAD") {
-      blockedWrites += 1;
-      console.warn(`blocked ${method} ${request.url()}`);
-      return route.abort("blockedbyclient");
-    }
-    const url = new URL(request.url());
-    if (fixtures && url.origin === base.origin) {
-      if (url.pathname === "/api/dev/replications") {
-        return route.fulfill({ json: { ok: true, ...fixtures.corpus } });
-      }
-      if (url.pathname === "/api/dev/replications/featured") {
-        return route.fulfill({ json: { slugs: fixtures.corpus.rows.slice(0, 12).map((row) => row.slug), curated: false } });
-      }
-      if (url.pathname === "/api/dev/replications/playlists") {
-        return route.fulfill({ json: { playlists: [] } });
-      }
-      // An empty directory keeps corpus tools from throwing into the error boundary.
-      if (url.pathname === "/api/editor/contributor-profiles") {
-        return route.fulfill({ json: [] });
-      }
-    }
-    return route.continue();
-  });
+  // "system" lets the emulated colour scheme pick the theme; the site otherwise paints dark.
+  await context.addInitScript(() => window.localStorage.setItem("dosewiki-theme", "system"));
+  const { blocked } = await installFixtureRoutes(context, { base, fixture, log: (line) => console.warn(line) });
 
   const page = await context.newPage();
   const target = new URL(devPath, base);
@@ -142,17 +89,25 @@ try {
   const landed = new URL(page.url());
   if (landed.pathname === "/sign-in" || landed.pathname === "/unauthorized") {
     throw new Error(
-      `Redirected to ${landed.pathname}: the screenshot viewer is not active. Start the server with npm run dev:screenshot-viewer.`,
+      `Redirected to ${landed.pathname}: the screenshot viewer is not active. Start the server with npm run dev:journeys-server.`,
     );
   }
   if (!response || response.status() >= 400) {
     throw new Error(`Loading ${target} answered ${response?.status() ?? "no response"}.`);
   }
-  await page.waitForLoadState("networkidle", { timeout: 60_000 }).catch(() => undefined);
-  await page.waitForTimeout(Number(values["wait-ms"]));
+  await waitForDevShellReady(page);
+  if (fixture) {
+    // The fixture's session replaces the one the server rendered; wait for it, then settle again.
+    await page.getByText(fixture.session.user.name, { exact: true }).first().waitFor({ state: "attached", timeout: 30_000 });
+    await waitForDevShellReady(page);
+  }
+  if (values.ready) await page.getByText(values.ready).first().waitFor({ timeout: 30_000 });
   await page.screenshot({ path: outPath, fullPage: values["full-page"] });
   console.log(outPath);
-  if (blockedWrites) console.warn(`${blockedWrites} non-GET request(s) were blocked.`);
+  if (blocked.length) console.warn(`${blocked.length} request(s) were blocked in the browser.`);
+  if (fixture?.unhandled.length) {
+    console.warn(`No fixture answered: ${[...new Set(fixture.unhandled.map((entry) => `${entry.method} ${entry.pathname}`))].join(", ")}`);
+  }
 } finally {
   await browser.close();
 }

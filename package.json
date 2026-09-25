@@ -8,6 +8,8 @@
     "next:dev": "bun run dev",
     "dev:screenshot-viewer": "DEV_SCREENSHOT_VIEWER=1 DATA_WRITES_FROZEN=1 DOSEWIKI_BUILD_DIR=.next-screenshot next dev -H 127.0.0.1 -p 3100",
     "dev:screenshot": "node scripts/tools/screenshot-dev-tool.mjs",
+    "dev:journeys-server": "DEV_SCREENSHOT_VIEWER=1 DATA_WRITES_FROZEN=1 DATA_BACKEND=postgres POSTGRES_POOLED_URL=postgres://127.0.0.1:9/dosewiki_journey_fixtures POSTGRES_DIRECT_URL=postgres://127.0.0.1:9/dosewiki_journey_fixtures TARGET_POSTGRES_URL=postgres://127.0.0.1:9/dosewiki_journey_fixtures DOSEWIKI_BUILD_DIR=.next-journeys next dev -H 127.0.0.1 -p 3100",
+    "test:journeys": "node scripts/tools/journeys/run-journeys.mjs",
     "build": "next build --webpack && node scripts/build/editor-artifact-audit.mjs",
     "next:build": "bun run build",
     "build:vercel": "node scripts/deploy/vercel-build.mjs",

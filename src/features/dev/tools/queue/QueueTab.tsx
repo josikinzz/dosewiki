@@ -149,10 +149,13 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
     setDrafts({});
     setNotice(null);
     void loadList();
+    // Consumed once its read settles, not when it starts: React's development
+    // mode runs this effect twice, and the second run must open it again.
     const initialId = initialIdRef.current;
     if (initialId) {
-      initialIdRef.current = undefined;
-      void loadDetail(initialId);
+      void loadDetail(initialId).then(() => {
+        if (initialIdRef.current === initialId) initialIdRef.current = undefined;
+      });
     }
     return () => {
       ++listVersion.current;
