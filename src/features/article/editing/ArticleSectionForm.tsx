@@ -79,7 +79,7 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef }: 
   let fields;
   switch (section) {
     case "summary": fields = <NotesFieldsRHF idPrefix={prefix} describedBy={citationGuidanceId} />; break;
-    case "identification": fields = <><OverviewFieldsRHF idPrefix={prefix} categoryOptions={options.categories} indexCategoryOptions={options.indexCategories} identificationOnly /><p className="theme-text-muted text-sm">Structure drawings remain in the specialist molecule editor.</p><Button asChild variant="outline"><Link href={`/dev/molecule-editor/${encodeURIComponent(slug)}`}>Open molecule editor</Link></Button></>; break;
+    case "identification": fields = <><OverviewFieldsRHF idPrefix={prefix} categoryOptions={options.categories} indexCategoryOptions={options.indexCategories} identificationOnly /><p className="theme-text-muted text-sm">Structure drawings remain in the specialist molecule editor.</p><Button asChild variant="outline"><Link href={`/dev/molecule-editor/substances/${encodeURIComponent(slug)}`}>Open molecule editor</Link></Button></>; break;
     case "classification": fields = <><p className="theme-text-muted max-w-prose text-sm">This changes this substance's classification and derived index membership. Shared taxonomy names and other substances are unchanged. Suggestions come from this article only.</p><ClassificationFieldsRHF chemicalClassOptions={options.chemicalClasses} psychoactiveClassOptions={options.psychoactiveClasses} /></>; break;
     case "dosage": fields = <DosageDurationFieldsRHF idPrefix={prefix} />; break;
     case "subjective_effects": fields = <SubjectiveEffectsFieldsRHF idPrefix={prefix} pairedIndicator />; break;

@@ -40,6 +40,15 @@ describe("devTabRegistry", () => {
     }
   });
 
+  it("joins a nested segment onto the slug only for a nested-slug tool", () => {
+    expect(resolveDevRoute("molecule-editor", "classes", undefined, "amphetamine")).toEqual({
+      tab: "molecule-editor",
+      slug: "classes/amphetamine",
+    });
+    expect(resolveDevRoute("molecules", "mdma")).toEqual({ tab: "molecule-editor", slug: "mdma" });
+    expect(resolveDevRoute("articles", "lsd", undefined, "extra")).toEqual({ tab: "articles", slug: "lsd" });
+  });
+
   it("makes review the only external destination", () => {
     const external = DEV_TAB_REGISTRY.filter((tab) => tab.destination.kind === "external");
     expect(external.map((tab) => tab.id)).toEqual(["review"]);

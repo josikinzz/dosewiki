@@ -21,6 +21,7 @@ import type {
   MoleculeSnapOutcome,
 } from "./moleculeTransforms";
 import { OclEditor } from "./OclEditor";
+import { OCL_KEY_LEGEND } from "./oclToolbar";
 import {
   TracingControls,
   TracingOverlay,
@@ -85,7 +86,12 @@ interface MoleculeEditorWorkbenchProps {
   templateDoc: MoleculeClassTemplate | null | undefined;
   templatePreparing: boolean;
   onPrepareTemplate: () => void;
-  onRevert: () => void;
+  /** Local SMILES layout on the canvas; nothing publishes until Save. */
+  onRevertToAuto: () => void;
+  /** Back to the stored depiction (or this session's baseline); never writes. */
+  onRevertToSaved: () => void;
+  canRevertToSaved: boolean;
+  /** Explicit, confirmed delete of the saved override. */
   onRequestRemove: () => void;
   onSave: () => void;
   /** Name the chemist types to publish changed chemistry; null when no typed confirm applies. */
@@ -140,7 +146,9 @@ export function MoleculeEditorWorkbench({
   templateDoc,
   templatePreparing,
   onPrepareTemplate,
-  onRevert,
+  onRevertToAuto,
+  onRevertToSaved,
+  canRevertToSaved,
   onRequestRemove,
   onSave,
   publishName,
@@ -411,6 +419,7 @@ export function MoleculeEditorWorkbench({
                 <div className="min-w-52 xl:min-w-0">
                   <TracingControls layer={tracing} disabled={!hasCanvas} />
                 </div>
+                <CanvasKeyLegend />
               </>
             ) : null}
           </div>
@@ -439,28 +448,42 @@ export function MoleculeEditorWorkbench({
               <EditorActionStatus status={saving ? "saving" : "dirty"} />
             ) : null}
             {mode !== "templates" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onRevert}
-                disabled={!hasCanvas || saving}
-                title="Regenerate the layout from SMILES on the canvas; the public page changes only after Save"
-              >
-                <Icon icon="lucide:rotate-ccw" size={15} />
-                Revert to auto
-              </Button>
-            ) : null}
-            {mode === "classes" ? (
-              <Button
-                variant="ghostDestructive"
-                size="sm"
-                onClick={onRequestRemove}
-                disabled={!hasOverride || saving}
-                title="Delete the saved class override and return to its static fallback"
-              >
-                <Icon icon="lucide:trash-2" size={15} />
-                Remove override
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRevertToAuto}
+                  disabled={!hasCanvas || saving}
+                  title="Regenerate the layout from SMILES on the canvas; the public page changes only after Save"
+                >
+                  <Icon icon="lucide:rotate-ccw" size={15} />
+                  Revert to auto
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRevertToSaved}
+                  disabled={!canRevertToSaved || saving}
+                  title="Reload the saved depiction and drop the changes on the canvas; nothing is published"
+                >
+                  <Icon icon="lucide:undo-2" size={15} />
+                  Revert to saved
+                </Button>
+                <Button
+                  variant="ghostDestructive"
+                  size="sm"
+                  onClick={onRequestRemove}
+                  disabled={!hasOverride || saving}
+                  title={
+                    mode === "classes"
+                      ? "Delete the saved class override and return to its static fallback"
+                      : "Delete the saved depiction; the substance page returns to its automatic layout"
+                  }
+                >
+                  <Icon icon="lucide:trash-2" size={15} />
+                  Remove override
+                </Button>
+              </>
             ) : null}
             {mode === "templates" && templateDoc ? (
               <Button
@@ -506,6 +529,39 @@ export function MoleculeEditorWorkbench({
         />
       ) : null}
     </EditorSection>
+  );
+}
+
+/** OpenChemLib's single-key bindings, which its canvas otherwise never shows. */
+function CanvasKeyLegend() {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId} className="min-w-52 xl:min-w-0">
+      <details>
+        <summary className="cursor-pointer list-none">
+          <span id={headingId} className={GROUP_LABEL_CLASS}>Canvas keys</span>
+        </summary>
+        <div className="mt-2 space-y-3 text-xs">
+          {OCL_KEY_LEGEND.map((group) => (
+            <div key={group.target}>
+              <p className="theme-text-muted font-medium">{group.target}</p>
+              <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
+                {group.keys.map((entry) => (
+                  <div key={entry.key} className="contents">
+                    <dt>
+                      <kbd className="theme-text-secondary rounded border border-dose-border px-1 font-mono">
+                        {entry.key}
+                      </kbd>
+                    </dt>
+                    <dd className="theme-text-muted">{entry.action}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+      </details>
+    </section>
   );
 }
 

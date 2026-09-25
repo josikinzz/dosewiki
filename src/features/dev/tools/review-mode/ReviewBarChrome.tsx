@@ -209,7 +209,7 @@ export function OpenElsewhereItems({ slug }: { slug: string | undefined }) {
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
         <a
-          href={`/dev/molecules/${slug}`}
+          href={`/dev/molecule-editor/substances/${slug}`}
           target="_blank"
           rel="noreferrer"
         >

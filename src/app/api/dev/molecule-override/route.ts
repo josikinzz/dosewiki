@@ -3,8 +3,8 @@
  *
  * This persists the canonical MOL block + SVG to `moleculeOverrides`, so the
  * deployed editor and public pages share one depiction. Writes require an
- * editor session. DELETE remains available for class overrides and deliberate
- * seeded-row rollback, but the substance editor exposes only local Revert + Save.
+ * editor session. DELETE backs the editor's confirmed Remove override, for
+ * substance and class depictions alike.
  *
  *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles?, boldBonds?, expectedUpdatedAt? }  → save
  *     → 409 { error, conflict } when someone saved since the editor loaded; nothing was written

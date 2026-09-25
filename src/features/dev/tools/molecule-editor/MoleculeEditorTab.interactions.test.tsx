@@ -152,8 +152,13 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     );
     expect(screen.getByText(/imported structure, unsaved/)).toBeInTheDocument();
     expect(screen.getByText("Structure imported")).toBeInTheDocument();
-    // Nothing publishes until the user edits: the save gate stays closed.
-    expect(screen.getByRole("button", { name: "Publish changed chemistry" })).toBeDisabled();
+    // Nothing publishes until the user edits: the save gate stays closed. The
+    // chemistry guard runs on a 120 ms debounce after each canvas change, so the
+    // button takes its "changed chemistry" label only once that settles; wait
+    // for it rather than racing the timer.
+    expect(
+      await screen.findByRole("button", { name: "Publish changed chemistry" }),
+    ).toBeDisabled();
   });
 
   it("seeds the canvas from pasted SMILES with an automatic layout", async () => {

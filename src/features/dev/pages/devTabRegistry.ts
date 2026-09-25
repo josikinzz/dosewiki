@@ -78,6 +78,12 @@ type DevTabDescriptorOf<Id extends string> = {
    * retired tab's address keeps working after it folds into this one.
    */
   filter?: DevRouteFilter;
+  /**
+   * The slug spans two route segments (`/dev/<tab>/<a>/<b>` opens slug
+   * `a/b`), for a tool whose record lives under a sub-collection, such as the
+   * molecule editor's `<mode>/<slug>`.
+   */
+  nestedSlug?: true;
 };
 
 const NO_DATA: ReadonlySet<DevTabDataNeed> = new Set();
@@ -207,6 +213,7 @@ const REGISTRY = [
     role: "admin",
     data: NO_DATA,
     saveModel: "instant",
+    nestedSlug: true,
     layout: "shell",
     destination: SHELL,
   },
@@ -461,18 +468,23 @@ function hasOwn(table: object, key: string): boolean {
  * 404. `query` is the page's
  * search params in Next's record shape; only a value the tab's `filter`
  * declares comes through, and a filter segment's preset wins over it.
+ * `nestedSegment` is the segment after the slug; only a `nestedSlug` tab
+ * keeps it, joined onto the slug.
  */
 export function resolveDevRoute(
   tabSegment: string | undefined,
   slugSegment: string | undefined,
   query?: DevRouteQuery,
+  nestedSegment?: string,
 ): DevRoute {
   if (tabSegment !== undefined && hasOwn(PINNED_ROUTES, tabSegment)) {
     return PINNED_ROUTES[tabSegment];
   }
   const descriptor = tabSegment === undefined ? undefined : resolveDevTabAlias(tabSegment);
   const route: DevRoute = { tab: tabSegment === undefined ? HOME_DEV_TAB : descriptor?.id ?? DEFAULT_DEV_TAB };
-  if (slugSegment) route.slug = slugSegment;
+  if (slugSegment) {
+    route.slug = descriptor?.nestedSlug && nestedSegment ? `${slugSegment}/${nestedSegment}` : slugSegment;
+  }
   const filter = descriptor?.filter;
   if (filter) {
     const segments = filter.segments ?? {};

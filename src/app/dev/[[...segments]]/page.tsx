@@ -38,8 +38,8 @@ type DevPageProps = {
 };
 
 export default async function NextDevPage({ params, searchParams }: DevPageProps) {
-  const [tabSegment, slugSegment] = (await params).segments ?? [];
-  const route = resolveDevRoute(tabSegment, slugSegment, await searchParams);
+  const [tabSegment, slugSegment, nestedSegment] = (await params).segments ?? [];
+  const route = resolveDevRoute(tabSegment, slugSegment, await searchParams, nestedSegment);
 
   // Review mode graduated to its own full-bleed workbench; the dev-shell
   // address keeps working as a deep link.

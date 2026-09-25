@@ -152,3 +152,47 @@ export function oclToolForShortcutKey(key: string): OclToolId | null | undefined
       return UNTRUSTED_TOOL_KEYS[key] ? null : undefined;
   }
 }
+
+export interface OclKeyLegendGroup {
+  /** Where the pointer must rest for these keys to act. */
+  target: string;
+  keys: ReadonlyArray<{ key: string; action: string }>;
+}
+
+/**
+ * OpenChemLib's own single-key bindings (`GenericEditorArea` key handling),
+ * grouped by what the pointer rests on. The strip tools show their keys on
+ * the strip itself.
+ */
+export const OCL_KEY_LEGEND: readonly OclKeyLegendGroup[] = [
+  {
+    target: "Over a bond",
+    keys: [
+      { key: "1 2 3", action: "single, double or triple bond" },
+      { key: "u", action: "wedge (toward the viewer)" },
+      { key: "d", action: "hash (away from the viewer)" },
+      { key: "c", action: "crossed double bond" },
+      { key: "m", action: "metal-ligand bond" },
+      { key: "4 to 7", action: "fuse a ring of that size" },
+      { key: "v", action: "fuse a three-membered ring" },
+      { key: "a b", action: "fuse a benzene ring" },
+    ],
+  },
+  {
+    target: "Over an atom",
+    keys: [
+      { key: "letters", action: "type an element symbol, then Enter" },
+      { key: "l", action: "chlorine" },
+      { key: "+ -", action: "raise or lower the charge" },
+      { key: "1 to 9", action: "grow a chain of that many bonds" },
+    ],
+  },
+  {
+    target: "Over empty canvas",
+    keys: [
+      { key: "h", action: "flip left/right" },
+      { key: "v", action: "flip up/down" },
+      { key: "?", action: "OpenChemLib help" },
+    ],
+  },
+];

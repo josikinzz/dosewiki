@@ -114,7 +114,7 @@ describe("reading-page editor navigation", () => {
   it("retracts forbidden actions after role changes and removes the launcher after logout", async () => {
     const view = render(<ReadingPage />);
     const user = await openTools();
-    expect(screen.getByRole("menuitem", { name: "Open molecule editor" })).toHaveAttribute("href", "/dev/molecule-editor/lsd");
+    expect(screen.getByRole("menuitem", { name: "Open molecule editor" })).toHaveAttribute("href", "/dev/molecule-editor/substances/lsd");
     expect(screen.getByRole("menuitem", { name: "Review citations" })).toHaveAttribute("href", "/dev/citation-review/lsd");
     auth.role = "editor";
     view.rerender(<ReadingPage />);
