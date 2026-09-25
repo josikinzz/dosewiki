@@ -123,7 +123,9 @@ export function EditorStatusPill({
       variant="outline"
       data-badge-tone={statusPillBadgeTone[tone]}
       className={cn(
-        "theme-status-badge gap-1.5 border-transparent normal-case tracking-normal",
+        // A 24px pill on one line; on a phone a long status (a save line)
+        // wraps inside a taller capsule instead of spilling out of it.
+        "theme-status-badge h-auto min-h-6 max-w-full gap-1.5 border-transparent py-0.5 normal-case tracking-normal",
         className,
       )}
       role={live ? "status" : undefined}
@@ -132,9 +134,9 @@ export function EditorStatusPill({
       {...props}
     >
       {loading ? (
-        <Icon icon="lucide:loader-2" size={13} className="animate-spin" />
+        <Icon icon="lucide:loader-2" size={13} className="shrink-0 animate-spin" />
       ) : icon ? (
-        <Icon icon={icon} size={13} />
+        <Icon icon={icon} size={13} className="shrink-0" />
       ) : null}
       {children}
     </Badge>

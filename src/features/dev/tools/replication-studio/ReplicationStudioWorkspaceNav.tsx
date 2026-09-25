@@ -6,6 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { SaveLine } from "@/features/dev/components";
 import { findDevTab } from "@/features/dev/pages/devTabRegistry";
+import { TOUCH_HALO_Y } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 export type StudioWorkspace = "featured" | "playlists" | "substances" | null;
@@ -73,7 +74,7 @@ export function ReplicationStudioWorkspaceNav({
               size="sm"
               variant={active ? "pillActive" : "quiet"}
               aria-current={active ? "page" : undefined}
-              className={cn("shrink-0 rounded-full max-sm:flex-1", !active && "theme-text-muted")}
+              className={cn("shrink-0 rounded-full max-sm:flex-1 [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:min-h-0", TOUCH_HALO_Y, !active && "theme-text-muted")}
               onClick={() => onRequestWorkspace(workspace.value)}
             >
               <Icon icon={workspace.icon} size={15} className="max-sm:hidden" />

@@ -104,18 +104,19 @@ export function DevToolSheet({
             <DialogTitle className={`${GROUP_CAPTION_CLASS} px-1`}>Tools</DialogTitle>
             <DialogPrimitive.Close aria-label="Close tools menu" className={`${ICON_BUTTON_CLASS} ml-auto`}><Icon icon="lucide:x" size={15} /></DialogPrimitive.Close>
           </div>
-          <nav aria-label="Dev mode tools menu" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pb-2">
+          {/* One scroller for every row: tools, then the site sections. Only the
+              session line stays pinned, so a short phone never squeezes the
+              tool list into a sliver above a fixed footer. */}
+          <nav aria-label="Dev mode tools menu" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 pb-3">
             <SheetToolList groups={groups} activeTab={activeTab} isToolsSection={isToolsSection} activeRowRef={activeRowRef} onTabChange={closeThen(onTabChange)} />
-          </nav>
-          <div className="theme-divider shrink-0 border-t px-3 pt-1 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <div role="group" aria-label="Site sections" className="flex flex-col gap-0.5">
-              <span aria-hidden className={`${GROUP_CAPTION_CLASS} px-3 pb-1 pt-1`}>More</span>
+            <div role="group" aria-label="Site sections" className="theme-divider mt-1 flex flex-col gap-0.5 border-t pt-1">
+              <span aria-hidden className={`${GROUP_CAPTION_CLASS} px-3 pb-1 pt-2`}>More</span>
               <button type="button" ref={changeLogActive ? (activeRowRef as RefObject<HTMLButtonElement>) : undefined} disabled={changeLogLockReason !== null} aria-disabled={changeLogLockReason !== null ? "true" : undefined} title={changeLogLockReason ?? undefined} aria-current={changeLogActive ? "page" : undefined} data-state={changeLogActive ? "active" : "inactive"} onClick={() => closeThen(onPrimaryTabChange)("change-log")} className={SHEET_TAB_CLASS}>Change log{changeLogLockReason ? <span className="theme-text-muted ml-auto text-xs font-normal">{changeLogLockReason}</span> : null}</button>
               {utilities.map((utility) => <Link key={utility.href} href={utility.href} className={SHEET_TAB_CLASS}><Icon icon={utility.icon} size={16} className="theme-accent-emphasis shrink-0" />{utility.label}</Link>)}
               <button type="button" onClick={() => closeThen(onLeave)(undefined)} className={SHEET_TAB_CLASS}><Icon icon="lucide:x" size={16} className="shrink-0" />Leave editor</button>
             </div>
-            <div role="group" aria-label="Session" className="mt-1 flex items-center gap-2 px-3 pt-2">{session}</div>
-          </div>
+          </nav>
+          <div role="group" aria-label="Session" className="theme-divider flex shrink-0 items-center gap-2 border-t px-6 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">{session}</div>
         </DialogPrimitive.Content>
       </DialogPortal>
     </DialogPrimitive.Root>

@@ -49,7 +49,7 @@ const ADMIN_ONLY_REASON = "Admin only: an editor can see this but not change it.
  * panels and their own saves begin.
  */
 const STICKY_SAVE_BAR_CLASS =
-  "sticky bottom-0 z-10 rounded-xl border border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg)]/95 p-3 backdrop-blur";
+  "sticky bottom-0 z-10 rounded-xl border border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg)]/95 p-3 backdrop-blur max-sm:p-2";
 
 export function ContributorProfileEditor({
   controller,
@@ -404,11 +404,12 @@ export function ContributorProfileEditor({
           label="Profile save actions"
           className={STICKY_SAVE_BAR_CLASS}
         >
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 max-sm:w-full max-sm:flex-nowrap">
             <Button
               type="button"
               variant="accent"
               size="sm"
+              className="max-sm:flex-1"
               disabled={
                 !isProfileDirty ||
                 profileSaveState === "saving" ||
@@ -424,6 +425,7 @@ export function ContributorProfileEditor({
               type="button"
               variant="secondary"
               size="sm"
+              className="max-sm:flex-1"
               disabled={!isProfileDirty || profileSaveState === "saving"}
               onClick={discardProfile}
             >
@@ -432,7 +434,9 @@ export function ContributorProfileEditor({
             </Button>
           </div>
           {profileSaveState === "idle" ? (
-            <EditorStatusPill tone={isProfileDirty ? "warning" : "neutral"}>
+            // On a phone the bar stays one row; the Save button's state already
+            // says whether anything changed.
+            <EditorStatusPill tone={isProfileDirty ? "warning" : "neutral"} className="max-sm:hidden">
               {isProfileDirty ? "Unsaved changes" : "No changes"}
             </EditorStatusPill>
           ) : (
