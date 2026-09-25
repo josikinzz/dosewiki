@@ -8,6 +8,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { isBareCommandKey, isDialogOpen, useDevShortcutList } from "../components/devShortcuts";
 import { useUnsavedWorkRegistry } from "../components/unsavedWork";
+import { clearDraftRecovery } from "../recovery/draftRecovery";
 import { canDraft, getRoleDisplayName, getRoleFloorLockReason, type AppRole } from "@/lib/auth/roles";
 import { DevCommandPalette } from "./DevCommandPalette";
 import type { PaletteRecord, PaletteTool } from "./devCommandPaletteModel";
@@ -181,8 +182,13 @@ export function DevModePageChrome({
     [activePrimaryTab, confirmExit, requestPrimaryTabChange],
   );
   const onLeave = useCallback(() => confirmExit(requestLeave, "leave"), [confirmExit, requestLeave]);
+  // Signing out also clears this browser's draft recovery copies: the next
+  // person at this machine must not be offered them.
   const onSignOut = useCallback(
-    () => confirmExit(() => void signOut({ callbackUrl: "/sign-in" }), "leave"),
+    () => confirmExit(() => {
+      clearDraftRecovery();
+      void signOut({ callbackUrl: "/sign-in" });
+    }, "leave"),
     [confirmExit],
   );
 

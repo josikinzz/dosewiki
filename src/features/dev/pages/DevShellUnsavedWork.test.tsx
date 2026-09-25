@@ -12,6 +12,7 @@ vi.mock("@/components/common/Icon", () => ({
 vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
 
 import { UnsavedWorkProvider, useUnsavedWork } from "../components/unsavedWork";
+import { createDraftRecoveryStore, recoveryActorKey } from "../recovery/draftRecovery";
 import { DevModePageChrome } from "./DevModePageChrome";
 import type { DevModeTab } from "./devTabRegistry";
 
@@ -156,6 +157,17 @@ describe("the shell's unsaved-work registry", () => {
 
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Discard" }));
     expect(signOutMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears this browser's draft recovery copies on sign-out", () => {
+    const store = createDraftRecoveryStore(recoveryActorKey("admin@example.com")!);
+    store.write({ tool: "writing", record: "row:field-notes", baseline: "a", draft: { title: "Mine" } });
+    renderShell();
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+
+    expect(signOutMock).toHaveBeenCalled();
+    expect(store.read("writing", "row:field-notes")).toBeNull();
   });
 
   it("holds the browser tab open on unload while an entry is dirty", () => {

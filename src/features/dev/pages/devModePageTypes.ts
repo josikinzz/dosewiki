@@ -5,6 +5,7 @@ import type { DevModePrimaryTab } from "./devModePageUtils";
 import type { DevModeTab } from "./devTabRegistry";
 import type { useDevSupportTabsController } from "./useDevModeSupportTabProps";
 import type { ChangeLogController } from "./useDevModeChangeLog";
+import type { StagedArticlesRecovery } from "./useStagedArticlesRecovery";
 
 export type DevModePageProps = {
   activeTab: DevModeTab;
@@ -61,6 +62,8 @@ export type DevModePageControllerState = {
   commitPanel: ReturnType<
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["commitPanel"];
+  /** The staged working set's browser recovery copy (see `useStagedArticlesRecovery`). */
+  stagedRecovery: StagedArticlesRecovery;
   /** `/dev/articles/<slug>`: the substance the editor opens on. */
   articlesInitialSlug?: string;
   citationReviewInitialSlug?: string;

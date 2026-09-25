@@ -27,6 +27,7 @@ import { SearchableMultiPicker } from "@/features/dev/components/SearchablePicke
 import { TagMultiSelect } from "@/features/dev/components/tag-multi-select/TagMultiSelect";
 
 import { writingTagOptions, type WritingDraft } from "./writingEditorModel";
+import { WritingRecoveryPanels, WritingSaveTime } from "./WritingRecoveryPanels";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";
 
 const WRITING_FIELD_LABELS: Record<keyof WritingDraft, string> = {
@@ -122,6 +123,7 @@ export function WritingEditor({
     <>
       {notice && !(controller.isDirty && notice.tone === "success") ? <EditorNotice notice={notice} /> : null}
       {controller.parsedBody.error ? <EditorNotice notice={{ tone: "danger", message: controller.parsedBody.error }} /> : null}
+      <WritingRecoveryPanels controller={controller} fieldLabels={WRITING_FIELD_LABELS} />
 
       {contextual ? <p role="status" className="theme-text-muted text-sm">{controller.isDirty ? "Unsaved changes" : controller.baseline.status === "published" ? "Public document · no unsaved changes" : "Unpublished document · no unsaved changes"}</p> : null}
       <EditorToolbar label="Preview">
@@ -337,6 +339,7 @@ export function WritingEditor({
           <EditorActionStatus status={saveState} />
         )}
       </EditorToolbar>
+      <WritingSaveTime controller={controller} />
       {controller.uncertain ? <EditorNotice notice={{ tone: "warning", message: "Publication has not been confirmed. Editing and discard are locked until you explicitly reconcile the original operation.", actions: <Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button> }} /> : null}
       <EditorToolbar>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.isDirty} onClick={() => setDiscarding(true)}>Discard local edits</Button>
