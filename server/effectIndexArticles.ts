@@ -1,5 +1,5 @@
-import { PostgresError, v } from "../lib/postgres/runtime/values";
-import { internalQuery, query } from "../lib/postgres/runtime/server";
+import { PostgresError, v, type Infer, type ObjectType } from "../lib/postgres/runtime/values";
+import { internalQuery, query, type MutationCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "../lib/postgres/runtime/dataModel";
 import { requireRole } from "./lib/auth";
@@ -120,6 +120,7 @@ export const listForEditor = query({
       publicationDate: article.publicationDate,
       creationTime: article._creationTime,
       teaser: article.teaser,
+      tags: article.tags,
     }));
   },
 });
@@ -156,7 +157,8 @@ export const getForEditor = query({
  * Admin-gated slug-keyed upsert for the Writing/Blog system. Editors read the
  * listing and detail (`listForEditor`, `getForEditor`); publishing or saving a
  * row directly is an admin action because it lands on the public site with no
- * review step.
+ * review step. An editor's change reaches it only as an approved Writing
+ * proposal (`server/lib/changeProposalApply.ts`), written as the approver.
  *
  * Update is a patch: any field the caller omits keeps its stored value, so a
  * partial save from one editor pane cannot clear what another pane owns.
@@ -166,141 +168,188 @@ export const getForEditor = query({
  * Without it, saving under a new slug would insert a second row and leave the
  * old one behind.
  */
-export const upsertArticle = mutation({
-  args: {
-    apiKey: v.optional(v.string()),
-    actorEmail: v.optional(v.string()),
-    slug: v.string(),
-    /** The slug the editor loaded the row with; differs from `slug` on a rename. */
-    originalSlug: v.optional(v.string()),
-    expectedRevision: v.string(),
-    operationId: v.string(),
-    title: v.optional(v.string()),
-    tags: v.optional(v.array(v.string())),
-    kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
-    status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
-    /**
-     * The legacy publication flag. It is redundant with `status`, but the
-     * public normalizer (`normalizePublicEffectIndexArticle`) drops any row
-     * whose `publication_status` is not a string, so a row saved without it
-     * would be invisible on every public surface. The editor save path sends
-     * it alongside `status`.
-     */
-    publication_status: v.optional(v.string()),
-    bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),
-    body_raw: v.optional(v.string()),
-    body_ast: v.optional(v.any()),
-    teaser: v.optional(v.string()),
-    coverImageUrl: v.optional(v.string()),
-    authorProfileKeys: v.optional(v.array(v.string())),
-    authors: v.optional(v.array(v.string())),
-    featured: v.optional(v.boolean()),
-    shortDescription: v.optional(v.string()),
-    publicationDate: v.optional(v.string()),
-    citations: v.optional(
-      v.array(v.object({ url: v.string(), text: v.string() })),
-    ),
-  },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    }, "admin");
+const upsertArticleArgs = {
+  apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
+  slug: v.string(),
+  /** The slug the editor loaded the row with; differs from `slug` on a rename. */
+  originalSlug: v.optional(v.string()),
+  expectedRevision: v.string(),
+  operationId: v.string(),
+  title: v.optional(v.string()),
+  tags: v.optional(v.array(v.string())),
+  kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
+  status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
+  /**
+   * The legacy publication flag. It is redundant with `status`, but the
+   * public normalizer (`normalizePublicEffectIndexArticle`) drops any row
+   * whose `publication_status` is not a string, so a row saved without it
+   * would be invisible on every public surface. The editor save path sends
+   * it alongside `status`.
+   */
+  publication_status: v.optional(v.string()),
+  bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),
+  body_raw: v.optional(v.string()),
+  body_ast: v.optional(v.any()),
+  teaser: v.optional(v.string()),
+  coverImageUrl: v.optional(v.string()),
+  authorProfileKeys: v.optional(v.array(v.string())),
+  authors: v.optional(v.array(v.string())),
+  featured: v.optional(v.boolean()),
+  shortDescription: v.optional(v.string()),
+  publicationDate: v.optional(v.string()),
+  citations: v.optional(
+    v.array(v.object({ url: v.string(), text: v.string() })),
+  ),
+};
 
-    const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, expectedRevision, operationId, ...rest } = args;
-    const requestHash = contentHash({ slug, originalSlug, ...rest });
-    if (!/^[a-f0-9-]{36}$/i.test(operationId)) throw new PostgresError({ code: "INVALID_WRITING", message: "A valid publication operation is required." });
+export type UpsertWritingArticleArgs = ObjectType<typeof upsertArticleArgs>;
 
-    if (!SLUG_PATTERN.test(slug)) {
-      throw new Error(
-        `Invalid slug "${slug}": use lowercase letters, digits and single hyphens`,
-      );
+/** The upsert itself, shared by the admin route and an approved Writing proposal. */
+export async function upsertWritingArticleHandler(ctx: MutationCtx, args: UpsertWritingArticleArgs) {
+  const actor = await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "admin");
+
+  const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, expectedRevision, operationId, ...rest } = args;
+  const requestHash = contentHash({ slug, originalSlug, ...rest });
+  if (!/^[a-f0-9-]{36}$/i.test(operationId)) throw new PostgresError({ code: "INVALID_WRITING", message: "A valid publication operation is required." });
+
+  if (!SLUG_PATTERN.test(slug)) {
+    throw new Error(
+      `Invalid slug "${slug}": use lowercase letters, digits and single hyphens`,
+    );
+  }
+
+  const renamingFrom = originalSlug !== undefined && originalSlug !== slug ? originalSlug : null;
+
+  const existing = await ctx.db
+    .query("effectIndexArticles")
+    .withIndex("by_slug", (q) => q.eq("slug", renamingFrom ?? slug))
+    .first();
+  if (operationId) {
+    const applied = await ctx.db.query("narrativeRevisions").withIndex("by_operation", q => q.eq("kind", "writing").eq("operationId", operationId)).first();
+    if (applied) {
+      if (applied.actorEmail !== actor.email || applied.baseRevision !== expectedRevision || applied.key !== (originalSlug ?? slug) || applied.requestHash !== requestHash) throw new PostgresError({ code: "FIELD_CONFLICT", message: "Operation identity does not match this writing document." });
+      const after = applied.after as Doc<"effectIndexArticles">;
+      return { slug: after.slug, id: after._id, created: applied.before === null, revision: applied.revision };
     }
+  }
+  if (await currentNarrativeRevision(ctx, "writing", existing) !== expectedRevision) throw new PostgresError({ code: "FIELD_CONFLICT", message: "This writing document changed. Reload and reconcile your local edits before publishing." });
+  if (existing && rest.bodyFormat !== undefined && rest.bodyFormat !== (existing.bodyFormat ?? "vcode")) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing format cannot be converted by this editor." });
+  if (existing && rest.kind !== undefined && rest.kind !== (existing.kind ?? "article")) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing family cannot be changed by this editor." });
 
-    const renamingFrom = originalSlug !== undefined && originalSlug !== slug ? originalSlug : null;
-
-    const existing = await ctx.db
+  if (renamingFrom) {
+    if (!existing) {
+      throw new PostgresError({
+        code: "ARTICLE_NOT_FOUND",
+        message: `No article found for slug "${renamingFrom}".`,
+      });
+    }
+    const taken = await ctx.db
       .query("effectIndexArticles")
-      .withIndex("by_slug", (q) => q.eq("slug", renamingFrom ?? slug))
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
-    if (operationId) {
-      const applied = await ctx.db.query("narrativeRevisions").withIndex("by_operation", q => q.eq("kind", "writing").eq("operationId", operationId)).first();
-      if (applied) {
-        if (applied.actorEmail !== actor.email || applied.baseRevision !== expectedRevision || applied.key !== (originalSlug ?? slug) || applied.requestHash !== requestHash) throw new PostgresError({ code: "FIELD_CONFLICT", message: "Operation identity does not match this writing document." });
-        const after = applied.after as Doc<"effectIndexArticles">;
-        return { slug: after.slug, id: after._id, created: applied.before === null, revision: applied.revision };
-      }
+    if (taken) {
+      throw new PostgresError({
+        code: "SLUG_TAKEN",
+        message: `"${slug}" already belongs to "${taken.title}". Choose another slug.`,
+      });
     }
-    if (await currentNarrativeRevision(ctx, "writing", existing) !== expectedRevision) throw new PostgresError({ code: "FIELD_CONFLICT", message: "This writing document changed. Reload and reconcile your local edits before publishing." });
-    if (existing && rest.bodyFormat !== undefined && rest.bodyFormat !== (existing.bodyFormat ?? "vcode")) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing format cannot be converted by this editor." });
-    if (existing && rest.kind !== undefined && rest.kind !== (existing.kind ?? "article")) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing family cannot be changed by this editor." });
+  }
 
-    if (renamingFrom) {
-      if (!existing) {
-        throw new PostgresError({
-          code: "ARTICLE_NOT_FOUND",
-          message: `No article found for slug "${renamingFrom}".`,
-        });
-      }
-      const taken = await ctx.db
-        .query("effectIndexArticles")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .first();
-      if (taken) {
-        throw new PostgresError({
-          code: "SLUG_TAKEN",
-          message: `"${slug}" already belongs to "${taken.title}". Choose another slug.`,
-        });
-      }
-    }
+  // Only fields the caller actually sent are written, so an update never
+  // clears an omitted field.
+  const patch = Object.fromEntries(
+    Object.entries(rest).filter(([, value]) => value !== undefined),
+  ) as Partial<Doc<"effectIndexArticles">>;
 
-    // Only fields the caller actually sent are written, so an update never
-    // clears an omitted field.
-    const patch = Object.fromEntries(
-      Object.entries(rest).filter(([, value]) => value !== undefined),
-    ) as Partial<Doc<"effectIndexArticles">>;
+  const status = patch.status ?? existing?.status ?? "published";
+  const body = patch.body_raw ?? existing?.body_raw ?? "";
+  if (body.length > 400_000 || (patch.title !== undefined && (!patch.title.trim() || patch.title.length > 200)) || (patch.teaser?.length ?? 0) > 500 || (patch.tags?.length ?? 0) > 24 || (patch.authorProfileKeys?.length ?? 0) > 12) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing fields exceed their supported limits." });
+  if (patch.coverImageUrl && !/^(https?:\/\/|\/(?!\/))/.test(patch.coverImageUrl)) throw new PostgresError({ code: "INVALID_WRITING", message: "Use an https/http or site-relative cover image URL." });
+  if (patch.body_ast !== undefined && patch.body_raw === undefined) throw new PostgresError({ code: "INVALID_WRITING", message: "VCode source is required with its parsed document." });
 
-    const status = patch.status ?? existing?.status ?? "published";
-    const body = patch.body_raw ?? existing?.body_raw ?? "";
-    if (body.length > 400_000 || (patch.title !== undefined && (!patch.title.trim() || patch.title.length > 200)) || (patch.teaser?.length ?? 0) > 500 || (patch.tags?.length ?? 0) > 24 || (patch.authorProfileKeys?.length ?? 0) > 12) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing fields exceed their supported limits." });
-    if (patch.coverImageUrl && !/^(https?:\/\/|\/(?!\/))/.test(patch.coverImageUrl)) throw new PostgresError({ code: "INVALID_WRITING", message: "Use an https/http or site-relative cover image URL." });
-    if (patch.body_ast !== undefined && patch.body_raw === undefined) throw new PostgresError({ code: "INVALID_WRITING", message: "VCode source is required with its parsed document." });
+  if (status === "published" && body.trim() === "") {
+    throw new Error("Cannot publish an article with an empty body");
+  }
+  if ((patch.bodyFormat ?? existing?.bodyFormat ?? "vcode") === "vcode" && patch.body_raw !== undefined) {
+    try { patch.body_ast = prepareVCode(body, existing && rest.body_ast === undefined ? { raw: existing.body_raw, ast: existing.body_ast } : undefined); }
+    catch (error) { throw new PostgresError({ code: "INVALID_VCODE", message: error instanceof Error ? error.message : "Invalid VCode." }); }
+  } else if (patch.bodyFormat === "markdown") {
+    patch.body_ast = undefined;
+  }
 
-    if (status === "published" && body.trim() === "") {
-      throw new Error("Cannot publish an article with an empty body");
-    }
-    if ((patch.bodyFormat ?? existing?.bodyFormat ?? "vcode") === "vcode" && patch.body_raw !== undefined) {
-      try { patch.body_ast = prepareVCode(body, existing && rest.body_ast === undefined ? { raw: existing.body_raw, ast: existing.body_ast } : undefined); }
-      catch (error) { throw new PostgresError({ code: "INVALID_VCODE", message: error instanceof Error ? error.message : "Invalid VCode." }); }
-    } else if (patch.bodyFormat === "markdown") {
-      patch.body_ast = undefined;
-    }
+  if (existing) {
+    await ctx.db.patch(existing._id, renamingFrom ? { ...patch, slug } : patch);
+    const after = (await ctx.db.get(existing._id))!;
+    const revision = await recordNarrativeRevision(ctx, { kind: "writing", key: originalSlug ?? slug, operationId, requestHash, baseRevision: expectedRevision, actor, before: existing, after });
+    return { slug, created: false, id: existing._id, revision };
+  }
 
-    if (existing) {
-      await ctx.db.patch(existing._id, renamingFrom ? { ...patch, slug } : patch);
-      const after = (await ctx.db.get(existing._id))!;
-      const revision = await recordNarrativeRevision(ctx, { kind: "writing", key: originalSlug ?? slug, operationId, requestHash, baseRevision: expectedRevision, actor, before: existing, after });
-      return { slug, created: false, id: existing._id, revision };
-    }
+  if (patch.title === undefined) {
+    throw new Error("A new article requires a title");
+  }
 
-    if (patch.title === undefined) {
-      throw new Error("A new article requires a title");
-    }
+  const id = await ctx.db.insert("effectIndexArticles", {
+    slug,
+    title: patch.title,
+    tags: patch.tags ?? [],
+    body_raw: body,
+    ...patch,
+  });
 
-    const id = await ctx.db.insert("effectIndexArticles", {
-      slug,
-      title: patch.title,
-      tags: patch.tags ?? [],
-      body_raw: body,
-      ...patch,
-    });
+  const after = (await ctx.db.get(id))!;
+  const revision = await recordNarrativeRevision(ctx, { kind: "writing", key: slug, operationId, requestHash, baseRevision: expectedRevision, actor, before: null, after });
+  return { slug, created: true, id, revision };
+}
 
-    const after = (await ctx.db.get(id))!;
-    const revision = await recordNarrativeRevision(ctx, { kind: "writing", key: slug, operationId, requestHash, baseRevision: expectedRevision, actor, before: null, after });
-    return { slug, created: true, id, revision };
-  },
+export const upsertArticle = mutation({
+  args: upsertArticleArgs,
+  handler: upsertWritingArticleHandler,
 });
+
+/**
+ * One Writing row as a change proposal carries it: the content fields the
+ * editor edits, parsed at the HTTP boundary exactly as the admin's save is.
+ * The slug is the row's key; a proposal never renames.
+ */
+export const writingProposalDocumentValidator = v.object({
+  slug: v.string(),
+  kind: v.union(v.literal("article"), v.literal("blog")),
+  status: v.union(v.literal("draft"), v.literal("published")),
+  bodyFormat: v.union(v.literal("vcode"), v.literal("markdown")),
+  title: v.string(),
+  teaser: v.string(),
+  coverImageUrl: v.string(),
+  body: v.string(),
+  tags: v.array(v.string()),
+  authorProfileKeys: v.array(v.string()),
+  publicationDate: v.optional(v.string()),
+});
+
+export type WritingProposalDocument = Infer<typeof writingProposalDocumentValidator>;
+
+/** The upsert fields a proposal document writes, the same set the admin route sends. */
+export function writingUpsertFields(document: WritingProposalDocument) {
+  return {
+    slug: document.slug,
+    title: document.title,
+    kind: document.kind,
+    status: document.status,
+    publication_status: document.status === "published" ? "published" : "draft",
+    bodyFormat: document.bodyFormat,
+    body_raw: document.body,
+    teaser: document.teaser,
+    shortDescription: document.teaser,
+    coverImageUrl: document.coverImageUrl,
+    tags: document.tags,
+    authorProfileKeys: document.authorProfileKeys,
+    publicationDate: document.publicationDate,
+  };
+}
 
 /**
  * Bulk import EffectIndex articles. Script-only; admin floor.

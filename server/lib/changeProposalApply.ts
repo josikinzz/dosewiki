@@ -4,6 +4,9 @@ import type { MutationCtx } from "../../lib/postgres/runtime/server"
 import { removeCopyBlockHandler, upsertCopyBlockHandler, type CopyBlockDocument } from "../copyBlocks";
 import { saveIndexLayoutHandler } from "../indexLayouts";
 import { ABOUT_KEY, saveAboutHandler, type AboutDocument } from "../siteConfig";
+import { upsertWritingArticleHandler, writingUpsertFields, type WritingProposalDocument } from "../effectIndexArticles";
+import { contentHash } from "../../lib/proposals/contentHash";
+import { currentNarrativeRevision, recordNarrativeMaintenance } from "./narrativeRevisions";
 import { writeCategoryLayout } from "./categoryLayoutMirror";
 import { readProposalTarget, type ProposalTargetRef } from "./changeProposalTargets";
 import { saveRevalidationPaths, type IndexLayoutType } from "./saveRevalidationPaths";
@@ -38,11 +41,27 @@ export type ProposalPayload = {
   indexLayouts?: ProposalLayoutDocument[];
   copyBlocks?: CopyBlockDocument[];
   about?: AboutDocument;
+  writing?: WritingProposalDocument;
   changelog?: { markdown: string; articles: Array<{ id: number; title: string; slug: string }> };
 };
 
 /** Public paths whose cached copy the About row feeds. */
 const ABOUT_REVALIDATION_PATHS = ["/about"];
+
+/**
+ * Public paths a Writing row feeds: the `/articles` path stands for the
+ * shared writing listings (blog posts ride the same identity), and an
+ * article also has its own library page.
+ */
+export function writingRevalidationPaths(slug: string, kind: unknown): string[] {
+  return kind === "blog" ? ["/articles"] : ["/articles", `/articles/${slug}`];
+}
+
+/** The upsert's operation id for one applied proposal target: stable, so a retry replays. */
+function proposalOperationId(changeId: string, key: string): string {
+  const hash = contentHash(`${changeId}:${key}`);
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`;
+}
 
 type CategoryLayoutData = Omit<Doc<"categoryLayout">, "_id" | "_creationTime">;
 
@@ -187,6 +206,41 @@ export async function applyTarget(
       }
       return { revalidatePaths: ABOUT_REVALIDATION_PATHS };
     }
+    case "writing": {
+      const existing = await ctx.db
+        .query("effectIndexArticles")
+        .withIndex("by_slug", (q) => q.eq("slug", target.key))
+        .first();
+      const kind = (document as { kind?: unknown } | null)?.kind ?? existing?.kind;
+      if (document === null) {
+        // The row did not exist when the proposal was drafted.
+        if (existing) {
+          await requireRole(ctx, { apiKey: auth.apiKey, actorEmail: auth.actorEmail, adminIntent: "editorArticleWrite" }, "admin");
+          await ctx.db.delete(existing._id);
+        }
+      } else if (auth.articleChangeId?.startsWith("revert-")) {
+        // A revert writes the stored row back exactly, including fields the
+        // editor never sees, and advances the row's revision like any write.
+        const actor = await requireRole(ctx, { apiKey: auth.apiKey, actorEmail: auth.actorEmail, adminIntent: "editorArticleWrite" }, "admin");
+        const stored = document as Omit<Doc<"effectIndexArticles">, "_id" | "_creationTime">;
+        let id = existing?._id;
+        if (id) await ctx.db.replace(id, stored);
+        else id = await ctx.db.insert("effectIndexArticles", stored);
+        await recordNarrativeMaintenance(ctx, { kind: "writing", key: target.key, actor, before: existing, after: (await ctx.db.get(id))! });
+      } else {
+        // The approved proposal goes through the admin's own upsert, as the
+        // approver. Compare-and-swap already pinned the row, so the expected
+        // revision is the row as it stands now.
+        await upsertWritingArticleHandler(ctx, {
+          apiKey: auth.apiKey,
+          actorEmail: auth.actorEmail,
+          ...writingUpsertFields(document as WritingProposalDocument),
+          expectedRevision: await currentNarrativeRevision(ctx, "writing", existing),
+          operationId: proposalOperationId(auth.articleChangeId ?? "proposal", target.key),
+        });
+      }
+      return { revalidatePaths: writingRevalidationPaths(target.key, kind) };
+    }
     case "copyBlock": {
       if (document === null) {
         await removeCopyBlockHandler(ctx, { apiKey: auth.apiKey, actorEmail: auth.actorEmail, key: target.key });
@@ -225,6 +279,9 @@ export function payloadDocuments(payload: ProposalPayload): ProposalSnapshotEntr
   }
   if (payload.about) {
     documents.push({ kind: "about", key: ABOUT_KEY, document: payload.about });
+  }
+  if (payload.writing) {
+    documents.push({ kind: "writing", key: payload.writing.slug, document: payload.writing });
   }
   return documents;
 }

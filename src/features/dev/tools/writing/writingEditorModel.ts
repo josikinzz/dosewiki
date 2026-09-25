@@ -1,4 +1,5 @@
 import { slugify } from "@/utils/slug";
+import { isValidPublicationDate } from "@/utils/archiveDate";
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import type { NarrativeHistoryEntry } from "@/features/effects/editing/NarrativeHistory";
 
@@ -14,6 +15,7 @@ export interface WritingListEntry {
   publicationDate?: string;
   creationTime: number;
   teaser?: string;
+  tags?: string[];
 }
 
 /** The whole row, as `effectIndexArticles.getForEditor` returns it. */
@@ -43,7 +45,7 @@ export interface WritingDraft {
   coverImageUrl: string;
   body: string;
   bodyFormat: "vcode" | "markdown";
-  tags: string;
+  tags: string[];
   authorProfileKeys: string[];
   status: WritingStatus;
   publicationDate: string;
@@ -62,7 +64,7 @@ export function emptyWritingDraft(): WritingDraft {
     coverImageUrl: "",
     body: "",
     bodyFormat: "markdown",
-    tags: "",
+    tags: [],
     authorProfileKeys: [],
     status: "draft",
     publicationDate: todayIso(),
@@ -77,7 +79,7 @@ export function draftFromRow(row: WritingArticleRow): WritingDraft {
     coverImageUrl: row.coverImageUrl ?? "",
     body: row.body_raw ?? "",
     bodyFormat: row.bodyFormat ?? "vcode",
-    tags: (row.tags ?? []).join(", "),
+    tags: [...(row.tags ?? [])],
     authorProfileKeys: [...(row.authorProfileKeys ?? [])],
     status: row.status ?? "published",
     publicationDate: row.publicationDate ?? "",
@@ -93,7 +95,8 @@ export function isSameDraft(a: WritingDraft, b: WritingDraft): boolean {
     a.coverImageUrl === b.coverImageUrl &&
     a.body === b.body &&
     a.bodyFormat === b.bodyFormat &&
-    a.tags === b.tags &&
+    a.tags.length === b.tags.length &&
+    a.tags.every((tag, index) => tag === b.tags[index]) &&
     a.status === b.status &&
     a.publicationDate === b.publicationDate &&
     a.authorProfileKeys.length === b.authorProfileKeys.length &&
@@ -101,11 +104,35 @@ export function isSameDraft(a: WritingDraft, b: WritingDraft): boolean {
   );
 }
 
-export function parseTagList(value: string): string[] {
-  return value
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
+/**
+ * Why a publication date cannot be saved, or `null` when it can. Empty is
+ * allowed: the page then shows no date.
+ */
+export function publicationDateError(value: string): string | null {
+  const date = value.trim();
+  if (!date || isValidPublicationDate(date)) return null;
+  return `“${date}” is not a real date. Pick a day, or clear the field.`;
+}
+
+/**
+ * Why a cover image address cannot be saved, or `null` when it can. The
+ * Writing upsert accepts an http(s) address or a site path, nothing else.
+ */
+export function coverImageUrlError(value: string): string | null {
+  const url = value.trim();
+  if (!url || /^(https?:\/\/|\/(?!\/))/.test(url)) return null;
+  return "Use a full https:// address or a site path starting with /.";
+}
+
+/** The existing tags across every entry, most used first, for the tag picker. */
+export function writingTagOptions(entries: readonly WritingListEntry[]): Array<{ value: string; label: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const entry of entries) {
+    for (const tag of entry.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return [...counts]
+    .sort(([a, left], [b, right]) => right - left || a.localeCompare(b))
+    .map(([tag, count]) => ({ value: tag, label: tag, count }));
 }
 
 

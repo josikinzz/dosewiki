@@ -62,7 +62,7 @@ interface WritingTabProps {
   initialSlug?: string;
   /** The route's `?kind=` value, validated by the registry; anything else opens on articles. */
   initialKind?: string;
-  /** Admin: the pinned About entry and every writing row save directly; without it About is submitted as a proposal and rows are read-only for saving. */
+  /** Admin: the pinned About entry and every writing row save directly; without it both are submitted for review as proposals. */
   canApprove: boolean;
 }
 
@@ -142,22 +142,23 @@ export function WritingTab({
   });
   // The shell asks before a rail click, Leave or sign-out drops the open
   // draft. Its Save is the editor's own save, offered only when that button
-  // would be enabled and only for an unpublished save: a record that is or
-  // would become live (publishing, or unpublishing a live page) is published
-  // from the editor. About keeps its own save, so the shell only discards it
-  // (unmounting drops that draft).
-  const { canSave, save: saveDraft, discard: discardDraft, baseline } = controller;
-  const shellCanSave = !pinned && canApprove && canSave && isDirty;
+  // would be enabled. For an admin that is only an unpublished save: a record
+  // that is or would become live (publishing, or unpublishing a live page) is
+  // published from the editor. For an editor it is Submit for review, which
+  // never goes live on its own. About keeps its own save, so the shell only
+  // discards it (unmounting drops that draft).
+  const { canSave, save: saveDraft, submitForReview, discard: discardDraft, baseline } = controller;
+  const shellCanSave = !pinned && canSave && isDirty && (canApprove || !controller.loadedRow || draft.slug.trim() === controller.loadedRow.slug);
   useUnsavedWork({
     id: "writing",
     label: `Writing: ${openTitle}`,
     dirty: unsaved,
-    saveLabel: "Save as unpublished",
-    publishesLive: !pinned && (draft.status === "published" || baseline.status === "published"),
+    saveLabel: canApprove ? "Save as unpublished" : "Submit for review",
+    publishesLive: !pinned && canApprove && (draft.status === "published" || baseline.status === "published"),
     save: shellCanSave
       ? async () => {
-          if (!(await saveDraft(draft.status))) {
-            throw new Error(`${openTitle} was not saved. The reason is shown in the editor.`);
+          if (!(await (canApprove ? saveDraft(draft.status) : submitForReview()))) {
+            throw new Error(`${openTitle} was not ${canApprove ? "saved" : "submitted"}. The reason is shown in the editor.`);
           }
         }
       : undefined,

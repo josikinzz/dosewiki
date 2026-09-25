@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { contentHash } from "../../../../../lib/proposals/contentHash";
 import { prepareVCode } from "@/features/effects/vcode/editing";
 
+import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+
 import type {
   EditorActionStatusState,
   EditorNoticeMessage,
@@ -13,8 +15,9 @@ import {
   checkSlugAvailability,
   draftFromRow,
   emptyWritingDraft,
+  coverImageUrlError,
   isSameDraft,
-  parseTagList,
+  publicationDateError,
   sortWritingEntries,
   suggestSlug,
   type WritingArticleRow,
@@ -66,6 +69,9 @@ export function useWritingWorkbenchController({
   const [uncertain, setUncertain] = useState(false);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [listError, setListError] = useState<string | null>(null);
+  // A date input holding a half-typed day reports an empty value; the editor
+  // says so here rather than saving no date without a word.
+  const [dateIncomplete, setDateIncomplete] = useState(false);
   const slugTouchedRef = useRef(false);
   const operationRef = useRef<{ body: string; id: string } | null>(null);
 
@@ -156,9 +162,13 @@ export function useWritingWorkbenchController({
     } catch (error) { return { ast: undefined, error: error instanceof Error ? error.message : "Invalid VCode." }; }
   }, [draft.body, draft.bodyFormat, loadedRow]);
   const isDirty = uncertain || !isSameDraft(draft, baseline);
+  const dateError = dateIncomplete ? "Finish the date, or clear the field." : publicationDateError(draft.publicationDate);
+  const coverError = coverImageUrlError(draft.coverImageUrl);
   const canSave =
     !readOnly &&
     !parsedBody.error &&
+    !dateError &&
+    !coverError &&
     draft.title.trim().length > 0 &&
     (slugAvailability.state === "free" || slugAvailability.state === "current");
 
@@ -238,7 +248,7 @@ export function useWritingWorkbenchController({
         const document = {
           ...draft, slug: draft.slug.trim(), originalSlug: loadedRow?.slug,
           kind: loadedRow?.kind ?? kind, status, title: draft.title.trim(),
-          tags: parseTagList(draft.tags), expectedRevision: loadedRow?.baseRevision ?? contentHash(null),
+          tags: draft.tags, expectedRevision: loadedRow?.baseRevision ?? contentHash(null),
           publicationDate: draft.publicationDate.trim() || undefined,
         };
         const serialized = JSON.stringify(document);
@@ -283,17 +293,65 @@ export function useWritingWorkbenchController({
     },
     [draft, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState],
   );
+  /**
+   * An editor's save: the same document the admin's save posts, held as a
+   * proposal for an admin to approve. The proposal holds the edit now, so the
+   * editor returns to the saved version and a resubmit needs a new edit.
+   */
+  const submitForReview = useCallback(async (): Promise<boolean> => {
+    if (!canSave) return false;
+    // A proposal never renames: the slug is the saved row's key.
+    if (loadedRow && draft.slug.trim() !== loadedRow.slug) return false;
+    setSaveState("saving");
+    setNotice(null);
+    const rowKind = loadedRow?.kind ?? kind;
+    const title = draft.title.trim();
+    const label = rowKind === "blog" ? "blog post" : "article";
+    try {
+      const { proposalId } = await submitToolProposal({
+        payload: {
+          writing: {
+            slug: draft.slug.trim(), kind: rowKind, status: draft.status, bodyFormat: draft.bodyFormat,
+            title, teaser: draft.teaser, coverImageUrl: draft.coverImageUrl, body: draft.body,
+            tags: draft.tags, authorProfileKeys: draft.authorProfileKeys,
+            publicationDate: draft.publicationDate.trim() || undefined,
+          },
+        },
+        summary: `${loadedRow ? "Update" : "New"} ${label} “${title}”`,
+        baselines: [{ kind: "writing", key: draft.slug.trim(), document: loadedRow }],
+      });
+      if (loadedRow) {
+        setDraft(baseline);
+      } else {
+        const empty = emptyWritingDraft();
+        slugTouchedRef.current = false;
+        setDraft(empty);
+        setBaseline(empty);
+      }
+      setSaveState("idle");
+      setNotice(proposalSubmittedNotice(`“${title}”`, proposalId));
+      return true;
+    } catch (error) {
+      setSaveState("error");
+      setNotice({
+        tone: "danger",
+        title: "Submission failed",
+        message: error instanceof Error ? error.message : "The proposal could not be submitted.",
+      });
+      return false;
+    }
+  }, [baseline, canSave, draft, kind, loadedRow]);
   const discard = useCallback(() => { if (uncertain || saveState === "saving") return; setDraft(baseline); setNotice(null); }, [baseline, uncertain, saveState]);
   const reconcile = useCallback(async () => {
     if (!loadedRow || uncertain || saveState === "saving") return;
     try {
       const response = await fetch(`${API_PATH}?slug=${encodeURIComponent(loadedRow.slug)}`);
       const payload = await response.json() as { article?: WritingArticleRow; error?: string };
-      if (!response.ok || !payload.article) throw new Error(payload.error ?? "Unable to reload the published baseline.");
+      if (!response.ok || !payload.article) throw new Error(payload.error ?? "Unable to load the latest saved version.");
       setLoadedRow(payload.article);
       setBaseline(draftFromRow(payload.article));
       operationRef.current = null;
-      setNotice({ tone: "warning", message: "Latest published baseline loaded. Your local edits are retained; review the diff before publishing." });
+      setNotice({ tone: "warning", message: "Loaded the latest saved version. Your edits are kept; check what changed before you save." });
     } catch (error) { setNotice({ tone: "danger", message: error instanceof Error ? error.message : "Reload failed." }); }
   }, [loadedRow, uncertain, saveState]);
 
@@ -318,6 +376,10 @@ export function useWritingWorkbenchController({
     readOnly,
     isDirty,
     canSave,
+    dateError,
+    coverError,
+    setDateIncomplete,
+    submitForReview,
     startNew,
     selectKind,
     selectPinned,

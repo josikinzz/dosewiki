@@ -17,6 +17,7 @@ export type ProposalPayloadShape = {
   indexLayouts?: Array<{ type: "psychoactive" | "chemical" | "mechanism" }>;
   copyBlocks?: Array<{ key: string }>;
   about?: object;
+  writing?: { slug: string };
 };
 
 /**
@@ -51,7 +52,8 @@ async function resolveArticleTargetKey(
 
 /**
  * The targets a payload implies: one per article slug, one per layout type,
- * one per copy block key, and the single About row. Copy block keys are
+ * one per copy block key, the single About row, and one Writing row keyed by
+ * its slug. Copy block keys are
  * trimmed the way `copyBlocks.upsert` trims them, so the hash pins the row the
  * write will touch. Submit derives these itself; a caller never names a target
  * the payload does not write.
@@ -72,6 +74,9 @@ export async function deriveProposalTargets(
   }
   if (payload.about) {
     targets.push({ kind: "about", key: ABOUT_KEY });
+  }
+  if (payload.writing) {
+    targets.push({ kind: "writing", key: payload.writing.slug });
   }
   return targets;
 }
@@ -142,6 +147,13 @@ export async function readProposalTarget(
       const row = await ctx.db
         .query("siteConfig")
         .withIndex("by_key", (q) => q.eq("key", ABOUT_KEY))
+        .first();
+      return contentOf(row);
+    }
+    case "writing": {
+      const row = await ctx.db
+        .query("effectIndexArticles")
+        .withIndex("by_slug", (q) => q.eq("slug", target.key))
         .first();
       return contentOf(row);
     }

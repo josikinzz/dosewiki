@@ -68,6 +68,7 @@ const TARGET_KIND_LABELS: Record<ProposalDetail["targets"][number]["kind"], stri
   indexLayout: "Index layout",
   about: "About",
   copyBlock: "Copy block",
+  writing: "Writing",
 };
 
 const targetCount = (count: number) => `${count} ${count === 1 ? "item" : "items"}`;

@@ -18,6 +18,8 @@ import {
 import { copyBlockDocumentValidator, type CopyBlockDocument } from "./copyBlocks";
 import { changeProposalStatusValidator } from "./lib/accessSchemaValidators";
 import { aboutDocumentValidator, type AboutDocument } from "./siteConfig";
+import { writingProposalDocumentValidator, type WritingProposalDocument } from "./effectIndexArticles";
+import { prepareVCode } from "../src/features/effects/vcode/editing";
 import { projectProposalComment, projectProposalDetail, projectProposalSummary } from "../lib/proposals/proposalPublic";
 import { articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
 
@@ -39,6 +41,7 @@ export const changeProposalPayloadValidator = v.object({
   indexLayouts: v.optional(v.array(indexLayoutValidator)),
   copyBlocks: v.optional(v.array(copyBlockDocumentValidator)),
   about: v.optional(aboutDocumentValidator),
+  writing: v.optional(writingProposalDocumentValidator),
   changelog: v.optional(
     v.object({
       markdown: v.string(),
@@ -55,6 +58,7 @@ type SubmitArgs = {
     indexLayouts?: Array<{ type: "psychoactive" | "chemical" | "mechanism" } & Record<string, unknown>>;
     copyBlocks?: CopyBlockDocument[];
     about?: AboutDocument;
+    writing?: WritingProposalDocument;
     changelog?: { markdown: string; articles: Array<{ id: number; title: string; slug: string }> };
   };
   summary: string;
@@ -67,6 +71,31 @@ const SUMMARY_MAX_LENGTH = 500;
 
 /** A proposal an editor may rebase: returned with changes requested, or still waiting. */
 const REVISABLE_STATUSES: readonly ProposalStatus[] = ["submitted", "changes_requested"];
+
+/**
+ * The refusals the Writing upsert would make at apply time, made at submit so
+ * an editor hears them now rather than an admin at approval: a saved row keeps
+ * its family and format, and VCode must parse.
+ */
+async function validateWritingProposal(ctx: MutationCtx, writing: WritingProposalDocument) {
+  const stored = await ctx.db
+    .query("effectIndexArticles")
+    .withIndex("by_slug", (q) => q.eq("slug", writing.slug))
+    .first();
+  if (stored && writing.kind !== (stored.kind ?? "article")) {
+    throw new PostgresError({ code: "PROPOSAL_WRITING_INVALID", message: "A proposal cannot move a saved entry between articles and blog posts." });
+  }
+  if (stored && writing.bodyFormat !== (stored.bodyFormat ?? "vcode")) {
+    throw new PostgresError({ code: "PROPOSAL_WRITING_INVALID", message: "A proposal cannot convert a saved entry to another format." });
+  }
+  if (writing.bodyFormat === "vcode") {
+    try {
+      prepareVCode(writing.body, stored ? { raw: stored.body_raw, ast: stored.body_ast } : undefined);
+    } catch (error) {
+      throw new PostgresError({ code: "PROPOSAL_WRITING_INVALID", message: error instanceof Error ? error.message : "Invalid VCode." });
+    }
+  }
+}
 
 export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
   const actor = await requireRole(
@@ -96,6 +125,8 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
       if (validation.ok === false) throw new PostgresError({ code: "PROPOSAL_ARTICLE_INVALID", message: `${article.title}: ${validation.message}` });
     }
   }
+
+  if (args.payload.writing) await validateWritingProposal(ctx, args.payload.writing);
 
   const summary = args.summary.trim();
   if (summary.length === 0 || summary.length > SUMMARY_MAX_LENGTH) {
@@ -199,7 +230,7 @@ export const submit = mutation({
     payload: changeProposalPayloadValidator,
     summary: v.string(),
     baselines: v.array(v.object({
-      kind: v.union(v.literal("article"), v.literal("indexLayout"), v.literal("copyBlock"), v.literal("about")),
+      kind: v.union(v.literal("article"), v.literal("indexLayout"), v.literal("copyBlock"), v.literal("about"), v.literal("writing")),
       key: v.string(),
       document: v.any(),
     })),

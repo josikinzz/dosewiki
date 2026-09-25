@@ -38,7 +38,7 @@ function WritingSession({ slug, writingKind, bylineAuthors, onRetry }: Props & {
   useEffect(() => { if (controller.saveState === "saved") router.refresh(); }, [controller.saveState, router]);
   return <>
     <Button ref={returnFocusRef} variant="outline" onClick={() => setOpen(true)}>Edit {writingKind === "blog" ? "post" : "writing"}</Button>
-    <ContextualEditorPanel title={`Edit ${writingKind === "blog" ? "post" : "writing"}`} open={open} returnFocusRef={returnFocusRef} onOpenChange={next => { if (!next && (controller.saveState === "saving" || controller.uncertain)) return; if (!next && controller.isDirty) setClosing(true); else setOpen(next); }} description={`Changes stay local until an admin confirms saving or publication. Publishes to ${writingKind === "blog" ? "dose.wiki" : "dose.wiki and Effect Index"}.`}>
+    <ContextualEditorPanel title={`Edit ${writingKind === "blog" ? "post" : "writing"}`} open={open} returnFocusRef={returnFocusRef} onOpenChange={next => { if (!next && (controller.saveState === "saving" || controller.uncertain)) return; if (!next && controller.isDirty) setClosing(true); else setOpen(next); }} description={`${role === "admin" ? "Changes stay local until you confirm saving or publication." : "Changes stay local until you submit them for review. An admin publishes approved changes."} Publishes to ${writingKind === "blog" ? "dose.wiki" : "dose.wiki and Effect Index"}.`}>
       {closing ? (
         <EditorSection title="Discard local edits?" description="Your changes have not been saved. Keep editing to preserve them.">
           <EditorToolbar>

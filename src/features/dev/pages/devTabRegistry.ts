@@ -244,7 +244,7 @@ const REGISTRY = [
     role: "editor",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "record",
-    withoutApproval: "read-only",
+    withoutApproval: "submits-for-review",
     layout: "shell",
     destination: SHELL,
     // Blog folded in as the kind filter; `/dev/blog/<slug>` still opens the post.

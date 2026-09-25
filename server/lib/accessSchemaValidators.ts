@@ -69,6 +69,7 @@ const changeProposalTargetKindValidator = v.union(
   v.literal("indexLayout"),
   v.literal("about"),
   v.literal("copyBlock"),
+  v.literal("writing"),
 );
 
 const changeProposalTargetValidator = v.object({
