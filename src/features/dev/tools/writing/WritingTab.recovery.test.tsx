@@ -168,9 +168,35 @@ describe("WritingTab draft recovery", () => {
     expect(within(review).getByText("Launch post theirs")).toBeInTheDocument();
     expect(within(review).getByText("Launch post mine")).toBeInTheDocument();
 
+    // Both changed the title, so the review cannot end without a choice.
+    expect(within(review).getByText("You changed")).toBeInTheDocument();
+    expect(within(review).getByText("Someone else changed")).toBeInTheDocument();
+    expect(within(review).getByRole("button", { name: "Done reviewing" })).toBeDisabled();
     await user.click(within(review).getByRole("button", { name: "Use recovered Title" }));
     await user.click(within(review).getByRole("button", { name: "Done reviewing" }));
     expect(screen.getByLabelText("Title")).toHaveValue("Launch post mine");
+    expect(screen.queryByRole("region", { name: "Review recovered changes" })).not.toBeInTheDocument();
+  });
+
+  it("keeps a recovered edit and a newer saved edit to different fields without asking", async () => {
+    const user = userEvent.setup();
+    const first = renderAs("editor@example.com");
+    await openRow();
+    await user.type(screen.getByLabelText("Body"), " Mine.");
+    await screen.findByText(/Unsaved changes kept in this browser at/);
+    first.unmount();
+
+    row = { ...FIRST, title: "Launch post, retitled", baseRevision: "e".repeat(64) };
+    renderAs("editor@example.com");
+    await user.click(within(await screen.findByRole("region", { name: "Recovered changes" })).getByRole("button", { name: "Review" }));
+
+    const review = screen.getByRole("region", { name: "Review recovered changes" });
+    expect(within(review).queryByRole("region", { name: "Changed by both" })).not.toBeInTheDocument();
+    expect(within(review).getByText("Body")).toBeInTheDocument();
+    expect(within(review).getByText("Title")).toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveValue("Launch post, retitled");
+    expect(screen.getByLabelText("Body")).toHaveValue("Post. Mine.");
+    await user.click(within(review).getByRole("button", { name: "Done reviewing" }));
     expect(screen.queryByRole("region", { name: "Review recovered changes" })).not.toBeInTheDocument();
   });
 
@@ -206,5 +232,69 @@ describe("WritingTab draft recovery", () => {
     expect(posts).toHaveLength(2);
     expect(posts[1]).toEqual(posts[0]);
     expect(posts[1].expectedRevision).toBe("c".repeat(64));
+  });
+});
+
+describe("WritingTab loading a newer saved version under open edits", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    row = { ...FIRST };
+    postResponder = async () => Response.json({ ok: true, slug: "launch-post", revision: "d".repeat(64) });
+    stubApi();
+    window.history.replaceState(null, "", "/dev/writing/launch-post");
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  const posts = () => vi.mocked(fetch).mock.calls
+    .filter(([, init]) => init?.method === "POST")
+    .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
+
+  it("merges someone else's saved change into the open edits and saves against the newer revision", async () => {
+    const user = userEvent.setup();
+    renderAs("editor@example.com");
+    await openRow();
+    await user.type(screen.getByLabelText("Title"), " two");
+
+    row = { ...FIRST, body_raw: "Post, edited by someone else.", baseRevision: "e".repeat(64) };
+    await user.click(screen.getByRole("button", { name: "Load the latest saved version" }));
+    const review = await screen.findByRole("region", { name: "Review changes saved meanwhile" });
+    expect(within(review).queryByRole("region", { name: "Changed by both" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveValue("Launch post two");
+    expect(screen.getByLabelText("Body")).toHaveValue("Post, edited by someone else.");
+    await user.click(within(review).getByRole("button", { name: "Done reviewing" }));
+
+    // A further change lands after the merge: the revision check refuses it.
+    postResponder = async () => Response.json({ error: "Someone saved this article after you loaded it." }, { status: 409 });
+    await user.click(screen.getByRole("button", { name: "Review changes" }));
+    await user.click(screen.getByRole("button", { name: "Confirm save as unpublished" }));
+    expect(await screen.findByText("Someone saved this article after you loaded it.")).toBeInTheDocument();
+    expect(posts()[0]).toMatchObject({ title: "Launch post two", body: "Post, edited by someone else.", expectedRevision: "e".repeat(64) });
+    expect(screen.queryByText(/Saved as a draft/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveValue("Launch post two");
+  });
+
+  it("shows both versions of a field both changed and holds the review until one is chosen", async () => {
+    const user = userEvent.setup();
+    renderAs("editor@example.com");
+    await openRow();
+    await user.type(screen.getByLabelText("Title"), " mine");
+
+    row = { ...FIRST, title: "Launch post theirs", baseRevision: "e".repeat(64) };
+    await user.click(screen.getByRole("button", { name: "Load the latest saved version" }));
+    const review = await screen.findByRole("region", { name: "Review changes saved meanwhile" });
+    const both = within(review).getByRole("group", { name: "Title, changed by both" });
+    expect(within(both).getByText("Launch post mine")).toBeInTheDocument();
+    expect(within(both).getByText("Launch post theirs")).toBeInTheDocument();
+    expect(within(review).getByRole("button", { name: "Done reviewing" })).toBeDisabled();
+    expect(screen.getByLabelText("Title")).toHaveValue("Launch post theirs");
+
+    await user.click(within(both).getByRole("button", { name: "Use yours Title" }));
+    expect(screen.getByLabelText("Title")).toHaveValue("Launch post mine");
+    await user.click(within(review).getByRole("button", { name: "Done reviewing" }));
+    expect(screen.queryByRole("region", { name: "Review changes saved meanwhile" })).not.toBeInTheDocument();
   });
 });

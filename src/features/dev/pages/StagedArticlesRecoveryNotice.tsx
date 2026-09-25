@@ -3,6 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { EditorNotice } from "../components/EditorNotice";
 import { formatCheckpointTime } from "../recovery/draftRecovery";
+import { MergeConflictChoices } from "../components/MergeConflictChoices";
+import { displayValue } from "@/features/article/editing/ArticleChangeDiff";
+import { mergePlaceWords } from "@/features/article/editing/ArticleMergeReview";
 import type { StagedArticlesRecovery } from "./useStagedArticlesRecovery";
 
 function articleCount(count: number): string {
@@ -63,18 +66,29 @@ export function StagedArticlesRecoveryNotice({
             message: (
               <>
                 <span className="block">
-                  These articles changed after your copy was made, or could not be loaded. Your edits are kept aside and the newer version stays in place until you choose.
+                  These articles changed after your copy was made, or could not be loaded. Your edits are kept aside and the newer version stays in place until you choose. Applying merges your edits into the newer version; a field you both changed needs your choice first.
                 </span>
-                <ul className="mt-2 space-y-1.5">
-                  {held.map(({ change, current }) => (
-                    <li key={change.slug} className="flex flex-wrap items-center gap-2">
-                      <span className="min-w-0 flex-1 truncate">
-                        {`${change.slug}: ${Object.keys(change.set).concat(change.unset).join(", ") || "no fields"}`}
-                      </span>
-                      {current ? (
-                        <Button type="button" variant="outline" size="sm" aria-label={`Apply my edits to ${change.slug}`} onClick={() => recovery.applyHeld(change.slug)}>
-                          Apply my edits
-                        </Button>
+                <ul className="mt-2 space-y-3">
+                  {held.map(({ change, current, merge, choices }) => (
+                    <li key={change.slug} className="min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate">
+                          {`${change.slug}: ${Object.keys(change.set).concat(change.unset).join(", ") || "no fields"}`}
+                        </span>
+                        {current ? (
+                          <Button type="button" variant="outline" size="sm" disabled={!!merge && merge.unresolved.length > 0} aria-label={`Apply my edits to ${change.slug}`} onClick={() => recovery.applyHeld(change.slug)}>
+                            Apply my edits
+                          </Button>
+                        ) : null}
+                      </div>
+                      {merge ? (
+                        <MergeConflictChoices
+                          conflicts={merge.conflicts}
+                          choices={choices}
+                          onChoose={(path, side) => recovery.chooseHeld(change.slug, path, side)}
+                          label={mergePlaceWords}
+                          format={displayValue}
+                        />
                       ) : null}
                     </li>
                   ))}

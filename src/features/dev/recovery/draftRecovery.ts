@@ -59,6 +59,13 @@ export interface DraftCheckpoint<T> {
   baseline: string;
   savedAt: number;
   draft: T;
+  /**
+   * The saved version the draft was edited from, when the tool keeps it. A
+   * restore against a newer version merges from it, so only fields both
+   * sides changed need the editor's choice. Copies without it still restore;
+   * every differing field is then the editor's to choose.
+   */
+  base?: T;
   pending?: PendingOperation;
 }
 
