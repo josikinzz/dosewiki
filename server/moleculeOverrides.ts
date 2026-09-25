@@ -134,7 +134,17 @@ export const getCurrentBySlugs = query({
   },
 });
 
-/** Create or replace the canonical depiction for a slug. Admin only. */
+/**
+ * Create or replace the canonical depiction for a slug. Admin only.
+ *
+ * `expectedUpdatedAt` is the editor's version check, matching
+ * `substanceGalleries:upsert`: omit it to write unconditionally, pass `null` to
+ * assert no depiction exists yet, or pass the `updatedAt` the editor loaded to
+ * assert nobody has saved since. A failed check writes nothing and returns
+ * `{ status: "conflict", server }` with the stored revision, so a chemist never
+ * overwrites a colleague's newer drawing. Every write returns `status: "ok"`
+ * with the revision it stored.
+ */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -145,6 +155,7 @@ export const save = mutation({
     smiles: v.optional(v.string()),
     boldBonds: v.optional(v.array(v.number())),
     updatedBy: v.optional(v.string()),
+    expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     await requireRole(ctx, {
@@ -169,6 +180,20 @@ export const save = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
 
+    const expected = args.expectedUpdatedAt;
+    if (
+      expected !== undefined &&
+      (expected === null ? existing !== null : existing?.updatedAt !== expected)
+    ) {
+      return {
+        status: "conflict" as const,
+        server: {
+          updatedAt: existing?.updatedAt ?? null,
+          updatedBy: existing?.updatedBy ?? null,
+        },
+      };
+    }
+
     const doc = {
       slug: args.slug,
       svg: args.svg,
@@ -183,11 +208,11 @@ export const save = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, doc);
-      return { updated: true, id: existing._id };
+      return { status: "ok" as const, updated: true, id: existing._id, updatedAt: doc.updatedAt };
     }
 
     const id = await ctx.db.insert("moleculeOverrides", doc);
-    return { updated: false, id };
+    return { status: "ok" as const, updated: false, id, updatedAt: doc.updatedAt };
   },
 });
 

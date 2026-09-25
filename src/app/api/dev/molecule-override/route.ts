@@ -6,7 +6,8 @@
  * editor session. DELETE remains available for class overrides and deliberate
  * seeded-row rollback, but the substance editor exposes only local Revert + Save.
  *
- *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles?, boldBonds? }  → save
+ *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles?, boldBonds?, expectedUpdatedAt? }  → save
+ *     → 409 { error, conflict } when someone saved since the editor loaded; nothing was written
  *   DELETE /api/dev/molecule-override?slug=lsd                            → remove
  */
 import { NextResponse } from "next/server";
@@ -41,6 +42,7 @@ type SaveOverrideBody = {
   molblock?: unknown;
   smiles?: unknown;
   boldBonds?: unknown;
+  expectedUpdatedAt?: unknown;
 };
 
 type ParsedSaveOverride = {
@@ -49,6 +51,7 @@ type ParsedSaveOverride = {
   molblock: string;
   smiles?: string;
   boldBonds?: number[];
+  expectedUpdatedAt?: string | null;
 };
 
 /** A molecule can't have more bonds than the MOL block byte limit allows lines. */
@@ -87,7 +90,30 @@ function parseSaveBody(body: SaveOverrideBody): ParsedSaveOverride {
     }
     boldBonds = body.boldBonds.length > 0 ? (body.boldBonds as number[]) : undefined;
   }
-  return { slug, svg: body.svg, molblock: body.molblock, smiles, boldBonds };
+  return {
+    slug,
+    svg: body.svg,
+    molblock: body.molblock,
+    smiles,
+    boldBonds,
+    expectedUpdatedAt: parseExpectedUpdatedAt(body.expectedUpdatedAt),
+  };
+}
+
+/**
+ * The revision the editor loaded: the stored `updatedAt`, `null` for "no
+ * depiction existed", or absent to skip the check. An empty string is refused
+ * because it can never equal a stored revision and would 409 forever.
+ */
+function parseExpectedUpdatedAt(value: unknown): string | null | undefined {
+  if (value === undefined || value === null) return value;
+  if (typeof value !== "string" || value.length === 0) {
+    throw new JsonBodyError(
+      400,
+      "expectedUpdatedAt must be the stored updatedAt string, null, or omitted.",
+    );
+  }
+  return value;
 }
 
 function parseMoleculeSlug(value: string | null): string {
@@ -162,12 +188,31 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
       smiles: body.smiles,
       boldBonds: body.boldBonds,
       updatedBy,
+      expectedUpdatedAt: body.expectedUpdatedAt,
     });
+
+    if (result.status === "conflict") {
+      // Nothing was written, so nothing downstream is stale: no publication.
+      return NextResponse.json(
+        {
+          error:
+            "Someone saved this depiction after you opened it. Reload it to see their version before saving.",
+          conflict: result.server,
+        },
+        { status: 409 },
+      );
+    }
 
     // Refresh the owner page so it receives the new updatedAt-versioned URL.
     await publishMoleculeOwner(body.slug);
 
-    return NextResponse.json({ ok: true, updated: result.updated, slug: body.slug, updatedBy });
+    return NextResponse.json({
+      ok: true,
+      updated: result.updated,
+      slug: body.slug,
+      updatedAt: result.updatedAt,
+      updatedBy,
+    });
   },
 });
 

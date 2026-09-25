@@ -153,7 +153,7 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     expect(screen.getByText(/imported structure, unsaved/)).toBeInTheDocument();
     expect(screen.getByText("Structure imported")).toBeInTheDocument();
     // Nothing publishes until the user edits: the save gate stays closed.
-    expect(screen.getByRole("button", { name: /Save/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Publish changed chemistry" })).toBeDisabled();
   });
 
   it("seeds the canvas from pasted SMILES with an automatic layout", async () => {
