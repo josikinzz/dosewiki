@@ -150,15 +150,14 @@ export function DevModePageChrome({
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
   const mayDraft = canDraft(role);
-  const isAdmin = role === "admin";
   // Each badge is only asked for by a role that may open its tab.
   const badgeCounts = useDevRailBadges(role, userEmail);
   const toolGroups = TOOL_GROUPS.map((group) => ({
     ...group,
-    tabs: group.tabs.map(({ id, label, role, destination, badge }): ToolTabItem => ({
+    tabs: group.tabs.map(({ id, label, labelFor, role: floor, destination, badge }): ToolTabItem => ({
       id,
-      label: id === "queue" && !isAdmin ? "My submissions" : label,
-      role,
+      label: labelFor?.(role) ?? label,
+      role: floor,
       destination,
       badge: badge === undefined ? undefined : badgeCounts[badge],
     })),
@@ -170,9 +169,10 @@ export function DevModePageChrome({
   const lockedTools = roleGroups.flatMap((group) => group.locked);
   const changeLogLockReason =
     pendingReason ?? getRoleFloorLockReason(role, findDevTab("change-log").role);
+  const activeDescriptor = findDevTab(activeTab);
   const activeLabel = activePrimaryTab === "change-log"
     ? "Change log"
-    : activeTab === "queue" && !isAdmin ? "My submissions" : findDevTab(activeTab).label;
+    : activeDescriptor.labelFor?.(role) ?? activeDescriptor.label;
   const sessionDetail = mayDraft
     ? "Signed in. You can edit articles."
     : "Signed in. You can edit your own contributor record from the Contributors tab.";

@@ -8,7 +8,7 @@
  * the client router both load it. The role type is a type-only import.
  */
 
-import type { RoleFloor } from "@/lib/auth/roles";
+import type { AppRole, RoleFloor } from "@/lib/auth/roles";
 import { DEV_ROUTE_FILTERS, type DevRouteFilter } from "@/utils/devHref";
 
 export type DevToolGroup = "content" | "intake" | "site";
@@ -27,6 +27,15 @@ type DevTabDataNeed = "library" | "library-deferred" | "changelog" | "contributo
 
 type DevTabDestination = { kind: "shell" } | { kind: "external"; href: string }
 
+/**
+ * How a tool's primary action writes, said once per tool by the save line:
+ * - `record`: each record keeps its own draft until Publish (or Submit for
+ *   review, for a role that cannot publish).
+ * - `batch`: edits collect in one shared working set until Commit.
+ * - `instant`: each action writes to the live site as it happens.
+ */
+export type DevSaveModel = "record" | "batch" | "instant";
+
 type DevTabDescriptorOf<Id extends string> = {
   id: Id;
   label: string;
@@ -36,13 +45,23 @@ type DevTabDescriptorOf<Id extends string> = {
   /** Lowest role that may use the tool; the rail disables the tab, with a reason, for anyone below it. */
   role: RoleFloor;
   data: ReadonlySet<DevTabDataNeed>;
-  /** `staged` tools commit through the shared commit panel; `immediate` tools publish on save. */
-  saveFamily: "staged" | "immediate";
+  saveModel: DevSaveModel;
   /**
-   * The tool draws its own save-family pill inside its toolbar (a full-height
-   * workspace has no room for a line above it); the shell then skips its own.
+   * What the primary action does for a role below admin. Absent: the same
+   * write an admin makes. `submits-for-review` turns it into a proposal an
+   * admin approves; `read-only` means only an admin can save here.
    */
-  saveFamilyInTool?: true;
+  withoutApproval?: "submits-for-review" | "read-only";
+  /**
+   * Where the save line renders. Absent: the shell draws it above the tool.
+   * `in-tool`: the tool draws it beside its own primary action. `none`: the
+   * tool has no single save to describe.
+   */
+  saveLine?: "in-tool" | "none";
+  /** `full-bleed` tools keep the whole viewport width; `shell` tools sit in the 6xl column. */
+  layout: "shell" | "full-bleed";
+  /** Role-dependent rail label; falls back to `label`. */
+  labelFor?: (role: AppRole | null) => string;
   destination: DevTabDestination;
   /** Named count source rendered as a rail badge; `useDevRailBadges` maps the name to its endpoint. */
   badge?: "trip-reports" | "feedback" | "proposals";
@@ -75,7 +94,9 @@ const REGISTRY = [
     aliases: ["generator", "gen"],
     role: "editor",
     data: CORPUS_WITH_LAYOUTS,
-    saveFamily: "staged",
+    saveModel: "record",
+    withoutApproval: "submits-for-review",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -85,7 +106,9 @@ const REGISTRY = [
     aliases: [],
     role: "editor",
     data: NO_DATA,
-    saveFamily: "immediate",
+    // The workbench's primary action is the review tick, which writes at once.
+    saveModel: "instant",
+    layout: "shell",
     destination: { kind: "external", href: "/review" },
   },
   {
@@ -95,7 +118,8 @@ const REGISTRY = [
     aliases: ["citations"],
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -105,7 +129,8 @@ const REGISTRY = [
     aliases: ["trip-reports"],
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "full-bleed",
     destination: SHELL,
     badge: "trip-reports",
   },
@@ -116,7 +141,8 @@ const REGISTRY = [
     aliases: ["feedback"],
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
     badge: "feedback",
     // Site feedback folded in as the source filter; `/dev/site-feedback` still opens that queue.
@@ -129,7 +155,9 @@ const REGISTRY = [
     aliases: ["tag"],
     role: "editor",
     data: new Set<DevTabDataNeed>(["library-deferred"]),
-    saveFamily: "staged",
+    saveModel: "batch",
+    withoutApproval: "submits-for-review",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -139,7 +167,8 @@ const REGISTRY = [
     aliases: ["molecules"],
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -152,7 +181,8 @@ const REGISTRY = [
     aliases: ["warnings"],
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "full-bleed",
     destination: SHELL,
   },
   {
@@ -162,8 +192,9 @@ const REGISTRY = [
     aliases: ["replication-studio"],
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
-    saveFamilyInTool: true,
+    saveModel: "instant",
+    saveLine: "in-tool",
+    layout: "full-bleed",
     destination: SHELL,
   },
   {
@@ -173,7 +204,9 @@ const REGISTRY = [
     aliases: [],
     role: "editor",
     data: new Set<DevTabDataNeed>(["contributors"]),
-    saveFamily: "immediate",
+    saveModel: "record",
+    withoutApproval: "read-only",
+    layout: "shell",
     destination: SHELL,
     // Blog folded in as the kind filter; `/dev/blog/<slug>` still opens the post.
     filter: DEV_ROUTE_FILTERS.writing,
@@ -185,7 +218,9 @@ const REGISTRY = [
     aliases: ["copy"],
     role: "editor",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "record",
+    withoutApproval: "submits-for-review",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -195,7 +230,10 @@ const REGISTRY = [
     aliases: ["proposals"],
     role: "editor",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    saveLine: "none",
+    labelFor: (role) => (role === "admin" ? "Change Review" : "My submissions"),
+    layout: "shell",
     destination: SHELL,
     badge: "proposals",
   },
@@ -209,7 +247,8 @@ const REGISTRY = [
     // that role may see.
     role: "contributor",
     data: new Set<DevTabDataNeed>(["contributors"]),
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
     // Profile folded in as the self scope; `/dev/profile` still lands there.
     filter: DEV_ROUTE_FILTERS.contributors,
@@ -224,7 +263,8 @@ const REGISTRY = [
     // may change. Applying a playlist to a gallery stays in the studio.
     role: "contributor",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -235,7 +275,8 @@ const REGISTRY = [
     // Roster, roles, bans, resets, invites: every action is admin-only in Postgres too.
     role: "admin",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -248,7 +289,8 @@ const REGISTRY = [
     // retranslating, the main run) stay admin inside the tab and their routes.
     role: "translator",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -259,7 +301,8 @@ const REGISTRY = [
     // A member's own published trip reports; ownership is checked per row in Postgres.
     role: "contributor",
     data: NO_DATA,
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
   {
@@ -269,7 +312,9 @@ const REGISTRY = [
     aliases: ["index"],
     role: "editor",
     data: CORPUS_WITH_LAYOUTS,
-    saveFamily: "staged",
+    saveModel: "batch",
+    withoutApproval: "submits-for-review",
+    layout: "full-bleed",
     destination: SHELL,
   },
   {
@@ -279,7 +324,8 @@ const REGISTRY = [
     aliases: ["changelog"],
     role: "editor",
     data: new Set<DevTabDataNeed>(["changelog"]),
-    saveFamily: "immediate",
+    saveModel: "instant",
+    layout: "shell",
     destination: SHELL,
   },
 ] as const satisfies readonly DevTabDescriptorOf<string>[];

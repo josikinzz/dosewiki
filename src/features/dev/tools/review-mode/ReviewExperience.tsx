@@ -40,9 +40,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
   );
 }
 
-type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> & {
-  initialSlug?: string;
-};
+type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "initialSlug">;
 
 /**
  * The full-bleed review workbench (`/review/[slug]`).

@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DevModeTab } from "./devTabRegistry";
+import { DEV_TAB_REGISTRY, type DevModeTab } from "./devTabRegistry";
 import { useDevChromeEnvironment } from "./useDevChromeEnvironment";
 
 describe("useDevChromeEnvironment", () => {
@@ -136,16 +136,21 @@ describe("useDevChromeEnvironment", () => {
     expect(result.current.mainClassName).not.toContain("max-w-");
     expect(result.current.contentWrapperClass).toBe("mx-auto mt-6 w-full max-w-6xl");
 
-    for (const activeTab of ["index-layout", "replications", "trip-report-submissions"] as const) {
-      rerender({ activeTab });
+    // The width follows the descriptor's `layout`, never a list of tab ids.
+    for (const tab of DEV_TAB_REGISTRY) {
+      rerender({ activeTab: tab.id });
 
       expect(result.current.mainClassName).not.toContain("max-w-");
-      expect(result.current.contentWrapperClass).toBe("mt-6 w-full");
+      expect(result.current.contentWrapperClass).toBe(
+        tab.layout === "full-bleed" ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl",
+      );
     }
-
-    rerender({ activeTab: "molecule-editor" });
-
-    expect(result.current.contentWrapperClass).toBe("mx-auto mt-6 w-full max-w-6xl");
+    expect(DEV_TAB_REGISTRY.filter((tab) => tab.layout === "full-bleed").map((tab) => tab.id)).toEqual([
+      "trip-report-submissions",
+      "banners",
+      "replications",
+      "index-layout",
+    ]);
   });
 
   it("clears tab notices when the active tab changes", () => {

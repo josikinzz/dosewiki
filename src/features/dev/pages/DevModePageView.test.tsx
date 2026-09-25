@@ -37,6 +37,7 @@ import { DevModePageView } from "./DevModePageView";
 function buildController(
   activeTab: DevModePageControllerState["activeTab"],
   activeTabLockReason: string | null = null,
+  canApprove = true,
 ): DevModePageControllerState {
   return {
     activePrimaryTab: "tools",
@@ -46,7 +47,7 @@ function buildController(
     isSignedIn: true,
     role: "admin",
     canDraft: true,
-    canApprove: true,
+    canApprove,
     activeTabLockReason,
     sessionStatus: "authenticated",
     articlesLength: 0,
@@ -77,12 +78,55 @@ describe("DevModePageView", () => {
     expect(await findByTestId("dev-tool")).toBeTruthy();
   });
 
+  it("states the record model on Substances, not the commit flow it does not have", async () => {
+    const { findByTestId, getByText, queryByText } = render(
+      <DevModePageView controller={buildController("articles")} />,
+    );
+    await findByTestId("dev-tool");
+
+    expect(getByText("Save draft stays private. Publish goes live.")).toBeTruthy();
+    expect(queryByText(/Apply to draft|commit/i)).toBeNull();
+  });
+
+  it("says a non-admin's Substances edits go to review", async () => {
+    const { findByTestId, getByText } = render(
+      <DevModePageView controller={buildController("articles", null, false)} />,
+    );
+    await findByTestId("dev-tool");
+
+    expect(getByText("Submit for review. An admin publishes approved changes.")).toBeTruthy();
+  });
+
+  it("puts a live-write save line in the warning tone", async () => {
+    const { findByTestId, getByText } = render(<DevModePageView controller={buildController("members")} />);
+    await findByTestId("dev-tool");
+
+    const line = getByText("Each save goes live right away.");
+    expect(line.closest("[data-badge-tone]")?.getAttribute("data-badge-tone")).toBe("yellow");
+  });
+
+  it("names the commit step for a batch tool", async () => {
+    const { findByTestId, getByText } = render(<DevModePageView controller={buildController("tag-editor")} />);
+    await findByTestId("dev-tool");
+
+    expect(getByText("Edits collect in your draft. Commit sends them live.")).toBeTruthy();
+  });
+
+  it("leaves the save line to tools that draw it beside their own primary action", async () => {
+    for (const id of ["replications", "queue"] as const) {
+      const { findByTestId, queryByText, unmount } = render(<DevModePageView controller={buildController(id)} />);
+      await findByTestId("dev-tool");
+      expect(queryByText(/goes live|for review|Commit sends/)).toBeNull();
+      unmount();
+    }
+  });
+
   it("renders the review descriptor nowhere in the shell", () => {
     const { queryByTestId, queryByText } = render(<DevModePageView controller={buildController("review")} />);
 
     expect(queryByTestId("dev-tool")).toBeNull();
     expect(queryByText("Loading")).toBeNull();
-    expect(queryByText(/writes to production|commit to production/)).toBeNull();
+    expect(queryByText(/goes live|for review|Commit sends/)).toBeNull();
   });
 
 
