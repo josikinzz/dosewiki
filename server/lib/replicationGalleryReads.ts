@@ -17,7 +17,7 @@ import {
   resolveReplicationUrls,
   type StorageUrlReader,
 } from "./replicationUrls";
-import { depictedEffects, isPublishableReplication } from "../../src/types/replications";
+import { depictedEffects, isPublishableReplication, isPublishedState } from "../../src/types/replications";
 
 const PUBLIC_GALLERY_PAGE_SIZE = 64;
 
@@ -84,7 +84,7 @@ export function clampPublicGalleryPageSize(requested: number): number {
 function isPublishableGalleryRow(row: Doc<"replications">): boolean {
   return (
     (row.role ?? "replication") === "replication" &&
-    row.publication_state !== "duplicate-suppressed" &&
+    isPublishedState(row.publication_state) &&
     row.replication_status !== "not-replication" &&
     (row.type === "image" || row.type === "video" || row.type === "audio")
   );

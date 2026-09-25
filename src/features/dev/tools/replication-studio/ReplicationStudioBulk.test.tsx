@@ -108,6 +108,8 @@ describe("Replication Studio bulk edit", () => {
             effect_slug: "geometry",
             credit_line: null,
             effect_tags: [],
+            rights_status: "creator-retained",
+            source_url: null,
           },
         },
         {
@@ -119,6 +121,8 @@ describe("Replication Studio bulk edit", () => {
             effect_slug: "geometry",
             credit_line: null,
             effect_tags: ["drifting"],
+            rights_status: "creator-retained",
+            source_url: null,
           },
         },
       ],
@@ -126,6 +130,57 @@ describe("Replication Studio bulk edit", () => {
     });
     // The draft is spent once it is applied.
     await waitFor(() => expect(screen.getByLabelText("Set artist for all")).toHaveValue(""));
+  });
+
+  it("bulk-sets rights on three items after one confirm", async () => {
+    const calls = stubFetch(() =>
+      Response.json({ ok: true, updated: 3, slugs: ["work-1", "work-2", "work-3"], published: [], conflicts: [] }),
+    );
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Work 1");
+    await selectFirstTwo(user);
+    await user.keyboard("{Control>}");
+    await user.click(option("Work 3"));
+    await user.keyboard("{/Control}");
+    await screen.findByText(/3 selected/);
+
+    const provenance = within(screen.getByRole("region", { name: "Inspector" })).getByRole("region", {
+      name: "Provenance",
+    });
+    await user.selectOptions(within(provenance).getByLabelText("Set rights status for all"), "unknown");
+    await user.type(within(provenance).getByLabelText("Set source for all"), "https://artist.test/series");
+    await user.click(screen.getByRole("button", { name: "Apply to 3" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Rights status: Unknown")).toBeInTheDocument();
+    expect(within(dialog).getByText("Source: https://artist.test/series")).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Apply to 3" }));
+
+    await waitFor(() =>
+      expect(calls.some((call) => call.url === "/api/dev/replications/editorial")).toBe(true),
+    );
+    const body = JSON.parse(
+      String(calls.find((call) => call.url === "/api/dev/replications/editorial")?.init?.body),
+    ) as { items: { id: string; expected: Record<string, unknown> }[]; patch: unknown };
+    expect(body.items.map((item) => item.id)).toEqual(["row-1", "row-2", "row-3"]);
+    expect(body.items.every((item) => item.expected.rights_status === "creator-retained")).toBe(true);
+    expect(body.patch).toEqual({ rightsStatus: "unknown", sourceUrl: "https://artist.test/series" });
+    expect(await screen.findByText("Updated 3 rows.")).toBeInTheDocument();
+  });
+
+  it("refuses a bulk source that is not a web address before anything is sent", async () => {
+    const calls = stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Work 1");
+    await selectFirstTwo(user);
+
+    await user.type(screen.getByLabelText("Set source for all"), "artist.test/series");
+
+    expect(screen.getByText(/starts with https:\/\/ or http:\/\//)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apply to 2" })).toBeDisabled();
+    expect(calls.some((call) => call.url === "/api/dev/replications/editorial")).toBe(false);
   });
 
   it("names the works that changed under the curator and were not written", async () => {

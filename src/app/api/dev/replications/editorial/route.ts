@@ -5,6 +5,9 @@
  *
  *   POST /api/dev/replications/editorial  { mode: "single", id, expected, updates }
  *   POST /api/dev/replications/editorial  { mode: "bulk", items: { id, expected }[], patch }
+ *     patch: effectSlug, artist, role, addEffectTags, rightsStatus, sourceUrl,
+ *            creditLine, and `publish: true` (unpublished uploads whose
+ *            rights status is known and whose source is set go live)
  *   POST /api/dev/replications/editorial  { mode: "bulk", ids, showcaseExcluded }
  *
  * Every editorial edit carries the snapshot the studio loaded so Postgres can
@@ -18,20 +21,24 @@
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
-import { publishReplicationRecord } from "../publishReplicationRecord";
+import { publishReplicationRecord, publishReplicationRecords } from "../publishReplicationRecord";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
+  STUDIO_RIGHTS_STATUSES,
   isValidReplicationSlug,
+  type StudioRightsStatus as RightsStatus,
   type StudioRole,
 } from "@/features/dev/tools/replication-studio/replicationStudioModel";
+import { isReplicationSourceUrl } from "@/types/replications";
 import type { Id } from "@server/postgres/runtime/dataModel";
 
 export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 64 * 1024;
 const ROLES = new Set<StudioRole>(["replication", "figure"]);
+const RIGHTS_STATUSES = new Set<RightsStatus>(STUDIO_RIGHTS_STATUSES);
 
 type EditorialSnapshot = {
   title: string;
@@ -40,6 +47,8 @@ type EditorialSnapshot = {
   effect_slug: string | null;
   credit_line: string | null;
   effect_tags: string[];
+  rights_status?: RightsStatus | null;
+  source_url?: string | null;
 };
 
 type ParsedEditorial =
@@ -52,6 +61,10 @@ type ParsedEditorial =
       artist?: string;
       role?: StudioRole;
       addEffectTags?: string[];
+      rightsStatus?: RightsStatus;
+      sourceUrl?: string;
+      creditLine?: string;
+      publish?: true;
       showcaseExcluded?: boolean;
     };
 
@@ -88,7 +101,7 @@ function parseSnapshot(value: unknown, field: string): EditorialSnapshot {
     throw new JsonBodyError(400, `${field}.credit_line must be a string or null.`);
   }
 
-  return {
+  const snapshot: EditorialSnapshot = {
     title: raw.title,
     artist: raw.artist,
     role: raw.role as StudioRole,
@@ -96,6 +109,20 @@ function parseSnapshot(value: unknown, field: string): EditorialSnapshot {
     credit_line: raw.credit_line as string | null,
     effect_tags: parseTags(raw.effect_tags, `${field}.effect_tags`),
   };
+  // Provenance is optional: a caller that sends it is guarded on it.
+  if (raw.rights_status !== undefined) {
+    if (raw.rights_status !== null && !RIGHTS_STATUSES.has(raw.rights_status as RightsStatus)) {
+      throw new JsonBodyError(400, `${field}.rights_status is not a known rights status.`);
+    }
+    snapshot.rights_status = raw.rights_status as RightsStatus | null;
+  }
+  if (raw.source_url !== undefined) {
+    if (raw.source_url !== null && (typeof raw.source_url !== "string" || raw.source_url.length > 2000)) {
+      throw new JsonBodyError(400, `${field}.source_url must be a string or null.`);
+    }
+    snapshot.source_url = raw.source_url as string | null;
+  }
+  return snapshot;
 }
 
 function parseEditorialBody(body: unknown): ParsedEditorial {
@@ -167,6 +194,30 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
         parsed.addEffectTags = tags;
       }
     }
+    if (fields.rightsStatus !== undefined && fields.rightsStatus !== null && fields.rightsStatus !== "") {
+      if (!RIGHTS_STATUSES.has(fields.rightsStatus as RightsStatus)) {
+        throw new JsonBodyError(400, "rightsStatus is not a known rights status.");
+      }
+      parsed.rightsStatus = fields.rightsStatus as RightsStatus;
+    }
+    if (fields.sourceUrl !== undefined && fields.sourceUrl !== null && fields.sourceUrl !== "") {
+      if (typeof fields.sourceUrl !== "string" || !isReplicationSourceUrl(fields.sourceUrl) || fields.sourceUrl.length > 2000) {
+        throw new JsonBodyError(400, "sourceUrl must be an HTTP or HTTPS address.");
+      }
+      parsed.sourceUrl = fields.sourceUrl.trim();
+    }
+    if (fields.creditLine !== undefined && fields.creditLine !== null && fields.creditLine !== "") {
+      if (typeof fields.creditLine !== "string" || !fields.creditLine.trim() || fields.creditLine.length > 2000) {
+        throw new JsonBodyError(400, "creditLine must be a non-blank line of at most 2000 characters.");
+      }
+      parsed.creditLine = fields.creditLine.trim();
+    }
+    if (fields.publish !== undefined && fields.publish !== null) {
+      if (fields.publish !== true) {
+        throw new JsonBodyError(400, "publish must be true when present.");
+      }
+      parsed.publish = true;
+    }
     if (raw.showcaseExcluded !== undefined && raw.showcaseExcluded !== null) {
       if (typeof raw.showcaseExcluded !== "boolean") {
         throw new JsonBodyError(400, "showcaseExcluded must be true or false.");
@@ -179,6 +230,10 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
       && parsed.artist === undefined
       && parsed.role === undefined
       && parsed.addEffectTags === undefined
+      && parsed.rightsStatus === undefined
+      && parsed.sourceUrl === undefined
+      && parsed.creditLine === undefined
+      && parsed.publish === undefined
       && parsed.showcaseExcluded === undefined
     ) {
       throw new JsonBodyError(400, "A bulk edit needs at least one field to change.");
@@ -187,7 +242,11 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
       parsed.effectSlug !== undefined
       || parsed.artist !== undefined
       || parsed.role !== undefined
-      || parsed.addEffectTags !== undefined;
+      || parsed.addEffectTags !== undefined
+      || parsed.rightsStatus !== undefined
+      || parsed.sourceUrl !== undefined
+      || parsed.creditLine !== undefined
+      || parsed.publish !== undefined;
     if (editorial && !parsed.items) {
       throw new JsonBodyError(
         400,
@@ -246,6 +305,10 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       artist: body.artist,
       role: body.role,
       addEffectTags: body.addEffectTags,
+      rights_status: body.rightsStatus,
+      source_url: body.sourceUrl,
+      credit_line: body.creditLine,
+      publish: body.publish,
       showcase_excluded: body.showcaseExcluded,
     });
 
@@ -254,19 +317,39 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       return NextResponse.json(
         {
           ok: false,
-          error: "Every selected replication changed since you loaded the studio; nothing was written.",
+          error: conflicts.every((conflict) => conflict.code === "incomplete")
+            ? "Nothing was published: each selected replication still needs a known rights status and a source."
+            : conflicts.every((conflict) => (conflict.code ?? "stale") === "stale" || conflict.code === "missing")
+              ? "Every selected replication changed since you loaded the studio; nothing was written."
+              : "Nothing was written; each selected replication was refused.",
           updated: 0,
           slugs: [],
+          published: [],
           conflicts,
         },
         { status: 409 },
       );
     }
 
+    // Every gallery showing an updated work is stale; a newly published work
+    // also brings its own permalink and locale mirror live.
     const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
-    if (body.effectSlug) targets.push({ kind: "effect", slug: body.effectSlug });
-    await publishPublicCache({ targets, source: "manual" });
+    for (const slug of new Set([...(body.effectSlug ? [body.effectSlug] : []), ...(result.effects ?? [])])) {
+      targets.push({ kind: "effect", slug });
+    }
+    const published = result.published ?? [];
+    if (published.length > 0) {
+      await publishReplicationRecords(published, targets);
+    } else {
+      await publishPublicCache({ targets, source: "manual" });
+    }
 
-    return NextResponse.json({ ok: true, updated: result.updated, slugs: result.slugs, conflicts });
+    return NextResponse.json({
+      ok: true,
+      updated: result.updated,
+      slugs: result.slugs,
+      published,
+      conflicts,
+    });
   },
 });

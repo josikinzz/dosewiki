@@ -61,6 +61,8 @@ export function editorialSnapshotOf(row: {
   effect_slug?: string;
   credit_line?: string;
   effect_tags?: string[];
+  rights_status?: NonNullable<ReplicationEditorialSnapshot["rights_status"]>;
+  source_url?: string;
 }): ReplicationEditorialSnapshot {
   return {
     title: row.title,
@@ -69,6 +71,8 @@ export function editorialSnapshotOf(row: {
     effect_slug: row.effect_slug ?? null,
     credit_line: row.credit_line ?? null,
     effect_tags: [...(row.effect_tags ?? [])].sort(),
+    rights_status: row.rights_status ?? null,
+    source_url: row.source_url ?? null,
   };
 }
 
@@ -84,5 +88,8 @@ export function editorialSnapshotsAgree(
     && current.credit_line === expected.credit_line
     && current.effect_tags.length === expected.effect_tags.length
     && current.effect_tags.every((tag, index) => tag === expected.effect_tags[index])
+    // Provenance is guarded only by callers that loaded it.
+    && (expected.rights_status === undefined || current.rights_status === expected.rights_status)
+    && (expected.source_url === undefined || current.source_url === expected.source_url)
   );
 }

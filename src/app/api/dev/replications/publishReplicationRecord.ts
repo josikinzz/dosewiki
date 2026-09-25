@@ -15,13 +15,24 @@ export async function publishReplicationRecord(
   slug: string,
   targets: readonly PublicationTarget[],
 ): Promise<void> {
+  await publishReplicationRecords([slug], targets);
+}
+
+/** The same publication for several records at once, such as a bulk Publish. */
+export async function publishReplicationRecords(
+  slugs: readonly string[],
+  targets: readonly PublicationTarget[],
+): Promise<void> {
   try {
-    await enqueueTranslationJobs(LIVE_LOCALE_CODES, [`replication/${slug}`]);
+    await enqueueTranslationJobs(LIVE_LOCALE_CODES, slugs.map((slug) => `replication/${slug}`));
   } catch (error) {
     console.warn("[replications] translation enqueue failed", {
-      slug,
+      slugs,
       error: error instanceof Error ? error.message : String(error),
     });
   }
-  await publishPublicCache({ targets: [...targets, { kind: "replication", slug }], source: "manual" });
+  await publishPublicCache({
+    targets: [...targets, ...slugs.map((slug) => ({ kind: "replication" as const, slug }))],
+    source: "manual",
+  });
 }

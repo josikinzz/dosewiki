@@ -61,11 +61,48 @@ function expectedOf(row: StudioRow) {
     effect_slug: row.effect_slug,
     credit_line: row.credit_line,
     effect_tags: row.effect_tags,
+    rights_status: row.rights_status ?? null,
+    source_url: row.source_url ?? null,
   };
 }
 
-type BulkConflict = { id: string; slug: string | null; reason: string };
-type BulkResult = { updated: number; conflicts?: BulkConflict[] };
+type BulkConflict = {
+  id: string;
+  slug: string | null;
+  reason: string;
+  code?: "stale" | "missing" | "incomplete" | "invalid";
+};
+type BulkResult = { updated: number; published?: string[]; conflicts?: BulkConflict[] };
+
+/** One notice for a bulk result: what was written, what moved, what was refused. */
+function bulkOutcome(edit: BulkEdit, total: number, payload: BulkResult): Feedback {
+  const conflicts = payload.conflicts ?? [];
+  const publishing = edit.publish === true;
+  const done = publishing ? (payload.published ?? []).length : payload.updated;
+  if (conflicts.length === 0) {
+    return publishing
+      ? {
+          tone: "success",
+          message: `Published ${done} ${done === 1 ? "work" : "works"}. ${done === 1 ? "It is" : "They are"} live on the public site.`,
+        }
+      : { tone: "success", message: `Updated ${payload.updated} rows.` };
+  }
+  const moved = conflicts.filter((conflict) => (conflict.code ?? "stale") === "stale" || conflict.code === "missing");
+  const refused = conflicts.filter((conflict) => conflict.code === "incomplete" || conflict.code === "invalid");
+  const parts = [`${publishing ? "Published" : "Updated"} ${done} of ${total}.`];
+  if (moved.length > 0) {
+    parts.push(
+      `Not written because someone changed or removed them after you loaded the studio: ${moved.map((conflict) => conflict.slug ?? conflict.id).join(", ")}. ` +
+        "The library now shows their current values; apply again if the change still fits.",
+    );
+  }
+  if (refused.length > 0) {
+    parts.push(
+      `Not written: ${refused.map((conflict) => `${conflict.slug ?? conflict.id} (${conflict.reason})`).join("; ")}.`,
+    );
+  }
+  return { tone: "warning", message: parts.join(" ") };
+}
 
 /**
  * Whether `media` matches. Starts true so the server render and jsdom take
@@ -438,6 +475,8 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
               effect_slug: draft.effect_slug,
               credit_line: draft.credit_line?.trim() ? draft.credit_line.trim() : null,
               effect_tags: draft.effect_tags,
+              rights_status: draft.rights_status ?? null,
+              source_url: draft.source_url?.trim() ? draft.source_url.trim() : null,
             },
           }),
         });
@@ -480,19 +519,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
           return false;
         }
         const payload = (await response.json()) as BulkResult;
-        const conflicts = payload.conflicts ?? [];
-        if (conflicts.length > 0) {
-          const names = conflicts.map((conflict) => conflict.slug ?? conflict.id).join(", ");
-          setFeedback({
-            tone: "warning",
-            message:
-              `Updated ${payload.updated} of ${targets.length}. ` +
-              `Not written because someone changed or removed them after you loaded the studio: ${names}. ` +
-              "The library now shows their current values; apply again if the change still fits.",
-          });
-        } else {
-          setFeedback({ tone: "success", message: `Updated ${payload.updated} rows.` });
-        }
+        setFeedback(bulkOutcome(edit, targets.length, payload));
         await loadCorpus();
         return true;
       } catch {
@@ -508,11 +535,17 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     [loadCorpus],
   );
 
+  /** Publishes unpublished works whose rights status and source are set. */
+  const publishRows = useCallback(
+    (targets: readonly StudioRow[]) => applyBulk(targets, { publish: true }),
+    [applyBulk],
+  );
+
   const markSelectionAsFigure = useCallback(() => {
     void applyBulk(selectedRows, { role: "figure" });
   }, [applyBulk, selectedRows]);
 
-  // A freshly published work becomes the selection once the reloaded corpus
+  // A freshly uploaded work becomes the selection once the reloaded corpus
   // lists it; the grid scrolls its anchor into view. An open draft wins: the
   // new work is not worth a discard prompt nobody asked for.
   const [revealSlug, setRevealSlug] = useState<string | null>(null);
@@ -532,7 +565,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     loadCorpus,
     setFeedback,
     readError,
-    onPublished: setRevealSlug,
+    onUploaded: setRevealSlug,
   });
 
   const featuredItems = useMemo<OrderablePanelItem[]>(() => {
@@ -662,6 +695,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     onCardActivate,
     saveSingle,
     applyBulk,
+    publishRows,
     markSelectionAsFigure,
     toggleFacet,
   };

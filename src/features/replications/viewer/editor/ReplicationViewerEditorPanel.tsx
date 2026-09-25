@@ -217,7 +217,8 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
 
   const reviewMetadata = () => {
     if (!session || !session.dirty) return;
-    const { source_url, ...updates } = session.draft;
+    // The viewer publishes metadata and source only; rights are set in the studio.
+    const { source_url, rights_status: _rightsStatus, ...updates } = session.draft;
     const fingerprint = JSON.stringify([session.base.row.id, session.base.revision, session.draft]);
     const requestId = requestIds.current[fingerprint] ??= crypto.randomUUID();
     resetReceipt();
@@ -312,7 +313,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
           </EditorField>
           <Button variant="secondary" size="sm" disabled={locked || findingEffects || effectQuery.trim().length < 2} onClick={() => void findEffectOptions()}>{findingEffects ? "Finding effects…" : "Find effect options"}</Button>
           </div> : null}
-          <fieldset disabled={locked}><ReplicationSingleEditor row={session.base.row} effects={session.base.effects} artists={[session.base.row.artist]} value={session.draft} busy={locked} onDraftChange={changeMetadata} onSave={reviewMetadata} showSource saveLabel="Review" /></fieldset>
+          <fieldset disabled={locked}><ReplicationSingleEditor row={session.base.row} effects={session.base.effects} artists={[session.base.row.artist]} value={session.draft} busy={locked} onDraftChange={changeMetadata} onSave={reviewMetadata} showRights={false} saveLabel="Review" /></fieldset>
           {session.dirty ? <div className="theme-text-primary space-y-1 text-sm" aria-label="Local metadata preview"><strong>{session.draft.title}</strong><p>{session.draft.artist}</p><p>{session.draft.credit_line}</p><p className="break-all">{session.draft.source_url}</p></div> : null}
         </> : null}
         {!review && !pendingPublication && scope === "collection" && session ? <>

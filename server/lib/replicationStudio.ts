@@ -8,6 +8,11 @@ import {
   normalizeEffectTags,
 } from "./replicationPolicy";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replicationUrls";
+import { validateRightsCoherence } from "./replicationWrites";
+import {
+  isReplicationSourceUrl,
+  replicationProvenanceGaps,
+} from "../../src/types/replications";
 import type {
   BulkUpdateEditorialFieldsArgs,
   GetStudioRowsArgs,
@@ -16,6 +21,24 @@ import type {
 } from "./replicationValidators";
 
 const BULK_EDIT_LIMIT = 250;
+const SHA256_R2_KEY = /^media\/sha256\/[a-f0-9]{2}\/([a-f0-9]{64})\.[a-z0-9]+$/;
+
+/** The content hash a studio upload's immutable R2 key already carries. */
+function sourceHashOf(row: { source_sha256?: string; r2_key?: string }): string | null {
+  return row.source_sha256 ?? row.r2_key?.match(SHA256_R2_KEY)?.[1] ?? null;
+}
+
+type RightsStatus = NonNullable<ReplicationEditorialSnapshot["rights_status"]>;
+
+/** A trimmed HTTP(S) source, `undefined` to clear, or a thrown field error. */
+function normalizedSource(value: string | null, context: string): string | undefined {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return undefined;
+  if (trimmed.length > 2000 || !isReplicationSourceUrl(trimmed)) {
+    throw new Error(`${context}: the source must be an HTTP or HTTPS address.`);
+  }
+  return trimmed;
+}
 
 export async function getStudioPreviewHandler(
   ctx: QueryCtx,
@@ -96,6 +119,10 @@ export async function getStudioRowsHandler(
         rights_status: row.rights_status ?? null,
         source_url: row.source_url ?? null,
         rightsholder: row.rightsholder ?? null,
+        publication_state: row.publication_state ?? ("published" as const),
+        source_sha256: sourceHashOf(row),
+        width: row.width ?? null,
+        height: row.height ?? null,
         url,
         thumbnail_url,
         preview_url: null,
@@ -150,6 +177,18 @@ export async function updateEditorialFieldsHandler(
   const effectTags = normalizeEffectTags(args.updates.effect_tags);
   const creditLine = args.updates.credit_line?.trim() ?? "";
 
+  // Provenance is written only when the caller sent it.
+  const provenance: { rights_status?: RightsStatus; source_url?: string } = {};
+  if (args.updates.rights_status !== undefined) {
+    provenance.rights_status = args.updates.rights_status ?? undefined;
+  }
+  if (args.updates.source_url !== undefined) {
+    provenance.source_url = normalizedSource(args.updates.source_url, `Replication ${row.slug}`);
+  }
+  if (Object.keys(provenance).length > 0) {
+    validateRightsCoherence(row.slug, { ...row, ...provenance });
+  }
+
   await ctx.db.patch(args.id, {
     title,
     artist,
@@ -157,12 +196,22 @@ export async function updateEditorialFieldsHandler(
     effect_slug: args.updates.effect_slug ?? undefined,
     credit_line: creditLine.length > 0 ? creditLine : undefined,
     effect_tags: effectTags.length > 0 ? effectTags : undefined,
+    ...provenance,
   });
   return { success: true, slug: row.slug };
 }
 
-/** A bulk target the handler refused because it moved since the studio loaded it. */
-export type BulkEditConflict = { id: string; slug: string | null; reason: string };
+/**
+ * A bulk target the handler left unwritten: it moved since the studio loaded
+ * it (`stale`, `missing`), its provenance is not complete enough to publish
+ * (`incomplete`), or the patch would leave its rights incoherent (`invalid`).
+ */
+export type BulkEditConflict = {
+  id: string;
+  slug: string | null;
+  reason: string;
+  code: "stale" | "missing" | "incomplete" | "invalid";
+};
 
 export async function bulkUpdateEditorialFieldsHandler(
   ctx: MutationCtx,
@@ -196,11 +245,28 @@ export async function bulkUpdateEditorialFieldsHandler(
   const addTags = args.addEffectTags
     ? normalizeEffectTags(args.addEffectTags)
     : [];
+  const sourceUrl = args.source_url === undefined
+    ? undefined
+    : normalizedSource(args.source_url, "Bulk edit");
+  if (args.source_url !== undefined && sourceUrl === undefined) {
+    throw new Error("A bulk source change needs a source address.");
+  }
+  const creditLine = args.credit_line?.trim();
+  if (args.credit_line !== undefined && (!creditLine || creditLine.length > 2000)) {
+    throw new Error("A bulk credit change needs a credit line of at most 2000 characters.");
+  }
+  const provenance: { rights_status?: RightsStatus; source_url?: string; credit_line?: string } = {
+    ...(args.rights_status !== undefined ? { rights_status: args.rights_status } : {}),
+    ...(sourceUrl !== undefined ? { source_url: sourceUrl } : {}),
+    ...(creditLine ? { credit_line: creditLine } : {}),
+  };
   const editorial =
     args.effect_slug !== undefined
     || artist !== undefined
     || args.role !== undefined
-    || addTags.length > 0;
+    || addTags.length > 0
+    || Object.keys(provenance).length > 0
+    || args.publish === true;
   if (!editorial && args.showcase_excluded === undefined) {
     throw new Error("A bulk edit needs at least one field to change.");
   }
@@ -213,11 +279,13 @@ export async function bulkUpdateEditorialFieldsHandler(
   }
 
   const updatedSlugs: string[] = [];
+  const publishedSlugs: string[] = [];
+  const touchedEffects = new Set<string>();
   const conflicts: BulkEditConflict[] = [];
   for (const target of targets) {
     const row = await ctx.db.get(target.id);
     if (!row) {
-      conflicts.push({ id: target.id, slug: null, reason: "It no longer exists." });
+      conflicts.push({ id: target.id, slug: null, reason: "It no longer exists.", code: "missing" });
       continue;
     }
     if (target.expected) {
@@ -230,9 +298,47 @@ export async function bulkUpdateEditorialFieldsHandler(
           id: target.id,
           slug: row.slug,
           reason: "Someone saved it after you loaded the studio.",
+          code: "stale",
         });
         continue;
       }
+    }
+    const merged = { ...row, ...provenance };
+    if (args.rights_status !== undefined || sourceUrl !== undefined) {
+      try {
+        validateRightsCoherence(row.slug, merged);
+      } catch (error) {
+        conflicts.push({
+          id: target.id,
+          slug: row.slug,
+          reason: error instanceof Error ? error.message : "Its rights would be incoherent.",
+          code: "invalid",
+        });
+        continue;
+      }
+    }
+    let publish = false;
+    if (args.publish) {
+      if (row.publication_state === "duplicate-suppressed") {
+        conflicts.push({
+          id: target.id,
+          slug: row.slug,
+          reason: "It is a suppressed duplicate; its keeper is the published copy.",
+          code: "invalid",
+        });
+        continue;
+      }
+      const gaps = replicationProvenanceGaps(merged);
+      if (gaps.length > 0) {
+        conflicts.push({
+          id: target.id,
+          slug: row.slug,
+          reason: `It needs ${gaps.map((gap) => (gap === "rights" ? "a known rights status" : "a source")).join(" and ")} before it can publish.`,
+          code: "incomplete",
+        });
+        continue;
+      }
+      publish = row.publication_state === "unpublished";
     }
     const nextTags = addTags.length > 0
       ? normalizeEffectTags([...(row.effect_tags ?? []), ...addTags])
@@ -245,9 +351,23 @@ export async function bulkUpdateEditorialFieldsHandler(
         ? { showcase_excluded: args.showcase_excluded }
         : {}),
       ...(addTags.length > 0 ? { effect_tags: nextTags } : {}),
+      ...provenance,
+      ...(publish ? { publication_state: "published" as const } : {}),
     });
     updatedSlugs.push(row.slug);
+    if (publish) publishedSlugs.push(row.slug);
+    // Galleries that show this work (its owner, its tags, a new owner) are stale.
+    for (const slug of [row.effect_slug, args.effect_slug, ...(nextTags ?? [])]) {
+      if (slug) touchedEffects.add(slug);
+    }
   }
 
-  return { success: true, updated: updatedSlugs.length, slugs: updatedSlugs, conflicts };
+  return {
+    success: true,
+    updated: updatedSlugs.length,
+    slugs: updatedSlugs,
+    published: publishedSlugs,
+    effects: [...touchedEffects].sort(),
+    conflicts,
+  };
 }

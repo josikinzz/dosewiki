@@ -1,5 +1,5 @@
 import { type Infer, v } from "../../lib/postgres/runtime/values"
-import { replication } from "./effectMediaSchemaValidators";
+import { replication, replicationPublicationState } from "./effectMediaSchemaValidators";
 import { replicationTaxonomyPatchValidator } from "./replicationTaxonomyValidators";
 
 export const replicationRightsStatus = v.union(
@@ -53,6 +53,12 @@ export const replicationEditorialSnapshot = v.object({
   effect_slug: v.union(v.string(), v.null()),
   credit_line: v.union(v.string(), v.null()),
   effect_tags: v.array(v.string()),
+  /**
+   * Provenance the studio inspector edits. Optional so a caller that never
+   * reads them (the in-page viewer editor) neither guards nor writes them.
+   */
+  rights_status: v.optional(v.union(replicationRightsStatus, v.null())),
+  source_url: v.optional(v.union(v.string(), v.null())),
 });
 
 export const getBySlugArgs = v.object({ slug: v.string() });
@@ -187,6 +193,8 @@ export const insertMediaAssetArgs = v.object({
   rightsholder: v.optional(v.string()),
   permission_notes: v.optional(v.string()),
   removal_contact: v.optional(v.string()),
+  /** Studio uploads insert `unpublished` and publish once provenance is complete. */
+  publication_state: v.optional(replicationPublicationState),
 });
 
 export const insertMediaAssetResult = v.object({
@@ -422,6 +430,16 @@ export const bulkUpdateEditorialFieldsArgs = v.object({
   artist: v.optional(v.string()),
   role: v.optional(replicationRole),
   addEffectTags: v.optional(v.array(v.string())),
+  /** Provenance for every item; each row still checks its expected snapshot. */
+  rights_status: v.optional(replicationRightsStatus),
+  source_url: v.optional(v.string()),
+  credit_line: v.optional(v.string()),
+  /**
+   * Publish every unpublished item whose provenance is complete (a known
+   * rights status and a source, after this patch). Incomplete items come back
+   * as conflicts and stay unpublished.
+   */
+  publish: v.optional(v.literal(true)),
   /**
    * Corpus-wide showcase suppression. A toggle rather than an editorial field,
    * so it rides the bulk path for one row or two hundred and never touches the

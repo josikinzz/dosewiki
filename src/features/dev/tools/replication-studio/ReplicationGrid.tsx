@@ -69,6 +69,7 @@ type CardFlag = { label: string; tone?: "warning" };
 /** Only what needs attention: a card with nothing to flag carries no chips. */
 function flagsFor(row: StudioRow): CardFlag[] {
   const flags: CardFlag[] = [];
+  if (row.publication_state === "unpublished") flags.push({ label: "Unpublished", tone: "warning" });
   if (!row.effect_slug) flags.push({ label: "No effect", tone: "warning" });
   if (row.role === "figure") flags.push({ label: "Figure" });
   if (row.rights_status === "unknown") flags.push({ label: "Rights unknown", tone: "warning" });

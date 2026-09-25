@@ -248,6 +248,20 @@ describe("the replication publication gate", () => {
     ]);
   });
 
+  it("withholds an unpublished studio upload until its provenance is complete and it publishes", async () => {
+    const live = row({ slug: "live-work" });
+    const held = row({ slug: "fresh-upload", publication_state: "unpublished", rights_status: "unknown" });
+    const published = row({ slug: "published-upload", publication_state: "published", source_url: "https://artist.test/work" });
+
+    const { getPublicReplications, getPublicReplicationsByEffect } = await loadWithRows([live, held, published]);
+
+    expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["live-work", "published-upload"]);
+    expect((await getPublicReplicationsByEffect("geometry")).map((item) => item.slug)).toEqual([
+      "live-work",
+      "published-upload",
+    ]);
+  });
+
   it("passes the stored corpus through untouched", async () => {
     // A read-only audit of production on 2026-08-11 found 247 rows: every one
     // with `role` absent, every one `image` or `video`, every one carrying an

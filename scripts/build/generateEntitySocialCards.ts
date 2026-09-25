@@ -244,6 +244,7 @@ function replicationExclusionReason(replication: ReplicationRow): string | null 
   const row = replication;
   if ((row.role ?? "replication") !== "replication") return "non-replication-role";
   if (row.publication_state === "duplicate-suppressed") return "duplicate-suppressed";
+  if ((row.publication_state ?? "published") !== "published") return "unpublished";
   if (row.replication_status === "not-replication") return "not-replication";
   if (row.type !== "image" && row.type !== "video") return "unsupported-media-type";
   if (!text(row.url)) return "missing-primary-media";
@@ -1017,7 +1018,7 @@ async function main(): Promise<void> {
         rendererVersion: rendererVersions.replications,
         policy: {
           eligible:
-            "role=replication, not duplicate-suppressed, replication_status!=not-replication, image/video, primary media URL present",
+            "role=replication, published (not unpublished or duplicate-suppressed), replication_status!=not-replication, image/video, primary media URL present",
           heldRecentRedditStaticThumbnails:
             "Excluded upstream from production import; no held item may be selected as a card source.",
         },

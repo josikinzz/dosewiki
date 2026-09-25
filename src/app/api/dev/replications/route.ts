@@ -6,12 +6,14 @@
  * that no public projection returns. Creation verifies an R2 upload receipt
  * and the stored bytes before inserting a durable media reference.
  *
+ * A new row inserts unpublished: no public page shows it until a curator
+ * publishes it through the editorial route, which requires a known rights
+ * status and a source. Creating it therefore publishes nothing.
+ *
  *   GET  /api/dev/replications                       → { rows, effects }
  *   POST /api/dev/replications  { …asset fields }    → create one row
  */
 import { NextResponse } from "next/server";
-import type { PublicationTarget } from "@server/next/publicationWire";
-import { publishReplicationRecord } from "./publishReplicationRecord";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -20,16 +22,20 @@ import { probeServerDataAdminCredential } from "@server/data/serverWriteCapabili
 import { readR2MediaUploadReceipt, verifyMediaForPublication } from "@server/runtime/r2MediaStorage";
 import { assertDataWritesNotFrozen } from "@server/runtime/dataWriteFreeze";
 import {
+  STUDIO_RIGHTS_STATUSES,
   isValidReplicationSlug,
   type StudioMediaType,
+  type StudioRightsStatus,
   type StudioRole,
 } from "@/features/dev/tools/replication-studio/replicationStudioModel";
+import { isReplicationSourceUrl } from "@/types/replications";
 
 export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 const MEDIA_TYPES = new Set<StudioMediaType>(["image", "video", "audio"]);
 const ROLES = new Set<StudioRole>(["replication", "figure"]);
+const RIGHTS_STATUSES = new Set<StudioRightsStatus>(STUDIO_RIGHTS_STATUSES);
 
 type CreateAssetBody = {
   slug?: unknown;
@@ -43,6 +49,8 @@ type CreateAssetBody = {
   format?: unknown;
   fileSize?: unknown;
   creditLine?: unknown;
+  sourceUrl?: unknown;
+  rightsStatus?: unknown;
 };
 
 type ParsedCreateAsset = {
@@ -57,6 +65,8 @@ type ParsedCreateAsset = {
   format: string;
   fileSize?: number;
   creditLine?: string;
+  sourceUrl?: string;
+  rightsStatus: StudioRightsStatus;
 };
 
 function requireString(value: unknown, field: string, maxLength = 400): string {
@@ -118,6 +128,22 @@ function parseCreateBody(body: CreateAssetBody): ParsedCreateAsset {
     ? body.creditLine.trim().slice(0, 2000)
     : undefined;
 
+  let sourceUrl: string | undefined;
+  if (body.sourceUrl !== undefined && body.sourceUrl !== null && body.sourceUrl !== "") {
+    if (typeof body.sourceUrl !== "string" || body.sourceUrl.length > 2000 || !isReplicationSourceUrl(body.sourceUrl)) {
+      throw new JsonBodyError(400, "sourceUrl must be an HTTP or HTTPS address.");
+    }
+    sourceUrl = body.sourceUrl.trim();
+  }
+
+  let rightsStatus: StudioRightsStatus = "unknown";
+  if (body.rightsStatus !== undefined && body.rightsStatus !== null && body.rightsStatus !== "") {
+    if (!RIGHTS_STATUSES.has(body.rightsStatus as StudioRightsStatus)) {
+      throw new JsonBodyError(400, "rightsStatus is not a known rights status.");
+    }
+    rightsStatus = body.rightsStatus as StudioRightsStatus;
+  }
+
   return {
     slug,
     title: requireString(body.title, "title", 400),
@@ -130,6 +156,8 @@ function parseCreateBody(body: CreateAssetBody): ParsedCreateAsset {
     format,
     fileSize,
     creditLine,
+    sourceUrl,
+    rightsStatus,
   };
 }
 
@@ -208,17 +236,14 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
       effect_tags: body.effectTags.length > 0 ? body.effectTags : undefined,
       format: body.format,
       file_size: uploaded.fileSize,
-      rights_status: "unknown",
+      rights_status: body.rightsStatus,
       credit_line: body.creditLine,
+      source_url: body.sourceUrl,
+      publication_state: "unpublished",
     });
 
-    // A new asset changes its effect's gallery, so the owning page is stale,
-    // and it joins every replication collection the showcase feeds; its own
-    // permalink and locale mirror publish with it.
-    const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
-    if (body.effectSlug) targets.push({ kind: "effect", slug: body.effectSlug });
-    await publishReplicationRecord(result.slug, targets);
-
-    return NextResponse.json({ ok: true, slug: result.slug, id: result.id });
+    // Unpublished, so no public page changed: its gallery, permalink and
+    // locale mirror publish when the curator publishes it.
+    return NextResponse.json({ ok: true, slug: result.slug, id: result.id, published: false });
   },
 });

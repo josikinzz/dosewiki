@@ -17,12 +17,17 @@ import {
 } from "@/features/dev/components";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { isReplicationSourceUrl, replicationProvenanceGaps } from "@/types/replications";
 
 import { EffectTagInput } from "./EffectTagInput";
 import { ReplicationThumb } from "./ReplicationThumb";
 import {
   NO_EFFECT_KEY,
+  RIGHTS_STATUS_LABELS,
+  STUDIO_SETTABLE_RIGHTS,
+  isUnpublished,
   type StudioEffectOption,
+  type StudioRightsStatus,
   type StudioRole,
   type StudioRow,
 } from "./replicationStudioModel";
@@ -34,6 +39,7 @@ export type SingleEditDraft = {
   effect_slug: string | null;
   credit_line: string | null;
   effect_tags: string[];
+  rights_status?: StudioRightsStatus | null;
   source_url?: string | null;
 };
 
@@ -42,6 +48,11 @@ export type BulkEdit = {
   artist?: string;
   role?: StudioRole;
   addEffectTags?: string[];
+  rightsStatus?: StudioRightsStatus;
+  sourceUrl?: string;
+  creditLine?: string;
+  /** Publish the unpublished targets; the server refuses any still lacking provenance. */
+  publish?: true;
 };
 
 export type ReplicationEditorDrawerProps = {
@@ -57,6 +68,8 @@ export type ReplicationEditorDrawerProps = {
   onSaveSingle: (row: StudioRow, draft: SingleEditDraft) => void;
   /** Resolves true once the edit went through, which spends the bulk draft. */
   onApplyBulk: (rows: readonly StudioRow[], edit: BulkEdit) => Promise<boolean> | void;
+  /** Publishes unpublished works whose rights status and source are set. */
+  onPublish?: (rows: readonly StudioRow[]) => Promise<boolean> | void;
   onDeselect: () => void;
   /** Reports whether the single-row or bulk draft holds unapplied changes. */
   onDirtyChange?: (dirty: boolean) => void;
@@ -74,8 +87,35 @@ export function draftOf(row: StudioRow): SingleEditDraft {
     effect_slug: row.effect_slug,
     credit_line: row.credit_line,
     effect_tags: [...row.effect_tags],
+    rights_status: row.rights_status ?? null,
     source_url: row.source_url ?? null,
   };
+}
+
+const RIGHTS_HELP =
+  "Explicit license, permission granted and public domain need license or permission details; record those with the rights metadata scripts.";
+
+/** The statuses a curator may pick here, plus the row's own when the studio cannot set it. */
+function rightsOptions(current: StudioRightsStatus | null | undefined, unchanged?: string) {
+  const statuses: StudioRightsStatus[] = [...STUDIO_SETTABLE_RIGHTS];
+  if (current && !statuses.includes(current)) statuses.push(current);
+  return [
+    ...(unchanged !== undefined ? [{ value: "", label: unchanged }] : []),
+    ...statuses.map((status) => ({ value: status, label: RIGHTS_STATUS_LABELS[status] })),
+  ];
+}
+
+function sourceError(value: string | null | undefined): string | undefined {
+  return value?.trim() && !isReplicationSourceUrl(value)
+    ? "Enter a full address that starts with https:// or http://."
+    : undefined;
+}
+
+/** Plain words for what an unpublished work still needs. */
+function provenanceNeeds(row: Pick<StudioRow, "rights_status" | "source_url">): string | null {
+  const gaps = replicationProvenanceGaps(row);
+  if (gaps.length === 0) return null;
+  return gaps.map((gap) => (gap === "rights" ? "a known rights status" : "a source")).join(" and ");
 }
 
 function draftsEqual(a: SingleEditDraft, b: SingleEditDraft): boolean {
@@ -120,7 +160,7 @@ export function ReplicationSingleEditor({
   busy,
   onSave,
   onDraftChange,
-  showSource = false,
+  showRights = true,
   saveLabel = "Save",
   value,
   showPreview = true,
@@ -132,7 +172,8 @@ export function ReplicationSingleEditor({
   busy: boolean;
   onSave: (row: StudioRow, draft: SingleEditDraft) => void;
   onDraftChange?: (draft: SingleEditDraft, dirty: boolean) => void;
-  showSource?: boolean;
+  /** Offer the rights status; a host whose save path does not write it turns this off. */
+  showRights?: boolean;
   saveLabel?: string;
   value?: SingleEditDraft;
   /** Draw the large media frame above the fields. */
@@ -219,21 +260,42 @@ export function ReplicationSingleEditor({
         />
       </EditorField>
 
-      <EditorField label="Credit line" htmlFor="studio-credit">
-        <Textarea
-          id="studio-credit"
-          rows={2}
-          placeholder="As it should appear beside the work"
-          value={draft.credit_line ?? ""}
-          onChange={(event) => setDraft({ ...draft, credit_line: event.target.value })}
-        />
-      </EditorField>
+      <section aria-label="Provenance" className="space-y-4 border-t border-[color:var(--editor-panel-border)] pt-4">
+        <h4 className="theme-text-secondary text-sm font-medium">Provenance</h4>
+        {showRights ? (
+          <EditorField label="Rights status" htmlFor="studio-rights" description={RIGHTS_HELP}>
+            <EditorSelect
+              id="studio-rights"
+              value={draft.rights_status ?? "unknown"}
+              options={rightsOptions(row.rights_status)}
+              onChange={(event) =>
+                setDraft({ ...draft, rights_status: event.target.value as StudioRightsStatus })
+              }
+            />
+          </EditorField>
+        ) : null}
 
-      {showSource ? (
-        <EditorField label="Source URL" htmlFor="studio-source">
-          <Input id="studio-source" type="url" value={draft.source_url ?? ""} onChange={(event) => setDraft({ ...draft, source_url: event.target.value || null })} />
+        <EditorField label="Source" htmlFor="studio-source" error={sourceError(draft.source_url)}>
+          <Input
+            id="studio-source"
+            inputSize="sm"
+            type="url"
+            placeholder="https://"
+            value={draft.source_url ?? ""}
+            onChange={(event) => setDraft({ ...draft, source_url: event.target.value || null })}
+          />
         </EditorField>
-      ) : null}
+
+        <EditorField label="Credit line" htmlFor="studio-credit">
+          <Textarea
+            id="studio-credit"
+            rows={2}
+            placeholder="As it should appear beside the work"
+            value={draft.credit_line ?? ""}
+            onChange={(event) => setDraft({ ...draft, credit_line: event.target.value })}
+          />
+        </EditorField>
+      </section>
 
       {showActions ? (
         <div className="flex items-center gap-2">
@@ -254,9 +316,20 @@ type BulkState = {
   artist: string;
   role: StudioRole | "";
   addTags: string[];
+  rightsStatus: StudioRightsStatus | "";
+  sourceUrl: string;
+  creditLine: string;
 };
 
-const EMPTY_BULK: BulkState = { effectSlug: "", artist: "", role: "", addTags: [] };
+const EMPTY_BULK: BulkState = {
+  effectSlug: "",
+  artist: "",
+  role: "",
+  addTags: [],
+  rightsStatus: "",
+  sourceUrl: "",
+  creditLine: "",
+};
 
 function bulkEditOf(state: BulkState): BulkEdit {
   return {
@@ -264,6 +337,9 @@ function bulkEditOf(state: BulkState): BulkEdit {
     artist: state.artist.trim() || undefined,
     role: state.role || undefined,
     addEffectTags: state.addTags.length > 0 ? state.addTags : undefined,
+    rightsStatus: state.rightsStatus || undefined,
+    sourceUrl: state.sourceUrl.trim() || undefined,
+    creditLine: state.creditLine.trim() || undefined,
   };
 }
 
@@ -275,6 +351,9 @@ function bulkChangeLines(edit: BulkEdit, effects: readonly StudioEffectOption[])
   if (edit.artist) lines.push(`Artist: ${edit.artist}`);
   if (edit.role) lines.push(`Role: ${edit.role === "figure" ? "Figure" : "Replication"}`);
   if (edit.addEffectTags) lines.push(`Add effects shown: ${edit.addEffectTags.map(name).join(", ")}`);
+  if (edit.rightsStatus) lines.push(`Rights status: ${RIGHTS_STATUS_LABELS[edit.rightsStatus]}`);
+  if (edit.sourceUrl) lines.push(`Source: ${edit.sourceUrl}`);
+  if (edit.creditLine) lines.push(`Credit line: ${edit.creditLine}`);
   return lines;
 }
 
@@ -366,6 +445,43 @@ function BulkFields({
           onChange={(addTags) => onChange({ ...value, addTags })}
         />
       </EditorField>
+
+      <section aria-label="Provenance" className="space-y-4 border-t border-[color:var(--editor-panel-border)] pt-4">
+        <h4 className="theme-text-secondary text-sm font-medium">Provenance</h4>
+        <EditorField label="Set rights status for all" htmlFor="studio-bulk-rights" description={RIGHTS_HELP}>
+          <EditorSelect
+            id="studio-bulk-rights"
+            value={value.rightsStatus}
+            options={rightsOptions(null, "Leave unchanged")}
+            onChange={(event) =>
+              onChange({ ...value, rightsStatus: event.target.value as StudioRightsStatus | "" })
+            }
+          />
+        </EditorField>
+        <EditorField
+          label="Set source for all"
+          htmlFor="studio-bulk-source"
+          error={sourceError(value.sourceUrl)}
+        >
+          <Input
+            id="studio-bulk-source"
+            inputSize="sm"
+            type="url"
+            placeholder="Leave unchanged"
+            value={value.sourceUrl}
+            onChange={(event) => onChange({ ...value, sourceUrl: event.target.value })}
+          />
+        </EditorField>
+        <EditorField label="Set credit line for all" htmlFor="studio-bulk-credit">
+          <Input
+            id="studio-bulk-credit"
+            inputSize="sm"
+            placeholder="Leave unchanged"
+            value={value.creditLine}
+            onChange={(event) => onChange({ ...value, creditLine: event.target.value })}
+          />
+        </EditorField>
+      </section>
     </div>
   );
 }
@@ -435,6 +551,7 @@ export function ReplicationEditorDrawer({
   placement,
   onSaveSingle,
   onApplyBulk,
+  onPublish,
   onDeselect,
   onDirtyChange,
   onOpenPlacement,
@@ -452,14 +569,16 @@ export function ReplicationEditorDrawer({
   }, [anyDirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
-  // Both drafts report to the shell. Editorial saves go live on the public
-  // site, so the shell only discards; saving stays the inspector's own step.
+  // Both drafts report to the shell. Editorial saves to a published work go
+  // live, so the shell only discards; saving stays the inspector's own step.
+  // An unpublished upload's save reaches no public page.
+  const allUnpublished = selected.length > 0 && selected.every(isUnpublished);
   useUnsavedWork({
     id: "replications:inspector",
     tab: "replications",
     label: `Replications: ${single?.title ?? "open work"}`,
     dirty,
-    publishesLive: true,
+    publishesLive: !allUnpublished,
     discard: () => {
       if (single) setDraft(draftOf(single));
     },
@@ -469,9 +588,27 @@ export function ReplicationEditorDrawer({
     tab: "replications",
     label: `Replications: bulk edit of ${selected.length} works`,
     dirty: bulkDirty,
-    publishesLive: true,
+    publishesLive: !allUnpublished,
     discard: resetBulk,
   });
+
+  // Publishing reads the saved provenance, never an unsaved draft.
+  const unpublished = selected.filter(isUnpublished);
+  const publishable = unpublished.filter((row) => replicationProvenanceGaps(row).length === 0);
+  const requestPublish = (targets: readonly StudioRow[]) => {
+    if (!onPublish || targets.length === 0) return;
+    const count = targets.length;
+    confirm({
+      title: count === 1 ? `Publish ${targets[0].title || targets[0].slug}?` : `Publish ${count} works?`,
+      description: "Publishing puts these works on the public site: their effect galleries, permalinks and the replication collections.",
+      confirmLabel: count === 1 ? "Publish" : `Publish ${count}`,
+      affected: targets.map((row) => row.title || row.slug),
+      onConfirm: async () => {
+        await onPublish(targets);
+      },
+    });
+  };
+  const bulkSourceInvalid = Boolean(sourceError(bulk.sourceUrl));
 
   const requestApplyBulk = () => {
     const targets = selected;
@@ -536,6 +673,9 @@ export function ReplicationEditorDrawer({
                 {single.slug}
               </span>
               <Badge variant="secondary" className="shrink-0">{single.format}</Badge>
+              {isUnpublished(single) ? (
+                <Badge variant="outline" className="shrink-0">Unpublished</Badge>
+              ) : null}
             </div>
           ) : selected.length === 0 ? (
             <p className="theme-text-faint text-xs">Select a work to edit it. Drop files anywhere to upload.</p>
@@ -594,6 +734,28 @@ export function ReplicationEditorDrawer({
               showPreview={false}
               showActions={false}
             />
+            {isUnpublished(single) ? (
+              <section aria-label="Publication" className="space-y-2 border-t border-[color:var(--editor-panel-border)] pt-4">
+                <h4 className="theme-text-secondary text-sm font-medium">Unpublished</h4>
+                <p className="theme-text-faint text-sm">
+                  No public page shows this work yet. It can publish once its rights status is known and its source is set.
+                </p>
+                {provenanceNeeds(single) ? (
+                  <p className="theme-text-secondary text-sm">Publishing is blocked: it needs {provenanceNeeds(single)}.</p>
+                ) : dirty ? (
+                  <p className="theme-text-secondary text-sm">Save your changes before publishing.</p>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
+                  disabled={busy || dirty || Boolean(provenanceNeeds(single)) || !onPublish}
+                  onClick={() => requestPublish([single])}
+                >
+                  Publish
+                </Button>
+              </section>
+            ) : null}
             {onOpenPlacement ? (
               <section className="space-y-2 border-t border-[color:var(--editor-panel-border)] pt-4">
                 <h4 className="theme-text-secondary text-sm font-medium">Drug articles</h4>
@@ -608,13 +770,33 @@ export function ReplicationEditorDrawer({
             ) : null}
           </div>
         ) : (
-          <BulkFields rows={selected} effects={effects} artists={artists} value={bulk} onChange={setBulk} />
+          <div className="space-y-4">
+            <BulkFields rows={selected} effects={effects} artists={artists} value={bulk} onChange={setBulk} />
+            {unpublished.length > 0 ? (
+              <section aria-label="Publication" className="space-y-1 border-t border-[color:var(--editor-panel-border)] pt-4">
+                <h4 className="theme-text-secondary text-sm font-medium">
+                  {unpublished.length} unpublished
+                </h4>
+                <p className="theme-text-faint text-sm">
+                  {publishable.length === unpublished.length
+                    ? "Every unpublished work here has a known rights status and a source, so all can publish."
+                    : `${unpublished.length - publishable.length} of ${unpublished.length} still need a known rights status or a source; Publish skips them. Apply provenance first, then publish.`}
+                </p>
+              </section>
+            ) : null}
+          </div>
         )}
       </div>
 
       {single && draft ? (
         <footer className="flex items-center gap-2 border-t border-[color:var(--editor-panel-border)] px-4 py-3">
-          <Button type="button" variant="accent" size="sm" disabled={busy || !dirty} onClick={() => onSaveSingle(single, draft)}>
+          <Button
+            type="button"
+            variant={isUnpublished(single) ? "secondary" : "accent"}
+            size="sm"
+            disabled={busy || !dirty || Boolean(sourceError(draft.source_url))}
+            onClick={() => onSaveSingle(single, draft)}
+          >
             {busy ? "Saving…" : "Save"}
           </Button>
           <Button type="button" variant="ghost" size="sm" disabled={busy || !dirty} onClick={() => setDraft(draftOf(single))}>
@@ -631,11 +813,22 @@ export function ReplicationEditorDrawer({
             type="button"
             variant="accent"
             size="sm"
-            disabled={busy || !bulkDirty}
+            disabled={busy || !bulkDirty || bulkSourceInvalid}
             onClick={requestApplyBulk}
           >
             Apply to {selected.length}
           </Button>
+          {unpublished.length > 0 && onPublish ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={busy || bulkDirty || publishable.length === 0}
+              onClick={() => requestPublish(publishable)}
+            >
+              Publish {publishable.length}
+            </Button>
+          ) : null}
           <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onDeselect}>
             Deselect
           </Button>

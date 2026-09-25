@@ -221,6 +221,18 @@ freeze. Recompute the thumbnail hold, deduplicate by SHA-256 against the archive
 and live corpus, and generate a new plan and ledger. Never append unpinned rows
 to a completed campaign or reuse its digest.
 
+## Single uploads in the Replication Studio
+
+A file dropped on `/dev/replications` is not a campaign. The Incoming tray asks
+for title, artist, primary effect, rights status, source and credit, and warns
+before upload when the library already holds the same SHA-256 or an image is
+under 800 pixels on its short edge. Uploading inserts the row with
+`publication_state: "unpublished"`, which every public read excludes. The row
+publishes from the tray's Publish step, the inspector, or bulk edit, and only
+once its rights status is known and its source is an HTTP(S) address; the
+editorial route refuses the rest. Rights that need license or permission details
+are still recorded with the rights metadata scripts.
+
 ## Verification commands
 
 Run checks appropriate to the files changed. The normal application-and-workflow
