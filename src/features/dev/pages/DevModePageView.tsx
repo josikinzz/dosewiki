@@ -93,8 +93,8 @@ const TagEditorTab = dynamic(
   () => import("../tags").then((m) => m.TagEditorTab),
   { ssr: false, loading },
 );
-const MembersTab = dynamic(
-  () => import("../tools/members/MembersTab").then((m) => m.MembersTab),
+const PeopleTab = dynamic(
+  () => import("../tools/people/PeopleTab").then((m) => m.PeopleTab),
   { ssr: false, loading },
 );
 const GlossaryTab = dynamic(
@@ -242,8 +242,13 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <ReplicationStudioTab initialSubstanceSlug={controller.replicationsInitialSlug} />
         ) : controller.activeTab === "banners" ? (
           <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
-        ) : controller.activeTab === "members" ? (
-          <MembersTab initialMember={controller.membersInitialKey} />
+        ) : controller.activeTab === "people" ? (
+          <PeopleTab
+            profiles={controller.contributorDirectory.profiles}
+            isDirectoryLoading={controller.contributorDirectory.isLoading}
+            sessionProfileKey={controller.sessionProfileKey}
+            initialPerson={controller.peopleInitialKey}
+          />
         ) : controller.activeTab === "glossary" ? (
           <GlossaryTab viewerRole={controller.role} />
         ) : controller.activeTab === "my-reports" ? (

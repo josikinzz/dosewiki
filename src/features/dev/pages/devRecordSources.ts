@@ -140,16 +140,16 @@ const SOURCES: readonly DevRecordSource[] = [
     },
   },
   {
-    tab: "members",
+    tab: "people",
     load: async () => {
-      const payload = await cached("members", () =>
+      const payload = await cached("people", () =>
         readJson<{ members?: { email: string; username?: string; name?: string }[] }>("/api/dev/members"));
       return (payload.members ?? []).map((member): PaletteRecord => ({
-        key: `members:${member.email}`,
-        tab: "members",
+        key: `people:${member.email}`,
+        tab: "people",
         title: member.username ?? member.name ?? member.email,
         detail: member.name ? `${member.name} · ${member.email}` : member.email,
-        href: devHref({ type: "dev", tab: "members", slug: member.email }),
+        href: devHref({ type: "dev", tab: "people", slug: member.email }),
         terms: recordTerms(member.username, member.name, member.email),
       }));
     },

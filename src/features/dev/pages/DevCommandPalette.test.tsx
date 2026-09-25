@@ -82,16 +82,26 @@ async function search(user: ReturnType<typeof userEvent.setup>, text: string) {
 }
 
 describe("the Cmd+K palette", () => {
-  it("opens Members when an admin types 'members' and presses Enter", async () => {
+  it("opens People when an admin types the retired name 'members' and presses Enter", async () => {
     const user = userEvent.setup();
     const { onTabChange } = renderInDevShell(<Idle />, { tab: "articles", role: "admin" });
 
     const dialog = await search(user, "members");
-    expect(within(dialog).getByRole("option", { name: /^Members/ })).toBeTruthy();
+    expect(within(dialog).getByRole("option", { name: /^People/ })).toBeTruthy();
     await user.keyboard("{Enter}");
 
-    expect(onTabChange).toHaveBeenCalledWith("members");
+    expect(onTabChange).toHaveBeenCalledWith("people");
     expect(screen.queryByRole("dialog", { name: "Open a tool or record" })).toBeNull();
+  });
+
+  it("lands a member record on that person in People", async () => {
+    const user = userEvent.setup();
+    const { onOpenPath } = renderInDevShell(<Idle />, { tab: "articles", role: "admin" });
+
+    const dialog = await search(user, "people sam");
+    await user.click(await within(dialog).findByRole("option", { name: /sam/ }));
+
+    expect(onOpenPath).toHaveBeenCalledWith("/dev/people/sam@example.com");
   });
 
   it("never offers a tool or a record above the role", async () => {
@@ -99,7 +109,7 @@ describe("the Cmd+K palette", () => {
     renderInDevShell(<Idle />, { tab: "articles", role: "editor" });
 
     const dialog = await search(user, "members");
-    expect(within(dialog).queryByRole("option", { name: /Members/ })).toBeNull();
+    expect(within(dialog).queryByRole("option", { name: /People/ })).toBeNull();
     await user.clear(within(dialog).getByRole("combobox"));
     await user.type(within(dialog).getByRole("combobox"), "banners mdma");
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());

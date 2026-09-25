@@ -1,5 +1,6 @@
 /**
- * GET /api/dev/members: the account roster for the Members tab. Admin only;
+ * GET /api/dev/members: the account roster (People reads it with the profile
+ * links through `/api/dev/people`; the palette and playlists read it here). Admin only;
  * the Postgres projection never includes password hashes or reset tokens.
  */
 import { NextResponse } from "next/server";

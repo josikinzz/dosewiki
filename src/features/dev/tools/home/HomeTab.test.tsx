@@ -181,7 +181,7 @@ describe("Home cards", () => {
       "/dev/citation-review",
       "/dev/queue",
       "/dev/queue",
-      "/dev/members",
+      "/dev/people",
     ]],
     ["editor", [], ["/dev/articles/lsd", "/dev/queue/prop-1"]],
     // In the site's language order, whatever order the grant lists them in.

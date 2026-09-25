@@ -48,6 +48,12 @@ export type ContributorsControllerOptions = {
   initialScope?: string;
   /** One contextual record, without fetching or navigating the directory. */
   contextualKey?: string;
+  /**
+   * Load only the record `selectProfile` names, never the first visible row:
+   * the People view picks the profile for the person it shows, and a person
+   * without one loads nothing.
+   */
+  explicitSelection?: boolean;
 };
 
 export type ContributorSaveState = EditorActionStatusState | "idle";
@@ -77,6 +83,7 @@ export function useContributorsController({
   sessionProfileKey,
   initialScope,
   contextualKey,
+  explicitSelection = false,
 }: ContributorsControllerOptions) {
   const routeScope: ContributorScope = initialScope === "me" ? "me" : "all";
   const [chosenScope, setChosenScope] = useState<ContributorScope>(routeScope);
@@ -128,8 +135,9 @@ export function useContributorsController({
     if (contextualKey) return contextualKey;
     if (scope === "me") return selfKey;
     if (directory.some((profile) => profile.key === selectedKey)) return selectedKey;
+    if (explicitSelection) return "";
     return visibleProfiles[0]?.key ?? "";
-  }, [contextualKey, directory, scope, selectedKey, selfKey, visibleProfiles]);
+  }, [contextualKey, directory, explicitSelection, scope, selectedKey, selfKey, visibleProfiles]);
 
   // The scope the URL currently says. Only a change writes: the address the
   // user arrived on (`/dev/profile`, `/dev/contributors?scope=me`) is left

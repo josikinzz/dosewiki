@@ -1,5 +1,6 @@
 /**
- * Pure helpers and the HTTP client for the Members tab (`/api/dev/members`).
+ * Pure helpers and the HTTP client for member accounts (`/api/dev/members`),
+ * shared by People and the playlist owner picker.
  */
 
 import translationLocaleNames from "@/i18n/translationLocaleNames.json";

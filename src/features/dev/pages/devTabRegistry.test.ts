@@ -11,6 +11,7 @@ import {
   resolveDevRoute,
   resolveDevTabAlias,
 } from "./devTabRegistry";
+import { roleMeetsFloor } from "@/lib/auth/roles";
 import { saveDestinationFor } from "./DevToolSaveLine";
 
 describe("devTabRegistry", () => {
@@ -73,7 +74,7 @@ describe("devTabRegistry", () => {
       "molecule-editor",
       "banners",
       "replications",
-      "members",
+      "people",
     ]);
     expect(byRole("editor")).toEqual([
       "articles",
@@ -205,6 +206,23 @@ describe("devTabRegistry", () => {
       tab: "contributors",
       filter: "me",
     });
+  });
+
+  it("opens the retired /dev/members, and a member's deep link, on People", () => {
+    expect(findDevTab("members")).toBeUndefined();
+    expect(resolveDevRoute("members", undefined)).toEqual({ tab: "people" });
+    expect(resolveDevRoute("members", "ada@example.com")).toEqual({ tab: "people", slug: "ada@example.com" });
+    expect(resolveDevRoute("people", "ADA")).toEqual({ tab: "people", slug: "ADA" });
+  });
+
+  it("keeps People at the admin floor and Contributors, with its self scope, open to a contributor", () => {
+    expect(findDevTab("people").role).toBe("admin");
+    for (const role of ["editor", "translator", "contributor"] as const) {
+      expect(roleMeetsFloor(role, findDevTab("people").role), role).toBe(false);
+    }
+    // A contributor reaches their own profile at the address Home links to.
+    expect(resolveDevRoute("contributors", undefined, { scope: "me" })).toEqual({ tab: "contributors", filter: "me" });
+    expect(roleMeetsFloor("contributor", findDevTab("contributors").role)).toBe(true);
   });
 
   it("opens /dev/site-feedback and ?source=site on the Feedback tab's site source", () => {

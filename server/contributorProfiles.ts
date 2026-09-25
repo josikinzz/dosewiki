@@ -135,6 +135,29 @@ export const getOwnedProfile = query({
 });
 
 /**
+ * The account-to-profile links the People tab pairs on: every live profile
+ * whose membership email names a sign-in. Admin only, like the roster it is
+ * paired with; membership emails never reach the public projection.
+ */
+export const listMembershipLinks = query({
+  args: {
+    apiKey: v.string(),
+    actorEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
+    const profiles = await ctx.db.query("contributorProfiles").collect();
+    return profiles
+      .filter((profile) => !profile.mergedIntoProfileId && profile.membershipEmail?.trim())
+      .map((profile) => ({
+        key: normalizeProfileKey(profile.key),
+        membershipEmail: normalizeEmail(profile.membershipEmail as string),
+      }))
+      .sort((left, right) => left.key.localeCompare(right.key));
+  },
+});
+
+/**
  * Minimal ownership lookup for route shells that need only the canonical
  * profile key. This deliberately mirrors getOwnedProfile's membership-email
  * precedence and guarded email-derived fallback without materializing avatar,

@@ -162,7 +162,10 @@ describe("ContributorsTab", () => {
 
     await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
     expect(screen.getByLabelText("Credit title")).toBeInTheDocument();
-    expect(screen.getByLabelText("Membership email")).toBeInTheDocument();
+    // The account link is a People picker, not a typed email here.
+    expect(screen.queryByLabelText("Membership email")).toBeNull();
+    expect(screen.getByText("No linked account, so no member edits this profile themselves.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Link an account in People" })).toHaveAttribute("href", "/dev/people/ADA");
     expect(screen.getByLabelText("Add an alias")).toBeInTheDocument();
     expect(screen.getByLabelText("Archival profile")).toBeInTheDocument();
     expect(screen.getByLabelText("Note (markdown)")).toBeInTheDocument();
@@ -255,7 +258,6 @@ describe("ContributorsTab", () => {
     const reason = "Admin only: an editor can see this but not change it.";
     for (const label of [
       "Credit title",
-      "Membership email",
       "Exclude from the Replications gallery",
       "Archival profile",
       "Approved replicator",
@@ -267,6 +269,7 @@ describe("ContributorsTab", () => {
       expect(control).toHaveAttribute("title", reason);
     }
     expect(screen.getAllByText(reason).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: /in People/ })).toBeNull();
 
     await user.clear(displayName);
     await user.type(displayName, "Josie K.");
@@ -312,9 +315,9 @@ describe("ContributorsTab", () => {
       key: "JOSIE",
       role: "Founder",
       approved_replicator: true,
-      membershipEmail: null,
       staffNote: null,
     });
+    expect(JSON.parse(String(post?.[1]?.body))).not.toHaveProperty("membershipEmail");
   });
 
   it("renders the rail as a bounded listbox and counts the rows a search leaves", async () => {

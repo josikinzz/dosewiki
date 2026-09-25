@@ -229,7 +229,6 @@ describe("the profile form", () => {
     displayName: "  Josie  ",
     bio: "",
     role: "   ",
-    membershipEmail: "",
     avatarUrl: "",
     aliases: ["  gremblin ", ""],
     links: [
@@ -243,14 +242,13 @@ describe("the profile form", () => {
     staffNoteAttribution: "Someone",
   };
 
-  it("sends null for emptied clearable fields and keeps an empty bio as a string", () => {
+  it("sends null for emptied clearable fields, keeps an empty bio as a string, and leaves the account link to People", () => {
     const patch = buildContributorPatch(clearableForm, { canApprove: true });
 
     expect(patch).toEqual({
       displayName: "Josie",
       bio: "",
       role: null,
-      membershipEmail: null,
       avatarUrl: null,
       aliases: ["gremblin"],
       links: [{ label: "Site", url: "https://example.com" }],
@@ -292,7 +290,6 @@ describe("the profile form", () => {
       displayName: "  Josie  ",
       bio: "Hi.",
       role: "Admin",
-      membershipEmail: "josie@example.com",
       avatarUrl: " https://cdn.example/josie.png ",
       aliases: ["gremblin"],
       links: [{ label: "Site", url: "https://example.com" }],
