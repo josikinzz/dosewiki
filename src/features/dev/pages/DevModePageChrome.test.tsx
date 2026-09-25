@@ -58,6 +58,24 @@ function openMenu(trigger: HTMLElement) {
 }
 
 describe("DevModePageChrome rail", () => {
+  // First in the file on purpose: React reports a missing key once per
+  // component, so a later render would pass even with the key gone.
+  it("gives inline and menu rail groups stable keys (no missing-key warning)", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      // Admin renders Content inline beside Intake and Site menus; a
+      // contributor renders every group inline.
+      renderChrome("articles", "admin").unmount();
+      renderChrome("contributors", "contributor").unmount();
+      const keyWarnings = errors.mock.calls.filter((call) =>
+        call.some((arg) => typeof arg === "string" && arg.includes('unique "key" prop')),
+      );
+      expect(keyWarnings).toEqual([]);
+    } finally {
+      errors.mockRestore();
+    }
+  });
+
   it("keeps Content inline and collapses Intake and Site into menus for an admin", () => {
     const { nav } = renderChrome("articles", "admin");
 

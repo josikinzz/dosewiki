@@ -373,6 +373,7 @@ export function DevModePageChrome({
             const inline = group.id === "content" || keepFlat;
             return inline ? (
               <RailInlineGroup
+                key={group.id}
                 label={group.label}
                 tabs={group.enabled}
                 activeTab={activeTab}
