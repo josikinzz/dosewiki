@@ -43,8 +43,17 @@ import { devFetch, devPost } from "@/features/dev/tools/devFetch";
 /** The decisions a triage key can make on an item, in the shared words. */
 export type InboxDecision = "accept" | "reject" | "spam";
 
-/** What one Inbox claim row says; see `/api/dev/inbox/claims`. */
-export type InboxClaim = { source: InboxSourceId; item_id: string; claimed_by: string; claimed_at: string };
+/**
+ * What one Inbox claim row says; see `/api/dev/inbox/claims`. `expired` marks
+ * a claim left untouched for a day, which no longer holds the item.
+ */
+export type InboxClaim = {
+  source: InboxSourceId;
+  item_id: string;
+  claimed_by: string;
+  claimed_at: string;
+  expired?: boolean;
+};
 
 export type InboxListContext = {
   /** Claims for sources with no Reviewing status of their own, by `inboxKey`. */
@@ -71,6 +80,12 @@ export type InboxSourceAdapter = {
   actions: {
     claim: (id: string) => Promise<InboxItem>;
     release: (id: string) => Promise<InboxItem>;
+    /**
+     * Take over another admin's claim, recorded with the caller as claimer.
+     * Only sources whose claims live in `inboxClaims` offer it; the Inbox
+     * confirms first.
+     */
+    takeOver?: (id: string) => Promise<InboxItem>;
     /** Whether the claimer may hand the item back from its current state. */
     canRelease: (item: InboxItem) => boolean;
     /** Decisions this item can take here; empty when the owning tool decides. */
@@ -384,9 +399,9 @@ async function allPendingGlossary(): Promise<GlossaryFeedbackItem[]> {
 
 type ClaimTableSource = "citations" | "proposals" | "review-recommendations";
 
-async function writeClaim(source: ClaimTableSource, id: string, action: "claim" | "release") {
+async function writeClaim(source: ClaimTableSource, id: string, action: "claim" | "takeover" | "release") {
   const payload = await postJson("/api/dev/inbox/claims", { action, source, id });
-  if (action === "claim") {
+  if (action !== "release") {
     const claim = payload.claim as InboxClaim | undefined;
     if (!claim || typeof claim.claimed_by !== "string") {
       throw new Error("The server did not confirm the claim. Refresh to check who holds this item.");
@@ -405,11 +420,14 @@ function claimTableSource<Row>(spec: {
   detail: (row: Row) => ReactNode;
 }): InboxSourceAdapter {
   const cache = rowCache<Row>();
-  const claims = new Map<string, string | null>();
+  // Only rows the owning tool still lists as pending carry a claim here, so a
+  // claim on an item decided elsewhere never shows.
+  const claims = new Map<string, { by: string; expired: boolean } | null>();
   const toItem = (row: Row): InboxItem => {
     const id = spec.idOf(row);
     cache.put(id, row);
-    const claimedBy = claims.get(id) ?? null;
+    const claim = claims.get(id) ?? null;
+    const claimedBy = claim && !claim.expired ? claim.by : null;
     return {
       ...spec.base(row),
       key: inboxKey(spec.id, id),
@@ -418,7 +436,13 @@ function claimTableSource<Row>(spec: {
       // A claim is this source's Reviewing: someone has picked it up.
       status: claimedBy ? "reviewing" : "new",
       claimedBy,
+      ...(claim?.expired ? { expiredClaimBy: claim.by } : {}),
     };
+  };
+  const hold = async (id: string, action: "claim" | "takeover") => {
+    const by = await writeClaim(spec.id, id, action);
+    claims.set(id, by ? { by, expired: false } : null);
+    return toItem(cache.get(id));
   };
   return {
     id: spec.id,
@@ -428,7 +452,8 @@ function claimTableSource<Row>(spec: {
       claims.clear();
       for (const row of rows) {
         const id = spec.idOf(row);
-        claims.set(id, known.get(inboxKey(spec.id, id))?.claimed_by ?? null);
+        const claim = known.get(inboxKey(spec.id, id));
+        claims.set(id, claim ? { by: claim.claimed_by, expired: claim.expired === true } : null);
       }
       return rows.map(toItem);
     },
@@ -436,10 +461,8 @@ function claimTableSource<Row>(spec: {
       return cache.has(id) ? spec.detail(cache.get(id)) : <MissingDetail />;
     },
     actions: {
-      async claim(id) {
-        claims.set(id, await writeClaim(spec.id, id, "claim"));
-        return toItem(cache.get(id));
-      },
+      claim: (id) => hold(id, "claim"),
+      takeOver: (id) => hold(id, "takeover"),
       async release(id) {
         await writeClaim(spec.id, id, "release");
         claims.set(id, null);

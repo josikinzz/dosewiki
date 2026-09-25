@@ -86,6 +86,11 @@ export type InboxItem = {
   receivedAt: string;
   /** The admin working the item; null when nobody has claimed it. */
   claimedBy: string | null;
+  /**
+   * Who held a claim that expired untouched; the item reads as unclaimed and
+   * anyone may claim it. Absent when there is no expired claim.
+   */
+  expiredClaimBy?: string;
   /** The owning tool's view of this item. */
   href: string;
 };

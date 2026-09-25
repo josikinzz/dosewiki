@@ -5,8 +5,9 @@
  *   GET  /api/dev/inbox/claims                                   → { ok, claims }
  *   POST /api/dev/inbox/claims { action, source, id }            → { ok, claim } | { ok, released }
  *
- * `action` is `claim` or `release`. A claim another admin holds comes back as
- * 409 `INBOX_CLAIM_HELD` naming the holder. Trip reports and feedback claim by
+ * `action` is `claim`, `takeover` or `release`. A claim another admin holds
+ * comes back as 409 `INBOX_CLAIM_HELD` naming the holder; `takeover` records
+ * the caller as the new claimer after the Inbox has asked them to confirm. Trip reports and feedback claim by
  * moving to Reviewing through their own status routes, never through here.
  * Admin floor here and again in Postgres (AGENTS rule 8).
  */
@@ -14,27 +15,31 @@ import { NextResponse } from "next/server";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import {
+  INBOX_CLAIM_ITEM_ID_MAX,
+  isInboxClaimSource,
+  type InboxClaimSource,
+} from "../../../../../../server/lib/inboxClaimSources";
 
 export const runtime = "nodejs";
 
 const listClaimsQuery = makeFunctionReference<"query">("inboxClaims:list");
 const claimMutation = makeFunctionReference<"mutation">("inboxClaims:claim");
 const releaseMutation = makeFunctionReference<"mutation">("inboxClaims:release");
+const takeOverMutation = makeFunctionReference<"mutation">("inboxClaims:takeOver");
 
-const SOURCES = ["citations", "proposals", "review-recommendations"] as const;
-type ClaimSource = (typeof SOURCES)[number];
-const ID_RE = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,199}$/;
+const ID_RE = new RegExp(`^[A-Za-z0-9][A-Za-z0-9:_-]{0,${INBOX_CLAIM_ITEM_ID_MAX - 1}}$`);
 
 type ClaimBody = { action?: unknown; source?: unknown; id?: unknown };
-type ParsedClaim = { action: "claim" | "release"; source: ClaimSource; id: string };
+type ParsedClaim = { action: "claim" | "takeover" | "release"; source: InboxClaimSource; id: string };
 
 function parseClaimBody(body: ClaimBody): ParsedClaim {
   const action = body.action;
-  if (action !== "claim" && action !== "release") {
-    throw new JsonBodyError(400, "Choose claim or release.");
+  if (action !== "claim" && action !== "takeover" && action !== "release") {
+    throw new JsonBodyError(400, "Choose claim, take over or release.");
   }
-  const source = SOURCES.find((candidate) => candidate === body.source);
-  if (!source) {
+  const source = body.source;
+  if (!isInboxClaimSource(source)) {
     throw new JsonBodyError(400, "Unknown Inbox source.");
   }
   const id = typeof body.id === "string" ? body.id.trim() : "";
@@ -83,7 +88,7 @@ export const POST = protectedRouteOperation<ClaimBody, ParsedClaim>({
       const outcome = (await dataWrite.client.mutation(releaseMutation, args)) as { released: boolean };
       return NextResponse.json({ ok: true, released: outcome.released });
     }
-    const claim = await dataWrite.client.mutation(claimMutation, args);
+    const claim = await dataWrite.client.mutation(body.action === "takeover" ? takeOverMutation : claimMutation, args);
     return NextResponse.json({ ok: true, claim });
   },
 });

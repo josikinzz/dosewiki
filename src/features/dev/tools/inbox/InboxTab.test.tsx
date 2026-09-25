@@ -138,6 +138,9 @@ function stubServer(server: Server, actor: () => string) {
 
     if (url.pathname === "/api/dev/inbox/claims") {
       if (post) {
+        // Claim, take over and release all replace whatever the item held.
+        server.claims = server.claims.filter((entry) => entry.source !== body.source || entry.item_id !== body.id);
+        if (body.action === "release") return Response.json({ ok: true, released: true });
         const claim = { source: body.source, item_id: body.id, claimed_by: actor(), claimed_at: "2026-09-25T00:00:00.000Z" };
         server.claims.push(claim);
         return Response.json({ ok: true, claim });
@@ -328,5 +331,48 @@ describe("InboxTab", () => {
     await waitFor(() =>
       expect(within(list).getAllByRole("option").slice(-1)[0]).toHaveTextContent("Accepted"),
     );
+  });
+
+  it("lets another admin take over a claim only after confirming", async () => {
+    const server = freshServer();
+    server.claims.push({ source: "proposals", item_id: "prop-1", claimed_by: ADA, claimed_at: "2026-09-25T00:00:00.000Z", expired: false });
+    actor = BEN;
+    const fetchMock = stubServer(server, () => actor);
+    const { list } = await openInbox(BEN);
+    const user = userEvent.setup();
+    const takeOverPosts = () =>
+      fetchMock.mock.calls.filter(([, init]) => String(init?.body ?? "").includes('"takeover"'));
+
+    await user.click(within(list).getByText("Fix ketamine duration"));
+    expect(screen.getByText(`Claimed by ${ADA}.`)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Take over" }));
+    const dialog = await screen.findByRole("dialog", { name: "Take over this claim?" });
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(takeOverPosts()).toHaveLength(0);
+    expect(screen.getByText(`Claimed by ${ADA}.`)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Take over" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Take over" }));
+    expect(await screen.findByText("You are reviewing this.")).toBeInTheDocument();
+    expect(takeOverPosts()).toEqual([
+      ["/api/dev/inbox/claims", expect.objectContaining({ body: JSON.stringify({ action: "takeover", source: "proposals", id: "prop-1" }) })],
+    ]);
+    expect(server.claims).toEqual([expect.objectContaining({ item_id: "prop-1", claimed_by: BEN })]);
+  });
+
+  it("shows an expired claim as unclaimed, with who held it", async () => {
+    const server = freshServer();
+    server.claims.push({ source: "citations", item_id: "lsd", claimed_by: ADA, claimed_at: "2026-09-20T00:00:00.000Z", expired: true });
+    actor = BEN;
+    stubServer(server, () => actor);
+    const { list } = await openInbox(BEN);
+    const user = userEvent.setup();
+
+    await user.click(within(list).getByText("lsd"));
+    expect(screen.getByText(/^Claim expired\. ada@example\.com claimed this/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Take over" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Claim" }));
+    expect(await screen.findByText("You are reviewing this.")).toBeInTheDocument();
   });
 });

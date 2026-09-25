@@ -9,6 +9,7 @@ import {
   remapReferenceIds,
 } from "./lib/substanceIngestion";
 import { substanceArticleLightValidator, validateArticleForIngestion } from "./lib/validators";
+import { clearInboxClaim } from "./lib/inboxClaimSources";
 
 const evidenceStatus = v.union(
   v.literal("supported"),
@@ -563,7 +564,22 @@ async function applyEvidenceWrite({
     results.preservedStale++;
   }
 
+  await clearResolvedCitationClaim(ctx, slug);
   return results;
+}
+
+/**
+ * A citation article leaves the open queue once every row is approved (see
+ * `matchesQueueSummaryStatus`); its Inbox claim ends in the same write.
+ */
+async function clearResolvedCitationClaim(ctx: MutationCtx, slug: string) {
+  const rows = await ctx.db
+    .query("citationEvidence")
+    .withIndex("by_slug", (query) => query.eq("slug", slug))
+    .collect();
+  if (rows.length > 0 && rows.every((row) => row.status === "approved")) {
+    await clearInboxClaim(ctx, "citations", slug);
+  }
 }
 
 export const upsertMany = mutation({
@@ -740,6 +756,61 @@ function normalizeExistingEvidenceRow(existing: {
   });
 }
 
+type SetManyStatusArgs = {
+  apiKey?: string;
+  actorEmail?: string;
+  slug: string;
+  claimKeys: string[];
+  status: "supported" | "needs_source" | "needs_review" | "approved" | "rejected";
+  statusReason?: string;
+};
+
+export async function setManyStatusHandler(ctx: MutationCtx, args: SetManyStatusArgs) {
+  const actor = await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "citationEvidenceReview",
+  }, "admin");
+  const now = new Date().toISOString();
+  const existingRows = await ctx.db
+    .query("citationEvidence")
+    .withIndex("by_slug", (query) => query.eq("slug", args.slug))
+    .collect();
+  const rowsByClaimKey = new Map(existingRows.map((row) => [row.claimKey, row]));
+  let updated = 0;
+
+  for (const claimKey of dedupeClaimKeys(args.claimKeys)) {
+    const existing = rowsByClaimKey.get(claimKey);
+    if (!existing) {
+      continue;
+    }
+
+    const normalized = normalizeExistingEvidenceRow({
+      ...existing,
+      status: args.status,
+      statusReason: args.statusReason?.trim() || undefined,
+    });
+
+    await ctx.db.patch(existing._id, {
+      status: normalized.status,
+      statusReason: normalized.statusReason,
+      referenceIds: normalized.referenceIds,
+      sourceName: normalized.sourceName,
+      sourceType: normalized.sourceType,
+      quality: normalized.quality,
+      supportingSnippet: normalized.supportingSnippet,
+      supportRationale: normalized.supportRationale,
+      supports: normalized.supports,
+      updatedAt: now,
+      updatedBy: formatUpdatedBy(actor),
+    });
+    updated += 1;
+  }
+
+  await clearResolvedCitationClaim(ctx, args.slug);
+  return { updated };
+}
+
 export const setManyStatus = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -750,48 +821,5 @@ export const setManyStatus = mutation({
     // Reviewer's note for the next editor; replaces whatever the row carried.
     statusReason: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "citationEvidenceReview",
-    }, "admin");
-    const now = new Date().toISOString();
-    const existingRows = await ctx.db
-      .query("citationEvidence")
-      .withIndex("by_slug", (query) => query.eq("slug", args.slug))
-      .collect();
-    const rowsByClaimKey = new Map(existingRows.map((row) => [row.claimKey, row]));
-    let updated = 0;
-
-    for (const claimKey of dedupeClaimKeys(args.claimKeys)) {
-      const existing = rowsByClaimKey.get(claimKey);
-      if (!existing) {
-        continue;
-      }
-
-      const normalized = normalizeExistingEvidenceRow({
-        ...existing,
-        status: args.status,
-        statusReason: args.statusReason?.trim() || undefined,
-      });
-
-      await ctx.db.patch(existing._id, {
-        status: normalized.status,
-        statusReason: normalized.statusReason,
-        referenceIds: normalized.referenceIds,
-        sourceName: normalized.sourceName,
-        sourceType: normalized.sourceType,
-        quality: normalized.quality,
-        supportingSnippet: normalized.supportingSnippet,
-        supportRationale: normalized.supportRationale,
-        supports: normalized.supports,
-        updatedAt: now,
-        updatedBy: formatUpdatedBy(actor),
-      });
-      updated += 1;
-    }
-
-    return { updated };
-  },
+  handler: setManyStatusHandler,
 });

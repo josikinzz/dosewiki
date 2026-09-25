@@ -20,12 +20,17 @@ function createCtx(memberships: Record<string, Role>, article: Record<string, un
           selector: (query: { eq: (field: string, value: string) => unknown }) => unknown,
         ) => {
           let key = "";
-          selector({
-            eq: (_field, value) => {
-              key = value;
-              return {};
+          const filter = {
+            eq: (_field: string, value: string) => {
+              key ||= value;
+              return filter;
             },
-          });
+          };
+          selector(filter);
+          if (table === "inboxClaims") {
+            // No claims: a completed review clears the article's claim, if any.
+            return { collect: vi.fn(async () => []) };
+          }
           if (table === "substanceIndex") {
             return { first: vi.fn(async () => article) };
           }

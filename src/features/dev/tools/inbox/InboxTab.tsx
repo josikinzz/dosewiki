@@ -208,6 +208,20 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     void run(item, () => source.actions.claim(item.id), () => `You are reviewing "${item.title}".`);
   };
 
+  const takeOver = (item: InboxItem) => {
+    const source = sourceById.get(item.source);
+    const takeOverClaim = source?.actions.takeOver;
+    if (!takeOverClaim || !item.claimedBy) return;
+    const who = formatReviewerIdentity(item.claimedBy) ?? item.claimedBy;
+    confirm({
+      title: "Take over this claim?",
+      description: `${who} is working on "${item.title}". Taking over makes you the claimer, and the Inbox shows your name to everyone, ${who} included.`,
+      confirmLabel: "Take over",
+      onConfirm: () =>
+        run(item, () => takeOverClaim(item.id), () => `You took over "${item.title}" from ${who}.`),
+    });
+  };
+
   const release = (item: InboxItem) => {
     const source = sourceById.get(item.source);
     if (!source) return;
@@ -372,7 +386,9 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
                 mine={mine}
                 busy={busy}
                 canRelease={selectedSource.actions.canRelease(selected)}
+                canTakeOver={Boolean(selectedSource.actions.takeOver)}
                 onClaim={() => claim(selected)}
+                onTakeOver={() => takeOver(selected)}
                 onRelease={() => release(selected)}
               />
 
@@ -444,20 +460,27 @@ function ClaimLine({
   mine,
   busy,
   canRelease,
+  canTakeOver,
   onClaim,
+  onTakeOver,
   onRelease,
 }: {
   item: InboxItem;
   mine: boolean;
   busy: boolean;
   canRelease: boolean;
+  canTakeOver: boolean;
   onClaim: () => void;
+  onTakeOver: () => void;
   onRelease: () => void;
 }) {
   if (item.claimedBy === null) {
+    const lapsed = item.expiredClaimBy ? formatReviewerIdentity(item.expiredClaimBy) ?? item.expiredClaimBy : null;
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <p className="theme-text-muted text-sm">Nobody is reviewing this yet.</p>
+        <p className="theme-text-muted text-sm">
+          {lapsed ? `Claim expired. ${lapsed} claimed this over a day ago; anyone may pick it up.` : "Nobody is reviewing this yet."}
+        </p>
         <Button type="button" size="sm" variant="accent" disabled={busy} onClick={onClaim}>
           Claim
         </Button>
@@ -471,6 +494,11 @@ function ClaimLine({
       {mine && canRelease ? (
         <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onRelease}>
           Release
+        </Button>
+      ) : null}
+      {!mine && canTakeOver ? (
+        <Button type="button" size="sm" variant="outline" disabled={busy} onClick={onTakeOver}>
+          Take over
         </Button>
       ) : null}
     </div>

@@ -339,7 +339,7 @@ The admin's entry point in `/dev`: one list of everything that waits on an admin
 _Avoid_: dashboard, queue of queues
 
 **Claim**:
-Taking an Inbox item so a second admin does not triage it too. Claiming moves the item to Reviewing with the claimer's name. Trip reports and feedback claim through their status, and the decision log names the claimer; citation articles, proposals and review recommendations have no Reviewing status of their own, so their claims live in `inboxClaims`. Only the claimer can release a claim.
+Taking an Inbox item so a second admin does not triage it too. Claiming moves the item to Reviewing with the claimer's name. Trip reports and feedback claim through their status, and the decision log names the claimer; citation articles, proposals and review recommendations have no Reviewing status of their own, so their claims live in `inboxClaims`. Only the claimer can release a claim; another admin can take it over after confirming, which records them as the claimer. Deciding the item ends its claim, and a claim untouched for a day shows as Claim expired and no longer holds the item.
 _Avoid_: assign (for claiming yourself), lock
 
 **Intake Status**:
