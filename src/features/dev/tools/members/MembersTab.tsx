@@ -5,10 +5,12 @@
  * does to an account (change role, ban, issue a password reset) plus the
  * invite codes panel that creates accounts in the first place.
  *
- * Saves are immediate and there is no undo, so Ban and a role change go
- * through the shared confirm dialog first; the row then shows what is
- * happening until the roster reloads. Admin rows and the admin's own row show
- * no actions: admins are seeded and rotated from a workstation
+ * The roster reads as a list: each row is text plus one Edit button, and the
+ * controls live in a drawer for one member at a time. Saves are immediate and
+ * there is no undo, so Ban and a role change go through the shared confirm
+ * dialog first; the row then shows what is happening until the roster
+ * reloads. Admin rows and the admin's own row show no actions, and say why in
+ * text: admins are seeded and rotated from a workstation
  * (`scripts/auth/seed-admin-accounts.mjs`), and Postgres refuses both targets
  * anyway. The reset link is shown once; only its hash is stored, so closing
  * the notice is the end of it.
@@ -34,14 +36,15 @@ import {
   type EditorNoticeMessage,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
-import { approvedGlossaryLocales, getRoleDisplayName, isManagedRole, roleMeetsFloor, type AppRole, type ManagedRole } from "@/lib/auth/roles";
+import { approvedGlossaryLocales, getRoleDisplayName, roleMeetsFloor, type AppRole, type ManagedRole } from "@/lib/auth/roles";
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 import InviteCodesPanel from "./InviteCodesPanel";
 import { RoleGuide } from "./RoleGuide";
-import { MemberPermissionFields } from "./MemberPermissionFields";
+import { MemberEditDrawer } from "./MemberEditDrawer";
 import {
   banMember,
   fetchRoster,
+  formatLocaleNames,
   formatSeen,
   issueMemberReset,
   memberRowLock,
@@ -85,7 +88,10 @@ export function MembersTab() {
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [resetLink, setResetLink] = useState<ResetLink | null>(null);
+  /** The email whose drawer is open; the row itself is read from the roster. */
+  const [editing, setEditing] = useState<string | null>(null);
   const { confirm, dialog } = useConfirm();
+  const editingRow = roster?.members.find((row) => row.email === editing) ?? null;
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -137,9 +143,10 @@ export function MembersTab() {
     const next = getRoleDisplayName(role);
     confirm({
       title: `Change permissions for ${label}?`,
-      description: `${label}: ${next}. Approved glossary languages: ${glossaryLocales.join(", ") || "none"}. These permissions replace the current grant on their next request.`,
+      description: `${label}: ${next}. Approved glossary languages: ${formatLocaleNames(glossaryLocales)}. These permissions replace the current grant on their next request.`,
       confirmLabel: "Save permissions",
       onConfirm: () => {
+        setEditing(null);
         void run(
           row.email,
           "role",
@@ -153,6 +160,7 @@ export function MembersTab() {
   const toggleBan = (row: MemberRow) => {
     const label = row.username ?? row.email;
     if (row.bannedAt) {
+      setEditing(null);
       void run(
         row.email,
         "unban",
@@ -167,6 +175,7 @@ export function MembersTab() {
       confirmLabel: "Ban",
       destructive: true,
       onConfirm: () => {
+        setEditing(null);
         void run(
           row.email,
           "ban",
@@ -177,8 +186,9 @@ export function MembersTab() {
     });
   };
 
-  const issueReset = (row: MemberRow) =>
-    run(
+  const issueReset = (row: MemberRow) => {
+    setEditing(null);
+    return run(
       row.email,
       "reset",
       async () => {
@@ -192,6 +202,7 @@ export function MembersTab() {
       `Reset link issued for ${row.username ?? row.email}. It works once and expires in an hour.`,
       false,
     );
+  };
 
   const copyResetLink = async () => {
     if (!resetLink) {
@@ -287,11 +298,16 @@ export function MembersTab() {
           <RosterTable
             roster={roster}
             pending={pending}
-            onChangeRole={changeRole}
-            onToggleBan={toggleBan}
-            onIssueReset={issueReset}
+            onEdit={(row) => setEditing(row.email)}
           />
         )}
+        <MemberEditDrawer
+          row={editingRow}
+          onClose={() => setEditing(null)}
+          onChangeRole={changeRole}
+          onToggleBan={toggleBan}
+          onIssueReset={(row) => void issueReset(row)}
+        />
       </EditorSection>
 
       <EditorSection
@@ -326,9 +342,7 @@ export function MembersTab() {
 type RosterTableProps = {
   roster: MemberRoster;
   pending: PendingAction | null;
-  onChangeRole: (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => void;
-  onToggleBan: (row: MemberRow) => void;
-  onIssueReset: (row: MemberRow) => void;
+  onEdit: (row: MemberRow) => void;
 };
 
 /** A live pill that replaces the row's state while an action is in flight. */
@@ -340,13 +354,7 @@ function PendingPill({ kind }: { kind: PendingKind }) {
   );
 }
 
-function RosterTable({
-  roster,
-  pending,
-  onChangeRole,
-  onToggleBan,
-  onIssueReset,
-}: RosterTableProps) {
+function RosterTable({ roster, pending, onEdit }: RosterTableProps) {
   const sortedMembers = useMemo(() => sortRoster(roster.members), [roster.members]);
   return (
     <EditorTable className="md:min-w-[56rem]">
@@ -381,7 +389,7 @@ function RosterTable({
                     {getRoleDisplayName(row.role)}
                   </EditorStatusPill>
                 )}
-                {roleMeetsFloor(row.role, "translator") && row.role !== "admin" && <span className="theme-text-faint mt-1 block text-xs">{approvedGlossaryLocales(row).join(", ") || "No approved languages"}</span>}
+                {roleMeetsFloor(row.role, "translator") && row.role !== "admin" && <span className="theme-text-faint mt-1 block text-xs">{formatLocaleNames(approvedGlossaryLocales(row), "No approved languages")}</span>}
               </EditorTableCell>
               <EditorTableCell
                 label="Last sign-in"
@@ -407,21 +415,24 @@ function RosterTable({
                 {row.invitedBy ?? "Seeded"}
               </EditorTableCell>
               <EditorTableCell wide>
-                {lock === "admin" ? (
+                {lock ? (
                   <span className="theme-text-faint text-xs">
-                    {ADMIN_LOCK_REASON}
+                    {lock === "admin" ? ADMIN_LOCK_REASON : SELF_LOCK_REASON}
                   </span>
+                ) : inFlight === "reset" ? (
+                  <PendingPill kind="reset" />
                 ) : (
-                  <RowActions
-                    key={`${row.email}:${row.role}:${(row.glossaryLocales ?? []).join(",")}`}
-                    row={row}
-                    disabled={inFlight !== null || lock === "self"}
-                    reason={lock === "self" ? SELF_LOCK_REASON : undefined}
-                    issuingReset={inFlight === "reset"}
-                    onChangeRole={onChangeRole}
-                    onToggleBan={onToggleBan}
-                    onIssueReset={onIssueReset}
-                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={inFlight !== null}
+                    aria-label={`Edit ${label}`}
+                    onClick={() => onEdit(row)}
+                  >
+                    <Icon icon="lucide:pencil" size={14} />
+                    Edit
+                  </Button>
                 )}
               </EditorTableCell>
             </EditorTableRow>
@@ -429,72 +440,5 @@ function RosterTable({
         })}
       </EditorTableBody>
     </EditorTable>
-  );
-}
-
-type RowActionsProps = {
-  row: MemberRow;
-  disabled: boolean;
-  reason?: string;
-  issuingReset: boolean;
-  onChangeRole: (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => void;
-  onToggleBan: (row: MemberRow) => void;
-  onIssueReset: (row: MemberRow) => void;
-};
-
-function RowActions({
-  row,
-  disabled,
-  reason,
-  issuingReset,
-  onChangeRole,
-  onToggleBan,
-  onIssueReset,
-}: RowActionsProps) {
-  const label = row.username ?? row.email;
-  const [role, setRole] = useState<ManagedRole>(isManagedRole(row.role) ? row.role : "contributor");
-  const [glossaryLocales, setGlossaryLocales] = useState<string[]>(approvedGlossaryLocales(row));
-  const changed = role !== row.role || glossaryLocales.join(",") !== approvedGlossaryLocales(row).join(",");
-  const missingLanguages = roleMeetsFloor(role, "translator") && glossaryLocales.length === 0;
-  return (
-    <div
-      className="flex flex-wrap items-center gap-2"
-      aria-label={`Actions for ${label}`}
-      role="group"
-    >
-      <div className="w-full space-y-3">
-        <MemberPermissionFields label={`Permissions for ${label}`} role={role} glossaryLocales={glossaryLocales} disabled={disabled} onChange={(nextRole, nextLocales) => { setRole(nextRole); setGlossaryLocales(nextLocales); }} />
-        <Button type="button" variant="outline" size="sm" disabled={disabled || !changed || missingLanguages} title={reason} onClick={() => onChangeRole(row, role, glossaryLocales)}>Save permissions</Button>
-      </div>
-      <Button
-        type="button"
-        variant={row.bannedAt ? "outline" : "destructive"}
-        size="sm"
-        disabled={disabled}
-        title={reason}
-        onClick={() => onToggleBan(row)}
-      >
-        <Icon
-          icon={row.bannedAt ? "lucide:user-check" : "lucide:ban"}
-          size={14}
-        />
-        {row.bannedAt ? "Unban" : "Ban"}
-      </Button>
-      {issuingReset ? (
-        <PendingPill kind="reset" />
-      ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          title={reason}
-          onClick={() => onIssueReset(row)}
-        >
-          <Icon icon="lucide:key-round" size={14} />
-          Reset password
-        </Button>
-      )}
-    </div>
   );
 }

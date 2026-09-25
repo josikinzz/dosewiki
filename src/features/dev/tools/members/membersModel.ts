@@ -2,7 +2,19 @@
  * Pure helpers and the HTTP client for the Members tab (`/api/dev/members`).
  */
 
+import translationLocaleNames from "@/i18n/translationLocaleNames.json";
 import type { AppRole, ManagedRole } from "@/lib/auth/roles";
+
+const LOCALE_NAMES: Record<string, string> = translationLocaleNames;
+
+/**
+ * Glossary language codes as the names an admin reads ("Dutch, Russian"),
+ * falling back to the code for anything the name table does not know.
+ * `empty` is what an empty grant reads as.
+ */
+export function formatLocaleNames(codes: readonly string[], empty = "none"): string {
+  return codes.length === 0 ? empty : codes.map((code) => LOCALE_NAMES[code] ?? code).join(", ");
+}
 
 export type MemberRow = {
   email: string;

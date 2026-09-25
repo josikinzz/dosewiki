@@ -10,6 +10,11 @@
  *
  * Nothing here publishes. A playlist reaches the public site only when an
  * admin applies it to a gallery in the studio.
+ *
+ * Works are chosen visually: the editor searches the published corpus through
+ * a bounded read and shows each entry's thumbnail, and the confirm reads the
+ * change back in words. An entry the read cannot find is flagged before Save
+ * and named after it, so a save never drops anything silently.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -26,7 +31,9 @@ import {
   useConfirm,
   useDirtyGuard,
   type EditorNoticeMessage,
+  type SearchablePickerOption,
 } from "@/features/dev/components";
+import { fetchRoster } from "@/features/dev/tools/members/membersModel";
 import { viewToPath } from "@/utils/routing";
 
 import { PlaylistEditor } from "./PlaylistEditor";
@@ -40,10 +47,12 @@ import {
   fetchPlaylist,
   isDraftDirty,
   savePlaylist,
+  summarizePlaylistChange,
   type OwnedPlaylist,
   type OwnedPlaylistSummary,
   type PlaylistDraft,
 } from "./playlistsModel";
+import { useWorkCards } from "./useWorkCards";
 
 export type PlaylistsTabProps = {
   /** Admin: sees every playlist's owner and may reassign it. */
@@ -61,6 +70,8 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const [busy, setBusy] = useState(false);
   const keyedRequest = useRef(0);
   const { confirm, dialog: confirmDialog } = useConfirm();
+  const workCards = useWorkCards(draft?.slugs ?? [], draft !== null);
+  const memberOptions = useMemberOptions(isAdmin);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -134,14 +145,19 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "playlists", slug: openKey ?? undefined }));
   }, [openKey]);
 
-  /** Runs one write and reports the completed write separately from refresh failures. */
+  /**
+   * Runs one write and reports the completed write separately from refresh
+   * failures. An action returns its success sentence, or a warning when the
+   * write went through with something the member needs to know.
+   */
   const run = useCallback(
-    async (action: () => Promise<string>, refresh = true) => {
+    async (action: () => Promise<string | { warning: string }>, refresh = true) => {
       setBusy(true);
       setNotice(null);
       try {
-        const success = await action();
-        setNotice({ tone: "success", message: success });
+        const outcome = await action();
+        const success = typeof outcome === "string" ? outcome : outcome.warning;
+        setNotice({ tone: typeof outcome === "string" ? "success" : "warning", message: success });
         if (refresh) {
           try {
             await load();
@@ -164,13 +180,25 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const save = () => {
     if (!draft) return;
     const creating = draft.expectedUpdatedAt === null;
+    const summary = summarizePlaylistChange({
+      before: saved ? { title: saved.title, slugs: saved.replication_slugs } : null,
+      after: { title: draft.title, slugs: draft.slugs },
+      labelOf: (slug) => workCards.get(slug)?.title || slug,
+      unavailable: workCards.unavailable,
+    });
     confirm({
-      title: `${creating ? "Create" : "Update"} "${draft.title}"?`,
-      confirmLabel: "Confirm playlist publication",
+      title: `${creating ? "Create" : "Save"} "${draft.title.trim()}"?`,
+      confirmLabel: creating ? "Create playlist" : "Save playlist",
       description: <div className="space-y-3">
-        <p>This saves the reusable playlist. Showcases that previously copied it are unchanged; no canonical media record is edited.</p>
-        <div><strong>Before</strong><pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify({ title: saved?.title ?? "", works: saved?.replication_slugs ?? [] }, null, 2)}</pre></div>
-        <div><strong>After</strong><pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify({ title: draft.title, works: draft.slugs }, null, 2)}</pre></div>
+        <ul className="list-disc space-y-1 pl-5">
+          {summary.lines.map((line) => <li key={line}>{line}</li>)}
+        </ul>
+        {summary.leftOut.length > 0 ? (
+          <p>
+            Left out because they are not published works a playlist can hold: {summary.leftOut.join(", ")}.
+          </p>
+        ) : null}
+        <p>This saves the playlist only. It publishes nothing, and galleries that already copied it stay as they are.</p>
       </div>,
       onConfirm: () => run(async () => {
         const stored = await savePlaylist(draft, { sendOwner: isAdmin && creating });
@@ -190,10 +218,14 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
           return [...current.filter((entry) => entry.key !== stored.key), summary]
             .sort((left, right) => left.title.localeCompare(right.title));
         });
-        const dropped = stored.pruned.length > 0
-          ? ` ${stored.pruned.length} ineligible entries were dropped.`
-          : "";
-        return `${creating ? "Created" : "Saved"} "${stored.title}".${dropped}`;
+        const done = `${creating ? "Created" : "Saved"} "${stored.title}".`;
+        if (stored.pruned.length > 0) {
+          const count = stored.pruned.length;
+          return {
+            warning: `${done} Left out ${count} ${count === 1 ? "entry that is" : "entries that are"} not a published work a playlist can hold: ${stored.pruned.join(", ")}.`,
+          };
+        }
+        return done;
       }, false),
     });
   };
@@ -247,7 +279,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     confirm({
       title: `Remove ${target.title}?`,
       description:
-        "It disappears from your lists and the pickers, but stays on the server; an admin can bring it back. Galleries it was applied to are unchanged, because applying is a one-time copy.",
+        "It disappears from every list and picker, and there is no restore button: bringing it back takes a database change. Galleries it was applied to are unchanged, because applying is a one-time copy.",
       confirmLabel: "Remove playlist",
       destructive: true,
       onConfirm: () =>
@@ -305,7 +337,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             tone="neutral"
             icon="lucide:list-music"
             title="No playlists yet"
-            description="Start one with New playlist, name it, and add works by their replication slug."
+            description="Start one with New playlist, name it, and add works by searching for them."
             compact
           />
         ) : (
@@ -368,7 +400,9 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             isNew={draft.expectedUpdatedAt === null}
             isDirty={isDirty}
             busy={busy}
-            showOwner={isAdmin && draft.expectedUpdatedAt === null}
+            capabilities={{ owner: isAdmin && draft.expectedUpdatedAt === null, search: true }}
+            workCards={workCards}
+            memberOptions={memberOptions}
             notice={notice}
             saveLabel="Review playlist changes"
             onChange={setDraft}
@@ -387,6 +421,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
           key={`${saved.key}:${saved.owner_email ?? ""}`}
           playlist={saved}
           busy={busy}
+          memberOptions={memberOptions}
           onAssign={(ownerEmail) => assignOwner(saved, ownerEmail)}
         />
       ) : null}
@@ -395,4 +430,33 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
       {dirtyDialog}
     </div>
   );
+}
+
+/**
+ * Admin only: the members a playlist can be handed to, for the owner pickers.
+ * Banned accounts are left out. A failed roster read leaves the list empty;
+ * the picker then says no member matches rather than guessing.
+ */
+function useMemberOptions(isAdmin: boolean): SearchablePickerOption[] {
+  const [members, setMembers] = useState<SearchablePickerOption[]>([]);
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    fetchRoster()
+      .then((roster) => {
+        if (cancelled) return;
+        setMembers(
+          roster.members
+            .filter((member) => !member.bannedAt)
+            .map((member) => ({ value: member.email, label: member.username ?? member.name ?? member.email, hint: member.email })),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setMembers([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
+  return members;
 }

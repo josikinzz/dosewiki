@@ -153,7 +153,7 @@ describe("ContributorsTab", () => {
     renderTab();
 
     await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
-    expect(screen.getByLabelText("Role")).toBeInTheDocument();
+    expect(screen.getByLabelText("Credit title")).toBeInTheDocument();
     expect(screen.getByLabelText("Membership email")).toBeInTheDocument();
     expect(screen.getByLabelText("Add an alias")).toBeInTheDocument();
     expect(screen.getByLabelText("Archival profile")).toBeInTheDocument();
@@ -161,6 +161,18 @@ describe("ContributorsTab", () => {
     expect(screen.getByText("Danger zone")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Works" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Reports" })).toBeInTheDocument();
+  });
+
+  it("names no particular person in the editor's own copy", async () => {
+    stubProfileApi({ ADA: storedProfile("ADA", "Ada Lovelace") });
+    renderTab();
+
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+    const attribution = screen.getByLabelText("Attribution");
+    expect(attribution.getAttribute("placeholder")).not.toMatch(/Josie/);
+    // The rail lists every directory entry by name; the editor itself names nobody.
+    const rail = screen.getByRole("listbox", { name: "Contributors" }).textContent ?? "";
+    expect((document.body.textContent ?? "").replace(rail, "")).not.toMatch(/Josie/);
   });
 
   it("shows a contributor without editor role only their own record and no admin fields", async () => {
@@ -185,7 +197,7 @@ describe("ContributorsTab", () => {
     expect(screen.getByRole("heading", { name: "Bio" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Links" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save profile" })).toBeInTheDocument();
-    expect(screen.queryByLabelText("Role")).toBeNull();
+    expect(screen.queryByLabelText("Credit title")).toBeNull();
     expect(screen.queryByLabelText("Membership email")).toBeNull();
     expect(screen.queryByLabelText("Add an alias")).toBeNull();
     expect(screen.queryByLabelText("Exclude from the Replications gallery")).toBeNull();
@@ -234,7 +246,7 @@ describe("ContributorsTab", () => {
 
     const reason = "Admin only: an editor can see this but not change it.";
     for (const label of [
-      "Role",
+      "Credit title",
       "Membership email",
       "Exclude from the Replications gallery",
       "Archival profile",
@@ -273,7 +285,7 @@ describe("ContributorsTab", () => {
     const user = userEvent.setup();
     const fetchMock = stubProfileApi({ JOSIE: storedProfile("JOSIE", "Josie Kins") });
     renderTab({ initialScope: "me" });
-    const role = await screen.findByLabelText("Role");
+    const role = await screen.findByLabelText("Credit title");
     await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
 
     expect(role).toBeEnabled();

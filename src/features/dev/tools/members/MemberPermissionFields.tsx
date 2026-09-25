@@ -30,7 +30,7 @@ export function MemberPermissionFields({ role, glossaryLocales, onChange, disabl
           </div>
           {glossaryLocales.length === 0 && <p className="theme-text-secondary text-xs">Choose at least one language before saving.</p>}
         </fieldset>
-      ) : <p className="theme-text-faint text-xs">Neither role selected grants Contributor access only.</p>}
+      ) : <p className="theme-text-faint text-xs">No role selected: Contributor access only.</p>}
     </fieldset>
   );
 }
