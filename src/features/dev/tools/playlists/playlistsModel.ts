@@ -83,6 +83,67 @@ export function isDraftDirty(draft: PlaylistDraft, saved: OwnedPlaylist | null):
   );
 }
 
+/** Titles named in one line of the save summary before it counts the rest. */
+const SUMMARY_NAME_LIMIT = 6;
+
+function nameList(slugs: readonly string[], labelOf: (slug: string) => string): string {
+  const named = slugs.slice(0, SUMMARY_NAME_LIMIT).map(labelOf).join(", ");
+  const rest = slugs.length - SUMMARY_NAME_LIMIT;
+  return rest > 0 ? `${named}, and ${rest} more` : named;
+}
+
+const works = (count: number) => `${count} ${count === 1 ? "work" : "works"}`;
+
+type PlaylistChangeSummary = {
+  /** Plain sentences for the confirm, in reading order. */
+  lines: string[];
+  /** Entries on the draft that are not works a playlist can hold; saving leaves them out. */
+  leftOut: string[];
+};
+
+/**
+ * What a save will do, in words, for the confirm dialog. `labelOf` turns a
+ * slug into the work's title where it is known; `unavailable` holds the slugs
+ * the lookup could not find, which the server would drop on save.
+ */
+export function summarizePlaylistChange({
+  before,
+  after,
+  labelOf,
+  unavailable,
+}: {
+  before: { title: string; slugs: readonly string[] } | null;
+  after: { title: string; slugs: readonly string[] };
+  labelOf: (slug: string) => string;
+  unavailable: ReadonlySet<string>;
+}): PlaylistChangeSummary {
+  const lines: string[] = [];
+  const title = after.title.trim();
+  const leftOut = after.slugs.filter((slug) => unavailable.has(slug));
+  const kept = after.slugs.filter((slug) => !unavailable.has(slug));
+  if (!before) {
+    lines.push(`Creates "${title}" with ${works(kept.length)}.`);
+    if (kept.length > 0) lines.push(`In order: ${nameList(kept, labelOf)}.`);
+    return { lines, leftOut };
+  }
+  if (before.title !== title) lines.push(`Renames "${before.title}" to "${title}".`);
+  const previous = new Set(before.slugs);
+  const next = new Set(kept);
+  const added = kept.filter((slug) => !previous.has(slug));
+  const removed = before.slugs.filter((slug) => !next.has(slug));
+  if (added.length > 0) lines.push(`Adds ${nameList(added, labelOf)}.`);
+  if (removed.length > 0) lines.push(`Removes ${nameList(removed, labelOf)}.`);
+  const stayed = before.slugs.filter((slug) => next.has(slug));
+  const stayedInNewOrder = kept.filter((slug) => previous.has(slug));
+  if (stayed.some((slug, index) => slug !== stayedInNewOrder[index])) lines.push("Changes the order.");
+  lines.push(
+    kept.length === before.slugs.length
+      ? `The playlist keeps ${works(kept.length)}.`
+      : `The playlist goes from ${works(before.slugs.length)} to ${works(kept.length)}.`,
+  );
+  return { lines, leftOut };
+}
+
 const BASE_PATH = "/api/dev/replications/playlists";
 
 export async function fetchPlaylists(): Promise<OwnedPlaylistSummary[]> {

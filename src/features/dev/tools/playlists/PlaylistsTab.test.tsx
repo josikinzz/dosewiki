@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { PlaylistsTab } from "./PlaylistsTab";
 import { isDraftDirty, moveSlug, type OwnedPlaylist } from "./playlistsModel";
@@ -27,12 +27,55 @@ const theirs: OwnedPlaylist = {
 
 type Call = { method: string; path: string; body: Record<string, unknown> | null };
 
+// cmdk scrolls the active option into view; jsdom has no scrollIntoView.
+beforeAll(() => {
+  Element.prototype.scrollIntoView ??= () => {};
+});
+
+const titleOf = (slug: string) => slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+
+/** The published works the candidates read knows; anything else is not a work a playlist can hold. */
+const CORPUS = new Set([
+  "alpha",
+  "beta",
+  "gamma",
+  ...Array.from({ length: 26 }, (_, index) => `work-${String(index + 1).padStart(2, "0")}`),
+]);
+
+const cardFor = (slug: string) => ({
+  slug,
+  title: titleOf(slug),
+  artist: "Ada",
+  type: "image",
+  thumbnail_url: `https://media.test/${slug}.jpg`,
+  url: null,
+  duration: null,
+});
+
+const ROSTER = [
+  { email: "ada@example.com", username: "ada", role: "contributor" },
+  { email: "bob@example.com", username: "bob", role: "contributor" },
+  { email: "eve@example.com", username: "eve", role: "contributor", bannedAt: "2026-01-01T00:00:00.000Z" },
+];
+
 /** Serves the list and records every write; the list is re-served after each. */
 function stubPlaylistsApi(playlists: OwnedPlaylist[]) {
   const calls: Call[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const path = new URL(String(input), "https://dev.dose.wiki").pathname;
+    const url = new URL(String(input), "https://dev.dose.wiki");
+    const path = url.pathname;
     const method = init?.method ?? "GET";
+    if (method === "GET" && path === "/api/dev/replications/playlist-candidates") {
+      const slugs = url.searchParams.get("slugs");
+      if (slugs !== null) {
+        return Response.json({ ok: true, candidates: slugs.split(",").filter((slug) => CORPUS.has(slug)).map(cardFor) });
+      }
+      const words = (url.searchParams.get("q") ?? "").toLowerCase();
+      return Response.json({ ok: true, candidates: [...CORPUS].filter((slug) => slug.includes(words)).map(cardFor) });
+    }
+    if (method === "GET" && path === "/api/dev/members") {
+      return Response.json({ ok: true, self: "admin@example.com", members: ROSTER });
+    }
     if (method === "GET") {
       const keyed = playlists.find((playlist) => path.endsWith(`/${playlist.key}`));
       if (keyed) return Response.json({ ok: true, playlist: keyed });
@@ -53,8 +96,8 @@ function stubPlaylistsApi(playlists: OwnedPlaylist[]) {
           ...mine,
           key: body?.key,
           title: body?.title,
-          replication_slugs: body?.slugs,
-          pruned: [],
+          replication_slugs: (body?.slugs as string[]).filter((slug) => CORPUS.has(slug)),
+          pruned: (body?.slugs as string[]).filter((slug) => !CORPUS.has(slug)),
           updated_at: "2026-03-01T00:00:00.000Z",
         },
       });
@@ -134,14 +177,17 @@ describe("PlaylistsTab", () => {
 
     const slugInput = screen.getByLabelText("Add a work");
     await user.type(slugInput, "beta{Enter}");
+    await screen.findByRole("button", { name: "Move Beta up" });
     await user.type(slugInput, "alpha{Enter}");
-    await user.type(slugInput, "Not A Slug{Enter}");
-    expect(screen.getByText("A replication slug is lowercase words joined by hyphens.")).toBeTruthy();
+    await screen.findByRole("button", { name: "Move Alpha up" });
 
-    await user.click(screen.getByRole("button", { name: "Move alpha up" }));
+    await user.click(screen.getByRole("button", { name: "Move Alpha up" }));
     await user.click(screen.getByRole("button", { name: "Review playlist changes" }));
     expect(calls).toEqual([]);
-    await user.click(screen.getByRole("button", { name: "Confirm playlist publication" }));
+    const dialog = await screen.findByRole("dialog", { name: 'Create "Ada\'s Opener"?' });
+    expect(dialog).toHaveTextContent('Creates "Ada\'s Opener" with 2 works.');
+    expect(dialog).toHaveTextContent("In order: Alpha, Beta.");
+    await user.click(within(dialog).getByRole("button", { name: "Create playlist" }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({
@@ -150,6 +196,78 @@ describe("PlaylistsTab", () => {
       body: { key: "ada-s-opener", title: "Ada's Opener", slugs: ["alpha", "beta"], expectedUpdatedAt: null },
     });
     await screen.findByText('Created "Ada\'s Opener".');
+  });
+
+  it("refuses a malformed or unknown slug the moment it is added", async () => {
+    const user = userEvent.setup();
+    stubPlaylistsApi([]);
+    render(<PlaylistsTab isAdmin={false} />);
+    await screen.findByText("No playlists yet");
+    await user.click(screen.getByRole("button", { name: "New playlist" }));
+
+    const slugInput = screen.getByLabelText("Add a work");
+    await user.type(slugInput, "Not A Slug{Enter}");
+    expect(screen.getByText("A replication slug is lowercase words joined by hyphens.")).toBeTruthy();
+
+    await user.clear(slugInput);
+    await user.type(slugInput, "missing-work{Enter}");
+    expect(await screen.findByText(/No published work a playlist can hold has the slug "missing-work"/)).toBeTruthy();
+    expect(screen.queryByRole("list", { name: "Playlist order" })).toBeNull();
+    expect(slugInput).toHaveValue("missing-work");
+  });
+
+  it("finds works by thumbnail and title and adds one with a click", async () => {
+    const user = userEvent.setup();
+    stubPlaylistsApi([mine]);
+    render(<PlaylistsTab isAdmin={false} />);
+    await screen.findByText("Ada's list");
+    await user.click(rowFor("adas-list").getByRole("button", { name: "Edit" }));
+
+    // Saved entries read as titles, not slugs.
+    await screen.findByRole("button", { name: "Move Alpha down" });
+
+    await user.type(screen.getByLabelText("Search works"), "gam");
+    const results = await screen.findByRole("list", { name: "Search results" });
+    await user.click(within(results).getByRole("button", { name: "Add Gamma" }));
+
+    const order = within(screen.getByRole("list", { name: "Playlist order" })).getAllByRole("listitem");
+    expect(order.map((item) => item.getAttribute("data-playlist-entry"))).toEqual(["alpha", "beta", "gamma"]);
+    expect(order[2]).toHaveTextContent("Gamma");
+  });
+
+  it("flags an entry a save would leave out, lists it in a readable confirm, and names it after saving", async () => {
+    const user = userEvent.setup();
+    const { calls } = stubPlaylistsApi([{ ...mine, replication_slugs: ["alpha", "retired-work"] }]);
+    render(<PlaylistsTab isAdmin={false} />);
+    await screen.findByText("Ada's list");
+    await user.click(rowFor("adas-list").getByRole("button", { name: "Edit" }));
+
+    expect(await screen.findByText(/1 entry is not a published work a playlist can hold/)).toBeTruthy();
+    await user.type(screen.getByLabelText(/Name/), " two");
+    await user.click(screen.getByRole("button", { name: "Review playlist changes" }));
+
+    const dialog = await screen.findByRole("dialog", { name: 'Save "Ada\'s list two"?' });
+    expect(dialog).toHaveTextContent('Renames "Ada\'s list" to "Ada\'s list two".');
+    expect(dialog).toHaveTextContent("Left out because they are not published works a playlist can hold: retired-work.");
+    // A readable summary, never a JSON dump.
+    expect(dialog.textContent).not.toMatch(/[{}[\]]|"works"/);
+    await user.click(within(dialog).getByRole("button", { name: "Save playlist" }));
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(
+      await screen.findByText(/Left out 1 entry that is not a published work a playlist can hold: retired-work\./),
+    ).toBeTruthy();
+  });
+
+  it("says a removal cannot be undone from here", async () => {
+    const user = userEvent.setup();
+    stubPlaylistsApi([mine]);
+    render(<PlaylistsTab isAdmin={false} />);
+    await screen.findByText("Ada's list");
+    await user.click(screen.getByRole("button", { name: "Remove Ada's list" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("there is no restore button");
+    expect(dialog).not.toHaveTextContent(/admin can bring it back/);
   });
 
   it("deletes after confirming", async () => {
@@ -179,7 +297,11 @@ describe("PlaylistsTab", () => {
     const ownership = within(screen.getByRole("region", { name: "Ownership" }));
     const assign = ownership.getByRole("button", { name: "Assign owner" });
     expect(assign).toBeDisabled();
-    await user.type(ownership.getByLabelText("Owner"), "Bob@Example.com");
+    await user.click(ownership.getByRole("combobox", { name: "Owner" }));
+    // Members come from the roster; a banned account is not offered.
+    await screen.findByRole("option", { name: /^bob/ });
+    expect(screen.queryByRole("option", { name: /^eve/ })).toBeNull();
+    await user.click(screen.getByRole("option", { name: /^bob/ }));
     await user.click(assign);
 
     // Nothing is written until the dialog naming the member is confirmed.
@@ -238,8 +360,8 @@ describe("PlaylistsTab", () => {
     expect(order()).toHaveLength(20);
 
     await user.type(screen.getByLabelText("Add a work"), "work-26{Enter}");
-    expect(order()).toHaveLength(26);
-    expect(order()[25]).toHaveTextContent("work-26");
+    await waitFor(() => expect(order()).toHaveLength(26));
+    expect(order()[25]).toHaveTextContent("Work 26");
   });
 
   it("surfaces a refusal from the route", async () => {
