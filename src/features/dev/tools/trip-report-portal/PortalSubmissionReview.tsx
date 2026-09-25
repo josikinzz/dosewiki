@@ -5,10 +5,9 @@ import { useEffect, useMemo, useRef, useState, type MutableRefObject, type React
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ActionNotice,
+  Notice,
   EditorActionGroup,
   EditorField,
-  EditorNotice,
   EditorPanel,
   EditorStatusPill,
   EditorToolbar,
@@ -249,9 +248,9 @@ export function PortalSubmissionReview({
         {feedback || feedbackAction ? (
           <div className="flex flex-wrap items-center gap-2">
             {feedback ? (
-              <ActionNotice tone={feedback.tone} onDismiss={onDismissFeedback}>
+              <Notice placement="inline" tone={feedback.tone} dismiss={onDismissFeedback}>
                 {feedback.message}
-              </ActionNotice>
+              </Notice>
             ) : null}
             {feedbackAction}
           </div>
@@ -302,13 +301,8 @@ export function PortalSubmissionReview({
         <DecisionLogSection entries={decisionLogOf(submission)} statusLabel={statusLabel} />
 
         {submission.status === "exported" ? (
-          <EditorNotice
-            notice={{
-              tone: "success",
-              title: "Published",
-              message:
-                "This submission is live as a public trip report. Edit or remove it from the Published bucket; the submission itself no longer changes.",
-            }}
+          <Notice
+            tone="success" title="Published" message="This submission is live as a public trip report. Edit or remove it from the Published bucket; the submission itself no longer changes."
           />
         ) : (
           <EditorPanel variant="toolbar" className="space-y-3 p-3">

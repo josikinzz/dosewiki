@@ -10,9 +10,9 @@ import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   EditorField,
   EditorFieldRow,
-  EditorNotice,
+  Notice,
   EditorStatusPill,
-  type EditorNoticeMessage,
+  type NoticeMessage,
   type SearchablePickerOption,
 } from "@/features/dev/components";
 import { SearchablePicker } from "@/features/dev/components/SearchablePicker";
@@ -66,7 +66,7 @@ export type PlaylistEditorProps = {
   isDirty: boolean;
   busy: boolean;
   /** Outcome of the last write. It sits beside the Save button so it is seen from wherever Save was pressed. */
-  notice: EditorNoticeMessage | null;
+  notice: NoticeMessage | null;
   onChange: (draft: PlaylistDraft) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -176,7 +176,7 @@ export function PlaylistEditor({
             </Button>
           </div>
         </div>
-        {notice ? <EditorNotice notice={notice} /> : null}
+        {notice ? <Notice {...notice} /> : null}
       </header>
 
       {contextual && !capabilities.rename ? <p className="theme-text-muted text-sm">{draft.title} <span className="break-all">({draft.key})</span></p> : <EditorFieldRow layout="twoColumn">

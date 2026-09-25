@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NestedContentCard } from "@/components/ui/surface";
 import {
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorStatusPill,
   TagToken,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import { SearchablePicker } from "@/features/dev/components/SearchablePicker";
 
@@ -55,7 +55,7 @@ export function ContributorDangerZone({
   onCompleted,
   onProfileRemoved,
 }: ContributorDangerZoneProps) {
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [pending, setPending] = useState<"merge" | "delete" | "retarget" | null>(null);
 
   const [mergeTarget, setMergeTarget] = useState("");
@@ -195,7 +195,7 @@ export function ContributorDangerZone({
       description="Identity operations. These rewrite who existing work is credited to, and none of them can be undone from this tab."
       actions={<EditorStatusPill tone="danger">Irreversible</EditorStatusPill>}
     >
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
 
       <NestedContentCard padding="sm" radius="lg" className={DANGER_CARD_CLASS}>
         <div className="space-y-3">

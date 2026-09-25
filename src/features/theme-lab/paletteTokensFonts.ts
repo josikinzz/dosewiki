@@ -152,7 +152,7 @@ export const FONT_CHOICES: readonly FontChoice[] = [
   {
     id: "titillium",
     label: "Titillium Web",
-    hint: "The formal, printed-looking face the Pro style wears. Downloaded the first time you pick it.",
+    hint: "The formal, printed-looking face the Clinical style wears. Downloaded the first time you pick it.",
     stack: `"${TITILLIUM}", "${TITILLIUM_FALLBACK}", Inter, ${SYSTEM_SANS}`,
     faces: TITILLIUM_FACES,
   },

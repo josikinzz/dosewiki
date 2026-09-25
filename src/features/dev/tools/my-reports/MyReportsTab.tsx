@@ -19,7 +19,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  EditorNotice,
+  Notice,
   EditorPanel,
   EditorSection,
   EditorStatusPill,
@@ -34,7 +34,7 @@ import {
   useConfirm,
   useDirtyGuard,
   useUnsavedWork,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import { INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
@@ -66,7 +66,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   const [open, setOpen] = useState<OpenReport | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const dirty = open !== null && JSON.stringify(open.draft) !== JSON.stringify(open.record.fields);
   // The in-tool guard keeps row clicks and Close; the shell owns rail clicks,
   // Leave and unload. Saving republishes the page, so the shell only discards.
@@ -164,7 +164,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
           </Button>
         }
       >
-        {notice ? <EditorNotice notice={notice} /> : null}
+        {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
 
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load()} />
@@ -223,7 +223,7 @@ function AssignOwnerSection({ onAssigned }: { onAssigned: () => void }) {
   const [slug, setSlug] = useState("");
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
 
   const assign = async () => {
     setPending(true);
@@ -251,7 +251,7 @@ function AssignOwnerSection({ onAssigned }: { onAssigned: () => void }) {
       description="Admin only. The member gets edit rights to the report from this tab; the email must belong to an existing membership."
       headingLevel="h3"
     >
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
       <form
         className="flex flex-wrap items-end gap-3"
         onSubmit={(event) => {

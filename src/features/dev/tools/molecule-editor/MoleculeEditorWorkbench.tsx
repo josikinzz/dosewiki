@@ -10,7 +10,7 @@ import {
   EditorActionGroup,
   EditorActionStatus,
   EditorCheckbox,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorToolbar,
 } from "@/features/dev/components";
@@ -198,24 +198,12 @@ export function MoleculeEditorWorkbench({
       }
     >
       {oclError || rdkitError ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Renderer unavailable",
-            message:
-              "The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry.",
-            icon: "lucide:circle-alert",
-          }}
+        <Notice
+          tone="danger" title="Renderer unavailable" message="The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry." icon="lucide:circle-alert"
         />
       ) : canvasError ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Editor unavailable",
-            message:
-              "The structure editor failed to load, so changes can't be saved. Reload the page to retry.",
-            icon: "lucide:circle-alert",
-          }}
+        <Notice
+          tone="danger" title="Editor unavailable" message="The structure editor failed to load, so changes can't be saved. Reload the page to retry." icon="lucide:circle-alert"
         />
       ) : null}
 
@@ -515,18 +503,12 @@ export function MoleculeEditorWorkbench({
       ) : null}
 
       {saveResult ? (
-        <EditorNotice
-          notice={{
-            tone: saveResult.tone,
-            title: saveResult.title ?? (saveResult.tone === "success" ? "Saved" : "Couldn't save"),
-            message: saveResult.message,
-            live: true,
-            actions: (
+        <Notice
+          tone={saveResult.tone} title={saveResult.title ?? (saveResult.tone === "success" ? "Saved" : "Couldn't save")} message={saveResult.message} actions={(
               <Button variant="outline" size="sm" onClick={onDismissSaveResult}>
                 Dismiss
               </Button>
-            ),
-          }}
+            )}
         />
       ) : null}
 

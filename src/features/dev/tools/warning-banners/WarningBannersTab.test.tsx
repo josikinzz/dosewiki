@@ -462,7 +462,7 @@ describe("WarningBannersTab presets", () => {
     expect(writes[0].body.enabledSlugs).toEqual(["diazepam", "ghost-slug"]);
 
     const notice = await screen.findByText("1 slug dropped on save");
-    expect(notice.closest('[role="note"]')).toHaveTextContent(
+    expect(notice.closest('[role="status"]')).toHaveTextContent(
       "Saved, but these do not resolve to an article and were removed: ghost-slug. Everything else is stored as submitted.",
     );
     // Never optimistic: the drawer shows the server's list, not the submitted one.

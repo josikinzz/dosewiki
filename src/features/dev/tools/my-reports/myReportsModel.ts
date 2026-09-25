@@ -9,6 +9,7 @@
 
 import type { IntakeStatus } from "@/features/intake/intakeStatus";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 export type OwnedReportRow = {
   id: string;
@@ -128,21 +129,10 @@ export function formatPublished(timestamp: number): string {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
-async function requestJson(
+function requestJson(
   url: string,
   init: RequestInit | undefined,
   messages: { network: string; failure: string },
-): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = init ? await fetch(url, init) : await fetch(url);
-  } catch {
-    throw new Error(messages.network);
-  }
-
-  const payload: Record<string, unknown> = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(typeof payload.error === "string" ? payload.error : messages.failure);
-  }
-  return payload;
+) {
+  return devFetch(url, { ...init, messages, emptyBodyOk: true });
 }

@@ -213,7 +213,7 @@ describe("GalleryBoardList", () => {
       mockPointer(true);
       renderBoard(3, { curated: ["work-1"], removed: [] });
 
-      expect(screen.getByRole("note")).toHaveTextContent(DESKTOP_ONLY_NOTICE);
+      expect(screen.getByText(DESKTOP_ONLY_NOTICE).closest('[role="status"]')).not.toBeNull();
       expect(screen.getByText("Work 1")).toBeInTheDocument();
       expect(screen.getByText("Work 2")).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /^Drag / })).not.toBeInTheDocument();
@@ -227,7 +227,7 @@ describe("GalleryBoardList", () => {
       mockPointer(false);
       renderBoard(3, { curated: ["work-1"], removed: [] });
 
-      expect(screen.queryByRole("note")).not.toBeInTheDocument();
+      expect(screen.queryByText(DESKTOP_ONLY_NOTICE)).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Drag Work 1 to reorder its priority" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Prioritize Work 2" })).toBeInTheDocument();
     });

@@ -1,14 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/features/dev/notices/devNoticeLifecycle", () => ({
-  useDevNoticeChannel: () => ({
-    notice: null,
-    publish: vi.fn(),
-    clear: vi.fn(),
-  }),
-}));
-
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ChangelogFeedWindow } from "./useDevChangelogFeed";
 import { useDevModeChangeLog } from "./useDevModeChangeLog";

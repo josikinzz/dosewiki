@@ -24,14 +24,14 @@ import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorStatusPill,
   LoadErrorState,
   useConfirm,
   useDirtyGuard,
   useUnsavedWork,
-  type EditorNoticeMessage,
+  type NoticeMessage,
   type SearchablePickerOption,
 } from "@/features/dev/components";
 import { fetchRoster } from "@/features/dev/tools/members/membersModel";
@@ -65,7 +65,7 @@ export type PlaylistsTabProps = {
 export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const [playlists, setPlaylists] = useState<OwnedPlaylistSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [draft, setDraft] = useState<PlaylistDraft | null>(null);
   const [saved, setSaved] = useState<OwnedPlaylist | null>(null);
   const [busy, setBusy] = useState(false);
@@ -337,7 +337,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
           </>
         }
       >
-        {notice && !draft ? <EditorNotice notice={notice} /> : null}
+        {notice && !draft ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
 
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load()} busy={busy} />

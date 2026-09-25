@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { JsonEditor } from "./JsonEditor";
-import { EditorNotice } from "./EditorNotice";
+import { Notice } from "./Notice";
 import { EditorPanel, EditorPanelBody, EditorPanelHeader } from "./EditorPanel";
 
 type MaxHeightValue = number | string;
@@ -215,12 +215,8 @@ export function JsonEditorPanel({
       />
       <EditorPanelBody className="space-y-4">
         {error ? (
-          <EditorNotice
-            notice={{
-              tone: "danger",
-              message: error,
-              live: true,
-            }}
+          <Notice
+            tone="danger" message={error}
           />
         ) : null}
         <JsonEditor

@@ -19,11 +19,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   EditorCheckbox,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorStatusPill,
   useConfirm,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import { MISSING_TASK_TITLE } from "@/features/dev/tools/missingTask";
 import { buildReviewUrl } from "../review-mode/reviewUrl";
@@ -32,7 +32,7 @@ import { approveReviewRecommendations, fetchReviewRecommendations } from "./queu
 
 const articleCount = (count: number) => `${count} ${count === 1 ? "article" : "articles"}`;
 
-function approvalNotice(outcome: RecommendationApproval): EditorNoticeMessage {
+function approvalNotice(outcome: RecommendationApproval): NoticeMessage {
   const approved = outcome.approved.length;
   const skipped = outcome.stale.length + outcome.missing.length;
   if (skipped === 0) {
@@ -53,7 +53,7 @@ export function ReviewRecommendationsLane({ linkedSlug = null }: { linkedSlug?: 
   const [rows, setRows] = useState<ReviewRecommendationRow[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [approving, setApproving] = useState(false);
   const loadVersion = useRef(0);
   const { confirm, dialog } = useConfirm();
@@ -168,28 +168,19 @@ export function ReviewRecommendationsLane({ linkedSlug = null }: { linkedSlug?: 
         ) : null
       }
     >
-      {notice ? <EditorNotice notice={{ ...notice, live: true }} /> : null}
+      {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
       {linkFound === false ? (
-        <EditorNotice
-          notice={{
-            tone: "warning",
-            title: MISSING_TASK_TITLE,
-            message: "The link names a review recommendation that was approved, withdrawn, or is not yours to open. Nothing else was selected in its place.",
-          }}
+        <Notice
+          tone="warning" title={MISSING_TASK_TITLE} message="The link names a review recommendation that was approved, withdrawn, or is not yours to open. Nothing else was selected in its place."
         />
       ) : null}
       {loadError ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Review recommendations could not be loaded",
-            message: loadError,
-            actions: (
+        <Notice
+          tone="danger" title="Review recommendations could not be loaded" message={loadError} actions={(
               <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
                 Try again
               </Button>
-            ),
-          }}
+            )}
         />
       ) : null}
       {rows === null && !loadError ? (

@@ -13,13 +13,13 @@ import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import {
   EditorListItem,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
   useConfirm,
   useScrollToDetail,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
@@ -89,7 +89,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [pending, setPending] = useState<"approve" | "reject" | "revert" | "comment" | "load" | null>(null);
   const [drafts, setDrafts] = useState<Record<string, { comment: string; rejection: string }>>({});
   const [listLoading, setListLoading] = useState(true);
@@ -191,7 +191,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
   /** Runs one review action against the open proposal, then refetches both panes. */
   const run = async (
     kind: NonNullable<typeof pending>,
-    action: (id: string) => Promise<EditorNoticeMessage>,
+    action: (id: string) => Promise<NoticeMessage>,
   ) => {
     if (!selectedId || actionInFlight.current) {
       return;
@@ -432,7 +432,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
           description={detail.status === "ready" ? detail.proposal.summary : detail.status === "idle" ? "No submission selected" : undefined}
           delay={0.1}
         >
-          {notice ? <EditorNotice notice={{ ...notice, live: true }} /> : null}
+          {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
           {pending ? <p role="status" className="theme-text-muted text-sm">Please wait for this action to finish before selecting another submission.</p> : null}
           {detail.status === "idle" ? (
             <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted text-sm">
@@ -443,18 +443,9 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
               Loading proposal...
             </EditorStatusPill>
           ) : detail.status === "error" && detail.missing ? (
-            <EditorNotice notice={{
-              tone: "warning",
-              title: MISSING_TASK_TITLE,
-              message: "The link names a proposal that was removed, or one your role cannot open. Nothing else was selected in its place.",
-            }} />
+            <Notice tone="warning" title={MISSING_TASK_TITLE} message="The link names a proposal that was removed, or one your role cannot open. Nothing else was selected in its place." />
           ) : detail.status === "error" ? (
-            <EditorNotice notice={{
-              tone: "danger",
-              title: "The submission did not load",
-              message: detail.message,
-              actions: <Button type="button" variant="outline" size="sm" disabled={pending !== null} onClick={() => void loadDetail(detail.id)}>Try again</Button>,
-            }} />
+            <Notice tone="danger" title="The submission did not load" message={detail.message} actions={<Button type="button" variant="outline" size="sm" disabled={pending !== null} onClick={() => void loadDetail(detail.id)}>Try again</Button>} />
           ) : (
             <ProposalReview
               proposal={detail.proposal}

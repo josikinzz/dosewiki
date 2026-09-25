@@ -7,7 +7,7 @@ import { useT } from "@/i18n/client";
 import { Button, Input, Textarea } from "@/components/ui";
 import { Icon } from "@/components/common/Icon";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { EditorField, EditorNotice, EditorSection, EditorStatusPill, EditorToolbar, useConfirm } from "@/features/dev/components";
+import { EditorField, Notice, EditorSection, EditorStatusPill, EditorToolbar, useConfirm } from "@/features/dev/components";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { useContextualEditing } from "@/features/contextual-editing/context";
@@ -164,10 +164,10 @@ function EffectSession({ slug, pageProps }: Props) {
       }}
       description="Local edits only. Confirmation changes this effect on dose.wiki and Effect Index. There is no saved draft or proposal workflow."
     >
-      {error ? <EditorNotice notice={{ tone: "danger", message: error }} /> : null}
-      {message ? <EditorNotice notice={{ tone: "info", message }} /> : null}
+      {error ? <Notice tone="danger" message={error} /> : null}
+      {message ? <Notice tone="info" message={message} /> : null}
       {receipt && reviewed !== fingerprint ? <PublicationReceiptChips receipt={receipt} /> : null}
-      {uncertain ? <EditorNotice notice={{ tone: "warning", message: "Publication is not confirmed. Editing, closing and discard are locked until you reconcile the original operation.", actions: <Button disabled={working} onClick={() => void publish()}>Retry publication confirmation</Button> }} /> : null}
+      {uncertain ? <Notice tone="warning" message="Publication is not confirmed. Editing, closing and discard are locked until you reconcile the original operation." actions={<Button disabled={working} onClick={() => void publish()}>Retry publication confirmation</Button>} /> : null}
       {busy && !document ? <p role="status">Loading effect… You can close this editor while it loads.</p> : null}
       {!document && !busy ? <Button onClick={() => void load()}>Retry loading</Button> : null}
       {draft ? <div ref={fieldsRef} className="min-w-0 space-y-6">
@@ -178,18 +178,14 @@ function EffectSession({ slug, pageProps }: Props) {
           <Button type="button" size="sm" disabled={!dirty || busy || !!parsed.error} onClick={() => { setReviewed(fingerprint); reveal("[data-effect-review]"); }}>Review</Button>
           <EditorStatusPill tone={dirty ? "warning" : "neutral"}>{dirty ? "Unsaved changes" : "No changes"}</EditorStatusPill>
         </EditorToolbar>
-        {parsed.error ? <EditorNotice notice={{
-          tone: "danger",
-          message: parsed.error,
-          actions: Object.keys(parsed.fieldErrors).length ? <Button variant="outline" size="sm" onClick={() => {
+        {parsed.error ? <Notice tone="danger" message={parsed.error} actions={Object.keys(parsed.fieldErrors).length ? <Button variant="outline" size="sm" onClick={() => {
             setAdditionalOpen(true);
             requestAnimationFrame(() => {
               const invalid = fieldsRef.current?.querySelector<HTMLElement>('[aria-invalid="true"], [data-validation-error="true"]');
               invalid?.scrollIntoView({ block: "center" });
               invalid?.focus({ preventScroll: true });
             });
-          }}>Go to first error</Button> : undefined,
-        }} /> : null}
+          }}>Go to first error</Button> : undefined} /> : null}
         {reviewed === fingerprint && baseline ? <div data-effect-review tabIndex={-1} className="scroll-mt-32">
           <PublishSheet
             changes={effectFieldChanges(baseline, draft)}
@@ -270,7 +266,7 @@ const STRUCTURED_KEYS ={ see_also: ["location", "title"], external_links: ["url"
 const STRUCTURED_LABELS: Record<string, string> = { location: "Destination URL", url: "URL", title: "Title", text: "Citation text", from: "Source attribution", id: "Subarticle ID" };
 function StructuredFields({ field, value, disabled, errors, onChange }: { field: keyof typeof STRUCTURED_KEYS; value: Array<Record<string, string | undefined>>; disabled: boolean; errors: Record<string, string>; onChange: (value: Array<Record<string, string | undefined>>) => void }) {
   return <EditorSection headingLevel="h3" title={FIELD_LABELS[field]}>
-    {errors[field] ? <div tabIndex={-1} data-validation-error="true"><EditorNotice notice={{ tone: "danger", message: errors[field] }} /></div> : null}
+    {errors[field] ? <div tabIndex={-1} data-validation-error="true"><Notice tone="danger" message={errors[field]} /></div> : null}
     {value.map((row, index) => <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
       <div className="min-w-0 space-y-3">
       {STRUCTURED_KEYS[field].map(key => <EditorField key={key} label={`${FIELD_LABELS[field]} ${index + 1}: ${STRUCTURED_LABELS[key]}`} description={key === "url" || key === "location" ? "Use an https/http URL or a site-relative /path." : undefined} error={errors[`${field}.${index}.${key}`]}>{control => <Input {...control} value={row[key] ?? ""} disabled={disabled} onChange={event => onChange(value.map((entry, position) => position === index ? { ...entry, [key]: event.target.value } : entry))} />}</EditorField>)}

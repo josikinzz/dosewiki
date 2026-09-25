@@ -13,7 +13,7 @@ import { useCallback, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { EditorNotice, useConfirm, type EditorNoticeMessage } from "@/features/dev/components";
+import { Notice, useConfirm, type NoticeMessage } from "@/features/dev/components";
 import { getRoleDisplayName, type ManagedRole } from "@/lib/auth/roles";
 import {
   banMember,
@@ -40,7 +40,7 @@ export const MEMBER_PENDING_LABEL: Record<MemberPendingKind, string> = {
 
 export function useMemberActions(reload: () => Promise<void>) {
   const [pending, setPending] = useState<MemberPendingAction | null>(null);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [resetLink, setResetLink] = useState<ResetLink | null>(null);
   const { confirm, dialog } = useConfirm();
 
@@ -111,19 +111,14 @@ export function useMemberActions(reload: () => Promise<void>) {
 
   const notices: ReactNode = (
     <>
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
       {resetLink ? (
-        <EditorNotice
-          notice={{
-            tone: "info",
-            icon: "lucide:key-round",
-            title: `Reset link for ${resetLink.email}`,
-            message: (
+        <Notice
+          tone="info" icon="lucide:key-round" title={`Reset link for ${resetLink.email}`} message={(
               <span className="block break-all font-mono text-xs" data-testid="reset-link">
                 {resetLink.href}
               </span>
-            ),
-            actions: (
+            )} actions={(
               <>
                 <Button type="button" variant="accent" size="sm" onClick={() => void copyResetLink()}>
                   <Icon icon={resetLink.copied ? "lucide:check" : "lucide:copy"} size={14} />
@@ -133,8 +128,7 @@ export function useMemberActions(reload: () => Promise<void>) {
                   Dismiss
                 </Button>
               </>
-            ),
-          }}
+            )}
         />
       ) : null}
     </>

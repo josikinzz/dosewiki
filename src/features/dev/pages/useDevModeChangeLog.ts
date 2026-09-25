@@ -10,7 +10,6 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
-import { useDevNoticeChannel } from "@/features/dev/notices/devNoticeLifecycle";
 import type { ChangelogFeedWindow } from "./useDevChangelogFeed";
 
 export type ChangeNotice = {
@@ -124,7 +123,6 @@ export function useDevModeChangeLog({
   const [visibleEntriesCount, setVisibleEntriesCount] = useState(CHANGELOG_VISIBLE_BATCH_SIZE);
   const [entryFeedback, setEntryFeedback] = useState<ChangeLogEntryFeedback | null>(null);
   const entryFeedbackTimerRef = useRef<number | null>(null);
-  const noticeChannel = useDevNoticeChannel("changelog");
 
   const articleFrequency = useMemo(
     () => buildArticleFrequencyIndex(changeLogEntries),
@@ -223,34 +221,14 @@ export function useDevModeChangeLog({
 
   const latestEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
 
-  useEffect(() => {
-    setNotice(
-      noticeChannel.notice
-        ? {
-            type: noticeChannel.notice.status,
-            message: noticeChannel.notice.message,
-            actionHref: noticeChannel.notice.actionHref,
-            actionLabel: noticeChannel.notice.actionLabel,
-          }
-        : null,
-    );
-  }, [noticeChannel.notice]);
-
+  // The tab renders this in a Notice, which clears successes and keeps errors until dismissed.
   const pushNotice = useCallback((next: ChangeNotice) => {
     setNotice(next);
-    noticeChannel.publish({
-      status: next.type,
-      message: next.message,
-      actionHref: next.actionHref,
-      actionLabel: next.actionLabel,
-      autoClearMs: 6000,
-    });
-  }, [noticeChannel]);
+  }, []);
 
   const clearNotice = useCallback(() => {
     setNotice(null);
-    noticeChannel.clear();
-  }, [noticeChannel]);
+  }, []);
 
   const clearEntryFeedback = useCallback(() => {
     if (entryFeedbackTimerRef.current !== null) {

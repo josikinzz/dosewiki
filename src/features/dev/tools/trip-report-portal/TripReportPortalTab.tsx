@@ -5,9 +5,8 @@ import { useRef, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
 import {
-  ActionNotice,
+  Notice,
   EditorActionGroup,
-  EditorNotice,
   EditorPanel,
   EditorToolbar,
   TagToken,
@@ -160,32 +159,22 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
       </header>
 
       {load.corpus.status === "error" ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Published reports unavailable",
-            message: load.corpus.message,
-            actions: (
+        <Notice
+          tone="danger" title="Published reports unavailable" message={load.corpus.message} actions={(
               <Button type="button" variant="outline" size="sm" onClick={() => void loadCorpus()}>
                 Try again
               </Button>
-            ),
-          }}
+            )}
         />
       ) : null}
 
       {load.submissions.status === "error" ? (
-        <EditorNotice
-          notice={{
-            tone: "danger",
-            title: "Submission queue unavailable",
-            message: load.submissions.message,
-            actions: (
+        <Notice
+          tone="danger" title="Submission queue unavailable" message={load.submissions.message} actions={(
               <Button type="button" variant="outline" size="sm" onClick={() => void loadCorpus()}>
                 Try again
               </Button>
-            ),
-          }}
+            )}
         />
       ) : null}
 
@@ -315,9 +304,9 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
                       </EditorToolbar>
                     ) : null}
                     {bulkFeedback ? (
-                      <ActionNotice tone={bulkFeedback.tone} onDismiss={() => setBulkFeedback(null)}>
+                      <Notice placement="inline" tone={bulkFeedback.tone} dismiss={() => setBulkFeedback(null)}>
                         {bulkFeedback.message}
-                      </ActionNotice>
+                      </Notice>
                     ) : null}
                     {lastDecision && undoTo ? (
                       <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void undoLastDecision()}>
@@ -345,12 +334,8 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
 
             {selected?.origin === "published" && !selected.fields ? (
               detailState.status === "error" ? (
-                <EditorNotice
-                  notice={{
-                    tone: "danger",
-                    title: "Unable to open that report",
-                    message: detailState.message,
-                    actions: (
+                <Notice
+                  tone="danger" title="Unable to open that report" message={detailState.message} actions={(
                       <Button
                         type="button"
                         variant="outline"
@@ -359,8 +344,7 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
                       >
                         Try again
                       </Button>
-                    ),
-                  }}
+                    )}
                 />
               ) : (
                 <EditorPanel variant="empty" className="p-8 text-center text-sm">
@@ -371,12 +355,8 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
 
             {selected?.origin === "submission" && !selectedSubmission ? (
               detailState.status === "error" ? (
-                <EditorNotice
-                  notice={{
-                    tone: "danger",
-                    title: "Unable to open that submission",
-                    message: detailState.message,
-                    actions: (
+                <Notice
+                  tone="danger" title="Unable to open that submission" message={detailState.message} actions={(
                       <Button
                         type="button"
                         variant="outline"
@@ -385,8 +365,7 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
                       >
                         Try again
                       </Button>
-                    ),
-                  }}
+                    )}
                 />
               ) : (
                 <EditorPanel variant="empty" className="p-8 text-center text-sm">

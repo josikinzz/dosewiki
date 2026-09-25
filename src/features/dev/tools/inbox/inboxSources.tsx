@@ -38,6 +38,7 @@ import { feedbackTaskHref } from "@/features/dev/tools/feedback/feedbackTaskLink
 import { reviewRecommendationHref } from "@/features/dev/tools/queue/queueTaskLink";
 
 import { inboxKey, type InboxItem, type InboxSourceId, type InboxUrgency } from "./inboxModel";
+import { devFetch, devPost } from "@/features/dev/tools/devFetch";
 
 /** The decisions a triage key can make on an item, in the shared words. */
 export type InboxDecision = "accept" | "reject" | "spam";
@@ -92,32 +93,17 @@ export const BADGE_OF_SOURCE = {
 // ---------------------------------------------------------------------------
 // Shared helpers
 
-async function requestJson(url: string, init?: RequestInit): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = await fetch(url, init);
-  } catch {
-    throw new Error("Network error while loading the Inbox.");
-  }
-  const payload: unknown = await response.json().catch(() => null);
-  const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
-    ? (payload as Record<string, unknown>)
-    : null;
-  if (!response.ok) {
-    throw new Error(typeof record?.error === "string" ? record.error : "The server refused the request.");
-  }
-  if (!record) {
-    throw new Error("The server returned an unreadable response. Try again.");
-  }
-  return record;
+const INBOX_MESSAGES = {
+  network: "Network error while loading the Inbox.",
+  failure: "The server refused the request.",
+};
+
+function requestJson(url: string, init?: RequestInit) {
+  return devFetch(url, { ...init, messages: INBOX_MESSAGES });
 }
 
 function postJson(url: string, body: unknown) {
-  return requestJson(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  return devPost(url, body, { messages: INBOX_MESSAGES });
 }
 
 /**

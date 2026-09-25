@@ -39,7 +39,7 @@ import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorSelect,
@@ -47,7 +47,7 @@ import {
   useConfirm,
   useUnsavedWork,
   useUnsavedWorkRegistry,
-  type EditorNoticeMessage,
+  type NoticeMessage,
 } from "@/features/dev/components";
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import { parseWorkbenchDeepLink, type PagesSection, type WorkbenchView, type WordsList } from "@server/translation/reviewInboxTypes";
@@ -224,7 +224,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** The one row an approve or save is writing; every other row stays editable. */
   const [writing, setWriting] = useState<Writing | null>(null);
   const writingTerm = writing?.term ?? null;
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   /** A single-row write's outcome, shown on its row; the page notice carries it only when the row is no longer listed. */
   const [rowNotice, setRowNotice] = useState<GlossaryRowNotice | null>(null);
   const handoff = useRef<Handoff | null>(null);
@@ -636,8 +636,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       >
         {/* A lasting live region: notices mounted into it are announced, not just shown. */}
         <div aria-live="polite" className="empty:hidden">
-          {notice ? <EditorNotice notice={notice} /> : null}
-          {rowNotice && !rows.some((row) => row.term === rowNotice.term) ? <EditorNotice notice={{ tone: rowNotice.tone, message: rowNotice.message }} /> : null}
+          {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
+          {rowNotice && !rows.some((row) => row.term === rowNotice.term) ? <Notice tone={rowNotice.tone} message={rowNotice.message} /> : null}
         </div>
 
         {loadError ? (

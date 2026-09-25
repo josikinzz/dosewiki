@@ -4,7 +4,7 @@ import type { DragEndEvent } from "@dnd-kit/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
-  ActionNoticeTone,
+  NoticeTone,
   EditorActionStatusState,
 } from "@/features/dev/components";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
@@ -52,7 +52,7 @@ const EDITORIAL_API = "/api/dev/replications/editorial";
 
 let cachedCandidates: GalleryCandidate[] | null = null;
 
-type Feedback = { tone: ActionNoticeTone; message: string };
+type Feedback = { tone: NoticeTone; message: string };
 
 export type GalleryDetailState =
   | { status: "idle" }

@@ -11,7 +11,7 @@ import {
   DialogTitle,
   Surface,
 } from "@/components/ui";
-import { EditorCheckbox, EditorNotice, EditorStatusPill } from "@/features/dev/components";
+import { EditorCheckbox, Notice, EditorStatusPill } from "@/features/dev/components";
 import type { TemplateApplyPreviewRow } from "./templateApplicationPayload";
 import { summarizeTemplatePreview } from "./templateApplicationPayload";
 
@@ -130,26 +130,16 @@ export function TemplateApplyDialog({
 
         <div className="min-h-0 overflow-y-auto px-6 py-5">
           {preparing ? (
-            <EditorNotice
-              notice={{
-                tone: "info",
-                title: "Building preview",
-                message: "Loading current depictions, aligning matches, and rendering before/after pairs…",
-                icon: "lucide:loader-2",
-                live: true,
-              }}
+            <Notice
+              tone="loading" title="Building preview" message="Loading current depictions, aligning matches, and rendering before/after pairs…"
             />
           ) : error ? (
-            <EditorNotice
-              notice={{ tone: "danger", title: "Couldn't build preview", message: error, live: true }}
+            <Notice
+              tone="danger" title="Couldn't build preview" message={error}
             />
           ) : rows.length === 0 ? (
-            <EditorNotice
-              notice={{
-                tone: "warning",
-                title: "No eligible members",
-                message: "This class has no rolled visible members to preview.",
-              }}
+            <Notice
+              tone="warning" title="No eligible members" message="This class has no rolled visible members to preview."
             />
           ) : (
             <div className="grid gap-4 xl:grid-cols-2">
@@ -210,14 +200,9 @@ export function TemplateApplyDialog({
           )}
 
           {results ? (
-            <EditorNotice
+            <Notice
               className="mt-5"
-              notice={{
-                tone: applyErrors > 0 ? "warning" : "success",
-                title: "Template apply finished",
-                message: `${applied} applied · ${summary.noMatch} no match · ${summary.protected + protectedAtSave} protected · ${excluded} excluded · ${applyErrors} errors`,
-                live: true,
-              }}
+              tone={applyErrors > 0 ? "warning" : "success"} title="Template apply finished" message={`${applied} applied · ${summary.noMatch} no match · ${summary.protected + protectedAtSave} protected · ${excluded} excluded · ${applyErrors} errors`}
             />
           ) : null}
         </div>

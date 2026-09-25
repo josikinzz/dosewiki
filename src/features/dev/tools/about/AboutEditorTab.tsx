@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import {
   EditorActionStatus,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
@@ -59,6 +59,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     publicationUncertain,
     notice,
     copyNotice,
+    dismissCopyNotice,
     markdownDiff,
     subtitleDiff,
     subtitleHasChanges,
@@ -187,7 +188,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
 
   return (
     <div className="space-y-8">
-      {notice ? <EditorNotice notice={notice} /> : null}
+      {notice ? <Notice {...notice} /> : null}
 
       <fieldset disabled={publicationUncertain && saveState !== "saving"}>
       <AboutCopyEditors
@@ -205,6 +206,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         subtitleLength={subtitleLength}
         subtitleTextareaRef={subtitleTextareaRef}
         copyNotice={copyNotice}
+        onDismissCopyNotice={dismissCopyNotice}
       />
       </fieldset>
 

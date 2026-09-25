@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { EditorNotice, EditorSection, EditorToolbar, MERGE_CONFLICT_COPY, MergeConflictChoices, unresolvedConflictText } from "@/features/dev/components";
+import { Notice, EditorSection, EditorToolbar, MERGE_CONFLICT_COPY, MergeConflictChoices, unresolvedConflictText } from "@/features/dev/components";
 import { formatCheckpointTime } from "@/features/dev/recovery/draftRecovery";
 
 import type { WritingDraft } from "./writingEditorModel";
@@ -41,16 +41,12 @@ export function WritingRecoveryPanels({
     const pending = offer.checkpoint.pending !== undefined;
     return (
       <section aria-label="Recovered changes">
-        <EditorNotice
-          notice={{
-            tone: "warning",
-            title: pending ? "Unconfirmed save found" : "Unsaved changes found",
-            message: pending
+        <Notice
+          tone="warning" title={pending ? "Unconfirmed save found" : "Unsaved changes found"} message={pending
               ? `A save was sent but never confirmed before this page closed (kept in this browser at ${time}). Restore it to confirm that exact save; it is never sent as a new one.`
               : offer.stale
                 ? `Unsaved changes from this browser, saved at ${time}. The saved version changed after this copy was made, so Review shows both side by side and overwrites nothing.`
-                : `Unsaved changes from this browser, saved at ${time}. Restore them, or discard them and keep the saved version.`,
-            actions: (
+                : `Unsaved changes from this browser, saved at ${time}. Restore them, or discard them and keep the saved version.`} actions={(
               <span className="flex gap-2">
                 <Button type="button" variant="accent" size="sm" onClick={controller.restoreRecovery}>
                   {offer.stale && !pending ? "Review" : "Restore"}
@@ -59,8 +55,7 @@ export function WritingRecoveryPanels({
                   Discard
                 </Button>
               </span>
-            ),
-          }}
+            )}
         />
       </section>
     );

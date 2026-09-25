@@ -9,6 +9,7 @@ import type { ReviewReason } from "@server/translation/reviewReason";
 import type { GlossaryListResponse, GlossaryProgressResponse, GlossaryRowPatch } from "@/app/api/dev/translation-glossary/glossaryRoutes";
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
 import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 export type GlossaryRow = GlossaryListResponse["rows"][number];
 
@@ -350,35 +351,27 @@ async function postJson(
   );
 }
 
-async function requestJson(
+function requestJson(
   url: string,
   init: RequestInit | undefined,
   messages: { network: string; failure: string },
-): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = init ? await fetch(url, init) : await fetch(url);
-  } catch {
-    throw new Error(messages.network);
-  }
-
-  const payload: Record<string, unknown> = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    if (response.status === 409 && typeof payload.collisionConfirmation === "string" && /^[a-f0-9]{64}$/.test(payload.collisionConfirmation)
-      && Array.isArray(payload.collisions) && payload.collisions.length > 0
-      && payload.collisions.every((collision: unknown) => {
-        if (!collision || typeof collision !== "object") return false;
-        const item = collision as Record<string, unknown>;
-        return typeof item.kind === "string" && typeof item.target === "string"
-          && Array.isArray(item.terms) && item.terms.length > 1 && item.terms.every((term: unknown) => typeof term === "string");
-      })) {
-      throw new GlossaryReviewCollision(
-        typeof payload.error === "string" ? payload.error : messages.failure,
-        payload.collisions as GlossaryCollision[],
-        payload.collisionConfirmation,
-      );
-    }
-    throw new Error(typeof payload.error === "string" ? payload.error : messages.failure);
-  }
-  return payload;
+) {
+  return devFetch(url, {
+    ...init,
+    messages,
+    emptyBodyOk: true,
+    onError: (status, payload, message) => {
+      if (status === 409 && typeof payload.collisionConfirmation === "string" && /^[a-f0-9]{64}$/.test(payload.collisionConfirmation)
+        && Array.isArray(payload.collisions) && payload.collisions.length > 0
+        && payload.collisions.every((collision: unknown) => {
+          if (!collision || typeof collision !== "object") return false;
+          const item = collision as Record<string, unknown>;
+          return typeof item.kind === "string" && typeof item.target === "string"
+            && Array.isArray(item.terms) && item.terms.length > 1 && item.terms.every((term: unknown) => typeof term === "string");
+        })) {
+        return new GlossaryReviewCollision(message, payload.collisions as GlossaryCollision[], payload.collisionConfirmation);
+      }
+      return undefined;
+    },
+  });
 }

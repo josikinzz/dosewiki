@@ -19,8 +19,7 @@ import {
 
 import { TagListPanel } from "./TagListPanel";
 import { TagDetailPanel } from "./TagDetailPanel";
-import { TagMutationForms } from "./TagMutationForms";
-import { TagNotice } from "./TagNotice";
+import { TagFeedback, TagMutationForms } from "./TagMutationForms";
 import { applyDraft, baselineTagSignature } from "./tagDraftProjection";
 import type { TagEditorTabProps, TagUndo } from "./types";
 import {
@@ -475,7 +474,7 @@ export function TagEditorTab({
             <span className="font-semibold theme-text-muted">{totalTags}</span> tags in use across the four tag fields.
           </span>
           {reload === "failed" ? (
-            <TagNotice
+            <TagFeedback
               notice={{ type: "error", message: "Tags could not be reloaded. Try again.", source: "diff" }}
               onDismiss={() => setReload("idle")}
             />
@@ -526,7 +525,7 @@ export function TagEditorTab({
           ) : (
             <>
               {state.notice && state.notice.source !== "diff" ? (
-                <TagNotice
+                <TagFeedback
                   notice={state.notice}
                   undo={state.undo?.source === state.notice.source ? state.undo : null}
                   onUndo={handleUndo}
@@ -576,7 +575,7 @@ export function TagEditorTab({
             <Icon icon="lucide:download" size={14} />
             Download .diff
           </Button>
-          {state.notice?.source === "diff" ? <TagNotice notice={state.notice} /> : null}
+          {state.notice?.source === "diff" ? <TagFeedback notice={state.notice} /> : null}
         </EditorActionGroup>
       </EditorSection>
     </div>

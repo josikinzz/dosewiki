@@ -32,13 +32,21 @@ only the labels are reader-facing.
 
 ## Where the kit lives
 
-Three tiers, each with its own barrel and ownership boundary:
+Four tiers, each with its own barrel and ownership boundary:
 
 | Tier | Path | What lives here |
 | --- | --- | --- |
 | **Primitives** | `src/components/ui/` | Radix/shadcn building blocks: `Button`, `Badge`, `Surface` (+ `ContentCard`, `InteractiveContentCard`, `NestedContentCard`, `StatusState`, `DangerCallout`), `Dialog`, `Select`, `Tabs`, `Input`, `Popover`, etc. |
 | **Common** | `src/components/common/` | Shared recipes on top of primitives: `Icon`, `IconBadge`, `SectionCard`, `StateCard`, `ExpandButton`, `DisclosureCard`, `ArticleSection`, public tokens. |
 | **Layout** | `src/components/layout/` | Public page shells and chrome: `Header`, `Footer`, `PageHeader`, public content/feedback/page primitives, segmented tabs. |
+| **Editor kit** | `src/features/dev/components/` | Dev tool and in-page editor components: `Notice`, `EditorSection`, `EditorField`, `EditorList`, `ConfirmDialog`, `SaveLine`, the unsaved-work registry and shortcut hooks. Editor build only. |
+
+Every dev tool reports loading, success, warning and error through `Notice`
+(`tone`, `placement="page" | "inline"`, `dismiss`). Only `danger` is announced as
+an alert; loading and every other tone are a polite status. Given `dismiss`, an
+error stays until the editor dismisses it and a success clears itself. Dev tool
+requests go through `devFetch()` in `src/features/dev/tools/devFetch.ts`, and each
+caller still validates the fields it reads.
 
 `Surface` is the meta-primitive: most card/panel shells should compose a `Surface`
 variant before reaching for a raw `<div>` with border + background classes.
@@ -164,7 +172,9 @@ loading changes, follow [Public page loading](../architecture/runtime-and-data.m
 Two Vitest checks keep the catalog aligned with the shared barrels:
 
 - `src/app/dev/kit/registry/completeness.test.ts` checks that every runtime export
-  from `ui/`, `common/`, and `layout/` has one catalog story.
+  from `ui/`, `common/`, `layout/` and the editor kit index
+  (`src/features/dev/components/index.ts`) has one catalog story, and that editor
+  kit exports sit in the Editor kit tier.
 - `src/app/dev/kit/registry/render.test.tsx` server-renders every example in all
   four appearance combinations and catches missing providers or other render failures.
 

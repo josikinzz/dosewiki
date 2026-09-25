@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProfileBioMarkdown } from "@/components/pages/ProfileBioMarkdown";
-import { EditorNotice, useConfirm, useDirtyGuard } from "@/features/dev/components";
+import { Notice, useConfirm, useDirtyGuard } from "@/features/dev/components";
 import { ContributorProfileEditor } from "@/features/dev/tools/contributors/ContributorProfileEditor";
 import { useContributorsController } from "@/features/dev/tools/contributors/useContributorsController";
 import { buildOwnContributorPatch, toContributorForm, type OwnContributorPatch } from "@/features/dev/tools/contributors/contributorsModel";
@@ -106,7 +106,7 @@ function ProfileSession({ profileKey, counts, verifiedReplicator, onClose }: { p
       {confirmDialog}
       {controller.isDetailLoading ? <p role="status">Loading this profile…</p> : null}
       {controller.detailError ? <div role="alert"><p>{controller.detailError}</p><Button variant="outline" onClick={controller.retryDetail}>Retry access check</Button><Link href="/dev/contributors?scope=me" className="ml-3 underline">Request profile access</Link></div> : null}
-      {controller.notice ? <EditorNotice notice={controller.notice} /> : null}
+      {controller.notice ? <Notice {...controller.notice} /> : null}
       <fieldset ref={editorFields} hidden={review} disabled={controller.publicationUncertain || controller.profileSaveState === "saving" || endorsementBusy || !!endorsementOperation}>
         <ContributorProfileEditor controller={controller} contextual onReview={() => setReview(true)} />
       </fieldset>

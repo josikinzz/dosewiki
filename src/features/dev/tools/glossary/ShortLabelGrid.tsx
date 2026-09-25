@@ -5,7 +5,7 @@ import { isShortUiLabel, UI_BATCH_APPROVAL_REASON, UI_BATCH_MAX_ITEMS, type UiBa
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StateCard } from "@/components/common/StateCard";
-import { EditorNotice, EditorStatusPill, useConfirm, type EditorNoticeMessage } from "@/features/dev/components";
+import { Notice, EditorStatusPill, useConfirm, type NoticeMessage } from "@/features/dev/components";
 import { translationRequest } from "./TranslationHistory";
 import type { UiEditDrafts } from "./UiTranslationWorkbench";
 
@@ -27,7 +27,7 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const inFlight = useRef(false);
   const { confirm, dialog } = useConfirm();
   const candidates = useMemo(() => rows
@@ -97,7 +97,7 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
       <Button type="button" variant="accent" size="sm" disabled={busy || !chosen.length} aria-busy={busy || undefined} onClick={approveSelected}>Approve selected ({chosen.length})</Button>
       <span className="theme-text-faint text-xs">{candidates.length} short labels need review</span>
     </div>
-    {notice ? <EditorNotice notice={notice} /> : null}
+    {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
     {!candidates.length ? <StateCard compact title="No short labels need review" description="Every matching label of three words or fewer is approved." /> : null}
     {lastPage > 0 ? <div className="flex flex-wrap items-center gap-3" aria-label="Short label pages">
       <Button variant="outline" size="sm" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous short labels</Button>

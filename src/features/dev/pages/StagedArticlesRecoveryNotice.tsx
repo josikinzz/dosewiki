@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { EditorNotice } from "../components/EditorNotice";
+import { Notice } from "../components/Notice";
 import { formatCheckpointTime } from "../recovery/draftRecovery";
 import { MergeConflictChoices } from "../components/MergeConflictChoices";
 import { displayValue } from "@/features/article/editing/ArticleChangeDiff";
@@ -30,17 +30,13 @@ export function StagedArticlesRecoveryNotice({
     const count = offer.draft.changes.length;
     return (
       <section aria-label="Recovered article edits" className="mb-4">
-        <EditorNotice
-          notice={{
-            tone: "warning",
-            title: "Uncommitted article edits found",
-            message: (
+        <Notice
+          tone="warning" title="Uncommitted article edits found" message={(
               <>
                 {`Edits to ${articleCount(count)} from this browser, saved at ${formatCheckpointTime(offer.savedAt)}, were never committed. Restore puts them back as uncommitted edits; nothing is committed until you commit.`}
                 {recovery.error ? <span role="alert" className="mt-1 block">{recovery.error}</span> : null}
               </>
-            ),
-            actions: (
+            )} actions={(
               <span className="flex gap-2">
                 <Button type="button" variant="accent" size="sm" disabled={recovery.restoring} aria-busy={recovery.restoring || undefined} onClick={() => void recovery.restore()}>
                   {recovery.restoring ? "Restoring…" : "Restore"}
@@ -49,8 +45,7 @@ export function StagedArticlesRecoveryNotice({
                   Discard
                 </Button>
               </span>
-            ),
-          }}
+            )}
         />
       </section>
     );
@@ -59,11 +54,8 @@ export function StagedArticlesRecoveryNotice({
   if (held) {
     return (
       <section aria-label="Article edits held aside" className="mb-4">
-        <EditorNotice
-          notice={{
-            tone: "warning",
-            title: `${articleCount(held.length)} not restored`,
-            message: (
+        <Notice
+          tone="warning" title={`${articleCount(held.length)} not restored`} message={(
               <>
                 <span className="block">
                   These articles changed after your copy was made, or could not be loaded. Your edits are kept aside and the newer version stays in place until you choose. Applying merges your edits into the newer version; a field you both changed needs your choice first.
@@ -94,13 +86,11 @@ export function StagedArticlesRecoveryNotice({
                   ))}
                 </ul>
               </>
-            ),
-            actions: (
+            )} actions={(
               <Button type="button" variant="ghost" size="sm" onClick={recovery.dismissHeld}>
                 Discard the rest
               </Button>
-            ),
-          }}
+            )}
         />
       </section>
     );

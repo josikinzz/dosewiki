@@ -8,6 +8,7 @@
  */
 
 import { playlistKeyOf } from "@/features/dev/tools/replication-studio/replicationPlaylistModel";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 export { playlistKeyOf };
 
@@ -225,24 +226,16 @@ export async function assignPlaylistOwner(
   return payload as { key: string; owner_email: string | null; updated_at: string; updated_by: string | null };
 }
 
-async function requestJson(
+function requestJson(
   url: string,
   init: RequestInit | undefined,
   messages: { network: string; failure: string },
   byStatus: Record<number, () => Error> = {},
-): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = init ? await fetch(url, init) : await fetch(url);
-  } catch {
-    throw new Error(messages.network);
-  }
-
-  const payload: Record<string, unknown> = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const special = byStatus[response.status];
-    if (special) throw special();
-    throw new Error(typeof payload.error === "string" ? payload.error : messages.failure);
-  }
-  return payload;
+) {
+  return devFetch(url, {
+    ...init,
+    messages,
+    emptyBodyOk: true,
+    onError: (status) => byStatus[status]?.(),
+  });
 }

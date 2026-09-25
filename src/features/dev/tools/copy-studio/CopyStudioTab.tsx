@@ -16,13 +16,13 @@ import {
   EditorList,
   EditorListRow,
   EditorNavTabs,
-  EditorNotice,
+  Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
   EditorToolbar,
   type EditorActionStatusState,
-  type EditorNoticeMessage,
+  type NoticeMessage,
   useConfirm,
   useDirtyGuard,
   useScrollToDetail,
@@ -100,7 +100,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [draft, setDraft] = useState<CopyStudioDraft>({ body: "", items: [] });
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [loadedBlock, setLoadedBlock] = useState<CopyStudioBlock | null>(null);
   const [baselineRow, setBaselineRow] = useState<CopyBlockRow | null>(null);
   const [baselineRevision, setBaselineRevision] = useState(0);
@@ -483,48 +483,30 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
           <div ref={detailRef} className="scroll-mt-6 space-y-6">
             {activeBlock ? (
               <>
-                {notice ? <EditorNotice notice={notice} /> : null}
+                {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
 
                 {copyBlockFlavorLabel(activeBlock.flavor) ? (
-                  <EditorNotice
-                    notice={{
-                      tone: "info",
-                      title: `${copyBlockFlavorLabel(activeBlock.flavor)} only`,
-                      message:
-                        "This block renders on the Effect Index build alone. The unsuffixed key beside it holds dose.wiki's wording, and the two never fall back to each other.",
-                    }}
+                  <Notice
+                    tone="info" title={`${copyBlockFlavorLabel(activeBlock.flavor)} only`} message="This block renders on the Effect Index build alone. The unsuffixed key beside it holds dose.wiki's wording, and the two never fall back to each other."
                   />
                 ) : null}
 
                 {detailSource.error ? (
-                  <EditorNotice
-                    notice={{
-                      tone: "danger",
-                      title: "Could not load this block",
-                      message: detailSource.error,
-                      actions: (
+                  <Notice
+                    tone="danger" title="Could not load this block" message={detailSource.error} actions={(
                         <Button type="button" variant="outline" size="sm" onClick={detailSource.reload}>
                           Try again
                         </Button>
-                      ),
-                    }}
+                      )}
                   />
                 ) : selectedSnapshot === undefined ? (
-                  <EditorNotice
-                    notice={{
-                      tone: "info",
-                      message: "Loading the stored copy for this block. Editing unlocks when it arrives.",
-                    }}
+                  <Notice
+                    tone="loading" message="Loading the stored copy for this block. Editing unlocks when it arrives."
                   />
                 ) : null}
                 {uncertain ? (
-                  <EditorNotice
-                    notice={{
-                      tone: "warning",
-                      live: true,
-                      title: "Publication unconfirmed",
-                      message: "The publication outcome is unconfirmed. Retry the same publication before leaving this block.",
-                    }}
+                  <Notice
+                    tone="warning" title="Publication unconfirmed" message="The publication outcome is unconfirmed. Retry the same publication before leaving this block."
                   />
                 ) : null}
 

@@ -1,9 +1,13 @@
 export {
-  ActionNotice,
-} from "./ActionNotice";
+  NOTICE_AUTO_CLEAR_MS,
+  Notice,
+} from "./Notice";
 export type {
-  ActionNoticeTone,
-} from "./ActionNotice";
+  NoticeMessage,
+  NoticePlacement,
+  NoticeProps,
+  NoticeTone,
+} from "./Notice";
 
 export {
   EditorPanel,
@@ -49,13 +53,6 @@ export {
 export type {
   EditorSectionProps,
 } from "./EditorSection";
-
-export {
-  EditorNotice,
-} from "./EditorNotice";
-export type {
-  EditorNoticeMessage,
-} from "./EditorNotice";
 
 export {
   DESKTOP_ONLY_NOTICE,

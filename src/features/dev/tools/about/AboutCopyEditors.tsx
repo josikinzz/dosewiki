@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import {
-  ActionNotice,
+  Notice,
   EditorField,
   EditorSection,
   EditorStatusPill,
@@ -40,24 +40,18 @@ type AboutCopyEditorsProps = {
   subtitleLength: number;
   subtitleTextareaRef: React.RefObject<HTMLTextAreaElement | null>;
   copyNotice?: AboutCopyNotice | null;
+  onDismissCopyNotice?: () => void;
   contextual?: boolean;
 };
 
-function CopyResultNotice({
-  copyNotice,
-  target,
-}: {
-  copyNotice: AboutCopyNotice | null | undefined;
-  target: AboutCopyNotice["target"];
-}) {
+function copyResult(copyNotice: AboutCopyNotice | null | undefined, target: AboutCopyNotice["target"], onDismiss?: () => void) {
   if (!copyNotice || copyNotice.target !== target) {
     return null;
   }
-
   return (
-    <ActionNotice tone={copyNotice.ok ? "success" : "danger"}>
+    <Notice placement="inline" tone={copyNotice.ok ? "success" : "danger"} dismiss={onDismiss}>
       {copyNotice.ok ? "Copied to clipboard" : "Copy failed. Check clipboard permissions."}
-    </ActionNotice>
+    </Notice>
   );
 }
 
@@ -76,6 +70,7 @@ export function AboutCopyEditors({
   subtitleLength,
   subtitleTextareaRef,
   copyNotice,
+  onDismissCopyNotice,
   contextual = false,
 }: AboutCopyEditorsProps) {
   const [tokensOpen, setTokensOpen] = useState(false);
@@ -133,7 +128,7 @@ export function AboutCopyEditors({
               <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
               Reset About copy
             </Button>
-            <CopyResultNotice copyNotice={copyNotice} target="markdown" />
+            {copyResult(copyNotice, "markdown", onDismissCopyNotice)}
           </EditorToolbar>
         </div>
       </EditorSection>
@@ -177,7 +172,7 @@ export function AboutCopyEditors({
               <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
               Reset to source
             </Button>
-            <CopyResultNotice copyNotice={copyNotice} target="subtitle" />
+            {copyResult(copyNotice, "subtitle", onDismissCopyNotice)}
           </EditorToolbar>
         </div>
       </EditorSection>

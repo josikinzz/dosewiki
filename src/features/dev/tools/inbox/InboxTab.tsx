@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ActionNotice,
+  Notice,
   EditorField,
   EditorList,
   EditorListRow,
@@ -349,9 +349,9 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
           delay={0.1}
         >
           {notice ? (
-            <ActionNotice tone={notice.tone === "info" ? "info" : notice.tone} onDismiss={() => setNotice(null)}>
+            <Notice placement="inline" tone={notice.tone === "info" ? "info" : notice.tone} dismiss={() => setNotice(null)}>
               {notice.message}
-            </ActionNotice>
+            </Notice>
           ) : null}
           {selected && selectedSource ? (
             <div className="space-y-6">

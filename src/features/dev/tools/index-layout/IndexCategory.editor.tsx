@@ -7,7 +7,7 @@ import type { DosageCategoryGroup } from "@/data/builders/library";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
-import { EditorNotice, useConfirm } from "@/features/dev/components";
+import { Notice, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import type { BoardActions } from "./IndexLayoutCardMenus";
@@ -100,7 +100,7 @@ function LayoutBody({ type, initial, group, close }: { type: "psychoactive" | "c
       </fieldset>
       <DiffPreview diffText={buildTextChangelog(`${type} index`, JSON.stringify(baseline, null, 2), JSON.stringify(draft, null, 2)).markdown} />
       {notice && <p role="status">{notice}</p>}
-      {proposalId && <EditorNotice notice={proposalSubmittedNotice(`${type} index layout`, proposalId)} />}
+      {proposalId && <Notice {...proposalSubmittedNotice(`${type} index layout`, proposalId)} />}
       {uncertain && <p role="alert">The publication outcome is not confirmed. Retry the same publication before closing or changing this draft.</p>}
       <div className="flex flex-wrap gap-2"><Button disabled={!dirty || busy} onClick={() => canApprove ? confirm({ title: "Publish index layout?", description: "Publish the displayed diff to the substance index, grouped index pages, category projections, and both publications that consume this layout. Article direct links, visibility, Reviewed status, and Review Flags are unchanged.", confirmLabel: "Publish layout", onConfirm: publish }) : void publish()}>{busy ? (canApprove ? "Publishing…" : "Submitting…") : canApprove ? "Publish layout" : "Submit for review"}</Button><Button variant="secondary" disabled={busy} onClick={cancel}>Cancel</Button></div>
     </div>{dialog}

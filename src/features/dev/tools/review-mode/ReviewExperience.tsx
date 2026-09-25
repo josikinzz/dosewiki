@@ -8,7 +8,7 @@ import { useEditorRead } from "@/hooks/useEditorRead";
 import { Icon } from "@/components/common/Icon";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
-import { EditorNotice, useConfirm, useDirtyGuard } from "@/features/dev/components";
+import { Notice, useConfirm, useDirtyGuard } from "@/features/dev/components";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
@@ -383,12 +383,8 @@ export const ReviewExperience = memo(function ReviewExperience({
     return (
       <main className="theme-page-shell min-h-screen p-8">
         <div className="mx-auto max-w-xl pt-16">
-          <EditorNotice
-            notice={{
-              tone: "info",
-              message:
-                "No public articles are available to review yet.",
-            }}
+          <Notice
+            tone="info" message="No public articles are available to review yet."
           />
         </div>
       </main>

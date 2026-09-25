@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  ActionNotice,
+  Notice,
   EditorPanel,
   EditorPanelBody,
   TagToken,
@@ -400,9 +400,9 @@ export function ReplicationStudioTab({
       />
 
       {feedback ? (
-        <ActionNotice tone={feedback.tone} onDismiss={() => corpus.setFeedback(null)}>
+        <Notice placement="inline" tone={feedback.tone} dismiss={() => corpus.setFeedback(null)}>
           {feedback.message}
-        </ActionNotice>
+        </Notice>
       ) : null}
 
       {isLibrary ? (

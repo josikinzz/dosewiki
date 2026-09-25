@@ -5,8 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ActionNotice,
-  EditorNotice,
+  Notice,
   EditorPanel,
   EditorStatusPill,
   EditorToolbar,
@@ -131,9 +130,9 @@ export function PortalReportEditor({
       <div className={contentOnly ? "min-w-0 flex-1 space-y-0 px-5 pb-4 [&_input]:scroll-mt-20 [&_textarea]:scroll-mt-20 [&_button]:scroll-mt-20" : "min-h-0 flex-1 space-y-0 overflow-y-auto px-5 pb-4"}>
         {feedback ? (
           <div className="pt-4">
-            <ActionNotice tone={feedback.tone} onDismiss={onDismissFeedback}>
+            <Notice placement="inline" tone={feedback.tone} dismiss={onDismissFeedback}>
               {feedback.message}
-            </ActionNotice>
+            </Notice>
           </div>
         ) : null}
 
@@ -350,11 +349,8 @@ export function PortalReportEditor({
               Delete this report
             </Button>
           ) : (
-            <EditorNotice
-              notice={{
-                tone: "danger",
-                title: "Delete permanently",
-                message: (
+            <Notice
+              tone="danger" title="Delete permanently" message={(
                   <div className="space-y-2">
                     <p className="text-xs leading-relaxed">
                       This removes the published report and its URL. Type its slug{" "}
@@ -386,8 +382,7 @@ export function PortalReportEditor({
                       </Button>
                     </div>
                   </div>
-                ),
-              }}
+                )}
             />
           )}
         </Section> : null}

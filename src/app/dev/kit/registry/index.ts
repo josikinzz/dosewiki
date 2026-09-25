@@ -67,11 +67,14 @@ import { publicFeedbackPrimitivesStory } from "../stories/public-feedback-primit
 import { publicPagePrimitivesStory } from "../stories/public-page-primitives.story";
 import { publicSegmentedTabsStory } from "../stories/public-segmented-tabs.story";
 
+// Editor kit: src/features/dev/components
+import { editorKitStories } from "../stories/editor-kit.story";
+
 /**
  * Every shared-kit story is registered here. Add a story file under
  * ../stories and import it into this array. The completeness test
  * (./completeness.test.ts) asserts the union of every story's `exports`
- * covers the shared barrels (ui / common / layout).
+ * covers the shared barrels (ui / common / layout) and the editor kit index.
  */
 export const stories: StoryDef[] = [
   // Primitives — src/components/ui
@@ -140,6 +143,9 @@ export const stories: StoryDef[] = [
   publicFeedbackPrimitivesStory,
   publicPagePrimitivesStory,
   publicSegmentedTabsStory,
+
+  // Editor kit: src/features/dev/components
+  ...editorKitStories,
 ];
 
 export function storiesByTier(tier: KitTier): StoryDef[] {

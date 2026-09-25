@@ -7,6 +7,7 @@ import {
   type FeedbackPageQuery,
   type StatusCounts,
 } from "./feedbackQueueModel";
+import { devFetch } from "@/features/dev/tools/devFetch";
 
 type FeedbackRequests<Item> = {
   fetchPage: (query: FeedbackPageQuery) => Promise<FeedbackPage<Item>>;
@@ -66,24 +67,24 @@ export function createFeedbackRequests<Item extends FeedbackQueueItem>(
         const payload = await requestJson(options.listUrl, { cache: "no-store" }, LIST_MESSAGES);
         return readFeedbackList<Item>(payload).find((row) => row.id === id) ?? null;
       }
-      let response: Response;
+      let record: Record<string, unknown>;
       try {
-        response = await fetch(`${basePath}/${encodeURIComponent(id)}`, { cache: "no-store" });
-      } catch {
-        throw new Error("Network error while opening the feedback.");
+        record = await devFetch(`${basePath}/${encodeURIComponent(id)}`, {
+          cache: "no-store",
+          messages: {
+            network: "Network error while opening the feedback.",
+            failure: "Unable to open that feedback.",
+          },
+          // Gone, or above this session's role: the queue names both the same way.
+          onError: (status) => (status === 404 || status === 403 ? new FeedbackItemMissing() : undefined),
+        });
+      } catch (error) {
+        if (error instanceof FeedbackItemMissing) {
+          return null;
+        }
+        throw error;
       }
-      // Gone, or above this session's role: the queue names both the same way.
-      if (response.status === 404 || response.status === 403) {
-        return null;
-      }
-      const payload: unknown = await response.json().catch(() => null);
-      const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
-        ? payload as Record<string, unknown>
-        : null;
-      if (!response.ok) {
-        throw new Error(typeof record?.error === "string" ? record.error : "Unable to open that feedback.");
-      }
-      if (!record || !isFeedbackRow(record.feedback)) {
+      if (!isFeedbackRow(record.feedback)) {
         throw new Error("The server did not return the feedback. Try again.");
       }
       return record.feedback as Item;
@@ -108,6 +109,8 @@ export function createFeedbackRequests<Item extends FeedbackQueueItem>(
     },
   };
 }
+
+class FeedbackItemMissing extends Error {}
 
 const MALFORMED_LIST = "The server did not return the feedback list. Try again.";
 
@@ -150,27 +153,6 @@ function isFeedbackRow(value: unknown): boolean {
   return typeof row.id === "string" && typeof row.status === "string" && FEEDBACK_STATUSES.has(row.status);
 }
 
-async function requestJson(
-  url: string,
-  init: RequestInit,
-  messages: { network: string; failure: string },
-): Promise<Record<string, unknown>> {
-  let response: Response;
-  try {
-    response = await fetch(url, init);
-  } catch {
-    throw new Error(messages.network);
-  }
-
-  const payload: unknown = await response.json().catch(() => null);
-  const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
-    ? payload as Record<string, unknown>
-    : null;
-  if (!response.ok) {
-    throw new Error(typeof record?.error === "string" ? record.error : messages.failure);
-  }
-  if (!record) {
-    throw new Error("The server returned an unreadable response. Try again.");
-  }
-  return record;
+function requestJson(url: string, init: RequestInit, messages: { network: string; failure: string }) {
+  return devFetch(url, { ...init, messages });
 }

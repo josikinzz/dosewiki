@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import type { NormalizedUserProfile } from "@/data/userProfiles";
-import type { EditorActionStatusState, EditorNoticeMessage } from "@/features/dev/components";
+import type { EditorActionStatusState, NoticeMessage } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 import {
   findContributorProfileByKeyOrAlias,
@@ -101,7 +101,7 @@ export function useContributorsController({
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [avatarRemoved, setAvatarRemoved] = useState(false);
   const [profileSaveState, setProfileSaveState] = useState<ContributorSaveState>("idle");
-  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [workOrder, setWorkOrder] = useState<string[]>([]);
   const [reportOrder, setReportOrder] = useState<string[]>([]);
   const [workSaveState, setWorkSaveState] = useState<ContributorSaveState>("idle");
