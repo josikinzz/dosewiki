@@ -99,23 +99,17 @@ describe("NextDevPage shell selection", () => {
     await expect(element.props.ownedProfileKey).resolves.toBe("MEMBER");
   });
 
-  it.each([
-    ["translator", "/dev/glossary"],
-    ["contributor", "/dev/contributors"],
-  ] as const)("sends a %s opening bare /dev to the first tool it can use", async (role, href) => {
-    getServerSessionMock.mockResolvedValue({ user: { email: "member@example.com", role } });
-    getOwnedContributorProfileMock.mockResolvedValue(null);
+  it.each(["admin", "editor", "editor_translator", "translator", "contributor"] as const)(
+    "opens bare /dev on the Home for a %s, with no redirect",
+    async (role) => {
+      getServerSessionMock.mockResolvedValue({ user: { email: "member@example.com", role } });
+      getOwnedContributorProfileMock.mockResolvedValue(null);
 
-    await expect(NextDevPage({ params: Promise.resolve({ segments: [] }) })).rejects.toThrow(`redirect:${href}`);
-  });
-
-  it("keeps an editor on bare /dev, which already opens Substances", async () => {
-    getServerSessionMock.mockResolvedValue({ user: { email: "editor@example.com", role: "editor" } });
-    getOwnedContributorProfileMock.mockResolvedValue(null);
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
-    expect(element.props).toEqual(expect.objectContaining({ initialTab: "articles" }));
-  });
+      const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
+      expect(element.type).toBe(NextDevRouteClient);
+      expect(element.props).toEqual(expect.objectContaining({ initialTab: "home", initialSlug: undefined }));
+    },
+  );
 
   it("still loads the shell for a contributor on an editor tab, which the shell renders locked", async () => {
     getServerSessionMock.mockResolvedValue({
@@ -295,7 +289,7 @@ describe("NextDevPage shell selection", () => {
       );
     });
 
-    it("pins /dev/about onto Writing and falls back to articles for unknown tabs", async () => {
+    it("pins /dev/about onto Writing, falls back to articles for unknown tabs, and opens Home at the root", async () => {
       asEditor();
 
       const about = await NextDevPage({ params: Promise.resolve({ segments: ["about"] }) });
@@ -305,7 +299,7 @@ describe("NextDevPage shell selection", () => {
       expect(unknown.props).toEqual(expect.objectContaining({ initialTab: "articles", initialSlug: "ketamine" }));
 
       const root = await NextDevPage({ params: Promise.resolve({}) });
-      expect(root.props).toEqual(expect.objectContaining({ initialTab: "articles", initialSlug: undefined }));
+      expect(root.props).toEqual(expect.objectContaining({ initialTab: "home", initialSlug: undefined }));
     });
 
     it("opens /dev/blog and /dev/writing?kind=blog on Writing with the blog filter", async () => {

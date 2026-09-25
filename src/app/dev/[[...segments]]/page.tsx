@@ -16,12 +16,9 @@ import {
 } from "../../_components/DataTargetSplitNotice";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 import {
-  DEFAULT_DEV_TAB,
   findDevTab,
-  firstUsableTab,
   resolveDevRoute,
 } from "@/features/dev/pages/devTabRegistry";
-import { viewToPath } from "@/utils/routing";
 
 // No `force-dynamic`: the route already opts out of caching by reading the
 // session cookie, and the flag additionally blocked the static shell from
@@ -66,14 +63,9 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
     redirect(redirectTarget.href);
   }
 
-  // Bare `/dev` (where sign-in returns) opens the first tool the role can
-  // use, so a translator or contributor never lands on a lock screen.
-  if (tabSegment === undefined) {
-    const landing = firstUsableTab(role);
-    if (landing !== DEFAULT_DEV_TAB) {
-      redirect(viewToPath({ type: "dev", tab: landing }));
-    }
-  }
+  // Bare `/dev` (where sign-in returns) needs no redirect: the route resolves
+  // it to Home, which every member role can open and which shows that role's
+  // own work. The Inbox and every tool stay one click away on the rail.
 
   // Resolved server-side on purpose: the privileged write URL must never be
   // shipped to the browser, so the comparison happens here and only deployment

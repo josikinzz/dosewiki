@@ -38,6 +38,7 @@ describe('routing', () => {
       expect(viewToPath({ type: 'dev', tab: 'tag-editor' })).toBe('/dev/tag-editor');
       expect(viewToPath({ type: 'dev', tab: 'citation-review' })).toBe('/dev/citation-review');
       expect(viewToPath({ type: 'dev', tab: 'articles', slug: 'lsd' })).toBe('/dev/articles/lsd');
+      expect(viewToPath({ type: 'dev', tab: 'home' })).toBe('/dev');
     });
 
     it('keeps a dev tab filter in the query string', () => {
@@ -141,9 +142,9 @@ describe('routing', () => {
       }
     });
 
-    it('pins /dev/about onto the Writing tab and falls back to articles for unknown tabs', () => {
+    it('pins /dev/about onto the Writing tab, opens Home at /dev, and falls back to articles for unknown tabs', () => {
       expect(parsePath('/dev/about', null)).toEqual({ type: 'dev', tab: 'writing', slug: 'about' });
-      expect(parsePath('/dev', null)).toEqual({ type: 'dev', tab: 'articles' });
+      expect(parsePath('/dev', null)).toEqual({ type: 'dev', tab: 'home' });
       expect(parsePath('/dev/unknown-tab/ketamine', null)).toEqual({ type: 'dev', tab: 'articles', slug: 'ketamine' });
     });
 

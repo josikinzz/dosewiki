@@ -3,7 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
-import { DEV_TAB_REGISTRY, type DevTabDescriptor } from "./devTabRegistry";
+import { DEV_TAB_REGISTRY, INBOX_ROLLUP_BADGE, type DevTabDescriptor } from "./devTabRegistry";
 
 /** A badge a descriptor can declare; the rail renders it beside the tab. */
 type DescriptorBadge = NonNullable<DevTabDescriptor["badge"]>;
@@ -13,7 +13,7 @@ type DescriptorBadge = NonNullable<DevTabDescriptor["badge"]>;
  * the sum of every count source below that the role may read, so the Inbox
  * number and the queues it lists cannot disagree.
  */
-const INBOX_BADGE = "inbox" satisfies DescriptorBadge;
+const INBOX_BADGE = INBOX_ROLLUP_BADGE;
 
 /**
  * A count source with its own endpoint. Review recommendations wait on an
@@ -248,6 +248,17 @@ export function useDevRailBadges(role: AppRole | null, actorEmail?: string | nul
 export function useDevRailBadgeParts(badge: DevRailBadge): Readonly<Record<string, number>> | null {
   const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
   return current[badge].parts;
+}
+
+/** One count as the Home reads it: the last known value, its split, and whether the latest read failed. */
+export type DevRailBadgeReading = Pick<BadgeEntry, "count" | "parts" | "updatedAt" | "failed">;
+
+/**
+ * Every count the Inbox sums, with its freshness, for a surface that lists
+ * them side by side. Loaded by the mounted rail like every other badge read.
+ */
+export function useDevRailBadgeReadings(): Readonly<Record<DevRailBadge, DevRailBadgeReading>> {
+  return useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
 }
 
 /** What an opened queue needs to say about its rail count: how fresh it is. */

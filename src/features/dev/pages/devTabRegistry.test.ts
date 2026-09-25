@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_DEV_TAB,
   DEV_TAB_REGISTRY,
+  HOME_DEV_TAB,
   findDevTab,
   firstUsableTab,
   resolveDevRoute,
@@ -75,7 +76,8 @@ describe("devTabRegistry", () => {
       "change-log",
     ]);
     expect(byRole("translator")).toEqual(["glossary"]);
-    expect(byRole("contributor")).toEqual(["contributors", "playlists", "my-reports"]);
+    // Home sits at the lowest floor so every member role opens it.
+    expect(byRole("contributor")).toEqual(["home", "contributors", "playlists", "my-reports"]);
   });
 
   it("declares the save model each tool actually uses", () => {
@@ -132,8 +134,19 @@ describe("devTabRegistry", () => {
     expect(firstUsableTab(null)).toBe(DEFAULT_DEV_TAB);
   });
 
+  it("opens bare /dev on the Home every role can use, ahead of the Inbox in the Start group", () => {
+    expect(resolveDevRoute(undefined, undefined)).toEqual({ tab: HOME_DEV_TAB });
+    expect(resolveDevRoute("home", undefined)).toEqual({ tab: HOME_DEV_TAB });
+    const start = DEV_TAB_REGISTRY.filter((tab) => tab.group === "entry").map((tab) => tab.id);
+    expect(start).toEqual([HOME_DEV_TAB, "inbox"]);
+    expect(findDevTab(HOME_DEV_TAB).role).toBe("contributor");
+    // Home is where bare /dev lands, never a fallback: a fallback names a tool.
+    for (const role of ["admin", "editor", "editor_translator", "translator", "contributor"] as const) {
+      expect(firstUsableTab(role)).not.toBe(HOME_DEV_TAB);
+    }
+  });
+
   it("falls back to the default tab and keeps the slug for unknown segments", () => {
-    expect(resolveDevRoute(undefined, undefined)).toEqual({ tab: DEFAULT_DEV_TAB });
     expect(resolveDevRoute("unknown-tab", "ketamine")).toEqual({ tab: DEFAULT_DEV_TAB, slug: "ketamine" });
     // Prototype names are not tabs.
     expect(resolveDevRoute("constructor", undefined)).toEqual({ tab: DEFAULT_DEV_TAB });
