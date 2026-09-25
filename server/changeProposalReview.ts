@@ -19,6 +19,7 @@ import { deriveProposalTargets, hashProposalTarget, proposalHashDocument } from 
 import { proposalChangelogArticles, type ProposalArticleRow } from "../lib/proposals/proposalChangelogStamp";
 import { buildProposalDiff } from "./lib/changeProposalDiff";
 import { indexLayoutRevalidationPath, type IndexLayoutType } from "./lib/saveRevalidationPaths";
+import { clearInboxClaim } from "./lib/inboxClaimSources";
 
 /**
  * Admin review of change proposals: approve (which applies in the same
@@ -144,6 +145,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
       reviewedAt: now,
       updatedAt: now,
     });
+    await clearInboxClaim(ctx, "proposals", proposal._id);
     return { status: "changes_requested" as const, conflictReason };
   }
 
@@ -176,6 +178,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     reviewedAt: now,
     updatedAt: now,
   });
+  await clearInboxClaim(ctx, "proposals", proposal._id);
   return { status: "applied" as const, revalidatePaths };
 }
 
@@ -209,6 +212,7 @@ export async function rejectHandler(ctx: MutationCtx, args: ReviewArgs & { note:
     reviewedAt: now,
     updatedAt: now,
   });
+  await clearInboxClaim(ctx, "proposals", proposal._id);
   return { status: "rejected" as const };
 }
 

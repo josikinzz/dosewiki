@@ -9,6 +9,9 @@ import {
   signInAs,
 } from "@/test/routeHarness";
 
+import { INBOX_CLAIM_ITEM_ID_MAX, INBOX_CLAIM_SOURCES } from "../../../../../../server/lib/inboxClaimSources";
+import { INBOX_CLAIM_SOURCES as SERVER_SOURCES } from "../../../../../../server/inboxClaims";
+
 installProtectedRouteMocks();
 const { GET, POST } = await import("./route");
 
@@ -61,6 +64,28 @@ describe("inbox claims route", () => {
     const response = await POST(claimRequest({ action: "release", source: "review-recommendations", id: "lsd" }));
     await expect(response.json()).resolves.toEqual({ ok: true, released: true });
     expect(getFunctionName(routeMocks.mutation.mock.calls[0][0] as never)).toBe("inboxClaims:release");
+  });
+
+  it("takes over through its own mutation as the signed-in admin", async () => {
+    routeMocks.mutation.mockResolvedValue({ source: "proposals", item_id: "p1", claimed_by: "admin@example.com", claimed_at: "now" });
+    const response = await POST(claimRequest({ action: "takeover", source: "proposals", id: "p1" }));
+    await expect(response.json()).resolves.toMatchObject({ ok: true, claim: { claimed_by: "admin@example.com" } });
+    const [reference, args] = routeMocks.mutation.mock.calls[0];
+    expect(getFunctionName(reference as never)).toBe("inboxClaims:takeOver");
+    expect(args).toMatchObject({ actorEmail: "admin@example.com", source: "proposals", item_id: "p1" });
+  });
+
+  it("accepts exactly the one shared source list the server validates against", async () => {
+    // The server module re-exports the same list, not a copy of it.
+    expect(SERVER_SOURCES).toBe(INBOX_CLAIM_SOURCES);
+    routeMocks.mutation.mockResolvedValue({ source: "citations", item_id: "x", claimed_by: "admin@example.com", claimed_at: "now" });
+    for (const source of INBOX_CLAIM_SOURCES) {
+      expect((await POST(claimRequest({ action: "claim", source, id: "x" }))).status).toBe(200);
+    }
+    expect(routeMocks.mutation).toHaveBeenCalledTimes(INBOX_CLAIM_SOURCES.length);
+    const tooLong = "a".repeat(INBOX_CLAIM_ITEM_ID_MAX + 1);
+    expect((await POST(claimRequest({ action: "claim", source: "citations", id: tooLong }))).status).toBe(400);
+    expect((await POST(claimRequest({ action: "claim", source: "citations", id: tooLong.slice(1) }))).status).toBe(200);
   });
 
   it("refuses a malformed body before calling Postgres", async () => {

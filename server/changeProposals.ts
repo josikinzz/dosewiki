@@ -9,6 +9,7 @@ import { buildArticlePatches, buildProposalDiff } from "./lib/changeProposalDiff
 import { readArticlePatches, type ArticlePatch } from "../lib/proposals/articlePatch";
 import type { ProposalPayload, ProposalSnapshotEntry } from "./lib/changeProposalApply";
 import { requireRole } from "./lib/auth";
+import { clearInboxClaim } from "./lib/inboxClaimSources";
 import { deriveProposalTargets, proposalHashDocument, readProposalTarget } from "./lib/changeProposalTargets";
 import {
   indexLayoutValidator,
@@ -227,6 +228,8 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
   }
   if (prior) {
     await ctx.db.patch(prior._id, { status: "superseded", updatedAt: now });
+    // The revision is a new Inbox item; the superseded one's claim goes with it.
+    await clearInboxClaim(ctx, "proposals", prior._id);
   }
   return { proposalId };
 }

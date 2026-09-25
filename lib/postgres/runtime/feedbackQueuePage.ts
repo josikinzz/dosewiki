@@ -41,9 +41,15 @@ export class InvalidFeedbackQueueCursorError extends Error {
   }
 }
 
-const SEARCH_COLUMNS: Record<FeedbackQueueTable, readonly string[]> = {
-  articleFeedback: ["substance_title", "substance_slug", "category", "details", "source_url", "contact_email", "review_notes"],
-  siteFeedback: ["category", "urgency", "details", "page", "email", "review_notes"],
+/**
+ * The columns search reads. Reader contact details (`contact_email`, `email`)
+ * are left out on purpose: search travels in the GET query string, and a
+ * contact detail must never enter a URL (docs/glossary.md), so the queue
+ * cannot be searched by one.
+ */
+const FEEDBACK_SEARCH_COLUMNS: Record<FeedbackQueueTable, readonly string[]> = {
+  articleFeedback: ["substance_title", "substance_slug", "category", "details", "source_url", "review_notes"],
+  siteFeedback: ["category", "urgency", "details", "page", "review_notes"],
 };
 
 const IMPORTANCE_COLUMN: Record<FeedbackQueueTable, string> = {
@@ -63,7 +69,7 @@ function searchTerm(table: FeedbackQueueTable, search: string | undefined, param
   const trimmed = search?.trim();
   if (!trimmed) return null;
   params.push(`%${trimmed.replace(/[\\%_]/g, (match) => `\\${match}`)}%`);
-  const haystack = `concat_ws(' ', ${SEARCH_COLUMNS[table].map((column) => quote(column)).join(", ")})`;
+  const haystack = `concat_ws(' ', ${FEEDBACK_SEARCH_COLUMNS[table].map((column) => quote(column)).join(", ")})`;
   return `${haystack} ILIKE $${params.length} ESCAPE '\\'`;
 }
 

@@ -14,6 +14,17 @@ export type QueueSort = "oldest" | "newest" | "importance";
 
 export type StatusCounts = Record<FeedbackQueueStatus, number>;
 
+/**
+ * Whether text looks like a reader's contact details: anything with an @ or
+ * a run of seven or more digits. Such text never goes in an address: not in
+ * a task link, and not in the queue's own search request, so the queue
+ * cannot be searched by it at all.
+ */
+export function looksLikeContactDetails(text: string): boolean {
+  const trimmed = text.trim();
+  return trimmed.includes("@") || /\d[\d\s().-]{5,}\d/.test(trimmed);
+}
+
 /** What one queue request asks for. `cursor` continues the same query; null starts it. */
 export type FeedbackPageQuery = {
   status: FeedbackQueueFilter;

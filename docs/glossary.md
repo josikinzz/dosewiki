@@ -339,7 +339,7 @@ The admin's entry point in `/dev`: one list of everything that waits on an admin
 _Avoid_: dashboard, queue of queues
 
 **Claim**:
-Taking an Inbox item so a second admin does not triage it too. Claiming moves the item to Reviewing with the claimer's name. Trip reports and feedback claim through their status, and the decision log names the claimer; citation articles, proposals and review recommendations have no Reviewing status of their own, so their claims live in `inboxClaims`. Only the claimer can release a claim.
+Taking an Inbox item so a second admin does not triage it too. Claiming moves the item to Reviewing with the claimer's name. Trip reports and feedback claim through their status, and the decision log names the claimer; citation articles, proposals and review recommendations have no Reviewing status of their own, so their claims live in `inboxClaims`. Only the claimer can release a claim; another admin can take it over after confirming, which records them as the claimer. Deciding the item ends its claim, and a claim untouched for a day shows as Claim expired and no longer holds the item.
 _Avoid_: assign (for claiming yourself), lock
 
 **Intake Status**:
@@ -358,7 +358,7 @@ The Feedback queue's **Unresolved** filter lists New and Reviewing together. It 
 _Avoid_: Not published (for Rejected or Spam), Exported (for Published), Approved (as a status word; Approve stays the citation action), Needs review (as a status; it names the trip report bucket and a citation qualifier)
 
 **Task Link**:
-An App Path that opens one item in the tool that owns it, with the non-sensitive queue context around it: `/dev/article-feedback/<id>?source=&status=&sort=&q=` for feedback, `/dev/queue/<id>` for a proposal, `/dev/queue?recommendation=<slug>` for a review recommendation. The address bar holds the task link as the editor works, and Copy link copies it, so a reload, a shared link, or Back to feedback from a Start correction page opens the same item in the same queue. An item that was removed, or that sits above the reader's role, reads "This item no longer exists or you cannot open it", never another item selected in its place. Reader contact details never enter a task link: a search that looks like an email address or a phone number stays out of the address.
+An App Path that opens one item in the tool that owns it, with the non-sensitive queue context around it: `/dev/article-feedback/<id>?source=&status=&sort=&q=` for feedback, `/dev/queue/<id>` for a proposal, `/dev/queue?recommendation=<slug>` for a review recommendation. The address bar holds the task link as the editor works, and Copy link copies it, so a reload, a shared link, or Back to feedback from a Start correction page opens the same item in the same queue. An item that was removed, or that sits above the reader's role, reads "This item no longer exists or you cannot open it", never another item selected in its place. Reader contact details never enter a task link or a queue request: a search that looks like an email address or a phone number stays out of the address and is never sent, the queue says contact details cannot be searched, and the server's feedback search does not read contact columns.
 _Avoid_: permalink, deep link (for the whole context), share URL
 
 **Saved View**:

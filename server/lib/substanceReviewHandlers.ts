@@ -27,6 +27,7 @@ import {
 } from "./articleRevisionJournal";
 import { articleDocument, type ArticleDocument } from "./articleLifecycleValidation";
 import { isRecommendationStale, REVIEW_INITIAL_REVISION } from "../../src/schema/substance/editorial";
+import { clearInboxClaim } from "./inboxClaimSources";
 
 export type ReviewFlagInput = {
   label: string;
@@ -183,6 +184,8 @@ export async function setEditorialReviewHandler(
       : {}),
   };
   await ctx.db.patch(article._id, { editorial_review: editorialReview });
+  // A sign-off answers any waiting recommendation, so its Inbox claim ends.
+  if (args.status === "completed") await clearInboxClaim(ctx, "review-recommendations", args.slug);
   return { slug: args.slug, editorial_review: editorialReview };
 }
 
@@ -313,6 +316,7 @@ export async function approveReviewRecommendationsHandler(
       reviewed_revision: recommendation.revision,
     };
     await ctx.db.patch(article._id, { editorial_review: editorialReview });
+    await clearInboxClaim(ctx, "review-recommendations", item.slug);
     outcome.approved.push(item.slug);
   }
   return outcome;
