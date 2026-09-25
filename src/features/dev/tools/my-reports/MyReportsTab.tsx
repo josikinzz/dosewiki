@@ -2,7 +2,8 @@
 
 /**
  * My reports: `/dev/my-reports`. The published trip reports the signed-in
- * member owns, each openable in a content editor.
+ * member owns, each openable in a content editor, and the status of the trip
+ * reports they submitted with this account's email.
  *
  * Contributor floor. The editor is deliberately narrower than the portal's:
  * title, tags, and the report body (introduction, the three timelines, the
@@ -21,6 +22,7 @@ import {
   EditorNotice,
   EditorPanel,
   EditorSection,
+  EditorStatusPill,
   EditorTable,
   EditorTableBody,
   EditorTableCell,
@@ -34,18 +36,22 @@ import {
   useUnsavedWork,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
+import { INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import { PortalReportTimelineEditor } from "../trip-report-portal/PortalReportTimelineEditor";
 import {
   assignReportOwner,
+  fetchMySubmissions,
   fetchOwnedRecord,
   fetchOwnedReports,
   formatPublished,
   saveOwnedReport,
   sortOwnedReports,
+  type MemberSubmission,
   type OwnedReportRecord,
   type OwnedReportRow,
 } from "./myReportsModel";
+import { assignedNotice, MY_REPORTS_EMPTY_DESCRIPTION } from "./ownershipCopy";
 
 type OpenReport = { record: OwnedReportRecord; draft: TripReportEditableFields };
 
@@ -169,7 +175,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
             tone="neutral"
             icon="lucide:notebook"
             title="No reports yet"
-            description="A report you submitted with this account's email becomes yours when it is published. An admin can also hand you one."
+            description={MY_REPORTS_EMPTY_DESCRIPTION}
             compact
           />
         ) : (
@@ -199,6 +205,8 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
         />
       ) : null}
 
+      <SubmissionsSection />
+
       {discardDialog}
       {publishDialog}
 
@@ -222,7 +230,7 @@ function AssignOwnerSection({ onAssigned }: { onAssigned: () => void }) {
     setNotice(null);
     try {
       const result = await assignReportOwner(slug, email);
-      setNotice({ tone: "success", message: `/reports/${result.slug} now belongs to ${result.ownerEmail}.` });
+      setNotice({ tone: "success", message: assignedNotice(result.slug, result.ownerEmail) });
       setSlug("");
       setEmail("");
       onAssigned();
@@ -269,6 +277,107 @@ function AssignOwnerSection({ onAssigned }: { onAssigned: () => void }) {
       </form>
     </EditorSection>
   );
+}
+
+/**
+ * The member's own submissions and where each stands, in the shared intake
+ * status words. A rejected one shows the public reason the reviewer gave;
+ * private review notes never reach this page.
+ */
+function SubmissionsSection() {
+  const [rows, setRows] = useState<MemberSubmission[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoadError(null);
+    try {
+      setRows(await fetchMySubmissions());
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Unable to load your submissions.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return (
+    <EditorSection
+      icon="lucide:inbox"
+      title="Submissions"
+      description="Trip reports you submitted with this account's email, and where each one stands. Nothing is emailed, so check here for decisions."
+      headingLevel="h3"
+    >
+      {loadError ? (
+        <LoadErrorState message={loadError} onRetry={() => void load()} />
+      ) : rows === null ? (
+        <StateCard loading compact title="Loading your submissions" />
+      ) : rows.length === 0 ? (
+        <StateCard
+          tone="neutral"
+          icon="lucide:inbox"
+          title="No submissions"
+          description="A trip report you submit with this account's email appears here with its status."
+          compact
+        />
+      ) : (
+        <EditorTable className="md:min-w-[40rem]">
+          <EditorTableHead>
+            <EditorTableHeading>Title</EditorTableHeading>
+            <EditorTableHeading>Status</EditorTableHeading>
+            <EditorTableHeading>Submitted</EditorTableHeading>
+            <EditorTableHeading>Details</EditorTableHeading>
+          </EditorTableHead>
+          <EditorTableBody>
+            {rows.map((row) => (
+              <EditorTableRow key={row.id} data-submission={row.id}>
+                <EditorTableCell wide>
+                  <span className="block truncate text-sm font-medium theme-text-primary">{row.title}</span>
+                </EditorTableCell>
+                <EditorTableCell label="Status">
+                  <EditorStatusPill tone={INTAKE_STATUS_TONE[row.status]}>{INTAKE_STATUS_LABEL[row.status]}</EditorStatusPill>
+                </EditorTableCell>
+                <EditorTableCell label="Submitted" className="theme-text-secondary font-mono text-xs">
+                  {row.submitted_at.slice(0, 10)}
+                </EditorTableCell>
+                <EditorTableCell label="Details" wide className="theme-text-secondary text-sm">
+                  <SubmissionDetails row={row} />
+                </EditorTableCell>
+              </EditorTableRow>
+            ))}
+          </EditorTableBody>
+        </EditorTable>
+      )}
+    </EditorSection>
+  );
+}
+
+function SubmissionDetails({ row }: { row: MemberSubmission }) {
+  if (row.public_reason) {
+    return (
+      <span>
+        <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">Reason: </span>
+        {row.public_reason}
+      </span>
+    );
+  }
+  if (row.status === "published" && row.report_slug) {
+    return (
+      <a href={`/reports/${row.report_slug}`} target="_blank" rel="noreferrer" className="font-mono text-xs hover:underline">
+        /reports/{row.report_slug}
+      </a>
+    );
+  }
+  if (row.status === "rejected") {
+    return <span className="theme-text-faint">No reason was given.</span>;
+  }
+  if (row.status === "published") {
+    return <span className="theme-text-faint">Live on the site.</span>;
+  }
+  if (row.status === "accepted") {
+    return <span className="theme-text-faint">Accepted and waiting to be published.</span>;
+  }
+  return <span className="theme-text-faint">Waiting on a reviewer.</span>;
 }
 
 function OwnedReportTable({

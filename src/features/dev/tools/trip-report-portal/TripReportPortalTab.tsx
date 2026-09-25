@@ -42,6 +42,8 @@ export function TripReportPortalTab() {
   // strip's disclosure. At xl the list has its own column and ignores it.
   const [stripOpen, setStripOpen] = useState(true);
   const {
+    assignable,
+    assignToSuggestedOwner,
     bucket,
     busy,
     changeSubmissionStatus,
@@ -409,6 +411,13 @@ export function TripReportPortalTab() {
                 contributors={corpus.contributors}
                 triageRef={triageRef}
                 feedback={feedback}
+                feedbackAction={
+                  assignable ? (
+                    <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void assignToSuggestedOwner()}>
+                      Assign to this member
+                    </Button>
+                  ) : null
+                }
                 promotionPayload={promotionPayload}
                 queuePosition={queuePosition}
                 submission={selectedSubmission}
@@ -416,7 +425,7 @@ export function TripReportPortalTab() {
                 onDismissFeedback={() => setFeedback(null)}
                 onNavigate={selectAdjacent}
                 onPromotion={(publish, attribution) => void runPromotion(publish, attribution)}
-                onStatusChange={(status, notes) => void changeSubmissionStatus(status, notes)}
+                onStatusChange={(status, notes, publicReason) => void changeSubmissionStatus(status, notes, publicReason)}
               />
             ) : null}
           </div>

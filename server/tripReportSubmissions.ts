@@ -10,13 +10,16 @@ import {
   withEditorAssignedProfileKey,
 } from "./lib/tripReportAttribution";
 import {
+  memberSubmissionValidator,
   portalSubmissionIndexValidator,
   promotionPreviewValidator,
   promotionResultValidator,
   statusValidator,
   submissionRowValidator,
+  toMemberSubmission,
   toPortalSubmissionSummary,
   toSubmissionRow,
+  type MemberSubmission,
   type SubmissionRow,
   type SubmissionStatus,
 } from "./lib/tripReportSubmissionRows";
@@ -213,6 +216,50 @@ export const get = query({
   },
 });
 
+/**
+ * The signed-in member's own submissions for My reports, newest first. A
+ * submission links to a member only through its contact email, so the match
+ * is the resolved actor's membership email (from the Auth.js session, never a
+ * caller-supplied address) against the stored contact email. Spam is internal
+ * triage and is not listed. Each row is the member projection: status word,
+ * dates, public reason and published address only.
+ */
+export async function listMineHandler(ctx: QueryCtx, args: { apiKey: string; actorEmail?: string }) {
+  if (!args.actorEmail?.trim()) {
+    // A server-key call that names nobody acts as the system, which submitted nothing.
+    throw new Error("A signed-in member is required to list their submissions.");
+  }
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "contributor",
+  );
+
+  const rows = (await ctx.db.query("tripReportSubmissions").collect()).filter(
+    (row) =>
+      row.contact_email?.trim().toLowerCase() === actor.email &&
+      row.status !== "spam" &&
+      !row.honeypot_triggered,
+  );
+  rows.sort((left, right) => right.created_at.localeCompare(left.created_at));
+
+  const mine: MemberSubmission[] = [];
+  for (const row of rows) {
+    const report = row.exported_trip_report_id ? await ctx.db.get(row.exported_trip_report_id) : null;
+    mine.push(toMemberSubmission(row, report?.slug));
+  }
+  return mine;
+}
+
+export const listMine = query({
+  args: {
+    apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
+  },
+  returns: v.array(memberSubmissionValidator),
+  handler: listMineHandler,
+});
+
 export const transition = mutation({
   args: {
     apiKey: v.string(),
@@ -220,6 +267,8 @@ export const transition = mutation({
     id: v.string(),
     status: statusValidator,
     notes: v.optional(v.string()),
+    // Shown to the author in My reports; the note above stays private.
+    publicReason: v.optional(v.string()),
   },
   returns: submissionRowValidator,
   handler: async (ctx, args) => {
@@ -237,6 +286,7 @@ export const transition = mutation({
     const timestamp = new Date().toISOString();
     // A blank note records only the outcome; the stored note stays.
     const notes = decisionNoteOrUndefined(args.notes);
+    const publicReason = decisionNoteOrUndefined(args.publicReason);
     // The resolved actor, never a caller-supplied name.
     const reviewer = auditStampFor(actor, undefined);
     const patch = {
@@ -251,6 +301,7 @@ export const transition = mutation({
         from: doc.status,
         to: args.status,
         ...(notes !== undefined ? { note: notes } : {}),
+        ...(publicReason !== undefined ? { public_reason: publicReason } : {}),
       }),
     };
     await ctx.db.patch(doc._id, patch);

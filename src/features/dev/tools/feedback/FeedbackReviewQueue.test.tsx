@@ -138,6 +138,19 @@ describe.each([
     await waitFor(() => expect(screen.getByLabelText("Review note")).toHaveValue(""));
   });
 
+  it("links the contact email to a reply pre-filled with the reader's note", async () => {
+    stubFetch(basePath, [row]);
+    render(queue);
+
+    const link = await screen.findByRole("link", { name: "reader@example.com" });
+    const href = new URL(link.getAttribute("href") ?? "");
+    expect(href.protocol).toBe("mailto:");
+    expect(decodeURIComponent(href.pathname)).toBe("reader@example.com");
+    expect(href.searchParams.get("subject")).toMatch(/^Your dose\.wiki feedback/);
+    expect(href.searchParams.get("body")).toContain(`> ${row.details}`);
+    expect(link).not.toHaveAttribute("target");
+  });
+
   it("shows every past decision in the log, oldest first, with who and why", async () => {
     stubFetch(basePath, [
       {

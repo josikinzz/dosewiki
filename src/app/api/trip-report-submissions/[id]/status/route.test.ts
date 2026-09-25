@@ -85,6 +85,25 @@ describe("trip report submission status route", () => {
     }
   });
 
+  it("forwards a public reason apart from the private note, and none when it is blank", async () => {
+    const { POST } = await import("./route");
+
+    await POST(
+      statusRequest({ status: "rejected", notes: "Private.", public_reason: "The dose is missing." }),
+      context,
+    );
+    expect(mocks.storeTransition).toHaveBeenLastCalledWith("submission-1", {
+      status: "rejected",
+      actorEmail: "admin@example.com",
+      notes: "Private.",
+      publicReason: "The dose is missing.",
+    });
+
+    await POST(statusRequest({ status: "rejected", public_reason: "  " }), context);
+    const [, options] = mocks.storeTransition.mock.lastCall!;
+    expect("publicReason" in options).toBe(false);
+  });
+
   it("refuses an editor before touching the store", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");

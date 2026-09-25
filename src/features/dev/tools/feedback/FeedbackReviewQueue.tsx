@@ -1073,8 +1073,8 @@ export function FeedbackMetadataItem({ href, label, value }: { href?: string; la
       {href ? (
         <a
           href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+          // A mailto link opens the mail app, not a new tab.
+          {...(href.startsWith("mailto:") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
           className="theme-accent-heading mt-1 block break-all text-sm hover:underline"
         >
           {value}

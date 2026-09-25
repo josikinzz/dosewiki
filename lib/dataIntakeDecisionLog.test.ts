@@ -8,6 +8,7 @@ import { transition as siteFeedbackTransition } from "../server/siteFeedback";
 import {
   create as submissionCreate,
   get as submissionGet,
+  listMineHandler,
   promoteHandler,
   transition as submissionTransition,
 } from "../server/tripReportSubmissions";
@@ -243,6 +244,94 @@ describe("trip report submission decision log", () => {
     const [stored] = [...rowsOf("tripReportSubmissions").values()];
     expect(stored).toBeDefined();
     expect(stored).not.toHaveProperty("decision_log");
+  });
+});
+
+describe("a submitter's own submissions", () => {
+  const author: Row = { ...admin, _id: "m2", email: "author@example.com", role: "contributor" };
+  const other: Row = { ...admin, _id: "m3", email: "other@example.com", role: "contributor" };
+
+  async function rejectWithReason(ctx: MutationCtx) {
+    await handlerOf(submissionTransition)(ctx, {
+      ...as("admin@example.com"),
+      id: "sub-1",
+      status: "rejected",
+      notes: "Looks like a copy of an Erowid report.",
+      publicReason: "The dose for the second substance is missing.",
+    });
+  }
+
+  it("stores the public reason on the decision entry, apart from the private note", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [admin], tripReportSubmissions: [submission()] });
+
+    await rejectWithReason(ctx);
+
+    expect(rowsOf("tripReportSubmissions").get("s1")?.decision_log).toEqual([
+      {
+        at: "2026-03-01T10:00:00.000Z",
+        actor: "admin@example.com",
+        from: "submitted",
+        to: "rejected",
+        note: "Looks like a copy of an Erowid report.",
+        public_reason: "The dose for the second substance is missing.",
+      },
+    ]);
+  });
+
+  it("shows the author status and public reason only, matched by their signed-in email", async () => {
+    const { ctx } = createCtx({
+      memberships: [admin, author, other],
+      tripReportSubmissions: [
+        submission({ contact_email: "Author@Example.com " }),
+        submission({ _id: "s2", id: "sub-2", title: "Someone else", contact_email: "other@example.com" }),
+        submission({ _id: "s3", id: "sub-3", title: "Junk", status: "spam", contact_email: "author@example.com" }),
+      ],
+    });
+    await rejectWithReason(ctx);
+
+    const mine = await listMineHandler(ctx, as("author@example.com"));
+
+    expect(mine).toEqual([
+      {
+        id: "sub-1",
+        title: "Alpine clarity",
+        status: "rejected",
+        submitted_at: "2026-01-01T00:00:00.000Z",
+        decided_at: "2026-03-01T10:00:00.000Z",
+        public_reason: "The dose for the second substance is missing.",
+      },
+    ]);
+    const serialized = JSON.stringify(mine);
+    expect(serialized).not.toContain("Erowid");
+    expect(serialized).not.toContain("admin@example.com");
+  });
+
+  it("never lets another member read it", async () => {
+    const { ctx } = createCtx({
+      memberships: [admin, author, other],
+      tripReportSubmissions: [submission({ contact_email: "author@example.com" })],
+    });
+    await rejectWithReason(ctx);
+
+    await expect(listMineHandler(ctx, as("other@example.com"))).resolves.toEqual([]);
+    // An admin reading "mine" gets only their own too.
+    await expect(listMineHandler(ctx, as("admin@example.com"))).resolves.toEqual([]);
+    // A server call that names no member is refused rather than read as the system.
+    await expect(listMineHandler(ctx, { apiKey: SERVER_KEY })).rejects.toThrow(/signed-in member/);
+  });
+
+  it("links a published submission to its public address", async () => {
+    const { ctx } = createCtx({
+      memberships: [admin, author],
+      tripReports: [{ _id: "tr1", slug: "alpine-clarity" }],
+      tripReportSubmissions: [
+        submission({ status: "exported", contact_email: "author@example.com", exported_trip_report_id: "tr1" }),
+      ],
+    });
+
+    const [row] = await listMineHandler(ctx, as("author@example.com"));
+
+    expect(row).toMatchObject({ status: "published", report_slug: "alpine-clarity" });
   });
 });
 

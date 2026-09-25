@@ -21,7 +21,10 @@ export type DecisionLogEntry<Status extends string = string> = {
   to: Status;
   /** The reviewer's private note. */
   note?: string;
-  /** Reason the submitter may see. Stored when given; nothing shows it yet. */
+  /**
+   * Reason the submitter may see. Trip report authors read it in My reports
+   * while the decision that carries it still stands (see `publicReasonOf`).
+   */
   public_reason?: string;
   /** True on the entry derived from a review note stored before the log existed. */
   migrated?: boolean;
@@ -75,6 +78,21 @@ export function appendDecision<Status extends string>(
   entry: DecisionLogEntry<Status>,
 ): DecisionLogEntry<Status>[] {
   return [...decisionLogOf(row), withoutEmptyText(entry)];
+}
+
+/**
+ * The public reason a submitter may read: the one on the latest decision, and
+ * only while that decision still stands (the row is in the status it moved
+ * to). A reason given on a rejection that was later reopened is not shown.
+ * Private notes and the actor never leave through here.
+ */
+export function publicReasonOf<Status extends string>(row: DecisionLogged<Status>): string | undefined {
+  const log = decisionLogOf(row);
+  const latest = log[log.length - 1];
+  if (!latest || latest.to !== row.status) {
+    return undefined;
+  }
+  return latest.public_reason?.trim() || undefined;
 }
 
 function withoutEmptyText<Status extends string>(entry: DecisionLogEntry<Status>): DecisionLogEntry<Status> {

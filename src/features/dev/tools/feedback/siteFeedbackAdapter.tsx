@@ -12,6 +12,7 @@ import {
   formatFeedbackDate,
   type FeedbackSourceAdapter,
 } from "./FeedbackReviewQueue";
+import { feedbackReplyHref } from "./feedbackQueueModel";
 import { createFeedbackRequests } from "./feedbackRequests";
 
 type SiteFeedbackQueueItem = Pick<
@@ -87,7 +88,19 @@ export const siteFeedbackAdapter: FeedbackSourceAdapter<SiteFeedbackQueueItem> =
 
       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         <FeedbackMetadataItem label="Received" value={formatFeedbackDate(row.created_at)} />
-        <FeedbackMetadataItem label="Contact email" value={row.email} />
+        <FeedbackMetadataItem
+          label="Contact email"
+          value={row.email}
+          href={
+            row.email
+              ? feedbackReplyHref(
+                  row.email,
+                  `Your dose.wiki feedback: ${SITE_FEEDBACK_CATEGORY_LABELS[row.category].toLowerCase()}`,
+                  row.details,
+                )
+              : undefined
+          }
+        />
         <FeedbackMetadataItem label="Honeypot" value={row.honeypot_triggered ? "Triggered" : undefined} />
       </div>
     </>

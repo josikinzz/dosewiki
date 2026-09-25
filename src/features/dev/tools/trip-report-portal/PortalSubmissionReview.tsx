@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type MutableRefObject, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,8 +90,11 @@ export function PortalSubmissionReview({
   onDismissFeedback: () => void;
   onNavigate: (direction: -1 | 1) => void;
   onPromotion: (publish: boolean, attribution: PromotionAttribution) => void;
-  /** `notes` is omitted when the field is blank, so the stored note stays. */
-  onStatusChange: (status: TripReportSubmissionStatus, notes?: string) => void;
+  /**
+   * `notes` is omitted when the field is blank, so the stored note stays.
+   * `publicReason` is what the author reads in My reports; only Reject asks for one.
+   */
+  onStatusChange: (status: TripReportSubmissionStatus, notes?: string, publicReason?: string) => void;
   promotionPayload: DataTripReportImportPayload | null;
   /** Where this row sits in the list as painted; `index` is -1 once it has filtered out. */
   queuePosition: { index: number; total: number };
@@ -101,6 +104,8 @@ export function PortalSubmissionReview({
   const [confirmAuthorNameClaim, setConfirmAuthorNameClaim] = useState(false);
   const [note, setNote] = useState("");
   const [pending, setPending] = useState<PendingAction | null>(null);
+  // The reject dialog's public reason; read when the reject is confirmed.
+  const publicReasonRef = useRef("");
   const { confirm, dialog } = useConfirm();
   const contributorOptions = useMemo<SearchablePickerOption[]>(() => {
     const byKey = new Map<string, SearchablePickerOption>();
@@ -125,21 +130,23 @@ export function PortalSubmissionReview({
     queuePosition.total > 0 &&
     (queuePosition.index === -1 || queuePosition.index < queuePosition.total - 1);
 
-  function decide(status: TripReportSubmissionStatus) {
+  function decide(status: TripReportSubmissionStatus, publicReason?: string) {
     setPending(status);
-    onStatusChange(status, note.trim() || undefined);
+    onStatusChange(status, note.trim() || undefined, publicReason);
   }
 
   const noteId = `trip-report-decision-note-${submission.id}`;
   const canDecide = (status: TripReportSubmissionStatus) => !busy && validTargets.includes(status);
 
   function confirmReject() {
+    publicReasonRef.current = "";
     confirm({
       title: "Reject this submission?",
-      description: `"${submission.title}" leaves the review queue. You can reopen it later from the All bucket; the author is not notified.`,
+      description: `"${submission.title}" leaves the review queue. You can reopen it later from the All bucket. Nothing is emailed: an author signed in with the contact email sees the status, and the public reason if you give one, in My reports.`,
+      body: <PublicReasonField id={`trip-report-public-reason-${submission.id}`} onChange={(value) => (publicReasonRef.current = value)} />,
       confirmLabel: "Reject",
       destructive: true,
-      onConfirm: () => decide("rejected"),
+      onConfirm: () => decide("rejected", publicReasonRef.current.trim() || undefined),
     });
   }
 
@@ -494,6 +501,33 @@ function PromotionPreview({
         ))}
       </dl>
     </section>
+  );
+}
+
+/**
+ * The reject dialog's reason for the author. It holds its own text so the
+ * dialog, which is raised once, still re-renders as the admin types.
+ */
+function PublicReasonField({ id, onChange }: { id: string; onChange: (value: string) => void }) {
+  const [value, setValue] = useState("");
+  return (
+    <EditorField
+      id={id}
+      label="Public reason (shown to the author)"
+      description="Optional. The decision note stays private; this is the only text the author sees."
+    >
+      {(controlProps) => (
+        <Input
+          {...controlProps}
+          value={value}
+          placeholder="What the author should know"
+          onChange={(event) => {
+            setValue(event.target.value);
+            onChange(event.target.value);
+          }}
+        />
+      )}
+    </EditorField>
   );
 }
 
