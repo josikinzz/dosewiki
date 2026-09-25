@@ -113,3 +113,21 @@ export function pageLocally<Item extends FeedbackQueueItem>(
     nextCursor: end < listed.length ? String(end) : null,
   };
 }
+
+/**
+ * A reply link for a reader who left a contact email: the admin's own mail
+ * app opens with a subject and the reader's note quoted, ready to answer.
+ * Nothing is sent from dose.wiki.
+ */
+export function feedbackReplyHref(email: string, subject: string, note: string): string {
+  const quoted = note
+    .trim()
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
+  const params = [`subject=${encodeURIComponent(subject)}`];
+  if (quoted) {
+    params.push(`body=${encodeURIComponent(`\n\nYou wrote:\n${quoted}\n`)}`);
+  }
+  return `mailto:${encodeURIComponent(email.trim())}?${params.join("&")}`;
+}

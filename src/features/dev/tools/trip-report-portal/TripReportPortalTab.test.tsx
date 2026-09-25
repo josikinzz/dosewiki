@@ -7,6 +7,7 @@ import {
   useDevRailBadges,
 } from "@/features/dev/pages/useDevRailBadges";
 import { appendDecision } from "@/features/intake/decisionLog";
+import { MY_REPORTS_EMPTY_DESCRIPTION, OWNERSHIP_RULE } from "../my-reports/ownershipCopy";
 import { TripReportPortalTab } from "./TripReportPortalTab";
 
 const submission = {
@@ -747,5 +748,121 @@ describe("TripReportPortalTab keyboard triage and bulk actions", () => {
     );
     const preview = (await screen.findByRole("heading", { name: "Publish preview" })).closest("section")!;
     expect(within(preview).getByText("nervewing (contributor profile)")).toBeInTheDocument();
+  });
+});
+
+describe("TripReportPortalTab author-facing decisions and ownership", () => {
+  it("stores a public reason for the author with the rejection, apart from the private note", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.type(await screen.findByLabelText("Decision note"), "Reads like a copied report.");
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "Reject this submission?" });
+    // The author can read the reason in My reports, so the dialog no longer says they are never told.
+    expect(within(dialog).getByText(/sees the status, and the public reason if you give one, in My reports/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/the author is not notified/)).not.toBeInTheDocument();
+    await user.type(
+      within(dialog).getByLabelText("Public reason (shown to the author)"),
+      "The dose for the second substance is missing.",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+
+    await waitFor(() => {
+      const post = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith("/submission-1/status"));
+      expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+        status: "rejected",
+        notes: "Reads like a copied report.",
+        public_reason: "The dose for the second substance is missing.",
+      });
+    });
+  });
+
+  it("assigns a just-published report to the matching member without leaving the portal", async () => {
+    const user = userEvent.setup();
+    const ownerPosts: { url: string; body: unknown }[] = [];
+    stubCorpus([acceptedSubmission]);
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/owner") && init?.method === "POST") {
+        const body = JSON.parse(String(init.body)) as { email: string };
+        ownerPosts.push({ url, body });
+        return Response.json({ ok: true, slug: "careful-low-dose-museum-walk", ownerEmail: body.email });
+      }
+      if (url.includes("/api/dev/trip-reports")) {
+        return Response.json({ ok: true, reports: [], contributors: [] });
+      }
+      if (url.includes("/queue")) {
+        return new URL(url, "https://dose.wiki").searchParams.has("id")
+          ? Response.json({ ok: true, submission: acceptedSubmission })
+          : Response.json({ ok: true, needsReview: [acceptedSubmission], history: [] });
+      }
+      if (url.includes("/promote")) {
+        return Response.json({
+          ok: true,
+          published: true,
+          submission: { ...acceptedSubmission, status: "exported" },
+          payload: promotionPayload,
+          suggestedOwner: { email: "author@example.com" },
+        });
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    });
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(screen.getByRole("button", { name: "Publish" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Publish" }));
+
+    // The publish notice and My reports state the same ownership rule.
+    const notice = await screen.findByText(/The contact email matches the member author@example\.com/);
+    expect(notice.textContent).toContain(OWNERSHIP_RULE);
+    expect(MY_REPORTS_EMPTY_DESCRIPTION).toContain(OWNERSHIP_RULE);
+    expect(screen.queryByText(/Assign it from My reports/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Assign to this member" }));
+
+    expect(
+      await screen.findByText(
+        "/reports/careful-low-dose-museum-walk now belongs to author@example.com, who can edit it from My reports.",
+      ),
+    ).toBeInTheDocument();
+    expect(ownerPosts).toEqual([
+      { url: "/api/dev/trip-reports/careful-low-dose-museum-walk/owner", body: { email: "author@example.com" } },
+    ]);
+    // Still in the portal, on the same record, and the offer is spent.
+    expect(screen.getByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Assign to this member" })).not.toBeInTheDocument();
+  });
+
+  it("offers no assignment when the contact email matches no member", async () => {
+    const user = userEvent.setup();
+    stubCorpus([acceptedSubmission]);
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/dev/trip-reports")) return Response.json({ ok: true, reports: [], contributors: [] });
+      if (url.includes("/queue")) {
+        return new URL(url, "https://dose.wiki").searchParams.has("id")
+          ? Response.json({ ok: true, submission: acceptedSubmission })
+          : Response.json({ ok: true, needsReview: [acceptedSubmission], history: [] });
+      }
+      return Response.json({
+        ok: true,
+        submission: { ...acceptedSubmission, status: "exported" },
+        payload: promotionPayload,
+        suggestedOwner: null,
+      });
+    });
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(screen.getByRole("button", { name: "Publish" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Publish" }));
+
+    await screen.findByText('Published "Careful low dose museum walk" to the public trip reports.');
+    expect(screen.queryByRole("button", { name: "Assign to this member" })).not.toBeInTheDocument();
   });
 });

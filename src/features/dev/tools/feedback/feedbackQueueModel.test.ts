@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { FeedbackImportance, FeedbackQueueItem } from "./FeedbackReviewQueue";
-import { defaultSort, pageLocally, totalFor } from "./feedbackQueueModel";
+import { defaultSort, feedbackReplyHref, pageLocally, totalFor } from "./feedbackQueueModel";
 
 type Row = FeedbackQueueItem & { importance?: FeedbackImportance; term: string };
 
@@ -45,5 +45,15 @@ describe("feedback queue model", () => {
     const searched = pageLocally(rows, { status: "all", search: "ketamine", sort: "newest", cursor: null }, importance);
     expect(searched.rows.map((item) => item.id)).toEqual(["late"]);
     expect(searched.counts.new).toBe(1);
+  });
+
+  it("builds a reply link with a subject and the reader's note quoted", () => {
+    const href = feedbackReplyHref(" reader@example.com ", "Your feedback on LSD", "Dose looks high.\nSee source.");
+    const url = new URL(href);
+
+    expect(url.protocol).toBe("mailto:");
+    expect(decodeURIComponent(url.pathname)).toBe("reader@example.com");
+    expect(url.searchParams.get("subject")).toBe("Your feedback on LSD");
+    expect(url.searchParams.get("body")).toBe("\n\nYou wrote:\n> Dose looks high.\n> See source.\n");
   });
 });

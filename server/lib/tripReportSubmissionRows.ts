@@ -6,7 +6,8 @@ import {
   tripReportSubstanceValidator,
 } from "../tripReportContract";
 import { tripReportSubmissionDecisionLog } from "./contentSchemaValidators";
-import { decisionLogOf } from "../../src/features/intake/decisionLog";
+import { decisionLogOf, publicReasonOf } from "../../src/features/intake/decisionLog";
+import { TRIP_REPORT_INTAKE_STATUS } from "../../src/features/intake/intakeStatus";
 
 /** Wire validators and row projections for `server/tripReportSubmissions.ts`. */
 
@@ -75,6 +76,30 @@ const portalSubmissionSummaryValidator = v.object({
   }),
 });
 
+/**
+ * What a submitter reads about their own submission in My reports: the shared
+ * status word, dates, the public reason and the published address. Never the
+ * private review note, the decision log's actors, the report body or intake
+ * metadata.
+ */
+export const memberSubmissionValidator = v.object({
+  id: v.string(),
+  title: v.string(),
+  status: v.union(
+    v.literal("new"),
+    v.literal("reviewing"),
+    v.literal("accepted"),
+    v.literal("rejected"),
+    v.literal("published"),
+  ),
+  submitted_at: v.string(),
+  decided_at: v.optional(v.string()),
+  public_reason: v.optional(v.string()),
+  report_slug: v.optional(v.string()),
+});
+
+export type MemberSubmission = typeof memberSubmissionValidator.type;
+
 export const portalSubmissionIndexValidator = v.object({
   needsReview: v.array(portalSubmissionSummaryValidator),
   history: v.array(portalSubmissionSummaryValidator),
@@ -132,6 +157,24 @@ export function toSubmissionRow(row: SubmissionRow): SubmissionRow {
     exported_at: row.exported_at,
     created_at: row.created_at,
     updated_at: row.updated_at,
+  };
+}
+
+/** A submission as its author may read it; spam rows never reach this projection. */
+export function toMemberSubmission(row: SubmissionRow, reportSlug?: string): MemberSubmission {
+  const status = TRIP_REPORT_INTAKE_STATUS[row.status];
+  if (status === "spam") {
+    throw new Error("A spam submission has no member projection.");
+  }
+  const publicReason = publicReasonOf(row);
+  return {
+    id: row.id,
+    title: row.title,
+    status,
+    submitted_at: row.created_at,
+    ...(row.reviewed_at ? { decided_at: row.reviewed_at } : {}),
+    ...(publicReason ? { public_reason: publicReason } : {}),
+    ...(status === "published" && reportSlug ? { report_slug: reportSlug } : {}),
   };
 }
 

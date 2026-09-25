@@ -60,6 +60,8 @@ export type TripReportSubmissionPromotionResult = {
 export type TripReportSubmissionStatusChange = {
   status: TripReportSubmissionStatus;
   notes?: string;
+  /** Shown to the author in My reports; `notes` stays private. */
+  publicReason?: string;
 };
 
 /** The signed-in member a route acts as; Postgres resolves their real role from it. */
@@ -160,6 +162,7 @@ const transitionSubmissionRef = makeFunctionReference<
     id: string;
     status: TripReportSubmissionStatus;
     notes?: string;
+    publicReason?: string;
   },
   TripReportSubmissionRow
 >("tripReportSubmissions:transition");
@@ -273,6 +276,7 @@ export class DataTripReportSubmissionStore implements TripReportSubmissionStore 
         id,
         status: options.status,
         ...(options.notes !== undefined ? { notes: options.notes } : {}),
+        ...(options.publicReason !== undefined ? { publicReason: options.publicReason } : {}),
       }) as TripReportSubmissionRow;
     } catch (error) {
       throw mapKnownSubmissionError(error, id);

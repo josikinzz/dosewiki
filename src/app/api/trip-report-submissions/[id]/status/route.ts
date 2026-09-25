@@ -22,12 +22,17 @@ type StatusRouteContext = {
 type StatusBody = {
   status?: unknown;
   notes?: unknown;
+  public_reason?: unknown;
 };
 
 const MAX_STATUS_BODY_BYTES = 16 * 1024;
 
 export async function POST(request: Request, context: StatusRouteContext) {
-  return protectedRouteOperation<StatusBody, { status: TripReportSubmissionStatus; notes?: string }>({
+  return protectedRouteOperation<StatusBody, {
+    status: TripReportSubmissionStatus;
+    notes?: string;
+    publicReason?: string;
+  }>({
     // Triage decisions move a submission through the queue; that is an admin call.
     auth: "admin",
     rateLimit: "editorSmallWrite",
@@ -37,6 +42,8 @@ export async function POST(request: Request, context: StatusRouteContext) {
         status: parseStatus(body.status),
         // A blank note records only the outcome and keeps the stored note.
         notes: decisionNoteOrUndefined(body.notes),
+        // What the author reads in My reports; blank records none.
+        publicReason: decisionNoteOrUndefined(body.public_reason),
       }),
     },
     unexpectedErrorLabel: "Failed to update trip report submission status:",
@@ -49,6 +56,7 @@ export async function POST(request: Request, context: StatusRouteContext) {
         status: body.status,
         actorEmail,
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...(body.publicReason !== undefined ? { publicReason: body.publicReason } : {}),
       });
 
       return NextResponse.json({ ok: true, submission });

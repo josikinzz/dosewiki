@@ -263,7 +263,7 @@ _Avoid_: editor sign-off, pending review, soft reviewed
 ## Intake Language
 
 **Decision Log**:
-The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is reserved for a reason the submitter may see; nothing shows it yet. Glossary feedback keeps only its latest note.
+The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is the one reason the submitter may see: a trip report author signed in with the submission's contact email reads it in My reports under Submissions while that decision still stands, and never sees the note, the actor, or anyone else's submissions. Glossary feedback keeps only its latest note.
 _Avoid_: review history (for the note field), audit trail, overwritten note
 
 **Intake Status**:

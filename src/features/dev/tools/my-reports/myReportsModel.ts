@@ -7,6 +7,7 @@
  * which is where ownership is decided.
  */
 
+import type { IntakeStatus } from "@/features/intake/intakeStatus";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 
 export type OwnedReportRow = {
@@ -25,8 +26,32 @@ export type OwnedReportRecord = {
   revision: string;
 };
 
+/**
+ * One of the member's own submissions as the route projects it: the shared
+ * status word, dates, a public reason when one was given, and the published
+ * address. Nothing private travels.
+ */
+export type MemberSubmission = {
+  id: string;
+  title: string;
+  status: Exclude<IntakeStatus, "spam" | "resolved">;
+  submitted_at: string;
+  decided_at?: string;
+  public_reason?: string;
+  report_slug?: string;
+};
+
 const MINE_API = "/api/dev/trip-reports/mine";
+const MY_SUBMISSIONS_API = "/api/dev/trip-reports/mine/submissions";
 const RECORD_API = "/api/dev/trip-reports/record";
+
+export async function fetchMySubmissions(): Promise<MemberSubmission[]> {
+  const payload = await requestJson(MY_SUBMISSIONS_API, undefined, {
+    network: "Network error while loading your submissions.",
+    failure: "Unable to load your submissions.",
+  });
+  return Array.isArray(payload.submissions) ? (payload.submissions as MemberSubmission[]) : [];
+}
 
 export async function fetchOwnedReports(): Promise<OwnedReportRow[]> {
   const payload = await requestJson(MINE_API, undefined, {

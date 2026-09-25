@@ -11,7 +11,8 @@ import {
   switchTabExpectingGuard,
 } from "../../pages/devShellTestHarness";
 import { MyReportsTab } from "./MyReportsTab";
-import type { OwnedReportRecord, OwnedReportRow } from "./myReportsModel";
+import type { MemberSubmission, OwnedReportRecord, OwnedReportRow } from "./myReportsModel";
+import { OWNERSHIP_RULE } from "./ownershipCopy";
 
 const fields: OwnedReportRecord["fields"] = {
   title: "Alpine clarity",
@@ -32,12 +33,15 @@ const ROWS: OwnedReportRow[] = [
 type Call = { path: string; body: Record<string, unknown> | null };
 
 /** Serves the owned list and one record; records every save POST and answers it. */
-function stubReportsApi(rows: OwnedReportRow[], saveStatus = 200) {
+function stubReportsApi(rows: OwnedReportRow[], saveStatus = 200, submissions: MemberSubmission[] = []) {
   const calls: Call[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input), "https://dev.dose.wiki");
     if (url.pathname === "/api/dev/trip-reports/mine") {
       return Response.json({ ok: true, reports: rows });
+    }
+    if (url.pathname === "/api/dev/trip-reports/mine/submissions") {
+      return Response.json({ ok: true, submissions });
     }
     if (url.pathname === "/api/dev/trip-reports/record" && !init) {
       return Response.json({
@@ -95,11 +99,52 @@ describe("MyReportsTab", () => {
     expect(card.getByRole("button", { name: "Edit" })).toBeEnabled();
   });
 
-  it("shows the empty state when nothing is owned", async () => {
+  it("shows the empty state when nothing is owned, stating who grants ownership", async () => {
     stubReportsApi([]);
     render(<MyReportsTab />);
 
     await screen.findByText("No reports yet");
+    expect(screen.getByText((text) => text.includes(OWNERSHIP_RULE))).toBeTruthy();
+    expect(screen.queryByText(/becomes yours when it is published/)).toBeNull();
+  });
+
+  it("lists the member's submissions with status, and the public reason on a rejected one", async () => {
+    stubReportsApi([], 200, [
+      {
+        id: "sub-2",
+        title: "Quiet river",
+        status: "published",
+        submitted_at: "2026-04-01T00:00:00.000Z",
+        report_slug: "quiet-river",
+      },
+      {
+        id: "sub-1",
+        title: "Museum walk",
+        status: "rejected",
+        submitted_at: "2026-03-01T00:00:00.000Z",
+        decided_at: "2026-03-02T00:00:00.000Z",
+        public_reason: "The dose for the second substance is missing.",
+      },
+      { id: "sub-3", title: "Night drive", status: "new", submitted_at: "2026-05-01T00:00:00.000Z" },
+    ]);
+    render(<MyReportsTab />);
+
+    await screen.findByRole("heading", { name: "Submissions" });
+    const rejected = await waitFor(() => {
+      const row = document.querySelector('tr[data-submission="sub-1"]');
+      if (!(row instanceof HTMLTableRowElement)) throw new Error("no row for sub-1");
+      return within(row);
+    });
+    expect(rejected.getByText("Museum walk")).toBeTruthy();
+    expect(rejected.getByText("Rejected")).toBeTruthy();
+    expect(rejected.getByText("The dose for the second substance is missing.")).toBeTruthy();
+
+    const published = within(document.querySelector('tr[data-submission="sub-2"]') as HTMLElement);
+    expect(published.getByText("Published")).toBeTruthy();
+    expect(published.getByRole("link", { name: "/reports/quiet-river" })).toHaveAttribute("href", "/reports/quiet-river");
+
+    const waiting = within(document.querySelector('tr[data-submission="sub-3"]') as HTMLElement);
+    expect(waiting.getByText("New")).toBeTruthy();
   });
 
   it("opens a report, edits the title and saves it through the record route after the publish confirm", async () => {
@@ -228,7 +273,7 @@ describe("MyReportsTab", () => {
     await user.type(screen.getByLabelText("Member email"), "Owner@Example.com");
     await user.click(screen.getByRole("button", { name: "Assign owner" }));
 
-    await screen.findByText("/reports/alpine-clarity now belongs to owner@example.com.");
+    await screen.findByText("/reports/alpine-clarity now belongs to owner@example.com, who can edit it from My reports.");
     expect(calls).toEqual([
       { path: "/api/dev/trip-reports/alpine-clarity/owner", body: { email: "Owner@Example.com" } },
     ]);

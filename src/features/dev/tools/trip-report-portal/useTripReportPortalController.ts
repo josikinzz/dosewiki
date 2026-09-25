@@ -14,6 +14,8 @@ import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
 import type { PromotionAttribution } from "./PortalSubmissionReview";
+import { assignReportOwner } from "../my-reports/myReportsModel";
+import { assignedNotice, publishedNotice } from "../my-reports/ownershipCopy";
 import {
   EMPTY_PORTAL_FACETS,
   filterPortalRows,
@@ -64,6 +66,8 @@ export function useTripReportPortalController() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<DataTripReportImportPayload | null>(null);
   const [submissionDetail, setSubmissionDetail] = useState<TripReportSubmissionRow | null>(null);
+  /** A report just published whose contact email matches a member; the notice offers to assign it. */
+  const [assignable, setAssignable] = useState<{ slug: string; email: string } | null>(null);
   /** The last single status change, so `u` and the Undo button can take it back. */
   const [lastDecision, setLastDecision] = useState<{
     id: string;
@@ -233,6 +237,7 @@ export function useTripReportPortalController() {
       setSelectedId(row.id);
       setFeedback(null);
       setPromotionPayload(null);
+      setAssignable(null);
       setDetail(null);
       setDraft(null);
       setSubmissionDetail(null);
@@ -280,6 +285,7 @@ export function useTripReportPortalController() {
     setDraft(null);
     setFeedback(null);
     setPromotionPayload(null);
+    setAssignable(null);
     setSubmissionDetail(null);
   }, []);
 
@@ -423,7 +429,7 @@ export function useTripReportPortalController() {
     }
   }
 
-  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes?: string) {
+  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes?: string, publicReason?: string) {
     if (!selectedSubmission) {
       return;
     }
@@ -432,7 +438,7 @@ export function useTripReportPortalController() {
     setBusy(true);
     setFeedback(null);
     try {
-      const result = await postSubmissionStatus(selectedSubmission.id, status, notes);
+      const result = await postSubmissionStatus(selectedSubmission.id, status, notes, publicReason);
       if (!result.ok) {
         setFeedback({ tone: "danger", message: result.message });
         return;
@@ -564,14 +570,12 @@ export function useTripReportPortalController() {
       setPromotionPayload(payload.payload ?? null);
       const suggestedOwner =
         typeof payload.suggestedOwner?.email === "string" ? payload.suggestedOwner.email : null;
+      const slug = typeof payload.payload?.slug === "string" ? payload.payload.slug : null;
+      setAssignable(publish && suggestedOwner && slug ? { slug, email: suggestedOwner } : null);
       setFeedback({
         tone: "success",
         message: publish
-          ? `Published "${selectedSubmission.title}" to the public trip reports.${
-              suggestedOwner
-                ? ` The contact email matches the member ${suggestedOwner}; ownership was not granted. Assign it from My reports if that member wrote it.`
-                : ""
-            }`
+          ? publishedNotice(selectedSubmission.title, suggestedOwner)
           : "Preview ready below. Nothing has been published yet.",
       });
 
@@ -587,7 +591,31 @@ export function useTripReportPortalController() {
     }
   }
 
+  /** Grant the just-published report to the matching member, through the same owner route My reports uses. */
+  async function assignToSuggestedOwner() {
+    if (!assignable || busy) {
+      return;
+    }
+    const target = assignable;
+    setBusy(true);
+    try {
+      const result = await assignReportOwner(target.slug, target.email);
+      setAssignable(null);
+      setFeedback({ tone: "success", message: assignedNotice(result.slug, result.ownerEmail) });
+      void loadPublished();
+    } catch (error) {
+      setFeedback({
+        tone: "danger",
+        message: error instanceof Error ? error.message : "The owner was not assigned.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return {
+    assignable,
+    assignToSuggestedOwner,
     bucket,
     bulkFeedback,
     busy,
@@ -648,12 +676,17 @@ async function postSubmissionStatus(
   id: string,
   status: TripReportSubmissionStatus,
   notes?: string,
+  publicReason?: string,
 ): Promise<StatusResult> {
   try {
     const response = await fetch(`/api/trip-report-submissions/${id}/status`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, ...(notes !== undefined ? { notes } : {}) }),
+      body: JSON.stringify({
+        status,
+        ...(notes !== undefined ? { notes } : {}),
+        ...(publicReason !== undefined ? { public_reason: publicReason } : {}),
+      }),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
