@@ -10,6 +10,7 @@ import {
   ActionNotice,
   EditorField,
   EditorFieldRow,
+  EditorSegmentedControl,
   EditorStatusPill,
   LoadErrorState,
   type EditorStatusPillTone,
@@ -26,6 +27,17 @@ import {
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 import { getRoleDisplayName, parseGlossaryLocaleGrant, roleMeetsFloor } from "@/lib/auth/roles";
 import { MemberPermissionFields } from "./MemberPermissionFields";
+import { formatLocaleNames } from "./membersModel";
+import { composeInviteMessage } from "./inviteMessage";
+
+type CopyTarget = "code" | "link" | "message";
+type HistoryFilter = "all" | "active";
+
+const COPY_LABEL: Record<CopyTarget, string> = {
+  code: "Copy code",
+  link: "Copy link",
+  message: "Copy message",
+};
 
 const STATUS_TONE: Record<InviteCodeStatus, EditorStatusPillTone> = {
   active: "success",
@@ -65,7 +77,8 @@ const mergeUniqueInvites = (
 
 /**
  * The body of the Members tab's "Invite codes" section: mint one, see its
- * plaintext exactly once, and manage the list. The section heading and
+ * plaintext exactly once with a ready-to-paste message, and manage the list.
+ * History loads one page at a time on request. The section heading and
  * description belong to the tab; this panel renders no heading of its own.
  * Self-contained: it loads its own data from `/api/dev/invites` so the tab
  * can mount it without props.
@@ -85,10 +98,13 @@ export default function InviteCodesPanel() {
   const [isMinting, setIsMinting] = useState(false);
   const [mintNotice, setMintNotice] = useState<Notice | null>(null);
   const [minted, setMinted] = useState<MintedInvite | null>(null);
-  const [copied, setCopied] = useState<"code" | "link" | null>(null);
+  const [copied, setCopied] = useState<CopyTarget | null>(null);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("all");
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [listNotice, setListNotice] = useState<Notice | null>(null);
 
+  /** Loads the next page of history; the admin asks for each one. */
   const loadContinuation = useCallback(async function loadContinuation(
     cursor: string,
     generation: number,
@@ -100,11 +116,7 @@ export default function InviteCodesPanel() {
       if (loadGeneration.current !== generation) return;
       setInvites((current) => mergeUniqueInvites(current ?? [], page.invites));
       setContinuationCursor(page.continuationCursor);
-      if (page.continuationCursor) {
-        void loadContinuation(page.continuationCursor, generation);
-      } else {
-        setIsLoadingHistory(false);
-      }
+      setIsLoadingHistory(false);
     } catch (error) {
       if (loadGeneration.current !== generation) return;
       setHistoryError(
@@ -126,11 +138,7 @@ export default function InviteCodesPanel() {
       if (loadGeneration.current !== generation) return;
       setInvites(page.invites);
       setContinuationCursor(page.continuationCursor);
-      if (page.continuationCursor) {
-        void loadContinuation(page.continuationCursor, generation);
-      } else {
-        setIsLoadingHistory(false);
-      }
+      setIsLoadingHistory(false);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to load invite codes.";
@@ -141,7 +149,7 @@ export default function InviteCodesPanel() {
       }
       setIsLoadingHistory(false);
     }
-  }, [loadContinuation]);
+  }, []);
 
   useEffect(() => {
     void reload();
@@ -164,6 +172,7 @@ export default function InviteCodesPanel() {
       });
       setMinted(result);
       setCopied(null);
+      setCopyFailed(false);
       setNote("");
       setInvites((current) => [result.invite, ...(current ?? [])]);
       void reload(true);
@@ -184,15 +193,33 @@ export default function InviteCodesPanel() {
     ? `${typeof window === "undefined" ? "" : window.location.origin}/invite?code=${encodeURIComponent(minted.code)}`
     : "";
 
-  const copy = async (kind: "code" | "link") => {
-    const text = kind === "code" ? (minted?.code ?? "") : inviteUrl;
+  const inviteMessage = minted
+    ? composeInviteMessage({ invite: minted.invite, code: minted.code, url: inviteUrl })
+    : "";
+
+  const copy = async (kind: CopyTarget) => {
+    const text = kind === "code" ? (minted?.code ?? "") : kind === "link" ? inviteUrl : inviteMessage;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(kind);
+      setCopyFailed(false);
     } catch {
       setCopied(null);
+      setCopyFailed(true);
     }
   };
+
+  const copyButton = (kind: CopyTarget, variant: "accent" | "secondary" = "secondary") => (
+    <Button type="button" variant={variant} size="quiet" onClick={() => void copy(kind)}>
+      <Icon icon={copied === kind ? "lucide:check" : "lucide:copy"} size={15} />
+      {copied === kind ? "Copied" : COPY_LABEL[kind]}
+    </Button>
+  );
+
+  const visibleInvites =
+    invites && historyFilter === "active"
+      ? invites.filter((invite) => invite.status === "active")
+      : invites;
 
   const handleRevoke = async (invite: InviteCodeSummary) => {
     setListNotice(null);
@@ -315,6 +342,15 @@ export default function InviteCodesPanel() {
                 Dismiss
               </Button>
             </div>
+            <div className="space-y-2">
+              <pre
+                aria-label="Message to send"
+                className="theme-text-primary whitespace-pre-wrap break-words rounded-md border border-subtle bg-subtle p-3 font-sans text-sm"
+              >
+                {inviteMessage}
+              </pre>
+              {copyButton("message", "accent")}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <code
                 data-testid="minted-invite-code"
@@ -322,18 +358,7 @@ export default function InviteCodesPanel() {
               >
                 {minted.code}
               </code>
-              <Button
-                type="button"
-                variant="secondary"
-                size="quiet"
-                onClick={() => void copy("code")}
-              >
-                <Icon
-                  icon={copied === "code" ? "lucide:check" : "lucide:copy"}
-                  size={15}
-                />
-                {copied === "code" ? "Copied" : "Copy code"}
-              </Button>
+              {copyButton("code")}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span
@@ -342,25 +367,19 @@ export default function InviteCodesPanel() {
               >
                 {inviteUrl}
               </span>
-              <Button
-                type="button"
-                variant="secondary"
-                size="quiet"
-                onClick={() => void copy("link")}
-              >
-                <Icon
-                  icon={copied === "link" ? "lucide:check" : "lucide:copy"}
-                  size={15}
-                />
-                {copied === "link" ? "Copied" : "Copy link"}
-              </Button>
+              {copyButton("link")}
             </div>
+            {copyFailed ? (
+              <ActionNotice tone="danger" onDismiss={() => setCopyFailed(false)}>
+                Copy failed. Select the text and copy it by hand.
+              </ActionNotice>
+            ) : null}
             <p className="theme-text-faint text-xs">
               {getRoleDisplayName(minted.invite.role)}{" "}
               invite, expires {formatDate(minted.invite.expiresAt)},{" "}
               {minted.invite.maxUses}{" "}
               {minted.invite.maxUses === 1 ? "use" : "uses"}.
-              {roleMeetsFloor(minted.invite.role, "translator") && ` Approved glossary languages: ${minted.invite.glossaryLocales?.join(", ") || "none"}.`}
+              {roleMeetsFloor(minted.invite.role, "translator") && ` Approved glossary languages: ${formatLocaleNames(minted.invite.glossaryLocales ?? [])}.`}
             </p>
           </div>
         </NestedContentCard>
@@ -371,7 +390,16 @@ export default function InviteCodesPanel() {
           <h4 className="text-sm font-semibold uppercase tracking-wide theme-accent-heading">
             Issued codes
           </h4>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <EditorSegmentedControl
+              label="Show codes"
+              value={historyFilter}
+              onChange={(value) => setHistoryFilter(value as HistoryFilter)}
+              options={[
+                { value: "all", label: "All" },
+                { value: "active", label: "Active" },
+              ]}
+            />
             {listNotice ? (
               <ActionNotice
                 tone={listNotice.tone}
@@ -396,13 +424,15 @@ export default function InviteCodesPanel() {
           <LoadErrorState message={loadError} onRetry={() => void reload()} />
         ) : invites === null ? (
           <p className="theme-text-faint text-sm">Loading invite codes…</p>
-        ) : invites.length === 0 && isLoadingHistory ? (
-          <p className="theme-text-faint text-sm">Loading invite code history…</p>
         ) : invites.length === 0 ? (
           <p className="theme-text-faint text-sm">No invite codes yet.</p>
+        ) : visibleInvites?.length === 0 ? (
+          <p className="theme-text-faint text-sm">
+            No active codes{continuationCursor ? " in the codes loaded so far" : ""}.
+          </p>
         ) : (
           <ul className="space-y-2" aria-label="Invite codes">
-            {invites.map((invite) => (
+            {(visibleInvites ?? []).map((invite) => (
               <li key={invite.id}>
                 <NestedContentCard padding="xs">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -420,7 +450,7 @@ export default function InviteCodesPanel() {
                           </span>
                         ) : null}
                       </div>
-                      {roleMeetsFloor(invite.role, "translator") && <p className="theme-text-faint text-xs">Glossary languages: {invite.glossaryLocales?.join(", ") || "none"}</p>}
+                      {roleMeetsFloor(invite.role, "translator") && <p className="theme-text-faint text-xs">Glossary languages: {formatLocaleNames(invite.glossaryLocales ?? [])}</p>}
                       <p className="theme-text-faint text-xs">
                         {invite.redemptions.length}/{invite.maxUses} used.
                         Minted {formatDate(invite.createdAt)} by{" "}
@@ -459,8 +489,20 @@ export default function InviteCodesPanel() {
         )}
         {isLoadingHistory && invites !== null && invites.length > 0 ? (
           <p className="theme-text-faint text-sm" role="status">
-            Loading invite code history…
+            Loading older codes…
           </p>
+        ) : continuationCursor && !historyError && invites !== null ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const generation = loadGeneration.current;
+              void loadContinuation(continuationCursor, generation);
+            }}
+          >
+            Load older codes
+          </Button>
         ) : null}
         {historyError ? (
           <LoadErrorState

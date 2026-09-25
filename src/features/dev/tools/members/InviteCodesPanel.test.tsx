@@ -73,6 +73,7 @@ function stubRoutes(options: { mintStatus?: number; revokeStatus?: number } = {}
 describe("InviteCodesPanel", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("lists issued codes newest first with status pills and a Revoke only on active ones", async () => {
@@ -93,23 +94,20 @@ describe("InviteCodesPanel", () => {
     expect(within(rows[1]).queryByRole("button", { name: /Revoke/ })).not.toBeInTheDocument();
   });
 
-  it("automatically loads continuation pages and deduplicates records", async () => {
+  it("loads older codes a page at a time and deduplicates records", async () => {
     const olderInvite = {
       ...usedInvite,
       id: "inv3",
       note: "Older",
       createdAt: "2026-08-01T00:00:00.000Z",
     };
-    let releaseContinuation: (() => void) | undefined;
-    const continuationReady = new Promise<void>((resolve) => {
-      releaseContinuation = resolve;
-    });
+    const requested: string[] = [];
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url = new URL(String(input), "https://dev.dose.wiki");
+        requested.push(url.search);
         if (url.searchParams.get("cursor") === "page-2") {
-          await continuationReady;
           return Response.json({
             ok: true,
             invites: [usedInvite, olderInvite],
@@ -124,15 +122,73 @@ describe("InviteCodesPanel", () => {
       }),
     );
 
+    const user = userEvent.setup();
     render(<InviteCodesPanel />);
     const list = await screen.findByRole("list", { name: "Invite codes" });
     expect(within(list).getAllByRole("listitem")).toHaveLength(2);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading invite code history");
+    // History is bounded: the next page waits for the admin to ask.
+    expect(requested).toEqual([""]);
 
-    releaseContinuation?.();
+    await user.click(screen.getByRole("button", { name: "Load older codes" }));
     await waitFor(() => expect(within(list).getAllByRole("listitem")).toHaveLength(3));
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(requested).toEqual(["", "?cursor=page-2"]);
     expect(within(list).getAllByRole("listitem")[2]).toHaveTextContent("Older");
+    expect(screen.queryByRole("button", { name: "Load older codes" })).not.toBeInTheDocument();
+  });
+
+  it("narrows the history to active codes", async () => {
+    stubRoutes();
+    const user = userEvent.setup();
+    render(<InviteCodesPanel />);
+    const list = await screen.findByRole("list", { name: "Invite codes" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+
+    const filter = within(screen.getByRole("group", { name: "Show codes" }));
+    await user.click(filter.getByRole("button", { name: "Active" }));
+    const rows = within(screen.getByRole("list", { name: "Invite codes" })).getAllByRole("listitem");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent("Ada");
+
+    await user.click(filter.getByRole("button", { name: "All" }));
+    expect(within(screen.getByRole("list", { name: "Invite codes" })).getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  it("offers a ready-to-paste message with role, expiry and first step", async () => {
+    stubRoutes();
+    const user = userEvent.setup();
+    render(<InviteCodesPanel />);
+    await screen.findByRole("list", { name: "Invite codes" });
+    await user.click(screen.getByRole("checkbox", { name: "Editor" }));
+    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+
+    const reveal = await screen.findByRole("region", { name: "New invite code" });
+    const message = within(reveal).getByLabelText("Message to send");
+    const link = `${window.location.origin}/invite?code=${encodeURIComponent(CODE)}`;
+    expect(message).toHaveTextContent("as Contributor.");
+    expect(message).toHaveTextContent(`First step: open ${link}`);
+    expect(message).toHaveTextContent("The invite expires on September 8, 2026");
+
+    await user.click(within(reveal).getByRole("button", { name: "Copy message" }));
+    const copied = await navigator.clipboard.readText();
+    expect(copied).toContain("as Contributor.");
+    expect(copied).toContain(CODE);
+    expect(within(reveal).getByRole("button", { name: "Copied" })).toBeInTheDocument();
+  });
+
+  it("says so when a copy fails", async () => {
+    stubRoutes();
+    const user = userEvent.setup();
+    render(<InviteCodesPanel />);
+    await screen.findByRole("list", { name: "Invite codes" });
+    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    const reveal = await screen.findByRole("region", { name: "New invite code" });
+
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
+    await user.click(within(reveal).getByRole("button", { name: "Copy code" }));
+
+    expect(await within(reveal).findByRole("alert")).toHaveTextContent(
+      "Copy failed. Select the text and copy it by hand.",
+    );
   });
 
   it("mints with the form values, reveals the plaintext once with a copyable invite link, and prepends the row", async () => {

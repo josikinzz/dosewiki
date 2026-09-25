@@ -127,7 +127,7 @@ export function ContributorProfileEditor({ controller, contextual = false, onRev
             {canEdit && !contextual ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="contributor-role">Role</Label>
+                  <Label htmlFor="contributor-role">Credit title</Label>
                   <Input
                     id="contributor-role"
                     value={form.role}
@@ -365,14 +365,14 @@ export function ContributorProfileEditor({ controller, contextual = false, onRev
                   id="contributor-staff-note-attribution"
                   value={form.staffNoteAttribution}
                   onChange={(event) => updateForm({ staffNoteAttribution: event.target.value })}
-                  placeholder="Josie Kins · founder"
+                  placeholder="Ada Lovelace · editor"
                   className="max-w-xs"
                   disabled={!canApprove}
                   title={canApprove ? undefined : ADMIN_ONLY_REASON}
                 />
                 <p className="theme-text-faint text-xs">
-                  Shown beneath the bubble next to Josie&apos;s avatar. Empty falls back to
-                  Josie&apos;s public name and role.
+                  Shown beneath the bubble next to the signer&apos;s avatar. Empty falls back to
+                  the signer&apos;s public name and credit title.
                 </p>
               </div>
             </EditorSection>
