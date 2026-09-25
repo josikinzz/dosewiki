@@ -26,6 +26,7 @@ import {
   useConfirm,
   useDirtyGuard,
   useScrollToDetail,
+  useUnsavedWork,
 } from "@/features/dev/components";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { viewToPath } from "@/utils/routing";
@@ -232,9 +233,10 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     );
   }, [activeBlock, currentText, draftText, isDirty]);
 
-  const handleSave = useCallback(async () => {
+  /** Resolves true once the block is published or submitted; false when it was not. */
+  const handleSave = useCallback(async (): Promise<boolean> => {
     if (!activeBlock || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
-      return;
+      return false;
     }
 
     setSaveState("saving");
@@ -264,7 +266,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         setDraft(draftFromBlock(loadedBlock));
         setSaveState("idle");
         setNotice(proposalSubmittedNotice(`“${activeBlock.label}”`, proposalId));
-        return;
+        return true;
       }
 
       const response = await fetch("/api/dev/copy-block", {
@@ -292,6 +294,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         tone: "success",
         message: receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : `Saved “${activeBlock.label}”. The public pages reading this key are live with it now.`,
       });
+      return true;
     } catch (error) {
       setSaveState("error");
       setNotice({
@@ -304,8 +307,34 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
               ? "The copy block could not be saved."
               : "The proposal could not be submitted.",
       });
+      return false;
     }
   }, [activeBlock, baselineRow, baselineRevision, canApprove, currentText, draft, draftText, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload, invalidateEditorReads]);
+
+  // The shell asks before a rail click, Leave or sign-out drops the open
+  // block's edits. Its Save is this tool's own primary action, offered only
+  // when that button would be enabled, and named for where it goes.
+  const shellCanSave = isDirty
+    && saveState !== "saving"
+    && selectedSnapshot !== undefined
+    && activeBlock !== undefined
+    && loadedBlock?.key === activeBlock.key;
+  useUnsavedWork({
+    id: "copy-studio",
+    label: `Copy: ${activeBlock?.label ?? "open block"}`,
+    dirty: isDirty,
+    saveLabel: canApprove ? "Publish copy" : "Submit for review",
+    save: shellCanSave
+      ? async () => {
+          if (!(await handleSave())) {
+            throw new Error(`“${activeBlock?.label ?? "This block"}” was not ${canApprove ? "published" : "submitted"}. The reason is shown in Copy.`);
+          }
+        }
+      : undefined,
+    discard: () => {
+      if (loadedBlock && !uncertain && saveState !== "saving") setDraft(draftFromBlock(loadedBlock));
+    },
+  });
 
   /** Reset drops the draft back to the checked-in default without saving. */
   const handleResetDraft = useCallback(() => {
@@ -555,7 +584,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                         title: "Publish shared copy?",
                         description: `Every public rendering of “${activeBlock.key}” will change. Review the pending diff and preview before confirming.`,
                         confirmLabel: "Publish copy",
-                        onConfirm: handleSave,
+                        onConfirm: async () => {
+                          await handleSave();
+                        },
                       }) : void handleSave()}
                     >
                       <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />

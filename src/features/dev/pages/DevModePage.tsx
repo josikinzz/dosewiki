@@ -1,8 +1,9 @@
+import { UnsavedWorkProvider } from "../components/unsavedWork";
 import { DevModePageView } from "./DevModePageView";
 import type { DevModePageProps } from "./devModePageTypes";
 import { useDevModePageController } from "./useDevModePageController";
 
-export function DevModePage({
+function DevModePageContent({
   activeTab,
   initialArticleSlug,
   initialFilter,
@@ -19,4 +20,16 @@ export function DevModePage({
     onTabChange,
   });
   return <DevModePageView controller={controller} />;
+}
+
+/**
+ * The registry sits above the controller so the shell's own shared draft and
+ * every tool below report into the one dialog the chrome consults.
+ */
+export function DevModePage(props: DevModePageProps) {
+  return (
+    <UnsavedWorkProvider>
+      <DevModePageContent {...props} />
+    </UnsavedWorkProvider>
+  );
 }

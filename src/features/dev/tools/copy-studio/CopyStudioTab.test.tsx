@@ -18,7 +18,14 @@ vi.mock("@/components/pages/PublicMarkdownBody", () => ({
   PublicMarkdownBody: ({ content }: { content: string }) => <div data-testid="preview">{content}</div>,
 }));
 
+import { UnsavedWorkProvider, useUnsavedWorkRegistry } from "@/features/dev/components";
 import { CopyStudioTab } from "./CopyStudioTab";
+
+/** Stands in for the shell's Leave button, which asks the registry first. */
+function LeaveProbe({ onLeave }: { onLeave: () => void }) {
+  const { confirmExit } = useUnsavedWorkRegistry();
+  return <button type="button" onClick={() => confirmExit(onLeave, "leave")}>Leave editor</button>;
+}
 
 function railOptions(): HTMLElement[] {
   return within(screen.getByRole("listbox", { name: "Copy blocks" })).getAllByRole("option");
@@ -195,6 +202,33 @@ describe("CopyStudioTab", () => {
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+  });
+
+  it("reports its unsaved block to the shell, whose Save submits it before leaving", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, proposalId: "cp_abc123" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const onLeave = vi.fn();
+
+    render(
+      <UnsavedWorkProvider>
+        <LeaveProbe onLeave={onLeave} />
+        <CopyStudioTab initialKey="about-reuse-notice" canApprove={false} />
+      </UnsavedWorkProvider>,
+    );
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
+
+    await userEvent.click(screen.getByRole("button", { name: "Leave editor" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    expect(within(dialog).getByText("Copy: Reuse notice")).toBeTruthy();
+    expect(onLeave).not.toHaveBeenCalled();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Submit for review" }));
+
+    await waitFor(() => expect(onLeave).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/dev/proposals");
   });
 
   it("finds a block by a phrase from its stored text", async () => {

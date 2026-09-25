@@ -382,7 +382,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
           return;
         }
         if (selection.size > 0 && (onPage || inGrid || inInspector)) {
-          // Handled: the dev shell reads an unhandled Escape as "leave the editor".
+          // Handled: shell keyboard handlers skip events with defaultPrevented.
           event.preventDefault();
           clearSelection();
         }

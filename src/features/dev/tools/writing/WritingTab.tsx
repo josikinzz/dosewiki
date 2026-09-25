@@ -14,6 +14,7 @@ import {
   EditorStatusPill,
   useDirtyGuard,
   useScrollToDetail,
+  useUnsavedWork,
 } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 
@@ -138,6 +139,26 @@ export function WritingTab({
     title: `Discard changes to ${openTitle}?`,
     description: "Nothing here is saved until you save it. Leaving now loses what you changed.",
     canDiscard: pinned ? aboutCanDiscard : !controller.uncertain && controller.saveState !== "saving",
+  });
+  // The shell asks before a rail click, Leave or sign-out drops the open
+  // draft. Its Save is the editor's own save, offered only when that button
+  // would be enabled; About keeps its own save, so the shell only discards it
+  // (unmounting drops that draft).
+  const { canSave, save: saveDraft, discard: discardDraft } = controller;
+  const shellCanSave = !pinned && canApprove && canSave && isDirty;
+  useUnsavedWork({
+    id: "writing",
+    label: `Writing: ${openTitle}`,
+    dirty: unsaved,
+    saveLabel: draft.status === "published" ? "Publish" : "Save as unpublished",
+    save: shellCanSave
+      ? async () => {
+          if (!(await saveDraft(draft.status))) {
+            throw new Error(`${openTitle} was not saved. The reason is shown in the editor.`);
+          }
+        }
+      : undefined,
+    discard: pinned ? () => {} : discardDraft,
   });
   const unsavedPill = <EditorStatusPill tone="warning">Unsaved</EditorStatusPill>;
 

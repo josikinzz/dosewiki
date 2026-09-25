@@ -16,7 +16,10 @@ const AFFECTED_PREVIEW_LIMIT = 8;
 export interface ConfirmRequest {
   title: string;
   description: ReactNode;
-  confirmLabel: string;
+  /** Extra content under the description, such as per-row actions. */
+  body?: ReactNode;
+  /** Omitted when the body carries the actions; the dialog then offers only Cancel. */
+  confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
   /** Rows a bulk write touches; the first eight are listed, the rest counted. */
@@ -80,6 +83,7 @@ export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
               <DialogTitle>{request.title}</DialogTitle>
               <DialogDescription className="theme-text-muted">{request.description}</DialogDescription>
             </DialogHeader>
+            {request.body}
             {affected.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="theme-text-faint text-xs font-medium uppercase tracking-wide">
@@ -99,15 +103,17 @@ export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
               <Button type="button" variant="outline" disabled={busy} onClick={onClose}>
                 {request.cancelLabel ?? "Cancel"}
               </Button>
-              <Button
-                type="button"
-                variant={request.destructive ? "destructive" : "accent"}
-                disabled={busy}
-                aria-busy={busy || undefined}
-                onClick={() => void handleConfirm()}
-              >
-                {request.confirmLabel}
-              </Button>
+              {request.confirmLabel ? (
+                <Button
+                  type="button"
+                  variant={request.destructive ? "destructive" : "accent"}
+                  disabled={busy}
+                  aria-busy={busy || undefined}
+                  onClick={() => void handleConfirm()}
+                >
+                  {request.confirmLabel}
+                </Button>
+              ) : null}
             </DialogFooter>
           </>
         ) : null}

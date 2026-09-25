@@ -132,6 +132,7 @@ function ProposalSeedConsumer() {
 describe("DevModeContext", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    window.sessionStorage.clear();
   });
 
   it("closes the editor to the substances index", () => {
@@ -153,6 +154,52 @@ describe("DevModeContext", () => {
 
     expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith("/substances");
+  });
+
+  it("returns to the page the editor came from, and remembers it across reloads inside /dev", () => {
+    const referrer = vi.spyOn(document, "referrer", "get");
+    referrer.mockReturnValue(`${window.location.origin}/substances/lsd?tab=dosage#oral`);
+    const navigateMock = vi.fn();
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+
+    const first = render(
+      <DevModeProvider navigate={navigateMock} getCurrentPath={() => "/dev/articles/lsd"}>
+        <DevModeConsumer />
+      </DevModeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(navigateMock).toHaveBeenLastCalledWith("/substances/lsd?tab=dosage#oral");
+    first.unmount();
+
+    // A reload inside the editor (or the sign-in bounce) reports an editor
+    // page as the referrer; the page the editor came from still wins.
+    referrer.mockReturnValue(`${window.location.origin}/dev/writing`);
+    render(
+      <DevModeProvider navigate={navigateMock} getCurrentPath={() => "/dev/articles/lsd"}>
+        <DevModeConsumer />
+      </DevModeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(navigateMock).toHaveBeenLastCalledWith("/substances/lsd?tab=dosage#oral");
+    referrer.mockRestore();
+  });
+
+  it("ignores a referrer from another site", () => {
+    const referrer = vi.spyOn(document, "referrer", "get").mockReturnValue("https://elsewhere.example/page");
+    const navigateMock = vi.fn();
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+
+    render(
+      <DevModeProvider navigate={navigateMock} getCurrentPath={() => "/dev/articles/lsd"}>
+        <DevModeConsumer />
+      </DevModeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+    expect(navigateMock).toHaveBeenLastCalledWith("/substances");
+    referrer.mockRestore();
   });
 
 

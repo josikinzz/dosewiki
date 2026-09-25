@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { UnsavedWorkProvider, useUnsavedWorkRegistry } from "../components/unsavedWork";
 import { DEV_TAB_REGISTRY, type DevModeTab } from "./devTabRegistry";
 import { useDevChromeEnvironment } from "./useDevChromeEnvironment";
 
@@ -50,7 +51,7 @@ describe("useDevChromeEnvironment", () => {
     expect(result.current.enableStickyPanels).toBe(false);
   });
 
-  it("wires Escape to close", () => {
+  it("never leaves the editor on Escape, wherever focus is", () => {
     const close = vi.fn();
     renderHook(() =>
       useDevChromeEnvironment({
@@ -61,65 +62,48 @@ describe("useDevChromeEnvironment", () => {
       }),
     );
 
+    const button = document.createElement("button");
+    document.body.appendChild(button);
+    button.focus();
     act(() => {
+      button.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     });
-
-    expect(close).toHaveBeenCalledTimes(1);
-  });
-
-  it("ignores Escape when the event was already handled or targets an editable element", () => {
-    const close = vi.fn();
-    renderHook(() =>
-      useDevChromeEnvironment({
-        activeTab: "articles",
-        close,
-        hasPendingChanges: false,
-        onTabNoticeClear: vi.fn(),
-      }),
-    );
-
-    act(() => {
-      const handled = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
-      handled.preventDefault();
-      window.dispatchEvent(handled);
-    });
-
-    const input = document.createElement("input");
-    document.body.appendChild(input);
-    act(() => {
-      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    });
-    input.remove();
+    button.remove();
 
     expect(close).not.toHaveBeenCalled();
   });
 
-  it("asks for confirmation before closing with pending changes", () => {
+  it("reports the shared draft to the unsaved-work registry so Leave asks, not a native confirm", () => {
+    const confirmSpy = vi.spyOn(window, "confirm");
     const close = vi.fn();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-    renderHook(() =>
-      useDevChromeEnvironment({
-        activeTab: "articles",
-        close,
-        hasPendingChanges: true,
-        onTabNoticeClear: vi.fn(),
-      }),
+    const probe: { registry: ReturnType<typeof useUnsavedWorkRegistry> | null } = { registry: null };
+    const { result } = renderHook(
+      () => {
+        probe.registry = useUnsavedWorkRegistry();
+        return useDevChromeEnvironment({
+          activeTab: "articles",
+          close,
+          hasPendingChanges: true,
+          onTabNoticeClear: vi.fn(),
+        });
+      },
+      { wrapper: UnsavedWorkProvider },
     );
 
-    act(() => {
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-    });
+    expect(probe.registry?.dirtyEntries.map((entry) => entry.label)).toEqual(["Draft edits not yet committed"]);
 
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
-    expect(close).not.toHaveBeenCalled();
+    // A rail switch keeps the shared draft, so it never blocks one.
+    const switchTab = vi.fn();
+    act(() => probe.registry?.confirmExit(switchTab, "tab"));
+    expect(switchTab).toHaveBeenCalledTimes(1);
 
-    confirmSpy.mockReturnValue(true);
-    act(() => {
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-    });
-
-    expect(close).toHaveBeenCalledTimes(1);
+    // The chrome routes Leave through the registry; the hook's own leave is the bare close.
+    const leave = vi.fn();
+    act(() => probe.registry?.confirmExit(leave, "leave"));
+    expect(leave).not.toHaveBeenCalled();
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(result.current.leaveEditor).toBe(close);
   });
 
   it("keeps the toolbar full width but caps the content column outside the wide tools", () => {

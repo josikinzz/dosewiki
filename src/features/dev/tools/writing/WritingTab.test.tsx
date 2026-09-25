@@ -12,7 +12,14 @@ vi.mock("@/components/pages/PublicMarkdownBody", () => ({
   PublicMarkdownBody: ({ content }: { content: string }) => <div data-testid="preview">{content}</div>,
 }));
 
+import { UnsavedWorkProvider, useUnsavedWorkRegistry } from "@/features/dev/components";
 import { WritingTab } from "./WritingTab";
+
+/** Stands in for a shell rail tab, which asks the registry before switching. */
+function RailProbe({ onSwitch }: { onSwitch: () => void }) {
+  const { confirmExit } = useUnsavedWorkRegistry();
+  return <button type="button" onClick={() => confirmExit(onSwitch, "tab")}>Copy</button>;
+}
 
 const ENTRIES: WritingListEntry[] = [
   { slug: "field-notes", title: "Field notes", kind: "article", status: "published", creationTime: 1 },
@@ -164,6 +171,32 @@ describe("WritingTab", () => {
     await user.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByTestId("about-editor")).toBeInTheDocument();
     expect(rail.queryByText("Unsaved")).not.toBeInTheDocument();
+  });
+
+  it("reports an unsaved draft to the shell, whose Discard restores it and moves on", async () => {
+    const user = userEvent.setup();
+    const onSwitch = vi.fn();
+    render(
+      <UnsavedWorkProvider>
+        <RailProbe onSwitch={onSwitch} />
+        <WritingTab contributorProfiles={[]} profilesLoading={false} canApprove />
+      </UnsavedWorkProvider>,
+    );
+    await user.click(await screen.findByRole("button", { name: /Field notes/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
+    await user.type(screen.getByLabelText("Title"), " extra");
+
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    expect(within(dialog).getByText("Writing: Field notes extra")).toBeTruthy();
+    // A published row saves by publishing, and the button says so.
+    expect(within(dialog).getByRole("button", { name: "Publish" })).toBeTruthy();
+    expect(onSwitch).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole("button", { name: "Discard" }));
+
+    expect(onSwitch).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("Title")).toHaveValue("Field notes");
   });
 
   it("opens on the kind the route names without rewriting the URL", async () => {

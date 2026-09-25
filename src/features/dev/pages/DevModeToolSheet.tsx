@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { UnsavedDot } from "./DevModeToolRail";
 import type { DevModeToolSheetProps, GroupView } from "./DevModeToolTypes";
 
 const SHEET_TAB_CLASS =
@@ -51,7 +52,7 @@ function SheetToolList({ groups, activeTab, isToolsSection, activeRowRef, onTabC
             const isActive = isToolsSection && activeTab === item.id;
             return (
               <button key={item.id} ref={isActive ? (activeRowRef as RefObject<HTMLButtonElement>) : undefined} type="button" disabled={lockReason !== null} aria-disabled={lockReason !== null ? "true" : undefined} aria-current={isActive ? "page" : undefined} data-state={isActive ? "active" : "inactive"} onClick={() => onTabChange(item.id)} className={SHEET_TAB_CLASS}>
-                {item.label}{badge}
+                {item.label}{item.unsaved ? <UnsavedDot /> : null}{badge}
                 {lockReason ? <span className="theme-text-muted ml-auto text-xs font-normal">{lockReason}</span> : null}
               </button>
             );

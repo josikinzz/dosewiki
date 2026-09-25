@@ -55,6 +55,20 @@ function CountBadge({ count, label = "awaiting review" }: { count: number; label
   );
 }
 
+/**
+ * Marks a tab that holds unsaved work. The dot is decoration; the words ride
+ * in the tab's accessible name so a screen reader hears "Writing, unsaved
+ * changes".
+ */
+export function UnsavedDot() {
+  return (
+    <>
+      <span aria-hidden title="Unsaved changes" className="theme-accent-emphasis inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
+      <span className="sr-only">, unsaved changes</span>
+    </>
+  );
+}
+
 function RailPill({ item, isActive, onTabChange }: { item: ToolTabItem; isActive: boolean; onTabChange: (tab: DevModeTab) => void }) {
   const badge = item.badge ? <CountBadge count={item.badge} /> : null;
   if (item.destination.kind === "external") {
@@ -69,6 +83,7 @@ function RailPill({ item, isActive, onTabChange }: { item: ToolTabItem; isActive
   return (
     <button type="button" disabled={item.pending !== undefined} aria-disabled={item.pending !== undefined ? "true" : undefined} title={item.pending} aria-current={isActive ? "page" : undefined} data-state={isActive ? "active" : "inactive"} onClick={() => onTabChange(item.id)} className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}>
       {item.label}
+      {item.unsaved ? <UnsavedDot /> : null}
       {badge}
     </button>
   );
@@ -89,6 +104,7 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
   const isActive = isToolsSection && tabs.some((tab) => tab.id === activeTab);
   const badgeTotal = tabs.reduce((sum, tab) => sum + (tab.badge ?? 0), 0);
   const pending = tabs.find((tab) => tab.pending)?.pending;
+  const unsaved = tabs.some((tab) => tab.unsaved);
   return (
     <div role="group" aria-label={label} className="flex shrink-0 items-center">
       {showDivider ? <RailDivider /> : null}
@@ -96,6 +112,7 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
         <DropdownMenuTrigger asChild>
           <button type="button" disabled={pending !== undefined} aria-disabled={pending !== undefined ? "true" : undefined} title={pending} data-active={isActive || undefined} className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}>
             {label}
+            {unsaved ? <UnsavedDot /> : null}
             {badgeTotal > 0 ? <CountBadge count={badgeTotal} /> : null}
             <ExpandIndicator isExpanded={open} variant="compact" />
           </button>
@@ -106,7 +123,7 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
             if (item.destination.kind === "external") {
               return <DropdownMenuItem key={item.id} asChild className={MENU_TAB_CLASS}><a href={item.destination.href}>{item.label}<Icon icon="lucide:arrow-up-right" size={12} className="text-current" />{item.badge ? <CountBadge count={item.badge} /> : null}</a></DropdownMenuItem>;
             }
-            return <DropdownMenuItem key={item.id} aria-current={itemActive ? "page" : undefined} disabled={item.pending !== undefined} data-state={itemActive ? "active" : "inactive"} onSelect={() => onTabChange(item.id)} className={MENU_TAB_CLASS}>{item.label}{item.badge ? <CountBadge count={item.badge} /> : null}</DropdownMenuItem>;
+            return <DropdownMenuItem key={item.id} aria-current={itemActive ? "page" : undefined} disabled={item.pending !== undefined} data-state={itemActive ? "active" : "inactive"} onSelect={() => onTabChange(item.id)} className={MENU_TAB_CLASS}>{item.label}{item.unsaved ? <UnsavedDot /> : null}{item.badge ? <CountBadge count={item.badge} /> : null}</DropdownMenuItem>;
           })}
         </DropdownMenuContent>
       </DropdownMenu>

@@ -6,6 +6,8 @@ import type { DevUtility } from "./DevUtilitiesMenu";
 
 export type ToolTabItem = Pick<DevTabDescriptor, "id" | "label" | "role" | "destination"> & {
   badge?: number;
+  /** A registered entry for this tab holds unsaved work. */
+  unsaved?: boolean;
   /** Set while the session is still resolving: the tab renders, but waits. */
   pending?: string;
 };

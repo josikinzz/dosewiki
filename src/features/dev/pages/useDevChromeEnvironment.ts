@@ -1,21 +1,15 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
+import { useUnsavedWork } from "../components/unsavedWork";
+
 import { findDevTab, type DevModeTab } from "./devTabRegistry";
 
-function isEditableEventTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-
-  return (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    target.isContentEditable
-  );
-}
+/** The registry id for the shared draft; it belongs to no single rail tab. */
+export const SHARED_DRAFT_ENTRY_ID = "shared-draft";
+// Leaving drops the in-memory draft on its own; nothing more to clear.
+const NO_OP = () => {};
 
 export function useDevChromeEnvironment({
   activeTab,
@@ -30,34 +24,22 @@ export function useDevChromeEnvironment({
 }) {
   const enableStickyPanels = useMediaQuery("(pointer: fine)");
 
-  // "Leave the editor": the tools sit as an overlay over the public site and
-  // `close()` returns to the substances index. Escape and the visible Leave
-  // editor control share this one path, including the unsaved-changes confirm.
-  const leaveEditor = useCallback(() => {
-    if (hasPendingChanges && !window.confirm("Leave the editor? Unsaved changes will be lost.")) {
-      return;
-    }
-    close();
-  }, [close, hasPendingChanges]);
+  // The shared draft (article and layout edits waiting for Commit) outlives a
+  // rail switch but not the editor, so it only stops Leave, sign-out and a
+  // browser unload. It has no one-step save: Commit asks its own questions.
+  useUnsavedWork({
+    id: SHARED_DRAFT_ENTRY_ID,
+    label: "Draft edits not yet committed",
+    dirty: hasPendingChanges,
+    discard: NO_OP,
+    keepsOnTabSwitch: true,
+  });
 
-  useEffect(() => {
-    const handleKeydown = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      // Leave Escape alone when something else already handled it (dialogs,
-      // menus, IME composition) or when the user is focused in a field.
-      if (event.defaultPrevented || event.isComposing || isEditableEventTarget(event.target)) {
-        return;
-      }
-
-      leaveEditor();
-    };
-
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
-  }, [leaveEditor]);
+  // "Leave the editor" is a button, never a key: Escape belongs to whatever
+  // menu, dialog or field has focus. The chrome asks the unsaved-work
+  // registry before it calls this, then `close()` returns to the page the
+  // editor came from.
+  const leaveEditor = close;
 
   useEffect(() => {
     onTabNoticeClear(activeTab);
