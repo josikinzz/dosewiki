@@ -4,6 +4,7 @@ import {
   PUBLICATION_OUTBOX_MAX_ATTEMPTS,
   deliverDuePublications,
   publicationOutboxKey,
+  publicationStatus,
   type PublicationTransport,
   type TranslationIntentQueue,
 } from "./publicationOutbox";
@@ -155,5 +156,28 @@ describe("leases and generations", () => {
     expect(await h.deliver()).toMatchObject({ claimed: 1, skipped: 1 });
     expect(h.dispatched).toEqual([]);
     expect(h.outbox.rows()[0]).toMatchObject({ pending: false, deadLetteredAt: expect.any(Number) });
+  });
+});
+
+describe("publication status an editor polls", () => {
+  it("reads pending, then delivered with translation work queued, for the committed identity", async () => {
+    const h = harness();
+    const target = { kind: "effect", slug: "drifting" } as const;
+    h.outbox.enqueue([{ target }], "editorial");
+    expect(publicationStatus(target, h.row(target) ?? null)).toEqual({ key: publicationOutboxKey(target), state: "pending", translations: "pending" });
+    await h.deliver();
+    expect(publicationStatus(target, h.row(target) ?? null)).toMatchObject({ state: "delivered", translations: "queued" });
+  });
+
+  it("reports a dead letter as failed and an identity with no row as missing", async () => {
+    const h = harness({ dispatch: () => [unreachable] });
+    const target = { kind: "banners" } as const;
+    expect(publicationStatus(target, null)).toMatchObject({ state: "missing", translations: "not-needed" });
+    h.outbox.enqueue([{ target }], "editorial");
+    for (let attempt = 0; attempt <= PUBLICATION_OUTBOX_MAX_ATTEMPTS; attempt++) {
+      await h.deliver();
+      h.advance(PUBLICATION_OUTBOX_LEASE_MS * 10);
+    }
+    expect(publicationStatus(target, h.row(target) ?? null)).toMatchObject({ state: "failed", translations: "not-needed" });
   });
 });

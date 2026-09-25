@@ -13,7 +13,10 @@ import type { TripReport } from "@/types/tripReport";
 import type { SubstanceLookupRecord } from "../domain/tripReportIndex";
 import { TripReportDetailPresentation } from "../pages/TripReportDetailPresentation";
 import { useT } from "@/i18n/client";
-import { useConfirm, useDirtyGuard } from "@/features/dev/components";
+import { useConfirm } from "@/features/dev/components";
+import { PublicationReceiptChips, PublishSheet, type FieldChange } from "@/features/contextual-editing/PublishSheet";
+import { usePublicationReceipt } from "@/features/contextual-editing/usePublicationReceipt";
+import { useUnsavedEditsGuard } from "@/features/contextual-editing/useUnsavedEditsGuard";
 
 type Props = { report: TripReport; substanceBySlug: Record<string, SubstanceLookupRecord>; substanceLinks?: Record<string, string> };
 type EditableRecord = { id: string; slug: string; canEdit: boolean; fields: TripReportEditableFields; revision: string };
@@ -50,6 +53,16 @@ function CorrectionValue({ field, fields }: { field: keyof TripReportEditableFie
     default:
       return <p className="whitespace-pre-wrap">{fields[field] || "Not provided"}</p>;
   }
+}
+
+function correctionChanges(before: TripReportEditableFields, after: TripReportEditableFields): FieldChange[] {
+  return (Object.keys(after) as (keyof TripReportEditableFields)[])
+    .filter((field) => JSON.stringify(before[field]) !== JSON.stringify(after[field]))
+    .map((field) => ({
+      field, label: CORRECTION_LABELS[field],
+      before: <CorrectionValue field={field} fields={before} />,
+      after: <CorrectionValue field={field} fields={after} />,
+    }));
 }
 
 export default function PublishedReportEditor(props: Props) {
@@ -91,11 +104,12 @@ function ReportSession({ report, substanceBySlug, substanceLinks, onClose, retur
   }, [review]);
   const key = `report:${report.slug}`;
   const dirty = !!record && !!draft && JSON.stringify(record.fields) !== JSON.stringify(draft);
-  const { guard, dialog: discardDialog } = useDirtyGuard(dirty || uncertain, {
-    title: "Discard local report corrections?",
-    description: "No new publication will be sent. An already-sent publication is not undone.",
+  const { guard, dialog: discardDialog } = useUnsavedEditsGuard(dirty || uncertain, {
+    canDiscard: !busy && !uncertain,
+    onDiscard: () => setDraft(record?.fields ?? null),
   });
   const { confirm, dialog: confirmDialog } = useConfirm();
+  const { receipt, start: startReceipt, reset: resetReceipt } = usePublicationReceipt();
   useEffect(() => {
     const abort = new AbortController();
     setLoading(true);
@@ -134,6 +148,7 @@ function ReportSession({ report, substanceBySlug, substanceLinks, onClose, retur
       const committedFields = payload.fields as TripReportEditableFields;
       setRecord({ ...record, fields: committedFields, revision: payload.revision as string });
       setDraft(committedFields);
+      startReceipt([{ kind: "report", slug: typeof payload.slug === "string" ? payload.slug : report.slug }, { kind: "report-lists" }]);
       router.refresh();
     } catch (reason) {
       if (pending.current) setUncertain(true);
@@ -147,24 +162,26 @@ function ReportSession({ report, substanceBySlug, substanceLinks, onClose, retur
       {confirmDialog}
       {loading ? <p role="status">Loading this report and checking ownership…</p> : null}
       {error ? <div role="alert" className="space-y-3"><p>{error}</p>{!record ? <Button variant="outline" onClick={() => setReload((value) => value + 1)}>Retry access check</Button> : !uncertain ? <Button variant="outline" onClick={() => confirm({ title: "Discard corrections and reload?", description: "Your local corrections will be discarded and replaced with the current published report.", confirmLabel: "Discard and reload", destructive: true, onConfirm: () => { setReview(false); setReload((value) => value + 1); } })}>Discard corrections and reload published report</Button> : null}</div> : null}
-      {success ? <p role="status">Publication confirmed. The report and its attributed history were saved together.</p> : null}
+      {success ? <div className="space-y-2"><p role="status">Saved on the editor host. The report and its attributed history were saved together.</p>{receipt ? <PublicationReceiptChips receipt={receipt} /> : null}</div> : null}
       {uncertain ? <div role="alert"><p>The response was lost. Editing is paused until the original operation is reconciled.</p><Button disabled={busy} onClick={() => void publish()}>Reconcile publication</Button></div> : null}
       {record && draft && row ? <>
         <fieldset ref={editorFields} hidden={review} disabled={busy || uncertain}>
-          <PortalReportEditor busy={busy || uncertain} contributors={[]} draft={draft} feedback={null} onChange={(next) => { setDraft(next); setSuccess(false); setReview(false); }} onClose={close} onDelete={close} onDismissFeedback={() => setError(null)} onRevert={() => { setDraft(record.fields); setReview(false); }} onSave={() => setReview(true)} row={row} contentOnly saveLabel="Preview correction" />
+          <PortalReportEditor busy={busy || uncertain} contributors={[]} draft={draft} feedback={null} onChange={(next) => { setDraft(next); setSuccess(false); setReview(false); resetReceipt(); }} onClose={close} onDelete={close} onDismissFeedback={() => setError(null)} onRevert={() => { setDraft(record.fields); setReview(false); }} onSave={() => setReview(true)} row={row} contentOnly saveLabel="Review" />
         </fieldset>
-        {review ? <section className="space-y-4" aria-label="Report publication review">
-          <h3 ref={reviewHeading} tabIndex={-1} className="font-display text-xl theme-focus-ring">Review correction</h3>
-          <p className="theme-text-muted text-sm">Only changed fields are shown. Compare the current publication with your proposed correction, then read the local preview.</p>
-          {(Object.keys(draft) as (keyof TripReportEditableFields)[]).filter((field) => JSON.stringify(record.fields[field]) !== JSON.stringify(draft[field])).map((field) => <section key={field} className="space-y-3 [overflow-wrap:anywhere]"><h4 className="font-display text-lg font-semibold">{CORRECTION_LABELS[field]}</h4><div className="grid gap-5 sm:grid-cols-2"><div className="min-w-0 space-y-2"><h5 className="theme-text-muted text-sm font-semibold">Current published version</h5><CorrectionValue field={field} fields={record.fields} /></div><div className="min-w-0 space-y-2"><h5 className="theme-text-muted text-sm font-semibold">Proposed correction</h5><CorrectionValue field={field} fields={draft} /></div></div></section>)}
+        {review ? <PublishSheet
+          headingRef={reviewHeading}
+          changes={correctionChanges(record.fields, draft)}
+          targets={[`/reports/${report.slug}`, "/reports", "Effect Index"]}
+          description="Only changed fields are shown. Author attribution, media, licensing, ownership and moderation remain unchanged."
+          onPublish={publish}
+          receipt={receipt}
+          disabled={uncertain || !dirty}
+          busy={busy}
+          onCancel={() => { returningToEditor.current = true; setReview(false); }}
+        >
           <h3 className="font-display text-xl">Local reading preview</h3>
           <TripReportDetailPresentation t={t} preview report={{ ...report, ...draft, subject: { ...report.subject, ...draft.subject } }} substanceBySlug={substanceBySlug} substanceLinks={substanceLinks} />
-          <p>Publish these corrections to the shared report on dose.wiki and Effect Index? Author attribution, media, licensing, ownership and moderation remain unchanged.</p>
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={busy || uncertain || !dirty} onClick={() => void publish()}>{busy ? "Publishing…" : "Confirm publish correction"}</Button>
-            <Button variant="secondary" disabled={busy || uncertain} onClick={() => { returningToEditor.current = true; setReview(false); }}>Keep editing</Button>
-          </div>
-        </section> : null}
+        </PublishSheet> : null}
       </> : null}
       <Link href={role === "admin" ? "/dev/trip-report-submissions" : "/dev/my-reports"} className="underline">Open the report workbench for supported report management</Link>
     </div>

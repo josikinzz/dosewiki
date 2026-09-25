@@ -110,6 +110,31 @@ function translationJobSlugFor(target: PublicationTarget): string | null {
   }
 }
 
+/**
+ * Where one identity's delivery stands, as an editor can read it: `delivered`
+ * once the public hosts accepted the latest generation, `failed` once delivery
+ * stopped as a dead letter, `missing` when no row exists for the identity.
+ * Translation work is `queued` once durable locale work exists for the latest
+ * generation, and `not-needed` for identities with no translatable record.
+ */
+export type PublicationStatus = {
+  key: string;
+  state: "pending" | "delivered" | "failed" | "missing";
+  translations: "queued" | "pending" | "not-needed";
+};
+
+export function publicationStatus(
+  target: PublicationTarget,
+  row: Pick<PublicationOutboxRow, "generation" | "pending" | "receipts" | "deadLetteredAt"> | null,
+): PublicationStatus {
+  const key = publicationOutboxKey(target);
+  const translatable = translationJobSlugFor(target) !== null;
+  if (!row) return { key, state: "missing", translations: translatable ? "pending" : "not-needed" };
+  const state = row.deadLetteredAt !== undefined && row.deadLetteredAt !== null ? "failed" : row.pending ? "pending" : "delivered";
+  const translations = !translatable ? "not-needed" : hasTranslationIntent(row.receipts, row.generation) ? "queued" : "pending";
+  return { key, state, translations };
+}
+
 /** Exponential backoff after the `attempts`-th failed delivery: 30 s doubling to a 300 s ceiling. */
 function publicationRetryDelayMs(attempts: number): number {
   return Math.min(300_000, 15_000 * 2 ** Math.min(attempts, 5));

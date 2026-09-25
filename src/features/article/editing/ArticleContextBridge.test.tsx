@@ -162,9 +162,13 @@ describe("publishing one change", () => {
     vi.stubGlobal("fetch", request);
     render(view(state));
     await screen.findByText(ownerSummary);
-    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
 
     const note = await screen.findByLabelText("Change note");
+    // The review is the shared sheet: diff, affected pages, note, one confirm.
+    const sheet = within(screen.getByRole("dialog", { name: "Review article changes" })).getByTestId("publish-sheet");
+    expect(within(sheet).getByText("/fixture")).toBeTruthy();
+    expect(within(sheet).getAllByRole("button").map((button) => button.textContent)).toEqual(["Publish (1 change)", "Submit for review (1 change)"]);
     await user.clear(note);
     await user.type(note, "Corrected the onset claim");
     await user.click(within(screen.getByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
@@ -184,7 +188,7 @@ describe("publishing one change", () => {
     vi.stubGlobal("fetch", request);
     render(view(state));
     await screen.findByText(ownerSummary);
-    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
 
     const note = await screen.findByLabelText("Change note");
     await user.type(note, " today{Enter}");
@@ -202,7 +206,7 @@ describe("publishing one change", () => {
     vi.stubGlobal("fetch", request);
     render(view(state));
     await screen.findByText(ownerSummary);
-    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
 
     await user.click(await screen.findByLabelText("Change note"));
     await user.keyboard("{Control>}{Enter}{/Control}");
@@ -228,7 +232,7 @@ describe("publishing one change", () => {
     vi.stubGlobal("fetch", request);
     render(view(state));
     await screen.findByText(ownerSummary);
-    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
     await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
     await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
 
@@ -259,7 +263,7 @@ describe("submitting one change for review", () => {
     vi.stubGlobal("fetch", request);
     render(view({ ...state, role: "editor", email: "second@example.test" }));
     await screen.findByText(ownerSummary);
-    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(await screen.findByRole("button", { name: /^Review \(/ }));
     await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Submit for review/ }));
 
     const chip = await screen.findByRole("link", { name: /Proposal #p7k2m9 pending/ });
@@ -285,14 +289,46 @@ describe("leaving and discarding through the shared guard and confirm", () => {
 
     const panel = screen.getByRole("dialog", { name: /^Edit / });
     await user.click(within(panel).getByRole("button", { name: "Close" }));
-    const guard = await screen.findByRole("dialog", { name: "Keep your article edits?" });
+    const guard = await screen.findByRole("dialog", { name: "Unsaved changes" });
     await user.click(within(guard).getByRole("button", { name: "Keep editing" }));
     expect(screen.getByDisplayValue("Unsaved private correction")).toBeTruthy();
 
     await user.click(within(screen.getByRole("dialog", { name: /^Edit / })).getByRole("button", { name: "Close" }));
-    await user.click(within(await screen.findByRole("dialog", { name: "Keep your article edits?" })).getByRole("button", { name: "Discard changes" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Unsaved changes" })).getByRole("button", { name: "Discard changes" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(screen.queryByDisplayValue("Unsaved private correction")).toBeNull();
+  });
+
+  it("asks the same question from Cancel as from Close or Escape", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(snapshot(ownerSummary))));
+    render(view(state, "summary"));
+    const field = await screen.findByDisplayValue(ownerSummary);
+    fireEvent.change(field, { target: { value: "Unsaved private correction" } });
+    fireEvent.input(field);
+
+    await user.click(within(screen.getByRole("dialog", { name: /^Edit / })).getByRole("button", { name: "Cancel" }));
+    const guard = await screen.findByRole("dialog", { name: "Unsaved changes" });
+    await user.click(within(guard).getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByDisplayValue("Unsaved private correction")).toBeTruthy();
+  });
+
+  it("offers a labelled Save draft and a Discard that asks first, with no separate history icon", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(snapshot(ownerSummary))));
+    render(view(state, "summary"));
+    const field = await screen.findByDisplayValue(ownerSummary);
+    fireEvent.change(field, { target: { value: "Local correction" } });
+    fireEvent.input(field);
+    await user.click(within(screen.getByRole("dialog", { name: /^Edit / })).getByRole("button", { name: "Preview locally" }));
+    await waitFor(() => expect(screen.getByRole("article", { name: "Article preview" }).textContent).toBe("Local correction"));
+
+    expect(screen.getByRole("button", { name: "Save draft" }).textContent).toBe("Save draft");
+    expect(screen.queryByRole("button", { name: "Review changes and history" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Discard" }));
+    const confirm = await screen.findByRole("dialog", { name: "Discard your unsaved edits?" });
+    await user.click(within(confirm).getByRole("button", { name: "Discard" }));
+    await waitFor(() => expect(screen.getByRole("article", { name: "Article preview" }).textContent).toBe(ownerSummary));
   });
 
   it("discards the saved private draft only after the shared confirm", async () => {

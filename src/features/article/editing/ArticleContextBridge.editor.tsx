@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Surface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { Icon } from "@/components/common/Icon";
@@ -17,7 +16,10 @@ import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualE
 import { useContextualEditing, type DraftNavigationGuard } from "@/features/contextual-editing/context";
 import { EditorToolbar } from "@/features/dev/components/EditorToolbar";
 import { useConfirm } from "@/features/dev/components/ConfirmDialog";
-import { useDirtyGuard } from "@/features/dev/components/useDirtyGuard";
+import { PublicationReceiptChips, PublishSheet, type PublishAction } from "@/features/contextual-editing/PublishSheet";
+import { usePublicationReceipt } from "@/features/contextual-editing/usePublicationReceipt";
+import { useUnsavedEditsGuard } from "@/features/contextual-editing/useUnsavedEditsGuard";
+import { publicationMessage } from "./publicationNotice";
 import { canDraft, type AppRole } from "@/lib/auth/roles";
 import { ArticleLayout, type ArticleLayoutProps } from "../components/ArticleLayout";
 import { ArticleEditProvider, type ArticleEditContextValue } from "./ArticleEditContext";
@@ -95,7 +97,6 @@ function StickyArticleEditorLayout({ actions, children }: { actions: ReactNode; 
 function ArticleEditingSession({ slug, article, children, layoutProps, workbench = false, workbenchRole, requestedSection, onSectionClose, onDirtyChange, draftGuardRef, onOperationLockChange }: ArticleContextBridgeProps) {
   const context = useContextualEditing();
   const router = useRouter();
-  const summaryId = useId();
   const role = workbench ? workbenchRole ?? null : context.role;
   const active = !!slug && canDraft(role) && (workbench || (context.enabled && context.mode === "edit"));
   const lifecycle = useArticleLifecycle(slug ?? "", article, active);
@@ -170,16 +171,22 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The operation was not confirmed. Your edits are retained."); }
   };
   const closePanel = () => { setSection(null); setReview(false); onSectionClose?.(); };
-  // The launcher's guard already holds the browser tab while this session is dirty.
-  const leaveGuard = useDirtyGuard(formDirty || lifecycle.dirty || inlineDirty || proposalNotesDirty || operationLocked, {
-    title: "Keep your article edits?",
-    description: proposalNotesDirty
-      ? "Unposted discussion and rejection notes cannot be saved as an article draft. Keep editing to post them, or discard them. No option publishes the article."
-      : "Save a private draft, discard unsaved local edits, or keep editing. No option publishes the article.",
+  // The same dialog the launcher shows before leaving the page. The launcher's
+  // guard already holds the browser tab while this session is dirty.
+  const leaveGuard = useUnsavedEditsGuard(formDirty || lifecycle.dirty || inlineDirty || proposalNotesDirty || operationLocked, {
+    reason: proposalNotesDirty ? "Unposted discussion and rejection notes cannot be saved as an article draft." : undefined,
     onSave: operationLocked || proposalNotesDirty ? undefined : saveDraft,
     onDiscard: discardLocal,
     canDiscard: !operationLocked,
     warnOnUnload: false,
+  });
+  const localDirty = lifecycle.dirty || formDirty || inlineDirty;
+  const requestDiscardLocal = () => confirm({
+    title: "Discard your unsaved edits?",
+    description: "This drops the edits not yet saved in your private draft. Your saved draft and the published article stay unchanged.",
+    confirmLabel: "Discard",
+    destructive: true,
+    onConfirm: discardLocal,
   });
   const requestDiscardDraft = () => confirm({
     title: "Discard your private article draft?",
@@ -219,12 +226,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     if (!review || summaryEdited) return;
     setSummary(synthesizeChangeNote(changes));
   }, [review, summaryEdited, changes]);
-  // Publishing is one named action, not a pair of icons. An editor without
-  // publication rights submits the same change for review through it.
+  // Publishing and submitting go through the shared sheet. An editor without
+  // publication rights, or a revision of a proposal, can only submit for review.
   const canPublish = role === "admin" && !lifecycle.revisionOf;
-  const primaryLabel = canPublish ? "Publish" : lifecycle.revisionOf ? "Submit proposal revision" : "Submit for review";
+  const sheetActions: PublishAction[] = canPublish ? ["Publish", "Submit for review"] : ["Submit for review"];
   const countLabel = changes.length === 1 ? "1 change" : `${changes.length} changes`;
-  const actionBlocked = operationLocked || changes.length === 0 || problems.length > 0;
   const submitted = () => {
     // The page now shows the published article; open forms must not keep
     // offering the submitted values as fresh edits.
@@ -232,30 +238,23 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     inlineDrafts.current.clear(); setInlineDirty(false);
     setFormDirty(false); setFormEpoch((value) => value + 1);
   };
-  const performPrimary = () => attempt(async () => {
-    await lifecycle.act(canPublish ? "publish" : "submit", summary);
-    if (!canPublish) submitted();
+  const publishFromSheet = (action: PublishAction) => attempt(async () => {
+    const publishing = action === "Publish" && canPublish;
+    await lifecycle.act(publishing ? "publish" : "submit", summary);
+    if (!publishing) submitted();
     // The write answered with the published article and the lifecycle has
     // already adopted it. Refreshing the route here would re-run the page
     // and re-drain the editor library, which reads as a reload of work the
     // editor just watched land.
     setSummary(""); setSummaryEdited(false); setReview(false);
   });
-  // Publishing reaches every reader, so it always passes through one confirm
-  // that names where the change lands. Submitting for review changes nothing
-  // public and runs directly.
   const publicPath = `/${slug ?? ""}`;
-  const runPrimary = () => {
-    if (actionBlocked) return;
-    if (!canPublish) { void performPrimary(); return; }
-    confirm({
-      title: "Publish this change to every reader?",
-      description: `The article is saved on the editor host first, then delivered to the public site. ${countLabel} with the note "${summary.trim() || "no note"}".`,
-      affected: [publicPath, "/changes"],
-      confirmLabel: "Publish",
-      onConfirm: performPrimary,
-    });
-  };
+  const receipt = usePublicationReceipt();
+  const startReceipt = receipt.start;
+  // Every publish or restore answers with a fresh notice; track its delivery.
+  useEffect(() => {
+    if (lifecycle.publication && slug) startReceipt([{ kind: "article", slug }], lifecycle.publication.receipts);
+  }, [lifecycle.publication, slug, startReceipt]);
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
     void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); closePanel(); router.refresh(); });
   }}>Retry previous operation</Button> : null;
@@ -291,10 +290,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         </div>
         <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
           {lifecycle.ready ? <>
-            <Button variant="outline" size="icon" aria-label="Save draft" title="Save draft" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}><Icon icon="lucide:save" size={16} /></Button>
-            {changes.length > 0 && <Button className="h-auto min-h-9 max-w-full whitespace-normal px-3 text-sm" title={`${primaryLabel} (${countLabel})`} disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}><span className="sm:hidden">Review ({changes.length})</span><span className="hidden sm:inline">{primaryLabel} ({countLabel})</span></Button>}
-            <Button variant="ghost" size="icon" aria-label="Review changes and history" title="Review changes and history" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} /></Button>
-          </> : !lifecycle.loaded && <Button variant="outline" size="icon" aria-label="Load private draft" title="Load private draft" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}><Icon icon="lucide:download" size={16} /></Button>}
+            <Button variant="ghost" size="sm" disabled={operationLocked || !localDirty} onClick={requestDiscardLocal}>Discard</Button>
+            <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}>Save draft</Button>
+            <Button size="sm" className="h-auto min-h-9 max-w-full whitespace-normal px-3" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>{changes.length > 0 ? `Review (${countLabel})` : "Review"}</Button>
+          </> :!lifecycle.loaded && <Button variant="outline" size="icon" aria-label="Load private draft" title="Load private draft" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}><Icon icon="lucide:download" size={16} /></Button>}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Private preview options" title="Private preview options"><Icon icon="lucide:ellipsis" size={16} /></Button>
@@ -312,10 +311,13 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         </div>
       </div>
       {!lifecycle.ready && lifecycle.loaded && <p role="alert" className="theme-text-primary px-1 py-2 text-sm">{lifecycle.baselineRefreshRequired ? "The saved draft was discarded. Refresh and reconcile the latest article before editing; your local copy remains here." : "Article writes are paused. Your edits remain here; no operation will resume automatically after sign-in."}</p>}
-      {lifecycle.publication && <p data-testid="article-publication-notice" className="theme-text-primary px-1 py-2 text-sm">
-        {lifecycle.publication.message}{" "}
-        <Link href={lifecycle.publication.path} className="underline underline-offset-2">Open the public article</Link>
-      </p>}
+      {lifecycle.publication && <div data-testid="article-publication-notice" className="theme-text-primary space-y-2 px-1 py-2 text-sm">
+        <p>
+          {publicationMessage(receipt.receipt?.public ?? lifecycle.publication.delivery)}{" "}
+          <Link href={lifecycle.publication.path} className="underline underline-offset-2">Open the public article</Link>
+        </p>
+        {receipt.receipt && <PublicationReceiptChips receipt={receipt.receipt} />}
+      </div>}
       {lifecycle.uncertain && <p className="theme-text-primary px-1 py-2 text-sm">{status}</p>}
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
       {(localError || lifecycle.error) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
@@ -331,30 +333,31 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
         {section && <fieldset className="min-w-0" disabled={operationLocked} onInput={() => setFormDirty(true)}><ArticleSectionForm key={`${section}:${formEpoch}`} article={lifecycle.article} slug={slug} section={section} form={form} handleRef={formRef} /></fieldset>}
         {review && <>
-          <section className="space-y-4">
-          <h3 className="theme-text-primary font-semibold">Your changes</h3>
-          {changes.length === 0 && <p className="theme-text-muted text-sm">No article fields changed.</p>}
-          {changes.length > 0 && <>
-          <label htmlFor={summaryId} className="theme-text-primary block space-y-2 text-sm">Change note<Input id={summaryId} value={summary} onChange={(event) => { setSummary(event.target.value); setSummaryEdited(true); }} onKeyDown={(event) => {
-            if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
-            // A plain Enter never publishes: finishing a sentence is not a
-            // decision to go live. The modified chord is the explicit action.
-            event.preventDefault();
-            if (event.metaKey || event.ctrlKey) runPrimary();
-          }} /></label>
-          <p className="theme-text-muted text-sm">Written from the changed fields. Edit it if the change deserves more than the diff already says. Press Ctrl+Enter or Cmd+Enter to {canPublish ? "review and publish" : "submit for review"}.</p>
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={actionBlocked} onClick={runPrimary}>{primaryLabel} ({countLabel})</Button>
-            {canPublish && <Button variant="outline" disabled={actionBlocked} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); submitted(); setSummary(""); setSummaryEdited(false); setReview(false); }); }}>Submit for review instead</Button>}
-          </div>
-          <p className="theme-text-muted text-sm">Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged.</p>
-          </>}
-          {problems.length > 0 && <div role="alert" className="theme-text-primary space-y-2 text-sm">{problems.map((problem, index) => {
-            const sectionId = problem.sectionId;
-            return <div key={index} className="space-y-1"><p>{describeValidationIssue(problem)}</p>{sectionId && <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => openSection(sectionId)}>Edit {ARTICLE_SECTION_LABELS[sectionId].toLowerCase()}</Button>}</div>;
-          })}</div>}
-          <ArticleChangeDiff before={lifecycle.published} after={lifecycle.article} />
-          </section>
+          {changes.length === 0 ? <section className="space-y-2">
+            <h3 className="theme-text-primary font-semibold">Your changes</h3>
+            <p className="theme-text-muted text-sm">No article fields changed.</p>
+          </section> : <PublishSheet
+            changes={<ArticleChangeDiff before={lifecycle.published} after={lifecycle.article} />}
+            targets={[publicPath, "/changes"]}
+            actions={sheetActions}
+            countLabel={countLabel}
+            onPublish={publishFromSheet}
+            receipt={receipt.receipt}
+            disabled={operationLocked}
+            busy={lifecycle.busy}
+            description={canPublish
+              ? "Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged."
+              : "Submitting sends this change to an admin for review. The published article stays unchanged until it is approved."}
+            note={{
+              value: summary,
+              onChange: (value) => { setSummary(value); setSummaryEdited(true); },
+              hint: "Written from the changed fields. Edit it if the change deserves more than the diff already says.",
+            }}
+            problems={problems.length > 0 ? <div role="alert" className="theme-text-primary space-y-2 text-sm">{problems.map((problem, index) => {
+              const sectionId = problem.sectionId;
+              return <div key={index} className="space-y-1"><p>{describeValidationIssue(problem)}</p>{sectionId && <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => openSection(sectionId)}>Edit {ARTICLE_SECTION_LABELS[sectionId].toLowerCase()}</Button>}</div>;
+            })}</div> : undefined}
+          />}
           <section className="space-y-4">
             <ExpandButton variant="inline" className="min-h-11 w-full justify-between gap-3 text-sm font-semibold before:inset-0" isExpanded={historyExpanded} onToggle={() => setHistoryExpanded((value) => !value)} label="Article history" ariaLabel="Article history" ariaControls={historyId} />
             <div id={historyId} hidden={!historyExpanded} className="space-y-5">
@@ -386,9 +389,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         </>}
         {section && <EditorToolbar variant="compact" label="Section editing actions" className="gap-1">
           <Button variant="outline" size="sm" className={`w-8 shrink-0 p-0 ${TOUCH_ICON}`} aria-label="Preview locally" title="Preview locally" disabled={operationLocked} onClick={() => { void attempt(preview); }}><Icon icon="lucide:eye" size={16} aria-hidden /></Button>
-          <Button variant="outline" size="sm" className={`w-8 shrink-0 p-0 ${TOUCH_ICON}`} aria-label="Save draft" title="Save draft" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}><Icon icon="lucide:save" size={16} aria-hidden /></Button>
-          <Button size="sm" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>Review changes</Button>
-          <Button variant="ghost" size="sm" aria-label="Cancel section edit" title="Cancel section edit" disabled={operationLocked} onClick={() => { setFormDirty(false); setFormEpoch((value) => value + 1); closePanel(); }}>Cancel</Button>
+          <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}>Save draft</Button>
+          <Button size="sm" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>Review</Button>
+          {/* Cancel takes the same path as Escape: it asks while anything is unsaved. */}
+          <Button variant="ghost" size="sm" disabled={operationLocked} onClick={() => leaveGuard.guard(closePanel)}>Cancel</Button>
         </EditorToolbar>}
         {(localError || lifecycle.error) && <p role="alert" className="theme-text-primary whitespace-pre-wrap text-sm">{localError || lifecycle.error}</p>}
         {retryControl}

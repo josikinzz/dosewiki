@@ -1,10 +1,39 @@
-import { v } from "../lib/postgres/runtime/values";
+import { PostgresError, v } from "../lib/postgres/runtime/values";
+import { query } from "../lib/postgres/runtime/server";
 import { internalMutation } from "./lib/indexedMutation";
+import { requireRole } from "./lib/auth";
 import {
   PUBLICATION_OUTBOX_CLAIM_LIMIT,
   planPublicationClaim,
+  publicationOutboxKey,
+  publicationStatus,
   settlePublicationDelivery,
 } from "../lib/next/publicationOutbox";
+import { isPublicationTarget } from "../lib/next/publicationWire";
+
+/** Identities one in-page editor names after a publish; a status read never scans. */
+export const PUBLICATION_STATUS_MAX_TARGETS = 8;
+
+/**
+ * Read-only delivery state for the identities an in-page editor just
+ * published, so its receipt can say when the public site has the change.
+ * Reads indexed rows by key and returns no content, only states.
+ */
+export const status = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), targets: v.array(v.any()) },
+  handler: async (ctx, args) => {
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" }, "contributor");
+    if (args.targets.length === 0 || args.targets.length > PUBLICATION_STATUS_MAX_TARGETS || !args.targets.every(isPublicationTarget)) {
+      throw new PostgresError({ code: "PUBLICATION_STATUS_TARGETS", message: `Name between 1 and ${PUBLICATION_STATUS_MAX_TARGETS} valid publication targets.` });
+    }
+    return await Promise.all(args.targets.map(async (target) => {
+      const row = await ctx.db.query("publicCachePublications")
+        .withIndex("by_key", (q) => q.eq("key", publicationOutboxKey(target)))
+        .first();
+      return publicationStatus(target, row);
+    }));
+  },
+});
 
 /**
  * The runtime store adapter of the publication outbox

@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextualEditingContext } from "@/features/contextual-editing/context";
@@ -25,6 +25,11 @@ const editing = { enabled: true, mode: "edit" as const, role: "admin" as const, 
 function renderPanel() {
   return render(<ContextualEditingContext.Provider value={editing}><ReplicationViewerEditorPanel collection={collection} activeSlug="work-one" panelHost={panelHost} railHost={railHost} open onOpenChange={vi.fn()} onReorderModeChange={vi.fn()} onActivateSlug={vi.fn()} onOrderChange={vi.fn()} /></ContextualEditingContext.Provider>);
 }
+/** Publish from the shared sheet, then answer its one confirm. */
+async function publishThroughSheet(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(within(await screen.findByTestId("publish-sheet")).getByRole("button", { name: "Publish" }));
+  await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
+}
 beforeEach(() => {
   panelHost = document.createElement("aside"); railHost = document.createElement("div"); document.body.append(panelHost, railHost);
 });
@@ -41,10 +46,15 @@ describe("reviewed viewer publication", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: "Move work-two up" }));
     expect(publications).toEqual([]);
-    await user.click(screen.getByRole("button", { name: "Review publication" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
     expect(publications).toEqual([]);
-    await user.click(screen.getByRole("button", { name: "Confirm publication" }));
+    // The shared sheet: the diff in plain words, the page it reaches, one confirm.
+    const sheet = await screen.findByTestId("publish-sheet");
+    expect(within(sheet).getByText("Works, in order")).toBeInTheDocument();
+    expect(within(sheet).getByText("/lsd")).toBeInTheDocument();
+    await publishThroughSheet(user);
     await waitFor(() => expect(publications).toEqual([expect.objectContaining({ mode: "collection", change: expect.objectContaining({ targetKind: "substance", targetKey: "lsd", expectedRevision: "showcase-revision-one", slugs: ["work-two", "work-one"] }) })]));
+    expect(await screen.findByText("Editor host: saved")).toBeInTheDocument();
   });
 
   it("retains a canonical draft after a conflict and reuses the publication identity on retry", async () => {
@@ -59,12 +69,12 @@ describe("reviewed viewer publication", () => {
     await user.click(screen.getByRole("button", { name: "Canonical metadata" }));
     const credit = screen.getByLabelText("Credit line");
     await user.clear(credit); await user.type(credit, "Corrected artist credit");
-    await user.click(screen.getByRole("button", { name: "Review publication" }));
-    await user.click(screen.getByRole("button", { name: "Confirm publication" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await publishThroughSheet(user);
     await screen.findByRole("alert");
     expect(credit).toHaveValue("Corrected artist credit");
-    expect(screen.queryByText(/Publication confirmed/)).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Confirm publication" }));
+    expect(screen.queryByText(/Saved on the editor host/)).not.toBeInTheDocument();
+    await publishThroughSheet(user);
     await waitFor(() => expect(publications).toHaveLength(2));
     expect(publications[0].change.requestId).toEqual(publications[1].change.requestId);
   });
@@ -82,19 +92,19 @@ describe("reviewed viewer publication", () => {
     renderPanel();
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: "Move work-two up" }));
-    await user.click(screen.getByRole("button", { name: "Review publication" }));
-    await user.click(screen.getByRole("button", { name: "Confirm publication" }));
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await publishThroughSheet(user);
     const retry = await screen.findByRole("button", { name: "Retry exact reviewed publication" });
     await waitFor(() => expect(retry).toBeEnabled());
     expect(screen.getByRole("button", { name: /discard/i })).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "Return to draft" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("publish-sheet")).not.toBeInTheDocument();
     const proceed = vi.fn();
     const close = new CustomEvent("replication-viewer-before-close", { cancelable: true, detail: { proceed } });
     expect(document.dispatchEvent(close)).toBe(false);
     expect(proceed).not.toHaveBeenCalled();
     expect(publications).toHaveLength(1);
     await user.click(retry);
-    await screen.findByText(/Publication confirmed/);
+    await screen.findByText(/Saved on the editor host/);
     expect(publications).toHaveLength(2);
     expect(publications[1].change.requestId).toBe(publications[0].change.requestId);
   });

@@ -12,6 +12,8 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
+import { PublicationReceiptChips, PublishSheet, type FieldChange } from "@/features/contextual-editing/PublishSheet";
+import { usePublicationReceipt } from "@/features/contextual-editing/usePublicationReceipt";
 import { EffectArticlePage } from "../pages/EffectArticlePage";
 import { buildEffectArticleModel, type SubjectiveEffectArticle } from "../articleSectionModel";
 import { EFFECT_NARRATIVES, effectDraftFromRow, prepareEffectDraft, type EffectDraft } from "./effectEditorModel";
@@ -56,6 +58,7 @@ function EffectSession({ slug, pageProps }: Props) {
   const [preview, setPreview] = useState(false);
   const [reviewed, setReviewed] = useState<string | null>(null);
   const operation = useRef<{ body: string; id: string } | null>(null);
+  const { receipt, start: startReceipt, reset: resetReceipt } = usePublicationReceipt();
   const key = `effect:${slug}`;
   const baseline = useMemo(() => document ? effectDraftFromRow(document.effect) : null, [document]);
   const dirty = uncertain || JSON.stringify(draft) !== JSON.stringify(baseline);
@@ -115,7 +118,12 @@ function EffectSession({ slug, pageProps }: Props) {
       const saved = { ...document.effect, ...parsed.updates };
       setDocument({ ...document, effect: saved, baseRevision: result.revision });
       resetDraft(effectDraftFromRow(saved));
-      setReviewed(null); setMessage("Published. The public effect projections have been invalidated."); router.refresh();
+      setReviewed(null);
+      // The route answers once the editor host has the change; the receipt
+      // tracks when the public site serves it.
+      setMessage("Saved on the editor host. Public delivery is tracked below.");
+      startReceipt([{ kind: "effect", slug }]);
+      router.refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Publication failed. Your local edits are retained."); }
     finally { setBusy(false); }
   };
@@ -127,7 +135,7 @@ function EffectSession({ slug, pageProps }: Props) {
     previewModel.sections.splice(sourcesIndex < 0 ? previewModel.sections.length : sourcesIndex, 0, related);
   }
   const update = (patch: Partial<EffectDraft>) => {
-    setMessage(null);
+    setMessage(null); resetReceipt();
     setDraft(current => current ? { ...current, ...patch } : current);
   };
   const reveal = (selector: string) => requestAnimationFrame(() => {
@@ -158,6 +166,7 @@ function EffectSession({ slug, pageProps }: Props) {
     >
       {error ? <EditorNotice notice={{ tone: "danger", message: error }} /> : null}
       {message ? <EditorNotice notice={{ tone: "info", message }} /> : null}
+      {receipt && reviewed !== fingerprint ? <PublicationReceiptChips receipt={receipt} /> : null}
       {uncertain ? <EditorNotice notice={{ tone: "warning", message: "Publication is not confirmed. Editing, closing and discard are locked until you reconcile the original operation.", actions: <Button disabled={working} onClick={() => void publish()}>Retry publication confirmation</Button> }} /> : null}
       {busy && !document ? <p role="status">Loading effect… You can close this editor while it loads.</p> : null}
       {!document && !busy ? <Button onClick={() => void load()}>Retry loading</Button> : null}
@@ -166,7 +175,7 @@ function EffectSession({ slug, pageProps }: Props) {
           <Button type="button" variant="iconGhost" size="sm" className={`w-8 shrink-0 p-0 ${TOUCH_ICON}`} aria-label={preview ? "Close preview" : "Preview locally"} title={preview ? "Close preview" : "Preview locally"} aria-expanded={preview} disabled={!!parsed.error} onClick={() => { setPreview(value => !value); if (!preview) reveal("[data-effect-preview]"); }}>
             <Icon icon={preview ? "lucide:eye-off" : "lucide:eye"} size={16} aria-hidden />
           </Button>
-          <Button type="button" size="sm" disabled={!dirty || busy || !!parsed.error} onClick={() => { setReviewed(fingerprint); reveal("[data-effect-review]"); }}>Review changes</Button>
+          <Button type="button" size="sm" disabled={!dirty || busy || !!parsed.error} onClick={() => { setReviewed(fingerprint); reveal("[data-effect-review]"); }}>Review</Button>
           <EditorStatusPill tone={dirty ? "warning" : "neutral"}>{dirty ? "Unsaved changes" : "No changes"}</EditorStatusPill>
         </EditorToolbar>
         {parsed.error ? <EditorNotice notice={{
@@ -181,16 +190,18 @@ function EffectSession({ slug, pageProps }: Props) {
             });
           }}>Go to first error</Button> : undefined,
         }} /> : null}
-        {reviewed === fingerprint && baseline ? <EditorSection headingLevel="h3" title="Review effect changes" data-effect-review tabIndex={-1} className="scroll-mt-32" description="Only this effect changes, on dose.wiki and Effect Index. Nothing is published until you confirm.">
-          {(Object.keys(draft) as Array<keyof EffectDraft>).filter(field => JSON.stringify(draft[field]) !== JSON.stringify(baseline[field])).map(field => <div key={field} className="min-w-0 space-y-2">
-            <h4 className="font-semibold">{FIELD_LABELS[field]}</h4>
-            <div className="grid min-w-0 gap-3 md:grid-cols-2">
-              <div className="min-w-0"><p className="theme-text-muted text-sm">Published baseline</p><pre role="region" tabIndex={0} aria-label={`${FIELD_LABELS[field]}: published baseline`} className="max-h-64 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof baseline[field] === "string" ? baseline[field] : JSON.stringify(baseline[field], null, 2) ?? "Not set"}</pre></div>
-              <div className="min-w-0"><p className="theme-text-muted text-sm">Local changes</p><pre role="region" tabIndex={0} aria-label={`${FIELD_LABELS[field]}: local changes`} className="max-h-64 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof draft[field] === "string" ? draft[field] : JSON.stringify(draft[field], null, 2)}</pre></div>
-            </div>
-          </div>)}
-          <Button variant="accent" disabled={busy || !!parsed.error || !dirty} onClick={() => void publish()}>Confirm publication</Button>
-        </EditorSection> : null}
+        {reviewed === fingerprint && baseline ? <div data-effect-review tabIndex={-1} className="scroll-mt-32">
+          <PublishSheet
+            changes={effectFieldChanges(baseline, draft)}
+            targets={[`/effects/${slug}`, "Effect Index"]}
+            description="Only this effect changes, on dose.wiki and Effect Index. Nothing is published until you confirm."
+            onPublish={publish}
+            receipt={receipt}
+            disabled={!!parsed.error || !dirty}
+            busy={busy}
+            onCancel={() => setReviewed(null)}
+          />
+        </div> : null}
         {preview && previewModel && !parsed.error ? <EditorSection headingLevel="h3" title="Local preview" data-effect-preview tabIndex={-1} className="scroll-mt-32" description="The public effect renderer; nothing is published here."><EffectArticlePage {...pageProps} article={previewModel} embedded t={t} /></EditorSection> : null}
         <EditorSection headingLevel="h3" title="Overview">
           <EditorField label="Name" required error={parsed.fieldErrors.name}>{control => <Input {...control} value={draft.name} disabled={busy} onChange={event => update({ name: event.target.value })} />}</EditorField>
@@ -243,7 +254,19 @@ const FIELD_LABELS: Record<keyof EffectDraft, string> = {
   tags: "Tags", contributors: "Contributors", social_media_image: "Social image URL", featured: "Featured effect",
   see_also: "See also", external_links: "External links", citations: "Citations", subarticles: "Subarticles",
 };
-const STRUCTURED_KEYS = { see_also: ["location", "title"], external_links: ["url", "title"], citations: ["url", "text", "from"], subarticles: ["id", "title"] } as const;
+function effectFieldValue(label: string, side: string, value: unknown) {
+  return <pre role="region" tabIndex={0} aria-label={`${label}: ${side}`} className="max-h-64 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof value === "string" ? value : JSON.stringify(value, null, 2) ?? "Not set"}</pre>;
+}
+function effectFieldChanges(baseline: EffectDraft, draft: EffectDraft): FieldChange[] {
+  return (Object.keys(draft) as Array<keyof EffectDraft>)
+    .filter(field => JSON.stringify(draft[field]) !== JSON.stringify(baseline[field]))
+    .map(field => ({
+      field, label: FIELD_LABELS[field],
+      before: effectFieldValue(FIELD_LABELS[field], "published baseline", baseline[field]),
+      after: effectFieldValue(FIELD_LABELS[field], "local changes", draft[field]),
+    }));
+}
+const STRUCTURED_KEYS ={ see_also: ["location", "title"], external_links: ["url", "title"], citations: ["url", "text", "from"], subarticles: ["id", "title"] } as const;
 const STRUCTURED_LABELS: Record<string, string> = { location: "Destination URL", url: "URL", title: "Title", text: "Citation text", from: "Source attribution", id: "Subarticle ID" };
 function StructuredFields({ field, value, disabled, errors, onChange }: { field: keyof typeof STRUCTURED_KEYS; value: Array<Record<string, string | undefined>>; disabled: boolean; errors: Record<string, string>; onChange: (value: Array<Record<string, string | undefined>>) => void }) {
   return <EditorSection headingLevel="h3" title={FIELD_LABELS[field]}>

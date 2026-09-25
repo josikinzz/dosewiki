@@ -8,6 +8,8 @@ import { Icon } from "@/components/common/Icon";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { EditorCheckbox, EditorField, EditorSelect, useConfirm } from "@/features/dev/components";
+import { PublicationReceiptChips, PublishSheet, type FieldChange } from "@/features/contextual-editing/PublishSheet";
+import { usePublicationReceipt } from "@/features/contextual-editing/usePublicationReceipt";
 import { PresetDrawer } from "@/features/dev/tools/warning-banners/PresetDrawer";
 import { fetchWarningBannerTargets } from "@/features/dev/tools/warning-banners/warningBannerTargets";
 import {
@@ -47,6 +49,8 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
   const [iconValid, setIconValid] = useState(false);
   const [sitewideSlugs, setSitewideSlugs] = useState<string[] | null>(null);
   const { confirm, dialog } = useConfirm();
+  const [reviewing, setReviewing] = useState(false);
+  const { receipt, start: startReceipt, reset: resetReceipt } = usePublicationReceipt();
   const baseline = state?.preset ? { ...state.preset, baseHash: state.baseHash } : null;
   const dirty = Boolean(draft && baseline && JSON.stringify(draft) !== JSON.stringify(baseline));
   const dirtyKey = `warning:${slug}`;
@@ -54,7 +58,7 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
   const discard = useCallback(() => {
     if (blocked) throw new Error("Resolve the pending warning publication before discarding local edits.");
     setDraft(state?.preset ? { ...state.preset, baseHash: state.baseHash } : null);
-    setError(null);
+    setError(null); setReviewing(false);
   }, [state, blocked]);
   useEffect(() => { setDirty(dirtyKey, dirty || blocked); return () => setDirty(dirtyKey, false); }, [dirty, blocked, dirtyKey, setDirty]);
   useEffect(() => registerDraftGuard(dirtyKey, { discard, canDiscard: !blocked }), [dirtyKey, discard, blocked, registerDraftGuard]);
@@ -115,7 +119,7 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
       setError("Resolve the pending warning publication before closing, discarding or changing editors.");
       return;
     }
-    if (!dirty) { action(); return; }
+    if (!dirty) { setReviewing(false); action(); return; }
     confirm({ title: "Discard local warning changes?", description: "These edits have not been published. Discard them or cancel to keep editing.", confirmLabel: "Discard local changes", destructive: true, onConfirm: () => { discard(); action(); } });
   }
 
@@ -132,29 +136,28 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
     const next = result.preset ? { ...result.preset, baseHash: result.baseHash } : null;
     setDraft(next);
     setState({ preset: result.preset, baseHash: result.baseHash, history: [], operation: result });
-    setNotice(`Published ${result.key}. The warning projection is confirmed; attributed history is recorded.`);
+    setReviewing(false);
+    // Saved on the editor host; the receipt tracks when the public site has it.
+    setNotice(`Saved ${result.key} on the editor host. Attributed history is recorded.`);
+    startReceipt([{ kind: "banners" }], result.publication);
     router.refresh(); onPublished?.();
     try { setState(await readWarningState(result.key)); }
     catch (reason) { fail(reason); }
   }
 
+  const scopeDescription = !draft ? "" : scope === "assignment"
+    ? `Only this article's assignment changes on dose.wiki and Effect Index. Shared warning wording is unchanged.`
+    : `Shared warning wording changes on dose.wiki and Effect Index for every listed assignment.${draft.allSubstances ? " Sitewide coverage also includes all future substance articles." : ""}${!draft.enabled ? " The preset is currently disabled; this updates its stored wording without enabling it." : ""}`;
+
+  // The shared sheet has already asked; this runs the confirmed write.
   async function publish() {
     if (!draft || !impact || blocked) return;
-    const submitted = draft;
-    confirm({
-      title: scope === "assignment" ? `Publish assignment on ${slug}?` : `Publish shared preset ${draft.key}?`,
-      description: scope === "assignment"
-        ? `Only this article's assignment changes on dose.wiki and Effect Index. Shared warning wording is unchanged.`
-        : `Shared warning wording changes on dose.wiki and Effect Index for every listed assignment.${draft.allSubstances ? " Sitewide coverage also includes all future substance articles." : ""}${!draft.enabled ? " The preset is currently disabled; this updates its stored wording without enabling it." : ""}`,
-      affected: impact, confirmLabel: scope === "assignment" ? "Publish assignment" : "Publish shared preset",
-      onConfirm: async () => {
-        setSaving(true); setError(null); setNotice(null);
-        try { await adopt(await publishWarning(submitted, scope, slug)); }
-        catch (reason) { fail(reason); }
-        finally { setSaving(false); }
-      },
-    });
+    setSaving(true); setError(null); setNotice(null);
+    try { await adopt(await publishWarning(draft, scope, slug)); }
+    catch (reason) { fail(reason); }
+    finally { setSaving(false); }
   }
+  const review = () => { resetReceipt(); setNotice(null); setReviewing(true); };
 
   function restore(revision: WarningRevision) {
     if (!state || dirty || blocked) return;
@@ -198,6 +201,7 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
       <div className="space-y-6 overflow-y-auto pr-1">
         {error ? <p role="alert" className="text-dose-danger">{error}</p> : null}
         {notice ? <p role="status" className="theme-text-secondary">{notice}</p> : null}
+        {receipt && !reviewing ? <PublicationReceiptChips receipt={receipt} /> : null}
         {locked ? <p>Sign in again to reopen warning editing. No write will be replayed automatically.</p> : <>
           {uncertainKey ? <Surface variant="subtle" padding="sm" radius="lg">
             <h3 className="font-semibold">Warning publication remains unconfirmed</h3>
@@ -228,10 +232,21 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
                 <SubstanceWarningBanners banners={preview} iconSize={iconSize} />
                 {preview.length === 0 ? <p>No warning banners render on this article with these assignments.</p> : null}
                 {suppressed.length ? <p className="theme-text-secondary text-sm">The article's banner cap suppresses: {suppressed.map((preset) => preset.key).join(", ")}.</p> : null}
-                <div className="flex flex-wrap gap-2"><Button variant="accent" disabled={!dirty || draft.allSubstances} onClick={() => void publish()}>Publish assignment</Button><Button variant="secondary" disabled={!dirty} onClick={discard}>Discard changes</Button></div>
-              </> : <PresetDrawer contextual draft={draft} isNew={false} isDirty={dirty} saveState={saving ? "saving" : "idle"} iconValid={iconValid && impact !== null} iconSize={iconSize} targets={[]} onIconValidityChange={setIconValid} onDraftChange={setDraft} onSave={() => void publish()} onDiscard={discard} />}
+                <div className="flex flex-wrap gap-2"><Button variant="accent" disabled={!dirty || draft.allSubstances} onClick={review}>Review</Button><Button variant="secondary" disabled={!dirty} onClick={discard}>Discard changes</Button></div>
+              </> : <PresetDrawer contextual draft={draft} isNew={false} isDirty={dirty} saveState={saving ? "saving" : "idle"} iconValid={iconValid && impact !== null} iconSize={iconSize} targets={[]} onIconValidityChange={setIconValid} onDraftChange={setDraft} onSave={review} onDiscard={discard} />}
             </> : null}
           </fieldset> : null}
+          {reviewing && draft && baseline && dirty ? <PublishSheet
+            changes={warningFieldChanges(baseline, draft)}
+            targets={(impact ?? []).map((item) => `/${item}`)}
+            description={scopeDescription}
+            confirmDescription={`${scopeDescription} It is saved on the editor host first, then delivered to the public site.`}
+            onPublish={publish}
+            receipt={receipt}
+            disabled={impact === null || (scope === "assignment" && draft.allSubstances)}
+            busy={blocked || loading}
+            onCancel={() => setReviewing(false)}
+          /> : null}
           <div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={blocked || loading} onClick={() => changeContext(() => { if (draft) void selectPreset(draft.key); else void load(); })}>Reload current warning</Button><Button variant="ghost" disabled={blocked} onClick={() => changeContext(() => setOpen(false))}>Close</Button></div>
           {state ? <section className="space-y-4">
             <h3 className="font-semibold">Attributed warning history</h3>
@@ -247,6 +262,23 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
     </ContextualEditorPanel>
     {dialog}
   </>;
+}
+
+const WARNING_FIELD_LABELS: Record<keyof WarningBannerPreset, string> = {
+  key: "Preset", tone: "Tone", icon: "Icon", severityLabel: "Severity label", headline: "Headline", points: "Points",
+  enabled: "Enabled", allSubstances: "All substance articles", enabledSlugs: "Assigned articles",
+};
+
+function warningValue(value: unknown): string {
+  if (Array.isArray(value)) return value.length ? value.join("\n") : "None";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  return value === undefined || value === null || value === "" ? "Not set" : String(value);
+}
+
+function warningFieldChanges(before: EditableWarningPreset, after: EditableWarningPreset): FieldChange[] {
+  return (Object.keys(WARNING_FIELD_LABELS) as (keyof WarningBannerPreset)[])
+    .filter((field) => JSON.stringify(before[field]) !== JSON.stringify(after[field]))
+    .map((field) => ({ field, label: WARNING_FIELD_LABELS[field], before: warningValue(before[field]), after: warningValue(after[field]) }));
 }
 
 function changedFields(revision: WarningRevision): (keyof WarningBannerPreset)[] {
