@@ -6,7 +6,12 @@ type DevView = Extract<AppView, { type: "dev" }>;
 
 export default {
   path: devHref,
-  parse(tab: string | undefined, slug: string | undefined, query: Record<string, string>): DevView | null {
-    return { type: "dev", ...resolveDevRoute(tab, slug, query) };
+  parse(
+    tab: string | undefined,
+    slug: string | undefined,
+    query: Record<string, string>,
+    nested?: string,
+  ): DevView | null {
+    return { type: "dev", ...resolveDevRoute(tab, slug, query, nested) };
   },
 };

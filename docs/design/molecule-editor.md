@@ -69,6 +69,14 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
 - **Starting structure:** The editor loads `moleculeOverrides.molblock`, including `source:
   "seeded"` baselines. **Revert to auto** runs `smilesToMolblock` from the article SMILES in the
   canvas only. It does not delete or publish anything; the article changes only on Save.
+  **Revert to saved** reloads the stored depiction and drops canvas changes, also without a
+  write. **Remove override** (substances and classes) is the only way to delete a saved row: an
+  explicit `DELETE` behind a confirmation, after which the page falls back to its automatic layout.
+- **Session and URL:** the open structure lives at `/dev/molecule-editor/<mode>/<slug>`
+  (`moleculeEditorRoute.ts`; older `/dev/molecules/<slug>` links open a substance). All
+  per-structure state lives in `MoleculeEditorSession`, keyed on `mode:selected`, so switching
+  selection or mode starts a fresh session. **Canvas keys** in the side column lists
+  OpenChemLib's single-key bindings (`OCL_KEY_LEGEND` in `oclToolbar.ts`).
   Two more starting points exist in substances mode, both replacing the canvas with a
   confirmation over unsaved work: **Start from another substance** loads any saved depiction as
   an analogue seed (the stereo guard then reports "molecule changed" until the drawing is edited

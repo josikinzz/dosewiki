@@ -221,7 +221,7 @@ export function parsePath(
         return resolveDefault();
       }
       case "dev":
-        return devRouting.parse(slug, segments[2], Object.fromEntries(searchParams)) ?? resolveDefault();
+        return devRouting.parse(slug, segments[2], Object.fromEntries(searchParams), segments[3]) ?? resolveDefault();
       default:
         // Treat any unrecognized path as a substance slug (e.g., /lsd -> substance lsd)
         return { type: "substance", slug: root };

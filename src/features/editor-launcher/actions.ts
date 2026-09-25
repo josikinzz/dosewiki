@@ -40,7 +40,7 @@ export function getEditorLauncherActions(
     switch (target.kind) {
       case "substance":
         add("articles", "Open article editor", `/dev/articles/${slug}`);
-        add("molecule-editor", "Open molecule editor", `/dev/molecule-editor/${slug}`);
+        add("molecule-editor", "Open molecule editor", `/dev/molecule-editor/substances/${slug}`);
         add("citation-review", "Review citations", `/dev/citation-review/${slug}`);
         break;
       case "writing":
