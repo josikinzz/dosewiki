@@ -229,8 +229,9 @@ export function useWritingWorkbenchController({
   }, []);
 
   const save = useCallback(
-    async (status: WritingDraft["status"]) => {
-      if ((readOnly && !uncertain) || saveState === "saving" || parsedBody.error) return;
+    /** Resolves true once the server confirmed the save; false when it did not happen. */
+    async (status: WritingDraft["status"]): Promise<boolean> => {
+      if ((readOnly && !uncertain) || saveState === "saving" || parsedBody.error) return false;
       setSaveState("saving");
       setNotice(null);
       try {
@@ -269,6 +270,7 @@ export function useWritingWorkbenchController({
               : "Saved as a draft. It stays off the public site until you publish it.",
         });
         await refreshList();
+        return true;
       } catch (error) {
         setSaveState("error");
         setNotice({
@@ -276,6 +278,7 @@ export function useWritingWorkbenchController({
           title: "Save failed",
           message: error instanceof Error ? error.message : "The article could not be saved.",
         });
+        return false;
       }
     },
     [draft, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState],

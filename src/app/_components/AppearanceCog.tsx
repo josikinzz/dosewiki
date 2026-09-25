@@ -235,8 +235,8 @@ export function AppearanceCog({
          * propagation after it keeps the key from reaching anything else. Two kinds of
          * page-level handler would otherwise see it: a React `onKeyDown` above the cog,
          * because React routes portalled events up the *component* tree rather than the DOM
-         * tree, and a `window` listener like the /dev shell's "Escape leaves the editor",
-         * because React's own root listener sits inside `<body>`. `Header.tsx` stops its
+         * tree, and any `window` keydown listener, because React's own root listener sits
+         * inside `<body>`. `Header.tsx` stops its
          * Escape for the same reason.
          */
         onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {

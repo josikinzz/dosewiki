@@ -96,6 +96,6 @@ export type DevModePageControllerState = {
   /** Queue: seed the working set from a proposal, then open the substances editor. */
   onLoadProposal: (seed: DevProposalSeed) => Promise<void>;
   onSignIn: () => void;
-  /** Visible "Leave editor" action; the same path Escape takes, confirm included. */
+  /** Visible "Leave editor" action: back to the page the editor came from. The chrome asks the unsaved-work registry first. */
   onLeave: () => void;
 };

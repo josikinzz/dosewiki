@@ -121,3 +121,10 @@ export {
   saveLineCopy,
 } from "./SaveLine";
 export type { SaveDestination, SaveModel } from "./SaveLine";
+
+export {
+  UnsavedWorkProvider,
+  useUnsavedWork,
+  useUnsavedWorkRegistry,
+} from "./unsavedWork";
+export type { UnsavedWorkEntry, UnsavedWorkExit, UnsavedWorkRegistry } from "./unsavedWork";

@@ -12,7 +12,14 @@ vi.mock("@/components/pages/PublicMarkdownBody", () => ({
   PublicMarkdownBody: ({ content }: { content: string }) => <div data-testid="preview">{content}</div>,
 }));
 
+import { UnsavedWorkProvider, useUnsavedWorkRegistry } from "@/features/dev/components";
 import { WritingTab } from "./WritingTab";
+
+/** Stands in for a shell rail tab, which asks the registry before switching. */
+function RailProbe({ onSwitch }: { onSwitch: () => void }) {
+  const { confirmExit } = useUnsavedWorkRegistry();
+  return <button type="button" onClick={() => confirmExit(onSwitch, "tab")}>Copy</button>;
+}
 
 const ENTRIES: WritingListEntry[] = [
   { slug: "field-notes", title: "Field notes", kind: "article", status: "published", creationTime: 1 },
@@ -164,6 +171,53 @@ describe("WritingTab", () => {
     await user.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByTestId("about-editor")).toBeInTheDocument();
     expect(rail.queryByText("Unsaved")).not.toBeInTheDocument();
+  });
+
+  it("reports an unsaved draft to the shell, whose Discard restores it and moves on", async () => {
+    const user = userEvent.setup();
+    const onSwitch = vi.fn();
+    render(
+      <UnsavedWorkProvider>
+        <RailProbe onSwitch={onSwitch} />
+        <WritingTab contributorProfiles={[]} profilesLoading={false} canApprove />
+      </UnsavedWorkProvider>,
+    );
+    await user.click(await screen.findByRole("button", { name: /Field notes/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
+    await user.type(screen.getByLabelText("Title"), " extra");
+
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    expect(within(dialog).getByText("Writing: Field notes extra")).toBeTruthy();
+    // A published row saves by publishing, which the dialog never does.
+    expect(within(dialog).getByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeTruthy();
+    expect(within(dialog).queryByRole("button", { name: /Publish|Save/ })).toBeNull();
+    expect(onSwitch).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole("button", { name: "Discard" }));
+
+    expect(onSwitch).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("Title")).toHaveValue("Field notes");
+  });
+
+  it("offers an unpublished save in the shell dialog for a draft that has never been live", async () => {
+    const user = userEvent.setup();
+    const onSwitch = vi.fn();
+    render(
+      <UnsavedWorkProvider>
+        <RailProbe onSwitch={onSwitch} />
+        <WritingTab contributorProfiles={[]} profilesLoading={false} canApprove initialKind="blog" />
+      </UnsavedWorkProvider>,
+    );
+    await user.click(await screen.findByRole("button", { name: /Launch post/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
+    await user.type(screen.getByLabelText("Title"), " two");
+
+    await user.click(screen.getByRole("button", { name: "Copy" }));
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+
+    expect(within(dialog).getByRole("button", { name: "Save as unpublished" })).toBeTruthy();
+    expect(within(dialog).queryByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeNull();
   });
 
   it("opens on the kind the route names without rewriting the URL", async () => {

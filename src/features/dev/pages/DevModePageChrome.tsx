@@ -6,10 +6,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
+import { useUnsavedWorkRegistry } from "../components/unsavedWork";
 import { canDraft, getRoleDisplayName, getRoleFloorLockReason, type AppRole } from "@/lib/auth/roles";
+import type { DevModePrimaryTab } from "./devModePageUtils";
 import {
   DEV_TAB_REGISTRY,
   findDevTab,
+  type DevModeTab,
   type DevTabDescriptor,
   type DevToolGroup,
 } from "./devTabRegistry";
@@ -139,11 +142,41 @@ export function DevModePageChrome({
   sessionStatus,
   userEmail,
   userName,
-  onPrimaryTabChange,
-  onTabChange,
+  onPrimaryTabChange: requestPrimaryTabChange,
+  onTabChange: requestTabChange,
   onSignIn,
-  onLeave,
+  onLeave: requestLeave,
 }: DevModePageChromeProps) {
+  // Every way out of the open tool asks the unsaved-work registry first: a
+  // rail switch drops the tool's own drafts, Leave and sign-out drop the
+  // shared draft too.
+  const unsavedWork = useUnsavedWorkRegistry();
+  const { confirmExit } = unsavedWork;
+  const onTabChange = useCallback(
+    (tab: DevModeTab) => {
+      if (tab === activeTab && activePrimaryTab === "tools") {
+        requestTabChange(tab);
+        return;
+      }
+      confirmExit(() => requestTabChange(tab), "tab");
+    },
+    [activePrimaryTab, activeTab, confirmExit, requestTabChange],
+  );
+  const onPrimaryTabChange = useCallback(
+    (tab: DevModePrimaryTab) => {
+      if (tab === activePrimaryTab) {
+        requestPrimaryTabChange(tab);
+        return;
+      }
+      confirmExit(() => requestPrimaryTabChange(tab), "tab");
+    },
+    [activePrimaryTab, confirmExit, requestPrimaryTabChange],
+  );
+  const onLeave = useCallback(() => confirmExit(requestLeave, "leave"), [confirmExit, requestLeave]);
+  const onSignOut = useCallback(
+    () => confirmExit(() => void signOut({ callbackUrl: "/sign-in" }), "leave"),
+    [confirmExit],
+  );
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
   const mayDraft = canDraft(role);
@@ -157,6 +190,7 @@ export function DevModePageChrome({
       role: floor,
       destination,
       badge: badge === undefined ? undefined : badgeCounts[badge],
+      unsaved: unsavedWork.isDirty(id) || undefined,
     })),
   }));
   // Until the session answers, the role is unknown rather than absent: hold the
@@ -293,7 +327,7 @@ export function DevModePageChrome({
           type="button"
           title="Sign out"
           aria-label="Sign out"
-          onClick={() => void signOut({ callbackUrl: "/sign-in" })}
+          onClick={onSignOut}
           className={RAIL_ICON_BUTTON_CLASS}
         >
           <Icon icon="lucide:log-out" size={15} />

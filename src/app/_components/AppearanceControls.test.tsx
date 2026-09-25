@@ -590,9 +590,9 @@ describe("AppearanceCog", () => {
   it("keeps Escape inside the panel, so it cannot also close the page around it", async () => {
     const user = userEvent.setup();
     const reactAncestorEscape = vi.fn();
-    // The other kind of page-level handler: the /dev shell's "Escape leaves the editor" is a
-    // window listener, and React's own root listener sits inside <body>, so stopping the key
-    // in the panel has to keep it from arriving here too.
+    // The other kind of page-level handler is a window listener, and React's own root
+    // listener sits inside <body>, so stopping the key in the panel has to keep it from
+    // arriving here too.
     const windowEscape = vi.fn();
     window.addEventListener("keydown", windowEscape);
 
