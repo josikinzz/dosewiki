@@ -234,6 +234,11 @@ export type SiteAboutConfig = {
    * partners and neighbouring communities, so it belongs to that publication only.
    */
   readonly showCommunity: boolean;
+  /**
+   * Whether the Official collaborations section is shown. Its partners work with dose.wiki
+   * itself, so it belongs to that publication only.
+   */
+  readonly showCollaborations: boolean;
   /** Heading for the final About tab's panel and its cards. */
   readonly docsTitle: string;
   readonly docLinks: readonly SiteAboutDocLink[];
@@ -383,6 +388,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     missionMarkdown: null,
     showOpenData: true,
     showCommunity: true,
+    showCollaborations: true,
     docsTitle: msg("Documentation"),
     docLinks: [
       {
@@ -567,6 +573,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     showOpenData: false,
     // Partners & Community is dose.wiki's partner and community roster.
     showCommunity: false,
+    // Official collaborations are dose.wiki's partnerships.
+    showCollaborations: false,
     docsTitle: msg("Licensing & Contact"),
     docLinks: [
       {

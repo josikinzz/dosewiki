@@ -16,6 +16,7 @@ import { splitAboutMarkdown } from "@/data/content/aboutSections";
 import { selectAboutContributors } from "@/data/contributorRoster";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
+import { ABOUT_COLLABORATIONS, AboutCollaborationsSection } from "@/components/pages/AboutCollaborationsSection";
 import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnapshot";
 import type { SubstanceArticle } from "@/schema";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
@@ -148,6 +149,19 @@ export default async function AboutPage() {
         reuseContent={<CopyBlock copyKey={flavoredCopyKey("about-reuse-notice")}><PublicMarkdownBody content={copy.text(flavoredCopyKey("about-reuse-notice"))} /></CopyBlock>}
         communityIntro={SITE_FLAVOR_CONFIG.about.showCommunity
           ? <CopyBlock copyKey="about-community-intro"><PublicMarkdownBody content={copy.text("about-community-intro")} /></CopyBlock>
+          : undefined}
+        collaborationsContent={SITE_FLAVOR_CONFIG.about.showCollaborations
+          ? (
+            <CopyBlock copyKey="about-collaboration-summaries">
+              <AboutCollaborationsSection
+                summaries={copy.items("about-collaboration-summaries")}
+                bodies={Object.fromEntries(ABOUT_COLLABORATIONS.map(({ key }) => [
+                  key,
+                  <CopyBlock key={key} copyKey={`about-collaboration-${key}`}><PublicMarkdownBody content={copy.text(`about-collaboration-${key}`)} /></CopyBlock>,
+                ]))}
+              />
+            </CopyBlock>
+          )
           : undefined}
         docBlurbs={!OWNS_ABOUT_PROSE ? copy.items("about-doc-link-blurbs") : undefined}
         docCopyControl={!OWNS_ABOUT_PROSE ? <CopyBlock copyKey="about-doc-link-blurbs" /> : undefined}

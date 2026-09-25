@@ -120,6 +120,38 @@
     "body": "Other projects & communities we admire or work with include:"
   },
   {
+    "key": "about-collaboration-summaries",
+    "kind": "list",
+    "label": "Official collaboration one-liners",
+    "group": "About",
+    "items": [
+      "Dose journal for iPhone",
+      "Dangerous combination data",
+      "Reagent test results"
+    ]
+  },
+  {
+    "key": "about-collaboration-tripsit",
+    "kind": "markdown",
+    "label": "Official collaboration: TripSit",
+    "group": "About",
+    "body": "The interaction ratings on our substance pages come from TripSit's drug combination chart, which we import exactly as TripSit publishes it. TripSit also runs live harm reduction chat and its own substance factsheets."
+  },
+  {
+    "key": "about-collaboration-protestkit",
+    "kind": "markdown",
+    "label": "Official collaboration: PRO Test Kit",
+    "group": "About",
+    "body": "The reagent testing results on our substance pages come from PRO Test Kit and are used with their permission. They show the colour each reagent should turn for a given substance, so you can check that what you have matches what you were told."
+  },
+  {
+    "key": "about-collaboration-piru",
+    "kind": "markdown",
+    "label": "Official collaboration: Piru",
+    "group": "About",
+    "body": "Piru is an iPhone app for logging doses and writing trip reports. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your phone, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). It is in beta on TestFlight and coming to the App Store."
+  },
+  {
     "key": "effect-index-home-intro-lead",
     "flavor": "effect-index",
     "kind": "markdown",
