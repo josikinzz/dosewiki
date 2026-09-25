@@ -14,6 +14,9 @@ interface ReviewQueueSettingsPanelProps {
   statsState: "loading" | "ready" | "fallback";
   groupByCategory: boolean;
   unreviewedOnly: boolean;
+  changedSinceReview: boolean;
+  /** How many sign-offs are stale, shown beside the filter. */
+  changedSinceReviewCount: number;
   inlineEdit: boolean;
   articleLinks: boolean;
   viewMode: ReviewViewMode;
@@ -32,6 +35,8 @@ export function ReviewQueueSettingsPanel({
   statsState,
   groupByCategory,
   unreviewedOnly,
+  changedSinceReview,
+  changedSinceReviewCount,
   inlineEdit,
   articleLinks,
   viewMode,
@@ -197,6 +202,22 @@ export function ReviewQueueSettingsPanel({
         />
         Show unreviewed articles only
       </label>
+      <div className="space-y-1.5">
+        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
+          <input
+            type="checkbox"
+            checked={changedSinceReview}
+            onChange={(event) =>
+              updateSettings({ changedSinceReview: event.target.checked })
+            }
+            className="accent-dose-accent-strong"
+          />
+          Changed since review only ({changedSinceReviewCount})
+        </label>
+        <span className="theme-text-faint block text-[11px] leading-tight">
+          Articles published after their sign-off. Open one to see what changed.
+        </span>
+      </div>
       <div className="space-y-1.5">
         <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
           <input

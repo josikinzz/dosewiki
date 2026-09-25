@@ -53,9 +53,44 @@ export const editorialReviewSchema = z.object({
    */
   reviewed_by: z.string().optional(),
   reviewed_at: z.string().optional(),
+  /**
+   * The published revision the sign-off covered: the `resultHash` of the
+   * article's latest `articleRevisions` row when it was signed, or
+   * `REVIEW_INITIAL_REVISION` when no revision had been recorded yet. A later
+   * publish records a new revision, so the review derives `stale`.
+   */
+  reviewed_revision: z.string().optional(),
   /** Declared so editor saves preserve Review Flags instead of stripping them. */
   flags: z.array(reviewFlagSchema).optional(),
 });
+
+/**
+ * The revision name a sign-off records when the article has no recorded
+ * revision yet: the content it covered is the `before` of the first revision.
+ */
+export const REVIEW_INITIAL_REVISION = "initial";
+
+/**
+ * The review status a reviewer sees. `stale` is never stored: it is a
+ * `completed` sign-off whose `reviewed_revision` is no longer the published one.
+ */
+export type ReviewState = "needed" | "in_progress" | "completed" | "stale";
+
+/**
+ * Derive the review status from the stored record and the article's current
+ * published revision. A sign-off stamped before revisions were recorded
+ * carries no `reviewed_revision`, so it cannot be compared and stays completed.
+ */
+export function deriveReviewState(
+  review: { status?: unknown; reviewed_revision?: unknown } | null | undefined,
+  publishedRevision: string,
+): ReviewState {
+  const status = review?.status;
+  if (status === "in_progress") return "in_progress";
+  if (status !== "completed") return "needed";
+  const signed = review?.reviewed_revision;
+  return typeof signed === "string" && signed !== publishedRevision ? "stale" : "completed";
+}
 
 
 export type EditorialReview = z.infer<typeof editorialReviewSchema>;

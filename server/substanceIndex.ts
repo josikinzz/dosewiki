@@ -35,6 +35,8 @@ import {
 import {
   addHumanReviewFlagHandler,
   deleteReviewFlagHandler,
+  getPublishedRevisionsHandler,
+  getReviewChangesHandler,
   publishReviewedSectionHandler as executePublishReviewedSection,
   replaceAgentReviewFlagsHandler,
   setEditorialReviewHandler,
@@ -535,8 +537,30 @@ export const setEditorialReview = mutation({
       v.literal("in_progress"),
       v.literal("completed"),
     ),
+    /** The published revision the reviewer read; recorded on `completed`. */
+    revision: v.optional(v.string()),
   },
   handler: setEditorialReviewHandler,
+});
+
+/** Each article's current published revision, for deriving stale sign-offs. */
+export const getPublishedRevisions = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  handler: getPublishedRevisionsHandler,
+});
+
+/** The article at a signed revision and as published now, for the review diff. */
+export const getReviewChanges = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    revision: v.string(),
+  },
+  handler: getReviewChangesHandler,
 });
 
 const agentReviewFlagValidator = v.object({

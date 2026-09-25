@@ -10,13 +10,19 @@ import {
 } from "react";
 
 import type { SubstanceArticle } from "@/schema";
+import { REVIEW_INITIAL_REVISION, type ReviewState } from "@/schema/substance/editorial";
 import type { ReviewStatus } from "../substance-editor/types";
 import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
   resolveReviewCelebration,
   type ReviewCelebration,
 } from "./reviewDelight";
-import type { ReviewQueueEntry, ReviewQueueGroup, ReviewStatusOverrides } from "./reviewQueue";
+import type {
+  PublishedRevisions,
+  ReviewQueueEntry,
+  ReviewQueueGroup,
+  ReviewStatusOverrides,
+} from "./reviewQueue";
 import { crossedMilestone } from "./reviewSettings";
 
 const UNDO_WINDOW_MS = 8000;
@@ -26,6 +32,14 @@ const SECTION_CELEBRATION_MS = 4500;
 /** How long a finished psychoactive category holds its medallion card. */
 const GROUP_CELEBRATION_MS = 6000;
 
+
+/** What the reviewer saw, so an undo can restore a sign-off's revision too. */
+function seenStatus(entry: ReviewQueueEntry): { status: ReviewState; revision?: string } {
+  return {
+    status: entry.status,
+    ...(entry.reviewedRevision ? { revision: entry.reviewedRevision } : {}),
+  };
+}
 
 interface ReviewOverlays {
   overrides: ReviewStatusOverrides;
@@ -44,7 +58,9 @@ interface ReviewLastTick {
   slug: string;
   name: string;
   /** The status the reviewer saw before the change, overlay included. */
-  previous: ReviewStatus;
+  previous: ReviewState;
+  /** The revision the previous sign-off covered, so undo restores it. */
+  previousRevision?: string;
   /** The status the change set. */
   status: ReviewStatus;
 }
@@ -73,6 +89,9 @@ export interface ReviewStatusWrites {
  * Completing a review is admin-only at the route, so `canSignOff` keeps the
  * tick from firing for any other role, and `currentHydrated` keeps it from
  * firing before the reviewer could have read the article body.
+ *
+ * A sign-off names the published revision the reviewer read, from
+ * `publishedRevisions`; before those load the route records the current one.
  */
 export function useReviewStatusWrites({
   current,
@@ -82,6 +101,7 @@ export function useReviewStatusWrites({
   setOverrides,
   canSignOff,
   currentHydrated,
+  publishedRevisions = null,
 }: {
   current: ReviewQueueEntry | null;
   typedArticles: SubstanceArticle[];
@@ -90,6 +110,7 @@ export function useReviewStatusWrites({
   setOverrides: ReviewOverlays["setOverrides"];
   canSignOff: boolean;
   currentHydrated: boolean;
+  publishedRevisions?: PublishedRevisions | null;
 }): ReviewStatusWrites {
   const [isTicking, setIsTicking] = useState(false);
   const [tickError, setTickError] = useState<string | null>(null);
@@ -123,8 +144,8 @@ export function useReviewStatusWrites({
       name: string,
       status: ReviewStatus,
       baseStatus: ReviewStatus,
-      previous: ReviewStatus,
-      options?: { isUndo?: boolean },
+      previous: { status: ReviewState; revision?: string },
+      options?: { isUndo?: boolean; revision?: string },
     ) => {
       setIsTicking(true);
       setTickError(null);
@@ -133,7 +154,11 @@ export function useReviewStatusWrites({
         const response = await fetch("/api/dev/editorial-review", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ slug, status }),
+          body: JSON.stringify({
+            slug,
+            status,
+            ...(status === "completed" && options?.revision ? { revision: options.revision } : {}),
+          }),
         });
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
@@ -157,7 +182,13 @@ export function useReviewStatusWrites({
         if (options?.isUndo) {
           setLastTick(null);
         } else {
-          setLastTick({ slug, name, previous, status });
+          setLastTick({
+            slug,
+            name,
+            previous: previous.status,
+            ...(previous.revision ? { previousRevision: previous.revision } : {}),
+            status,
+          });
           if (undoTimerRef.current !== null) window.clearTimeout(undoTimerRef.current);
           undoTimerRef.current = window.setTimeout(
             () => setLastTick(null),
@@ -225,16 +256,21 @@ export function useReviewStatusWrites({
     return raw === "in_progress" || raw === "completed" ? raw : "needed";
   }, [typedArticles]);
 
+  // A stale sign-off is not reviewed: R signs the revision on screen again.
   const toggleReviewed = useCallback(() => {
     if (!current || isTicking || !canSignOff || !currentHydrated) return;
+    const signing = current.status !== "completed";
     void setReviewStatus(
       current.slug,
       current.name,
-      current.status === "completed" ? "needed" : "completed",
+      signing ? "completed" : "needed",
       articleStatus(current.slug),
-      current.status,
+      seenStatus(current),
+      signing && publishedRevisions
+        ? { revision: publishedRevisions[current.slug] ?? REVIEW_INITIAL_REVISION }
+        : undefined,
     );
-  }, [articleStatus, canSignOff, current, currentHydrated, isTicking, setReviewStatus]);
+  }, [articleStatus, canSignOff, current, currentHydrated, isTicking, publishedRevisions, setReviewStatus]);
 
   const toggleFlagged = useCallback(() => {
     if (!current || isTicking) return;
@@ -243,7 +279,7 @@ export function useReviewStatusWrites({
       current.name,
       current.status === "in_progress" ? "needed" : "in_progress",
       articleStatus(current.slug),
-      current.status,
+      seenStatus(current),
     );
   }, [articleStatus, current, isTicking, setReviewStatus]);
 
@@ -257,13 +293,19 @@ export function useReviewStatusWrites({
 
   const undoLastTick = useCallback(() => {
     if (!lastTick || isTicking) return;
+    // Undoing back to a sign-off, stale or not, restores the revision it
+    // covered rather than signing whatever is published now.
+    const restoresSignOff = lastTick.previous === "completed" || lastTick.previous === "stale";
     void setReviewStatus(
       lastTick.slug,
       lastTick.name,
-      lastTick.previous,
+      restoresSignOff ? "completed" : (lastTick.previous as ReviewStatus),
       articleStatus(lastTick.slug),
-      lastTick.status,
-      { isUndo: true },
+      { status: lastTick.status },
+      {
+        isUndo: true,
+        ...(restoresSignOff && lastTick.previousRevision ? { revision: lastTick.previousRevision } : {}),
+      },
     );
   }, [articleStatus, isTicking, lastTick, setReviewStatus]);
 

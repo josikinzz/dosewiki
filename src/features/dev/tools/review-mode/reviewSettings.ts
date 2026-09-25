@@ -20,6 +20,11 @@ export interface ReviewSettings {
    * everything is the behaviour, and the skip is the opt-in.
    */
   unreviewedOnly: boolean;
+  /**
+   * Narrow the queue and the picker to articles published after their
+   * sign-off ("Changed since review"), so re-review is one list.
+   */
+  changedSinceReview: boolean;
   viewMode: ReviewViewMode;
   /**
    * Click-to-edit on the rendered article. Off until asked for: reading is the
@@ -47,6 +52,7 @@ export interface ReviewSettings {
 export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
   order: "home",
   unreviewedOnly: false,
+  changedSinceReview: false,
   viewMode: "webpage",
   inlineEdit: false,
   groupByCategory: true,
@@ -90,6 +96,10 @@ function parseSettings(
       options.keepUnreviewedOnly && typeof parsed.unreviewedOnly === "boolean"
         ? parsed.unreviewedOnly
         : REVIEW_SETTINGS_DEFAULTS.unreviewedOnly,
+    changedSinceReview:
+      typeof parsed.changedSinceReview === "boolean"
+        ? parsed.changedSinceReview
+        : REVIEW_SETTINGS_DEFAULTS.changedSinceReview,
     viewMode:
       parsed.viewMode === "editor" || parsed.viewMode === "webpage"
         ? parsed.viewMode

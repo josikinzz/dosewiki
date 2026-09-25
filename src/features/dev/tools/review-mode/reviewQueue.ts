@@ -1,5 +1,10 @@
 import type { SubstanceArticle } from "@/schema";
-import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
+import {
+  deriveReviewState,
+  REVIEW_INITIAL_REVISION,
+  type ReviewFlagSeverity,
+  type ReviewState,
+} from "@/schema/substance/editorial";
 import { substanceVisibility } from "@/schema/substance/substanceVisibilityPolicy";
 import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import type { ReviewStatus } from "../substance-editor/types";
@@ -10,7 +15,15 @@ import type { ReviewStatus } from "../substance-editor/types";
 export interface ReviewQueueEntry {
   slug: string;
   name: string;
-  status: ReviewStatus;
+  /**
+   * The status the reviewer sees. `stale` is a sign-off whose revision is no
+   * longer the published one; it counts as not reviewed.
+   */
+  status: ReviewState;
+  /** The published revision the current sign-off covered, when there is one. */
+  reviewedRevision?: string;
+  /** Who signed off the covered revision. */
+  reviewedBy?: string;
   /**
    * Fallback richness when no source stats are available for the slug: how
    * many bibliography entries the article itself carries.
@@ -132,13 +145,25 @@ export function resolveOverriddenEditorialReview(
 }
 
 /**
+ * Each article's current published revision, keyed by slug, as
+ * `/api/dev/review-revisions` reports it. A slug with no recorded revision is
+ * absent and reads as `REVIEW_INITIAL_REVISION`.
+ */
+export type PublishedRevisions = Readonly<Record<string, string>>;
+
+/**
  * The review corpus: every article a reader can reach, listed or direct-URL
  * only, whether or not the index layout places it. Only hidden articles stay
  * out. Ordering is applied separately by `sortReviewQueue`.
+ *
+ * With `publishedRevisions` in hand, a sign-off whose revision is no longer
+ * the published one reads `stale`. Before they arrive (null) nothing is
+ * stale, so a slow read never paints every sign-off as changed.
  */
 export function buildReviewQueue(
   articles: readonly SubstanceArticle[],
   overrides: ReviewStatusOverrides = {},
+  publishedRevisions: PublishedRevisions | null = null,
 ): ReviewQueueEntry[] {
   return articles
     .flatMap((article) => {
@@ -149,14 +174,24 @@ export function buildReviewQueue(
         priority: article.priority,
       });
       if (visibility === "hidden") return [];
+      const status = resolveEntryStatus(
+        resolveStatus(article.editorial_review?.status),
+        overrides[slug],
+      );
+      const review = resolveOverriddenEditorialReview(article, overrides[slug]) ?? article.editorial_review;
+      const signed = status === "completed" ? review?.reviewed_revision : undefined;
       return [
         {
           slug,
           name: article.title || article.identification?.common_name || slug,
-          status: resolveEntryStatus(
-            resolveStatus(article.editorial_review?.status),
-            overrides[slug],
-          ),
+          status: publishedRevisions && signed
+            ? deriveReviewState(
+                { status, reviewed_revision: signed },
+                publishedRevisions[slug] ?? REVIEW_INITIAL_REVISION,
+              )
+            : status,
+          ...(signed ? { reviewedRevision: signed } : {}),
+          ...(signed && review?.reviewed_by ? { reviewedBy: review.reviewed_by } : {}),
           referenceCount: resolveReferenceCount(article),
           flagSummary: deriveReviewFlagSummary(article.editorial_review?.flags),
           flags: (article.editorial_review?.flags ?? []).map(({ label, severity }) => ({ label, severity })),
@@ -370,15 +405,26 @@ export function buildReviewGroups(
  *
  * With `unreviewedOnly`, completed articles drop out — except the one on
  * screen, so ticking an article never yanks it out from under the reviewer.
- * It leaves the queue on the next navigation instead.
+ * It leaves the queue on the next navigation instead. A stale sign-off is
+ * not reviewed, so it stays.
+ *
+ * With `changedSinceReview`, only stale articles remain, under the same
+ * on-screen exemption, so re-signing one never yanks it away either.
  */
 export function filterReviewQueue(
   entries: readonly ReviewQueueEntry[],
-  options: { unreviewedOnly: boolean; currentSlug: string | null; flagLabels?: readonly string[]; flagSeverity?: ReviewFlagSeverity | null },
+  options: {
+    unreviewedOnly: boolean;
+    currentSlug: string | null;
+    changedSinceReview?: boolean;
+    flagLabels?: readonly string[];
+    flagSeverity?: ReviewFlagSeverity | null;
+  },
 ): ReviewQueueEntry[] {
   const labels = new Set(options.flagLabels ?? []);
   return entries.filter((entry) => {
     if (options.unreviewedOnly && entry.status === "completed" && entry.slug !== options.currentSlug) return false;
+    if (options.changedSinceReview && entry.status !== "stale" && entry.slug !== options.currentSlug) return false;
     if (labels.size > 0 && !entry.flags?.some((flag) => labels.has(flag.label))) return false;
     if (options.flagSeverity && !entry.flags?.some((flag) => flag.severity === options.flagSeverity)) return false;
     return true;
@@ -398,6 +444,20 @@ export function buildReviewFlagGroups(entries: readonly ReviewQueueEntry[], by: 
     const grouped = entries.filter((entry) => entry.flags?.some((flag) => by === "severity" ? flag.severity === value : flag.label === value));
     return { key: `${by}:${value}`, label: value, sections: [], entries: grouped, count: grouped.length };
   });
+}
+
+export const CHANGED_SINCE_REVIEW_GROUP_KEY = "__changed-since-review";
+
+/** The picker's one group while the queue is filtered to stale sign-offs. */
+export function buildChangedSinceReviewGroups(entries: readonly ReviewQueueEntry[]): ReviewQueueGroup[] {
+  if (entries.length === 0) return [];
+  return [{
+    key: CHANGED_SINCE_REVIEW_GROUP_KEY,
+    label: "Changed since review",
+    sections: [],
+    entries: [...entries],
+    count: entries.length,
+  }];
 }
 
 /** Index of a slug in the queue, or 0 when it is absent (queue start). */

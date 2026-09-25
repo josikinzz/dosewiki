@@ -7,6 +7,7 @@ import type { ReviewFlag, SubstanceArticle } from "@/schema";
 import type { SubstanceInfo } from "../substance-editor/types";
 import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import {
+  buildChangedSinceReviewGroups,
   buildReviewGroups,
   buildReviewQueue,
   buildReviewFlagGroups,
@@ -15,6 +16,7 @@ import {
   flattenHomeOrder,
   queueIndexOf,
   sortReviewQueue,
+  type PublishedRevisions,
   type ReviewQueueEntry,
   type ReviewQueueGroup,
   type ReviewStatusOverrides,
@@ -38,6 +40,8 @@ export interface ReviewQueueState {
   current: ReviewQueueEntry | null;
   article: SubstanceArticle | null;
   reviewedCount: number;
+  /** Signed-off articles published since their sign-off. */
+  changedSinceReviewCount: number;
   allReviewed: boolean;
   substances: SubstanceInfo[];
 }
@@ -52,6 +56,7 @@ export function useReviewQueue({
   layout,
   overrides,
   flagOverrides,
+  publishedRevisions = null,
   settings,
 }: {
   typedArticles: SubstanceArticle[];
@@ -59,10 +64,12 @@ export function useReviewQueue({
   overrides: ReviewStatusOverrides;
   /** Review Flags written this session, which the queue's badges read first. */
   flagOverrides?: Readonly<Record<string, ReviewFlag[]>>;
+  /** Each article's current published revision; null until it loads. */
+  publishedRevisions?: PublishedRevisions | null;
   settings: ReviewSettingsState;
 }): ReviewQueueState {
   const {
-    settings: { order, unreviewedOnly },
+    settings: { order, unreviewedOnly, changedSinceReview },
     settingsRestored,
     effectiveFlagLabels,
     effectiveFlagSeverity,
@@ -130,22 +137,22 @@ export function useReviewQueue({
   const queue = useMemo(
     () =>
       sortReviewQueue(
-        buildReviewQueue(queueArticles, overrides),
+        buildReviewQueue(queueArticles, overrides, publishedRevisions),
         order,
         {
           sourceTokens,
           homeOrder,
         },
       ),
-    [queueArticles, overrides, order, sourceTokens, homeOrder],
+    [queueArticles, overrides, publishedRevisions, order, sourceTokens, homeOrder],
   );
   const flagFilteredQueue = useMemo(
-    () => filterReviewQueue(queue, { unreviewedOnly: false, currentSlug: null, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),
-    [queue, effectiveFlagLabels, effectiveFlagSeverity],
+    () => filterReviewQueue(queue, { unreviewedOnly: false, currentSlug: null, changedSinceReview, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),
+    [queue, changedSinceReview, effectiveFlagLabels, effectiveFlagSeverity],
   );
   const visibleQueue = useMemo(
-    () => filterReviewQueue(queue, { unreviewedOnly, currentSlug, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),
-    [queue, unreviewedOnly, currentSlug, effectiveFlagLabels, effectiveFlagSeverity],
+    () => filterReviewQueue(queue, { unreviewedOnly, currentSlug, changedSinceReview, flagLabels: effectiveFlagLabels, flagSeverity: effectiveFlagSeverity }),
+    [queue, unreviewedOnly, currentSlug, changedSinceReview, effectiveFlagLabels, effectiveFlagSeverity],
   );
   const availableFlagLabels = useMemo(() => deriveReviewFlagLabels(queue), [queue]);
   // The picker's category tree. Built from the full queue, like the flat list:
@@ -154,9 +161,13 @@ export function useReviewQueue({
     () => buildReviewGroups(queue, layout),
     [queue, layout],
   );
+  // Filtered to changed sign-offs, the picker is one "Changed since review"
+  // group listing exactly those articles.
   const pickerGroups = useMemo(
-    () => effectiveFlagGroupBy === "none" ? buildReviewGroups(flagFilteredQueue, layout) : buildReviewFlagGroups(flagFilteredQueue, effectiveFlagGroupBy),
-    [flagFilteredQueue, layout, effectiveFlagGroupBy],
+    () => changedSinceReview
+      ? buildChangedSinceReviewGroups(flagFilteredQueue)
+      : effectiveFlagGroupBy === "none" ? buildReviewGroups(flagFilteredQueue, layout) : buildReviewFlagGroups(flagFilteredQueue, effectiveFlagGroupBy),
+    [changedSinceReview, flagFilteredQueue, layout, effectiveFlagGroupBy],
   );
 
   // Land on the deep-linked article, else the first still-unreviewed one in
@@ -185,6 +196,10 @@ export function useReviewQueue({
     () => queue.filter((entry) => entry.status === "completed").length,
     [queue],
   );
+  const changedSinceReviewCount = useMemo(
+    () => queue.filter((entry) => entry.status === "stale").length,
+    [queue],
+  );
   const allReviewed = queue.length > 0 && reviewedCount === queue.length;
 
   const substances = useMemo<SubstanceInfo[]>(
@@ -192,7 +207,8 @@ export function useReviewQueue({
       queue.map((entry) => ({
         slug: entry.slug,
         name: entry.name,
-        reviewStatus: entry.status,
+        // A stale sign-off needs review again.
+        reviewStatus: entry.status === "stale" ? "needed" : entry.status,
       })),
     [queue],
   );
@@ -209,6 +225,7 @@ export function useReviewQueue({
     current,
     article,
     reviewedCount,
+    changedSinceReviewCount,
     allReviewed,
     substances,
   };

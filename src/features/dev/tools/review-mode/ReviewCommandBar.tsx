@@ -102,6 +102,7 @@ export function ReviewCommandBar({
     settings: {
       order,
       unreviewedOnly,
+      changedSinceReview,
       viewMode,
       inlineEdit,
       groupByCategory,
@@ -123,6 +124,7 @@ export function ReviewCommandBar({
     pickerGroups,
     current,
     reviewedCount,
+    changedSinceReviewCount,
   } = queueState;
   const {
     isTicking,
@@ -183,6 +185,7 @@ export function ReviewCommandBar({
   const settingsChanged =
     order !== REVIEW_SETTINGS_DEFAULTS.order ||
     unreviewedOnly !== REVIEW_SETTINGS_DEFAULTS.unreviewedOnly ||
+    changedSinceReview !== REVIEW_SETTINGS_DEFAULTS.changedSinceReview ||
     groupByCategory !== REVIEW_SETTINGS_DEFAULTS.groupByCategory ||
     inlineEdit !== REVIEW_SETTINGS_DEFAULTS.inlineEdit ||
     articleLinks !== REVIEW_SETTINGS_DEFAULTS.articleLinks ||
@@ -202,6 +205,8 @@ export function ReviewCommandBar({
       statsState={statsState}
       groupByCategory={groupByCategory}
       unreviewedOnly={unreviewedOnly}
+      changedSinceReview={changedSinceReview}
+      changedSinceReviewCount={changedSinceReviewCount}
       inlineEdit={inlineEdit}
       articleLinks={articleLinks}
       viewMode={viewMode}
@@ -320,7 +325,7 @@ export function ReviewCommandBar({
             <ReviewSubstancePicker
               entries={flagFilteredQueue}
               groups={pickerGroups}
-              grouped={groupByCategory || effectiveFlagGroupBy !== "none"}
+              grouped={groupByCategory || effectiveFlagGroupBy !== "none" || changedSinceReview}
               current={current}
               onSelect={navigateTo}
             />

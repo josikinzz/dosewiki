@@ -91,6 +91,12 @@ export const metaGeneratedFieldRegistry = {
     default: undefined,
     isNullable: false,
   },
+  "editorial_review.reviewed_revision": {
+    path: "editorial_review.reviewed_revision",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
   "editorial_review.flags": {
     path: "editorial_review.flags",
     type: "object",

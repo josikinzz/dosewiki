@@ -36,6 +36,7 @@ describe("review settings persistence", () => {
     saveReviewSettings({
       order: "sources",
       unreviewedOnly: false,
+      changedSinceReview: true,
       viewMode: "editor",
       inlineEdit: true,
       groupByCategory: false,
@@ -47,6 +48,7 @@ describe("review settings persistence", () => {
     expect(loadReviewSettings()).toEqual({
       order: "sources",
       unreviewedOnly: false,
+      changedSinceReview: true,
       viewMode: "editor",
       inlineEdit: true,
       groupByCategory: false,

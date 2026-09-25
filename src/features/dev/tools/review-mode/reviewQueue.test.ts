@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SubstanceArticle } from "@/schema";
 import {
+  buildChangedSinceReviewGroups,
   buildReviewGroups,
   buildReviewFlagGroups,
   buildReviewQueue,
@@ -412,5 +413,66 @@ describe("the flip-through's prev/next positions", () => {
       previous: null,
       next: "b",
     });
+  });
+});
+
+describe("changed since review", () => {
+  const signed = (slug: string, revision: string | undefined) =>
+    makeArticle({
+      slug,
+      title: slug,
+      editorial_review: {
+        status: "completed",
+        notes: "",
+        reviewed_by: "admin@example.com",
+        ...(revision ? { reviewed_revision: revision } : {}),
+      },
+    });
+
+  it("derives stale when the published revision moved past the signed one", () => {
+    const queue = buildReviewQueue(
+      [signed("heroin", "rev1"), signed("morphine", "rev2"), signed("codeine", "initial"), signed("legacy", undefined)],
+      {},
+      { heroin: "rev9", morphine: "rev2", legacy: "rev3" },
+    );
+    expect(Object.fromEntries(queue.map((entry) => [entry.slug, entry.status]))).toEqual({
+      codeine: "completed",
+      heroin: "stale",
+      legacy: "completed",
+      morphine: "completed",
+    });
+  });
+
+  it("derives nothing stale before the published revisions arrive", () => {
+    const queue = buildReviewQueue([signed("heroin", "rev1")], {}, null);
+    expect(queue[0].status).toBe("completed");
+  });
+
+  it("reads the sign-off the reviewer just recorded over the library row", () => {
+    const queue = buildReviewQueue(
+      [signed("heroin", "rev1")],
+      { heroin: { status: "completed", baseStatus: "completed", review: { status: "completed", notes: "", reviewed_revision: "rev9" } } },
+      { heroin: "rev9" },
+    );
+    expect(queue[0].status).toBe("completed");
+  });
+
+  it("filters to exactly the stale articles and groups them as Changed since review", () => {
+    const entries = [
+      makeEntry({ slug: "a", status: "stale" }),
+      makeEntry({ slug: "b", status: "completed" }),
+      makeEntry({ slug: "c", status: "needed" }),
+      makeEntry({ slug: "d", status: "stale" }),
+    ];
+    const changed = filterReviewQueue(entries, { unreviewedOnly: false, currentSlug: null, changedSinceReview: true });
+    expect(changed.map((entry) => entry.slug)).toEqual(["a", "d"]);
+    expect(buildChangedSinceReviewGroups(changed)).toEqual([
+      expect.objectContaining({ label: "Changed since review", count: 2, entries: changed }),
+    ]);
+  });
+
+  it("keeps stale articles in the unreviewed-only flip-through", () => {
+    const entries = [makeEntry({ slug: "a", status: "stale" }), makeEntry({ slug: "b", status: "completed" })];
+    expect(filterReviewQueue(entries, { unreviewedOnly: true, currentSlug: null }).map((entry) => entry.slug)).toEqual(["a"]);
   });
 });
