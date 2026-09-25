@@ -6,6 +6,12 @@
  * Approval writes `completed` at the revision each recommendation covered. A
  * stale recommendation (the article was published again since) cannot be
  * selected; it links to /review for a fresh read instead.
+ *
+ * A task link (`/dev/queue?recommendation=<slug>`, as the Inbox opens one)
+ * picks its recommendation out: the row is marked and scrolled into view, and
+ * ticked when it can be approved. Approving still asks first. A link whose
+ * recommendation is gone says so rather than showing the lane as if nothing
+ * was asked for.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,6 +25,7 @@ import {
   useConfirm,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
+import { MISSING_TASK_TITLE } from "@/features/dev/tools/missingTask";
 import { buildReviewUrl } from "../review-mode/reviewUrl";
 import { formatProposalDate, type RecommendationApproval, type ReviewRecommendationRow } from "./queueModel";
 import { approveReviewRecommendations, fetchReviewRecommendations } from "./queueRequests";
@@ -42,7 +49,7 @@ function approvalNotice(outcome: RecommendationApproval): EditorNoticeMessage {
   };
 }
 
-export function ReviewRecommendationsLane() {
+export function ReviewRecommendationsLane({ linkedSlug = null }: { linkedSlug?: string | null } = {}) {
   const [rows, setRows] = useState<ReviewRecommendationRow[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -50,6 +57,9 @@ export function ReviewRecommendationsLane() {
   const [approving, setApproving] = useState(false);
   const loadVersion = useRef(0);
   const { confirm, dialog } = useConfirm();
+  /** Whether the linked recommendation was found on the first list: null until it loads. */
+  const [linkFound, setLinkFound] = useState<boolean | null>(null);
+  const linkApplied = useRef(false);
 
   const load = useCallback(async () => {
     const version = ++loadVersion.current;
@@ -61,12 +71,26 @@ export function ReviewRecommendationsLane() {
       // A selection never outlives its row or survives the row going stale.
       const approvable = new Set(next.filter((row) => !row.stale).map((row) => row.slug));
       setSelected((previous) => new Set([...previous].filter((slug) => approvable.has(slug))));
+      if (linkedSlug && !linkApplied.current) {
+        linkApplied.current = true;
+        setLinkFound(next.some((row) => row.slug === linkedSlug));
+        if (approvable.has(linkedSlug)) setSelected((previous) => new Set([...previous, linkedSlug]));
+      }
     } catch (error) {
       if (version === loadVersion.current) {
         setLoadError(error instanceof Error ? error.message : "Unable to load review recommendations.");
       }
     }
-  }, []);
+  }, [linkedSlug]);
+
+  // Bring the linked row into view once it is on screen.
+  useEffect(() => {
+    if (!linkFound || !linkedSlug) return;
+    const rowId = `recommendation-${linkedSlug}`;
+    [...document.querySelectorAll("[data-testid^='recommendation-']")]
+      .find((element) => element.getAttribute("data-testid") === rowId)
+      ?.scrollIntoView?.({ block: "nearest" });
+  }, [linkFound, linkedSlug]);
 
   useEffect(() => {
     void load();
@@ -145,6 +169,15 @@ export function ReviewRecommendationsLane() {
       }
     >
       {notice ? <EditorNotice notice={{ ...notice, live: true }} /> : null}
+      {linkFound === false ? (
+        <EditorNotice
+          notice={{
+            tone: "warning",
+            title: MISSING_TASK_TITLE,
+            message: "The link names a review recommendation that was approved, withdrawn, or is not yours to open. Nothing else was selected in its place.",
+          }}
+        />
+      ) : null}
       {loadError ? (
         <EditorNotice
           notice={{
@@ -172,7 +205,12 @@ export function ReviewRecommendationsLane() {
       {rows && rows.length > 0 ? (
         <ul className="space-y-2" aria-label="Review recommendations">
           {rows.map((row) => (
-            <li key={row.slug} data-testid={`recommendation-${row.slug}`} className="flex items-start justify-between gap-3">
+            <li
+              key={row.slug}
+              data-testid={`recommendation-${row.slug}`}
+              aria-current={row.slug === linkedSlug ? "true" : undefined}
+              className={`flex items-start justify-between gap-3${row.slug === linkedSlug ? " rounded-lg ring-1 ring-[var(--theme-accent-strong)] ring-offset-4 ring-offset-transparent" : ""}`}
+            >
               <EditorCheckbox
                 checked={!row.stale && selected.has(row.slug)}
                 disabled={row.stale || approving}

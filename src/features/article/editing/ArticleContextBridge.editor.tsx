@@ -34,7 +34,7 @@ import { ArticleMergeReview } from "./ArticleMergeReview";
 import { unresolvedConflictText } from "@/features/dev/components/MergeConflictChoices";
 import { useArticleLifecycle, articlePublicationErrors, describeValidationIssue, fieldIssueMessage, type ArticleRevision } from "./useArticleLifecycle";
 import type { SubstanceArticle } from "@/schema";
-import { CORRECTION_FEEDBACK_PARAM, CORRECTION_SECTION_PARAM, readCorrectionParams } from "@/features/intake/feedbackCorrection";
+import { CORRECTION_FEEDBACK_PARAM, CORRECTION_RETURN_PARAM, CORRECTION_SECTION_PARAM, readCorrectionParams, readCorrectionReturn } from "@/features/intake/feedbackCorrection";
 import { useArticleForm } from "@/hooks/useArticleForm";
 
 export type ArticleContextBridgeProps = {
@@ -119,6 +119,9 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   // id and a section. Read once: the proposal submitted here carries the id.
   const [correction] = useState(() => typeof window === "undefined" || workbench ? null : readCorrectionParams(window.location.search));
   const correctionSection = isArticleEditorSection(correction?.section) ? correction.section : null;
+  // The feedback task link that opened this correction (the queue, its filters
+  // and the item), kept past submit so the editor can go back to the same place.
+  const [returnTo] = useState(() => typeof window === "undefined" || workbench ? null : readCorrectionReturn(window.location.search));
   const setFeedbackRef = lifecycle.setFeedbackRef;
   useEffect(() => { if (correction) setFeedbackRef(correction); }, [correction, setFeedbackRef]);
   const correctionModeSet = useRef(false);
@@ -133,6 +136,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     const url = new URL(window.location.href);
     url.searchParams.delete(CORRECTION_FEEDBACK_PARAM);
     url.searchParams.delete(CORRECTION_SECTION_PARAM);
+    url.searchParams.delete(CORRECTION_RETURN_PARAM);
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
   }, [setFeedbackRef]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
@@ -333,13 +337,14 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           <p className="theme-text-primary shrink-0 text-sm font-semibold">Private preview</p>
           <p className="theme-text-muted truncate text-xs" role="status" title={status}>{status}</p>
           {(pendingChipId || pendingProposals > 0) && <p className="theme-text-muted flex shrink-0 flex-wrap items-center gap-2 text-xs">
-            {pendingChipId && <Link href="/dev/queue" className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
+            {pendingChipId && <Link href={`/dev/queue/${encodeURIComponent(pendingChipId)}`} className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
             {pendingProposals > 0 && <span>{pendingLabel}</span>}
           </p>}
           {lifecycle.feedbackRef && <p data-feedback-correction className="theme-text-muted flex shrink-0 flex-wrap items-center gap-1 text-xs">
             <span className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5">Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
             <Button variant="ghost" size="sm" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>
           </p>}
+          {returnTo && <Link href={returnTo} className="theme-text-primary shrink-0 text-xs underline-offset-2 hover:underline">Back to feedback</Link>}
         </div>
         <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
           {lifecycle.ready ? <>

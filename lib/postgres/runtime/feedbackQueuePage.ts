@@ -21,6 +21,9 @@ export type FeedbackQueueOrder = (typeof FEEDBACK_QUEUE_ORDERS)[number];
 export const FEEDBACK_QUEUE_STATUSES = ["new", "reviewing", "resolved", "rejected", "spam"] as const;
 export type FeedbackQueueStatusCounts = Record<(typeof FEEDBACK_QUEUE_STATUSES)[number], number>;
 
+/** The status filter for New and Reviewing together: every item still waiting on a decision. */
+export const FEEDBACK_QUEUE_UNRESOLVED = "unresolved";
+
 export const FEEDBACK_QUEUE_MAX_PAGE = 250;
 
 export type FeedbackQueuePageOptions = {
@@ -95,7 +98,9 @@ export async function readFeedbackQueuePage(
   const limit = Math.max(1, Math.min(Math.floor(options.limit), FEEDBACK_QUEUE_MAX_PAGE));
   const params: unknown[] = [];
   const where: string[] = [];
-  if (options.status) {
+  if (options.status === FEEDBACK_QUEUE_UNRESOLVED) {
+    where.push(`"status" COLLATE "C" IN ('new', 'reviewing')`);
+  } else if (options.status) {
     params.push(options.status);
     where.push(`"status" COLLATE "C" = $${params.length}::text COLLATE "C"`);
   }

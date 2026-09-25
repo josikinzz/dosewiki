@@ -15,6 +15,11 @@ describe("buildReviewUrl", () => {
     const url = buildReviewUrl({ slug: "2c-b", view: "editor", flagLabels: ["skinny", "missing citations"], flagSeverity: "major", flagGroupBy: "label" });
     expect(parseReviewLocation(url)).toEqual({ slug: "2c-b", view: "editor", flagLabels: ["skinny", "missing citations"], flagSeverity: "major", flagGroupBy: "label" });
   });
+  it("round-trips the Changed since review filter the Needs another pass view opens", () => {
+    const url = buildReviewUrl({ slug: null, changedSinceReview: true });
+    expect(url).toBe("/review?changed=1");
+    expect(parseReviewLocation(url)).toEqual({ slug: null, view: null, changedSinceReview: true });
+  });
   it("states the webpage view rather than leaving it to be inferred", () => {
     expect(buildReviewUrl({ slug: "2c-b", view: "webpage" })).toBe(
       "/review/2c-b?view=webpage",

@@ -240,7 +240,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "trip-report-submissions" ? (
           <TripReportPortalTab initialSubmissionId={controller.tripReportsInitialId} />
         ) : controller.activeTab === "article-feedback" ? (
-          <FeedbackTab initialSource={controller.initialFilter} />
+          <FeedbackTab initialSource={controller.initialFilter} initialId={controller.feedbackInitialId} />
         ) : controller.activeTab === "tag-editor" ? (
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (

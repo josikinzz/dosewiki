@@ -34,6 +34,8 @@ import {
 } from "@/features/reports/submissions/tripReportSubmissionStatus";
 import { SITE_FEEDBACK_PENDING_STATUSES } from "@/features/site-feedback/siteFeedback";
 import { devHref } from "@/utils/devHref";
+import { feedbackTaskHref } from "@/features/dev/tools/feedback/feedbackTaskLink";
+import { reviewRecommendationHref } from "@/features/dev/tools/queue/queueTaskLink";
 
 import { inboxKey, type InboxItem, type InboxSourceId, type InboxUrgency } from "./inboxModel";
 
@@ -556,7 +558,8 @@ function recommendationsSource() {
       // A stale recommendation cannot be approved, only looked at again.
       urgency: row.stale ? "low" : "normal",
       receivedAt: row.recommended_at,
-      href: devHref({ type: "dev", tab: "queue" }),
+      // Change Review opens with this recommendation picked out in its lane.
+      href: reviewRecommendationHref(row.slug),
     }),
     detail: (row) => (
       <div className="space-y-4">
@@ -592,14 +595,16 @@ export function createInboxSources(): InboxSourceAdapter[] {
       id: "article-feedback",
       adapterFor: () => articleFeedbackAdapter,
       loadPending: () => allPendingPages(articleFeedbackAdapter),
-      href: () => devHref({ type: "dev", tab: "article-feedback", filter: "article" }),
+      // The task link: the Feedback tab opens on this item, not only on the queue.
+      href: (row) => feedbackTaskHref({ source: "article", id: row.id }),
       claimer: (row) => claimerFromLog(row, "new"),
     }),
     feedbackSource({
       id: "site-feedback",
       adapterFor: () => siteFeedbackAdapter,
       loadPending: () => allPendingPages(siteFeedbackAdapter),
-      href: () => devHref({ type: "dev", tab: "article-feedback", filter: "site" }),
+      // The task link: the Feedback tab opens on this item, not only on the queue.
+      href: (row) => feedbackTaskHref({ source: "site", id: row.id }),
       claimer: (row) => claimerFromLog(row, "new"),
     }),
     feedbackSource<GlossaryFeedbackItem>({

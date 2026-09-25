@@ -29,8 +29,8 @@ type DevCommandPaletteProps = {
 type RecordsState = { records: PaletteRecord[]; loading: boolean; failed: string[] };
 
 /**
- * Cmd+K: every tool the role may open, plus the records each tool offers
- * (`devRecordSources`). The record reads start when the palette first opens
+ * Cmd+K: every tool the role may open, the saved views over its queues, plus
+ * the records each tool offers (`devRecordSources`). The record reads start when the palette first opens
  * and are cached there, so a closed palette costs nothing. What the palette
  * opens goes through the chrome's guarded navigation, the same path as a rail
  * click.
@@ -113,6 +113,19 @@ export function DevCommandPalette({
                   <CommandItem key={tool.tab} value={`tool:${tool.tab}`} onSelect={() => onOpenTool(tool)}>
                     <span>{tool.label}</span>
                     {tool.href ? <span className="theme-text-faint ml-auto text-xs">Opens full screen</span> : null}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ) : null}
+            {match.views.length > 0 ? (
+              <CommandGroup heading="Saved views">
+                {match.views.map((view) => (
+                  <CommandItem key={view.key} value={`view:${view.key}`} onSelect={() => onOpenRecord(view)}>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate">{view.title}</span>
+                      {view.detail ? <span className="theme-text-faint truncate text-xs">{view.detail}</span> : null}
+                    </span>
+                    <span className="theme-text-muted ml-auto shrink-0 text-xs">{labelOf.get(view.tab)}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>

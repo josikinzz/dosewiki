@@ -6,6 +6,10 @@
  * tool's route aliases and keywords); the rest then searches only that tool's
  * records, so "banners mdma" lands on MDMA in Banners. A query that names no
  * tool searches every record the role may open.
+ *
+ * Saved views are records of kind `view`: a queue opened on a repeated
+ * workflow (oldest unresolved feedback, my pending proposals). They list on
+ * an empty query, so the palette doubles as the launcher for them.
  */
 
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
@@ -30,9 +34,11 @@ export type PaletteRecord = {
   href: string;
   /** Lowercased words the query matches against. */
   terms: string;
+  /** `view`: a saved queue view rather than one record. */
+  kind?: "view";
 };
 
-export type PaletteMatch = { tools: PaletteTool[]; records: PaletteRecord[] };
+export type PaletteMatch = { tools: PaletteTool[]; views: PaletteRecord[]; records: PaletteRecord[] };
 
 /** Lowercase, accents folded, so "MDMA" and "Méthylone" match plain typing. */
 export function normalizePaletteText(value: string): string {
@@ -106,18 +112,23 @@ function ranked(records: readonly PaletteRecord[], tokens: readonly string[]): P
 }
 
 /**
- * The tools and records a query shows, best first. An empty query lists every
- * tool and no records. Records are capped at `recordLimit` so a one-letter
- * query never renders the whole corpus.
+ * The tools, saved views and records a query shows, best first. An empty
+ * query lists every tool and every saved view, and no records. Records are
+ * capped at `recordLimit` so a one-letter query never renders the whole
+ * corpus.
  */
 export function matchPalette(
   query: string,
   tools: readonly PaletteTool[],
-  records: readonly PaletteRecord[],
+  entries: readonly PaletteRecord[],
   recordLimit = 20,
 ): PaletteMatch {
   const tokens = words(query);
-  if (tokens.length === 0) return { tools: [...tools], records: [] };
+  // Records only for tools the role may open: `tools` is already role-filtered.
+  const openable = new Set(tools.map((tool) => tool.tab));
+  const views = entries.filter((entry) => entry.kind === "view" && openable.has(entry.tab));
+  const records = entries.filter((entry) => entry.kind !== "view");
+  if (tokens.length === 0) return { tools: [...tools], views, records: [] };
 
   const joined = tokens.join(" ");
   const matchedTools = tools
@@ -126,8 +137,6 @@ export function matchPalette(
     .sort((a, b) => toolRank(a.tool, joined) - toolRank(b.tool, joined) || a.index - b.index)
     .map(({ tool }) => tool);
 
-  // Records only for tools the role may open: `tools` is already role-filtered.
-  const openable = new Set(tools.map((tool) => tool.tab));
   const reachable = records.filter((record) => openable.has(record.tab));
 
   const scopedTabs = tokens.length > 1
@@ -146,5 +155,5 @@ export function matchPalette(
     matchedRecords.push(record);
     if (matchedRecords.length >= recordLimit) break;
   }
-  return { tools: matchedTools, records: matchedRecords };
+  return { tools: matchedTools, views: ranked(views, tokens), records: matchedRecords };
 }

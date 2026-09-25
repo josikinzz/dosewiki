@@ -13,8 +13,11 @@ export type FeedbackQueueCounts = {
   spam: number;
 };
 
+/** New and Reviewing together: every item still waiting on a decision. */
+export const FEEDBACK_QUEUE_UNRESOLVED = "unresolved";
+
 export type FeedbackQueuePageFilters<Status extends string> = {
-  status?: Status;
+  status?: Status | typeof FEEDBACK_QUEUE_UNRESOLVED;
   search?: string;
   order: FeedbackQueueOrder;
   cursor?: string;
@@ -56,7 +59,8 @@ class InvalidQueueRequestError extends Error {}
  *     → { ok, feedback, nextCursor, counts, total }
  *
  * Status and search apply on the server, so a row is reachable however many
- * newer rows sit above it. `order` defaults to oldest first, the order for
+ * newer rows sit above it. `status=unresolved` lists New and Reviewing
+ * together, the rows still waiting on a decision. `order` defaults to oldest first, the order for
  * clearing unresolved work. `counts` holds every status among the rows the
  * search matches; `total` is how many match the status too, which the queue
  * shows apart from how many it has loaded. `nextCursor` continues the same
@@ -87,9 +91,11 @@ export function feedbackQueueRoute<Status extends string>(options: FeedbackQueue
       const filters = parseFilters(new URL(request.url).searchParams, options);
       const store = await options.getStore();
       const page = await store.page(filters);
-      const total = filters.status
-        ? page.counts[filters.status as keyof FeedbackQueueCounts] ?? 0
-        : Object.values(page.counts).reduce((sum, count) => sum + count, 0);
+      const total = filters.status === FEEDBACK_QUEUE_UNRESOLVED
+        ? page.counts.new + page.counts.reviewing
+        : filters.status
+          ? page.counts[filters.status as keyof FeedbackQueueCounts] ?? 0
+          : Object.values(page.counts).reduce((sum, count) => sum + count, 0);
 
       return NextResponse.json({ ok: true, ...page, total });
     },
@@ -101,7 +107,7 @@ function parseFilters<Status extends string>(
   options: FeedbackQueueRouteOptions<Status>,
 ): FeedbackQueuePageFilters<Status> {
   const status = params.get("status");
-  if (status && status !== "all" && !options.isStatus(status)) {
+  if (status && status !== "all" && status !== FEEDBACK_QUEUE_UNRESOLVED && !options.isStatus(status)) {
     throw new InvalidQueueRequestError(`Unknown ${options.sourceLabel} feedback status: ${status}`);
   }
 
@@ -124,7 +130,7 @@ function parseFilters<Status extends string>(
   const limit = Number.isFinite(parsedLimit) ? Math.max(1, Math.min(parsedLimit, MAX_PAGE)) : DEFAULT_PAGE;
 
   return {
-    ...(status && status !== "all" ? { status: status as Status } : {}),
+    ...(status && status !== "all" ? { status: status as Status | typeof FEEDBACK_QUEUE_UNRESOLVED } : {}),
     ...(search ? { search } : {}),
     order: order as FeedbackQueueOrder,
     ...(cursor ? { cursor } : {}),

@@ -233,6 +233,7 @@ export function useDevModePageController({
     toolMountKey,
     tripReportsInitialId: initialArticleSlug,
     queueInitialId: initialArticleSlug,
+    feedbackInitialId: initialArticleSlug,
     initialFilter,
     tagEditorTabProps,
     contributorDirectory,

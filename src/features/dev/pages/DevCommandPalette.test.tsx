@@ -146,6 +146,39 @@ describe("the Cmd+K palette", () => {
     expect(onOpenPath).toHaveBeenLastCalledWith("/dev/banners/preset:serotonin");
   });
 
+  it("lists saved views on open, with their counts, and opens a view as its queue", async () => {
+    const user = userEvent.setup();
+    const viewsFetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.startsWith("/api/article-feedback/queue?status=unresolved")) {
+        return Response.json({ ok: true, feedback: [], counts: {}, nextCursor: null, total: 4 });
+      }
+      if (url === "/api/dev/proposals") {
+        return Response.json({
+          ok: true,
+          proposals: [
+            { _id: "a", isAuthor: true, status: "submitted" },
+            { _id: "b", isAuthor: true, status: "applied" },
+            { _id: "c", isAuthor: false, status: "submitted" },
+          ],
+        });
+      }
+      return new Response("{}", { status: 404 });
+    });
+    vi.stubGlobal("fetch", viewsFetch);
+    const { onOpenPath } = renderInDevShell(<Idle />, { tab: "articles", role: "admin" });
+
+    const views = openPalette();
+    expect(await within(views).findByRole("option", { name: /Oldest unresolved article feedback.*4 unresolved/ })).toBeTruthy();
+    // A count that could not be read leaves the view without one; it still opens.
+    expect(within(views).getByRole("option", { name: /Oldest unresolved site feedback/ })).not.toHaveTextContent(/\d+ unresolved/);
+    expect(within(views).getByRole("option", { name: /My pending proposals.*1 waiting/ })).toBeTruthy();
+    expect(within(views).getByRole("option", { name: /Needs another pass/ })).toBeTruthy();
+
+    await user.click(within(views).getByRole("option", { name: /Oldest unresolved article feedback/ }));
+    expect(onOpenPath).toHaveBeenCalledWith("/dev/article-feedback?source=article&status=unresolved&sort=oldest");
+  });
+
   it("offers a translator only the glossary languages the session grants", async () => {
     const user = userEvent.setup();
     renderInDevShell(<Idle />, { tab: "glossary", role: "translator", glossaryLocales: ["nl"] });

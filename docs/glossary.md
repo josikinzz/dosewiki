@@ -321,7 +321,17 @@ The one status vocabulary the Citations, Trip reports and Feedback queues show. 
 - **Rejected**: declined, with the reason in the decision log or the row's reviewer note. It can be reopened to Reviewing.
 - **Spam**: junk filed away without review. It can be reopened to Reviewing.
 
+The Feedback queue's **Unresolved** filter lists New and Reviewing together. It is a filter, not a status: no item is ever stored as unresolved.
+
 _Avoid_: Not published (for Rejected or Spam), Exported (for Published), Approved (as a status word; Approve stays the citation action), Needs review (as a status; it names the trip report bucket and a citation qualifier)
+
+**Task Link**:
+An App Path that opens one item in the tool that owns it, with the non-sensitive queue context around it: `/dev/article-feedback/<id>?source=&status=&sort=&q=` for feedback, `/dev/queue/<id>` for a proposal, `/dev/queue?recommendation=<slug>` for a review recommendation. The address bar holds the task link as the editor works, and Copy link copies it, so a reload, a shared link, or Back to feedback from a Start correction page opens the same item in the same queue. An item that was removed, or that sits above the reader's role, reads "This item no longer exists or you cannot open it", never another item selected in its place. Reader contact details never enter a task link: a search that looks like an email address or a phone number stays out of the address.
+_Avoid_: permalink, deep link (for the whole context), share URL
+
+**Saved View**:
+A named queue filter for a repeated workflow, opened from the Cmd+K palette: Oldest unresolved (article or site feedback, New and Reviewing together, oldest first), My pending proposals (the session's own proposals awaiting a decision or a revision), and Needs another pass (the review workbench on Changed since review). A view's count comes from the same server read its queue lists rows from, so the count is always the rows; a count that cannot be read is left off rather than shown as zero.
+_Avoid_: bookmark, smart list, filter preset
 
 **Triage Keys**:
 The single-key shortcuts every intake queue shares: `j` and `k` move the selection, `a` accepts (Resolve in Feedback, Approve in Citations), `r` rejects, `s` marks spam, `n` focuses the review note, `u` undoes the last decision, and `?` lists the keys. They never fire inside a text field, while a dialog is open, or for a key another control already handled. Reject and Spam still ask before they write.

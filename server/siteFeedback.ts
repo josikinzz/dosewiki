@@ -151,7 +151,8 @@ export const queuePage = query({
   args: {
     apiKey: v.string(),
     actorEmail: v.optional(v.string()),
-    status: v.optional(statusValidator),
+    // `unresolved` is New and Reviewing together, the work still waiting.
+    status: v.optional(v.union(statusValidator, v.literal("unresolved"))),
     search: v.optional(v.string()),
     order: v.optional(feedbackQueueOrderValidator),
     cursor: v.optional(v.string()),
@@ -175,6 +176,29 @@ export const queuePage = query({
       nextCursor: page.nextCursor,
       counts: page.counts,
     };
+  },
+});
+
+/**
+ * One item by its public id, for a task link that names it. Null when no row
+ * has that id, so the queue can say the item is gone rather than guess.
+ */
+export const get = query({
+  args: {
+    apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
+    id: v.string(),
+  },
+  returns: v.union(feedbackQueueItemValidator, v.null()),
+  handler: async (ctx, args) => {
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
+
+    const doc = await findFeedbackByPublicId(ctx, args.id);
+    return doc ? toFeedbackQueueItem(doc as unknown as FeedbackRow) : null;
   },
 });
 

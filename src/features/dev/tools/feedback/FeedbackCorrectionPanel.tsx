@@ -202,7 +202,21 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
             </SelectContent>
           </Select>
           <Button asChild variant="outline" size="sm">
-            <a href={correctionHref(slug, feedbackId, section === WHOLE_ARTICLE ? null : section)} target="_blank" rel="noopener noreferrer">
+            <a
+              href={correctionHref(slug, feedbackId, section === WHOLE_ARTICLE ? null : section)}
+              target="_blank"
+              rel="noopener noreferrer"
+              // The address is the queue's task link by now; read it at the click so the
+              // article can return to this item with its filters.
+              onClick={(event) => {
+                event.currentTarget.href = correctionHref(
+                  slug,
+                  feedbackId,
+                  section === WHOLE_ARTICLE ? null : section,
+                  window.location.pathname + window.location.search,
+                );
+              }}
+            >
               Start correction
             </a>
           </Button>

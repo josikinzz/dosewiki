@@ -35,7 +35,16 @@ export interface ReviewLocation {
   flagLabels?: string[];
   flagSeverity?: ReviewFlagSeverity | null;
   flagGroupBy?: "none" | "severity" | "label";
+  /**
+   * `?changed=1`: open with the Changed since review filter on. The Cmd+K
+   * saved view Needs another pass links here; the filter's own toggle still
+   * keeps its choice in the stored settings.
+   */
+  changedSinceReview?: boolean;
 }
+
+/** Query parameter that opens the workbench on Changed since review. */
+const REVIEW_CHANGED_PARAM = "changed";
 
 /** The `history.state` payload the workbench writes with each entry. */
 export interface ReviewHistoryState {
@@ -88,6 +97,7 @@ export function buildReviewUrl(location: {
   flagLabels?: readonly string[];
   flagSeverity?: ReviewFlagSeverity | null;
   flagGroupBy?: "none" | "severity" | "label";
+  changedSinceReview?: boolean;
 }): string {
   const slug = location.slug?.trim();
   const path = slug ? `${REVIEW_BASE_PATH}/${encodeURIComponent(slug)}` : REVIEW_BASE_PATH;
@@ -96,6 +106,7 @@ export function buildReviewUrl(location: {
   location.flagLabels?.forEach((label) => params.append("flag", label));
   if (location.flagSeverity) params.set("severity", location.flagSeverity);
   if (location.flagGroupBy && location.flagGroupBy !== "none") params.set("flagGroup", location.flagGroupBy);
+  if (location.changedSinceReview) params.set(REVIEW_CHANGED_PARAM, "1");
   const query = params.toString();
   return query ? `${path}?${query}` : path;
 }
@@ -140,6 +151,7 @@ export function parseReviewLocation(input: string): ReviewLocation {
     ...(flagLabels.length ? { flagLabels } : {}),
     ...(rawSeverity === "major" || rawSeverity === "minor" || rawSeverity === "note" ? { flagSeverity: rawSeverity } : {}),
     ...(rawGroup === "severity" || rawGroup === "label" ? { flagGroupBy: rawGroup } : {}),
+    ...(url.searchParams.get(REVIEW_CHANGED_PARAM) === "1" ? { changedSinceReview: true } : {}),
   };
 }
 

@@ -16,6 +16,19 @@ import type {
 
 const BASE_PATH = "/api/dev/proposals";
 
+/** A refused request, with its HTTP status so a caller can tell "gone" from "failed". */
+export class QueueRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "QueueRequestError";
+  }
+}
+
+/** A proposal that was removed, or one the session may not open (an editor's view is their own). */
+export function isMissingRecord(error: unknown): boolean {
+  return error instanceof QueueRequestError && (error.status === 404 || error.status === 403);
+}
+
 export async function fetchProposals(status?: ProposalStatus): Promise<ProposalSummary[]> {
   const suffix = status ? `?status=${encodeURIComponent(status)}` : "";
   const payload = await requestJson(`${BASE_PATH}${suffix}`, undefined, {
@@ -132,7 +145,7 @@ async function requestJson(
     ? payload as Record<string, unknown>
     : null;
   if (!response.ok) {
-    throw new Error(typeof record?.error === "string" ? record.error : messages.failure);
+    throw new QueueRequestError(typeof record?.error === "string" ? record.error : messages.failure, response.status);
   }
   if (!record) {
     throw new Error("The server returned an unreadable response. Refresh to check the latest status.");

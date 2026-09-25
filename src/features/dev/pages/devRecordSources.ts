@@ -6,10 +6,20 @@
  * palette opens and kept for a few minutes, so a second Cmd+K costs nothing.
  * The substance lookup backs both Substances and Banners and is read once.
  * A failed read is dropped from the cache so the next open retries.
+ *
+ * Saved views (`kind: "view"`) count their rows fresh on every open, from the
+ * same server read the view's queue lists them with: the feedback queue's own
+ * `total` for its filter, and the proposal list the Change Review tab
+ * filters. A count that cannot be read leaves the view without one; the view
+ * still opens.
  */
 
 import { approvedGlossaryLocales, type AppRole } from "@/lib/auth/roles";
 import { devHref } from "@/utils/devHref";
+import { feedbackTaskHref, type FeedbackSource } from "../tools/feedback/feedbackTaskLink";
+import { buildReviewUrl } from "../tools/review-mode/reviewUrl";
+import type { ProposalSummary } from "../tools/queue/queueModel";
+import { isMyPendingProposal, proposalTaskHref } from "../tools/queue/queueTaskLink";
 import { languageLabel } from "../tools/glossary/glossaryModel";
 import { BANNER_PRESET_SLUG_PREFIX } from "../tools/warning-banners/warningBannerTargets";
 import type { WritingListEntry } from "../tools/writing/writingEditorModel";
@@ -91,7 +101,79 @@ type BannerPreset = { key: string; headline: string; severityLabel: string };
 /** The Writing tool's pinned entry, which the list read does not return. */
 const ABOUT_SLUG = "about";
 
+/** A count read for a saved view; null when it could not be read. */
+async function viewCount(read: () => Promise<number>): Promise<number | null> {
+  try {
+    return await read();
+  } catch {
+    return null;
+  }
+}
+
+const countLine = (count: number | null, noun: string, rest: string) =>
+  count === null ? rest : `${count} ${noun} · ${rest}`;
+
+/**
+ * Oldest unresolved: New and Reviewing together, oldest first. The count is
+ * the queue route's `total` for exactly the filter the view opens.
+ */
+async function oldestUnresolvedView(source: FeedbackSource): Promise<PaletteRecord> {
+  const count = await viewCount(async () => {
+    const payload = await readJson<{ total?: unknown }>(`/api/${source}-feedback/queue?status=unresolved&order=oldest&limit=1`);
+    if (typeof payload.total !== "number") throw new Error("no total");
+    return payload.total;
+  });
+  const title = `Oldest unresolved ${source} feedback`;
+  return {
+    key: `view:feedback:${source}:oldest-unresolved`,
+    tab: "article-feedback",
+    kind: "view",
+    title,
+    detail: countLine(count, "unresolved", "New and Reviewing, oldest first"),
+    href: feedbackTaskHref({ source, status: "unresolved", sort: "oldest" }),
+    terms: recordTerms(title, "oldest unresolved pending waiting feedback"),
+  };
+}
+
 const SOURCES: readonly DevRecordSource[] = [
+  {
+    tab: "article-feedback",
+    load: () => Promise.all([oldestUnresolvedView("article"), oldestUnresolvedView("site")]),
+  },
+  {
+    tab: "queue",
+    // The same list read the tab filters, through the same rule, so the count is the rows.
+    load: async () => {
+      const count = await viewCount(async () => {
+        const payload = await readJson<{ proposals?: ProposalSummary[] }>("/api/dev/proposals");
+        if (!Array.isArray(payload.proposals)) throw new Error("no proposals");
+        return payload.proposals.filter(isMyPendingProposal).length;
+      });
+      return [{
+        key: "view:queue:mine",
+        tab: "queue",
+        kind: "view",
+        title: "My pending proposals",
+        detail: countLine(count, "waiting", "Your submissions awaiting a decision or a revision"),
+        href: proposalTaskHref(null, "mine"),
+        terms: recordTerms("my pending proposals submissions mine"),
+      }];
+    },
+  },
+  {
+    tab: "review",
+    // The review queue is built in the browser from the whole corpus, so no
+    // server read counts it cheaply; the view opens without a count.
+    load: async () => [{
+      key: "view:review:another-pass",
+      tab: "review",
+      kind: "view",
+      title: "Needs another pass",
+      detail: "Signed-off articles published again since their review",
+      href: buildReviewUrl({ slug: null, changedSinceReview: true }),
+      terms: recordTerms("needs another pass changed since review stale sign off re-review"),
+    }],
+  },
   { tab: "articles", load: () => substanceRecords("articles", "Substance") },
   {
     tab: "banners",

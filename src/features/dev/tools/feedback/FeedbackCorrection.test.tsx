@@ -158,6 +158,14 @@ describe("starting and linking a correction", () => {
 
     expect(start).toHaveAttribute("href", "/mescaline?feedback=fb-0001&section=dosage");
     expect(start.getAttribute("href")).not.toContain("reader");
+
+    // Following it carries the queue's task link, so the article can return to the same place.
+    window.history.replaceState(null, "", "/dev/article-feedback/fb-0001?source=article&status=unresolved");
+    start.addEventListener("click", (event) => event.preventDefault());
+    await user.click(start);
+    const opened = new URL(start.getAttribute("href") ?? "", "https://dose.wiki");
+    expect(opened.searchParams.get("returnTo")).toBe("/dev/article-feedback/fb-0001?source=article&status=unresolved");
+    expect(start.getAttribute("href")).not.toContain("reader");
   });
 
   it("links an existing proposal and then shows it as pending, not as a correction", async () => {
