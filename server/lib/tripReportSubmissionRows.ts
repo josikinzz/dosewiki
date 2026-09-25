@@ -5,6 +5,8 @@ import {
   tripReportSubjectValidator,
   tripReportSubstanceValidator,
 } from "../tripReportContract";
+import { tripReportSubmissionDecisionLog } from "./contentSchemaValidators";
+import { decisionLogOf } from "../../src/features/intake/decisionLog";
 
 /** Wire validators and row projections for `server/tripReportSubmissions.ts`. */
 
@@ -50,6 +52,7 @@ export const submissionRowValidator = v.object({
   review_notes: v.optional(v.string()),
   reviewed_by: v.optional(v.string()),
   reviewed_at: v.optional(v.string()),
+  decision_log: v.optional(tripReportSubmissionDecisionLog),
   exported_trip_report_id: v.optional(v.id("tripReports")),
   exported_at: v.optional(v.string()),
   created_at: v.string(),
@@ -123,6 +126,8 @@ export function toSubmissionRow(row: SubmissionRow): SubmissionRow {
     review_notes: row.review_notes,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
+    // A row decided before the log existed reads its review note back as the first entry.
+    decision_log: decisionLogOf(row),
     exported_trip_report_id: row.exported_trip_report_id,
     exported_at: row.exported_at,
     created_at: row.created_at,

@@ -27,6 +27,7 @@ type SiteFeedbackQueueItem = Pick<
   | "review_notes"
   | "reviewed_by"
   | "reviewed_at"
+  | "decision_log"
   | "created_at"
 >;
 
@@ -40,6 +41,7 @@ const URGENCY_PILL_TONE: Record<SiteFeedbackUrgency, EditorStatusPillTone> = {
 export const siteFeedbackAdapter: FeedbackSourceAdapter<SiteFeedbackQueueItem> = {
   source: "site",
   ...createFeedbackRequests<SiteFeedbackQueueItem>("/api/site-feedback"),
+  keepsDecisionLog: true,
   transitions: SITE_FEEDBACK_STATUS_TRANSITIONS,
   importance: (row) => row.urgency,
   labels: {

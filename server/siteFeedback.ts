@@ -8,6 +8,8 @@ import {
   feedbackQueueOrderValidator,
   readFeedbackQueue,
 } from "./lib/feedbackQueue";
+import { feedbackDecisionLog } from "./lib/contentSchemaValidators";
+import { appendDecision, decisionLogOf } from "../src/features/intake/decisionLog";
 
 const statusValidator = v.union(
   v.literal("new"),
@@ -48,6 +50,7 @@ const feedbackRowValidator = v.object({
   review_notes: v.optional(v.string()),
   reviewed_by: v.optional(v.string()),
   reviewed_at: v.optional(v.string()),
+  decision_log: v.optional(feedbackDecisionLog),
   created_at: v.string(),
   updated_at: v.string(),
 });
@@ -64,6 +67,7 @@ const feedbackQueueItemValidator = v.object({
   review_notes: v.optional(v.string()),
   reviewed_by: v.optional(v.string()),
   reviewed_at: v.optional(v.string()),
+  decision_log: v.optional(feedbackDecisionLog),
   created_at: v.string(),
 });
 
@@ -92,15 +96,17 @@ export const create = mutation({
     // Public intake relays an unauthenticated submitter: the server acts as
     // itself, so no actor is delegated.
     await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "publicIntakeCreate" }, "editor");
-    validateCreatedFeedback(args.feedback);
+    // New feedback has had no decisions; the log starts with the first transition.
+    const { decision_log: _decisionLog, ...feedback } = args.feedback;
+    validateCreatedFeedback(feedback);
 
-    const existing = await findFeedbackByPublicId(ctx, args.feedback.id);
+    const existing = await findFeedbackByPublicId(ctx, feedback.id);
     if (existing) {
       throw new Error("Site feedback already exists.");
     }
 
-    await ctx.db.insert("siteFeedback", args.feedback);
-    return args.feedback;
+    await ctx.db.insert("siteFeedback", feedback);
+    return feedback;
   },
 });
 
@@ -226,13 +232,22 @@ export const transition = mutation({
     }
 
     const timestamp = new Date().toISOString();
+    // The resolved actor, never a caller-supplied name.
+    const reviewer = auditStampFor(actor, undefined);
+    const note = args.note?.trim() ? args.note : undefined;
     const patch = {
       status: args.status,
-      // The resolved actor, never a caller-supplied name.
-      reviewed_by: auditStampFor(actor, undefined),
+      reviewed_by: reviewer,
       reviewed_at: timestamp,
       updated_at: timestamp,
       review_notes: args.note ?? doc.review_notes,
+      decision_log: appendDecision(doc, {
+        at: timestamp,
+        actor: reviewer,
+        from: doc.status,
+        to: args.status,
+        ...(note !== undefined ? { note } : {}),
+      }),
     };
     await ctx.db.patch(doc._id, patch);
 
@@ -272,6 +287,8 @@ function toFeedbackQueueItem(row: FeedbackRow): FeedbackQueueItem {
     review_notes: row.review_notes,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
+    // A row decided before the log existed reads its review note back as the first entry.
+    decision_log: decisionLogOf(row),
     created_at: row.created_at,
   };
 }

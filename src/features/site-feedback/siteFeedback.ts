@@ -9,6 +9,7 @@
  * verification) live in siteFeedbackStore.server.ts.
  */
 
+import type { DecisionLogEntry } from "@/features/intake/decisionLog";
 import { msg } from "@/i18n/messages";
 
 const SITE_FEEDBACK_SCHEMA_VERSION = 1;
@@ -142,6 +143,8 @@ export type SiteFeedbackRow = {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: string;
+  /** Every status transition, oldest first. */
+  decision_log?: DecisionLogEntry<SiteFeedbackStatus>[];
   created_at: string;
   updated_at: string;
 };

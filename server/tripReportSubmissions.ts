@@ -25,6 +25,7 @@ import {
   canTransitionTripReportSubmission,
   decisionNoteOrUndefined,
 } from "../src/features/reports/submissions/tripReportSubmissionStatus";
+import { appendDecision } from "../src/features/intake/decisionLog";
 
 type ReadCtx = { db: QueryCtx["db"] };
 
@@ -236,13 +237,21 @@ export const transition = mutation({
     const timestamp = new Date().toISOString();
     // A blank note records only the outcome; the stored note stays.
     const notes = decisionNoteOrUndefined(args.notes);
+    // The resolved actor, never a caller-supplied name.
+    const reviewer = auditStampFor(actor, undefined);
     const patch = {
       status: args.status,
-      // The resolved actor, never a caller-supplied name.
-      reviewed_by: auditStampFor(actor, undefined),
+      reviewed_by: reviewer,
       reviewed_at: timestamp,
       updated_at: timestamp,
       ...(notes !== undefined ? { review_notes: notes } : {}),
+      decision_log: appendDecision(doc, {
+        at: timestamp,
+        actor: reviewer,
+        from: doc.status,
+        to: args.status,
+        ...(notes !== undefined ? { note: notes } : {}),
+      }),
     };
     await ctx.db.patch(doc._id, patch);
 
@@ -316,6 +325,7 @@ export async function promoteHandler(
   const suggested = doc.contact_email ? await findMembershipByEmail(ctx, doc.contact_email) : null;
   const reportId = await ctx.db.insert("tripReports", payload);
   const timestamp = new Date().toISOString();
+  const notes = decisionNoteOrUndefined(args.notes);
   const patch = {
     status: "exported" as const,
     reviewed_by: reviewer,
@@ -323,7 +333,14 @@ export async function promoteHandler(
     updated_at: timestamp,
     exported_at: timestamp,
     exported_trip_report_id: reportId,
-    ...(decisionNoteOrUndefined(args.notes) !== undefined ? { review_notes: args.notes } : {}),
+    ...(notes !== undefined ? { review_notes: notes } : {}),
+    decision_log: appendDecision(doc, {
+      at: timestamp,
+      actor: reviewer,
+      from: doc.status,
+      to: "exported",
+      ...(notes !== undefined ? { note: notes } : {}),
+    }),
   };
   await ctx.db.patch(doc._id, patch);
 
@@ -442,8 +459,10 @@ async function buildPromotionPayload(
 }
 
 function withoutSubmitterAttribution(row: SubmissionRow): SubmissionRow {
+  // A new submission has made no decisions; the log starts with the first transition.
+  const { decision_log: _decisionLog, ...submitted } = row;
   return {
-    ...row,
+    ...submitted,
     report: {
       ...row.report,
       subject: stripSubmitterSubjectFields(row.report.subject),

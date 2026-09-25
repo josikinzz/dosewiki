@@ -16,7 +16,8 @@ import {
   useConfirm,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
-import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
+import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
+import { decisionLogOf } from "@/features/intake/decisionLog";
 import type {
   DataTripReportImportPayload,
   TripReportSubmissionRow,
@@ -29,7 +30,7 @@ import {
 /**
  * The intake queue's review surface, unchanged in capability from the tool the
  * portal replaces: status transitions, the promotion preview, the byline claim
- * adjudication, and the stored review note. It now opens from a row in the same
+ * adjudication, and the decision log. It now opens from a row in the same
  * corpus list as a published report rather than from a separate queue screen.
  */
 
@@ -221,21 +222,10 @@ export function PortalSubmissionReview({
           <Narrative label="Conclusion" value={submission.report.conclusion} />
         </div>
 
-        <section>
-          <SectionHeading>Review notes</SectionHeading>
-          {submission.reviewed_by || submission.reviewed_at ? (
-            <p className="theme-text-faint mt-1 text-xs">
-              {[formatReviewerIdentity(submission.reviewed_by), formatDate(submission.reviewed_at)].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
-          {submission.review_notes ? (
-            <p className="theme-text-secondary mt-1.5 whitespace-pre-line text-sm leading-6">
-              {submission.review_notes}
-            </p>
-          ) : (
-            <p className="text-dose-text-ghost mt-1.5 text-sm">No review notes yet.</p>
-          )}
-        </section>
+        <DecisionLogSection
+          entries={decisionLogOf(submission)}
+          statusLabel={(status) => STATUS_LABELS[status]}
+        />
 
         {submission.status === "exported" ? (
           <EditorNotice
@@ -250,7 +240,7 @@ export function PortalSubmissionReview({
           <EditorPanel variant="toolbar" className="space-y-3 p-3">
             <EditorField
               label="Decision note"
-              description="Stored with the decision you make next. Leave it empty to record only the outcome and keep the current note."
+              description="Added to the decision log with the decision you make next. Leave it empty to record only the outcome."
             >
               {(controlProps) => (
                 <Input

@@ -6,6 +6,7 @@ import {
   resetDevRailBadgesForTests,
   useDevRailBadges,
 } from "@/features/dev/pages/useDevRailBadges";
+import { appendDecision } from "@/features/intake/decisionLog";
 import { TripReportPortalTab } from "./TripReportPortalTab";
 
 const submission = {
@@ -96,7 +97,7 @@ const promotionPayload = {
 };
 
 function stubCorpus(
-  submissions: (typeof submission & { review_notes?: string })[],
+  submissions: (typeof submission & { review_notes?: string; reviewed_by?: string; reviewed_at?: string })[],
   reports: unknown[] = [publishedReport],
 ) {
   const storedSubmissions = submissions.map((row) => ({ review_notes: "", ...row }));
@@ -125,8 +126,17 @@ function stubCorpus(
         const row = storedSubmissions.find((entry) => entry.id === id);
         if (!row) return Response.json({ error: "Not found" }, { status: 404 });
         const decision = JSON.parse(String(init.body)) as { status: string; notes?: string };
+        // Like the server: append to the log, then move the row and keep the stored note when a decision carries none.
+        Object.assign(row, {
+          decision_log: appendDecision(row, {
+            at: "2026-06-12T09:00:00.000Z",
+            actor: "admin@example.com",
+            from: row.status,
+            to: decision.status,
+            note: decision.notes,
+          }),
+        });
         row.status = decision.status;
-        // The server keeps the stored note when a decision carries none.
         if (decision.notes !== undefined) row.review_notes = decision.notes;
         return Response.json({ ok: true, submission: row });
       }
@@ -261,6 +271,44 @@ describe("TripReportPortalTab", () => {
     );
     expect(await screen.findByText(/Review started on/)).toBeInTheDocument();
     expect(screen.getByText("No dose given for the second substance.")).toBeInTheDocument();
+  });
+
+  it("shows every decision in the log, with an existing note as the first, migrated entry", async () => {
+    const user = userEvent.setup();
+    stubCorpus([
+      {
+        ...submission,
+        status: "rejected",
+        review_notes: "No dose given for the second substance.",
+        reviewed_by: "second@example.com",
+        reviewed_at: "2026-06-11T15:00:00.000Z",
+      },
+    ]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^All/ }));
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+
+    const log = await screen.findByRole("list", { name: "Decision log" });
+    let entries = within(log).getAllByRole("listitem");
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toHaveTextContent("Earlier decision: Rejected");
+    expect(entries[0]).toHaveTextContent("second@example.com");
+    expect(entries[0]).toHaveTextContent("recorded before the decision log");
+    expect(entries[0]).toHaveTextContent("No dose given for the second substance.");
+
+    await user.click(screen.getByLabelText("Decision note"));
+    await user.paste("Author sent the missing dose.");
+    await user.click(screen.getByRole("button", { name: "Reopen review" }));
+
+    await waitFor(() => {
+      entries = within(screen.getByRole("list", { name: "Decision log" })).getAllByRole("listitem");
+      expect(entries).toHaveLength(2);
+    });
+    expect(entries[0]).toHaveTextContent("No dose given for the second substance.");
+    expect(entries[1]).toHaveTextContent("Rejected to Reviewing");
+    expect(entries[1]).toHaveTextContent("admin@example.com");
+    expect(entries[1]).toHaveTextContent("Author sent the missing dose.");
   });
 
   it("requires confirmation before removing a submission from the review queue", async () => {
