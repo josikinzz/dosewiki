@@ -46,6 +46,8 @@ function stubFetch() {
 
 describe("Replication Studio inspector column", () => {
   beforeEach(() => {
+    // The Library keeps its view in the URL; each test starts from a clean one.
+    window.history.replaceState(null, "", "/dev/replications");
     vi.restoreAllMocks();
   });
 
@@ -60,6 +62,50 @@ describe("Replication Studio inspector column", () => {
 
     await user.click(within(inspector).getByRole("button", { name: "Keyboard shortcuts" }));
     expect(within(inspector).getByText("move through the grid")).toBeInTheDocument();
+  });
+
+  it("shows the selected work's media open in the column, without a thumbnail click", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Work 1");
+
+    await user.click(screen.getByRole("option", { name: /Work 1/ }));
+
+    const inspector = await screen.findByRole("region", { name: "Inspector" });
+    expect(within(inspector).getByRole("button", { name: "Hide the large preview" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    // The header thumbnail and the large preview both draw the work.
+    expect(within(inspector).getAllByRole("img", { name: "Work 1" })).toHaveLength(2);
+  });
+
+  it("keeps the media behind the thumbnail in the narrow sheet", async () => {
+    // No breakpoint matches: the inspector is a sheet over the grid.
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Work 1");
+
+    await user.click(screen.getByRole("option", { name: /Work 1/ }));
+
+    const inspector = await screen.findByRole("region", { name: "Inspector" });
+    expect(within(inspector).getByRole("button", { name: "Show a large preview" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    vi.unstubAllGlobals();
   });
 
   it("lets the grid take the idle inspector's space, then opens it on a selection in place", async () => {

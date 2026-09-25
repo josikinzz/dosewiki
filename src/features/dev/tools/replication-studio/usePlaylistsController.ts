@@ -234,9 +234,14 @@ export function usePlaylistsController({
   }, []);
 
   return {
-    playlists, loaded, draft, savedSlugs, isDirty, pendingTransition, deletingKeys, saveState,
+    playlists, loaded, draft, savedSlugs, isDirty, deletingKeys, saveState,
     isSaving: saveState === "saving", feedback, setFeedback, openPlaylist, startNewPlaylist,
-    closeDraft, discardPendingTransition, cancelPendingTransition: () => setPendingTransition(null),
-    setDraftTitle, setDraftSlugs, resetDraft, save, remove, reload: () => setToken((value) => value + 1),
+    closeDraft, setDraftTitle, setDraftSlugs, resetDraft, save, remove, reload: () => setToken((value) => value + 1),
+    /** A switch that waits on discarding the open draft, and its two answers. */
+    transition: {
+      pending: pendingTransition,
+      discard: discardPendingTransition,
+      cancel: () => setPendingTransition(null),
+    },
   };
 }

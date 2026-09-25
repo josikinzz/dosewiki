@@ -558,7 +558,9 @@ export function ReplicationEditorDrawer({
 }: ReplicationEditorDrawerProps) {
   const single = selected.length === 1 ? selected[0] : null;
   const { draft, setDraft, dirty } = useSingleDraft(single);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  // A column has the room to show the work itself, so its media starts open;
+  // the sheet keeps it behind the header thumbnail to leave the form in view.
+  const [previewOpen, setPreviewOpen] = useState(placement === "column");
   const [hintsOpen, setHintsOpen] = useState(false);
   const { bulk, setBulk, resetBulk, dirty: bulkDirty } = useBulkDraft(selected);
   const { confirm, dialog } = useConfirm();

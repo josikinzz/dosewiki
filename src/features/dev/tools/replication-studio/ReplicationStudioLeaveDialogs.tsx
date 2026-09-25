@@ -2,12 +2,6 @@
 
 import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
 
-import type { StudioWorkspace } from "./ReplicationStudioWorkspaceNav";
-
-export type PendingPlaylistLeave =
-  | { kind: "workspace"; next: StudioWorkspace }
-  | { kind: "review"; substanceSlug: string };
-
 /** Every in-tool discard asks the same way: keep editing, or throw the draft away. */
 function discardRequest(title: string, description: string, onConfirm: () => void): ConfirmRequest {
   return { title, description, cancelLabel: "Keep editing", confirmLabel: "Discard changes", destructive: true, onConfirm };
@@ -29,8 +23,8 @@ export function ReplicationStudioLeaveDialogs({
   onCancelDraftDiscard,
   onConfirmDraftDiscard,
 }: {
-  pendingPlaylistLeave: PendingPlaylistLeave | null;
-  pendingShowcaseLeave: { next: StudioWorkspace } | null;
+  pendingPlaylistLeave: boolean;
+  pendingShowcaseLeave: boolean;
   onCancelPlaylistLeave: () => void;
   onConfirmPlaylistLeave: () => void;
   onCancelShowcaseLeave: () => void;

@@ -93,7 +93,7 @@ export function PlaylistsPanel({
     loaded,
     draft,
     isDirty,
-    pendingTransition,
+    transition,
     deletingKeys,
     saveState,
     isSaving,
@@ -237,18 +237,18 @@ export function PlaylistsPanel({
 
       <ConfirmDialog
         request={
-          pendingTransition
+          transition.pending
             ? {
                 title: "Discard the unsaved playlist?",
                 description: "This draft has changes that are not saved. Continue only if you want to discard them.",
                 cancelLabel: "Keep editing",
                 confirmLabel: "Discard changes",
                 destructive: true,
-                onConfirm: controller.discardPendingTransition,
+                onConfirm: transition.discard,
               }
             : null
         }
-        onClose={controller.cancelPendingTransition}
+        onClose={transition.cancel}
       />
       {deleteDialog}
     </EditorSection>

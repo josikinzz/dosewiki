@@ -30,8 +30,8 @@ export function GalleryStagePreview({
 }) {
   /**
    * Open by default: seeing the article is the point of this surface, not a
-   * reward for finding a toggle. The disclosure exists only so an editor
-   * working a long board can reclaim the vertical space.
+   * reward for finding a toggle. This is the preview's only disclosure; it
+   * exists so an editor working a long board can reclaim the vertical space.
    */
   const [open, setOpen] = useState(true);
   const works = useMemo(() => previewWorksFromMatches(matches), [matches]);
@@ -43,7 +43,7 @@ export function GalleryStagePreview({
       headingLevel="h3"
       icon="lucide:monitor-play"
       title="Article preview"
-      description="The live Replication Showcase, exactly as this substance's article will draw it: same stage, same cap, same overflow link. It shows the curated works and nothing else, because that is all the article publishes."
+      description={`The live Replication Showcase as this substance's article will draw it once saved: the first ${SHOWCASE_WORK_CAP} images and videos in the effective order, automatic placements and curation together, on the same stage with the same overflow link.`}
       animate={false}
       actions={
         <>
@@ -75,9 +75,9 @@ export function GalleryStagePreview({
               radius="lg"
               className="theme-text-muted text-sm"
             >
-              Nothing is curated yet, so the article shows no showcase. This is
-              where every substance starts. Curate a matched work and the stage
-              appears here as soon as one image or video is on it.
+              No image or video is placed on this article, so it shows no
+              showcase. The stage appears here as soon as an automatic
+              placement or a curated work puts one on the board.
             </EmptyStateSurface>
           ) : (
             <ReplicationShowcase works={onStage} totalCount={works.length} />
