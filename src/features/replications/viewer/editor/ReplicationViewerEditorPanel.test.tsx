@@ -57,7 +57,7 @@ describe("reviewed viewer publication", () => {
     const user = userEvent.setup();
     await screen.findByRole("button", { name: "Move work-two up" });
     await user.click(screen.getByRole("button", { name: "Canonical metadata" }));
-    const credit = screen.getByLabelText("Rights / credit");
+    const credit = screen.getByLabelText("Credit line");
     await user.clear(credit); await user.type(credit, "Corrected artist credit");
     await user.click(screen.getByRole("button", { name: "Review publication" }));
     await user.click(screen.getByRole("button", { name: "Confirm publication" }));

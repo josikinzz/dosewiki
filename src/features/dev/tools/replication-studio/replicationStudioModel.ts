@@ -142,6 +142,35 @@ export function groupStudioRows(rows: readonly StudioRow[], group: StudioGroupBy
  * so a checked facet does not rewrite the numbers beside its own siblings while
  * you are still deciding.
  */
+/**
+ * Live counts for one facet: how many rows each value would show given every
+ * other active filter. A facet never narrows its own counts, so ticking a
+ * second artist still shows what that artist adds.
+ */
+export function liveFacetCounts(
+  rows: readonly StudioRow[],
+  state: StudioFilterState,
+  kind: StudioFacetKind,
+): Map<string, number> {
+  const others = filterStudioRows(rows, { ...state, facets: { ...state.facets, [kind]: [] } });
+  const counts = new Map<string, number>();
+  for (const row of others) {
+    const key = facetKeyOf(row, kind);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function facetKeyOf(row: StudioRow, kind: StudioFacetKind): string {
+  return kind === "type"
+    ? row.type
+    : kind === "role"
+      ? row.role
+      : kind === "artist"
+        ? row.artist
+        : row.effect_slug ?? NO_EFFECT_KEY;
+}
+
 export function facetCounts(
   rows: readonly StudioRow[],
   kind: StudioFacetKind,
@@ -149,13 +178,7 @@ export function facetCounts(
 ): StudioFacetCount[] {
   const counts = new Map<string, number>();
   for (const row of rows) {
-    const key = kind === "type"
-      ? row.type
-      : kind === "role"
-        ? row.role
-        : kind === "artist"
-          ? row.artist
-          : row.effect_slug ?? NO_EFFECT_KEY;
+    const key = facetKeyOf(row, kind);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 

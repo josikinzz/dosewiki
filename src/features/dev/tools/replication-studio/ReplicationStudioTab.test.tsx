@@ -176,7 +176,7 @@ describe("ReplicationStudioTab", () => {
 
     expect(await screen.findByText("Kaleidoscopic highway")).toBeInTheDocument();
     expect(screen.getByText("Alice grown large")).toBeInTheDocument();
-    expect(screen.getByText("2 of 2 shown")).toBeInTheDocument();
+    expect(screen.getByText("2 works")).toBeInTheDocument();
   });
 
   it("filters the grid from the search box", async () => {
@@ -227,8 +227,9 @@ describe("ReplicationStudioTab", () => {
     await user.click(screen.getByRole("option", { name: /Alice grown large/ }));
     await user.keyboard("{/Control}");
 
-    expect(await screen.findByText("2 selected")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Mark as figure" }));
+    expect(await screen.findByText(/2 selected/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Figure" }));
+    await user.click(screen.getByRole("button", { name: "Apply to 2" }));
 
     await waitFor(() =>
       expect(calls.some((call) => call.url === "/api/dev/replications/editorial")).toBe(true),
@@ -249,11 +250,11 @@ describe("ReplicationStudioTab", () => {
     expect(grid).toContainElement(board);
     expect(screen.getByText("portal:lsd")).toBeInTheDocument();
     expect(screen.getByText("gallery corpus:2 filtered:2")).toBeInTheDocument();
-    expect(screen.queryByText("2 of 2 shown")).not.toBeInTheDocument();
+    expect(screen.queryByText("2 works")).not.toBeInTheDocument();
     expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
   });
 
-  it("presents one focused Library, Playlists, or Drug galleries workspace at a time", async () => {
+  it("presents one focused Library, Playlists, or Showcases workspace at a time", async () => {
     stubFetch();
     const user = userEvent.setup();
     render(<ReplicationStudioTab />);
@@ -264,9 +265,9 @@ describe("ReplicationStudioTab", () => {
       "playlist corpus:2 filtered:2",
     );
     expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
-    expect(screen.queryByText("2 of 2 shown")).not.toBeInTheDocument();
+    expect(screen.queryByText("2 works")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Drug galleries" }));
+    await user.click(screen.getByRole("button", { name: "Showcases" }));
     expect(await screen.findByTestId("gallery-panel")).toBeInTheDocument();
     expect(screen.queryByTestId("playlists-workspace")).not.toBeInTheDocument();
     expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
@@ -340,8 +341,8 @@ describe("ReplicationStudioTab", () => {
 
     await user.click(screen.getByRole("button", { name: "inspect row" }));
 
-    expect(await screen.findByText("Editing 1 replication")).toBeInTheDocument();
-    expect(screen.getByLabelText("Title")).toHaveValue("Kaleidoscopic highway");
+    expect(await screen.findByLabelText("Title")).toHaveValue("Kaleidoscopic highway");
+    expect(screen.getByRole("region", { name: "Inspector" })).toBeInTheDocument();
   });
 
   it("will not close a dirty portal until the discard dialog is answered", async () => {
@@ -367,8 +368,8 @@ describe("ReplicationStudioTab", () => {
     expect(pushMock).toHaveBeenCalledWith("/dev/replications");
   });
 
-  it("puts the editor under the grid box inside the main column between lg and xl", async () => {
-    // The rail breakpoint matches, the drawer column does not: a laptop width.
+  it("trades the rail for the inspector column between lg and xl", async () => {
+    // The rail breakpoint matches, the three-column one does not: a laptop width.
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query === "(min-width: 1024px)",
       media: query,
@@ -384,15 +385,98 @@ describe("ReplicationStudioTab", () => {
     render(<ReplicationStudioTab />);
     await screen.findByText("Kaleidoscopic highway");
 
-    // Nothing selected: no empty coach under the grid at this width.
-    expect(screen.queryByText("Nothing selected")).not.toBeInTheDocument();
+    // Nothing selected: the rail has the column and no inspector takes space.
+    expect(screen.getByRole("complementary", { name: "Filters" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Inspector" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("option", { name: /Kaleidoscopic highway/ }));
 
-    const heading = await screen.findByText("Editing 1 replication");
-    expect(screen.getByRole("main")).toContainElement(heading);
-    expect(screen.getByRole("listbox", { name: "Replications" }).compareDocumentPosition(heading))
-      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    const inspector = await screen.findByRole("region", { name: "Inspector" });
+    expect(screen.getByRole("region", { name: "Library" })).not.toContainElement(inspector);
+    expect(screen.queryByRole("complementary", { name: "Filters" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Search & filters/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Clear the selection" }));
+    expect(screen.queryByRole("region", { name: "Inspector" })).not.toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Filters" })).toBeInTheDocument();
+  });
+
+  it("asks before a new selection throws away an unsaved draft", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByRole("option", { name: /Kaleidoscopic highway/ }));
+    const title = await screen.findByLabelText("Title");
+    await user.type(title, " at dusk");
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("option", { name: /Alice grown large/ }));
+    expect(await screen.findByText("Discard unsaved edits?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByLabelText("Title")).toHaveValue("Kaleidoscopic highway at dusk");
+
+    await user.click(screen.getByRole("option", { name: /Alice grown large/ }));
+    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Alice grown large"));
+  });
+
+  it("leaves arrow keys alone while focus is in the inspector", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByRole("option", { name: /Kaleidoscopic highway/ }));
+    const figure = await screen.findByRole("button", { name: "Figure" });
+    figure.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(screen.getByLabelText("Title")).toHaveValue("Kaleidoscopic highway");
+    expect(screen.getByRole("option", { name: /Kaleidoscopic highway/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("marks Escape handled when it clears the selection, so the shell stays open", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+    await user.click(screen.getByRole("option", { name: /Kaleidoscopic highway/ }));
+
+    let prevented: boolean | null = null;
+    const listen = (event: KeyboardEvent) => {
+      prevented = event.defaultPrevented;
+    };
+    window.addEventListener("keydown", listen);
+    await user.keyboard("{Escape}");
+    window.removeEventListener("keydown", listen);
+
+    expect(prevented).toBe(true);
+    expect(screen.getByRole("option", { name: /Kaleidoscopic highway/ })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+
+  it("sends Manage in Showcases to the per-replication placement view", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByRole("option", { name: /Kaleidoscopic highway/ }));
+    await user.click(await screen.findByRole("button", { name: "Manage in Showcases" }));
+
+    expect(await screen.findByRole("button", { name: "By replication" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.queryByTestId("gallery-panel")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Kaleidoscopic highway" })).toBeInTheDocument();
   });
 
   it("folds the rail into a filter sheet below lg, and `/` opens it", async () => {
@@ -420,8 +504,8 @@ describe("ReplicationStudioTab", () => {
 
     const search = await screen.findByLabelText("Search replications");
     expect(search).toHaveFocus();
-    // The whole organizer came with it — nothing amputated at this width.
-    expect(screen.getByText("Group by")).toBeInTheDocument();
+    // The whole organizer came with it: nothing amputated at this width.
+    expect(screen.getByRole("button", { name: /Effect/ })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByLabelText(/John Tenniel/)).toBeInTheDocument();
   });
 });

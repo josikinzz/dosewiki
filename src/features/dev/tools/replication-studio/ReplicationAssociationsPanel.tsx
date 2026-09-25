@@ -362,7 +362,14 @@ function DirectPlacementEditor({
  * drawer. Associations and direct placements are per replication, so a bulk
  * selection has no single answer.
  */
-export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
+export function ReplicationAssociationsPanel({
+  row,
+  onDirtyChange,
+}: {
+  row: StudioRow;
+  /** Reports unsaved eligibility so the host can guard leaving it. */
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [draft, setDraft] = useState<AssociationState>({ excluded: [] });
   const [saved, setSaved] = useState<AssociationState>({ excluded: [] });
@@ -451,6 +458,10 @@ export function ReplicationAssociationsPanel({ row }: { row: StudioRow }) {
   const visibleRows = useMemo(() => groups.flatMap((group) => group.rows), [groups]);
 
   const isDirty = !associationStatesEqual(draft, saved);
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
   const busy = saveState === "saving";
 
   useEffect(() => {

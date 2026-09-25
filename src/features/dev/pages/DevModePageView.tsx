@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 
 import { StateCard } from "@/components/common/StateCard";
-import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
+import { EditorStatusPill, SAVE_FAMILY_PILL } from "@/features/dev/components";
 import { Button } from "@/components/ui/button";
 import {
   DevModePageChrome,
@@ -103,36 +103,14 @@ type DevModePageViewProps = {
 };
 
 /**
- * The save model, said once per tool. Staged tools hold edits in a draft
- * until the editor commits; immediate tools write on Save. The commit card
- * at the foot of a staged tool repeats the verb, never the explanation.
- */
-const SAVE_FAMILY_PILL: Record<
-  DevTabDescriptor["saveFamily"],
-  { label: string; detail: string; icon: string; tone: EditorStatusPillTone }
-> = {
-  staged: {
-    label: "Apply to draft, then commit to production",
-    detail: "Edits stay in your draft until you press Commit to production.",
-    icon: "lucide:file-pen-line",
-    tone: "info",
-  },
-  immediate: {
-    label: "Save writes to production",
-    detail: "Each Save goes to the live site right away.",
-    icon: "lucide:zap",
-    tone: "success",
-  },
-};
-
-/**
  * One line above every tool naming its save family, read off the registry
  * descriptor so a tool cannot say one thing and do another. Only tools the
- * shell renders get one: the chrome cluster (Change log) is not a tool, and
- * an external destination (Review) never renders here at all.
+ * shell renders get one: the chrome cluster (Change log) is not a tool, an
+ * external destination (Review) never renders here at all, and a tool that
+ * sets `saveFamilyInTool` says it in its own toolbar.
  */
 function DevToolSaveFamily({ tab, canApprove }: { tab: DevTabDescriptor; canApprove: boolean }) {
-  if (tab.group === "chrome" || tab.destination.kind !== "shell" || tab.id === "queue") {
+  if (tab.group === "chrome" || tab.destination.kind !== "shell" || tab.id === "queue" || tab.saveFamilyInTool) {
     return null;
   }
   const needsReview = !canApprove && (tab.saveFamily === "staged" || tab.id === "writing" || tab.id === "copy-studio");

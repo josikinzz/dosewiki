@@ -38,6 +38,7 @@ const CORPUS_API = "/api/dev/replications";
 const EDITORIAL_API = "/api/dev/replications/editorial";
 const FEATURED_API = "/api/dev/replications/featured";
 const RAIL_COLUMN_MEDIA = "(min-width: 1024px)";
+/** From xl the inspector is the frame's third column; under it, a sheet. */
 const DRAWER_COLUMN_MEDIA = "(min-width: 1280px)";
 
 type CorpusPayload = { rows: StudioRow[]; effects: StudioEffectOption[] };
@@ -46,6 +47,8 @@ type LoadState =
   | { status: "ready" }
   | { status: "error"; message: string };
 type Feedback = { tone: ActionNoticeTone; message: string };
+/** Showcases are curated per drug article, or reviewed per replication. */
+export type ShowcaseMode = "drug" | "replication";
 
 let cachedCorpus: CorpusPayload | null = null;
 
@@ -96,10 +99,15 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     next: "featured" | "playlists" | null;
   } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // The inspector's draft is unsaved work: anything that would swap its
+  // subject (a click, an arrow, Esc, a workspace change) waits on a discard.
+  const [editorDirty, setEditorDirty] = useState(false);
+  const [pendingDiscard, setPendingDiscard] = useState<{ run: () => void } | null>(null);
+  const [showcaseMode, setShowcaseMode] = useState<ShowcaseMode>("drug");
+  const [placementRowId, setPlacementRowId] = useState<string | null>(null);
   const railInColumn = useMediaMatch(RAIL_COLUMN_MEDIA);
   const drawerInColumn = useMediaMatch(DRAWER_COLUMN_MEDIA);
   const searchRef = useRef<HTMLInputElement>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<ReplicationGridHandle>(null);
 
   useEffect(() => {
@@ -131,14 +139,29 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
   );
 
   useEffect(() => {
-    if (!galleryDirty) return;
+    if (!galleryDirty && !editorDirty) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [galleryDirty]);
+  }, [galleryDirty, editorDirty]);
+
+  /** Runs `change` now, or once the editor confirms throwing its draft away. */
+  const guardDraft = useCallback(
+    (change: () => void) => {
+      if (editorDirty) setPendingDiscard({ run: change });
+      else change();
+    },
+    [editorDirty],
+  );
+  const confirmDiscard = useCallback(() => {
+    const pending = pendingDiscard;
+    setPendingDiscard(null);
+    setEditorDirty(false);
+    pending?.run();
+  }, [pendingDiscard]);
 
   const focusSearch = useCallback(() => {
     const input = searchRef.current;
@@ -258,10 +281,11 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     [rows, selection],
   );
 
-  const clearSelection = useCallback(() => {
+  const resetSelection = useCallback(() => {
     setSelection(new Set());
     setAnchor(null);
   }, []);
+  const clearSelection = useCallback(() => guardDraft(resetSelection), [guardDraft, resetSelection]);
 
   const inspectRow = useCallback(
     (slug: string) => {
@@ -270,43 +294,57 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
         setFeedback({ tone: "danger", message: `No corpus row is named ${slug}.` });
         return;
       }
-      setSelection(new Set([row.id]));
-      setAnchor(row.id);
+      guardDraft(() => {
+        setSelection(new Set([row.id]));
+        setAnchor(row.id);
+      });
     },
-    [rows],
+    [guardDraft, rows],
   );
 
   const onCardActivate = useCallback(
     (event: ReactMouseEvent, id: string) => {
-      setSelection((current) => {
-        const next = new Set(current);
-        if (event.shiftKey && anchor && visibleIds.includes(anchor)) {
-          const from = visibleIds.indexOf(anchor);
-          const to = visibleIds.indexOf(id);
-          const [low, high] = from < to ? [from, to] : [to, from];
-          if (!(event.ctrlKey || event.metaKey)) next.clear();
-          for (let index = low; index <= high; index += 1) next.add(visibleIds[index]);
-          return next;
-        }
-        if (event.ctrlKey || event.metaKey) {
-          if (next.has(id)) next.delete(id);
-          else next.add(id);
-          return next;
-        }
+      const next = new Set(selection);
+      if (event.shiftKey && anchor && visibleIds.includes(anchor)) {
+        const from = visibleIds.indexOf(anchor);
+        const to = visibleIds.indexOf(id);
+        const [low, high] = from < to ? [from, to] : [to, from];
+        if (!(event.ctrlKey || event.metaKey)) next.clear();
+        for (let index = low; index <= high; index += 1) next.add(visibleIds[index]);
+      } else if (event.ctrlKey || event.metaKey) {
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+      } else {
         const onlyThis = next.size === 1 && next.has(id);
         next.clear();
         if (!onlyThis) next.add(id);
-        return next;
+      }
+      const unchanged = next.size === selection.size && [...next].every((entry) => selection.has(entry));
+      if (unchanged) {
+        if (!event.shiftKey) setAnchor(id);
+        return;
+      }
+      guardDraft(() => {
+        setSelection(next);
+        if (!event.shiftKey) setAnchor(id);
       });
-      if (!event.shiftKey) setAnchor(id);
     },
-    [anchor, visibleIds],
+    [anchor, guardDraft, selection, visibleIds],
   );
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      const typing = Boolean(target) && /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName ?? "");
+      const typing =
+        Boolean(target) &&
+        (/^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName ?? "") || Boolean(target?.isContentEditable));
+      // Selection keys belong to the grid. With focus on a control anywhere
+      // else (an inspector button, a dialog, the rail) they keep their native
+      // meaning, so an arrow never swaps the subject out from under a form.
+      const onPage = !target || target === document.body || target === document.documentElement;
+      const inGrid = Boolean(target?.closest?.("[data-studio-grid]"));
+      const inInspector = Boolean(target?.closest?.("[data-studio-inspector]"));
+      if (event.defaultPrevented) return;
       if (event.key === "/" && !typing) {
         event.preventDefault();
         focusSearch();
@@ -317,16 +355,20 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
           target?.blur();
           return;
         }
-        if (selection.size > 0) clearSelection();
+        if (selection.size > 0 && (onPage || inGrid || inInspector)) {
+          // Handled: the dev shell reads an unhandled Escape as "leave the editor".
+          event.preventDefault();
+          clearSelection();
+        }
         return;
       }
-      if (typing || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      if (!(onPage || inGrid) || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
         return;
       }
       if (visibleIds.length === 0) return;
       event.preventDefault();
-      // The grid is 2 to 4 columns depending on its width, so a fixed step
-      // would move diagonally at some widths; the grid reports its own count.
+      // The grid's column count follows its width, so a fixed step would
+      // move diagonally at some widths; the grid reports its own count.
       const perRow = gridRef.current?.columns ?? 1;
       const step =
         event.key === "ArrowRight"
@@ -340,12 +382,14 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       const nextIndex =
         current === -1 ? 0 : Math.max(0, Math.min(visibleIds.length - 1, current + step));
       const id = visibleIds[nextIndex];
-      setSelection((existing) => (event.shiftKey ? new Set([...existing, id]) : new Set([id])));
-      setAnchor(id);
+      guardDraft(() => {
+        setSelection((existing) => (event.shiftKey ? new Set([...existing, id]) : new Set([id])));
+        setAnchor(id);
+      });
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [anchor, clearSelection, focusSearch, selection.size, visibleIds]);
+  }, [anchor, clearSelection, focusSearch, guardDraft, selection.size, visibleIds]);
 
   const saveSingle = useCallback(
     async (row: StudioRow, draft: SingleEditDraft) => {
@@ -462,8 +506,25 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     return entries;
   }, [facets, effectNames]);
   const navigateToSubstance = useCallback(
-    (slug: string) => router.push(`/dev/replications/${slug}`),
+    (slug: string) => {
+      setShowcaseMode("drug");
+      router.push(`/dev/replications/${slug}`);
+    },
     [router],
+  );
+  /** Opens Showcases on one replication's drug-article placements. */
+  const openPlacement = useCallback(
+    (id: string) =>
+      guardDraft(() => {
+        setPlacementRowId(id);
+        setShowcaseMode("replication");
+        setActivePanel("substances");
+      }),
+    [guardDraft],
+  );
+  const placementRow = useMemo(
+    () => rows.find((row) => row.id === placementRowId) ?? null,
+    [placementRowId, rows],
   );
   const toggleFacet = useCallback(
     (kind: StudioFacetKind, key: string) =>
@@ -494,7 +555,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     railInColumn,
     drawerInColumn,
     searchRef,
-    drawerRef,
     gridRef,
     effectNames,
     artists,
@@ -505,6 +565,18 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     chips,
     filterCount: activeFacetCount(facets) + (query.trim() ? 1 : 0),
     incoming,
+    editorDirty,
+    galleryDirty,
+    pendingDiscard,
+    showcaseMode,
+    placementRow,
+    setEditorDirty,
+    setPendingDiscard,
+    setShowcaseMode,
+    setPlacementRowId,
+    guardDraft,
+    confirmDiscard,
+    openPlacement,
     setQuery,
     setGroup,
     setFacets,

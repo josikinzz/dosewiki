@@ -23,6 +23,9 @@ export function ReplicationStudioLeaveDialogs({
   onConfirmPlaylistLeave,
   onCancelShowcaseLeave,
   onConfirmShowcaseLeave,
+  pendingDraftDiscard,
+  onCancelDraftDiscard,
+  onConfirmDraftDiscard,
 }: {
   pendingPlaylistLeave: PendingPlaylistLeave | null;
   pendingShowcaseLeave: { next: StudioWorkspace } | null;
@@ -30,6 +33,9 @@ export function ReplicationStudioLeaveDialogs({
   onConfirmPlaylistLeave: () => void;
   onCancelShowcaseLeave: () => void;
   onConfirmShowcaseLeave: () => void;
+  pendingDraftDiscard: boolean;
+  onCancelDraftDiscard: () => void;
+  onConfirmDraftDiscard: () => void;
 }) {
   return (
     <>
@@ -77,6 +83,31 @@ export function ReplicationStudioLeaveDialogs({
               Keep editing
             </Button>
             <Button type="button" variant="destructive" onClick={onConfirmShowcaseLeave}>
+              Discard changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={pendingDraftDiscard}
+        onOpenChange={(open) => {
+          if (!open) onCancelDraftDiscard();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Discard unsaved edits?</DialogTitle>
+            <DialogDescription>
+              The work open in the inspector has changes that were never saved. Moving on throws
+              them away; the live site keeps what is already stored.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onCancelDraftDiscard}>
+              Keep editing
+            </Button>
+            <Button type="button" variant="destructive" onClick={onConfirmDraftDiscard}>
               Discard changes
             </Button>
           </DialogFooter>

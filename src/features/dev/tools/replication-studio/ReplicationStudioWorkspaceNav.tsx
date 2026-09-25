@@ -4,9 +4,24 @@ import type { RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import { SaveFamilyPill } from "@/features/dev/components";
+import { cn } from "@/lib/utils";
 
 export type StudioWorkspace = "featured" | "playlists" | "substances" | null;
 
+const WORKSPACES: { value: StudioWorkspace; label: string; icon: string }[] = [
+  { value: null, label: "Library", icon: "lucide:library" },
+  { value: "playlists", label: "Playlists", icon: "lucide:list-music" },
+  { value: "substances", label: "Showcases", icon: "lucide:images" },
+  { value: "featured", label: "Featured", icon: "lucide:star" },
+];
+
+/**
+ * The studio's one toolbar row: its name and corpus counts, the four
+ * workspaces as a single segmented group, then the save model and the two
+ * corpus actions. Reload and Upload hold their place on every workspace so
+ * the row never reflows when the workspace changes.
+ */
 export function ReplicationStudioWorkspaceNav({
   activePanel,
   rowCount,
@@ -31,58 +46,70 @@ export function ReplicationStudioWorkspaceNav({
   onFiles: (files: FileList | null) => void;
 }) {
   return (
-    <header className="space-y-3">
-      <div className="flex flex-wrap items-baseline gap-3">
-        <div className="flex items-baseline gap-2">
-          <h2 className="theme-accent-emphasis font-display text-xl font-semibold">
-            Replication Studio
-          </h2>
-          <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">dev tool</span>
-        </div>
-        <p className="theme-text-faint font-mono text-xs">
-          {rowCount} rows · {artistCount} artists · {effectCount} effects
+    <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="min-w-0 max-sm:order-1">
+        <h2 className="theme-text-primary font-display text-lg font-semibold leading-tight">
+          Replication Studio
+        </h2>
+        <p className="theme-text-faint font-mono text-xs tabular-nums">
+          {rowCount} works · {artistCount} artists · {effectCount} effects
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-y border-[color:var(--editor-panel-border)] py-2">
-        <nav aria-label="Replication Studio workspace" className="flex flex-wrap items-center gap-1">
-          <Button type="button" variant={activePanel === null ? "accent" : "ghost"} size="sm" aria-current={activePanel === null ? "page" : undefined} onClick={() => onRequestWorkspace(null)}>
-            <Icon icon="lucide:library" size={15} />
-            Library
-          </Button>
-          <Button type="button" variant={activePanel === "playlists" ? "accent" : "ghost"} size="sm" aria-current={activePanel === "playlists" ? "page" : undefined} onClick={() => onRequestWorkspace("playlists")}>
-            <Icon icon="lucide:list-music" size={15} />
-            Playlists
-          </Button>
-          <Button type="button" variant={activePanel === "substances" ? "accent" : "ghost"} size="sm" aria-current={activePanel === "substances" ? "page" : undefined} onClick={() => onRequestWorkspace("substances")}>
-            <Icon icon="lucide:images" size={15} />
-            Drug galleries
-          </Button>
-        </nav>
-        <div className="h-5 w-px bg-[var(--editor-panel-border)]" aria-hidden="true" />
-        <Button type="button" variant={activePanel === "featured" ? "secondary" : "quiet"} size="sm" aria-current={activePanel === "featured" ? "page" : undefined} onClick={() => onRequestWorkspace("featured")}>
-          <Icon icon="lucide:star" size={15} />
-          Featured
-        </Button>
-        <div className="flex-1" />
-        {activePanel === null ? (
-          <>
-            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onReload}>
-              <Icon icon="lucide:refresh-cw" size={15} />
-              Reload
+      <nav
+        aria-label="Replication Studio workspace"
+        className="inline-flex items-center gap-0.5 rounded-full border max-sm:order-2 border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1"
+      >
+        {WORKSPACES.map((workspace) => {
+          const active = activePanel === workspace.value;
+          return (
+            <Button
+              key={workspace.label}
+              type="button"
+              size="sm"
+              variant={active ? "pillActive" : "quiet"}
+              aria-current={active ? "page" : undefined}
+              className={cn("rounded-full", !active && "theme-text-muted")}
+              onClick={() => onRequestWorkspace(workspace.value)}
+            >
+              <Icon icon={workspace.icon} size={15} />
+              <span className="max-sm:sr-only">{workspace.label}</span>
             </Button>
-            <Button type="button" variant="accent" size="sm" onClick={onUpload}>
-              <Icon icon="lucide:upload" size={15} />
-              Upload
-            </Button>
-          </>
-        ) : null}
+          );
+        })}
+      </nav>
+
+      {/* One group from sm up, so the save model and the corpus actions wrap
+          together. On a phone the group dissolves: the actions ride beside
+          the workspace tabs and the save model takes the last line. */}
+      <div className="contents sm:ml-auto sm:flex sm:items-center sm:gap-2">
+        <SaveFamilyPill family="immediate" className="whitespace-nowrap max-sm:order-4" />
+        <div className="flex items-center gap-2 max-sm:order-3 max-sm:ml-auto">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={busy}
+            onClick={onReload}
+            aria-label="Reload the corpus"
+            title="Reload the corpus"
+          >
+            <Icon icon="lucide:refresh-cw" size={15} />
+            <span className="max-lg:sr-only">Reload</span>
+          </Button>
+          <Button type="button" variant="accent" size="sm" onClick={onUpload}>
+            <Icon icon="lucide:upload" size={15} />
+            Upload
+          </Button>
+        </div>
       </div>
       <input
         ref={fileInputRef}
         type="file"
         multiple
         accept="image/*,video/*,audio/mpeg,.mp3"
+        tabIndex={-1}
+        aria-hidden="true"
         className="sr-only"
         onChange={(event) => {
           onFiles(event.target.files);

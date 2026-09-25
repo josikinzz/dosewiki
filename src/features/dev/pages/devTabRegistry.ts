@@ -38,6 +38,11 @@ type DevTabDescriptorOf<Id extends string> = {
   data: ReadonlySet<DevTabDataNeed>;
   /** `staged` tools commit through the shared commit panel; `immediate` tools publish on save. */
   saveFamily: "staged" | "immediate";
+  /**
+   * The tool draws its own save-family pill inside its toolbar (a full-height
+   * workspace has no room for a line above it); the shell then skips its own.
+   */
+  saveFamilyInTool?: true;
   destination: DevTabDestination;
   /** Named count source rendered as a rail badge; `useDevRailBadges` maps the name to its endpoint. */
   badge?: "trip-reports" | "feedback" | "proposals";
@@ -158,6 +163,7 @@ const REGISTRY = [
     role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
+    saveFamilyInTool: true,
     destination: SHELL,
   },
   {

@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   EditorField,
   EditorPanel,
-  EditorPanelBody,
-  EditorPanelHeader,
   EditorSelect,
+  EditorStatusPill,
 } from "@/features/dev/components";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 import { EffectTagInput } from "./EffectTagInput";
-import { ReplicationAssociationsPanel } from "./ReplicationAssociationsPanel";
 import { ReplicationThumb } from "./ReplicationThumb";
 import {
   NO_EFFECT_KEY,
@@ -47,19 +47,22 @@ export type ReplicationEditorDrawerProps = {
   artists: readonly string[];
   busy: boolean;
   /**
-   * `aside`: the xl third column, pinned beside the grid and scrolling on its
-   * own. `below`: a full-width panel under the grid box at narrower widths,
-   * flowing with the page.
+   * `column`: the xl third column, filling the Library frame's height.
+   * `sheet`: a panel over the grid's right edge at narrower widths.
    */
-  placement: "aside" | "below";
+  placement: "column" | "sheet";
   onSaveSingle: (row: StudioRow, draft: SingleEditDraft) => void;
   onApplyBulk: (rows: readonly StudioRow[], edit: BulkEdit) => void;
   onDeselect: () => void;
+  /** Reports whether the single-row draft differs from the saved row. */
+  onDirtyChange?: (dirty: boolean) => void;
+  /** Opens Showcases on this replication's drug-article placements. */
+  onOpenPlacement?: (row: StudioRow) => void;
 };
 
 const ROLE_OPTIONS: StudioRole[] = ["replication", "figure"];
 
-function draftOf(row: StudioRow): SingleEditDraft {
+export function draftOf(row: StudioRow): SingleEditDraft {
   return {
     title: row.title,
     artist: row.artist,
@@ -70,6 +73,13 @@ function draftOf(row: StudioRow): SingleEditDraft {
     source_url: row.source_url ?? null,
   };
 }
+
+function draftsEqual(a: SingleEditDraft, b: SingleEditDraft): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+const ROLE_HELP =
+  "A replication recreates an experience. A figure is an explanatory diagram or illustration; figures stay out of galleries and showcases.";
 
 function RolePills({
   value,
@@ -109,6 +119,8 @@ export function ReplicationSingleEditor({
   showSource = false,
   saveLabel = "Save",
   value,
+  showPreview = true,
+  showActions = true,
 }: {
   row: StudioRow;
   effects: readonly StudioEffectOption[];
@@ -119,19 +131,22 @@ export function ReplicationSingleEditor({
   showSource?: boolean;
   saveLabel?: string;
   value?: SingleEditDraft;
+  /** Draw the large media frame above the fields. */
+  showPreview?: boolean;
+  /** Draw Save and Revert under the fields; a host with its own footer turns this off. */
+  showActions?: boolean;
 }) {
   const [localDraft, setLocalDraft] = useState<SingleEditDraft>(() => draftOf(row));
   const draft = value ?? localDraft;
   const setDraft = (next: SingleEditDraft) => {
     setLocalDraft(next);
-    onDraftChange?.(next, JSON.stringify(next) !== JSON.stringify(draftOf(row)));
+    onDraftChange?.(next, !draftsEqual(next, draftOf(row)));
   };
 
   // A new selection is a new subject, not an edit of the current one.
   useEffect(() => {
     setLocalDraft(draftOf(row));
   }, [row]);
-
 
   const effectOptions = useMemo(
     () => [
@@ -143,7 +158,7 @@ export function ReplicationSingleEditor({
 
   return (
     <div className="space-y-4">
-      <ReplicationThumb row={row} className="aspect-[4/3]" />
+      {showPreview ? <ReplicationThumb row={row} className="aspect-[4/3]" /> : null}
 
       <EditorField label="Title" htmlFor="studio-title">
         <Input
@@ -152,13 +167,6 @@ export function ReplicationSingleEditor({
           value={draft.title}
           onChange={(event) => setDraft({ ...draft, title: event.target.value })}
         />
-      </EditorField>
-
-      <EditorField label="Slug (read-only)" description="Rename slugs with the replication maintenance scripts: the slug is the public URL and the gallery-order key.">
-        <div className="flex items-center gap-2 rounded-xl border border-[color:var(--editor-panel-border)] theme-replication-field px-3 py-2">
-          <span className="theme-text-secondary min-w-0 flex-1 truncate font-mono text-xs">{row.slug}</span>
-          <Badge variant="secondary">{row.format}</Badge>
-        </div>
       </EditorField>
 
       <EditorField label="Artist" htmlFor="studio-artist">
@@ -176,10 +184,6 @@ export function ReplicationSingleEditor({
         ))}
       </datalist>
 
-      <EditorField label="Role">
-        <RolePills value={draft.role} onChange={(role) => setDraft({ ...draft, role: (role || "replication") as StudioRole })} />
-      </EditorField>
-
       <EditorField label="Primary effect" htmlFor="studio-effect">
         <EditorSelect
           id="studio-effect"
@@ -194,10 +198,14 @@ export function ReplicationSingleEditor({
         />
       </EditorField>
 
+      <EditorField label="Role" description={ROLE_HELP}>
+        <RolePills value={draft.role} onChange={(role) => setDraft({ ...draft, role: (role || "replication") as StudioRole })} />
+      </EditorField>
+
       <EditorField
-        label="Subjective effect tags"
+        label="Other effects shown"
         htmlFor="studio-tags"
-        description="Everything else this asset depicts. Stored on the row; no public surface reads them yet."
+        description="Everything else this work depicts. Stored on the row; no public page reads them yet."
       >
         <EffectTagInput
           id="studio-tags"
@@ -207,11 +215,11 @@ export function ReplicationSingleEditor({
         />
       </EditorField>
 
-      <EditorField label="Rights / credit" htmlFor="studio-credit">
+      <EditorField label="Credit line" htmlFor="studio-credit">
         <Textarea
           id="studio-credit"
-          rows={3}
-          placeholder="Credit line as it should appear beside the work"
+          rows={2}
+          placeholder="As it should appear beside the work"
           value={draft.credit_line ?? ""}
           onChange={(event) => setDraft({ ...draft, credit_line: event.target.value })}
         />
@@ -223,38 +231,51 @@ export function ReplicationSingleEditor({
         </EditorField>
       ) : null}
 
-      <div className="flex items-center gap-2">
-        <Button type="button" variant="accent" disabled={busy} onClick={() => onSave(row, draft)}>
-          {saveLabel}
-        </Button>
-        <Button type="button" variant="ghost" disabled={busy} onClick={() => setDraft(draftOf(row))}>
-          Revert
-        </Button>
-      </div>
+      {showActions ? (
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="accent" disabled={busy} onClick={() => onSave(row, draft)}>
+            {saveLabel}
+          </Button>
+          <Button type="button" variant="ghost" disabled={busy} onClick={() => setDraft(draftOf(row))}>
+            Revert
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function BulkEditor({
+type BulkState = {
+  effectSlug: string;
+  artist: string;
+  role: StudioRole | "";
+  addTags: string[];
+};
+
+const EMPTY_BULK: BulkState = { effectSlug: "", artist: "", role: "", addTags: [] };
+
+function bulkEditOf(state: BulkState): BulkEdit {
+  return {
+    effectSlug: state.effectSlug || undefined,
+    artist: state.artist.trim() || undefined,
+    role: state.role || undefined,
+    addEffectTags: state.addTags.length > 0 ? state.addTags : undefined,
+  };
+}
+
+function BulkFields({
   rows,
   effects,
   artists,
-  busy,
-  onApply,
-  onDeselect,
+  value,
+  onChange,
 }: {
   rows: readonly StudioRow[];
   effects: readonly StudioEffectOption[];
   artists: readonly string[];
-  busy: boolean;
-  onApply: (rows: readonly StudioRow[], edit: BulkEdit) => void;
-  onDeselect: () => void;
+  value: BulkState;
+  onChange: (next: BulkState) => void;
 }) {
-  const [effectSlug, setEffectSlug] = useState("");
-  const [artist, setArtist] = useState("");
-  const [role, setRole] = useState<StudioRole | "">("");
-  const [addTags, setAddTags] = useState<string[]>([]);
-
   const effectOptions = useMemo(
     () => [
       { value: "", label: "Leave unchanged" },
@@ -262,8 +283,6 @@ function BulkEditor({
     ],
     [effects],
   );
-
-  const nothingToApply = !effectSlug && !artist.trim() && !role && addTags.length === 0;
 
   return (
     <div className="space-y-4">
@@ -281,9 +300,9 @@ function BulkEditor({
       <EditorField label="Set effect for all" htmlFor="studio-bulk-effect">
         <EditorSelect
           id="studio-bulk-effect"
-          value={effectSlug}
+          value={value.effectSlug}
           options={effectOptions}
-          onChange={(event) => setEffectSlug(event.target.value)}
+          onChange={(event) => onChange({ ...value, effectSlug: event.target.value })}
         />
       </EditorField>
 
@@ -293,8 +312,8 @@ function BulkEditor({
           inputSize="sm"
           list="studio-artist-list"
           placeholder="Leave unchanged"
-          value={artist}
-          onChange={(event) => setArtist(event.target.value)}
+          value={value.artist}
+          onChange={(event) => onChange({ ...value, artist: event.target.value })}
         />
       </EditorField>
       <datalist id="studio-artist-list">
@@ -303,50 +322,87 @@ function BulkEditor({
         ))}
       </datalist>
 
-      <EditorField label="Set role for all">
-        <RolePills value={role} onChange={setRole} includeUnchanged />
+      <EditorField label="Set role for all" description={ROLE_HELP}>
+        <RolePills value={value.role} onChange={(role) => onChange({ ...value, role })} includeUnchanged />
       </EditorField>
 
       <EditorField
-        label="Add tags to all"
-        description="Tags are added, never replaced: a selection's rows rarely depict the same things."
+        label="Add effects shown to all"
+        description="Added, never replaced: the works in a selection rarely depict the same things."
       >
-        <EffectTagInput id="studio-bulk-tags" value={addTags} options={effects} onChange={setAddTags} />
+        <EffectTagInput
+          id="studio-bulk-tags"
+          value={value.addTags}
+          options={effects}
+          onChange={(addTags) => onChange({ ...value, addTags })}
+        />
       </EditorField>
-
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="accent"
-          disabled={busy || nothingToApply}
-          onClick={() =>
-            onApply(rows, {
-              effectSlug: effectSlug || undefined,
-              artist: artist.trim() || undefined,
-              role: role || undefined,
-              addEffectTags: addTags.length > 0 ? addTags : undefined,
-            })
-          }
-        >
-          Apply to {rows.length}
-        </Button>
-        <Button type="button" variant="ghost" disabled={busy} onClick={onDeselect}>
-          Deselect
-        </Button>
-      </div>
     </div>
   );
 }
 
 const KEYBOARD_HINTS: [string, string][] = [
-  ["/", "focus search"],
-  ["Esc", "clear selection"],
-  ["← →", "move selection"],
+  ["/", "search"],
+  ["← ↑ → ↓", "move through the grid"],
+  ["Esc", "clear the selection"],
   ["Shift + click", "select a range"],
-  ["Ctrl / ⌘ + click", "toggle one"],
+  ["Ctrl / ⌘ + click", "add or remove one"],
 ];
 
-/** The editor drawer: empty coach, single-row form, or bulk panel. */
+export function KeyboardHints() {
+  return (
+    <ul className="space-y-1.5">
+      {KEYBOARD_HINTS.map(([key, description]) => (
+        <li key={key} className="flex items-center gap-2 text-sm">
+          <kbd className="theme-replication-muted-panel theme-text-secondary rounded-md border border-[color:var(--editor-panel-border)] px-1.5 py-0.5 font-mono text-xs">
+            {key}
+          </kbd>
+          <span className="theme-text-faint">{description}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The single-row draft, owned here so the footer can sit outside the
+ * scrolling fields. A corpus reload replaces the row object: the draft only
+ * follows it when the subject changed, the draft was clean, or the reload is
+ * the save landing (the new row equals the draft).
+ */
+function useSingleDraft(row: StudioRow | null, onDirtyChange?: (dirty: boolean) => void) {
+  const [draft, setDraft] = useState<SingleEditDraft | null>(() => (row ? draftOf(row) : null));
+  const previous = useRef<StudioRow | null>(row);
+
+  useEffect(() => {
+    const before = previous.current;
+    previous.current = row;
+    if (!row) {
+      setDraft(null);
+      return;
+    }
+    setDraft((current) => {
+      if (!current || !before || before.id !== row.id) return draftOf(row);
+      const wasClean = draftsEqual(current, draftOf(before));
+      const saved = draftsEqual(current, draftOf(row));
+      return wasClean || saved ? draftOf(row) : current;
+    });
+  }, [row]);
+
+  const dirty = Boolean(row && draft && !draftsEqual(draft, draftOf(row)));
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  return { draft, setDraft, dirty };
+}
+
+/**
+ * The inspector: a compact identity header, one scrolling body, and a footer
+ * pinned to the bottom edge carrying the one commit for what is on screen.
+ * Placement on drug articles is not edited here; it opens in Showcases.
+ */
 export function ReplicationEditorDrawer({
   selected,
   effects,
@@ -356,69 +412,141 @@ export function ReplicationEditorDrawer({
   onSaveSingle,
   onApplyBulk,
   onDeselect,
+  onDirtyChange,
+  onOpenPlacement,
 }: ReplicationEditorDrawerProps) {
-  const eyebrow = selected.length === 0
-    ? "Editor"
-    : selected.length === 1
-      ? "Editing 1 replication"
-      : "Bulk edit";
+  const single = selected.length === 1 ? selected[0] : null;
+  const { draft, setDraft, dirty } = useSingleDraft(single, onDirtyChange);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [bulk, setBulk] = useState<BulkState>(EMPTY_BULK);
+  const nothingToApply = !bulk.effectSlug && !bulk.artist.trim() && !bulk.role && bulk.addTags.length === 0;
+
   const title = selected.length === 0
     ? "Nothing selected"
-    : selected.length === 1
-      ? selected[0].title || "Untitled"
+    : single
+      ? single.title || "Untitled"
       : `${selected.length} replications selected`;
 
   return (
     <EditorPanel
-      className={
-        placement === "aside" ? "sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto" : undefined
-      }
+      data-studio-inspector=""
+      aria-label="Inspector"
+      role="region"
+      className={cn(
+        "flex min-h-0 flex-col overflow-hidden",
+        placement === "column" ? "h-full" : "h-full rounded-none border-0 bg-transparent shadow-none",
+      )}
     >
-      <EditorPanelHeader eyebrow={eyebrow} title={title} />
-      <EditorPanelBody>
+      <header className="flex items-start gap-3 border-b border-[color:var(--editor-panel-border)] px-4 py-3">
+        {single ? (
+          <button
+            type="button"
+            aria-expanded={previewOpen}
+            aria-label={previewOpen ? "Hide the large preview" : "Show a large preview"}
+            onClick={() => setPreviewOpen((open) => !open)}
+            className="shrink-0 rounded-lg"
+          >
+            <ReplicationThumb row={single} showGlyph={false} className="h-12 w-16" />
+          </button>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <h3 className="theme-text-primary truncate font-display text-base font-semibold leading-6">
+            {title}
+          </h3>
+          {single ? (
+            <div className="theme-text-faint flex min-w-0 items-center gap-2 text-xs">
+              <span className="truncate font-mono" title="The slug is the public URL and the gallery-order key; rename it with the replication maintenance scripts.">
+                {single.slug}
+              </span>
+              <Badge variant="secondary" className="shrink-0">{single.format}</Badge>
+            </div>
+          ) : selected.length === 0 ? (
+            <p className="theme-text-faint text-xs">Select a work to edit it. Drop files anywhere to upload.</p>
+          ) : (
+            <p className="theme-text-faint text-xs">Fields left unchanged keep each work&apos;s own value.</p>
+          )}
+        </div>
+        {selected.length > 0 ? (
+          <Button
+            type="button"
+            variant="iconClose"
+            size="icon"
+            className="-mr-1 size-8"
+            aria-label={placement === "sheet" ? "Close the inspector" : "Clear the selection"}
+            title="Esc"
+            onClick={onDeselect}
+          >
+            <Icon icon="lucide:x" size={16} />
+          </Button>
+        ) : null}
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
         {selected.length === 0 ? (
-          <div className="space-y-4">
-            <p className="theme-text-muted text-sm">
-              Select a replication to edit it. Drag files anywhere to upload.
-            </p>
-            <ul className="space-y-1.5">
-              {KEYBOARD_HINTS.map(([key, description]) => (
-                <li key={key} className="flex items-center gap-2 text-sm">
-                  <kbd className="theme-replication-muted-panel theme-text-secondary rounded-md border border-[color:var(--editor-panel-border)] px-1.5 py-0.5 font-mono text-[11px]">
-                    {key}
-                  </kbd>
-                  <span className="theme-text-faint">{description}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : selected.length === 1 ? (
-          <div className="space-y-5">
+          <KeyboardHints />
+        ) : single && draft ? (
+          <div className="space-y-6">
+            {previewOpen ? <ReplicationThumb row={single} className="aspect-[4/3]" enableVideoPreview /> : null}
             <ReplicationSingleEditor
-              key={selected[0].id}
-              row={selected[0]}
+              row={single}
               effects={effects}
               artists={artists}
               busy={busy}
+              value={draft}
+              onDraftChange={(next) => setDraft(next)}
               onSave={onSaveSingle}
+              showPreview={false}
+              showActions={false}
             />
-            {/* Associations are derived per replication, so this belongs to
-                single-edit mode only: a bulk selection has no one answer. */}
-            <div className="border-t border-[color:var(--editor-panel-border)] pt-5">
-              <ReplicationAssociationsPanel row={selected[0]} />
-            </div>
+            {onOpenPlacement ? (
+              <section className="space-y-2 border-t border-[color:var(--editor-panel-border)] pt-4">
+                <h4 className="theme-text-secondary text-sm font-medium">Drug articles</h4>
+                <p className="theme-text-faint text-sm">
+                  Which drug articles show this work, and in what order, is curated in Showcases.
+                </p>
+                <Button type="button" variant="secondary" size="sm" onClick={() => onOpenPlacement(single)}>
+                  <Icon icon="lucide:images" size={15} />
+                  Manage in Showcases
+                </Button>
+              </section>
+            ) : null}
           </div>
         ) : (
-          <BulkEditor
-            rows={selected}
-            effects={effects}
-            artists={artists}
-            busy={busy}
-            onApply={onApplyBulk}
-            onDeselect={onDeselect}
-          />
+          <BulkFields rows={selected} effects={effects} artists={artists} value={bulk} onChange={setBulk} />
         )}
-      </EditorPanelBody>
+      </div>
+
+      {single && draft ? (
+        <footer className="flex items-center gap-2 border-t border-[color:var(--editor-panel-border)] px-4 py-3">
+          <Button type="button" variant="accent" size="sm" disabled={busy || !dirty} onClick={() => onSaveSingle(single, draft)}>
+            {busy ? "Saving…" : "Save"}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" disabled={busy || !dirty} onClick={() => setDraft(draftOf(single))}>
+            Revert
+          </Button>
+          <span className="flex-1" />
+          <EditorStatusPill tone={dirty ? "warning" : "neutral"}>
+            {dirty ? "Unsaved changes" : "Saved"}
+          </EditorStatusPill>
+        </footer>
+      ) : selected.length > 1 ? (
+        <footer className="flex items-center gap-2 border-t border-[color:var(--editor-panel-border)] px-4 py-3">
+          <Button
+            type="button"
+            variant="accent"
+            size="sm"
+            disabled={busy || nothingToApply}
+            onClick={() => {
+              onApplyBulk(selected, bulkEditOf(bulk));
+            }}
+          >
+            Apply to {selected.length}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onDeselect}>
+            Deselect
+          </Button>
+        </footer>
+      ) : null}
     </EditorPanel>
   );
 }
